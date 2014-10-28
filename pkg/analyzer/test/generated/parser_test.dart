@@ -7,8 +7,6 @@
 
 library engine.parser_test;
 
-import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/java_junit.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/scanner.dart';
@@ -16,7 +14,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:unittest/unittest.dart' as _ut;
+import 'package:unittest/unittest.dart';
 import 'test_support.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
@@ -28,7 +26,7 @@ import '../reflective_tests.dart';
 class AnalysisErrorListener_SimpleParserTest_computeStringValue implements AnalysisErrorListener {
   @override
   void onError(AnalysisError event) {
-    JUnitTestCase.fail("Unexpected compilation error: ${event.message} (${event.offset}, ${event.length})");
+    fail("Unexpected compilation error: ${event.message} (${event.offset}, ${event.length})");
   }
 }
 
@@ -54,7 +52,7 @@ class AstValidator extends UnifyingAstVisitor<Object> {
         buffer.write("\r\n   ");
         buffer.write(message);
       }
-      JUnitTestCase.fail(buffer.toString());
+      fail(buffer.toString());
     }
   }
 
@@ -146,29 +144,29 @@ class ComplexParserTest extends ParserTestCase {
 
   void test_assignableExpression_arguments_normal_chain() {
     PropertyAccess propertyAccess1 = ParserTestCase.parseExpression("a(b)(c).d(e).f", []);
-    JUnitTestCase.assertEquals("f", propertyAccess1.propertyName.name);
+    expect(propertyAccess1.propertyName.name, "f");
     //
     // a(b)(c).d(e)
     //
     MethodInvocation invocation2 = EngineTestCase.assertInstanceOf((obj) => obj is MethodInvocation, MethodInvocation, propertyAccess1.target);
-    JUnitTestCase.assertEquals("d", invocation2.methodName.name);
+    expect(invocation2.methodName.name, "d");
     ArgumentList argumentList2 = invocation2.argumentList;
-    JUnitTestCase.assertNotNull(argumentList2);
+    expect(argumentList2, isNotNull);
     EngineTestCase.assertSizeOfList(1, argumentList2.arguments);
     //
     // a(b)(c)
     //
     FunctionExpressionInvocation invocation3 = EngineTestCase.assertInstanceOf((obj) => obj is FunctionExpressionInvocation, FunctionExpressionInvocation, invocation2.target);
     ArgumentList argumentList3 = invocation3.argumentList;
-    JUnitTestCase.assertNotNull(argumentList3);
+    expect(argumentList3, isNotNull);
     EngineTestCase.assertSizeOfList(1, argumentList3.arguments);
     //
     // a(b)
     //
     MethodInvocation invocation4 = EngineTestCase.assertInstanceOf((obj) => obj is MethodInvocation, MethodInvocation, invocation3.function);
-    JUnitTestCase.assertEquals("a", invocation4.methodName.name);
+    expect(invocation4.methodName.name, "a");
     ArgumentList argumentList4 = invocation4.argumentList;
-    JUnitTestCase.assertNotNull(argumentList4);
+    expect(argumentList4, isNotNull);
     EngineTestCase.assertSizeOfList(1, argumentList4.arguments);
   }
 
@@ -264,8 +262,8 @@ class ComplexParserTest extends ParserTestCase {
       Expression lhs = (section as AssignmentExpression).leftHandSide;
       EngineTestCase.assertInstanceOf((obj) => obj is IndexExpression, IndexExpression, lhs);
       IndexExpression index = lhs as IndexExpression;
-      JUnitTestCase.assertTrue(index.isCascaded);
-      JUnitTestCase.assertSame(target, index.realTarget);
+      expect(index.isCascaded, isTrue);
+      expect(index.realTarget, same(target));
     }
   }
 
@@ -402,7 +400,7 @@ class ErrorParserTest extends ParserTestCase {
     // the synthetic list literals that are being created are not always zero length (because they
     // could have type parameters), which violates the contract of isSynthetic().
     TypedLiteral literal = ParserTestCase.parse3("parseListOrMapLiteral", <Object> [null], "1", [ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL]);
-    JUnitTestCase.assertTrue(literal.isSynthetic);
+    expect(literal.isSynthetic, isTrue);
   }
 
   void fail_illegalAssignmentToNonAssignable_superAssigned() {
@@ -655,12 +653,12 @@ class ErrorParserTest extends ParserTestCase {
 
   void test_directiveAfterDeclaration_classBeforeDirective() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("class Foo{} library l;", [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION]);
-    JUnitTestCase.assertNotNull(unit);
+    expect(unit, isNotNull);
   }
 
   void test_directiveAfterDeclaration_classBetweenDirectives() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("library l;\nclass Foo{}\npart 'a.dart';", [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION]);
-    JUnitTestCase.assertNotNull(unit);
+    expect(unit, isNotNull);
   }
 
   void test_duplicatedModifier_const() {
@@ -752,7 +750,7 @@ class ErrorParserTest extends ParserTestCase {
 
   void test_expectedStringLiteral() {
     StringLiteral expression = ParserTestCase.parse4("parseStringLiteral", "1", [ParserErrorCode.EXPECTED_STRING_LITERAL]);
-    JUnitTestCase.assertTrue(expression.isSynthetic);
+    expect(expression.isSynthetic, isTrue);
   }
 
   void test_expectedToken_commaMissingInArgumentList() {
@@ -774,8 +772,8 @@ class ErrorParserTest extends ParserTestCase {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("export '' class A {}", [ParserErrorCode.EXPECTED_TOKEN]);
     ExportDirective directive = unit.directives[0] as ExportDirective;
     Token semicolon = directive.semicolon;
-    JUnitTestCase.assertNotNull(semicolon);
-    JUnitTestCase.assertTrue(semicolon.isSynthetic);
+    expect(semicolon, isNotNull);
+    expect(semicolon.isSynthetic, isTrue);
   }
 
   void test_expectedToken_semicolonMissingAfterExpression() {
@@ -786,8 +784,8 @@ class ErrorParserTest extends ParserTestCase {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("import '' class A {}", [ParserErrorCode.EXPECTED_TOKEN]);
     ImportDirective directive = unit.directives[0] as ImportDirective;
     Token semicolon = directive.semicolon;
-    JUnitTestCase.assertNotNull(semicolon);
-    JUnitTestCase.assertTrue(semicolon.isSynthetic);
+    expect(semicolon, isNotNull);
+    expect(semicolon.isSynthetic, isTrue);
   }
 
   void test_expectedToken_whileMissingInDoStatement() {
@@ -1051,7 +1049,7 @@ class ErrorParserTest extends ParserTestCase {
 
   void test_libraryDirectiveNotFirst_afterPart() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("part 'a.dart';\nlibrary l;", [ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST]);
-    JUnitTestCase.assertNotNull(unit);
+    expect(unit, isNotNull);
   }
 
   void test_localFunctionDeclarationModifier_abstract() {
@@ -1088,7 +1086,7 @@ class ErrorParserTest extends ParserTestCase {
 
   void test_missingAssignableSelector_superPrimaryExpression() {
     SuperExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "super", [ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR]);
-    JUnitTestCase.assertNotNull(expression.keyword);
+    expect(expression.keyword, isNotNull);
   }
 
   void test_missingAssignableSelector_superPropertyAccessAssigned() {
@@ -1097,7 +1095,7 @@ class ErrorParserTest extends ParserTestCase {
 
   void test_missingCatchOrFinally() {
     TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {}", [ParserErrorCode.MISSING_CATCH_OR_FINALLY]);
-    JUnitTestCase.assertNotNull(statement);
+    expect(statement, isNotNull);
   }
 
   void test_missingClassBody() {
@@ -1184,7 +1182,7 @@ class ErrorParserTest extends ParserTestCase {
 
   void test_missingIdentifier_number() {
     SimpleIdentifier expression = ParserTestCase.parse4("parseSimpleIdentifier", "1", [ParserErrorCode.MISSING_IDENTIFIER]);
-    JUnitTestCase.assertTrue(expression.isSynthetic);
+    expect(expression.isSynthetic, isTrue);
   }
 
   void test_missingKeywordOperator() {
@@ -1205,12 +1203,12 @@ class ErrorParserTest extends ParserTestCase {
 
   void test_missingNameInLibraryDirective() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("library;", [ParserErrorCode.MISSING_NAME_IN_LIBRARY_DIRECTIVE]);
-    JUnitTestCase.assertNotNull(unit);
+    expect(unit, isNotNull);
   }
 
   void test_missingNameInPartOfDirective() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("part of;", [ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE]);
-    JUnitTestCase.assertNotNull(unit);
+    expect(unit, isNotNull);
   }
 
   void test_missingPrefixInDeferredImport() {
@@ -1311,12 +1309,12 @@ class ErrorParserTest extends ParserTestCase {
 
   void test_nonIdentifierLibraryName_library() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("library 'lib';", [ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME]);
-    JUnitTestCase.assertNotNull(unit);
+    expect(unit, isNotNull);
   }
 
   void test_nonIdentifierLibraryName_partOf() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("part of 'lib';", [ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME]);
-    JUnitTestCase.assertNotNull(unit);
+    expect(unit, isNotNull);
   }
 
   void test_nonPartOfDirectiveInPart_after() {
@@ -1341,8 +1339,8 @@ class ErrorParserTest extends ParserTestCase {
 
   void test_parseCascadeSection_missingIdentifier() {
     MethodInvocation methodInvocation = ParserTestCase.parse4("parseCascadeSection", "..()", [ParserErrorCode.MISSING_IDENTIFIER]);
-    JUnitTestCase.assertNull(methodInvocation.target);
-    JUnitTestCase.assertEquals("", methodInvocation.methodName.name);
+    expect(methodInvocation.target, isNull);
+    expect(methodInvocation.methodName.name, "");
     EngineTestCase.assertSizeOfList(0, methodInvocation.argumentList.arguments);
   }
 
@@ -1465,7 +1463,7 @@ class ErrorParserTest extends ParserTestCase {
   void test_useOfUnaryPlusOperator() {
     SimpleIdentifier expression = ParserTestCase.parse4("parseUnaryExpression", "+x", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression);
-    JUnitTestCase.assertTrue(expression.isSynthetic);
+    expect(expression.isSynthetic, isTrue);
   }
 
   void test_varAndType_field() {
@@ -1792,35 +1790,35 @@ class IncrementalParserTest extends EngineTestCase {
     GatheringErrorListener originalListener = new GatheringErrorListener();
     Scanner originalScanner = new Scanner(source, new CharSequenceReader(originalContents), originalListener);
     Token originalTokens = originalScanner.tokenize();
-    JUnitTestCase.assertNotNull(originalTokens);
+    expect(originalTokens, isNotNull);
     Parser originalParser = new Parser(source, originalListener);
     CompilationUnit originalUnit = originalParser.parseCompilationUnit(originalTokens);
-    JUnitTestCase.assertNotNull(originalUnit);
+    expect(originalUnit, isNotNull);
     //
     // Parse the modified contents.
     //
     GatheringErrorListener modifiedListener = new GatheringErrorListener();
     Scanner modifiedScanner = new Scanner(source, new CharSequenceReader(modifiedContents), modifiedListener);
     Token modifiedTokens = modifiedScanner.tokenize();
-    JUnitTestCase.assertNotNull(modifiedTokens);
+    expect(modifiedTokens, isNotNull);
     Parser modifiedParser = new Parser(source, modifiedListener);
     CompilationUnit modifiedUnit = modifiedParser.parseCompilationUnit(modifiedTokens);
-    JUnitTestCase.assertNotNull(modifiedUnit);
+    expect(modifiedUnit, isNotNull);
     //
     // Incrementally parse the modified contents.
     //
     GatheringErrorListener incrementalListener = new GatheringErrorListener();
     IncrementalScanner incrementalScanner = new IncrementalScanner(source, new CharSequenceReader(modifiedContents), incrementalListener);
     Token incrementalTokens = incrementalScanner.rescan(originalTokens, replaceStart, removed.length, added.length);
-    JUnitTestCase.assertNotNull(incrementalTokens);
+    expect(incrementalTokens, isNotNull);
     IncrementalParser incrementalParser = new IncrementalParser(source, incrementalScanner.tokenMap, incrementalListener);
     CompilationUnit incrementalUnit = incrementalParser.reparse(originalUnit, incrementalScanner.leftToken, incrementalScanner.rightToken, replaceStart, prefix.length + removed.length);
-    JUnitTestCase.assertNotNull(incrementalUnit);
+    expect(incrementalUnit, isNotNull);
     //
     // Validate that the results of the incremental parse are the same as the full parse of the
     // modified source.
     //
-    JUnitTestCase.assertTrue(AstComparator.equalNodes(modifiedUnit, incrementalUnit));
+    expect(AstComparator.equalNodes(modifiedUnit, incrementalUnit), isTrue);
     // TODO(brianwilkerson) Verify that the errors are correct?
   }
 }
@@ -1950,7 +1948,7 @@ class ParserTestCase extends EngineTestCase {
     Token token = scanner.tokenize();
     Parser parser = createParser(listener);
     CompilationUnit unit = parser.parseCompilationUnit(token);
-    JUnitTestCase.assertNotNull(unit);
+    expect(unit, isNotNull);
     listener.assertErrorsWithCodes(errorCodes);
     return unit;
   }
@@ -1971,7 +1969,7 @@ class ParserTestCase extends EngineTestCase {
     Token token = scanner.tokenize();
     Parser parser = createParser(listener);
     Expression expression = parser.parseExpression(token);
-    JUnitTestCase.assertNotNull(expression);
+    expect(expression, isNotNull);
     listener.assertErrorsWithCodes(errorCodes);
     return expression;
   }
@@ -1992,7 +1990,7 @@ class ParserTestCase extends EngineTestCase {
     Token token = scanner.tokenize();
     Parser parser = createParser(listener);
     Statement statement = parser.parseStatement(token);
-    JUnitTestCase.assertNotNull(statement);
+    expect(statement, isNotNull);
     listener.assertErrorsWithCodes(errorCodes);
     return statement;
   }
@@ -2055,7 +2053,7 @@ class ParserTestCase extends EngineTestCase {
     // Partially test the results.
     //
     if (!listener.hasErrors) {
-      JUnitTestCase.assertNotNull(result);
+      expect(result, isNotNull);
     }
     return result;
   }
@@ -2125,7 +2123,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   void test_additiveExpression_missing_LHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("+ y", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
-    JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
+    expect(expression.leftOperand.isSynthetic, isTrue);
   }
 
   void test_additiveExpression_missing_LHS_RHS() {
@@ -2133,21 +2131,21 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
-    JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
+    expect(expression.leftOperand.isSynthetic, isTrue);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_additiveExpression_missing_RHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("x +", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_additiveExpression_missing_RHS_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super +", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_additiveExpression_precedence_multiplicative_left() {
@@ -2177,39 +2175,39 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
     AssignmentExpression expression = ParserTestCase.parseExpression("= y = 0", [ParserErrorCode.MISSING_IDENTIFIER]);
     Expression syntheticExpression = expression.leftHandSide;
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, syntheticExpression);
-    JUnitTestCase.assertTrue(syntheticExpression.isSynthetic);
+    expect(syntheticExpression.isSynthetic, isTrue);
   }
 
   void test_assignmentExpression_missing_compound2() {
     AssignmentExpression expression = ParserTestCase.parseExpression("x = = 0", [ParserErrorCode.MISSING_IDENTIFIER]);
     Expression syntheticExpression = (expression.rightHandSide as AssignmentExpression).leftHandSide;
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, syntheticExpression);
-    JUnitTestCase.assertTrue(syntheticExpression.isSynthetic);
+    expect(syntheticExpression.isSynthetic, isTrue);
   }
 
   void test_assignmentExpression_missing_compound3() {
     AssignmentExpression expression = ParserTestCase.parseExpression("x = y =", [ParserErrorCode.MISSING_IDENTIFIER]);
     Expression syntheticExpression = (expression.rightHandSide as AssignmentExpression).rightHandSide;
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, syntheticExpression);
-    JUnitTestCase.assertTrue(syntheticExpression.isSynthetic);
+    expect(syntheticExpression.isSynthetic, isTrue);
   }
 
   void test_assignmentExpression_missing_LHS() {
     AssignmentExpression expression = ParserTestCase.parseExpression("= 0", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftHandSide);
-    JUnitTestCase.assertTrue(expression.leftHandSide.isSynthetic);
+    expect(expression.leftHandSide.isSynthetic, isTrue);
   }
 
   void test_assignmentExpression_missing_RHS() {
     AssignmentExpression expression = ParserTestCase.parseExpression("x =", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftHandSide);
-    JUnitTestCase.assertTrue(expression.rightHandSide.isSynthetic);
+    expect(expression.rightHandSide.isSynthetic, isTrue);
   }
 
   void test_bitwiseAndExpression_missing_LHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("& y", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
-    JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
+    expect(expression.leftOperand.isSynthetic, isTrue);
   }
 
   void test_bitwiseAndExpression_missing_LHS_RHS() {
@@ -2217,21 +2215,21 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
-    JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
+    expect(expression.leftOperand.isSynthetic, isTrue);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_bitwiseAndExpression_missing_RHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("x &", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_bitwiseAndExpression_missing_RHS_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super &", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_bitwiseAndExpression_precedence_equality_left() {
@@ -2260,7 +2258,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   void test_bitwiseOrExpression_missing_LHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("| y", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
-    JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
+    expect(expression.leftOperand.isSynthetic, isTrue);
   }
 
   void test_bitwiseOrExpression_missing_LHS_RHS() {
@@ -2268,21 +2266,21 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
-    JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
+    expect(expression.leftOperand.isSynthetic, isTrue);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_bitwiseOrExpression_missing_RHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("x |", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_bitwiseOrExpression_missing_RHS_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super |", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_bitwiseOrExpression_precedence_xor_left() {
@@ -2311,7 +2309,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   void test_bitwiseXorExpression_missing_LHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("^ y", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
-    JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
+    expect(expression.leftOperand.isSynthetic, isTrue);
   }
 
   void test_bitwiseXorExpression_missing_LHS_RHS() {
@@ -2319,21 +2317,21 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
-    JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
+    expect(expression.leftOperand.isSynthetic, isTrue);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_bitwiseXorExpression_missing_RHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("x ^", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_bitwiseXorExpression_missing_RHS_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super ^", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_bitwiseXorExpression_precedence_and_left() {
@@ -2368,19 +2366,19 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
   void test_conditionalExpression_missingElse() {
     ConditionalExpression expression = ParserTestCase.parse4("parseConditionalExpression", "x ? y :", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.elseExpression);
-    JUnitTestCase.assertTrue(expression.elseExpression.isSynthetic);
+    expect(expression.elseExpression.isSynthetic, isTrue);
   }
 
   void test_conditionalExpression_missingThen() {
     ConditionalExpression expression = ParserTestCase.parse4("parseConditionalExpression", "x ? : z", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.thenExpression);
-    JUnitTestCase.assertTrue(expression.thenExpression.isSynthetic);
+    expect(expression.thenExpression.isSynthetic, isTrue);
   }
 
   void test_equalityExpression_missing_LHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("== y", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
-    JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
+    expect(expression.leftOperand.isSynthetic, isTrue);
   }
 
   void test_equalityExpression_missing_LHS_RHS() {
@@ -2388,21 +2386,21 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
-    JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
+    expect(expression.leftOperand.isSynthetic, isTrue);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_equalityExpression_missing_RHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("x ==", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_equalityExpression_missing_RHS_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super ==", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_equalityExpression_precedence_relational_left() {
@@ -2434,7 +2432,7 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
     EngineTestCase.assertSizeOfList(4, result);
     Expression syntheticExpression = result[0];
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, syntheticExpression);
-    JUnitTestCase.assertTrue(syntheticExpression.isSynthetic);
+    expect(syntheticExpression.isSynthetic, isTrue);
   }
 
   void test_expressionList_multiple_middle() {
@@ -2442,7 +2440,7 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
     EngineTestCase.assertSizeOfList(4, result);
     Expression syntheticExpression = result[2];
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, syntheticExpression);
-    JUnitTestCase.assertTrue(syntheticExpression.isSynthetic);
+    expect(syntheticExpression.isSynthetic, isTrue);
   }
 
   void test_expressionList_multiple_start() {
@@ -2450,7 +2448,7 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
     EngineTestCase.assertSizeOfList(4, result);
     Expression syntheticExpression = result[3];
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, syntheticExpression);
-    JUnitTestCase.assertTrue(syntheticExpression.isSynthetic);
+    expect(syntheticExpression.isSynthetic, isTrue);
   }
 
   void test_functionExpression_in_ConstructorFieldInitializer() {
@@ -2464,7 +2462,7 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
     EngineTestCase.assertInstanceOf((obj) => obj is FieldDeclaration, FieldDeclaration, fieldDecl);
     NodeList<VariableDeclaration> vars = (fieldDecl as FieldDeclaration).fields.variables;
     EngineTestCase.assertSizeOfList(1, vars);
-    JUnitTestCase.assertEquals("v", vars[0].name.name);
+    expect(vars[0].name.name, "v");
   }
 
   void test_incomplete_topLevelVariable() {
@@ -2476,7 +2474,7 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
     NodeList<VariableDeclaration> variables = (member as TopLevelVariableDeclaration).variables.variables;
     EngineTestCase.assertSizeOfList(1, variables);
     SimpleIdentifier name = variables[0].name;
-    JUnitTestCase.assertTrue(name.isSynthetic);
+    expect(name.isSynthetic, isTrue);
   }
 
   void test_incomplete_topLevelVariable_const() {
@@ -2490,7 +2488,7 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
     NodeList<VariableDeclaration> variables = (member as TopLevelVariableDeclaration).variables.variables;
     EngineTestCase.assertSizeOfList(1, variables);
     SimpleIdentifier name = variables[0].name;
-    JUnitTestCase.assertTrue(name.isSynthetic);
+    expect(name.isSynthetic, isTrue);
   }
 
   void test_incomplete_topLevelVariable_final() {
@@ -2504,7 +2502,7 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
     NodeList<VariableDeclaration> variables = (member as TopLevelVariableDeclaration).variables.variables;
     EngineTestCase.assertSizeOfList(1, variables);
     SimpleIdentifier name = variables[0].name;
-    JUnitTestCase.assertTrue(name.isSynthetic);
+    expect(name.isSynthetic, isTrue);
   }
 
   void test_incomplete_topLevelVariable_var() {
@@ -2518,7 +2516,7 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
     NodeList<VariableDeclaration> variables = (member as TopLevelVariableDeclaration).variables.variables;
     EngineTestCase.assertSizeOfList(1, variables);
     SimpleIdentifier name = variables[0].name;
-    JUnitTestCase.assertTrue(name.isSynthetic);
+    expect(name.isSynthetic, isTrue);
   }
 
   void test_incompleteField_const() {
@@ -2537,11 +2535,11 @@ class C {
     ClassMember classMember = members[0];
     EngineTestCase.assertInstanceOf((obj) => obj is FieldDeclaration, FieldDeclaration, classMember);
     VariableDeclarationList fieldList = (classMember as FieldDeclaration).fields;
-    JUnitTestCase.assertEquals(Keyword.CONST, (fieldList.keyword as KeywordToken).keyword);
+    expect((fieldList.keyword as KeywordToken).keyword, Keyword.CONST);
     NodeList<VariableDeclaration> fields = fieldList.variables;
     EngineTestCase.assertSizeOfList(1, fields);
     VariableDeclaration field = fields[0];
-    JUnitTestCase.assertTrue(field.name.isSynthetic);
+    expect(field.name.isSynthetic, isTrue);
   }
 
   void test_incompleteField_final() {
@@ -2560,11 +2558,11 @@ class C {
     ClassMember classMember = members[0];
     EngineTestCase.assertInstanceOf((obj) => obj is FieldDeclaration, FieldDeclaration, classMember);
     VariableDeclarationList fieldList = (classMember as FieldDeclaration).fields;
-    JUnitTestCase.assertEquals(Keyword.FINAL, (fieldList.keyword as KeywordToken).keyword);
+    expect((fieldList.keyword as KeywordToken).keyword, Keyword.FINAL);
     NodeList<VariableDeclaration> fields = fieldList.variables;
     EngineTestCase.assertSizeOfList(1, fields);
     VariableDeclaration field = fields[0];
-    JUnitTestCase.assertTrue(field.name.isSynthetic);
+    expect(field.name.isSynthetic, isTrue);
   }
 
   void test_incompleteField_var() {
@@ -2583,11 +2581,11 @@ class C {
     ClassMember classMember = members[0];
     EngineTestCase.assertInstanceOf((obj) => obj is FieldDeclaration, FieldDeclaration, classMember);
     VariableDeclarationList fieldList = (classMember as FieldDeclaration).fields;
-    JUnitTestCase.assertEquals(Keyword.VAR, (fieldList.keyword as KeywordToken).keyword);
+    expect((fieldList.keyword as KeywordToken).keyword, Keyword.VAR);
     NodeList<VariableDeclaration> fields = fieldList.variables;
     EngineTestCase.assertSizeOfList(1, fields);
     VariableDeclaration field = fields[0];
-    JUnitTestCase.assertTrue(field.name.isSynthetic);
+    expect(field.name.isSynthetic, isTrue);
   }
 
   void test_isExpression_noType() {
@@ -2600,19 +2598,19 @@ class C {
     BlockFunctionBody body = method.body as BlockFunctionBody;
     IfStatement ifStatement = body.block.statements[1] as IfStatement;
     IsExpression expression = ifStatement.condition as IsExpression;
-    JUnitTestCase.assertNotNull(expression.expression);
-    JUnitTestCase.assertNotNull(expression.isOperator);
-    JUnitTestCase.assertNotNull(expression.notOperator);
+    expect(expression.expression, isNotNull);
+    expect(expression.isOperator, isNotNull);
+    expect(expression.notOperator, isNotNull);
     TypeName type = expression.type;
-    JUnitTestCase.assertNotNull(type);
-    JUnitTestCase.assertTrue(type.name.isSynthetic);
+    expect(type, isNotNull);
+    expect(type.name.isSynthetic, isTrue);
     EngineTestCase.assertInstanceOf((obj) => obj is EmptyStatement, EmptyStatement, ifStatement.thenStatement);
   }
 
   void test_logicalAndExpression_missing_LHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("&& y", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
-    JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
+    expect(expression.leftOperand.isSynthetic, isTrue);
   }
 
   void test_logicalAndExpression_missing_LHS_RHS() {
@@ -2620,15 +2618,15 @@ class C {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
-    JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
+    expect(expression.leftOperand.isSynthetic, isTrue);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_logicalAndExpression_missing_RHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("x &&", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_logicalAndExpression_precedence_bitwiseOr_left() {
@@ -2650,7 +2648,7 @@ class C {
   void test_logicalOrExpression_missing_LHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("|| y", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
-    JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
+    expect(expression.leftOperand.isSynthetic, isTrue);
   }
 
   void test_logicalOrExpression_missing_LHS_RHS() {
@@ -2658,15 +2656,15 @@ class C {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
-    JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
+    expect(expression.leftOperand.isSynthetic, isTrue);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_logicalOrExpression_missing_RHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("x ||", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_logicalOrExpression_precedence_logicalAnd_left() {
@@ -2691,28 +2689,28 @@ class C {
   int length {}
   void foo() {}
 }''', [ParserErrorCode.MISSING_GET]);
-    JUnitTestCase.assertNotNull(unit);
+    expect(unit, isNotNull);
     ClassDeclaration classDeclaration = unit.declarations[0] as ClassDeclaration;
     NodeList<ClassMember> members = classDeclaration.members;
     EngineTestCase.assertSizeOfList(2, members);
     EngineTestCase.assertInstanceOf((obj) => obj is MethodDeclaration, MethodDeclaration, members[0]);
     ClassMember member = members[1];
     EngineTestCase.assertInstanceOf((obj) => obj is MethodDeclaration, MethodDeclaration, member);
-    JUnitTestCase.assertEquals("foo", (member as MethodDeclaration).name.name);
+    expect((member as MethodDeclaration).name.name, "foo");
   }
 
   void test_missingIdentifier_afterAnnotation() {
     MethodDeclaration method = ParserTestCase.parse3("parseClassMember", <Object> ["C"], "@override }", [ParserErrorCode.EXPECTED_CLASS_MEMBER]);
-    JUnitTestCase.assertNull(method.documentationComment);
+    expect(method.documentationComment, isNull);
     NodeList<Annotation> metadata = method.metadata;
     EngineTestCase.assertSizeOfList(1, metadata);
-    JUnitTestCase.assertEquals("override", metadata[0].name.name);
+    expect(metadata[0].name.name, "override");
   }
 
   void test_multiplicativeExpression_missing_LHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("* y", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
-    JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
+    expect(expression.leftOperand.isSynthetic, isTrue);
   }
 
   void test_multiplicativeExpression_missing_LHS_RHS() {
@@ -2720,21 +2718,21 @@ class C {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
-    JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
+    expect(expression.leftOperand.isSynthetic, isTrue);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_multiplicativeExpression_missing_RHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("x *", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_multiplicativeExpression_missing_RHS_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super *", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_multiplicativeExpression_precedence_unary_left() {
@@ -2758,8 +2756,8 @@ class C {
   void test_prefixExpression_missing_operand_minus() {
     PrefixExpression expression = ParserTestCase.parseExpression("-", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.operand);
-    JUnitTestCase.assertTrue(expression.operand.isSynthetic);
-    JUnitTestCase.assertEquals(TokenType.MINUS, expression.operator.type);
+    expect(expression.operand.isSynthetic, isTrue);
+    expect(expression.operator.type, TokenType.MINUS);
   }
 
   void test_primaryExpression_argumentDefinitionTest() {
@@ -2770,7 +2768,7 @@ class C {
   void test_relationalExpression_missing_LHS() {
     IsExpression expression = ParserTestCase.parseExpression("is y", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.expression);
-    JUnitTestCase.assertTrue(expression.expression.isSynthetic);
+    expect(expression.expression.isSynthetic, isTrue);
   }
 
   void test_relationalExpression_missing_LHS_RHS() {
@@ -2778,15 +2776,15 @@ class C {
         ParserErrorCode.EXPECTED_TYPE_NAME,
         ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.expression);
-    JUnitTestCase.assertTrue(expression.expression.isSynthetic);
+    expect(expression.expression.isSynthetic, isTrue);
     EngineTestCase.assertInstanceOf((obj) => obj is TypeName, TypeName, expression.type);
-    JUnitTestCase.assertTrue(expression.type.isSynthetic);
+    expect(expression.type.isSynthetic, isTrue);
   }
 
   void test_relationalExpression_missing_RHS() {
     IsExpression expression = ParserTestCase.parseExpression("x is", [ParserErrorCode.EXPECTED_TYPE_NAME]);
     EngineTestCase.assertInstanceOf((obj) => obj is TypeName, TypeName, expression.type);
-    JUnitTestCase.assertTrue(expression.type.isSynthetic);
+    expect(expression.type.isSynthetic, isTrue);
   }
 
   void test_relationalExpression_precedence_shift_right() {
@@ -2800,7 +2798,7 @@ class C {
   void test_shiftExpression_missing_LHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("<< y", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
-    JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
+    expect(expression.leftOperand.isSynthetic, isTrue);
   }
 
   void test_shiftExpression_missing_LHS_RHS() {
@@ -2808,21 +2806,21 @@ class C {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
-    JUnitTestCase.assertTrue(expression.leftOperand.isSynthetic);
+    expect(expression.leftOperand.isSynthetic, isTrue);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_shiftExpression_missing_RHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("x <<", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_shiftExpression_missing_RHS_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super <<", [ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.rightOperand);
-    JUnitTestCase.assertTrue(expression.rightOperand.isSynthetic);
+    expect(expression.rightOperand.isSynthetic, isTrue);
   }
 
   void test_shiftExpression_precedence_unary_left() {
@@ -2867,7 +2865,7 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.element = element;
     Annotation toNode = AstFactory.annotation(AstFactory.identifier3(annotationName));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(element, toNode.element);
+    expect(toNode.element, same(element));
   }
 
   void test_visitAsExpression() {
@@ -2878,8 +2876,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     AsExpression toNode = AstFactory.asExpression(AstFactory.identifier3("x"), AstFactory.typeName4("A", []));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitAssignmentExpression() {
@@ -2894,10 +2892,10 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     AssignmentExpression toNode = AstFactory.assignmentExpression(AstFactory.identifier3("a"), TokenType.PLUS_EQ, AstFactory.identifier3("b"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedElement, same(propagatedElement));
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticElement, same(staticElement));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitBinaryExpression() {
@@ -2912,10 +2910,10 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     BinaryExpression toNode = AstFactory.binaryExpression(AstFactory.identifier3("a"), TokenType.PLUS, AstFactory.identifier3("b"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedElement, same(propagatedElement));
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticElement, same(staticElement));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitBooleanLiteral() {
@@ -2926,8 +2924,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     BooleanLiteral toNode = AstFactory.booleanLiteral(true);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitCascadeExpression() {
@@ -2938,8 +2936,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     CascadeExpression toNode = AstFactory.cascadeExpression(AstFactory.identifier3("a"), [AstFactory.identifier3("b")]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitCompilationUnit() {
@@ -2948,7 +2946,7 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.element = element;
     CompilationUnit toNode = AstFactory.compilationUnit();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(element, toNode.element);
+    expect(toNode.element, same(element));
   }
 
   void test_visitConditionalExpression() {
@@ -2959,8 +2957,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     ConditionalExpression toNode = AstFactory.conditionalExpression(AstFactory.identifier3("c"), AstFactory.identifier3("a"), AstFactory.identifier3("b"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitConstructorDeclaration() {
@@ -2971,7 +2969,7 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.element = element;
     ConstructorDeclaration toNode = AstFactory.constructorDeclaration(AstFactory.identifier3(className), constructorName, AstFactory.formalParameterList([]), null);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(element, toNode.element);
+    expect(toNode.element, same(element));
   }
 
   void test_visitConstructorName() {
@@ -2980,7 +2978,7 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticElement = staticElement;
     ConstructorName toNode = AstFactory.constructorName(AstFactory.typeName4("A", []), "c");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+    expect(toNode.staticElement, same(staticElement));
   }
 
   void test_visitDoubleLiteral() {
@@ -2991,8 +2989,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     DoubleLiteral toNode = AstFactory.doubleLiteral(1.0);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitExportDirective() {
@@ -3001,7 +2999,7 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.element = element;
     ExportDirective toNode = AstFactory.exportDirective2("dart:uri", []);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(element, toNode.element);
+    expect(toNode.element, same(element));
   }
 
   void test_visitFunctionExpression() {
@@ -3014,9 +3012,9 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     FunctionExpression toNode = AstFactory.functionExpression2(AstFactory.formalParameterList([]), AstFactory.emptyFunctionBody());
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(element, toNode.element);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.element, same(element));
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitFunctionExpressionInvocation() {
@@ -3031,10 +3029,10 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     FunctionExpressionInvocation toNode = AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"), []);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedElement, same(propagatedElement));
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticElement, same(staticElement));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitImportDirective() {
@@ -3043,7 +3041,7 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.element = element;
     ImportDirective toNode = AstFactory.importDirective3("dart:uri", null, []);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(element, toNode.element);
+    expect(toNode.element, same(element));
   }
 
   void test_visitIndexExpression() {
@@ -3060,11 +3058,11 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     IndexExpression toNode = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.integer(0));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(auxiliaryElements, toNode.auxiliaryElements);
-    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.auxiliaryElements, same(auxiliaryElements));
+    expect(toNode.propagatedElement, same(propagatedElement));
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticElement, same(staticElement));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitInstanceCreationExpression() {
@@ -3077,9 +3075,9 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     InstanceCreationExpression toNode = AstFactory.instanceCreationExpression2(Keyword.NEW, AstFactory.typeName4("C", []), []);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticElement, same(staticElement));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitIntegerLiteral() {
@@ -3090,8 +3088,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     IntegerLiteral toNode = AstFactory.integer(2);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitIsExpression() {
@@ -3102,8 +3100,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     IsExpression toNode = AstFactory.isExpression(AstFactory.identifier3("x"), false, AstFactory.typeName4("A", []));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitLibraryIdentifier() {
@@ -3114,8 +3112,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     LibraryIdentifier toNode = AstFactory.libraryIdentifier([AstFactory.identifier3("lib")]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitListLiteral() {
@@ -3126,8 +3124,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     ListLiteral toNode = AstFactory.listLiteral([]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitMapLiteral() {
@@ -3138,8 +3136,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     MapLiteral toNode = AstFactory.mapLiteral2([]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitMethodInvocation() {
@@ -3150,8 +3148,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     MethodInvocation toNode = AstFactory.methodInvocation2("m", []);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitNamedExpression() {
@@ -3162,8 +3160,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     NamedExpression toNode = AstFactory.namedExpression2("n", AstFactory.integer(0));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitNullLiteral() {
@@ -3174,8 +3172,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     NullLiteral toNode = AstFactory.nullLiteral();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitParenthesizedExpression() {
@@ -3186,8 +3184,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     ParenthesizedExpression toNode = AstFactory.parenthesizedExpression(AstFactory.integer(0));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitPartDirective() {
@@ -3196,7 +3194,7 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.element = element;
     PartDirective toNode = AstFactory.partDirective2("part.dart");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(element, toNode.element);
+    expect(toNode.element, same(element));
   }
 
   void test_visitPartOfDirective() {
@@ -3205,7 +3203,7 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.element = element;
     PartOfDirective toNode = AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["lib"]));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(element, toNode.element);
+    expect(toNode.element, same(element));
   }
 
   void test_visitPostfixExpression() {
@@ -3221,10 +3219,10 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     PostfixExpression toNode = AstFactory.postfixExpression(AstFactory.identifier3(variableName), TokenType.PLUS_PLUS);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedElement, same(propagatedElement));
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticElement, same(staticElement));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitPrefixedIdentifier() {
@@ -3235,8 +3233,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     PrefixedIdentifier toNode = AstFactory.identifier5("p", "f");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitPrefixExpression() {
@@ -3251,10 +3249,10 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     PrefixExpression toNode = AstFactory.prefixExpression(TokenType.PLUS_PLUS, AstFactory.identifier3("x"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedElement, same(propagatedElement));
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticElement, same(staticElement));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitPropertyAccess() {
@@ -3265,8 +3263,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     PropertyAccess toNode = AstFactory.propertyAccess2(AstFactory.identifier3("x"), "y");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitRedirectingConstructorInvocation() {
@@ -3275,7 +3273,7 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticElement = staticElement;
     RedirectingConstructorInvocation toNode = AstFactory.redirectingConstructorInvocation([]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+    expect(toNode.staticElement, same(staticElement));
   }
 
   void test_visitRethrowExpression() {
@@ -3286,8 +3284,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     RethrowExpression toNode = AstFactory.rethrowExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitSimpleIdentifier() {
@@ -3304,11 +3302,11 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     SimpleIdentifier toNode = AstFactory.identifier3("x");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(auxiliaryElements, toNode.auxiliaryElements);
-    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.auxiliaryElements, same(auxiliaryElements));
+    expect(toNode.propagatedElement, same(propagatedElement));
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticElement, same(staticElement));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitSimpleStringLiteral() {
@@ -3319,8 +3317,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     SimpleStringLiteral toNode = AstFactory.string2("abc");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitStringInterpolation() {
@@ -3331,8 +3329,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     StringInterpolation toNode = AstFactory.string([AstFactory.interpolationString("a", "'a'")]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitSuperConstructorInvocation() {
@@ -3341,7 +3339,7 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticElement = staticElement;
     SuperConstructorInvocation toNode = AstFactory.superConstructorInvocation([]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+    expect(toNode.staticElement, same(staticElement));
   }
 
   void test_visitSuperExpression() {
@@ -3352,8 +3350,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     SuperExpression toNode = AstFactory.superExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitSymbolLiteral() {
@@ -3364,8 +3362,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     SymbolLiteral toNode = AstFactory.symbolLiteral(["s"]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitThisExpression() {
@@ -3376,8 +3374,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     ThisExpression toNode = AstFactory.thisExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitThrowExpression() {
@@ -3388,8 +3386,8 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.staticType = staticType;
     ThrowExpression toNode = AstFactory.throwExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
-    JUnitTestCase.assertSame(staticType, toNode.staticType);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitTypeName() {
@@ -3398,7 +3396,7 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.type = type;
     TypeName toNode = AstFactory.typeName4("C", []);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    JUnitTestCase.assertSame(type, toNode.type);
+    expect(toNode.type, same(type));
   }
 }
 
@@ -3415,89 +3413,89 @@ class SimpleParserTest extends ParserTestCase {
     // is not null.
     CommentReference reference = ParserTestCase.parse("parseCommentReference", <Object> ["this", 5], "");
     SimpleIdentifier identifier = EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, reference.identifier);
-    JUnitTestCase.assertNotNull(identifier.token);
-    JUnitTestCase.assertEquals("a", identifier.name);
-    JUnitTestCase.assertEquals(5, identifier.offset);
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "a");
+    expect(identifier.offset, 5);
   }
 
   void test_computeStringValue_emptyInterpolationPrefix() {
-    JUnitTestCase.assertEquals("", _computeStringValue("'''", true, false));
+    expect(_computeStringValue("'''", true, false), "");
   }
 
   void test_computeStringValue_escape_b() {
-    JUnitTestCase.assertEquals("\b", _computeStringValue("'\\b'", true, true));
+    expect(_computeStringValue("'\\b'", true, true), "\b");
   }
 
   void test_computeStringValue_escape_f() {
-    JUnitTestCase.assertEquals("\f", _computeStringValue("'\\f'", true, true));
+    expect(_computeStringValue("'\\f'", true, true), "\f");
   }
 
   void test_computeStringValue_escape_n() {
-    JUnitTestCase.assertEquals("\n", _computeStringValue("'\\n'", true, true));
+    expect(_computeStringValue("'\\n'", true, true), "\n");
   }
 
   void test_computeStringValue_escape_notSpecial() {
-    JUnitTestCase.assertEquals(":", _computeStringValue("'\\:'", true, true));
+    expect(_computeStringValue("'\\:'", true, true), ":");
   }
 
   void test_computeStringValue_escape_r() {
-    JUnitTestCase.assertEquals("\r", _computeStringValue("'\\r'", true, true));
+    expect(_computeStringValue("'\\r'", true, true), "\r");
   }
 
   void test_computeStringValue_escape_t() {
-    JUnitTestCase.assertEquals("\t", _computeStringValue("'\\t'", true, true));
+    expect(_computeStringValue("'\\t'", true, true), "\t");
   }
 
   void test_computeStringValue_escape_u_fixed() {
-    JUnitTestCase.assertEquals("\u4321", _computeStringValue("'\\u4321'", true, true));
+    expect(_computeStringValue("'\\u4321'", true, true), "\u4321");
   }
 
   void test_computeStringValue_escape_u_variable() {
-    JUnitTestCase.assertEquals("\u0123", _computeStringValue("'\\u{123}'", true, true));
+    expect(_computeStringValue("'\\u{123}'", true, true), "\u0123");
   }
 
   void test_computeStringValue_escape_v() {
-    JUnitTestCase.assertEquals("\u000B", _computeStringValue("'\\v'", true, true));
+    expect(_computeStringValue("'\\v'", true, true), "\u000B");
   }
 
   void test_computeStringValue_escape_x() {
-    JUnitTestCase.assertEquals("\u00FF", _computeStringValue("'\\xFF'", true, true));
+    expect(_computeStringValue("'\\xFF'", true, true), "\u00FF");
   }
 
   void test_computeStringValue_noEscape_single() {
-    JUnitTestCase.assertEquals("text", _computeStringValue("'text'", true, true));
+    expect(_computeStringValue("'text'", true, true), "text");
   }
 
   void test_computeStringValue_noEscape_triple() {
-    JUnitTestCase.assertEquals("text", _computeStringValue("'''text'''", true, true));
+    expect(_computeStringValue("'''text'''", true, true), "text");
   }
 
   void test_computeStringValue_raw_single() {
-    JUnitTestCase.assertEquals("text", _computeStringValue("r'text'", true, true));
+    expect(_computeStringValue("r'text'", true, true), "text");
   }
 
   void test_computeStringValue_raw_triple() {
-    JUnitTestCase.assertEquals("text", _computeStringValue("r'''text'''", true, true));
+    expect(_computeStringValue("r'''text'''", true, true), "text");
   }
 
   void test_computeStringValue_raw_withEscape() {
-    JUnitTestCase.assertEquals("two\\nlines", _computeStringValue("r'two\\nlines'", true, true));
+    expect(_computeStringValue("r'two\\nlines'", true, true), "two\\nlines");
   }
 
   void test_computeStringValue_triple_internalQuote_first_empty() {
-    JUnitTestCase.assertEquals("'", _computeStringValue("''''", true, false));
+    expect(_computeStringValue("''''", true, false), "'");
   }
 
   void test_computeStringValue_triple_internalQuote_first_nonEmpty() {
-    JUnitTestCase.assertEquals("'text", _computeStringValue("''''text", true, false));
+    expect(_computeStringValue("''''text", true, false), "'text");
   }
 
   void test_computeStringValue_triple_internalQuote_last_empty() {
-    JUnitTestCase.assertEquals("", _computeStringValue("'''", false, true));
+    expect(_computeStringValue("'''", false, true), "");
   }
 
   void test_computeStringValue_triple_internalQuote_last_nonEmpty() {
-    JUnitTestCase.assertEquals("text", _computeStringValue("text'''", false, true));
+    expect(_computeStringValue("text'''", false, true), "text");
   }
 
   void test_constFactory() {
@@ -3506,12 +3504,12 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_createSyntheticIdentifier() {
     SimpleIdentifier identifier = _createSyntheticIdentifier();
-    JUnitTestCase.assertTrue(identifier.isSynthetic);
+    expect(identifier.isSynthetic, isTrue);
   }
 
   void test_createSyntheticStringLiteral() {
     SimpleStringLiteral literal = _createSyntheticStringLiteral();
-    JUnitTestCase.assertTrue(literal.isSynthetic);
+    expect(literal.isSynthetic, isTrue);
   }
 
   void test_function_literal_allowed_at_toplevel() {
@@ -3543,249 +3541,249 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_isFunctionDeclaration_nameButNoReturn_block() {
-    JUnitTestCase.assertTrue(_isFunctionDeclaration("f() {}"));
+    expect(_isFunctionDeclaration("f() {}"), isTrue);
   }
 
   void test_isFunctionDeclaration_nameButNoReturn_expression() {
-    JUnitTestCase.assertTrue(_isFunctionDeclaration("f() => e"));
+    expect(_isFunctionDeclaration("f() => e"), isTrue);
   }
 
   void test_isFunctionDeclaration_normalReturn_block() {
-    JUnitTestCase.assertTrue(_isFunctionDeclaration("C f() {}"));
+    expect(_isFunctionDeclaration("C f() {}"), isTrue);
   }
 
   void test_isFunctionDeclaration_normalReturn_expression() {
-    JUnitTestCase.assertTrue(_isFunctionDeclaration("C f() => e"));
+    expect(_isFunctionDeclaration("C f() => e"), isTrue);
   }
 
   void test_isFunctionDeclaration_voidReturn_block() {
-    JUnitTestCase.assertTrue(_isFunctionDeclaration("void f() {}"));
+    expect(_isFunctionDeclaration("void f() {}"), isTrue);
   }
 
   void test_isFunctionDeclaration_voidReturn_expression() {
-    JUnitTestCase.assertTrue(_isFunctionDeclaration("void f() => e"));
+    expect(_isFunctionDeclaration("void f() => e"), isTrue);
   }
 
   void test_isFunctionExpression_false_noBody() {
-    JUnitTestCase.assertFalse(_isFunctionExpression("f();"));
+    expect(_isFunctionExpression("f();"), isFalse);
   }
 
   void test_isFunctionExpression_false_notParameters() {
-    JUnitTestCase.assertFalse(_isFunctionExpression("(a + b) {"));
+    expect(_isFunctionExpression("(a + b) {"), isFalse);
   }
 
   void test_isFunctionExpression_noName_block() {
-    JUnitTestCase.assertTrue(_isFunctionExpression("() {}"));
+    expect(_isFunctionExpression("() {}"), isTrue);
   }
 
   void test_isFunctionExpression_noName_expression() {
-    JUnitTestCase.assertTrue(_isFunctionExpression("() => e"));
+    expect(_isFunctionExpression("() => e"), isTrue);
   }
 
   void test_isFunctionExpression_parameter_final() {
-    JUnitTestCase.assertTrue(_isFunctionExpression("(final a) {}"));
-    JUnitTestCase.assertTrue(_isFunctionExpression("(final a, b) {}"));
-    JUnitTestCase.assertTrue(_isFunctionExpression("(final a, final b) {}"));
+    expect(_isFunctionExpression("(final a) {}"), isTrue);
+    expect(_isFunctionExpression("(final a, b) {}"), isTrue);
+    expect(_isFunctionExpression("(final a, final b) {}"), isTrue);
   }
 
   void test_isFunctionExpression_parameter_final_typed() {
-    JUnitTestCase.assertTrue(_isFunctionExpression("(final int a) {}"));
-    JUnitTestCase.assertTrue(_isFunctionExpression("(final prefix.List a) {}"));
-    JUnitTestCase.assertTrue(_isFunctionExpression("(final List<int> a) {}"));
-    JUnitTestCase.assertTrue(_isFunctionExpression("(final prefix.List<int> a) {}"));
+    expect(_isFunctionExpression("(final int a) {}"), isTrue);
+    expect(_isFunctionExpression("(final prefix.List a) {}"), isTrue);
+    expect(_isFunctionExpression("(final List<int> a) {}"), isTrue);
+    expect(_isFunctionExpression("(final prefix.List<int> a) {}"), isTrue);
   }
 
   void test_isFunctionExpression_parameter_multiple() {
-    JUnitTestCase.assertTrue(_isFunctionExpression("(a, b) {}"));
+    expect(_isFunctionExpression("(a, b) {}"), isTrue);
   }
 
   void test_isFunctionExpression_parameter_named() {
-    JUnitTestCase.assertTrue(_isFunctionExpression("({a}) {}"));
+    expect(_isFunctionExpression("({a}) {}"), isTrue);
   }
 
   void test_isFunctionExpression_parameter_optional() {
-    JUnitTestCase.assertTrue(_isFunctionExpression("([a]) {}"));
+    expect(_isFunctionExpression("([a]) {}"), isTrue);
   }
 
   void test_isFunctionExpression_parameter_single() {
-    JUnitTestCase.assertTrue(_isFunctionExpression("(a) {}"));
+    expect(_isFunctionExpression("(a) {}"), isTrue);
   }
 
   void test_isFunctionExpression_parameter_typed() {
-    JUnitTestCase.assertTrue(_isFunctionExpression("(int a, int b) {}"));
+    expect(_isFunctionExpression("(int a, int b) {}"), isTrue);
   }
 
   void test_isInitializedVariableDeclaration_assignment() {
-    JUnitTestCase.assertFalse(_isInitializedVariableDeclaration("a = null;"));
+    expect(_isInitializedVariableDeclaration("a = null;"), isFalse);
   }
 
   void test_isInitializedVariableDeclaration_comparison() {
-    JUnitTestCase.assertFalse(_isInitializedVariableDeclaration("a < 0;"));
+    expect(_isInitializedVariableDeclaration("a < 0;"), isFalse);
   }
 
   void test_isInitializedVariableDeclaration_conditional() {
-    JUnitTestCase.assertFalse(_isInitializedVariableDeclaration("a == null ? init() : update();"));
+    expect(_isInitializedVariableDeclaration("a == null ? init() : update();"), isFalse);
   }
 
   void test_isInitializedVariableDeclaration_const_noType_initialized() {
-    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("const a = 0;"));
+    expect(_isInitializedVariableDeclaration("const a = 0;"), isTrue);
   }
 
   void test_isInitializedVariableDeclaration_const_noType_uninitialized() {
-    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("const a;"));
+    expect(_isInitializedVariableDeclaration("const a;"), isTrue);
   }
 
   void test_isInitializedVariableDeclaration_const_simpleType_uninitialized() {
-    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("const A a;"));
+    expect(_isInitializedVariableDeclaration("const A a;"), isTrue);
   }
 
   void test_isInitializedVariableDeclaration_final_noType_initialized() {
-    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("final a = 0;"));
+    expect(_isInitializedVariableDeclaration("final a = 0;"), isTrue);
   }
 
   void test_isInitializedVariableDeclaration_final_noType_uninitialized() {
-    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("final a;"));
+    expect(_isInitializedVariableDeclaration("final a;"), isTrue);
   }
 
   void test_isInitializedVariableDeclaration_final_simpleType_initialized() {
-    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("final A a = 0;"));
+    expect(_isInitializedVariableDeclaration("final A a = 0;"), isTrue);
   }
 
   void test_isInitializedVariableDeclaration_functionDeclaration_typed() {
-    JUnitTestCase.assertFalse(_isInitializedVariableDeclaration("A f() {};"));
+    expect(_isInitializedVariableDeclaration("A f() {};"), isFalse);
   }
 
   void test_isInitializedVariableDeclaration_functionDeclaration_untyped() {
-    JUnitTestCase.assertFalse(_isInitializedVariableDeclaration("f() {};"));
+    expect(_isInitializedVariableDeclaration("f() {};"), isFalse);
   }
 
   void test_isInitializedVariableDeclaration_noType_initialized() {
-    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("var a = 0;"));
+    expect(_isInitializedVariableDeclaration("var a = 0;"), isTrue);
   }
 
   void test_isInitializedVariableDeclaration_noType_uninitialized() {
-    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("var a;"));
+    expect(_isInitializedVariableDeclaration("var a;"), isTrue);
   }
 
   void test_isInitializedVariableDeclaration_parameterizedType_initialized() {
-    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("List<int> a = null;"));
+    expect(_isInitializedVariableDeclaration("List<int> a = null;"), isTrue);
   }
 
   void test_isInitializedVariableDeclaration_parameterizedType_uninitialized() {
-    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("List<int> a;"));
+    expect(_isInitializedVariableDeclaration("List<int> a;"), isTrue);
   }
 
   void test_isInitializedVariableDeclaration_simpleType_initialized() {
-    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("A a = 0;"));
+    expect(_isInitializedVariableDeclaration("A a = 0;"), isTrue);
   }
 
   void test_isInitializedVariableDeclaration_simpleType_uninitialized() {
-    JUnitTestCase.assertTrue(_isInitializedVariableDeclaration("A a;"));
+    expect(_isInitializedVariableDeclaration("A a;"), isTrue);
   }
 
   void test_isSwitchMember_case_labeled() {
-    JUnitTestCase.assertTrue(_isSwitchMember("l1: l2: case"));
+    expect(_isSwitchMember("l1: l2: case"), isTrue);
   }
 
   void test_isSwitchMember_case_unlabeled() {
-    JUnitTestCase.assertTrue(_isSwitchMember("case"));
+    expect(_isSwitchMember("case"), isTrue);
   }
 
   void test_isSwitchMember_default_labeled() {
-    JUnitTestCase.assertTrue(_isSwitchMember("l1: l2: default"));
+    expect(_isSwitchMember("l1: l2: default"), isTrue);
   }
 
   void test_isSwitchMember_default_unlabeled() {
-    JUnitTestCase.assertTrue(_isSwitchMember("default"));
+    expect(_isSwitchMember("default"), isTrue);
   }
 
   void test_isSwitchMember_false() {
-    JUnitTestCase.assertFalse(_isSwitchMember("break;"));
+    expect(_isSwitchMember("break;"), isFalse);
   }
 
   void test_parseAdditiveExpression_normal() {
     BinaryExpression expression = ParserTestCase.parse4("parseAdditiveExpression", "x + y", []);
-    JUnitTestCase.assertNotNull(expression.leftOperand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.PLUS, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightOperand);
+    expect(expression.leftOperand, isNotNull);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.PLUS);
+    expect(expression.rightOperand, isNotNull);
   }
 
   void test_parseAdditiveExpression_super() {
     BinaryExpression expression = ParserTestCase.parse4("parseAdditiveExpression", "super + y", []);
     EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, expression.leftOperand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.PLUS, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightOperand);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.PLUS);
+    expect(expression.rightOperand, isNotNull);
   }
 
   void test_parseAnnotation_n1() {
     Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A", []);
-    JUnitTestCase.assertNotNull(annotation.atSign);
-    JUnitTestCase.assertNotNull(annotation.name);
-    JUnitTestCase.assertNull(annotation.period);
-    JUnitTestCase.assertNull(annotation.constructorName);
-    JUnitTestCase.assertNull(annotation.arguments);
+    expect(annotation.atSign, isNotNull);
+    expect(annotation.name, isNotNull);
+    expect(annotation.period, isNull);
+    expect(annotation.constructorName, isNull);
+    expect(annotation.arguments, isNull);
   }
 
   void test_parseAnnotation_n1_a() {
     Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A(x,y)", []);
-    JUnitTestCase.assertNotNull(annotation.atSign);
-    JUnitTestCase.assertNotNull(annotation.name);
-    JUnitTestCase.assertNull(annotation.period);
-    JUnitTestCase.assertNull(annotation.constructorName);
-    JUnitTestCase.assertNotNull(annotation.arguments);
+    expect(annotation.atSign, isNotNull);
+    expect(annotation.name, isNotNull);
+    expect(annotation.period, isNull);
+    expect(annotation.constructorName, isNull);
+    expect(annotation.arguments, isNotNull);
   }
 
   void test_parseAnnotation_n2() {
     Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A.B", []);
-    JUnitTestCase.assertNotNull(annotation.atSign);
-    JUnitTestCase.assertNotNull(annotation.name);
-    JUnitTestCase.assertNull(annotation.period);
-    JUnitTestCase.assertNull(annotation.constructorName);
-    JUnitTestCase.assertNull(annotation.arguments);
+    expect(annotation.atSign, isNotNull);
+    expect(annotation.name, isNotNull);
+    expect(annotation.period, isNull);
+    expect(annotation.constructorName, isNull);
+    expect(annotation.arguments, isNull);
   }
 
   void test_parseAnnotation_n2_a() {
     Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A.B(x,y)", []);
-    JUnitTestCase.assertNotNull(annotation.atSign);
-    JUnitTestCase.assertNotNull(annotation.name);
-    JUnitTestCase.assertNull(annotation.period);
-    JUnitTestCase.assertNull(annotation.constructorName);
-    JUnitTestCase.assertNotNull(annotation.arguments);
+    expect(annotation.atSign, isNotNull);
+    expect(annotation.name, isNotNull);
+    expect(annotation.period, isNull);
+    expect(annotation.constructorName, isNull);
+    expect(annotation.arguments, isNotNull);
   }
 
   void test_parseAnnotation_n3() {
     Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A.B.C", []);
-    JUnitTestCase.assertNotNull(annotation.atSign);
-    JUnitTestCase.assertNotNull(annotation.name);
-    JUnitTestCase.assertNotNull(annotation.period);
-    JUnitTestCase.assertNotNull(annotation.constructorName);
-    JUnitTestCase.assertNull(annotation.arguments);
+    expect(annotation.atSign, isNotNull);
+    expect(annotation.name, isNotNull);
+    expect(annotation.period, isNotNull);
+    expect(annotation.constructorName, isNotNull);
+    expect(annotation.arguments, isNull);
   }
 
   void test_parseAnnotation_n3_a() {
     Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A.B.C(x,y)", []);
-    JUnitTestCase.assertNotNull(annotation.atSign);
-    JUnitTestCase.assertNotNull(annotation.name);
-    JUnitTestCase.assertNotNull(annotation.period);
-    JUnitTestCase.assertNotNull(annotation.constructorName);
-    JUnitTestCase.assertNotNull(annotation.arguments);
+    expect(annotation.atSign, isNotNull);
+    expect(annotation.name, isNotNull);
+    expect(annotation.period, isNotNull);
+    expect(annotation.constructorName, isNotNull);
+    expect(annotation.arguments, isNotNull);
   }
 
   void test_parseArgument_named() {
     NamedExpression expression = ParserTestCase.parse4("parseArgument", "n: x", []);
     Label name = expression.name;
-    JUnitTestCase.assertNotNull(name);
-    JUnitTestCase.assertNotNull(name.label);
-    JUnitTestCase.assertNotNull(name.colon);
-    JUnitTestCase.assertNotNull(expression.expression);
+    expect(name, isNotNull);
+    expect(name.label, isNotNull);
+    expect(name.colon, isNotNull);
+    expect(expression.expression, isNotNull);
   }
 
   void test_parseArgument_unnamed() {
     String lexeme = "x";
     SimpleIdentifier identifier = ParserTestCase.parse4("parseArgument", lexeme, []);
-    JUnitTestCase.assertEquals(lexeme, identifier.name);
+    expect(identifier.name, lexeme);
   }
 
   void test_parseArgumentList_empty() {
@@ -3814,107 +3812,107 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseAssertStatement() {
     AssertStatement statement = ParserTestCase.parse4("parseAssertStatement", "assert (x);", []);
-    JUnitTestCase.assertNotNull(statement.keyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNotNull(statement.condition);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.semicolon);
+    expect(statement.keyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.semicolon, isNotNull);
   }
 
   void test_parseAssignableExpression_expression_args_dot() {
     PropertyAccess propertyAccess = ParserTestCase.parse("parseAssignableExpression", <Object> [false], "(x)(y).z");
     FunctionExpressionInvocation invocation = propertyAccess.target as FunctionExpressionInvocation;
-    JUnitTestCase.assertNotNull(invocation.function);
+    expect(invocation.function, isNotNull);
     ArgumentList argumentList = invocation.argumentList;
-    JUnitTestCase.assertNotNull(argumentList);
+    expect(argumentList, isNotNull);
     EngineTestCase.assertSizeOfList(1, argumentList.arguments);
-    JUnitTestCase.assertNotNull(propertyAccess.operator);
-    JUnitTestCase.assertNotNull(propertyAccess.propertyName);
+    expect(propertyAccess.operator, isNotNull);
+    expect(propertyAccess.propertyName, isNotNull);
   }
 
   void test_parseAssignableExpression_expression_dot() {
     PropertyAccess propertyAccess = ParserTestCase.parse("parseAssignableExpression", <Object> [false], "(x).y");
-    JUnitTestCase.assertNotNull(propertyAccess.target);
-    JUnitTestCase.assertNotNull(propertyAccess.operator);
-    JUnitTestCase.assertNotNull(propertyAccess.propertyName);
+    expect(propertyAccess.target, isNotNull);
+    expect(propertyAccess.operator, isNotNull);
+    expect(propertyAccess.propertyName, isNotNull);
   }
 
   void test_parseAssignableExpression_expression_index() {
     IndexExpression expression = ParserTestCase.parse("parseAssignableExpression", <Object> [false], "(x)[y]");
-    JUnitTestCase.assertNotNull(expression.target);
-    JUnitTestCase.assertNotNull(expression.leftBracket);
-    JUnitTestCase.assertNotNull(expression.index);
-    JUnitTestCase.assertNotNull(expression.rightBracket);
+    expect(expression.target, isNotNull);
+    expect(expression.leftBracket, isNotNull);
+    expect(expression.index, isNotNull);
+    expect(expression.rightBracket, isNotNull);
   }
 
   void test_parseAssignableExpression_identifier() {
     SimpleIdentifier identifier = ParserTestCase.parse("parseAssignableExpression", <Object> [false], "x");
-    JUnitTestCase.assertNotNull(identifier);
+    expect(identifier, isNotNull);
   }
 
   void test_parseAssignableExpression_identifier_args_dot() {
     PropertyAccess propertyAccess = ParserTestCase.parse("parseAssignableExpression", <Object> [false], "x(y).z");
     MethodInvocation invocation = propertyAccess.target as MethodInvocation;
-    JUnitTestCase.assertEquals("x", invocation.methodName.name);
+    expect(invocation.methodName.name, "x");
     ArgumentList argumentList = invocation.argumentList;
-    JUnitTestCase.assertNotNull(argumentList);
+    expect(argumentList, isNotNull);
     EngineTestCase.assertSizeOfList(1, argumentList.arguments);
-    JUnitTestCase.assertNotNull(propertyAccess.operator);
-    JUnitTestCase.assertNotNull(propertyAccess.propertyName);
+    expect(propertyAccess.operator, isNotNull);
+    expect(propertyAccess.propertyName, isNotNull);
   }
 
   void test_parseAssignableExpression_identifier_dot() {
     PropertyAccess propertyAccess = ParserTestCase.parse("parseAssignableExpression", <Object> [false], "x.y");
-    JUnitTestCase.assertNotNull(propertyAccess.target);
-    JUnitTestCase.assertNotNull(propertyAccess.operator);
-    JUnitTestCase.assertNotNull(propertyAccess.propertyName);
+    expect(propertyAccess.target, isNotNull);
+    expect(propertyAccess.operator, isNotNull);
+    expect(propertyAccess.propertyName, isNotNull);
   }
 
   void test_parseAssignableExpression_identifier_index() {
     IndexExpression expression = ParserTestCase.parse("parseAssignableExpression", <Object> [false], "x[y]");
-    JUnitTestCase.assertNotNull(expression.target);
-    JUnitTestCase.assertNotNull(expression.leftBracket);
-    JUnitTestCase.assertNotNull(expression.index);
-    JUnitTestCase.assertNotNull(expression.rightBracket);
+    expect(expression.target, isNotNull);
+    expect(expression.leftBracket, isNotNull);
+    expect(expression.index, isNotNull);
+    expect(expression.rightBracket, isNotNull);
   }
 
   void test_parseAssignableExpression_super_dot() {
     PropertyAccess propertyAccess = ParserTestCase.parse("parseAssignableExpression", <Object> [false], "super.y");
     EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, propertyAccess.target);
-    JUnitTestCase.assertNotNull(propertyAccess.operator);
-    JUnitTestCase.assertNotNull(propertyAccess.propertyName);
+    expect(propertyAccess.operator, isNotNull);
+    expect(propertyAccess.propertyName, isNotNull);
   }
 
   void test_parseAssignableExpression_super_index() {
     IndexExpression expression = ParserTestCase.parse("parseAssignableExpression", <Object> [false], "super[y]");
     EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, expression.target);
-    JUnitTestCase.assertNotNull(expression.leftBracket);
-    JUnitTestCase.assertNotNull(expression.index);
-    JUnitTestCase.assertNotNull(expression.rightBracket);
+    expect(expression.leftBracket, isNotNull);
+    expect(expression.index, isNotNull);
+    expect(expression.rightBracket, isNotNull);
   }
 
   void test_parseAssignableSelector_dot() {
     PropertyAccess selector = ParserTestCase.parse("parseAssignableSelector", <Object> [null, true], ".x");
-    JUnitTestCase.assertNotNull(selector.operator);
-    JUnitTestCase.assertNotNull(selector.propertyName);
+    expect(selector.operator, isNotNull);
+    expect(selector.propertyName, isNotNull);
   }
 
   void test_parseAssignableSelector_index() {
     IndexExpression selector = ParserTestCase.parse("parseAssignableSelector", <Object> [null, true], "[x]");
-    JUnitTestCase.assertNotNull(selector.leftBracket);
-    JUnitTestCase.assertNotNull(selector.index);
-    JUnitTestCase.assertNotNull(selector.rightBracket);
+    expect(selector.leftBracket, isNotNull);
+    expect(selector.index, isNotNull);
+    expect(selector.rightBracket, isNotNull);
   }
 
   void test_parseAssignableSelector_none() {
     SimpleIdentifier selector = ParserTestCase.parse("parseAssignableSelector", <Object> [new SimpleIdentifier(null), true], ";");
-    JUnitTestCase.assertNotNull(selector);
+    expect(selector, isNotNull);
   }
 
   void test_parseAwaitExpression() {
     AwaitExpression expression = ParserTestCase.parse4("parseAwaitExpression", "await x;", []);
-    JUnitTestCase.assertNotNull(expression.awaitKeyword);
-    JUnitTestCase.assertNotNull(expression.expression);
+    expect(expression.awaitKeyword, isNotNull);
+    expect(expression.expression, isNotNull);
   }
 
   void test_parseAwaitExpression_asStatement_inAsync() {
@@ -3925,8 +3923,8 @@ class SimpleParserTest extends ParserTestCase {
     EngineTestCase.assertInstanceOf((obj) => obj is ExpressionStatement, ExpressionStatement, statement);
     Expression expression = (statement as ExpressionStatement).expression;
     EngineTestCase.assertInstanceOf((obj) => obj is AwaitExpression, AwaitExpression, expression);
-    JUnitTestCase.assertNotNull((expression as AwaitExpression).awaitKeyword);
-    JUnitTestCase.assertNotNull((expression as AwaitExpression).expression);
+    expect((expression as AwaitExpression).awaitKeyword, isNotNull);
+    expect((expression as AwaitExpression).expression, isNotNull);
   }
 
   void test_parseAwaitExpression_asStatement_inSync() {
@@ -3951,692 +3949,692 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseBitwiseAndExpression_normal() {
     BinaryExpression expression = ParserTestCase.parse4("parseBitwiseAndExpression", "x & y", []);
-    JUnitTestCase.assertNotNull(expression.leftOperand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.AMPERSAND, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightOperand);
+    expect(expression.leftOperand, isNotNull);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.AMPERSAND);
+    expect(expression.rightOperand, isNotNull);
   }
 
   void test_parseBitwiseAndExpression_super() {
     BinaryExpression expression = ParserTestCase.parse4("parseBitwiseAndExpression", "super & y", []);
     EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, expression.leftOperand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.AMPERSAND, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightOperand);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.AMPERSAND);
+    expect(expression.rightOperand, isNotNull);
   }
 
   void test_parseBitwiseOrExpression_normal() {
     BinaryExpression expression = ParserTestCase.parse4("parseBitwiseOrExpression", "x | y", []);
-    JUnitTestCase.assertNotNull(expression.leftOperand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.BAR, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightOperand);
+    expect(expression.leftOperand, isNotNull);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.BAR);
+    expect(expression.rightOperand, isNotNull);
   }
 
   void test_parseBitwiseOrExpression_super() {
     BinaryExpression expression = ParserTestCase.parse4("parseBitwiseOrExpression", "super | y", []);
     EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, expression.leftOperand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.BAR, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightOperand);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.BAR);
+    expect(expression.rightOperand, isNotNull);
   }
 
   void test_parseBitwiseXorExpression_normal() {
     BinaryExpression expression = ParserTestCase.parse4("parseBitwiseXorExpression", "x ^ y", []);
-    JUnitTestCase.assertNotNull(expression.leftOperand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.CARET, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightOperand);
+    expect(expression.leftOperand, isNotNull);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.CARET);
+    expect(expression.rightOperand, isNotNull);
   }
 
   void test_parseBitwiseXorExpression_super() {
     BinaryExpression expression = ParserTestCase.parse4("parseBitwiseXorExpression", "super ^ y", []);
     EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, expression.leftOperand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.CARET, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightOperand);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.CARET);
+    expect(expression.rightOperand, isNotNull);
   }
 
   void test_parseBlock_empty() {
     Block block = ParserTestCase.parse4("parseBlock", "{}", []);
-    JUnitTestCase.assertNotNull(block.leftBracket);
+    expect(block.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(0, block.statements);
-    JUnitTestCase.assertNotNull(block.rightBracket);
+    expect(block.rightBracket, isNotNull);
   }
 
   void test_parseBlock_nonEmpty() {
     Block block = ParserTestCase.parse4("parseBlock", "{;}", []);
-    JUnitTestCase.assertNotNull(block.leftBracket);
+    expect(block.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(1, block.statements);
-    JUnitTestCase.assertNotNull(block.rightBracket);
+    expect(block.rightBracket, isNotNull);
   }
 
   void test_parseBreakStatement_label() {
     BreakStatement statement = ParserTestCase.parse4("parseBreakStatement", "break foo;", []);
-    JUnitTestCase.assertNotNull(statement.keyword);
-    JUnitTestCase.assertNotNull(statement.label);
-    JUnitTestCase.assertNotNull(statement.semicolon);
+    expect(statement.keyword, isNotNull);
+    expect(statement.label, isNotNull);
+    expect(statement.semicolon, isNotNull);
   }
 
   void test_parseBreakStatement_noLabel() {
     BreakStatement statement = ParserTestCase.parse4("parseBreakStatement", "break;", [ParserErrorCode.BREAK_OUTSIDE_OF_LOOP]);
-    JUnitTestCase.assertNotNull(statement.keyword);
-    JUnitTestCase.assertNull(statement.label);
-    JUnitTestCase.assertNotNull(statement.semicolon);
+    expect(statement.keyword, isNotNull);
+    expect(statement.label, isNull);
+    expect(statement.semicolon, isNotNull);
   }
 
   void test_parseCascadeSection_i() {
     IndexExpression section = ParserTestCase.parse4("parseCascadeSection", "..[i]", []);
-    JUnitTestCase.assertNull(section.target);
-    JUnitTestCase.assertNotNull(section.leftBracket);
-    JUnitTestCase.assertNotNull(section.index);
-    JUnitTestCase.assertNotNull(section.rightBracket);
+    expect(section.target, isNull);
+    expect(section.leftBracket, isNotNull);
+    expect(section.index, isNotNull);
+    expect(section.rightBracket, isNotNull);
   }
 
   void test_parseCascadeSection_ia() {
     FunctionExpressionInvocation section = ParserTestCase.parse4("parseCascadeSection", "..[i](b)", []);
     EngineTestCase.assertInstanceOf((obj) => obj is IndexExpression, IndexExpression, section.function);
-    JUnitTestCase.assertNotNull(section.argumentList);
+    expect(section.argumentList, isNotNull);
   }
 
   void test_parseCascadeSection_ii() {
     MethodInvocation section = ParserTestCase.parse4("parseCascadeSection", "..a(b).c(d)", []);
     EngineTestCase.assertInstanceOf((obj) => obj is MethodInvocation, MethodInvocation, section.target);
-    JUnitTestCase.assertNotNull(section.period);
-    JUnitTestCase.assertNotNull(section.methodName);
-    JUnitTestCase.assertNotNull(section.argumentList);
+    expect(section.period, isNotNull);
+    expect(section.methodName, isNotNull);
+    expect(section.argumentList, isNotNull);
     EngineTestCase.assertSizeOfList(1, section.argumentList.arguments);
   }
 
   void test_parseCascadeSection_p() {
     PropertyAccess section = ParserTestCase.parse4("parseCascadeSection", "..a", []);
-    JUnitTestCase.assertNull(section.target);
-    JUnitTestCase.assertNotNull(section.operator);
-    JUnitTestCase.assertNotNull(section.propertyName);
+    expect(section.target, isNull);
+    expect(section.operator, isNotNull);
+    expect(section.propertyName, isNotNull);
   }
 
   void test_parseCascadeSection_p_assign() {
     AssignmentExpression section = ParserTestCase.parse4("parseCascadeSection", "..a = 3", []);
-    JUnitTestCase.assertNotNull(section.leftHandSide);
-    JUnitTestCase.assertNotNull(section.operator);
+    expect(section.leftHandSide, isNotNull);
+    expect(section.operator, isNotNull);
     Expression rhs = section.rightHandSide;
-    JUnitTestCase.assertNotNull(rhs);
+    expect(rhs, isNotNull);
   }
 
   void test_parseCascadeSection_p_assign_withCascade() {
     AssignmentExpression section = ParserTestCase.parse4("parseCascadeSection", "..a = 3..m()", []);
-    JUnitTestCase.assertNotNull(section.leftHandSide);
-    JUnitTestCase.assertNotNull(section.operator);
+    expect(section.leftHandSide, isNotNull);
+    expect(section.operator, isNotNull);
     Expression rhs = section.rightHandSide;
     EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, rhs);
   }
 
   void test_parseCascadeSection_p_builtIn() {
     PropertyAccess section = ParserTestCase.parse4("parseCascadeSection", "..as", []);
-    JUnitTestCase.assertNull(section.target);
-    JUnitTestCase.assertNotNull(section.operator);
-    JUnitTestCase.assertNotNull(section.propertyName);
+    expect(section.target, isNull);
+    expect(section.operator, isNotNull);
+    expect(section.propertyName, isNotNull);
   }
 
   void test_parseCascadeSection_pa() {
     MethodInvocation section = ParserTestCase.parse4("parseCascadeSection", "..a(b)", []);
-    JUnitTestCase.assertNull(section.target);
-    JUnitTestCase.assertNotNull(section.period);
-    JUnitTestCase.assertNotNull(section.methodName);
-    JUnitTestCase.assertNotNull(section.argumentList);
+    expect(section.target, isNull);
+    expect(section.period, isNotNull);
+    expect(section.methodName, isNotNull);
+    expect(section.argumentList, isNotNull);
     EngineTestCase.assertSizeOfList(1, section.argumentList.arguments);
   }
 
   void test_parseCascadeSection_paa() {
     FunctionExpressionInvocation section = ParserTestCase.parse4("parseCascadeSection", "..a(b)(c)", []);
     EngineTestCase.assertInstanceOf((obj) => obj is MethodInvocation, MethodInvocation, section.function);
-    JUnitTestCase.assertNotNull(section.argumentList);
+    expect(section.argumentList, isNotNull);
     EngineTestCase.assertSizeOfList(1, section.argumentList.arguments);
   }
 
   void test_parseCascadeSection_paapaa() {
     FunctionExpressionInvocation section = ParserTestCase.parse4("parseCascadeSection", "..a(b)(c).d(e)(f)", []);
     EngineTestCase.assertInstanceOf((obj) => obj is MethodInvocation, MethodInvocation, section.function);
-    JUnitTestCase.assertNotNull(section.argumentList);
+    expect(section.argumentList, isNotNull);
     EngineTestCase.assertSizeOfList(1, section.argumentList.arguments);
   }
 
   void test_parseCascadeSection_pap() {
     PropertyAccess section = ParserTestCase.parse4("parseCascadeSection", "..a(b).c", []);
-    JUnitTestCase.assertNotNull(section.target);
-    JUnitTestCase.assertNotNull(section.operator);
-    JUnitTestCase.assertNotNull(section.propertyName);
+    expect(section.target, isNotNull);
+    expect(section.operator, isNotNull);
+    expect(section.propertyName, isNotNull);
   }
 
   void test_parseClassDeclaration_abstract() {
     ClassDeclaration declaration = ParserTestCase.parse("parseClassDeclaration", <Object> [
         emptyCommentAndMetadata(),
         TokenFactory.tokenFromKeyword(Keyword.ABSTRACT)], "class A {}");
-    JUnitTestCase.assertNull(declaration.documentationComment);
-    JUnitTestCase.assertNotNull(declaration.abstractKeyword);
-    JUnitTestCase.assertNull(declaration.extendsClause);
-    JUnitTestCase.assertNull(declaration.implementsClause);
-    JUnitTestCase.assertNotNull(declaration.classKeyword);
-    JUnitTestCase.assertNotNull(declaration.leftBracket);
-    JUnitTestCase.assertNotNull(declaration.name);
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.abstractKeyword, isNotNull);
+    expect(declaration.extendsClause, isNull);
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.classKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name, isNotNull);
     EngineTestCase.assertSizeOfList(0, declaration.members);
-    JUnitTestCase.assertNotNull(declaration.rightBracket);
-    JUnitTestCase.assertNull(declaration.typeParameters);
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
   }
 
   void test_parseClassDeclaration_empty() {
     ClassDeclaration declaration = ParserTestCase.parse("parseClassDeclaration", <Object> [emptyCommentAndMetadata(), null], "class A {}");
-    JUnitTestCase.assertNull(declaration.documentationComment);
-    JUnitTestCase.assertNull(declaration.abstractKeyword);
-    JUnitTestCase.assertNull(declaration.extendsClause);
-    JUnitTestCase.assertNull(declaration.implementsClause);
-    JUnitTestCase.assertNotNull(declaration.classKeyword);
-    JUnitTestCase.assertNotNull(declaration.leftBracket);
-    JUnitTestCase.assertNotNull(declaration.name);
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.abstractKeyword, isNull);
+    expect(declaration.extendsClause, isNull);
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.classKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name, isNotNull);
     EngineTestCase.assertSizeOfList(0, declaration.members);
-    JUnitTestCase.assertNotNull(declaration.rightBracket);
-    JUnitTestCase.assertNull(declaration.typeParameters);
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
   }
 
   void test_parseClassDeclaration_extends() {
     ClassDeclaration declaration = ParserTestCase.parse("parseClassDeclaration", <Object> [emptyCommentAndMetadata(), null], "class A extends B {}");
-    JUnitTestCase.assertNull(declaration.documentationComment);
-    JUnitTestCase.assertNull(declaration.abstractKeyword);
-    JUnitTestCase.assertNotNull(declaration.extendsClause);
-    JUnitTestCase.assertNull(declaration.implementsClause);
-    JUnitTestCase.assertNotNull(declaration.classKeyword);
-    JUnitTestCase.assertNotNull(declaration.leftBracket);
-    JUnitTestCase.assertNotNull(declaration.name);
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.abstractKeyword, isNull);
+    expect(declaration.extendsClause, isNotNull);
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.classKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name, isNotNull);
     EngineTestCase.assertSizeOfList(0, declaration.members);
-    JUnitTestCase.assertNotNull(declaration.rightBracket);
-    JUnitTestCase.assertNull(declaration.typeParameters);
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
   }
 
   void test_parseClassDeclaration_extendsAndImplements() {
     ClassDeclaration declaration = ParserTestCase.parse("parseClassDeclaration", <Object> [emptyCommentAndMetadata(), null], "class A extends B implements C {}");
-    JUnitTestCase.assertNull(declaration.documentationComment);
-    JUnitTestCase.assertNull(declaration.abstractKeyword);
-    JUnitTestCase.assertNotNull(declaration.extendsClause);
-    JUnitTestCase.assertNotNull(declaration.implementsClause);
-    JUnitTestCase.assertNotNull(declaration.classKeyword);
-    JUnitTestCase.assertNotNull(declaration.leftBracket);
-    JUnitTestCase.assertNotNull(declaration.name);
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.abstractKeyword, isNull);
+    expect(declaration.extendsClause, isNotNull);
+    expect(declaration.implementsClause, isNotNull);
+    expect(declaration.classKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name, isNotNull);
     EngineTestCase.assertSizeOfList(0, declaration.members);
-    JUnitTestCase.assertNotNull(declaration.rightBracket);
-    JUnitTestCase.assertNull(declaration.typeParameters);
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
   }
 
   void test_parseClassDeclaration_extendsAndWith() {
     ClassDeclaration declaration = ParserTestCase.parse("parseClassDeclaration", <Object> [emptyCommentAndMetadata(), null], "class A extends B with C {}");
-    JUnitTestCase.assertNull(declaration.documentationComment);
-    JUnitTestCase.assertNull(declaration.abstractKeyword);
-    JUnitTestCase.assertNotNull(declaration.classKeyword);
-    JUnitTestCase.assertNotNull(declaration.name);
-    JUnitTestCase.assertNull(declaration.typeParameters);
-    JUnitTestCase.assertNotNull(declaration.extendsClause);
-    JUnitTestCase.assertNotNull(declaration.withClause);
-    JUnitTestCase.assertNull(declaration.implementsClause);
-    JUnitTestCase.assertNotNull(declaration.leftBracket);
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.abstractKeyword, isNull);
+    expect(declaration.classKeyword, isNotNull);
+    expect(declaration.name, isNotNull);
+    expect(declaration.typeParameters, isNull);
+    expect(declaration.extendsClause, isNotNull);
+    expect(declaration.withClause, isNotNull);
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(0, declaration.members);
-    JUnitTestCase.assertNotNull(declaration.rightBracket);
+    expect(declaration.rightBracket, isNotNull);
   }
 
   void test_parseClassDeclaration_extendsAndWithAndImplements() {
     ClassDeclaration declaration = ParserTestCase.parse("parseClassDeclaration", <Object> [emptyCommentAndMetadata(), null], "class A extends B with C implements D {}");
-    JUnitTestCase.assertNull(declaration.documentationComment);
-    JUnitTestCase.assertNull(declaration.abstractKeyword);
-    JUnitTestCase.assertNotNull(declaration.classKeyword);
-    JUnitTestCase.assertNotNull(declaration.name);
-    JUnitTestCase.assertNull(declaration.typeParameters);
-    JUnitTestCase.assertNotNull(declaration.extendsClause);
-    JUnitTestCase.assertNotNull(declaration.withClause);
-    JUnitTestCase.assertNotNull(declaration.implementsClause);
-    JUnitTestCase.assertNotNull(declaration.leftBracket);
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.abstractKeyword, isNull);
+    expect(declaration.classKeyword, isNotNull);
+    expect(declaration.name, isNotNull);
+    expect(declaration.typeParameters, isNull);
+    expect(declaration.extendsClause, isNotNull);
+    expect(declaration.withClause, isNotNull);
+    expect(declaration.implementsClause, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(0, declaration.members);
-    JUnitTestCase.assertNotNull(declaration.rightBracket);
+    expect(declaration.rightBracket, isNotNull);
   }
 
   void test_parseClassDeclaration_implements() {
     ClassDeclaration declaration = ParserTestCase.parse("parseClassDeclaration", <Object> [emptyCommentAndMetadata(), null], "class A implements C {}");
-    JUnitTestCase.assertNull(declaration.documentationComment);
-    JUnitTestCase.assertNull(declaration.abstractKeyword);
-    JUnitTestCase.assertNull(declaration.extendsClause);
-    JUnitTestCase.assertNotNull(declaration.implementsClause);
-    JUnitTestCase.assertNotNull(declaration.classKeyword);
-    JUnitTestCase.assertNotNull(declaration.leftBracket);
-    JUnitTestCase.assertNotNull(declaration.name);
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.abstractKeyword, isNull);
+    expect(declaration.extendsClause, isNull);
+    expect(declaration.implementsClause, isNotNull);
+    expect(declaration.classKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name, isNotNull);
     EngineTestCase.assertSizeOfList(0, declaration.members);
-    JUnitTestCase.assertNotNull(declaration.rightBracket);
-    JUnitTestCase.assertNull(declaration.typeParameters);
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
   }
 
   void test_parseClassDeclaration_native() {
     ClassDeclaration declaration = ParserTestCase.parse("parseClassDeclaration", <Object> [emptyCommentAndMetadata(), null], "class A native 'nativeValue' {}");
     NativeClause nativeClause = declaration.nativeClause;
-    JUnitTestCase.assertNotNull(nativeClause);
-    JUnitTestCase.assertNotNull(nativeClause.keyword);
-    JUnitTestCase.assertEquals("nativeValue", nativeClause.name.stringValue);
-    JUnitTestCase.assertSame(nativeClause.keyword, nativeClause.beginToken);
-    JUnitTestCase.assertSame(nativeClause.name.endToken, nativeClause.endToken);
+    expect(nativeClause, isNotNull);
+    expect(nativeClause.keyword, isNotNull);
+    expect(nativeClause.name.stringValue, "nativeValue");
+    expect(nativeClause.beginToken, same(nativeClause.keyword));
+    expect(nativeClause.endToken, same(nativeClause.name.endToken));
   }
 
   void test_parseClassDeclaration_nonEmpty() {
     ClassDeclaration declaration = ParserTestCase.parse("parseClassDeclaration", <Object> [emptyCommentAndMetadata(), null], "class A {var f;}");
-    JUnitTestCase.assertNull(declaration.documentationComment);
-    JUnitTestCase.assertNull(declaration.abstractKeyword);
-    JUnitTestCase.assertNull(declaration.extendsClause);
-    JUnitTestCase.assertNull(declaration.implementsClause);
-    JUnitTestCase.assertNotNull(declaration.classKeyword);
-    JUnitTestCase.assertNotNull(declaration.leftBracket);
-    JUnitTestCase.assertNotNull(declaration.name);
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.abstractKeyword, isNull);
+    expect(declaration.extendsClause, isNull);
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.classKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name, isNotNull);
     EngineTestCase.assertSizeOfList(1, declaration.members);
-    JUnitTestCase.assertNotNull(declaration.rightBracket);
-    JUnitTestCase.assertNull(declaration.typeParameters);
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
   }
 
   void test_parseClassDeclaration_typeAlias_implementsC() {
     ClassTypeAlias typeAlias = ParserTestCase.parse("parseClassDeclaration", <Object> [emptyCommentAndMetadata(), null], "class A = Object with B implements C;");
-    JUnitTestCase.assertNotNull(typeAlias.keyword);
-    JUnitTestCase.assertNotNull(typeAlias.name);
-    JUnitTestCase.assertNull(typeAlias.typeParameters);
-    JUnitTestCase.assertNotNull(typeAlias.withClause);
-    JUnitTestCase.assertNotNull(typeAlias.implementsClause);
-    JUnitTestCase.assertNotNull(typeAlias.implementsClause.keyword);
-    JUnitTestCase.assertEquals(1, typeAlias.implementsClause.interfaces.length);
-    JUnitTestCase.assertNotNull(typeAlias.semicolon);
+    expect(typeAlias.keyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.typeParameters, isNull);
+    expect(typeAlias.withClause, isNotNull);
+    expect(typeAlias.implementsClause, isNotNull);
+    expect(typeAlias.implementsClause.keyword, isNotNull);
+    expect(typeAlias.implementsClause.interfaces.length, 1);
+    expect(typeAlias.semicolon, isNotNull);
   }
 
   void test_parseClassDeclaration_typeAlias_withB() {
     ClassTypeAlias typeAlias = ParserTestCase.parse("parseClassDeclaration", <Object> [emptyCommentAndMetadata(), null], "class A = Object with B;");
-    JUnitTestCase.assertNotNull(typeAlias.keyword);
-    JUnitTestCase.assertNotNull(typeAlias.name);
-    JUnitTestCase.assertNull(typeAlias.typeParameters);
-    JUnitTestCase.assertNotNull(typeAlias.withClause);
-    JUnitTestCase.assertNotNull(typeAlias.withClause.withKeyword);
-    JUnitTestCase.assertEquals(1, typeAlias.withClause.mixinTypes.length);
-    JUnitTestCase.assertNull(typeAlias.implementsClause);
-    JUnitTestCase.assertNotNull(typeAlias.semicolon);
+    expect(typeAlias.keyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.typeParameters, isNull);
+    expect(typeAlias.withClause, isNotNull);
+    expect(typeAlias.withClause.withKeyword, isNotNull);
+    expect(typeAlias.withClause.mixinTypes.length, 1);
+    expect(typeAlias.implementsClause, isNull);
+    expect(typeAlias.semicolon, isNotNull);
   }
 
   void test_parseClassDeclaration_typeParameters() {
     ClassDeclaration declaration = ParserTestCase.parse("parseClassDeclaration", <Object> [emptyCommentAndMetadata(), null], "class A<B> {}");
-    JUnitTestCase.assertNull(declaration.documentationComment);
-    JUnitTestCase.assertNull(declaration.abstractKeyword);
-    JUnitTestCase.assertNull(declaration.extendsClause);
-    JUnitTestCase.assertNull(declaration.implementsClause);
-    JUnitTestCase.assertNotNull(declaration.classKeyword);
-    JUnitTestCase.assertNotNull(declaration.leftBracket);
-    JUnitTestCase.assertNotNull(declaration.name);
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.abstractKeyword, isNull);
+    expect(declaration.extendsClause, isNull);
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.classKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name, isNotNull);
     EngineTestCase.assertSizeOfList(0, declaration.members);
-    JUnitTestCase.assertNotNull(declaration.rightBracket);
-    JUnitTestCase.assertNotNull(declaration.typeParameters);
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNotNull);
     EngineTestCase.assertSizeOfList(1, declaration.typeParameters.typeParameters);
   }
 
   void test_parseClassMember_constructor_withInitializers() {
     // TODO(brianwilkerson) Test other kinds of class members: fields, getters and setters.
     ConstructorDeclaration constructor = ParserTestCase.parse("parseClassMember", <Object> ["C"], "C(_, _\$, this.__) : _a = _ + _\$ {}");
-    JUnitTestCase.assertNotNull(constructor.body);
-    JUnitTestCase.assertNotNull(constructor.separator);
-    JUnitTestCase.assertNull(constructor.externalKeyword);
-    JUnitTestCase.assertNull(constructor.constKeyword);
-    JUnitTestCase.assertNull(constructor.factoryKeyword);
-    JUnitTestCase.assertNull(constructor.name);
-    JUnitTestCase.assertNotNull(constructor.parameters);
-    JUnitTestCase.assertNull(constructor.period);
-    JUnitTestCase.assertNotNull(constructor.returnType);
+    expect(constructor.body, isNotNull);
+    expect(constructor.separator, isNotNull);
+    expect(constructor.externalKeyword, isNull);
+    expect(constructor.constKeyword, isNull);
+    expect(constructor.factoryKeyword, isNull);
+    expect(constructor.name, isNull);
+    expect(constructor.parameters, isNotNull);
+    expect(constructor.period, isNull);
+    expect(constructor.returnType, isNotNull);
     EngineTestCase.assertSizeOfList(1, constructor.initializers);
   }
 
   void test_parseClassMember_field_instance_prefixedType() {
     FieldDeclaration field = ParserTestCase.parse("parseClassMember", <Object> ["C"], "p.A f;");
-    JUnitTestCase.assertNull(field.documentationComment);
+    expect(field.documentationComment, isNull);
     EngineTestCase.assertSizeOfList(0, field.metadata);
-    JUnitTestCase.assertNull(field.staticKeyword);
+    expect(field.staticKeyword, isNull);
     VariableDeclarationList list = field.fields;
-    JUnitTestCase.assertNotNull(list);
+    expect(list, isNotNull);
     NodeList<VariableDeclaration> variables = list.variables;
     EngineTestCase.assertSizeOfList(1, variables);
     VariableDeclaration variable = variables[0];
-    JUnitTestCase.assertNotNull(variable.name);
+    expect(variable.name, isNotNull);
   }
 
   void test_parseClassMember_field_namedGet() {
     FieldDeclaration field = ParserTestCase.parse("parseClassMember", <Object> ["C"], "var get;");
-    JUnitTestCase.assertNull(field.documentationComment);
+    expect(field.documentationComment, isNull);
     EngineTestCase.assertSizeOfList(0, field.metadata);
-    JUnitTestCase.assertNull(field.staticKeyword);
+    expect(field.staticKeyword, isNull);
     VariableDeclarationList list = field.fields;
-    JUnitTestCase.assertNotNull(list);
+    expect(list, isNotNull);
     NodeList<VariableDeclaration> variables = list.variables;
     EngineTestCase.assertSizeOfList(1, variables);
     VariableDeclaration variable = variables[0];
-    JUnitTestCase.assertNotNull(variable.name);
+    expect(variable.name, isNotNull);
   }
 
   void test_parseClassMember_field_namedOperator() {
     FieldDeclaration field = ParserTestCase.parse("parseClassMember", <Object> ["C"], "var operator;");
-    JUnitTestCase.assertNull(field.documentationComment);
+    expect(field.documentationComment, isNull);
     EngineTestCase.assertSizeOfList(0, field.metadata);
-    JUnitTestCase.assertNull(field.staticKeyword);
+    expect(field.staticKeyword, isNull);
     VariableDeclarationList list = field.fields;
-    JUnitTestCase.assertNotNull(list);
+    expect(list, isNotNull);
     NodeList<VariableDeclaration> variables = list.variables;
     EngineTestCase.assertSizeOfList(1, variables);
     VariableDeclaration variable = variables[0];
-    JUnitTestCase.assertNotNull(variable.name);
+    expect(variable.name, isNotNull);
   }
 
   void test_parseClassMember_field_namedOperator_withAssignment() {
     FieldDeclaration field = ParserTestCase.parse("parseClassMember", <Object> ["C"], "var operator = (5);");
-    JUnitTestCase.assertNull(field.documentationComment);
+    expect(field.documentationComment, isNull);
     EngineTestCase.assertSizeOfList(0, field.metadata);
-    JUnitTestCase.assertNull(field.staticKeyword);
+    expect(field.staticKeyword, isNull);
     VariableDeclarationList list = field.fields;
-    JUnitTestCase.assertNotNull(list);
+    expect(list, isNotNull);
     NodeList<VariableDeclaration> variables = list.variables;
     EngineTestCase.assertSizeOfList(1, variables);
     VariableDeclaration variable = variables[0];
-    JUnitTestCase.assertNotNull(variable.name);
-    JUnitTestCase.assertNotNull(variable.initializer);
+    expect(variable.name, isNotNull);
+    expect(variable.initializer, isNotNull);
   }
 
   void test_parseClassMember_field_namedSet() {
     FieldDeclaration field = ParserTestCase.parse("parseClassMember", <Object> ["C"], "var set;");
-    JUnitTestCase.assertNull(field.documentationComment);
+    expect(field.documentationComment, isNull);
     EngineTestCase.assertSizeOfList(0, field.metadata);
-    JUnitTestCase.assertNull(field.staticKeyword);
+    expect(field.staticKeyword, isNull);
     VariableDeclarationList list = field.fields;
-    JUnitTestCase.assertNotNull(list);
+    expect(list, isNotNull);
     NodeList<VariableDeclaration> variables = list.variables;
     EngineTestCase.assertSizeOfList(1, variables);
     VariableDeclaration variable = variables[0];
-    JUnitTestCase.assertNotNull(variable.name);
+    expect(variable.name, isNotNull);
   }
 
   void test_parseClassMember_getter_void() {
     MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], "void get g {}");
-    JUnitTestCase.assertNull(method.documentationComment);
-    JUnitTestCase.assertNull(method.externalKeyword);
-    JUnitTestCase.assertNull(method.modifierKeyword);
-    JUnitTestCase.assertNotNull(method.propertyKeyword);
-    JUnitTestCase.assertNotNull(method.returnType);
-    JUnitTestCase.assertNotNull(method.name);
-    JUnitTestCase.assertNull(method.operatorKeyword);
-    JUnitTestCase.assertNotNull(method.body);
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNotNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.body, isNotNull);
   }
 
   void test_parseClassMember_method_external() {
     MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], "external m();");
-    JUnitTestCase.assertNotNull(method.body);
-    JUnitTestCase.assertNull(method.documentationComment);
-    JUnitTestCase.assertNotNull(method.externalKeyword);
-    JUnitTestCase.assertNull(method.modifierKeyword);
-    JUnitTestCase.assertNotNull(method.name);
-    JUnitTestCase.assertNull(method.operatorKeyword);
-    JUnitTestCase.assertNotNull(method.parameters);
-    JUnitTestCase.assertNull(method.propertyKeyword);
-    JUnitTestCase.assertNull(method.returnType);
+    expect(method.body, isNotNull);
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNotNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNull);
   }
 
   void test_parseClassMember_method_external_withTypeAndArgs() {
     MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], "external int m(int a);");
-    JUnitTestCase.assertNotNull(method.body);
-    JUnitTestCase.assertNull(method.documentationComment);
-    JUnitTestCase.assertNotNull(method.externalKeyword);
-    JUnitTestCase.assertNull(method.modifierKeyword);
-    JUnitTestCase.assertNotNull(method.name);
-    JUnitTestCase.assertNull(method.operatorKeyword);
-    JUnitTestCase.assertNotNull(method.parameters);
-    JUnitTestCase.assertNull(method.propertyKeyword);
-    JUnitTestCase.assertNotNull(method.returnType);
+    expect(method.body, isNotNull);
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNotNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
   }
 
   void test_parseClassMember_method_get_noType() {
     MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], "get() {}");
-    JUnitTestCase.assertNull(method.documentationComment);
-    JUnitTestCase.assertNull(method.externalKeyword);
-    JUnitTestCase.assertNull(method.modifierKeyword);
-    JUnitTestCase.assertNull(method.propertyKeyword);
-    JUnitTestCase.assertNull(method.returnType);
-    JUnitTestCase.assertNotNull(method.name);
-    JUnitTestCase.assertNull(method.operatorKeyword);
-    JUnitTestCase.assertNotNull(method.parameters);
-    JUnitTestCase.assertNotNull(method.body);
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
   }
 
   void test_parseClassMember_method_get_type() {
     MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], "int get() {}");
-    JUnitTestCase.assertNull(method.documentationComment);
-    JUnitTestCase.assertNull(method.externalKeyword);
-    JUnitTestCase.assertNull(method.modifierKeyword);
-    JUnitTestCase.assertNull(method.propertyKeyword);
-    JUnitTestCase.assertNotNull(method.returnType);
-    JUnitTestCase.assertNotNull(method.name);
-    JUnitTestCase.assertNull(method.operatorKeyword);
-    JUnitTestCase.assertNotNull(method.parameters);
-    JUnitTestCase.assertNotNull(method.body);
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
   }
 
   void test_parseClassMember_method_get_void() {
     MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], "void get() {}");
-    JUnitTestCase.assertNull(method.documentationComment);
-    JUnitTestCase.assertNull(method.externalKeyword);
-    JUnitTestCase.assertNull(method.modifierKeyword);
-    JUnitTestCase.assertNull(method.propertyKeyword);
-    JUnitTestCase.assertNotNull(method.returnType);
-    JUnitTestCase.assertNotNull(method.name);
-    JUnitTestCase.assertNull(method.operatorKeyword);
-    JUnitTestCase.assertNotNull(method.parameters);
-    JUnitTestCase.assertNotNull(method.body);
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
   }
 
   void test_parseClassMember_method_operator_noType() {
     MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], "operator() {}");
-    JUnitTestCase.assertNull(method.documentationComment);
-    JUnitTestCase.assertNull(method.externalKeyword);
-    JUnitTestCase.assertNull(method.modifierKeyword);
-    JUnitTestCase.assertNull(method.propertyKeyword);
-    JUnitTestCase.assertNull(method.returnType);
-    JUnitTestCase.assertNotNull(method.name);
-    JUnitTestCase.assertNull(method.operatorKeyword);
-    JUnitTestCase.assertNotNull(method.parameters);
-    JUnitTestCase.assertNotNull(method.body);
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
   }
 
   void test_parseClassMember_method_operator_type() {
     MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], "int operator() {}");
-    JUnitTestCase.assertNull(method.documentationComment);
-    JUnitTestCase.assertNull(method.externalKeyword);
-    JUnitTestCase.assertNull(method.modifierKeyword);
-    JUnitTestCase.assertNull(method.propertyKeyword);
-    JUnitTestCase.assertNotNull(method.returnType);
-    JUnitTestCase.assertNotNull(method.name);
-    JUnitTestCase.assertNull(method.operatorKeyword);
-    JUnitTestCase.assertNotNull(method.parameters);
-    JUnitTestCase.assertNotNull(method.body);
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
   }
 
   void test_parseClassMember_method_operator_void() {
     MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], "void operator() {}");
-    JUnitTestCase.assertNull(method.documentationComment);
-    JUnitTestCase.assertNull(method.externalKeyword);
-    JUnitTestCase.assertNull(method.modifierKeyword);
-    JUnitTestCase.assertNull(method.propertyKeyword);
-    JUnitTestCase.assertNotNull(method.returnType);
-    JUnitTestCase.assertNotNull(method.name);
-    JUnitTestCase.assertNull(method.operatorKeyword);
-    JUnitTestCase.assertNotNull(method.parameters);
-    JUnitTestCase.assertNotNull(method.body);
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
   }
 
   void test_parseClassMember_method_returnType_parameterized() {
     MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], "p.A m() {}");
-    JUnitTestCase.assertNull(method.documentationComment);
-    JUnitTestCase.assertNull(method.externalKeyword);
-    JUnitTestCase.assertNull(method.modifierKeyword);
-    JUnitTestCase.assertNull(method.propertyKeyword);
-    JUnitTestCase.assertNotNull(method.returnType);
-    JUnitTestCase.assertNotNull(method.name);
-    JUnitTestCase.assertNull(method.operatorKeyword);
-    JUnitTestCase.assertNotNull(method.parameters);
-    JUnitTestCase.assertNotNull(method.body);
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
   }
 
   void test_parseClassMember_method_set_noType() {
     MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], "set() {}");
-    JUnitTestCase.assertNull(method.documentationComment);
-    JUnitTestCase.assertNull(method.externalKeyword);
-    JUnitTestCase.assertNull(method.modifierKeyword);
-    JUnitTestCase.assertNull(method.propertyKeyword);
-    JUnitTestCase.assertNull(method.returnType);
-    JUnitTestCase.assertNotNull(method.name);
-    JUnitTestCase.assertNull(method.operatorKeyword);
-    JUnitTestCase.assertNotNull(method.parameters);
-    JUnitTestCase.assertNotNull(method.body);
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
   }
 
   void test_parseClassMember_method_set_type() {
     MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], "int set() {}");
-    JUnitTestCase.assertNull(method.documentationComment);
-    JUnitTestCase.assertNull(method.externalKeyword);
-    JUnitTestCase.assertNull(method.modifierKeyword);
-    JUnitTestCase.assertNull(method.propertyKeyword);
-    JUnitTestCase.assertNotNull(method.returnType);
-    JUnitTestCase.assertNotNull(method.name);
-    JUnitTestCase.assertNull(method.operatorKeyword);
-    JUnitTestCase.assertNotNull(method.parameters);
-    JUnitTestCase.assertNotNull(method.body);
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
   }
 
   void test_parseClassMember_method_set_void() {
     MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], "void set() {}");
-    JUnitTestCase.assertNull(method.documentationComment);
-    JUnitTestCase.assertNull(method.externalKeyword);
-    JUnitTestCase.assertNull(method.modifierKeyword);
-    JUnitTestCase.assertNull(method.propertyKeyword);
-    JUnitTestCase.assertNotNull(method.returnType);
-    JUnitTestCase.assertNotNull(method.name);
-    JUnitTestCase.assertNull(method.operatorKeyword);
-    JUnitTestCase.assertNotNull(method.parameters);
-    JUnitTestCase.assertNotNull(method.body);
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
   }
 
   void test_parseClassMember_operator_index() {
     MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], "int operator [](int i) {}");
-    JUnitTestCase.assertNull(method.documentationComment);
-    JUnitTestCase.assertNull(method.externalKeyword);
-    JUnitTestCase.assertNull(method.modifierKeyword);
-    JUnitTestCase.assertNull(method.propertyKeyword);
-    JUnitTestCase.assertNotNull(method.returnType);
-    JUnitTestCase.assertNotNull(method.name);
-    JUnitTestCase.assertNotNull(method.operatorKeyword);
-    JUnitTestCase.assertNotNull(method.parameters);
-    JUnitTestCase.assertNotNull(method.body);
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNotNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
   }
 
   void test_parseClassMember_operator_indexAssign() {
     MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], "int operator []=(int i) {}");
-    JUnitTestCase.assertNull(method.documentationComment);
-    JUnitTestCase.assertNull(method.externalKeyword);
-    JUnitTestCase.assertNull(method.modifierKeyword);
-    JUnitTestCase.assertNull(method.propertyKeyword);
-    JUnitTestCase.assertNotNull(method.returnType);
-    JUnitTestCase.assertNotNull(method.name);
-    JUnitTestCase.assertNotNull(method.operatorKeyword);
-    JUnitTestCase.assertNotNull(method.parameters);
-    JUnitTestCase.assertNotNull(method.body);
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNotNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
   }
 
   void test_parseClassMember_redirectingFactory_const() {
     ConstructorDeclaration constructor = ParserTestCase.parse("parseClassMember", <Object> ["C"], "const factory C() = B;");
-    JUnitTestCase.assertNull(constructor.externalKeyword);
-    JUnitTestCase.assertNotNull(constructor.constKeyword);
-    JUnitTestCase.assertNotNull(constructor.factoryKeyword);
-    JUnitTestCase.assertNotNull(constructor.returnType);
-    JUnitTestCase.assertNull(constructor.period);
-    JUnitTestCase.assertNull(constructor.name);
-    JUnitTestCase.assertNotNull(constructor.parameters);
-    JUnitTestCase.assertNotNull(constructor.separator);
+    expect(constructor.externalKeyword, isNull);
+    expect(constructor.constKeyword, isNotNull);
+    expect(constructor.factoryKeyword, isNotNull);
+    expect(constructor.returnType, isNotNull);
+    expect(constructor.period, isNull);
+    expect(constructor.name, isNull);
+    expect(constructor.parameters, isNotNull);
+    expect(constructor.separator, isNotNull);
     EngineTestCase.assertSizeOfList(0, constructor.initializers);
-    JUnitTestCase.assertNotNull(constructor.redirectedConstructor);
-    JUnitTestCase.assertNotNull(constructor.body);
+    expect(constructor.redirectedConstructor, isNotNull);
+    expect(constructor.body, isNotNull);
   }
 
   void test_parseClassMember_redirectingFactory_nonConst() {
     ConstructorDeclaration constructor = ParserTestCase.parse("parseClassMember", <Object> ["C"], "factory C() = B;");
-    JUnitTestCase.assertNull(constructor.externalKeyword);
-    JUnitTestCase.assertNull(constructor.constKeyword);
-    JUnitTestCase.assertNotNull(constructor.factoryKeyword);
-    JUnitTestCase.assertNotNull(constructor.returnType);
-    JUnitTestCase.assertNull(constructor.period);
-    JUnitTestCase.assertNull(constructor.name);
-    JUnitTestCase.assertNotNull(constructor.parameters);
-    JUnitTestCase.assertNotNull(constructor.separator);
+    expect(constructor.externalKeyword, isNull);
+    expect(constructor.constKeyword, isNull);
+    expect(constructor.factoryKeyword, isNotNull);
+    expect(constructor.returnType, isNotNull);
+    expect(constructor.period, isNull);
+    expect(constructor.name, isNull);
+    expect(constructor.parameters, isNotNull);
+    expect(constructor.separator, isNotNull);
     EngineTestCase.assertSizeOfList(0, constructor.initializers);
-    JUnitTestCase.assertNotNull(constructor.redirectedConstructor);
-    JUnitTestCase.assertNotNull(constructor.body);
+    expect(constructor.redirectedConstructor, isNotNull);
+    expect(constructor.body, isNotNull);
   }
 
   void test_parseClassTypeAlias_abstract() {
     Token classToken = TokenFactory.tokenFromKeyword(Keyword.CLASS);
     Token abstractToken = TokenFactory.tokenFromKeyword(Keyword.ABSTRACT);
     ClassTypeAlias classTypeAlias = ParserTestCase.parse("parseClassTypeAlias", <Object> [emptyCommentAndMetadata(), abstractToken, classToken], "A = B with C;");
-    JUnitTestCase.assertNotNull(classTypeAlias.keyword);
-    JUnitTestCase.assertEquals("A", classTypeAlias.name.name);
-    JUnitTestCase.assertNotNull(classTypeAlias.equals);
-    JUnitTestCase.assertNotNull(classTypeAlias.abstractKeyword);
-    JUnitTestCase.assertNotNullMsg("B", classTypeAlias.superclass.name.name);
-    JUnitTestCase.assertNotNull(classTypeAlias.withClause);
-    JUnitTestCase.assertNull(classTypeAlias.implementsClause);
-    JUnitTestCase.assertNotNull(classTypeAlias.semicolon);
+    expect(classTypeAlias.keyword, isNotNull);
+    expect(classTypeAlias.name.name, "A");
+    expect(classTypeAlias.equals, isNotNull);
+    expect(classTypeAlias.abstractKeyword, isNotNull);
+    expect(classTypeAlias.superclass.name.name, isNotNull, reason: "B");
+    expect(classTypeAlias.withClause, isNotNull);
+    expect(classTypeAlias.implementsClause, isNull);
+    expect(classTypeAlias.semicolon, isNotNull);
   }
 
   void test_parseClassTypeAlias_implements() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = ParserTestCase.parse("parseClassTypeAlias", <Object> [emptyCommentAndMetadata(), null, token], "A = B with C implements D;");
-    JUnitTestCase.assertNotNull(classTypeAlias.keyword);
-    JUnitTestCase.assertEquals("A", classTypeAlias.name.name);
-    JUnitTestCase.assertNotNull(classTypeAlias.equals);
-    JUnitTestCase.assertNull(classTypeAlias.abstractKeyword);
-    JUnitTestCase.assertNotNullMsg("B", classTypeAlias.superclass.name.name);
-    JUnitTestCase.assertNotNull(classTypeAlias.withClause);
-    JUnitTestCase.assertNotNull(classTypeAlias.implementsClause);
-    JUnitTestCase.assertNotNull(classTypeAlias.semicolon);
+    expect(classTypeAlias.keyword, isNotNull);
+    expect(classTypeAlias.name.name, "A");
+    expect(classTypeAlias.equals, isNotNull);
+    expect(classTypeAlias.abstractKeyword, isNull);
+    expect(classTypeAlias.superclass.name.name, isNotNull, reason: "B");
+    expect(classTypeAlias.withClause, isNotNull);
+    expect(classTypeAlias.implementsClause, isNotNull);
+    expect(classTypeAlias.semicolon, isNotNull);
   }
 
   void test_parseClassTypeAlias_with() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = ParserTestCase.parse("parseClassTypeAlias", <Object> [emptyCommentAndMetadata(), null, token], "A = B with C;");
-    JUnitTestCase.assertNotNull(classTypeAlias.keyword);
-    JUnitTestCase.assertEquals("A", classTypeAlias.name.name);
-    JUnitTestCase.assertNotNull(classTypeAlias.equals);
-    JUnitTestCase.assertNull(classTypeAlias.abstractKeyword);
-    JUnitTestCase.assertNotNullMsg("B", classTypeAlias.superclass.name.name);
-    JUnitTestCase.assertNotNull(classTypeAlias.withClause);
-    JUnitTestCase.assertNull(classTypeAlias.implementsClause);
-    JUnitTestCase.assertNotNull(classTypeAlias.semicolon);
+    expect(classTypeAlias.keyword, isNotNull);
+    expect(classTypeAlias.name.name, "A");
+    expect(classTypeAlias.equals, isNotNull);
+    expect(classTypeAlias.abstractKeyword, isNull);
+    expect(classTypeAlias.superclass.name.name, isNotNull, reason: "B");
+    expect(classTypeAlias.withClause, isNotNull);
+    expect(classTypeAlias.implementsClause, isNull);
+    expect(classTypeAlias.semicolon, isNotNull);
   }
 
   void test_parseClassTypeAlias_with_implements() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = ParserTestCase.parse("parseClassTypeAlias", <Object> [emptyCommentAndMetadata(), null, token], "A = B with C implements D;");
-    JUnitTestCase.assertNotNull(classTypeAlias.keyword);
-    JUnitTestCase.assertEquals("A", classTypeAlias.name.name);
-    JUnitTestCase.assertNotNull(classTypeAlias.equals);
-    JUnitTestCase.assertNull(classTypeAlias.abstractKeyword);
-    JUnitTestCase.assertNotNullMsg("B", classTypeAlias.superclass.name.name);
-    JUnitTestCase.assertNotNull(classTypeAlias.withClause);
-    JUnitTestCase.assertNotNull(classTypeAlias.implementsClause);
-    JUnitTestCase.assertNotNull(classTypeAlias.semicolon);
+    expect(classTypeAlias.keyword, isNotNull);
+    expect(classTypeAlias.name.name, "A");
+    expect(classTypeAlias.equals, isNotNull);
+    expect(classTypeAlias.abstractKeyword, isNull);
+    expect(classTypeAlias.superclass.name.name, isNotNull, reason: "B");
+    expect(classTypeAlias.withClause, isNotNull);
+    expect(classTypeAlias.implementsClause, isNotNull);
+    expect(classTypeAlias.semicolon, isNotNull);
   }
 
   void test_parseCombinators_h() {
     List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "hide a;", []);
     EngineTestCase.assertSizeOfList(1, combinators);
     HideCombinator combinator = combinators[0] as HideCombinator;
-    JUnitTestCase.assertNotNull(combinator);
-    JUnitTestCase.assertNotNull(combinator.keyword);
+    expect(combinator, isNotNull);
+    expect(combinator.keyword, isNotNull);
     EngineTestCase.assertSizeOfList(1, combinator.hiddenNames);
   }
 
@@ -4644,12 +4642,12 @@ class SimpleParserTest extends ParserTestCase {
     List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "hide a show b;", []);
     EngineTestCase.assertSizeOfList(2, combinators);
     HideCombinator hideCombinator = combinators[0] as HideCombinator;
-    JUnitTestCase.assertNotNull(hideCombinator);
-    JUnitTestCase.assertNotNull(hideCombinator.keyword);
+    expect(hideCombinator, isNotNull);
+    expect(hideCombinator.keyword, isNotNull);
     EngineTestCase.assertSizeOfList(1, hideCombinator.hiddenNames);
     ShowCombinator showCombinator = combinators[1] as ShowCombinator;
-    JUnitTestCase.assertNotNull(showCombinator);
-    JUnitTestCase.assertNotNull(showCombinator.keyword);
+    expect(showCombinator, isNotNull);
+    expect(showCombinator.keyword, isNotNull);
     EngineTestCase.assertSizeOfList(1, showCombinator.shownNames);
   }
 
@@ -4662,62 +4660,62 @@ class SimpleParserTest extends ParserTestCase {
     List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "show a;", []);
     EngineTestCase.assertSizeOfList(1, combinators);
     ShowCombinator combinator = combinators[0] as ShowCombinator;
-    JUnitTestCase.assertNotNull(combinator);
-    JUnitTestCase.assertNotNull(combinator.keyword);
+    expect(combinator, isNotNull);
+    expect(combinator.keyword, isNotNull);
     EngineTestCase.assertSizeOfList(1, combinator.shownNames);
   }
 
   void test_parseCommentAndMetadata_c() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ void", []);
-    JUnitTestCase.assertNotNull(commentAndMetadata.comment);
+    expect(commentAndMetadata.comment, isNotNull);
     EngineTestCase.assertSizeOfList(0, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_cmc() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ @A /** 2 */ void", []);
-    JUnitTestCase.assertNotNull(commentAndMetadata.comment);
+    expect(commentAndMetadata.comment, isNotNull);
     EngineTestCase.assertSizeOfList(1, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_cmcm() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ @A /** 2 */ @B void", []);
-    JUnitTestCase.assertNotNull(commentAndMetadata.comment);
+    expect(commentAndMetadata.comment, isNotNull);
     EngineTestCase.assertSizeOfList(2, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_cmm() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ @A @B void", []);
-    JUnitTestCase.assertNotNull(commentAndMetadata.comment);
+    expect(commentAndMetadata.comment, isNotNull);
     EngineTestCase.assertSizeOfList(2, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_m() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A void", []);
-    JUnitTestCase.assertNull(commentAndMetadata.comment);
+    expect(commentAndMetadata.comment, isNull);
     EngineTestCase.assertSizeOfList(1, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_mcm() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A /** 1 */ @B void", []);
-    JUnitTestCase.assertNotNull(commentAndMetadata.comment);
+    expect(commentAndMetadata.comment, isNotNull);
     EngineTestCase.assertSizeOfList(2, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_mcmc() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A /** 1 */ @B /** 2 */ void", []);
-    JUnitTestCase.assertNotNull(commentAndMetadata.comment);
+    expect(commentAndMetadata.comment, isNotNull);
     EngineTestCase.assertSizeOfList(2, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_mm() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A @B(x) void", []);
-    JUnitTestCase.assertNull(commentAndMetadata.comment);
+    expect(commentAndMetadata.comment, isNull);
     EngineTestCase.assertSizeOfList(2, commentAndMetadata.metadata);
   }
 
   void test_parseCommentAndMetadata_none() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "void", []);
-    JUnitTestCase.assertNull(commentAndMetadata.comment);
+    expect(commentAndMetadata.comment, isNull);
     EngineTestCase.assertSizeOfList(0, commentAndMetadata.metadata);
   }
 
@@ -4726,7 +4724,7 @@ class SimpleParserTest extends ParserTestCase {
 /// 1
 /// 2
 void''', []);
-    JUnitTestCase.assertNotNull(commentAndMetadata.comment);
+    expect(commentAndMetadata.comment, isNotNull);
     EngineTestCase.assertSizeOfList(0, commentAndMetadata.metadata);
   }
 
@@ -4734,54 +4732,54 @@ void''', []);
     CommentReference reference = ParserTestCase.parse("parseCommentReference", <Object> ["new a.b", 7], "");
     PrefixedIdentifier prefixedIdentifier = EngineTestCase.assertInstanceOf((obj) => obj is PrefixedIdentifier, PrefixedIdentifier, reference.identifier);
     SimpleIdentifier prefix = prefixedIdentifier.prefix;
-    JUnitTestCase.assertNotNull(prefix.token);
-    JUnitTestCase.assertEquals("a", prefix.name);
-    JUnitTestCase.assertEquals(11, prefix.offset);
-    JUnitTestCase.assertNotNull(prefixedIdentifier.period);
+    expect(prefix.token, isNotNull);
+    expect(prefix.name, "a");
+    expect(prefix.offset, 11);
+    expect(prefixedIdentifier.period, isNotNull);
     SimpleIdentifier identifier = prefixedIdentifier.identifier;
-    JUnitTestCase.assertNotNull(identifier.token);
-    JUnitTestCase.assertEquals("b", identifier.name);
-    JUnitTestCase.assertEquals(13, identifier.offset);
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "b");
+    expect(identifier.offset, 13);
   }
 
   void test_parseCommentReference_new_simple() {
     CommentReference reference = ParserTestCase.parse("parseCommentReference", <Object> ["new a", 5], "");
     SimpleIdentifier identifier = EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, reference.identifier);
-    JUnitTestCase.assertNotNull(identifier.token);
-    JUnitTestCase.assertEquals("a", identifier.name);
-    JUnitTestCase.assertEquals(9, identifier.offset);
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "a");
+    expect(identifier.offset, 9);
   }
 
   void test_parseCommentReference_prefixed() {
     CommentReference reference = ParserTestCase.parse("parseCommentReference", <Object> ["a.b", 7], "");
     PrefixedIdentifier prefixedIdentifier = EngineTestCase.assertInstanceOf((obj) => obj is PrefixedIdentifier, PrefixedIdentifier, reference.identifier);
     SimpleIdentifier prefix = prefixedIdentifier.prefix;
-    JUnitTestCase.assertNotNull(prefix.token);
-    JUnitTestCase.assertEquals("a", prefix.name);
-    JUnitTestCase.assertEquals(7, prefix.offset);
-    JUnitTestCase.assertNotNull(prefixedIdentifier.period);
+    expect(prefix.token, isNotNull);
+    expect(prefix.name, "a");
+    expect(prefix.offset, 7);
+    expect(prefixedIdentifier.period, isNotNull);
     SimpleIdentifier identifier = prefixedIdentifier.identifier;
-    JUnitTestCase.assertNotNull(identifier.token);
-    JUnitTestCase.assertEquals("b", identifier.name);
-    JUnitTestCase.assertEquals(9, identifier.offset);
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "b");
+    expect(identifier.offset, 9);
   }
 
   void test_parseCommentReference_simple() {
     CommentReference reference = ParserTestCase.parse("parseCommentReference", <Object> ["a", 5], "");
     SimpleIdentifier identifier = EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, reference.identifier);
-    JUnitTestCase.assertNotNull(identifier.token);
-    JUnitTestCase.assertEquals("a", identifier.name);
-    JUnitTestCase.assertEquals(5, identifier.offset);
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "a");
+    expect(identifier.offset, 5);
   }
 
   void test_parseCommentReference_synthetic() {
     CommentReference reference = ParserTestCase.parse("parseCommentReference", <Object> ["", 5], "");
     SimpleIdentifier identifier = EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, reference.identifier);
-    JUnitTestCase.assertNotNull(identifier);
-    JUnitTestCase.assertTrue(identifier.isSynthetic);
-    JUnitTestCase.assertNotNull(identifier.token);
-    JUnitTestCase.assertEquals("", identifier.name);
-    JUnitTestCase.assertEquals(5, identifier.offset);
+    expect(identifier, isNotNull);
+    expect(identifier.isSynthetic, isTrue);
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "");
+    expect(identifier.offset, 5);
   }
 
   void test_parseCommentReferences_multiLine() {
@@ -4789,13 +4787,13 @@ void''', []);
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
     EngineTestCase.assertSizeOfList(2, references);
     CommentReference reference = references[0];
-    JUnitTestCase.assertNotNull(reference);
-    JUnitTestCase.assertNotNull(reference.identifier);
-    JUnitTestCase.assertEquals(12, reference.offset);
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 12);
     reference = references[1];
-    JUnitTestCase.assertNotNull(reference);
-    JUnitTestCase.assertNotNull(reference.identifier);
-    JUnitTestCase.assertEquals(20, reference.offset);
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 20);
   }
 
   void test_parseCommentReferences_notClosed_noIdentifier() {
@@ -4803,10 +4801,10 @@ void''', []);
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
     EngineTestCase.assertSizeOfList(1, references);
     CommentReference reference = references[0];
-    JUnitTestCase.assertNotNull(reference);
-    JUnitTestCase.assertNotNull(reference.identifier);
-    JUnitTestCase.assertTrue(reference.identifier.isSynthetic);
-    JUnitTestCase.assertEquals("", reference.identifier.name);
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.identifier.isSynthetic, isTrue);
+    expect(reference.identifier.name, "");
   }
 
   void test_parseCommentReferences_notClosed_withIdentifier() {
@@ -4814,10 +4812,10 @@ void''', []);
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
     EngineTestCase.assertSizeOfList(1, references);
     CommentReference reference = references[0];
-    JUnitTestCase.assertNotNull(reference);
-    JUnitTestCase.assertNotNull(reference.identifier);
-    JUnitTestCase.assertFalse(reference.identifier.isSynthetic);
-    JUnitTestCase.assertEquals("namePrefix", reference.identifier.name);
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.identifier.isSynthetic, isFalse);
+    expect(reference.identifier.name, "namePrefix");
   }
 
   void test_parseCommentReferences_singleLine() {
@@ -4827,17 +4825,17 @@ void''', []);
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
     EngineTestCase.assertSizeOfList(3, references);
     CommentReference reference = references[0];
-    JUnitTestCase.assertNotNull(reference);
-    JUnitTestCase.assertNotNull(reference.identifier);
-    JUnitTestCase.assertEquals(12, reference.offset);
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 12);
     reference = references[1];
-    JUnitTestCase.assertNotNull(reference);
-    JUnitTestCase.assertNotNull(reference.identifier);
-    JUnitTestCase.assertEquals(20, reference.offset);
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 20);
     reference = references[2];
-    JUnitTestCase.assertNotNull(reference);
-    JUnitTestCase.assertNotNull(reference.identifier);
-    JUnitTestCase.assertEquals(35, reference.offset);
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 35);
   }
 
   void test_parseCommentReferences_skipCodeBlock_bracketed() {
@@ -4845,9 +4843,9 @@ void''', []);
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
     EngineTestCase.assertSizeOfList(1, references);
     CommentReference reference = references[0];
-    JUnitTestCase.assertNotNull(reference);
-    JUnitTestCase.assertNotNull(reference.identifier);
-    JUnitTestCase.assertEquals(24, reference.offset);
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 24);
   }
 
   void test_parseCommentReferences_skipCodeBlock_spaces() {
@@ -4855,9 +4853,9 @@ void''', []);
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
     EngineTestCase.assertSizeOfList(1, references);
     CommentReference reference = references[0];
-    JUnitTestCase.assertNotNull(reference);
-    JUnitTestCase.assertNotNull(reference.identifier);
-    JUnitTestCase.assertEquals(27, reference.offset);
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 27);
   }
 
   void test_parseCommentReferences_skipLinkDefinition() {
@@ -4865,9 +4863,9 @@ void''', []);
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
     EngineTestCase.assertSizeOfList(1, references);
     CommentReference reference = references[0];
-    JUnitTestCase.assertNotNull(reference);
-    JUnitTestCase.assertNotNull(reference.identifier);
-    JUnitTestCase.assertEquals(44, reference.offset);
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 44);
   }
 
   void test_parseCommentReferences_skipLinked() {
@@ -4875,9 +4873,9 @@ void''', []);
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
     EngineTestCase.assertSizeOfList(1, references);
     CommentReference reference = references[0];
-    JUnitTestCase.assertNotNull(reference);
-    JUnitTestCase.assertNotNull(reference.identifier);
-    JUnitTestCase.assertEquals(35, reference.offset);
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 35);
   }
 
   void test_parseCommentReferences_skipReferenceLink() {
@@ -4885,14 +4883,14 @@ void''', []);
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
     EngineTestCase.assertSizeOfList(1, references);
     CommentReference reference = references[0];
-    JUnitTestCase.assertNotNull(reference);
-    JUnitTestCase.assertNotNull(reference.identifier);
-    JUnitTestCase.assertEquals(15, reference.offset);
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 15);
   }
 
   void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "abstract<dynamic> _abstract = new abstract.A();", []);
-    JUnitTestCase.assertNull(unit.scriptTag);
+    expect(unit.scriptTag, isNull);
     EngineTestCase.assertSizeOfList(0, unit.directives);
     EngineTestCase.assertSizeOfList(1, unit.declarations);
   }
@@ -4917,49 +4915,49 @@ void''', []);
 
   void test_parseCompilationUnit_directives_multiple() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "library l;\npart 'a.dart';", []);
-    JUnitTestCase.assertNull(unit.scriptTag);
+    expect(unit.scriptTag, isNull);
     EngineTestCase.assertSizeOfList(2, unit.directives);
     EngineTestCase.assertSizeOfList(0, unit.declarations);
   }
 
   void test_parseCompilationUnit_directives_single() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "library l;", []);
-    JUnitTestCase.assertNull(unit.scriptTag);
+    expect(unit.scriptTag, isNull);
     EngineTestCase.assertSizeOfList(1, unit.directives);
     EngineTestCase.assertSizeOfList(0, unit.declarations);
   }
 
   void test_parseCompilationUnit_empty() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "", []);
-    JUnitTestCase.assertNull(unit.scriptTag);
+    expect(unit.scriptTag, isNull);
     EngineTestCase.assertSizeOfList(0, unit.directives);
     EngineTestCase.assertSizeOfList(0, unit.declarations);
   }
 
   void test_parseCompilationUnit_exportAsPrefix() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "export.A _export = new export.A();", []);
-    JUnitTestCase.assertNull(unit.scriptTag);
+    expect(unit.scriptTag, isNull);
     EngineTestCase.assertSizeOfList(0, unit.directives);
     EngineTestCase.assertSizeOfList(1, unit.declarations);
   }
 
   void test_parseCompilationUnit_exportAsPrefix_parameterized() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "export<dynamic> _export = new export.A();", []);
-    JUnitTestCase.assertNull(unit.scriptTag);
+    expect(unit.scriptTag, isNull);
     EngineTestCase.assertSizeOfList(0, unit.directives);
     EngineTestCase.assertSizeOfList(1, unit.declarations);
   }
 
   void test_parseCompilationUnit_operatorAsPrefix_parameterized() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "operator<dynamic> _operator = new operator.A();", []);
-    JUnitTestCase.assertNull(unit.scriptTag);
+    expect(unit.scriptTag, isNull);
     EngineTestCase.assertSizeOfList(0, unit.directives);
     EngineTestCase.assertSizeOfList(1, unit.declarations);
   }
 
   void test_parseCompilationUnit_script() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "#! /bin/dart", []);
-    JUnitTestCase.assertNotNull(unit.scriptTag);
+    expect(unit.scriptTag, isNotNull);
     EngineTestCase.assertSizeOfList(0, unit.directives);
     EngineTestCase.assertSizeOfList(0, unit.declarations);
   }
@@ -4967,266 +4965,266 @@ void''', []);
   void test_parseCompilationUnit_skipFunctionBody_withInterpolation() {
     ParserTestCase.parseFunctionBodies = false;
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "f() { '\${n}'; }", []);
-    JUnitTestCase.assertNull(unit.scriptTag);
+    expect(unit.scriptTag, isNull);
     EngineTestCase.assertSizeOfList(1, unit.declarations);
   }
 
   void test_parseCompilationUnit_topLevelDeclaration() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "class A {}", []);
-    JUnitTestCase.assertNull(unit.scriptTag);
+    expect(unit.scriptTag, isNull);
     EngineTestCase.assertSizeOfList(0, unit.directives);
     EngineTestCase.assertSizeOfList(1, unit.declarations);
   }
 
   void test_parseCompilationUnit_typedefAsPrefix() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "typedef.A _typedef = new typedef.A();", []);
-    JUnitTestCase.assertNull(unit.scriptTag);
+    expect(unit.scriptTag, isNull);
     EngineTestCase.assertSizeOfList(0, unit.directives);
     EngineTestCase.assertSizeOfList(1, unit.declarations);
   }
 
   void test_parseCompilationUnitMember_abstractAsPrefix() {
     TopLevelVariableDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "abstract.A _abstract = new abstract.A();");
-    JUnitTestCase.assertNotNull(declaration.semicolon);
-    JUnitTestCase.assertNotNull(declaration.variables);
+    expect(declaration.semicolon, isNotNull);
+    expect(declaration.variables, isNotNull);
   }
 
   void test_parseCompilationUnitMember_class() {
     ClassDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "class A {}");
-    JUnitTestCase.assertEquals("A", declaration.name.name);
+    expect(declaration.name.name, "A");
     EngineTestCase.assertSizeOfList(0, declaration.members);
   }
 
   void test_parseCompilationUnitMember_classTypeAlias() {
     ClassTypeAlias alias = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "abstract class A = B with C;");
-    JUnitTestCase.assertEquals("A", alias.name.name);
-    JUnitTestCase.assertNotNull(alias.abstractKeyword);
+    expect(alias.name.name, "A");
+    expect(alias.abstractKeyword, isNotNull);
   }
 
   void test_parseCompilationUnitMember_constVariable() {
     TopLevelVariableDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "const int x = 0;");
-    JUnitTestCase.assertNotNull(declaration.semicolon);
-    JUnitTestCase.assertNotNull(declaration.variables);
+    expect(declaration.semicolon, isNotNull);
+    expect(declaration.variables, isNotNull);
   }
 
   void test_parseCompilationUnitMember_finalVariable() {
     TopLevelVariableDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "final x = 0;");
-    JUnitTestCase.assertNotNull(declaration.semicolon);
-    JUnitTestCase.assertNotNull(declaration.variables);
+    expect(declaration.semicolon, isNotNull);
+    expect(declaration.variables, isNotNull);
   }
 
   void test_parseCompilationUnitMember_function_external_noType() {
     FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "external f();");
-    JUnitTestCase.assertNotNull(declaration.externalKeyword);
-    JUnitTestCase.assertNotNull(declaration.functionExpression);
-    JUnitTestCase.assertNull(declaration.propertyKeyword);
+    expect(declaration.externalKeyword, isNotNull);
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNull);
   }
 
   void test_parseCompilationUnitMember_function_external_type() {
     FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "external int f();");
-    JUnitTestCase.assertNotNull(declaration.externalKeyword);
-    JUnitTestCase.assertNotNull(declaration.functionExpression);
-    JUnitTestCase.assertNull(declaration.propertyKeyword);
+    expect(declaration.externalKeyword, isNotNull);
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNull);
   }
 
   void test_parseCompilationUnitMember_function_noType() {
     FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "f() {}");
-    JUnitTestCase.assertNotNull(declaration.functionExpression);
-    JUnitTestCase.assertNull(declaration.propertyKeyword);
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNull);
   }
 
   void test_parseCompilationUnitMember_function_type() {
     FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "int f() {}");
-    JUnitTestCase.assertNotNull(declaration.functionExpression);
-    JUnitTestCase.assertNull(declaration.propertyKeyword);
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNull);
   }
 
   void test_parseCompilationUnitMember_function_void() {
     FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "void f() {}");
-    JUnitTestCase.assertNotNull(declaration.returnType);
+    expect(declaration.returnType, isNotNull);
   }
 
   void test_parseCompilationUnitMember_getter_external_noType() {
     FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "external get p;");
-    JUnitTestCase.assertNotNull(declaration.externalKeyword);
-    JUnitTestCase.assertNotNull(declaration.functionExpression);
-    JUnitTestCase.assertNotNull(declaration.propertyKeyword);
+    expect(declaration.externalKeyword, isNotNull);
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNotNull);
   }
 
   void test_parseCompilationUnitMember_getter_external_type() {
     FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "external int get p;");
-    JUnitTestCase.assertNotNull(declaration.externalKeyword);
-    JUnitTestCase.assertNotNull(declaration.functionExpression);
-    JUnitTestCase.assertNotNull(declaration.propertyKeyword);
+    expect(declaration.externalKeyword, isNotNull);
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNotNull);
   }
 
   void test_parseCompilationUnitMember_getter_noType() {
     FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "get p => 0;");
-    JUnitTestCase.assertNotNull(declaration.functionExpression);
-    JUnitTestCase.assertNotNull(declaration.propertyKeyword);
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNotNull);
   }
 
   void test_parseCompilationUnitMember_getter_type() {
     FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "int get p => 0;");
-    JUnitTestCase.assertNotNull(declaration.functionExpression);
-    JUnitTestCase.assertNotNull(declaration.propertyKeyword);
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNotNull);
   }
 
   void test_parseCompilationUnitMember_setter_external_noType() {
     FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "external set p(v);");
-    JUnitTestCase.assertNotNull(declaration.externalKeyword);
-    JUnitTestCase.assertNotNull(declaration.functionExpression);
-    JUnitTestCase.assertNotNull(declaration.propertyKeyword);
+    expect(declaration.externalKeyword, isNotNull);
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNotNull);
   }
 
   void test_parseCompilationUnitMember_setter_external_type() {
     FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "external void set p(int v);");
-    JUnitTestCase.assertNotNull(declaration.externalKeyword);
-    JUnitTestCase.assertNotNull(declaration.functionExpression);
-    JUnitTestCase.assertNotNull(declaration.propertyKeyword);
+    expect(declaration.externalKeyword, isNotNull);
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNotNull);
   }
 
   void test_parseCompilationUnitMember_setter_noType() {
     FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "set p(v) {}");
-    JUnitTestCase.assertNotNull(declaration.functionExpression);
-    JUnitTestCase.assertNotNull(declaration.propertyKeyword);
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNotNull);
   }
 
   void test_parseCompilationUnitMember_setter_type() {
     FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "void set p(int v) {}");
-    JUnitTestCase.assertNotNull(declaration.functionExpression);
-    JUnitTestCase.assertNotNull(declaration.propertyKeyword);
-    JUnitTestCase.assertNotNull(declaration.returnType);
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNotNull);
+    expect(declaration.returnType, isNotNull);
   }
 
   void test_parseCompilationUnitMember_typeAlias_abstract() {
     ClassTypeAlias typeAlias = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "abstract class C = S with M;");
-    JUnitTestCase.assertNotNull(typeAlias.keyword);
-    JUnitTestCase.assertEquals("C", typeAlias.name.name);
-    JUnitTestCase.assertNull(typeAlias.typeParameters);
-    JUnitTestCase.assertNotNull(typeAlias.equals);
-    JUnitTestCase.assertNotNull(typeAlias.abstractKeyword);
-    JUnitTestCase.assertEquals("S", typeAlias.superclass.name.name);
-    JUnitTestCase.assertNotNull(typeAlias.withClause);
-    JUnitTestCase.assertNull(typeAlias.implementsClause);
-    JUnitTestCase.assertNotNull(typeAlias.semicolon);
+    expect(typeAlias.keyword, isNotNull);
+    expect(typeAlias.name.name, "C");
+    expect(typeAlias.typeParameters, isNull);
+    expect(typeAlias.equals, isNotNull);
+    expect(typeAlias.abstractKeyword, isNotNull);
+    expect(typeAlias.superclass.name.name, "S");
+    expect(typeAlias.withClause, isNotNull);
+    expect(typeAlias.implementsClause, isNull);
+    expect(typeAlias.semicolon, isNotNull);
   }
 
   void test_parseCompilationUnitMember_typeAlias_generic() {
     ClassTypeAlias typeAlias = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "class C<E> = S<E> with M<E> implements I<E>;");
-    JUnitTestCase.assertNotNull(typeAlias.keyword);
-    JUnitTestCase.assertEquals("C", typeAlias.name.name);
+    expect(typeAlias.keyword, isNotNull);
+    expect(typeAlias.name.name, "C");
     EngineTestCase.assertSizeOfList(1, typeAlias.typeParameters.typeParameters);
-    JUnitTestCase.assertNotNull(typeAlias.equals);
-    JUnitTestCase.assertNull(typeAlias.abstractKeyword);
-    JUnitTestCase.assertEquals("S", typeAlias.superclass.name.name);
-    JUnitTestCase.assertNotNull(typeAlias.withClause);
-    JUnitTestCase.assertNotNull(typeAlias.implementsClause);
-    JUnitTestCase.assertNotNull(typeAlias.semicolon);
+    expect(typeAlias.equals, isNotNull);
+    expect(typeAlias.abstractKeyword, isNull);
+    expect(typeAlias.superclass.name.name, "S");
+    expect(typeAlias.withClause, isNotNull);
+    expect(typeAlias.implementsClause, isNotNull);
+    expect(typeAlias.semicolon, isNotNull);
   }
 
   void test_parseCompilationUnitMember_typeAlias_implements() {
     ClassTypeAlias typeAlias = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "class C = S with M implements I;");
-    JUnitTestCase.assertNotNull(typeAlias.keyword);
-    JUnitTestCase.assertEquals("C", typeAlias.name.name);
-    JUnitTestCase.assertNull(typeAlias.typeParameters);
-    JUnitTestCase.assertNotNull(typeAlias.equals);
-    JUnitTestCase.assertNull(typeAlias.abstractKeyword);
-    JUnitTestCase.assertEquals("S", typeAlias.superclass.name.name);
-    JUnitTestCase.assertNotNull(typeAlias.withClause);
-    JUnitTestCase.assertNotNull(typeAlias.implementsClause);
-    JUnitTestCase.assertNotNull(typeAlias.semicolon);
+    expect(typeAlias.keyword, isNotNull);
+    expect(typeAlias.name.name, "C");
+    expect(typeAlias.typeParameters, isNull);
+    expect(typeAlias.equals, isNotNull);
+    expect(typeAlias.abstractKeyword, isNull);
+    expect(typeAlias.superclass.name.name, "S");
+    expect(typeAlias.withClause, isNotNull);
+    expect(typeAlias.implementsClause, isNotNull);
+    expect(typeAlias.semicolon, isNotNull);
   }
 
   void test_parseCompilationUnitMember_typeAlias_noImplements() {
     ClassTypeAlias typeAlias = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "class C = S with M;");
-    JUnitTestCase.assertNotNull(typeAlias.keyword);
-    JUnitTestCase.assertEquals("C", typeAlias.name.name);
-    JUnitTestCase.assertNull(typeAlias.typeParameters);
-    JUnitTestCase.assertNotNull(typeAlias.equals);
-    JUnitTestCase.assertNull(typeAlias.abstractKeyword);
-    JUnitTestCase.assertEquals("S", typeAlias.superclass.name.name);
-    JUnitTestCase.assertNotNull(typeAlias.withClause);
-    JUnitTestCase.assertNull(typeAlias.implementsClause);
-    JUnitTestCase.assertNotNull(typeAlias.semicolon);
+    expect(typeAlias.keyword, isNotNull);
+    expect(typeAlias.name.name, "C");
+    expect(typeAlias.typeParameters, isNull);
+    expect(typeAlias.equals, isNotNull);
+    expect(typeAlias.abstractKeyword, isNull);
+    expect(typeAlias.superclass.name.name, "S");
+    expect(typeAlias.withClause, isNotNull);
+    expect(typeAlias.implementsClause, isNull);
+    expect(typeAlias.semicolon, isNotNull);
   }
 
   void test_parseCompilationUnitMember_typedef() {
     FunctionTypeAlias typeAlias = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "typedef F();");
-    JUnitTestCase.assertEquals("F", typeAlias.name.name);
+    expect(typeAlias.name.name, "F");
     EngineTestCase.assertSizeOfList(0, typeAlias.parameters.parameters);
   }
 
   void test_parseCompilationUnitMember_variable() {
     TopLevelVariableDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "var x = 0;");
-    JUnitTestCase.assertNotNull(declaration.semicolon);
-    JUnitTestCase.assertNotNull(declaration.variables);
+    expect(declaration.semicolon, isNotNull);
+    expect(declaration.variables, isNotNull);
   }
 
   void test_parseCompilationUnitMember_variableGet() {
     TopLevelVariableDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "String get = null;");
-    JUnitTestCase.assertNotNull(declaration.semicolon);
-    JUnitTestCase.assertNotNull(declaration.variables);
+    expect(declaration.semicolon, isNotNull);
+    expect(declaration.variables, isNotNull);
   }
 
   void test_parseCompilationUnitMember_variableSet() {
     TopLevelVariableDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "String set = null;");
-    JUnitTestCase.assertNotNull(declaration.semicolon);
-    JUnitTestCase.assertNotNull(declaration.variables);
+    expect(declaration.semicolon, isNotNull);
+    expect(declaration.variables, isNotNull);
   }
 
   void test_parseConditionalExpression() {
     ConditionalExpression expression = ParserTestCase.parse4("parseConditionalExpression", "x ? y : z", []);
-    JUnitTestCase.assertNotNull(expression.condition);
-    JUnitTestCase.assertNotNull(expression.question);
-    JUnitTestCase.assertNotNull(expression.thenExpression);
-    JUnitTestCase.assertNotNull(expression.colon);
-    JUnitTestCase.assertNotNull(expression.elseExpression);
+    expect(expression.condition, isNotNull);
+    expect(expression.question, isNotNull);
+    expect(expression.thenExpression, isNotNull);
+    expect(expression.colon, isNotNull);
+    expect(expression.elseExpression, isNotNull);
   }
 
   void test_parseConstExpression_instanceCreation() {
     InstanceCreationExpression expression = ParserTestCase.parse4("parseConstExpression", "const A()", []);
-    JUnitTestCase.assertNotNull(expression.keyword);
+    expect(expression.keyword, isNotNull);
     ConstructorName name = expression.constructorName;
-    JUnitTestCase.assertNotNull(name);
-    JUnitTestCase.assertNotNull(name.type);
-    JUnitTestCase.assertNull(name.period);
-    JUnitTestCase.assertNull(name.name);
-    JUnitTestCase.assertNotNull(expression.argumentList);
+    expect(name, isNotNull);
+    expect(name.type, isNotNull);
+    expect(name.period, isNull);
+    expect(name.name, isNull);
+    expect(expression.argumentList, isNotNull);
   }
 
   void test_parseConstExpression_listLiteral_typed() {
     ListLiteral literal = ParserTestCase.parse4("parseConstExpression", "const <A> []", []);
-    JUnitTestCase.assertNotNull(literal.constKeyword);
-    JUnitTestCase.assertNotNull(literal.typeArguments);
-    JUnitTestCase.assertNotNull(literal.leftBracket);
+    expect(literal.constKeyword, isNotNull);
+    expect(literal.typeArguments, isNotNull);
+    expect(literal.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(0, literal.elements);
-    JUnitTestCase.assertNotNull(literal.rightBracket);
+    expect(literal.rightBracket, isNotNull);
   }
 
   void test_parseConstExpression_listLiteral_untyped() {
     ListLiteral literal = ParserTestCase.parse4("parseConstExpression", "const []", []);
-    JUnitTestCase.assertNotNull(literal.constKeyword);
-    JUnitTestCase.assertNull(literal.typeArguments);
-    JUnitTestCase.assertNotNull(literal.leftBracket);
+    expect(literal.constKeyword, isNotNull);
+    expect(literal.typeArguments, isNull);
+    expect(literal.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(0, literal.elements);
-    JUnitTestCase.assertNotNull(literal.rightBracket);
+    expect(literal.rightBracket, isNotNull);
   }
 
   void test_parseConstExpression_mapLiteral_typed() {
     MapLiteral literal = ParserTestCase.parse4("parseConstExpression", "const <A, B> {}", []);
-    JUnitTestCase.assertNotNull(literal.leftBracket);
+    expect(literal.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(0, literal.entries);
-    JUnitTestCase.assertNotNull(literal.rightBracket);
-    JUnitTestCase.assertNotNull(literal.typeArguments);
+    expect(literal.rightBracket, isNotNull);
+    expect(literal.typeArguments, isNotNull);
   }
 
   void test_parseConstExpression_mapLiteral_untyped() {
     MapLiteral literal = ParserTestCase.parse4("parseConstExpression", "const {}", []);
-    JUnitTestCase.assertNotNull(literal.leftBracket);
+    expect(literal.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(0, literal.entries);
-    JUnitTestCase.assertNotNull(literal.rightBracket);
-    JUnitTestCase.assertNull(literal.typeArguments);
+    expect(literal.rightBracket, isNotNull);
+    expect(literal.typeArguments, isNull);
   }
 
   void test_parseConstructor() {
@@ -5252,339 +5250,339 @@ void''', []);
 
   void test_parseConstructorFieldInitializer_qualified() {
     ConstructorFieldInitializer invocation = ParserTestCase.parse4("parseConstructorFieldInitializer", "this.a = b", []);
-    JUnitTestCase.assertNotNull(invocation.equals);
-    JUnitTestCase.assertNotNull(invocation.expression);
-    JUnitTestCase.assertNotNull(invocation.fieldName);
-    JUnitTestCase.assertNotNull(invocation.keyword);
-    JUnitTestCase.assertNotNull(invocation.period);
+    expect(invocation.equals, isNotNull);
+    expect(invocation.expression, isNotNull);
+    expect(invocation.fieldName, isNotNull);
+    expect(invocation.keyword, isNotNull);
+    expect(invocation.period, isNotNull);
   }
 
   void test_parseConstructorFieldInitializer_unqualified() {
     ConstructorFieldInitializer invocation = ParserTestCase.parse4("parseConstructorFieldInitializer", "a = b", []);
-    JUnitTestCase.assertNotNull(invocation.equals);
-    JUnitTestCase.assertNotNull(invocation.expression);
-    JUnitTestCase.assertNotNull(invocation.fieldName);
-    JUnitTestCase.assertNull(invocation.keyword);
-    JUnitTestCase.assertNull(invocation.period);
+    expect(invocation.equals, isNotNull);
+    expect(invocation.expression, isNotNull);
+    expect(invocation.fieldName, isNotNull);
+    expect(invocation.keyword, isNull);
+    expect(invocation.period, isNull);
   }
 
   void test_parseConstructorName_named_noPrefix() {
     ConstructorName name = ParserTestCase.parse4("parseConstructorName", "A.n;", []);
-    JUnitTestCase.assertNotNull(name.type);
-    JUnitTestCase.assertNull(name.period);
-    JUnitTestCase.assertNull(name.name);
+    expect(name.type, isNotNull);
+    expect(name.period, isNull);
+    expect(name.name, isNull);
   }
 
   void test_parseConstructorName_named_prefixed() {
     ConstructorName name = ParserTestCase.parse4("parseConstructorName", "p.A.n;", []);
-    JUnitTestCase.assertNotNull(name.type);
-    JUnitTestCase.assertNotNull(name.period);
-    JUnitTestCase.assertNotNull(name.name);
+    expect(name.type, isNotNull);
+    expect(name.period, isNotNull);
+    expect(name.name, isNotNull);
   }
 
   void test_parseConstructorName_unnamed_noPrefix() {
     ConstructorName name = ParserTestCase.parse4("parseConstructorName", "A;", []);
-    JUnitTestCase.assertNotNull(name.type);
-    JUnitTestCase.assertNull(name.period);
-    JUnitTestCase.assertNull(name.name);
+    expect(name.type, isNotNull);
+    expect(name.period, isNull);
+    expect(name.name, isNull);
   }
 
   void test_parseConstructorName_unnamed_prefixed() {
     ConstructorName name = ParserTestCase.parse4("parseConstructorName", "p.A;", []);
-    JUnitTestCase.assertNotNull(name.type);
-    JUnitTestCase.assertNull(name.period);
-    JUnitTestCase.assertNull(name.name);
+    expect(name.type, isNotNull);
+    expect(name.period, isNull);
+    expect(name.name, isNull);
   }
 
   void test_parseContinueStatement_label() {
     ContinueStatement statement = ParserTestCase.parse4("parseContinueStatement", "continue foo;", [ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP]);
-    JUnitTestCase.assertNotNull(statement.keyword);
-    JUnitTestCase.assertNotNull(statement.label);
-    JUnitTestCase.assertNotNull(statement.semicolon);
+    expect(statement.keyword, isNotNull);
+    expect(statement.label, isNotNull);
+    expect(statement.semicolon, isNotNull);
   }
 
   void test_parseContinueStatement_noLabel() {
     ContinueStatement statement = ParserTestCase.parse4("parseContinueStatement", "continue;", [ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP]);
-    JUnitTestCase.assertNotNull(statement.keyword);
-    JUnitTestCase.assertNull(statement.label);
-    JUnitTestCase.assertNotNull(statement.semicolon);
+    expect(statement.keyword, isNotNull);
+    expect(statement.label, isNull);
+    expect(statement.semicolon, isNotNull);
   }
 
   void test_parseDirective_export() {
     ExportDirective directive = ParserTestCase.parse("parseDirective", <Object> [emptyCommentAndMetadata()], "export 'lib/lib.dart';");
-    JUnitTestCase.assertNotNull(directive.keyword);
-    JUnitTestCase.assertNotNull(directive.uri);
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
     EngineTestCase.assertSizeOfList(0, directive.combinators);
-    JUnitTestCase.assertNotNull(directive.semicolon);
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseDirective_import() {
     ImportDirective directive = ParserTestCase.parse("parseDirective", <Object> [emptyCommentAndMetadata()], "import 'lib/lib.dart';");
-    JUnitTestCase.assertNotNull(directive.keyword);
-    JUnitTestCase.assertNotNull(directive.uri);
-    JUnitTestCase.assertNull(directive.asToken);
-    JUnitTestCase.assertNull(directive.prefix);
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.asToken, isNull);
+    expect(directive.prefix, isNull);
     EngineTestCase.assertSizeOfList(0, directive.combinators);
-    JUnitTestCase.assertNotNull(directive.semicolon);
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseDirective_library() {
     LibraryDirective directive = ParserTestCase.parse("parseDirective", <Object> [emptyCommentAndMetadata()], "library l;");
-    JUnitTestCase.assertNotNull(directive.libraryToken);
-    JUnitTestCase.assertNotNull(directive.name);
-    JUnitTestCase.assertNotNull(directive.semicolon);
+    expect(directive.libraryToken, isNotNull);
+    expect(directive.name, isNotNull);
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseDirective_part() {
     PartDirective directive = ParserTestCase.parse("parseDirective", <Object> [emptyCommentAndMetadata()], "part 'lib/lib.dart';");
-    JUnitTestCase.assertNotNull(directive.partToken);
-    JUnitTestCase.assertNotNull(directive.uri);
-    JUnitTestCase.assertNotNull(directive.semicolon);
+    expect(directive.partToken, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseDirective_partOf() {
     PartOfDirective directive = ParserTestCase.parse("parseDirective", <Object> [emptyCommentAndMetadata()], "part of l;");
-    JUnitTestCase.assertNotNull(directive.partToken);
-    JUnitTestCase.assertNotNull(directive.ofToken);
-    JUnitTestCase.assertNotNull(directive.libraryName);
-    JUnitTestCase.assertNotNull(directive.semicolon);
+    expect(directive.partToken, isNotNull);
+    expect(directive.ofToken, isNotNull);
+    expect(directive.libraryName, isNotNull);
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseDirectives_complete() {
     CompilationUnit unit = _parseDirectives("#! /bin/dart\nlibrary l;\nclass A {}", []);
-    JUnitTestCase.assertNotNull(unit.scriptTag);
+    expect(unit.scriptTag, isNotNull);
     EngineTestCase.assertSizeOfList(1, unit.directives);
   }
 
   void test_parseDirectives_empty() {
     CompilationUnit unit = _parseDirectives("", []);
-    JUnitTestCase.assertNull(unit.scriptTag);
+    expect(unit.scriptTag, isNull);
     EngineTestCase.assertSizeOfList(0, unit.directives);
   }
 
   void test_parseDirectives_mixed() {
     CompilationUnit unit = _parseDirectives("library l; class A {} part 'foo.dart';", []);
-    JUnitTestCase.assertNull(unit.scriptTag);
+    expect(unit.scriptTag, isNull);
     EngineTestCase.assertSizeOfList(1, unit.directives);
   }
 
   void test_parseDirectives_multiple() {
     CompilationUnit unit = _parseDirectives("library l;\npart 'a.dart';", []);
-    JUnitTestCase.assertNull(unit.scriptTag);
+    expect(unit.scriptTag, isNull);
     EngineTestCase.assertSizeOfList(2, unit.directives);
   }
 
   void test_parseDirectives_script() {
     CompilationUnit unit = _parseDirectives("#! /bin/dart", []);
-    JUnitTestCase.assertNotNull(unit.scriptTag);
+    expect(unit.scriptTag, isNotNull);
     EngineTestCase.assertSizeOfList(0, unit.directives);
   }
 
   void test_parseDirectives_single() {
     CompilationUnit unit = _parseDirectives("library l;", []);
-    JUnitTestCase.assertNull(unit.scriptTag);
+    expect(unit.scriptTag, isNull);
     EngineTestCase.assertSizeOfList(1, unit.directives);
   }
 
   void test_parseDirectives_topLevelDeclaration() {
     CompilationUnit unit = _parseDirectives("class A {}", []);
-    JUnitTestCase.assertNull(unit.scriptTag);
+    expect(unit.scriptTag, isNull);
     EngineTestCase.assertSizeOfList(0, unit.directives);
   }
 
   void test_parseDocumentationComment_block() {
     Comment comment = ParserTestCase.parse4("parseDocumentationComment", "/** */ class", []);
-    JUnitTestCase.assertFalse(comment.isBlock);
-    JUnitTestCase.assertTrue(comment.isDocumentation);
-    JUnitTestCase.assertFalse(comment.isEndOfLine);
+    expect(comment.isBlock, isFalse);
+    expect(comment.isDocumentation, isTrue);
+    expect(comment.isEndOfLine, isFalse);
   }
 
   void test_parseDocumentationComment_block_withReference() {
     Comment comment = ParserTestCase.parse4("parseDocumentationComment", "/** [a] */ class", []);
-    JUnitTestCase.assertFalse(comment.isBlock);
-    JUnitTestCase.assertTrue(comment.isDocumentation);
-    JUnitTestCase.assertFalse(comment.isEndOfLine);
+    expect(comment.isBlock, isFalse);
+    expect(comment.isDocumentation, isTrue);
+    expect(comment.isEndOfLine, isFalse);
     NodeList<CommentReference> references = comment.references;
     EngineTestCase.assertSizeOfList(1, references);
     CommentReference reference = references[0];
-    JUnitTestCase.assertNotNull(reference);
-    JUnitTestCase.assertEquals(5, reference.offset);
+    expect(reference, isNotNull);
+    expect(reference.offset, 5);
   }
 
   void test_parseDocumentationComment_endOfLine() {
     Comment comment = ParserTestCase.parse4("parseDocumentationComment", "/// \n/// \n class", []);
-    JUnitTestCase.assertFalse(comment.isBlock);
-    JUnitTestCase.assertTrue(comment.isDocumentation);
-    JUnitTestCase.assertFalse(comment.isEndOfLine);
+    expect(comment.isBlock, isFalse);
+    expect(comment.isDocumentation, isTrue);
+    expect(comment.isEndOfLine, isFalse);
   }
 
   void test_parseDoStatement() {
     DoStatement statement = ParserTestCase.parse4("parseDoStatement", "do {} while (x);", []);
-    JUnitTestCase.assertNotNull(statement.doKeyword);
-    JUnitTestCase.assertNotNull(statement.body);
-    JUnitTestCase.assertNotNull(statement.whileKeyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNotNull(statement.condition);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.semicolon);
+    expect(statement.doKeyword, isNotNull);
+    expect(statement.body, isNotNull);
+    expect(statement.whileKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.semicolon, isNotNull);
   }
 
   void test_parseEmptyStatement() {
     EmptyStatement statement = ParserTestCase.parse4("parseEmptyStatement", ";", []);
-    JUnitTestCase.assertNotNull(statement.semicolon);
+    expect(statement.semicolon, isNotNull);
   }
 
   void test_parseEnumDeclaration_one() {
     EnumDeclaration declaration = ParserTestCase.parse("parseEnumDeclaration", <Object> [emptyCommentAndMetadata()], "enum E {ONE}");
-    JUnitTestCase.assertNull(declaration.documentationComment);
-    JUnitTestCase.assertNotNull(declaration.keyword);
-    JUnitTestCase.assertNotNull(declaration.leftBracket);
-    JUnitTestCase.assertNotNull(declaration.name);
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.keyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name, isNotNull);
     EngineTestCase.assertSizeOfList(1, declaration.constants);
-    JUnitTestCase.assertNotNull(declaration.rightBracket);
+    expect(declaration.rightBracket, isNotNull);
   }
 
   void test_parseEnumDeclaration_trailingComma() {
     EnumDeclaration declaration = ParserTestCase.parse("parseEnumDeclaration", <Object> [emptyCommentAndMetadata()], "enum E {ONE,}");
-    JUnitTestCase.assertNull(declaration.documentationComment);
-    JUnitTestCase.assertNotNull(declaration.keyword);
-    JUnitTestCase.assertNotNull(declaration.leftBracket);
-    JUnitTestCase.assertNotNull(declaration.name);
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.keyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name, isNotNull);
     EngineTestCase.assertSizeOfList(1, declaration.constants);
-    JUnitTestCase.assertNotNull(declaration.rightBracket);
+    expect(declaration.rightBracket, isNotNull);
   }
 
   void test_parseEnumDeclaration_two() {
     EnumDeclaration declaration = ParserTestCase.parse("parseEnumDeclaration", <Object> [emptyCommentAndMetadata()], "enum E {ONE, TWO}");
-    JUnitTestCase.assertNull(declaration.documentationComment);
-    JUnitTestCase.assertNotNull(declaration.keyword);
-    JUnitTestCase.assertNotNull(declaration.leftBracket);
-    JUnitTestCase.assertNotNull(declaration.name);
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.keyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name, isNotNull);
     EngineTestCase.assertSizeOfList(2, declaration.constants);
-    JUnitTestCase.assertNotNull(declaration.rightBracket);
+    expect(declaration.rightBracket, isNotNull);
   }
 
   void test_parseEqualityExpression_normal() {
     BinaryExpression expression = ParserTestCase.parse4("parseEqualityExpression", "x == y", []);
-    JUnitTestCase.assertNotNull(expression.leftOperand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.EQ_EQ, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightOperand);
+    expect(expression.leftOperand, isNotNull);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.EQ_EQ);
+    expect(expression.rightOperand, isNotNull);
   }
 
   void test_parseEqualityExpression_super() {
     BinaryExpression expression = ParserTestCase.parse4("parseEqualityExpression", "super == y", []);
     EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, expression.leftOperand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.EQ_EQ, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightOperand);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.EQ_EQ);
+    expect(expression.rightOperand, isNotNull);
   }
 
   void test_parseExportDirective_hide() {
     ExportDirective directive = ParserTestCase.parse("parseExportDirective", <Object> [emptyCommentAndMetadata()], "export 'lib/lib.dart' hide A, B;");
-    JUnitTestCase.assertNotNull(directive.keyword);
-    JUnitTestCase.assertNotNull(directive.uri);
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
     EngineTestCase.assertSizeOfList(1, directive.combinators);
-    JUnitTestCase.assertNotNull(directive.semicolon);
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseExportDirective_hide_show() {
     ExportDirective directive = ParserTestCase.parse("parseExportDirective", <Object> [emptyCommentAndMetadata()], "export 'lib/lib.dart' hide A show B;");
-    JUnitTestCase.assertNotNull(directive.keyword);
-    JUnitTestCase.assertNotNull(directive.uri);
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
     EngineTestCase.assertSizeOfList(2, directive.combinators);
-    JUnitTestCase.assertNotNull(directive.semicolon);
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseExportDirective_noCombinator() {
     ExportDirective directive = ParserTestCase.parse("parseExportDirective", <Object> [emptyCommentAndMetadata()], "export 'lib/lib.dart';");
-    JUnitTestCase.assertNotNull(directive.keyword);
-    JUnitTestCase.assertNotNull(directive.uri);
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
     EngineTestCase.assertSizeOfList(0, directive.combinators);
-    JUnitTestCase.assertNotNull(directive.semicolon);
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseExportDirective_show() {
     ExportDirective directive = ParserTestCase.parse("parseExportDirective", <Object> [emptyCommentAndMetadata()], "export 'lib/lib.dart' show A, B;");
-    JUnitTestCase.assertNotNull(directive.keyword);
-    JUnitTestCase.assertNotNull(directive.uri);
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
     EngineTestCase.assertSizeOfList(1, directive.combinators);
-    JUnitTestCase.assertNotNull(directive.semicolon);
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseExportDirective_show_hide() {
     ExportDirective directive = ParserTestCase.parse("parseExportDirective", <Object> [emptyCommentAndMetadata()], "export 'lib/lib.dart' show B hide A;");
-    JUnitTestCase.assertNotNull(directive.keyword);
-    JUnitTestCase.assertNotNull(directive.uri);
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
     EngineTestCase.assertSizeOfList(2, directive.combinators);
-    JUnitTestCase.assertNotNull(directive.semicolon);
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseExpression_assign() {
     // TODO(brianwilkerson) Implement more tests for this method.
     AssignmentExpression expression = ParserTestCase.parse4("parseExpression", "x = y", []);
-    JUnitTestCase.assertNotNull(expression.leftHandSide);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.EQ, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightHandSide);
+    expect(expression.leftHandSide, isNotNull);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.EQ);
+    expect(expression.rightHandSide, isNotNull);
   }
 
   void test_parseExpression_comparison() {
     BinaryExpression expression = ParserTestCase.parse4("parseExpression", "--a.b == c", []);
-    JUnitTestCase.assertNotNull(expression.leftOperand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.EQ_EQ, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightOperand);
+    expect(expression.leftOperand, isNotNull);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.EQ_EQ);
+    expect(expression.rightOperand, isNotNull);
   }
 
   void test_parseExpression_function_async() {
     FunctionExpression expression = ParserTestCase.parseExpression("() async {}", []);
-    JUnitTestCase.assertNotNull(expression.body);
-    JUnitTestCase.assertTrue(expression.body.isAsynchronous);
-    JUnitTestCase.assertFalse(expression.body.isGenerator);
-    JUnitTestCase.assertNotNull(expression.parameters);
+    expect(expression.body, isNotNull);
+    expect(expression.body.isAsynchronous, isTrue);
+    expect(expression.body.isGenerator, isFalse);
+    expect(expression.parameters, isNotNull);
   }
 
   void test_parseExpression_function_asyncStar() {
     FunctionExpression expression = ParserTestCase.parseExpression("() async* {}", []);
-    JUnitTestCase.assertNotNull(expression.body);
-    JUnitTestCase.assertTrue(expression.body.isAsynchronous);
-    JUnitTestCase.assertTrue(expression.body.isGenerator);
-    JUnitTestCase.assertNotNull(expression.parameters);
+    expect(expression.body, isNotNull);
+    expect(expression.body.isAsynchronous, isTrue);
+    expect(expression.body.isGenerator, isTrue);
+    expect(expression.parameters, isNotNull);
   }
 
   void test_parseExpression_function_sync() {
     FunctionExpression expression = ParserTestCase.parseExpression("() {}", []);
-    JUnitTestCase.assertNotNull(expression.body);
-    JUnitTestCase.assertFalse(expression.body.isAsynchronous);
-    JUnitTestCase.assertFalse(expression.body.isGenerator);
-    JUnitTestCase.assertNotNull(expression.parameters);
+    expect(expression.body, isNotNull);
+    expect(expression.body.isAsynchronous, isFalse);
+    expect(expression.body.isGenerator, isFalse);
+    expect(expression.parameters, isNotNull);
   }
 
   void test_parseExpression_function_syncStar() {
     FunctionExpression expression = ParserTestCase.parseExpression("() sync* {}", []);
-    JUnitTestCase.assertNotNull(expression.body);
-    JUnitTestCase.assertFalse(expression.body.isAsynchronous);
-    JUnitTestCase.assertTrue(expression.body.isGenerator);
-    JUnitTestCase.assertNotNull(expression.parameters);
+    expect(expression.body, isNotNull);
+    expect(expression.body.isAsynchronous, isFalse);
+    expect(expression.body.isGenerator, isTrue);
+    expect(expression.parameters, isNotNull);
   }
 
   void test_parseExpression_invokeFunctionExpression() {
     FunctionExpressionInvocation invocation = ParserTestCase.parse4("parseExpression", "(a) {return a + a;} (3)", []);
     EngineTestCase.assertInstanceOf((obj) => obj is FunctionExpression, FunctionExpression, invocation.function);
     FunctionExpression expression = invocation.function as FunctionExpression;
-    JUnitTestCase.assertNotNull(expression.parameters);
-    JUnitTestCase.assertNotNull(expression.body);
+    expect(expression.parameters, isNotNull);
+    expect(expression.body, isNotNull);
     ArgumentList list = invocation.argumentList;
-    JUnitTestCase.assertNotNull(list);
+    expect(list, isNotNull);
     EngineTestCase.assertSizeOfList(1, list.arguments);
   }
 
   void test_parseExpression_superMethodInvocation() {
     MethodInvocation invocation = ParserTestCase.parse4("parseExpression", "super.m()", []);
-    JUnitTestCase.assertNotNull(invocation.target);
-    JUnitTestCase.assertNotNull(invocation.methodName);
-    JUnitTestCase.assertNotNull(invocation.argumentList);
+    expect(invocation.target, isNotNull);
+    expect(invocation.methodName, isNotNull);
+    expect(invocation.argumentList, isNotNull);
   }
 
   void test_parseExpressionList_multiple() {
@@ -5600,594 +5598,594 @@ void''', []);
   void test_parseExpressionWithoutCascade_assign() {
     // TODO(brianwilkerson) Implement more tests for this method.
     AssignmentExpression expression = ParserTestCase.parse4("parseExpressionWithoutCascade", "x = y", []);
-    JUnitTestCase.assertNotNull(expression.leftHandSide);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.EQ, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightHandSide);
+    expect(expression.leftHandSide, isNotNull);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.EQ);
+    expect(expression.rightHandSide, isNotNull);
   }
 
   void test_parseExpressionWithoutCascade_comparison() {
     BinaryExpression expression = ParserTestCase.parse4("parseExpressionWithoutCascade", "--a.b == c", []);
-    JUnitTestCase.assertNotNull(expression.leftOperand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.EQ_EQ, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightOperand);
+    expect(expression.leftOperand, isNotNull);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.EQ_EQ);
+    expect(expression.rightOperand, isNotNull);
   }
 
   void test_parseExpressionWithoutCascade_superMethodInvocation() {
     MethodInvocation invocation = ParserTestCase.parse4("parseExpressionWithoutCascade", "super.m()", []);
-    JUnitTestCase.assertNotNull(invocation.target);
-    JUnitTestCase.assertNotNull(invocation.methodName);
-    JUnitTestCase.assertNotNull(invocation.argumentList);
+    expect(invocation.target, isNotNull);
+    expect(invocation.methodName, isNotNull);
+    expect(invocation.argumentList, isNotNull);
   }
 
   void test_parseExtendsClause() {
     ExtendsClause clause = ParserTestCase.parse4("parseExtendsClause", "extends B", []);
-    JUnitTestCase.assertNotNull(clause.keyword);
-    JUnitTestCase.assertNotNull(clause.superclass);
+    expect(clause.keyword, isNotNull);
+    expect(clause.superclass, isNotNull);
     EngineTestCase.assertInstanceOf((obj) => obj is TypeName, TypeName, clause.superclass);
   }
 
   void test_parseFinalConstVarOrType_const_noType() {
     FinalConstVarOrType result = ParserTestCase.parse("parseFinalConstVarOrType", <Object> [false], "const");
     Token keyword = result.keyword;
-    JUnitTestCase.assertNotNull(keyword);
-    JUnitTestCase.assertEquals(TokenType.KEYWORD, keyword.type);
-    JUnitTestCase.assertEquals(Keyword.CONST, (keyword as KeywordToken).keyword);
-    JUnitTestCase.assertNull(result.type);
+    expect(keyword, isNotNull);
+    expect(keyword.type, TokenType.KEYWORD);
+    expect((keyword as KeywordToken).keyword, Keyword.CONST);
+    expect(result.type, isNull);
   }
 
   void test_parseFinalConstVarOrType_const_type() {
     FinalConstVarOrType result = ParserTestCase.parse("parseFinalConstVarOrType", <Object> [false], "const A a");
     Token keyword = result.keyword;
-    JUnitTestCase.assertNotNull(keyword);
-    JUnitTestCase.assertEquals(TokenType.KEYWORD, keyword.type);
-    JUnitTestCase.assertEquals(Keyword.CONST, (keyword as KeywordToken).keyword);
-    JUnitTestCase.assertNotNull(result.type);
+    expect(keyword, isNotNull);
+    expect(keyword.type, TokenType.KEYWORD);
+    expect((keyword as KeywordToken).keyword, Keyword.CONST);
+    expect(result.type, isNotNull);
   }
 
   void test_parseFinalConstVarOrType_final_noType() {
     FinalConstVarOrType result = ParserTestCase.parse("parseFinalConstVarOrType", <Object> [false], "final");
     Token keyword = result.keyword;
-    JUnitTestCase.assertNotNull(keyword);
-    JUnitTestCase.assertEquals(TokenType.KEYWORD, keyword.type);
-    JUnitTestCase.assertEquals(Keyword.FINAL, (keyword as KeywordToken).keyword);
-    JUnitTestCase.assertNull(result.type);
+    expect(keyword, isNotNull);
+    expect(keyword.type, TokenType.KEYWORD);
+    expect((keyword as KeywordToken).keyword, Keyword.FINAL);
+    expect(result.type, isNull);
   }
 
   void test_parseFinalConstVarOrType_final_prefixedType() {
     FinalConstVarOrType result = ParserTestCase.parse("parseFinalConstVarOrType", <Object> [false], "final p.A a");
     Token keyword = result.keyword;
-    JUnitTestCase.assertNotNull(keyword);
-    JUnitTestCase.assertEquals(TokenType.KEYWORD, keyword.type);
-    JUnitTestCase.assertEquals(Keyword.FINAL, (keyword as KeywordToken).keyword);
-    JUnitTestCase.assertNotNull(result.type);
+    expect(keyword, isNotNull);
+    expect(keyword.type, TokenType.KEYWORD);
+    expect((keyword as KeywordToken).keyword, Keyword.FINAL);
+    expect(result.type, isNotNull);
   }
 
   void test_parseFinalConstVarOrType_final_type() {
     FinalConstVarOrType result = ParserTestCase.parse("parseFinalConstVarOrType", <Object> [false], "final A a");
     Token keyword = result.keyword;
-    JUnitTestCase.assertNotNull(keyword);
-    JUnitTestCase.assertEquals(TokenType.KEYWORD, keyword.type);
-    JUnitTestCase.assertEquals(Keyword.FINAL, (keyword as KeywordToken).keyword);
-    JUnitTestCase.assertNotNull(result.type);
+    expect(keyword, isNotNull);
+    expect(keyword.type, TokenType.KEYWORD);
+    expect((keyword as KeywordToken).keyword, Keyword.FINAL);
+    expect(result.type, isNotNull);
   }
 
   void test_parseFinalConstVarOrType_type_parameterized() {
     FinalConstVarOrType result = ParserTestCase.parse("parseFinalConstVarOrType", <Object> [false], "A<B> a");
-    JUnitTestCase.assertNull(result.keyword);
-    JUnitTestCase.assertNotNull(result.type);
+    expect(result.keyword, isNull);
+    expect(result.type, isNotNull);
   }
 
   void test_parseFinalConstVarOrType_type_prefixed() {
     FinalConstVarOrType result = ParserTestCase.parse("parseFinalConstVarOrType", <Object> [false], "p.A a");
-    JUnitTestCase.assertNull(result.keyword);
-    JUnitTestCase.assertNotNull(result.type);
+    expect(result.keyword, isNull);
+    expect(result.type, isNotNull);
   }
 
   void test_parseFinalConstVarOrType_type_prefixedAndParameterized() {
     FinalConstVarOrType result = ParserTestCase.parse("parseFinalConstVarOrType", <Object> [false], "p.A<B> a");
-    JUnitTestCase.assertNull(result.keyword);
-    JUnitTestCase.assertNotNull(result.type);
+    expect(result.keyword, isNull);
+    expect(result.type, isNotNull);
   }
 
   void test_parseFinalConstVarOrType_type_simple() {
     FinalConstVarOrType result = ParserTestCase.parse("parseFinalConstVarOrType", <Object> [false], "A a");
-    JUnitTestCase.assertNull(result.keyword);
-    JUnitTestCase.assertNotNull(result.type);
+    expect(result.keyword, isNull);
+    expect(result.type, isNotNull);
   }
 
   void test_parseFinalConstVarOrType_var() {
     FinalConstVarOrType result = ParserTestCase.parse("parseFinalConstVarOrType", <Object> [false], "var");
     Token keyword = result.keyword;
-    JUnitTestCase.assertNotNull(keyword);
-    JUnitTestCase.assertEquals(TokenType.KEYWORD, keyword.type);
-    JUnitTestCase.assertEquals(Keyword.VAR, (keyword as KeywordToken).keyword);
-    JUnitTestCase.assertNull(result.type);
+    expect(keyword, isNotNull);
+    expect(keyword.type, TokenType.KEYWORD);
+    expect((keyword as KeywordToken).keyword, Keyword.VAR);
+    expect(result.type, isNull);
   }
 
   void test_parseFormalParameter_final_withType_named() {
     ParameterKind kind = ParameterKind.NAMED;
     DefaultFormalParameter parameter = ParserTestCase.parse("parseFormalParameter", <Object> [kind], "final A a : null");
     SimpleFormalParameter simpleParameter = parameter.parameter as SimpleFormalParameter;
-    JUnitTestCase.assertNotNull(simpleParameter.identifier);
-    JUnitTestCase.assertNotNull(simpleParameter.keyword);
-    JUnitTestCase.assertNotNull(simpleParameter.type);
-    JUnitTestCase.assertEquals(kind, simpleParameter.kind);
-    JUnitTestCase.assertNotNull(parameter.separator);
-    JUnitTestCase.assertNotNull(parameter.defaultValue);
-    JUnitTestCase.assertEquals(kind, parameter.kind);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.kind, kind);
+    expect(parameter.separator, isNotNull);
+    expect(parameter.defaultValue, isNotNull);
+    expect(parameter.kind, kind);
   }
 
   void test_parseFormalParameter_final_withType_normal() {
     ParameterKind kind = ParameterKind.REQUIRED;
     SimpleFormalParameter parameter = ParserTestCase.parse("parseFormalParameter", <Object> [kind], "final A a");
-    JUnitTestCase.assertNotNull(parameter.identifier);
-    JUnitTestCase.assertNotNull(parameter.keyword);
-    JUnitTestCase.assertNotNull(parameter.type);
-    JUnitTestCase.assertEquals(kind, parameter.kind);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.keyword, isNotNull);
+    expect(parameter.type, isNotNull);
+    expect(parameter.kind, kind);
   }
 
   void test_parseFormalParameter_final_withType_positional() {
     ParameterKind kind = ParameterKind.POSITIONAL;
     DefaultFormalParameter parameter = ParserTestCase.parse("parseFormalParameter", <Object> [kind], "final A a = null");
     SimpleFormalParameter simpleParameter = parameter.parameter as SimpleFormalParameter;
-    JUnitTestCase.assertNotNull(simpleParameter.identifier);
-    JUnitTestCase.assertNotNull(simpleParameter.keyword);
-    JUnitTestCase.assertNotNull(simpleParameter.type);
-    JUnitTestCase.assertEquals(kind, simpleParameter.kind);
-    JUnitTestCase.assertNotNull(parameter.separator);
-    JUnitTestCase.assertNotNull(parameter.defaultValue);
-    JUnitTestCase.assertEquals(kind, parameter.kind);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.kind, kind);
+    expect(parameter.separator, isNotNull);
+    expect(parameter.defaultValue, isNotNull);
+    expect(parameter.kind, kind);
   }
 
   void test_parseFormalParameter_nonFinal_withType_named() {
     ParameterKind kind = ParameterKind.NAMED;
     DefaultFormalParameter parameter = ParserTestCase.parse("parseFormalParameter", <Object> [kind], "A a : null");
     SimpleFormalParameter simpleParameter = parameter.parameter as SimpleFormalParameter;
-    JUnitTestCase.assertNotNull(simpleParameter.identifier);
-    JUnitTestCase.assertNull(simpleParameter.keyword);
-    JUnitTestCase.assertNotNull(simpleParameter.type);
-    JUnitTestCase.assertEquals(kind, simpleParameter.kind);
-    JUnitTestCase.assertNotNull(parameter.separator);
-    JUnitTestCase.assertNotNull(parameter.defaultValue);
-    JUnitTestCase.assertEquals(kind, parameter.kind);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.kind, kind);
+    expect(parameter.separator, isNotNull);
+    expect(parameter.defaultValue, isNotNull);
+    expect(parameter.kind, kind);
   }
 
   void test_parseFormalParameter_nonFinal_withType_normal() {
     ParameterKind kind = ParameterKind.REQUIRED;
     SimpleFormalParameter parameter = ParserTestCase.parse("parseFormalParameter", <Object> [kind], "A a");
-    JUnitTestCase.assertNotNull(parameter.identifier);
-    JUnitTestCase.assertNull(parameter.keyword);
-    JUnitTestCase.assertNotNull(parameter.type);
-    JUnitTestCase.assertEquals(kind, parameter.kind);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.keyword, isNull);
+    expect(parameter.type, isNotNull);
+    expect(parameter.kind, kind);
   }
 
   void test_parseFormalParameter_nonFinal_withType_positional() {
     ParameterKind kind = ParameterKind.POSITIONAL;
     DefaultFormalParameter parameter = ParserTestCase.parse("parseFormalParameter", <Object> [kind], "A a = null");
     SimpleFormalParameter simpleParameter = parameter.parameter as SimpleFormalParameter;
-    JUnitTestCase.assertNotNull(simpleParameter.identifier);
-    JUnitTestCase.assertNull(simpleParameter.keyword);
-    JUnitTestCase.assertNotNull(simpleParameter.type);
-    JUnitTestCase.assertEquals(kind, simpleParameter.kind);
-    JUnitTestCase.assertNotNull(parameter.separator);
-    JUnitTestCase.assertNotNull(parameter.defaultValue);
-    JUnitTestCase.assertEquals(kind, parameter.kind);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.kind, kind);
+    expect(parameter.separator, isNotNull);
+    expect(parameter.defaultValue, isNotNull);
+    expect(parameter.kind, kind);
   }
 
   void test_parseFormalParameter_var() {
     ParameterKind kind = ParameterKind.REQUIRED;
     SimpleFormalParameter parameter = ParserTestCase.parse("parseFormalParameter", <Object> [kind], "var a");
-    JUnitTestCase.assertNotNull(parameter.identifier);
-    JUnitTestCase.assertNotNull(parameter.keyword);
-    JUnitTestCase.assertNull(parameter.type);
-    JUnitTestCase.assertEquals(kind, parameter.kind);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.keyword, isNotNull);
+    expect(parameter.type, isNull);
+    expect(parameter.kind, kind);
   }
 
   void test_parseFormalParameter_var_named() {
     ParameterKind kind = ParameterKind.NAMED;
     DefaultFormalParameter parameter = ParserTestCase.parse("parseFormalParameter", <Object> [kind], "var a : null");
     SimpleFormalParameter simpleParameter = parameter.parameter as SimpleFormalParameter;
-    JUnitTestCase.assertNotNull(simpleParameter.identifier);
-    JUnitTestCase.assertNotNull(simpleParameter.keyword);
-    JUnitTestCase.assertNull(simpleParameter.type);
-    JUnitTestCase.assertEquals(kind, simpleParameter.kind);
-    JUnitTestCase.assertNotNull(parameter.separator);
-    JUnitTestCase.assertNotNull(parameter.defaultValue);
-    JUnitTestCase.assertEquals(kind, parameter.kind);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.kind, kind);
+    expect(parameter.separator, isNotNull);
+    expect(parameter.defaultValue, isNotNull);
+    expect(parameter.kind, kind);
   }
 
   void test_parseFormalParameter_var_positional() {
     ParameterKind kind = ParameterKind.POSITIONAL;
     DefaultFormalParameter parameter = ParserTestCase.parse("parseFormalParameter", <Object> [kind], "var a = null");
     SimpleFormalParameter simpleParameter = parameter.parameter as SimpleFormalParameter;
-    JUnitTestCase.assertNotNull(simpleParameter.identifier);
-    JUnitTestCase.assertNotNull(simpleParameter.keyword);
-    JUnitTestCase.assertNull(simpleParameter.type);
-    JUnitTestCase.assertEquals(kind, simpleParameter.kind);
-    JUnitTestCase.assertNotNull(parameter.separator);
-    JUnitTestCase.assertNotNull(parameter.defaultValue);
-    JUnitTestCase.assertEquals(kind, parameter.kind);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.kind, kind);
+    expect(parameter.separator, isNotNull);
+    expect(parameter.defaultValue, isNotNull);
+    expect(parameter.kind, kind);
   }
 
   void test_parseFormalParameterList_empty() {
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "()", []);
-    JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
-    JUnitTestCase.assertNull(parameterList.leftDelimiter);
+    expect(parameterList.leftParenthesis, isNotNull);
+    expect(parameterList.leftDelimiter, isNull);
     EngineTestCase.assertSizeOfList(0, parameterList.parameters);
-    JUnitTestCase.assertNull(parameterList.rightDelimiter);
-    JUnitTestCase.assertNotNull(parameterList.rightParenthesis);
+    expect(parameterList.rightDelimiter, isNull);
+    expect(parameterList.rightParenthesis, isNotNull);
   }
 
   void test_parseFormalParameterList_named_multiple() {
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "({A a : 1, B b, C c : 3})", []);
-    JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
-    JUnitTestCase.assertNotNull(parameterList.leftDelimiter);
+    expect(parameterList.leftParenthesis, isNotNull);
+    expect(parameterList.leftDelimiter, isNotNull);
     EngineTestCase.assertSizeOfList(3, parameterList.parameters);
-    JUnitTestCase.assertNotNull(parameterList.rightDelimiter);
-    JUnitTestCase.assertNotNull(parameterList.rightParenthesis);
+    expect(parameterList.rightDelimiter, isNotNull);
+    expect(parameterList.rightParenthesis, isNotNull);
   }
 
   void test_parseFormalParameterList_named_single() {
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "({A a})", []);
-    JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
-    JUnitTestCase.assertNotNull(parameterList.leftDelimiter);
+    expect(parameterList.leftParenthesis, isNotNull);
+    expect(parameterList.leftDelimiter, isNotNull);
     EngineTestCase.assertSizeOfList(1, parameterList.parameters);
-    JUnitTestCase.assertNotNull(parameterList.rightDelimiter);
-    JUnitTestCase.assertNotNull(parameterList.rightParenthesis);
+    expect(parameterList.rightDelimiter, isNotNull);
+    expect(parameterList.rightParenthesis, isNotNull);
   }
 
   void test_parseFormalParameterList_normal_multiple() {
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a, B b, C c)", []);
-    JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
-    JUnitTestCase.assertNull(parameterList.leftDelimiter);
+    expect(parameterList.leftParenthesis, isNotNull);
+    expect(parameterList.leftDelimiter, isNull);
     EngineTestCase.assertSizeOfList(3, parameterList.parameters);
-    JUnitTestCase.assertNull(parameterList.rightDelimiter);
-    JUnitTestCase.assertNotNull(parameterList.rightParenthesis);
+    expect(parameterList.rightDelimiter, isNull);
+    expect(parameterList.rightParenthesis, isNotNull);
   }
 
   void test_parseFormalParameterList_normal_named() {
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a, {B b})", []);
-    JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
-    JUnitTestCase.assertNotNull(parameterList.leftDelimiter);
+    expect(parameterList.leftParenthesis, isNotNull);
+    expect(parameterList.leftDelimiter, isNotNull);
     EngineTestCase.assertSizeOfList(2, parameterList.parameters);
-    JUnitTestCase.assertNotNull(parameterList.rightDelimiter);
-    JUnitTestCase.assertNotNull(parameterList.rightParenthesis);
+    expect(parameterList.rightDelimiter, isNotNull);
+    expect(parameterList.rightParenthesis, isNotNull);
   }
 
   void test_parseFormalParameterList_normal_positional() {
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a, [B b])", []);
-    JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
-    JUnitTestCase.assertNotNull(parameterList.leftDelimiter);
+    expect(parameterList.leftParenthesis, isNotNull);
+    expect(parameterList.leftDelimiter, isNotNull);
     EngineTestCase.assertSizeOfList(2, parameterList.parameters);
-    JUnitTestCase.assertNotNull(parameterList.rightDelimiter);
-    JUnitTestCase.assertNotNull(parameterList.rightParenthesis);
+    expect(parameterList.rightDelimiter, isNotNull);
+    expect(parameterList.rightParenthesis, isNotNull);
   }
 
   void test_parseFormalParameterList_normal_single() {
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a)", []);
-    JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
-    JUnitTestCase.assertNull(parameterList.leftDelimiter);
+    expect(parameterList.leftParenthesis, isNotNull);
+    expect(parameterList.leftDelimiter, isNull);
     EngineTestCase.assertSizeOfList(1, parameterList.parameters);
-    JUnitTestCase.assertNull(parameterList.rightDelimiter);
-    JUnitTestCase.assertNotNull(parameterList.rightParenthesis);
+    expect(parameterList.rightDelimiter, isNull);
+    expect(parameterList.rightParenthesis, isNotNull);
   }
 
   void test_parseFormalParameterList_positional_multiple() {
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "([A a = null, B b, C c = null])", []);
-    JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
-    JUnitTestCase.assertNotNull(parameterList.leftDelimiter);
+    expect(parameterList.leftParenthesis, isNotNull);
+    expect(parameterList.leftDelimiter, isNotNull);
     EngineTestCase.assertSizeOfList(3, parameterList.parameters);
-    JUnitTestCase.assertNotNull(parameterList.rightDelimiter);
-    JUnitTestCase.assertNotNull(parameterList.rightParenthesis);
+    expect(parameterList.rightDelimiter, isNotNull);
+    expect(parameterList.rightParenthesis, isNotNull);
   }
 
   void test_parseFormalParameterList_positional_single() {
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "([A a = null])", []);
-    JUnitTestCase.assertNotNull(parameterList.leftParenthesis);
-    JUnitTestCase.assertNotNull(parameterList.leftDelimiter);
+    expect(parameterList.leftParenthesis, isNotNull);
+    expect(parameterList.leftDelimiter, isNotNull);
     EngineTestCase.assertSizeOfList(1, parameterList.parameters);
-    JUnitTestCase.assertNotNull(parameterList.rightDelimiter);
-    JUnitTestCase.assertNotNull(parameterList.rightParenthesis);
+    expect(parameterList.rightDelimiter, isNotNull);
+    expect(parameterList.rightParenthesis, isNotNull);
   }
 
   void test_parseForStatement_each_await() {
     ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "await for (element in list) {}", []);
-    JUnitTestCase.assertNotNull(statement.awaitKeyword);
-    JUnitTestCase.assertNotNull(statement.forKeyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNull(statement.loopVariable);
-    JUnitTestCase.assertNotNull(statement.identifier);
-    JUnitTestCase.assertNotNull(statement.inKeyword);
-    JUnitTestCase.assertNotNull(statement.iterator);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.awaitKeyword, isNotNull);
+    expect(statement.forKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.loopVariable, isNull);
+    expect(statement.identifier, isNotNull);
+    expect(statement.inKeyword, isNotNull);
+    expect(statement.iterator, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.body, isNotNull);
   }
 
   void test_parseForStatement_each_identifier() {
     ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "for (element in list) {}", []);
-    JUnitTestCase.assertNull(statement.awaitKeyword);
-    JUnitTestCase.assertNotNull(statement.forKeyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNull(statement.loopVariable);
-    JUnitTestCase.assertNotNull(statement.identifier);
-    JUnitTestCase.assertNotNull(statement.inKeyword);
-    JUnitTestCase.assertNotNull(statement.iterator);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.awaitKeyword, isNull);
+    expect(statement.forKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.loopVariable, isNull);
+    expect(statement.identifier, isNotNull);
+    expect(statement.inKeyword, isNotNull);
+    expect(statement.iterator, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.body, isNotNull);
   }
 
   void test_parseForStatement_each_noType_metadata() {
     ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "for (@A var element in list) {}", []);
-    JUnitTestCase.assertNull(statement.awaitKeyword);
-    JUnitTestCase.assertNotNull(statement.forKeyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNotNull(statement.loopVariable);
+    expect(statement.awaitKeyword, isNull);
+    expect(statement.forKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.loopVariable, isNotNull);
     EngineTestCase.assertSizeOfList(1, statement.loopVariable.metadata);
-    JUnitTestCase.assertNull(statement.identifier);
-    JUnitTestCase.assertNotNull(statement.inKeyword);
-    JUnitTestCase.assertNotNull(statement.iterator);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.identifier, isNull);
+    expect(statement.inKeyword, isNotNull);
+    expect(statement.iterator, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.body, isNotNull);
   }
 
   void test_parseForStatement_each_type() {
     ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "for (A element in list) {}", []);
-    JUnitTestCase.assertNull(statement.awaitKeyword);
-    JUnitTestCase.assertNotNull(statement.forKeyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNotNull(statement.loopVariable);
-    JUnitTestCase.assertNull(statement.identifier);
-    JUnitTestCase.assertNotNull(statement.inKeyword);
-    JUnitTestCase.assertNotNull(statement.iterator);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.awaitKeyword, isNull);
+    expect(statement.forKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.loopVariable, isNotNull);
+    expect(statement.identifier, isNull);
+    expect(statement.inKeyword, isNotNull);
+    expect(statement.iterator, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.body, isNotNull);
   }
 
   void test_parseForStatement_each_var() {
     ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "for (var element in list) {}", []);
-    JUnitTestCase.assertNull(statement.awaitKeyword);
-    JUnitTestCase.assertNotNull(statement.forKeyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNotNull(statement.loopVariable);
-    JUnitTestCase.assertNull(statement.identifier);
-    JUnitTestCase.assertNotNull(statement.inKeyword);
-    JUnitTestCase.assertNotNull(statement.iterator);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.awaitKeyword, isNull);
+    expect(statement.forKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.loopVariable, isNotNull);
+    expect(statement.identifier, isNull);
+    expect(statement.inKeyword, isNotNull);
+    expect(statement.iterator, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.body, isNotNull);
   }
 
   void test_parseForStatement_loop_c() {
     ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (; i < count;) {}", []);
-    JUnitTestCase.assertNotNull(statement.forKeyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNull(statement.variables);
-    JUnitTestCase.assertNull(statement.initialization);
-    JUnitTestCase.assertNotNull(statement.leftSeparator);
-    JUnitTestCase.assertNotNull(statement.condition);
-    JUnitTestCase.assertNotNull(statement.rightSeparator);
+    expect(statement.forKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.variables, isNull);
+    expect(statement.initialization, isNull);
+    expect(statement.leftSeparator, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.rightSeparator, isNotNull);
     EngineTestCase.assertSizeOfList(0, statement.updaters);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.body, isNotNull);
   }
 
   void test_parseForStatement_loop_cu() {
     ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (; i < count; i++) {}", []);
-    JUnitTestCase.assertNotNull(statement.forKeyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNull(statement.variables);
-    JUnitTestCase.assertNull(statement.initialization);
-    JUnitTestCase.assertNotNull(statement.leftSeparator);
-    JUnitTestCase.assertNotNull(statement.condition);
-    JUnitTestCase.assertNotNull(statement.rightSeparator);
+    expect(statement.forKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.variables, isNull);
+    expect(statement.initialization, isNull);
+    expect(statement.leftSeparator, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.rightSeparator, isNotNull);
     EngineTestCase.assertSizeOfList(1, statement.updaters);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.body, isNotNull);
   }
 
   void test_parseForStatement_loop_ecu() {
     ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (i--; i < count; i++) {}", []);
-    JUnitTestCase.assertNotNull(statement.forKeyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNull(statement.variables);
-    JUnitTestCase.assertNotNull(statement.initialization);
-    JUnitTestCase.assertNotNull(statement.leftSeparator);
-    JUnitTestCase.assertNotNull(statement.condition);
-    JUnitTestCase.assertNotNull(statement.rightSeparator);
+    expect(statement.forKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.variables, isNull);
+    expect(statement.initialization, isNotNull);
+    expect(statement.leftSeparator, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.rightSeparator, isNotNull);
     EngineTestCase.assertSizeOfList(1, statement.updaters);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.body, isNotNull);
   }
 
   void test_parseForStatement_loop_i() {
     ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (var i = 0;;) {}", []);
-    JUnitTestCase.assertNotNull(statement.forKeyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
+    expect(statement.forKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
     VariableDeclarationList variables = statement.variables;
-    JUnitTestCase.assertNotNull(variables);
+    expect(variables, isNotNull);
     EngineTestCase.assertSizeOfList(0, variables.metadata);
     EngineTestCase.assertSizeOfList(1, variables.variables);
-    JUnitTestCase.assertNull(statement.initialization);
-    JUnitTestCase.assertNotNull(statement.leftSeparator);
-    JUnitTestCase.assertNull(statement.condition);
-    JUnitTestCase.assertNotNull(statement.rightSeparator);
+    expect(statement.initialization, isNull);
+    expect(statement.leftSeparator, isNotNull);
+    expect(statement.condition, isNull);
+    expect(statement.rightSeparator, isNotNull);
     EngineTestCase.assertSizeOfList(0, statement.updaters);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.body, isNotNull);
   }
 
   void test_parseForStatement_loop_i_withMetadata() {
     ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (@A var i = 0;;) {}", []);
-    JUnitTestCase.assertNotNull(statement.forKeyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
+    expect(statement.forKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
     VariableDeclarationList variables = statement.variables;
-    JUnitTestCase.assertNotNull(variables);
+    expect(variables, isNotNull);
     EngineTestCase.assertSizeOfList(1, variables.metadata);
     EngineTestCase.assertSizeOfList(1, variables.variables);
-    JUnitTestCase.assertNull(statement.initialization);
-    JUnitTestCase.assertNotNull(statement.leftSeparator);
-    JUnitTestCase.assertNull(statement.condition);
-    JUnitTestCase.assertNotNull(statement.rightSeparator);
+    expect(statement.initialization, isNull);
+    expect(statement.leftSeparator, isNotNull);
+    expect(statement.condition, isNull);
+    expect(statement.rightSeparator, isNotNull);
     EngineTestCase.assertSizeOfList(0, statement.updaters);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.body, isNotNull);
   }
 
   void test_parseForStatement_loop_ic() {
     ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (var i = 0; i < count;) {}", []);
-    JUnitTestCase.assertNotNull(statement.forKeyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
+    expect(statement.forKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
     VariableDeclarationList variables = statement.variables;
-    JUnitTestCase.assertNotNull(variables);
+    expect(variables, isNotNull);
     EngineTestCase.assertSizeOfList(1, variables.variables);
-    JUnitTestCase.assertNull(statement.initialization);
-    JUnitTestCase.assertNotNull(statement.leftSeparator);
-    JUnitTestCase.assertNotNull(statement.condition);
-    JUnitTestCase.assertNotNull(statement.rightSeparator);
+    expect(statement.initialization, isNull);
+    expect(statement.leftSeparator, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.rightSeparator, isNotNull);
     EngineTestCase.assertSizeOfList(0, statement.updaters);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.body, isNotNull);
   }
 
   void test_parseForStatement_loop_icu() {
     ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (var i = 0; i < count; i++) {}", []);
-    JUnitTestCase.assertNotNull(statement.forKeyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
+    expect(statement.forKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
     VariableDeclarationList variables = statement.variables;
-    JUnitTestCase.assertNotNull(variables);
+    expect(variables, isNotNull);
     EngineTestCase.assertSizeOfList(1, variables.variables);
-    JUnitTestCase.assertNull(statement.initialization);
-    JUnitTestCase.assertNotNull(statement.leftSeparator);
-    JUnitTestCase.assertNotNull(statement.condition);
-    JUnitTestCase.assertNotNull(statement.rightSeparator);
+    expect(statement.initialization, isNull);
+    expect(statement.leftSeparator, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.rightSeparator, isNotNull);
     EngineTestCase.assertSizeOfList(1, statement.updaters);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.body, isNotNull);
   }
 
   void test_parseForStatement_loop_iicuu() {
     ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (int i = 0, j = count; i < j; i++, j--) {}", []);
-    JUnitTestCase.assertNotNull(statement.forKeyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
+    expect(statement.forKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
     VariableDeclarationList variables = statement.variables;
-    JUnitTestCase.assertNotNull(variables);
+    expect(variables, isNotNull);
     EngineTestCase.assertSizeOfList(2, variables.variables);
-    JUnitTestCase.assertNull(statement.initialization);
-    JUnitTestCase.assertNotNull(statement.leftSeparator);
-    JUnitTestCase.assertNotNull(statement.condition);
-    JUnitTestCase.assertNotNull(statement.rightSeparator);
+    expect(statement.initialization, isNull);
+    expect(statement.leftSeparator, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.rightSeparator, isNotNull);
     EngineTestCase.assertSizeOfList(2, statement.updaters);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.body, isNotNull);
   }
 
   void test_parseForStatement_loop_iu() {
     ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (var i = 0;; i++) {}", []);
-    JUnitTestCase.assertNotNull(statement.forKeyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
+    expect(statement.forKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
     VariableDeclarationList variables = statement.variables;
-    JUnitTestCase.assertNotNull(variables);
+    expect(variables, isNotNull);
     EngineTestCase.assertSizeOfList(1, variables.variables);
-    JUnitTestCase.assertNull(statement.initialization);
-    JUnitTestCase.assertNotNull(statement.leftSeparator);
-    JUnitTestCase.assertNull(statement.condition);
-    JUnitTestCase.assertNotNull(statement.rightSeparator);
+    expect(statement.initialization, isNull);
+    expect(statement.leftSeparator, isNotNull);
+    expect(statement.condition, isNull);
+    expect(statement.rightSeparator, isNotNull);
     EngineTestCase.assertSizeOfList(1, statement.updaters);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.body, isNotNull);
   }
 
   void test_parseForStatement_loop_u() {
     ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (;; i++) {}", []);
-    JUnitTestCase.assertNotNull(statement.forKeyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNull(statement.variables);
-    JUnitTestCase.assertNull(statement.initialization);
-    JUnitTestCase.assertNotNull(statement.leftSeparator);
-    JUnitTestCase.assertNull(statement.condition);
-    JUnitTestCase.assertNotNull(statement.rightSeparator);
+    expect(statement.forKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.variables, isNull);
+    expect(statement.initialization, isNull);
+    expect(statement.leftSeparator, isNotNull);
+    expect(statement.condition, isNull);
+    expect(statement.rightSeparator, isNotNull);
     EngineTestCase.assertSizeOfList(1, statement.updaters);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.body, isNotNull);
   }
 
   void test_parseFunctionBody_block() {
     BlockFunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "{}");
-    JUnitTestCase.assertNull(functionBody.keyword);
-    JUnitTestCase.assertNull(functionBody.star);
-    JUnitTestCase.assertNotNull(functionBody.block);
-    JUnitTestCase.assertFalse(functionBody.isAsynchronous);
-    JUnitTestCase.assertFalse(functionBody.isGenerator);
-    JUnitTestCase.assertTrue(functionBody.isSynchronous);
+    expect(functionBody.keyword, isNull);
+    expect(functionBody.star, isNull);
+    expect(functionBody.block, isNotNull);
+    expect(functionBody.isAsynchronous, isFalse);
+    expect(functionBody.isGenerator, isFalse);
+    expect(functionBody.isSynchronous, isTrue);
   }
 
   void test_parseFunctionBody_block_async() {
     BlockFunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "async {}");
-    JUnitTestCase.assertNotNull(functionBody.keyword);
-    JUnitTestCase.assertEquals(Parser.ASYNC, functionBody.keyword.lexeme);
-    JUnitTestCase.assertNull(functionBody.star);
-    JUnitTestCase.assertNotNull(functionBody.block);
-    JUnitTestCase.assertTrue(functionBody.isAsynchronous);
-    JUnitTestCase.assertFalse(functionBody.isGenerator);
-    JUnitTestCase.assertFalse(functionBody.isSynchronous);
+    expect(functionBody.keyword, isNotNull);
+    expect(functionBody.keyword.lexeme, Parser.ASYNC);
+    expect(functionBody.star, isNull);
+    expect(functionBody.block, isNotNull);
+    expect(functionBody.isAsynchronous, isTrue);
+    expect(functionBody.isGenerator, isFalse);
+    expect(functionBody.isSynchronous, isFalse);
   }
 
   void test_parseFunctionBody_block_asyncGenerator() {
     BlockFunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "async* {}");
-    JUnitTestCase.assertNotNull(functionBody.keyword);
-    JUnitTestCase.assertEquals(Parser.ASYNC, functionBody.keyword.lexeme);
-    JUnitTestCase.assertNotNull(functionBody.star);
-    JUnitTestCase.assertNotNull(functionBody.block);
-    JUnitTestCase.assertTrue(functionBody.isAsynchronous);
-    JUnitTestCase.assertTrue(functionBody.isGenerator);
-    JUnitTestCase.assertFalse(functionBody.isSynchronous);
+    expect(functionBody.keyword, isNotNull);
+    expect(functionBody.keyword.lexeme, Parser.ASYNC);
+    expect(functionBody.star, isNotNull);
+    expect(functionBody.block, isNotNull);
+    expect(functionBody.isAsynchronous, isTrue);
+    expect(functionBody.isGenerator, isTrue);
+    expect(functionBody.isSynchronous, isFalse);
   }
 
   void test_parseFunctionBody_block_syncGenerator() {
     BlockFunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "sync* {}");
-    JUnitTestCase.assertNotNull(functionBody.keyword);
-    JUnitTestCase.assertEquals(Parser.SYNC, functionBody.keyword.lexeme);
-    JUnitTestCase.assertNotNull(functionBody.star);
-    JUnitTestCase.assertNotNull(functionBody.block);
-    JUnitTestCase.assertFalse(functionBody.isAsynchronous);
-    JUnitTestCase.assertTrue(functionBody.isGenerator);
-    JUnitTestCase.assertTrue(functionBody.isSynchronous);
+    expect(functionBody.keyword, isNotNull);
+    expect(functionBody.keyword.lexeme, Parser.SYNC);
+    expect(functionBody.star, isNotNull);
+    expect(functionBody.block, isNotNull);
+    expect(functionBody.isAsynchronous, isFalse);
+    expect(functionBody.isGenerator, isTrue);
+    expect(functionBody.isSynchronous, isTrue);
   }
 
   void test_parseFunctionBody_empty() {
     EmptyFunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [true, null, false], ";");
-    JUnitTestCase.assertNotNull(functionBody.semicolon);
+    expect(functionBody.semicolon, isNotNull);
   }
 
   void test_parseFunctionBody_expression() {
     ExpressionFunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "=> y;");
-    JUnitTestCase.assertNull(functionBody.keyword);
-    JUnitTestCase.assertNotNull(functionBody.functionDefinition);
-    JUnitTestCase.assertNotNull(functionBody.expression);
-    JUnitTestCase.assertNotNull(functionBody.semicolon);
-    JUnitTestCase.assertFalse(functionBody.isAsynchronous);
-    JUnitTestCase.assertFalse(functionBody.isGenerator);
-    JUnitTestCase.assertTrue(functionBody.isSynchronous);
+    expect(functionBody.keyword, isNull);
+    expect(functionBody.functionDefinition, isNotNull);
+    expect(functionBody.expression, isNotNull);
+    expect(functionBody.semicolon, isNotNull);
+    expect(functionBody.isAsynchronous, isFalse);
+    expect(functionBody.isGenerator, isFalse);
+    expect(functionBody.isSynchronous, isTrue);
   }
 
   void test_parseFunctionBody_expression_async() {
     ExpressionFunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "async => y;");
-    JUnitTestCase.assertNotNull(functionBody.keyword);
-    JUnitTestCase.assertEquals(Parser.ASYNC, functionBody.keyword.lexeme);
-    JUnitTestCase.assertNotNull(functionBody.functionDefinition);
-    JUnitTestCase.assertNotNull(functionBody.expression);
-    JUnitTestCase.assertNotNull(functionBody.semicolon);
-    JUnitTestCase.assertTrue(functionBody.isAsynchronous);
-    JUnitTestCase.assertFalse(functionBody.isGenerator);
-    JUnitTestCase.assertFalse(functionBody.isSynchronous);
+    expect(functionBody.keyword, isNotNull);
+    expect(functionBody.keyword.lexeme, Parser.ASYNC);
+    expect(functionBody.functionDefinition, isNotNull);
+    expect(functionBody.expression, isNotNull);
+    expect(functionBody.semicolon, isNotNull);
+    expect(functionBody.isAsynchronous, isTrue);
+    expect(functionBody.isGenerator, isFalse);
+    expect(functionBody.isSynchronous, isFalse);
   }
 
   void test_parseFunctionBody_nativeFunctionBody() {
     NativeFunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "native 'str';");
-    JUnitTestCase.assertNotNull(functionBody.nativeToken);
-    JUnitTestCase.assertNotNull(functionBody.stringLiteral);
-    JUnitTestCase.assertNotNull(functionBody.semicolon);
+    expect(functionBody.nativeToken, isNotNull);
+    expect(functionBody.stringLiteral, isNotNull);
+    expect(functionBody.semicolon, isNotNull);
   }
 
   void test_parseFunctionBody_skip_block() {
@@ -6218,69 +6216,69 @@ void''', []);
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment, []), null, returnType], "f() {}");
-    JUnitTestCase.assertEquals(comment, declaration.documentationComment);
-    JUnitTestCase.assertEquals(returnType, declaration.returnType);
-    JUnitTestCase.assertNotNull(declaration.name);
+    expect(declaration.documentationComment, comment);
+    expect(declaration.returnType, returnType);
+    expect(declaration.name, isNotNull);
     FunctionExpression expression = declaration.functionExpression;
-    JUnitTestCase.assertNotNull(expression);
-    JUnitTestCase.assertNotNull(expression.body);
-    JUnitTestCase.assertNotNull(expression.parameters);
-    JUnitTestCase.assertNull(declaration.propertyKeyword);
+    expect(expression, isNotNull);
+    expect(expression.body, isNotNull);
+    expect(expression.parameters, isNotNull);
+    expect(declaration.propertyKeyword, isNull);
   }
 
   void test_parseFunctionDeclaration_getter() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment, []), null, returnType], "get p => 0;");
-    JUnitTestCase.assertEquals(comment, declaration.documentationComment);
-    JUnitTestCase.assertEquals(returnType, declaration.returnType);
-    JUnitTestCase.assertNotNull(declaration.name);
+    expect(declaration.documentationComment, comment);
+    expect(declaration.returnType, returnType);
+    expect(declaration.name, isNotNull);
     FunctionExpression expression = declaration.functionExpression;
-    JUnitTestCase.assertNotNull(expression);
-    JUnitTestCase.assertNotNull(expression.body);
-    JUnitTestCase.assertNull(expression.parameters);
-    JUnitTestCase.assertNotNull(declaration.propertyKeyword);
+    expect(expression, isNotNull);
+    expect(expression.body, isNotNull);
+    expect(expression.parameters, isNull);
+    expect(declaration.propertyKeyword, isNotNull);
   }
 
   void test_parseFunctionDeclaration_setter() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment, []), null, returnType], "set p(v) {}");
-    JUnitTestCase.assertEquals(comment, declaration.documentationComment);
-    JUnitTestCase.assertEquals(returnType, declaration.returnType);
-    JUnitTestCase.assertNotNull(declaration.name);
+    expect(declaration.documentationComment, comment);
+    expect(declaration.returnType, returnType);
+    expect(declaration.name, isNotNull);
     FunctionExpression expression = declaration.functionExpression;
-    JUnitTestCase.assertNotNull(expression);
-    JUnitTestCase.assertNotNull(expression.body);
-    JUnitTestCase.assertNotNull(expression.parameters);
-    JUnitTestCase.assertNotNull(declaration.propertyKeyword);
+    expect(expression, isNotNull);
+    expect(expression.body, isNotNull);
+    expect(expression.parameters, isNotNull);
+    expect(declaration.propertyKeyword, isNotNull);
   }
 
   void test_parseFunctionDeclarationStatement() {
     FunctionDeclarationStatement statement = ParserTestCase.parse4("parseFunctionDeclarationStatement", "void f(int p) => p * 2;", []);
-    JUnitTestCase.assertNotNull(statement.functionDeclaration);
+    expect(statement.functionDeclaration, isNotNull);
   }
 
   void test_parseFunctionExpression_body_inExpression() {
     FunctionExpression expression = ParserTestCase.parse4("parseFunctionExpression", "(int i) => i++", []);
-    JUnitTestCase.assertNotNull(expression.body);
-    JUnitTestCase.assertNotNull(expression.parameters);
-    JUnitTestCase.assertNull((expression.body as ExpressionFunctionBody).semicolon);
+    expect(expression.body, isNotNull);
+    expect(expression.parameters, isNotNull);
+    expect((expression.body as ExpressionFunctionBody).semicolon, isNull);
   }
 
   void test_parseGetter_nonStatic() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     MethodDeclaration method = ParserTestCase.parse("parseGetter", <Object> [commentAndMetadata(comment, []), null, null, returnType], "get a;");
-    JUnitTestCase.assertNotNull(method.body);
-    JUnitTestCase.assertEquals(comment, method.documentationComment);
-    JUnitTestCase.assertNull(method.externalKeyword);
-    JUnitTestCase.assertNull(method.modifierKeyword);
-    JUnitTestCase.assertNotNull(method.name);
-    JUnitTestCase.assertNull(method.operatorKeyword);
-    JUnitTestCase.assertNull(method.parameters);
-    JUnitTestCase.assertNotNull(method.propertyKeyword);
-    JUnitTestCase.assertEquals(returnType, method.returnType);
+    expect(method.body, isNotNull);
+    expect(method.documentationComment, comment);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.parameters, isNull);
+    expect(method.propertyKeyword, isNotNull);
+    expect(method.returnType, returnType);
   }
 
   void test_parseGetter_static() {
@@ -6292,15 +6290,15 @@ void''', []);
         null,
         staticKeyword,
         returnType], "get a => 42;");
-    JUnitTestCase.assertNotNull(method.body);
-    JUnitTestCase.assertEquals(comment, method.documentationComment);
-    JUnitTestCase.assertNull(method.externalKeyword);
-    JUnitTestCase.assertEquals(staticKeyword, method.modifierKeyword);
-    JUnitTestCase.assertNotNull(method.name);
-    JUnitTestCase.assertNull(method.operatorKeyword);
-    JUnitTestCase.assertNull(method.parameters);
-    JUnitTestCase.assertNotNull(method.propertyKeyword);
-    JUnitTestCase.assertEquals(returnType, method.returnType);
+    expect(method.body, isNotNull);
+    expect(method.documentationComment, comment);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, staticKeyword);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.parameters, isNull);
+    expect(method.propertyKeyword, isNotNull);
+    expect(method.returnType, returnType);
   }
 
   void test_parseIdentifierList_multiple() {
@@ -6315,135 +6313,135 @@ void''', []);
 
   void test_parseIfStatement_else_block() {
     IfStatement statement = ParserTestCase.parse4("parseIfStatement", "if (x) {} else {}", []);
-    JUnitTestCase.assertNotNull(statement.ifKeyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNotNull(statement.condition);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.thenStatement);
-    JUnitTestCase.assertNotNull(statement.elseKeyword);
-    JUnitTestCase.assertNotNull(statement.elseStatement);
+    expect(statement.ifKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.thenStatement, isNotNull);
+    expect(statement.elseKeyword, isNotNull);
+    expect(statement.elseStatement, isNotNull);
   }
 
   void test_parseIfStatement_else_statement() {
     IfStatement statement = ParserTestCase.parse4("parseIfStatement", "if (x) f(x); else f(y);", []);
-    JUnitTestCase.assertNotNull(statement.ifKeyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNotNull(statement.condition);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.thenStatement);
-    JUnitTestCase.assertNotNull(statement.elseKeyword);
-    JUnitTestCase.assertNotNull(statement.elseStatement);
+    expect(statement.ifKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.thenStatement, isNotNull);
+    expect(statement.elseKeyword, isNotNull);
+    expect(statement.elseStatement, isNotNull);
   }
 
   void test_parseIfStatement_noElse_block() {
     IfStatement statement = ParserTestCase.parse4("parseIfStatement", "if (x) {}", []);
-    JUnitTestCase.assertNotNull(statement.ifKeyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNotNull(statement.condition);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.thenStatement);
-    JUnitTestCase.assertNull(statement.elseKeyword);
-    JUnitTestCase.assertNull(statement.elseStatement);
+    expect(statement.ifKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.thenStatement, isNotNull);
+    expect(statement.elseKeyword, isNull);
+    expect(statement.elseStatement, isNull);
   }
 
   void test_parseIfStatement_noElse_statement() {
     IfStatement statement = ParserTestCase.parse4("parseIfStatement", "if (x) f(x);", []);
-    JUnitTestCase.assertNotNull(statement.ifKeyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNotNull(statement.condition);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.thenStatement);
-    JUnitTestCase.assertNull(statement.elseKeyword);
-    JUnitTestCase.assertNull(statement.elseStatement);
+    expect(statement.ifKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.thenStatement, isNotNull);
+    expect(statement.elseKeyword, isNull);
+    expect(statement.elseStatement, isNull);
   }
 
   void test_parseImplementsClause_multiple() {
     ImplementsClause clause = ParserTestCase.parse4("parseImplementsClause", "implements A, B, C", []);
     EngineTestCase.assertSizeOfList(3, clause.interfaces);
-    JUnitTestCase.assertNotNull(clause.keyword);
+    expect(clause.keyword, isNotNull);
   }
 
   void test_parseImplementsClause_single() {
     ImplementsClause clause = ParserTestCase.parse4("parseImplementsClause", "implements A", []);
     EngineTestCase.assertSizeOfList(1, clause.interfaces);
-    JUnitTestCase.assertNotNull(clause.keyword);
+    expect(clause.keyword, isNotNull);
   }
 
   void test_parseImportDirective_deferred() {
     ImportDirective directive = ParserTestCase.parse("parseImportDirective", <Object> [emptyCommentAndMetadata()], "import 'lib/lib.dart' deferred as a;");
-    JUnitTestCase.assertNotNull(directive.keyword);
-    JUnitTestCase.assertNotNull(directive.uri);
-    JUnitTestCase.assertNotNull(directive.deferredToken);
-    JUnitTestCase.assertNotNull(directive.asToken);
-    JUnitTestCase.assertNotNull(directive.prefix);
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.deferredToken, isNotNull);
+    expect(directive.asToken, isNotNull);
+    expect(directive.prefix, isNotNull);
     EngineTestCase.assertSizeOfList(0, directive.combinators);
-    JUnitTestCase.assertNotNull(directive.semicolon);
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseImportDirective_hide() {
     ImportDirective directive = ParserTestCase.parse("parseImportDirective", <Object> [emptyCommentAndMetadata()], "import 'lib/lib.dart' hide A, B;");
-    JUnitTestCase.assertNotNull(directive.keyword);
-    JUnitTestCase.assertNotNull(directive.uri);
-    JUnitTestCase.assertNull(directive.deferredToken);
-    JUnitTestCase.assertNull(directive.asToken);
-    JUnitTestCase.assertNull(directive.prefix);
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.deferredToken, isNull);
+    expect(directive.asToken, isNull);
+    expect(directive.prefix, isNull);
     EngineTestCase.assertSizeOfList(1, directive.combinators);
-    JUnitTestCase.assertNotNull(directive.semicolon);
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseImportDirective_noCombinator() {
     ImportDirective directive = ParserTestCase.parse("parseImportDirective", <Object> [emptyCommentAndMetadata()], "import 'lib/lib.dart';");
-    JUnitTestCase.assertNotNull(directive.keyword);
-    JUnitTestCase.assertNotNull(directive.uri);
-    JUnitTestCase.assertNull(directive.deferredToken);
-    JUnitTestCase.assertNull(directive.asToken);
-    JUnitTestCase.assertNull(directive.prefix);
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.deferredToken, isNull);
+    expect(directive.asToken, isNull);
+    expect(directive.prefix, isNull);
     EngineTestCase.assertSizeOfList(0, directive.combinators);
-    JUnitTestCase.assertNotNull(directive.semicolon);
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseImportDirective_prefix() {
     ImportDirective directive = ParserTestCase.parse("parseImportDirective", <Object> [emptyCommentAndMetadata()], "import 'lib/lib.dart' as a;");
-    JUnitTestCase.assertNotNull(directive.keyword);
-    JUnitTestCase.assertNotNull(directive.uri);
-    JUnitTestCase.assertNull(directive.deferredToken);
-    JUnitTestCase.assertNotNull(directive.asToken);
-    JUnitTestCase.assertNotNull(directive.prefix);
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.deferredToken, isNull);
+    expect(directive.asToken, isNotNull);
+    expect(directive.prefix, isNotNull);
     EngineTestCase.assertSizeOfList(0, directive.combinators);
-    JUnitTestCase.assertNotNull(directive.semicolon);
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseImportDirective_prefix_hide_show() {
     ImportDirective directive = ParserTestCase.parse("parseImportDirective", <Object> [emptyCommentAndMetadata()], "import 'lib/lib.dart' as a hide A show B;");
-    JUnitTestCase.assertNotNull(directive.keyword);
-    JUnitTestCase.assertNotNull(directive.uri);
-    JUnitTestCase.assertNull(directive.deferredToken);
-    JUnitTestCase.assertNotNull(directive.asToken);
-    JUnitTestCase.assertNotNull(directive.prefix);
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.deferredToken, isNull);
+    expect(directive.asToken, isNotNull);
+    expect(directive.prefix, isNotNull);
     EngineTestCase.assertSizeOfList(2, directive.combinators);
-    JUnitTestCase.assertNotNull(directive.semicolon);
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseImportDirective_prefix_show_hide() {
     ImportDirective directive = ParserTestCase.parse("parseImportDirective", <Object> [emptyCommentAndMetadata()], "import 'lib/lib.dart' as a show B hide A;");
-    JUnitTestCase.assertNotNull(directive.keyword);
-    JUnitTestCase.assertNotNull(directive.uri);
-    JUnitTestCase.assertNull(directive.deferredToken);
-    JUnitTestCase.assertNotNull(directive.asToken);
-    JUnitTestCase.assertNotNull(directive.prefix);
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.deferredToken, isNull);
+    expect(directive.asToken, isNotNull);
+    expect(directive.prefix, isNotNull);
     EngineTestCase.assertSizeOfList(2, directive.combinators);
-    JUnitTestCase.assertNotNull(directive.semicolon);
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseImportDirective_show() {
     ImportDirective directive = ParserTestCase.parse("parseImportDirective", <Object> [emptyCommentAndMetadata()], "import 'lib/lib.dart' show A, B;");
-    JUnitTestCase.assertNotNull(directive.keyword);
-    JUnitTestCase.assertNotNull(directive.uri);
-    JUnitTestCase.assertNull(directive.deferredToken);
-    JUnitTestCase.assertNull(directive.asToken);
-    JUnitTestCase.assertNull(directive.prefix);
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.deferredToken, isNull);
+    expect(directive.asToken, isNull);
+    expect(directive.prefix, isNull);
     EngineTestCase.assertSizeOfList(1, directive.combinators);
-    JUnitTestCase.assertNotNull(directive.semicolon);
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseInitializedIdentifierList_type() {
@@ -6455,14 +6453,14 @@ void''', []);
         staticKeyword,
         null,
         type], "a = 1, b, c = 3;");
-    JUnitTestCase.assertEquals(comment, declaration.documentationComment);
+    expect(declaration.documentationComment, comment);
     VariableDeclarationList fields = declaration.fields;
-    JUnitTestCase.assertNotNull(fields);
-    JUnitTestCase.assertNull(fields.keyword);
-    JUnitTestCase.assertEquals(type, fields.type);
+    expect(fields, isNotNull);
+    expect(fields.keyword, isNull);
+    expect(fields.type, type);
     EngineTestCase.assertSizeOfList(3, fields.variables);
-    JUnitTestCase.assertEquals(staticKeyword, declaration.staticKeyword);
-    JUnitTestCase.assertNotNull(declaration.semicolon);
+    expect(declaration.staticKeyword, staticKeyword);
+    expect(declaration.semicolon, isNotNull);
   }
 
   void test_parseInitializedIdentifierList_var() {
@@ -6474,173 +6472,173 @@ void''', []);
         staticKeyword,
         varKeyword,
         null], "a = 1, b, c = 3;");
-    JUnitTestCase.assertEquals(comment, declaration.documentationComment);
+    expect(declaration.documentationComment, comment);
     VariableDeclarationList fields = declaration.fields;
-    JUnitTestCase.assertNotNull(fields);
-    JUnitTestCase.assertEquals(varKeyword, fields.keyword);
-    JUnitTestCase.assertNull(fields.type);
+    expect(fields, isNotNull);
+    expect(fields.keyword, varKeyword);
+    expect(fields.type, isNull);
     EngineTestCase.assertSizeOfList(3, fields.variables);
-    JUnitTestCase.assertEquals(staticKeyword, declaration.staticKeyword);
-    JUnitTestCase.assertNotNull(declaration.semicolon);
+    expect(declaration.staticKeyword, staticKeyword);
+    expect(declaration.semicolon, isNotNull);
   }
 
   void test_parseInstanceCreationExpression_qualifiedType() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression = ParserTestCase.parse("parseInstanceCreationExpression", <Object> [token], "A.B()");
-    JUnitTestCase.assertEquals(token, expression.keyword);
+    expect(expression.keyword, token);
     ConstructorName name = expression.constructorName;
-    JUnitTestCase.assertNotNull(name);
-    JUnitTestCase.assertNotNull(name.type);
-    JUnitTestCase.assertNull(name.period);
-    JUnitTestCase.assertNull(name.name);
-    JUnitTestCase.assertNotNull(expression.argumentList);
+    expect(name, isNotNull);
+    expect(name.type, isNotNull);
+    expect(name.period, isNull);
+    expect(name.name, isNull);
+    expect(expression.argumentList, isNotNull);
   }
 
   void test_parseInstanceCreationExpression_qualifiedType_named() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression = ParserTestCase.parse("parseInstanceCreationExpression", <Object> [token], "A.B.c()");
-    JUnitTestCase.assertEquals(token, expression.keyword);
+    expect(expression.keyword, token);
     ConstructorName name = expression.constructorName;
-    JUnitTestCase.assertNotNull(name);
-    JUnitTestCase.assertNotNull(name.type);
-    JUnitTestCase.assertNotNull(name.period);
-    JUnitTestCase.assertNotNull(name.name);
-    JUnitTestCase.assertNotNull(expression.argumentList);
+    expect(name, isNotNull);
+    expect(name.type, isNotNull);
+    expect(name.period, isNotNull);
+    expect(name.name, isNotNull);
+    expect(expression.argumentList, isNotNull);
   }
 
   void test_parseInstanceCreationExpression_type() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression = ParserTestCase.parse("parseInstanceCreationExpression", <Object> [token], "A()");
-    JUnitTestCase.assertEquals(token, expression.keyword);
+    expect(expression.keyword, token);
     ConstructorName name = expression.constructorName;
-    JUnitTestCase.assertNotNull(name);
-    JUnitTestCase.assertNotNull(name.type);
-    JUnitTestCase.assertNull(name.period);
-    JUnitTestCase.assertNull(name.name);
-    JUnitTestCase.assertNotNull(expression.argumentList);
+    expect(name, isNotNull);
+    expect(name.type, isNotNull);
+    expect(name.period, isNull);
+    expect(name.name, isNull);
+    expect(expression.argumentList, isNotNull);
   }
 
   void test_parseInstanceCreationExpression_type_named() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression = ParserTestCase.parse("parseInstanceCreationExpression", <Object> [token], "A<B>.c()");
-    JUnitTestCase.assertEquals(token, expression.keyword);
+    expect(expression.keyword, token);
     ConstructorName name = expression.constructorName;
-    JUnitTestCase.assertNotNull(name);
-    JUnitTestCase.assertNotNull(name.type);
-    JUnitTestCase.assertNotNull(name.period);
-    JUnitTestCase.assertNotNull(name.name);
-    JUnitTestCase.assertNotNull(expression.argumentList);
+    expect(name, isNotNull);
+    expect(name.type, isNotNull);
+    expect(name.period, isNotNull);
+    expect(name.name, isNotNull);
+    expect(expression.argumentList, isNotNull);
   }
 
   void test_parseLibraryDirective() {
     LibraryDirective directive = ParserTestCase.parse("parseLibraryDirective", <Object> [emptyCommentAndMetadata()], "library l;");
-    JUnitTestCase.assertNotNull(directive.libraryToken);
-    JUnitTestCase.assertNotNull(directive.name);
-    JUnitTestCase.assertNotNull(directive.semicolon);
+    expect(directive.libraryToken, isNotNull);
+    expect(directive.name, isNotNull);
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseLibraryIdentifier_multiple() {
     String name = "a.b.c";
     LibraryIdentifier identifier = ParserTestCase.parse4("parseLibraryIdentifier", name, []);
-    JUnitTestCase.assertEquals(name, identifier.name);
+    expect(identifier.name, name);
   }
 
   void test_parseLibraryIdentifier_single() {
     String name = "a";
     LibraryIdentifier identifier = ParserTestCase.parse4("parseLibraryIdentifier", name, []);
-    JUnitTestCase.assertEquals(name, identifier.name);
+    expect(identifier.name, name);
   }
 
   void test_parseListLiteral_empty_oneToken() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.CONST);
     TypeArgumentList typeArguments = null;
     ListLiteral literal = ParserTestCase.parse("parseListLiteral", <Object> [token, typeArguments], "[]");
-    JUnitTestCase.assertEquals(token, literal.constKeyword);
-    JUnitTestCase.assertEquals(typeArguments, literal.typeArguments);
-    JUnitTestCase.assertNotNull(literal.leftBracket);
+    expect(literal.constKeyword, token);
+    expect(literal.typeArguments, typeArguments);
+    expect(literal.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(0, literal.elements);
-    JUnitTestCase.assertNotNull(literal.rightBracket);
+    expect(literal.rightBracket, isNotNull);
   }
 
   void test_parseListLiteral_empty_twoTokens() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.CONST);
     TypeArgumentList typeArguments = null;
     ListLiteral literal = ParserTestCase.parse("parseListLiteral", <Object> [token, typeArguments], "[ ]");
-    JUnitTestCase.assertEquals(token, literal.constKeyword);
-    JUnitTestCase.assertEquals(typeArguments, literal.typeArguments);
-    JUnitTestCase.assertNotNull(literal.leftBracket);
+    expect(literal.constKeyword, token);
+    expect(literal.typeArguments, typeArguments);
+    expect(literal.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(0, literal.elements);
-    JUnitTestCase.assertNotNull(literal.rightBracket);
+    expect(literal.rightBracket, isNotNull);
   }
 
   void test_parseListLiteral_multiple() {
     ListLiteral literal = ParserTestCase.parse("parseListLiteral", <Object> [null, null], "[1, 2, 3]");
-    JUnitTestCase.assertNull(literal.constKeyword);
-    JUnitTestCase.assertNull(literal.typeArguments);
-    JUnitTestCase.assertNotNull(literal.leftBracket);
+    expect(literal.constKeyword, isNull);
+    expect(literal.typeArguments, isNull);
+    expect(literal.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(3, literal.elements);
-    JUnitTestCase.assertNotNull(literal.rightBracket);
+    expect(literal.rightBracket, isNotNull);
   }
 
   void test_parseListLiteral_single() {
     ListLiteral literal = ParserTestCase.parse("parseListLiteral", <Object> [null, null], "[1]");
-    JUnitTestCase.assertNull(literal.constKeyword);
-    JUnitTestCase.assertNull(literal.typeArguments);
-    JUnitTestCase.assertNotNull(literal.leftBracket);
+    expect(literal.constKeyword, isNull);
+    expect(literal.typeArguments, isNull);
+    expect(literal.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(1, literal.elements);
-    JUnitTestCase.assertNotNull(literal.rightBracket);
+    expect(literal.rightBracket, isNotNull);
   }
 
   void test_parseListOrMapLiteral_list_noType() {
     ListLiteral literal = ParserTestCase.parse("parseListOrMapLiteral", <Object> [null], "[1]");
-    JUnitTestCase.assertNull(literal.constKeyword);
-    JUnitTestCase.assertNull(literal.typeArguments);
-    JUnitTestCase.assertNotNull(literal.leftBracket);
+    expect(literal.constKeyword, isNull);
+    expect(literal.typeArguments, isNull);
+    expect(literal.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(1, literal.elements);
-    JUnitTestCase.assertNotNull(literal.rightBracket);
+    expect(literal.rightBracket, isNotNull);
   }
 
   void test_parseListOrMapLiteral_list_type() {
     ListLiteral literal = ParserTestCase.parse("parseListOrMapLiteral", <Object> [null], "<int> [1]");
-    JUnitTestCase.assertNull(literal.constKeyword);
-    JUnitTestCase.assertNotNull(literal.typeArguments);
-    JUnitTestCase.assertNotNull(literal.leftBracket);
+    expect(literal.constKeyword, isNull);
+    expect(literal.typeArguments, isNotNull);
+    expect(literal.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(1, literal.elements);
-    JUnitTestCase.assertNotNull(literal.rightBracket);
+    expect(literal.rightBracket, isNotNull);
   }
 
   void test_parseListOrMapLiteral_map_noType() {
     MapLiteral literal = ParserTestCase.parse("parseListOrMapLiteral", <Object> [null], "{'1' : 1}");
-    JUnitTestCase.assertNull(literal.constKeyword);
-    JUnitTestCase.assertNull(literal.typeArguments);
-    JUnitTestCase.assertNotNull(literal.leftBracket);
+    expect(literal.constKeyword, isNull);
+    expect(literal.typeArguments, isNull);
+    expect(literal.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(1, literal.entries);
-    JUnitTestCase.assertNotNull(literal.rightBracket);
+    expect(literal.rightBracket, isNotNull);
   }
 
   void test_parseListOrMapLiteral_map_type() {
     MapLiteral literal = ParserTestCase.parse("parseListOrMapLiteral", <Object> [null], "<String, int> {'1' : 1}");
-    JUnitTestCase.assertNull(literal.constKeyword);
-    JUnitTestCase.assertNotNull(literal.typeArguments);
-    JUnitTestCase.assertNotNull(literal.leftBracket);
+    expect(literal.constKeyword, isNull);
+    expect(literal.typeArguments, isNotNull);
+    expect(literal.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(1, literal.entries);
-    JUnitTestCase.assertNotNull(literal.rightBracket);
+    expect(literal.rightBracket, isNotNull);
   }
 
   void test_parseLogicalAndExpression() {
     BinaryExpression expression = ParserTestCase.parse4("parseLogicalAndExpression", "x && y", []);
-    JUnitTestCase.assertNotNull(expression.leftOperand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.AMPERSAND_AMPERSAND, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightOperand);
+    expect(expression.leftOperand, isNotNull);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.AMPERSAND_AMPERSAND);
+    expect(expression.rightOperand, isNotNull);
   }
 
   void test_parseLogicalOrExpression() {
     BinaryExpression expression = ParserTestCase.parse4("parseLogicalOrExpression", "x || y", []);
-    JUnitTestCase.assertNotNull(expression.leftOperand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.BAR_BAR, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightOperand);
+    expect(expression.leftOperand, isNotNull);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.BAR_BAR);
+    expect(expression.rightOperand, isNotNull);
   }
 
   void test_parseMapLiteral_empty() {
@@ -6649,149 +6647,149 @@ void''', []);
         AstFactory.typeName4("String", []),
         AstFactory.typeName4("int", [])]);
     MapLiteral literal = ParserTestCase.parse("parseMapLiteral", <Object> [token, typeArguments], "{}");
-    JUnitTestCase.assertEquals(token, literal.constKeyword);
-    JUnitTestCase.assertEquals(typeArguments, literal.typeArguments);
-    JUnitTestCase.assertNotNull(literal.leftBracket);
+    expect(literal.constKeyword, token);
+    expect(literal.typeArguments, typeArguments);
+    expect(literal.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(0, literal.entries);
-    JUnitTestCase.assertNotNull(literal.rightBracket);
+    expect(literal.rightBracket, isNotNull);
   }
 
   void test_parseMapLiteral_multiple() {
     MapLiteral literal = ParserTestCase.parse("parseMapLiteral", <Object> [null, null], "{'a' : b, 'x' : y}");
-    JUnitTestCase.assertNotNull(literal.leftBracket);
+    expect(literal.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(2, literal.entries);
-    JUnitTestCase.assertNotNull(literal.rightBracket);
+    expect(literal.rightBracket, isNotNull);
   }
 
   void test_parseMapLiteral_single() {
     MapLiteral literal = ParserTestCase.parse("parseMapLiteral", <Object> [null, null], "{'x' : y}");
-    JUnitTestCase.assertNotNull(literal.leftBracket);
+    expect(literal.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(1, literal.entries);
-    JUnitTestCase.assertNotNull(literal.rightBracket);
+    expect(literal.rightBracket, isNotNull);
   }
 
   void test_parseMapLiteralEntry_complex() {
     MapLiteralEntry entry = ParserTestCase.parse4("parseMapLiteralEntry", "2 + 2 : y", []);
-    JUnitTestCase.assertNotNull(entry.key);
-    JUnitTestCase.assertNotNull(entry.separator);
-    JUnitTestCase.assertNotNull(entry.value);
+    expect(entry.key, isNotNull);
+    expect(entry.separator, isNotNull);
+    expect(entry.value, isNotNull);
   }
 
   void test_parseMapLiteralEntry_int() {
     MapLiteralEntry entry = ParserTestCase.parse4("parseMapLiteralEntry", "0 : y", []);
-    JUnitTestCase.assertNotNull(entry.key);
-    JUnitTestCase.assertNotNull(entry.separator);
-    JUnitTestCase.assertNotNull(entry.value);
+    expect(entry.key, isNotNull);
+    expect(entry.separator, isNotNull);
+    expect(entry.value, isNotNull);
   }
 
   void test_parseMapLiteralEntry_string() {
     MapLiteralEntry entry = ParserTestCase.parse4("parseMapLiteralEntry", "'x' : y", []);
-    JUnitTestCase.assertNotNull(entry.key);
-    JUnitTestCase.assertNotNull(entry.separator);
-    JUnitTestCase.assertNotNull(entry.value);
+    expect(entry.key, isNotNull);
+    expect(entry.separator, isNotNull);
+    expect(entry.value, isNotNull);
   }
 
   void test_parseModifiers_abstract() {
     Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "abstract A", []);
-    JUnitTestCase.assertNotNull(modifiers.abstractKeyword);
+    expect(modifiers.abstractKeyword, isNotNull);
   }
 
   void test_parseModifiers_const() {
     Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "const A", []);
-    JUnitTestCase.assertNotNull(modifiers.constKeyword);
+    expect(modifiers.constKeyword, isNotNull);
   }
 
   void test_parseModifiers_external() {
     Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "external A", []);
-    JUnitTestCase.assertNotNull(modifiers.externalKeyword);
+    expect(modifiers.externalKeyword, isNotNull);
   }
 
   void test_parseModifiers_factory() {
     Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "factory A", []);
-    JUnitTestCase.assertNotNull(modifiers.factoryKeyword);
+    expect(modifiers.factoryKeyword, isNotNull);
   }
 
   void test_parseModifiers_final() {
     Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "final A", []);
-    JUnitTestCase.assertNotNull(modifiers.finalKeyword);
+    expect(modifiers.finalKeyword, isNotNull);
   }
 
   void test_parseModifiers_static() {
     Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "static A", []);
-    JUnitTestCase.assertNotNull(modifiers.staticKeyword);
+    expect(modifiers.staticKeyword, isNotNull);
   }
 
   void test_parseModifiers_var() {
     Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "var A", []);
-    JUnitTestCase.assertNotNull(modifiers.varKeyword);
+    expect(modifiers.varKeyword, isNotNull);
   }
 
   void test_parseMultiplicativeExpression_normal() {
     BinaryExpression expression = ParserTestCase.parse4("parseMultiplicativeExpression", "x * y", []);
-    JUnitTestCase.assertNotNull(expression.leftOperand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.STAR, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightOperand);
+    expect(expression.leftOperand, isNotNull);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.STAR);
+    expect(expression.rightOperand, isNotNull);
   }
 
   void test_parseMultiplicativeExpression_super() {
     BinaryExpression expression = ParserTestCase.parse4("parseMultiplicativeExpression", "super * y", []);
     EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, expression.leftOperand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.STAR, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightOperand);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.STAR);
+    expect(expression.rightOperand, isNotNull);
   }
 
   void test_parseNewExpression() {
     InstanceCreationExpression expression = ParserTestCase.parse4("parseNewExpression", "new A()", []);
-    JUnitTestCase.assertNotNull(expression.keyword);
+    expect(expression.keyword, isNotNull);
     ConstructorName name = expression.constructorName;
-    JUnitTestCase.assertNotNull(name);
-    JUnitTestCase.assertNotNull(name.type);
-    JUnitTestCase.assertNull(name.period);
-    JUnitTestCase.assertNull(name.name);
-    JUnitTestCase.assertNotNull(expression.argumentList);
+    expect(name, isNotNull);
+    expect(name.type, isNotNull);
+    expect(name.period, isNull);
+    expect(name.name, isNull);
+    expect(expression.argumentList, isNotNull);
   }
 
   void test_parseNonLabeledStatement_const_list_empty() {
     ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const [];", []);
-    JUnitTestCase.assertNotNull(statement.expression);
+    expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_const_list_nonEmpty() {
     ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const [1, 2];", []);
-    JUnitTestCase.assertNotNull(statement.expression);
+    expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_const_map_empty() {
     ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const {};", []);
-    JUnitTestCase.assertNotNull(statement.expression);
+    expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_const_map_nonEmpty() {
     // TODO(brianwilkerson) Implement more tests for this method.
     ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const {'a' : 1};", []);
-    JUnitTestCase.assertNotNull(statement.expression);
+    expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_const_object() {
     ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const A();", []);
-    JUnitTestCase.assertNotNull(statement.expression);
+    expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_const_object_named_typeParameters() {
     ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const A<B>.c();", []);
-    JUnitTestCase.assertNotNull(statement.expression);
+    expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_constructorInvocation() {
     ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "new C().m();", []);
-    JUnitTestCase.assertNotNull(statement.expression);
+    expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_false() {
     ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "false;", []);
-    JUnitTestCase.assertNotNull(statement.expression);
+    expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_functionDeclaration() {
@@ -6808,7 +6806,7 @@ void''', []);
 
   void test_parseNonLabeledStatement_functionInvocation() {
     ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "f();", []);
-    JUnitTestCase.assertNotNull(statement.expression);
+    expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_invokeFunctionExpression() {
@@ -6817,185 +6815,185 @@ void''', []);
     FunctionExpressionInvocation invocation = statement.expression as FunctionExpressionInvocation;
     EngineTestCase.assertInstanceOf((obj) => obj is FunctionExpression, FunctionExpression, invocation.function);
     FunctionExpression expression = invocation.function as FunctionExpression;
-    JUnitTestCase.assertNotNull(expression.parameters);
-    JUnitTestCase.assertNotNull(expression.body);
+    expect(expression.parameters, isNotNull);
+    expect(expression.body, isNotNull);
     ArgumentList list = invocation.argumentList;
-    JUnitTestCase.assertNotNull(list);
+    expect(list, isNotNull);
     EngineTestCase.assertSizeOfList(1, list.arguments);
   }
 
   void test_parseNonLabeledStatement_null() {
     ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "null;", []);
-    JUnitTestCase.assertNotNull(statement.expression);
+    expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_startingWithBuiltInIdentifier() {
     ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "library.getName();", []);
-    JUnitTestCase.assertNotNull(statement.expression);
+    expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_true() {
     ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "true;", []);
-    JUnitTestCase.assertNotNull(statement.expression);
+    expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_typeCast() {
     ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "double.NAN as num;", []);
-    JUnitTestCase.assertNotNull(statement.expression);
+    expect(statement.expression, isNotNull);
   }
 
   void test_parseNormalFormalParameter_field_const_noType() {
     FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "const this.a)", []);
-    JUnitTestCase.assertNotNull(parameter.keyword);
-    JUnitTestCase.assertNull(parameter.type);
-    JUnitTestCase.assertNotNull(parameter.identifier);
-    JUnitTestCase.assertNull(parameter.parameters);
+    expect(parameter.keyword, isNotNull);
+    expect(parameter.type, isNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.parameters, isNull);
   }
 
   void test_parseNormalFormalParameter_field_const_type() {
     FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "const A this.a)", []);
-    JUnitTestCase.assertNotNull(parameter.keyword);
-    JUnitTestCase.assertNotNull(parameter.type);
-    JUnitTestCase.assertNotNull(parameter.identifier);
-    JUnitTestCase.assertNull(parameter.parameters);
+    expect(parameter.keyword, isNotNull);
+    expect(parameter.type, isNotNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.parameters, isNull);
   }
 
   void test_parseNormalFormalParameter_field_final_noType() {
     FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "final this.a)", []);
-    JUnitTestCase.assertNotNull(parameter.keyword);
-    JUnitTestCase.assertNull(parameter.type);
-    JUnitTestCase.assertNotNull(parameter.identifier);
-    JUnitTestCase.assertNull(parameter.parameters);
+    expect(parameter.keyword, isNotNull);
+    expect(parameter.type, isNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.parameters, isNull);
   }
 
   void test_parseNormalFormalParameter_field_final_type() {
     FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "final A this.a)", []);
-    JUnitTestCase.assertNotNull(parameter.keyword);
-    JUnitTestCase.assertNotNull(parameter.type);
-    JUnitTestCase.assertNotNull(parameter.identifier);
-    JUnitTestCase.assertNull(parameter.parameters);
+    expect(parameter.keyword, isNotNull);
+    expect(parameter.type, isNotNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.parameters, isNull);
   }
 
   void test_parseNormalFormalParameter_field_function_nested() {
     FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "this.a(B b))", []);
-    JUnitTestCase.assertNull(parameter.keyword);
-    JUnitTestCase.assertNull(parameter.type);
-    JUnitTestCase.assertNotNull(parameter.identifier);
+    expect(parameter.keyword, isNull);
+    expect(parameter.type, isNull);
+    expect(parameter.identifier, isNotNull);
     FormalParameterList parameterList = parameter.parameters;
-    JUnitTestCase.assertNotNull(parameterList);
+    expect(parameterList, isNotNull);
     EngineTestCase.assertSizeOfList(1, parameterList.parameters);
   }
 
   void test_parseNormalFormalParameter_field_function_noNested() {
     FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "this.a())", []);
-    JUnitTestCase.assertNull(parameter.keyword);
-    JUnitTestCase.assertNull(parameter.type);
-    JUnitTestCase.assertNotNull(parameter.identifier);
+    expect(parameter.keyword, isNull);
+    expect(parameter.type, isNull);
+    expect(parameter.identifier, isNotNull);
     FormalParameterList parameterList = parameter.parameters;
-    JUnitTestCase.assertNotNull(parameterList);
+    expect(parameterList, isNotNull);
     EngineTestCase.assertSizeOfList(0, parameterList.parameters);
   }
 
   void test_parseNormalFormalParameter_field_noType() {
     FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "this.a)", []);
-    JUnitTestCase.assertNull(parameter.keyword);
-    JUnitTestCase.assertNull(parameter.type);
-    JUnitTestCase.assertNotNull(parameter.identifier);
-    JUnitTestCase.assertNull(parameter.parameters);
+    expect(parameter.keyword, isNull);
+    expect(parameter.type, isNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.parameters, isNull);
   }
 
   void test_parseNormalFormalParameter_field_type() {
     FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "A this.a)", []);
-    JUnitTestCase.assertNull(parameter.keyword);
-    JUnitTestCase.assertNotNull(parameter.type);
-    JUnitTestCase.assertNotNull(parameter.identifier);
-    JUnitTestCase.assertNull(parameter.parameters);
+    expect(parameter.keyword, isNull);
+    expect(parameter.type, isNotNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.parameters, isNull);
   }
 
   void test_parseNormalFormalParameter_field_var() {
     FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "var this.a)", []);
-    JUnitTestCase.assertNotNull(parameter.keyword);
-    JUnitTestCase.assertNull(parameter.type);
-    JUnitTestCase.assertNotNull(parameter.identifier);
-    JUnitTestCase.assertNull(parameter.parameters);
+    expect(parameter.keyword, isNotNull);
+    expect(parameter.type, isNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.parameters, isNull);
   }
 
   void test_parseNormalFormalParameter_function_noType() {
     FunctionTypedFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "a())", []);
-    JUnitTestCase.assertNull(parameter.returnType);
-    JUnitTestCase.assertNotNull(parameter.identifier);
-    JUnitTestCase.assertNotNull(parameter.parameters);
+    expect(parameter.returnType, isNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.parameters, isNotNull);
   }
 
   void test_parseNormalFormalParameter_function_type() {
     FunctionTypedFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "A a())", []);
-    JUnitTestCase.assertNotNull(parameter.returnType);
-    JUnitTestCase.assertNotNull(parameter.identifier);
-    JUnitTestCase.assertNotNull(parameter.parameters);
+    expect(parameter.returnType, isNotNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.parameters, isNotNull);
   }
 
   void test_parseNormalFormalParameter_function_void() {
     FunctionTypedFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "void a())", []);
-    JUnitTestCase.assertNotNull(parameter.returnType);
-    JUnitTestCase.assertNotNull(parameter.identifier);
-    JUnitTestCase.assertNotNull(parameter.parameters);
+    expect(parameter.returnType, isNotNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.parameters, isNotNull);
   }
 
   void test_parseNormalFormalParameter_simple_const_noType() {
     SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "const a)", []);
-    JUnitTestCase.assertNotNull(parameter.keyword);
-    JUnitTestCase.assertNull(parameter.type);
-    JUnitTestCase.assertNotNull(parameter.identifier);
+    expect(parameter.keyword, isNotNull);
+    expect(parameter.type, isNull);
+    expect(parameter.identifier, isNotNull);
   }
 
   void test_parseNormalFormalParameter_simple_const_type() {
     SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "const A a)", []);
-    JUnitTestCase.assertNotNull(parameter.keyword);
-    JUnitTestCase.assertNotNull(parameter.type);
-    JUnitTestCase.assertNotNull(parameter.identifier);
+    expect(parameter.keyword, isNotNull);
+    expect(parameter.type, isNotNull);
+    expect(parameter.identifier, isNotNull);
   }
 
   void test_parseNormalFormalParameter_simple_final_noType() {
     SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "final a)", []);
-    JUnitTestCase.assertNotNull(parameter.keyword);
-    JUnitTestCase.assertNull(parameter.type);
-    JUnitTestCase.assertNotNull(parameter.identifier);
+    expect(parameter.keyword, isNotNull);
+    expect(parameter.type, isNull);
+    expect(parameter.identifier, isNotNull);
   }
 
   void test_parseNormalFormalParameter_simple_final_type() {
     SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "final A a)", []);
-    JUnitTestCase.assertNotNull(parameter.keyword);
-    JUnitTestCase.assertNotNull(parameter.type);
-    JUnitTestCase.assertNotNull(parameter.identifier);
+    expect(parameter.keyword, isNotNull);
+    expect(parameter.type, isNotNull);
+    expect(parameter.identifier, isNotNull);
   }
 
   void test_parseNormalFormalParameter_simple_noType() {
     SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "a)", []);
-    JUnitTestCase.assertNull(parameter.keyword);
-    JUnitTestCase.assertNull(parameter.type);
-    JUnitTestCase.assertNotNull(parameter.identifier);
+    expect(parameter.keyword, isNull);
+    expect(parameter.type, isNull);
+    expect(parameter.identifier, isNotNull);
   }
 
   void test_parseNormalFormalParameter_simple_type() {
     SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "A a)", []);
-    JUnitTestCase.assertNull(parameter.keyword);
-    JUnitTestCase.assertNotNull(parameter.type);
-    JUnitTestCase.assertNotNull(parameter.identifier);
+    expect(parameter.keyword, isNull);
+    expect(parameter.type, isNotNull);
+    expect(parameter.identifier, isNotNull);
   }
 
   void test_parseOperator() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     MethodDeclaration method = ParserTestCase.parse("parseOperator", <Object> [commentAndMetadata(comment, []), null, returnType], "operator +(A a);");
-    JUnitTestCase.assertNotNull(method.body);
-    JUnitTestCase.assertEquals(comment, method.documentationComment);
-    JUnitTestCase.assertNull(method.externalKeyword);
-    JUnitTestCase.assertNull(method.modifierKeyword);
-    JUnitTestCase.assertNotNull(method.name);
-    JUnitTestCase.assertNotNull(method.operatorKeyword);
-    JUnitTestCase.assertNotNull(method.parameters);
-    JUnitTestCase.assertNull(method.propertyKeyword);
-    JUnitTestCase.assertEquals(returnType, method.returnType);
+    expect(method.body, isNotNull);
+    expect(method.documentationComment, comment);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNotNull);
+    expect(method.parameters, isNotNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, returnType);
   }
 
   void test_parseOptionalReturnType() {
@@ -7004,301 +7002,301 @@ void''', []);
 
   void test_parsePartDirective_part() {
     PartDirective directive = ParserTestCase.parse("parsePartDirective", <Object> [emptyCommentAndMetadata()], "part 'lib/lib.dart';");
-    JUnitTestCase.assertNotNull(directive.partToken);
-    JUnitTestCase.assertNotNull(directive.uri);
-    JUnitTestCase.assertNotNull(directive.semicolon);
+    expect(directive.partToken, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parsePartDirective_partOf() {
     PartOfDirective directive = ParserTestCase.parse("parsePartDirective", <Object> [emptyCommentAndMetadata()], "part of l;");
-    JUnitTestCase.assertNotNull(directive.partToken);
-    JUnitTestCase.assertNotNull(directive.ofToken);
-    JUnitTestCase.assertNotNull(directive.libraryName);
-    JUnitTestCase.assertNotNull(directive.semicolon);
+    expect(directive.partToken, isNotNull);
+    expect(directive.ofToken, isNotNull);
+    expect(directive.libraryName, isNotNull);
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parsePostfixExpression_decrement() {
     PostfixExpression expression = ParserTestCase.parse4("parsePostfixExpression", "i--", []);
-    JUnitTestCase.assertNotNull(expression.operand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.MINUS_MINUS, expression.operator.type);
+    expect(expression.operand, isNotNull);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.MINUS_MINUS);
   }
 
   void test_parsePostfixExpression_increment() {
     PostfixExpression expression = ParserTestCase.parse4("parsePostfixExpression", "i++", []);
-    JUnitTestCase.assertNotNull(expression.operand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.PLUS_PLUS, expression.operator.type);
+    expect(expression.operand, isNotNull);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.PLUS_PLUS);
   }
 
   void test_parsePostfixExpression_none_indexExpression() {
     IndexExpression expression = ParserTestCase.parse4("parsePostfixExpression", "a[0]", []);
-    JUnitTestCase.assertNotNull(expression.target);
-    JUnitTestCase.assertNotNull(expression.index);
+    expect(expression.target, isNotNull);
+    expect(expression.index, isNotNull);
   }
 
   void test_parsePostfixExpression_none_methodInvocation() {
     MethodInvocation expression = ParserTestCase.parse4("parsePostfixExpression", "a.m()", []);
-    JUnitTestCase.assertNotNull(expression.target);
-    JUnitTestCase.assertNotNull(expression.methodName);
-    JUnitTestCase.assertNotNull(expression.argumentList);
+    expect(expression.target, isNotNull);
+    expect(expression.methodName, isNotNull);
+    expect(expression.argumentList, isNotNull);
   }
 
   void test_parsePostfixExpression_none_propertyAccess() {
     PrefixedIdentifier expression = ParserTestCase.parse4("parsePostfixExpression", "a.b", []);
-    JUnitTestCase.assertNotNull(expression.prefix);
-    JUnitTestCase.assertNotNull(expression.identifier);
+    expect(expression.prefix, isNotNull);
+    expect(expression.identifier, isNotNull);
   }
 
   void test_parsePrefixedIdentifier_noPrefix() {
     String lexeme = "bar";
     SimpleIdentifier identifier = ParserTestCase.parse4("parsePrefixedIdentifier", lexeme, []);
-    JUnitTestCase.assertNotNull(identifier.token);
-    JUnitTestCase.assertEquals(lexeme, identifier.name);
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, lexeme);
   }
 
   void test_parsePrefixedIdentifier_prefix() {
     String lexeme = "foo.bar";
     PrefixedIdentifier identifier = ParserTestCase.parse4("parsePrefixedIdentifier", lexeme, []);
-    JUnitTestCase.assertEquals("foo", identifier.prefix.name);
-    JUnitTestCase.assertNotNull(identifier.period);
-    JUnitTestCase.assertEquals("bar", identifier.identifier.name);
+    expect(identifier.prefix.name, "foo");
+    expect(identifier.period, isNotNull);
+    expect(identifier.identifier.name, "bar");
   }
 
   void test_parsePrimaryExpression_const() {
     InstanceCreationExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "const A()", []);
-    JUnitTestCase.assertNotNull(expression);
+    expect(expression, isNotNull);
   }
 
   void test_parsePrimaryExpression_double() {
     String doubleLiteral = "3.2e4";
     DoubleLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", doubleLiteral, []);
-    JUnitTestCase.assertNotNull(literal.literal);
-    JUnitTestCase.assertEquals(double.parse(doubleLiteral), literal.value);
+    expect(literal.literal, isNotNull);
+    expect(literal.value, double.parse(doubleLiteral));
   }
 
   void test_parsePrimaryExpression_false() {
     BooleanLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "false", []);
-    JUnitTestCase.assertNotNull(literal.literal);
-    JUnitTestCase.assertFalse(literal.value);
+    expect(literal.literal, isNotNull);
+    expect(literal.value, isFalse);
   }
 
   void test_parsePrimaryExpression_function_arguments() {
     FunctionExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "(int i) => i + 1", []);
-    JUnitTestCase.assertNotNull(expression.parameters);
-    JUnitTestCase.assertNotNull(expression.body);
+    expect(expression.parameters, isNotNull);
+    expect(expression.body, isNotNull);
   }
 
   void test_parsePrimaryExpression_function_noArguments() {
     FunctionExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "() => 42", []);
-    JUnitTestCase.assertNotNull(expression.parameters);
-    JUnitTestCase.assertNotNull(expression.body);
+    expect(expression.parameters, isNotNull);
+    expect(expression.body, isNotNull);
   }
 
   void test_parsePrimaryExpression_hex() {
     String hexLiteral = "3F";
     IntegerLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "0x$hexLiteral", []);
-    JUnitTestCase.assertNotNull(literal.literal);
-    JUnitTestCase.assertEquals(int.parse(hexLiteral, radix: 16), literal.value);
+    expect(literal.literal, isNotNull);
+    expect(literal.value, int.parse(hexLiteral, radix: 16));
   }
 
   void test_parsePrimaryExpression_identifier() {
     SimpleIdentifier identifier = ParserTestCase.parse4("parsePrimaryExpression", "a", []);
-    JUnitTestCase.assertNotNull(identifier);
+    expect(identifier, isNotNull);
   }
 
   void test_parsePrimaryExpression_int() {
     String intLiteral = "472";
     IntegerLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", intLiteral, []);
-    JUnitTestCase.assertNotNull(literal.literal);
-    JUnitTestCase.assertEquals(int.parse(intLiteral), literal.value);
+    expect(literal.literal, isNotNull);
+    expect(literal.value, int.parse(intLiteral));
   }
 
   void test_parsePrimaryExpression_listLiteral() {
     ListLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "[ ]", []);
-    JUnitTestCase.assertNotNull(literal);
+    expect(literal, isNotNull);
   }
 
   void test_parsePrimaryExpression_listLiteral_index() {
     ListLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "[]", []);
-    JUnitTestCase.assertNotNull(literal);
+    expect(literal, isNotNull);
   }
 
   void test_parsePrimaryExpression_listLiteral_typed() {
     ListLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "<A>[ ]", []);
-    JUnitTestCase.assertNotNull(literal.typeArguments);
+    expect(literal.typeArguments, isNotNull);
     EngineTestCase.assertSizeOfList(1, literal.typeArguments.arguments);
   }
 
   void test_parsePrimaryExpression_mapLiteral() {
     MapLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "{}", []);
-    JUnitTestCase.assertNotNull(literal);
+    expect(literal, isNotNull);
   }
 
   void test_parsePrimaryExpression_mapLiteral_typed() {
     MapLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "<A, B>{}", []);
-    JUnitTestCase.assertNotNull(literal.typeArguments);
+    expect(literal.typeArguments, isNotNull);
     EngineTestCase.assertSizeOfList(2, literal.typeArguments.arguments);
   }
 
   void test_parsePrimaryExpression_new() {
     InstanceCreationExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "new A()", []);
-    JUnitTestCase.assertNotNull(expression);
+    expect(expression, isNotNull);
   }
 
   void test_parsePrimaryExpression_null() {
     NullLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "null", []);
-    JUnitTestCase.assertNotNull(literal.literal);
+    expect(literal.literal, isNotNull);
   }
 
   void test_parsePrimaryExpression_parenthesized() {
     ParenthesizedExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "(x)", []);
-    JUnitTestCase.assertNotNull(expression);
+    expect(expression, isNotNull);
   }
 
   void test_parsePrimaryExpression_string() {
     SimpleStringLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "\"string\"", []);
-    JUnitTestCase.assertFalse(literal.isMultiline);
-    JUnitTestCase.assertFalse(literal.isRaw);
-    JUnitTestCase.assertEquals("string", literal.value);
+    expect(literal.isMultiline, isFalse);
+    expect(literal.isRaw, isFalse);
+    expect(literal.value, "string");
   }
 
   void test_parsePrimaryExpression_string_multiline() {
     SimpleStringLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "'''string'''", []);
-    JUnitTestCase.assertTrue(literal.isMultiline);
-    JUnitTestCase.assertFalse(literal.isRaw);
-    JUnitTestCase.assertEquals("string", literal.value);
+    expect(literal.isMultiline, isTrue);
+    expect(literal.isRaw, isFalse);
+    expect(literal.value, "string");
   }
 
   void test_parsePrimaryExpression_string_raw() {
     SimpleStringLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "r'string'", []);
-    JUnitTestCase.assertFalse(literal.isMultiline);
-    JUnitTestCase.assertTrue(literal.isRaw);
-    JUnitTestCase.assertEquals("string", literal.value);
+    expect(literal.isMultiline, isFalse);
+    expect(literal.isRaw, isTrue);
+    expect(literal.value, "string");
   }
 
   void test_parsePrimaryExpression_super() {
     PropertyAccess propertyAccess = ParserTestCase.parse4("parsePrimaryExpression", "super.x", []);
-    JUnitTestCase.assertTrue(propertyAccess.target is SuperExpression);
-    JUnitTestCase.assertNotNull(propertyAccess.operator);
-    JUnitTestCase.assertEquals(TokenType.PERIOD, propertyAccess.operator.type);
-    JUnitTestCase.assertNotNull(propertyAccess.propertyName);
+    expect(propertyAccess.target is SuperExpression, isTrue);
+    expect(propertyAccess.operator, isNotNull);
+    expect(propertyAccess.operator.type, TokenType.PERIOD);
+    expect(propertyAccess.propertyName, isNotNull);
   }
 
   void test_parsePrimaryExpression_this() {
     ThisExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "this", []);
-    JUnitTestCase.assertNotNull(expression.keyword);
+    expect(expression.keyword, isNotNull);
   }
 
   void test_parsePrimaryExpression_true() {
     BooleanLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "true", []);
-    JUnitTestCase.assertNotNull(literal.literal);
-    JUnitTestCase.assertTrue(literal.value);
+    expect(literal.literal, isNotNull);
+    expect(literal.value, isTrue);
   }
 
   void test_Parser() {
-    JUnitTestCase.assertNotNull(new Parser(null, null));
+    expect(new Parser(null, null), isNotNull);
   }
 
   void test_parseRedirectingConstructorInvocation_named() {
     RedirectingConstructorInvocation invocation = ParserTestCase.parse4("parseRedirectingConstructorInvocation", "this.a()", []);
-    JUnitTestCase.assertNotNull(invocation.argumentList);
-    JUnitTestCase.assertNotNull(invocation.constructorName);
-    JUnitTestCase.assertNotNull(invocation.keyword);
-    JUnitTestCase.assertNotNull(invocation.period);
+    expect(invocation.argumentList, isNotNull);
+    expect(invocation.constructorName, isNotNull);
+    expect(invocation.keyword, isNotNull);
+    expect(invocation.period, isNotNull);
   }
 
   void test_parseRedirectingConstructorInvocation_unnamed() {
     RedirectingConstructorInvocation invocation = ParserTestCase.parse4("parseRedirectingConstructorInvocation", "this()", []);
-    JUnitTestCase.assertNotNull(invocation.argumentList);
-    JUnitTestCase.assertNull(invocation.constructorName);
-    JUnitTestCase.assertNotNull(invocation.keyword);
-    JUnitTestCase.assertNull(invocation.period);
+    expect(invocation.argumentList, isNotNull);
+    expect(invocation.constructorName, isNull);
+    expect(invocation.keyword, isNotNull);
+    expect(invocation.period, isNull);
   }
 
   void test_parseRelationalExpression_as() {
     AsExpression expression = ParserTestCase.parse4("parseRelationalExpression", "x as Y", []);
-    JUnitTestCase.assertNotNull(expression.expression);
-    JUnitTestCase.assertNotNull(expression.asOperator);
-    JUnitTestCase.assertNotNull(expression.type);
+    expect(expression.expression, isNotNull);
+    expect(expression.asOperator, isNotNull);
+    expect(expression.type, isNotNull);
   }
 
   void test_parseRelationalExpression_is() {
     IsExpression expression = ParserTestCase.parse4("parseRelationalExpression", "x is y", []);
-    JUnitTestCase.assertNotNull(expression.expression);
-    JUnitTestCase.assertNotNull(expression.isOperator);
-    JUnitTestCase.assertNull(expression.notOperator);
-    JUnitTestCase.assertNotNull(expression.type);
+    expect(expression.expression, isNotNull);
+    expect(expression.isOperator, isNotNull);
+    expect(expression.notOperator, isNull);
+    expect(expression.type, isNotNull);
   }
 
   void test_parseRelationalExpression_isNot() {
     IsExpression expression = ParserTestCase.parse4("parseRelationalExpression", "x is! y", []);
-    JUnitTestCase.assertNotNull(expression.expression);
-    JUnitTestCase.assertNotNull(expression.isOperator);
-    JUnitTestCase.assertNotNull(expression.notOperator);
-    JUnitTestCase.assertNotNull(expression.type);
+    expect(expression.expression, isNotNull);
+    expect(expression.isOperator, isNotNull);
+    expect(expression.notOperator, isNotNull);
+    expect(expression.type, isNotNull);
   }
 
   void test_parseRelationalExpression_normal() {
     BinaryExpression expression = ParserTestCase.parse4("parseRelationalExpression", "x < y", []);
-    JUnitTestCase.assertNotNull(expression.leftOperand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.LT, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightOperand);
+    expect(expression.leftOperand, isNotNull);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.LT);
+    expect(expression.rightOperand, isNotNull);
   }
 
   void test_parseRelationalExpression_super() {
     BinaryExpression expression = ParserTestCase.parse4("parseRelationalExpression", "super < y", []);
-    JUnitTestCase.assertNotNull(expression.leftOperand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.LT, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightOperand);
+    expect(expression.leftOperand, isNotNull);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.LT);
+    expect(expression.rightOperand, isNotNull);
   }
 
   void test_parseRethrowExpression() {
     RethrowExpression expression = ParserTestCase.parse4("parseRethrowExpression", "rethrow;", []);
-    JUnitTestCase.assertNotNull(expression.keyword);
+    expect(expression.keyword, isNotNull);
   }
 
   void test_parseReturnStatement_noValue() {
     ReturnStatement statement = ParserTestCase.parse4("parseReturnStatement", "return;", []);
-    JUnitTestCase.assertNotNull(statement.keyword);
-    JUnitTestCase.assertNull(statement.expression);
-    JUnitTestCase.assertNotNull(statement.semicolon);
+    expect(statement.keyword, isNotNull);
+    expect(statement.expression, isNull);
+    expect(statement.semicolon, isNotNull);
   }
 
   void test_parseReturnStatement_value() {
     ReturnStatement statement = ParserTestCase.parse4("parseReturnStatement", "return x;", []);
-    JUnitTestCase.assertNotNull(statement.keyword);
-    JUnitTestCase.assertNotNull(statement.expression);
-    JUnitTestCase.assertNotNull(statement.semicolon);
+    expect(statement.keyword, isNotNull);
+    expect(statement.expression, isNotNull);
+    expect(statement.semicolon, isNotNull);
   }
 
   void test_parseReturnType_nonVoid() {
     TypeName typeName = ParserTestCase.parse4("parseReturnType", "A<B>", []);
-    JUnitTestCase.assertNotNull(typeName.name);
-    JUnitTestCase.assertNotNull(typeName.typeArguments);
+    expect(typeName.name, isNotNull);
+    expect(typeName.typeArguments, isNotNull);
   }
 
   void test_parseReturnType_void() {
     TypeName typeName = ParserTestCase.parse4("parseReturnType", "void", []);
-    JUnitTestCase.assertNotNull(typeName.name);
-    JUnitTestCase.assertNull(typeName.typeArguments);
+    expect(typeName.name, isNotNull);
+    expect(typeName.typeArguments, isNull);
   }
 
   void test_parseSetter_nonStatic() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     MethodDeclaration method = ParserTestCase.parse("parseSetter", <Object> [commentAndMetadata(comment, []), null, null, returnType], "set a(var x);");
-    JUnitTestCase.assertNotNull(method.body);
-    JUnitTestCase.assertEquals(comment, method.documentationComment);
-    JUnitTestCase.assertNull(method.externalKeyword);
-    JUnitTestCase.assertNull(method.modifierKeyword);
-    JUnitTestCase.assertNotNull(method.name);
-    JUnitTestCase.assertNull(method.operatorKeyword);
-    JUnitTestCase.assertNotNull(method.parameters);
-    JUnitTestCase.assertNotNull(method.propertyKeyword);
-    JUnitTestCase.assertEquals(returnType, method.returnType);
+    expect(method.body, isNotNull);
+    expect(method.documentationComment, comment);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.propertyKeyword, isNotNull);
+    expect(method.returnType, returnType);
   }
 
   void test_parseSetter_static() {
@@ -7310,45 +7308,45 @@ void''', []);
         null,
         staticKeyword,
         returnType], "set a(var x) {}");
-    JUnitTestCase.assertNotNull(method.body);
-    JUnitTestCase.assertEquals(comment, method.documentationComment);
-    JUnitTestCase.assertNull(method.externalKeyword);
-    JUnitTestCase.assertEquals(staticKeyword, method.modifierKeyword);
-    JUnitTestCase.assertNotNull(method.name);
-    JUnitTestCase.assertNull(method.operatorKeyword);
-    JUnitTestCase.assertNotNull(method.parameters);
-    JUnitTestCase.assertNotNull(method.propertyKeyword);
-    JUnitTestCase.assertEquals(returnType, method.returnType);
+    expect(method.body, isNotNull);
+    expect(method.documentationComment, comment);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, staticKeyword);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.propertyKeyword, isNotNull);
+    expect(method.returnType, returnType);
   }
 
   void test_parseShiftExpression_normal() {
     BinaryExpression expression = ParserTestCase.parse4("parseShiftExpression", "x << y", []);
-    JUnitTestCase.assertNotNull(expression.leftOperand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.LT_LT, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightOperand);
+    expect(expression.leftOperand, isNotNull);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.LT_LT);
+    expect(expression.rightOperand, isNotNull);
   }
 
   void test_parseShiftExpression_super() {
     BinaryExpression expression = ParserTestCase.parse4("parseShiftExpression", "super << y", []);
-    JUnitTestCase.assertNotNull(expression.leftOperand);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.LT_LT, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.rightOperand);
+    expect(expression.leftOperand, isNotNull);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.LT_LT);
+    expect(expression.rightOperand, isNotNull);
   }
 
   void test_parseSimpleIdentifier_builtInIdentifier() {
     String lexeme = "as";
     SimpleIdentifier identifier = ParserTestCase.parse4("parseSimpleIdentifier", lexeme, []);
-    JUnitTestCase.assertNotNull(identifier.token);
-    JUnitTestCase.assertEquals(lexeme, identifier.name);
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, lexeme);
   }
 
   void test_parseSimpleIdentifier_normalIdentifier() {
     String lexeme = "foo";
     SimpleIdentifier identifier = ParserTestCase.parse4("parseSimpleIdentifier", lexeme, []);
-    JUnitTestCase.assertNotNull(identifier.token);
-    JUnitTestCase.assertEquals(lexeme, identifier.name);
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, lexeme);
   }
 
   void test_parseSimpleIdentifier1_normalIdentifier() {
@@ -7358,13 +7356,13 @@ void''', []);
   void test_parseStatement_functionDeclaration() {
     // TODO(brianwilkerson) Implement more tests for this method.
     FunctionDeclarationStatement statement = ParserTestCase.parse4("parseStatement", "int f(a, b) {};", []);
-    JUnitTestCase.assertNotNull(statement.functionDeclaration);
+    expect(statement.functionDeclaration, isNotNull);
   }
 
   void test_parseStatement_mulipleLabels() {
     LabeledStatement statement = ParserTestCase.parse4("parseStatement", "l: m: return x;", []);
     EngineTestCase.assertSizeOfList(2, statement.labels);
-    JUnitTestCase.assertNotNull(statement.statement);
+    expect(statement.statement, isNotNull);
   }
 
   void test_parseStatement_noLabels() {
@@ -7374,7 +7372,7 @@ void''', []);
   void test_parseStatement_singleLabel() {
     LabeledStatement statement = ParserTestCase.parse4("parseStatement", "l: return x;", []);
     EngineTestCase.assertSizeOfList(1, statement.labels);
-    JUnitTestCase.assertNotNull(statement.statement);
+    expect(statement.statement, isNotNull);
   }
 
   void test_parseStatements_multiple() {
@@ -7393,737 +7391,737 @@ void''', []);
     EngineTestCase.assertSizeOfList(2, strings);
     StringLiteral firstString = strings[0];
     StringLiteral secondString = strings[1];
-    JUnitTestCase.assertEquals("a", (firstString as SimpleStringLiteral).value);
-    JUnitTestCase.assertEquals("b", (secondString as SimpleStringLiteral).value);
+    expect((firstString as SimpleStringLiteral).value, "a");
+    expect((secondString as SimpleStringLiteral).value, "b");
   }
 
   void test_parseStringLiteral_interpolated() {
     StringInterpolation literal = ParserTestCase.parse4("parseStringLiteral", "'a \${b} c \$this d'", []);
     NodeList<InterpolationElement> elements = literal.elements;
     EngineTestCase.assertSizeOfList(5, elements);
-    JUnitTestCase.assertTrue(elements[0] is InterpolationString);
-    JUnitTestCase.assertTrue(elements[1] is InterpolationExpression);
-    JUnitTestCase.assertTrue(elements[2] is InterpolationString);
-    JUnitTestCase.assertTrue(elements[3] is InterpolationExpression);
-    JUnitTestCase.assertTrue(elements[4] is InterpolationString);
+    expect(elements[0] is InterpolationString, isTrue);
+    expect(elements[1] is InterpolationExpression, isTrue);
+    expect(elements[2] is InterpolationString, isTrue);
+    expect(elements[3] is InterpolationExpression, isTrue);
+    expect(elements[4] is InterpolationString, isTrue);
   }
 
   void test_parseStringLiteral_single() {
     SimpleStringLiteral literal = ParserTestCase.parse4("parseStringLiteral", "'a'", []);
-    JUnitTestCase.assertNotNull(literal.literal);
-    JUnitTestCase.assertEquals("a", literal.value);
+    expect(literal.literal, isNotNull);
+    expect(literal.value, "a");
   }
 
   void test_parseSuperConstructorInvocation_named() {
     SuperConstructorInvocation invocation = ParserTestCase.parse4("parseSuperConstructorInvocation", "super.a()", []);
-    JUnitTestCase.assertNotNull(invocation.argumentList);
-    JUnitTestCase.assertNotNull(invocation.constructorName);
-    JUnitTestCase.assertNotNull(invocation.keyword);
-    JUnitTestCase.assertNotNull(invocation.period);
+    expect(invocation.argumentList, isNotNull);
+    expect(invocation.constructorName, isNotNull);
+    expect(invocation.keyword, isNotNull);
+    expect(invocation.period, isNotNull);
   }
 
   void test_parseSuperConstructorInvocation_unnamed() {
     SuperConstructorInvocation invocation = ParserTestCase.parse4("parseSuperConstructorInvocation", "super()", []);
-    JUnitTestCase.assertNotNull(invocation.argumentList);
-    JUnitTestCase.assertNull(invocation.constructorName);
-    JUnitTestCase.assertNotNull(invocation.keyword);
-    JUnitTestCase.assertNull(invocation.period);
+    expect(invocation.argumentList, isNotNull);
+    expect(invocation.constructorName, isNull);
+    expect(invocation.keyword, isNotNull);
+    expect(invocation.period, isNull);
   }
 
   void test_parseSwitchStatement_case() {
     SwitchStatement statement = ParserTestCase.parse4("parseSwitchStatement", "switch (a) {case 1: return 'I';}", []);
-    JUnitTestCase.assertNotNull(statement.keyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNotNull(statement.expression);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.leftBracket);
+    expect(statement.keyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.expression, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(1, statement.members);
-    JUnitTestCase.assertNotNull(statement.rightBracket);
+    expect(statement.rightBracket, isNotNull);
   }
 
   void test_parseSwitchStatement_empty() {
     SwitchStatement statement = ParserTestCase.parse4("parseSwitchStatement", "switch (a) {}", []);
-    JUnitTestCase.assertNotNull(statement.keyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNotNull(statement.expression);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.leftBracket);
+    expect(statement.keyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.expression, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(0, statement.members);
-    JUnitTestCase.assertNotNull(statement.rightBracket);
+    expect(statement.rightBracket, isNotNull);
   }
 
   void test_parseSwitchStatement_labeledCase() {
     SwitchStatement statement = ParserTestCase.parse4("parseSwitchStatement", "switch (a) {l1: l2: l3: case(1):}", []);
-    JUnitTestCase.assertNotNull(statement.keyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNotNull(statement.expression);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.leftBracket);
+    expect(statement.keyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.expression, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(1, statement.members);
     EngineTestCase.assertSizeOfList(3, statement.members[0].labels);
-    JUnitTestCase.assertNotNull(statement.rightBracket);
+    expect(statement.rightBracket, isNotNull);
   }
 
   void test_parseSwitchStatement_labeledStatementInCase() {
     SwitchStatement statement = ParserTestCase.parse4("parseSwitchStatement", "switch (a) {case 0: f(); l1: g(); break;}", []);
-    JUnitTestCase.assertNotNull(statement.keyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNotNull(statement.expression);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.leftBracket);
+    expect(statement.keyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.expression, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(1, statement.members);
     EngineTestCase.assertSizeOfList(3, statement.members[0].statements);
-    JUnitTestCase.assertNotNull(statement.rightBracket);
+    expect(statement.rightBracket, isNotNull);
   }
 
   void test_parseSymbolLiteral_builtInIdentifier() {
     SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#dynamic.static.abstract", []);
-    JUnitTestCase.assertNotNull(literal.poundSign);
+    expect(literal.poundSign, isNotNull);
     List<Token> components = literal.components;
     EngineTestCase.assertLength(3, components);
-    JUnitTestCase.assertEquals("dynamic", components[0].lexeme);
-    JUnitTestCase.assertEquals("static", components[1].lexeme);
-    JUnitTestCase.assertEquals("abstract", components[2].lexeme);
+    expect(components[0].lexeme, "dynamic");
+    expect(components[1].lexeme, "static");
+    expect(components[2].lexeme, "abstract");
   }
 
   void test_parseSymbolLiteral_multiple() {
     SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#a.b.c", []);
-    JUnitTestCase.assertNotNull(literal.poundSign);
+    expect(literal.poundSign, isNotNull);
     List<Token> components = literal.components;
     EngineTestCase.assertLength(3, components);
-    JUnitTestCase.assertEquals("a", components[0].lexeme);
-    JUnitTestCase.assertEquals("b", components[1].lexeme);
-    JUnitTestCase.assertEquals("c", components[2].lexeme);
+    expect(components[0].lexeme, "a");
+    expect(components[1].lexeme, "b");
+    expect(components[2].lexeme, "c");
   }
 
   void test_parseSymbolLiteral_operator() {
     SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#==", []);
-    JUnitTestCase.assertNotNull(literal.poundSign);
+    expect(literal.poundSign, isNotNull);
     List<Token> components = literal.components;
     EngineTestCase.assertLength(1, components);
-    JUnitTestCase.assertEquals("==", components[0].lexeme);
+    expect(components[0].lexeme, "==");
   }
 
   void test_parseSymbolLiteral_single() {
     SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#a", []);
-    JUnitTestCase.assertNotNull(literal.poundSign);
+    expect(literal.poundSign, isNotNull);
     List<Token> components = literal.components;
     EngineTestCase.assertLength(1, components);
-    JUnitTestCase.assertEquals("a", components[0].lexeme);
+    expect(components[0].lexeme, "a");
   }
 
   void test_parseSymbolLiteral_void() {
     SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#void", []);
-    JUnitTestCase.assertNotNull(literal.poundSign);
+    expect(literal.poundSign, isNotNull);
     List<Token> components = literal.components;
     EngineTestCase.assertLength(1, components);
-    JUnitTestCase.assertEquals("void", components[0].lexeme);
+    expect(components[0].lexeme, "void");
   }
 
   void test_parseThrowExpression() {
     ThrowExpression expression = ParserTestCase.parse4("parseThrowExpression", "throw x;", []);
-    JUnitTestCase.assertNotNull(expression.keyword);
-    JUnitTestCase.assertNotNull(expression.expression);
+    expect(expression.keyword, isNotNull);
+    expect(expression.expression, isNotNull);
   }
 
   void test_parseThrowExpressionWithoutCascade() {
     ThrowExpression expression = ParserTestCase.parse4("parseThrowExpressionWithoutCascade", "throw x;", []);
-    JUnitTestCase.assertNotNull(expression.keyword);
-    JUnitTestCase.assertNotNull(expression.expression);
+    expect(expression.keyword, isNotNull);
+    expect(expression.expression, isNotNull);
   }
 
   void test_parseTryStatement_catch() {
     TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} catch (e) {}", []);
-    JUnitTestCase.assertNotNull(statement.tryKeyword);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.tryKeyword, isNotNull);
+    expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
     EngineTestCase.assertSizeOfList(1, catchClauses);
     CatchClause clause = catchClauses[0];
-    JUnitTestCase.assertNull(clause.onKeyword);
-    JUnitTestCase.assertNull(clause.exceptionType);
-    JUnitTestCase.assertNotNull(clause.catchKeyword);
-    JUnitTestCase.assertNotNull(clause.exceptionParameter);
-    JUnitTestCase.assertNull(clause.comma);
-    JUnitTestCase.assertNull(clause.stackTraceParameter);
-    JUnitTestCase.assertNotNull(clause.body);
-    JUnitTestCase.assertNull(statement.finallyKeyword);
-    JUnitTestCase.assertNull(statement.finallyBlock);
+    expect(clause.onKeyword, isNull);
+    expect(clause.exceptionType, isNull);
+    expect(clause.catchKeyword, isNotNull);
+    expect(clause.exceptionParameter, isNotNull);
+    expect(clause.comma, isNull);
+    expect(clause.stackTraceParameter, isNull);
+    expect(clause.body, isNotNull);
+    expect(statement.finallyKeyword, isNull);
+    expect(statement.finallyBlock, isNull);
   }
 
   void test_parseTryStatement_catch_finally() {
     TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} catch (e, s) {} finally {}", []);
-    JUnitTestCase.assertNotNull(statement.tryKeyword);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.tryKeyword, isNotNull);
+    expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
     EngineTestCase.assertSizeOfList(1, catchClauses);
     CatchClause clause = catchClauses[0];
-    JUnitTestCase.assertNull(clause.onKeyword);
-    JUnitTestCase.assertNull(clause.exceptionType);
-    JUnitTestCase.assertNotNull(clause.catchKeyword);
-    JUnitTestCase.assertNotNull(clause.exceptionParameter);
-    JUnitTestCase.assertNotNull(clause.comma);
-    JUnitTestCase.assertNotNull(clause.stackTraceParameter);
-    JUnitTestCase.assertNotNull(clause.body);
-    JUnitTestCase.assertNotNull(statement.finallyKeyword);
-    JUnitTestCase.assertNotNull(statement.finallyBlock);
+    expect(clause.onKeyword, isNull);
+    expect(clause.exceptionType, isNull);
+    expect(clause.catchKeyword, isNotNull);
+    expect(clause.exceptionParameter, isNotNull);
+    expect(clause.comma, isNotNull);
+    expect(clause.stackTraceParameter, isNotNull);
+    expect(clause.body, isNotNull);
+    expect(statement.finallyKeyword, isNotNull);
+    expect(statement.finallyBlock, isNotNull);
   }
 
   void test_parseTryStatement_finally() {
     TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} finally {}", []);
-    JUnitTestCase.assertNotNull(statement.tryKeyword);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.tryKeyword, isNotNull);
+    expect(statement.body, isNotNull);
     EngineTestCase.assertSizeOfList(0, statement.catchClauses);
-    JUnitTestCase.assertNotNull(statement.finallyKeyword);
-    JUnitTestCase.assertNotNull(statement.finallyBlock);
+    expect(statement.finallyKeyword, isNotNull);
+    expect(statement.finallyBlock, isNotNull);
   }
 
   void test_parseTryStatement_multiple() {
     TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} on NPE catch (e) {} on Error {} catch (e) {}", []);
-    JUnitTestCase.assertNotNull(statement.tryKeyword);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.tryKeyword, isNotNull);
+    expect(statement.body, isNotNull);
     EngineTestCase.assertSizeOfList(3, statement.catchClauses);
-    JUnitTestCase.assertNull(statement.finallyKeyword);
-    JUnitTestCase.assertNull(statement.finallyBlock);
+    expect(statement.finallyKeyword, isNull);
+    expect(statement.finallyBlock, isNull);
   }
 
   void test_parseTryStatement_on() {
     TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} on Error {}", []);
-    JUnitTestCase.assertNotNull(statement.tryKeyword);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.tryKeyword, isNotNull);
+    expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
     EngineTestCase.assertSizeOfList(1, catchClauses);
     CatchClause clause = catchClauses[0];
-    JUnitTestCase.assertNotNull(clause.onKeyword);
-    JUnitTestCase.assertNotNull(clause.exceptionType);
-    JUnitTestCase.assertNull(clause.catchKeyword);
-    JUnitTestCase.assertNull(clause.exceptionParameter);
-    JUnitTestCase.assertNull(clause.comma);
-    JUnitTestCase.assertNull(clause.stackTraceParameter);
-    JUnitTestCase.assertNotNull(clause.body);
-    JUnitTestCase.assertNull(statement.finallyKeyword);
-    JUnitTestCase.assertNull(statement.finallyBlock);
+    expect(clause.onKeyword, isNotNull);
+    expect(clause.exceptionType, isNotNull);
+    expect(clause.catchKeyword, isNull);
+    expect(clause.exceptionParameter, isNull);
+    expect(clause.comma, isNull);
+    expect(clause.stackTraceParameter, isNull);
+    expect(clause.body, isNotNull);
+    expect(statement.finallyKeyword, isNull);
+    expect(statement.finallyBlock, isNull);
   }
 
   void test_parseTryStatement_on_catch() {
     TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} on Error catch (e, s) {}", []);
-    JUnitTestCase.assertNotNull(statement.tryKeyword);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.tryKeyword, isNotNull);
+    expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
     EngineTestCase.assertSizeOfList(1, catchClauses);
     CatchClause clause = catchClauses[0];
-    JUnitTestCase.assertNotNull(clause.onKeyword);
-    JUnitTestCase.assertNotNull(clause.exceptionType);
-    JUnitTestCase.assertNotNull(clause.catchKeyword);
-    JUnitTestCase.assertNotNull(clause.exceptionParameter);
-    JUnitTestCase.assertNotNull(clause.comma);
-    JUnitTestCase.assertNotNull(clause.stackTraceParameter);
-    JUnitTestCase.assertNotNull(clause.body);
-    JUnitTestCase.assertNull(statement.finallyKeyword);
-    JUnitTestCase.assertNull(statement.finallyBlock);
+    expect(clause.onKeyword, isNotNull);
+    expect(clause.exceptionType, isNotNull);
+    expect(clause.catchKeyword, isNotNull);
+    expect(clause.exceptionParameter, isNotNull);
+    expect(clause.comma, isNotNull);
+    expect(clause.stackTraceParameter, isNotNull);
+    expect(clause.body, isNotNull);
+    expect(statement.finallyKeyword, isNull);
+    expect(statement.finallyBlock, isNull);
   }
 
   void test_parseTryStatement_on_catch_finally() {
     TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} on Error catch (e, s) {} finally {}", []);
-    JUnitTestCase.assertNotNull(statement.tryKeyword);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.tryKeyword, isNotNull);
+    expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
     EngineTestCase.assertSizeOfList(1, catchClauses);
     CatchClause clause = catchClauses[0];
-    JUnitTestCase.assertNotNull(clause.onKeyword);
-    JUnitTestCase.assertNotNull(clause.exceptionType);
-    JUnitTestCase.assertNotNull(clause.catchKeyword);
-    JUnitTestCase.assertNotNull(clause.exceptionParameter);
-    JUnitTestCase.assertNotNull(clause.comma);
-    JUnitTestCase.assertNotNull(clause.stackTraceParameter);
-    JUnitTestCase.assertNotNull(clause.body);
-    JUnitTestCase.assertNotNull(statement.finallyKeyword);
-    JUnitTestCase.assertNotNull(statement.finallyBlock);
+    expect(clause.onKeyword, isNotNull);
+    expect(clause.exceptionType, isNotNull);
+    expect(clause.catchKeyword, isNotNull);
+    expect(clause.exceptionParameter, isNotNull);
+    expect(clause.comma, isNotNull);
+    expect(clause.stackTraceParameter, isNotNull);
+    expect(clause.body, isNotNull);
+    expect(statement.finallyKeyword, isNotNull);
+    expect(statement.finallyBlock, isNotNull);
   }
 
   void test_parseTypeAlias_function_noParameters() {
     FunctionTypeAlias typeAlias = ParserTestCase.parse("parseTypeAlias", <Object> [emptyCommentAndMetadata()], "typedef bool F();");
-    JUnitTestCase.assertNotNull(typeAlias.keyword);
-    JUnitTestCase.assertNotNull(typeAlias.name);
-    JUnitTestCase.assertNotNull(typeAlias.parameters);
-    JUnitTestCase.assertNotNull(typeAlias.returnType);
-    JUnitTestCase.assertNotNull(typeAlias.semicolon);
-    JUnitTestCase.assertNull(typeAlias.typeParameters);
+    expect(typeAlias.keyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.parameters, isNotNull);
+    expect(typeAlias.returnType, isNotNull);
+    expect(typeAlias.semicolon, isNotNull);
+    expect(typeAlias.typeParameters, isNull);
   }
 
   void test_parseTypeAlias_function_noReturnType() {
     FunctionTypeAlias typeAlias = ParserTestCase.parse("parseTypeAlias", <Object> [emptyCommentAndMetadata()], "typedef F();");
-    JUnitTestCase.assertNotNull(typeAlias.keyword);
-    JUnitTestCase.assertNotNull(typeAlias.name);
-    JUnitTestCase.assertNotNull(typeAlias.parameters);
-    JUnitTestCase.assertNull(typeAlias.returnType);
-    JUnitTestCase.assertNotNull(typeAlias.semicolon);
-    JUnitTestCase.assertNull(typeAlias.typeParameters);
+    expect(typeAlias.keyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.parameters, isNotNull);
+    expect(typeAlias.returnType, isNull);
+    expect(typeAlias.semicolon, isNotNull);
+    expect(typeAlias.typeParameters, isNull);
   }
 
   void test_parseTypeAlias_function_parameterizedReturnType() {
     FunctionTypeAlias typeAlias = ParserTestCase.parse("parseTypeAlias", <Object> [emptyCommentAndMetadata()], "typedef A<B> F();");
-    JUnitTestCase.assertNotNull(typeAlias.keyword);
-    JUnitTestCase.assertNotNull(typeAlias.name);
-    JUnitTestCase.assertNotNull(typeAlias.parameters);
-    JUnitTestCase.assertNotNull(typeAlias.returnType);
-    JUnitTestCase.assertNotNull(typeAlias.semicolon);
-    JUnitTestCase.assertNull(typeAlias.typeParameters);
+    expect(typeAlias.keyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.parameters, isNotNull);
+    expect(typeAlias.returnType, isNotNull);
+    expect(typeAlias.semicolon, isNotNull);
+    expect(typeAlias.typeParameters, isNull);
   }
 
   void test_parseTypeAlias_function_parameters() {
     FunctionTypeAlias typeAlias = ParserTestCase.parse("parseTypeAlias", <Object> [emptyCommentAndMetadata()], "typedef bool F(Object value);");
-    JUnitTestCase.assertNotNull(typeAlias.keyword);
-    JUnitTestCase.assertNotNull(typeAlias.name);
-    JUnitTestCase.assertNotNull(typeAlias.parameters);
-    JUnitTestCase.assertNotNull(typeAlias.returnType);
-    JUnitTestCase.assertNotNull(typeAlias.semicolon);
-    JUnitTestCase.assertNull(typeAlias.typeParameters);
+    expect(typeAlias.keyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.parameters, isNotNull);
+    expect(typeAlias.returnType, isNotNull);
+    expect(typeAlias.semicolon, isNotNull);
+    expect(typeAlias.typeParameters, isNull);
   }
 
   void test_parseTypeAlias_function_typeParameters() {
     FunctionTypeAlias typeAlias = ParserTestCase.parse("parseTypeAlias", <Object> [emptyCommentAndMetadata()], "typedef bool F<E>();");
-    JUnitTestCase.assertNotNull(typeAlias.keyword);
-    JUnitTestCase.assertNotNull(typeAlias.name);
-    JUnitTestCase.assertNotNull(typeAlias.parameters);
-    JUnitTestCase.assertNotNull(typeAlias.returnType);
-    JUnitTestCase.assertNotNull(typeAlias.semicolon);
-    JUnitTestCase.assertNotNull(typeAlias.typeParameters);
+    expect(typeAlias.keyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.parameters, isNotNull);
+    expect(typeAlias.returnType, isNotNull);
+    expect(typeAlias.semicolon, isNotNull);
+    expect(typeAlias.typeParameters, isNotNull);
   }
 
   void test_parseTypeAlias_function_voidReturnType() {
     FunctionTypeAlias typeAlias = ParserTestCase.parse("parseTypeAlias", <Object> [emptyCommentAndMetadata()], "typedef void F();");
-    JUnitTestCase.assertNotNull(typeAlias.keyword);
-    JUnitTestCase.assertNotNull(typeAlias.name);
-    JUnitTestCase.assertNotNull(typeAlias.parameters);
-    JUnitTestCase.assertNotNull(typeAlias.returnType);
-    JUnitTestCase.assertNotNull(typeAlias.semicolon);
-    JUnitTestCase.assertNull(typeAlias.typeParameters);
+    expect(typeAlias.keyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.parameters, isNotNull);
+    expect(typeAlias.returnType, isNotNull);
+    expect(typeAlias.semicolon, isNotNull);
+    expect(typeAlias.typeParameters, isNull);
   }
 
   void test_parseTypeArgumentList_multiple() {
     TypeArgumentList argumentList = ParserTestCase.parse4("parseTypeArgumentList", "<int, int, int>", []);
-    JUnitTestCase.assertNotNull(argumentList.leftBracket);
+    expect(argumentList.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(3, argumentList.arguments);
-    JUnitTestCase.assertNotNull(argumentList.rightBracket);
+    expect(argumentList.rightBracket, isNotNull);
   }
 
   void test_parseTypeArgumentList_nested() {
     TypeArgumentList argumentList = ParserTestCase.parse4("parseTypeArgumentList", "<A<B>>", []);
-    JUnitTestCase.assertNotNull(argumentList.leftBracket);
+    expect(argumentList.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(1, argumentList.arguments);
     TypeName argument = argumentList.arguments[0];
-    JUnitTestCase.assertNotNull(argument);
+    expect(argument, isNotNull);
     TypeArgumentList innerList = argument.typeArguments;
-    JUnitTestCase.assertNotNull(innerList);
+    expect(innerList, isNotNull);
     EngineTestCase.assertSizeOfList(1, innerList.arguments);
-    JUnitTestCase.assertNotNull(argumentList.rightBracket);
+    expect(argumentList.rightBracket, isNotNull);
   }
 
   void test_parseTypeArgumentList_single() {
     TypeArgumentList argumentList = ParserTestCase.parse4("parseTypeArgumentList", "<int>", []);
-    JUnitTestCase.assertNotNull(argumentList.leftBracket);
+    expect(argumentList.leftBracket, isNotNull);
     EngineTestCase.assertSizeOfList(1, argumentList.arguments);
-    JUnitTestCase.assertNotNull(argumentList.rightBracket);
+    expect(argumentList.rightBracket, isNotNull);
   }
 
   void test_parseTypeName_parameterized() {
     TypeName typeName = ParserTestCase.parse4("parseTypeName", "List<int>", []);
-    JUnitTestCase.assertNotNull(typeName.name);
-    JUnitTestCase.assertNotNull(typeName.typeArguments);
+    expect(typeName.name, isNotNull);
+    expect(typeName.typeArguments, isNotNull);
   }
 
   void test_parseTypeName_simple() {
     TypeName typeName = ParserTestCase.parse4("parseTypeName", "int", []);
-    JUnitTestCase.assertNotNull(typeName.name);
-    JUnitTestCase.assertNull(typeName.typeArguments);
+    expect(typeName.name, isNotNull);
+    expect(typeName.typeArguments, isNull);
   }
 
   void test_parseTypeParameter_bounded() {
     TypeParameter parameter = ParserTestCase.parse4("parseTypeParameter", "A extends B", []);
-    JUnitTestCase.assertNotNull(parameter.bound);
-    JUnitTestCase.assertNotNull(parameter.keyword);
-    JUnitTestCase.assertNotNull(parameter.name);
+    expect(parameter.bound, isNotNull);
+    expect(parameter.keyword, isNotNull);
+    expect(parameter.name, isNotNull);
   }
 
   void test_parseTypeParameter_simple() {
     TypeParameter parameter = ParserTestCase.parse4("parseTypeParameter", "A", []);
-    JUnitTestCase.assertNull(parameter.bound);
-    JUnitTestCase.assertNull(parameter.keyword);
-    JUnitTestCase.assertNotNull(parameter.name);
+    expect(parameter.bound, isNull);
+    expect(parameter.keyword, isNull);
+    expect(parameter.name, isNotNull);
   }
 
   void test_parseTypeParameterList_multiple() {
     TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A, B extends C, D>", []);
-    JUnitTestCase.assertNotNull(parameterList.leftBracket);
-    JUnitTestCase.assertNotNull(parameterList.rightBracket);
+    expect(parameterList.leftBracket, isNotNull);
+    expect(parameterList.rightBracket, isNotNull);
     EngineTestCase.assertSizeOfList(3, parameterList.typeParameters);
   }
 
   void test_parseTypeParameterList_parameterizedWithTrailingEquals() {
     TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A extends B<E>>=", []);
-    JUnitTestCase.assertNotNull(parameterList.leftBracket);
-    JUnitTestCase.assertNotNull(parameterList.rightBracket);
+    expect(parameterList.leftBracket, isNotNull);
+    expect(parameterList.rightBracket, isNotNull);
     EngineTestCase.assertSizeOfList(1, parameterList.typeParameters);
   }
 
   void test_parseTypeParameterList_single() {
     TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A>", []);
-    JUnitTestCase.assertNotNull(parameterList.leftBracket);
-    JUnitTestCase.assertNotNull(parameterList.rightBracket);
+    expect(parameterList.leftBracket, isNotNull);
+    expect(parameterList.rightBracket, isNotNull);
     EngineTestCase.assertSizeOfList(1, parameterList.typeParameters);
   }
 
   void test_parseTypeParameterList_withTrailingEquals() {
     TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A>=", []);
-    JUnitTestCase.assertNotNull(parameterList.leftBracket);
-    JUnitTestCase.assertNotNull(parameterList.rightBracket);
+    expect(parameterList.leftBracket, isNotNull);
+    expect(parameterList.rightBracket, isNotNull);
     EngineTestCase.assertSizeOfList(1, parameterList.typeParameters);
   }
 
   void test_parseUnaryExpression_decrement_normal() {
     PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "--x", []);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.MINUS_MINUS, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.operand);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.MINUS_MINUS);
+    expect(expression.operand, isNotNull);
   }
 
   void test_parseUnaryExpression_decrement_super() {
     PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "--super", []);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.MINUS, expression.operator.type);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.MINUS);
     Expression innerExpression = expression.operand;
-    JUnitTestCase.assertNotNull(innerExpression);
-    JUnitTestCase.assertTrue(innerExpression is PrefixExpression);
+    expect(innerExpression, isNotNull);
+    expect(innerExpression is PrefixExpression, isTrue);
     PrefixExpression operand = innerExpression as PrefixExpression;
-    JUnitTestCase.assertNotNull(operand.operator);
-    JUnitTestCase.assertEquals(TokenType.MINUS, operand.operator.type);
-    JUnitTestCase.assertNotNull(operand.operand);
+    expect(operand.operator, isNotNull);
+    expect(operand.operator.type, TokenType.MINUS);
+    expect(operand.operand, isNotNull);
   }
 
   void test_parseUnaryExpression_decrement_super_propertyAccess() {
     PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "--super.x", []);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.MINUS_MINUS, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.operand);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.MINUS_MINUS);
+    expect(expression.operand, isNotNull);
     PropertyAccess operand = expression.operand as PropertyAccess;
-    JUnitTestCase.assertTrue(operand.target is SuperExpression);
-    JUnitTestCase.assertEquals("x", operand.propertyName.name);
+    expect(operand.target is SuperExpression, isTrue);
+    expect(operand.propertyName.name, "x");
   }
 
   void test_parseUnaryExpression_increment_normal() {
     PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "++x", []);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.PLUS_PLUS, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.operand);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.PLUS_PLUS);
+    expect(expression.operand, isNotNull);
   }
 
   void test_parseUnaryExpression_increment_super_index() {
     PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "++super[0]", []);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.PLUS_PLUS, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.operand);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.PLUS_PLUS);
+    expect(expression.operand, isNotNull);
     IndexExpression operand = expression.operand as IndexExpression;
-    JUnitTestCase.assertTrue(operand.realTarget is SuperExpression);
-    JUnitTestCase.assertTrue(operand.index is IntegerLiteral);
+    expect(operand.realTarget is SuperExpression, isTrue);
+    expect(operand.index is IntegerLiteral, isTrue);
   }
 
   void test_parseUnaryExpression_increment_super_propertyAccess() {
     PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "++super.x", []);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.PLUS_PLUS, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.operand);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.PLUS_PLUS);
+    expect(expression.operand, isNotNull);
     PropertyAccess operand = expression.operand as PropertyAccess;
-    JUnitTestCase.assertTrue(operand.target is SuperExpression);
-    JUnitTestCase.assertEquals("x", operand.propertyName.name);
+    expect(operand.target is SuperExpression, isTrue);
+    expect(operand.propertyName.name, "x");
   }
 
   void test_parseUnaryExpression_minus_normal() {
     PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "-x", []);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.MINUS, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.operand);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.MINUS);
+    expect(expression.operand, isNotNull);
   }
 
   void test_parseUnaryExpression_minus_super() {
     PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "-super", []);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.MINUS, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.operand);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.MINUS);
+    expect(expression.operand, isNotNull);
   }
 
   void test_parseUnaryExpression_not_normal() {
     PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "!x", []);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.BANG, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.operand);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.BANG);
+    expect(expression.operand, isNotNull);
   }
 
   void test_parseUnaryExpression_not_super() {
     PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "!super", []);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.BANG, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.operand);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.BANG);
+    expect(expression.operand, isNotNull);
   }
 
   void test_parseUnaryExpression_tilda_normal() {
     PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "~x", []);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.TILDE, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.operand);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.TILDE);
+    expect(expression.operand, isNotNull);
   }
 
   void test_parseUnaryExpression_tilda_super() {
     PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "~super", []);
-    JUnitTestCase.assertNotNull(expression.operator);
-    JUnitTestCase.assertEquals(TokenType.TILDE, expression.operator.type);
-    JUnitTestCase.assertNotNull(expression.operand);
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.TILDE);
+    expect(expression.operand, isNotNull);
   }
 
   void test_parseVariableDeclaration_equals() {
     VariableDeclaration declaration = ParserTestCase.parse4("parseVariableDeclaration", "a = b", []);
-    JUnitTestCase.assertNotNull(declaration.name);
-    JUnitTestCase.assertNotNull(declaration.equals);
-    JUnitTestCase.assertNotNull(declaration.initializer);
+    expect(declaration.name, isNotNull);
+    expect(declaration.equals, isNotNull);
+    expect(declaration.initializer, isNotNull);
   }
 
   void test_parseVariableDeclaration_noEquals() {
     VariableDeclaration declaration = ParserTestCase.parse4("parseVariableDeclaration", "a", []);
-    JUnitTestCase.assertNotNull(declaration.name);
-    JUnitTestCase.assertNull(declaration.equals);
-    JUnitTestCase.assertNull(declaration.initializer);
+    expect(declaration.name, isNotNull);
+    expect(declaration.equals, isNull);
+    expect(declaration.initializer, isNull);
   }
 
   void test_parseVariableDeclarationListAfterMetadata_const_noType() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "const a");
-    JUnitTestCase.assertNotNull(declarationList.keyword);
-    JUnitTestCase.assertNull(declarationList.type);
+    expect(declarationList.keyword, isNotNull);
+    expect(declarationList.type, isNull);
     EngineTestCase.assertSizeOfList(1, declarationList.variables);
   }
 
   void test_parseVariableDeclarationListAfterMetadata_const_type() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "const A a");
-    JUnitTestCase.assertNotNull(declarationList.keyword);
-    JUnitTestCase.assertNotNull(declarationList.type);
+    expect(declarationList.keyword, isNotNull);
+    expect(declarationList.type, isNotNull);
     EngineTestCase.assertSizeOfList(1, declarationList.variables);
   }
 
   void test_parseVariableDeclarationListAfterMetadata_final_noType() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "final a");
-    JUnitTestCase.assertNotNull(declarationList.keyword);
-    JUnitTestCase.assertNull(declarationList.type);
+    expect(declarationList.keyword, isNotNull);
+    expect(declarationList.type, isNull);
     EngineTestCase.assertSizeOfList(1, declarationList.variables);
   }
 
   void test_parseVariableDeclarationListAfterMetadata_final_type() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "final A a");
-    JUnitTestCase.assertNotNull(declarationList.keyword);
-    JUnitTestCase.assertNotNull(declarationList.type);
+    expect(declarationList.keyword, isNotNull);
+    expect(declarationList.type, isNotNull);
     EngineTestCase.assertSizeOfList(1, declarationList.variables);
   }
 
   void test_parseVariableDeclarationListAfterMetadata_type_multiple() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "A a, b, c");
-    JUnitTestCase.assertNull(declarationList.keyword);
-    JUnitTestCase.assertNotNull(declarationList.type);
+    expect(declarationList.keyword, isNull);
+    expect(declarationList.type, isNotNull);
     EngineTestCase.assertSizeOfList(3, declarationList.variables);
   }
 
   void test_parseVariableDeclarationListAfterMetadata_type_single() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "A a");
-    JUnitTestCase.assertNull(declarationList.keyword);
-    JUnitTestCase.assertNotNull(declarationList.type);
+    expect(declarationList.keyword, isNull);
+    expect(declarationList.type, isNotNull);
     EngineTestCase.assertSizeOfList(1, declarationList.variables);
   }
 
   void test_parseVariableDeclarationListAfterMetadata_var_multiple() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "var a, b, c");
-    JUnitTestCase.assertNotNull(declarationList.keyword);
-    JUnitTestCase.assertNull(declarationList.type);
+    expect(declarationList.keyword, isNotNull);
+    expect(declarationList.type, isNull);
     EngineTestCase.assertSizeOfList(3, declarationList.variables);
   }
 
   void test_parseVariableDeclarationListAfterMetadata_var_single() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "var a");
-    JUnitTestCase.assertNotNull(declarationList.keyword);
-    JUnitTestCase.assertNull(declarationList.type);
+    expect(declarationList.keyword, isNotNull);
+    expect(declarationList.type, isNull);
     EngineTestCase.assertSizeOfList(1, declarationList.variables);
   }
 
   void test_parseVariableDeclarationListAfterType_type() {
     TypeName type = new TypeName(new SimpleIdentifier(null), null);
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterType", <Object> [emptyCommentAndMetadata(), null, type], "a");
-    JUnitTestCase.assertNull(declarationList.keyword);
-    JUnitTestCase.assertEquals(type, declarationList.type);
+    expect(declarationList.keyword, isNull);
+    expect(declarationList.type, type);
     EngineTestCase.assertSizeOfList(1, declarationList.variables);
   }
 
   void test_parseVariableDeclarationListAfterType_var() {
     Token keyword = TokenFactory.tokenFromKeyword(Keyword.VAR);
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterType", <Object> [emptyCommentAndMetadata(), keyword, null], "a, b, c");
-    JUnitTestCase.assertEquals(keyword, declarationList.keyword);
-    JUnitTestCase.assertNull(declarationList.type);
+    expect(declarationList.keyword, keyword);
+    expect(declarationList.type, isNull);
     EngineTestCase.assertSizeOfList(3, declarationList.variables);
   }
 
   void test_parseVariableDeclarationStatementAfterMetadata_multiple() {
     VariableDeclarationStatement statement = ParserTestCase.parse("parseVariableDeclarationStatementAfterMetadata", <Object> [emptyCommentAndMetadata()], "var x, y, z;");
-    JUnitTestCase.assertNotNull(statement.semicolon);
+    expect(statement.semicolon, isNotNull);
     VariableDeclarationList variableList = statement.variables;
-    JUnitTestCase.assertNotNull(variableList);
+    expect(variableList, isNotNull);
     EngineTestCase.assertSizeOfList(3, variableList.variables);
   }
 
   void test_parseVariableDeclarationStatementAfterMetadata_single() {
     VariableDeclarationStatement statement = ParserTestCase.parse("parseVariableDeclarationStatementAfterMetadata", <Object> [emptyCommentAndMetadata()], "var x;");
-    JUnitTestCase.assertNotNull(statement.semicolon);
+    expect(statement.semicolon, isNotNull);
     VariableDeclarationList variableList = statement.variables;
-    JUnitTestCase.assertNotNull(variableList);
+    expect(variableList, isNotNull);
     EngineTestCase.assertSizeOfList(1, variableList.variables);
   }
 
   void test_parseWhileStatement() {
     WhileStatement statement = ParserTestCase.parse4("parseWhileStatement", "while (x) {}", []);
-    JUnitTestCase.assertNotNull(statement.keyword);
-    JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNotNull(statement.condition);
-    JUnitTestCase.assertNotNull(statement.rightParenthesis);
-    JUnitTestCase.assertNotNull(statement.body);
+    expect(statement.keyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.body, isNotNull);
   }
 
   void test_parseWithClause_multiple() {
     WithClause clause = ParserTestCase.parse4("parseWithClause", "with A, B, C", []);
-    JUnitTestCase.assertNotNull(clause.withKeyword);
+    expect(clause.withKeyword, isNotNull);
     EngineTestCase.assertSizeOfList(3, clause.mixinTypes);
   }
 
   void test_parseWithClause_single() {
     WithClause clause = ParserTestCase.parse4("parseWithClause", "with M", []);
-    JUnitTestCase.assertNotNull(clause.withKeyword);
+    expect(clause.withKeyword, isNotNull);
     EngineTestCase.assertSizeOfList(1, clause.mixinTypes);
   }
 
   void test_parseYieldStatement_each() {
     YieldStatement statement = ParserTestCase.parse4("parseYieldStatement", "yield* x;", []);
-    JUnitTestCase.assertNotNull(statement.yieldKeyword);
-    JUnitTestCase.assertNotNull(statement.star);
-    JUnitTestCase.assertNotNull(statement.expression);
-    JUnitTestCase.assertNotNull(statement.semicolon);
+    expect(statement.yieldKeyword, isNotNull);
+    expect(statement.star, isNotNull);
+    expect(statement.expression, isNotNull);
+    expect(statement.semicolon, isNotNull);
   }
 
   void test_parseYieldStatement_normal() {
     YieldStatement statement = ParserTestCase.parse4("parseYieldStatement", "yield x;", []);
-    JUnitTestCase.assertNotNull(statement.yieldKeyword);
-    JUnitTestCase.assertNull(statement.star);
-    JUnitTestCase.assertNotNull(statement.expression);
-    JUnitTestCase.assertNotNull(statement.semicolon);
+    expect(statement.yieldKeyword, isNotNull);
+    expect(statement.star, isNull);
+    expect(statement.expression, isNotNull);
+    expect(statement.semicolon, isNotNull);
   }
 
   void test_skipPrefixedIdentifier_invalid() {
     Token following = _skip("skipPrefixedIdentifier", "+");
-    JUnitTestCase.assertNull(following);
+    expect(following, isNull);
   }
 
   void test_skipPrefixedIdentifier_notPrefixed() {
     Token following = _skip("skipPrefixedIdentifier", "a +");
-    JUnitTestCase.assertNotNull(following);
-    JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
   }
 
   void test_skipPrefixedIdentifier_prefixed() {
     Token following = _skip("skipPrefixedIdentifier", "a.b +");
-    JUnitTestCase.assertNotNull(following);
-    JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
   }
 
   void test_skipReturnType_invalid() {
     Token following = _skip("skipReturnType", "+");
-    JUnitTestCase.assertNull(following);
+    expect(following, isNull);
   }
 
   void test_skipReturnType_type() {
     Token following = _skip("skipReturnType", "C +");
-    JUnitTestCase.assertNotNull(following);
-    JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
   }
 
   void test_skipReturnType_void() {
     Token following = _skip("skipReturnType", "void +");
-    JUnitTestCase.assertNotNull(following);
-    JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
   }
 
   void test_skipSimpleIdentifier_identifier() {
     Token following = _skip("skipSimpleIdentifier", "i +");
-    JUnitTestCase.assertNotNull(following);
-    JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
   }
 
   void test_skipSimpleIdentifier_invalid() {
     Token following = _skip("skipSimpleIdentifier", "9 +");
-    JUnitTestCase.assertNull(following);
+    expect(following, isNull);
   }
 
   void test_skipSimpleIdentifier_pseudoKeyword() {
     Token following = _skip("skipSimpleIdentifier", "as +");
-    JUnitTestCase.assertNotNull(following);
-    JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
   }
 
   void test_skipStringLiteral_adjacent() {
     Token following = _skip("skipStringLiteral", "'a' 'b' +");
-    JUnitTestCase.assertNotNull(following);
-    JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
   }
 
   void test_skipStringLiteral_interpolated() {
     Token following = _skip("skipStringLiteral", "'a\${b}c' +");
-    JUnitTestCase.assertNotNull(following);
-    JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
   }
 
   void test_skipStringLiteral_invalid() {
     Token following = _skip("skipStringLiteral", "a");
-    JUnitTestCase.assertNull(following);
+    expect(following, isNull);
   }
 
   void test_skipStringLiteral_single() {
     Token following = _skip("skipStringLiteral", "'a' +");
-    JUnitTestCase.assertNotNull(following);
-    JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
   }
 
   void test_skipTypeArgumentList_invalid() {
     Token following = _skip("skipTypeArgumentList", "+");
-    JUnitTestCase.assertNull(following);
+    expect(following, isNull);
   }
 
   void test_skipTypeArgumentList_multiple() {
     Token following = _skip("skipTypeArgumentList", "<E, F, G> +");
-    JUnitTestCase.assertNotNull(following);
-    JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
   }
 
   void test_skipTypeArgumentList_single() {
     Token following = _skip("skipTypeArgumentList", "<E> +");
-    JUnitTestCase.assertNotNull(following);
-    JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
   }
 
   void test_skipTypeName_invalid() {
     Token following = _skip("skipTypeName", "+");
-    JUnitTestCase.assertNull(following);
+    expect(following, isNull);
   }
 
   void test_skipTypeName_parameterized() {
     Token following = _skip("skipTypeName", "C<E<F<G>>> +");
-    JUnitTestCase.assertNotNull(following);
-    JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
   }
 
   void test_skipTypeName_simple() {
     Token following = _skip("skipTypeName", "C +");
-    JUnitTestCase.assertNotNull(following);
-    JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
   }
 
   /**
@@ -8244,7 +8242,7 @@ void''', []);
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
     CompilationUnit unit = parser.parseDirectives(token);
-    JUnitTestCase.assertNotNull(unit);
+    expect(unit, isNotNull);
     EngineTestCase.assertSizeOfList(0, unit.declarations);
     listener.assertErrorsWithCodes(errorCodes);
     return unit;
@@ -8276,7 +8274,7 @@ void''', []);
 }
 
 main() {
-  _ut.groupSep = ' | ';
+  groupSep = ' | ';
   runReflectiveTests(ComplexParserTest);
   runReflectiveTests(ErrorParserTest);
   runReflectiveTests(IncrementalParserTest);

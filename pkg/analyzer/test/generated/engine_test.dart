@@ -18,7 +18,6 @@ import 'package:analyzer/src/generated/html.dart' as ht;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
-import 'package:analyzer/src/generated/java_junit.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -30,7 +29,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/task_dart.dart';
 import 'package:typed_mock/typed_mock.dart';
-import 'package:unittest/unittest.dart' as _ut;
+import 'package:unittest/unittest.dart';
 
 import 'all_the_rest.dart';
 import 'resolver_test.dart';
@@ -39,7 +38,7 @@ import '../reflective_tests.dart';
 
 
 main() {
-  _ut.groupSep = ' | ';
+  groupSep = ' | ';
   runReflectiveTests(AnalysisCacheTest);
   runReflectiveTests(AnalysisContextImplTest);
   runReflectiveTests(AnalysisTaskTest);
@@ -67,13 +66,13 @@ main() {
 
 class AnalysisCacheTest extends EngineTestCase {
   void test_creation() {
-    JUnitTestCase.assertNotNull(new AnalysisCache(new List<CachePartition>(0)));
+    expect(new AnalysisCache(new List<CachePartition>(0)), isNotNull);
   }
 
   void test_get() {
     AnalysisCache cache = new AnalysisCache(new List<CachePartition>(0));
     TestSource source = new TestSource();
-    JUnitTestCase.assertNull(cache.get(source));
+    expect(cache.get(source), isNull);
   }
 
   void test_iterator() {
@@ -84,10 +83,10 @@ class AnalysisCacheTest extends EngineTestCase {
     DartEntry entry = new DartEntry();
     cache.put(source, entry);
     MapIterator<Source, SourceEntry> iterator = cache.iterator();
-    JUnitTestCase.assertTrue(iterator.moveNext());
-    JUnitTestCase.assertSame(source, iterator.key);
-    JUnitTestCase.assertSame(entry, iterator.value);
-    JUnitTestCase.assertFalse(iterator.moveNext());
+    expect(iterator.moveNext(), isTrue);
+    expect(iterator.key, same(source));
+    expect(iterator.value, same(entry));
+    expect(iterator.moveNext(), isFalse);
   }
 
   void test_put_noFlush() {
@@ -97,7 +96,7 @@ class AnalysisCacheTest extends EngineTestCase {
     TestSource source = new TestSource();
     DartEntry entry = new DartEntry();
     cache.put(source, entry);
-    JUnitTestCase.assertSame(entry, cache.get(source));
+    expect(cache.get(source), same(entry));
   }
 
   void test_setMaxCacheSize() {
@@ -130,7 +129,7 @@ class AnalysisCacheTest extends EngineTestCase {
       cache.put(source, new DartEntry());
       cache.accessedAst(source);
     }
-    JUnitTestCase.assertEquals(size, cache.size());
+    expect(cache.size(), size);
   }
 
   void _assertNonFlushedCount(int expectedCount, AnalysisCache cache) {
@@ -142,7 +141,7 @@ class AnalysisCacheTest extends EngineTestCase {
         nonFlushedCount++;
       }
     }
-    JUnitTestCase.assertEquals(expectedCount, nonFlushedCount);
+    expect(nonFlushedCount, expectedCount);
   }
 }
 
@@ -159,11 +158,11 @@ class AnalysisContextImplTest extends EngineTestCase {
   SourceFactory _sourceFactory;
 
   void fail_extractContext() {
-    JUnitTestCase.fail("Implement this");
+    fail("Implement this");
   }
 
   void fail_mergeContext() {
-    JUnitTestCase.fail("Implement this");
+    fail("Implement this");
   }
 
   void fail_performAnalysisTask_importedLibraryDelete_html() {
@@ -176,29 +175,19 @@ class AnalysisContextImplTest extends EngineTestCase {
 </script></body></html>''');
     Source libBSource = _addSource("/libB.dart", "library libB;");
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertNotNullMsg(
-        "htmlUnit resolved 1",
-        _context.getResolvedHtmlUnit(htmlSource));
-    JUnitTestCase.assertNotNullMsg(
-        "libB resolved 1",
-        _context.getResolvedCompilationUnit2(libBSource, libBSource));
-    JUnitTestCase.assertTrueMsg(
-        "htmlSource doesn't have errors",
-        !_hasAnalysisErrorWithErrorSeverity(_context.getErrors(htmlSource)));
+    expect(_context.getResolvedHtmlUnit(htmlSource), isNotNull, reason: "htmlUnit resolved 1");
+    expect(_context.getResolvedCompilationUnit2(libBSource, libBSource), isNotNull, reason: "libB resolved 1");
+    expect(!_hasAnalysisErrorWithErrorSeverity(_context.getErrors(htmlSource)), isTrue, reason: "htmlSource doesn't have errors");
     // remove libB.dart content and analyze
     _context.setContents(libBSource, null);
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertNotNullMsg(
-        "htmlUnit resolved 1",
-        _context.getResolvedHtmlUnit(htmlSource));
+    expect(_context.getResolvedHtmlUnit(htmlSource), isNotNull, reason: "htmlUnit resolved 1");
     AnalysisErrorInfo errors = _context.getErrors(htmlSource);
-    JUnitTestCase.assertTrueMsg(
-        "htmlSource has an error",
-        _hasAnalysisErrorWithErrorSeverity(errors));
+    expect(_hasAnalysisErrorWithErrorSeverity(errors), isTrue, reason: "htmlSource has an error");
   }
 
   void fail_recordLibraryElements() {
-    JUnitTestCase.fail("Implement this");
+    fail("Implement this");
   }
 
   @override
@@ -223,10 +212,9 @@ class AnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_applyChanges_add() {
-    JUnitTestCase.assertTrue(_context.sourcesNeedingProcessing.isEmpty);
+    expect(_context.sourcesNeedingProcessing.isEmpty, isTrue);
     Source source = _addSource("/test.dart", "main() {}");
-    JUnitTestCase.assertTrue(
-        _context.sourcesNeedingProcessing.contains(source));
+    expect(_context.sourcesNeedingProcessing.contains(source), isTrue);
   }
 
   void test_applyChanges_change_flush_element() {
@@ -237,13 +225,13 @@ class AnalysisContextImplTest extends EngineTestCase {
         r'''
 library lib;
 int a = 0;''');
-    JUnitTestCase.assertNotNull(_context.computeLibraryElement(librarySource));
+    expect(_context.computeLibraryElement(librarySource), isNotNull);
     _context.setContents(
         librarySource,
         r'''
 library lib;
 int aa = 0;''');
-    JUnitTestCase.assertNull(_context.getLibraryElement(librarySource));
+    expect(_context.getLibraryElement(librarySource), isNull);
   }
 
   void test_applyChanges_change_multiple() {
@@ -284,14 +272,12 @@ int b = aa;''');
         partUnit.declarations[0] as TopLevelVariableDeclaration;
     Element useElement =
         (use.variables.variables[0].initializer as SimpleIdentifier).staticElement;
-    JUnitTestCase.assertSame(
-        declarationElement,
-        (useElement as PropertyAccessorElement).variable);
+    expect((useElement as PropertyAccessorElement).variable, same(declarationElement));
   }
 
   void test_applyChanges_empty() {
     _context.applyChanges(new ChangeSet());
-    JUnitTestCase.assertNull(_context.performAnalysisTask().changeNotices);
+    expect(_context.performAnalysisTask().changeNotices, isNull);
   }
 
   void test_applyChanges_overriddenSource() {
@@ -329,7 +315,7 @@ import 'libB.dart';''');
     _removeSource(libB);
     List<Source> sources = _context.sourcesNeedingProcessing;
     EngineTestCase.assertSizeOfList(1, sources);
-    JUnitTestCase.assertSame(libA, sources[0]);
+    expect(sources[0], same(libA));
     libAElement = _context.computeLibraryElement(libA);
     importedLibraries = libAElement.importedLibraries;
     EngineTestCase.assertLength(1, importedLibraries);
@@ -355,7 +341,7 @@ import 'libB.dart';''');
     _context.applyChanges(changeSet);
     List<Source> sources = _context.sourcesNeedingProcessing;
     EngineTestCase.assertSizeOfList(1, sources);
-    JUnitTestCase.assertSame(libA, sources[0]);
+    expect(sources[0], same(libA));
   }
 
   void test_computeDocumentationComment_block() {
@@ -367,12 +353,10 @@ import 'libB.dart';''');
 $comment
 class A {}""");
     LibraryElement libraryElement = _context.computeLibraryElement(source);
-    JUnitTestCase.assertNotNull(libraryElement);
+    expect(libraryElement, isNotNull);
     ClassElement classElement = libraryElement.definingCompilationUnit.types[0];
-    JUnitTestCase.assertNotNull(libraryElement);
-    JUnitTestCase.assertEquals(
-        comment,
-        _context.computeDocumentationComment(classElement));
+    expect(libraryElement, isNotNull);
+    expect(_context.computeDocumentationComment(classElement), comment);
   }
 
   void test_computeDocumentationComment_none() {
@@ -381,15 +365,14 @@ class A {}""");
     Source source =
         _addSource("/test.dart", "class A {}");
     LibraryElement libraryElement = _context.computeLibraryElement(source);
-    JUnitTestCase.assertNotNull(libraryElement);
+    expect(libraryElement, isNotNull);
     ClassElement classElement = libraryElement.definingCompilationUnit.types[0];
-    JUnitTestCase.assertNotNull(libraryElement);
-    JUnitTestCase.assertNull(
-        _context.computeDocumentationComment(classElement));
+    expect(libraryElement, isNotNull);
+    expect(_context.computeDocumentationComment(classElement), isNull);
   }
 
   void test_computeDocumentationComment_null() {
-    JUnitTestCase.assertNull(_context.computeDocumentationComment(null));
+    expect(_context.computeDocumentationComment(null), isNull);
   }
 
   void test_computeDocumentationComment_singleLine_multiple_EOL_n() {
@@ -398,11 +381,11 @@ class A {}""");
     String comment = "/// line 1\n/// line 2\n/// line 3\n";
     Source source = _addSource("/test.dart", "${comment}class A {}");
     LibraryElement libraryElement = _context.computeLibraryElement(source);
-    JUnitTestCase.assertNotNull(libraryElement);
+    expect(libraryElement, isNotNull);
     ClassElement classElement = libraryElement.definingCompilationUnit.types[0];
-    JUnitTestCase.assertNotNull(libraryElement);
+    expect(libraryElement, isNotNull);
     String actual = _context.computeDocumentationComment(classElement);
-    JUnitTestCase.assertEquals("/// line 1\n/// line 2\n/// line 3", actual);
+    expect(actual, "/// line 1\n/// line 2\n/// line 3");
   }
 
   void test_computeDocumentationComment_singleLine_multiple_EOL_rn() {
@@ -411,11 +394,11 @@ class A {}""");
     String comment = "/// line 1\r\n/// line 2\r\n/// line 3\r\n";
     Source source = _addSource("/test.dart", "${comment}class A {}");
     LibraryElement libraryElement = _context.computeLibraryElement(source);
-    JUnitTestCase.assertNotNull(libraryElement);
+    expect(libraryElement, isNotNull);
     ClassElement classElement = libraryElement.definingCompilationUnit.types[0];
-    JUnitTestCase.assertNotNull(libraryElement);
+    expect(libraryElement, isNotNull);
     String actual = _context.computeDocumentationComment(classElement);
-    JUnitTestCase.assertEquals("/// line 1\n/// line 2\n/// line 3", actual);
+    expect(actual, "/// line 1\n/// line 2\n/// line 3");
   }
 
   void test_computeErrors_dart_none() {
@@ -430,15 +413,15 @@ class A {}""");
     Source partSource = _addSource("/part.dart", "part of 'lib';");
     _context.parseCompilationUnit(librarySource);
     List<AnalysisError> errors = _context.computeErrors(partSource);
-    JUnitTestCase.assertNotNull(errors);
-    JUnitTestCase.assertTrue(errors.length > 0);
+    expect(errors, isNotNull);
+    expect(errors.length > 0, isTrue);
   }
 
   void test_computeErrors_dart_some() {
     Source source = _addSource("/lib.dart", "library 'lib';");
     List<AnalysisError> errors = _context.computeErrors(source);
-    JUnitTestCase.assertNotNull(errors);
-    JUnitTestCase.assertTrue(errors.length > 0);
+    expect(errors, isNotNull);
+    expect(errors.length > 0, isTrue);
   }
 
   void test_computeErrors_html_none() {
@@ -463,14 +446,14 @@ class A {}""");
 
   void test_computeHtmlElement_nonHtml() {
     Source source = _addSource("/test.dart", "library test;");
-    JUnitTestCase.assertNull(_context.computeHtmlElement(source));
+    expect(_context.computeHtmlElement(source), isNull);
   }
 
   void test_computeHtmlElement_valid() {
     Source source = _addSource("/test.html", "<html></html>");
     HtmlElement element = _context.computeHtmlElement(source);
-    JUnitTestCase.assertNotNull(element);
-    JUnitTestCase.assertSame(element, _context.computeHtmlElement(source));
+    expect(element, isNotNull);
+    expect(_context.computeHtmlElement(source), same(element));
   }
 
   void test_computeImportedLibraries_none() {
@@ -489,26 +472,22 @@ class A {}""");
 
   void test_computeKindOf_html() {
     Source source = _addSource("/test.html", "");
-    JUnitTestCase.assertSame(SourceKind.HTML, _context.computeKindOf(source));
+    expect(_context.computeKindOf(source), same(SourceKind.HTML));
   }
 
   void test_computeKindOf_library() {
     Source source = _addSource("/test.dart", "library lib;");
-    JUnitTestCase.assertSame(
-        SourceKind.LIBRARY,
-        _context.computeKindOf(source));
+    expect(_context.computeKindOf(source), same(SourceKind.LIBRARY));
   }
 
   void test_computeKindOf_libraryAndPart() {
     Source source = _addSource("/test.dart", "library lib; part of lib;");
-    JUnitTestCase.assertSame(
-        SourceKind.LIBRARY,
-        _context.computeKindOf(source));
+    expect(_context.computeKindOf(source), same(SourceKind.LIBRARY));
   }
 
   void test_computeKindOf_part() {
     Source source = _addSource("/test.dart", "part of lib;");
-    JUnitTestCase.assertSame(SourceKind.PART, _context.computeKindOf(source));
+    expect(_context.computeKindOf(source), same(SourceKind.PART));
   }
 
   void test_computeLibraryElement() {
@@ -516,7 +495,7 @@ class A {}""");
     _sourceFactory = _context.sourceFactory;
     Source source = _addSource("/test.dart", "library lib;");
     LibraryElement element = _context.computeLibraryElement(source);
-    JUnitTestCase.assertNotNull(element);
+    expect(element, isNotNull);
   }
 
   void test_computeLineInfo_dart() {
@@ -527,7 +506,7 @@ library lib;
 
 main() {}''');
     LineInfo info = _context.computeLineInfo(source);
-    JUnitTestCase.assertNotNull(info);
+    expect(info, isNotNull);
   }
 
   void test_computeLineInfo_html() {
@@ -540,14 +519,14 @@ main() {}''');
   </body>
 </html>''');
     LineInfo info = _context.computeLineInfo(source);
-    JUnitTestCase.assertNotNull(info);
+    expect(info, isNotNull);
   }
 
   void test_computeResolvableCompilationUnit_dart_exception() {
     TestSource source = _addSourceWithException("/test.dart");
     try {
       _context.computeResolvableCompilationUnit(source);
-      JUnitTestCase.fail("Expected AnalysisException");
+      fail("Expected AnalysisException");
     } on AnalysisException catch (exception) {
       // Expected
     }
@@ -557,7 +536,7 @@ main() {}''');
     Source source = _addSource("/lib.html", "<html></html>");
     try {
       _context.computeResolvableCompilationUnit(source);
-      JUnitTestCase.fail("Expected AnalysisException");
+      fail("Expected AnalysisException");
     } on AnalysisException catch (exception) {
       // Expected
     }
@@ -566,49 +545,48 @@ main() {}''');
   void test_computeResolvableCompilationUnit_valid() {
     Source source = _addSource("/lib.dart", "library lib;");
     CompilationUnit parsedUnit = _context.parseCompilationUnit(source);
-    JUnitTestCase.assertNotNull(parsedUnit);
+    expect(parsedUnit, isNotNull);
     CompilationUnit resolvedUnit =
         _context.computeResolvableCompilationUnit(source);
-    JUnitTestCase.assertNotNull(resolvedUnit);
-    JUnitTestCase.assertSame(parsedUnit, resolvedUnit);
+    expect(resolvedUnit, isNotNull);
+    expect(resolvedUnit, same(parsedUnit));
   }
 
   void test_dispose() {
-    JUnitTestCase.assertFalse(_context.isDisposed);
+    expect(_context.isDisposed, isFalse);
     _context.dispose();
-    JUnitTestCase.assertTrue(_context.isDisposed);
+    expect(_context.isDisposed, isTrue);
   }
 
   void test_exists_false() {
     TestSource source = new TestSource();
     source.exists2 = false;
-    JUnitTestCase.assertFalse(_context.exists(source));
+    expect(_context.exists(source), isFalse);
   }
 
   void test_exists_null() {
-    JUnitTestCase.assertFalse(_context.exists(null));
+    expect(_context.exists(null), isFalse);
   }
 
   void test_exists_overridden() {
     Source source = new TestSource();
     _context.setContents(source, "");
-    JUnitTestCase.assertTrue(_context.exists(source));
+    expect(_context.exists(source), isTrue);
   }
 
   void test_exists_true() {
-    JUnitTestCase.assertTrue(
-        _context.exists(new AnalysisContextImplTest_Source_exists_true()));
+    expect(_context.exists(new AnalysisContextImplTest_Source_exists_true()), isTrue);
   }
 
   void test_getAnalysisOptions() {
-    JUnitTestCase.assertNotNull(_context.analysisOptions);
+    expect(_context.analysisOptions, isNotNull);
   }
 
   void test_getContents_fromSource() {
     String content = "library lib;";
     TimestampedData<String> contents =
         _context.getContents(new TestSource('/test.dart', content));
-    JUnitTestCase.assertEquals(content, contents.data.toString());
+    expect(contents.data.toString(), content);
   }
 
   void test_getContents_overridden() {
@@ -616,7 +594,7 @@ main() {}''');
     Source source = new TestSource();
     _context.setContents(source, content);
     TimestampedData<String> contents = _context.getContents(source);
-    JUnitTestCase.assertEquals(content, contents.data.toString());
+    expect(contents.data.toString(), content);
   }
 
   void test_getContents_unoverridden() {
@@ -625,12 +603,12 @@ main() {}''');
     _context.setContents(source, "part of lib;");
     _context.setContents(source, null);
     TimestampedData<String> contents = _context.getContents(source);
-    JUnitTestCase.assertEquals(content, contents.data.toString());
+    expect(contents.data.toString(), content);
   }
 
   void test_getDeclaredVariables() {
     _context = AnalysisContextFactory.contextWithCore();
-    JUnitTestCase.assertNotNull(_context.declaredVariables);
+    expect(_context.declaredVariables, isNotNull);
   }
 
   void test_getElement() {
@@ -638,13 +616,13 @@ main() {}''');
     _sourceFactory = _context.sourceFactory;
     LibraryElement core =
         _context.computeLibraryElement(_sourceFactory.forUri("dart:core"));
-    JUnitTestCase.assertNotNull(core);
+    expect(core, isNotNull);
     ClassElement classObject =
         _findClass(core.definingCompilationUnit, "Object");
-    JUnitTestCase.assertNotNull(classObject);
+    expect(classObject, isNotNull);
     ElementLocation location = classObject.location;
     Element element = _context.getElement(location);
-    JUnitTestCase.assertSame(classObject, element);
+    expect(element, same(classObject));
   }
 
   void test_getElement_constructor_named() {
@@ -660,7 +638,7 @@ class A {
     ConstructorElement constructor = classA.constructors[0];
     ElementLocation location = constructor.location;
     Element element = _context.getElement(location);
-    JUnitTestCase.assertSame(constructor, element);
+    expect(element, same(constructor));
   }
 
   void test_getElement_constructor_unnamed() {
@@ -676,7 +654,7 @@ class A {
     ConstructorElement constructor = classA.constructors[0];
     ElementLocation location = constructor.location;
     Element element = _context.getElement(location);
-    JUnitTestCase.assertSame(constructor, element);
+    expect(element, same(constructor));
   }
 
   void test_getElement_enum() {
@@ -686,7 +664,7 @@ class A {
     ClassElement myEnum = library.definingCompilationUnit.getEnum('MyEnum');
     ElementLocation location = myEnum.location;
     Element element = _context.getElement(location);
-    JUnitTestCase.assertSame(myEnum, element);
+    expect(element, same(myEnum));
   }
 
   void test_getErrors_dart_none() {
@@ -732,18 +710,18 @@ class A {
 
   void test_getHtmlElement_dart() {
     Source source = _addSource("/test.dart", "");
-    JUnitTestCase.assertNull(_context.getHtmlElement(source));
-    JUnitTestCase.assertNull(_context.computeHtmlElement(source));
-    JUnitTestCase.assertNull(_context.getHtmlElement(source));
+    expect(_context.getHtmlElement(source), isNull);
+    expect(_context.computeHtmlElement(source), isNull);
+    expect(_context.getHtmlElement(source), isNull);
   }
 
   void test_getHtmlElement_html() {
     Source source = _addSource("/test.html", "<html></html>");
     HtmlElement element = _context.getHtmlElement(source);
-    JUnitTestCase.assertNull(element);
+    expect(element, isNull);
     _context.computeHtmlElement(source);
     element = _context.getHtmlElement(source);
-    JUnitTestCase.assertNotNull(element);
+    expect(element, isNotNull);
   }
 
   void test_getHtmlFilesReferencing_html() {
@@ -780,7 +758,7 @@ class A {
     _context.parseHtmlUnit(htmlSource);
     result = _context.getHtmlFilesReferencing(librarySource);
     EngineTestCase.assertLength(1, result);
-    JUnitTestCase.assertEquals(htmlSource, result[0]);
+    expect(result[0], htmlSource);
   }
 
   void test_getHtmlFilesReferencing_part() {
@@ -802,7 +780,7 @@ class A {
     _context.parseHtmlUnit(htmlSource);
     result = _context.getHtmlFilesReferencing(partSource);
     EngineTestCase.assertLength(1, result);
-    JUnitTestCase.assertEquals(htmlSource, result[0]);
+    expect(result[0], htmlSource);
   }
 
   void test_getHtmlSources() {
@@ -812,31 +790,31 @@ class A {
     _context.computeKindOf(source);
     sources = _context.htmlSources;
     EngineTestCase.assertLength(1, sources);
-    JUnitTestCase.assertEquals(source, sources[0]);
+    expect(sources[0], source);
   }
 
   void test_getKindOf_html() {
     Source source = _addSource("/test.html", "");
-    JUnitTestCase.assertSame(SourceKind.HTML, _context.getKindOf(source));
+    expect(_context.getKindOf(source), same(SourceKind.HTML));
   }
 
   void test_getKindOf_library() {
     Source source = _addSource("/test.dart", "library lib;");
-    JUnitTestCase.assertSame(SourceKind.UNKNOWN, _context.getKindOf(source));
+    expect(_context.getKindOf(source), same(SourceKind.UNKNOWN));
     _context.computeKindOf(source);
-    JUnitTestCase.assertSame(SourceKind.LIBRARY, _context.getKindOf(source));
+    expect(_context.getKindOf(source), same(SourceKind.LIBRARY));
   }
 
   void test_getKindOf_part() {
     Source source = _addSource("/test.dart", "part of lib;");
-    JUnitTestCase.assertSame(SourceKind.UNKNOWN, _context.getKindOf(source));
+    expect(_context.getKindOf(source), same(SourceKind.UNKNOWN));
     _context.computeKindOf(source);
-    JUnitTestCase.assertSame(SourceKind.PART, _context.getKindOf(source));
+    expect(_context.getKindOf(source), same(SourceKind.PART));
   }
 
   void test_getKindOf_unknown() {
     Source source = _addSource("/test.css", "");
-    JUnitTestCase.assertSame(SourceKind.UNKNOWN, _context.getKindOf(source));
+    expect(_context.getKindOf(source), same(SourceKind.UNKNOWN));
   }
 
   void test_getLaunchableClientLibrarySources() {
@@ -877,10 +855,10 @@ part 'part.dart';''');
     _context.computeLibraryElement(librarySource);
     List<Source> result = _context.getLibrariesContaining(librarySource);
     EngineTestCase.assertLength(1, result);
-    JUnitTestCase.assertEquals(librarySource, result[0]);
+    expect(result[0], librarySource);
     result = _context.getLibrariesContaining(partSource);
     EngineTestCase.assertLength(1, result);
-    JUnitTestCase.assertEquals(librarySource, result[0]);
+    expect(result[0], librarySource);
   }
 
   void test_getLibrariesDependingOn() {
@@ -921,7 +899,7 @@ export 'libA.dart';''');
     _context.parseHtmlUnit(htmlSource);
     List<Source> result = _context.getLibrariesReferencedFromHtml(htmlSource);
     EngineTestCase.assertLength(1, result);
-    JUnitTestCase.assertEquals(librarySource, result[0]);
+    expect(result[0], librarySource);
   }
 
   void test_getLibrariesReferencedFromHtml_no() {
@@ -944,10 +922,10 @@ export 'libA.dart';''');
     _sourceFactory = _context.sourceFactory;
     Source source = _addSource("/test.dart", "library lib;");
     LibraryElement element = _context.getLibraryElement(source);
-    JUnitTestCase.assertNull(element);
+    expect(element, isNull);
     _context.computeLibraryElement(source);
     element = _context.getLibraryElement(source);
-    JUnitTestCase.assertNotNull(element);
+    expect(element, isNotNull);
   }
 
   void test_getLibrarySources() {
@@ -962,8 +940,7 @@ export 'libA.dart';''');
         return;
       }
     }
-    JUnitTestCase.fail(
-        "The added source was not in the list of library sources");
+    fail("The added source was not in the list of library sources");
   }
 
   void test_getLineInfo() {
@@ -974,18 +951,16 @@ library lib;
 
 main() {}''');
     LineInfo info = _context.getLineInfo(source);
-    JUnitTestCase.assertNull(info);
+    expect(info, isNull);
     _context.parseCompilationUnit(source);
     info = _context.getLineInfo(source);
-    JUnitTestCase.assertNotNull(info);
+    expect(info, isNotNull);
   }
 
   void test_getModificationStamp_fromSource() {
     int stamp = 42;
-    JUnitTestCase.assertEquals(
-        stamp,
-        _context.getModificationStamp(
-            new AnalysisContextImplTest_Source_getModificationStamp_fromSource(stamp)));
+    expect(_context.getModificationStamp(
+            new AnalysisContextImplTest_Source_getModificationStamp_fromSource(stamp)), stamp);
   }
 
   void test_getModificationStamp_overridden() {
@@ -993,7 +968,7 @@ main() {}''');
     Source source =
         new AnalysisContextImplTest_Source_getModificationStamp_overridden(stamp);
     _context.setContents(source, "");
-    JUnitTestCase.assertTrue(stamp != _context.getModificationStamp(source));
+    expect(stamp != _context.getModificationStamp(source), isTrue);
   }
 
   void test_getPublicNamespace_element() {
@@ -1002,7 +977,7 @@ main() {}''');
     Source source = _addSource("/test.dart", "class A {}");
     LibraryElement library = _context.computeLibraryElement(source);
     Namespace namespace = _context.getPublicNamespace(library);
-    JUnitTestCase.assertNotNull(namespace);
+    expect(namespace, isNotNull);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ClassElement,
         ClassElement,
@@ -1017,7 +992,7 @@ main() {}''');
     Source source = _addSource("/test.dart", "library lib;");
     sources = _context.refactoringUnsafeSources;
     EngineTestCase.assertLength(1, sources);
-    JUnitTestCase.assertEquals(source, sources[0]);
+    expect(sources[0], source);
     // resolve source
     _context.computeLibraryElement(source);
     sources = _context.refactoringUnsafeSources;
@@ -1029,58 +1004,52 @@ main() {}''');
     _sourceFactory = _context.sourceFactory;
     Source source = _addSource("/lib.dart", "library libb;");
     LibraryElement library = _context.computeLibraryElement(source);
-    JUnitTestCase.assertNotNull(
-        _context.getResolvedCompilationUnit(source, library));
+    expect(_context.getResolvedCompilationUnit(source, library), isNotNull);
     _context.setContents(source, "library lib;");
-    JUnitTestCase.assertNull(
-        _context.getResolvedCompilationUnit(source, library));
+    expect(_context.getResolvedCompilationUnit(source, library), isNull);
   }
 
   void test_getResolvedCompilationUnit_library_null() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
     Source source = _addSource("/lib.dart", "library lib;");
-    JUnitTestCase.assertNull(_context.getResolvedCompilationUnit(source, null));
+    expect(_context.getResolvedCompilationUnit(source, null), isNull);
   }
 
   void test_getResolvedCompilationUnit_source_dart() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
     Source source = _addSource("/lib.dart", "library lib;");
-    JUnitTestCase.assertNull(
-        _context.getResolvedCompilationUnit2(source, source));
+    expect(_context.getResolvedCompilationUnit2(source, source), isNull);
     _context.resolveCompilationUnit2(source, source);
-    JUnitTestCase.assertNotNull(
-        _context.getResolvedCompilationUnit2(source, source));
+    expect(_context.getResolvedCompilationUnit2(source, source), isNotNull);
   }
 
   void test_getResolvedCompilationUnit_source_html() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
     Source source = _addSource("/test.html", "<html></html>");
-    JUnitTestCase.assertNull(
-        _context.getResolvedCompilationUnit2(source, source));
-    JUnitTestCase.assertNull(_context.resolveCompilationUnit2(source, source));
-    JUnitTestCase.assertNull(
-        _context.getResolvedCompilationUnit2(source, source));
+    expect(_context.getResolvedCompilationUnit2(source, source), isNull);
+    expect(_context.resolveCompilationUnit2(source, source), isNull);
+    expect(_context.getResolvedCompilationUnit2(source, source), isNull);
   }
 
   void test_getResolvedHtmlUnit() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
     Source source = _addSource("/test.html", "<html></html>");
-    JUnitTestCase.assertNull(_context.getResolvedHtmlUnit(source));
+    expect(_context.getResolvedHtmlUnit(source), isNull);
     _context.resolveHtmlUnit(source);
-    JUnitTestCase.assertNotNull(_context.getResolvedHtmlUnit(source));
+    expect(_context.getResolvedHtmlUnit(source), isNotNull);
   }
 
   void test_getSourceFactory() {
-    JUnitTestCase.assertSame(_sourceFactory, _context.sourceFactory);
+    expect(_context.sourceFactory, same(_sourceFactory));
   }
 
   void test_getStatistics() {
     AnalysisContextStatistics statistics = _context.statistics;
-    JUnitTestCase.assertNotNull(statistics);
+    expect(statistics, isNotNull);
     // The following lines are fragile.
     // The values depend on the number of libraries in the SDK.
 //    assertLength(0, statistics.getCacheRows());
@@ -1097,16 +1066,16 @@ main() {}''');
 import 'dart:html';
 
 main() {}''');
-    JUnitTestCase.assertFalse(_context.isClientLibrary(source));
-    JUnitTestCase.assertFalse(_context.isServerLibrary(source));
+    expect(_context.isClientLibrary(source), isFalse);
+    expect(_context.isServerLibrary(source), isFalse);
     _context.computeLibraryElement(source);
-    JUnitTestCase.assertTrue(_context.isClientLibrary(source));
-    JUnitTestCase.assertFalse(_context.isServerLibrary(source));
+    expect(_context.isClientLibrary(source), isTrue);
+    expect(_context.isServerLibrary(source), isFalse);
   }
 
   void test_isClientLibrary_html() {
     Source source = _addSource("/test.html", "<html></html>");
-    JUnitTestCase.assertFalse(_context.isClientLibrary(source));
+    expect(_context.isClientLibrary(source), isFalse);
   }
 
   void test_isServerLibrary_dart() {
@@ -1118,32 +1087,32 @@ main() {}''');
 library lib;
 
 main() {}''');
-    JUnitTestCase.assertFalse(_context.isClientLibrary(source));
-    JUnitTestCase.assertFalse(_context.isServerLibrary(source));
+    expect(_context.isClientLibrary(source), isFalse);
+    expect(_context.isServerLibrary(source), isFalse);
     _context.computeLibraryElement(source);
-    JUnitTestCase.assertFalse(_context.isClientLibrary(source));
-    JUnitTestCase.assertTrue(_context.isServerLibrary(source));
+    expect(_context.isClientLibrary(source), isFalse);
+    expect(_context.isServerLibrary(source), isTrue);
   }
 
   void test_isServerLibrary_html() {
     Source source = _addSource("/test.html", "<html></html>");
-    JUnitTestCase.assertFalse(_context.isServerLibrary(source));
+    expect(_context.isServerLibrary(source), isFalse);
   }
 
   void test_parseCompilationUnit_errors() {
     Source source = _addSource("/lib.dart", "library {");
     CompilationUnit compilationUnit = _context.parseCompilationUnit(source);
-    JUnitTestCase.assertNotNull(compilationUnit);
+    expect(compilationUnit, isNotNull);
     List<AnalysisError> errors = _context.getErrors(source).errors;
-    JUnitTestCase.assertNotNull(errors);
-    JUnitTestCase.assertTrue(errors.length > 0);
+    expect(errors, isNotNull);
+    expect(errors.length > 0, isTrue);
   }
 
   void test_parseCompilationUnit_exception() {
     Source source = _addSourceWithException("/test.dart");
     try {
       _context.parseCompilationUnit(source);
-      JUnitTestCase.fail("Expected AnalysisException");
+      fail("Expected AnalysisException");
     } on AnalysisException catch (exception) {
       // Expected
     }
@@ -1151,13 +1120,13 @@ main() {}''');
 
   void test_parseCompilationUnit_html() {
     Source source = _addSource("/test.html", "<html></html>");
-    JUnitTestCase.assertNull(_context.parseCompilationUnit(source));
+    expect(_context.parseCompilationUnit(source), isNull);
   }
 
   void test_parseCompilationUnit_noErrors() {
     Source source = _addSource("/lib.dart", "library lib;");
     CompilationUnit compilationUnit = _context.parseCompilationUnit(source);
-    JUnitTestCase.assertNotNull(compilationUnit);
+    expect(compilationUnit, isNotNull);
     EngineTestCase.assertLength(0, _context.getErrors(source).errors);
   }
 
@@ -1166,8 +1135,7 @@ main() {}''');
         new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
     try {
       _context.parseCompilationUnit(source);
-      JUnitTestCase.fail(
-          "Expected AnalysisException because file does not exist");
+      fail("Expected AnalysisException because file does not exist");
     } on AnalysisException catch (exception) {
       // Expected result
     }
@@ -1176,7 +1144,7 @@ main() {}''');
   void test_parseHtmlUnit_noErrors() {
     Source source = _addSource("/lib.html", "<html></html>");
     ht.HtmlUnit unit = _context.parseHtmlUnit(source);
-    JUnitTestCase.assertNotNull(unit);
+    expect(unit, isNotNull);
   }
 
   void test_parseHtmlUnit_resolveDirectives() {
@@ -1205,8 +1173,8 @@ class ClassA {}''');
     ht.HtmlScriptTagNode scriptNode = headNode.tagNodes[0];
     CompilationUnit script = scriptNode.script;
     ImportDirective importNode = script.directives[0] as ImportDirective;
-    JUnitTestCase.assertNotNull(importNode.uriContent);
-    JUnitTestCase.assertEquals(libSource, importNode.source);
+    expect(importNode.uriContent, isNotNull);
+    expect(importNode.source, libSource);
   }
 
   void test_performAnalysisTask_IOException() {
@@ -1214,7 +1182,7 @@ class ClassA {}''');
     int oldTimestamp = _context.getModificationStamp(source);
     source.generateExceptionOnRead = false;
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertEquals(1, source.readCount);
+    expect(source.readCount, 1);
     source.generateExceptionOnRead = true;
     do {
       _changeSource(source, "");
@@ -1222,7 +1190,7 @@ class ClassA {}''');
       // so that analysis engine notices the change
     } while (oldTimestamp == _context.getModificationStamp(source));
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertEquals(2, source.readCount);
+    expect(source.readCount, 2);
   }
 
   void test_performAnalysisTask_addPart() {
@@ -1250,42 +1218,22 @@ part of lib;
         _addSource("/test.dart", "library lib; part 'test-part.dart';");
     Source partSource = _addSource("/test-part.dart", "part of lib;");
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertNotNullMsg(
-        "library resolved 1",
-        _context.getResolvedCompilationUnit2(libSource, libSource));
-    JUnitTestCase.assertNotNullMsg(
-        "part resolved 1",
-        _context.getResolvedCompilationUnit2(partSource, libSource));
+    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 1");
+    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNotNull, reason: "part resolved 1");
     // update and analyze #1
     _context.setContents(libSource, "library lib;");
-    JUnitTestCase.assertNullMsg(
-        "library changed 2",
-        _context.getResolvedCompilationUnit2(libSource, libSource));
-    JUnitTestCase.assertNullMsg(
-        "part changed 2",
-        _context.getResolvedCompilationUnit2(partSource, libSource));
+    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNull, reason: "library changed 2");
+    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNull, reason: "part changed 2");
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertNotNullMsg(
-        "library resolved 2",
-        _context.getResolvedCompilationUnit2(libSource, libSource));
-    JUnitTestCase.assertNullMsg(
-        "part resolved 2",
-        _context.getResolvedCompilationUnit2(partSource, libSource));
+    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 2");
+    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNull, reason: "part resolved 2");
     // update and analyze #2
     _context.setContents(libSource, "library lib; part 'test-part.dart';");
-    JUnitTestCase.assertNullMsg(
-        "library changed 3",
-        _context.getResolvedCompilationUnit2(libSource, libSource));
-    JUnitTestCase.assertNullMsg(
-        "part changed 3",
-        _context.getResolvedCompilationUnit2(partSource, libSource));
+    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNull, reason: "library changed 3");
+    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNull, reason: "part changed 3");
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertNotNullMsg(
-        "library resolved 2",
-        _context.getResolvedCompilationUnit2(libSource, libSource));
-    JUnitTestCase.assertNotNullMsg(
-        "part resolved 3",
-        _context.getResolvedCompilationUnit2(partSource, libSource));
+    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 2");
+    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNotNull, reason: "part resolved 3");
   }
 
   void test_performAnalysisTask_changeLibraryThenPartContents() {
@@ -1293,44 +1241,24 @@ part of lib;
         _addSource("/test.dart", "library lib; part 'test-part.dart';");
     Source partSource = _addSource("/test-part.dart", "part of lib;");
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertNotNullMsg(
-        "library resolved 1",
-        _context.getResolvedCompilationUnit2(libSource, libSource));
-    JUnitTestCase.assertNotNullMsg(
-        "part resolved 1",
-        _context.getResolvedCompilationUnit2(partSource, libSource));
+    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 1");
+    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNotNull, reason: "part resolved 1");
     // update and analyze #1
     _context.setContents(libSource, "library lib;");
-    JUnitTestCase.assertNullMsg(
-        "library changed 2",
-        _context.getResolvedCompilationUnit2(libSource, libSource));
-    JUnitTestCase.assertNullMsg(
-        "part changed 2",
-        _context.getResolvedCompilationUnit2(partSource, libSource));
+    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNull, reason: "library changed 2");
+    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNull, reason: "part changed 2");
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertNotNullMsg(
-        "library resolved 2",
-        _context.getResolvedCompilationUnit2(libSource, libSource));
-    JUnitTestCase.assertNullMsg(
-        "part resolved 2",
-        _context.getResolvedCompilationUnit2(partSource, libSource));
+    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 2");
+    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNull, reason: "part resolved 2");
     // update and analyze #2
     _context.setContents(partSource, "part of lib; // 1");
     // Assert that changing the part's content does not effect the library
     // now that it is no longer part of that library
-    JUnitTestCase.assertNotNullMsg(
-        "library changed 3",
-        _context.getResolvedCompilationUnit2(libSource, libSource));
-    JUnitTestCase.assertNullMsg(
-        "part changed 3",
-        _context.getResolvedCompilationUnit2(partSource, libSource));
+    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library changed 3");
+    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNull, reason: "part changed 3");
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertNotNullMsg(
-        "library resolved 3",
-        _context.getResolvedCompilationUnit2(libSource, libSource));
-    JUnitTestCase.assertNullMsg(
-        "part resolved 3",
-        _context.getResolvedCompilationUnit2(partSource, libSource));
+    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 3");
+    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNull, reason: "part resolved 3");
   }
 
   void test_performAnalysisTask_changePartContents_makeItAPart() {
@@ -1344,31 +1272,19 @@ void f(x) {}''');
         "/part.dart",
         "void g() { f(null); }");
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertNotNullMsg(
-        "library resolved 1",
-        _context.getResolvedCompilationUnit2(libSource, libSource));
-    JUnitTestCase.assertNotNullMsg(
-        "part resolved 1",
-        _context.getResolvedCompilationUnit2(partSource, libSource));
+    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 1");
+    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNotNull, reason: "part resolved 1");
     // update and analyze
     _context.setContents(
         partSource,
         r'''
 part of lib;
 void g() { f(null); }''');
-    JUnitTestCase.assertNullMsg(
-        "library changed 2",
-        _context.getResolvedCompilationUnit2(libSource, libSource));
-    JUnitTestCase.assertNullMsg(
-        "part changed 2",
-        _context.getResolvedCompilationUnit2(partSource, libSource));
+    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNull, reason: "library changed 2");
+    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNull, reason: "part changed 2");
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertNotNullMsg(
-        "library resolved 2",
-        _context.getResolvedCompilationUnit2(libSource, libSource));
-    JUnitTestCase.assertNotNullMsg(
-        "part resolved 2",
-        _context.getResolvedCompilationUnit2(partSource, libSource));
+    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 2");
+    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNotNull, reason: "part resolved 2");
     EngineTestCase.assertLength(0, _context.getErrors(libSource).errors);
     EngineTestCase.assertLength(0, _context.getErrors(partSource).errors);
   }
@@ -1398,7 +1314,7 @@ void g() { f(null); }''');
 //part of lib;
 void g() { f(null); }''');
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertTrue(_context.getErrors(libSource).errors.length != 0);
+    expect(_context.getErrors(libSource).errors.length != 0, isTrue);
   }
 
   void test_performAnalysisTask_changePartContents_noSemanticChanges() {
@@ -1406,66 +1322,36 @@ void g() { f(null); }''');
         _addSource("/test.dart", "library lib; part 'test-part.dart';");
     Source partSource = _addSource("/test-part.dart", "part of lib;");
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertNotNullMsg(
-        "library resolved 1",
-        _context.getResolvedCompilationUnit2(libSource, libSource));
-    JUnitTestCase.assertNotNullMsg(
-        "part resolved 1",
-        _context.getResolvedCompilationUnit2(partSource, libSource));
+    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 1");
+    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNotNull, reason: "part resolved 1");
     // update and analyze #1
     _context.setContents(partSource, "part of lib; // 1");
-    JUnitTestCase.assertNullMsg(
-        "library changed 2",
-        _context.getResolvedCompilationUnit2(libSource, libSource));
-    JUnitTestCase.assertNullMsg(
-        "part changed 2",
-        _context.getResolvedCompilationUnit2(partSource, libSource));
+    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNull, reason: "library changed 2");
+    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNull, reason: "part changed 2");
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertNotNullMsg(
-        "library resolved 2",
-        _context.getResolvedCompilationUnit2(libSource, libSource));
-    JUnitTestCase.assertNotNullMsg(
-        "part resolved 2",
-        _context.getResolvedCompilationUnit2(partSource, libSource));
+    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 2");
+    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNotNull, reason: "part resolved 2");
     // update and analyze #2
     _context.setContents(partSource, "part of lib; // 12");
-    JUnitTestCase.assertNullMsg(
-        "library changed 3",
-        _context.getResolvedCompilationUnit2(libSource, libSource));
-    JUnitTestCase.assertNullMsg(
-        "part changed 3",
-        _context.getResolvedCompilationUnit2(partSource, libSource));
+    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNull, reason: "library changed 3");
+    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNull, reason: "part changed 3");
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertNotNullMsg(
-        "library resolved 3",
-        _context.getResolvedCompilationUnit2(libSource, libSource));
-    JUnitTestCase.assertNotNullMsg(
-        "part resolved 3",
-        _context.getResolvedCompilationUnit2(partSource, libSource));
+    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 3");
+    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNotNull, reason: "part resolved 3");
   }
 
   void test_performAnalysisTask_importedLibraryAdd() {
     Source libASource =
         _addSource("/libA.dart", "library libA; import 'libB.dart';");
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertNotNullMsg(
-        "libA resolved 1",
-        _context.getResolvedCompilationUnit2(libASource, libASource));
-    JUnitTestCase.assertTrueMsg(
-        "libA has an error",
-        _hasAnalysisErrorWithErrorSeverity(_context.getErrors(libASource)));
+    expect(_context.getResolvedCompilationUnit2(libASource, libASource), isNotNull, reason: "libA resolved 1");
+    expect(_hasAnalysisErrorWithErrorSeverity(_context.getErrors(libASource)), isTrue, reason: "libA has an error");
     // add libB.dart and analyze
     Source libBSource = _addSource("/libB.dart", "library libB;");
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertNotNullMsg(
-        "libA resolved 2",
-        _context.getResolvedCompilationUnit2(libASource, libASource));
-    JUnitTestCase.assertNotNullMsg(
-        "libB resolved 2",
-        _context.getResolvedCompilationUnit2(libBSource, libBSource));
-    JUnitTestCase.assertTrueMsg(
-        "libA doesn't have errors",
-        !_hasAnalysisErrorWithErrorSeverity(_context.getErrors(libASource)));
+    expect(_context.getResolvedCompilationUnit2(libASource, libASource), isNotNull, reason: "libA resolved 2");
+    expect(_context.getResolvedCompilationUnit2(libBSource, libBSource), isNotNull, reason: "libB resolved 2");
+    expect(!_hasAnalysisErrorWithErrorSeverity(_context.getErrors(libASource)), isTrue, reason: "libA doesn't have errors");
   }
 
   void test_performAnalysisTask_importedLibraryAdd_html() {
@@ -1477,25 +1363,15 @@ void g() { f(null); }''');
   main() {print('hello dart');}
 </script></body></html>''');
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertNotNullMsg(
-        "htmlUnit resolved 1",
-        _context.getResolvedHtmlUnit(htmlSource));
-    JUnitTestCase.assertTrueMsg(
-        "htmlSource has an error",
-        _hasAnalysisErrorWithErrorSeverity(_context.getErrors(htmlSource)));
+    expect(_context.getResolvedHtmlUnit(htmlSource), isNotNull, reason: "htmlUnit resolved 1");
+    expect(_hasAnalysisErrorWithErrorSeverity(_context.getErrors(htmlSource)), isTrue, reason: "htmlSource has an error");
     // add libB.dart and analyze
     Source libBSource = _addSource("/libB.dart", "library libB;");
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertNotNullMsg(
-        "htmlUnit resolved 1",
-        _context.getResolvedHtmlUnit(htmlSource));
-    JUnitTestCase.assertNotNullMsg(
-        "libB resolved 2",
-        _context.getResolvedCompilationUnit2(libBSource, libBSource));
+    expect(_context.getResolvedHtmlUnit(htmlSource), isNotNull, reason: "htmlUnit resolved 1");
+    expect(_context.getResolvedCompilationUnit2(libBSource, libBSource), isNotNull, reason: "libB resolved 2");
     AnalysisErrorInfo errors = _context.getErrors(htmlSource);
-    JUnitTestCase.assertTrueMsg(
-        "htmlSource doesn't have errors",
-        !_hasAnalysisErrorWithErrorSeverity(errors));
+    expect(!_hasAnalysisErrorWithErrorSeverity(errors), isTrue, reason: "htmlSource doesn't have errors");
   }
 
   void test_performAnalysisTask_importedLibraryDelete() {
@@ -1503,33 +1379,21 @@ void g() { f(null); }''');
         _addSource("/libA.dart", "library libA; import 'libB.dart';");
     Source libBSource = _addSource("/libB.dart", "library libB;");
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertNotNullMsg(
-        "libA resolved 1",
-        _context.getResolvedCompilationUnit2(libASource, libASource));
-    JUnitTestCase.assertNotNullMsg(
-        "libB resolved 1",
-        _context.getResolvedCompilationUnit2(libBSource, libBSource));
-    JUnitTestCase.assertTrueMsg(
-        "libA doesn't have errors",
-        !_hasAnalysisErrorWithErrorSeverity(_context.getErrors(libASource)));
+    expect(_context.getResolvedCompilationUnit2(libASource, libASource), isNotNull, reason: "libA resolved 1");
+    expect(_context.getResolvedCompilationUnit2(libBSource, libBSource), isNotNull, reason: "libB resolved 1");
+    expect(!_hasAnalysisErrorWithErrorSeverity(_context.getErrors(libASource)), isTrue, reason: "libA doesn't have errors");
     // remove libB.dart content and analyze
     _context.setContents(libBSource, null);
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertNotNullMsg(
-        "libA resolved 2",
-        _context.getResolvedCompilationUnit2(libASource, libASource));
-    JUnitTestCase.assertTrueMsg(
-        "libA has an error",
-        _hasAnalysisErrorWithErrorSeverity(_context.getErrors(libASource)));
+    expect(_context.getResolvedCompilationUnit2(libASource, libASource), isNotNull, reason: "libA resolved 2");
+    expect(_hasAnalysisErrorWithErrorSeverity(_context.getErrors(libASource)), isTrue, reason: "libA has an error");
   }
 
   void test_performAnalysisTask_missingPart() {
     Source source =
         _addSource("/test.dart", "library lib; part 'no-such-file.dart';");
     _analyzeAll_assertFinished();
-    JUnitTestCase.assertNotNullMsg(
-        "performAnalysisTask failed to compute an element model",
-        _context.getLibraryElement(source));
+    expect(_context.getLibraryElement(source), isNotNull, reason: "performAnalysisTask failed to compute an element model");
   }
 
   void test_performAnalysisTask_modifiedAfterParse() {
@@ -1585,8 +1449,8 @@ void g() { f(null); }''');
     LibraryElement library = _context.computeLibraryElement(source);
     CompilationUnit compilationUnit =
         _context.resolveCompilationUnit(source, library);
-    JUnitTestCase.assertNotNull(compilationUnit);
-    JUnitTestCase.assertNotNull(compilationUnit.element);
+    expect(compilationUnit, isNotNull);
+    expect(compilationUnit.element, isNotNull);
   }
 
   void test_resolveCompilationUnit_source() {
@@ -1595,7 +1459,7 @@ void g() { f(null); }''');
     Source source = _addSource("/lib.dart", "library lib;");
     CompilationUnit compilationUnit =
         _context.resolveCompilationUnit2(source, source);
-    JUnitTestCase.assertNotNull(compilationUnit);
+    expect(compilationUnit, isNotNull);
   }
 
   void test_resolveCompilationUnit_sourceChangeDuringResolution() {
@@ -1605,14 +1469,14 @@ void g() { f(null); }''');
     Source source = _addSource("/lib.dart", "library lib;");
     CompilationUnit compilationUnit =
         _context.resolveCompilationUnit2(source, source);
-    JUnitTestCase.assertNotNull(compilationUnit);
-    JUnitTestCase.assertNotNull(_context.getLineInfo(source));
+    expect(compilationUnit, isNotNull);
+    expect(_context.getLineInfo(source), isNotNull);
   }
 
   void test_resolveHtmlUnit() {
     Source source = _addSource("/lib.html", "<html></html>");
     ht.HtmlUnit unit = _context.resolveHtmlUnit(source);
-    JUnitTestCase.assertNotNull(unit);
+    expect(unit, isNotNull);
   }
 
   void test_setAnalysisOptions() {
@@ -1622,9 +1486,9 @@ void g() { f(null); }''');
     options.hint = false;
     _context.analysisOptions = options;
     AnalysisOptions result = _context.analysisOptions;
-    JUnitTestCase.assertEquals(options.cacheSize, result.cacheSize);
-    JUnitTestCase.assertEquals(options.dart2jsHint, result.dart2jsHint);
-    JUnitTestCase.assertEquals(options.hint, result.hint);
+    expect(result.cacheSize, options.cacheSize);
+    expect(result.dart2jsHint, options.dart2jsHint);
+    expect(result.hint, options.hint);
   }
 
   void test_setAnalysisOptions_reduceAnalysisPriorityOrder() {
@@ -1638,8 +1502,7 @@ void g() { f(null); }''');
     int oldPriorityOrderSize = _getPriorityOrder(_context).length;
     options.cacheSize = options.cacheSize - 10;
     _context.analysisOptions = options;
-    JUnitTestCase.assertTrue(
-        oldPriorityOrderSize > _getPriorityOrder(_context).length);
+    expect(oldPriorityOrderSize > _getPriorityOrder(_context).length, isTrue);
   }
 
   void test_setAnalysisPriorityOrder_empty() {
@@ -1653,8 +1516,7 @@ void g() { f(null); }''');
       sources.add(_addSource("/lib.dart$index", ""));
     }
     _context.analysisPriorityOrder = sources;
-    JUnitTestCase.assertTrue(
-        options.cacheSize > _getPriorityOrder(_context).length);
+    expect(options.cacheSize > _getPriorityOrder(_context).length, isTrue);
   }
 
   void test_setAnalysisPriorityOrder_nonEmpty() {
@@ -1681,24 +1543,21 @@ int b = a;''');
     LibraryElement element = _context.computeLibraryElement(librarySource);
     CompilationUnit unit =
         _context.getResolvedCompilationUnit(librarySource, element);
-    JUnitTestCase.assertNotNull(unit);
+    expect(unit, isNotNull);
     int offset = oldCode.indexOf("int a") + 4;
     String newCode = r'''
 library lib;
 part 'part.dart';
 int ya = 0;''';
-    JUnitTestCase.assertNull(_getIncrementalAnalysisCache(_context));
+    expect(_getIncrementalAnalysisCache(_context), isNull);
     _context.setChangedContents(librarySource, newCode, offset, 0, 1);
-    JUnitTestCase.assertEquals(
-        newCode,
-        _context.getContents(librarySource).data);
+    expect(_context.getContents(librarySource).data, newCode);
     IncrementalAnalysisCache incrementalCache =
         _getIncrementalAnalysisCache(_context);
-    JUnitTestCase.assertEquals(librarySource, incrementalCache.librarySource);
-    JUnitTestCase.assertSame(unit, incrementalCache.resolvedUnit);
-    JUnitTestCase.assertNull(
-        _context.getResolvedCompilationUnit2(partSource, librarySource));
-    JUnitTestCase.assertEquals(newCode, incrementalCache.newContents);
+    expect(incrementalCache.librarySource, librarySource);
+    expect(incrementalCache.resolvedUnit, same(unit));
+    expect(_context.getResolvedCompilationUnit2(partSource, librarySource), isNull);
+    expect(incrementalCache.newContents, newCode);
   }
 
   void test_setChangedContents_notResolved() {
@@ -1719,10 +1578,8 @@ int a = 0;''';
 library lib;
 int ya = 0;''';
     _context.setChangedContents(librarySource, newCode, offset, 0, 1);
-    JUnitTestCase.assertEquals(
-        newCode,
-        _context.getContents(librarySource).data);
-    JUnitTestCase.assertNull(_getIncrementalAnalysisCache(_context));
+    expect(_context.getContents(librarySource).data, newCode);
+    expect(_getIncrementalAnalysisCache(_context), isNull);
   }
 
   void test_setContents_libraryWithPart() {
@@ -1750,18 +1607,15 @@ int b = a;''');
         0,
         0);
     _setIncrementalAnalysisCache(_context, incrementalCache);
-    JUnitTestCase.assertSame(
-        incrementalCache,
-        _getIncrementalAnalysisCache(_context));
+    expect(_getIncrementalAnalysisCache(_context), same(incrementalCache));
     _context.setContents(
         librarySource,
         r'''
 library lib;
 part 'part.dart';
 int aa = 0;''');
-    JUnitTestCase.assertNull(
-        _context.getResolvedCompilationUnit2(partSource, librarySource));
-    JUnitTestCase.assertNull(_getIncrementalAnalysisCache(_context));
+    expect(_context.getResolvedCompilationUnit2(partSource, librarySource), isNull);
+    expect(_getIncrementalAnalysisCache(_context), isNull);
   }
 
   void test_setContents_null() {
@@ -1783,20 +1637,17 @@ int a = 0;''');
         0,
         0);
     _setIncrementalAnalysisCache(_context, incrementalCache);
-    JUnitTestCase.assertSame(
-        incrementalCache,
-        _getIncrementalAnalysisCache(_context));
+    expect(_getIncrementalAnalysisCache(_context), same(incrementalCache));
     _context.setContents(librarySource, null);
-    JUnitTestCase.assertNull(
-        _context.getResolvedCompilationUnit2(librarySource, librarySource));
-    JUnitTestCase.assertNull(_getIncrementalAnalysisCache(_context));
+    expect(_context.getResolvedCompilationUnit2(librarySource, librarySource), isNull);
+    expect(_getIncrementalAnalysisCache(_context), isNull);
   }
 
   void test_setSourceFactory() {
-    JUnitTestCase.assertEquals(_sourceFactory, _context.sourceFactory);
+    expect(_context.sourceFactory, _sourceFactory);
     SourceFactory factory = new SourceFactory([]);
     _context.sourceFactory = factory;
-    JUnitTestCase.assertEquals(factory, _context.sourceFactory);
+    expect(_context.sourceFactory, factory);
   }
 
   void test_unreadableSource() {
@@ -1817,25 +1668,23 @@ library test2;''');
     _analyzeAll_assertFinished();
     // test1 and test2 should have been successfully analyzed
     // despite the fact that test3 couldn't be read.
-    JUnitTestCase.assertNotNull(_context.computeLibraryElement(test1));
-    JUnitTestCase.assertNotNull(_context.computeLibraryElement(test2));
-    JUnitTestCase.assertNull(_context.computeLibraryElement(test3));
+    expect(_context.computeLibraryElement(test1), isNotNull);
+    expect(_context.computeLibraryElement(test2), isNotNull);
+    expect(_context.computeLibraryElement(test3), isNull);
   }
 
   void test_updateAnalysis() {
-    JUnitTestCase.assertTrue(_context.sourcesNeedingProcessing.isEmpty);
+    expect(_context.sourcesNeedingProcessing.isEmpty, isTrue);
     Source source =
         new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
     AnalysisDelta delta = new AnalysisDelta();
     delta.setAnalysisLevel(source, AnalysisLevel.ALL);
     _context.applyAnalysisDelta(delta);
-    JUnitTestCase.assertTrue(
-        _context.sourcesNeedingProcessing.contains(source));
+    expect(_context.sourcesNeedingProcessing.contains(source), isTrue);
     delta = new AnalysisDelta();
     delta.setAnalysisLevel(source, AnalysisLevel.NONE);
     _context.applyAnalysisDelta(delta);
-    JUnitTestCase.assertFalse(
-        _context.sourcesNeedingProcessing.contains(source));
+    expect(_context.sourcesNeedingProcessing.contains(source), isFalse);
   }
 
   void xtest_performAnalysisTask_stress() {
@@ -1863,8 +1712,7 @@ library test2;''');
     }
     List<ChangeNotice> notice = _context.performAnalysisTask().changeNotices;
     if (notice != null) {
-      JUnitTestCase.fail(
-          "performAnalysisTask failed to terminate after analyzing all sources");
+      fail("performAnalysisTask failed to terminate after analyzing all sources");
     }
   }
 
@@ -1910,8 +1758,7 @@ library test2;''');
         return;
       }
     }
-    JUnitTestCase.fail(
-        "performAnalysisTask failed to terminate after analyzing all sources");
+    fail("performAnalysisTask failed to terminate after analyzing all sources");
   }
 
   void _changeSource(TestSource source, String contents) {
@@ -2014,26 +1861,18 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       options.incremental = booleanValue;
       options.preserveComments = booleanValue;
       AnalysisOptionsImpl copy = new AnalysisOptionsImpl.con1(options);
-      JUnitTestCase.assertEquals(options.analyzeAngular, copy.analyzeAngular);
-      JUnitTestCase.assertEquals(
-          options.analyzeFunctionBodies,
-          copy.analyzeFunctionBodies);
-      JUnitTestCase.assertEquals(options.analyzePolymer, copy.analyzePolymer);
-      JUnitTestCase.assertEquals(options.cacheSize, copy.cacheSize);
-      JUnitTestCase.assertEquals(options.dart2jsHint, copy.dart2jsHint);
-      JUnitTestCase.assertEquals(options.enableAsync, copy.enableAsync);
-      JUnitTestCase.assertEquals(
-          options.enableDeferredLoading,
-          copy.enableDeferredLoading);
-      JUnitTestCase.assertEquals(options.enableEnum, copy.enableEnum);
-      JUnitTestCase.assertEquals(
-          options.generateSdkErrors,
-          copy.generateSdkErrors);
-      JUnitTestCase.assertEquals(options.hint, copy.hint);
-      JUnitTestCase.assertEquals(options.incremental, copy.incremental);
-      JUnitTestCase.assertEquals(
-          options.preserveComments,
-          copy.preserveComments);
+      expect(copy.analyzeAngular, options.analyzeAngular);
+      expect(copy.analyzeFunctionBodies, options.analyzeFunctionBodies);
+      expect(copy.analyzePolymer, options.analyzePolymer);
+      expect(copy.cacheSize, options.cacheSize);
+      expect(copy.dart2jsHint, options.dart2jsHint);
+      expect(copy.enableAsync, options.enableAsync);
+      expect(copy.enableDeferredLoading, options.enableDeferredLoading);
+      expect(copy.enableEnum, options.enableEnum);
+      expect(copy.generateSdkErrors, options.generateSdkErrors);
+      expect(copy.hint, options.hint);
+      expect(copy.incremental, options.incremental);
+      expect(copy.preserveComments, options.preserveComments);
     }
   }
 
@@ -2041,96 +1880,88 @@ class AnalysisOptionsImplTest extends EngineTestCase {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     bool value = !options.analyzeAngular;
     options.analyzeAngular = value;
-    JUnitTestCase.assertEquals(value, options.analyzeAngular);
+    expect(options.analyzeAngular, value);
   }
 
   void test_getAnalyzeFunctionBodies() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     bool value = !options.analyzeFunctionBodies;
     options.analyzeFunctionBodies = value;
-    JUnitTestCase.assertEquals(value, options.analyzeFunctionBodies);
+    expect(options.analyzeFunctionBodies, value);
   }
 
   void test_getAnalyzePolymer() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     bool value = !options.analyzePolymer;
     options.analyzePolymer = value;
-    JUnitTestCase.assertEquals(value, options.analyzePolymer);
+    expect(options.analyzePolymer, value);
   }
 
   void test_getCacheSize() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    JUnitTestCase.assertEquals(
-        AnalysisOptionsImpl.DEFAULT_CACHE_SIZE,
-        options.cacheSize);
+    expect(options.cacheSize, AnalysisOptionsImpl.DEFAULT_CACHE_SIZE);
     int value = options.cacheSize + 1;
     options.cacheSize = value;
-    JUnitTestCase.assertEquals(value, options.cacheSize);
+    expect(options.cacheSize, value);
   }
 
   void test_getDart2jsHint() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     bool value = !options.dart2jsHint;
     options.dart2jsHint = value;
-    JUnitTestCase.assertEquals(value, options.dart2jsHint);
+    expect(options.dart2jsHint, value);
   }
 
   void test_getEnableAsync() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    JUnitTestCase.assertEquals(
-        AnalysisOptionsImpl.DEFAULT_ENABLE_ASYNC,
-        options.enableAsync);
+    expect(options.enableAsync, AnalysisOptionsImpl.DEFAULT_ENABLE_ASYNC);
     bool value = !options.enableAsync;
     options.enableAsync = value;
-    JUnitTestCase.assertEquals(value, options.enableAsync);
+    expect(options.enableAsync, value);
   }
 
   void test_getEnableDeferredLoading() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    JUnitTestCase.assertEquals(
-        AnalysisOptionsImpl.DEFAULT_ENABLE_DEFERRED_LOADING,
-        options.enableDeferredLoading);
+    expect(options.enableDeferredLoading, AnalysisOptionsImpl.DEFAULT_ENABLE_DEFERRED_LOADING);
     bool value = !options.enableDeferredLoading;
     options.enableDeferredLoading = value;
-    JUnitTestCase.assertEquals(value, options.enableDeferredLoading);
+    expect(options.enableDeferredLoading, value);
   }
 
   void test_getEnableEnum() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    JUnitTestCase.assertEquals(
-        AnalysisOptionsImpl.DEFAULT_ENABLE_ENUM,
-        options.enableEnum);
+    expect(options.enableEnum, AnalysisOptionsImpl.DEFAULT_ENABLE_ENUM);
     bool value = !options.enableEnum;
     options.enableEnum = value;
-    JUnitTestCase.assertEquals(value, options.enableEnum);
+    expect(options.enableEnum, value);
   }
 
   void test_getGenerateSdkErrors() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     bool value = !options.generateSdkErrors;
     options.generateSdkErrors = value;
-    JUnitTestCase.assertEquals(value, options.generateSdkErrors);
+    expect(options.generateSdkErrors, value);
   }
 
   void test_getHint() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     bool value = !options.hint;
     options.hint = value;
-    JUnitTestCase.assertEquals(value, options.hint);
+    expect(options.hint, value);
   }
 
   void test_getIncremental() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     bool value = !options.incremental;
     options.incremental = value;
-    JUnitTestCase.assertEquals(value, options.incremental);
+    expect(options.incremental, value);
   }
 
   void test_getPreserveComments() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     bool value = !options.preserveComments;
     options.preserveComments = value;
-    JUnitTestCase.assertEquals(value, options.preserveComments);
+    expect(options.preserveComments, value);
   }
 }
 
@@ -2152,7 +1983,7 @@ class AnalysisTask_test_perform_exception extends AnalysisTask {
   String get taskDescription => null;
   @override
   accept(AnalysisTaskVisitor visitor) {
-    JUnitTestCase.assertNotNull(exception);
+    expect(exception, isNotNull);
     return null;
   }
   @override
@@ -2170,80 +2001,40 @@ class CompilationUnitMock extends TypedMock implements CompilationUnit {
 class DartEntryTest extends EngineTestCase {
   void set state2(DataDescriptor descriptor) {
     DartEntry entry = new DartEntry();
-    JUnitTestCase.assertNotSame(CacheState.FLUSHED, entry.getState(descriptor));
+    expect(entry.getState(descriptor), isNot(same(CacheState.FLUSHED)));
     entry.setState(descriptor, CacheState.FLUSHED);
-    JUnitTestCase.assertSame(CacheState.FLUSHED, entry.getState(descriptor));
+    expect(entry.getState(descriptor), same(CacheState.FLUSHED));
   }
 
   void set state3(DataDescriptor descriptor) {
     Source source = new TestSource();
     DartEntry entry = new DartEntry();
-    JUnitTestCase.assertNotSame(
-        CacheState.FLUSHED,
-        entry.getStateInLibrary(descriptor, source));
+    expect(entry.getStateInLibrary(descriptor, source), isNot(same(CacheState.FLUSHED)));
     entry.setStateInLibrary(descriptor, source, CacheState.FLUSHED);
-    JUnitTestCase.assertSame(
-        CacheState.FLUSHED,
-        entry.getStateInLibrary(descriptor, source));
+    expect(entry.getStateInLibrary(descriptor, source), same(CacheState.FLUSHED));
   }
 
   void test_creation() {
     Source librarySource = new TestSource();
     DartEntry entry = new DartEntry();
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(SourceEntry.CONTENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.ELEMENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.EXPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IMPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.INCLUDED_PARTS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IS_CLIENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IS_LAUNCHABLE));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(SourceEntry.LINE_INFO));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.PARSE_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.PARSED_UNIT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.PUBLIC_NAMESPACE));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.SCAN_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.SOURCE_KIND));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.TOKEN_STREAM));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getStateInLibrary(DartEntry.HINTS, librarySource));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource));
+    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.INVALID));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.HINTS, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource), same(CacheState.INVALID));
   }
 
   void test_getAllErrors() {
@@ -2286,7 +2077,7 @@ class DartEntryTest extends EngineTestCase {
 
   void test_getResolvableCompilationUnit_none() {
     DartEntry entry = new DartEntry();
-    JUnitTestCase.assertNull(entry.resolvableCompilationUnit);
+    expect(entry.resolvableCompilationUnit, isNull);
   }
 
   void test_getResolvableCompilationUnit_parsed_accessed() {
@@ -2314,27 +2105,27 @@ class DartEntryTest extends EngineTestCase {
     entry.setValue(DartEntry.PARSED_UNIT, unit);
     entry.getValue(DartEntry.PARSED_UNIT);
     CompilationUnit result = entry.resolvableCompilationUnit;
-    JUnitTestCase.assertSame(unit, result);
+    expect(result, same(unit));
     entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource, unit);
     result = entry.resolvableCompilationUnit;
-    JUnitTestCase.assertNotSame(unit, result);
+    expect(result, isNot(same(unit)));
     NodeList<Directive> directives = result.directives;
     ImportDirective resultImportDirective = directives[0] as ImportDirective;
-    JUnitTestCase.assertEquals(importUri, resultImportDirective.uriContent);
-    JUnitTestCase.assertSame(importSource, resultImportDirective.source);
+    expect(resultImportDirective.uriContent, importUri);
+    expect(resultImportDirective.source, same(importSource));
     ExportDirective resultExportDirective = directives[1] as ExportDirective;
-    JUnitTestCase.assertEquals(exportUri, resultExportDirective.uriContent);
-    JUnitTestCase.assertSame(exportSource, resultExportDirective.source);
+    expect(resultExportDirective.uriContent, exportUri);
+    expect(resultExportDirective.source, same(exportSource));
     PartDirective resultPartDirective = directives[2] as PartDirective;
-    JUnitTestCase.assertEquals(partUri, resultPartDirective.uriContent);
-    JUnitTestCase.assertSame(partSource, resultPartDirective.source);
+    expect(resultPartDirective.uriContent, partUri);
+    expect(resultPartDirective.source, same(partSource));
   }
 
   void test_getResolvableCompilationUnit_parsed_notAccessed() {
     CompilationUnit unit = AstFactory.compilationUnit();
     DartEntry entry = new DartEntry();
     entry.setValue(DartEntry.PARSED_UNIT, unit);
-    JUnitTestCase.assertSame(unit, entry.resolvableCompilationUnit);
+    expect(entry.resolvableCompilationUnit, same(unit));
   }
 
   void test_getResolvableCompilationUnit_resolved() {
@@ -2363,24 +2154,24 @@ class DartEntryTest extends EngineTestCase {
         new TestSource("lib.dart"),
         unit);
     CompilationUnit result = entry.resolvableCompilationUnit;
-    JUnitTestCase.assertNotSame(unit, result);
+    expect(result, isNot(same(unit)));
     NodeList<Directive> directives = result.directives;
     ImportDirective resultImportDirective = directives[0] as ImportDirective;
-    JUnitTestCase.assertEquals(importUri, resultImportDirective.uriContent);
-    JUnitTestCase.assertSame(importSource, resultImportDirective.source);
+    expect(resultImportDirective.uriContent, importUri);
+    expect(resultImportDirective.source, same(importSource));
     ExportDirective resultExportDirective = directives[1] as ExportDirective;
-    JUnitTestCase.assertEquals(exportUri, resultExportDirective.uriContent);
-    JUnitTestCase.assertSame(exportSource, resultExportDirective.source);
+    expect(resultExportDirective.uriContent, exportUri);
+    expect(resultExportDirective.source, same(exportSource));
     PartDirective resultPartDirective = directives[2] as PartDirective;
-    JUnitTestCase.assertEquals(partUri, resultPartDirective.uriContent);
-    JUnitTestCase.assertSame(partSource, resultPartDirective.source);
+    expect(resultPartDirective.uriContent, partUri);
+    expect(resultPartDirective.source, same(partSource));
   }
 
   void test_getStateInLibrary_invalid_element() {
     DartEntry entry = new DartEntry();
     try {
       entry.getStateInLibrary(DartEntry.ELEMENT, new TestSource());
-      JUnitTestCase.fail("Expected IllegalArgumentException for ELEMENT");
+      fail("Expected IllegalArgumentException for ELEMENT");
     } on ArgumentError catch (exception) {
       // Expected
     }
@@ -2390,8 +2181,7 @@ class DartEntryTest extends EngineTestCase {
     DartEntry entry = new DartEntry();
     try {
       entry.getState(DartEntry.RESOLUTION_ERRORS);
-      JUnitTestCase.fail(
-          "Expected IllegalArgumentException for RESOLUTION_ERRORS");
+      fail("Expected IllegalArgumentException for RESOLUTION_ERRORS");
     } on ArgumentError catch (exception) {
       // Expected
     }
@@ -2401,8 +2191,7 @@ class DartEntryTest extends EngineTestCase {
     DartEntry entry = new DartEntry();
     try {
       entry.getState(DartEntry.VERIFICATION_ERRORS);
-      JUnitTestCase.fail(
-          "Expected IllegalArgumentException for VERIFICATION_ERRORS");
+      fail("Expected IllegalArgumentException for VERIFICATION_ERRORS");
     } on ArgumentError catch (exception) {
       // Expected
     }
@@ -2416,7 +2205,7 @@ class DartEntryTest extends EngineTestCase {
     entry.addContainingLibrary(testSource);
     value = entry.containingLibraries;
     EngineTestCase.assertLength(1, value);
-    JUnitTestCase.assertEquals(testSource, value[0]);
+    expect(value[0], testSource);
     entry.removeContainingLibrary(testSource);
     value = entry.containingLibraries;
     EngineTestCase.assertLength(0, value);
@@ -2426,7 +2215,7 @@ class DartEntryTest extends EngineTestCase {
     DartEntry entry = new DartEntry();
     try {
       entry.getValueInLibrary(DartEntry.ELEMENT, new TestSource());
-      JUnitTestCase.fail("Expected IllegalArgumentException for ELEMENT");
+      fail("Expected IllegalArgumentException for ELEMENT");
     } on ArgumentError catch (exception) {
       // Expected
     }
@@ -2451,7 +2240,7 @@ class DartEntryTest extends EngineTestCase {
         AstFactory.compilationUnit());
     try {
       entry.getValueInLibrary(DartEntry.ELEMENT, source3);
-      JUnitTestCase.fail("Expected IllegalArgumentException for ELEMENT");
+      fail("Expected IllegalArgumentException for ELEMENT");
     } on ArgumentError catch (exception) {
       // Expected
     }
@@ -2461,8 +2250,7 @@ class DartEntryTest extends EngineTestCase {
     DartEntry entry = new DartEntry();
     try {
       entry.getValue(DartEntry.RESOLUTION_ERRORS);
-      JUnitTestCase.fail(
-          "Expected IllegalArgumentException for RESOLUTION_ERRORS");
+      fail("Expected IllegalArgumentException for RESOLUTION_ERRORS");
     } on ArgumentError catch (exception) {
     }
   }
@@ -2471,8 +2259,7 @@ class DartEntryTest extends EngineTestCase {
     DartEntry entry = new DartEntry();
     try {
       entry.getValue(DartEntry.VERIFICATION_ERRORS);
-      JUnitTestCase.fail(
-          "Expected IllegalArgumentException for VERIFICATION_ERRORS");
+      fail("Expected IllegalArgumentException for VERIFICATION_ERRORS");
     } on ArgumentError catch (exception) {
       // Expected
     }
@@ -2481,200 +2268,117 @@ class DartEntryTest extends EngineTestCase {
   void test_hasInvalidData_false() {
     DartEntry entry = new DartEntry();
     entry.recordScanError(new CaughtException(new AnalysisException(), null));
-    JUnitTestCase.assertFalse(entry.hasInvalidData(DartEntry.ELEMENT));
-    JUnitTestCase.assertFalse(
-        entry.hasInvalidData(DartEntry.EXPORTED_LIBRARIES));
-    JUnitTestCase.assertFalse(entry.hasInvalidData(DartEntry.HINTS));
-    JUnitTestCase.assertFalse(
-        entry.hasInvalidData(DartEntry.IMPORTED_LIBRARIES));
-    JUnitTestCase.assertFalse(entry.hasInvalidData(DartEntry.INCLUDED_PARTS));
-    JUnitTestCase.assertFalse(entry.hasInvalidData(DartEntry.IS_CLIENT));
-    JUnitTestCase.assertFalse(entry.hasInvalidData(DartEntry.IS_LAUNCHABLE));
-    JUnitTestCase.assertFalse(entry.hasInvalidData(SourceEntry.LINE_INFO));
-    JUnitTestCase.assertFalse(entry.hasInvalidData(DartEntry.PARSE_ERRORS));
-    JUnitTestCase.assertFalse(entry.hasInvalidData(DartEntry.PARSED_UNIT));
-    JUnitTestCase.assertFalse(entry.hasInvalidData(DartEntry.PUBLIC_NAMESPACE));
-    JUnitTestCase.assertFalse(entry.hasInvalidData(DartEntry.SOURCE_KIND));
-    JUnitTestCase.assertFalse(
-        entry.hasInvalidData(DartEntry.RESOLUTION_ERRORS));
-    JUnitTestCase.assertFalse(entry.hasInvalidData(DartEntry.RESOLVED_UNIT));
-    JUnitTestCase.assertFalse(
-        entry.hasInvalidData(DartEntry.VERIFICATION_ERRORS));
+    expect(entry.hasInvalidData(DartEntry.ELEMENT), isFalse);
+    expect(entry.hasInvalidData(DartEntry.EXPORTED_LIBRARIES), isFalse);
+    expect(entry.hasInvalidData(DartEntry.HINTS), isFalse);
+    expect(entry.hasInvalidData(DartEntry.IMPORTED_LIBRARIES), isFalse);
+    expect(entry.hasInvalidData(DartEntry.INCLUDED_PARTS), isFalse);
+    expect(entry.hasInvalidData(DartEntry.IS_CLIENT), isFalse);
+    expect(entry.hasInvalidData(DartEntry.IS_LAUNCHABLE), isFalse);
+    expect(entry.hasInvalidData(SourceEntry.LINE_INFO), isFalse);
+    expect(entry.hasInvalidData(DartEntry.PARSE_ERRORS), isFalse);
+    expect(entry.hasInvalidData(DartEntry.PARSED_UNIT), isFalse);
+    expect(entry.hasInvalidData(DartEntry.PUBLIC_NAMESPACE), isFalse);
+    expect(entry.hasInvalidData(DartEntry.SOURCE_KIND), isFalse);
+    expect(entry.hasInvalidData(DartEntry.RESOLUTION_ERRORS), isFalse);
+    expect(entry.hasInvalidData(DartEntry.RESOLVED_UNIT), isFalse);
+    expect(entry.hasInvalidData(DartEntry.VERIFICATION_ERRORS), isFalse);
   }
 
   void test_hasInvalidData_true() {
     DartEntry entry = new DartEntry();
-    JUnitTestCase.assertTrue(entry.hasInvalidData(DartEntry.ELEMENT));
-    JUnitTestCase.assertTrue(
-        entry.hasInvalidData(DartEntry.EXPORTED_LIBRARIES));
-    JUnitTestCase.assertTrue(entry.hasInvalidData(DartEntry.HINTS));
-    JUnitTestCase.assertTrue(
-        entry.hasInvalidData(DartEntry.IMPORTED_LIBRARIES));
-    JUnitTestCase.assertTrue(entry.hasInvalidData(DartEntry.INCLUDED_PARTS));
-    JUnitTestCase.assertTrue(entry.hasInvalidData(DartEntry.IS_CLIENT));
-    JUnitTestCase.assertTrue(entry.hasInvalidData(DartEntry.IS_LAUNCHABLE));
-    JUnitTestCase.assertTrue(entry.hasInvalidData(SourceEntry.LINE_INFO));
-    JUnitTestCase.assertTrue(entry.hasInvalidData(DartEntry.PARSE_ERRORS));
-    JUnitTestCase.assertTrue(entry.hasInvalidData(DartEntry.PARSED_UNIT));
-    JUnitTestCase.assertTrue(entry.hasInvalidData(DartEntry.PUBLIC_NAMESPACE));
-    JUnitTestCase.assertTrue(entry.hasInvalidData(DartEntry.SOURCE_KIND));
-    JUnitTestCase.assertTrue(entry.hasInvalidData(DartEntry.RESOLUTION_ERRORS));
-    JUnitTestCase.assertTrue(entry.hasInvalidData(DartEntry.RESOLVED_UNIT));
-    JUnitTestCase.assertTrue(
-        entry.hasInvalidData(DartEntry.VERIFICATION_ERRORS));
+    expect(entry.hasInvalidData(DartEntry.ELEMENT), isTrue);
+    expect(entry.hasInvalidData(DartEntry.EXPORTED_LIBRARIES), isTrue);
+    expect(entry.hasInvalidData(DartEntry.HINTS), isTrue);
+    expect(entry.hasInvalidData(DartEntry.IMPORTED_LIBRARIES), isTrue);
+    expect(entry.hasInvalidData(DartEntry.INCLUDED_PARTS), isTrue);
+    expect(entry.hasInvalidData(DartEntry.IS_CLIENT), isTrue);
+    expect(entry.hasInvalidData(DartEntry.IS_LAUNCHABLE), isTrue);
+    expect(entry.hasInvalidData(SourceEntry.LINE_INFO), isTrue);
+    expect(entry.hasInvalidData(DartEntry.PARSE_ERRORS), isTrue);
+    expect(entry.hasInvalidData(DartEntry.PARSED_UNIT), isTrue);
+    expect(entry.hasInvalidData(DartEntry.PUBLIC_NAMESPACE), isTrue);
+    expect(entry.hasInvalidData(DartEntry.SOURCE_KIND), isTrue);
+    expect(entry.hasInvalidData(DartEntry.RESOLUTION_ERRORS), isTrue);
+    expect(entry.hasInvalidData(DartEntry.RESOLVED_UNIT), isTrue);
+    expect(entry.hasInvalidData(DartEntry.VERIFICATION_ERRORS), isTrue);
   }
 
   void test_invalidateAllInformation() {
     DartEntry entry = _entryWithValidState();
     entry.invalidateAllInformation();
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.ELEMENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.EXPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IMPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.INCLUDED_PARTS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IS_CLIENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IS_LAUNCHABLE));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(SourceEntry.LINE_INFO));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.PARSE_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.PARSED_UNIT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.PUBLIC_NAMESPACE));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.SCAN_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.TOKEN_STREAM));
+    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.INVALID));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.INVALID));
   }
 
   void test_invalidateAllResolutionInformation() {
     DartEntry entry = _entryWithValidState();
     entry.invalidateAllResolutionInformation(false);
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.ELEMENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IS_CLIENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IS_LAUNCHABLE));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(SourceEntry.LINE_INFO));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(DartEntry.PARSE_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(DartEntry.PARSED_UNIT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.PUBLIC_NAMESPACE));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(DartEntry.EXPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(DartEntry.IMPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(DartEntry.INCLUDED_PARTS));
+    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.INVALID));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.VALID));
   }
 
   void test_invalidateAllResolutionInformation_includingUris() {
     DartEntry entry = _entryWithValidState();
     entry.invalidateAllResolutionInformation(true);
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.ELEMENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IS_CLIENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IS_LAUNCHABLE));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(SourceEntry.LINE_INFO));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(DartEntry.PARSE_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(DartEntry.PARSED_UNIT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.PUBLIC_NAMESPACE));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.EXPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IMPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.INCLUDED_PARTS));
+    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.INVALID));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.INVALID));
   }
 
   void test_isClient() {
     DartEntry entry = new DartEntry();
     // true
     entry.setValue(DartEntry.IS_CLIENT, true);
-    JUnitTestCase.assertTrue(entry.getValue(DartEntry.IS_CLIENT));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(DartEntry.IS_CLIENT));
+    expect(entry.getValue(DartEntry.IS_CLIENT), isTrue);
+    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.VALID));
     // invalidate
     entry.setState(DartEntry.IS_CLIENT, CacheState.INVALID);
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IS_CLIENT));
+    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.INVALID));
     // false
     entry.setValue(DartEntry.IS_CLIENT, false);
-    JUnitTestCase.assertFalse(entry.getValue(DartEntry.IS_CLIENT));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(DartEntry.IS_CLIENT));
+    expect(entry.getValue(DartEntry.IS_CLIENT), isFalse);
+    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.VALID));
   }
 
   void test_isLaunchable() {
     DartEntry entry = new DartEntry();
     // true
     entry.setValue(DartEntry.IS_LAUNCHABLE, true);
-    JUnitTestCase.assertTrue(entry.getValue(DartEntry.IS_LAUNCHABLE));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(DartEntry.IS_LAUNCHABLE));
+    expect(entry.getValue(DartEntry.IS_LAUNCHABLE), isTrue);
+    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.VALID));
     // invalidate
     entry.setState(DartEntry.IS_LAUNCHABLE, CacheState.INVALID);
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IS_LAUNCHABLE));
+    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.INVALID));
     // false
     entry.setValue(DartEntry.IS_LAUNCHABLE, false);
-    JUnitTestCase.assertFalse(entry.getValue(DartEntry.IS_LAUNCHABLE));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(DartEntry.IS_LAUNCHABLE));
+    expect(entry.getValue(DartEntry.IS_LAUNCHABLE), isFalse);
+    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.VALID));
   }
 
   void test_recordBuildElementError() {
@@ -2686,114 +2390,46 @@ class DartEntryTest extends EngineTestCase {
     entry.recordBuildElementErrorInLibrary(
         source,
         new CaughtException(new AnalysisException(), null));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(SourceEntry.CONTENT));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, source));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.ELEMENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.EXPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IMPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.INCLUDED_PARTS));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.IS_CLIENT));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.IS_LAUNCHABLE));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(SourceEntry.LINE_INFO));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.PARSE_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.PARSED_UNIT));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.PUBLIC_NAMESPACE));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.SCAN_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.SOURCE_KIND));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.TOKEN_STREAM));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getStateInLibrary(DartEntry.HINTS, source));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
+    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, source), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, source), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.ERROR));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.HINTS, source), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source), same(CacheState.ERROR));
   }
 
   void test_recordContentError() {
     DartEntry entry = new DartEntry();
     entry.recordContentError(
         new CaughtException(new AnalysisException(), null));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(SourceEntry.CONTENT));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.ELEMENT));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.EXPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.IMPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.INCLUDED_PARTS));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.IS_CLIENT));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.IS_LAUNCHABLE));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(SourceEntry.LINE_INFO));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.PARSE_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.PARSED_UNIT));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.PUBLIC_NAMESPACE));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.SCAN_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.SOURCE_KIND));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.TOKEN_STREAM));
+    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.ERROR));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.ERROR));
     // The following lines are commented out because we don't currently have
     // any way of setting the state for data associated with a library we
     // don't know anything about.
@@ -2814,107 +2450,43 @@ class DartEntryTest extends EngineTestCase {
     entry.recordHintErrorInLibrary(
         source,
         new CaughtException(new AnalysisException(), null));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(SourceEntry.CONTENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.ELEMENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.EXPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IMPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.INCLUDED_PARTS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IS_CLIENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IS_LAUNCHABLE));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(SourceEntry.LINE_INFO));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.PARSE_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.PARSED_UNIT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.PUBLIC_NAMESPACE));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.SCAN_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.SOURCE_KIND));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.TOKEN_STREAM));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getStateInLibrary(DartEntry.HINTS, source));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
+    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.INVALID));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.HINTS, source), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source), same(CacheState.INVALID));
   }
 
   void test_recordParseError() {
     DartEntry entry = new DartEntry();
     entry.recordParseError(new CaughtException(new AnalysisException(), null));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(SourceEntry.CONTENT));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.ELEMENT));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.EXPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.IMPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.INCLUDED_PARTS));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.IS_CLIENT));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.IS_LAUNCHABLE));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(SourceEntry.LINE_INFO));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.PARSE_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.PARSED_UNIT));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.PUBLIC_NAMESPACE));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.SCAN_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.SOURCE_KIND));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.TOKEN_STREAM));
+    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.ERROR));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.INVALID));
     // The following lines are commented out because we don't currently have
     // any way of setting the state for data associated with a library we
     // don't know anything about.
@@ -2931,48 +2503,20 @@ class DartEntryTest extends EngineTestCase {
     DartEntry entry = new DartEntry();
     entry.recordResolutionError(
         new CaughtException(new AnalysisException(), null));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(SourceEntry.CONTENT));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.ELEMENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.EXPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IMPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.INCLUDED_PARTS));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.IS_CLIENT));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.IS_LAUNCHABLE));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(SourceEntry.LINE_INFO));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.PARSE_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.PARSED_UNIT));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.PUBLIC_NAMESPACE));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.SCAN_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.SOURCE_KIND));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.TOKEN_STREAM));
+    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.ERROR));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.INVALID));
     // The following lines are commented out because we don't currently have
     // any way of setting the state for data associated with a library we
     // don't know anything about.
@@ -2993,108 +2537,44 @@ class DartEntryTest extends EngineTestCase {
     entry.recordResolutionErrorInLibrary(
         source,
         new CaughtException(new AnalysisException(), null));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(SourceEntry.CONTENT));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.ELEMENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.EXPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IMPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.INCLUDED_PARTS));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.IS_CLIENT));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.IS_LAUNCHABLE));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(SourceEntry.LINE_INFO));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.PARSE_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.PARSED_UNIT));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.PUBLIC_NAMESPACE));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.SCAN_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.SOURCE_KIND));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.TOKEN_STREAM));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getStateInLibrary(DartEntry.HINTS, source));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
+    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.ERROR));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.HINTS, source), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source), same(CacheState.ERROR));
   }
 
   void test_recordScanError() {
 //    Source source = new TestSource();
     DartEntry entry = new DartEntry();
     entry.recordScanError(new CaughtException(new AnalysisException(), null));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(SourceEntry.CONTENT));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.ELEMENT));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.EXPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.IMPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.INCLUDED_PARTS));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.IS_CLIENT));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.IS_LAUNCHABLE));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(SourceEntry.LINE_INFO));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.PARSE_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.PARSED_UNIT));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.PUBLIC_NAMESPACE));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.SCAN_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.SOURCE_KIND));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getState(DartEntry.TOKEN_STREAM));
+    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.ERROR));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.ERROR));
     // The following lines are commented out because we don't currently have
     // any way of setting the state for data associated with a library we
     // don't know anything about.
@@ -3115,60 +2595,24 @@ class DartEntryTest extends EngineTestCase {
     entry.recordVerificationErrorInLibrary(
         source,
         new CaughtException(new AnalysisException(), null));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(SourceEntry.CONTENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.ELEMENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.EXPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IMPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.INCLUDED_PARTS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IS_CLIENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.IS_LAUNCHABLE));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(SourceEntry.LINE_INFO));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.PARSE_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.PARSED_UNIT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.PUBLIC_NAMESPACE));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.SCAN_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.SOURCE_KIND));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(DartEntry.TOKEN_STREAM));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getStateInLibrary(DartEntry.HINTS, source));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
-    JUnitTestCase.assertSame(
-        CacheState.ERROR,
-        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
+    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.INVALID));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.HINTS, source), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source), same(CacheState.ERROR));
   }
 
   void test_removeResolution_multiple_first() {
@@ -3265,7 +2709,7 @@ class DartEntryTest extends EngineTestCase {
     DartEntry entry = new DartEntry();
     try {
       entry.setStateInLibrary(DartEntry.ELEMENT, null, CacheState.FLUSHED);
-      JUnitTestCase.fail("Expected IllegalArgumentException for ELEMENT");
+      fail("Expected IllegalArgumentException for ELEMENT");
     } on ArgumentError catch (exception) {
       // Expected
     }
@@ -3275,8 +2719,7 @@ class DartEntryTest extends EngineTestCase {
     DartEntry entry = new DartEntry();
     try {
       entry.setState(DartEntry.RESOLUTION_ERRORS, CacheState.FLUSHED);
-      JUnitTestCase.fail(
-          "Expected IllegalArgumentException for RESOLUTION_ERRORS");
+      fail("Expected IllegalArgumentException for RESOLUTION_ERRORS");
     } on ArgumentError catch (exception) {
       // Expected
     }
@@ -3286,8 +2729,7 @@ class DartEntryTest extends EngineTestCase {
     DartEntry entry = new DartEntry();
     try {
       entry.setState(SourceEntry.LINE_INFO, CacheState.VALID);
-      JUnitTestCase.fail(
-          "Expected ArgumentError for a state of VALID");
+      fail("Expected ArgumentError for a state of VALID");
     } on ArgumentError catch (exception) {
     }
   }
@@ -3296,8 +2738,7 @@ class DartEntryTest extends EngineTestCase {
     DartEntry entry = new DartEntry();
     try {
       entry.setState(DartEntry.VERIFICATION_ERRORS, CacheState.FLUSHED);
-      JUnitTestCase.fail(
-          "Expected IllegalArgumentException for VERIFICATION_ERRORS");
+      fail("Expected IllegalArgumentException for VERIFICATION_ERRORS");
     } on ArgumentError catch (exception) {
       // Expected
      }
@@ -3455,60 +2896,36 @@ class DartEntryTest extends EngineTestCase {
     entry.setValue(DartEntry.PARSE_ERRORS, null);
     entry.setValue(DartEntry.PARSED_UNIT, null);
     entry.setValue(DartEntry.PUBLIC_NAMESPACE, null);
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(DartEntry.ELEMENT));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(DartEntry.EXPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(DartEntry.IMPORTED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(DartEntry.INCLUDED_PARTS));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(DartEntry.IS_CLIENT));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(DartEntry.IS_LAUNCHABLE));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(SourceEntry.LINE_INFO));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(DartEntry.PARSE_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(DartEntry.PARSED_UNIT));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(DartEntry.PUBLIC_NAMESPACE));
+    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.VALID));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.VALID));
     return entry;
   }
 
   void _setValue2(DataDescriptor descriptor, Object newValue) {
     DartEntry entry = new DartEntry();
     Object value = entry.getValue(descriptor);
-    JUnitTestCase.assertNotSame(value, newValue);
+    expect(newValue, isNot(same(value)));
     entry.setValue(descriptor, newValue);
-    JUnitTestCase.assertSame(CacheState.VALID, entry.getState(descriptor));
-    JUnitTestCase.assertSame(newValue, entry.getValue(descriptor));
+    expect(entry.getState(descriptor), same(CacheState.VALID));
+    expect(entry.getValue(descriptor), same(newValue));
   }
 
   void _setValue3(DataDescriptor descriptor, Object newValue) {
     Source source = new TestSource();
     DartEntry entry = new DartEntry();
     Object value = entry.getValueInLibrary(descriptor, source);
-    JUnitTestCase.assertNotSame(value, newValue);
+    expect(newValue, isNot(same(value)));
     entry.setValueInLibrary(descriptor, source, newValue);
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getStateInLibrary(descriptor, source));
-    JUnitTestCase.assertSame(
-        newValue,
-        entry.getValueInLibrary(descriptor, source));
+    expect(entry.getStateInLibrary(descriptor, source), same(CacheState.VALID));
+    expect(entry.getValueInLibrary(descriptor, source), same(newValue));
   }
 }
 
@@ -3517,14 +2934,13 @@ class GenerateDartErrorsTaskTest extends EngineTestCase {
   void test_accept() {
     GenerateDartErrorsTask task =
         new GenerateDartErrorsTask(null, null, null, null);
-    JUnitTestCase.assertTrue(
-        task.accept(new GenerateDartErrorsTaskTestTV_accept()));
+    expect(task.accept(new GenerateDartErrorsTaskTestTV_accept()), isTrue);
   }
 
   void test_getException() {
     GenerateDartErrorsTask task =
         new GenerateDartErrorsTask(null, null, null, null);
-    JUnitTestCase.assertNull(task.exception);
+    expect(task.exception, isNull);
   }
 
   void test_getLibraryElement() {
@@ -3532,7 +2948,7 @@ class GenerateDartErrorsTaskTest extends EngineTestCase {
     LibraryElement element = ElementFactory.library(context, "lib");
     GenerateDartErrorsTask task =
         new GenerateDartErrorsTask(context, null, null, element);
-    JUnitTestCase.assertSame(element, task.libraryElement);
+    expect(task.libraryElement, same(element));
   }
 
   void test_getSource() {
@@ -3540,7 +2956,7 @@ class GenerateDartErrorsTaskTest extends EngineTestCase {
         new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
     GenerateDartErrorsTask task =
         new GenerateDartErrorsTask(null, source, null, null);
-    JUnitTestCase.assertSame(source, task.source);
+    expect(task.source, same(source));
   }
 
   void test_perform() {
@@ -3621,8 +3037,8 @@ class GenerateDartErrorsTaskTestTV_perform extends TestTaskVisitor<bool> {
     if (exception != null) {
       throw exception;
     }
-    JUnitTestCase.assertSame(libraryElement, task.libraryElement);
-    JUnitTestCase.assertSame(source, task.source);
+    expect(task.libraryElement, same(libraryElement));
+    expect(task.source, same(source));
     List<AnalysisError> errors = task.errors;
     EngineTestCase.assertLength(1, errors);
     return true;
@@ -3642,13 +3058,11 @@ class GenerateDartErrorsTaskTestTV_perform_validateDirectives extends
     if (exception != null) {
       throw exception;
     }
-    JUnitTestCase.assertSame(libraryElement, task.libraryElement);
-    JUnitTestCase.assertSame(source, task.source);
+    expect(task.libraryElement, same(libraryElement));
+    expect(task.source, same(source));
     List<AnalysisError> errors = task.errors;
     EngineTestCase.assertLength(1, errors);
-    JUnitTestCase.assertSame(
-        CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-        errors[0].errorCode);
+    expect(errors[0].errorCode, same(CompileTimeErrorCode.URI_DOES_NOT_EXIST));
     return true;
   }
 }
@@ -3656,23 +3070,22 @@ class GenerateDartErrorsTaskTestTV_perform_validateDirectives extends
 class GenerateDartHintsTaskTest extends EngineTestCase {
   void test_accept() {
     GenerateDartHintsTask task = new GenerateDartHintsTask(null, null, null);
-    JUnitTestCase.assertTrue(
-        task.accept(new GenerateDartHintsTaskTestTV_accept()));
+    expect(task.accept(new GenerateDartHintsTaskTestTV_accept()), isTrue);
   }
   void test_getException() {
     GenerateDartHintsTask task = new GenerateDartHintsTask(null, null, null);
-    JUnitTestCase.assertNull(task.exception);
+    expect(task.exception, isNull);
   }
   void test_getHintMap() {
     GenerateDartHintsTask task = new GenerateDartHintsTask(null, null, null);
-    JUnitTestCase.assertNull(task.hintMap);
+    expect(task.hintMap, isNull);
   }
   void test_getLibraryElement() {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     LibraryElement element = ElementFactory.library(context, "lib");
     GenerateDartHintsTask task =
         new GenerateDartHintsTask(context, null, element);
-    JUnitTestCase.assertSame(element, task.libraryElement);
+    expect(task.libraryElement, same(element));
   }
   void test_perform() {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
@@ -3732,7 +3145,7 @@ class GenerateDartHintsTaskTestTV_perform extends TestTaskVisitor<bool> {
     if (exception != null) {
       throw exception;
     }
-    JUnitTestCase.assertNotNull(task.libraryElement);
+    expect(task.libraryElement, isNotNull);
     HashMap<Source, List<AnalysisError>> hintMap = task.hintMap;
     EngineTestCase.assertSizeOfMap(2, hintMap);
     EngineTestCase.assertLength(1, hintMap[librarySource]);
@@ -3746,25 +3159,25 @@ class GetContentTaskTest extends EngineTestCase {
   void test_accept() {
     Source source = new TestSource('/test.dart', '');
     GetContentTask task = new GetContentTask(null, source);
-    JUnitTestCase.assertTrue(task.accept(new GetContentTaskTestTV_accept()));
+    expect(task.accept(new GetContentTaskTestTV_accept()), isTrue);
   }
 
   void test_getException() {
     Source source = new TestSource('/test.dart', '');
     GetContentTask task = new GetContentTask(null, source);
-    JUnitTestCase.assertNull(task.exception);
+    expect(task.exception, isNull);
   }
 
   void test_getModificationTime() {
     Source source = new TestSource('/test.dart', '');
     GetContentTask task = new GetContentTask(null, source);
-    JUnitTestCase.assertEquals(-1, task.modificationTime);
+    expect(task.modificationTime, -1);
   }
 
   void test_getSource() {
     Source source = new TestSource('/test.dart', '');
     GetContentTask task = new GetContentTask(null, source);
-    JUnitTestCase.assertSame(source, task.source);
+    expect(task.source, same(source));
   }
 
   void test_perform_exception() {
@@ -3795,7 +3208,7 @@ class GetContentTaskTestTV_accept extends TestTaskVisitor<bool> {
 class GetContentTaskTestTV_perform_exception extends TestTaskVisitor<bool> {
   @override
   bool visitGetContentTask(GetContentTask task) {
-    JUnitTestCase.assertNotNull(task.exception);
+    expect(task.exception, isNotNull);
     return true;
   }
 }
@@ -3811,10 +3224,8 @@ class GetContentTaskTestTV_perform_valid extends TestTaskVisitor<bool> {
     if (exception != null) {
       throw exception;
     }
-    JUnitTestCase.assertEquals(
-        context.getModificationStamp(source),
-        task.modificationTime);
-    JUnitTestCase.assertSame(source, task.source);
+    expect(task.modificationTime, context.getModificationStamp(source));
+    expect(task.source, same(source));
     return true;
   }
 }
@@ -3823,14 +3234,14 @@ class GetContentTaskTestTV_perform_valid extends TestTaskVisitor<bool> {
 class HtmlEntryTest extends EngineTestCase {
   void set state(DataDescriptor descriptor) {
     HtmlEntry entry = new HtmlEntry();
-    JUnitTestCase.assertNotSame(CacheState.FLUSHED, entry.getState(descriptor));
+    expect(entry.getState(descriptor), isNot(same(CacheState.FLUSHED)));
     entry.setState(descriptor, CacheState.FLUSHED);
-    JUnitTestCase.assertSame(CacheState.FLUSHED, entry.getState(descriptor));
+    expect(entry.getState(descriptor), same(CacheState.FLUSHED));
   }
 
   void test_creation() {
     HtmlEntry entry = new HtmlEntry();
-    JUnitTestCase.assertNotNull(entry);
+    expect(entry, isNotNull);
   }
 
   void test_getAllErrors() {
@@ -3866,89 +3277,37 @@ class HtmlEntryTest extends EngineTestCase {
   void test_invalidateAllResolutionInformation() {
     HtmlEntry entry = _entryWithValidState();
     entry.invalidateAllResolutionInformation(false);
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(HtmlEntry.ANGULAR_APPLICATION));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(HtmlEntry.ANGULAR_COMPONENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(HtmlEntry.ANGULAR_ENTRY));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(HtmlEntry.ANGULAR_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(HtmlEntry.POLYMER_BUILD_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(HtmlEntry.ELEMENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(HtmlEntry.HINTS));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(SourceEntry.LINE_INFO));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(HtmlEntry.PARSE_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(HtmlEntry.PARSED_UNIT));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(HtmlEntry.REFERENCED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(HtmlEntry.RESOLUTION_ERRORS));
+    expect(entry.getState(HtmlEntry.ANGULAR_APPLICATION), same(CacheState.VALID));
+    expect(entry.getState(HtmlEntry.ANGULAR_COMPONENT), same(CacheState.VALID));
+    expect(entry.getState(HtmlEntry.ANGULAR_ENTRY), same(CacheState.INVALID));
+    expect(entry.getState(HtmlEntry.ANGULAR_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(HtmlEntry.POLYMER_BUILD_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(HtmlEntry.ELEMENT), same(CacheState.INVALID));
+    expect(entry.getState(HtmlEntry.HINTS), same(CacheState.INVALID));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
+    expect(entry.getState(HtmlEntry.PARSE_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(HtmlEntry.PARSED_UNIT), same(CacheState.VALID));
+    expect(entry.getState(HtmlEntry.REFERENCED_LIBRARIES), same(CacheState.VALID));
+    expect(entry.getState(HtmlEntry.RESOLUTION_ERRORS), same(CacheState.INVALID));
   }
 
   void test_invalidateAllResolutionInformation_includingUris() {
     HtmlEntry entry = _entryWithValidState();
     entry.invalidateAllResolutionInformation(true);
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(HtmlEntry.ANGULAR_APPLICATION));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(HtmlEntry.ANGULAR_COMPONENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(HtmlEntry.ANGULAR_ENTRY));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(HtmlEntry.ANGULAR_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(HtmlEntry.POLYMER_BUILD_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(HtmlEntry.ELEMENT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(HtmlEntry.HINTS));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(SourceEntry.LINE_INFO));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(HtmlEntry.PARSE_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(HtmlEntry.PARSED_UNIT));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(HtmlEntry.REFERENCED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.INVALID,
-        entry.getState(HtmlEntry.RESOLUTION_ERRORS));
+    expect(entry.getState(HtmlEntry.ANGULAR_APPLICATION), same(CacheState.VALID));
+    expect(entry.getState(HtmlEntry.ANGULAR_COMPONENT), same(CacheState.VALID));
+    expect(entry.getState(HtmlEntry.ANGULAR_ENTRY), same(CacheState.INVALID));
+    expect(entry.getState(HtmlEntry.ANGULAR_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(HtmlEntry.POLYMER_BUILD_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(HtmlEntry.ELEMENT), same(CacheState.INVALID));
+    expect(entry.getState(HtmlEntry.HINTS), same(CacheState.INVALID));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
+    expect(entry.getState(HtmlEntry.PARSE_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(HtmlEntry.PARSED_UNIT), same(CacheState.VALID));
+    expect(entry.getState(HtmlEntry.REFERENCED_LIBRARIES), same(CacheState.INVALID));
+    expect(entry.getState(HtmlEntry.RESOLUTION_ERRORS), same(CacheState.INVALID));
   }
 
   void test_setState_angularErrors() {
@@ -4012,8 +3371,7 @@ class HtmlEntryTest extends EngineTestCase {
     HtmlEntry entry = new HtmlEntry();
     try {
       entry.setValue(DartEntry.ELEMENT, null);
-      JUnitTestCase.fail(
-          "Expected IllegalArgumentException for DartEntry.ELEMENT");
+      fail("Expected IllegalArgumentException for DartEntry.ELEMENT");
     } on ArgumentError catch (exception) {
     }
   }
@@ -4072,54 +3430,35 @@ class HtmlEntryTest extends EngineTestCase {
     entry.setValue(HtmlEntry.POLYMER_RESOLUTION_ERRORS, null);
     entry.setValue(HtmlEntry.REFERENCED_LIBRARIES, null);
     entry.setValue(HtmlEntry.RESOLUTION_ERRORS, null);
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(HtmlEntry.ANGULAR_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(HtmlEntry.ELEMENT));
-    JUnitTestCase.assertSame(CacheState.VALID, entry.getState(HtmlEntry.HINTS));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(SourceEntry.LINE_INFO));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(HtmlEntry.PARSE_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(HtmlEntry.PARSED_UNIT));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(HtmlEntry.POLYMER_BUILD_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(HtmlEntry.REFERENCED_LIBRARIES));
-    JUnitTestCase.assertSame(
-        CacheState.VALID,
-        entry.getState(HtmlEntry.RESOLUTION_ERRORS));
+    expect(entry.getState(HtmlEntry.ANGULAR_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(HtmlEntry.ELEMENT), same(CacheState.VALID));
+    expect(entry.getState(HtmlEntry.HINTS), same(CacheState.VALID));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
+    expect(entry.getState(HtmlEntry.PARSE_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(HtmlEntry.PARSED_UNIT), same(CacheState.VALID));
+    expect(entry.getState(HtmlEntry.POLYMER_BUILD_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(HtmlEntry.REFERENCED_LIBRARIES), same(CacheState.VALID));
+    expect(entry.getState(HtmlEntry.RESOLUTION_ERRORS), same(CacheState.VALID));
     return entry;
   }
 
   void _setValue(DataDescriptor descriptor, Object newValue) {
     HtmlEntry entry = new HtmlEntry();
     Object value = entry.getValue(descriptor);
-    JUnitTestCase.assertNotSame(value, newValue);
+    expect(newValue, isNot(same(value)));
     entry.setValue(descriptor, newValue);
-    JUnitTestCase.assertSame(CacheState.VALID, entry.getState(descriptor));
-    JUnitTestCase.assertSame(newValue, entry.getValue(descriptor));
+    expect(entry.getState(descriptor), same(CacheState.VALID));
+    expect(entry.getValue(descriptor), same(newValue));
   }
 }
 
 
-class IncrementalAnalysisCacheTest extends JUnitTestCase {
+class IncrementalAnalysisCacheTest {
   Source _source = new TestSource();
   DartEntry _entry = new DartEntry();
   CompilationUnit _unit = new CompilationUnitMock();
   IncrementalAnalysisCache _result;
-  @override
   void setUp() {
     _entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, _source, _unit);
   }
@@ -4135,26 +3474,26 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         _entry);
     CompilationUnit newUnit = new CompilationUnitMock();
     _result = IncrementalAnalysisCache.cacheResult(cache, newUnit);
-    JUnitTestCase.assertNotNull(_result);
-    JUnitTestCase.assertSame(_source, _result.source);
-    JUnitTestCase.assertSame(newUnit, _result.resolvedUnit);
-    JUnitTestCase.assertEquals("hbazlo", _result.oldContents);
-    JUnitTestCase.assertEquals("hbazlo", _result.newContents);
-    JUnitTestCase.assertEquals(0, _result.offset);
-    JUnitTestCase.assertEquals(0, _result.oldLength);
-    JUnitTestCase.assertEquals(0, _result.newLength);
+    expect(_result, isNotNull);
+    expect(_result.source, same(_source));
+    expect(_result.resolvedUnit, same(newUnit));
+    expect(_result.oldContents, "hbazlo");
+    expect(_result.newContents, "hbazlo");
+    expect(_result.offset, 0);
+    expect(_result.oldLength, 0);
+    expect(_result.newLength, 0);
   }
   void test_cacheResult_noCache() {
     IncrementalAnalysisCache cache = null;
     CompilationUnit newUnit = new CompilationUnitMock();
     _result = IncrementalAnalysisCache.cacheResult(cache, newUnit);
-    JUnitTestCase.assertNull(_result);
+    expect(_result, isNull);
   }
   void test_cacheResult_noCacheNoResult() {
     IncrementalAnalysisCache cache = null;
     CompilationUnit newUnit = null;
     _result = IncrementalAnalysisCache.cacheResult(cache, newUnit);
-    JUnitTestCase.assertNull(_result);
+    expect(_result, isNull);
   }
   void test_cacheResult_noResult() {
     IncrementalAnalysisCache cache = IncrementalAnalysisCache.update(
@@ -4168,7 +3507,7 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         _entry);
     CompilationUnit newUnit = null;
     _result = IncrementalAnalysisCache.cacheResult(cache, newUnit);
-    JUnitTestCase.assertNull(_result);
+    expect(_result, isNull);
   }
   void test_clear_differentSource() {
     IncrementalAnalysisCache cache = IncrementalAnalysisCache.update(
@@ -4182,12 +3521,12 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         _entry);
     Source otherSource = new TestSource("blat.dart", "blat");
     _result = IncrementalAnalysisCache.clear(cache, otherSource);
-    JUnitTestCase.assertSame(cache, _result);
+    expect(_result, same(cache));
   }
   void test_clear_nullCache() {
     IncrementalAnalysisCache cache = null;
     _result = IncrementalAnalysisCache.clear(cache, _source);
-    JUnitTestCase.assertNull(_result);
+    expect(_result, isNull);
   }
   void test_clear_sameSource() {
     IncrementalAnalysisCache cache = IncrementalAnalysisCache.update(
@@ -4200,7 +3539,7 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         3,
         _entry);
     _result = IncrementalAnalysisCache.clear(cache, _source);
-    JUnitTestCase.assertNull(_result);
+    expect(_result, isNull);
   }
   void test_update_append() {
     IncrementalAnalysisCache cache = IncrementalAnalysisCache.update(
@@ -4222,14 +3561,14 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         0,
         1,
         newEntry);
-    JUnitTestCase.assertNotNull(_result);
-    JUnitTestCase.assertSame(_source, _result.source);
-    JUnitTestCase.assertSame(_unit, _result.resolvedUnit);
-    JUnitTestCase.assertEquals("hello", _result.oldContents);
-    JUnitTestCase.assertEquals("hbazxlo", _result.newContents);
-    JUnitTestCase.assertEquals(1, _result.offset);
-    JUnitTestCase.assertEquals(2, _result.oldLength);
-    JUnitTestCase.assertEquals(4, _result.newLength);
+    expect(_result, isNotNull);
+    expect(_result.source, same(_source));
+    expect(_result.resolvedUnit, same(_unit));
+    expect(_result.oldContents, "hello");
+    expect(_result.newContents, "hbazxlo");
+    expect(_result.offset, 1);
+    expect(_result.oldLength, 2);
+    expect(_result.newLength, 4);
   }
   void test_update_appendToCachedResult() {
     IncrementalAnalysisCache cache = IncrementalAnalysisCache.update(
@@ -4243,7 +3582,7 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         _entry);
     CompilationUnit newUnit = new CompilationUnitMock();
     cache = IncrementalAnalysisCache.cacheResult(cache, newUnit);
-    JUnitTestCase.assertNotNull(cache);
+    expect(cache, isNotNull);
     DartEntry newEntry = new DartEntry();
     _result = IncrementalAnalysisCache.update(
         cache,
@@ -4254,14 +3593,14 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         0,
         1,
         newEntry);
-    JUnitTestCase.assertNotNull(_result);
-    JUnitTestCase.assertSame(_source, _result.source);
-    JUnitTestCase.assertSame(newUnit, _result.resolvedUnit);
-    JUnitTestCase.assertEquals("hbazlo", _result.oldContents);
-    JUnitTestCase.assertEquals("hbazxlo", _result.newContents);
-    JUnitTestCase.assertEquals(4, _result.offset);
-    JUnitTestCase.assertEquals(0, _result.oldLength);
-    JUnitTestCase.assertEquals(1, _result.newLength);
+    expect(_result, isNotNull);
+    expect(_result.source, same(_source));
+    expect(_result.resolvedUnit, same(newUnit));
+    expect(_result.oldContents, "hbazlo");
+    expect(_result.newContents, "hbazxlo");
+    expect(_result.offset, 4);
+    expect(_result.oldLength, 0);
+    expect(_result.newLength, 1);
   }
   void test_update_appendWithNewResolvedUnit() {
     IncrementalAnalysisCache cache = IncrementalAnalysisCache.update(
@@ -4285,14 +3624,14 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         0,
         1,
         newEntry);
-    JUnitTestCase.assertNotNull(_result);
-    JUnitTestCase.assertSame(_source, _result.source);
-    JUnitTestCase.assertSame(newUnit, _result.resolvedUnit);
-    JUnitTestCase.assertEquals("hbazlo", _result.oldContents);
-    JUnitTestCase.assertEquals("hbazxlo", _result.newContents);
-    JUnitTestCase.assertEquals(4, _result.offset);
-    JUnitTestCase.assertEquals(0, _result.oldLength);
-    JUnitTestCase.assertEquals(1, _result.newLength);
+    expect(_result, isNotNull);
+    expect(_result.source, same(_source));
+    expect(_result.resolvedUnit, same(newUnit));
+    expect(_result.oldContents, "hbazlo");
+    expect(_result.newContents, "hbazxlo");
+    expect(_result.offset, 4);
+    expect(_result.oldLength, 0);
+    expect(_result.newLength, 1);
   }
   void test_update_appendWithNoNewResolvedUnit() {
     IncrementalAnalysisCache cache = IncrementalAnalysisCache.update(
@@ -4314,14 +3653,14 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         0,
         1,
         newEntry);
-    JUnitTestCase.assertNotNull(_result);
-    JUnitTestCase.assertSame(_source, _result.source);
-    JUnitTestCase.assertSame(_unit, _result.resolvedUnit);
-    JUnitTestCase.assertEquals("hello", _result.oldContents);
-    JUnitTestCase.assertEquals("hbazxlo", _result.newContents);
-    JUnitTestCase.assertEquals(1, _result.offset);
-    JUnitTestCase.assertEquals(2, _result.oldLength);
-    JUnitTestCase.assertEquals(4, _result.newLength);
+    expect(_result, isNotNull);
+    expect(_result.source, same(_source));
+    expect(_result.resolvedUnit, same(_unit));
+    expect(_result.oldContents, "hello");
+    expect(_result.newContents, "hbazxlo");
+    expect(_result.offset, 1);
+    expect(_result.oldLength, 2);
+    expect(_result.newLength, 4);
   }
   void test_update_delete() {
     IncrementalAnalysisCache cache = IncrementalAnalysisCache.update(
@@ -4343,14 +3682,14 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         2,
         0,
         newEntry);
-    JUnitTestCase.assertNotNull(_result);
-    JUnitTestCase.assertSame(_source, _result.source);
-    JUnitTestCase.assertSame(_unit, _result.resolvedUnit);
-    JUnitTestCase.assertEquals("hello", _result.oldContents);
-    JUnitTestCase.assertEquals("hzlo", _result.newContents);
-    JUnitTestCase.assertEquals(1, _result.offset);
-    JUnitTestCase.assertEquals(2, _result.oldLength);
-    JUnitTestCase.assertEquals(1, _result.newLength);
+    expect(_result, isNotNull);
+    expect(_result.source, same(_source));
+    expect(_result.resolvedUnit, same(_unit));
+    expect(_result.oldContents, "hello");
+    expect(_result.newContents, "hzlo");
+    expect(_result.offset, 1);
+    expect(_result.oldLength, 2);
+    expect(_result.newLength, 1);
   }
   void test_update_insert_nonContiguous_after() {
     IncrementalAnalysisCache cache = IncrementalAnalysisCache.update(
@@ -4372,7 +3711,7 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         0,
         1,
         newEntry);
-    JUnitTestCase.assertNull(_result);
+    expect(_result, isNull);
   }
   void test_update_insert_nonContiguous_before() {
     IncrementalAnalysisCache cache = IncrementalAnalysisCache.update(
@@ -4394,7 +3733,7 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         0,
         1,
         newEntry);
-    JUnitTestCase.assertNull(_result);
+    expect(_result, isNull);
   }
   void test_update_newSource_entry() {
     Source oldSource = new TestSource("blat.dart", "blat");
@@ -4410,8 +3749,8 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         2,
         3,
         oldEntry);
-    JUnitTestCase.assertSame(oldSource, cache.source);
-    JUnitTestCase.assertSame(oldUnit, cache.resolvedUnit);
+    expect(cache.source, same(oldSource));
+    expect(cache.resolvedUnit, same(oldUnit));
     _result = IncrementalAnalysisCache.update(
         cache,
         _source,
@@ -4421,14 +3760,14 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         0,
         2,
         _entry);
-    JUnitTestCase.assertNotNull(_result);
-    JUnitTestCase.assertSame(_source, _result.source);
-    JUnitTestCase.assertSame(_unit, _result.resolvedUnit);
-    JUnitTestCase.assertEquals("foo", _result.oldContents);
-    JUnitTestCase.assertEquals("foobz", _result.newContents);
-    JUnitTestCase.assertEquals(3, _result.offset);
-    JUnitTestCase.assertEquals(0, _result.oldLength);
-    JUnitTestCase.assertEquals(2, _result.newLength);
+    expect(_result, isNotNull);
+    expect(_result.source, same(_source));
+    expect(_result.resolvedUnit, same(_unit));
+    expect(_result.oldContents, "foo");
+    expect(_result.newContents, "foobz");
+    expect(_result.offset, 3);
+    expect(_result.oldLength, 0);
+    expect(_result.newLength, 2);
   }
   void test_update_newSource_noEntry() {
     Source oldSource = new TestSource("blat.dart", "blat");
@@ -4444,8 +3783,8 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         2,
         3,
         oldEntry);
-    JUnitTestCase.assertSame(oldSource, cache.source);
-    JUnitTestCase.assertSame(oldUnit, cache.resolvedUnit);
+    expect(cache.source, same(oldSource));
+    expect(cache.resolvedUnit, same(oldUnit));
     _result = IncrementalAnalysisCache.update(
         cache,
         _source,
@@ -4455,7 +3794,7 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         0,
         3,
         null);
-    JUnitTestCase.assertNull(_result);
+    expect(_result, isNull);
   }
   void test_update_noCache_entry() {
     _result = IncrementalAnalysisCache.update(
@@ -4467,15 +3806,15 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         2,
         3,
         _entry);
-    JUnitTestCase.assertNotNull(_result);
-    JUnitTestCase.assertSame(_source, _result.source);
-    JUnitTestCase.assertSame(_unit, _result.resolvedUnit);
-    JUnitTestCase.assertEquals("hello", _result.oldContents);
-    JUnitTestCase.assertEquals("hbazlo", _result.newContents);
-    JUnitTestCase.assertEquals(1, _result.offset);
-    JUnitTestCase.assertEquals(2, _result.oldLength);
-    JUnitTestCase.assertEquals(3, _result.newLength);
-    JUnitTestCase.assertTrue(_result.hasWork);
+    expect(_result, isNotNull);
+    expect(_result.source, same(_source));
+    expect(_result.resolvedUnit, same(_unit));
+    expect(_result.oldContents, "hello");
+    expect(_result.newContents, "hbazlo");
+    expect(_result.offset, 1);
+    expect(_result.oldLength, 2);
+    expect(_result.newLength, 3);
+    expect(_result.hasWork, isTrue);
   }
   void test_update_noCache_entry_noOldSource_append() {
     _result = IncrementalAnalysisCache.update(
@@ -4487,25 +3826,25 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         0,
         1,
         _entry);
-    JUnitTestCase.assertNotNull(_result);
-    JUnitTestCase.assertSame(_source, _result.source);
-    JUnitTestCase.assertSame(_unit, _result.resolvedUnit);
-    JUnitTestCase.assertEquals("hello", _result.oldContents);
-    JUnitTestCase.assertEquals("hellxo", _result.newContents);
-    JUnitTestCase.assertEquals(4, _result.offset);
-    JUnitTestCase.assertEquals(0, _result.oldLength);
-    JUnitTestCase.assertEquals(1, _result.newLength);
-    JUnitTestCase.assertTrue(_result.hasWork);
+    expect(_result, isNotNull);
+    expect(_result.source, same(_source));
+    expect(_result.resolvedUnit, same(_unit));
+    expect(_result.oldContents, "hello");
+    expect(_result.newContents, "hellxo");
+    expect(_result.offset, 4);
+    expect(_result.oldLength, 0);
+    expect(_result.newLength, 1);
+    expect(_result.hasWork, isTrue);
   }
   void test_update_noCache_entry_noOldSource_delete() {
     _result =
         IncrementalAnalysisCache.update(null, _source, null, "helo", 4, 1, 0, _entry);
-    JUnitTestCase.assertNull(_result);
+    expect(_result, isNull);
   }
   void test_update_noCache_entry_noOldSource_replace() {
     _result =
         IncrementalAnalysisCache.update(null, _source, null, "helxo", 4, 1, 1, _entry);
-    JUnitTestCase.assertNull(_result);
+    expect(_result, isNull);
   }
   void test_update_noCache_noEntry() {
     _result = IncrementalAnalysisCache.update(
@@ -4517,7 +3856,7 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         2,
         3,
         null);
-    JUnitTestCase.assertNull(_result);
+    expect(_result, isNull);
   }
   void test_update_replace() {
     IncrementalAnalysisCache cache = IncrementalAnalysisCache.update(
@@ -4538,14 +3877,14 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         1,
         2,
         null);
-    JUnitTestCase.assertNotNull(_result);
-    JUnitTestCase.assertSame(_source, _result.source);
-    JUnitTestCase.assertSame(_unit, _result.resolvedUnit);
-    JUnitTestCase.assertEquals("hello", _result.oldContents);
-    JUnitTestCase.assertEquals("hbarrlo", _result.newContents);
-    JUnitTestCase.assertEquals(1, _result.offset);
-    JUnitTestCase.assertEquals(2, _result.oldLength);
-    JUnitTestCase.assertEquals(4, _result.newLength);
+    expect(_result, isNotNull);
+    expect(_result.source, same(_source));
+    expect(_result.resolvedUnit, same(_unit));
+    expect(_result.oldContents, "hello");
+    expect(_result.newContents, "hbarrlo");
+    expect(_result.offset, 1);
+    expect(_result.oldLength, 2);
+    expect(_result.newLength, 4);
   }
   void test_verifyStructure_invalidUnit() {
     String oldCode = "main() {foo;}";
@@ -4563,19 +3902,19 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         _entry);
     CompilationUnit newUnit = _parse(newCode);
     _result = IncrementalAnalysisCache.verifyStructure(cache, _source, newUnit);
-    JUnitTestCase.assertNull(_result);
+    expect(_result, isNull);
   }
   void test_verifyStructure_noCache() {
     IncrementalAnalysisCache cache = null;
     CompilationUnit newUnit = new CompilationUnitMock();
     _result = IncrementalAnalysisCache.verifyStructure(cache, _source, newUnit);
-    JUnitTestCase.assertNull(_result);
+    expect(_result, isNull);
   }
   void test_verifyStructure_noCacheNoUnit() {
     IncrementalAnalysisCache cache = null;
     CompilationUnit newUnit = null;
     _result = IncrementalAnalysisCache.verifyStructure(cache, _source, newUnit);
-    JUnitTestCase.assertNull(_result);
+    expect(_result, isNull);
   }
   void test_verifyStructure_noUnit() {
     IncrementalAnalysisCache cache = IncrementalAnalysisCache.update(
@@ -4589,8 +3928,8 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         _entry);
     CompilationUnit newUnit = null;
     _result = IncrementalAnalysisCache.verifyStructure(cache, _source, newUnit);
-    JUnitTestCase.assertSame(cache, _result);
-    JUnitTestCase.assertSame(_unit, _result.resolvedUnit);
+    expect(_result, same(cache));
+    expect(_result.resolvedUnit, same(_unit));
   }
   void test_verifyStructure_otherSource() {
     IncrementalAnalysisCache cache = IncrementalAnalysisCache.update(
@@ -4606,8 +3945,8 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
     Source otherSource = new TestSource("blat.dart", "blat");
     _result =
         IncrementalAnalysisCache.verifyStructure(cache, otherSource, newUnit);
-    JUnitTestCase.assertSame(cache, _result);
-    JUnitTestCase.assertSame(_unit, _result.resolvedUnit);
+    expect(_result, same(cache));
+    expect(_result.resolvedUnit, same(_unit));
   }
   void test_verifyStructure_validUnit() {
     String oldCode = "main() {foo;}";
@@ -4625,8 +3964,8 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         _entry);
     CompilationUnit newUnit = _parse(newCode);
     _result = IncrementalAnalysisCache.verifyStructure(cache, _source, newUnit);
-    JUnitTestCase.assertSame(cache, _result);
-    JUnitTestCase.assertSame(goodUnit, _result.resolvedUnit);
+    expect(_result, same(cache));
+    expect(_result.resolvedUnit, same(goodUnit));
   }
   CompilationUnit _parse(String code) {
     Scanner scanner = new Scanner(
@@ -4643,8 +3982,7 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
 class IncrementalAnalysisTaskTest extends EngineTestCase {
   void test_accept() {
     IncrementalAnalysisTask task = new IncrementalAnalysisTask(null, null);
-    JUnitTestCase.assertTrue(
-        task.accept(new IncrementalAnalysisTaskTestTV_accept()));
+    expect(task.accept(new IncrementalAnalysisTaskTestTV_accept()), isTrue);
   }
 
   void test_perform() {
@@ -4654,19 +3992,19 @@ class IncrementalAnalysisTaskTest extends EngineTestCase {
         _assertTask("main() {", "", "String", "} String foo;");
     NodeList<CompilationUnitMember> declarations = newUnit.declarations;
     FunctionDeclaration main = declarations[0] as FunctionDeclaration;
-    JUnitTestCase.assertEquals("main", main.name.name);
+    expect(main.name.name, "main");
     BlockFunctionBody body = main.functionExpression.body as BlockFunctionBody;
     ExpressionStatement statement =
         body.block.statements[0] as ExpressionStatement;
-    JUnitTestCase.assertEquals("String;", statement.toSource());
+    expect(statement.toSource(), "String;");
     SimpleIdentifier identifier = statement.expression as SimpleIdentifier;
-    JUnitTestCase.assertEquals("String", identifier.name);
-    JUnitTestCase.assertNotNull(identifier.staticElement);
+    expect(identifier.name, "String");
+    expect(identifier.staticElement, isNotNull);
     TopLevelVariableDeclaration fooDecl =
         declarations[1] as TopLevelVariableDeclaration;
     SimpleIdentifier fooName = fooDecl.variables.variables[0].name;
-    JUnitTestCase.assertEquals("foo", fooName.name);
-    JUnitTestCase.assertNotNull(fooName.staticElement);
+    expect(fooName.name, "foo");
+    expect(fooName.staticElement, isNotNull);
     // assert element reference is preserved
   }
 
@@ -4678,7 +4016,7 @@ class IncrementalAnalysisTaskTest extends EngineTestCase {
     Source source = new TestSource("/test.dart", oldCode);
     DartEntry entry = new DartEntry();
     CompilationUnit oldUnit = context.resolveCompilationUnit2(source, source);
-    JUnitTestCase.assertNotNull(oldUnit);
+    expect(oldUnit, isNotNull);
     entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source, oldUnit);
     IncrementalAnalysisCache cache = IncrementalAnalysisCache.update(
         null,
@@ -4689,11 +4027,11 @@ class IncrementalAnalysisTaskTest extends EngineTestCase {
         removed.length,
         added.length,
         entry);
-    JUnitTestCase.assertNotNull(cache);
+    expect(cache, isNotNull);
     IncrementalAnalysisTask task = new IncrementalAnalysisTask(context, cache);
     CompilationUnit newUnit =
         task.perform(new IncrementalAnalysisTaskTestTV_assertTask(task));
-    JUnitTestCase.assertNotNull(newUnit);
+    expect(newUnit, isNotNull);
     return newUnit;
   }
 }
@@ -4723,7 +4061,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_addSourceInfo(invoked));
     context.addSourceInfo(null, null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_applyChanges() {
@@ -4732,7 +4070,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_applyChanges(invoked));
     context.applyChanges(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_computeDocumentationComment() {
@@ -4741,7 +4079,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_computeDocumentationComment(invoked));
     context.computeDocumentationComment(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_computeErrors() {
@@ -4750,7 +4088,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_computeErrors(invoked));
     context.computeErrors(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_computeExportedLibraries() {
@@ -4759,7 +4097,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_computeExportedLibraries(invoked));
     context.computeExportedLibraries(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_computeHtmlElement() {
@@ -4768,7 +4106,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_computeHtmlElement(invoked));
     context.computeHtmlElement(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_computeImportedLibraries() {
@@ -4777,7 +4115,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_computeImportedLibraries(invoked));
     context.computeImportedLibraries(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_computeKindOf() {
@@ -4786,7 +4124,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_computeKindOf(invoked));
     context.computeKindOf(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_computeLibraryElement() {
@@ -4795,7 +4133,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_computeLibraryElement(invoked));
     context.computeLibraryElement(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_computeLineInfo() {
@@ -4804,7 +4142,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_computeLineInfo(invoked));
     context.computeLineInfo(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_computeResolvableCompilationUnit() {
@@ -4813,11 +4151,11 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_computeResolvableCompilationUnit(invoked));
     context.computeResolvableCompilationUnit(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_creation() {
-    JUnitTestCase.assertNotNull(new InstrumentedAnalysisContextImpl());
+    expect(new InstrumentedAnalysisContextImpl(), isNotNull);
   }
 
   void test_dispose() {
@@ -4826,7 +4164,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_dispose(invoked));
     context.dispose();
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_exists() {
@@ -4835,7 +4173,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_exists(invoked));
     context.exists(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getAnalysisOptions() {
@@ -4844,7 +4182,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getAnalysisOptions(invoked));
     context.analysisOptions;
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getAngularApplicationWithHtml() {
@@ -4853,7 +4191,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getAngularApplicationWithHtml(invoked));
     context.getAngularApplicationWithHtml(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getCompilationUnitElement() {
@@ -4862,7 +4200,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getCompilationUnitElement(invoked));
     context.getCompilationUnitElement(null, null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getContents() {
@@ -4871,7 +4209,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getContents(invoked));
     context.getContents(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
 //  void test_getContentsToReceiver() {
@@ -4887,7 +4225,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getElement(invoked));
     context.getElement(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getErrors() {
@@ -4896,7 +4234,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getErrors(invoked));
     context.getErrors(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getHtmlElement() {
@@ -4905,7 +4243,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getHtmlElement(invoked));
     context.getHtmlElement(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getHtmlFilesReferencing() {
@@ -4914,7 +4252,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getHtmlFilesReferencing(invoked));
     context.getHtmlFilesReferencing(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getHtmlSources() {
@@ -4923,7 +4261,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getHtmlSources(invoked));
     context.htmlSources;
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getKindOf() {
@@ -4932,7 +4270,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getKindOf(invoked));
     context.getKindOf(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getLaunchableClientLibrarySources() {
@@ -4941,7 +4279,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getLaunchableClientLibrarySources(invoked));
     context.launchableClientLibrarySources;
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getLaunchableServerLibrarySources() {
@@ -4950,7 +4288,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getLaunchableServerLibrarySources(invoked));
     context.launchableServerLibrarySources;
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getLibrariesContaining() {
@@ -4959,7 +4297,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getLibrariesContaining(invoked));
     context.getLibrariesContaining(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getLibrariesDependingOn() {
@@ -4968,7 +4306,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getLibrariesDependingOn(invoked));
     context.getLibrariesDependingOn(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getLibrariesReferencedFromHtml() {
@@ -4977,7 +4315,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getLibrariesReferencedFromHtml(invoked));
     context.getLibrariesReferencedFromHtml(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getLibraryElement() {
@@ -4986,7 +4324,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getLibraryElement(invoked));
     context.getLibraryElement(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getLibrarySources() {
@@ -4995,7 +4333,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getLibrarySources(invoked));
     context.librarySources;
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getLineInfo() {
@@ -5004,7 +4342,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getLineInfo(invoked));
     context.getLineInfo(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getModificationStamp() {
@@ -5013,7 +4351,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getModificationStamp(invoked));
     context.getModificationStamp(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getPublicNamespace() {
@@ -5022,7 +4360,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getPublicNamespace(invoked));
     context.getPublicNamespace(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getRefactoringUnsafeSources() {
@@ -5031,7 +4369,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getRefactoringUnsafeSources(invoked));
     context.refactoringUnsafeSources;
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getResolvedCompilationUnit_element() {
@@ -5040,7 +4378,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getResolvedCompilationUnit_element(invoked));
     context.getResolvedCompilationUnit(null, null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getResolvedCompilationUnit_source() {
@@ -5049,7 +4387,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getResolvedCompilationUnit_source(invoked));
     context.getResolvedCompilationUnit2(null, null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getResolvedHtmlUnit() {
@@ -5058,7 +4396,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getResolvedHtmlUnit(invoked));
     context.getResolvedHtmlUnit(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getSourceFactory() {
@@ -5067,7 +4405,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getSourceFactory(invoked));
     context.sourceFactory;
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getStatistics() {
@@ -5076,7 +4414,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getStatistics(invoked));
     context.statistics;
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_getTypeProvider() {
@@ -5085,7 +4423,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_getTypeProvider(invoked));
     context.typeProvider;
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_isClientLibrary() {
@@ -5094,7 +4432,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_isClientLibrary(invoked));
     context.isClientLibrary(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_isDisposed() {
@@ -5103,7 +4441,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_isDisposed(invoked));
     context.isDisposed;
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_isServerLibrary() {
@@ -5112,7 +4450,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_isServerLibrary(invoked));
     context.isServerLibrary(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_parseCompilationUnit() {
@@ -5121,7 +4459,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_parseCompilationUnit(invoked));
     context.parseCompilationUnit(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_parseHtmlUnit() {
@@ -5130,7 +4468,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_parseHtmlUnit(invoked));
     context.parseHtmlUnit(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_performAnalysisTask() {
@@ -5139,7 +4477,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_performAnalysisTask(invoked));
     context.performAnalysisTask();
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_recordLibraryElements() {
@@ -5148,7 +4486,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_recordLibraryElements(invoked));
     context.recordLibraryElements(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_resolveCompilationUnit() {
@@ -5157,7 +4495,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_resolveCompilationUnit(invoked));
     context.resolveCompilationUnit2(null, null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_resolveCompilationUnit_element() {
@@ -5166,7 +4504,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_resolveCompilationUnit_element(invoked));
     context.resolveCompilationUnit(null, null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_resolveHtmlUnit() {
@@ -5175,7 +4513,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_resolveHtmlUnit(invoked));
     context.resolveHtmlUnit(null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_setAnalysisOptions() {
@@ -5184,7 +4522,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_setAnalysisOptions(invoked));
     context.analysisOptions = null;
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_setAnalysisPriorityOrder() {
@@ -5193,7 +4531,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_setAnalysisPriorityOrder(invoked));
     context.analysisPriorityOrder = null;
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_setChangedContents() {
@@ -5202,7 +4540,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_setChangedContents(invoked));
     context.setChangedContents(null, null, 0, 0, 0);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_setContents() {
@@ -5211,7 +4549,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_setContents(invoked));
     context.setContents(null, null);
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 
   void test_setSourceFactory() {
@@ -5220,7 +4558,7 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         new InstrumentedAnalysisContextImpl.con1(
             new TestAnalysisContext_test_setSourceFactory(invoked));
     context.sourceFactory = null;
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(invoked[0], isTrue);
   }
 }
 
@@ -5228,12 +4566,12 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
 class ParseDartTaskTest extends EngineTestCase {
   void test_accept() {
     ParseDartTask task = new ParseDartTask(null, null, null, null);
-    JUnitTestCase.assertTrue(task.accept(new ParseDartTaskTestTV_accept()));
+    expect(task.accept(new ParseDartTaskTestTV_accept()), isTrue);
   }
 
   void test_getCompilationUnit() {
     ParseDartTask task = new ParseDartTask(null, null, null, null);
-    JUnitTestCase.assertNull(task.compilationUnit);
+    expect(task.compilationUnit, isNull);
   }
 
   void test_getErrors() {
@@ -5243,23 +4581,23 @@ class ParseDartTaskTest extends EngineTestCase {
 
   void test_getException() {
     ParseDartTask task = new ParseDartTask(null, null, null, null);
-    JUnitTestCase.assertNull(task.exception);
+    expect(task.exception, isNull);
   }
 
   void test_getSource() {
     Source source = new TestSource('/test.dart');
     ParseDartTask task = new ParseDartTask(null, source, null, null);
-    JUnitTestCase.assertSame(source, task.source);
+    expect(task.source, same(source));
   }
 
   void test_hasNonPartOfDirective() {
     ParseDartTask task = new ParseDartTask(null, null, null, null);
-    JUnitTestCase.assertFalse(task.hasNonPartOfDirective);
+    expect(task.hasNonPartOfDirective, isFalse);
   }
 
   void test_hasPartOfDirective() {
     ParseDartTask task = new ParseDartTask(null, null, null, null);
-    JUnitTestCase.assertFalse(task.hasPartOfDirective);
+    expect(task.hasPartOfDirective, isFalse);
   }
 
   void test_perform_exception() {
@@ -5354,7 +4692,7 @@ class ParseDartTaskTestTV_createParseTask extends TestTaskVisitor<Object> {
 class ParseDartTaskTestTV_perform_exception extends TestTaskVisitor<bool> {
   @override
   bool visitParseDartTask(ParseDartTask task) {
-    JUnitTestCase.assertNotNull(task.exception);
+    expect(task.exception, isNotNull);
     return true;
   }
 }
@@ -5370,11 +4708,11 @@ class ParseDartTaskTestTV_perform_library extends TestTaskVisitor<Object> {
     if (exception != null) {
       throw exception;
     }
-    JUnitTestCase.assertNotNull(task.compilationUnit);
+    expect(task.compilationUnit, isNotNull);
     EngineTestCase.assertLength(1, task.errors);
-    JUnitTestCase.assertSame(source, task.source);
-    JUnitTestCase.assertTrue(task.hasNonPartOfDirective);
-    JUnitTestCase.assertFalse(task.hasPartOfDirective);
+    expect(task.source, same(source));
+    expect(task.hasNonPartOfDirective, isTrue);
+    expect(task.hasPartOfDirective, isFalse);
     return null;
   }
 }
@@ -5390,11 +4728,11 @@ class ParseDartTaskTestTV_perform_part extends TestTaskVisitor<Object> {
     if (exception != null) {
       throw exception;
     }
-    JUnitTestCase.assertNotNull(task.compilationUnit);
+    expect(task.compilationUnit, isNotNull);
     EngineTestCase.assertLength(0, task.errors);
-    JUnitTestCase.assertSame(source, task.source);
-    JUnitTestCase.assertFalse(task.hasNonPartOfDirective);
-    JUnitTestCase.assertTrue(task.hasPartOfDirective);
+    expect(task.source, same(source));
+    expect(task.hasNonPartOfDirective, isFalse);
+    expect(task.hasPartOfDirective, isTrue);
     return null;
   }
 }
@@ -5411,16 +4749,16 @@ class ParseDartTaskTestTV_perform_validateDirectives extends
     if (exception != null) {
       throw exception;
     }
-    JUnitTestCase.assertNotNull(task.compilationUnit);
+    expect(task.compilationUnit, isNotNull);
     GatheringErrorListener errorListener = new GatheringErrorListener();
     errorListener.addAll(task.errors);
     errorListener.assertErrorsWithCodes(
         [
             CompileTimeErrorCode.URI_WITH_INTERPOLATION,
             CompileTimeErrorCode.INVALID_URI]);
-    JUnitTestCase.assertSame(source, task.source);
-    JUnitTestCase.assertTrue(task.hasNonPartOfDirective);
-    JUnitTestCase.assertFalse(task.hasPartOfDirective);
+    expect(task.source, same(source));
+    expect(task.hasNonPartOfDirective, isTrue);
+    expect(task.hasPartOfDirective, isFalse);
     return null;
   }
 }
@@ -5455,22 +4793,22 @@ class ParseHtmlTaskTest extends EngineTestCase {
 
   void test_accept() {
     ParseHtmlTask task = new ParseHtmlTask(null, null, "");
-    JUnitTestCase.assertTrue(task.accept(new ParseHtmlTaskTestTV_accept()));
+    expect(task.accept(new ParseHtmlTaskTestTV_accept()), isTrue);
   }
 
   void test_getException() {
     ParseHtmlTask task = new ParseHtmlTask(null, null, "");
-    JUnitTestCase.assertNull(task.exception);
+    expect(task.exception, isNull);
   }
 
   void test_getHtmlUnit() {
     ParseHtmlTask task = new ParseHtmlTask(null, null, "");
-    JUnitTestCase.assertNull(task.htmlUnit);
+    expect(task.htmlUnit, isNull);
   }
 
   void test_getLineInfo() {
     ParseHtmlTask task = new ParseHtmlTask(null, null, "");
-    JUnitTestCase.assertNull(task.lineInfo);
+    expect(task.lineInfo, isNull);
   }
 
   void test_getReferencedLibraries() {
@@ -5481,7 +4819,7 @@ class ParseHtmlTaskTest extends EngineTestCase {
   void test_getSource() {
     Source source = new TestSource('/test.dart');
     ParseHtmlTask task = new ParseHtmlTask(null, source, "");
-    JUnitTestCase.assertSame(source, task.source);
+    expect(task.source, same(source));
   }
 
   void test_perform_embedded_source() {
@@ -5498,8 +4836,8 @@ class ParseHtmlTaskTest extends EngineTestCase {
     TestLogger testLogger = new TestLogger();
     ParseHtmlTask task = parseContents(contents, testLogger);
     EngineTestCase.assertLength(0, task.referencedLibraries);
-    JUnitTestCase.assertEquals(0, testLogger.errorCount);
-    JUnitTestCase.assertEquals(0, testLogger.infoCount);
+    expect(testLogger.errorCount, 0);
+    expect(testLogger.infoCount, 0);
   }
 
   void test_perform_empty_source_reference() {
@@ -5514,8 +4852,8 @@ class ParseHtmlTaskTest extends EngineTestCase {
     TestLogger testLogger = new TestLogger();
     ParseHtmlTask task = parseContents(contents, testLogger);
     EngineTestCase.assertLength(0, task.referencedLibraries);
-    JUnitTestCase.assertEquals(0, testLogger.errorCount);
-    JUnitTestCase.assertEquals(0, testLogger.infoCount);
+    expect(testLogger.errorCount, 0);
+    expect(testLogger.infoCount, 0);
   }
 
   void test_perform_invalid_source_reference() {
@@ -5530,8 +4868,8 @@ class ParseHtmlTaskTest extends EngineTestCase {
     TestLogger testLogger = new TestLogger();
     ParseHtmlTask task = parseContents(contents, testLogger);
     EngineTestCase.assertLength(0, task.referencedLibraries);
-    JUnitTestCase.assertEquals(0, testLogger.errorCount);
-    JUnitTestCase.assertEquals(0, testLogger.infoCount);
+    expect(testLogger.errorCount, 0);
+    expect(testLogger.infoCount, 0);
   }
 
   void test_perform_non_existing_source_reference() {
@@ -5549,8 +4887,8 @@ class ParseHtmlTaskTest extends EngineTestCase {
         contents,
         testLogger);
     EngineTestCase.assertLength(0, task.referencedLibraries);
-    JUnitTestCase.assertEquals(0, testLogger.errorCount);
-    JUnitTestCase.assertEquals(0, testLogger.infoCount);
+    expect(testLogger.errorCount, 0);
+    expect(testLogger.infoCount, 0);
   }
 
   void test_perform_referenced_source() {
@@ -5591,9 +4929,9 @@ class ParseHtmlTaskTestTV_parseSource extends TestTaskVisitor<bool> {
     if (exception != null) {
       throw exception;
     }
-    JUnitTestCase.assertNotNull(task.htmlUnit);
-    JUnitTestCase.assertNotNull(task.lineInfo);
-    JUnitTestCase.assertSame(source, task.source);
+    expect(task.htmlUnit, isNotNull);
+    expect(task.lineInfo, isNotNull);
+    expect(task.source, same(source));
     return true;
   }
 }
@@ -5619,24 +4957,24 @@ class PartitionManagerTest extends EngineTestCase {
     SdkCachePartition oldPartition = manager.forSdk(sdk);
     manager.clearCache();
     SdkCachePartition newPartition = manager.forSdk(sdk);
-    JUnitTestCase.assertNotSame(oldPartition, newPartition);
+    expect(newPartition, isNot(same(oldPartition)));
   }
 
   void test_creation() {
-    JUnitTestCase.assertNotNull(new PartitionManager());
+    expect(new PartitionManager(), isNotNull);
   }
 
   void test_forSdk() {
     PartitionManager manager = new PartitionManager();
     DartSdk sdk1 = new MockDartSdk();
     SdkCachePartition partition1 = manager.forSdk(sdk1);
-    JUnitTestCase.assertNotNull(partition1);
-    JUnitTestCase.assertSame(partition1, manager.forSdk(sdk1));
+    expect(partition1, isNotNull);
+    expect(manager.forSdk(sdk1), same(partition1));
     DartSdk sdk2 = new MockDartSdk();
     SdkCachePartition partition2 = manager.forSdk(sdk2);
-    JUnitTestCase.assertNotNull(partition2);
-    JUnitTestCase.assertSame(partition2, manager.forSdk(sdk2));
-    JUnitTestCase.assertNotSame(partition1, partition2);
+    expect(partition2, isNotNull);
+    expect(manager.forSdk(sdk2), same(partition2));
+    expect(partition2, isNot(same(partition1)));
   }
 }
 
@@ -5644,28 +4982,27 @@ class PartitionManagerTest extends EngineTestCase {
 class ResolveDartLibraryTaskTest extends EngineTestCase {
   void test_accept() {
     ResolveDartLibraryTask task = new ResolveDartLibraryTask(null, null, null);
-    JUnitTestCase.assertTrue(
-        task.accept(new ResolveDartLibraryTaskTestTV_accept()));
+    expect(task.accept(new ResolveDartLibraryTaskTestTV_accept()), isTrue);
   }
   void test_getException() {
     ResolveDartLibraryTask task = new ResolveDartLibraryTask(null, null, null);
-    JUnitTestCase.assertNull(task.exception);
+    expect(task.exception, isNull);
   }
   void test_getLibraryResolver() {
     ResolveDartLibraryTask task = new ResolveDartLibraryTask(null, null, null);
-    JUnitTestCase.assertNull(task.libraryResolver);
+    expect(task.libraryResolver, isNull);
   }
   void test_getLibrarySource() {
     Source source = new TestSource('/test.dart');
     ResolveDartLibraryTask task =
         new ResolveDartLibraryTask(null, null, source);
-    JUnitTestCase.assertSame(source, task.librarySource);
+    expect(task.librarySource, same(source));
   }
   void test_getUnitSource() {
     Source source = new TestSource('/test.dart');
     ResolveDartLibraryTask task =
         new ResolveDartLibraryTask(null, source, null);
-    JUnitTestCase.assertSame(source, task.unitSource);
+    expect(task.unitSource, same(source));
   }
   void test_perform_exception() {
     TestSource source = new TestSource();
@@ -5700,7 +5037,7 @@ class ResolveDartLibraryTaskTestTV_perform_exception extends
     TestTaskVisitor<bool> {
   @override
   bool visitResolveDartLibraryTask(ResolveDartLibraryTask task) {
-    JUnitTestCase.assertNotNull(task.exception);
+    expect(task.exception, isNotNull);
     return true;
   }
 }
@@ -5716,9 +5053,9 @@ class ResolveDartLibraryTaskTestTV_perform_library extends TestTaskVisitor<bool>
     if (exception != null) {
       throw exception;
     }
-    JUnitTestCase.assertNotNull(task.libraryResolver);
-    JUnitTestCase.assertSame(source, task.librarySource);
-    JUnitTestCase.assertSame(source, task.unitSource);
+    expect(task.libraryResolver, isNotNull);
+    expect(task.librarySource, same(source));
+    expect(task.unitSource, same(source));
     return true;
   }
 }
@@ -5727,13 +5064,12 @@ class ResolveDartLibraryTaskTestTV_perform_library extends TestTaskVisitor<bool>
 class ResolveDartUnitTaskTest extends EngineTestCase {
   void test_accept() {
     ResolveDartUnitTask task = new ResolveDartUnitTask(null, null, null);
-    JUnitTestCase.assertTrue(
-        task.accept(new ResolveDartUnitTaskTestTV_accept()));
+    expect(task.accept(new ResolveDartUnitTaskTestTV_accept()), isTrue);
   }
 
   void test_getException() {
     ResolveDartUnitTask task = new ResolveDartUnitTask(null, null, null);
-    JUnitTestCase.assertNull(task.exception);
+    expect(task.exception, isNull);
   }
 
   void test_getLibrarySource() {
@@ -5741,18 +5077,18 @@ class ResolveDartUnitTaskTest extends EngineTestCase {
     LibraryElementImpl element = ElementFactory.library(context, "lib");
     Source source = element.source;
     ResolveDartUnitTask task = new ResolveDartUnitTask(null, null, element);
-    JUnitTestCase.assertSame(source, task.librarySource);
+    expect(task.librarySource, same(source));
   }
 
   void test_getResolvedUnit() {
     ResolveDartUnitTask task = new ResolveDartUnitTask(null, null, null);
-    JUnitTestCase.assertNull(task.resolvedUnit);
+    expect(task.resolvedUnit, isNull);
   }
 
   void test_getSource() {
     Source source = new TestSource('/test.dart');
     ResolveDartUnitTask task = new ResolveDartUnitTask(null, source, null);
-    JUnitTestCase.assertSame(source, task.source);
+    expect(task.source, same(source));
   }
 
   void test_perform_exception() {
@@ -5803,7 +5139,7 @@ class ResolveDartUnitTaskTestTV_perform_exception extends TestTaskVisitor<bool>
     {
   @override
   bool visitResolveDartUnitTask(ResolveDartUnitTask task) {
-    JUnitTestCase.assertNotNull(task.exception);
+    expect(task.exception, isNotNull);
     return true;
   }
 }
@@ -5819,9 +5155,9 @@ class ResolveDartUnitTaskTestTV_perform_library extends TestTaskVisitor<bool> {
     if (exception != null) {
       throw exception;
     }
-    JUnitTestCase.assertSame(source, task.librarySource);
-    JUnitTestCase.assertNotNull(task.resolvedUnit);
-    JUnitTestCase.assertSame(source, task.source);
+    expect(task.librarySource, same(source));
+    expect(task.resolvedUnit, isNotNull);
+    expect(task.source, same(source));
     return true;
   }
 }
@@ -5830,17 +5166,17 @@ class ResolveDartUnitTaskTestTV_perform_library extends TestTaskVisitor<bool> {
 class ResolveHtmlTaskTest extends EngineTestCase {
   void test_accept() {
     ResolveHtmlTask task = new ResolveHtmlTask(null, null, 0, null);
-    JUnitTestCase.assertTrue(task.accept(new ResolveHtmlTaskTestTV_accept()));
+    expect(task.accept(new ResolveHtmlTaskTestTV_accept()), isTrue);
   }
 
   void test_getElement() {
     ResolveHtmlTask task = new ResolveHtmlTask(null, null, 0, null);
-    JUnitTestCase.assertNull(task.element);
+    expect(task.element, isNull);
   }
 
   void test_getException() {
     ResolveHtmlTask task = new ResolveHtmlTask(null, null, 0, null);
-    JUnitTestCase.assertNull(task.exception);
+    expect(task.exception, isNull);
   }
 
   void test_getResolutionErrors() {
@@ -5851,7 +5187,7 @@ class ResolveHtmlTaskTest extends EngineTestCase {
   void test_getSource() {
     Source source = new TestSource('test.dart', '');
     ResolveHtmlTask task = new ResolveHtmlTask(null, source, 0, null);
-    JUnitTestCase.assertSame(source, task.source);
+    expect(task.source, same(source));
   }
 
   void test_perform_exception() {
@@ -5899,7 +5235,7 @@ class ResolveHtmlTaskTestTV_accept extends TestTaskVisitor<bool> {
 class ResolveHtmlTaskTestTV_perform_exception extends TestTaskVisitor<bool> {
   @override
   bool visitResolveHtmlTask(ResolveHtmlTask task) {
-    JUnitTestCase.assertNotNull(task.exception);
+    expect(task.exception, isNotNull);
     return true;
   }
 }
@@ -5915,9 +5251,9 @@ class ResolveHtmlTaskTestTV_perform_valid extends TestTaskVisitor<Object> {
     if (exception != null) {
       throw exception;
     }
-    JUnitTestCase.assertNotNull(task.element);
+    expect(task.element, isNotNull);
     EngineTestCase.assertLength(1, task.resolutionErrors);
-    JUnitTestCase.assertSame(source, task.source);
+    expect(task.source, same(source));
     return null;
   }
 }
@@ -5932,7 +5268,7 @@ class ResolveHtmlTaskTestTV_perform_valid_2 extends TestTaskVisitor<Object> {
 class ScanDartTaskTest extends EngineTestCase {
   void test_accept() {
     ScanDartTask task = new ScanDartTask(null, null, null);
-    JUnitTestCase.assertTrue(task.accept(new ScanDartTaskTestTV_accept()));
+    expect(task.accept(new ScanDartTaskTestTV_accept()), isTrue);
   }
 
   void test_getErrors() {
@@ -5942,18 +5278,18 @@ class ScanDartTaskTest extends EngineTestCase {
 
   void test_getException() {
     ScanDartTask task = new ScanDartTask(null, null, null);
-    JUnitTestCase.assertNull(task.exception);
+    expect(task.exception, isNull);
   }
 
   void test_getLineInfo() {
     ScanDartTask task = new ScanDartTask(null, null, null);
-    JUnitTestCase.assertNull(task.lineInfo);
+    expect(task.lineInfo, isNull);
   }
 
   void test_getSource() {
     Source source = new TestSource('test.dart', '');
     ScanDartTask task = new ScanDartTask(null, source, null);
-    JUnitTestCase.assertSame(source, task.source);
+    expect(task.source, same(source));
   }
 
   void test_perform_valid() {
@@ -5984,10 +5320,10 @@ class ScanDartTaskTestTV_perform_valid extends TestTaskVisitor<bool> {
     if (exception != null) {
       throw exception;
     }
-    JUnitTestCase.assertNotNull(task.tokenStream);
+    expect(task.tokenStream, isNotNull);
     EngineTestCase.assertLength(0, task.errors);
-    JUnitTestCase.assertNotNull(task.lineInfo);
-    JUnitTestCase.assertSame(source, task.source);
+    expect(task.lineInfo, isNotNull);
+    expect(task.source, same(source));
     return true;
   }
 }
@@ -5997,7 +5333,7 @@ class SdkCachePartitionTest extends EngineTestCase {
   void test_contains_false() {
     SdkCachePartition partition = new SdkCachePartition(null, 8);
     Source source = new TestSource();
-    JUnitTestCase.assertFalse(partition.contains(source));
+    expect(partition.contains(source), isFalse);
   }
 
   void test_contains_true() {
@@ -6005,11 +5341,11 @@ class SdkCachePartitionTest extends EngineTestCase {
     SourceFactory factory =
         new SourceFactory([new DartUriResolver(DirectoryBasedDartSdk.defaultSdk)]);
     Source source = factory.forUri("dart:core");
-    JUnitTestCase.assertTrue(partition.contains(source));
+    expect(partition.contains(source), isTrue);
   }
 
   void test_creation() {
-    JUnitTestCase.assertNotNull(new SdkCachePartition(null, 8));
+    expect(new SdkCachePartition(null, 8), isNotNull);
   }
 }
 
@@ -6021,307 +5357,302 @@ class SdkCachePartitionTest extends EngineTestCase {
 class TestAnalysisContext implements InternalAnalysisContext {
   @override
   AnalysisOptions get analysisOptions {
-    JUnitTestCase.fail("Unexpected invocation of getAnalysisOptions");
+    fail("Unexpected invocation of getAnalysisOptions");
     return null;
   }
   @override
   void set analysisOptions(AnalysisOptions options) {
-    JUnitTestCase.fail("Unexpected invocation of setAnalysisOptions");
+    fail("Unexpected invocation of setAnalysisOptions");
   }
   @override
   void set analysisPriorityOrder(List<Source> sources) {
-    JUnitTestCase.fail("Unexpected invocation of setAnalysisPriorityOrder");
+    fail("Unexpected invocation of setAnalysisPriorityOrder");
   }
   @override
   DeclaredVariables get declaredVariables {
-    JUnitTestCase.fail("Unexpected invocation of getDeclaredVariables");
+    fail("Unexpected invocation of getDeclaredVariables");
     return null;
   }
   @override
   List<Source> get htmlSources {
-    JUnitTestCase.fail("Unexpected invocation of getHtmlSources");
+    fail("Unexpected invocation of getHtmlSources");
     return null;
   }
   @override
   bool get isDisposed {
-    JUnitTestCase.fail("Unexpected invocation of isDisposed");
+    fail("Unexpected invocation of isDisposed");
     return false;
   }
   @override
   List<Source> get launchableClientLibrarySources {
-    JUnitTestCase.fail(
-        "Unexpected invocation of getLaunchableClientLibrarySources");
+    fail("Unexpected invocation of getLaunchableClientLibrarySources");
     return null;
   }
   @override
   List<Source> get launchableServerLibrarySources {
-    JUnitTestCase.fail(
-        "Unexpected invocation of getLaunchableServerLibrarySources");
+    fail("Unexpected invocation of getLaunchableServerLibrarySources");
     return null;
   }
   @override
   List<Source> get librarySources {
-    JUnitTestCase.fail("Unexpected invocation of getLibrarySources");
+    fail("Unexpected invocation of getLibrarySources");
     return null;
   }
   @override
   List<Source> get prioritySources {
-    JUnitTestCase.fail("Unexpected invocation of getPrioritySources");
+    fail("Unexpected invocation of getPrioritySources");
     return null;
   }
   @override
   List<Source> get refactoringUnsafeSources {
-    JUnitTestCase.fail("Unexpected invocation of getRefactoringUnsafeSources");
+    fail("Unexpected invocation of getRefactoringUnsafeSources");
     return null;
   }
   @override
   SourceFactory get sourceFactory {
-    JUnitTestCase.fail("Unexpected invocation of getSourceFactory");
+    fail("Unexpected invocation of getSourceFactory");
     return null;
   }
   @override
   void set sourceFactory(SourceFactory factory) {
-    JUnitTestCase.fail("Unexpected invocation of setSourceFactory");
+    fail("Unexpected invocation of setSourceFactory");
   }
   @override
   AnalysisContextStatistics get statistics {
-    JUnitTestCase.fail("Unexpected invocation of getStatistics");
+    fail("Unexpected invocation of getStatistics");
     return null;
   }
   @override
   TypeProvider get typeProvider {
-    JUnitTestCase.fail("Unexpected invocation of getTypeProvider");
+    fail("Unexpected invocation of getTypeProvider");
     return null;
   }
   @override
   void addListener(AnalysisListener listener) {
-    JUnitTestCase.fail("Unexpected invocation of addListener");
+    fail("Unexpected invocation of addListener");
   }
   @override
   void addSourceInfo(Source source, SourceEntry info) {
-    JUnitTestCase.fail("Unexpected invocation of addSourceInfo");
+    fail("Unexpected invocation of addSourceInfo");
   }
   @override
   void applyAnalysisDelta(AnalysisDelta delta) {
-    JUnitTestCase.fail("Unexpected invocation of applyAnalysisDelta");
+    fail("Unexpected invocation of applyAnalysisDelta");
   }
   @override
   void applyChanges(ChangeSet changeSet) {
-    JUnitTestCase.fail("Unexpected invocation of applyChanges");
+    fail("Unexpected invocation of applyChanges");
   }
   @override
   String computeDocumentationComment(Element element) {
-    JUnitTestCase.fail("Unexpected invocation of computeDocumentationComment");
+    fail("Unexpected invocation of computeDocumentationComment");
     return null;
   }
   @override
   List<AnalysisError> computeErrors(Source source) {
-    JUnitTestCase.fail("Unexpected invocation of computeErrors");
+    fail("Unexpected invocation of computeErrors");
     return null;
   }
   @override
   List<Source> computeExportedLibraries(Source source) {
-    JUnitTestCase.fail("Unexpected invocation of computeExportedLibraries");
+    fail("Unexpected invocation of computeExportedLibraries");
     return null;
   }
   @override
   HtmlElement computeHtmlElement(Source source) {
-    JUnitTestCase.fail("Unexpected invocation of computeHtmlElement");
+    fail("Unexpected invocation of computeHtmlElement");
     return null;
   }
   @override
   List<Source> computeImportedLibraries(Source source) {
-    JUnitTestCase.fail("Unexpected invocation of computeImportedLibraries");
+    fail("Unexpected invocation of computeImportedLibraries");
     return null;
   }
   @override
   SourceKind computeKindOf(Source source) {
-    JUnitTestCase.fail("Unexpected invocation of computeKindOf");
+    fail("Unexpected invocation of computeKindOf");
     return null;
   }
   @override
   LibraryElement computeLibraryElement(Source source) {
-    JUnitTestCase.fail("Unexpected invocation of computeLibraryElement");
+    fail("Unexpected invocation of computeLibraryElement");
     return null;
   }
   @override
   LineInfo computeLineInfo(Source source) {
-    JUnitTestCase.fail("Unexpected invocation of computeLineInfo");
+    fail("Unexpected invocation of computeLineInfo");
     return null;
   }
   @override
   CompilationUnit computeResolvableCompilationUnit(Source source) {
-    JUnitTestCase.fail(
-        "Unexpected invocation of computeResolvableCompilationUnit");
+    fail("Unexpected invocation of computeResolvableCompilationUnit");
     return null;
   }
   @override
   void dispose() {
-    JUnitTestCase.fail("Unexpected invocation of dispose");
+    fail("Unexpected invocation of dispose");
   }
   @override
   bool exists(Source source) {
-    JUnitTestCase.fail("Unexpected invocation of exists");
+    fail("Unexpected invocation of exists");
     return false;
   }
   @override
   AngularApplication getAngularApplicationWithHtml(Source htmlSource) {
-    JUnitTestCase.fail(
-        "Unexpected invocation of getAngularApplicationWithHtml");
+    fail("Unexpected invocation of getAngularApplicationWithHtml");
     return null;
   }
   @override
   CompilationUnitElement getCompilationUnitElement(Source unitSource,
       Source librarySource) {
-    JUnitTestCase.fail("Unexpected invocation of getCompilationUnitElement");
+    fail("Unexpected invocation of getCompilationUnitElement");
     return null;
   }
   @override
   TimestampedData<String> getContents(Source source) {
-    JUnitTestCase.fail("Unexpected invocation of getContents");
+    fail("Unexpected invocation of getContents");
     return null;
   }
   @override
   InternalAnalysisContext getContextFor(Source source) {
-    JUnitTestCase.fail("Unexpected invocation of getContextFor");
+    fail("Unexpected invocation of getContextFor");
     return null;
   }
   @override
   Element getElement(ElementLocation location) {
-    JUnitTestCase.fail("Unexpected invocation of getElement");
+    fail("Unexpected invocation of getElement");
     return null;
   }
   @override
   AnalysisErrorInfo getErrors(Source source) {
-    JUnitTestCase.fail("Unexpected invocation of getErrors");
+    fail("Unexpected invocation of getErrors");
     return null;
   }
   @override
   HtmlElement getHtmlElement(Source source) {
-    JUnitTestCase.fail("Unexpected invocation of getHtmlElement");
+    fail("Unexpected invocation of getHtmlElement");
     return null;
   }
   @override
   List<Source> getHtmlFilesReferencing(Source source) {
-    JUnitTestCase.fail("Unexpected invocation of getHtmlFilesReferencing");
+    fail("Unexpected invocation of getHtmlFilesReferencing");
     return null;
   }
   @override
   SourceKind getKindOf(Source source) {
-    JUnitTestCase.fail("Unexpected invocation of getKindOf");
+    fail("Unexpected invocation of getKindOf");
     return null;
   }
   @override
   List<Source> getLibrariesContaining(Source source) {
-    JUnitTestCase.fail("Unexpected invocation of getLibrariesContaining");
+    fail("Unexpected invocation of getLibrariesContaining");
     return null;
   }
   @override
   List<Source> getLibrariesDependingOn(Source librarySource) {
-    JUnitTestCase.fail("Unexpected invocation of getLibrariesDependingOn");
+    fail("Unexpected invocation of getLibrariesDependingOn");
     return null;
   }
   @override
   List<Source> getLibrariesReferencedFromHtml(Source htmlSource) {
-    JUnitTestCase.fail(
-        "Unexpected invocation of getLibrariesReferencedFromHtml");
+    fail("Unexpected invocation of getLibrariesReferencedFromHtml");
     return null;
   }
   @override
   LibraryElement getLibraryElement(Source source) {
-    JUnitTestCase.fail("Unexpected invocation of getLibraryElement");
+    fail("Unexpected invocation of getLibraryElement");
     return null;
   }
   @override
   LineInfo getLineInfo(Source source) {
-    JUnitTestCase.fail("Unexpected invocation of getLineInfo");
+    fail("Unexpected invocation of getLineInfo");
     return null;
   }
   @override
   int getModificationStamp(Source source) {
-    JUnitTestCase.fail("Unexpected invocation of getModificationStamp");
+    fail("Unexpected invocation of getModificationStamp");
     return 0;
   }
   @override
   Namespace getPublicNamespace(LibraryElement library) {
-    JUnitTestCase.fail("Unexpected invocation of getPublicNamespace");
+    fail("Unexpected invocation of getPublicNamespace");
     return null;
   }
   @override
   CompilationUnit getResolvedCompilationUnit(Source unitSource,
       LibraryElement library) {
-    JUnitTestCase.fail("Unexpected invocation of getResolvedCompilationUnit");
+    fail("Unexpected invocation of getResolvedCompilationUnit");
     return null;
   }
   @override
   CompilationUnit getResolvedCompilationUnit2(Source unitSource,
       Source librarySource) {
-    JUnitTestCase.fail("Unexpected invocation of getResolvedCompilationUnit");
+    fail("Unexpected invocation of getResolvedCompilationUnit");
     return null;
   }
   @override
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
-    JUnitTestCase.fail("Unexpected invocation of getResolvedHtmlUnit");
+    fail("Unexpected invocation of getResolvedHtmlUnit");
     return null;
   }
   @override
   bool isClientLibrary(Source librarySource) {
-    JUnitTestCase.fail("Unexpected invocation of isClientLibrary");
+    fail("Unexpected invocation of isClientLibrary");
     return false;
   }
   @override
   bool isServerLibrary(Source librarySource) {
-    JUnitTestCase.fail("Unexpected invocation of isServerLibrary");
+    fail("Unexpected invocation of isServerLibrary");
     return false;
   }
   @override
   CompilationUnit parseCompilationUnit(Source source) {
-    JUnitTestCase.fail("Unexpected invocation of parseCompilationUnit");
+    fail("Unexpected invocation of parseCompilationUnit");
     return null;
   }
   @override
   ht.HtmlUnit parseHtmlUnit(Source source) {
-    JUnitTestCase.fail("Unexpected invocation of parseHtmlUnit");
+    fail("Unexpected invocation of parseHtmlUnit");
     return null;
   }
   @override
   AnalysisResult performAnalysisTask() {
-    JUnitTestCase.fail("Unexpected invocation of performAnalysisTask");
+    fail("Unexpected invocation of performAnalysisTask");
     return null;
   }
   @override
   void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
-    JUnitTestCase.fail("Unexpected invocation of recordLibraryElements");
+    fail("Unexpected invocation of recordLibraryElements");
   }
   @override
   void removeListener(AnalysisListener listener) {
-    JUnitTestCase.fail("Unexpected invocation of removeListener");
+    fail("Unexpected invocation of removeListener");
   }
   @override
   CompilationUnit resolveCompilationUnit(Source unitSource,
       LibraryElement library) {
-    JUnitTestCase.fail("Unexpected invocation of resolveCompilationUnit");
+    fail("Unexpected invocation of resolveCompilationUnit");
     return null;
   }
   @override
   CompilationUnit resolveCompilationUnit2(Source unitSource,
       Source librarySource) {
-    JUnitTestCase.fail("Unexpected invocation of resolveCompilationUnit");
+    fail("Unexpected invocation of resolveCompilationUnit");
     return null;
   }
   @override
   ht.HtmlUnit resolveHtmlUnit(Source htmlSource) {
-    JUnitTestCase.fail("Unexpected invocation of resolveHtmlUnit");
+    fail("Unexpected invocation of resolveHtmlUnit");
     return null;
   }
   @override
   void setChangedContents(Source source, String contents, int offset,
       int oldLength, int newLength) {
-    JUnitTestCase.fail("Unexpected invocation of setChangedContents");
+    fail("Unexpected invocation of setChangedContents");
   }
   @override
   void setContents(Source source, String contents) {
-    JUnitTestCase.fail("Unexpected invocation of setContents");
+    fail("Unexpected invocation of setContents");
   }
 }
 
@@ -6958,86 +6289,85 @@ class TestAnalysisContext_test_setSourceFactory extends TestAnalysisContext {
 class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
   @override
   E visitBuildUnitElementTask(BuildUnitElementTask task) {
-    JUnitTestCase.fail("Unexpectedly invoked visitGenerateDartErrorsTask");
+    fail("Unexpectedly invoked visitGenerateDartErrorsTask");
     return null;
   }
 
   @override
   E visitGenerateDartErrorsTask(GenerateDartErrorsTask task) {
-    JUnitTestCase.fail("Unexpectedly invoked visitGenerateDartErrorsTask");
+    fail("Unexpectedly invoked visitGenerateDartErrorsTask");
     return null;
   }
   @override
   E visitGenerateDartHintsTask(GenerateDartHintsTask task) {
-    JUnitTestCase.fail("Unexpectedly invoked visitGenerateDartHintsTask");
+    fail("Unexpectedly invoked visitGenerateDartHintsTask");
     return null;
   }
   @override
   E visitGetContentTask(GetContentTask task) {
-    JUnitTestCase.fail("Unexpectedly invoked visitGetContentsTask");
+    fail("Unexpectedly invoked visitGetContentsTask");
     return null;
   }
   @override
   E
       visitIncrementalAnalysisTask(IncrementalAnalysisTask incrementalAnalysisTask) {
-    JUnitTestCase.fail("Unexpectedly invoked visitIncrementalAnalysisTask");
+    fail("Unexpectedly invoked visitIncrementalAnalysisTask");
     return null;
   }
   @override
   E visitParseDartTask(ParseDartTask task) {
-    JUnitTestCase.fail("Unexpectedly invoked visitParseDartTask");
+    fail("Unexpectedly invoked visitParseDartTask");
     return null;
   }
   @override
   E visitParseHtmlTask(ParseHtmlTask task) {
-    JUnitTestCase.fail("Unexpectedly invoked visitParseHtmlTask");
+    fail("Unexpectedly invoked visitParseHtmlTask");
     return null;
   }
   @override
   E visitPolymerBuildHtmlTask(PolymerBuildHtmlTask task) {
-    JUnitTestCase.fail("Unexpectedly invoked visitPolymerBuildHtmlTask");
+    fail("Unexpectedly invoked visitPolymerBuildHtmlTask");
     return null;
   }
   @override
   E visitPolymerResolveHtmlTask(PolymerResolveHtmlTask task) {
-    JUnitTestCase.fail("Unexpectedly invoked visitPolymerResolveHtmlTask");
+    fail("Unexpectedly invoked visitPolymerResolveHtmlTask");
     return null;
   }
   @override
   E
       visitResolveAngularComponentTemplateTask(ResolveAngularComponentTemplateTask task) {
-    JUnitTestCase.fail(
-        "Unexpectedly invoked visitResolveAngularComponentTemplateTask");
+    fail("Unexpectedly invoked visitResolveAngularComponentTemplateTask");
     return null;
   }
   @override
   E visitResolveAngularEntryHtmlTask(ResolveAngularEntryHtmlTask task) {
-    JUnitTestCase.fail("Unexpectedly invoked visitResolveAngularEntryHtmlTask");
+    fail("Unexpectedly invoked visitResolveAngularEntryHtmlTask");
     return null;
   }
   @override
   E visitResolveDartLibraryCycleTask(ResolveDartLibraryCycleTask task) {
-    JUnitTestCase.fail("Unexpectedly invoked visitResolveDartLibraryCycleTask");
+    fail("Unexpectedly invoked visitResolveDartLibraryCycleTask");
     return null;
   }
   @override
   E visitResolveDartLibraryTask(ResolveDartLibraryTask task) {
-    JUnitTestCase.fail("Unexpectedly invoked visitResolveDartLibraryTask");
+    fail("Unexpectedly invoked visitResolveDartLibraryTask");
     return null;
   }
   @override
   E visitResolveDartUnitTask(ResolveDartUnitTask task) {
-    JUnitTestCase.fail("Unexpectedly invoked visitResolveDartUnitTask");
+    fail("Unexpectedly invoked visitResolveDartUnitTask");
     return null;
   }
   @override
   E visitResolveHtmlTask(ResolveHtmlTask task) {
-    JUnitTestCase.fail("Unexpectedly invoked visitResolveHtmlTask");
+    fail("Unexpectedly invoked visitResolveHtmlTask");
     return null;
   }
   @override
   E visitScanDartTask(ScanDartTask task) {
-    JUnitTestCase.fail("Unexpectedly invoked visitScanDartTask");
+    fail("Unexpectedly invoked visitScanDartTask");
     return null;
   }
 }
@@ -7048,10 +6378,10 @@ class UniversalCachePartitionTest extends EngineTestCase {
     UniversalCachePartition partition =
         new UniversalCachePartition(null, 8, null);
     TestSource source = new TestSource();
-    JUnitTestCase.assertTrue(partition.contains(source));
+    expect(partition.contains(source), isTrue);
   }
   void test_creation() {
-    JUnitTestCase.assertNotNull(new UniversalCachePartition(null, 8, null));
+    expect(new UniversalCachePartition(null, 8, null), isNotNull);
   }
   void test_entrySet() {
     UniversalCachePartition partition =
@@ -7060,16 +6390,16 @@ class UniversalCachePartitionTest extends EngineTestCase {
     DartEntry entry = new DartEntry();
     partition.put(source, entry);
     Map<Source, SourceEntry> entryMap = partition.map;
-    JUnitTestCase.assertEquals(1, entryMap.length);
+    expect(entryMap.length, 1);
     Source entryKey = entryMap.keys.first;
-    JUnitTestCase.assertSame(source, entryKey);
-    JUnitTestCase.assertSame(entry, entryMap[entryKey]);
+    expect(entryKey, same(source));
+    expect(entryMap[entryKey], same(entry));
   }
   void test_get() {
     UniversalCachePartition partition =
         new UniversalCachePartition(null, 8, null);
     TestSource source = new TestSource();
-    JUnitTestCase.assertNull(partition.get(source));
+    expect(partition.get(source), isNull);
   }
   void test_put_noFlush() {
     UniversalCachePartition partition =
@@ -7077,7 +6407,7 @@ class UniversalCachePartitionTest extends EngineTestCase {
     TestSource source = new TestSource();
     DartEntry entry = new DartEntry();
     partition.put(source, entry);
-    JUnitTestCase.assertSame(entry, partition.get(source));
+    expect(partition.get(source), same(entry));
   }
   void test_remove() {
     UniversalCachePartition partition =
@@ -7085,9 +6415,9 @@ class UniversalCachePartitionTest extends EngineTestCase {
     TestSource source = new TestSource();
     DartEntry entry = new DartEntry();
     partition.put(source, entry);
-    JUnitTestCase.assertSame(entry, partition.get(source));
+    expect(partition.get(source), same(entry));
     partition.remove(source);
-    JUnitTestCase.assertNull(partition.get(source));
+    expect(partition.get(source), isNull);
   }
   void test_setMaxCacheSize() {
     UniversalCachePartition partition = new UniversalCachePartition(
@@ -7116,7 +6446,7 @@ class UniversalCachePartitionTest extends EngineTestCase {
       partition.put(source, new DartEntry());
       partition.accessedAst(source);
     }
-    JUnitTestCase.assertEquals(size, partition.size());
+    expect(partition.size(), size);
   }
   void _assertNonFlushedCount(int expectedCount,
       UniversalCachePartition partition) {
@@ -7127,7 +6457,7 @@ class UniversalCachePartitionTest extends EngineTestCase {
         nonFlushedCount++;
       }
     });
-    JUnitTestCase.assertEquals(expectedCount, nonFlushedCount);
+    expect(nonFlushedCount, expectedCount);
   }
 }
 
@@ -7140,19 +6470,19 @@ class WorkManagerTest extends EngineTestCase {
     manager.add(source1, SourcePriority.UNKNOWN);
     manager.addFirst(source2, SourcePriority.UNKNOWN);
     WorkManager_WorkIterator iterator = manager.iterator();
-    JUnitTestCase.assertSame(source2, iterator.next());
-    JUnitTestCase.assertSame(source1, iterator.next());
+    expect(iterator.next(), same(source2));
+    expect(iterator.next(), same(source1));
   }
   void test_creation() {
-    JUnitTestCase.assertNotNull(new WorkManager());
+    expect(new WorkManager(), isNotNull);
   }
   void test_iterator_empty() {
     WorkManager manager = new WorkManager();
     WorkManager_WorkIterator iterator = manager.iterator();
-    JUnitTestCase.assertFalse(iterator.hasNext);
+    expect(iterator.hasNext, isFalse);
     try {
       iterator.next();
-      JUnitTestCase.fail("Expected NoSuchElementException");
+      fail("Expected NoSuchElementException");
     } on NoSuchElementException catch (exception) {
     }
   }
@@ -7161,8 +6491,8 @@ class WorkManagerTest extends EngineTestCase {
     WorkManager manager = new WorkManager();
     manager.add(source, SourcePriority.UNKNOWN);
     WorkManager_WorkIterator iterator = manager.iterator();
-    JUnitTestCase.assertTrue(iterator.hasNext);
-    JUnitTestCase.assertSame(source, iterator.next());
+    expect(iterator.hasNext, isTrue);
+    expect(iterator.next(), same(source));
   }
   void test_remove() {
     TestSource source1 = new TestSource("/f1.dart");
@@ -7174,12 +6504,12 @@ class WorkManagerTest extends EngineTestCase {
     manager.add(source3, SourcePriority.UNKNOWN);
     manager.remove(source2);
     WorkManager_WorkIterator iterator = manager.iterator();
-    JUnitTestCase.assertSame(source1, iterator.next());
-    JUnitTestCase.assertSame(source3, iterator.next());
+    expect(iterator.next(), same(source1));
+    expect(iterator.next(), same(source3));
   }
   void test_toString_empty() {
     WorkManager manager = new WorkManager();
-    JUnitTestCase.assertNotNull(manager.toString());
+    expect(manager.toString(), isNotNull);
   }
   void test_toString_nonEmpty() {
     WorkManager manager = new WorkManager();
@@ -7188,7 +6518,7 @@ class WorkManagerTest extends EngineTestCase {
     manager.add(new TestSource(), SourcePriority.NORMAL_PART);
     manager.add(new TestSource(), SourcePriority.PRIORITY_PART);
     manager.add(new TestSource(), SourcePriority.UNKNOWN);
-    JUnitTestCase.assertNotNull(manager.toString());
+    expect(manager.toString(), isNotNull);
   }
 }
 

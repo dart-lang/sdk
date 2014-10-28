@@ -1,7 +1,5 @@
 library java.core;
 
-import "dart:math" as math;
-
 final Stopwatch nanoTimeStopwatch = new Stopwatch();
 
 const int LONG_MAX_VALUE = 0x7fffffffffffffff;

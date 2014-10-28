@@ -4,11 +4,10 @@
 
 library engine.static_warning_code_test;
 
-import 'package:analyzer/src/generated/java_junit.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
-import 'package:unittest/unittest.dart' as _ut;
+import 'package:unittest/unittest.dart';
 import 'resolver_test.dart';
 import 'test_support.dart';
 import '../reflective_tests.dart';
@@ -274,11 +273,11 @@ g(h(_A a)) {}''');
     List<AnalysisError> errors = analysisContext2.computeErrors(source);
     EngineTestCase.assertLength(1, errors);
     AnalysisError error = errors[0];
-    JUnitTestCase.assertEquals(error.errorCode, StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    expect(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, error.errorCode);
     String message = error.message;
-    JUnitTestCase.assertTrue(message.indexOf("_A") != -1);
-    JUnitTestCase.assertTrue(message.indexOf("lib1.dart") != -1);
-    JUnitTestCase.assertTrue(message.indexOf("lib2.dart") != -1);
+    expect(message.indexOf("_A") != -1, isTrue);
+    expect(message.indexOf("lib1.dart") != -1, isTrue);
+    expect(message.indexOf("lib2.dart") != -1, isTrue);
   }
 
   void test_argumentTypeNotAssignable_annotation_namedConstructor() {
@@ -3143,6 +3142,6 @@ class S {
 }
 
 main() {
-  _ut.groupSep = ' | ';
+  groupSep = ' | ';
   runReflectiveTests(StaticWarningCodeTest);
 }

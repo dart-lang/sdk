@@ -13,19 +13,18 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/java_junit.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
-import 'package:unittest/unittest.dart' as _ut;
+import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
 import 'test_support.dart';
 
 main() {
-  _ut.groupSep = ' | ';
+  groupSep = ' | ';
   runReflectiveTests(AstClonerTest);
   runReflectiveTests(NodeReplacerTest);
   runReflectiveTests(LineInfoTest);
@@ -2050,13 +2049,13 @@ class AstClonerTest extends EngineTestCase {
     AstNode clone = node.accept(new AstCloner());
     AstCloneComparator comparitor = new AstCloneComparator(false);
     if (!comparitor.isEqualNodes(node, clone)) {
-      JUnitTestCase.fail("Failed to clone ${node.runtimeType.toString()}");
+      fail("Failed to clone ${node.runtimeType.toString()}");
     }
 
     clone = node.accept(new AstCloner(true));
     comparitor = new AstCloneComparator(true);
     if (!comparitor.isEqualNodes(node, clone)) {
-      JUnitTestCase.fail("Failed to clone ${node.runtimeType.toString()}");
+      fail("Failed to clone ${node.runtimeType.toString()}");
     }
   }
 }
@@ -2069,7 +2068,7 @@ class AstCloneComparator extends AstComparator {
   @override
   bool isEqualNodes(AstNode first, AstNode second) {
     if (first != null && identical(first, second)) {
-      JUnitTestCase.fail('Failed to copy node: $first (${first.offset})');
+      fail('Failed to copy node: $first (${first.offset})');
       return false;
     }
     return super.isEqualNodes(first, second);
@@ -2078,18 +2077,18 @@ class AstCloneComparator extends AstComparator {
   @override
   bool isEqualTokens(Token first, Token second) {
     if (expectTokensCopied && first != null && identical(first, second)) {
-      JUnitTestCase.fail('Failed to copy token: ${first.lexeme} (${first.offset})');
+      fail('Failed to copy token: ${first.lexeme} (${first.offset})');
       return false;
     }
     return super.isEqualTokens(first, second);
   }
 }
 
-class BooleanArrayTest extends JUnitTestCase {
+class BooleanArrayTest {
   void test_get_negative() {
     try {
       BooleanArray.get(0, -1);
-      JUnitTestCase.fail("Expected ");
+      fail("Expected ");
     } on RangeError catch (exception) {
       // Expected
     }
@@ -2098,23 +2097,23 @@ class BooleanArrayTest extends JUnitTestCase {
   void test_get_tooBig() {
     try {
       BooleanArray.get(0, 31);
-      JUnitTestCase.fail("Expected ");
+      fail("Expected ");
     } on RangeError catch (exception) {
       // Expected
     }
   }
 
   void test_get_valid() {
-    JUnitTestCase.assertEquals(false, BooleanArray.get(0, 0));
-    JUnitTestCase.assertEquals(true, BooleanArray.get(1, 0));
-    JUnitTestCase.assertEquals(false, BooleanArray.get(0, 30));
-    JUnitTestCase.assertEquals(true, BooleanArray.get(1 << 30, 30));
+    expect(BooleanArray.get(0, 0), false);
+    expect(BooleanArray.get(1, 0), true);
+    expect(BooleanArray.get(0, 30), false);
+    expect(BooleanArray.get(1 << 30, 30), true);
   }
 
   void test_set_negative() {
     try {
       BooleanArray.set(0, -1, true);
-      JUnitTestCase.fail("Expected ");
+      fail("Expected ");
     } on RangeError catch (exception) {
       // Expected
     }
@@ -2123,24 +2122,24 @@ class BooleanArrayTest extends JUnitTestCase {
   void test_set_tooBig() {
     try {
       BooleanArray.set(0, 32, true);
-      JUnitTestCase.fail("Expected ");
+      fail("Expected ");
     } on RangeError catch (exception) {
       // Expected
     }
   }
 
   void test_set_valueChanging() {
-    JUnitTestCase.assertEquals(1, BooleanArray.set(0, 0, true));
-    JUnitTestCase.assertEquals(0, BooleanArray.set(1, 0, false));
-    JUnitTestCase.assertEquals(1 << 30, BooleanArray.set(0, 30, true));
-    JUnitTestCase.assertEquals(0, BooleanArray.set(1 << 30, 30, false));
+    expect(BooleanArray.set(0, 0, true), 1);
+    expect(BooleanArray.set(1, 0, false), 0);
+    expect(BooleanArray.set(0, 30, true), 1 << 30);
+    expect(BooleanArray.set(1 << 30, 30, false), 0);
   }
 
   void test_set_valuePreserving() {
-    JUnitTestCase.assertEquals(0, BooleanArray.set(0, 0, false));
-    JUnitTestCase.assertEquals(1, BooleanArray.set(1, 0, true));
-    JUnitTestCase.assertEquals(0, BooleanArray.set(0, 30, false));
-    JUnitTestCase.assertEquals(1 << 30, BooleanArray.set(1 << 30, 30, true));
+    expect(BooleanArray.set(0, 0, false), 0);
+    expect(BooleanArray.set(1, 0, true), 1);
+    expect(BooleanArray.set(0, 30, false), 0);
+    expect(BooleanArray.set(1 << 30, 30, true), 1 << 30);
   }
 }
 
@@ -2148,17 +2147,17 @@ class DirectedGraphTest extends EngineTestCase {
   void test_addEdge() {
     DirectedGraph<DirectedGraphTest_Node> graph =
         new DirectedGraph<DirectedGraphTest_Node>();
-    JUnitTestCase.assertTrue(graph.isEmpty);
+    expect(graph.isEmpty, isTrue);
     graph.addEdge(new DirectedGraphTest_Node(), new DirectedGraphTest_Node());
-    JUnitTestCase.assertFalse(graph.isEmpty);
+    expect(graph.isEmpty, isFalse);
   }
 
   void test_addNode() {
     DirectedGraph<DirectedGraphTest_Node> graph =
         new DirectedGraph<DirectedGraphTest_Node>();
-    JUnitTestCase.assertTrue(graph.isEmpty);
+    expect(graph.isEmpty, isTrue);
     graph.addNode(new DirectedGraphTest_Node());
-    JUnitTestCase.assertFalse(graph.isEmpty);
+    expect(graph.isEmpty, isFalse);
   }
 
   void test_containsPath_noCycles() {
@@ -2169,15 +2168,15 @@ class DirectedGraphTest extends EngineTestCase {
         new DirectedGraph<DirectedGraphTest_Node>();
     graph.addEdge(node1, node2);
     graph.addEdge(node2, node3);
-    JUnitTestCase.assertTrue(graph.containsPath(node1, node1));
-    JUnitTestCase.assertTrue(graph.containsPath(node1, node2));
-    JUnitTestCase.assertTrue(graph.containsPath(node1, node3));
-    JUnitTestCase.assertFalse(graph.containsPath(node2, node1));
-    JUnitTestCase.assertTrue(graph.containsPath(node2, node2));
-    JUnitTestCase.assertTrue(graph.containsPath(node2, node3));
-    JUnitTestCase.assertFalse(graph.containsPath(node3, node1));
-    JUnitTestCase.assertFalse(graph.containsPath(node3, node2));
-    JUnitTestCase.assertTrue(graph.containsPath(node3, node3));
+    expect(graph.containsPath(node1, node1), isTrue);
+    expect(graph.containsPath(node1, node2), isTrue);
+    expect(graph.containsPath(node1, node3), isTrue);
+    expect(graph.containsPath(node2, node1), isFalse);
+    expect(graph.containsPath(node2, node2), isTrue);
+    expect(graph.containsPath(node2, node3), isTrue);
+    expect(graph.containsPath(node3, node1), isFalse);
+    expect(graph.containsPath(node3, node2), isFalse);
+    expect(graph.containsPath(node3, node3), isTrue);
   }
 
   void test_containsPath_withCycles() {
@@ -2192,26 +2191,26 @@ class DirectedGraphTest extends EngineTestCase {
     graph.addEdge(node1, node3);
     graph.addEdge(node3, node4);
     graph.addEdge(node4, node3);
-    JUnitTestCase.assertTrue(graph.containsPath(node1, node1));
-    JUnitTestCase.assertTrue(graph.containsPath(node1, node2));
-    JUnitTestCase.assertTrue(graph.containsPath(node1, node3));
-    JUnitTestCase.assertTrue(graph.containsPath(node1, node4));
-    JUnitTestCase.assertTrue(graph.containsPath(node2, node1));
-    JUnitTestCase.assertTrue(graph.containsPath(node2, node2));
-    JUnitTestCase.assertTrue(graph.containsPath(node2, node3));
-    JUnitTestCase.assertTrue(graph.containsPath(node2, node4));
-    JUnitTestCase.assertFalse(graph.containsPath(node3, node1));
-    JUnitTestCase.assertFalse(graph.containsPath(node3, node2));
-    JUnitTestCase.assertTrue(graph.containsPath(node3, node3));
-    JUnitTestCase.assertTrue(graph.containsPath(node3, node4));
-    JUnitTestCase.assertFalse(graph.containsPath(node4, node1));
-    JUnitTestCase.assertFalse(graph.containsPath(node4, node2));
-    JUnitTestCase.assertTrue(graph.containsPath(node4, node3));
-    JUnitTestCase.assertTrue(graph.containsPath(node4, node4));
+    expect(graph.containsPath(node1, node1), isTrue);
+    expect(graph.containsPath(node1, node2), isTrue);
+    expect(graph.containsPath(node1, node3), isTrue);
+    expect(graph.containsPath(node1, node4), isTrue);
+    expect(graph.containsPath(node2, node1), isTrue);
+    expect(graph.containsPath(node2, node2), isTrue);
+    expect(graph.containsPath(node2, node3), isTrue);
+    expect(graph.containsPath(node2, node4), isTrue);
+    expect(graph.containsPath(node3, node1), isFalse);
+    expect(graph.containsPath(node3, node2), isFalse);
+    expect(graph.containsPath(node3, node3), isTrue);
+    expect(graph.containsPath(node3, node4), isTrue);
+    expect(graph.containsPath(node4, node1), isFalse);
+    expect(graph.containsPath(node4, node2), isFalse);
+    expect(graph.containsPath(node4, node3), isTrue);
+    expect(graph.containsPath(node4, node4), isTrue);
   }
 
   void test_creation() {
-    JUnitTestCase.assertNotNull(new DirectedGraph<DirectedGraphTest_Node>());
+    expect(new DirectedGraph<DirectedGraphTest_Node>(), isNotNull);
   }
 
   void test_findCycleContaining_complexCycle() {
@@ -2231,11 +2230,11 @@ class DirectedGraphTest extends EngineTestCase {
     graph.addEdge(node5, node3);
     List<DirectedGraphTest_Node> cycle = graph.findCycleContaining(node1);
     EngineTestCase.assertSizeOfList(5, cycle);
-    JUnitTestCase.assertTrue(cycle.contains(node1));
-    JUnitTestCase.assertTrue(cycle.contains(node2));
-    JUnitTestCase.assertTrue(cycle.contains(node3));
-    JUnitTestCase.assertTrue(cycle.contains(node4));
-    JUnitTestCase.assertTrue(cycle.contains(node5));
+    expect(cycle.contains(node1), isTrue);
+    expect(cycle.contains(node2), isTrue);
+    expect(cycle.contains(node3), isTrue);
+    expect(cycle.contains(node4), isTrue);
+    expect(cycle.contains(node5), isTrue);
   }
 
   void test_findCycleContaining_cycle() {
@@ -2251,9 +2250,9 @@ class DirectedGraphTest extends EngineTestCase {
     graph.addEdge(node3, new DirectedGraphTest_Node());
     List<DirectedGraphTest_Node> cycle = graph.findCycleContaining(node1);
     EngineTestCase.assertSizeOfList(3, cycle);
-    JUnitTestCase.assertTrue(cycle.contains(node1));
-    JUnitTestCase.assertTrue(cycle.contains(node2));
-    JUnitTestCase.assertTrue(cycle.contains(node3));
+    expect(cycle.contains(node1), isTrue);
+    expect(cycle.contains(node2), isTrue);
+    expect(cycle.contains(node3), isTrue);
   }
 
   void test_findCycleContaining_notInGraph() {
@@ -2262,7 +2261,7 @@ class DirectedGraphTest extends EngineTestCase {
         new DirectedGraph<DirectedGraphTest_Node>();
     List<DirectedGraphTest_Node> cycle = graph.findCycleContaining(node);
     EngineTestCase.assertSizeOfList(1, cycle);
-    JUnitTestCase.assertEquals(node, cycle[0]);
+    expect(cycle[0], node);
   }
 
   void test_findCycleContaining_null() {
@@ -2270,7 +2269,7 @@ class DirectedGraphTest extends EngineTestCase {
         new DirectedGraph<DirectedGraphTest_Node>();
     try {
       graph.findCycleContaining(null);
-      JUnitTestCase.fail("Expected IllegalArgumentException");
+      fail("Expected IllegalArgumentException");
     } on IllegalArgumentException catch (exception) {
       // Expected
     }
@@ -2286,7 +2285,7 @@ class DirectedGraphTest extends EngineTestCase {
     graph.addEdge(node2, node3);
     List<DirectedGraphTest_Node> cycle = graph.findCycleContaining(node1);
     EngineTestCase.assertSizeOfList(1, cycle);
-    JUnitTestCase.assertEquals(node1, cycle[0]);
+    expect(cycle[0], node1);
   }
 
   void test_getNodeCount() {
@@ -2294,13 +2293,13 @@ class DirectedGraphTest extends EngineTestCase {
     DirectedGraphTest_Node node2 = new DirectedGraphTest_Node();
     DirectedGraph<DirectedGraphTest_Node> graph =
         new DirectedGraph<DirectedGraphTest_Node>();
-    JUnitTestCase.assertEquals(0, graph.nodeCount);
+    expect(graph.nodeCount, 0);
     graph.addNode(node1);
-    JUnitTestCase.assertEquals(1, graph.nodeCount);
+    expect(graph.nodeCount, 1);
     graph.addNode(node2);
-    JUnitTestCase.assertEquals(2, graph.nodeCount);
+    expect(graph.nodeCount, 2);
     graph.removeNode(node1);
-    JUnitTestCase.assertEquals(1, graph.nodeCount);
+    expect(graph.nodeCount, 1);
   }
 
   void test_getTails() {
@@ -2326,9 +2325,9 @@ class DirectedGraphTest extends EngineTestCase {
         new DirectedGraph<DirectedGraphTest_Node>();
     graph.addEdge(node1, node2);
     graph.addEdge(node2, node1);
-    JUnitTestCase.assertFalse(graph.isEmpty);
+    expect(graph.isEmpty, isFalse);
     graph.removeAllNodes(nodes);
-    JUnitTestCase.assertTrue(graph.isEmpty);
+    expect(graph.isEmpty, isTrue);
   }
 
   void test_removeEdge() {
@@ -2363,9 +2362,9 @@ class DirectedGraphTest extends EngineTestCase {
     DirectedGraph<DirectedGraphTest_Node> graph =
         new DirectedGraph<DirectedGraphTest_Node>();
     graph.addEdge(node1, node2);
-    JUnitTestCase.assertSame(node2, graph.removeSink());
-    JUnitTestCase.assertSame(node1, graph.removeSink());
-    JUnitTestCase.assertTrue(graph.isEmpty);
+    expect(graph.removeSink(), same(node2));
+    expect(graph.removeSink(), same(node1));
+    expect(graph.isEmpty, isTrue);
   }
 
   void test_topologicalSort_noCycles() {
@@ -2381,11 +2380,11 @@ class DirectedGraphTest extends EngineTestCase {
         graph.computeTopologicalSort();
     EngineTestCase.assertSizeOfList(3, topologicalSort);
     EngineTestCase.assertSizeOfList(1, topologicalSort[0]);
-    JUnitTestCase.assertEquals(node3, topologicalSort[0][0]);
+    expect(topologicalSort[0][0], node3);
     EngineTestCase.assertSizeOfList(1, topologicalSort[1]);
-    JUnitTestCase.assertEquals(node2, topologicalSort[1][0]);
+    expect(topologicalSort[1][0], node2);
     EngineTestCase.assertSizeOfList(1, topologicalSort[2]);
-    JUnitTestCase.assertEquals(node1, topologicalSort[2][0]);
+    expect(topologicalSort[2][0], node1);
   }
 
   void test_topologicalSort_withCycles() {
@@ -3281,15 +3280,15 @@ class Getter_NodeReplacerTest_test_whileStatement_2 implements
   Statement get(WhileStatement node) => node.body;
 }
 
-class LineInfoTest extends JUnitTestCase {
+class LineInfoTest {
   void test_creation() {
-    JUnitTestCase.assertNotNull(new LineInfo(<int>[0]));
+    expect(new LineInfo(<int>[0]), isNotNull);
   }
 
   void test_creation_empty() {
     try {
       new LineInfo(<int>[]);
-      JUnitTestCase.fail("Expected IllegalArgumentException");
+      fail("Expected IllegalArgumentException");
     } on IllegalArgumentException catch (exception) {
       // Expected
     }
@@ -3298,7 +3297,7 @@ class LineInfoTest extends JUnitTestCase {
   void test_creation_null() {
     try {
       new LineInfo(null);
-      JUnitTestCase.fail("Expected IllegalArgumentException");
+      fail("Expected IllegalArgumentException");
     } on IllegalArgumentException catch (exception) {
       // Expected
     }
@@ -3307,22 +3306,22 @@ class LineInfoTest extends JUnitTestCase {
   void test_firstLine() {
     LineInfo info = new LineInfo(<int>[0, 12, 34]);
     LineInfo_Location location = info.getLocation(4);
-    JUnitTestCase.assertEquals(1, location.lineNumber);
-    JUnitTestCase.assertEquals(5, location.columnNumber);
+    expect(location.lineNumber, 1);
+    expect(location.columnNumber, 5);
   }
 
   void test_lastLine() {
     LineInfo info = new LineInfo(<int>[0, 12, 34]);
     LineInfo_Location location = info.getLocation(36);
-    JUnitTestCase.assertEquals(3, location.lineNumber);
-    JUnitTestCase.assertEquals(3, location.columnNumber);
+    expect(location.lineNumber, 3);
+    expect(location.columnNumber, 3);
   }
 
   void test_middleLine() {
     LineInfo info = new LineInfo(<int>[0, 12, 34]);
     LineInfo_Location location = info.getLocation(12);
-    JUnitTestCase.assertEquals(2, location.lineNumber);
-    JUnitTestCase.assertEquals(1, location.columnNumber);
+    expect(location.lineNumber, 2);
+    expect(location.columnNumber, 1);
   }
 }
 
@@ -3592,12 +3591,12 @@ class ListGetter_NodeReplacerTest_test_withClause extends
   NodeList<TypeName> getList(WithClause node) => node.mixinTypes;
 }
 
-class ListUtilitiesTest extends JUnitTestCase {
+class ListUtilitiesTest {
   void test_addAll_emptyToEmpty() {
     List<String> list = new List<String>();
     List<String> elements = [];
     ListUtilities.addAll(list, elements);
-    JUnitTestCase.assertEquals(0, list.length);
+    expect(list.length, 0);
   }
 
   void test_addAll_emptyToNonEmpty() {
@@ -3605,14 +3604,14 @@ class ListUtilitiesTest extends JUnitTestCase {
     list.add("a");
     List<String> elements = [];
     ListUtilities.addAll(list, elements);
-    JUnitTestCase.assertEquals(1, list.length);
+    expect(list.length, 1);
   }
 
   void test_addAll_nonEmptyToEmpty() {
     List<String> list = new List<String>();
     List<String> elements = ["b", "c"];
     ListUtilities.addAll(list, elements);
-    JUnitTestCase.assertEquals(2, list.length);
+    expect(list.length, 2);
   }
 
   void test_addAll_nonEmptyToNonEmpty() {
@@ -3620,7 +3619,7 @@ class ListUtilitiesTest extends JUnitTestCase {
     list.add("a");
     List<String> elements = ["b", "c"];
     ListUtilities.addAll(list, elements);
-    JUnitTestCase.assertEquals(3, list.length);
+    expect(list.length, 3);
   }
 }
 
@@ -3633,9 +3632,9 @@ class MultipleMapIteratorTest extends EngineTestCase {
     map3["k3"] = "v3";
     MultipleMapIterator<String, String> iterator =
         _iterator([map1, map2, map3]);
-    JUnitTestCase.assertTrue(iterator.moveNext());
-    JUnitTestCase.assertTrue(iterator.moveNext());
-    JUnitTestCase.assertFalse(iterator.moveNext());
+    expect(iterator.moveNext(), isTrue);
+    expect(iterator.moveNext(), isTrue);
+    expect(iterator.moveNext(), isFalse);
   }
 
   void test_multipleMaps_lastEmpty() {
@@ -3646,9 +3645,9 @@ class MultipleMapIteratorTest extends EngineTestCase {
     Map<String, String> map3 = new HashMap<String, String>();
     MultipleMapIterator<String, String> iterator =
         _iterator([map1, map2, map3]);
-    JUnitTestCase.assertTrue(iterator.moveNext());
-    JUnitTestCase.assertTrue(iterator.moveNext());
-    JUnitTestCase.assertFalse(iterator.moveNext());
+    expect(iterator.moveNext(), isTrue);
+    expect(iterator.moveNext(), isTrue);
+    expect(iterator.moveNext(), isFalse);
   }
 
   void test_multipleMaps_middleEmpty() {
@@ -3659,9 +3658,9 @@ class MultipleMapIteratorTest extends EngineTestCase {
     map3["k3"] = "v3";
     MultipleMapIterator<String, String> iterator =
         _iterator([map1, map2, map3]);
-    JUnitTestCase.assertTrue(iterator.moveNext());
-    JUnitTestCase.assertTrue(iterator.moveNext());
-    JUnitTestCase.assertFalse(iterator.moveNext());
+    expect(iterator.moveNext(), isTrue);
+    expect(iterator.moveNext(), isTrue);
+    expect(iterator.moveNext(), isFalse);
   }
 
   void test_multipleMaps_nonEmpty() {
@@ -3673,37 +3672,37 @@ class MultipleMapIteratorTest extends EngineTestCase {
     map3["k3"] = "v3";
     MultipleMapIterator<String, String> iterator =
         _iterator([map1, map2, map3]);
-    JUnitTestCase.assertTrue(iterator.moveNext());
-    JUnitTestCase.assertTrue(iterator.moveNext());
-    JUnitTestCase.assertTrue(iterator.moveNext());
-    JUnitTestCase.assertFalse(iterator.moveNext());
+    expect(iterator.moveNext(), isTrue);
+    expect(iterator.moveNext(), isTrue);
+    expect(iterator.moveNext(), isTrue);
+    expect(iterator.moveNext(), isFalse);
   }
 
   void test_noMap() {
     MultipleMapIterator<String, String> iterator = _iterator([]);
-    JUnitTestCase.assertFalse(iterator.moveNext());
-    JUnitTestCase.assertFalse(iterator.moveNext());
+    expect(iterator.moveNext(), isFalse);
+    expect(iterator.moveNext(), isFalse);
   }
 
   void test_singleMap_empty() {
     Map<String, String> map = new HashMap<String, String>();
     MultipleMapIterator<String, String> iterator = _iterator(<Map>[map]);
-    JUnitTestCase.assertFalse(iterator.moveNext());
+    expect(iterator.moveNext(), isFalse);
     try {
       iterator.key;
-      JUnitTestCase.fail("Expected NoSuchElementException");
+      fail("Expected NoSuchElementException");
     } on NoSuchElementException catch (exception) {
       // Expected
     }
     try {
       iterator.value;
-      JUnitTestCase.fail("Expected NoSuchElementException");
+      fail("Expected NoSuchElementException");
     } on NoSuchElementException catch (exception) {
       // Expected
     }
     try {
       iterator.value = "x";
-      JUnitTestCase.fail("Expected NoSuchElementException");
+      fail("Expected NoSuchElementException");
     } on NoSuchElementException catch (exception) {
       // Expected
     }
@@ -3715,10 +3714,10 @@ class MultipleMapIteratorTest extends EngineTestCase {
     map["k2"] = "v2";
     map["k3"] = "v3";
     MultipleMapIterator<String, String> iterator = _iterator([map]);
-    JUnitTestCase.assertTrue(iterator.moveNext());
-    JUnitTestCase.assertTrue(iterator.moveNext());
-    JUnitTestCase.assertTrue(iterator.moveNext());
-    JUnitTestCase.assertFalse(iterator.moveNext());
+    expect(iterator.moveNext(), isTrue);
+    expect(iterator.moveNext(), isTrue);
+    expect(iterator.moveNext(), isTrue);
+    expect(iterator.moveNext(), isFalse);
   }
 
   void test_singleMap_single() {
@@ -3727,13 +3726,13 @@ class MultipleMapIteratorTest extends EngineTestCase {
     Map<String, String> map = new HashMap<String, String>();
     map[key] = value;
     MultipleMapIterator<String, String> iterator = _iterator([map]);
-    JUnitTestCase.assertTrue(iterator.moveNext());
-    JUnitTestCase.assertSame(key, iterator.key);
-    JUnitTestCase.assertSame(value, iterator.value);
+    expect(iterator.moveNext(), isTrue);
+    expect(iterator.key, same(key));
+    expect(iterator.value, same(value));
     String newValue = "newValue";
     iterator.value = newValue;
-    JUnitTestCase.assertSame(newValue, iterator.value);
-    JUnitTestCase.assertFalse(iterator.moveNext());
+    expect(iterator.value, same(newValue));
+    expect(iterator.moveNext(), isFalse);
   }
 
   MultipleMapIterator<String, String> _iterator(List<Map> maps) {
@@ -4748,8 +4747,8 @@ class NodeReplacerTest extends EngineTestCase {
     if (child != null) {
       AstNode clone = child.accept(new AstCloner());
       NodeReplacer.replace(child, clone);
-      JUnitTestCase.assertEquals(clone, getter.get(parent));
-      JUnitTestCase.assertEquals(parent, clone.parent);
+      expect(getter.get(parent), clone);
+      expect(clone.parent, parent);
     }
   }
 
@@ -4819,26 +4818,26 @@ class SingleMapIteratorTest extends EngineTestCase {
     Map<String, String> map = new HashMap<String, String>();
     SingleMapIterator<String, String> iterator =
         new SingleMapIterator<String, String>(map);
-    JUnitTestCase.assertFalse(iterator.moveNext());
+    expect(iterator.moveNext(), isFalse);
     try {
       iterator.key;
-      JUnitTestCase.fail("Expected NoSuchElementException");
+      fail("Expected NoSuchElementException");
     } on NoSuchElementException catch (exception) {
       // Expected
     }
     try {
       iterator.value;
-      JUnitTestCase.fail("Expected NoSuchElementException");
+      fail("Expected NoSuchElementException");
     } on NoSuchElementException catch (exception) {
       // Expected
     }
     try {
       iterator.value = "x";
-      JUnitTestCase.fail("Expected NoSuchElementException");
+      fail("Expected NoSuchElementException");
     } on NoSuchElementException catch (exception) {
       // Expected
     }
-    JUnitTestCase.assertFalse(iterator.moveNext());
+    expect(iterator.moveNext(), isFalse);
   }
 
   void test_multiple() {
@@ -4848,10 +4847,10 @@ class SingleMapIteratorTest extends EngineTestCase {
     map["k3"] = "v3";
     SingleMapIterator<String, String> iterator =
         new SingleMapIterator<String, String>(map);
-    JUnitTestCase.assertTrue(iterator.moveNext());
-    JUnitTestCase.assertTrue(iterator.moveNext());
-    JUnitTestCase.assertTrue(iterator.moveNext());
-    JUnitTestCase.assertFalse(iterator.moveNext());
+    expect(iterator.moveNext(), isTrue);
+    expect(iterator.moveNext(), isTrue);
+    expect(iterator.moveNext(), isTrue);
+    expect(iterator.moveNext(), isFalse);
   }
 
   void test_single() {
@@ -4861,306 +4860,257 @@ class SingleMapIteratorTest extends EngineTestCase {
     map[key] = value;
     SingleMapIterator<String, String> iterator =
         new SingleMapIterator<String, String>(map);
-    JUnitTestCase.assertTrue(iterator.moveNext());
-    JUnitTestCase.assertSame(key, iterator.key);
-    JUnitTestCase.assertSame(value, iterator.value);
+    expect(iterator.moveNext(), isTrue);
+    expect(iterator.key, same(key));
+    expect(iterator.value, same(value));
     String newValue = "newValue";
     iterator.value = newValue;
-    JUnitTestCase.assertSame(newValue, iterator.value);
-    JUnitTestCase.assertFalse(iterator.moveNext());
+    expect(iterator.value, same(newValue));
+    expect(iterator.moveNext(), isFalse);
   }
 }
 
-class SourceRangeTest extends JUnitTestCase {
+class SourceRangeTest {
   void test_access() {
     SourceRange r = new SourceRange(10, 1);
-    JUnitTestCase.assertEquals(10, r.offset);
-    JUnitTestCase.assertEquals(1, r.length);
-    JUnitTestCase.assertEquals(10 + 1, r.end);
+    expect(r.offset, 10);
+    expect(r.length, 1);
+    expect(r.end, 10 + 1);
     // to check
     r.hashCode;
   }
 
   void test_contains() {
     SourceRange r = new SourceRange(5, 10);
-    JUnitTestCase.assertTrue(r.contains(5));
-    JUnitTestCase.assertTrue(r.contains(10));
-    JUnitTestCase.assertTrue(r.contains(14));
-    JUnitTestCase.assertFalse(r.contains(0));
-    JUnitTestCase.assertFalse(r.contains(15));
+    expect(r.contains(5), isTrue);
+    expect(r.contains(10), isTrue);
+    expect(r.contains(14), isTrue);
+    expect(r.contains(0), isFalse);
+    expect(r.contains(15), isFalse);
   }
 
   void test_containsExclusive() {
     SourceRange r = new SourceRange(5, 10);
-    JUnitTestCase.assertFalse(r.containsExclusive(5));
-    JUnitTestCase.assertTrue(r.containsExclusive(10));
-    JUnitTestCase.assertTrue(r.containsExclusive(14));
-    JUnitTestCase.assertFalse(r.containsExclusive(0));
-    JUnitTestCase.assertFalse(r.containsExclusive(15));
+    expect(r.containsExclusive(5), isFalse);
+    expect(r.containsExclusive(10), isTrue);
+    expect(r.containsExclusive(14), isTrue);
+    expect(r.containsExclusive(0), isFalse);
+    expect(r.containsExclusive(15), isFalse);
   }
 
   void test_coveredBy() {
     SourceRange r = new SourceRange(5, 10);
     // ends before
-    JUnitTestCase.assertFalse(r.coveredBy(new SourceRange(20, 10)));
+    expect(r.coveredBy(new SourceRange(20, 10)), isFalse);
     // starts after
-    JUnitTestCase.assertFalse(r.coveredBy(new SourceRange(0, 3)));
+    expect(r.coveredBy(new SourceRange(0, 3)), isFalse);
     // only intersects
-    JUnitTestCase.assertFalse(r.coveredBy(new SourceRange(0, 10)));
-    JUnitTestCase.assertFalse(r.coveredBy(new SourceRange(10, 10)));
+    expect(r.coveredBy(new SourceRange(0, 10)), isFalse);
+    expect(r.coveredBy(new SourceRange(10, 10)), isFalse);
     // covered
-    JUnitTestCase.assertTrue(r.coveredBy(new SourceRange(0, 20)));
-    JUnitTestCase.assertTrue(r.coveredBy(new SourceRange(5, 10)));
+    expect(r.coveredBy(new SourceRange(0, 20)), isTrue);
+    expect(r.coveredBy(new SourceRange(5, 10)), isTrue);
   }
 
   void test_covers() {
     SourceRange r = new SourceRange(5, 10);
     // ends before
-    JUnitTestCase.assertFalse(r.covers(new SourceRange(0, 3)));
+    expect(r.covers(new SourceRange(0, 3)), isFalse);
     // starts after
-    JUnitTestCase.assertFalse(r.covers(new SourceRange(20, 3)));
+    expect(r.covers(new SourceRange(20, 3)), isFalse);
     // only intersects
-    JUnitTestCase.assertFalse(r.covers(new SourceRange(0, 10)));
-    JUnitTestCase.assertFalse(r.covers(new SourceRange(10, 10)));
+    expect(r.covers(new SourceRange(0, 10)), isFalse);
+    expect(r.covers(new SourceRange(10, 10)), isFalse);
     // covers
-    JUnitTestCase.assertTrue(r.covers(new SourceRange(5, 10)));
-    JUnitTestCase.assertTrue(r.covers(new SourceRange(6, 9)));
-    JUnitTestCase.assertTrue(r.covers(new SourceRange(6, 8)));
+    expect(r.covers(new SourceRange(5, 10)), isTrue);
+    expect(r.covers(new SourceRange(6, 9)), isTrue);
+    expect(r.covers(new SourceRange(6, 8)), isTrue);
   }
 
   void test_endsIn() {
     SourceRange r = new SourceRange(5, 10);
     // ends before
-    JUnitTestCase.assertFalse(r.endsIn(new SourceRange(20, 10)));
+    expect(r.endsIn(new SourceRange(20, 10)), isFalse);
     // starts after
-    JUnitTestCase.assertFalse(r.endsIn(new SourceRange(0, 3)));
+    expect(r.endsIn(new SourceRange(0, 3)), isFalse);
     // ends
-    JUnitTestCase.assertTrue(r.endsIn(new SourceRange(10, 20)));
-    JUnitTestCase.assertTrue(r.endsIn(new SourceRange(0, 20)));
+    expect(r.endsIn(new SourceRange(10, 20)), isTrue);
+    expect(r.endsIn(new SourceRange(0, 20)), isTrue);
   }
 
   void test_equals() {
     SourceRange r = new SourceRange(10, 1);
-    JUnitTestCase.assertFalse(r == null);
-    JUnitTestCase.assertFalse(r == this);
-    JUnitTestCase.assertFalse(r == new SourceRange(20, 2));
-    JUnitTestCase.assertTrue(r == new SourceRange(10, 1));
-    JUnitTestCase.assertTrue(r == r);
+    expect(r == null, isFalse);
+    expect(r == this, isFalse);
+    expect(r == new SourceRange(20, 2), isFalse);
+    expect(r == new SourceRange(10, 1), isTrue);
+    expect(r == r, isTrue);
   }
 
   void test_getExpanded() {
     SourceRange r = new SourceRange(5, 3);
-    JUnitTestCase.assertEquals(r, r.getExpanded(0));
-    JUnitTestCase.assertEquals(new SourceRange(3, 7), r.getExpanded(2));
-    JUnitTestCase.assertEquals(new SourceRange(6, 1), r.getExpanded(-1));
+    expect(r.getExpanded(0), r);
+    expect(r.getExpanded(2), new SourceRange(3, 7));
+    expect(r.getExpanded(-1), new SourceRange(6, 1));
   }
 
   void test_getMoveEnd() {
     SourceRange r = new SourceRange(5, 3);
-    JUnitTestCase.assertEquals(r, r.getMoveEnd(0));
-    JUnitTestCase.assertEquals(new SourceRange(5, 6), r.getMoveEnd(3));
-    JUnitTestCase.assertEquals(new SourceRange(5, 2), r.getMoveEnd(-1));
+    expect(r.getMoveEnd(0), r);
+    expect(r.getMoveEnd(3), new SourceRange(5, 6));
+    expect(r.getMoveEnd(-1), new SourceRange(5, 2));
   }
 
   void test_getTranslated() {
     SourceRange r = new SourceRange(5, 3);
-    JUnitTestCase.assertEquals(r, r.getTranslated(0));
-    JUnitTestCase.assertEquals(new SourceRange(7, 3), r.getTranslated(2));
-    JUnitTestCase.assertEquals(new SourceRange(4, 3), r.getTranslated(-1));
+    expect(r.getTranslated(0), r);
+    expect(r.getTranslated(2), new SourceRange(7, 3));
+    expect(r.getTranslated(-1), new SourceRange(4, 3));
   }
 
   void test_getUnion() {
-    JUnitTestCase.assertEquals(
-        new SourceRange(10, 15),
-        new SourceRange(10, 10).getUnion(new SourceRange(15, 10)));
-    JUnitTestCase.assertEquals(
-        new SourceRange(10, 15),
-        new SourceRange(15, 10).getUnion(new SourceRange(10, 10)));
+    expect(new SourceRange(10, 10).getUnion(new SourceRange(15, 10)), new SourceRange(10, 15));
+    expect(new SourceRange(15, 10).getUnion(new SourceRange(10, 10)), new SourceRange(10, 15));
     // "other" is covered/covers
-    JUnitTestCase.assertEquals(
-        new SourceRange(10, 10),
-        new SourceRange(10, 10).getUnion(new SourceRange(15, 2)));
-    JUnitTestCase.assertEquals(
-        new SourceRange(10, 10),
-        new SourceRange(15, 2).getUnion(new SourceRange(10, 10)));
+    expect(new SourceRange(10, 10).getUnion(new SourceRange(15, 2)), new SourceRange(10, 10));
+    expect(new SourceRange(15, 2).getUnion(new SourceRange(10, 10)), new SourceRange(10, 10));
   }
 
   void test_intersects() {
     SourceRange r = new SourceRange(5, 3);
     // null
-    JUnitTestCase.assertFalse(r.intersects(null));
+    expect(r.intersects(null), isFalse);
     // ends before
-    JUnitTestCase.assertFalse(r.intersects(new SourceRange(0, 5)));
+    expect(r.intersects(new SourceRange(0, 5)), isFalse);
     // begins after
-    JUnitTestCase.assertFalse(r.intersects(new SourceRange(8, 5)));
+    expect(r.intersects(new SourceRange(8, 5)), isFalse);
     // begins on same offset
-    JUnitTestCase.assertTrue(r.intersects(new SourceRange(5, 1)));
+    expect(r.intersects(new SourceRange(5, 1)), isTrue);
     // begins inside, ends inside
-    JUnitTestCase.assertTrue(r.intersects(new SourceRange(6, 1)));
+    expect(r.intersects(new SourceRange(6, 1)), isTrue);
     // begins inside, ends after
-    JUnitTestCase.assertTrue(r.intersects(new SourceRange(6, 10)));
+    expect(r.intersects(new SourceRange(6, 10)), isTrue);
     // begins before, ends after
-    JUnitTestCase.assertTrue(r.intersects(new SourceRange(0, 10)));
+    expect(r.intersects(new SourceRange(0, 10)), isTrue);
   }
 
   void test_startsIn() {
     SourceRange r = new SourceRange(5, 10);
     // ends before
-    JUnitTestCase.assertFalse(r.startsIn(new SourceRange(20, 10)));
+    expect(r.startsIn(new SourceRange(20, 10)), isFalse);
     // starts after
-    JUnitTestCase.assertFalse(r.startsIn(new SourceRange(0, 3)));
+    expect(r.startsIn(new SourceRange(0, 3)), isFalse);
     // starts
-    JUnitTestCase.assertTrue(r.startsIn(new SourceRange(5, 1)));
-    JUnitTestCase.assertTrue(r.startsIn(new SourceRange(0, 20)));
+    expect(r.startsIn(new SourceRange(5, 1)), isTrue);
+    expect(r.startsIn(new SourceRange(0, 20)), isTrue);
   }
 
   void test_toString() {
     SourceRange r = new SourceRange(10, 1);
-    JUnitTestCase.assertEquals("[offset=10, length=1]", r.toString());
+    expect(r.toString(), "[offset=10, length=1]");
   }
 }
 
-class StringUtilitiesTest extends JUnitTestCase {
+class StringUtilitiesTest {
   void test_EMPTY() {
-    JUnitTestCase.assertEquals("", StringUtilities.EMPTY);
-    JUnitTestCase.assertTrue(StringUtilities.EMPTY.isEmpty);
+    expect(StringUtilities.EMPTY, "");
+    expect(StringUtilities.EMPTY.isEmpty, isTrue);
   }
 
   void test_EMPTY_ARRAY() {
-    JUnitTestCase.assertEquals(0, StringUtilities.EMPTY_ARRAY.length);
+    expect(StringUtilities.EMPTY_ARRAY.length, 0);
   }
 
   void test_endsWith3() {
-    JUnitTestCase.assertTrue(
-        StringUtilities.endsWith3("abc", 0x61, 0x62, 0x63));
-    JUnitTestCase.assertTrue(
-        StringUtilities.endsWith3("abcdefghi", 0x67, 0x68, 0x69));
-    JUnitTestCase.assertFalse(
-        StringUtilities.endsWith3("abcdefghi", 0x64, 0x65, 0x61));
+    expect(StringUtilities.endsWith3("abc", 0x61, 0x62, 0x63), isTrue);
+    expect(StringUtilities.endsWith3("abcdefghi", 0x67, 0x68, 0x69), isTrue);
+    expect(StringUtilities.endsWith3("abcdefghi", 0x64, 0x65, 0x61), isFalse);
     // missing
   }
 
   void test_endsWithChar() {
-    JUnitTestCase.assertTrue(StringUtilities.endsWithChar("a", 0x61));
-    JUnitTestCase.assertFalse(StringUtilities.endsWithChar("b", 0x61));
-    JUnitTestCase.assertFalse(StringUtilities.endsWithChar("", 0x61));
+    expect(StringUtilities.endsWithChar("a", 0x61), isTrue);
+    expect(StringUtilities.endsWithChar("b", 0x61), isFalse);
+    expect(StringUtilities.endsWithChar("", 0x61), isFalse);
   }
 
   void test_indexOf1() {
-    JUnitTestCase.assertEquals(0, StringUtilities.indexOf1("a", 0, 0x61));
-    JUnitTestCase.assertEquals(0, StringUtilities.indexOf1("abcdef", 0, 0x61));
-    JUnitTestCase.assertEquals(2, StringUtilities.indexOf1("abcdef", 0, 0x63));
-    JUnitTestCase.assertEquals(5, StringUtilities.indexOf1("abcdef", 0, 0x66));
-    JUnitTestCase.assertEquals(-1, StringUtilities.indexOf1("abcdef", 0, 0x7A));
-    JUnitTestCase.assertEquals(-1, StringUtilities.indexOf1("abcdef", 1, 0x61));
+    expect(StringUtilities.indexOf1("a", 0, 0x61), 0);
+    expect(StringUtilities.indexOf1("abcdef", 0, 0x61), 0);
+    expect(StringUtilities.indexOf1("abcdef", 0, 0x63), 2);
+    expect(StringUtilities.indexOf1("abcdef", 0, 0x66), 5);
+    expect(StringUtilities.indexOf1("abcdef", 0, 0x7A), -1);
+    expect(StringUtilities.indexOf1("abcdef", 1, 0x61), -1);
     // before start
   }
 
   void test_indexOf2() {
-    JUnitTestCase.assertEquals(
-        0,
-        StringUtilities.indexOf2("ab", 0, 0x61, 0x62));
-    JUnitTestCase.assertEquals(
-        0,
-        StringUtilities.indexOf2("abcdef", 0, 0x61, 0x62));
-    JUnitTestCase.assertEquals(
-        2,
-        StringUtilities.indexOf2("abcdef", 0, 0x63, 0x64));
-    JUnitTestCase.assertEquals(
-        4,
-        StringUtilities.indexOf2("abcdef", 0, 0x65, 0x66));
-    JUnitTestCase.assertEquals(
-        -1,
-        StringUtilities.indexOf2("abcdef", 0, 0x64, 0x61));
-    JUnitTestCase.assertEquals(
-        -1,
-        StringUtilities.indexOf2("abcdef", 1, 0x61, 0x62));
+    expect(StringUtilities.indexOf2("ab", 0, 0x61, 0x62), 0);
+    expect(StringUtilities.indexOf2("abcdef", 0, 0x61, 0x62), 0);
+    expect(StringUtilities.indexOf2("abcdef", 0, 0x63, 0x64), 2);
+    expect(StringUtilities.indexOf2("abcdef", 0, 0x65, 0x66), 4);
+    expect(StringUtilities.indexOf2("abcdef", 0, 0x64, 0x61), -1);
+    expect(StringUtilities.indexOf2("abcdef", 1, 0x61, 0x62), -1);
     // before start
   }
 
   void test_indexOf4() {
-    JUnitTestCase.assertEquals(
-        0,
-        StringUtilities.indexOf4("abcd", 0, 0x61, 0x62, 0x63, 0x64));
-    JUnitTestCase.assertEquals(
-        0,
-        StringUtilities.indexOf4("abcdefghi", 0, 0x61, 0x62, 0x63, 0x64));
-    JUnitTestCase.assertEquals(
-        2,
-        StringUtilities.indexOf4("abcdefghi", 0, 0x63, 0x64, 0x65, 0x66));
-    JUnitTestCase.assertEquals(
-        5,
-        StringUtilities.indexOf4("abcdefghi", 0, 0x66, 0x67, 0x68, 0x69));
-    JUnitTestCase.assertEquals(
-        -1,
-        StringUtilities.indexOf4("abcdefghi", 0, 0x64, 0x65, 0x61, 0x64));
-    JUnitTestCase.assertEquals(
-        -1,
-        StringUtilities.indexOf4("abcdefghi", 1, 0x61, 0x62, 0x63, 0x64));
+    expect(StringUtilities.indexOf4("abcd", 0, 0x61, 0x62, 0x63, 0x64), 0);
+    expect(StringUtilities.indexOf4("abcdefghi", 0, 0x61, 0x62, 0x63, 0x64), 0);
+    expect(StringUtilities.indexOf4("abcdefghi", 0, 0x63, 0x64, 0x65, 0x66), 2);
+    expect(StringUtilities.indexOf4("abcdefghi", 0, 0x66, 0x67, 0x68, 0x69), 5);
+    expect(StringUtilities.indexOf4("abcdefghi", 0, 0x64, 0x65, 0x61, 0x64), -1);
+    expect(StringUtilities.indexOf4("abcdefghi", 1, 0x61, 0x62, 0x63, 0x64), -1);
     // before start
   }
 
   void test_indexOf5() {
-    JUnitTestCase.assertEquals(
-        0,
-        StringUtilities.indexOf5("abcde", 0, 0x61, 0x62, 0x63, 0x64, 0x65));
-    JUnitTestCase.assertEquals(
-        0,
-        StringUtilities.indexOf5("abcdefghi", 0, 0x61, 0x62, 0x63, 0x64, 0x65));
-    JUnitTestCase.assertEquals(
-        2,
-        StringUtilities.indexOf5("abcdefghi", 0, 0x63, 0x64, 0x65, 0x66, 0x67));
-    JUnitTestCase.assertEquals(
-        4,
-        StringUtilities.indexOf5("abcdefghi", 0, 0x65, 0x66, 0x67, 0x68, 0x69));
-    JUnitTestCase.assertEquals(
-        -1,
-        StringUtilities.indexOf5("abcdefghi", 0, 0x64, 0x65, 0x66, 0x69, 0x6E));
-    JUnitTestCase.assertEquals(
-        -1,
-        StringUtilities.indexOf5("abcdefghi", 1, 0x61, 0x62, 0x63, 0x64, 0x65));
+    expect(StringUtilities.indexOf5("abcde", 0, 0x61, 0x62, 0x63, 0x64, 0x65), 0);
+    expect(StringUtilities.indexOf5("abcdefghi", 0, 0x61, 0x62, 0x63, 0x64, 0x65), 0);
+    expect(StringUtilities.indexOf5("abcdefghi", 0, 0x63, 0x64, 0x65, 0x66, 0x67), 2);
+    expect(StringUtilities.indexOf5("abcdefghi", 0, 0x65, 0x66, 0x67, 0x68, 0x69), 4);
+    expect(StringUtilities.indexOf5("abcdefghi", 0, 0x64, 0x65, 0x66, 0x69, 0x6E), -1);
+    expect(StringUtilities.indexOf5("abcdefghi", 1, 0x61, 0x62, 0x63, 0x64, 0x65), -1);
     // before start
   }
 
   void test_isEmpty() {
-    JUnitTestCase.assertTrue(StringUtilities.isEmpty(""));
-    JUnitTestCase.assertFalse(StringUtilities.isEmpty(" "));
-    JUnitTestCase.assertFalse(StringUtilities.isEmpty("a"));
-    JUnitTestCase.assertTrue(StringUtilities.isEmpty(StringUtilities.EMPTY));
+    expect(StringUtilities.isEmpty(""), isTrue);
+    expect(StringUtilities.isEmpty(" "), isFalse);
+    expect(StringUtilities.isEmpty("a"), isFalse);
+    expect(StringUtilities.isEmpty(StringUtilities.EMPTY), isTrue);
   }
 
   void test_isTagName() {
-    JUnitTestCase.assertFalse(StringUtilities.isTagName(null));
-    JUnitTestCase.assertFalse(StringUtilities.isTagName(""));
-    JUnitTestCase.assertFalse(StringUtilities.isTagName("-"));
-    JUnitTestCase.assertFalse(StringUtilities.isTagName("0"));
-    JUnitTestCase.assertFalse(StringUtilities.isTagName("0a"));
-    JUnitTestCase.assertFalse(StringUtilities.isTagName("a b"));
-    JUnitTestCase.assertTrue(StringUtilities.isTagName("a0"));
-    JUnitTestCase.assertTrue(StringUtilities.isTagName("a"));
-    JUnitTestCase.assertTrue(StringUtilities.isTagName("ab"));
-    JUnitTestCase.assertTrue(StringUtilities.isTagName("a-b"));
+    expect(StringUtilities.isTagName(null), isFalse);
+    expect(StringUtilities.isTagName(""), isFalse);
+    expect(StringUtilities.isTagName("-"), isFalse);
+    expect(StringUtilities.isTagName("0"), isFalse);
+    expect(StringUtilities.isTagName("0a"), isFalse);
+    expect(StringUtilities.isTagName("a b"), isFalse);
+    expect(StringUtilities.isTagName("a0"), isTrue);
+    expect(StringUtilities.isTagName("a"), isTrue);
+    expect(StringUtilities.isTagName("ab"), isTrue);
+    expect(StringUtilities.isTagName("a-b"), isTrue);
   }
 
   void test_printListOfQuotedNames_empty() {
     try {
       StringUtilities.printListOfQuotedNames(new List<String>(0));
-      JUnitTestCase.fail("Expected IllegalArgumentException");
+      fail("Expected IllegalArgumentException");
     } on IllegalArgumentException catch (exception) {
       // Expected
     }
   }
 
   void test_printListOfQuotedNames_five() {
-    JUnitTestCase.assertEquals(
-        "'a', 'b', 'c', 'd' and 'e'",
-        StringUtilities.printListOfQuotedNames(<String>["a", "b", "c", "d", "e"]));
+    expect(StringUtilities.printListOfQuotedNames(<String>["a", "b", "c", "d", "e"]), "'a', 'b', 'c', 'd' and 'e'");
   }
 
   void test_printListOfQuotedNames_null() {
     try {
       StringUtilities.printListOfQuotedNames(null);
-      JUnitTestCase.fail("Expected IllegalArgumentException");
+      fail("Expected IllegalArgumentException");
     } on IllegalArgumentException catch (exception) {
       // Expected
     }
@@ -5169,84 +5119,59 @@ class StringUtilitiesTest extends JUnitTestCase {
   void test_printListOfQuotedNames_one() {
     try {
       StringUtilities.printListOfQuotedNames(<String>["a"]);
-      JUnitTestCase.fail("Expected IllegalArgumentException");
+      fail("Expected IllegalArgumentException");
     } on IllegalArgumentException catch (exception) {
       // Expected
     }
   }
 
   void test_printListOfQuotedNames_three() {
-    JUnitTestCase.assertEquals(
-        "'a', 'b' and 'c'",
-        StringUtilities.printListOfQuotedNames(<String>["a", "b", "c"]));
+    expect(StringUtilities.printListOfQuotedNames(<String>["a", "b", "c"]), "'a', 'b' and 'c'");
   }
 
   void test_printListOfQuotedNames_two() {
-    JUnitTestCase.assertEquals(
-        "'a' and 'b'",
-        StringUtilities.printListOfQuotedNames(<String>["a", "b"]));
+    expect(StringUtilities.printListOfQuotedNames(<String>["a", "b"]), "'a' and 'b'");
   }
 
   void test_startsWith2() {
-    JUnitTestCase.assertTrue(StringUtilities.startsWith2("ab", 0, 0x61, 0x62));
-    JUnitTestCase.assertTrue(
-        StringUtilities.startsWith2("abcdefghi", 0, 0x61, 0x62));
-    JUnitTestCase.assertTrue(
-        StringUtilities.startsWith2("abcdefghi", 2, 0x63, 0x64));
-    JUnitTestCase.assertTrue(
-        StringUtilities.startsWith2("abcdefghi", 5, 0x66, 0x67));
-    JUnitTestCase.assertFalse(
-        StringUtilities.startsWith2("abcdefghi", 0, 0x64, 0x64));
+    expect(StringUtilities.startsWith2("ab", 0, 0x61, 0x62), isTrue);
+    expect(StringUtilities.startsWith2("abcdefghi", 0, 0x61, 0x62), isTrue);
+    expect(StringUtilities.startsWith2("abcdefghi", 2, 0x63, 0x64), isTrue);
+    expect(StringUtilities.startsWith2("abcdefghi", 5, 0x66, 0x67), isTrue);
+    expect(StringUtilities.startsWith2("abcdefghi", 0, 0x64, 0x64), isFalse);
     // missing
   }
 
   void test_startsWith3() {
-    JUnitTestCase.assertTrue(
-        StringUtilities.startsWith3("abc", 0, 0x61, 0x62, 0x63));
-    JUnitTestCase.assertTrue(
-        StringUtilities.startsWith3("abcdefghi", 0, 0x61, 0x62, 0x63));
-    JUnitTestCase.assertTrue(
-        StringUtilities.startsWith3("abcdefghi", 2, 0x63, 0x64, 0x65));
-    JUnitTestCase.assertTrue(
-        StringUtilities.startsWith3("abcdefghi", 6, 0x67, 0x68, 0x69));
-    JUnitTestCase.assertFalse(
-        StringUtilities.startsWith3("abcdefghi", 0, 0x64, 0x65, 0x61));
+    expect(StringUtilities.startsWith3("abc", 0, 0x61, 0x62, 0x63), isTrue);
+    expect(StringUtilities.startsWith3("abcdefghi", 0, 0x61, 0x62, 0x63), isTrue);
+    expect(StringUtilities.startsWith3("abcdefghi", 2, 0x63, 0x64, 0x65), isTrue);
+    expect(StringUtilities.startsWith3("abcdefghi", 6, 0x67, 0x68, 0x69), isTrue);
+    expect(StringUtilities.startsWith3("abcdefghi", 0, 0x64, 0x65, 0x61), isFalse);
     // missing
   }
 
   void test_startsWith4() {
-    JUnitTestCase.assertTrue(
-        StringUtilities.startsWith4("abcd", 0, 0x61, 0x62, 0x63, 0x64));
-    JUnitTestCase.assertTrue(
-        StringUtilities.startsWith4("abcdefghi", 0, 0x61, 0x62, 0x63, 0x64));
-    JUnitTestCase.assertTrue(
-        StringUtilities.startsWith4("abcdefghi", 2, 0x63, 0x64, 0x65, 0x66));
-    JUnitTestCase.assertTrue(
-        StringUtilities.startsWith4("abcdefghi", 5, 0x66, 0x67, 0x68, 0x69));
-    JUnitTestCase.assertFalse(
-        StringUtilities.startsWith4("abcdefghi", 0, 0x64, 0x65, 0x61, 0x64));
+    expect(StringUtilities.startsWith4("abcd", 0, 0x61, 0x62, 0x63, 0x64), isTrue);
+    expect(StringUtilities.startsWith4("abcdefghi", 0, 0x61, 0x62, 0x63, 0x64), isTrue);
+    expect(StringUtilities.startsWith4("abcdefghi", 2, 0x63, 0x64, 0x65, 0x66), isTrue);
+    expect(StringUtilities.startsWith4("abcdefghi", 5, 0x66, 0x67, 0x68, 0x69), isTrue);
+    expect(StringUtilities.startsWith4("abcdefghi", 0, 0x64, 0x65, 0x61, 0x64), isFalse);
     // missing
   }
 
   void test_startsWith5() {
-    JUnitTestCase.assertTrue(
-        StringUtilities.startsWith5("abcde", 0, 0x61, 0x62, 0x63, 0x64, 0x65));
-    JUnitTestCase.assertTrue(
-        StringUtilities.startsWith5("abcdefghi", 0, 0x61, 0x62, 0x63, 0x64, 0x65));
-    JUnitTestCase.assertTrue(
-        StringUtilities.startsWith5("abcdefghi", 2, 0x63, 0x64, 0x65, 0x66, 0x67));
-    JUnitTestCase.assertTrue(
-        StringUtilities.startsWith5("abcdefghi", 4, 0x65, 0x66, 0x67, 0x68, 0x69));
-    JUnitTestCase.assertFalse(
-        StringUtilities.startsWith5("abcdefghi", 0, 0x61, 0x62, 0x63, 0x62, 0x61));
+    expect(StringUtilities.startsWith5("abcde", 0, 0x61, 0x62, 0x63, 0x64, 0x65), isTrue);
+    expect(StringUtilities.startsWith5("abcdefghi", 0, 0x61, 0x62, 0x63, 0x64, 0x65), isTrue);
+    expect(StringUtilities.startsWith5("abcdefghi", 2, 0x63, 0x64, 0x65, 0x66, 0x67), isTrue);
+    expect(StringUtilities.startsWith5("abcdefghi", 4, 0x65, 0x66, 0x67, 0x68, 0x69), isTrue);
+    expect(StringUtilities.startsWith5("abcdefghi", 0, 0x61, 0x62, 0x63, 0x62, 0x61), isFalse);
     // missing
   }
 
   void test_startsWith6() {
-    JUnitTestCase.assertTrue(
-        StringUtilities.startsWith6("abcdef", 0, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66));
-    JUnitTestCase.assertTrue(
-        StringUtilities.startsWith6(
+    expect(StringUtilities.startsWith6("abcdef", 0, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66), isTrue);
+    expect(StringUtilities.startsWith6(
             "abcdefghi",
             0,
             0x61,
@@ -5254,9 +5179,8 @@ class StringUtilitiesTest extends JUnitTestCase {
             0x63,
             0x64,
             0x65,
-            0x66));
-    JUnitTestCase.assertTrue(
-        StringUtilities.startsWith6(
+            0x66), isTrue);
+    expect(StringUtilities.startsWith6(
             "abcdefghi",
             2,
             0x63,
@@ -5264,9 +5188,8 @@ class StringUtilitiesTest extends JUnitTestCase {
             0x65,
             0x66,
             0x67,
-            0x68));
-    JUnitTestCase.assertTrue(
-        StringUtilities.startsWith6(
+            0x68), isTrue);
+    expect(StringUtilities.startsWith6(
             "abcdefghi",
             3,
             0x64,
@@ -5274,9 +5197,8 @@ class StringUtilitiesTest extends JUnitTestCase {
             0x66,
             0x67,
             0x68,
-            0x69));
-    JUnitTestCase.assertFalse(
-        StringUtilities.startsWith6(
+            0x69), isTrue);
+    expect(StringUtilities.startsWith6(
             "abcdefghi",
             0,
             0x61,
@@ -5284,57 +5206,35 @@ class StringUtilitiesTest extends JUnitTestCase {
             0x63,
             0x64,
             0x65,
-            0x67));
+            0x67), isFalse);
     // missing
   }
 
   void test_startsWithChar() {
-    JUnitTestCase.assertTrue(StringUtilities.startsWithChar("a", 0x61));
-    JUnitTestCase.assertFalse(StringUtilities.startsWithChar("b", 0x61));
-    JUnitTestCase.assertFalse(StringUtilities.startsWithChar("", 0x61));
+    expect(StringUtilities.startsWithChar("a", 0x61), isTrue);
+    expect(StringUtilities.startsWithChar("b", 0x61), isFalse);
+    expect(StringUtilities.startsWithChar("", 0x61), isFalse);
   }
 
   void test_substringBefore() {
-    JUnitTestCase.assertEquals(null, StringUtilities.substringBefore(null, ""));
-    JUnitTestCase.assertEquals(
-        null,
-        StringUtilities.substringBefore(null, "a"));
-    JUnitTestCase.assertEquals("", StringUtilities.substringBefore("", "a"));
-    JUnitTestCase.assertEquals("", StringUtilities.substringBefore("abc", "a"));
-    JUnitTestCase.assertEquals(
-        "a",
-        StringUtilities.substringBefore("abcba", "b"));
-    JUnitTestCase.assertEquals(
-        "ab",
-        StringUtilities.substringBefore("abc", "c"));
-    JUnitTestCase.assertEquals(
-        "abc",
-        StringUtilities.substringBefore("abc", "d"));
-    JUnitTestCase.assertEquals("", StringUtilities.substringBefore("abc", ""));
-    JUnitTestCase.assertEquals(
-        "abc",
-        StringUtilities.substringBefore("abc", null));
+    expect(StringUtilities.substringBefore(null, ""), null);
+    expect(StringUtilities.substringBefore(null, "a"), null);
+    expect(StringUtilities.substringBefore("", "a"), "");
+    expect(StringUtilities.substringBefore("abc", "a"), "");
+    expect(StringUtilities.substringBefore("abcba", "b"), "a");
+    expect(StringUtilities.substringBefore("abc", "c"), "ab");
+    expect(StringUtilities.substringBefore("abc", "d"), "abc");
+    expect(StringUtilities.substringBefore("abc", ""), "");
+    expect(StringUtilities.substringBefore("abc", null), "abc");
   }
 
   void test_substringBeforeChar() {
-    JUnitTestCase.assertEquals(
-        null,
-        StringUtilities.substringBeforeChar(null, 0x61));
-    JUnitTestCase.assertEquals(
-        "",
-        StringUtilities.substringBeforeChar("", 0x61));
-    JUnitTestCase.assertEquals(
-        "",
-        StringUtilities.substringBeforeChar("abc", 0x61));
-    JUnitTestCase.assertEquals(
-        "a",
-        StringUtilities.substringBeforeChar("abcba", 0x62));
-    JUnitTestCase.assertEquals(
-        "ab",
-        StringUtilities.substringBeforeChar("abc", 0x63));
-    JUnitTestCase.assertEquals(
-        "abc",
-        StringUtilities.substringBeforeChar("abc", 0x64));
+    expect(StringUtilities.substringBeforeChar(null, 0x61), null);
+    expect(StringUtilities.substringBeforeChar("", 0x61), "");
+    expect(StringUtilities.substringBeforeChar("abc", 0x61), "");
+    expect(StringUtilities.substringBeforeChar("abcba", 0x62), "a");
+    expect(StringUtilities.substringBeforeChar("abc", 0x63), "ab");
+    expect(StringUtilities.substringBeforeChar("abc", 0x64), "abc");
   }
 }
 
@@ -5388,15 +5288,14 @@ class TestLogger implements Logger {
 }
 
 
-class TokenMapTest extends JUnitTestCase {
+class TokenMapTest {
   void test_creation() {
-    JUnitTestCase.assertNotNull(new TokenMap());
+    expect(new TokenMap(), isNotNull);
   }
 
   void test_get_absent() {
     TokenMap tokenMap = new TokenMap();
-    JUnitTestCase.assertNull(
-        tokenMap.get(TokenFactory.tokenFromType(TokenType.AT)));
+    expect(tokenMap.get(TokenFactory.tokenFromType(TokenType.AT)), isNull);
   }
 
   void test_get_added() {
@@ -5404,6 +5303,6 @@ class TokenMapTest extends JUnitTestCase {
     Token key = TokenFactory.tokenFromType(TokenType.AT);
     Token value = TokenFactory.tokenFromType(TokenType.AT);
     tokenMap.put(key, value);
-    JUnitTestCase.assertSame(value, tokenMap.get(key));
+    expect(tokenMap.get(key), same(value));
   }
 }

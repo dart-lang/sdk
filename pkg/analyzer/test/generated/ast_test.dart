@@ -9,11 +9,10 @@ library engine.ast_test;
 
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/java_junit.dart';
 import 'package:analyzer/src/generated/java_engine.dart' show Predicate;
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:unittest/unittest.dart' as _ut;
+import 'package:unittest/unittest.dart';
 import 'parser_test.dart' show ParserTestCase;
 import 'test_support.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
@@ -112,10 +111,10 @@ class ClassDeclarationTest extends ParserTestCase {
     ConstructorDeclaration aConstructor = AstFactory.constructorDeclaration(AstFactory.identifier3("Test"), "a", AstFactory.formalParameterList([]), initializers);
     ConstructorDeclaration bConstructor = AstFactory.constructorDeclaration(AstFactory.identifier3("Test"), "b", AstFactory.formalParameterList([]), initializers);
     ClassDeclaration clazz = AstFactory.classDeclaration(null, "Test", null, null, null, null, [defaultConstructor, aConstructor, bConstructor]);
-    JUnitTestCase.assertSame(defaultConstructor, clazz.getConstructor(null));
-    JUnitTestCase.assertSame(aConstructor, clazz.getConstructor("a"));
-    JUnitTestCase.assertSame(bConstructor, clazz.getConstructor("b"));
-    JUnitTestCase.assertSame(null, clazz.getConstructor("noSuchConstructor"));
+    expect(clazz.getConstructor(null), same(defaultConstructor));
+    expect(clazz.getConstructor("a"), same(aConstructor));
+    expect(clazz.getConstructor("b"), same(bConstructor));
+    expect(clazz.getConstructor("noSuchConstructor"), same(null));
   }
 
   void test_getField() {
@@ -125,345 +124,345 @@ class ClassDeclarationTest extends ParserTestCase {
     ClassDeclaration clazz = AstFactory.classDeclaration(null, "Test", null, null, null, null, [
         AstFactory.fieldDeclaration2(false, null, [aVar]),
         AstFactory.fieldDeclaration2(false, null, [bVar, cVar])]);
-    JUnitTestCase.assertSame(aVar, clazz.getField("a"));
-    JUnitTestCase.assertSame(bVar, clazz.getField("b"));
-    JUnitTestCase.assertSame(cVar, clazz.getField("c"));
-    JUnitTestCase.assertSame(null, clazz.getField("noSuchField"));
+    expect(clazz.getField("a"), same(aVar));
+    expect(clazz.getField("b"), same(bVar));
+    expect(clazz.getField("c"), same(cVar));
+    expect(clazz.getField("noSuchField"), same(null));
   }
 
   void test_getMethod() {
     MethodDeclaration aMethod = AstFactory.methodDeclaration(null, null, null, null, AstFactory.identifier3("a"), AstFactory.formalParameterList([]));
     MethodDeclaration bMethod = AstFactory.methodDeclaration(null, null, null, null, AstFactory.identifier3("b"), AstFactory.formalParameterList([]));
     ClassDeclaration clazz = AstFactory.classDeclaration(null, "Test", null, null, null, null, [aMethod, bMethod]);
-    JUnitTestCase.assertSame(aMethod, clazz.getMethod("a"));
-    JUnitTestCase.assertSame(bMethod, clazz.getMethod("b"));
-    JUnitTestCase.assertSame(null, clazz.getMethod("noSuchMethod"));
+    expect(clazz.getMethod("a"), same(aMethod));
+    expect(clazz.getMethod("b"), same(bMethod));
+    expect(clazz.getMethod("noSuchMethod"), same(null));
   }
 
   void test_isAbstract() {
-    JUnitTestCase.assertFalse(AstFactory.classDeclaration(null, "A", null, null, null, null, []).isAbstract);
-    JUnitTestCase.assertTrue(AstFactory.classDeclaration(Keyword.ABSTRACT, "B", null, null, null, null, []).isAbstract);
+    expect(AstFactory.classDeclaration(null, "A", null, null, null, null, []).isAbstract, isFalse);
+    expect(AstFactory.classDeclaration(Keyword.ABSTRACT, "B", null, null, null, null, []).isAbstract, isTrue);
   }
 }
 
 class ClassTypeAliasTest extends ParserTestCase {
   void test_isAbstract() {
-    JUnitTestCase.assertFalse(AstFactory.classTypeAlias("A", null, null, null, null, null).isAbstract);
-    JUnitTestCase.assertTrue(AstFactory.classTypeAlias("B", null, Keyword.ABSTRACT, null, null, null).isAbstract);
+    expect(AstFactory.classTypeAlias("A", null, null, null, null, null).isAbstract, isFalse);
+    expect(AstFactory.classTypeAlias("B", null, Keyword.ABSTRACT, null, null, null).isAbstract, isTrue);
   }
 }
 
 class ConstantEvaluatorTest extends ParserTestCase {
   void fail_constructor() {
     Object value = _getConstantValue("?");
-    JUnitTestCase.assertEquals(null, value);
+    expect(value, null);
   }
 
   void fail_identifier_class() {
     Object value = _getConstantValue("?");
-    JUnitTestCase.assertEquals(null, value);
+    expect(value, null);
   }
 
   void fail_identifier_function() {
     Object value = _getConstantValue("?");
-    JUnitTestCase.assertEquals(null, value);
+    expect(value, null);
   }
 
   void fail_identifier_static() {
     Object value = _getConstantValue("?");
-    JUnitTestCase.assertEquals(null, value);
+    expect(value, null);
   }
 
   void fail_identifier_staticMethod() {
     Object value = _getConstantValue("?");
-    JUnitTestCase.assertEquals(null, value);
+    expect(value, null);
   }
 
   void fail_identifier_topLevel() {
     Object value = _getConstantValue("?");
-    JUnitTestCase.assertEquals(null, value);
+    expect(value, null);
   }
 
   void fail_identifier_typeParameter() {
     Object value = _getConstantValue("?");
-    JUnitTestCase.assertEquals(null, value);
+    expect(value, null);
   }
 
   void test_binary_bitAnd() {
     Object value = _getConstantValue("74 & 42");
     EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    JUnitTestCase.assertEquals(74 & 42, value as int);
+    expect(value as int, 74 & 42);
   }
 
   void test_binary_bitOr() {
     Object value = _getConstantValue("74 | 42");
     EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    JUnitTestCase.assertEquals(74 | 42, value as int);
+    expect(value as int, 74 | 42);
   }
 
   void test_binary_bitXor() {
     Object value = _getConstantValue("74 ^ 42");
     EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    JUnitTestCase.assertEquals(74 ^ 42, value as int);
+    expect(value as int, 74 ^ 42);
   }
 
   void test_binary_divide_double() {
     Object value = _getConstantValue("3.2 / 2.3");
     EngineTestCase.assertInstanceOf((obj) => obj is double, double, value);
-    JUnitTestCase.assertEquals(3.2 / 2.3, value as double);
+    expect(value as double, 3.2 / 2.3);
   }
 
   void test_binary_divide_integer() {
     Object value = _getConstantValue("3 / 2");
     EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    JUnitTestCase.assertEquals(1, value as int);
+    expect(value as int, 1);
   }
 
   void test_binary_equal_boolean() {
     Object value = _getConstantValue("true == false");
-    JUnitTestCase.assertEquals(false, value);
+    expect(value, false);
   }
 
   void test_binary_equal_integer() {
     Object value = _getConstantValue("2 == 3");
-    JUnitTestCase.assertEquals(false, value);
+    expect(value, false);
   }
 
   void test_binary_equal_invalidLeft() {
     Object value = _getConstantValue("a == 3");
-    JUnitTestCase.assertEquals(ConstantEvaluator.NOT_A_CONSTANT, value);
+    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
   }
 
   void test_binary_equal_invalidRight() {
     Object value = _getConstantValue("2 == a");
-    JUnitTestCase.assertEquals(ConstantEvaluator.NOT_A_CONSTANT, value);
+    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
   }
 
   void test_binary_equal_string() {
     Object value = _getConstantValue("'a' == 'b'");
-    JUnitTestCase.assertEquals(false, value);
+    expect(value, false);
   }
 
   void test_binary_greaterThan() {
     Object value = _getConstantValue("2 > 3");
-    JUnitTestCase.assertEquals(false, value);
+    expect(value, false);
   }
 
   void test_binary_greaterThanOrEqual() {
     Object value = _getConstantValue("2 >= 3");
-    JUnitTestCase.assertEquals(false, value);
+    expect(value, false);
   }
 
   void test_binary_leftShift() {
     Object value = _getConstantValue("16 << 2");
     EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    JUnitTestCase.assertEquals(64, value as int);
+    expect(value as int, 64);
   }
 
   void test_binary_lessThan() {
     Object value = _getConstantValue("2 < 3");
-    JUnitTestCase.assertEquals(true, value);
+    expect(value, true);
   }
 
   void test_binary_lessThanOrEqual() {
     Object value = _getConstantValue("2 <= 3");
-    JUnitTestCase.assertEquals(true, value);
+    expect(value, true);
   }
 
   void test_binary_logicalAnd() {
     Object value = _getConstantValue("true && false");
-    JUnitTestCase.assertEquals(false, value);
+    expect(value, false);
   }
 
   void test_binary_logicalOr() {
     Object value = _getConstantValue("true || false");
-    JUnitTestCase.assertEquals(true, value);
+    expect(value, true);
   }
 
   void test_binary_minus_double() {
     Object value = _getConstantValue("3.2 - 2.3");
     EngineTestCase.assertInstanceOf((obj) => obj is double, double, value);
-    JUnitTestCase.assertEquals(3.2 - 2.3, value as double);
+    expect(value as double, 3.2 - 2.3);
   }
 
   void test_binary_minus_integer() {
     Object value = _getConstantValue("3 - 2");
     EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    JUnitTestCase.assertEquals(1, value as int);
+    expect(value as int, 1);
   }
 
   void test_binary_notEqual_boolean() {
     Object value = _getConstantValue("true != false");
-    JUnitTestCase.assertEquals(true, value);
+    expect(value, true);
   }
 
   void test_binary_notEqual_integer() {
     Object value = _getConstantValue("2 != 3");
-    JUnitTestCase.assertEquals(true, value);
+    expect(value, true);
   }
 
   void test_binary_notEqual_invalidLeft() {
     Object value = _getConstantValue("a != 3");
-    JUnitTestCase.assertEquals(ConstantEvaluator.NOT_A_CONSTANT, value);
+    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
   }
 
   void test_binary_notEqual_invalidRight() {
     Object value = _getConstantValue("2 != a");
-    JUnitTestCase.assertEquals(ConstantEvaluator.NOT_A_CONSTANT, value);
+    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
   }
 
   void test_binary_notEqual_string() {
     Object value = _getConstantValue("'a' != 'b'");
-    JUnitTestCase.assertEquals(true, value);
+    expect(value, true);
   }
 
   void test_binary_plus_double() {
     Object value = _getConstantValue("2.3 + 3.2");
     EngineTestCase.assertInstanceOf((obj) => obj is double, double, value);
-    JUnitTestCase.assertEquals(2.3 + 3.2, value as double);
+    expect(value as double, 2.3 + 3.2);
   }
 
   void test_binary_plus_integer() {
     Object value = _getConstantValue("2 + 3");
     EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    JUnitTestCase.assertEquals(5, value as int);
+    expect(value as int, 5);
   }
 
   void test_binary_remainder_double() {
     Object value = _getConstantValue("3.2 % 2.3");
     EngineTestCase.assertInstanceOf((obj) => obj is double, double, value);
-    JUnitTestCase.assertEquals(3.2 % 2.3, value as double);
+    expect(value as double, 3.2 % 2.3);
   }
 
   void test_binary_remainder_integer() {
     Object value = _getConstantValue("8 % 3");
     EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    JUnitTestCase.assertEquals(2, value as int);
+    expect(value as int, 2);
   }
 
   void test_binary_rightShift() {
     Object value = _getConstantValue("64 >> 2");
     EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    JUnitTestCase.assertEquals(16, value as int);
+    expect(value as int, 16);
   }
 
   void test_binary_times_double() {
     Object value = _getConstantValue("2.3 * 3.2");
     EngineTestCase.assertInstanceOf((obj) => obj is double, double, value);
-    JUnitTestCase.assertEquals(2.3 * 3.2, value as double);
+    expect(value as double, 2.3 * 3.2);
   }
 
   void test_binary_times_integer() {
     Object value = _getConstantValue("2 * 3");
     EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    JUnitTestCase.assertEquals(6, value as int);
+    expect(value as int, 6);
   }
 
   void test_binary_truncatingDivide_double() {
     Object value = _getConstantValue("3.2 ~/ 2.3");
     EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    JUnitTestCase.assertEquals(1, value as int);
+    expect(value as int, 1);
   }
 
   void test_binary_truncatingDivide_integer() {
     Object value = _getConstantValue("10 ~/ 3");
     EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    JUnitTestCase.assertEquals(3, value as int);
+    expect(value as int, 3);
   }
 
   void test_literal_boolean_false() {
     Object value = _getConstantValue("false");
-    JUnitTestCase.assertEquals(false, value);
+    expect(value, false);
   }
 
   void test_literal_boolean_true() {
     Object value = _getConstantValue("true");
-    JUnitTestCase.assertEquals(true, value);
+    expect(value, true);
   }
 
   void test_literal_list() {
     Object value = _getConstantValue("['a', 'b', 'c']");
     EngineTestCase.assertInstanceOf((obj) => obj is List, List, value);
     List list = value as List;
-    JUnitTestCase.assertEquals(3, list.length);
-    JUnitTestCase.assertEquals("a", list[0]);
-    JUnitTestCase.assertEquals("b", list[1]);
-    JUnitTestCase.assertEquals("c", list[2]);
+    expect(list.length, 3);
+    expect(list[0], "a");
+    expect(list[1], "b");
+    expect(list[2], "c");
   }
 
   void test_literal_map() {
     Object value = _getConstantValue("{'a' : 'm', 'b' : 'n', 'c' : 'o'}");
     EngineTestCase.assertInstanceOf((obj) => obj is Map, Map, value);
     Map map = value as Map;
-    JUnitTestCase.assertEquals(3, map.length);
-    JUnitTestCase.assertEquals("m", map["a"]);
-    JUnitTestCase.assertEquals("n", map["b"]);
-    JUnitTestCase.assertEquals("o", map["c"]);
+    expect(map.length, 3);
+    expect(map["a"], "m");
+    expect(map["b"], "n");
+    expect(map["c"], "o");
   }
 
   void test_literal_null() {
     Object value = _getConstantValue("null");
-    JUnitTestCase.assertEquals(null, value);
+    expect(value, null);
   }
 
   void test_literal_number_double() {
     Object value = _getConstantValue("3.45");
     EngineTestCase.assertInstanceOf((obj) => obj is double, double, value);
-    JUnitTestCase.assertEquals(3.45, value as double);
+    expect(value as double, 3.45);
   }
 
   void test_literal_number_integer() {
     Object value = _getConstantValue("42");
     EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    JUnitTestCase.assertEquals(42, value as int);
+    expect(value as int, 42);
   }
 
   void test_literal_string_adjacent() {
     Object value = _getConstantValue("'abc' 'def'");
-    JUnitTestCase.assertEquals("abcdef", value);
+    expect(value, "abcdef");
   }
 
   void test_literal_string_interpolation_invalid() {
     Object value = _getConstantValue("'a\${f()}c'");
-    JUnitTestCase.assertEquals(ConstantEvaluator.NOT_A_CONSTANT, value);
+    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
   }
 
   void test_literal_string_interpolation_valid() {
     Object value = _getConstantValue("'a\${3}c'");
-    JUnitTestCase.assertEquals("a3c", value);
+    expect(value, "a3c");
   }
 
   void test_literal_string_simple() {
     Object value = _getConstantValue("'abc'");
-    JUnitTestCase.assertEquals("abc", value);
+    expect(value, "abc");
   }
 
   void test_parenthesizedExpression() {
     Object value = _getConstantValue("('a')");
-    JUnitTestCase.assertEquals("a", value);
+    expect(value, "a");
   }
 
   void test_unary_bitNot() {
     Object value = _getConstantValue("~42");
     EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    JUnitTestCase.assertEquals(~42, value as int);
+    expect(value as int, ~42);
   }
 
   void test_unary_logicalNot() {
     Object value = _getConstantValue("!true");
-    JUnitTestCase.assertEquals(false, value);
+    expect(value, false);
   }
 
   void test_unary_negated_double() {
     Object value = _getConstantValue("-42.3");
     EngineTestCase.assertInstanceOf((obj) => obj is double, double, value);
-    JUnitTestCase.assertEquals(-42.3, value as double);
+    expect(value as double, -42.3);
   }
 
   void test_unary_negated_integer() {
     Object value = _getConstantValue("-42");
     EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    JUnitTestCase.assertEquals(-42, value as int);
+    expect(value as int, -42);
   }
 
   Object _getConstantValue(String source) => ParserTestCase.parseExpression(source, []).accept(new ConstantEvaluator());
@@ -474,84 +473,84 @@ class IndexExpressionTest extends EngineTestCase {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
     // a[b] += c
     AstFactory.assignmentExpression(expression, TokenType.PLUS_EQ, AstFactory.identifier3("c"));
-    JUnitTestCase.assertTrue(expression.inGetterContext());
+    expect(expression.inGetterContext(), isTrue);
   }
 
   void test_inGetterContext_assignment_simple_left() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
     // a[b] = c
     AstFactory.assignmentExpression(expression, TokenType.EQ, AstFactory.identifier3("c"));
-    JUnitTestCase.assertFalse(expression.inGetterContext());
+    expect(expression.inGetterContext(), isFalse);
   }
 
   void test_inGetterContext_nonAssignment() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
     // a[b] + c
     AstFactory.binaryExpression(expression, TokenType.PLUS, AstFactory.identifier3("c"));
-    JUnitTestCase.assertTrue(expression.inGetterContext());
+    expect(expression.inGetterContext(), isTrue);
   }
 
   void test_inSetterContext_assignment_compound_left() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
     // a[b] += c
     AstFactory.assignmentExpression(expression, TokenType.PLUS_EQ, AstFactory.identifier3("c"));
-    JUnitTestCase.assertTrue(expression.inSetterContext());
+    expect(expression.inSetterContext(), isTrue);
   }
 
   void test_inSetterContext_assignment_compound_right() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
     // c += a[b]
     AstFactory.assignmentExpression(AstFactory.identifier3("c"), TokenType.PLUS_EQ, expression);
-    JUnitTestCase.assertFalse(expression.inSetterContext());
+    expect(expression.inSetterContext(), isFalse);
   }
 
   void test_inSetterContext_assignment_simple_left() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
     // a[b] = c
     AstFactory.assignmentExpression(expression, TokenType.EQ, AstFactory.identifier3("c"));
-    JUnitTestCase.assertTrue(expression.inSetterContext());
+    expect(expression.inSetterContext(), isTrue);
   }
 
   void test_inSetterContext_assignment_simple_right() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
     // c = a[b]
     AstFactory.assignmentExpression(AstFactory.identifier3("c"), TokenType.EQ, expression);
-    JUnitTestCase.assertFalse(expression.inSetterContext());
+    expect(expression.inSetterContext(), isFalse);
   }
 
   void test_inSetterContext_nonAssignment() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
     AstFactory.binaryExpression(expression, TokenType.PLUS, AstFactory.identifier3("c"));
     // a[b] + cc
-    JUnitTestCase.assertFalse(expression.inSetterContext());
+    expect(expression.inSetterContext(), isFalse);
   }
 
   void test_inSetterContext_postfix() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
     AstFactory.postfixExpression(expression, TokenType.PLUS_PLUS);
     // a[b]++
-    JUnitTestCase.assertTrue(expression.inSetterContext());
+    expect(expression.inSetterContext(), isTrue);
   }
 
   void test_inSetterContext_prefix_bang() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
     // !a[b]
     AstFactory.prefixExpression(TokenType.BANG, expression);
-    JUnitTestCase.assertFalse(expression.inSetterContext());
+    expect(expression.inSetterContext(), isFalse);
   }
 
   void test_inSetterContext_prefix_minusMinus() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
     // --a[b]
     AstFactory.prefixExpression(TokenType.MINUS_MINUS, expression);
-    JUnitTestCase.assertTrue(expression.inSetterContext());
+    expect(expression.inSetterContext(), isTrue);
   }
 
   void test_inSetterContext_prefix_plusPlus() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
     // ++a[b]
     AstFactory.prefixExpression(TokenType.PLUS_PLUS, expression);
-    JUnitTestCase.assertTrue(expression.inSetterContext());
+    expect(expression.inSetterContext(), isTrue);
   }
 }
 
@@ -564,26 +563,26 @@ class NodeListTest extends EngineTestCase {
     list.insert(0, secondNode);
     list.insert(0, firstNode);
     EngineTestCase.assertSizeOfList(2, list);
-    JUnitTestCase.assertSame(firstNode, list[0]);
-    JUnitTestCase.assertSame(secondNode, list[1]);
-    JUnitTestCase.assertSame(parent, firstNode.parent);
-    JUnitTestCase.assertSame(parent, secondNode.parent);
+    expect(list[0], same(firstNode));
+    expect(list[1], same(secondNode));
+    expect(firstNode.parent, same(parent));
+    expect(secondNode.parent, same(parent));
     AstNode thirdNode = AstFactory.booleanLiteral(false);
     list.insert(1, thirdNode);
     EngineTestCase.assertSizeOfList(3, list);
-    JUnitTestCase.assertSame(firstNode, list[0]);
-    JUnitTestCase.assertSame(thirdNode, list[1]);
-    JUnitTestCase.assertSame(secondNode, list[2]);
-    JUnitTestCase.assertSame(parent, firstNode.parent);
-    JUnitTestCase.assertSame(parent, secondNode.parent);
-    JUnitTestCase.assertSame(parent, thirdNode.parent);
+    expect(list[0], same(firstNode));
+    expect(list[1], same(thirdNode));
+    expect(list[2], same(secondNode));
+    expect(firstNode.parent, same(parent));
+    expect(secondNode.parent, same(parent));
+    expect(thirdNode.parent, same(parent));
   }
 
   void test_add_negative() {
     NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
     try {
       list.insert(-1, AstFactory.booleanLiteral(true));
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+      fail("Expected IndexOutOfBoundsException");
     } on RangeError catch (exception) {
       // Expected
     }
@@ -593,7 +592,7 @@ class NodeListTest extends EngineTestCase {
     NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
     try {
       list.insert(1, AstFactory.booleanLiteral(true));
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+      fail("Expected IndexOutOfBoundsException");
     } on RangeError catch (exception) {
       // Expected
     }
@@ -609,10 +608,10 @@ class NodeListTest extends EngineTestCase {
     NodeList<AstNode> list = new NodeList<AstNode>(parent);
     list.addAll(firstNodes);
     EngineTestCase.assertSizeOfList(2, list);
-    JUnitTestCase.assertSame(firstNode, list[0]);
-    JUnitTestCase.assertSame(secondNode, list[1]);
-    JUnitTestCase.assertSame(parent, firstNode.parent);
-    JUnitTestCase.assertSame(parent, secondNode.parent);
+    expect(list[0], same(firstNode));
+    expect(list[1], same(secondNode));
+    expect(firstNode.parent, same(parent));
+    expect(secondNode.parent, same(parent));
     List<AstNode> secondNodes = new List<AstNode>();
     AstNode thirdNode = AstFactory.booleanLiteral(true);
     AstNode fourthNode = AstFactory.booleanLiteral(false);
@@ -620,37 +619,37 @@ class NodeListTest extends EngineTestCase {
     secondNodes.add(fourthNode);
     list.addAll(secondNodes);
     EngineTestCase.assertSizeOfList(4, list);
-    JUnitTestCase.assertSame(firstNode, list[0]);
-    JUnitTestCase.assertSame(secondNode, list[1]);
-    JUnitTestCase.assertSame(thirdNode, list[2]);
-    JUnitTestCase.assertSame(fourthNode, list[3]);
-    JUnitTestCase.assertSame(parent, firstNode.parent);
-    JUnitTestCase.assertSame(parent, secondNode.parent);
-    JUnitTestCase.assertSame(parent, thirdNode.parent);
-    JUnitTestCase.assertSame(parent, fourthNode.parent);
+    expect(list[0], same(firstNode));
+    expect(list[1], same(secondNode));
+    expect(list[2], same(thirdNode));
+    expect(list[3], same(fourthNode));
+    expect(firstNode.parent, same(parent));
+    expect(secondNode.parent, same(parent));
+    expect(thirdNode.parent, same(parent));
+    expect(fourthNode.parent, same(parent));
   }
 
   void test_create() {
     AstNode owner = AstFactory.argumentList([]);
     NodeList<AstNode> list = NodeList.create(owner);
-    JUnitTestCase.assertNotNull(list);
+    expect(list, isNotNull);
     EngineTestCase.assertSizeOfList(0, list);
-    JUnitTestCase.assertSame(owner, list.owner);
+    expect(list.owner, same(owner));
   }
 
   void test_creation() {
     AstNode owner = AstFactory.argumentList([]);
     NodeList<AstNode> list = new NodeList<AstNode>(owner);
-    JUnitTestCase.assertNotNull(list);
+    expect(list, isNotNull);
     EngineTestCase.assertSizeOfList(0, list);
-    JUnitTestCase.assertSame(owner, list.owner);
+    expect(list.owner, same(owner));
   }
 
   void test_get_negative() {
     NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
     try {
       list[-1];
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+      fail("Expected IndexOutOfBoundsException");
     } on RangeError catch (exception) {
       // Expected
     }
@@ -660,7 +659,7 @@ class NodeListTest extends EngineTestCase {
     NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
     try {
       list[1];
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+      fail("Expected IndexOutOfBoundsException");
     } on RangeError catch (exception) {
       // Expected
     }
@@ -668,26 +667,26 @@ class NodeListTest extends EngineTestCase {
 
   void test_getBeginToken_empty() {
     NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    JUnitTestCase.assertNull(list.beginToken);
+    expect(list.beginToken, isNull);
   }
 
   void test_getBeginToken_nonEmpty() {
     NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
     AstNode node = AstFactory.parenthesizedExpression(AstFactory.booleanLiteral(true));
     list.add(node);
-    JUnitTestCase.assertSame(node.beginToken, list.beginToken);
+    expect(list.beginToken, same(node.beginToken));
   }
 
   void test_getEndToken_empty() {
     NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
-    JUnitTestCase.assertNull(list.endToken);
+    expect(list.endToken, isNull);
   }
 
   void test_getEndToken_nonEmpty() {
     NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
     AstNode node = AstFactory.parenthesizedExpression(AstFactory.booleanLiteral(true));
     list.add(node);
-    JUnitTestCase.assertSame(node.endToken, list.endToken);
+    expect(list.endToken, same(node.endToken));
   }
 
   void test_indexOf() {
@@ -702,11 +701,11 @@ class NodeListTest extends EngineTestCase {
     NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
     list.addAll(nodes);
     EngineTestCase.assertSizeOfList(3, list);
-    JUnitTestCase.assertEquals(0, list.indexOf(firstNode));
-    JUnitTestCase.assertEquals(1, list.indexOf(secondNode));
-    JUnitTestCase.assertEquals(2, list.indexOf(thirdNode));
-    JUnitTestCase.assertEquals(-1, list.indexOf(fourthNode));
-    JUnitTestCase.assertEquals(-1, list.indexOf(null));
+    expect(list.indexOf(firstNode), 0);
+    expect(list.indexOf(secondNode), 1);
+    expect(list.indexOf(thirdNode), 2);
+    expect(list.indexOf(fourthNode), -1);
+    expect(list.indexOf(null), -1);
   }
 
   void test_remove() {
@@ -720,17 +719,17 @@ class NodeListTest extends EngineTestCase {
     NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
     list.addAll(nodes);
     EngineTestCase.assertSizeOfList(3, list);
-    JUnitTestCase.assertSame(secondNode, list.removeAt(1));
+    expect(list.removeAt(1), same(secondNode));
     EngineTestCase.assertSizeOfList(2, list);
-    JUnitTestCase.assertSame(firstNode, list[0]);
-    JUnitTestCase.assertSame(thirdNode, list[1]);
+    expect(list[0], same(firstNode));
+    expect(list[1], same(thirdNode));
   }
 
   void test_remove_negative() {
     NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
     try {
       list.removeAt(-1);
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+      fail("Expected IndexOutOfBoundsException");
     } on RangeError catch (exception) {
       // Expected
     }
@@ -740,7 +739,7 @@ class NodeListTest extends EngineTestCase {
     NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
     try {
       list.removeAt(1);
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+      fail("Expected IndexOutOfBoundsException");
     } on RangeError catch (exception) {
       // Expected
     }
@@ -758,11 +757,11 @@ class NodeListTest extends EngineTestCase {
     list.addAll(nodes);
     EngineTestCase.assertSizeOfList(3, list);
     AstNode fourthNode = AstFactory.integer(0);
-    JUnitTestCase.assertSame(secondNode, javaListSet(list, 1, fourthNode));
+    expect(javaListSet(list, 1, fourthNode), same(secondNode));
     EngineTestCase.assertSizeOfList(3, list);
-    JUnitTestCase.assertSame(firstNode, list[0]);
-    JUnitTestCase.assertSame(fourthNode, list[1]);
-    JUnitTestCase.assertSame(thirdNode, list[2]);
+    expect(list[0], same(firstNode));
+    expect(list[1], same(fourthNode));
+    expect(list[2], same(thirdNode));
   }
 
   void test_set_negative() {
@@ -770,7 +769,7 @@ class NodeListTest extends EngineTestCase {
     NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
     try {
       javaListSet(list, -1, node);
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+      fail("Expected IndexOutOfBoundsException");
     } on RangeError catch (exception) {
       // Expected
     }
@@ -781,7 +780,7 @@ class NodeListTest extends EngineTestCase {
     NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
     try {
       javaListSet(list, 1, node);
-      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+      fail("Expected IndexOutOfBoundsException");
     } on RangeError catch (exception) {
       // Expected
     }
@@ -796,7 +795,7 @@ class NodeLocatorTest extends ParserTestCase {
 
   void test_searchWithin_null() {
     NodeLocator locator = new NodeLocator.con2(0, 0);
-    JUnitTestCase.assertNull(locator.searchWithin(null));
+    expect(locator.searchWithin(null), isNull);
   }
 
   void test_searchWithin_offset() {
@@ -810,7 +809,7 @@ class A {}
 class B {}''', []);
     NodeLocator locator = new NodeLocator.con2(1024, 1024);
     AstNode node = locator.searchWithin(unit.declarations[0]);
-    JUnitTestCase.assertNull(node);
+    expect(node, isNull);
   }
 
   void test_searchWithin_offsetBeforeNode() {
@@ -819,16 +818,16 @@ class A {}
 class B {}''', []);
     NodeLocator locator = new NodeLocator.con2(0, 0);
     AstNode node = locator.searchWithin(unit.declarations[1]);
-    JUnitTestCase.assertNull(node);
+    expect(node, isNull);
   }
 
   void _assertLocate(CompilationUnit unit, int start, int end, Predicate<AstNode> predicate, Type expectedClass) {
     NodeLocator locator = new NodeLocator.con2(start, end);
     AstNode node = locator.searchWithin(unit);
-    JUnitTestCase.assertNotNull(node);
-    JUnitTestCase.assertSame(node, locator.foundNode);
-    JUnitTestCase.assertTrueMsg("Node starts after range", node.offset <= start);
-    JUnitTestCase.assertTrueMsg("Node ends before range", node.offset + node.length > end);
+    expect(node, isNotNull);
+    expect(locator.foundNode, same(node));
+    expect(node.offset <= start, isTrue, reason: "Node starts after range");
+    expect(node.offset + node.length > end, isTrue, reason: "Node ends before range");
     EngineTestCase.assertInstanceOf(predicate, expectedClass, node);
   }
 }
@@ -836,105 +835,105 @@ class B {}''', []);
 class SimpleIdentifierTest extends ParserTestCase {
   void test_inDeclarationContext_catch_exception() {
     SimpleIdentifier identifier = AstFactory.catchClause("e", []).exceptionParameter;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+    expect(identifier.inDeclarationContext(), isTrue);
   }
 
   void test_inDeclarationContext_catch_stack() {
     SimpleIdentifier identifier = AstFactory.catchClause2("e", "s", []).stackTraceParameter;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+    expect(identifier.inDeclarationContext(), isTrue);
   }
 
   void test_inDeclarationContext_classDeclaration() {
     SimpleIdentifier identifier = AstFactory.classDeclaration(null, "C", null, null, null, null, []).name;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+    expect(identifier.inDeclarationContext(), isTrue);
   }
 
   void test_inDeclarationContext_classTypeAlias() {
     SimpleIdentifier identifier = AstFactory.classTypeAlias("C", null, null, null, null, null).name;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+    expect(identifier.inDeclarationContext(), isTrue);
   }
 
   void test_inDeclarationContext_constructorDeclaration() {
     SimpleIdentifier identifier = AstFactory.constructorDeclaration(AstFactory.identifier3("C"), "c", null, null).name;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+    expect(identifier.inDeclarationContext(), isTrue);
   }
 
   void test_inDeclarationContext_declaredIdentifier() {
     DeclaredIdentifier declaredIdentifier = AstFactory.declaredIdentifier3("v");
     SimpleIdentifier identifier = declaredIdentifier.identifier;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+    expect(identifier.inDeclarationContext(), isTrue);
   }
 
   void test_inDeclarationContext_enumConstantDeclaration() {
     EnumDeclaration enumDeclaration = AstFactory.enumDeclaration2('MyEnum', ['CONST']);
     SimpleIdentifier identifier = enumDeclaration.constants[0].name;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+    expect(identifier.inDeclarationContext(), isTrue);
   }
 
   void test_inDeclarationContext_enumDeclaration() {
     EnumDeclaration enumDeclaration = AstFactory.enumDeclaration2('MyEnum', ['A', 'B', 'C']);
     SimpleIdentifier identifier = enumDeclaration.name;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+    expect(identifier.inDeclarationContext(), isTrue);
   }
 
   void test_inDeclarationContext_fieldFormalParameter() {
     SimpleIdentifier identifier = AstFactory.fieldFormalParameter2("p").identifier;
-    JUnitTestCase.assertFalse(identifier.inDeclarationContext());
+    expect(identifier.inDeclarationContext(), isFalse);
   }
 
   void test_inDeclarationContext_functionDeclaration() {
     SimpleIdentifier identifier = AstFactory.functionDeclaration(null, null, "f", null).name;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+    expect(identifier.inDeclarationContext(), isTrue);
   }
 
   void test_inDeclarationContext_functionTypeAlias() {
     SimpleIdentifier identifier = AstFactory.typeAlias(null, "F", null, null).name;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+    expect(identifier.inDeclarationContext(), isTrue);
   }
 
   void test_inDeclarationContext_label_false() {
     SimpleIdentifier identifier = AstFactory.namedExpression2("l", AstFactory.integer(0)).name.label;
-    JUnitTestCase.assertFalse(identifier.inDeclarationContext());
+    expect(identifier.inDeclarationContext(), isFalse);
   }
 
   void test_inDeclarationContext_label_true() {
     Label label = AstFactory.label2("l");
     SimpleIdentifier identifier = label.label;
     AstFactory.labeledStatement(AstFactory.list([label]), AstFactory.emptyStatement());
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+    expect(identifier.inDeclarationContext(), isTrue);
   }
 
   void test_inDeclarationContext_methodDeclaration() {
     SimpleIdentifier identifier = AstFactory.identifier3("m");
     AstFactory.methodDeclaration2(null, null, null, null, identifier, null, null);
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+    expect(identifier.inDeclarationContext(), isTrue);
   }
 
   void test_inDeclarationContext_prefix() {
     SimpleIdentifier identifier = AstFactory.importDirective3("uri", "pref", []).prefix;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+    expect(identifier.inDeclarationContext(), isTrue);
   }
 
   void test_inDeclarationContext_simpleFormalParameter() {
     SimpleIdentifier identifier = AstFactory.simpleFormalParameter3("p").identifier;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+    expect(identifier.inDeclarationContext(), isTrue);
   }
 
   void test_inDeclarationContext_typeParameter_bound() {
     TypeName bound = AstFactory.typeName4("A", []);
     SimpleIdentifier identifier = bound.name as SimpleIdentifier;
     AstFactory.typeParameter2("E", bound);
-    JUnitTestCase.assertFalse(identifier.inDeclarationContext());
+    expect(identifier.inDeclarationContext(), isFalse);
   }
 
   void test_inDeclarationContext_typeParameter_name() {
     SimpleIdentifier identifier = AstFactory.typeParameter("E").name;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+    expect(identifier.inDeclarationContext(), isTrue);
   }
 
   void test_inDeclarationContext_variableDeclaration() {
     SimpleIdentifier identifier = AstFactory.variableDeclaration("v").name;
-    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+    expect(identifier.inDeclarationContext(), isTrue);
   }
 
   void test_inGetterContext() {
@@ -943,11 +942,11 @@ class SimpleIdentifierTest extends ParserTestCase {
         SimpleIdentifier identifier = _createIdentifier(wrapper, assignment);
         if (assignment == AssignmentKind.SIMPLE_LEFT && wrapper != WrapperKind.PREFIXED_LEFT && wrapper != WrapperKind.PROPERTY_LEFT) {
           if (identifier.inGetterContext()) {
-            JUnitTestCase.fail("Expected ${_topMostNode(identifier).toSource()} to be false");
+            fail("Expected ${_topMostNode(identifier).toSource()} to be false");
           }
         } else {
           if (!identifier.inGetterContext()) {
-            JUnitTestCase.fail("Expected ${_topMostNode(identifier).toSource()} to be true");
+            fail("Expected ${_topMostNode(identifier).toSource()} to be true");
           }
         }
       }
@@ -957,8 +956,8 @@ class SimpleIdentifierTest extends ParserTestCase {
   void test_inReferenceContext() {
     SimpleIdentifier identifier = AstFactory.identifier3("id");
     AstFactory.namedExpression(AstFactory.label(identifier), AstFactory.identifier3("_"));
-    JUnitTestCase.assertFalse(identifier.inGetterContext());
-    JUnitTestCase.assertFalse(identifier.inSetterContext());
+    expect(identifier.inGetterContext(), isFalse);
+    expect(identifier.inSetterContext(), isFalse);
   }
 
   void test_inSetterContext() {
@@ -967,11 +966,11 @@ class SimpleIdentifierTest extends ParserTestCase {
         SimpleIdentifier identifier = _createIdentifier(wrapper, assignment);
         if (wrapper == WrapperKind.PREFIXED_LEFT || wrapper == WrapperKind.PROPERTY_LEFT || assignment == AssignmentKind.BINARY || assignment == AssignmentKind.COMPOUND_RIGHT || assignment == AssignmentKind.PREFIX_NOT || assignment == AssignmentKind.SIMPLE_RIGHT || assignment == AssignmentKind.NONE) {
           if (identifier.inSetterContext()) {
-            JUnitTestCase.fail("Expected ${_topMostNode(identifier).toSource()} to be false");
+            fail("Expected ${_topMostNode(identifier).toSource()} to be false");
           }
         } else {
           if (!identifier.inSetterContext()) {
-            JUnitTestCase.fail("Expected ${_topMostNode(identifier).toSource()} to be true");
+            fail("Expected ${_topMostNode(identifier).toSource()} to be true");
           }
         }
       }
@@ -981,43 +980,43 @@ class SimpleIdentifierTest extends ParserTestCase {
   void test_isQualified_inMethodInvocation_noTarget() {
     MethodInvocation invocation = AstFactory.methodInvocation2("test", [AstFactory.identifier3("arg0")]);
     SimpleIdentifier identifier = invocation.methodName;
-    JUnitTestCase.assertFalse(identifier.isQualified);
+    expect(identifier.isQualified, isFalse);
   }
 
   void test_isQualified_inMethodInvocation_withTarget() {
     MethodInvocation invocation = AstFactory.methodInvocation(AstFactory.identifier3("target"), "test", [AstFactory.identifier3("arg0")]);
     SimpleIdentifier identifier = invocation.methodName;
-    JUnitTestCase.assertTrue(identifier.isQualified);
+    expect(identifier.isQualified, isTrue);
   }
 
   void test_isQualified_inPrefixedIdentifier_name() {
     SimpleIdentifier identifier = AstFactory.identifier3("test");
     AstFactory.identifier4("prefix", identifier);
-    JUnitTestCase.assertTrue(identifier.isQualified);
+    expect(identifier.isQualified, isTrue);
   }
 
   void test_isQualified_inPrefixedIdentifier_prefix() {
     SimpleIdentifier identifier = AstFactory.identifier3("test");
     AstFactory.identifier(identifier, AstFactory.identifier3("name"));
-    JUnitTestCase.assertFalse(identifier.isQualified);
+    expect(identifier.isQualified, isFalse);
   }
 
   void test_isQualified_inPropertyAccess_name() {
     SimpleIdentifier identifier = AstFactory.identifier3("test");
     AstFactory.propertyAccess(AstFactory.identifier3("target"), identifier);
-    JUnitTestCase.assertTrue(identifier.isQualified);
+    expect(identifier.isQualified, isTrue);
   }
 
   void test_isQualified_inPropertyAccess_target() {
     SimpleIdentifier identifier = AstFactory.identifier3("test");
     AstFactory.propertyAccess(identifier, AstFactory.identifier3("name"));
-    JUnitTestCase.assertFalse(identifier.isQualified);
+    expect(identifier.isQualified, isFalse);
   }
 
   void test_isQualified_inReturnStatement() {
     SimpleIdentifier identifier = AstFactory.identifier3("test");
     AstFactory.returnStatement2(identifier);
-    JUnitTestCase.assertFalse(identifier.isQualified);
+    expect(identifier.isQualified, isFalse);
   }
 
   SimpleIdentifier _createIdentifier(WrapperKind wrapper, AssignmentKind assignment) {
@@ -1081,25 +1080,25 @@ class SimpleIdentifierTest extends ParserTestCase {
 
 class SimpleStringLiteralTest extends ParserTestCase {
   void test_contentsOffset() {
-    JUnitTestCase.assertEquals(1, new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X").contentsOffset);
-    JUnitTestCase.assertEquals(1, new SimpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X").contentsOffset);
-    JUnitTestCase.assertEquals(3, new SimpleStringLiteral(TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X").contentsOffset);
-    JUnitTestCase.assertEquals(3, new SimpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X").contentsOffset);
-    JUnitTestCase.assertEquals(2, new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X").contentsOffset);
-    JUnitTestCase.assertEquals(2, new SimpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X").contentsOffset);
-    JUnitTestCase.assertEquals(4, new SimpleStringLiteral(TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X").contentsOffset);
-    JUnitTestCase.assertEquals(4, new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X").contentsOffset);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X").contentsOffset, 1);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X").contentsOffset, 1);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X").contentsOffset, 3);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X").contentsOffset, 3);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X").contentsOffset, 2);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X").contentsOffset, 2);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X").contentsOffset, 4);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X").contentsOffset, 4);
   }
 
   void test_contentsEnd() {
-    JUnitTestCase.assertEquals(2, new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X").contentsEnd);
-    JUnitTestCase.assertEquals(2, new SimpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X").contentsEnd);
-    JUnitTestCase.assertEquals(4, new SimpleStringLiteral(TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X").contentsEnd);
-    JUnitTestCase.assertEquals(4, new SimpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X").contentsEnd);
-    JUnitTestCase.assertEquals(3, new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X").contentsEnd);
-    JUnitTestCase.assertEquals(3, new SimpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X").contentsEnd);
-    JUnitTestCase.assertEquals(5, new SimpleStringLiteral(TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X").contentsEnd);
-    JUnitTestCase.assertEquals(5, new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X").contentsEnd);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X").contentsEnd, 2);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X").contentsEnd, 2);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X").contentsEnd, 4);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X").contentsEnd, 4);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X").contentsEnd, 3);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X").contentsEnd, 3);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X").contentsEnd, 5);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X").contentsEnd, 5);
   }
 
   void test_isSingleQuoted() {
@@ -1107,25 +1106,25 @@ class SimpleStringLiteralTest extends ParserTestCase {
     {
       var token = TokenFactory.tokenFromString("'X'");
       var node = new SimpleStringLiteral(token, null);
-      JUnitTestCase.assertTrue(node.isSingleQuoted);
+      expect(node.isSingleQuoted, isTrue);
     }
     // '''
     {
       var token = TokenFactory.tokenFromString("'''X'''");
       var node = new SimpleStringLiteral(token, null);
-      JUnitTestCase.assertTrue(node.isSingleQuoted);
+      expect(node.isSingleQuoted, isTrue);
     }
     // "
     {
       var token = TokenFactory.tokenFromString('"X"');
       var node = new SimpleStringLiteral(token, null);
-      JUnitTestCase.assertFalse(node.isSingleQuoted);
+      expect(node.isSingleQuoted, isFalse);
     }
     // """
     {
       var token = TokenFactory.tokenFromString('"""X"""');
       var node = new SimpleStringLiteral(token, null);
-      JUnitTestCase.assertFalse(node.isSingleQuoted);
+      expect(node.isSingleQuoted, isFalse);
     }
   }
 
@@ -1134,57 +1133,57 @@ class SimpleStringLiteralTest extends ParserTestCase {
     {
       var token = TokenFactory.tokenFromString("r'X'");
       var node = new SimpleStringLiteral(token, null);
-      JUnitTestCase.assertTrue(node.isSingleQuoted);
+      expect(node.isSingleQuoted, isTrue);
     }
     // r'''
     {
       var token = TokenFactory.tokenFromString("r'''X'''");
       var node = new SimpleStringLiteral(token, null);
-      JUnitTestCase.assertTrue(node.isSingleQuoted);
+      expect(node.isSingleQuoted, isTrue);
     }
     // r"
     {
       var token = TokenFactory.tokenFromString('r"X"');
       var node = new SimpleStringLiteral(token, null);
-      JUnitTestCase.assertFalse(node.isSingleQuoted);
+      expect(node.isSingleQuoted, isFalse);
     }
     // r"""
     {
       var token = TokenFactory.tokenFromString('r"""X"""');
       var node = new SimpleStringLiteral(token, null);
-      JUnitTestCase.assertFalse(node.isSingleQuoted);
+      expect(node.isSingleQuoted, isFalse);
     }
   }
 
   void test_isMultiline() {
-    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X").isMultiline);
-    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X").isMultiline);
-    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X").isMultiline);
-    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X").isMultiline);
-    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X").isMultiline);
-    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X").isMultiline);
-    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X").isMultiline);
-    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X").isMultiline);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X").isMultiline, isFalse);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X").isMultiline, isFalse);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X").isMultiline, isFalse);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X").isMultiline, isFalse);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X").isMultiline, isTrue);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X").isMultiline, isTrue);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X").isMultiline, isTrue);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X").isMultiline, isTrue);
   }
 
   void test_isRaw() {
-    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X").isRaw);
-    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X").isRaw);
-    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X").isRaw);
-    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X").isRaw);
-    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X").isRaw);
-    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X").isRaw);
-    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X").isRaw);
-    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X").isRaw);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X").isRaw, isFalse);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X").isRaw, isFalse);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X").isRaw, isFalse);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X").isRaw, isFalse);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X").isRaw, isTrue);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X").isRaw, isTrue);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X").isRaw, isTrue);
+    expect(new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X").isRaw, isTrue);
   }
 
   void test_simple() {
     Token token = TokenFactory.tokenFromString("'value'");
     SimpleStringLiteral stringLiteral = new SimpleStringLiteral(token, "value");
-    JUnitTestCase.assertSame(token, stringLiteral.literal);
-    JUnitTestCase.assertSame(token, stringLiteral.beginToken);
-    JUnitTestCase.assertSame(token, stringLiteral.endToken);
-    JUnitTestCase.assertEquals("value", stringLiteral.value);
+    expect(stringLiteral.literal, same(token));
+    expect(stringLiteral.beginToken, same(token));
+    expect(stringLiteral.endToken, same(token));
+    expect(stringLiteral.value, "value");
   }
 }
 
@@ -1197,8 +1196,8 @@ class StringInterpolationTest extends ParserTestCase {
       var cToken = new StringToken(TokenType.STRING, "ccc'", 10);
       var cElement = new InterpolationString(cToken, 'ccc');
       StringInterpolation node = AstFactory.string([ae, ae, cElement]);
-      JUnitTestCase.assertEquals(1, node.contentsOffset);
-      JUnitTestCase.assertEquals(10 + 4 - 1, node.contentsEnd);
+      expect(node.contentsOffset, 1);
+      expect(node.contentsEnd, 10 + 4 - 1);
     }
     // '''a${bb}ccc'''
     {
@@ -1206,8 +1205,8 @@ class StringInterpolationTest extends ParserTestCase {
       var cToken = new StringToken(TokenType.STRING, "ccc'''", 10);
       var cElement = new InterpolationString(cToken, 'ccc');
       StringInterpolation node = AstFactory.string([ae, ae, cElement]);
-      JUnitTestCase.assertEquals(3, node.contentsOffset);
-      JUnitTestCase.assertEquals(10 + 4 - 1, node.contentsEnd);
+      expect(node.contentsOffset, 3);
+      expect(node.contentsEnd, 10 + 4 - 1);
     }
     // """a${bb}ccc"""
     {
@@ -1215,8 +1214,8 @@ class StringInterpolationTest extends ParserTestCase {
       var cToken = new StringToken(TokenType.STRING, 'ccc"""', 10);
       var cElement = new InterpolationString(cToken, 'ccc');
       StringInterpolation node = AstFactory.string([ae, ae, cElement]);
-      JUnitTestCase.assertEquals(3, node.contentsOffset);
-      JUnitTestCase.assertEquals(10 + 4 - 1, node.contentsEnd);
+      expect(node.contentsOffset, 3);
+      expect(node.contentsEnd, 10 + 4 - 1);
     }
     // r'a${bb}ccc'
     {
@@ -1224,8 +1223,8 @@ class StringInterpolationTest extends ParserTestCase {
       var cToken = new StringToken(TokenType.STRING, "ccc'", 10);
       var cElement = new InterpolationString(cToken, 'ccc');
       StringInterpolation node = AstFactory.string([ae, ae, cElement]);
-      JUnitTestCase.assertEquals(2, node.contentsOffset);
-      JUnitTestCase.assertEquals(10 + 4 - 1, node.contentsEnd);
+      expect(node.contentsOffset, 2);
+      expect(node.contentsEnd, 10 + 4 - 1);
     }
     // r'''a${bb}ccc'''
     {
@@ -1233,8 +1232,8 @@ class StringInterpolationTest extends ParserTestCase {
       var cToken = new StringToken(TokenType.STRING, "ccc'''", 10);
       var cElement = new InterpolationString(cToken, 'ccc');
       StringInterpolation node = AstFactory.string([ae, ae, cElement]);
-      JUnitTestCase.assertEquals(4, node.contentsOffset);
-      JUnitTestCase.assertEquals(10 + 4 - 1, node.contentsEnd);
+      expect(node.contentsOffset, 4);
+      expect(node.contentsEnd, 10 + 4 - 1);
     }
     // r"""a${bb}ccc"""
     {
@@ -1242,8 +1241,8 @@ class StringInterpolationTest extends ParserTestCase {
       var cToken = new StringToken(TokenType.STRING, 'ccc"""', 10);
       var cElement = new InterpolationString(cToken, 'ccc');
       StringInterpolation node = AstFactory.string([ae, ae, cElement]);
-      JUnitTestCase.assertEquals(4, node.contentsOffset);
-      JUnitTestCase.assertEquals(10 + 4 - 1, node.contentsEnd);
+      expect(node.contentsOffset, 4);
+      expect(node.contentsEnd, 10 + 4 - 1);
     }
   }
 
@@ -1254,28 +1253,28 @@ class StringInterpolationTest extends ParserTestCase {
       var a = AstFactory.interpolationString("'a", "a");
       var c = AstFactory.interpolationString("ccc'", "ccc");
       StringInterpolation node = AstFactory.string([a, b, c]);
-      JUnitTestCase.assertFalse(node.isMultiline);
+      expect(node.isMultiline, isFalse);
     }
     // '''
     {
       var a = AstFactory.interpolationString("'''a", "a");
       var c = AstFactory.interpolationString("ccc'''", "ccc");
       StringInterpolation node = AstFactory.string([a, b, c]);
-      JUnitTestCase.assertTrue(node.isMultiline);
+      expect(node.isMultiline, isTrue);
     }
     // "
     {
       var a = AstFactory.interpolationString('"a', "a");
       var c = AstFactory.interpolationString('ccc"', "ccc");
       StringInterpolation node = AstFactory.string([a, b, c]);
-      JUnitTestCase.assertFalse(node.isMultiline);
+      expect(node.isMultiline, isFalse);
     }
     // """
     {
       var a = AstFactory.interpolationString('"""a', "a");
       var c = AstFactory.interpolationString('ccc"""', "ccc");
       StringInterpolation node = AstFactory.string([a, b, c]);
-      JUnitTestCase.assertTrue(node.isMultiline);
+      expect(node.isMultiline, isTrue);
     }
   }
 
@@ -1286,34 +1285,34 @@ class StringInterpolationTest extends ParserTestCase {
       var a = AstFactory.interpolationString('"a', "a");
       var c = AstFactory.interpolationString('ccc"', "ccc");
       StringInterpolation node = AstFactory.string([a, b, c]);
-      JUnitTestCase.assertFalse(node.isSingleQuoted);
+      expect(node.isSingleQuoted, isFalse);
     }
     // """
     {
       var a = AstFactory.interpolationString('"""a', "a");
       var c = AstFactory.interpolationString('ccc"""', "ccc");
       StringInterpolation node = AstFactory.string([a, b, c]);
-      JUnitTestCase.assertFalse(node.isSingleQuoted);
+      expect(node.isSingleQuoted, isFalse);
     }
     // '
     {
       var a = AstFactory.interpolationString("'a", "a");
       var c = AstFactory.interpolationString("ccc'", "ccc");
       StringInterpolation node = AstFactory.string([a, b, c]);
-      JUnitTestCase.assertTrue(node.isSingleQuoted);
+      expect(node.isSingleQuoted, isTrue);
     }
     // '''
     {
       var a = AstFactory.interpolationString("'''a", "a");
       var c = AstFactory.interpolationString("ccc'''", "ccc");
       StringInterpolation node = AstFactory.string([a, b, c]);
-      JUnitTestCase.assertTrue(node.isSingleQuoted);
+      expect(node.isSingleQuoted, isTrue);
     }
   }
 
   void test_isRaw() {
     StringInterpolation node = AstFactory.string([]);
-    JUnitTestCase.assertFalse(node.isRaw);
+    expect(node.isRaw, isFalse);
   }
 }
 
@@ -2559,7 +2558,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   void _assertSource(String expectedSource, AstNode node) {
     PrintStringWriter writer = new PrintStringWriter();
     node.accept(new ToSourceVisitor(writer));
-    JUnitTestCase.assertEquals(expectedSource, writer.toString());
+    expect(writer.toString(), expectedSource);
   }
 }
 
@@ -2568,17 +2567,17 @@ class VariableDeclarationTest extends ParserTestCase {
     VariableDeclaration varDecl = AstFactory.variableDeclaration("a");
     TopLevelVariableDeclaration decl = AstFactory.topLevelVariableDeclaration2(Keyword.VAR, [varDecl]);
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    JUnitTestCase.assertNull(varDecl.documentationComment);
+    expect(varDecl.documentationComment, isNull);
     decl.documentationComment = comment;
-    JUnitTestCase.assertNotNull(varDecl.documentationComment);
-    JUnitTestCase.assertNotNull(decl.documentationComment);
+    expect(varDecl.documentationComment, isNotNull);
+    expect(decl.documentationComment, isNotNull);
   }
 
   void test_getDocumentationComment_onNode() {
     VariableDeclaration decl = AstFactory.variableDeclaration("a");
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     decl.documentationComment = comment;
-    JUnitTestCase.assertNotNull(decl.documentationComment);
+    expect(decl.documentationComment, isNotNull);
   }
 }
 
@@ -2604,7 +2603,7 @@ class WrapperKind extends Enum<WrapperKind> {
 }
 
 main() {
-  _ut.groupSep = ' | ';
+  groupSep = ' | ';
   runReflectiveTests(ConstantEvaluatorTest);
   runReflectiveTests(NodeLocatorTest);
   runReflectiveTests(ToSourceVisitorTest);

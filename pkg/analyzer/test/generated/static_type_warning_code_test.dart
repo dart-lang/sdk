@@ -6,9 +6,8 @@ library engine.static_type_warning_code_test;
 
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:unittest/unittest.dart' as _ut;
+import 'package:unittest/unittest.dart';
 import 'resolver_test.dart';
-import 'test_support.dart';
 import '../reflective_tests.dart';
 
 
@@ -1447,6 +1446,6 @@ f(p) {
 }
 
 main() {
-  _ut.groupSep = ' | ';
+  groupSep = ' | ';
   runReflectiveTests(StaticTypeWarningCodeTest);
 }
