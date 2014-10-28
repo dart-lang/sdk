@@ -2986,9 +2986,9 @@ $innerHtml
    * @return the found [Element] or `null` if not found
    */
   static Element findElement(Element root, ElementKind kind, String name) {
-    List<Element> result = [null];
-    root.accept(new _AngularTest_findElement(kind, name, result));
-    return result[0];
+    _AngularTest_findElement visitor = new _AngularTest_findElement(kind, name);
+    root.accept(visitor);
+    return visitor.result;
   }
 
   /**
@@ -10440,11 +10440,11 @@ class SourceFactoryTest {
     expect(factory.fromEncoding(encoding), isNotNull);
   }
   void test_resolveUri_absolute() {
-    List<bool> invoked = [false];
+    UriResolver_absolute resolver = new UriResolver_absolute();
     SourceFactory factory =
-        new SourceFactory([new UriResolver_absolute(invoked)]);
+        new SourceFactory([resolver]);
     factory.resolveUri(null, "dart:core");
-    expect(invoked[0], isTrue);
+    expect(resolver.invoked, isTrue);
   }
   void test_resolveUri_nonAbsolute_absolute() {
     SourceFactory factory =
@@ -10575,13 +10575,13 @@ class UriResolver_SourceFactoryTest_test_fromEncoding_valid extends UriResolver
 
 
 class UriResolver_absolute extends UriResolver {
-  List<bool> invoked;
+  bool invoked = false;
 
-  UriResolver_absolute(this.invoked);
+  UriResolver_absolute();
 
   @override
   Source resolveAbsolute(Uri uri) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
@@ -10915,18 +10915,18 @@ class XmlValidator_Tag {
 
 
 class _AngularTest_findElement extends GeneralizingElementVisitor<Object> {
-  ElementKind kind;
+  final ElementKind kind;
 
-  String name;
+  final String name;
 
-  List<Element> result;
+  Element result;
 
-  _AngularTest_findElement(this.kind, this.name, this.result);
+  _AngularTest_findElement(this.kind, this.name);
 
   @override
   Object visitElement(Element element) {
     if ((kind == null || element.kind == kind) && name == element.name) {
-      result[0] = element;
+      result = element;
     }
     return super.visitElement(element);
   }

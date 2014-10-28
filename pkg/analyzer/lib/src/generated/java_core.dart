@@ -49,7 +49,6 @@ class JavaArrays {
     }
     return result;
   }
-  static List asList(List list) => list;
 }
 
 class Character {
@@ -390,18 +389,6 @@ bool javaStringRegionMatches(String t, int toffset, String o, int ooffset, int l
   if (tend > t.length) return false;
   if (oend > o.length) return false;
   return t.substring(toffset, tend) == o.substring(ooffset, oend);
-}
-
-bool javaBooleanOr(bool a, bool b) {
-  return a || b;
-}
-
-bool javaBooleanAnd(bool a, bool b) {
-  return a && b;
-}
-
-int javaByte(Object o) {
-  return (o as int) & 0xFF;
 }
 
 abstract class Enum<E extends Enum> implements Comparable<E> {

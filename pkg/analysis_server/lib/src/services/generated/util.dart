@@ -457,7 +457,7 @@ class CorrectionUtils {
       parents[--index] = current;
       current = current.parent;
     }
-    return JavaArrays.asList(parents);
+    return parents;
   }
 
   /**
@@ -1010,7 +1010,9 @@ class CorrectionUtils {
       // check if "offset" is in one of the String ranges
       bool inString = false;
       for (SourceRange lineRange in lineRanges) {
-        inString = javaBooleanOr(inString, lineOffset > lineRange.offset && lineOffset < lineRange.end);
+        if (lineOffset > lineRange.offset && lineOffset < lineRange.end) {
+          inString = true;
+        }
         if (lineOffset > lineRange.end) {
           break;
         }

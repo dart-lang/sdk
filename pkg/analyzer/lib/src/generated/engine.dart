@@ -3605,7 +3605,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     // invalidate Angular applications
-    List<AngularApplication> angularApplicationsCopy = [];
+    List<AngularApplication> angularApplicationsCopy = <AngularApplication>[];
     for (AngularApplication application in angularApplicationsCopy) {
       if (application.dependsOn(librarySource)) {
         Source entryPointSource = application.entryPoint;
@@ -6116,7 +6116,7 @@ class AngularExpression {
    * Return Dart [Expression]s this Angular expression consists of.
    */
   List<Expression> get expressions {
-    List<Expression> expressions = [];
+    List<Expression> expressions = <Expression>[];
     expressions.add(expression);
     for (AngularFormatterNode formatter in formatters) {
       expressions.add(formatter.name);
@@ -6315,7 +6315,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
 
   List<AngularElement> _angularElements;
 
-  List<NgProcessor> _processors = [];
+  List<NgProcessor> _processors = <NgProcessor>[];
 
   LibraryElementImpl _libraryElement;
 
@@ -6327,7 +6327,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
 
   bool _isAngular = false;
 
-  List<LocalVariableElementImpl> _definedVariables = [];
+  List<LocalVariableElementImpl> _definedVariables = <LocalVariableElementImpl>[];
 
   Set<LibraryElement> _injectedLibraries = new Set();
 
@@ -6535,7 +6535,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
     List<Token> tokens = _splitAtBar(token);
     Expression mainExpression = _parseDartExpressionInToken(tokens[0]);
     // parse formatters
-    List<AngularFormatterNode> formatters = [];
+    List<AngularFormatterNode> formatters = <AngularFormatterNode>[];
     for (int i = 1; i < tokens.length; i++) {
       Token formatterToken = tokens[i];
       Token barToken = formatterToken;
@@ -6549,7 +6549,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
       SimpleIdentifier name = nameExpression as SimpleIdentifier;
       formatterToken = name.endToken.next;
       // parse arguments
-      List<AngularFormatterArgument> arguments = [];
+      List<AngularFormatterArgument> arguments = <AngularFormatterArgument>[];
       while (formatterToken.type != TokenType.EOF) {
         // skip ":"
         Token colonToken = formatterToken;
@@ -6849,7 +6849,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
   }
 
   List<Token> _splitAtBar(Token token) {
-    List<Token> tokens = [];
+    List<Token> tokens = <Token>[];
     tokens.add(token);
     while (token.type != TokenType.EOF) {
       if (token.type == TokenType.BAR) {
@@ -11252,7 +11252,7 @@ class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
 
   final ht.HtmlUnit _unit;
 
-  List<PolymerTagHtmlElement> _tagHtmlElements = [];
+  List<PolymerTagHtmlElement> _tagHtmlElements = <PolymerTagHtmlElement>[];
 
   ht.XmlTagNode _elementNode;
 
@@ -11303,7 +11303,7 @@ class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
       return;
     }
     // prepare attribute name tokens
-    List<PolymerHtmlUnitBuilder_NameToken> nameTokens = [];
+    List<PolymerHtmlUnitBuilder_NameToken> nameTokens = <PolymerHtmlUnitBuilder_NameToken>[];
     {
       int index = 0;
       int textOffset = attributesAttribute.textOffset;

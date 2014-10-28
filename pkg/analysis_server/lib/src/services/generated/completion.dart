@@ -31,9 +31,9 @@ import 'util.dart';
 class AstNodeClassifier_CompletionEngine_typeOf extends CompletionEngine_AstNodeClassifier {
   final CompletionEngine CompletionEngine_this;
 
-  List<DartType> result;
+  DartType result = null;
 
-  AstNodeClassifier_CompletionEngine_typeOf(this.CompletionEngine_this, this.result) : super();
+  AstNodeClassifier_CompletionEngine_typeOf(this.CompletionEngine_this);
 
   @override
   Object visitPrefixedIdentifier(PrefixedIdentifier node) => visitSimpleIdentifier(node.identifier);
@@ -45,7 +45,7 @@ class AstNodeClassifier_CompletionEngine_typeOf extends CompletionEngine_AstNode
       PropertyAccessorElement accessor = elem as PropertyAccessorElement;
       if (accessor.isSynthetic) {
         PropertyInducingElement var2 = accessor.variable;
-        result[0] = CompletionEngine_this._typeSearch(var2);
+        result = CompletionEngine_this._typeSearch(var2);
       }
     }
     return null;
@@ -1407,11 +1407,12 @@ class CompletionEngine {
   DartType _typeOf2(Expression expr) {
     DartType type = expr.bestType;
     if (type.isDynamic) {
-      List<DartType> result = new List<DartType>(1);
-      CompletionEngine_AstNodeClassifier visitor = new AstNodeClassifier_CompletionEngine_typeOf(this, result);
+      AstNodeClassifier_CompletionEngine_typeOf visitor
+          = new AstNodeClassifier_CompletionEngine_typeOf(this);
       expr.accept(visitor);
-      if (result[0] != null) {
-        return result[0];
+      DartType result = visitor.result;
+      if (result != null) {
+        return result;
       }
     }
     return type;

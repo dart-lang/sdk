@@ -978,7 +978,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     }
     bool problemReported = false;
     for (Expression argument in argumentList.arguments) {
-      problemReported = javaBooleanOr(problemReported, _checkForArgumentTypeNotAssignableForArgument(argument));
+      if (_checkForArgumentTypeNotAssignableForArgument(argument)) {
+        problemReported = true;
+      }
     }
     return problemReported;
   }
@@ -8859,10 +8861,22 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       PropertyAccessorElement setter = element.setter;
       SimpleIdentifier fieldName = field.name;
       if (getter != null) {
-        hasProblems = javaBooleanOr(hasProblems, _checkForAllInvalidOverrideErrorCodesForExecutable(getter, ParameterElementImpl.EMPTY_ARRAY, AstNode.EMPTY_ARRAY, fieldName));
+        if (_checkForAllInvalidOverrideErrorCodesForExecutable(
+            getter,
+            ParameterElementImpl.EMPTY_ARRAY,
+            AstNode.EMPTY_ARRAY,
+            fieldName)) {
+          hasProblems = true;
+        }
       }
       if (setter != null) {
-        hasProblems = javaBooleanOr(hasProblems, _checkForAllInvalidOverrideErrorCodesForExecutable(setter, setter.parameters, <AstNode> [fieldName], fieldName));
+        if (_checkForAllInvalidOverrideErrorCodesForExecutable(
+            setter,
+            setter.parameters,
+            <AstNode> [fieldName],
+            fieldName)) {
+          hasProblems = true;
+        }
       }
     }
     return hasProblems;
@@ -8912,14 +8926,26 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (mixinType is! InterfaceType) {
         continue;
       }
-      if (_checkForExtendsOrImplementsDisallowedClass(mixinName, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS)) {
+      if (_checkForExtendsOrImplementsDisallowedClass(
+          mixinName,
+          CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS)) {
         problemReported = true;
       } else {
         ClassElement mixinElement = (mixinType as InterfaceType).element;
-        problemReported = javaBooleanOr(problemReported, _checkForExtendsOrImplementsDeferredClass(mixinName, CompileTimeErrorCode.MIXIN_DEFERRED_CLASS));
-        problemReported = javaBooleanOr(problemReported, _checkForMixinDeclaresConstructor(mixinName, mixinElement));
-        problemReported = javaBooleanOr(problemReported, _checkForMixinInheritsNotFromObject(mixinName, mixinElement));
-        problemReported = javaBooleanOr(problemReported, _checkForMixinReferencesSuper(mixinName, mixinElement));
+        if (_checkForExtendsOrImplementsDeferredClass(
+            mixinName,
+            CompileTimeErrorCode.MIXIN_DEFERRED_CLASS)) {
+          problemReported = true;
+        }
+        if (_checkForMixinDeclaresConstructor(mixinName, mixinElement)) {
+          problemReported = true;
+        }
+        if (_checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {
+          problemReported = true;
+        }
+        if (_checkForMixinReferencesSuper(mixinName, mixinElement)) {
+          problemReported = true;
+        }
       }
     }
     return problemReported;
@@ -9153,7 +9179,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     bool problemReported = false;
     for (Expression argument in argumentList.arguments) {
-      problemReported = javaBooleanOr(problemReported, _checkForArgumentTypeNotAssignableForArgument(argument));
+      if (_checkForArgumentTypeNotAssignableForArgument(argument)) {
+        problemReported = true;
+      }
     }
     return problemReported;
   }
@@ -9317,8 +9345,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     int lastMember = members.length - 1;
     for (int i = 0; i < lastMember; i++) {
       SwitchMember member = members[i];
-      if (member is SwitchCase) {
-        foundError = javaBooleanOr(foundError, _checkForCaseBlockNotTerminated(member));
+      if (member is SwitchCase && _checkForCaseBlockNotTerminated(member)) {
+        foundError = true;
       }
     }
     return foundError;
@@ -9568,7 +9596,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
                 _enclosingClass.displayName,
                 name.name,
                 enclosingElementOfSetter.displayName]);
-            foundError = javaBooleanOr(foundError, true);
+            foundError = true;
             addThisMemberToTheMap = false;
           }
         } else if (isSetter) {
@@ -9577,7 +9605,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           if (conflictingMethod != null && conflictingMethod is MethodDeclaration && !conflictingMethod.isGetter) {
             // report problem
             _errorReporter.reportErrorForNode(StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER2, name, [_enclosingClass.displayName, name.name]);
-            foundError = javaBooleanOr(foundError, true);
+            foundError = true;
             addThisMemberToTheMap = false;
           }
         }
@@ -9921,7 +9949,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (typeArguments != null) {
       bool hasError = false;
       for (TypeName argument in typeArguments.arguments) {
-        hasError = javaBooleanOr(hasError, _checkForConstWithTypeParameters(argument));
+        if (_checkForConstWithTypeParameters(argument)) {
+          hasError = true;
+        }
       }
       return hasError;
     }
@@ -10065,16 +10095,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     bool hasProblem = false;
     for (ExecutableElement member in _enclosingClass.methods) {
-      if (!member.isStatic) {
-        continue;
+      if (member.isStatic && _checkForDuplicateDefinitionOfMember(member)) {
+        hasProblem = true;
       }
-      hasProblem = javaBooleanOr(hasProblem, _checkForDuplicateDefinitionOfMember(member));
     }
     for (ExecutableElement member in _enclosingClass.accessors) {
-      if (!member.isStatic) {
-        continue;
+      if (member.isStatic && _checkForDuplicateDefinitionOfMember(member)) {
+        hasProblem = true;
       }
-      hasProblem = javaBooleanOr(hasProblem, _checkForDuplicateDefinitionOfMember(member));
     }
     return hasProblem;
   }
@@ -10466,9 +10494,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     bool foundError = false;
     for (ClassMember classMember in classMembers) {
-      if (classMember is FieldDeclaration) {
-        FieldDeclaration field = classMember;
-        foundError = javaBooleanOr(foundError, _checkForFinalNotInitialized(field.fields));
+      if (classMember is FieldDeclaration
+          && _checkForFinalNotInitialized(classMember.fields)) {
+        foundError = true;
       }
     }
     return foundError;
@@ -10487,7 +10515,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     bool foundError = false;
     for (TypeName type in node.interfaces) {
-      foundError = javaBooleanOr(foundError, _checkForExtendsOrImplementsDeferredClass(type, CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS));
+      if (_checkForExtendsOrImplementsDeferredClass(
+          type,
+          CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS)) {
+        foundError = true;
+      }
     }
     return foundError;
   }
@@ -10506,7 +10538,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     bool foundError = false;
     for (TypeName type in node.interfaces) {
-      foundError = javaBooleanOr(foundError, _checkForExtendsOrImplementsDisallowedClass(type, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS));
+      if (_checkForExtendsOrImplementsDisallowedClass(
+          type,
+          CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS)) {
+        foundError = true;
+      }
     }
     return foundError;
   }
@@ -10945,11 +10981,21 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     bool hasProblems = false;
     for (Expression element in node.elements) {
       if (node.constKeyword != null) {
-        // TODO(paulberry): this error should be based on the actual type of the list element, not
-        // the static type.  See dartbug.com/21119.
-        hasProblems = javaBooleanOr(hasProblems, _checkForArgumentTypeNotAssignableWithExpectedTypes(element, listElementType, CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE));
+        // TODO(paulberry): this error should be based on the actual type of the
+        // list element, not the static type.  See dartbug.com/21119.
+        if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
+            element,
+            listElementType,
+            CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE)) {
+          hasProblems = true;
+        }
       }
-      hasProblems = javaBooleanOr(hasProblems, _checkForArgumentTypeNotAssignableWithExpectedTypes(element, listElementType, StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE));
+      if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
+          element,
+          listElementType,
+          StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE)) {
+        hasProblems = true;
+      }
     }
     return hasProblems;
   }
@@ -10981,13 +11027,33 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       Expression key = entry.key;
       Expression value = entry.value;
       if (node.constKeyword != null) {
-        // TODO(paulberry): this error should be based on the actual type of the list element, not
-        // the static type.  See dartbug.com/21119.
-        hasProblems = javaBooleanOr(hasProblems, _checkForArgumentTypeNotAssignableWithExpectedTypes(key, keyType, CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE));
-        hasProblems = javaBooleanOr(hasProblems, _checkForArgumentTypeNotAssignableWithExpectedTypes(value, valueType, CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE));
+        // TODO(paulberry): this error should be based on the actual type of the
+        // list element, not the static type.  See dartbug.com/21119.
+        if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
+            key,
+            keyType,
+            CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE)) {
+          hasProblems = true;
+        }
+        if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
+            value,
+            valueType,
+            CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE)) {
+          hasProblems = true;
+        }
       }
-      hasProblems = javaBooleanOr(hasProblems, _checkForArgumentTypeNotAssignableWithExpectedTypes(key, keyType, StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE));
-      hasProblems = javaBooleanOr(hasProblems, _checkForArgumentTypeNotAssignableWithExpectedTypes(value, valueType, StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE));
+      if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
+          key,
+          keyType,
+          StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE)) {
+        hasProblems = true;
+      }
+      if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
+          value,
+          valueType,
+          StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE)) {
+        hasProblems = true;
+      }
     }
     return hasProblems;
   }
@@ -13267,9 +13333,9 @@ class FunctionTypeScope extends EnclosedScope {
 }
 
 class GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction extends GeneralizingAstVisitor<Object> {
-  List<DartType> result;
+  DartType result = null;
 
-  GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction(this.result) : super();
+  GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction();
 
   @override
   Object visitExpression(Expression node) => null;
@@ -13285,10 +13351,10 @@ class GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnTypeOfFun
       type = BottomTypeImpl.instance;
     }
     // merge types
-    if (result[0] == null) {
-      result[0] = type;
+    if (result == null) {
+      result = type;
     } else {
-      result[0] = result[0].getLeastUpperBound(type);
+      result = result.getLeastUpperBound(type);
     }
     return null;
   }
@@ -18454,11 +18520,11 @@ class RecursiveAstVisitor_AngularCompilationUnitBuilder_parseViews extends Recur
 }
 
 class RecursiveAstVisitor_ResolverVisitor_isVariableAccessedInClosure extends RecursiveAstVisitor<Object> {
-  List<bool> result;
+  final Element variable;
 
-  Element variable;
+  bool result = false;
 
-  RecursiveAstVisitor_ResolverVisitor_isVariableAccessedInClosure(this.result, this.variable) : super();
+  RecursiveAstVisitor_ResolverVisitor_isVariableAccessedInClosure(this.variable);
 
   bool _inClosure = false;
 
@@ -18475,31 +18541,31 @@ class RecursiveAstVisitor_ResolverVisitor_isVariableAccessedInClosure extends Re
 
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
-    if (result[0]) {
+    if (result) {
       return null;
     }
     if (_inClosure && identical(node.staticElement, variable)) {
-      result[0] = javaBooleanOr(result[0], true);
+      result = true;
     }
     return null;
   }
 }
 
 class RecursiveAstVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn extends RecursiveAstVisitor<Object> {
-  List<bool> result;
+  final Element variable;
 
-  Element variable;
+  bool result = false;
 
-  RecursiveAstVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn(this.result, this.variable) : super();
+  RecursiveAstVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn(this.variable);
 
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
-    if (result[0]) {
+    if (result) {
       return null;
     }
     if (identical(node.staticElement, variable)) {
       if (node.inSetterContext()) {
-        result[0] = javaBooleanOr(result[0], true);
+        result = true;
       }
     }
     return null;
@@ -19982,9 +20048,10 @@ class ResolverVisitor extends ScopedVisitor {
    * @return `true` if this variable is potentially mutated somewhere in the given ASTNode
    */
   bool _isVariableAccessedInClosure(Element variable, AstNode target) {
-    List<bool> result = [false];
-    target.accept(new RecursiveAstVisitor_ResolverVisitor_isVariableAccessedInClosure(result, variable));
-    return result[0];
+    RecursiveAstVisitor_ResolverVisitor_isVariableAccessedInClosure visitor
+        = new RecursiveAstVisitor_ResolverVisitor_isVariableAccessedInClosure(variable);
+    target.accept(visitor);
+    return visitor.result;
   }
 
   /**
@@ -19996,9 +20063,10 @@ class ResolverVisitor extends ScopedVisitor {
    * @return `true` if this variable is potentially mutated somewhere in the given ASTNode
    */
   bool _isVariablePotentiallyMutatedIn(Element variable, AstNode target) {
-    List<bool> result = [false];
-    target.accept(new RecursiveAstVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn(result, variable));
-    return result[0];
+    RecursiveAstVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn visitor
+        = new RecursiveAstVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn(variable);
+    target.accept(visitor);
+    return visitor.result;
   }
 
   /**
@@ -22371,9 +22439,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       return expressionBody.expression.bestType;
     }
     if (body is BlockFunctionBody) {
-      List<DartType> result = [null];
-      body.accept(new GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction(result));
-      return result[0];
+      GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction visitor
+          = new GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction();
+      body.accept(visitor);
+      return visitor.result;
     }
     return null;
   }

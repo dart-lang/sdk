@@ -4056,102 +4056,91 @@ class IncrementalAnalysisTaskTestTV_assertTask extends
 
 class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   void test_addSourceInfo() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_addSourceInfo innerContext = new TestAnalysisContext_test_addSourceInfo();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_addSourceInfo(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.addSourceInfo(null, null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_applyChanges() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_applyChanges innerContext = new TestAnalysisContext_test_applyChanges();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_applyChanges(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.applyChanges(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_computeDocumentationComment() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_computeDocumentationComment innerContext = new TestAnalysisContext_test_computeDocumentationComment();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_computeDocumentationComment(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.computeDocumentationComment(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_computeErrors() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_computeErrors innerContext = new TestAnalysisContext_test_computeErrors();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_computeErrors(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.computeErrors(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_computeExportedLibraries() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_computeExportedLibraries innerContext = new TestAnalysisContext_test_computeExportedLibraries();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_computeExportedLibraries(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.computeExportedLibraries(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_computeHtmlElement() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_computeHtmlElement innerContext = new TestAnalysisContext_test_computeHtmlElement();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_computeHtmlElement(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.computeHtmlElement(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_computeImportedLibraries() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_computeImportedLibraries innerContext = new TestAnalysisContext_test_computeImportedLibraries();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_computeImportedLibraries(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.computeImportedLibraries(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_computeKindOf() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_computeKindOf innerContext = new TestAnalysisContext_test_computeKindOf();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_computeKindOf(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.computeKindOf(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_computeLibraryElement() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_computeLibraryElement innerContext = new TestAnalysisContext_test_computeLibraryElement();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_computeLibraryElement(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.computeLibraryElement(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_computeLineInfo() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_computeLineInfo innerContext = new TestAnalysisContext_test_computeLineInfo();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_computeLineInfo(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.computeLineInfo(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_computeResolvableCompilationUnit() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_computeResolvableCompilationUnit innerContext = new TestAnalysisContext_test_computeResolvableCompilationUnit();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_computeResolvableCompilationUnit(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.computeResolvableCompilationUnit(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_creation() {
@@ -4159,406 +4148,363 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_dispose() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_dispose innerContext = new TestAnalysisContext_test_dispose();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_dispose(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.dispose();
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_exists() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_exists innerContext = new TestAnalysisContext_test_exists();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_exists(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.exists(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getAnalysisOptions() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getAnalysisOptions innerContext = new TestAnalysisContext_test_getAnalysisOptions();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getAnalysisOptions(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.analysisOptions;
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getAngularApplicationWithHtml() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getAngularApplicationWithHtml innerContext = new TestAnalysisContext_test_getAngularApplicationWithHtml();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getAngularApplicationWithHtml(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getAngularApplicationWithHtml(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getCompilationUnitElement() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getCompilationUnitElement innerContext = new TestAnalysisContext_test_getCompilationUnitElement();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getCompilationUnitElement(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getCompilationUnitElement(null, null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getContents() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getContents innerContext = new TestAnalysisContext_test_getContents();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getContents(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getContents(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
 //  void test_getContentsToReceiver() {
-//    List<bool> invoked = [false];
-//    InstrumentedAnalysisContextImpl context = new InstrumentedAnalysisContextImpl.con1(new TestAnalysisContext_test_getContentsToReceiver(invoked));
+//    TestAnalysisContext_test_getContentsToReceiver innerContext = new TestAnalysisContext_test_getContentsToReceiver();
+//    InstrumentedAnalysisContextImpl context
+//        = new InstrumentedAnalysisContextImpl.con1(innerContext);
 //    context.getContentsToReceiver(null, null);
-//    JUnitTestCase.assertTrue(invoked[0]);
+//    expect(innerContext.invoked, isTrue);
 //  }
 
   void test_getElement() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getElement innerContext = new TestAnalysisContext_test_getElement();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getElement(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getElement(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getErrors() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getErrors innerContext = new TestAnalysisContext_test_getErrors();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getErrors(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getErrors(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getHtmlElement() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getHtmlElement innerContext = new TestAnalysisContext_test_getHtmlElement();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getHtmlElement(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getHtmlElement(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getHtmlFilesReferencing() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getHtmlFilesReferencing innerContext = new TestAnalysisContext_test_getHtmlFilesReferencing();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getHtmlFilesReferencing(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getHtmlFilesReferencing(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getHtmlSources() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getHtmlSources innerContext = new TestAnalysisContext_test_getHtmlSources();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getHtmlSources(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.htmlSources;
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getKindOf() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getKindOf innerContext = new TestAnalysisContext_test_getKindOf();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getKindOf(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getKindOf(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getLaunchableClientLibrarySources() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getLaunchableClientLibrarySources innerContext = new TestAnalysisContext_test_getLaunchableClientLibrarySources();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getLaunchableClientLibrarySources(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.launchableClientLibrarySources;
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getLaunchableServerLibrarySources() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getLaunchableServerLibrarySources innerContext = new TestAnalysisContext_test_getLaunchableServerLibrarySources();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getLaunchableServerLibrarySources(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.launchableServerLibrarySources;
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getLibrariesContaining() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getLibrariesContaining innerContext = new TestAnalysisContext_test_getLibrariesContaining();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getLibrariesContaining(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getLibrariesContaining(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getLibrariesDependingOn() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getLibrariesDependingOn innerContext = new TestAnalysisContext_test_getLibrariesDependingOn();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getLibrariesDependingOn(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getLibrariesDependingOn(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getLibrariesReferencedFromHtml() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getLibrariesReferencedFromHtml innerContext = new TestAnalysisContext_test_getLibrariesReferencedFromHtml();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getLibrariesReferencedFromHtml(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getLibrariesReferencedFromHtml(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getLibraryElement() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getLibraryElement innerContext = new TestAnalysisContext_test_getLibraryElement();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getLibraryElement(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getLibraryElement(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getLibrarySources() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getLibrarySources innerContext = new TestAnalysisContext_test_getLibrarySources();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getLibrarySources(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.librarySources;
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getLineInfo() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getLineInfo innerContext = new TestAnalysisContext_test_getLineInfo();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getLineInfo(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getLineInfo(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getModificationStamp() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getModificationStamp innerContext = new TestAnalysisContext_test_getModificationStamp();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getModificationStamp(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getModificationStamp(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getPublicNamespace() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getPublicNamespace innerContext = new TestAnalysisContext_test_getPublicNamespace();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getPublicNamespace(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getPublicNamespace(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getRefactoringUnsafeSources() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getRefactoringUnsafeSources innerContext = new TestAnalysisContext_test_getRefactoringUnsafeSources();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getRefactoringUnsafeSources(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.refactoringUnsafeSources;
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getResolvedCompilationUnit_element() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getResolvedCompilationUnit_element innerContext = new TestAnalysisContext_test_getResolvedCompilationUnit_element();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getResolvedCompilationUnit_element(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getResolvedCompilationUnit(null, null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getResolvedCompilationUnit_source() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getResolvedCompilationUnit_source innerContext = new TestAnalysisContext_test_getResolvedCompilationUnit_source();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getResolvedCompilationUnit_source(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getResolvedCompilationUnit2(null, null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getResolvedHtmlUnit() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getResolvedHtmlUnit innerContext = new TestAnalysisContext_test_getResolvedHtmlUnit();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getResolvedHtmlUnit(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getResolvedHtmlUnit(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getSourceFactory() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getSourceFactory innerContext = new TestAnalysisContext_test_getSourceFactory();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getSourceFactory(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.sourceFactory;
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getStatistics() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getStatistics innerContext = new TestAnalysisContext_test_getStatistics();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getStatistics(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.statistics;
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_getTypeProvider() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_getTypeProvider innerContext = new TestAnalysisContext_test_getTypeProvider();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_getTypeProvider(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.typeProvider;
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_isClientLibrary() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_isClientLibrary innerContext = new TestAnalysisContext_test_isClientLibrary();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_isClientLibrary(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.isClientLibrary(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_isDisposed() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_isDisposed innerContext = new TestAnalysisContext_test_isDisposed();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_isDisposed(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.isDisposed;
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_isServerLibrary() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_isServerLibrary innerContext = new TestAnalysisContext_test_isServerLibrary();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_isServerLibrary(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.isServerLibrary(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_parseCompilationUnit() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_parseCompilationUnit innerContext = new TestAnalysisContext_test_parseCompilationUnit();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_parseCompilationUnit(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.parseCompilationUnit(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_parseHtmlUnit() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_parseHtmlUnit innerContext = new TestAnalysisContext_test_parseHtmlUnit();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_parseHtmlUnit(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.parseHtmlUnit(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_performAnalysisTask() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_performAnalysisTask innerContext = new TestAnalysisContext_test_performAnalysisTask();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_performAnalysisTask(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.performAnalysisTask();
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_recordLibraryElements() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_recordLibraryElements innerContext = new TestAnalysisContext_test_recordLibraryElements();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_recordLibraryElements(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.recordLibraryElements(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_resolveCompilationUnit() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_resolveCompilationUnit innerContext = new TestAnalysisContext_test_resolveCompilationUnit();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_resolveCompilationUnit(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.resolveCompilationUnit2(null, null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_resolveCompilationUnit_element() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_resolveCompilationUnit_element innerContext = new TestAnalysisContext_test_resolveCompilationUnit_element();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_resolveCompilationUnit_element(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.resolveCompilationUnit(null, null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_resolveHtmlUnit() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_resolveHtmlUnit innerContext = new TestAnalysisContext_test_resolveHtmlUnit();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_resolveHtmlUnit(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.resolveHtmlUnit(null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_setAnalysisOptions() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_setAnalysisOptions innerContext = new TestAnalysisContext_test_setAnalysisOptions();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_setAnalysisOptions(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.analysisOptions = null;
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_setAnalysisPriorityOrder() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_setAnalysisPriorityOrder innerContext = new TestAnalysisContext_test_setAnalysisPriorityOrder();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_setAnalysisPriorityOrder(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.analysisPriorityOrder = null;
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_setChangedContents() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_setChangedContents innerContext = new TestAnalysisContext_test_setChangedContents();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_setChangedContents(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.setChangedContents(null, null, 0, 0, 0);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_setContents() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_setContents innerContext = new TestAnalysisContext_test_setContents();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_setContents(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.setContents(null, null);
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 
   void test_setSourceFactory() {
-    List<bool> invoked = [false];
+    TestAnalysisContext_test_setSourceFactory innerContext = new TestAnalysisContext_test_setSourceFactory();
     InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_setSourceFactory(invoked));
+        new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.sourceFactory = null;
-    expect(invoked[0], isTrue);
+    expect(innerContext.invoked, isTrue);
   }
 }
 
@@ -5658,43 +5604,43 @@ class TestAnalysisContext implements InternalAnalysisContext {
 
 
 class TestAnalysisContext_test_addSourceInfo extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_addSourceInfo(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_addSourceInfo();
   @override
   void addSourceInfo(Source source, SourceEntry info) {
-    invoked[0] = true;
+    invoked = true;
   }
 }
 
 
 class TestAnalysisContext_test_applyChanges extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_applyChanges(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_applyChanges();
   @override
   void applyChanges(ChangeSet changeSet) {
-    invoked[0] = true;
+    invoked = true;
   }
 }
 
 
 class TestAnalysisContext_test_computeDocumentationComment extends
     TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_computeDocumentationComment(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_computeDocumentationComment();
   @override
   String computeDocumentationComment(Element element) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
 
 
 class TestAnalysisContext_test_computeErrors extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_computeErrors(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_computeErrors();
   @override
   List<AnalysisError> computeErrors(Source source) {
-    invoked[0] = true;
+    invoked = true;
     return AnalysisError.NO_ERRORS;
   }
 }
@@ -5702,22 +5648,22 @@ class TestAnalysisContext_test_computeErrors extends TestAnalysisContext {
 
 class TestAnalysisContext_test_computeExportedLibraries extends
     TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_computeExportedLibraries(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_computeExportedLibraries();
   @override
   List<Source> computeExportedLibraries(Source source) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
 
 
 class TestAnalysisContext_test_computeHtmlElement extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_computeHtmlElement(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_computeHtmlElement();
   @override
   HtmlElement computeHtmlElement(Source source) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
@@ -5725,22 +5671,22 @@ class TestAnalysisContext_test_computeHtmlElement extends TestAnalysisContext {
 
 class TestAnalysisContext_test_computeImportedLibraries extends
     TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_computeImportedLibraries(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_computeImportedLibraries();
   @override
   List<Source> computeImportedLibraries(Source source) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
 
 
 class TestAnalysisContext_test_computeKindOf extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_computeKindOf(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_computeKindOf();
   @override
   SourceKind computeKindOf(Source source) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
@@ -5748,22 +5694,22 @@ class TestAnalysisContext_test_computeKindOf extends TestAnalysisContext {
 
 class TestAnalysisContext_test_computeLibraryElement extends TestAnalysisContext
     {
-  List<bool> invoked;
-  TestAnalysisContext_test_computeLibraryElement(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_computeLibraryElement();
   @override
   LibraryElement computeLibraryElement(Source source) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
 
 
 class TestAnalysisContext_test_computeLineInfo extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_computeLineInfo(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_computeLineInfo();
   @override
   LineInfo computeLineInfo(Source source) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
@@ -5771,43 +5717,43 @@ class TestAnalysisContext_test_computeLineInfo extends TestAnalysisContext {
 
 class TestAnalysisContext_test_computeResolvableCompilationUnit extends
     TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_computeResolvableCompilationUnit(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_computeResolvableCompilationUnit();
   @override
   CompilationUnit computeResolvableCompilationUnit(Source source) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
 
 
 class TestAnalysisContext_test_dispose extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_dispose(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_dispose();
   @override
   void dispose() {
-    invoked[0] = true;
+    invoked = true;
   }
 }
 
 
 class TestAnalysisContext_test_exists extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_exists(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_exists();
   @override
   bool exists(Source source) {
-    invoked[0] = true;
+    invoked = true;
     return false;
   }
 }
 
 
 class TestAnalysisContext_test_getAnalysisOptions extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getAnalysisOptions(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getAnalysisOptions();
   @override
   AnalysisOptions get analysisOptions {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
@@ -5815,11 +5761,11 @@ class TestAnalysisContext_test_getAnalysisOptions extends TestAnalysisContext {
 
 class TestAnalysisContext_test_getAngularApplicationWithHtml extends
     TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getAngularApplicationWithHtml(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getAngularApplicationWithHtml();
   @override
   AngularApplication getAngularApplicationWithHtml(Source htmlSource) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
@@ -5827,56 +5773,56 @@ class TestAnalysisContext_test_getAngularApplicationWithHtml extends
 
 class TestAnalysisContext_test_getCompilationUnitElement extends
     TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getCompilationUnitElement(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getCompilationUnitElement();
   @override
   CompilationUnitElement getCompilationUnitElement(Source unitSource,
       Source librarySource) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
 
 
 class TestAnalysisContext_test_getContents extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getContents(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getContents();
   @override
   TimestampedData<String> getContents(Source source) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
 
 
 class TestAnalysisContext_test_getElement extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getElement(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getElement();
   @override
   Element getElement(ElementLocation location) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
 
 
 class TestAnalysisContext_test_getErrors extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getErrors(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getErrors();
   @override
   AnalysisErrorInfo getErrors(Source source) {
-    invoked[0] = true;
+    invoked = true;
     return new AnalysisErrorInfoImpl(AnalysisError.NO_ERRORS, null);
   }
 }
 
 
 class TestAnalysisContext_test_getHtmlElement extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getHtmlElement(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getHtmlElement();
   @override
   HtmlElement getHtmlElement(Source source) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
@@ -5884,33 +5830,33 @@ class TestAnalysisContext_test_getHtmlElement extends TestAnalysisContext {
 
 class TestAnalysisContext_test_getHtmlFilesReferencing extends
     TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getHtmlFilesReferencing(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getHtmlFilesReferencing();
   @override
   List<Source> getHtmlFilesReferencing(Source source) {
-    invoked[0] = true;
+    invoked = true;
     return Source.EMPTY_ARRAY;
   }
 }
 
 
 class TestAnalysisContext_test_getHtmlSources extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getHtmlSources(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getHtmlSources();
   @override
   List<Source> get htmlSources {
-    invoked[0] = true;
+    invoked = true;
     return Source.EMPTY_ARRAY;
   }
 }
 
 
 class TestAnalysisContext_test_getKindOf extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getKindOf(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getKindOf();
   @override
   SourceKind getKindOf(Source source) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
@@ -5918,11 +5864,11 @@ class TestAnalysisContext_test_getKindOf extends TestAnalysisContext {
 
 class TestAnalysisContext_test_getLaunchableClientLibrarySources extends
     TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getLaunchableClientLibrarySources(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getLaunchableClientLibrarySources();
   @override
   List<Source> get launchableClientLibrarySources {
-    invoked[0] = true;
+    invoked = true;
     return Source.EMPTY_ARRAY;
   }
 }
@@ -5930,11 +5876,11 @@ class TestAnalysisContext_test_getLaunchableClientLibrarySources extends
 
 class TestAnalysisContext_test_getLaunchableServerLibrarySources extends
     TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getLaunchableServerLibrarySources(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getLaunchableServerLibrarySources();
   @override
   List<Source> get launchableServerLibrarySources {
-    invoked[0] = true;
+    invoked = true;
     return Source.EMPTY_ARRAY;
   }
 }
@@ -5942,11 +5888,11 @@ class TestAnalysisContext_test_getLaunchableServerLibrarySources extends
 
 class TestAnalysisContext_test_getLibrariesContaining extends
     TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getLibrariesContaining(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getLibrariesContaining();
   @override
   List<Source> getLibrariesContaining(Source source) {
-    invoked[0] = true;
+    invoked = true;
     return Source.EMPTY_ARRAY;
   }
 }
@@ -5954,11 +5900,11 @@ class TestAnalysisContext_test_getLibrariesContaining extends
 
 class TestAnalysisContext_test_getLibrariesDependingOn extends
     TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getLibrariesDependingOn(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getLibrariesDependingOn();
   @override
   List<Source> getLibrariesDependingOn(Source librarySource) {
-    invoked[0] = true;
+    invoked = true;
     return Source.EMPTY_ARRAY;
   }
 }
@@ -5966,44 +5912,44 @@ class TestAnalysisContext_test_getLibrariesDependingOn extends
 
 class TestAnalysisContext_test_getLibrariesReferencedFromHtml extends
     TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getLibrariesReferencedFromHtml(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getLibrariesReferencedFromHtml();
   @override
   List<Source> getLibrariesReferencedFromHtml(Source htmlSource) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
 
 
 class TestAnalysisContext_test_getLibraryElement extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getLibraryElement(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getLibraryElement();
   @override
   LibraryElement getLibraryElement(Source source) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
 
 
 class TestAnalysisContext_test_getLibrarySources extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getLibrarySources(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getLibrarySources();
   @override
   List<Source> get librarySources {
-    invoked[0] = true;
+    invoked = true;
     return Source.EMPTY_ARRAY;
   }
 }
 
 
 class TestAnalysisContext_test_getLineInfo extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getLineInfo(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getLineInfo();
   @override
   LineInfo getLineInfo(Source source) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
@@ -6011,22 +5957,22 @@ class TestAnalysisContext_test_getLineInfo extends TestAnalysisContext {
 
 class TestAnalysisContext_test_getModificationStamp extends TestAnalysisContext
     {
-  List<bool> invoked;
-  TestAnalysisContext_test_getModificationStamp(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getModificationStamp();
   @override
   int getModificationStamp(Source source) {
-    invoked[0] = true;
+    invoked = true;
     return 0;
   }
 }
 
 
 class TestAnalysisContext_test_getPublicNamespace extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getPublicNamespace(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getPublicNamespace();
   @override
   Namespace getPublicNamespace(LibraryElement library) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
@@ -6034,11 +5980,11 @@ class TestAnalysisContext_test_getPublicNamespace extends TestAnalysisContext {
 
 class TestAnalysisContext_test_getRefactoringUnsafeSources extends
     TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getRefactoringUnsafeSources(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getRefactoringUnsafeSources();
   @override
   List<Source> get refactoringUnsafeSources {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
@@ -6046,12 +5992,12 @@ class TestAnalysisContext_test_getRefactoringUnsafeSources extends
 
 class TestAnalysisContext_test_getResolvedCompilationUnit_element extends
     TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getResolvedCompilationUnit_element(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getResolvedCompilationUnit_element();
   @override
   CompilationUnit getResolvedCompilationUnit(Source unitSource,
       LibraryElement library) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
@@ -6059,89 +6005,89 @@ class TestAnalysisContext_test_getResolvedCompilationUnit_element extends
 
 class TestAnalysisContext_test_getResolvedCompilationUnit_source extends
     TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getResolvedCompilationUnit_source(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getResolvedCompilationUnit_source();
   @override
   CompilationUnit getResolvedCompilationUnit2(Source unitSource,
       Source librarySource) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
 
 
 class TestAnalysisContext_test_getResolvedHtmlUnit extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getResolvedHtmlUnit(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getResolvedHtmlUnit();
   @override
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
 
 
 class TestAnalysisContext_test_getSourceFactory extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getSourceFactory(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getSourceFactory();
   @override
   SourceFactory get sourceFactory {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
 
 
 class TestAnalysisContext_test_getStatistics extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getStatistics(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getStatistics();
   @override
   AnalysisContextStatistics get statistics {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
 
 
 class TestAnalysisContext_test_getTypeProvider extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_getTypeProvider(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_getTypeProvider();
   @override
   TypeProvider get typeProvider {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
 
 
 class TestAnalysisContext_test_isClientLibrary extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_isClientLibrary(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_isClientLibrary();
   @override
   bool isClientLibrary(Source librarySource) {
-    invoked[0] = true;
+    invoked = true;
     return false;
   }
 }
 
 
 class TestAnalysisContext_test_isDisposed extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_isDisposed(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_isDisposed();
   @override
   bool get isDisposed {
-    invoked[0] = true;
+    invoked = true;
     return false;
   }
 }
 
 
 class TestAnalysisContext_test_isServerLibrary extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_isServerLibrary(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_isServerLibrary();
   @override
   bool isServerLibrary(Source librarySource) {
-    invoked[0] = true;
+    invoked = true;
     return false;
   }
 }
@@ -6149,33 +6095,33 @@ class TestAnalysisContext_test_isServerLibrary extends TestAnalysisContext {
 
 class TestAnalysisContext_test_parseCompilationUnit extends TestAnalysisContext
     {
-  List<bool> invoked;
-  TestAnalysisContext_test_parseCompilationUnit(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_parseCompilationUnit();
   @override
   CompilationUnit parseCompilationUnit(Source source) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
 
 
 class TestAnalysisContext_test_parseHtmlUnit extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_parseHtmlUnit(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_parseHtmlUnit();
   @override
   ht.HtmlUnit parseHtmlUnit(Source source) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
 
 
 class TestAnalysisContext_test_performAnalysisTask extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_performAnalysisTask(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_performAnalysisTask();
   @override
   AnalysisResult performAnalysisTask() {
-    invoked[0] = true;
+    invoked = true;
     return new AnalysisResult(new List<ChangeNotice>(0), 0, null, 0);
   }
 }
@@ -6183,23 +6129,23 @@ class TestAnalysisContext_test_performAnalysisTask extends TestAnalysisContext {
 
 class TestAnalysisContext_test_recordLibraryElements extends TestAnalysisContext
     {
-  List<bool> invoked;
-  TestAnalysisContext_test_recordLibraryElements(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_recordLibraryElements();
   @override
   void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
-    invoked[0] = true;
+    invoked = true;
   }
 }
 
 
 class TestAnalysisContext_test_resolveCompilationUnit extends
     TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_resolveCompilationUnit(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_resolveCompilationUnit();
   @override
   CompilationUnit resolveCompilationUnit2(Source unitSource,
       Source librarySource) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
@@ -6207,76 +6153,76 @@ class TestAnalysisContext_test_resolveCompilationUnit extends
 
 class TestAnalysisContext_test_resolveCompilationUnit_element extends
     TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_resolveCompilationUnit_element(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_resolveCompilationUnit_element();
   @override
   CompilationUnit resolveCompilationUnit(Source unitSource,
       LibraryElement library) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
 
 
 class TestAnalysisContext_test_resolveHtmlUnit extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_resolveHtmlUnit(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_resolveHtmlUnit();
   @override
   ht.HtmlUnit resolveHtmlUnit(Source htmlSource) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
 
 
 class TestAnalysisContext_test_setAnalysisOptions extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_setAnalysisOptions(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_setAnalysisOptions();
   @override
   void set analysisOptions(AnalysisOptions options) {
-    invoked[0] = true;
+    invoked = true;
   }
 }
 
 
 class TestAnalysisContext_test_setAnalysisPriorityOrder extends
     TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_setAnalysisPriorityOrder(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_setAnalysisPriorityOrder();
   @override
   void set analysisPriorityOrder(List<Source> sources) {
-    invoked[0] = true;
+    invoked = true;
   }
 }
 
 
 class TestAnalysisContext_test_setChangedContents extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_setChangedContents(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_setChangedContents();
   @override
   void setChangedContents(Source source, String contents, int offset,
       int oldLength, int newLength) {
-    invoked[0] = true;
+    invoked = true;
   }
 }
 
 
 class TestAnalysisContext_test_setContents extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_setContents(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_setContents();
   @override
   void setContents(Source source, String contents) {
-    invoked[0] = true;
+    invoked = true;
   }
 }
 
 
 class TestAnalysisContext_test_setSourceFactory extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_setSourceFactory(this.invoked);
+  bool invoked = false;
+  TestAnalysisContext_test_setSourceFactory();
   @override
   void set sourceFactory(SourceFactory factory) {
-    invoked[0] = true;
+    invoked = true;
   }
 }
 

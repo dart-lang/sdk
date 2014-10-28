@@ -513,13 +513,13 @@ class _ExtractExpressionAnalyzer extends SelectionAnalyzer {
 
 
 class _HasStatementVisitor extends GeneralizingAstVisitor {
-  final List<bool> result;
+  bool result = false;
 
-  _HasStatementVisitor(this.result);
+  _HasStatementVisitor();
 
   @override
   visitStatement(Statement node) {
-    result[0] = true;
+    result = true;
   }
 }
 
@@ -579,9 +579,9 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
   }
 
   bool _hasStatements(AstNode root) {
-    List<bool> result = [false];
-    root.accept(new _HasStatementVisitor(result));
-    return result[0];
+    _HasStatementVisitor visitor = new _HasStatementVisitor();
+    root.accept(visitor);
+    return visitor.result;
   }
 
   void _tryToFindOccurrence(Expression node) {

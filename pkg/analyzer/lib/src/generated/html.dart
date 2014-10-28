@@ -341,17 +341,17 @@ abstract class AbstractScanner {
 }
 
 class ExpressionVisitor_HtmlUnitUtils_getExpression extends ExpressionVisitor {
-  int offset = 0;
+  final int offset;
 
-  List<Expression> result;
+  Expression result;
 
-  ExpressionVisitor_HtmlUnitUtils_getExpression(this.offset, this.result) : super();
+  ExpressionVisitor_HtmlUnitUtils_getExpression(this.offset);
 
   @override
   void visitExpression(Expression expression) {
     Expression at = HtmlUnitUtils._getExpressionAt(expression, offset);
     if (at != null) {
-      result[0] = at;
+      result = at;
       throw new HtmlUnitUtils_FoundExpressionError();
     }
   }
@@ -383,7 +383,7 @@ class HtmlParser extends XmlParser {
   /**
    * A set containing the names of tags that do not have a closing tag.
    */
-  static Set<String> SELF_CLOSING = new HashSet<String>.from(JavaArrays.asList(<String> [
+  static Set<String> SELF_CLOSING = new HashSet<String>.from(<String>[
       "area",
       "base",
       "basefont",
@@ -396,7 +396,7 @@ class HtmlParser extends XmlParser {
       "link",
       "meta",
       "param",
-      "!"]));
+      "!"]);
 
   /**
    * Given the contents of an embedded expression that occurs at the given offset, parse it as a
@@ -628,11 +628,12 @@ class HtmlUnitUtils {
     if (htmlUnit == null) {
       return null;
     }
-    List<XmlAttributeNode> result = [null];
+    RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode visitor
+        = new RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode(offset);
     try {
-      htmlUnit.accept(new RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode(offset, result));
+      htmlUnit.accept(visitor);
     } on HtmlUnitUtils_FoundAttributeNodeError catch (e) {
-      return result[0];
+      return visitor.result;
     }
     return null;
   }
@@ -678,11 +679,12 @@ class HtmlUnitUtils {
     if (htmlUnit == null) {
       return null;
     }
-    List<XmlTagNode> result = [null];
+    RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode visitor
+        = new RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode(offset);
     try {
-      htmlUnit.accept(new RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode(offset, result));
+      htmlUnit.accept(visitor);
     } on HtmlUnitUtils_FoundTagNodeError catch (e) {
-      return result[0];
+      return visitor.result;
     }
     return null;
   }
@@ -695,12 +697,13 @@ class HtmlUnitUtils {
     if (htmlUnit == null) {
       return null;
     }
-    List<Expression> result = [null];
+    ExpressionVisitor_HtmlUnitUtils_getExpression visitor
+        = new ExpressionVisitor_HtmlUnitUtils_getExpression(offset);
     try {
       // TODO(scheglov) this code is very Angular specific
-      htmlUnit.accept(new ExpressionVisitor_HtmlUnitUtils_getExpression(offset, result));
+      htmlUnit.accept(visitor);
     } on HtmlUnitUtils_FoundExpressionError catch (e) {
-      return result[0];
+      return visitor.result;
     }
     return null;
   }
@@ -819,17 +822,17 @@ class RecursiveXmlVisitor<R> implements XmlVisitor<R> {
 }
 
 class RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode extends RecursiveXmlVisitor<Object> {
-  int offset = 0;
+  final int offset;
 
-  List<XmlAttributeNode> result;
+  XmlAttributeNode result;
 
-  RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode(this.offset, this.result) : super();
+  RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode(this.offset);
 
   @override
   Object visitXmlAttributeNode(XmlAttributeNode node) {
     Token nameToken = node.nameToken;
     if (nameToken.offset <= offset && offset <= nameToken.end) {
-      result[0] = node;
+      result = node;
       throw new HtmlUnitUtils_FoundAttributeNodeError();
     }
     return super.visitXmlAttributeNode(node);
@@ -837,16 +840,16 @@ class RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode extends RecursiveXmlVis
 }
 
 class RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode extends RecursiveXmlVisitor<Object> {
-  int offset = 0;
+  final int offset;
 
-  List<XmlTagNode> result;
+  XmlTagNode result;
 
-  RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode(this.offset, this.result) : super();
+  RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode(this.offset);
 
   @override
   Object visitXmlTagNode(XmlTagNode node) {
     if (node.offset <= offset && offset < node.end) {
-      result[0] = node;
+      result = node;
       super.visitXmlTagNode(node);
       throw new HtmlUnitUtils_FoundTagNodeError();
     }
