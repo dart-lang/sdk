@@ -76,12 +76,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   RefactoringStatus checkNewName() {
     RefactoringStatus result = super.checkNewName();
     if (element is TopLevelVariableElement) {
-      TopLevelVariableElement variable = element as TopLevelVariableElement;
-      if (variable.isConst) {
-        result.addStatus(validateConstantName(newName));
-      } else {
-        result.addStatus(validateVariableName(newName));
-      }
+      result.addStatus(validateVariableName(newName));
     }
     if (element is FunctionElement) {
       result.addStatus(validateFunctionName(newName));

@@ -73,12 +73,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   RefactoringStatus checkNewName() {
     RefactoringStatus result = super.checkNewName();
     if (element is FieldElement) {
-      FieldElement fieldElement = element as FieldElement;
-      if (fieldElement.isStatic && fieldElement.isConst) {
-        result.addStatus(validateConstantName(newName));
-      } else {
-        result.addStatus(validateFieldName(newName));
-      }
+      result.addStatus(validateFieldName(newName));
     }
     if (element is MethodElement) {
       result.addStatus(validateMethodName(newName));

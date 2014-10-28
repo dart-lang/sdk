@@ -271,29 +271,6 @@ class A {
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_checkNewName_FieldElement_const() {
-    indexTestUnit('''
-class A {
-  static const int TEST = 0;
-}
-''');
-    createRenameRefactoringAtString('TEST =');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(),
-        RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Constant name must not be null.");
-    // not upper case
-    refactoring.newName = 'newName';
-    assertRefactoringStatus(
-        refactoring.checkNewName(),
-        RefactoringProblemSeverity.WARNING);
-    // OK
-    refactoring.newName = 'NEW_NAME';
-    assertRefactoringStatusOK(refactoring.checkNewName());
-  }
-
   test_checkNewName_MethodElement() {
     indexTestUnit('''
 class A {

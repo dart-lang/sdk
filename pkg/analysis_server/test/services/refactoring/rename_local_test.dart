@@ -242,36 +242,6 @@ main() {
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_checkNewName_LocalVariableElement_const() {
-    indexTestUnit('''
-main() {
-  const int TEST = 0;
-}
-''');
-    createRenameRefactoringAtString('TEST = 0;');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(),
-        RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Constant name must not be null.");
-    // empty
-    refactoring.newName = '';
-    assertRefactoringStatus(
-        refactoring.checkNewName(),
-        RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Constant name must not be empty.");
-    // same
-    refactoring.newName = 'TEST';
-    assertRefactoringStatus(
-        refactoring.checkNewName(),
-        RefactoringProblemSeverity.FATAL,
-        expectedMessage: "The new name must be different than the current name.");
-    // OK
-    refactoring.newName = 'NEW_NAME';
-    assertRefactoringStatusOK(refactoring.checkNewName());
-  }
-
   test_checkNewName_ParameterElement() {
     indexTestUnit('''
 main(test) {
