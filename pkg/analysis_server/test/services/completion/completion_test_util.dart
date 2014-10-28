@@ -136,6 +136,32 @@ class AbstractCompletionTest extends AbstractContextTest {
     return cs;
   }
 
+  CompletionSuggestion assertSuggestFunctionTypeAlias(String name,
+      String returnType, bool isDeprecated, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    CompletionSuggestion cs = assertSuggest(
+        CompletionSuggestionKind.FUNCTION_TYPE_ALIAS,
+        name,
+        relevance,
+        isDeprecated);
+    expect(cs.returnType, equals(returnType));
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.FUNCTION_TYPE_ALIAS));
+    expect(element.name, equals(name));
+    expect(element.isDeprecated, equals(isDeprecated));
+    // TODO (danrubel) Determine why params are null
+//    String param = element.parameters;
+//    expect(param, isNotNull);
+//    expect(param[0], equals('('));
+//    expect(param[param.length - 1], equals(')'));
+    // TODO (danrubel) Determine why return type is null
+//    expect(
+//        element.returnType,
+//        equals(returnType != null ? returnType : 'dynamic'));
+    return cs;
+  }
+
   CompletionSuggestion assertSuggestGetter(String name, String returnType,
       [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
     CompletionSuggestion cs =
@@ -426,6 +452,20 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
+  CompletionSuggestion assertSuggestImportedFunctionTypeAlias(String name,
+      String returnType, [bool isDeprecated = false, CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    if (computer is ImportedComputer) {
+      return assertSuggestFunctionTypeAlias(
+          name,
+          returnType,
+          isDeprecated,
+          relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
   CompletionSuggestion assertSuggestImportedGetter(String name,
       String returnType, [CompletionRelevance relevance =
       CompletionRelevance.DEFAULT]) {
@@ -518,6 +558,20 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       CompletionRelevance.DEFAULT]) {
     if (computer is LocalComputer) {
       return assertSuggestFunction(name, returnType, isDeprecated, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
+  CompletionSuggestion assertSuggestLocalFunctionTypeAlias(String name,
+      String returnType, [bool isDeprecated = false, CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    if (computer is LocalComputer) {
+      return assertSuggestFunctionTypeAlias(
+          name,
+          returnType,
+          isDeprecated,
+          relevance);
     } else {
       return assertNotSuggested(name);
     }
@@ -927,6 +981,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       part of libAB;
       var T1;
       PB F1() => new PB();
+      typedef PB2 F2(int blat);
       class PB { }''');
     addSource('/testCD.dart', '''
       class C { }
@@ -942,6 +997,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestImportedClass('PB');
       assertSuggestImportedTopLevelVar('T1', null);
       assertSuggestImportedFunction('F1', 'PB');
+      assertSuggestImportedFunctionTypeAlias('F2', null);
       assertNotSuggested('C');
       assertNotSuggested('D');
       assertNotSuggested('X');
@@ -999,6 +1055,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class _B { }''');
     addTestSource('''
       import "/testA.dart";
+      typedef int F2(int blat);
       class C {foo(){O^} void bar() {}}''');
     computeFast();
     return computeFull(true).then((_) {
@@ -1007,6 +1064,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalClass('C');
       assertSuggestLocalMethod('foo', 'C', null);
       assertSuggestLocalMethod('bar', 'C', 'void');
+      assertSuggestLocalFunctionTypeAlias('F2', 'int');
       assertSuggestLocalClass('C');
       assertNotSuggested('x');
       assertNotSuggested('_B');

@@ -139,11 +139,20 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
             null,
             null);
       } else if (declaration is FunctionTypeAlias) {
-        _addSuggestion(
+        CompletionSuggestion suggestion = _addSuggestion(
             declaration.name,
             CompletionSuggestionKind.FUNCTION_TYPE_ALIAS,
             declaration.returnType,
             null);
+        if (suggestion != null) {
+          suggestion.element = _createElement(
+              protocol.ElementKind.FUNCTION_TYPE_ALIAS,
+              declaration.name,
+              null, // TODO (danrubel) determine parameters
+              NO_RETURN_TYPE, // TODO (danrubel) determine return type
+              true,
+              _isDeprecated(declaration.metadata));
+        }
       }
     });
   }
