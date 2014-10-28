@@ -558,9 +558,10 @@ class DartiumBackend(HtmlDartGenerator):
       return "_".join(fields)
 
   def DeriveQualifiedBlinkName(self, interface_name, name):
-      return DeriveQualifiedName(
-          "_blink", DeriveQualifiedName(DeriveBlinkClassName(interface_name),
-                                        name))
+      blinkClass = DeriveQualifiedName(
+        "_blink", DeriveBlinkClassName(interface_name))
+      blinkInstance = DeriveQualifiedName(blinkClass, "instance")
+      return DeriveQualifiedName(blinkInstance, name + "_")
 
   def NativeSpec(self):
     return ''

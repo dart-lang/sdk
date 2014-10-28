@@ -80,45 +80,45 @@ class Cursor extends NativeFieldWrapperClass2 {
 
   @DomName('IDBCursor.direction')
   @DocsEditable()
-  String get direction => _blink.BlinkIDBCursor.direction_Getter(this);
+  String get direction => _blink.BlinkIDBCursor.instance.direction_Getter_(this);
 
   @DomName('IDBCursor.key')
   @DocsEditable()
-  Object get key => _blink.BlinkIDBCursor.key_Getter(this);
+  Object get key => _blink.BlinkIDBCursor.instance.key_Getter_(this);
 
   @DomName('IDBCursor.primaryKey')
   @DocsEditable()
-  Object get primaryKey => _blink.BlinkIDBCursor.primaryKey_Getter(this);
+  Object get primaryKey => _blink.BlinkIDBCursor.instance.primaryKey_Getter_(this);
 
   @DomName('IDBCursor.source')
   @DocsEditable()
-  Object get source => _blink.BlinkIDBCursor.source_Getter(this);
+  Object get source => _blink.BlinkIDBCursor.instance.source_Getter_(this);
 
   @DomName('IDBCursor.advance')
   @DocsEditable()
-  void advance(int count) => _blink.BlinkIDBCursor.advance_Callback_1(this, count);
+  void advance(int count) => _blink.BlinkIDBCursor.instance.advance_Callback_1_(this, count);
 
   @DomName('IDBCursor.continuePrimaryKey')
   @DocsEditable()
   @Experimental() // untriaged
-  void continuePrimaryKey(Object key, Object primaryKey) => _blink.BlinkIDBCursor.continuePrimaryKey_Callback_2(this, key, primaryKey);
+  void continuePrimaryKey(Object key, Object primaryKey) => _blink.BlinkIDBCursor.instance.continuePrimaryKey_Callback_2_(this, key, primaryKey);
 
   @DomName('IDBCursor.delete')
   @DocsEditable()
-  Request _delete() => _blink.BlinkIDBCursor.delete_Callback_0(this);
+  Request _delete() => _blink.BlinkIDBCursor.instance.delete_Callback_0_(this);
 
   void next([Object key]) {
     if (key != null) {
-      _blink.BlinkIDBCursor.continue_Callback_1(this, key);
+      _blink.BlinkIDBCursor.instance.continue_Callback_1_(this, key);
       return;
     }
-    _blink.BlinkIDBCursor.continue_Callback_0(this);
+    _blink.BlinkIDBCursor.instance.continue_Callback_0_(this);
     return;
   }
 
   @DomName('IDBCursor.update')
   @DocsEditable()
-  Request _update(Object value) => _blink.BlinkIDBCursor.update_Callback_1(this, value);
+  Request _update(Object value) => _blink.BlinkIDBCursor.instance.update_Callback_1_(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -137,7 +137,7 @@ class CursorWithValue extends Cursor {
 
   @DomName('IDBCursorWithValue.value')
   @DocsEditable()
-  Object get value => _blink.BlinkIDBCursorWithValue.value_Getter(this);
+  Object get value => _blink.BlinkIDBCursorWithValue.instance.value_Getter_(this);
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -220,72 +220,72 @@ class Database extends EventTarget {
 
   @DomName('IDBDatabase.name')
   @DocsEditable()
-  String get name => _blink.BlinkIDBDatabase.name_Getter(this);
+  String get name => _blink.BlinkIDBDatabase.instance.name_Getter_(this);
 
   @DomName('IDBDatabase.objectStoreNames')
   @DocsEditable()
-  List<String> get objectStoreNames => _blink.BlinkIDBDatabase.objectStoreNames_Getter(this);
+  List<String> get objectStoreNames => _blink.BlinkIDBDatabase.instance.objectStoreNames_Getter_(this);
 
   @DomName('IDBDatabase.version')
   @DocsEditable()
-  Object get version => _blink.BlinkIDBDatabase.version_Getter(this);
+  Object get version => _blink.BlinkIDBDatabase.instance.version_Getter_(this);
 
   @DomName('IDBDatabase.close')
   @DocsEditable()
-  void close() => _blink.BlinkIDBDatabase.close_Callback_0(this);
+  void close() => _blink.BlinkIDBDatabase.instance.close_Callback_0_(this);
 
   ObjectStore _createObjectStore(String name, [Map options]) {
     if (options != null) {
-      return _blink.BlinkIDBDatabase.createObjectStore_Callback_2(this, name, options);
+      return _blink.BlinkIDBDatabase.instance.createObjectStore_Callback_2_(this, name, options);
     }
-    return _blink.BlinkIDBDatabase.createObjectStore_Callback_1(this, name);
+    return _blink.BlinkIDBDatabase.instance.createObjectStore_Callback_1_(this, name);
   }
 
   @DomName('IDBDatabase.deleteObjectStore')
   @DocsEditable()
-  void deleteObjectStore(String name) => _blink.BlinkIDBDatabase.deleteObjectStore_Callback_1(this, name);
+  void deleteObjectStore(String name) => _blink.BlinkIDBDatabase.instance.deleteObjectStore_Callback_1_(this, name);
 
   Transaction transaction(storeName_OR_storeNames, [String mode]) {
     if ((storeName_OR_storeNames is String || storeName_OR_storeNames == null) && mode == null) {
-      return _blink.BlinkIDBDatabase.transaction_Callback_1(this, storeName_OR_storeNames);
+      return _blink.BlinkIDBDatabase.instance.transaction_Callback_1_(this, storeName_OR_storeNames);
     }
     if ((mode is String || mode == null) && (storeName_OR_storeNames is String || storeName_OR_storeNames == null)) {
-      return _blink.BlinkIDBDatabase.transaction_Callback_2(this, storeName_OR_storeNames, mode);
+      return _blink.BlinkIDBDatabase.instance.transaction_Callback_2_(this, storeName_OR_storeNames, mode);
     }
     if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null) && mode == null) {
-      return _blink.BlinkIDBDatabase.transaction_Callback_1(this, storeName_OR_storeNames);
+      return _blink.BlinkIDBDatabase.instance.transaction_Callback_1_(this, storeName_OR_storeNames);
     }
     if ((mode is String || mode == null) && (storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null)) {
-      return _blink.BlinkIDBDatabase.transaction_Callback_2(this, storeName_OR_storeNames, mode);
+      return _blink.BlinkIDBDatabase.instance.transaction_Callback_2_(this, storeName_OR_storeNames, mode);
     }
     if ((storeName_OR_storeNames is DomStringList || storeName_OR_storeNames == null) && mode == null) {
-      return _blink.BlinkIDBDatabase.transaction_Callback_1(this, storeName_OR_storeNames);
+      return _blink.BlinkIDBDatabase.instance.transaction_Callback_1_(this, storeName_OR_storeNames);
     }
     if ((mode is String || mode == null) && (storeName_OR_storeNames is DomStringList || storeName_OR_storeNames == null)) {
-      return _blink.BlinkIDBDatabase.transaction_Callback_2(this, storeName_OR_storeNames, mode);
+      return _blink.BlinkIDBDatabase.instance.transaction_Callback_2_(this, storeName_OR_storeNames, mode);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
   Transaction transactionList(List<String> storeNames, [String mode]) {
     if (mode != null) {
-      return _blink.BlinkIDBDatabase.transaction_Callback_2(this, storeNames, mode);
+      return _blink.BlinkIDBDatabase.instance.transaction_Callback_2_(this, storeNames, mode);
     }
-    return _blink.BlinkIDBDatabase.transaction_Callback_1(this, storeNames);
+    return _blink.BlinkIDBDatabase.instance.transaction_Callback_1_(this, storeNames);
   }
 
   Transaction transactionStore(String storeName, [String mode]) {
     if (mode != null) {
-      return _blink.BlinkIDBDatabase.transaction_Callback_2(this, storeName, mode);
+      return _blink.BlinkIDBDatabase.instance.transaction_Callback_2_(this, storeName, mode);
     }
-    return _blink.BlinkIDBDatabase.transaction_Callback_1(this, storeName);
+    return _blink.BlinkIDBDatabase.instance.transaction_Callback_1_(this, storeName);
   }
 
   Transaction transactionStores(List<String> storeNames, [String mode]) {
     if (mode != null) {
-      return _blink.BlinkIDBDatabase.transaction_Callback_2(this, storeNames, mode);
+      return _blink.BlinkIDBDatabase.instance.transaction_Callback_2_(this, storeNames, mode);
     }
-    return _blink.BlinkIDBDatabase.transaction_Callback_1(this, storeNames);
+    return _blink.BlinkIDBDatabase.instance.transaction_Callback_1_(this, storeNames);
   }
 
   /// Stream of `abort` events handled by this [Database].
@@ -402,17 +402,17 @@ class IdbFactory extends NativeFieldWrapperClass2 {
 
   @DomName('IDBFactory.cmp')
   @DocsEditable()
-  int cmp(Object first, Object second) => _blink.BlinkIDBFactory.cmp_Callback_2(this, first, second);
+  int cmp(Object first, Object second) => _blink.BlinkIDBFactory.instance.cmp_Callback_2_(this, first, second);
 
   @DomName('IDBFactory.deleteDatabase')
   @DocsEditable()
-  OpenDBRequest _deleteDatabase(String name) => _blink.BlinkIDBFactory.deleteDatabase_Callback_1(this, name);
+  OpenDBRequest _deleteDatabase(String name) => _blink.BlinkIDBFactory.instance.deleteDatabase_Callback_1_(this, name);
 
   OpenDBRequest _open(String name, [int version]) {
     if (version != null) {
-      return _blink.BlinkIDBFactory.open_Callback_2(this, name, version);
+      return _blink.BlinkIDBFactory.instance.open_Callback_2_(this, name, version);
     }
-    return _blink.BlinkIDBFactory.open_Callback_1(this, name);
+    return _blink.BlinkIDBFactory.instance.open_Callback_1_(this, name);
   }
 
   @DomName('IDBFactory.webkitGetDatabaseNames')
@@ -420,7 +420,7 @@ class IdbFactory extends NativeFieldWrapperClass2 {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  Request _webkitGetDatabaseNames() => _blink.BlinkIDBFactory.webkitGetDatabaseNames_Callback_0(this);
+  Request _webkitGetDatabaseNames() => _blink.BlinkIDBFactory.instance.webkitGetDatabaseNames_Callback_0_(this);
 
 }
 
@@ -540,48 +540,48 @@ class Index extends NativeFieldWrapperClass2 {
 
   @DomName('IDBIndex.keyPath')
   @DocsEditable()
-  Object get keyPath => _blink.BlinkIDBIndex.keyPath_Getter(this);
+  Object get keyPath => _blink.BlinkIDBIndex.instance.keyPath_Getter_(this);
 
   @DomName('IDBIndex.multiEntry')
   @DocsEditable()
-  bool get multiEntry => _blink.BlinkIDBIndex.multiEntry_Getter(this);
+  bool get multiEntry => _blink.BlinkIDBIndex.instance.multiEntry_Getter_(this);
 
   @DomName('IDBIndex.name')
   @DocsEditable()
-  String get name => _blink.BlinkIDBIndex.name_Getter(this);
+  String get name => _blink.BlinkIDBIndex.instance.name_Getter_(this);
 
   @DomName('IDBIndex.objectStore')
   @DocsEditable()
-  ObjectStore get objectStore => _blink.BlinkIDBIndex.objectStore_Getter(this);
+  ObjectStore get objectStore => _blink.BlinkIDBIndex.instance.objectStore_Getter_(this);
 
   @DomName('IDBIndex.unique')
   @DocsEditable()
-  bool get unique => _blink.BlinkIDBIndex.unique_Getter(this);
+  bool get unique => _blink.BlinkIDBIndex.instance.unique_Getter_(this);
 
   @DomName('IDBIndex.count')
   @DocsEditable()
-  Request _count(Object key) => _blink.BlinkIDBIndex.count_Callback_1(this, key);
+  Request _count(Object key) => _blink.BlinkIDBIndex.instance.count_Callback_1_(this, key);
 
   @DomName('IDBIndex.get')
   @DocsEditable()
-  Request _get(Object key) => _blink.BlinkIDBIndex.get_Callback_1(this, key);
+  Request _get(Object key) => _blink.BlinkIDBIndex.instance.get_Callback_1_(this, key);
 
   @DomName('IDBIndex.getKey')
   @DocsEditable()
-  Request _getKey(Object key) => _blink.BlinkIDBIndex.getKey_Callback_1(this, key);
+  Request _getKey(Object key) => _blink.BlinkIDBIndex.instance.getKey_Callback_1_(this, key);
 
   Request _openCursor(Object range, [String direction]) {
     if (direction != null) {
-      return _blink.BlinkIDBIndex.openCursor_Callback_2(this, range, direction);
+      return _blink.BlinkIDBIndex.instance.openCursor_Callback_2_(this, range, direction);
     }
-    return _blink.BlinkIDBIndex.openCursor_Callback_1(this, range);
+    return _blink.BlinkIDBIndex.instance.openCursor_Callback_1_(this, range);
   }
 
   Request _openKeyCursor(Object range, [String direction]) {
     if (direction != null) {
-      return _blink.BlinkIDBIndex.openKeyCursor_Callback_2(this, range, direction);
+      return _blink.BlinkIDBIndex.instance.openKeyCursor_Callback_2_(this, range, direction);
     }
-    return _blink.BlinkIDBIndex.openKeyCursor_Callback_1(this, range);
+    return _blink.BlinkIDBIndex.instance.openKeyCursor_Callback_1_(this, range);
   }
 
 }
@@ -616,47 +616,47 @@ class KeyRange extends NativeFieldWrapperClass2 {
 
   @DomName('IDBKeyRange.lower')
   @DocsEditable()
-  Object get lower => _blink.BlinkIDBKeyRange.lower_Getter(this);
+  Object get lower => _blink.BlinkIDBKeyRange.instance.lower_Getter_(this);
 
   @DomName('IDBKeyRange.lowerOpen')
   @DocsEditable()
-  bool get lowerOpen => _blink.BlinkIDBKeyRange.lowerOpen_Getter(this);
+  bool get lowerOpen => _blink.BlinkIDBKeyRange.instance.lowerOpen_Getter_(this);
 
   @DomName('IDBKeyRange.upper')
   @DocsEditable()
-  Object get upper => _blink.BlinkIDBKeyRange.upper_Getter(this);
+  Object get upper => _blink.BlinkIDBKeyRange.instance.upper_Getter_(this);
 
   @DomName('IDBKeyRange.upperOpen')
   @DocsEditable()
-  bool get upperOpen => _blink.BlinkIDBKeyRange.upperOpen_Getter(this);
+  bool get upperOpen => _blink.BlinkIDBKeyRange.instance.upperOpen_Getter_(this);
 
   static KeyRange bound_(Object lower, Object upper, [bool lowerOpen, bool upperOpen]) {
     if (upperOpen != null) {
-      return _blink.BlinkIDBKeyRange.bound_Callback_4(lower, upper, lowerOpen, upperOpen);
+      return _blink.BlinkIDBKeyRange.instance.bound_Callback_4_(lower, upper, lowerOpen, upperOpen);
     }
     if (lowerOpen != null) {
-      return _blink.BlinkIDBKeyRange.bound_Callback_3(lower, upper, lowerOpen);
+      return _blink.BlinkIDBKeyRange.instance.bound_Callback_3_(lower, upper, lowerOpen);
     }
-    return _blink.BlinkIDBKeyRange.bound_Callback_2(lower, upper);
+    return _blink.BlinkIDBKeyRange.instance.bound_Callback_2_(lower, upper);
   }
 
   static KeyRange lowerBound_(Object bound, [bool open]) {
     if (open != null) {
-      return _blink.BlinkIDBKeyRange.lowerBound_Callback_2(bound, open);
+      return _blink.BlinkIDBKeyRange.instance.lowerBound_Callback_2_(bound, open);
     }
-    return _blink.BlinkIDBKeyRange.lowerBound_Callback_1(bound);
+    return _blink.BlinkIDBKeyRange.instance.lowerBound_Callback_1_(bound);
   }
 
   @DomName('IDBKeyRange.only_')
   @DocsEditable()
   @Experimental() // non-standard
-  static KeyRange only_(Object value) => _blink.BlinkIDBKeyRange.only_Callback_1(value);
+  static KeyRange only_(Object value) => _blink.BlinkIDBKeyRange.instance.only_Callback_1_(value);
 
   static KeyRange upperBound_(Object bound, [bool open]) {
     if (open != null) {
-      return _blink.BlinkIDBKeyRange.upperBound_Callback_2(bound, open);
+      return _blink.BlinkIDBKeyRange.instance.upperBound_Callback_2_(bound, open);
     }
-    return _blink.BlinkIDBKeyRange.upperBound_Callback_1(bound);
+    return _blink.BlinkIDBKeyRange.instance.upperBound_Callback_1_(bound);
   }
 
 }
@@ -800,90 +800,90 @@ class ObjectStore extends NativeFieldWrapperClass2 {
 
   @DomName('IDBObjectStore.autoIncrement')
   @DocsEditable()
-  bool get autoIncrement => _blink.BlinkIDBObjectStore.autoIncrement_Getter(this);
+  bool get autoIncrement => _blink.BlinkIDBObjectStore.instance.autoIncrement_Getter_(this);
 
   @DomName('IDBObjectStore.indexNames')
   @DocsEditable()
-  List<String> get indexNames => _blink.BlinkIDBObjectStore.indexNames_Getter(this);
+  List<String> get indexNames => _blink.BlinkIDBObjectStore.instance.indexNames_Getter_(this);
 
   @DomName('IDBObjectStore.keyPath')
   @DocsEditable()
-  Object get keyPath => _blink.BlinkIDBObjectStore.keyPath_Getter(this);
+  Object get keyPath => _blink.BlinkIDBObjectStore.instance.keyPath_Getter_(this);
 
   @DomName('IDBObjectStore.name')
   @DocsEditable()
-  String get name => _blink.BlinkIDBObjectStore.name_Getter(this);
+  String get name => _blink.BlinkIDBObjectStore.instance.name_Getter_(this);
 
   @DomName('IDBObjectStore.transaction')
   @DocsEditable()
-  Transaction get transaction => _blink.BlinkIDBObjectStore.transaction_Getter(this);
+  Transaction get transaction => _blink.BlinkIDBObjectStore.instance.transaction_Getter_(this);
 
   Request _add(Object value, [Object key]) {
     if (key != null) {
-      return _blink.BlinkIDBObjectStore.add_Callback_2(this, value, key);
+      return _blink.BlinkIDBObjectStore.instance.add_Callback_2_(this, value, key);
     }
-    return _blink.BlinkIDBObjectStore.add_Callback_1(this, value);
+    return _blink.BlinkIDBObjectStore.instance.add_Callback_1_(this, value);
   }
 
   @DomName('IDBObjectStore.clear')
   @DocsEditable()
-  Request _clear() => _blink.BlinkIDBObjectStore.clear_Callback_0(this);
+  Request _clear() => _blink.BlinkIDBObjectStore.instance.clear_Callback_0_(this);
 
   @DomName('IDBObjectStore.count')
   @DocsEditable()
-  Request _count(Object key) => _blink.BlinkIDBObjectStore.count_Callback_1(this, key);
+  Request _count(Object key) => _blink.BlinkIDBObjectStore.instance.count_Callback_1_(this, key);
 
   Index _createIndex(String name, keyPath, [Map options]) {
     if ((keyPath is String || keyPath == null) && (name is String || name == null) && options == null) {
-      return _blink.BlinkIDBObjectStore.createIndex_Callback_2(this, name, keyPath);
+      return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_2_(this, name, keyPath);
     }
     if ((options is Map || options == null) && (keyPath is String || keyPath == null) && (name is String || name == null)) {
-      return _blink.BlinkIDBObjectStore.createIndex_Callback_3(this, name, keyPath, options);
+      return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(this, name, keyPath, options);
     }
     if ((keyPath is List<String> || keyPath == null) && (name is String || name == null) && options == null) {
-      return _blink.BlinkIDBObjectStore.createIndex_Callback_2(this, name, keyPath);
+      return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_2_(this, name, keyPath);
     }
     if ((options is Map || options == null) && (keyPath is List<String> || keyPath == null) && (name is String || name == null)) {
-      return _blink.BlinkIDBObjectStore.createIndex_Callback_3(this, name, keyPath, options);
+      return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(this, name, keyPath, options);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
   @DomName('IDBObjectStore.delete')
   @DocsEditable()
-  Request _delete(Object key) => _blink.BlinkIDBObjectStore.delete_Callback_1(this, key);
+  Request _delete(Object key) => _blink.BlinkIDBObjectStore.instance.delete_Callback_1_(this, key);
 
   @DomName('IDBObjectStore.deleteIndex')
   @DocsEditable()
-  void deleteIndex(String name) => _blink.BlinkIDBObjectStore.deleteIndex_Callback_1(this, name);
+  void deleteIndex(String name) => _blink.BlinkIDBObjectStore.instance.deleteIndex_Callback_1_(this, name);
 
   @DomName('IDBObjectStore.get')
   @DocsEditable()
-  Request _get(Object key) => _blink.BlinkIDBObjectStore.get_Callback_1(this, key);
+  Request _get(Object key) => _blink.BlinkIDBObjectStore.instance.get_Callback_1_(this, key);
 
   @DomName('IDBObjectStore.index')
   @DocsEditable()
-  Index index(String name) => _blink.BlinkIDBObjectStore.index_Callback_1(this, name);
+  Index index(String name) => _blink.BlinkIDBObjectStore.instance.index_Callback_1_(this, name);
 
   Request _openCursor(Object range, [String direction]) {
     if (direction != null) {
-      return _blink.BlinkIDBObjectStore.openCursor_Callback_2(this, range, direction);
+      return _blink.BlinkIDBObjectStore.instance.openCursor_Callback_2_(this, range, direction);
     }
-    return _blink.BlinkIDBObjectStore.openCursor_Callback_1(this, range);
+    return _blink.BlinkIDBObjectStore.instance.openCursor_Callback_1_(this, range);
   }
 
   Request openKeyCursor(Object range, [String direction]) {
     if (direction != null) {
-      return _blink.BlinkIDBObjectStore.openKeyCursor_Callback_2(this, range, direction);
+      return _blink.BlinkIDBObjectStore.instance.openKeyCursor_Callback_2_(this, range, direction);
     }
-    return _blink.BlinkIDBObjectStore.openKeyCursor_Callback_1(this, range);
+    return _blink.BlinkIDBObjectStore.instance.openKeyCursor_Callback_1_(this, range);
   }
 
   Request _put(Object value, [Object key]) {
     if (key != null) {
-      return _blink.BlinkIDBObjectStore.put_Callback_2(this, value, key);
+      return _blink.BlinkIDBObjectStore.instance.put_Callback_2_(this, value, key);
     }
-    return _blink.BlinkIDBObjectStore.put_Callback_1(this, value);
+    return _blink.BlinkIDBObjectStore.instance.put_Callback_1_(this, value);
   }
 
 
@@ -995,23 +995,23 @@ class Request extends EventTarget {
 
   @DomName('IDBRequest.error')
   @DocsEditable()
-  DomError get error => _blink.BlinkIDBRequest.error_Getter(this);
+  DomError get error => _blink.BlinkIDBRequest.instance.error_Getter_(this);
 
   @DomName('IDBRequest.readyState')
   @DocsEditable()
-  String get readyState => _blink.BlinkIDBRequest.readyState_Getter(this);
+  String get readyState => _blink.BlinkIDBRequest.instance.readyState_Getter_(this);
 
   @DomName('IDBRequest.result')
   @DocsEditable()
-  Object get result => _blink.BlinkIDBRequest.result_Getter(this);
+  Object get result => _blink.BlinkIDBRequest.instance.result_Getter_(this);
 
   @DomName('IDBRequest.source')
   @DocsEditable()
-  Object get source => _blink.BlinkIDBRequest.source_Getter(this);
+  Object get source => _blink.BlinkIDBRequest.instance.source_Getter_(this);
 
   @DomName('IDBRequest.transaction')
   @DocsEditable()
-  Transaction get transaction => _blink.BlinkIDBRequest.transaction_Getter(this);
+  Transaction get transaction => _blink.BlinkIDBRequest.instance.transaction_Getter_(this);
 
   /// Stream of `error` events handled by this [Request].
   @DomName('IDBRequest.onerror')
@@ -1096,23 +1096,23 @@ class Transaction extends EventTarget {
 
   @DomName('IDBTransaction.db')
   @DocsEditable()
-  Database get db => _blink.BlinkIDBTransaction.db_Getter(this);
+  Database get db => _blink.BlinkIDBTransaction.instance.db_Getter_(this);
 
   @DomName('IDBTransaction.error')
   @DocsEditable()
-  DomError get error => _blink.BlinkIDBTransaction.error_Getter(this);
+  DomError get error => _blink.BlinkIDBTransaction.instance.error_Getter_(this);
 
   @DomName('IDBTransaction.mode')
   @DocsEditable()
-  String get mode => _blink.BlinkIDBTransaction.mode_Getter(this);
+  String get mode => _blink.BlinkIDBTransaction.instance.mode_Getter_(this);
 
   @DomName('IDBTransaction.abort')
   @DocsEditable()
-  void abort() => _blink.BlinkIDBTransaction.abort_Callback_0(this);
+  void abort() => _blink.BlinkIDBTransaction.instance.abort_Callback_0_(this);
 
   @DomName('IDBTransaction.objectStore')
   @DocsEditable()
-  ObjectStore objectStore(String name) => _blink.BlinkIDBTransaction.objectStore_Callback_1(this, name);
+  ObjectStore objectStore(String name) => _blink.BlinkIDBTransaction.instance.objectStore_Callback_1_(this, name);
 
   /// Stream of `abort` events handled by this [Transaction].
   @DomName('IDBTransaction.onabort')
@@ -1147,19 +1147,19 @@ class VersionChangeEvent extends Event {
   @DomName('IDBVersionChangeEvent.dataLoss')
   @DocsEditable()
   @Experimental() // untriaged
-  String get dataLoss => _blink.BlinkIDBVersionChangeEvent.dataLoss_Getter(this);
+  String get dataLoss => _blink.BlinkIDBVersionChangeEvent.instance.dataLoss_Getter_(this);
 
   @DomName('IDBVersionChangeEvent.dataLossMessage')
   @DocsEditable()
   @Experimental() // untriaged
-  String get dataLossMessage => _blink.BlinkIDBVersionChangeEvent.dataLossMessage_Getter(this);
+  String get dataLossMessage => _blink.BlinkIDBVersionChangeEvent.instance.dataLossMessage_Getter_(this);
 
   @DomName('IDBVersionChangeEvent.newVersion')
   @DocsEditable()
-  int get newVersion => _blink.BlinkIDBVersionChangeEvent.newVersion_Getter(this);
+  int get newVersion => _blink.BlinkIDBVersionChangeEvent.instance.newVersion_Getter_(this);
 
   @DomName('IDBVersionChangeEvent.oldVersion')
   @DocsEditable()
-  int get oldVersion => _blink.BlinkIDBVersionChangeEvent.oldVersion_Getter(this);
+  int get oldVersion => _blink.BlinkIDBVersionChangeEvent.instance.oldVersion_Getter_(this);
 
 }
