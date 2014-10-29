@@ -124,10 +124,12 @@ list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 
 [ $compiler == dart2js && ($runtime == firefox || $runtime == safari || $runtime == chrome || $runtime == drt) ]
 
+[ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim) ]
+string_split_test: RuntimeError # Issue 21431
+
 [ $compiler == dart2js && (($runtime == safari && $builder_tag == mac10_7) || $runtime == safarimobilesim) ]
 list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
 string_trimlr_test/none: Fail
-string_split_test: RuntimeError # Issue 21431
 
 [ $compiler == dart2js && $runtime == ie10 ]
 string_case_test/01: Fail, OK  # Bug in IE.

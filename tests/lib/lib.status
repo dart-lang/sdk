@@ -110,9 +110,12 @@ typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for Typed
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 
-
 [ $runtime == safari && $builder_tag == mac10_8 ]
 mirrors/generics_test/none: RuntimeError # Issue 21427
+mirrors/globalized_closures2_test/none: Pass, RuntimeError # Issue 21434
+mirrors/invocation_fuzz_test/none: Pass, RuntimeError # Issue 21434
+mirrors/metadata_test: Pass, RuntimeError # Issue 21434
+mirrors/regress_14304_test: Pass, RuntimeError # Issue 21434
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.

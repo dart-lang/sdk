@@ -258,13 +258,18 @@ input_element_test/supported_datetime-local: Fail
 touchevent_test/supported: Fail
 
 [ $runtime == safari && $builder_tag == mac10_8 ]
-element_test/_ElementList: RuntimeError # Issue 21434
 indexeddb_1_test/functional: RuntimeError # Issue 21433
 indexeddb_2_test: RuntimeError # Issue 21433
 indexeddb_4_test: RuntimeError # Issue 21433
 indexeddb_5_test: RuntimeError # Issue 21433
 wheelevent_test: RuntimeError # Issue 21434
 js_test: RuntimeError # Issue 21434
+element_test/attributes: RuntimeError, Pass # Issue 21434
+svgelement_test/supported_feMerge: RuntimeError, Pass # Issue 21434
+svgelement_test/outerHtml: RuntimeError, Pass # Issue 21434
+svgelement_test/supported_feColorMatrix: RuntimeError, Pass # Issue 21434
+htmloptionscollection_test: RuntimeError, Pass # Issue 21434
+
 
 [ $runtime == opera ]
 blob_constructor_test: Fail
