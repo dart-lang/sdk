@@ -298,8 +298,8 @@ class ExpressionParser {
       return value;
     }
 
-    // The only atomic booleans are of the form $variable == value or the
-    // form $variable.
+    // The only atomic booleans are of the form $variable == value or
+    // of the form $variable.
     if (scanner.current != Token.DOLLAR_SYMBOL) {
       throw new FormatException(
           "Expected \$ in expression, got ${scanner.current}");
@@ -317,7 +317,7 @@ class ExpressionParser {
       scanner.advance();
       if (!new RegExp(r"^\w+$").hasMatch(scanner.current)) {
         throw new FormatException(
-            "Expected identifier in expression, got ${scanner.current}");
+            "Expected value in expression, got ${scanner.current}");
       }
       TermConstant right = new TermConstant(scanner.current);
       scanner.advance();

@@ -11,13 +11,13 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:compiler/implementation/universe/universe.dart';
 import 'package:compiler/implementation/source_file.dart';
 
-Selector createSelectorFromMethodInvocation(MethodInvocation node,
+Selector createSelectorFromMethodInvocation(ArgumentList node,
                                             String name) {
   int arity = 0;
   List<String> namedArguments = <String>[];
-  for (var x in node.argumentList.arguments) {
-    if (x is NamedExpression) {
-      namedArguments.add(x.name.label.name);
+  for (Expression argument in node.arguments) {
+    if (argument is NamedExpression) {
+      namedArguments.add(argument.name.label.name);
     } else {
       arity++;
     }

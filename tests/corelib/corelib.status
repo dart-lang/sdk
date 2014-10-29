@@ -6,6 +6,8 @@
 bool_from_environment2_test: Skip
 bool_from_environment_default_value_test: Skip
 bool_from_environment_test: Skip
+from_environment_const_type_test: Skip
+from_environment_const_type_undefined_test: Skip
 int_from_environment2_test: Skip
 int_from_environment3_test: Skip
 int_from_environment_default_value_test: Skip
@@ -19,6 +21,8 @@ string_from_environment_test: Skip
 bool_from_environment2_test: Skip
 bool_from_environment_default_value_test: Skip
 bool_from_environment_test: Skip
+from_environment_const_type_test: Skip
+from_environment_const_type_undefined_test: Skip
 int_from_environment2_test: Skip
 int_from_environment3_test: Skip
 int_from_environment_default_value_test: Skip
@@ -120,8 +124,10 @@ list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 
 [ $compiler == dart2js && ($runtime == firefox || $runtime == safari || $runtime == chrome || $runtime == drt) ]
 
-[ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim) ]
+[ $compiler == dart2js && (($runtime == safari && $builder_tag == mac10_7) || $runtime == safarimobilesim) ]
+list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
 string_trimlr_test/none: Fail
+string_split_test: RuntimeError # Issue 21431
 
 [ $compiler == dart2js && $runtime == ie10 ]
 string_case_test/01: Fail, OK  # Bug in IE.
@@ -137,6 +143,7 @@ string_case_test/03: Fail, OK  # Bug in dartium version of V8.
 [ $compiler == dart2dart ]
 compare_to2_test: Fail # inherited from VM
 unicode_test: Fail # inherited from VM
+string_split_test: RuntimeError # Issue 21441.
 
 [ $compiler == dart2dart && $minified ]
 error_stack_trace1_test: Fail # Fails in minified mode, test depends on method names.
@@ -145,6 +152,41 @@ error_stack_trace1_test: Fail # Fails in minified mode, test depends on method n
 int_parse_radix_test: Fail, OK # Test contains errors but doesn’t mark them as expected
 list_insert_test: Fail, OK # Test contains errors but doesn’t mark them as expected
 list_removeat_test: Fail, OK # Test contains errors but doesn’t mark them as expected
+
+# Issue 16391. These tests are supposed to produce a compile time
+# error in checked mode, but they don't:
+[ $compiler == dartanalyzer && $checked ]
+from_environment_const_type_test/02: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/03: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/04: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/06: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/07: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/08: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/09: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/11: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/12: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/13: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/14: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/16: MissingCompileTimeError # Issue 16391
+from_environment_const_type_undefined_test/02: MissingCompileTimeError # Issue 16391
+from_environment_const_type_undefined_test/03: MissingCompileTimeError # Issue 16391
+from_environment_const_type_undefined_test/04: MissingCompileTimeError # Issue 16391
+from_environment_const_type_undefined_test/06: MissingCompileTimeError # Issue 16391
+from_environment_const_type_undefined_test/07: MissingCompileTimeError # Issue 16391
+from_environment_const_type_undefined_test/08: MissingCompileTimeError # Issue 16391
+
+# Analyzer's implementation of fromEnvironment assumes that undefined
+# environment variables have an unspecified value (rather than being
+# null) because it is expected that the user will supply a value when
+# the code is run.  This means that it produces slightly different
+# error messages than the VM and Dart2js.
+[ $compiler == dart2analyzer && $checked ]
+from_environment_const_type_undefined_test/09: CompileTimeError
+from_environment_const_type_undefined_test/11: CompileTimeError
+from_environment_const_type_undefined_test/12: CompileTimeError
+from_environment_const_type_undefined_test/13: CompileTimeError
+from_environment_const_type_undefined_test/14: CompileTimeError
+from_environment_const_type_undefined_test/16: CompileTimeError
 
 [ $compiler == dart2analyzer ]
 int_parse_radix_test: fail
@@ -170,13 +212,9 @@ iterable_element_at_test: StaticWarning, OK # Test generates errors on purpose.
 num_clamp_test: StaticWarning, OK # Test generates errors on purpose.
 string_test: StaticWarning, OK # Test generates error on purpose.
 
-[ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim) ]
-list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
-
 [ $runtime == ie10 ]
 num_parse_test: RuntimeError  # Issue 15316
 num_parse_test/01: RuntimeError  # Issue 15316
 
 [ $system == windows && $arch == x64 ]
 stopwatch_test: Skip  # Flaky test due to expected performance behaviour.
-

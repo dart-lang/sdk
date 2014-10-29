@@ -8,6 +8,7 @@
 library engine;
 
 import 'dart:collection';
+import "dart:math" as math;
 
 import 'package:analyzer/src/task/task_dart.dart';
 
@@ -1003,14 +1004,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void applyAnalysisDelta(AnalysisDelta delta) {
     ChangeSet changeSet = new ChangeSet();
-    for (MapEntry<Source, AnalysisLevel> entry in getMapEntrySet(delta.analysisLevels)) {
-      Source source = entry.getKey();
-      if (entry.getValue() == AnalysisLevel.NONE) {
+    delta.analysisLevels.forEach((Source source, AnalysisLevel level) {
+      if (level == AnalysisLevel.NONE) {
         changeSet.removedSource(source);
       } else {
         changeSet.addedSource(source);
       }
-    }
+    });
     applyChanges(changeSet);
   }
 
@@ -1043,13 +1043,17 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
       _sourceChanged(source);
     }
-    for (MapEntry<Source, String> entry in getMapEntrySet(changeSet.changedContents)) {
-      setContents(entry.getKey(), entry.getValue());
-    }
-    for (MapEntry<Source, ChangeSet_ContentChange> entry in getMapEntrySet(changeSet.changedRanges)) {
-      ChangeSet_ContentChange change = entry.getValue();
-      setChangedContents(entry.getKey(), change.contents, change.offset, change.oldLength, change.newLength);
-    }
+    changeSet.changedContents.forEach((Source key, String value) {
+      setContents(key, value);
+    });
+    changeSet.changedRanges.forEach((Source source, ChangeSet_ContentChange change) {
+      setChangedContents(
+          source,
+          change.contents,
+          change.offset,
+          change.oldLength,
+          change.newLength);
+    });
     for (Source source in changeSet.deletedSources) {
       _sourceDeleted(source);
     }
@@ -1107,15 +1111,15 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         if (comment == null) {
           return null;
         }
-        JavaStringBuilder builder = new JavaStringBuilder();
+        StringBuffer buffer = new StringBuffer();
         List<Token> tokens = comment.tokens;
         for (int i = 0; i < tokens.length; i++) {
           if (i > 0) {
-            builder.append("\n");
+            buffer.write("\n");
           }
-          builder.append(tokens[i].lexeme);
+          buffer.write(tokens[i].lexeme);
         }
-        return builder.toString();
+        return buffer.toString();
       }
       nameNode = nameNode.parent;
     }
@@ -1160,7 +1164,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (errors.isEmpty) {
         return AnalysisError.NO_ERRORS;
       }
-      return new List.from(errors);
+      return errors;
     } else if (sourceEntry is HtmlEntry) {
       HtmlEntry htmlEntry = sourceEntry;
       try {
@@ -1209,7 +1213,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         return _getDartScanData2(source, SourceEntry.LINE_INFO, null);
       }
     } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not compute ${SourceEntry.LINE_INFO.toString()}", exception);
+      AnalysisEngine.instance.logger.logInformation2("Could not compute ${SourceEntry.LINE_INFO}", exception);
     }
     return null;
   }
@@ -1382,7 +1386,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (htmlSources.isEmpty) {
       return Source.EMPTY_ARRAY;
     }
-    return new List.from(htmlSources);
+    return htmlSources;
   }
 
   @override
@@ -1413,7 +1417,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         //          }
       }
     }
-    return new List.from(sources);
+    return sources;
   }
 
   @override
@@ -1432,7 +1436,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         //          }
       }
     }
-    return new List.from(sources);
+    return sources;
   }
 
   @override
@@ -1462,7 +1466,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (dependentLibraries.isEmpty) {
       return Source.EMPTY_ARRAY;
     }
-    return new List.from(dependentLibraries);
+    return dependentLibraries;
   }
 
   @override
@@ -1727,10 +1731,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     try {
       task.perform(_resultRecorder);
     } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not perform analysis task: ${taskDescription}", exception);
+      AnalysisEngine.instance.logger.logInformation2("Could not perform analysis task: $taskDescription", exception);
     } on AnalysisException catch (exception) {
       if (exception.cause is! JavaIOException) {
-        AnalysisEngine.instance.logger.logError2("Internal error while performing the task: ${task}", exception);
+        AnalysisEngine.instance.logger.logError2("Internal error while performing the task: $task", exception);
       }
     }
     int performEnd = JavaSystem.currentTimeMillis();
@@ -1755,9 +1759,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
     Source htmlSource = _sourceFactory.forUri(DartSdk.DART_HTML);
-    for (MapEntry<Source, LibraryElement> entry in getMapEntrySet(elementMap)) {
-      Source librarySource = entry.getKey();
-      LibraryElement library = entry.getValue();
+    elementMap.forEach((Source librarySource, LibraryElement library) {
       //
       // Cache the element in the library's info.
       //
@@ -1784,7 +1786,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         dartEntry.setValueInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource, AnalysisError.NO_ERRORS);
         dartEntry.setValueInLibrary(DartEntry.HINTS, librarySource, AnalysisError.NO_ERRORS);
       }
-    }
+    });
   }
 
   @override
@@ -1861,7 +1863,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // result in an infinite loop in performAnalysisTask() because re-caching one AST structure
       // can cause another priority source's AST structure to be flushed.
       //
-      int count = Math.min(sources.length, _options.cacheSize - _PRIORITY_ORDER_SIZE_DELTA);
+      int count = math.min(sources.length, _options.cacheSize - _PRIORITY_ORDER_SIZE_DELTA);
       _priorityOrder = new List<Source>(count);
       for (int i = 0; i < count; i++) {
         _priorityOrder[i] = sources[i];
@@ -2836,7 +2838,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     try {
       return _getDartParseData(source, dartEntry, descriptor);
     } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not compute ${descriptor.toString()}", exception);
+      AnalysisEngine.instance.logger.logInformation2("Could not compute $descriptor", exception);
       return defaultValue;
     }
   }
@@ -2890,7 +2892,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     try {
       return _getDartResolutionData(unitSource, librarySource, dartEntry, descriptor);
     } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not compute ${descriptor.toString()}", exception);
+      AnalysisEngine.instance.logger.logInformation2("Could not compute $descriptor", exception);
       return defaultValue;
     }
   }
@@ -2935,7 +2937,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     try {
       return _getDartScanData(source, dartEntry, descriptor);
     } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not compute ${descriptor.toString()}", exception);
+      AnalysisEngine.instance.logger.logInformation2("Could not compute $descriptor", exception);
       return defaultValue;
     }
   }
@@ -3009,7 +3011,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     try {
       return _getHtmlResolutionData2(source, htmlEntry, descriptor);
     } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not compute ${descriptor.toString()}", exception);
+      AnalysisEngine.instance.logger.logInformation2("Could not compute $descriptor", exception);
       return defaultValue;
     }
   }
@@ -3378,7 +3380,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         sources.add(iterator.key);
       }
     }
-    return new List.from(sources);
+    return sources;
   }
 
   /**
@@ -3603,7 +3605,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     // invalidate Angular applications
-    List<AngularApplication> angularApplicationsCopy = [];
+    List<AngularApplication> angularApplicationsCopy = <AngularApplication>[];
     for (AngularApplication application in angularApplicationsCopy) {
       if (application.dependsOn(librarySource)) {
         Source entryPointSource = application.entryPoint;
@@ -4230,9 +4232,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @param oldPartMap the table containing the parts associated with each library
    */
   void _removeFromPartsUsingMap(HashMap<Source, List<Source>> oldPartMap) {
-    for (MapEntry<Source, List<Source>> entry in getMapEntrySet(oldPartMap)) {
-      Source librarySource = entry.getKey();
-      List<Source> oldParts = entry.getValue();
+    oldPartMap.forEach((Source librarySource, List<Source> oldParts) {
       for (int i = 0; i < oldParts.length; i++) {
         Source partSource = oldParts[i];
         if (partSource != librarySource) {
@@ -4245,7 +4245,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           }
         }
       }
-    }
+    });
   }
 
   /**
@@ -4416,21 +4416,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     int consistencyCheckEnd = JavaSystem.nanoTime();
     if (changedSources.length > 0 || missingSources.length > 0) {
-      PrintStringWriter writer = new PrintStringWriter();
-      writer.print("Consistency check took ");
-      writer.print((consistencyCheckEnd - consistencyCheckStart) / 1000000.0);
-      writer.println(" ms and found");
-      writer.print("  ");
-      writer.print(changedSources.length);
-      writer.println(" inconsistent entries");
-      writer.print("  ");
-      writer.print(missingSources.length);
-      writer.println(" missing sources");
+      StringBuffer buffer = new StringBuffer();
+      buffer.write("Consistency check took ");
+      buffer.write((consistencyCheckEnd - consistencyCheckStart) / 1000000.0);
+      buffer.writeln(" ms and found");
+      buffer.write("  ");
+      buffer.write(changedSources.length);
+      buffer.writeln(" inconsistent entries");
+      buffer.write("  ");
+      buffer.write(missingSources.length);
+      buffer.writeln(" missing sources");
       for (Source source in missingSources) {
-        writer.print("    ");
-        writer.println(source.fullName);
+        buffer.write("    ");
+        buffer.writeln(source.fullName);
       }
-      _logInformation(writer.toString());
+      _logInformation(buffer.toString());
     }
     return changedSources.length > 0;
   }
@@ -4707,7 +4707,7 @@ class AnalysisContextImpl_CycleBuilder {
           _dependencyGraph.addEdge(library, importedLibrary);
         }
       }
-      library.importedLibraries = new List.from(importedLibraries);
+      library.importedLibraries = importedLibraries;
     } else {
       library.explicitlyImportsCore = false;
       ResolvableLibrary importedLibrary = _libraryMap[AnalysisContextImpl_this._coreLibrarySource];
@@ -4745,7 +4745,7 @@ class AnalysisContextImpl_CycleBuilder {
           _dependencyGraph.addEdge(library, exportedLibrary);
         }
       }
-      library.exportedLibraries = new List.from(exportedLibraries);
+      library.exportedLibraries = exportedLibraries;
     }
   }
 
@@ -5052,7 +5052,7 @@ class AnalysisContextImpl_TaskData {
   @override
   String toString() {
     if (task == null) {
-      return "blocked: ${_blocked}";
+      return "blocked: $_blocked";
     }
     return task.toString();
   }
@@ -5101,10 +5101,8 @@ class AnalysisContextStatisticsImpl implements AnalysisContextStatistics {
   }
 
   @override
-  List<AnalysisContextStatistics_CacheRow> get cacheRows {
-    Iterable<AnalysisContextStatistics_CacheRow> items = _dataMap.values;
-    return new List.from(items);
-  }
+  List<AnalysisContextStatistics_CacheRow> get cacheRows
+      => _dataMap.values.toList();
 
   @override
   List<CaughtException> get exceptions => new List.from(_exceptions);
@@ -5113,7 +5111,7 @@ class AnalysisContextStatisticsImpl implements AnalysisContextStatistics {
   List<AnalysisContextStatistics_PartitionData> get partitionData => _partitionData;
 
   @override
-  List<Source> get sources => new List.from(_sources);
+  List<Source> get sources => _sources;
 
   void putCacheItem(SourceEntry dartEntry, DataDescriptor descriptor) {
     _internalPutCacheItem(dartEntry, descriptor, dartEntry.getState(descriptor));
@@ -5307,38 +5305,34 @@ class AnalysisDelta {
 
   @override
   String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    bool needsSeparator = _appendSources(builder, false, AnalysisLevel.ALL);
-    needsSeparator = _appendSources(builder, needsSeparator, AnalysisLevel.RESOLVED);
-    _appendSources(builder, needsSeparator, AnalysisLevel.NONE);
-    return builder.toString();
+    StringBuffer buffer = new StringBuffer();
+    bool needsSeparator = _appendSources(buffer, false, AnalysisLevel.ALL);
+    needsSeparator = _appendSources(buffer, needsSeparator, AnalysisLevel.RESOLVED);
+    _appendSources(buffer, needsSeparator, AnalysisLevel.NONE);
+    return buffer.toString();
   }
 
   /**
-   * Append sources with the given analysis level, prefixed with a label and possibly a separator.
-   *
-   * @param builder the builder to which the sources are to be appended
-   * @param needsSeparator `true` if a separator is needed before the label
-   * @param level the analysis level of the sources to be appended
-   * @return `true` if future lists of sources will need a separator
+   * Appendto the given [builder] all sources with the given analysis [level],
+   * prefixed with a label and a separator if [needsSeparator] is `true`.
    */
-  bool _appendSources(JavaStringBuilder builder, bool needsSeparator, AnalysisLevel level) {
+  bool _appendSources(StringBuffer buffer, bool needsSeparator, AnalysisLevel level) {
     bool first = true;
-    for (MapEntry<Source, AnalysisLevel> entry in getMapEntrySet(_analysisMap)) {
-      if (entry.getValue() == level) {
+    _analysisMap.forEach((Source source, AnalysisLevel sourceLevel) {
+      if (sourceLevel == level) {
         if (first) {
           first = false;
           if (needsSeparator) {
-            builder.append("; ");
+            buffer.write("; ");
           }
-          builder.append(level);
-          builder.append(" ");
+          buffer.write(level);
+          buffer.write(" ");
         } else {
-          builder.append(", ");
+          buffer.write(", ");
         }
-        builder.append(entry.getKey().fullName);
+        buffer.write(source.fullName);
       }
-    }
+    });
     return needsSeparator || !first;
   }
 }
@@ -5942,7 +5936,7 @@ abstract class AnalysisTask {
       _safelyPerform();
     } on AnalysisException catch (exception, stackTrace) {
       _thrownException = new CaughtException(exception, stackTrace);
-      AnalysisEngine.instance.logger.logInformation2("Task failed: ${taskDescription}", new CaughtException(exception, stackTrace));
+      AnalysisEngine.instance.logger.logInformation2("Task failed: $taskDescription", new CaughtException(exception, stackTrace));
     }
     return accept(visitor);
   }
@@ -6122,7 +6116,7 @@ class AngularExpression {
    * Return Dart [Expression]s this Angular expression consists of.
    */
   List<Expression> get expressions {
-    List<Expression> expressions = [];
+    List<Expression> expressions = <Expression>[];
     expressions.add(expression);
     for (AngularFormatterNode formatter in formatters) {
       expressions.add(formatter.name);
@@ -6321,7 +6315,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
 
   List<AngularElement> _angularElements;
 
-  List<NgProcessor> _processors = [];
+  List<NgProcessor> _processors = <NgProcessor>[];
 
   LibraryElementImpl _libraryElement;
 
@@ -6333,7 +6327,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
 
   bool _isAngular = false;
 
-  List<LocalVariableElementImpl> _definedVariables = [];
+  List<LocalVariableElementImpl> _definedVariables = <LocalVariableElementImpl>[];
 
   Set<LibraryElement> _injectedLibraries = new Set();
 
@@ -6378,7 +6372,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
         try {
           Source templateSource = _context.sourceFactory.forUri2(_source.resolveRelativeUri(parseUriWithException(templateUri)));
           if (!_context.exists(templateSource)) {
-            templateSource = _context.sourceFactory.resolveUri(_source, "package:${templateUri}");
+            templateSource = _context.sourceFactory.resolveUri(_source, "package:$templateUri");
             if (!_context.exists(templateSource)) {
               _errorListener.onError(new AnalysisError.con2(angularElement.source, hasTemplate.templateUriOffset, templateUri.length, AngularCode.URI_DOES_NOT_EXIST, [templateUri]));
               continue;
@@ -6541,7 +6535,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
     List<Token> tokens = _splitAtBar(token);
     Expression mainExpression = _parseDartExpressionInToken(tokens[0]);
     // parse formatters
-    List<AngularFormatterNode> formatters = [];
+    List<AngularFormatterNode> formatters = <AngularFormatterNode>[];
     for (int i = 1; i < tokens.length; i++) {
       Token formatterToken = tokens[i];
       Token barToken = formatterToken;
@@ -6555,7 +6549,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
       SimpleIdentifier name = nameExpression as SimpleIdentifier;
       formatterToken = name.endToken.next;
       // parse arguments
-      List<AngularFormatterArgument> arguments = [];
+      List<AngularFormatterArgument> arguments = <AngularFormatterArgument>[];
       while (formatterToken.type != TokenType.EOF) {
         // skip ":"
         Token colonToken = formatterToken;
@@ -6740,15 +6734,15 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
   }
 
   void _parseEmbeddedExpressionsInAttribute(ht.XmlAttributeNode node) {
-    List<AngularMoustacheXmlExpression> expressions = [];
+    List<AngularMoustacheXmlExpression> expressions = <AngularMoustacheXmlExpression>[];
     _parseEmbeddedExpressions(expressions, node.valueToken);
     if (!expressions.isEmpty) {
-      node.expressions = new List.from(expressions);
+      node.expressions = expressions;
     }
   }
 
   void _parseEmbeddedExpressionsInTag(ht.XmlTagNode node) {
-    List<AngularMoustacheXmlExpression> expressions = [];
+    List<AngularMoustacheXmlExpression> expressions = <AngularMoustacheXmlExpression>[];
     ht.Token token = node.attributeEnd;
     ht.Token endToken = node.endToken;
     bool inChild = false;
@@ -6768,7 +6762,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
       }
       token = token.next;
     }
-    node.expressions = new List.from(expressions);
+    node.expressions = expressions;
   }
 
   void _recordDefinedVariable(LocalVariableElementImpl variable) {
@@ -6839,13 +6833,13 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
     _unit.accept(this);
     // simulate imports for injects
     {
-      List<ImportElement> imports = [];
+      List<ImportElement> imports = <ImportElement>[];
       for (LibraryElement injectedLibrary in _injectedLibraries) {
         ImportElementImpl importElement = new ImportElementImpl(-1);
         importElement.importedLibrary = injectedLibrary;
         imports.add(importElement);
       }
-      _libraryElement.imports = new List.from(imports);
+      _libraryElement.imports = imports;
     }
   }
 
@@ -6855,7 +6849,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
   }
 
   List<Token> _splitAtBar(Token token) {
-    List<Token> tokens = [];
+    List<Token> tokens = <Token>[];
     tokens.add(token);
     while (token.type != TokenType.EOF) {
       if (token.type == TokenType.BAR) {
@@ -7431,7 +7425,7 @@ class ChangeNoticeImpl implements ChangeNotice {
     this._errors = errors;
     this._lineInfo = lineInfo;
     if (lineInfo == null) {
-      AnalysisEngine.instance.logger.logInformation2("No line info: ${source}", new JavaException());
+      AnalysisEngine.instance.logger.logInformation2("No line info: $source", new JavaException());
     }
   }
 
@@ -7581,29 +7575,29 @@ class ChangeSet {
 
   @override
   String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    bool needsSeparator = _appendSources(builder, addedSources, false, "addedSources");
-    needsSeparator = _appendSources(builder, changedSources, needsSeparator, "changedSources");
-    needsSeparator = _appendSources2(builder, _changedContent, needsSeparator, "changedContent");
-    needsSeparator = _appendSources2(builder, changedRanges, needsSeparator, "changedRanges");
-    needsSeparator = _appendSources(builder, deletedSources, needsSeparator, "deletedSources");
-    needsSeparator = _appendSources(builder, removedSources, needsSeparator, "removedSources");
+    StringBuffer buffer = new StringBuffer();
+    bool needsSeparator = _appendSources(buffer, addedSources, false, "addedSources");
+    needsSeparator = _appendSources(buffer, changedSources, needsSeparator, "changedSources");
+    needsSeparator = _appendSources2(buffer, _changedContent, needsSeparator, "changedContent");
+    needsSeparator = _appendSources2(buffer, changedRanges, needsSeparator, "changedRanges");
+    needsSeparator = _appendSources(buffer, deletedSources, needsSeparator, "deletedSources");
+    needsSeparator = _appendSources(buffer, removedSources, needsSeparator, "removedSources");
     int count = removedContainers.length;
     if (count > 0) {
       if (removedSources.isEmpty) {
         if (needsSeparator) {
-          builder.append("; ");
+          buffer.write("; ");
         }
-        builder.append("removed: from ");
-        builder.append(count);
-        builder.append(" containers");
+        buffer.write("removed: from ");
+        buffer.write(count);
+        buffer.write(" containers");
       } else {
-        builder.append(", and more from ");
-        builder.append(count);
-        builder.append(" containers");
+        buffer.write(", and more from ");
+        buffer.write(count);
+        buffer.write(" containers");
       }
     }
-    return builder.toString();
+    return buffer.toString();
   }
 
   /**
@@ -7616,18 +7610,18 @@ class ChangeSet {
    * @param label the label used to prefix the sources
    * @return `true` if future lists of sources will need a separator
    */
-  bool _appendSources(JavaStringBuilder builder, List<Source> sources, bool needsSeparator, String label) {
+  bool _appendSources(StringBuffer buffer, List<Source> sources, bool needsSeparator, String label) {
     if (sources.isEmpty) {
       return needsSeparator;
     }
     if (needsSeparator) {
-      builder.append("; ");
+      buffer.write("; ");
     }
-    builder.append(label);
+    buffer.write(label);
     String prefix = " ";
     for (Source source in sources) {
-      builder.append(prefix);
-      builder.append(source.fullName);
+      buffer.write(prefix);
+      buffer.write(source.fullName);
       prefix = ", ";
     }
     return true;
@@ -7643,18 +7637,18 @@ class ChangeSet {
    * @param label the label used to prefix the sources
    * @return `true` if future lists of sources will need a separator
    */
-  bool _appendSources2(JavaStringBuilder builder, HashMap<Source, dynamic> sources, bool needsSeparator, String label) {
+  bool _appendSources2(StringBuffer buffer, HashMap<Source, dynamic> sources, bool needsSeparator, String label) {
     if (sources.isEmpty) {
       return needsSeparator;
     }
     if (needsSeparator) {
-      builder.append("; ");
+      buffer.write("; ");
     }
-    builder.append(label);
+    buffer.write(label);
     String prefix = " ";
     for (Source source in sources.keys.toSet()) {
-      builder.append(prefix);
-      builder.append(source.fullName);
+      buffer.write(prefix);
+      buffer.write(source.fullName);
       prefix = ", ";
     }
     return true;
@@ -7952,7 +7946,7 @@ class DartEntry extends SourceEntry {
     if (errors.length == 0) {
       return AnalysisError.NO_ERRORS;
     }
-    return new List.from(errors);
+    return errors;
   }
 
   /**
@@ -8010,7 +8004,7 @@ class DartEntry extends SourceEntry {
       }
       state = state._nextState;
     }
-    return new List.from(result);
+    return result;
   }
 
   /**
@@ -8930,7 +8924,7 @@ class GetContentTask extends AnalysisTask {
       _content = data.data;
       _modificationTime = data.modificationTime;
     } catch (exception, stackTrace) {
-      throw new AnalysisException("Could not get contents of ${source}", new CaughtException(exception, stackTrace));
+      throw new AnalysisException("Could not get contents of $source", new CaughtException(exception, stackTrace));
     }
   }
 }
@@ -9411,7 +9405,7 @@ class IncrementalAnalysisTask extends AnalysisTask {
   Source get source => cache != null ? cache.source : null;
 
   @override
-  String get taskDescription => "incremental analysis ${(cache != null ? cache.source : "null")}";
+  String get taskDescription => "incremental analysis ${cache != null ? cache.source : "null"}";
 
   @override
   void internalPerform() {
@@ -10688,7 +10682,7 @@ class ParseDartTask extends AnalysisTask {
       errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.INVALID_URI, [uriContent]));
       return null;
     }
-    throw new RuntimeException(message: "Failed to handle validation code: ${code}");
+    throw new RuntimeException(message: "Failed to handle validation code: $code");
   }
 
   /**
@@ -10852,7 +10846,7 @@ class ParseDartTask extends AnalysisTask {
                   _includedSources.add(referencedSource);
                 }
               } else {
-                throw new AnalysisException("${runtimeType.toString()} failed to handle a ${directive.runtimeType.toString()}");
+                throw new AnalysisException("$runtimeType failed to handle a ${directive.runtimeType}");
               }
             }
           }
@@ -11258,7 +11252,7 @@ class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
 
   final ht.HtmlUnit _unit;
 
-  List<PolymerTagHtmlElement> _tagHtmlElements = [];
+  List<PolymerTagHtmlElement> _tagHtmlElements = <PolymerTagHtmlElement>[];
 
   ht.XmlTagNode _elementNode;
 
@@ -11309,18 +11303,18 @@ class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
       return;
     }
     // prepare attribute name tokens
-    List<PolymerHtmlUnitBuilder_NameToken> nameTokens = [];
+    List<PolymerHtmlUnitBuilder_NameToken> nameTokens = <PolymerHtmlUnitBuilder_NameToken>[];
     {
       int index = 0;
       int textOffset = attributesAttribute.textOffset;
       int nameOffset = -1;
-      JavaStringBuilder nameBuilder = new JavaStringBuilder();
+      StringBuffer nameBuffer = new StringBuffer();
       while (index < attributesText.length) {
         int c = attributesText.codeUnitAt(index++);
         if (Character.isWhitespace(c)) {
           if (nameOffset != -1) {
-            nameTokens.add(new PolymerHtmlUnitBuilder_NameToken(nameOffset, nameBuilder.toString()));
-            nameBuilder = new JavaStringBuilder();
+            nameTokens.add(new PolymerHtmlUnitBuilder_NameToken(nameOffset, nameBuffer.toString()));
+            nameBuffer = new StringBuffer();
             nameOffset = -1;
           }
           continue;
@@ -11328,15 +11322,15 @@ class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
         if (nameOffset == -1) {
           nameOffset = textOffset + index - 1;
         }
-        nameBuilder.appendChar(c);
+        nameBuffer.writeCharCode(c);
       }
       if (nameOffset != -1) {
-        nameTokens.add(new PolymerHtmlUnitBuilder_NameToken(nameOffset, nameBuilder.toString()));
-        nameBuilder = new JavaStringBuilder();
+        nameTokens.add(new PolymerHtmlUnitBuilder_NameToken(nameOffset, nameBuffer.toString()));
+        nameBuffer = new StringBuffer();
       }
     }
     // create attributes for name tokens
-    List<PolymerAttributeElement> attributes = [];
+    List<PolymerAttributeElement> attributes = <PolymerAttributeElement>[];
     Set<String> definedNames = new Set();
     ClassElement classElement = _dartElement.classElement;
     for (PolymerHtmlUnitBuilder_NameToken nameToken in nameTokens) {
@@ -11365,7 +11359,7 @@ class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
       }
       attribute.field = field;
     }
-    _htmlElement.attributes = new List.from(attributes);
+    _htmlElement.attributes = attributes;
   }
 
   void _createTagHtmlElement(ht.XmlTagNode node) {
@@ -11634,16 +11628,15 @@ class RecordingErrorListener implements AnalysisErrorListener {
    * @return an array of errors (not `null`, contains no `null`s)
    */
   List<AnalysisError> get errors {
-    Iterable<MapEntry<Source, HashSet<AnalysisError>>> entrySet = getMapEntrySet(_errors);
-    int numEntries = entrySet.length;
+    int numEntries = _errors.length;
     if (numEntries == 0) {
       return AnalysisError.NO_ERRORS;
     }
     List<AnalysisError> resultList = new List<AnalysisError>();
-    for (MapEntry<Source, HashSet<AnalysisError>> entry in entrySet) {
-      resultList.addAll(entry.getValue());
+    for (HashSet<AnalysisError> errors in _errors.values) {
+      resultList.addAll(errors);
     }
-    return new List.from(resultList);
+    return resultList;
   }
 
   /**
@@ -12223,7 +12216,7 @@ class ResolveAngularComponentTemplateTask extends AnalysisTask {
   ht.HtmlUnit get resolvedUnit => _resolvedUnit;
 
   @override
-  String get taskDescription => "resolve as Angular template ${source}";
+  String get taskDescription => "resolve as Angular template $source";
 
   @override
   void internalPerform() {
@@ -13178,7 +13171,7 @@ abstract class SourceEntry {
     }
     CachedResult result = resultMap[CONTENT];
     if (result != null && result.state == CacheState.ERROR) {
-      String message = "contentState changing from ${result.state} to ${newState}";
+      String message = "contentState changing from ${result.state} to $newState";
       InstrumentationBuilder builder = Instrumentation.builder2("SourceEntry-validateStateChange");
       builder.data3("message", message);
       //builder.data("source", source.getFullName());
@@ -13399,7 +13392,7 @@ class WorkManager {
 
   @override
   String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
+    StringBuffer buffer = new StringBuffer();
     List<SourcePriority> priorities = SourcePriority.values;
     bool needsSeparator = false;
     int queueCount = _workQueues.length;
@@ -13407,21 +13400,21 @@ class WorkManager {
       List<Source> queue = _workQueues[i];
       if (!queue.isEmpty) {
         if (needsSeparator) {
-          builder.append("; ");
+          buffer.write("; ");
         }
-        builder.append(priorities[i]);
-        builder.append(": ");
+        buffer.write(priorities[i]);
+        buffer.write(": ");
         int queueSize = queue.length;
         for (int j = 0; j < queueSize; j++) {
           if (j > 0) {
-            builder.append(", ");
+            buffer.write(", ");
           }
-          builder.append(queue[j].fullName);
+          buffer.write(queue[j].fullName);
         }
         needsSeparator = true;
       }
     }
-    return builder.toString();
+    return buffer.toString();
   }
 }
 

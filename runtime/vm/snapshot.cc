@@ -304,12 +304,10 @@ RawObject* SnapshotReader::ReadObjectRef() {
     return result.raw();
   }
   ASSERT((class_header & kSmiTagMask) != kSmiTag);
-  cls_ = LookupInternalClass(class_header);
-  ASSERT(!cls_.IsNull());
 
   // Similarly Array and ImmutableArray objects are also similarly only
   // allocated here, the individual array elements are read later.
-  intptr_t class_id = cls_.id();
+  intptr_t class_id = LookupInternalClass(class_header);
   if (class_id == kArrayCid) {
     // Read the length and allocate an object based on the len.
     intptr_t len = ReadSmiValue();
@@ -806,21 +804,18 @@ RawStacktrace* SnapshotReader::NewStacktrace() {
 }
 
 
-RawClass* SnapshotReader::LookupInternalClass(intptr_t class_header) {
+intptr_t SnapshotReader::LookupInternalClass(intptr_t class_header) {
   // If the header is an object Id, lookup singleton VM classes or classes
   // stored in the object store.
   if (IsVMIsolateObject(class_header)) {
     intptr_t class_id = GetVMIsolateObjectId(class_header);
-    if (IsSingletonClassId(class_id)) {
-      return isolate()->class_table()->At(class_id);  // get singleton class.
-    }
-  } else if (SerializedHeaderTag::decode(class_header) == kObjectId) {
-    intptr_t class_id = SerializedHeaderData::decode(class_header);
-    if (IsObjectStoreClassId(class_id)) {
-      return isolate()->class_table()->At(class_id);  // get singleton class.
-    }
+    ASSERT(IsSingletonClassId(class_id));
+    return class_id;
   }
-  return Class::null();
+  ASSERT(SerializedHeaderTag::decode(class_header) == kObjectId);
+  intptr_t class_id = SerializedHeaderData::decode(class_header);
+  ASSERT(IsObjectStoreClassId(class_id));
+  return class_id;
 }
 
 
@@ -991,9 +986,8 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
     return result->raw();
   }
   ASSERT((class_header & kSmiTagMask) != kSmiTag);
-  cls_ = LookupInternalClass(class_header);
-  ASSERT(!cls_.IsNull());
-  switch (cls_.id()) {
+  intptr_t class_id = LookupInternalClass(class_header);
+  switch (class_id) {
 #define SNAPSHOT_READ(clazz)                                                   \
     case clazz::kClassId: {                                                    \
       pobj_ = clazz::ReadFrom(this, object_id, tags, kind_);                   \
@@ -1005,7 +999,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
     case kTypedData##clazz##Cid:                                               \
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
-      tags = RawObject::ClassIdTag::update(cls_.id(), tags);
+      tags = RawObject::ClassIdTag::update(class_id, tags);
       pobj_ = TypedData::ReadFrom(this, object_id, tags, kind_);
       break;
     }
@@ -1014,7 +1008,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
     case kExternalTypedData##clazz##Cid:                                       \
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
-      tags = RawObject::ClassIdTag::update(cls_.id(), tags);
+      tags = RawObject::ClassIdTag::update(class_id, tags);
       pobj_ = ExternalTypedData::ReadFrom(this, object_id, tags, kind_);
       break;
     }

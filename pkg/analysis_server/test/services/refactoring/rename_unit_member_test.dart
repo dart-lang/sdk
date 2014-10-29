@@ -303,28 +303,6 @@ var test;
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_checkNewName_TopLevelVariableElement_const() {
-    indexTestUnit('''
-const TEST = 0;
-''');
-    createRenameRefactoringAtString('TEST =');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(),
-        RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Constant name must not be null.");
-    // empty
-    refactoring.newName = '';
-    assertRefactoringStatus(
-        refactoring.checkNewName(),
-        RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Constant name must not be empty.");
-    // OK
-    refactoring.newName = 'NEW_NAME';
-    assertRefactoringStatusOK(refactoring.checkNewName());
-  }
-
   test_createChange_ClassElement() {
     indexTestUnit('''
 class Test implements Other {

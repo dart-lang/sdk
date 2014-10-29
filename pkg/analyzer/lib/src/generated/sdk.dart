@@ -216,7 +216,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
     String libraryName = null;
     Expression key = node.key;
     if (key is SimpleStringLiteral) {
-      libraryName = "${_LIBRARY_PREFIX}${key.value}";
+      libraryName = "$_LIBRARY_PREFIX${key.value}";
     }
     Expression value = node.value;
     if (value is InstanceCreationExpression) {

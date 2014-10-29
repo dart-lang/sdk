@@ -50,8 +50,7 @@ from htmlrenamer import HtmlRenamer
 from systemhtml import DartLibraryEmitter, Dart2JSBackend,\
                        HtmlDartInterfaceGenerator, DartLibrary, DartLibraries,\
                        HTML_LIBRARY_NAMES
-from systemnative import CPPLibraryEmitter, DartiumBackend, \
-                         GetNativeLibraryEmitter
+from systemnative import CPPLibraryEmitter, DartiumBackend
 from templateloader import TemplateLoader
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -167,13 +166,8 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
     cpp_output_dir = os.path.join(dartium_output_dir, 'cpp')
     cpp_library_emitter = CPPLibraryEmitter(emitters, cpp_output_dir)
     dart_output_dir = os.path.join(dartium_output_dir, 'dart')
-    native_library_emitter = \
-        GetNativeLibraryEmitter(emitters, template_loader,
-                                dartium_output_dir, dart_output_dir,
-                                auxiliary_dir)
     backend_factory = lambda interface:\
-        DartiumBackend(interface, native_library_emitter,
-                       cpp_library_emitter, backend_options)
+        DartiumBackend(interface, cpp_library_emitter, backend_options)
     dart_libraries = DartLibraries(
         HTML_LIBRARY_NAMES, template_loader, 'dartium', dartium_output_dir)
 
@@ -292,9 +286,6 @@ def main():
       GenerateSingleFile(
           os.path.join(dartium_output_dir, '%s_dartium.dart' % library_name),
           os.path.join('..', '..', '..', 'sdk', 'lib', library_name, 'dartium'))
-    GenerateSingleFile(
-        os.path.join(dartium_output_dir, '_blink_dartium.dart'),
-        os.path.join('..', '..', '..', 'sdk', 'lib', '_blink', 'dartium'))
 
   print '\nGenerating single file %s seconds' % round(time.time() - file_generation_start_time, 2)
 

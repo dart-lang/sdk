@@ -7668,6 +7668,9 @@
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#navigatorstorageutils",
         "support_level": "experimental"
       },
+      "hardwareConcurrency": {
+        "support_level": "untriaged"
+      },
       "isProtocolHandlerRegistered": {
         "support_level": "untriaged"
       },

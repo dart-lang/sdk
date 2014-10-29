@@ -1,3 +1,12 @@
+## 0.1.1
+
+* Declare `SpanScanner`'s exposed `SourceSpan`s and `SourceLocation`s to be
+  `FileSpan`s and `FileLocation`s. They always were underneath, but callers may
+  now rely on it.
+
+* Add `SpanScanner.location`, which returns the scanner's current
+  `SourceLocation`.
+
 ## 0.1.0
 
 * Switch from `source_maps`' `Span` class to `source_span`'s `SourceSpan` class.

@@ -42,7 +42,7 @@ main(List<String> args) {
 
 class _ASTVisitor extends GeneralizingAstVisitor {
   visitNode(AstNode node) {
-    String text = '${node.runtimeType} : <"${node.toString()}">';
+    String text = '${node.runtimeType} : <"$node">';
     if (node is SimpleIdentifier) {
       Element element = node.staticElement;
       if (element != null) {

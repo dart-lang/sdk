@@ -52,8 +52,8 @@ abstract class TokenizerBase {
   //     http://dev.w3.org/csswg/selectors4/
   bool inSelector = false;
 
-  int _index;
-  int _startIndex;
+  int _index = 0;
+  int _startIndex = 0;
 
   static const String _CDATA_START = '<![CDATA[';
   static const String _CDATA_END = ']]>';
@@ -435,4 +435,3 @@ abstract class TokenizerBase {
     }
   }
 }
-

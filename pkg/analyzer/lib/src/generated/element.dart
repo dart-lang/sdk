@@ -167,7 +167,7 @@ class AngularComponentElementImpl extends AngularHasSelectorElementImpl implemen
   }
 
   @override
-  String get identifier => "AngularComponent@${_annotationOffset}";
+  String get identifier => "AngularComponent@$_annotationOffset";
 }
 
 /**
@@ -271,7 +271,7 @@ class AngularDecoratorElementImpl extends AngularHasSelectorElementImpl implemen
   }
 
   @override
-  String get identifier => "Decorator@${_offset}";
+  String get identifier => "Decorator@$_offset";
 }
 
 /**
@@ -384,9 +384,9 @@ class AngularHasClassSelectorElementImpl extends AngularSelectorElementImpl impl
   }
 
   @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append(".");
-    builder.append(name);
+  void appendTo(StringBuffer buffer) {
+    buffer.write(".");
+    buffer.write(name);
   }
 }
 
@@ -731,7 +731,7 @@ class AngularViewElementImpl extends AngularElementImpl implements AngularViewEl
   ElementKind get kind => ElementKind.ANGULAR_VIEW;
 
   @override
-  String get identifier => "AngularView@${templateUriOffset}";
+  String get identifier => "AngularView@$templateUriOffset";
 }
 
 /**
@@ -1286,13 +1286,16 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   accept(ElementVisitor visitor) => visitor.visitClassElement(this);
 
   /**
-   * Set the toolkit specific information objects attached to this class.
-   *
-   * @param toolkitObjects the toolkit objects attached to this class
+   * Add the given [toolkitObject] to the list of toolkit specific information
+   * objects attached to this class.
    */
   void addToolkitObjects(ToolkitObjectElement toolkitObject) {
     (toolkitObject as ToolkitObjectElementImpl).enclosingElement = this;
-    _toolkitObjects = ArrayUtils.add(_toolkitObjects, toolkitObject);
+    if (_toolkitObjects.isEmpty) {
+      // Convert from a non-growable list to a growable list.
+      _toolkitObjects = <ToolkitObjectElement>[];
+    }
+    _toolkitObjects.add(toolkitObject);
   }
 
   @override
@@ -1302,7 +1305,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   List<InterfaceType> get allSupertypes {
     List<InterfaceType> list = new List<InterfaceType>();
     _collectAllSupertypes(list);
-    return new List.from(list);
+    return list;
   }
 
   @override
@@ -1644,23 +1647,23 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @override
-  void appendTo(JavaStringBuilder builder) {
+  void appendTo(StringBuffer buffer) {
     String name = displayName;
     if (name == null) {
-      builder.append("{unnamed class}");
+      buffer.write("{unnamed class}");
     } else {
-      builder.append(name);
+      buffer.write(name);
     }
     int variableCount = _typeParameters.length;
     if (variableCount > 0) {
-      builder.append("<");
+      buffer.write("<");
       for (int i = 0; i < variableCount; i++) {
         if (i > 0) {
-          builder.append(", ");
+          buffer.write(", ");
         }
-        (_typeParameters[i] as TypeParameterElementImpl).appendTo(builder);
+        (_typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
       }
-      builder.append(">");
+      buffer.write(">");
     }
   }
 
@@ -2083,6 +2086,11 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl implements Com
         return type as ClassElementImpl;
       }
     }
+    for (ClassElement type in _enums) {
+      if ((type as ClassElementImpl).identifier == identifier) {
+        return type as ClassElementImpl;
+      }
+    }
     return null;
   }
 
@@ -2240,11 +2248,11 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl implements Com
   }
 
   @override
-  void appendTo(JavaStringBuilder builder) {
+  void appendTo(StringBuffer buffer) {
     if (source == null) {
-      builder.append("{compilation unit}");
+      buffer.write("{compilation unit}");
     } else {
-      builder.append(source.fullName);
+      buffer.write(source.fullName);
     }
   }
 
@@ -2505,14 +2513,14 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
   }
 
   @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append(enclosingElement.displayName);
+  void appendTo(StringBuffer buffer) {
+    buffer.write(enclosingElement.displayName);
     String name = displayName;
     if (name != null && !name.isEmpty) {
-      builder.append(".");
-      builder.append(name);
+      buffer.write(".");
+      buffer.write(name);
     }
-    super.appendTo(builder);
+    super.appendTo(buffer);
   }
 }
 
@@ -2589,27 +2597,27 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
     ConstructorElement baseElement = this.baseElement;
     List<ParameterElement> parameters = this.parameters;
     FunctionType type = this.type;
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append(baseElement.enclosingElement.displayName);
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(baseElement.enclosingElement.displayName);
     String name = displayName;
     if (name != null && !name.isEmpty) {
-      builder.append(".");
-      builder.append(name);
+      buffer.write(".");
+      buffer.write(name);
     }
-    builder.append("(");
+    buffer.write("(");
     int parameterCount = parameters.length;
     for (int i = 0; i < parameterCount; i++) {
       if (i > 0) {
-        builder.append(", ");
+        buffer.write(", ");
       }
-      builder.append(parameters[i]).toString();
+      buffer.write(parameters[i]);
     }
-    builder.append(")");
+    buffer.write(")");
     if (type != null) {
-      builder.append(Element.RIGHT_ARROW);
-      builder.append(type.returnType);
+      buffer.write(Element.RIGHT_ARROW);
+      buffer.write(type.returnType);
     }
-    return builder.toString();
+    return buffer.toString();
   }
 
   @override
@@ -3258,7 +3266,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   }
 
   @override
-  String toString() => "@${element.toString()}";
+  String toString() => '@$element';
 }
 
 /**
@@ -3375,7 +3383,7 @@ abstract class ElementImpl implements Element {
     }
     Source source = this.source;
     if (source != null) {
-      return "${shortName} (${source.fullName})";
+      return "$shortName (${source.fullName})";
     }
     return shortName;
   }
@@ -3482,9 +3490,9 @@ abstract class ElementImpl implements Element {
 
   @override
   String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    appendTo(builder);
-    return builder.toString();
+    StringBuffer buffer = new StringBuffer();
+    appendTo(buffer);
+    return buffer.toString();
   }
 
   @override
@@ -3493,17 +3501,15 @@ abstract class ElementImpl implements Element {
   }
 
   /**
-   * Append a textual representation of this type to the given builder.
-   *
-   * @param builder the builder to which the text is to be appended
+   * Append a textual representation of this element to the given [buffer].
    */
-  void appendTo(JavaStringBuilder builder) {
+  void appendTo(StringBuffer buffer) {
     if (_name == null) {
-      builder.append("<unnamed ");
-      builder.append(runtimeType.toString());
-      builder.append(">");
+      buffer.write("<unnamed ");
+      buffer.write(runtimeType.toString());
+      buffer.write(">");
     } else {
-      builder.append(_name);
+      buffer.write(_name);
     }
   }
 
@@ -3775,7 +3781,7 @@ class ElementLocationImpl implements ElementLocation {
       components.insert(0, (ancestor as ElementImpl).identifier);
       ancestor = ancestor.enclosingElement;
     }
-    this._components = new List.from(components);
+    this._components = components;
   }
 
   /**
@@ -3823,15 +3829,15 @@ class ElementLocationImpl implements ElementLocation {
 
   @override
   String get encoding {
-    JavaStringBuilder builder = new JavaStringBuilder();
+    StringBuffer buffer = new StringBuffer();
     int length = _components.length;
     for (int i = 0; i < length; i++) {
       if (i > 0) {
-        builder.appendChar(_SEPARATOR_CHAR);
+        buffer.writeCharCode(_SEPARATOR_CHAR);
       }
-      _encode(builder, _components[i]);
+      _encode(buffer, _components[i]);
     }
-    return builder.toString();
+    return buffer.toString();
   }
 
   @override
@@ -3855,27 +3861,27 @@ class ElementLocationImpl implements ElementLocation {
    */
   List<String> _decode(String encoding) {
     List<String> components = new List<String>();
-    JavaStringBuilder builder = new JavaStringBuilder();
+    StringBuffer buffer = new StringBuffer();
     int index = 0;
     int length = encoding.length;
     while (index < length) {
       int currentChar = encoding.codeUnitAt(index);
       if (currentChar == _SEPARATOR_CHAR) {
         if (index + 1 < length && encoding.codeUnitAt(index + 1) == _SEPARATOR_CHAR) {
-          builder.appendChar(_SEPARATOR_CHAR);
+          buffer.writeCharCode(_SEPARATOR_CHAR);
           index += 2;
         } else {
-          components.add(builder.toString());
-          builder.length = 0;
+          components.add(buffer.toString());
+          buffer = new StringBuffer();
           index++;
         }
       } else {
-        builder.appendChar(currentChar);
+        buffer.writeCharCode(currentChar);
         index++;
       }
     }
-    components.add(builder.toString());
-    return new List.from(components);
+    components.add(buffer.toString());
+    return components;
   }
 
   /**
@@ -3884,14 +3890,14 @@ class ElementLocationImpl implements ElementLocation {
    * @param builder the builder to which the encoded component is to be appended
    * @param component the component to be appended to the builder
    */
-  void _encode(JavaStringBuilder builder, String component) {
+  void _encode(StringBuffer buffer, String component) {
     int length = component.length;
     for (int i = 0; i < length; i++) {
       int currentChar = component.codeUnitAt(i);
       if (currentChar == _SEPARATOR_CHAR) {
-        builder.appendChar(_SEPARATOR_CHAR);
+        buffer.writeCharCode(_SEPARATOR_CHAR);
       }
-      builder.appendChar(currentChar);
+      buffer.writeCharCode(currentChar);
     }
   }
 }
@@ -4343,43 +4349,43 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
   }
 
   @override
-  void appendTo(JavaStringBuilder builder) {
+  void appendTo(StringBuffer buffer) {
     if (this.kind != ElementKind.GETTER) {
-      builder.append("(");
+      buffer.write("(");
       String closing = null;
       ParameterKind kind = ParameterKind.REQUIRED;
       int parameterCount = _parameters.length;
       for (int i = 0; i < parameterCount; i++) {
         if (i > 0) {
-          builder.append(", ");
+          buffer.write(", ");
         }
         ParameterElementImpl parameter = _parameters[i] as ParameterElementImpl;
         ParameterKind parameterKind = parameter.parameterKind;
         if (parameterKind != kind) {
           if (closing != null) {
-            builder.append(closing);
+            buffer.write(closing);
           }
           if (parameterKind == ParameterKind.POSITIONAL) {
-            builder.append("[");
+            buffer.write("[");
             closing = "]";
           } else if (parameterKind == ParameterKind.NAMED) {
-            builder.append("{");
+            buffer.write("{");
             closing = "}";
           } else {
             closing = null;
           }
         }
         kind = parameterKind;
-        parameter.appendToWithoutDelimiters(builder);
+        parameter.appendToWithoutDelimiters(buffer);
       }
       if (closing != null) {
-        builder.append(closing);
+        buffer.write(closing);
       }
-      builder.append(")");
+      buffer.write(")");
     }
     if (type != null) {
-      builder.append(Element.RIGHT_ARROW);
-      builder.append(type.returnType);
+      buffer.write(Element.RIGHT_ARROW);
+      buffer.write(type.returnType);
     }
   }
 }
@@ -4523,9 +4529,9 @@ class ExportElementImpl extends UriReferencedElementImpl implements ExportElemen
   ElementKind get kind => ElementKind.EXPORT;
 
   @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append("export ");
-    (exportedLibrary as LibraryElementImpl).appendTo(builder);
+  void appendTo(StringBuffer buffer) {
+    buffer.write("export ");
+    (exportedLibrary as LibraryElementImpl).appendTo(buffer);
   }
 
   @override
@@ -4778,13 +4784,7 @@ class FieldMember extends VariableMember implements FieldElement {
   bool get isStatic => baseElement.isStatic;
 
   @override
-  String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append(type);
-    builder.append(" ");
-    builder.append(displayName);
-    return builder.toString();
-  }
+  String toString() => '$type $displayName';
 
   @override
   InterfaceType get definingType => super.definingType as InterfaceType;
@@ -4903,19 +4903,19 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
   }
 
   @override
-  void appendTo(JavaStringBuilder builder) {
+  void appendTo(StringBuffer buffer) {
     String name = displayName;
     if (name != null) {
-      builder.append(name);
+      buffer.write(name);
     }
-    super.appendTo(builder);
+    super.appendTo(buffer);
   }
 
   @override
   String get identifier {
     String identifier = super.identifier;
     if (!isStatic) {
-      identifier += "@${nameOffset}";
+      identifier += "@$nameOffset";
     }
     return identifier;
   }
@@ -5236,32 +5236,32 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
   }
 
   @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append("typedef ");
-    builder.append(displayName);
+  void appendTo(StringBuffer buffer) {
+    buffer.write("typedef ");
+    buffer.write(displayName);
     int typeParameterCount = _typeParameters.length;
     if (typeParameterCount > 0) {
-      builder.append("<");
+      buffer.write("<");
       for (int i = 0; i < typeParameterCount; i++) {
         if (i > 0) {
-          builder.append(", ");
+          buffer.write(", ");
         }
-        (_typeParameters[i] as TypeParameterElementImpl).appendTo(builder);
+        (_typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
       }
-      builder.append(">");
+      buffer.write(">");
     }
-    builder.append("(");
+    buffer.write("(");
     int parameterCount = _parameters.length;
     for (int i = 0; i < parameterCount; i++) {
       if (i > 0) {
-        builder.append(", ");
+        buffer.write(", ");
       }
-      (_parameters[i] as ParameterElementImpl).appendTo(builder);
+      (_parameters[i] as ParameterElementImpl).appendTo(buffer);
     }
-    builder.append(")");
+    buffer.write(")");
     if (type != null) {
-      builder.append(Element.RIGHT_ARROW);
-      builder.append(type.returnType);
+      buffer.write(Element.RIGHT_ARROW);
+      buffer.write(type.returnType);
     }
   }
 }
@@ -5286,12 +5286,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (secondTypes.length != firstTypes.length) {
       return false;
     }
-    JavaIterator<MapEntry<String, DartType>> firstIterator = new JavaIterator(getMapEntrySet(firstTypes));
-    JavaIterator<MapEntry<String, DartType>> secondIterator = new JavaIterator(getMapEntrySet(secondTypes));
-    while (firstIterator.hasNext) {
-      MapEntry<String, DartType> firstEntry = firstIterator.next();
-      MapEntry<String, DartType> secondEntry = secondIterator.next();
-      if (firstEntry.getKey() != secondEntry.getKey() || !(firstEntry.getValue() as TypeImpl).internalEquals(secondEntry.getValue(), visitedElementPairs)) {
+    Iterator<String> firstKeys = firstTypes.keys.iterator;
+    Iterator<String> secondKeys = secondTypes.keys.iterator;
+    while (firstKeys.moveNext() && secondKeys.moveNext()) {
+      String firstKey = firstKeys.current;
+      String secondKey = secondKeys.current;
+      TypeImpl firstType = firstTypes[firstKey];
+      TypeImpl secondType = secondTypes[secondKey];
+      if (firstKey != secondKey
+          || !firstType.internalEquals(secondType, visitedElementPairs)) {
         return false;
       }
     }
@@ -5332,63 +5335,63 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       List<DartType> optionalParameterTypes = this.optionalParameterTypes;
       Map<String, DartType> namedParameterTypes = this.namedParameterTypes;
       DartType returnType = this.returnType;
-      JavaStringBuilder builder = new JavaStringBuilder();
-      builder.append("(");
+      StringBuffer buffer = new StringBuffer();
+      buffer.write("(");
       bool needsComma = false;
       if (normalParameterTypes.length > 0) {
         for (DartType type in normalParameterTypes) {
           if (needsComma) {
-            builder.append(", ");
+            buffer.write(", ");
           } else {
             needsComma = true;
           }
-          builder.append(type.displayName);
+          buffer.write(type.displayName);
         }
       }
       if (optionalParameterTypes.length > 0) {
         if (needsComma) {
-          builder.append(", ");
+          buffer.write(", ");
           needsComma = false;
         }
-        builder.append("[");
+        buffer.write("[");
         for (DartType type in optionalParameterTypes) {
           if (needsComma) {
-            builder.append(", ");
+            buffer.write(", ");
           } else {
             needsComma = true;
           }
-          builder.append(type.displayName);
+          buffer.write(type.displayName);
         }
-        builder.append("]");
+        buffer.write("]");
         needsComma = true;
       }
       if (namedParameterTypes.length > 0) {
         if (needsComma) {
-          builder.append(", ");
+          buffer.write(", ");
           needsComma = false;
         }
-        builder.append("{");
-        for (MapEntry<String, DartType> entry in getMapEntrySet(namedParameterTypes)) {
+        buffer.write("{");
+        namedParameterTypes.forEach((String name, DartType type) {
           if (needsComma) {
-            builder.append(", ");
+            buffer.write(", ");
           } else {
             needsComma = true;
           }
-          builder.append(entry.getKey());
-          builder.append(": ");
-          builder.append(entry.getValue().displayName);
-        }
-        builder.append("}");
+          buffer.write(name);
+          buffer.write(": ");
+          buffer.write(type.displayName);
+        });
+        buffer.write("}");
         needsComma = true;
       }
-      builder.append(")");
-      builder.append(Element.RIGHT_ARROW);
+      buffer.write(")");
+      buffer.write(Element.RIGHT_ARROW);
       if (returnType == null) {
-        builder.append("null");
+        buffer.write("null");
       } else {
-        builder.append(returnType.displayName);
+        buffer.write(returnType.displayName);
       }
-      name = builder.toString();
+      name = buffer.toString();
     }
     return name;
   }
@@ -5430,7 +5433,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         types.add(type);
       }
     }
-    return new List.from(types);
+    return types;
   }
 
   @override
@@ -5450,7 +5453,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         types.add(type);
       }
     }
-    return new List.from(types);
+    return types;
   }
 
   @override
@@ -5564,16 +5567,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       if (namedTypesT.length < namedTypesS.length) {
         return false;
       }
-      // Loop through each element in S verifying that T has a matching parameter name and that the
-      // corresponding type is more specific then the type in S.
-      JavaIterator<MapEntry<String, DartType>> iteratorS = new JavaIterator(getMapEntrySet(namedTypesS));
-      while (iteratorS.hasNext) {
-        MapEntry<String, DartType> entryS = iteratorS.next();
-        DartType typeT = namedTypesT[entryS.getKey()];
+      // Loop through each element in S verifying that T has a matching
+      // parameter name and that the corresponding type is more specific then
+      // the type in S.
+      for (String keyS in namedTypesS.keys) {
+        DartType typeT = namedTypesT[keyS];
         if (typeT == null) {
           return false;
         }
-        if (!(typeT as TypeImpl).isMoreSpecificThan2(entryS.getValue(), withDynamic, visitedTypePairs)) {
+        if (!(typeT as TypeImpl).isMoreSpecificThan2(namedTypesS[keyS], withDynamic, visitedTypePairs)) {
           return false;
         }
       }
@@ -5656,65 +5658,65 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
-  void appendTo(JavaStringBuilder builder) {
+  void appendTo(StringBuffer buffer) {
     List<DartType> normalParameterTypes = this.normalParameterTypes;
     List<DartType> optionalParameterTypes = this.optionalParameterTypes;
     Map<String, DartType> namedParameterTypes = this.namedParameterTypes;
     DartType returnType = this.returnType;
-    builder.append("(");
+    buffer.write("(");
     bool needsComma = false;
     if (normalParameterTypes.length > 0) {
       for (DartType type in normalParameterTypes) {
         if (needsComma) {
-          builder.append(", ");
+          buffer.write(", ");
         } else {
           needsComma = true;
         }
-        (type as TypeImpl).appendTo(builder);
+        (type as TypeImpl).appendTo(buffer);
       }
     }
     if (optionalParameterTypes.length > 0) {
       if (needsComma) {
-        builder.append(", ");
+        buffer.write(", ");
         needsComma = false;
       }
-      builder.append("[");
+      buffer.write("[");
       for (DartType type in optionalParameterTypes) {
         if (needsComma) {
-          builder.append(", ");
+          buffer.write(", ");
         } else {
           needsComma = true;
         }
-        (type as TypeImpl).appendTo(builder);
+        (type as TypeImpl).appendTo(buffer);
       }
-      builder.append("]");
+      buffer.write("]");
       needsComma = true;
     }
     if (namedParameterTypes.length > 0) {
       if (needsComma) {
-        builder.append(", ");
+        buffer.write(", ");
         needsComma = false;
       }
-      builder.append("{");
-      for (MapEntry<String, DartType> entry in getMapEntrySet(namedParameterTypes)) {
+      buffer.write("{");
+      namedParameterTypes.forEach((String name, DartType type) {
         if (needsComma) {
-          builder.append(", ");
+          buffer.write(", ");
         } else {
           needsComma = true;
         }
-        builder.append(entry.getKey());
-        builder.append(": ");
-        (entry.getValue() as TypeImpl).appendTo(builder);
-      }
-      builder.append("}");
+        buffer.write(name);
+        buffer.write(": ");
+        (type as TypeImpl).appendTo(buffer);
+      });
+      buffer.write("}");
       needsComma = true;
     }
-    builder.append(")");
-    builder.append(Element.RIGHT_ARROW);
+    buffer.write(")");
+    buffer.write(Element.RIGHT_ARROW);
     if (returnType == null) {
-      builder.append("null");
+      buffer.write("null");
     } else {
-      (returnType as TypeImpl).appendTo(builder);
+      (returnType as TypeImpl).appendTo(buffer);
     }
   }
 
@@ -5792,16 +5794,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       if (namedTypesT.length < namedTypesS.length) {
         return false;
       }
-      // Loop through each element in S verifying that T has a matching parameter name and that the
-      // corresponding type is assignable to the type in S.
-      JavaIterator<MapEntry<String, DartType>> iteratorS = new JavaIterator(getMapEntrySet(namedTypesS));
-      while (iteratorS.hasNext) {
-        MapEntry<String, DartType> entryS = iteratorS.next();
-        DartType typeT = namedTypesT[entryS.getKey()];
+      // Loop through each element in S verifying that T has a matching
+      // parameter name and that the corresponding type is assignable to the
+      // type in S.
+      for (String keyS in namedTypesS.keys) {
+        DartType typeT = namedTypesT[keyS];
         if (typeT == null) {
           return false;
         }
-        if (!(typeT as TypeImpl).isAssignableTo2(entryS.getValue(), visitedTypePairs)) {
+        if (!(typeT as TypeImpl).isAssignableTo2(namedTypesS[keyS], visitedTypePairs)) {
           return false;
         }
       }
@@ -6069,10 +6070,10 @@ class HasAttributeSelectorElementImpl extends AngularSelectorElementImpl impleme
   }
 
   @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append("[");
-    builder.append(name);
-    builder.append("]");
+  void appendTo(StringBuffer buffer) {
+    buffer.write("[");
+    buffer.write(name);
+    buffer.write("]");
   }
 }
 
@@ -6103,16 +6104,16 @@ class HideElementCombinatorImpl implements HideElementCombinator {
 
   @override
   String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append("show ");
+    StringBuffer buffer = new StringBuffer();
+    buffer.write("show ");
     int count = hiddenNames.length;
     for (int i = 0; i < count; i++) {
       if (i > 0) {
-        builder.append(", ");
+        buffer.write(", ");
       }
-      builder.append(hiddenNames[i]);
+      buffer.write(hiddenNames[i]);
     }
-    return builder.toString();
+    return buffer.toString();
   }
 }
 
@@ -6251,11 +6252,11 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
   }
 
   @override
-  void appendTo(JavaStringBuilder builder) {
+  void appendTo(StringBuffer buffer) {
     if (source == null) {
-      builder.append("{HTML file}");
+      buffer.write("{HTML file}");
     } else {
-      builder.append(source.fullName);
+      buffer.write(source.fullName);
     }
   }
 
@@ -6399,13 +6400,13 @@ class ImportElementImpl extends UriReferencedElementImpl implements ImportElemen
   }
 
   @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append("import ");
-    (importedLibrary as LibraryElementImpl).appendTo(builder);
+  void appendTo(StringBuffer buffer) {
+    buffer.write("import ");
+    (importedLibrary as LibraryElementImpl).appendTo(buffer);
   }
 
   @override
-  String get identifier => "${(importedLibrary as LibraryElementImpl).identifier}@${nameOffset}";
+  String get identifier => "${(importedLibrary as LibraryElementImpl).identifier}@$nameOffset";
 }
 
 /**
@@ -6903,18 +6904,18 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     // If there is at least one non-dynamic type, then list them out
     if (!allDynamic) {
-      JavaStringBuilder builder = new JavaStringBuilder();
-      builder.append(name);
-      builder.append("<");
+      StringBuffer buffer = new StringBuffer();
+      buffer.write(name);
+      buffer.write("<");
       for (int i = 0; i < typeArguments.length; i++) {
         if (i != 0) {
-          builder.append(", ");
+          buffer.write(", ");
         }
         DartType typeArg = typeArguments[i];
-        builder.append(typeArg.displayName);
+        buffer.write(typeArg.displayName);
       }
-      builder.append(">");
-      name = builder.toString();
+      buffer.write(">");
+      name = buffer.toString();
     }
     return name;
   }
@@ -7268,18 +7269,18 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append(name);
+  void appendTo(StringBuffer buffer) {
+    buffer.write(name);
     int argumentCount = typeArguments.length;
     if (argumentCount > 0) {
-      builder.append("<");
+      buffer.write("<");
       for (int i = 0; i < argumentCount; i++) {
         if (i > 0) {
-          builder.append(", ");
+          buffer.write(", ");
         }
-        (typeArguments[i] as TypeImpl).appendTo(builder);
+        (typeArguments[i] as TypeImpl).appendTo(buffer);
       }
-      builder.append(">");
+      buffer.write(">");
     }
   }
 
@@ -7506,7 +7507,7 @@ class IsTagHasAttributeSelectorElementImpl extends AngularSelectorElementImpl {
 
   String _attributeName;
 
-  IsTagHasAttributeSelectorElementImpl(String tagName, String attributeName) : super("${tagName}[${attributeName}]", -1) {
+  IsTagHasAttributeSelectorElementImpl(String tagName, String attributeName) : super("$tagName[$attributeName]", -1) {
     this._tagName = tagName;
     this._attributeName = attributeName;
   }
@@ -7922,7 +7923,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         importList.add(_imports[i]);
       }
     }
-    return new List.from(importList);
+    return importList;
   }
 
   @override
@@ -8342,14 +8343,14 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
   }
 
   @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append(type);
-    builder.append(" ");
-    builder.append(displayName);
+  void appendTo(StringBuffer buffer) {
+    buffer.write(type);
+    buffer.write(" ");
+    buffer.write(displayName);
   }
 
   @override
-  String get identifier => "${super.identifier}@${nameOffset}";
+  String get identifier => "${super.identifier}@$nameOffset";
 }
 
 /**
@@ -8630,11 +8631,11 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   }
 
   @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append(enclosingElement.displayName);
-    builder.append(".");
-    builder.append(displayName);
-    super.appendTo(builder);
+  void appendTo(StringBuffer buffer) {
+    buffer.write(enclosingElement.displayName);
+    buffer.write(".");
+    buffer.write(displayName);
+    super.appendTo(buffer);
   }
 }
 
@@ -8698,24 +8699,24 @@ class MethodMember extends ExecutableMember implements MethodElement {
     MethodElement baseElement = this.baseElement;
     List<ParameterElement> parameters = this.parameters;
     FunctionType type = this.type;
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append(baseElement.enclosingElement.displayName);
-    builder.append(".");
-    builder.append(baseElement.displayName);
-    builder.append("(");
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(baseElement.enclosingElement.displayName);
+    buffer.write(".");
+    buffer.write(baseElement.displayName);
+    buffer.write("(");
     int parameterCount = parameters.length;
     for (int i = 0; i < parameterCount; i++) {
       if (i > 0) {
-        builder.append(", ");
+        buffer.write(", ");
       }
-      builder.append(parameters[i]).toString();
+      buffer.write(parameters[i]);
     }
-    builder.append(")");
+    buffer.write(")");
     if (type != null) {
-      builder.append(Element.RIGHT_ARROW);
-      builder.append(type.returnType);
+      buffer.write(Element.RIGHT_ARROW);
+      buffer.write(type.returnType);
     }
-    return builder.toString();
+    return buffer.toString();
   }
 }
 
@@ -9032,17 +9033,17 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append("[");
+    StringBuffer buffer = new StringBuffer();
+    buffer.write("[");
     int count = conflictingElements.length;
     for (int i = 0; i < count; i++) {
       if (i > 0) {
-        builder.append(", ");
+        buffer.write(", ");
       }
-      (conflictingElements[i] as ElementImpl).appendTo(builder);
+      (conflictingElements[i] as ElementImpl).appendTo(buffer);
     }
-    builder.append("]");
-    return builder.toString();
+    buffer.write("]");
+    return buffer.toString();
   }
 
   @override
@@ -9302,7 +9303,7 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
   }
 
   @override
-  void appendTo(JavaStringBuilder builder) {
+  void appendTo(StringBuffer buffer) {
     String left = "";
     String right = "";
     while (true) {
@@ -9316,9 +9317,9 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
       }
       break;
     }
-    builder.append(left);
-    appendToWithoutDelimiters(builder);
-    builder.append(right);
+    buffer.write(left);
+    appendToWithoutDelimiters(buffer);
+    buffer.write(right);
   }
 
   /**
@@ -9326,18 +9327,18 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
    *
    * @param builder the builder to which the type and name are to be appended
    */
-  void appendToWithoutDelimiters(JavaStringBuilder builder) {
-    builder.append(type);
-    builder.append(" ");
-    builder.append(displayName);
+  void appendToWithoutDelimiters(StringBuffer buffer) {
+    buffer.write(type);
+    buffer.write(" ");
+    buffer.write(displayName);
     if (_defaultValueCode != null) {
       if (parameterKind == ParameterKind.NAMED) {
-        builder.append(": ");
+        buffer.write(": ");
       }
       if (parameterKind == ParameterKind.POSITIONAL) {
-        builder.append(" = ");
+        buffer.write(" = ");
       }
-      builder.append(_defaultValueCode);
+      buffer.write(_defaultValueCode);
     }
   }
 }
@@ -9458,13 +9459,7 @@ class ParameterMember extends VariableMember implements ParameterElement {
       }
       break;
     }
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append(left);
-    builder.append(type);
-    builder.append(" ");
-    builder.append(baseElement.displayName);
-    builder.append(right);
-    return builder.toString();
+    return '$left$type ${baseElement.displayName}$right';
   }
 
   @override
@@ -9777,9 +9772,9 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   }
 
   @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append("as ");
-    super.appendTo(builder);
+  void appendTo(StringBuffer buffer) {
+    buffer.write("as ");
+    super.appendTo(buffer);
   }
 
   @override
@@ -9987,17 +9982,17 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
   }
 
   @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append(isGetter ? "get " : "set ");
-    builder.append(variable.displayName);
-    super.appendTo(builder);
+  void appendTo(StringBuffer buffer) {
+    buffer.write(isGetter ? "get " : "set ");
+    buffer.write(variable.displayName);
+    super.appendTo(buffer);
   }
 
   @override
   String get identifier {
     String name = displayName;
     String suffix = isGetter ? "?" : "=";
-    return "${name}${suffix}";
+    return "$name$suffix";
   }
 }
 
@@ -10107,27 +10102,27 @@ class PropertyAccessorMember extends ExecutableMember implements PropertyAccesso
     PropertyAccessorElement baseElement = this.baseElement;
     List<ParameterElement> parameters = this.parameters;
     FunctionType type = this.type;
-    JavaStringBuilder builder = new JavaStringBuilder();
+    StringBuffer builder = new StringBuffer();
     if (isGetter) {
-      builder.append("get ");
+      builder.write("get ");
     } else {
-      builder.append("set ");
+      builder.write("set ");
     }
-    builder.append(baseElement.enclosingElement.displayName);
-    builder.append(".");
-    builder.append(baseElement.displayName);
-    builder.append("(");
+    builder.write(baseElement.enclosingElement.displayName);
+    builder.write(".");
+    builder.write(baseElement.displayName);
+    builder.write("(");
     int parameterCount = parameters.length;
     for (int i = 0; i < parameterCount; i++) {
       if (i > 0) {
-        builder.append(", ");
+        builder.write(", ");
       }
-      builder.append(parameters[i]).toString();
+      builder.write(parameters[i]);
     }
-    builder.append(")");
+    builder.write(")");
     if (type != null) {
-      builder.append(Element.RIGHT_ARROW);
-      builder.append(type.returnType);
+      builder.write(Element.RIGHT_ARROW);
+      builder.write(type.returnType);
     }
     return builder.toString();
   }
@@ -10492,16 +10487,16 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
 
   @override
   String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append("show ");
+    StringBuffer buffer = new StringBuffer();
+    buffer.write("show ");
     int count = shownNames.length;
     for (int i = 0; i < count; i++) {
       if (i > 0) {
-        builder.append(", ");
+        buffer.write(", ");
       }
-      builder.append(shownNames[i]);
+      buffer.write(shownNames[i]);
     }
-    return builder.toString();
+    return buffer.toString();
   }
 }
 
@@ -10880,21 +10875,19 @@ abstract class TypeImpl implements DartType {
 
   @override
   String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    appendTo(builder);
-    return builder.toString();
+    StringBuffer buffer = new StringBuffer();
+    appendTo(buffer);
+    return buffer.toString();
   }
 
   /**
-   * Append a textual representation of this type to the given builder.
-   *
-   * @param builder the builder to which the text is to be appended
+   * Append a textual representation of this type to the given [buffer].
    */
-  void appendTo(JavaStringBuilder builder) {
+  void appendTo(StringBuffer buffer) {
     if (name == null) {
-      builder.append("<unnamed type>");
+      buffer.write("<unnamed type>");
     } else {
-      builder.append(name);
+      buffer.write(name);
     }
   }
 
@@ -11009,11 +11002,11 @@ class TypeParameterElementImpl extends ElementImpl implements TypeParameterEleme
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
 
   @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append(displayName);
+  void appendTo(StringBuffer buffer) {
+    buffer.write(displayName);
     if (bound != null) {
-      builder.append(" extends ");
-      builder.append(bound);
+      buffer.write(" extends ");
+      buffer.write(bound);
     }
   }
 }
@@ -11267,7 +11260,7 @@ class UnionTypeImpl extends TypeImpl implements UnionType {
       // instead of raising an exception.
       throw new IllegalArgumentException("No known use case for empty unions.");
     } else if (set.length == 1) {
-      return new JavaIterator(set).next();
+      return set.first;
     } else {
       return new UnionTypeImpl(set);
     }
@@ -11299,15 +11292,15 @@ class UnionTypeImpl extends TypeImpl implements UnionType {
 
   @override
   String get displayName {
-    JavaStringBuilder builder = new JavaStringBuilder();
+    StringBuffer buffer = new StringBuffer();
     String prefix = "{";
     for (DartType t in _types) {
-      builder.append(prefix);
-      builder.append(t.displayName);
+      buffer.write(prefix);
+      buffer.write(t.displayName);
       prefix = ",";
     }
-    builder.append("}");
-    return builder.toString();
+    buffer.write("}");
+    return buffer.toString();
   }
 
   @override
@@ -11322,18 +11315,18 @@ class UnionTypeImpl extends TypeImpl implements UnionType {
     for (DartType t in _types) {
       out.add(t.substitute2(argumentTypes, parameterTypes));
     }
-    return union(new List.from(out));
+    return union(out);
   }
 
   @override
-  void appendTo(JavaStringBuilder builder) {
+  void appendTo(StringBuffer buffer) {
     String prefix = "{";
-    for (DartType t in _types) {
-      builder.append(prefix);
-      (t as TypeImpl).appendTo(builder);
+    for (DartType type in _types) {
+      buffer.write(prefix);
+      (type as TypeImpl).appendTo(buffer);
       prefix = ",";
     }
-    builder.append("}");
+    buffer.write("}");
   }
 
   @override
@@ -11663,10 +11656,10 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
   }
 
   @override
-  void appendTo(JavaStringBuilder builder) {
-    builder.append(type);
-    builder.append(" ");
-    builder.append(displayName);
+  void appendTo(StringBuffer buffer) {
+    buffer.write(type);
+    buffer.write(" ");
+    buffer.write(displayName);
   }
 }
 

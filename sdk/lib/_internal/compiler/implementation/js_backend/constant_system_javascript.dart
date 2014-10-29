@@ -174,6 +174,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
       const JavaScriptBinaryArithmeticOperation(const SubtractOperation());
   final truncatingDivide = const JavaScriptBinaryArithmeticOperation(
       const TruncatingDivideOperation());
+  final codeUnitAt = const CodeUnitAtRuntimeOperation();
 
   const JavaScriptConstantSystem();
 

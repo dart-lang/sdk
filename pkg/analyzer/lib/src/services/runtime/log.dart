@@ -41,7 +41,7 @@ void toConsole() {
   _logger.onRecord.listen((LogRecord record) {
     String levelString = record.level.toString();
     while (levelString.length < 6) levelString += ' ';
-    print('${record.time}: ${levelString} ${record.message}');
+    print('${record.time}: $levelString ${record.message}');
   });
 }
 

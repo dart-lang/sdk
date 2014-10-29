@@ -89,7 +89,8 @@ abstract class TimingTest extends IntegrationTestMixin {
     onServerConnected.listen((_) {
       serverConnected.complete();
     });
-    return server.start().then((params) {
+    skipShutdown = true;
+    return server.start(profileServer: true).then((params) {
       server.listenToOutput(dispatchNotification);
       server.exitCode.then((_) {
         skipShutdown = true;

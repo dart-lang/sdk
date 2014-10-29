@@ -306,7 +306,7 @@ class ConstantValueComputer {
   /**
    * RegExp that validates a non-empty non-private symbol. From sdk/lib/internal/symbol.dart.
    */
-  static RegExp _PUBLIC_SYMBOL_PATTERN = new RegExp("^(?:${ConstantValueComputer._OPERATOR_RE}\$|${_PUBLIC_IDENTIFIER_RE}(?:=?\$|[.](?!\$)))+?\$");
+  static RegExp _PUBLIC_SYMBOL_PATTERN = new RegExp("^(?:${ConstantValueComputer._OPERATOR_RE}\$|$_PUBLIC_IDENTIFIER_RE(?:=?\$|[.](?!\$)))+?\$");
 
   /**
    * Determine whether the given string is a valid name for a public symbol (i.e. whether it is
@@ -378,14 +378,12 @@ class ConstantValueComputer {
     _variableDeclarationMap = _constantFinder.variableMap;
     constructorDeclarationMap = _constantFinder.constructorMap;
     _constructorInvocations = _constantFinder.constructorInvocations;
-    for (MapEntry<VariableElement, VariableDeclaration> entry in getMapEntrySet(_variableDeclarationMap)) {
-      VariableDeclaration declaration = entry.getValue();
+    _variableDeclarationMap.values.forEach((VariableDeclaration declaration) {
       ReferenceFinder referenceFinder = new ReferenceFinder(declaration, referenceGraph, _variableDeclarationMap, constructorDeclarationMap);
       referenceGraph.addNode(declaration);
       declaration.initializer.accept(referenceFinder);
-    }
-    for (MapEntry<ConstructorElement, ConstructorDeclaration> entry in getMapEntrySet(constructorDeclarationMap)) {
-      ConstructorDeclaration declaration = entry.getValue();
+    });
+    constructorDeclarationMap.forEach((ConstructorElement element, ConstructorDeclaration declaration) {
       ReferenceFinder referenceFinder = new ReferenceFinder(declaration, referenceGraph, _variableDeclarationMap, constructorDeclarationMap);
       referenceGraph.addNode(declaration);
       bool superInvocationFound = false;
@@ -399,7 +397,7 @@ class ConstantValueComputer {
       if (!superInvocationFound) {
         // No explicit superconstructor invocation found, so we need to manually insert
         // a reference to the implicit superconstructor.
-        InterfaceType superclass = (entry.getKey().returnType as InterfaceType).superclass;
+        InterfaceType superclass = (element.returnType as InterfaceType).superclass;
         if (superclass != null && !superclass.isObject) {
           ConstructorElement unnamedConstructor = superclass.element.unnamedConstructor;
           ConstructorDeclaration superConstructorDeclaration = findConstructorDeclaration(unnamedConstructor);
@@ -419,7 +417,7 @@ class ConstantValueComputer {
           }
         }
       }
-    }
+    });
     for (InstanceCreationExpression expression in _constructorInvocations) {
       referenceGraph.addNode(expression);
       ConstructorElement constructor = expression.staticElement;
@@ -900,10 +898,16 @@ class ConstantValueComputer {
 }
 
 /**
- * [AstCloner] that copies the necessary information from the AST to allow const constructor
- * initializers to be evaluated.
+ * A `ConstantValueComputer_InitializerCloner` is an [AstCloner] that copies the
+ * necessary information from the AST to allow const constructor initializers to
+ * be evaluated.
  */
 class ConstantValueComputer_InitializerCloner extends AstCloner {
+  // TODO(brianwilkerson) Investigate replacing uses of this class with uses of
+  // AstCloner and ResolutionCopier.
+
+  ConstantValueComputer_InitializerCloner() : super(true);
+
   @override
   InstanceCreationExpression visitInstanceCreationExpression(InstanceCreationExpression node) {
     InstanceCreationExpression expression = super.visitInstanceCreationExpression(node);
@@ -1195,7 +1199,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       }
     }
     InterfaceType listType = _typeProvider.listType.substitute4([elementType]);
-    return new DartObjectImpl(listType, new ListState(new List.from(elements)));
+    return new DartObjectImpl(listType, new ListState(elements));
   }
 
   @override
@@ -1359,15 +1363,15 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitSymbolLiteral(SymbolLiteral node) {
-    JavaStringBuilder builder = new JavaStringBuilder();
+    StringBuffer buffer = new StringBuffer();
     List<Token> components = node.components;
     for (int i = 0; i < components.length; i++) {
       if (i > 0) {
-        builder.appendChar(0x2E);
+        buffer.writeCharCode(0x2E);
       }
-      builder.append(components[i].lexeme);
+      buffer.write(components[i].lexeme);
     }
-    return new DartObjectImpl(_typeProvider.symbolType, new SymbolState(builder.toString()));
+    return new DartObjectImpl(_typeProvider.symbolType, new SymbolState(buffer.toString()));
   }
 
   /**
@@ -1926,7 +1930,7 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.stringType, result);
     }
     // We should never get here.
-    throw new IllegalStateException("add returned a ${result.runtimeType.toString()}");
+    throw new IllegalStateException("add returned a ${result.runtimeType}");
   }
 
   /**
@@ -2011,7 +2015,7 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.numType, result);
     }
     // We should never get here.
-    throw new IllegalStateException("divide returned a ${result.runtimeType.toString()}");
+    throw new IllegalStateException("divide returned a ${result.runtimeType}");
   }
 
   /**
@@ -2217,7 +2221,7 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.numType, result);
     }
     // We should never get here.
-    throw new IllegalStateException("minus returned a ${result.runtimeType.toString()}");
+    throw new IllegalStateException("minus returned a ${result.runtimeType}");
   }
 
   /**
@@ -2237,7 +2241,7 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.numType, result);
     }
     // We should never get here.
-    throw new IllegalStateException("negated returned a ${result.runtimeType.toString()}");
+    throw new IllegalStateException("negated returned a ${result.runtimeType}");
   }
 
   /**
@@ -2291,7 +2295,7 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.numType, result);
     }
     // We should never get here.
-    throw new IllegalStateException("remainder returned a ${result.runtimeType.toString()}");
+    throw new IllegalStateException("remainder returned a ${result.runtimeType}");
   }
 
   /**
@@ -2341,11 +2345,11 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.numType, result);
     }
     // We should never get here.
-    throw new IllegalStateException("times returned a ${result.runtimeType.toString()}");
+    throw new IllegalStateException("times returned a ${result.runtimeType}");
   }
 
   @override
-  String toString() => "${type.displayName} (${_state.toString()})";
+  String toString() => "${type.displayName} ($_state)";
 }
 
 /**
@@ -2425,7 +2429,8 @@ class DeclaredVariables {
   DartObject getString(TypeProvider typeProvider, String variableName) {
     String value = _declaredVariables[variableName];
     if (value == null) {
-      return new DartObjectImpl(typeProvider.intType, IntState.UNKNOWN_VALUE);
+      return new DartObjectImpl(typeProvider.stringType,
+          StringState.UNKNOWN_VALUE);
     }
     return new DartObjectImpl(typeProvider.stringType, new StringState(value));
   }
@@ -4181,9 +4186,8 @@ class MapState extends InstanceState {
     } else if (count == 0) {
       return true;
     }
-    for (MapEntry<DartObjectImpl, DartObjectImpl> entry in getMapEntrySet(_entries)) {
-      DartObjectImpl key = entry.getKey();
-      DartObjectImpl value = entry.getValue();
+    for (DartObjectImpl key in _entries.keys) {
+      DartObjectImpl value = _entries[key];
       DartObjectImpl otherValue = otherElements[key];
       if (value != otherValue) {
         return false;
@@ -4198,9 +4202,8 @@ class MapState extends InstanceState {
   @override
   Map<Object, Object> get value {
     HashMap<Object, Object> result = new HashMap<Object, Object>();
-    for (MapEntry<DartObjectImpl, DartObjectImpl> entry in getMapEntrySet(_entries)) {
-      DartObjectImpl key = entry.getKey();
-      DartObjectImpl value = entry.getValue();
+    for (DartObjectImpl key in _entries.keys) {
+      DartObjectImpl value = _entries[key];
       if (!key.hasExactValue || !value.hasExactValue) {
         return null;
       }
@@ -4211,8 +4214,8 @@ class MapState extends InstanceState {
 
   @override
   bool get hasExactValue {
-    for (MapEntry<DartObjectImpl, DartObjectImpl> entry in getMapEntrySet(_entries)) {
-      if (!entry.getKey().hasExactValue || !entry.getValue().hasExactValue) {
+    for (DartObjectImpl key in _entries.keys) {
+      if (!key.hasExactValue || !_entries[key].hasExactValue) {
         return false;
       }
     }
@@ -4523,7 +4526,7 @@ class StringState extends InstanceState {
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return new StringState("${value}${rightValue}");
+      return new StringState("$value$rightValue");
     } else if (rightOperand is DynamicState) {
       return UNKNOWN_VALUE;
     }
@@ -4578,7 +4581,7 @@ class StringState extends InstanceState {
   }
 
   @override
-  String toString() => value == null ? "-unknown-" : "'${value}'";
+  String toString() => value == null ? "-unknown-" : "'$value'";
 }
 
 /**
@@ -4637,7 +4640,7 @@ class SymbolState extends InstanceState {
   int get hashCode => value == null ? 0 : value.hashCode;
 
   @override
-  String toString() => value == null ? "-unknown-" : "#${value}";
+  String toString() => value == null ? "-unknown-" : "#$value";
 }
 
 /**

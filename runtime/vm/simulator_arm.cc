@@ -678,55 +678,14 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
 
 // Synchronization primitives support.
 Mutex* Simulator::exclusive_access_lock_ = NULL;
-Simulator::AddressTag Simulator::exclusive_access_state_[kNumAddressTags];
-int Simulator::next_address_tag_;
-
-
-void Simulator::SetExclusiveAccess(uword addr) {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  int i = 0;
-  while ((i < kNumAddressTags) &&
-         (exclusive_access_state_[i].isolate != isolate)) {
-    i++;
-  }
-  if (i == kNumAddressTags) {
-    i = next_address_tag_;
-    if (++next_address_tag_ == kNumAddressTags) next_address_tag_ = 0;
-    exclusive_access_state_[i].isolate = isolate;
-  }
-  exclusive_access_state_[i].addr = addr;
-}
-
-
-bool Simulator::HasExclusiveAccessAndOpen(uword addr) {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  bool result = false;
-  for (int i = 0; i < kNumAddressTags; i++) {
-    if (exclusive_access_state_[i].isolate == isolate) {
-      if (exclusive_access_state_[i].addr == addr) {
-        result = true;
-      }
-      exclusive_access_state_[i].addr = NULL;
-      continue;
-    }
-    if (exclusive_access_state_[i].addr == addr) {
-      exclusive_access_state_[i].addr = NULL;
-    }
-  }
-  return result;
-}
+Simulator::AddressTag Simulator::exclusive_access_state_[kNumAddressTags] =
+    {{NULL, 0}};
+int Simulator::next_address_tag_ = 0;
 
 
 void Simulator::InitOnce() {
-  // Setup exclusive access state.
+  // Setup exclusive access state lock.
   exclusive_access_lock_ = new Mutex();
-  for (int i = 0; i < kNumAddressTags; i++) {
-    exclusive_access_state_[i].isolate = NULL;
-    exclusive_access_state_[i].addr = NULL;
-  }
-  next_address_tag_ = 0;
 }
 
 
@@ -1112,16 +1071,59 @@ void Simulator::WriteB(uword addr, uint8_t value) {
 
 
 // Synchronization primitives support.
+void Simulator::SetExclusiveAccess(uword addr) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  DEBUG_ASSERT(exclusive_access_lock_->Owner() == isolate);
+  int i = 0;
+  // Find an entry for this isolate in the exclusive access state.
+  while ((i < kNumAddressTags) &&
+         (exclusive_access_state_[i].isolate != isolate)) {
+    i++;
+  }
+  // Round-robin replacement of previously used entries.
+  if (i == kNumAddressTags) {
+    i = next_address_tag_;
+    if (++next_address_tag_ == kNumAddressTags) {
+      next_address_tag_ = 0;
+    }
+    exclusive_access_state_[i].isolate = isolate;
+  }
+  // Remember the address being reserved.
+  exclusive_access_state_[i].addr = addr;
+}
+
+
+bool Simulator::HasExclusiveAccessAndOpen(uword addr) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  ASSERT(addr != 0);
+  DEBUG_ASSERT(exclusive_access_lock_->Owner() == isolate);
+  bool result = false;
+  for (int i = 0; i < kNumAddressTags; i++) {
+    if (exclusive_access_state_[i].isolate == isolate) {
+      // Check whether the current isolate's address reservation matches.
+      if (exclusive_access_state_[i].addr == addr) {
+        result = true;
+      }
+      exclusive_access_state_[i].addr = 0;
+    } else if (exclusive_access_state_[i].addr == addr) {
+      // Other isolates with matching address lose their reservations.
+      exclusive_access_state_[i].addr = 0;
+    }
+  }
+  return result;
+}
+
+
 void Simulator::ClearExclusive() {
-  // This lock is initialized in Simulator::InitOnce().
   MutexLocker ml(exclusive_access_lock_);
-  // Set exclusive access to open state for this isolate.
-  HasExclusiveAccessAndOpen(NULL);
+  // Remove the reservation for this isolate.
+  SetExclusiveAccess(NULL);
 }
 
 
 intptr_t Simulator::ReadExclusiveW(uword addr, Instr* instr) {
-  // This lock is initialized in Simulator::InitOnce().
   MutexLocker ml(exclusive_access_lock_);
   SetExclusiveAccess(addr);
   return ReadW(addr, instr);
@@ -1129,7 +1131,6 @@ intptr_t Simulator::ReadExclusiveW(uword addr, Instr* instr) {
 
 
 intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
-  // This lock is initialized in Simulator::InitOnce().
   MutexLocker ml(exclusive_access_lock_);
   bool write_allowed = HasExclusiveAccessAndOpen(addr);
   if (write_allowed) {
@@ -1143,8 +1144,10 @@ intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
 uword Simulator::CompareExchange(uword* address,
                                  uword compare_value,
                                  uword new_value) {
-  // This lock is initialized in Simulator::InitOnce().
   MutexLocker ml(exclusive_access_lock_);
+  // We do not get a reservation as it would be guaranteed to be found when
+  // writing below. No other isolate is able to make a reservation while we
+  // hold the lock.
   uword value = *address;
   if (value == compare_value) {
     *address = new_value;

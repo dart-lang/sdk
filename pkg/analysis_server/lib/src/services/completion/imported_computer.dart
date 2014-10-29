@@ -48,6 +48,11 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   _ImportedVisitor(this.request);
 
   @override
+  Future<bool> visitArgumentList(ArgumentList node) {
+    return _addImportedElementSuggestions(node, excludeVoidReturn: true);
+  }
+
+  @override
   Future<bool> visitBlock(Block node) {
     return _addImportedElementSuggestions(node);
   }

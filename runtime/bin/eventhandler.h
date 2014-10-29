@@ -29,6 +29,14 @@ enum MessageFlags {
   kPipe = 17,
 };
 
+#define COMMAND_MASK ((1 << kCloseCommand) | \
+                      (1 << kShutdownReadCommand) | \
+                      (1 << kShutdownWriteCommand) | \
+                      (1 << kReturnTokenCommand))
+#define IS_COMMAND(data, command_bit) \
+    ((data & COMMAND_MASK) == (1 << command_bit))  // NOLINT
+#define ASSERT_NO_COMMAND(data) ASSERT((data & COMMAND_MASK) == 0)  // NOLINT
+#define TOKEN_COUNT(data) (data & ((1 << kCloseCommand) - 1))
 
 class TimeoutQueue {
  private:

@@ -44,8 +44,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ Comment("CallToRuntimeStub");
   __ EnterFrame(0);
 
-  // Load current Isolate pointer from Context structure into R0.
-  __ LoadFieldFromOffset(R0, CTX, Context::isolate_offset(), kNoPP);
+  __ LoadIsolate(R0, kNoPP);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
@@ -161,8 +160,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   __ EnterFrame(0);
 
-  // Load current Isolate pointer from Context structure into R0.
-  __ LoadFieldFromOffset(R0, CTX, Context::isolate_offset(), kNoPP);
+  __ LoadIsolate(R0, kNoPP);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
@@ -278,8 +276,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   __ EnterFrame(0);
 
-  // Load current Isolate pointer from Context structure into R0.
-  __ LoadFieldFromOffset(R0, CTX, Context::isolate_offset(), kNoPP);
+  __ LoadIsolate(R0, kNoPP);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
@@ -815,9 +812,6 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 //   R3 : new context containing the current isolate pointer.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Comment("InvokeDartCodeStub");
-  // The new context, saved vm tag, the top exit frame, and the old context.
-  const intptr_t kNewContextOffsetFromFp =
-      -(1 + kAbiPreservedCpuRegCount + kAbiPreservedFpuRegCount) * kWordSize;
 
   // Copy the C stack pointer (R31) into the stack pointer we'll actually use
   // to access the stack, and put the C stack pointer at the stack limit.
@@ -844,6 +838,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 #if defined(DEBUG)
   {
     Label ok;
+    // The new context, saved vm tag, the top exit frame, and the old context.
+    const intptr_t kNewContextOffsetFromFp =
+        -(1 + kAbiPreservedCpuRegCount + kAbiPreservedFpuRegCount) * kWordSize;
     __ AddImmediate(R4, FP, kNewContextOffsetFromFp, kNoPP);
     __ CompareRegisters(R4, SP);
     __ b(&ok, EQ);
@@ -868,9 +865,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Load Isolate pointer into temporary register R5.
   __ LoadIsolate(R5, PP);
-
-  // Cache the new Context pointer into CTX while executing Dart code.
-  __ LoadFromOffset(CTX, R3, VMHandles::kOffsetOfRawPtrInHandle, PP);
 
   // Save the current VMTag on the stack.
   ASSERT(kSavedVMTagSlotFromEntryFp == -20);
@@ -933,14 +927,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore constant pool pointer after return.
   __ LoadPoolPointer(PP);
 
-  // Read the saved new Context pointer.
-  __ LoadFromOffset(CTX, FP, kNewContextOffsetFromFp, PP);
-  __ LoadFromOffset(CTX, CTX, VMHandles::kOffsetOfRawPtrInHandle, PP);
-
   // Get rid of arguments pushed on the stack.
   __ AddImmediate(SP, FP, kSavedContextSlotFromEntryFp * kWordSize, PP);
 
-  // Load Isolate pointer into CTX. Drop Context.
+  // Load Isolate pointer into CTX.
   __ LoadIsolate(CTX, PP);
 
   // Restore the current VMTag from the stack.
@@ -1053,14 +1043,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R0: new object.
     // R1: number of context variables as integer value (not object).
     __ StoreFieldToOffset(R1, R0, Context::num_variables_offset(), kNoPP);
-
-    // Setup isolate field.
-    // Load Isolate pointer into R2.
-    // R0: new object.
-    // R1: number of context variables.
-    __ LoadIsolate(R2, kNoPP);
-    // R2: isolate, not an object.
-    __ StoreFieldToOffset(R2, R0, Context::isolate_offset(), kNoPP);
 
     // Setup the parent field.
     // R0: new object.
@@ -1836,7 +1818,7 @@ void StubCode::GenerateDebugStepCheckStub(
     Assembler* assembler) {
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadFieldFromOffset(R1, CTX, Context::isolate_offset(), kNoPP);
+  __ LoadIsolate(R1, kNoPP);
   __ LoadFromOffset(
       R1, R1, Isolate::single_step_offset(), kNoPP, kUnsignedByte);
   __ CompareImmediate(R1, 0, kNoPP);
@@ -2088,7 +2070,7 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadFieldFromOffset(R1, CTX, Context::isolate_offset(), kNoPP);
+  __ LoadIsolate(R1, kNoPP);
   __ LoadFromOffset(
       R1, R1, Isolate::single_step_offset(), kNoPP, kUnsignedByte);
   __ CompareImmediate(R1, 0, kNoPP);

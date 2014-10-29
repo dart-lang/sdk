@@ -46,6 +46,8 @@ abstract class ConstantSystem {
   BinaryOperation get subtract;
   BinaryOperation get truncatingDivide;
 
+  BinaryOperation get codeUnitAt;
+
   const ConstantSystem();
 
   ConstantValue createInt(int i);

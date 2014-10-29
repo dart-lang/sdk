@@ -85,12 +85,18 @@ class WebSocketServerChannel implements ServerCommunicationChannel {
 
   @override
   void sendNotification(Notification notification) {
-    socket.add(JSON.encode(notification.toJson()));
+    ServerCommunicationChannel.ToJson.start();
+    String jsonEncoding = JSON.encode(notification.toJson());
+    ServerCommunicationChannel.ToJson.stop();
+    socket.add(jsonEncoding);
   }
 
   @override
   void sendResponse(Response response) {
-    socket.add(JSON.encode(response.toJson()));
+    ServerCommunicationChannel.ToJson.start();
+    String jsonEncoding = JSON.encode(response.toJson());
+    ServerCommunicationChannel.ToJson.stop();
+    socket.add(jsonEncoding);
   }
 
   /**
@@ -101,7 +107,9 @@ class WebSocketServerChannel implements ServerCommunicationChannel {
     if (data is String) {
       // Parse the string as a JSON descriptor and process the resulting
       // structure as a request.
+      ServerCommunicationChannel.FromJson.start();
       Request request = new Request.fromString(data);
+      ServerCommunicationChannel.FromJson.stop();
       if (request == null) {
         sendResponse(new Response.invalidRequestFormat());
         return;

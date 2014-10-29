@@ -89,7 +89,7 @@ class NodeInfo {
     }
     // Print source and line ranges.
     if (children.isEmpty) {
-      sink.write('${prefix}  "ranges": [');
+      sink.write('$prefix  "ranges": [');
       var rangePrinter = new RangePrinter(unit, sink, executedIds);
       idToRange.forEach(rangePrinter.handle);
       rangePrinter.printRange();

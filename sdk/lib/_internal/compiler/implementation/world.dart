@@ -112,18 +112,17 @@ class World implements ClassWorld {
       invariant(cls, cls.isDeclaration,
                 message: '$cls must be the declaration.') &&
       invariant(cls, cls.isResolved,
-                message: '$cls must be resolved.');
-    // TODO(johnniwinther): Enable check for instantiation:
-    // (!mustBeInstantiated ||
-    //   invariant(cls, isInstantiated(cls),
-    //             message: '$cls is not instantiated.'));
+                message: '$cls must be resolved.') &&
+      (!mustBeInstantiated ||
+       invariant(cls, isInstantiated(cls),
+                 message: '$cls is not instantiated.'));
  }
 
   /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
   /// instance of [y].
   bool isSubtypeOf(ClassElement x, ClassElement y) {
-    assert(checkInvariants(x, mustBeInstantiated: true));
-    assert(checkInvariants(y));
+    assert(checkInvariants(x));
+    assert(checkInvariants(y, mustBeInstantiated: false));
 
     if (y == objectClass) return true;
     if (x == objectClass) return false;

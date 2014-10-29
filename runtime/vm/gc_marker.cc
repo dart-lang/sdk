@@ -245,8 +245,9 @@ class MarkingVisitor : public ObjectPointerVisitor {
         // If the code wasn't strongly visited through other references
         // after skipping the function's code pointer, then we disconnect the
         // code from the function.
+        StubCode* stub_code = isolate()->stub_code();
         func->ptr()->instructions_ =
-            StubCode::LazyCompile_entry()->code()->ptr()->instructions_;
+            stub_code->LazyCompile_entry()->code()->ptr()->instructions_;
         func->ptr()->unoptimized_code_ = Code::null();
         if (FLAG_log_code_drop) {
           // NOTE: This code runs while GC is in progress and runs within

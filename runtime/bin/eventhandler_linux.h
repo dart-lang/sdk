@@ -187,21 +187,32 @@ class ListeningSocketData : public SocketData {
   virtual bool RemovePort(Dart_Port port) {
     HashMap::Entry* entry = tokens_map_.Lookup(
         GetHashmapKeyFromPort(port), GetHashmapHashFromPort(port), false);
-    ASSERT(entry != NULL);
-    intptr_t tokens = reinterpret_cast<intptr_t>(entry->value);
-    if (tokens == 0) {
-      while (idle_ports_.head() != port) {
-        idle_ports_.Rotate();
+    if (entry != NULL) {
+      intptr_t tokens = reinterpret_cast<intptr_t>(entry->value);
+      if (tokens == 0) {
+        while (idle_ports_.head() != port) {
+          idle_ports_.Rotate();
+        }
+        idle_ports_.RemoveHead();
+      } else {
+        while (live_ports_.head() != port) {
+          live_ports_.Rotate();
+        }
+        live_ports_.RemoveHead();
       }
-      idle_ports_.RemoveHead();
+      tokens_map_.Remove(
+          GetHashmapKeyFromPort(port), GetHashmapHashFromPort(port));
     } else {
-      while (live_ports_.head() != port) {
-        live_ports_.Rotate();
-      }
-      live_ports_.RemoveHead();
+      // NOTE: This is a listening socket which has been immediately closed.
+      //
+      // If a listening socket is not listened on, the event handler does not
+      // know about it beforehand. So the first time the event handler knows
+      // about it, is when it is supposed to be closed. We therefore do nothing
+      // here.
+      //
+      // But whether to close it, depends on whether other isolates have it open
+      // as well or not.
     }
-    tokens_map_.Remove(
-        GetHashmapKeyFromPort(port), GetHashmapHashFromPort(port));
     return !live_ports_.HasHead();
   }
 

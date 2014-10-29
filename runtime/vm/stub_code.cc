@@ -58,19 +58,31 @@ void StubCode::InitOnce() {
 }
 
 
-void StubCode::GenerateFor(Isolate* init) {
-  // Generate all the stubs.
+void StubCode::GenerateBootstrapStubsFor(Isolate* init) {
+  // Generate initial stubs.
   Code& code = Code::Handle();
-  STUB_CODE_LIST(STUB_CODE_GENERATE);
+  BOOTSTRAP_STUB_CODE_LIST(STUB_CODE_GENERATE);
+}
+
+
+void StubCode::GenerateStubsFor(Isolate* init) {
+  // Generate all the other stubs.
+  Code& code = Code::Handle();
+  REST_STUB_CODE_LIST(STUB_CODE_GENERATE);
 }
 
 #undef STUB_CODE_GENERATE
 
 
-void StubCode::Init(Isolate* isolate) {
+void StubCode::InitBootstrapStubs(Isolate* isolate) {
   StubCode* stubs = new StubCode(isolate);
   isolate->set_stub_code(stubs);
-  stubs->GenerateFor(isolate);
+  stubs->GenerateBootstrapStubsFor(isolate);
+}
+
+
+void StubCode::Init(Isolate* isolate) {
+  isolate->stub_code()->GenerateStubsFor(isolate);
 }
 
 

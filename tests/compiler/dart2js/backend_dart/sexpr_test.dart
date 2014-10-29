@@ -2,14 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../compiler_helper.dart';
-import 'sexpr_unstringifier.dart';
+library dart_backend.sexpr_test;
+
 import 'dart:async';
-import "package:async_helper/async_helper.dart";
-import "package:expect/expect.dart";
+
+import 'package:async_helper/async_helper.dart';
 import 'package:compiler/implementation/dart2jslib.dart';
 import 'package:compiler/implementation/cps_ir/cps_ir_nodes.dart';
 import 'package:compiler/implementation/cps_ir/cps_ir_nodes_sexpr.dart';
+import 'package:expect/expect.dart';
+
+import '../compiler_helper.dart' hide compilerFor;
+import 'sexpr_unstringifier.dart';
+import 'test_helper.dart';
 
 const String CODE = """
 class Foo {
@@ -23,7 +28,7 @@ class Bar extends Foo {
     Foo.x = 2;
   }
   foo() =>  this.y + super.foo();
-} 
+}
 
 class FooBar<T> {
   bool foobar() => T is int;
@@ -83,26 +88,7 @@ bool shouldOutput(Element element) {
 /// Compiles the given dart code (which must include a 'main' function) and
 /// returns a list of all generated CPS IR definitions.
 Future<List<FunctionDefinition>> compile(String code) {
-  MockCompiler compiler = new MockCompiler.internal(
-      emitJavaScript: false,
-      enableMinification: false);
-
-  return compiler.init().then((_) {
-    compiler.parseScript(code);
-
-    Element element = compiler.mainApp.find('main');
-    if (element == null) return null;
-
-    compiler.mainFunction = element;
-    compiler.phase = Compiler.PHASE_RESOLVING;
-    compiler.backend.enqueueHelpers(compiler.enqueuer.resolution,
-                                    compiler.globalDependencies);
-    compiler.processQueue(compiler.enqueuer.resolution, element);
-    compiler.world.populate();
-    compiler.backend.onResolutionComplete();
-
-    compiler.irBuilder.buildNodes(useNewBackend: true);
-
+  return compilerFor(code).then((Compiler compiler) {
     return compiler.enqueuer.resolution.resolvedElements
               .where(shouldOutput)
               .map(compiler.irBuilder.getIr)

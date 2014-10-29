@@ -136,6 +136,17 @@ class _InvocationElementVisitor extends GeneralizingElementVisitor<Future<bool>>
   _InvocationElementVisitor(this.request);
 
   @override
+  Future<bool> visitClassElement(ClassElement element) {
+    if (element != null) {
+      InterfaceType type = element.type;
+      if (type != null) {
+        ClassElementSuggestionBuilder.staticSuggestionsFor(request, type.element);
+      }
+    }
+    return new Future.value(false);
+  }
+
+  @override
   Future<bool> visitElement(Element element) {
     return new Future.value(false);
   }
@@ -159,6 +170,21 @@ class _InvocationElementVisitor extends GeneralizingElementVisitor<Future<bool>>
       }
     });
     return new Future.value(modified);
+  }
+
+  @override
+  Future<bool> visitPropertyAccessorElement(PropertyAccessorElement element) {
+    if (element != null) {
+      PropertyInducingElement elemVar = element.variable;
+      if (elemVar != null) {
+        DartType type = elemVar.type;
+        if (type != null) {
+          ClassElementSuggestionBuilder.suggestionsFor(request, type.element);
+        }
+      }
+      return new Future.value(true);
+    }
+    return new Future.value(false);
   }
 
   @override

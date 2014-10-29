@@ -248,7 +248,7 @@ abstract class AbstractScanner {
             String tag = _tail.lexeme;
             for (String str in _passThroughElements) {
               if (str == tag) {
-                endPassThrough = "</${str}>";
+                endPassThrough = "</$str>";
                 break;
               }
             }
@@ -341,17 +341,17 @@ abstract class AbstractScanner {
 }
 
 class ExpressionVisitor_HtmlUnitUtils_getExpression extends ExpressionVisitor {
-  int offset = 0;
+  final int offset;
 
-  List<Expression> result;
+  Expression result;
 
-  ExpressionVisitor_HtmlUnitUtils_getExpression(this.offset, this.result) : super();
+  ExpressionVisitor_HtmlUnitUtils_getExpression(this.offset);
 
   @override
   void visitExpression(Expression expression) {
     Expression at = HtmlUnitUtils._getExpressionAt(expression, offset);
     if (at != null) {
-      result[0] = at;
+      result = at;
       throw new HtmlUnitUtils_FoundExpressionError();
     }
   }
@@ -383,7 +383,7 @@ class HtmlParser extends XmlParser {
   /**
    * A set containing the names of tags that do not have a closing tag.
    */
-  static Set<String> SELF_CLOSING = new HashSet<String>.from(JavaArrays.asList(<String> [
+  static Set<String> SELF_CLOSING = new HashSet<String>.from(<String>[
       "area",
       "base",
       "basefont",
@@ -396,7 +396,7 @@ class HtmlParser extends XmlParser {
       "link",
       "meta",
       "param",
-      "!"]));
+      "!"]);
 
   /**
    * Given the contents of an embedded expression that occurs at the given offset, parse it as a
@@ -628,11 +628,12 @@ class HtmlUnitUtils {
     if (htmlUnit == null) {
       return null;
     }
-    List<XmlAttributeNode> result = [null];
+    RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode visitor
+        = new RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode(offset);
     try {
-      htmlUnit.accept(new RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode(offset, result));
+      htmlUnit.accept(visitor);
     } on HtmlUnitUtils_FoundAttributeNodeError catch (e) {
-      return result[0];
+      return visitor.result;
     }
     return null;
   }
@@ -678,11 +679,12 @@ class HtmlUnitUtils {
     if (htmlUnit == null) {
       return null;
     }
-    List<XmlTagNode> result = [null];
+    RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode visitor
+        = new RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode(offset);
     try {
-      htmlUnit.accept(new RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode(offset, result));
+      htmlUnit.accept(visitor);
     } on HtmlUnitUtils_FoundTagNodeError catch (e) {
-      return result[0];
+      return visitor.result;
     }
     return null;
   }
@@ -695,12 +697,13 @@ class HtmlUnitUtils {
     if (htmlUnit == null) {
       return null;
     }
-    List<Expression> result = [null];
+    ExpressionVisitor_HtmlUnitUtils_getExpression visitor
+        = new ExpressionVisitor_HtmlUnitUtils_getExpression(offset);
     try {
       // TODO(scheglov) this code is very Angular specific
-      htmlUnit.accept(new ExpressionVisitor_HtmlUnitUtils_getExpression(offset, result));
+      htmlUnit.accept(visitor);
     } on HtmlUnitUtils_FoundExpressionError catch (e) {
-      return result[0];
+      return visitor.result;
     }
     return null;
   }
@@ -819,17 +822,17 @@ class RecursiveXmlVisitor<R> implements XmlVisitor<R> {
 }
 
 class RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode extends RecursiveXmlVisitor<Object> {
-  int offset = 0;
+  final int offset;
 
-  List<XmlAttributeNode> result;
+  XmlAttributeNode result;
 
-  RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode(this.offset, this.result) : super();
+  RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode(this.offset);
 
   @override
   Object visitXmlAttributeNode(XmlAttributeNode node) {
     Token nameToken = node.nameToken;
     if (nameToken.offset <= offset && offset <= nameToken.end) {
-      result[0] = node;
+      result = node;
       throw new HtmlUnitUtils_FoundAttributeNodeError();
     }
     return super.visitXmlAttributeNode(node);
@@ -837,16 +840,16 @@ class RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode extends RecursiveXmlVis
 }
 
 class RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode extends RecursiveXmlVisitor<Object> {
-  int offset = 0;
+  final int offset;
 
-  List<XmlTagNode> result;
+  XmlTagNode result;
 
-  RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode(this.offset, this.result) : super();
+  RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode(this.offset);
 
   @override
   Object visitXmlTagNode(XmlTagNode node) {
     if (node.offset <= offset && offset < node.end) {
-      result[0] = node;
+      result = node;
       super.visitXmlTagNode(node);
       throw new HtmlUnitUtils_FoundTagNodeError();
     }
@@ -1488,12 +1491,9 @@ abstract class XmlNode {
       }
     }
     if (children != null) {
-      for (JavaIterator iter = new JavaIterator(children); iter.hasNext;) {
-        XmlNode node = iter.next();
+      children.forEach((XmlNode node) {
         node.parent = this;
-      }
-      // This will create ArrayList for exactly given number of elements.
-      return new List.from(children);
+      });
     }
     return children;
   }
@@ -1501,13 +1501,13 @@ abstract class XmlNode {
   /**
    * This method exists for debugging purposes only.
    */
-  void _appendIdentifier(JavaStringBuilder builder, XmlNode node) {
+  void _appendIdentifier(StringBuffer buffer, XmlNode node) {
     if (node is XmlTagNode) {
-      builder.append(node.tag);
+      buffer.write(node.tag);
     } else if (node is XmlAttributeNode) {
-      builder.append(node.name);
+      buffer.write(node.name);
     } else {
-      builder.append("htmlUnit");
+      buffer.write("htmlUnit");
     }
   }
 
@@ -1515,23 +1515,23 @@ abstract class XmlNode {
    * This method exists for debugging purposes only.
    */
   String _buildRecursiveStructureMessage(XmlNode newParent) {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append("Attempt to create recursive structure: ");
+    StringBuffer buffer = new StringBuffer();
+    buffer.write("Attempt to create recursive structure: ");
     XmlNode current = newParent;
     while (current != null) {
       if (!identical(current, newParent)) {
-        builder.append(" -> ");
+        buffer.write(" -> ");
       }
       if (identical(current, this)) {
-        builder.appendChar(0x2A);
-        _appendIdentifier(builder, current);
-        builder.appendChar(0x2A);
+        buffer.writeCharCode(0x2A);
+        _appendIdentifier(buffer, current);
+        buffer.writeCharCode(0x2A);
       } else {
-        _appendIdentifier(builder, current);
+        _appendIdentifier(buffer, current);
       }
       current = current.parent;
     }
-    return builder.toString();
+    return buffer.toString();
   }
 
   /**
@@ -1952,27 +1952,27 @@ class XmlTagNode extends XmlNode {
   Token get beginToken => nodeStart;
 
   /**
-   * Answer a string representing the content contained in the receiver. This includes the textual
-   * representation of any child tag nodes ([getTagNodes]). Whitespace between '&lt;',
-   * '&lt;/', and '>', '/>' is discarded, but all other whitespace is preserved.
-   *
-   * @return the content (not `null`)
+   * Return a string representing the content contained in the receiver. This
+   * includes the textual representation of any child tag nodes ([getTagNodes]).
+   * Whitespace between '&lt;', '&lt;/', and '>', '/>' is discarded, but all
+   * other whitespace is preserved.
    */
   String get content {
     Token token = attributeEnd.next;
     if (identical(token, contentEnd)) {
       return "";
     }
-    //TODO (danrubel): handle CDATA and replace HTML character encodings with the actual characters
+    // TODO(danrubel) Handle CDATA and replace HTML character encodings with
+    // the actual characters.
     String content = token.lexeme;
     token = token.next;
     if (identical(token, contentEnd)) {
       return content;
     }
-    JavaStringBuilder buffer = new JavaStringBuilder();
-    buffer.append(content);
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(content);
     while (!identical(token, contentEnd)) {
-      buffer.append(token.lexeme);
+      buffer.write(token.lexeme);
       token = token.next;
     }
     return buffer.toString();

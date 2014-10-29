@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analyzer/src/util/utilities_timing.dart';
 
 /**
  * The abstract class [ClientCommunicationChannel] defines the behavior of
@@ -44,6 +45,18 @@ abstract class ClientCommunicationChannel {
  * both [Response]s and [Notification]s.
  */
 abstract class ServerCommunicationChannel {
+  /**
+   * A stopwatch used to accumulate the amount of time spent converting
+   * incomming requests from Json to objects.
+   */
+  static final CountedStopwatch FromJson = new CountedStopwatch();
+
+  /**
+   * A stopwatch used to accumulate the amount of time spent converting outgoing
+   * responses and notifications from objects to Json.
+   */
+  static final CountedStopwatch ToJson = new CountedStopwatch();
+
   /**
    * Listen to the channel for requests. If a request is received, invoke the
    * [onRequest] function. If an error is encountered while trying to read from

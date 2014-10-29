@@ -2392,10 +2392,6 @@ void AllocateUninitializedContextInstr::EmitNativeCode(
   __ LoadImmediate(temp0, num_context_variables(), PP);
   __ str(temp0, FieldAddress(result, Context::num_variables_offset()));
 
-  // Setup isolate field.
-  __ ldr(temp0, FieldAddress(CTX, Context::isolate_offset()));
-  __ str(temp0, FieldAddress(result, Context::isolate_offset()));
-
   __ Bind(slow_path->exit_label());
 }
 
@@ -3106,7 +3102,7 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ SmiUntag(TMP, value);  // Untag input before conversion.
     __ scvtfdx(result, TMP);
   } else {
-    Label* deopt = compiler->AddDeoptStub(deopt_id_,
+    Label* deopt = compiler->AddDeoptStub(GetDeoptId(),
                                           ICData::kDeoptBinaryDoubleOp);
     if (value_type->is_nullable() &&
         (value_type->ToNullableCid() == kDoubleCid)) {
@@ -3173,7 +3169,8 @@ void UnboxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister result = locs()->out(0).fpu_reg();
 
   if (value_cid != kFloat32x4Cid) {
-    Label* deopt = compiler->AddDeoptStub(deopt_id_, ICData::kDeoptCheckClass);
+    Label* deopt =
+        compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptCheckClass);
     __ tsti(value, Immediate(kSmiTagMask));
     __ b(deopt, EQ);
     __ CompareClassId(value, kFloat32x4Cid, PP);
@@ -3226,7 +3223,8 @@ void UnboxFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister result = locs()->out(0).fpu_reg();
 
   if (value_cid != kFloat64x2Cid) {
-    Label* deopt = compiler->AddDeoptStub(deopt_id_, ICData::kDeoptCheckClass);
+    Label* deopt =
+        compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptCheckClass);
     __ tsti(value, Immediate(kSmiTagMask));
     __ b(deopt, EQ);
     __ CompareClassId(value, kFloat64x2Cid, PP);
@@ -3278,7 +3276,8 @@ void UnboxInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister result = locs()->out(0).fpu_reg();
 
   if (value_cid != kInt32x4Cid) {
-    Label* deopt = compiler->AddDeoptStub(deopt_id_, ICData::kDeoptCheckClass);
+    Label* deopt =
+        compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptCheckClass);
     __ tsti(value, Immediate(kSmiTagMask));
     __ b(deopt, EQ);
     __ CompareClassId(value, kInt32x4Cid, PP);
@@ -5287,7 +5286,7 @@ void UnboxIntNInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register out = locs()->out(0).reg();
   const Register value = locs()->in(0).reg();
   Label* deopt = CanDeoptimize() ?
-      compiler->AddDeoptStub(deopt_id_, ICData::kDeoptUnboxInteger) : NULL;
+      compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptUnboxInteger) : NULL;
 
   if (value_cid == kSmiCid) {
     __ SmiUntag(out, value);

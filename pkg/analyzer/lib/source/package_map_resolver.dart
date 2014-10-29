@@ -82,7 +82,7 @@ class PackageMapUriResolver extends UriResolver {
         String pkgFolderPath = pkgFolder.path;
         if (sourcePath.startsWith(pkgFolderPath)) {
           String relPath = sourcePath.substring(pkgFolderPath.length);
-          return new Uri(path: '${PACKAGE_SCHEME}:$pkgName$relPath');
+          return new Uri(path: '$PACKAGE_SCHEME:$pkgName$relPath');
         }
       }
     }

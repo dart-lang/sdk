@@ -13,40 +13,6 @@ from htmldartgenerator import *
 from idlnode import IDLArgument, IDLAttribute, IDLEnum, IDLMember
 from systemhtml import js_support_checks, GetCallbackInfo, HTML_LIBRARY_NAMES
 
-# This is an ugly hack to get things working on the M35 roll.  Once we
-# generate dart:blink from the new scripts, this shouldn't be needed.
-_cpp_resolver_string_map = {
-    # These custom constructors all resolve to a common entry, so choosing any
-    # of the generated strings works.
-    'ConsoleBase_assertCondition_Callback_boolean_object':
-        'ConsoleBase_assert_Callback_boolean_object',
-    'FormData_constructorCallback':
-        'FormData_constructorCallback_HTMLFormElement',
-    # This callback name just gets generated sligtly different and we don't
-    # want to bother fixing it.
-    'ScriptProcessorNode__setEventListener_Callback':
-        'ScriptProcessorNode_setEventListener_Callback',
-    # We don't know how to get GLenum to show up as the correct type in this
-    # script and don't want to bother fixing it the right way.
-    'WebGLDrawBuffers_drawBuffersWEBGL_Callback_sequence<GLenum>' :
-        'WebGLDrawBuffers_drawBuffersWEBGL_Callback_sequence<unsigned long>',
-    # Blink 36 fixes.
-    'CanvasRenderingContext2D_setLineDash_Callback_sequence<float>' :
-        'CanvasRenderingContext2D_setLineDash_Callback_sequence<unrestricted float>',
-
-    # SVGGraphicsElement is base class.
-    'SVGUseElement_hasExtension_Callback_DOMString' :
-        'SVGGraphicsElement_hasExtension_Callback_DOMString',
-    'SVGUseElement_systemLanguage_Getter' :
-        'SVGGraphicsElement_systemLanguage_Getter',
-    'SVGUseElement_requiredFeatures_Getter' :
-        'SVGGraphicsElement_requiredFeatures_Getter',
-    'SVGUseElement_requiredExtensions_Getter' :
-        'SVGGraphicsElement_requiredExtensions_Getter',
-
-    'Gamepad_buttons_Getter' : 'WebKitGamepad_buttons_Getter',
-}
-
 # TODO(vsm): This logic needs to pulled from the source IDL.  These tables are
 # an ugly workaround.
 _cpp_callback_map = {
@@ -168,18 +134,6 @@ _cpp_overloaded_callback_map = {
   ('DOMURL', '_createObjectUrlFromWebKitSourceCallback'): 'URLMediaSource',
   ('DOMURL', '_createObjectURL_2Callback'): 'URLMediaSource',
   ('DOMURL', '_createObjectURL_3Callback'): 'URLMediaStream',
-}
-
-_blink_1916_rename_map = {
-  'NavigatorID': 'Navigator',
-  'CanvasRenderingContext' : 'CanvasRenderingContext2D',
-  'Clipboard': 'DataTransfer',
-  'Player': 'AnimationPlayer',
-  'Algorithm': 'KeyAlgorithm',
-  'any': 'ScriptValue',
-  'URLUtils': 'URL',
-  'URLUtilsReadOnly': 'WorkerLocation',
-  'Path': 'Path2D'
 }
 
 _cpp_partial_map = {}
@@ -364,8 +318,6 @@ def TypeIdToBlinkName(interface_id, database):
     t = TypeIdToBlinkName(arr_match, database)
     return "%s[]" % t
 
-  if interface_id in _blink_1916_rename_map:
-    interface_id = _blink_1916_rename_map[interface_id]
   return interface_id
 
 def _GetCPPTypeName(interface_name, callback_name, cpp_name):
@@ -409,42 +361,21 @@ def EncodeType(t):
 
   return _type_encoding_map.get(t) or t
 
-# FIXME(leafp) This should really go elsewhere.  I think the right thing
-# to do is to add support in the DartLibraries objects in systemhtml
-# for emitting top level code in libraries.  This can then just be a
-# normal use of that kind of object
-def GetNativeLibraryEmitter(emitters, template_loader, 
-                            dartium_output_dir, dart_output_dir,
-                            auxiliary_dir):
-    def massage_path(path):
-        # The most robust way to emit path separators is to use / always.
-        return path.replace('\\', '/')
-    template = template_loader.Load('_blink_dartium.darttemplate')
-    dart_path = os.path.join(dartium_output_dir, '_blink_dartium.dart')
-    library_emitter = emitters.FileEmitter(dart_path)
-    auxiliary_dir = os.path.relpath(auxiliary_dir, dartium_output_dir)
-    emitter = \
-        library_emitter.Emit(template,
-                             AUXILIARY_DIR=massage_path(auxiliary_dir))
-    return emitter
-
 class DartiumBackend(HtmlDartGenerator):
   """Generates Dart implementation for one DOM IDL interface."""
 
-  def __init__(self, interface, native_library_emitter,
+  def __init__(self, interface, 
                cpp_library_emitter, options):
     super(DartiumBackend, self).__init__(interface, options, True)
 
     self._interface = interface
     self._cpp_library_emitter = cpp_library_emitter
-    self._native_library_emitter = native_library_emitter
     self._database = options.database
     self._template_loader = options.templates
     self._type_registry = options.type_registry
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     self._metadata = options.metadata
     # These get initialized by StartInterface
-    self._blink_entries = None
     self._cpp_header_emitter = None
     self._cpp_impl_emitter = None
     self._members_emitter = None
@@ -452,7 +383,6 @@ class DartiumBackend(HtmlDartGenerator):
     self._cpp_impl_includes = None
     self._cpp_definitions_emitter = None
     self._cpp_resolver_emitter = None
-    self._native_class_emitter = None
 
   def ImplementsMergedMembers(self):
     # We could not add merged functions to implementation class because
@@ -611,7 +541,7 @@ class DartiumBackend(HtmlDartGenerator):
         return "$" + s
       return s
 
-    if count:
+    if count is not None:
       arity = str(count)
       dart_name = mkPublic("_".join([tag, arity]))
     else:
@@ -628,9 +558,10 @@ class DartiumBackend(HtmlDartGenerator):
       return "_".join(fields)
 
   def DeriveQualifiedBlinkName(self, interface_name, name):
-      return DeriveQualifiedName(
-          "_blink", DeriveQualifiedName(DeriveBlinkClassName(interface_name),
-                                        name))
+      blinkClass = DeriveQualifiedName(
+        "_blink", DeriveBlinkClassName(interface_name))
+      blinkInstance = DeriveQualifiedName(blinkClass, "instance")
+      return DeriveQualifiedName(blinkInstance, name + "_")
 
   def NativeSpec(self):
     return ''
@@ -681,21 +612,6 @@ class DartiumBackend(HtmlDartGenerator):
         '    WebCore::DartArrayBufferViewInternal::constructWebGLArray<Dart$(INTERFACE_NAME)>(args);\n'
         '}\n',
         INTERFACE_NAME=self._interface.id);
-    self._native_class_emitter = self._native_library_emitter.Emit(
-      '\n'
-      'class $INTERFACE_NAME {'
-      '$!METHODS'
-      '}\n',
-      INTERFACE_NAME=DeriveBlinkClassName(self._interface.id))
-    # TODO(vsm): Should we check for collisions between EventConstructors and others?
-    # Should we unify at some point?
-    if 'EventConstructor' in self._interface.ext_attrs:
-        self._native_class_emitter.Emit(
-            '\n'
-            '  static constructorCallback(type, options) native "$(INTERFACE_NAME)_constructorCallback";\n',
-            INTERFACE_NAME=self._interface.id
-            )
-    self._blink_entries = set()
 
   def _EmitConstructorInfrastructure(self,
       constructor_info, cpp_prefix, cpp_suffix, factory_method_name,
@@ -715,17 +631,6 @@ class DartiumBackend(HtmlDartGenerator):
 
     dart_native_name, constructor_callback_id = \
         self.DeriveNativeEntry(cpp_suffix, 'Constructor', argument_count)
-    if constructor_callback_id in _cpp_resolver_string_map:
-        constructor_callback_id = \
-            _cpp_resolver_string_map[constructor_callback_id]
-    if dart_native_name not in self._blink_entries:
-      self._blink_entries.add(dart_native_name)
-      self._native_class_emitter.Emit(
-        '\n'
-        '  static $FACTORY_METHOD_NAME($PARAMETERS) native "$ID";\n',
-        FACTORY_METHOD_NAME=dart_native_name,
-        PARAMETERS=parameters,
-        ID=constructor_callback_id)
 
     # Then we emit the impedance matching wrapper to call out to the
     # toplevel wrapper
@@ -1016,7 +921,7 @@ class DartiumBackend(HtmlDartGenerator):
     native_entry = \
         self.DeriveNativeEntry(attr.id, 'Getter', None)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
-        dart_declaration, False, return_type, parameters,
+        dart_declaration, attr.is_static, return_type, parameters,
         native_suffix, is_custom, auto_scope_setup, native_entry=native_entry)
     if is_custom:
       return
@@ -1071,7 +976,7 @@ class DartiumBackend(HtmlDartGenerator):
     native_entry = \
         self.DeriveNativeEntry(attr.id, 'Setter', None)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 2,
-        dart_declaration, False, return_type, parameters,
+        dart_declaration, attr.is_static, return_type, parameters,
         native_suffix, is_custom, auto_scope_setup, native_entry=native_entry)
     if is_custom:
       return
@@ -1133,9 +1038,6 @@ class DartiumBackend(HtmlDartGenerator):
       # Calls to this are emitted elsewhere,
       dart_native_name, resolver_string = \
           self.DeriveNativeEntry("item", 'Method', 1)
-      if resolver_string in _cpp_resolver_string_map:
-          resolver_string = \
-              _cpp_resolver_string_map[resolver_string]
 
       # Emit the method which calls the toplevel function, along with
       # the [] operator.
@@ -1714,30 +1616,26 @@ class DartiumBackend(HtmlDartGenerator):
     else:
         formals = ", ".join(parameters)
         actuals = ", ".join(parameters)
-    if native_binding in _cpp_resolver_string_map:
-        native_binding = \
-            _cpp_resolver_string_map[native_binding]
-    if dart_native_name not in self._blink_entries:
-      self._blink_entries.add(dart_native_name)
-      self._native_class_emitter.Emit(
-        '\n'
-        '  static $DART_NAME($FORMALS) native "$NATIVE_BINDING";\n',
-        DART_NAME=dart_native_name,
-        FORMALS=formals,
-        NATIVE_BINDING=native_binding)
 
     if not emit_to_native:
         caller_emitter = self._members_emitter
         full_dart_name = \
             self.DeriveQualifiedBlinkName(self._interface.id,
                                           dart_native_name)
-        caller_emitter.Emit(
-            '\n'
-            '  $METADATA$DART_DECLARATION => $DART_NAME($ACTUALS);\n',
-            METADATA=metadata,
-            DART_DECLARATION=dart_declaration,
-            DART_NAME=full_dart_name,
-            ACTUALS=actuals)
+        if IsPureInterface(self._interface.id):
+            caller_emitter.Emit(
+                '\n'
+                '  $METADATA$DART_DECLARATION;\n',
+                METADATA=metadata,
+                DART_DECLARATION=dart_declaration)
+        else:
+            caller_emitter.Emit(
+                '\n'
+                '  $METADATA$DART_DECLARATION => $DART_NAME($ACTUALS);\n',
+                METADATA=metadata,
+                DART_DECLARATION=dart_declaration,
+                DART_NAME=full_dart_name,
+                ACTUALS=actuals)
     cpp_callback_name = '%s%s' % (idl_name, native_suffix)
 
     self._cpp_resolver_emitter.Emit(

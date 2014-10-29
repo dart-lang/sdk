@@ -765,20 +765,6 @@ class CorrectionUtils {
   }
 
   /**
-   * Returns the start index of the line which contains given index.
-   */
-  int getLineThis(int index) {
-    while (index > 0) {
-      int c = _buffer.codeUnitAt(index - 1);
-      if (c == 0xD || c == 0xA) {
-        break;
-      }
-      index--;
-    }
-    return index;
-  }
-
-  /**
    * Returns a [SourceRange] that covers [range] and extends (if possible) to
    * cover whole lines.
    */
@@ -799,6 +785,20 @@ class CorrectionUtils {
   SourceRange getLinesRangeStatements(List<Statement> statements) {
     SourceRange range = rangeNodes(statements);
     return getLinesRange(range);
+  }
+
+  /**
+   * Returns the start index of the line which contains given index.
+   */
+  int getLineThis(int index) {
+    while (index > 0) {
+      int c = _buffer.codeUnitAt(index - 1);
+      if (c == 0xD || c == 0xA) {
+        break;
+      }
+      index--;
+    }
+    return index;
   }
 
   /**

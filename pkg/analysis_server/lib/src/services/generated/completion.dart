@@ -8,8 +8,10 @@
 library services.completion;
 
 import 'dart:collection';
-import 'package:analysis_server/src/protocol.dart' show
-    CompletionSuggestionKind;
+import "dart:math" as math;
+
+import 'package:analysis_server/src/protocol.dart'
+    show CompletionSuggestionKind;
 import 'package:analyzer/src/generated/java_core.dart' hide StringUtils;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -22,15 +24,16 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+
 import 'stubs.dart';
 import 'util.dart';
 
 class AstNodeClassifier_CompletionEngine_typeOf extends CompletionEngine_AstNodeClassifier {
   final CompletionEngine CompletionEngine_this;
 
-  List<DartType> result;
+  DartType result = null;
 
-  AstNodeClassifier_CompletionEngine_typeOf(this.CompletionEngine_this, this.result) : super();
+  AstNodeClassifier_CompletionEngine_typeOf(this.CompletionEngine_this);
 
   @override
   Object visitPrefixedIdentifier(PrefixedIdentifier node) => visitSimpleIdentifier(node.identifier);
@@ -42,7 +45,7 @@ class AstNodeClassifier_CompletionEngine_typeOf extends CompletionEngine_AstNode
       PropertyAccessorElement accessor = elem as PropertyAccessorElement;
       if (accessor.isSynthetic) {
         PropertyInducingElement var2 = accessor.variable;
-        result[0] = CompletionEngine_this._typeSearch(var2);
+        result = CompletionEngine_this._typeSearch(var2);
       }
     }
     return null;
@@ -603,7 +606,7 @@ class CompletionEngine {
   void _namespaceReference(NamespaceDirective node, SimpleStringLiteral literal) {
     String lit = literal.literal.lexeme;
     if (!lit.isEmpty) {
-      lit = lit.substring(1, Math.max(lit.length - 1, 0));
+      lit = lit.substring(1, math.max(lit.length - 1, 0));
     }
     _filter = _createFilter(new Ident.con2(node, lit, literal.offset + 1));
     Set<String> packageUris = new Set();
@@ -818,16 +821,13 @@ class CompletionEngine {
   bool _filterDisallows2(String name) => !_filter._match2(name);
 
   List<Element> _findAllNotTypes(List<Element> elements) {
-    elements = [];
-    for (JavaIterator<Element> I = new JavaIterator(elements); I.hasNext;) {
-      Element element = I.next();
+    return elements.where((Element element) {
       ElementKind kind = element.kind;
-      if (kind == ElementKind.FUNCTION || kind == ElementKind.TOP_LEVEL_VARIABLE || kind == ElementKind.GETTER || kind == ElementKind.SETTER) {
-        continue;
-      }
-      I.remove();
-    }
-    return new List.from(elements);
+      return kind == ElementKind.FUNCTION
+          || kind == ElementKind.TOP_LEVEL_VARIABLE
+          || kind == ElementKind.GETTER
+          || kind == ElementKind.SETTER;
+      }).toList();
   }
 
   List<Element> _findAllPrefixes() {
@@ -841,16 +841,11 @@ class CompletionEngine {
   }
 
   List<Element> _findAllTypes2(List<Element> elements) {
-    elements = [];
-    for (JavaIterator<Element> I = new JavaIterator(elements); I.hasNext;) {
-      Element element = I.next();
+    return elements.where((Element element) {
       ElementKind kind = element.kind;
-      if (kind == ElementKind.CLASS || kind == ElementKind.FUNCTION_TYPE_ALIAS) {
-        continue;
-      }
-      I.remove();
-    }
-    return new List.from(elements);
+      return kind == ElementKind.CLASS
+          || kind == ElementKind.FUNCTION_TYPE_ALIAS;
+      }).toList();
   }
 
   List<Element> _findTopLevelElements(LibraryElement library, TopLevelNamesKind topKind) {
@@ -940,7 +935,7 @@ class CompletionEngine {
 
   List<ImportElement> _importsWithName(SimpleIdentifier libName) {
     String name = libName.name;
-    List<ImportElement> imports = [];
+    List<ImportElement> imports = <ImportElement>[];
     for (ImportElement imp in currentLibrary.imports) {
       PrefixElement prefix = imp.prefix;
       if (prefix != null) {
@@ -950,7 +945,7 @@ class CompletionEngine {
         }
       }
     }
-    return new List.from(imports);
+    return imports;
   }
 
   bool _isCompletingKeyword(Token keyword) {
@@ -1328,8 +1323,8 @@ class CompletionEngine {
         types.add(param.type.toString());
       }
     }
-    prop.setParameterNames(new List.from(params));
-    prop.setParameterTypes(new List.from(types));
+    prop.setParameterNames(params);
+    prop.setParameterTypes(types);
     prop.setParameterStyle(posCount, named, positional);
   }
 
@@ -1412,11 +1407,12 @@ class CompletionEngine {
   DartType _typeOf2(Expression expr) {
     DartType type = expr.bestType;
     if (type.isDynamic) {
-      List<DartType> result = new List<DartType>(1);
-      CompletionEngine_AstNodeClassifier visitor = new AstNodeClassifier_CompletionEngine_typeOf(this, result);
+      AstNodeClassifier_CompletionEngine_typeOf visitor
+          = new AstNodeClassifier_CompletionEngine_typeOf(this);
       expr.accept(visitor);
-      if (result[0] != null) {
-        return result[0];
+      DartType result = visitor.result;
+      if (result != null) {
+        return result;
       }
     }
     return type;
@@ -1914,7 +1910,7 @@ class CompletionEngine_NameCollector {
   void _addNamesDefinedByHierarchy2(InterfaceType type, bool forSuper) {
     List<InterfaceType> superTypes = type.element.allSupertypes;
     if (!forSuper) {
-      superTypes = ArrayUtils.addAt(superTypes, 0, type);
+      superTypes.insert(0, type);
     }
     _addNamesDefinedByTypes(superTypes);
     // Collect names defined by subtypes separately so they can be identified later.
@@ -3583,10 +3579,9 @@ class Filter {
   }
 
   void _removeNotMatching(List<Element> elements) {
-    for (JavaIterator<Element> I = new JavaIterator(elements); I.hasNext;) {
-      Element element = I.next();
-      if (!_match(element)) {
-        I.remove();
+    for (int i = elements.length - 1; i >= 0; i--) {
+      if (!_match(elements[i])) {
+        elements.removeAt(i);
       }
     }
   }

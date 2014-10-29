@@ -7234,6 +7234,151 @@ AstNode* Parser::ParseDoWhileStatement(String* label_name) {
 }
 
 
+AstNode* Parser::ParseAwaitForStatement(String* label_name) {
+  TRACE_PARSER("ParseAwaitForStatement");
+  ASSERT(IsAwaitKeyword());
+  const intptr_t await_for_pos = TokenPos();
+  ConsumeToken();  // await.
+  ASSERT(CurrentToken() == Token::kFOR);
+  ConsumeToken();  // for.
+  ExpectToken(Token::kLPAREN);
+
+  // Parse loop variable.
+  bool loop_var_is_final = (CurrentToken() == Token::kFINAL);
+  if (CurrentToken() == Token::kCONST) {
+    ReportError("Loop variable cannot be 'const'");
+  }
+  bool new_loop_var = false;
+  AbstractType& loop_var_type =  AbstractType::ZoneHandle(I);
+  if (LookaheadToken(1) != Token::kIN) {
+    // Declaration of a new loop variable.
+    // Delay creation of the local variable until we know its actual
+    // position, which is inside the loop body.
+    new_loop_var = true;
+    loop_var_type = ParseConstFinalVarOrType(
+       FLAG_enable_type_checks ? ClassFinalizer::kCanonicalize :
+                                 ClassFinalizer::kIgnore);
+  }
+  intptr_t loop_var_pos = TokenPos();
+  const String* loop_var_name = ExpectIdentifier("variable name expected");
+
+  // Parse stream expression.
+  ExpectToken(Token::kIN);
+  const intptr_t stream_pos = TokenPos();
+  AstNode* stream_expr =
+      ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
+  ExpectToken(Token::kRPAREN);
+
+  OpenBlock();
+
+  // Build creation of implicit StreamIterator.
+  // var :for-in-iter = new StreamIterator(stream_expr).
+  const Class& stream_iterator_cls =
+      Class::ZoneHandle(I, I->object_store()->stream_iterator_class());
+  ASSERT(!stream_iterator_cls.IsNull());
+  const Function& iterator_ctor =
+      Function::ZoneHandle(I, stream_iterator_cls.LookupFunction(
+          Symbols::StreamIteratorConstructor()));
+  ASSERT(!iterator_ctor.IsNull());
+  ArgumentListNode* ctor_args = new (I) ArgumentListNode(Scanner::kNoSourcePos);
+  ctor_args->Add(stream_expr);
+  ConstructorCallNode* ctor_call =
+      new (I) ConstructorCallNode(Scanner::kNoSourcePos,
+                              TypeArguments::ZoneHandle(I),
+                              iterator_ctor,
+                              ctor_args);
+  const AbstractType& iterator_type = Type::ZoneHandle(I, Type::DynamicType());
+  LocalVariable* iterator_var = new(I) LocalVariable(
+      stream_pos, Symbols::ForInIter(), iterator_type);
+  current_block_->scope->AddVariable(iterator_var);
+  AstNode* iterator_init =
+      new(I) StoreLocalNode(stream_pos, iterator_var, ctor_call);
+  current_block_->statements->Add(iterator_init);
+
+  // Build while loop condition.
+  // while (await :for-in-iter.moveNext())
+  ArgumentListNode* no_args = new(I) ArgumentListNode(stream_pos);
+  AstNode* iterator_moveNext = new(I) InstanceCallNode(
+      stream_pos,
+      new(I) LoadLocalNode(stream_pos, iterator_var),
+                           Symbols::MoveNext(),
+                           no_args);
+  AstNode* await_moveNext = new (I) AwaitNode(stream_pos, iterator_moveNext);
+  OpenBlock();
+  AwaitTransformer at(current_block_->statements,
+                      parsed_function(),
+                      async_temp_scope_);
+  AstNode* transformed_await = at.Transform(await_moveNext);
+  SequenceNode* await_preamble = CloseBlock();
+
+  // Parse the for loop body. Ideally, we would use ParseNestedStatement()
+  // here, but that does not work well because we have to insert an implicit
+  // variable assignment and potentially a variable declaration in the
+  // loop body.
+  OpenLoopBlock();
+  SourceLabel* label =
+      SourceLabel::New(await_for_pos, label_name, SourceLabel::kFor);
+  current_block_->scope->AddLabel(label);
+  const intptr_t loop_var_assignment_pos = TokenPos();
+
+  AstNode* iterator_current = new(I) InstanceGetterNode(
+      loop_var_assignment_pos,
+      new(I) LoadLocalNode(loop_var_assignment_pos, iterator_var),
+      Symbols::Current());
+
+  // Generate assignment of next iterator value to loop variable.
+  AstNode* loop_var_assignment = NULL;
+  if (new_loop_var) {
+    // The for loop variable is new for each iteration.
+    // Create a variable and add it to the loop body scope.
+    // Note that the variable token position needs to be inside the
+    // loop block, so it gets put in the loop context level.
+    LocalVariable* loop_var =
+        new(I) LocalVariable(loop_var_assignment_pos,
+                             *loop_var_name,
+                             loop_var_type);;
+    if (loop_var_is_final) {
+      loop_var->set_is_final();
+    }
+    current_block_->scope->AddVariable(loop_var);
+    loop_var_assignment = new(I) StoreLocalNode(
+        loop_var_assignment_pos, loop_var, iterator_current);
+  } else {
+    AstNode* loop_var_primary =
+        ResolveIdent(loop_var_pos, *loop_var_name, false);
+    ASSERT(!loop_var_primary->IsPrimaryNode());
+    loop_var_assignment = CreateAssignmentNode(loop_var_primary,
+                                               iterator_current,
+                                               loop_var_name,
+                                               loop_var_assignment_pos);
+    ASSERT(loop_var_assignment != NULL);
+  }
+  current_block_->statements->Add(loop_var_assignment);
+
+  // Now parse the for-in loop statement or block.
+  if (CurrentToken() == Token::kLBRACE) {
+    ConsumeToken();
+    ParseStatementSequence();
+    ExpectToken(Token::kRBRACE);
+  } else {
+    AstNode* statement = ParseStatement();
+    if (statement != NULL) {
+      current_block_->statements->Add(statement);
+    }
+  }
+  SequenceNode* for_loop_statement = CloseBlock();
+
+  WhileNode* while_node = new (I) WhileNode(await_for_pos,
+                                            label,
+                                            transformed_await,
+                                            await_preamble,
+                                            for_loop_statement);
+  current_block_->statements->Add(while_node);
+
+  return CloseBlock();  // Implicit block around while loop.
+}
+
+
 AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
                                      SourceLabel* label) {
   TRACE_PARSER("ParseForInStatement");
@@ -8100,6 +8245,8 @@ AstNode* Parser::ParseStatement() {
     statement = ParseWhileStatement(label_name);
   } else if (token == Token::kFOR) {
     statement = ParseForStatement(label_name);
+  } else if (IsAwaitKeyword() && (LookaheadToken(1) == Token::kFOR)) {
+    statement = ParseAwaitForStatement(label_name);
   } else if (token == Token::kDO) {
     statement = ParseDoWhileStatement(label_name);
   } else if (token == Token::kSWITCH) {

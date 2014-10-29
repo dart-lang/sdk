@@ -24,40 +24,6 @@ RefactoringStatus validateClassName(String name) {
  *   WARNING if the name is discouraged;
  *   FATAL if the name is illegal.
  */
-RefactoringStatus validateConstantName(String name) {
-  // null
-  if (name == null) {
-    return new RefactoringStatus.fatal("Constant name must not be null.");
-  }
-  // is not identifier
-  RefactoringStatus status =
-      _validateIdentifier(name, "Constant name", 'an uppercase letter or underscore');
-  if (!status.isOK) {
-    return status;
-  }
-  // is private, OK
-  int startIndex = 0;
-  if (name.codeUnitAt(0) == CHAR_UNDERSCORE) {
-    startIndex++;
-  }
-  // does not start with lower case
-  for (int i = startIndex; i < name.length; i++) {
-    int c = name.codeUnitAt(i);
-    if (!isUpperCase(c) && !isDigit(c) && c != CHAR_UNDERSCORE) {
-      return new RefactoringStatus.warning(
-          "Constant name should be all uppercase with underscores.");
-    }
-  }
-  // OK
-  return new RefactoringStatus();
-}
-
-/**
- * Returns the [RefactoringStatus] with severity:
- *   OK if the name is valid;
- *   WARNING if the name is discouraged;
- *   FATAL if the name is illegal.
- */
 RefactoringStatus validateConstructorName(String name) {
   if (name != null && name.isEmpty) {
     return new RefactoringStatus();

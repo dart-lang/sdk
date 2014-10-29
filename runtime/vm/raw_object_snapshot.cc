@@ -1365,9 +1365,6 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
   // Set the object tags.
   context.set_tags(tags);
 
-  // Set the isolate implicitly.
-  context.set_isolate(reader->isolate());
-
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
   // allocations may happen.

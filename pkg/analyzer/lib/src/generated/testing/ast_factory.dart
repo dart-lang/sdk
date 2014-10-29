@@ -340,7 +340,7 @@ class AstFactory {
 
   static StringInterpolation string(List<InterpolationElement> elements) => new StringInterpolation(list(elements));
 
-  static SimpleStringLiteral string2(String content) => new SimpleStringLiteral(TokenFactory.tokenFromString("'${content}'"), content);
+  static SimpleStringLiteral string2(String content) => new SimpleStringLiteral(TokenFactory.tokenFromString("'$content'"), content);
 
   static SuperConstructorInvocation superConstructorInvocation(List<Expression> arguments) => superConstructorInvocation2(null, arguments);
 
@@ -363,7 +363,7 @@ class AstFactory {
     for (String component in components) {
       identifierList.add(TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, component));
     }
-    return new SymbolLiteral(TokenFactory.tokenFromType(TokenType.HASH), new List.from(identifierList));
+    return new SymbolLiteral(TokenFactory.tokenFromType(TokenType.HASH), identifierList);
   }
 
   static BlockFunctionBody syncBlockFunctionBody(List<Statement> statements) => new BlockFunctionBody(TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "sync"), null, block(statements));

@@ -21,11 +21,13 @@ inline uintptr_t AtomicOperations::FetchAndIncrement(uintptr_t* p) {
 }
 
 
+#if !defined(USING_SIMULATOR)
 inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
                                                   uword old_value,
                                                   uword new_value) {
   return __sync_val_compare_and_swap(ptr, old_value, new_value);
 }
+#endif  // !defined(USING_SIMULATOR)
 
 }  // namespace dart
 

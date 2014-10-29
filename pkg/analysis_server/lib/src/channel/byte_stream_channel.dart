@@ -103,7 +103,10 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     if (_closed.isCompleted) {
       return;
     }
-    output.writeln(JSON.encode(notification.toJson()));
+    ServerCommunicationChannel.ToJson.start();
+    String jsonEncoding = JSON.encode(notification.toJson());
+    ServerCommunicationChannel.ToJson.stop();
+    output.writeln(jsonEncoding);
   }
 
   @override
@@ -113,7 +116,10 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     if (_closed.isCompleted) {
       return;
     }
-    output.writeln(JSON.encode(response.toJson()));
+    ServerCommunicationChannel.ToJson.start();
+    String jsonEncoding = JSON.encode(response.toJson());
+    ServerCommunicationChannel.ToJson.stop();
+    output.writeln(jsonEncoding);
   }
 
   /**
@@ -127,7 +133,9 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     }
     // Parse the string as a JSON descriptor and process the resulting
     // structure as a request.
+    ServerCommunicationChannel.FromJson.start();
     Request request = new Request.fromString(data);
+    ServerCommunicationChannel.FromJson.stop();
     if (request == null) {
       sendResponse(new Response.invalidRequestFormat());
       return;

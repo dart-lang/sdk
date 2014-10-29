@@ -27,22 +27,52 @@ void testJson(json, expected) {
     } else if (expected is num) {
       Expect.equals(expected is int, actual is int, "$path: same number type");
       Expect.isTrue(expected.compareTo(actual) == 0,
-                    "$path: $expected vs. $actual");
+                    "$path: Expected: $expected, was: $actual");
     } else {
       // String, bool, null.
       Expect.equals(expected, actual, path);
     }
   }
   for (var reviver in [null, (k, v) => v]) {
-    var name = (reviver == null) ? "" : "reviver:";
-    var value = JSON.decode(json, reviver: reviver);
-    compare(expected, value, "$name$value");
-    value = JSON.decode(" $json ", reviver: reviver);
-    compare(expected, value, "$name-$value-");
-    value = JSON.decode("[$json]", reviver: reviver);
-    compare([expected], value, "$name[$value]");
-    value = JSON.decode('{"x":$json}', reviver: reviver);
-    compare({"x":expected}, value, "$name{x:$value}");
+    for (var split in [0, 1, 2, 3]) {
+      var name = (reviver == null) ? "" : "reviver:";
+      var sink = new ChunkedConversionSink.withCallback((values) {
+        var value = values[0];
+        compare(expected, value, "$name$value");
+      });
+      var decoderSink = JSON.decoder.startChunkedConversion(sink);
+      switch (split) {
+        case 0:
+          // Split after first char.
+          decoderSink.add(json.substring(0, 1));
+          decoderSink.add(json.substring(1));
+          decoderSink.close();
+          break;
+        case 1:
+          // Split before last char.
+          int length = json.length;
+          decoderSink.add(json.substring(0, length - 1));
+          decoderSink.add(json.substring(length - 1));
+          decoderSink.close();
+          break;
+        case 2:
+          // Split in middle.
+          int half = json.length ~/ 2;
+          decoderSink.add(json.substring(0, half));
+          decoderSink.add(json.substring(half));
+          decoderSink.close();
+          break;
+        case 3:
+          // Split in three chunks.
+          int length = json.length;
+          int third = length ~/ 3;
+          decoderSink.add(json.substring(0, third));
+          decoderSink.add(json.substring(third, 2 * third));
+          decoderSink.add(json.substring(2 * third));
+          decoderSink.close();
+          break;
+      }
+    }
   }
 }
 
@@ -81,9 +111,11 @@ testNumbers() {
     for (var sign in signList) {
       for (var fraction in fractionList) {
         for (var exp in exponentList) {
-          var literal = "$sign$integer$fraction$exp";
-          var expectedValue = num.parse(literal);
-          testJson(literal, expectedValue);
+          for (var ws in ["", " ", "\t"]) {
+            var literal = "$ws$sign$integer$fraction$exp$ws";
+            var expectedValue = num.parse(literal);
+            testJson(literal, expectedValue);
+          }
         }
       }
     }

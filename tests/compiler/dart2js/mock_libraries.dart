@@ -22,11 +22,18 @@ String buildLibrarySource(
 
 const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
   'bool': 'class bool {}',
+  'Comparator': 'abstract class Comparator<T> {}',
   'DateTime': r'''
       class DateTime {
         DateTime(year);
         DateTime.utc(year);
       }''',
+      'Deprecated': r'''
+      class Deprecated extends Object {
+        final String expires;
+        const Deprecated(this.expires);
+      }''',
+  'deprecated': 'const Object deprecated = const Deprecated("next release");',
   'double': r'''
       abstract class double extends num {
         static var NAN = 0;
@@ -332,6 +339,7 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
         operator[](index) {}
         toString() {}
         operator+(other) => this;
+        codeUnitAt(index) => 42;
       }''',
   'JSUInt31': 'class JSUInt31 extends JSUInt32 {}',
   'JSUInt32': 'class JSUInt32 extends JSPositiveInt {}',
@@ -354,4 +362,3 @@ const Map<String, String> DEFAULT_MIRRORS_LIBRARY = const <String, String>{
   'MirrorSystem': 'class MirrorSystem {}',
   'MirrorsUsed': 'class MirrorsUsed {}',
 };
-

@@ -1136,8 +1136,7 @@ RawError* Object::Init(Isolate* isolate) {
     isolate_lib = Library::NewLibraryHelper(Symbols::DartIsolate(), true);
     isolate_lib.SetLoadRequested();
     isolate_lib.Register();
-    isolate->object_store()->set_bootstrap_library(ObjectStore::kIsolate,
-                                                   isolate_lib);
+    object_store->set_bootstrap_library(ObjectStore::kIsolate, isolate_lib);
   }
   ASSERT(!isolate_lib.IsNull());
   ASSERT(isolate_lib.raw() == Library::IsolateLibrary());
@@ -1259,8 +1258,7 @@ RawError* Object::Init(Isolate* isolate) {
     lib = Library::NewLibraryHelper(Symbols::DartMirrors(), true);
     lib.SetLoadRequested();
     lib.Register();
-    isolate->object_store()->set_bootstrap_library(ObjectStore::kMirrors,
-                                                   lib);
+    object_store->set_bootstrap_library(ObjectStore::kMirrors, lib);
   }
   ASSERT(!lib.IsNull());
   ASSERT(lib.raw() == Library::MirrorsLibrary());
@@ -1275,8 +1273,7 @@ RawError* Object::Init(Isolate* isolate) {
     lib = Library::NewLibraryHelper(Symbols::DartCollection(), true);
     lib.SetLoadRequested();
     lib.Register();
-    isolate->object_store()->set_bootstrap_library(ObjectStore::kCollection,
-                                                   lib);
+    object_store->set_bootstrap_library(ObjectStore::kCollection, lib);
   }
   ASSERT(!lib.IsNull());
   ASSERT(lib.raw() == Library::CollectionLibrary());
@@ -1296,8 +1293,7 @@ RawError* Object::Init(Isolate* isolate) {
     lib = Library::NewLibraryHelper(Symbols::DartProfiler(), true);
     lib.SetLoadRequested();
     lib.Register();
-    isolate->object_store()->set_bootstrap_library(ObjectStore::kProfiler,
-                                                   lib);
+    object_store->set_bootstrap_library(ObjectStore::kProfiler, lib);
   }
   ASSERT(!lib.IsNull());
   ASSERT(lib.raw() == Library::ProfilerLibrary());
@@ -1311,7 +1307,7 @@ RawError* Object::Init(Isolate* isolate) {
   // Setup some default native field classes which can be extended for
   // specifying native fields in dart classes.
   Library::InitNativeWrappersLibrary(isolate);
-  ASSERT(isolate->object_store()->native_wrappers_library() != Library::null());
+  ASSERT(object_store->native_wrappers_library() != Library::null());
 
   // Pre-register the typed_data library so the native class implementations
   // can be hooked up before compiling it.
@@ -1320,8 +1316,7 @@ RawError* Object::Init(Isolate* isolate) {
     lib = Library::NewLibraryHelper(Symbols::DartTypedData(), true);
     lib.SetLoadRequested();
     lib.Register();
-    isolate->object_store()->set_bootstrap_library(ObjectStore::kTypedData,
-                                                   lib);
+    object_store->set_bootstrap_library(ObjectStore::kTypedData, lib);
   }
   ASSERT(!lib.IsNull());
   ASSERT(lib.raw() == Library::TypedDataLibrary());
@@ -1468,6 +1463,7 @@ RawError* Object::Init(Isolate* isolate) {
 
   // Finish the initialization by compiling the bootstrap scripts containing the
   // base interfaces and the implementation of the internal classes.
+  StubCode::InitBootstrapStubs(isolate);
   const Error& error = Error::Handle(Bootstrap::LoadandCompileScripts());
   if (!error.IsNull()) {
     return error.raw();
@@ -1506,7 +1502,7 @@ RawError* Object::Init(Isolate* isolate) {
   CLASS_LIST_WITH_NULL(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
 
-  object_store->InitAsyncObjects();
+  isolate->object_store()->InitAsyncObjects();
 
   return Error::null();
 }
@@ -1617,6 +1613,8 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<MirrorReference>();
   cls = Class::New<UserTag>();
+
+  StubCode::InitBootstrapStubs(isolate);
 }
 
 
@@ -5108,15 +5106,17 @@ void Function::AttachCode(const Code& value) const {
 
 bool Function::HasCode() const {
   ASSERT(raw_ptr()->instructions_ != Instructions::null());
+  StubCode* stub_code = Isolate::Current()->stub_code();
   return raw_ptr()->instructions_ !=
-      StubCode::LazyCompile_entry()->code()->ptr()->instructions_;
+      stub_code->LazyCompile_entry()->code()->ptr()->instructions_;
 }
 
 
 void Function::ClearCode() const {
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
+  StubCode* stub_code = Isolate::Current()->stub_code();
   StorePointer(&raw_ptr()->instructions_,
-      Code::Handle(StubCode::LazyCompile_entry()->code()).instructions());
+      Code::Handle(stub_code->LazyCompile_entry()->code()).instructions());
 }
 
 
@@ -6130,7 +6130,8 @@ RawFunction* Function::New(const String& name,
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
   result.set_allows_bounds_check_generalization(true);
-  result.SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
+  StubCode* stub_code = Isolate::Current()->stub_code();
+  result.SetInstructions(Code::Handle(stub_code->LazyCompile_entry()->code()));
   if (kind == RawFunction::kClosureFunction) {
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
     result.set_data(data);
@@ -12445,7 +12446,6 @@ RawContext* Context::New(intptr_t num_variables, Heap::Space space) {
     result ^= raw;
     result.set_num_variables(num_variables);
   }
-  result.set_isolate(Isolate::Current());
   return result.raw();
 }
 
@@ -19697,9 +19697,6 @@ const char* Closure::ToCString(const Instance& closure) {
 RawInstance* Closure::New(const Function& function,
                           const Context& context,
                           Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(context.isolate() == isolate);
-
   const Class& cls = Class::Handle(function.signature_class());
   ASSERT(cls.instance_size() == Closure::InstanceSize());
   Instance& result = Instance::Handle();

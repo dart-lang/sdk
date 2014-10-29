@@ -153,4 +153,10 @@ class ElementConverterVisitor
       analyzer.LocalVariableElement input) {
     return new LocalVariableElementY(converter, input);
   }
+
+  @override
+  dart2js.ConstructorElement visitConstructorElement(
+      analyzer.ConstructorElement input) {
+    return new ConstructorElementY(converter, input);
+  }
 }

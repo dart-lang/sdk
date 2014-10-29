@@ -22,12 +22,31 @@ regExpGetGlobalNative(JSSyntaxRegExp regexp) {
   return nativeRegexp;
 }
 
+/**
+ * Computes the number of captures in a regexp.
+ *
+ * This currently involves creating a new RegExp object with a different
+ * source and running it against the empty string (the last part is usually
+ * fast).
+ *
+ * The JSSyntaxRegExp could cache the result, and set the cache any time
+ * it finds a match.
+ */
+int regExpCaptureCount(JSSyntaxRegExp regexp) {
+  var nativeAnchoredRegExp = regexp._nativeAnchoredVersion;
+  var match = JS('JSExtendableArray', "#.exec('')", nativeAnchoredRegExp);
+  // The native-anchored regexp always have one capture more than the original,
+  // and always matches the empty string.
+  return match.length - 2;
+}
+
 class JSSyntaxRegExp implements RegExp {
   final String pattern;
   final _nativeRegExp;
   var _nativeGlobalRegExp;
   var _nativeAnchoredRegExp;
 
+  String toString() => "RegExp/$pattern/";
 
   JSSyntaxRegExp(String source,
                  { bool multiLine: false,

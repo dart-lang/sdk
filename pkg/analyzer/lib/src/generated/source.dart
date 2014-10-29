@@ -8,6 +8,8 @@
 library engine.source;
 
 import 'dart:collection';
+import "dart:math" as math;
+
 import 'java_core.dart';
 import 'sdk.dart' show DartSdk;
 import 'engine.dart';
@@ -69,13 +71,17 @@ class ContentCache {
       return _contentMap.remove(source);
     } else {
       int newStamp = JavaSystem.currentTimeMillis();
-      int oldStamp = javaMapPut(_stampMap, source, newStamp);
-      // Occasionally, if this method is called in rapid succession, the timestamps are equal.
-      // Guard against this by artificially incrementing the new timestamp
+      int oldStamp = _stampMap[source];
+      _stampMap[source] = newStamp;
+      // Occasionally, if this method is called in rapid succession, the
+      // timestamps are equal. Guard against this by artificially incrementing
+      // the new timestamp.
       if (newStamp == oldStamp) {
         _stampMap[source] = newStamp + 1;
       }
-      return javaMapPut(_contentMap, source, contents);
+      String oldContent =_contentMap[source];
+      _contentMap[source] = contents;
+      return oldContent;
     }
   }
 }
@@ -516,7 +522,7 @@ class SourceFactory {
         return _internalResolveUri(null, uri);
       }
     } catch (exception) {
-      AnalysisEngine.instance.logger.logError2("Could not resolve URI: ${absoluteUri}", exception);
+      AnalysisEngine.instance.logger.logError2("Could not resolve URI: $absoluteUri", exception);
     }
     return null;
   }
@@ -533,7 +539,7 @@ class SourceFactory {
       try {
         return _internalResolveUri(null, absoluteUri);
       } on AnalysisException catch (exception, stackTrace) {
-        AnalysisEngine.instance.logger.logError2("Could not resolve URI: ${absoluteUri}", new CaughtException(exception, stackTrace));
+        AnalysisEngine.instance.logger.logError2("Could not resolve URI: $absoluteUri", new CaughtException(exception, stackTrace));
       }
     }
     return null;
@@ -550,7 +556,7 @@ class SourceFactory {
   Source fromEncoding(String encoding) {
     Source source = forUri(encoding);
     if (source == null) {
-      throw new IllegalArgumentException("Invalid source encoding: ${encoding}");
+      throw new IllegalArgumentException("Invalid source encoding: $encoding");
     }
     return source;
   }
@@ -598,7 +604,7 @@ class SourceFactory {
       // Force the creation of an escaped URI to deal with spaces, etc.
       return _internalResolveUri(containingSource, parseUriWithException(containedUri));
     } catch (exception) {
-      AnalysisEngine.instance.logger.logError2("Could not resolve URI (${containedUri}) relative to source (${containingSource.fullName})", exception);
+      AnalysisEngine.instance.logger.logError2("Could not resolve URI ($containedUri) relative to source (${containingSource.fullName})", exception);
       return null;
     }
   }
@@ -643,7 +649,7 @@ class SourceFactory {
   Source _internalResolveUri(Source containingSource, Uri containedUri) {
     if (!containedUri.isAbsolute) {
       if (containingSource == null) {
-        throw new AnalysisException("Cannot resolve a relative URI without a containing source: ${containedUri}");
+        throw new AnalysisException("Cannot resolve a relative URI without a containing source: $containedUri");
       }
       containedUri = containingSource.resolveRelativeUri(containedUri);
     }
@@ -781,8 +787,8 @@ class SourceRange {
    * @return the minimal [SourceRange] that cover this and the given [SourceRange]s.
    */
   SourceRange getUnion(SourceRange other) {
-    int newOffset = Math.min(offset, other.offset);
-    int newEnd = Math.max(offset + length, other.offset + other.length);
+    int newOffset = math.min(offset, other.offset);
+    int newEnd = math.max(offset + length, other.offset + other.length);
     return new SourceRange(newOffset, newEnd - newOffset);
   }
 
@@ -806,20 +812,12 @@ class SourceRange {
   }
 
   /**
-   * @return `true` if this [SourceRange] starts in <code>otherRange</code>.
+   * Return `true` if this [SourceRange] starts in the [otherRange].
    */
   bool startsIn(SourceRange otherRange) => otherRange.contains(offset);
 
   @override
-  String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append("[offset=");
-    builder.append(offset);
-    builder.append(", length=");
-    builder.append(length);
-    builder.append("]");
-    return builder.toString();
-  }
+  String toString() => '[offset=$offset, length=$length]';
 }
 
 /**

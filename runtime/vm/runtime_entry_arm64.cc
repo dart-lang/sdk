@@ -57,7 +57,7 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     // informative error message.
     __ LoadImmediate(R5, entry, kNoPP);
     __ LoadImmediate(R4, argument_count, kNoPP);
-    __ BranchLink(&StubCode::CallToRuntimeLabel(), PP);
+    __ BranchLink(&Isolate::Current()->stub_code()->CallToRuntimeLabel(), PP);
   }
 }
 

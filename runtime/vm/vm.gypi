@@ -62,6 +62,7 @@
             'libraries': [
               '-lpthread',
               '-lrt',
+              '-ldl',
             ],
           },
         }],
@@ -70,6 +71,7 @@
             'libraries': [
               '-lpthread',
               '-lrt',
+              '-ldl',
             ],
           },
         }],

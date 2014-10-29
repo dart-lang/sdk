@@ -38,7 +38,7 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
         detailsUri: 'http://goo.gl/5HPeuP');
     return readPrimaryAsHtml(transform, logger).then((document) {
       bool dartSupportFound = false;
-      bool platformJsFound = false;
+      Element platformJs;
       Element dartJs;
       final dartScripts = <Element>[];
 
@@ -47,7 +47,7 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
         if (src != null) {
           var last = src.split('/').last;
           if (_platformJS.hasMatch(last)) {
-            platformJsFound = true;
+            platformJs = tag;
           } else if (_dartSupportJS.hasMatch(last)) {
             dartSupportFound = true;
           } else if (last == 'dart.js') {
@@ -97,10 +97,24 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
               '<script src="packages/$urlSegment"></script>\n'));
       }
 
-      var suffix = options.releaseMode ? '.js' : '.concat.js';
-      if (!dartSupportFound) _addScriptFirst('web_components/dart_support.js');
-      // platform.js should come before all other scripts.
-      if (!platformJsFound && options.injectPlatformJs) {
+      // Inserts dart_support.js either at the top of the document or directly
+      // after platform.js if it exists.
+      if (!dartSupportFound) {
+        if (platformJs == null) {
+          _addScriptFirst('web_components/dart_support.js');
+        } else {
+          var parentsNodes = platformJs.parentNode.nodes;
+          parentsNodes.insert(
+              parentsNodes.indexOf(platformJs) + 1,
+              parseFragment(
+                  '\n<script src="packages/web_components/dart_support.js">'
+                  '</script>'));
+        }
+      }
+
+      // By default platform.js should come before all other scripts.
+      if (platformJs == null && options.injectPlatformJs) {
+        var suffix = options.releaseMode ? '.js' : '.concat.js';
         _addScriptFirst('web_components/platform$suffix');
       }
 

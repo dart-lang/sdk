@@ -7,89 +7,98 @@
 
 library engine.scanner_test;
 
-import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/java_junit.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
-import 'package:unittest/unittest.dart' as _ut;
+import 'package:unittest/unittest.dart';
 import 'test_support.dart';
 import '../reflective_tests.dart';
 
 
-class CharSequenceReaderTest extends JUnitTestCase {
+class CharSequenceReaderTest {
   void test_advance() {
     CharSequenceReader reader = new CharSequenceReader("x");
-    JUnitTestCase.assertEquals(0x78, reader.advance());
-    JUnitTestCase.assertEquals(-1, reader.advance());
-    JUnitTestCase.assertEquals(-1, reader.advance());
+    expect(reader.advance(), 0x78);
+    expect(reader.advance(), -1);
+    expect(reader.advance(), -1);
   }
 
   void test_creation() {
-    JUnitTestCase.assertNotNull(new CharSequenceReader("x"));
+    expect(new CharSequenceReader("x"), isNotNull);
   }
 
   void test_getOffset() {
     CharSequenceReader reader = new CharSequenceReader("x");
-    JUnitTestCase.assertEquals(-1, reader.offset);
+    expect(reader.offset, -1);
     reader.advance();
-    JUnitTestCase.assertEquals(0, reader.offset);
+    expect(reader.offset, 0);
     reader.advance();
-    JUnitTestCase.assertEquals(0, reader.offset);
+    expect(reader.offset, 0);
   }
 
   void test_getString() {
     CharSequenceReader reader = new CharSequenceReader("xyzzy");
     reader.offset = 3;
-    JUnitTestCase.assertEquals("yzz", reader.getString(1, 0));
-    JUnitTestCase.assertEquals("zzy", reader.getString(2, 1));
+    expect(reader.getString(1, 0), "yzz");
+    expect(reader.getString(2, 1), "zzy");
   }
 
   void test_peek() {
     CharSequenceReader reader = new CharSequenceReader("xy");
-    JUnitTestCase.assertEquals(0x78, reader.peek());
-    JUnitTestCase.assertEquals(0x78, reader.peek());
+    expect(reader.peek(), 0x78);
+    expect(reader.peek(), 0x78);
     reader.advance();
-    JUnitTestCase.assertEquals(0x79, reader.peek());
-    JUnitTestCase.assertEquals(0x79, reader.peek());
+    expect(reader.peek(), 0x79);
+    expect(reader.peek(), 0x79);
     reader.advance();
-    JUnitTestCase.assertEquals(-1, reader.peek());
-    JUnitTestCase.assertEquals(-1, reader.peek());
+    expect(reader.peek(), -1);
+    expect(reader.peek(), -1);
   }
 
   void test_setOffset() {
     CharSequenceReader reader = new CharSequenceReader("xyz");
     reader.offset = 2;
-    JUnitTestCase.assertEquals(2, reader.offset);
+    expect(reader.offset, 2);
   }
 }
 
 class IncrementalScannerTest extends EngineTestCase {
   /**
-   * The first token from the token stream resulting from parsing the original source, or
-   * `null` if [scan] has not been invoked.
+   * The first token from the token stream resulting from parsing the original
+   * source, or `null` if [scan] has not been invoked.
    */
   Token _originalTokens;
 
   /**
-   * The scanner used to perform incremental scanning, or `null` if [scan] has not been
-   * invoked.
+   * The scanner used to perform incremental scanning, or `null` if [scan] has
+   * not been invoked.
    */
   IncrementalScanner _incrementalScanner;
 
   /**
-   * The first token from the token stream resulting from performing an incremental scan, or
-   * `null` if [scan] has not been invoked.
+   * The first token from the token stream resulting from performing an
+   * incremental scan, or `null` if [scan] has not been invoked.
    */
   Token _incrementalTokens;
+
+  void fail_insert_beginning() {
+    // This is currently reporting the changed range as being from 0 to 5, but
+    // that would force us to re-parse both classes, which is clearly sub-optimal.
+    //
+    // "class B {}"
+    // "class A {} class B {}"
+    _scan("", "", "class A {} ", "class B {}");
+    _assertTokens(-1, 4, ["class", "A", "{", "}", "class", "B", "{", "}"]);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+  }
 
   void test_delete_identifier_beginning() {
     // "abs + b;"
     // "s + b;")
     _scan("", "ab", "", "s + b;");
     _assertTokens(-1, 1, ["s", "+", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
   void test_delete_identifier_end() {
@@ -97,7 +106,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "a + b;")
     _scan("a", "bs", "", " + b;");
     _assertTokens(-1, 1, ["a", "+", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
   void test_delete_identifier_middle() {
@@ -105,7 +114,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "as + b;")
     _scan("a", "b", "", "s + b;");
     _assertTokens(-1, 1, ["as", "+", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
   void test_delete_mergeTokens() {
@@ -113,24 +122,40 @@ class IncrementalScannerTest extends EngineTestCase {
     // "ac;")
     _scan("a", " + b + ", "", "c;");
     _assertTokens(-1, 1, ["ac", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
-  void test_insert_afterIdentifier1() {
+  void test_delete_whitespace() {
+    // "a + b + c;"
+    // "a+ b + c;")
+    _scan("a", " ", "", "+ b + c;");
+    _assertTokens(1, 2, ["a", "+", "b", "+", "c", ";"]);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isFalse);
+  }
+
+  void test_insert_afterIdentifier_firstToken() {
     // "a + b;"
     // "abs + b;"
     _scan("a", "", "bs", " + b;");
     _assertTokens(-1, 1, ["abs", "+", "b", ";"]);
     _assertReplaced(1, "+");
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
-  void test_insert_afterIdentifier2() {
+  void test_insert_afterIdentifier_lastToken() {
+    // "a + b"
+    // "a + bc")
+    _scan("a + b", "", "c", "");
+    _assertTokens(1, 3, ["a", "+", "bc"]);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+  }
+
+  void test_insert_afterIdentifier_middleToken() {
     // "a + b;"
     // "a + by;"
     _scan("a + b", "", "y", ";");
     _assertTokens(1, 3, ["a", "+", "by", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
   void test_insert_beforeIdentifier() {
@@ -138,7 +163,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "a + xb;")
     _scan("a + ", "", "x", "b;");
     _assertTokens(1, 3, ["a", "+", "xb", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
   void test_insert_beforeIdentifier_firstToken() {
@@ -146,7 +171,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "xa + b;"
     _scan("", "", "x", "a + b;");
     _assertTokens(-1, 1, ["xa", "+", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
   void test_insert_convertOneFunctionToTwo() {
@@ -154,7 +179,15 @@ class IncrementalScannerTest extends EngineTestCase {
     // "f() => 0; g() {}"
     _scan("f()", "", " => 0; g()", " {}");
     _assertTokens(2, 9, ["f", "(", ")", "=>", "0", ";", "g", "(", ")", "{", "}"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+  }
+
+  void test_insert_convertOneFunctionToTwo_overlap() {
+    // "f() {}"
+    // "f() {} g() {}"
+    _scan("f() {", "", "} g() {", "}");
+    _assertTokens(4, 10, ["f", "(", ")", "{", "}", "g", "(", ")", "{", "}"]);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
   void test_insert_end() {
@@ -162,7 +195,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "class A {} class B {}"
     _scan("class A {}", "", " class B {}", "");
     _assertTokens(3, 8, ["class", "A", "{", "}", "class", "B", "{", "}"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
   void test_insert_insideIdentifier() {
@@ -170,24 +203,24 @@ class IncrementalScannerTest extends EngineTestCase {
     // "cow.b;"
     _scan("co", "", "w.", "b;");
     _assertTokens(-1, 3, ["cow", ".", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
-  void test_insert_newIdentifier1() {
-    // "a;  c;"
-    // "a; b c;"
-    _scan("a; ", "", "b", " c;");
-    _assertTokens(1, 3, ["a", ";", "b", "c", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
-  }
-
-  void test_insert_newIdentifier2() {
-    // "a;  c;"
-    // "a;b  c;"
-    _scan("a;", "", "b", "  c;");
+  void test_insert_newIdentifier_noSpaceBefore() {
+    // "a; c;"
+    // "a;b c;"
+    _scan("a;", "", "b", " c;");
     _assertTokens(1, 3, ["a", ";", "b", "c", ";"]);
     _assertReplaced(1, ";");
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+  }
+
+  void test_insert_newIdentifier_spaceBefore() {
+    // "a; c;"
+    // "a; b c;"
+    _scan("a; ", "", "b ", "c;");
+    _assertTokens(1, 3, ["a", ";", "b", "c", ";"]);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
   void test_insert_period() {
@@ -197,27 +230,27 @@ class IncrementalScannerTest extends EngineTestCase {
     _assertTokens(2, 4, ["a", "+", "b", ".", ";"]);
   }
 
-  void test_insert_period_betweenIdentifiers1() {
+  void test_insert_period_betweenIdentifiers_left() {
     // "a b;"
     // "a. b;"
     _scan("a", "", ".", " b;");
     _assertTokens(0, 2, ["a", ".", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
-  void test_insert_period_betweenIdentifiers2() {
-    // "a b;"
-    // "a .b;"
-    _scan("a ", "", ".", "b;");
-    _assertTokens(0, 2, ["a", ".", "b", ";"]);
-  }
-
-  void test_insert_period_betweenIdentifiers3() {
+  void test_insert_period_betweenIdentifiers_middle() {
     // "a  b;"
     // "a . b;"
     _scan("a ", "", ".", " b;");
     _assertTokens(0, 2, ["a", ".", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+  }
+
+  void test_insert_period_betweenIdentifiers_right() {
+    // "a b;"
+    // "a .b;"
+    _scan("a ", "", ".", "b;");
+    _assertTokens(0, 2, ["a", ".", "b", ";"]);
   }
 
   void test_insert_period_insideExistingIdentifier() {
@@ -225,7 +258,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "a.b;"
     _scan("a", "", ".", "b;");
     _assertTokens(-1, 3, ["a", ".", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
   void test_insert_periodAndIdentifier() {
@@ -240,7 +273,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // " a + b;"
     _scan("", "", " ", "a + b;");
     _assertTokens(0, 1, ["a", "+", "b", ";"]);
-    JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isFalse);
   }
 
   void test_insert_whitespace_betweenTokens() {
@@ -248,7 +281,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "a  + b;"
     _scan("a ", "", " ", "+ b;");
     _assertTokens(1, 2, ["a", "+", "b", ";"]);
-    JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isFalse);
   }
 
   void test_insert_whitespace_end_afterToken() {
@@ -256,7 +289,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "a + b; "
     _scan("a + b;", "", " ", "");
     _assertTokens(3, 4, ["a", "+", "b", ";"]);
-    JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isFalse);
   }
 
   void test_insert_whitespace_end_afterWhitespace() {
@@ -264,15 +297,18 @@ class IncrementalScannerTest extends EngineTestCase {
     // "a + b;  "
     _scan("a + b; ", "", " ", "");
     _assertTokens(3, 4, ["a", "+", "b", ";"]);
-    JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isFalse);
   }
 
   void test_insert_whitespace_withMultipleComments() {
     // "//comment", "//comment2", "a + b;"
     // "//comment", "//comment2", "a  + b;"
-    _scan(EngineTestCase.createSource(["//comment", "//comment2", "a"]), "", " ", " + b;");
+    _scan(r'''
+//comment
+//comment2
+a''', "", " ", " + b;");
     _assertTokens(1, 2, ["a", "+", "b", ";"]);
-    JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isFalse);
   }
 
   void test_replace_identifier_beginning() {
@@ -280,7 +316,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "fell + b;")
     _scan("", "b", "f", "ell + b;");
     _assertTokens(-1, 1, ["fell", "+", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
   void test_replace_identifier_end() {
@@ -288,7 +324,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "belt + b;")
     _scan("bel", "l", "t", " + b;");
     _assertTokens(-1, 1, ["belt", "+", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
   void test_replace_identifier_middle() {
@@ -296,7 +332,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "frost + b;")
     _scan("f", "ir", "ro", "st + b;");
     _assertTokens(-1, 1, ["frost", "+", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
   void test_replace_multiple_partialFirstAndLast() {
@@ -304,7 +340,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "ab * ab;")
     _scan("a", "a + b", "b * a", "b;");
     _assertTokens(-1, 3, ["ab", "*", "ab", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
   void test_replace_operator_oneForMany() {
@@ -312,7 +348,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "a * c - b;")
     _scan("a ", "+", "* c -", " b;");
     _assertTokens(0, 4, ["a", "*", "c", "-", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
   void test_replace_operator_oneForOne() {
@@ -320,7 +356,7 @@ class IncrementalScannerTest extends EngineTestCase {
     // "a * b;")
     _scan("a ", "+", "*", " b;");
     _assertTokens(0, 2, ["a", "*", "b", ";"]);
-    JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
   void test_tokenMap() {
@@ -331,45 +367,45 @@ class IncrementalScannerTest extends EngineTestCase {
     Token oldToken = _originalTokens;
     while (oldToken.type != TokenType.EOF) {
       Token newToken = tokenMap.get(oldToken);
-      JUnitTestCase.assertNotSame(oldToken, newToken);
-      JUnitTestCase.assertSame(oldToken.type, newToken.type);
-      JUnitTestCase.assertEquals(oldToken.lexeme, newToken.lexeme);
+      expect(newToken, isNot(same(oldToken)));
+      expect(newToken.type, same(oldToken.type));
+      expect(newToken.lexeme, oldToken.lexeme);
       oldToken = oldToken.next;
     }
-    JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isFalse);
   }
 
   /**
-   * Assert that the token at the given offset was replaced with a new token having the given
-   * lexeme.
-   *
-   * @param tokenOffset the offset of the token being tested
-   * @param lexeme the expected lexeme of the new token
+   * Assert that the token at the given [offset] was replaced with a new token
+   * having the given [lexeme].
    */
-  void _assertReplaced(int tokenOffset, String lexeme) {
+  void _assertReplaced(int offset, String lexeme) {
     Token oldToken = _originalTokens;
-    for (int i = 0; i < tokenOffset; i++) {
+    for (int i = 0; i < offset; i++) {
       oldToken = oldToken.next;
     }
-    JUnitTestCase.assertEquals(lexeme, oldToken.lexeme);
+    expect(oldToken.lexeme, lexeme);
     Token newToken = _incrementalScanner.tokenMap.get(oldToken);
-    JUnitTestCase.assertNotNull(newToken);
-    JUnitTestCase.assertEquals(lexeme, newToken.lexeme);
-    JUnitTestCase.assertNotSame(oldToken, newToken);
+    expect(newToken, isNotNull);
+    expect(newToken.lexeme, lexeme);
+    expect(newToken, isNot(same(oldToken)));
   }
 
   /**
-   * Assert that the result of the incremental scan matches the given list of lexemes and that the
-   * left and right tokens correspond to the tokens at the given indices.
-   *
-   * @param leftIndex the expected index of the left token
-   * @param rightIndex the expected index of the right token
-   * @param lexemes the expected lexemes of the resulting tokens
+   * Assert that the result of the incremental scan matches the given list of
+   * [lexemes] and that the left and right tokens correspond to the tokens at
+   * the [leftIndex] and [rightIndex].
    */
   void _assertTokens(int leftIndex, int rightIndex, List<String> lexemes) {
     int count = lexemes.length;
-    JUnitTestCase.assertTrueMsg("Invalid left index", leftIndex >= -1 && leftIndex < count);
-    JUnitTestCase.assertTrueMsg("Invalid right index", rightIndex >= 0 && rightIndex <= count);
+    expect(
+        leftIndex >= -1 && leftIndex < count,
+        isTrue,
+        reason: "Invalid left index");
+    expect(
+        rightIndex >= 0 && rightIndex <= count,
+        isTrue,
+        reason: "Invalid right index");
     Token leftToken = null;
     Token rightToken = null;
     Token token = _incrementalTokens;
@@ -377,7 +413,7 @@ class IncrementalScannerTest extends EngineTestCase {
       leftToken = token.previous;
     }
     for (int i = 0; i < count; i++) {
-      JUnitTestCase.assertEquals(lexemes[i], token.lexeme);
+      expect(token.lexeme, lexemes[i]);
       if (i == leftIndex) {
         leftToken = token;
       }
@@ -389,76 +425,114 @@ class IncrementalScannerTest extends EngineTestCase {
     if (rightIndex >= count) {
       rightToken = token;
     }
-    JUnitTestCase.assertSameMsg("Too many tokens", TokenType.EOF, token.type);
+    expect(token.type, same(TokenType.EOF), reason: "Too many tokens");
     if (leftIndex >= 0) {
-      JUnitTestCase.assertNotNull(leftToken);
+      expect(leftToken, isNotNull);
     }
-    JUnitTestCase.assertSameMsg("Invalid left token", leftToken, _incrementalScanner.leftToken);
+    expect(
+        _incrementalScanner.leftToken,
+        same(leftToken),
+        reason: "Invalid left token");
     if (rightIndex >= 0) {
-      JUnitTestCase.assertNotNull(rightToken);
+      expect(rightToken, isNotNull);
     }
-    JUnitTestCase.assertSameMsg("Invalid right token", rightToken, _incrementalScanner.rightToken);
+    expect(
+        _incrementalScanner.rightToken,
+        same(rightToken),
+        reason: "Invalid right token");
   }
 
   /**
-   * Given a description of the original and modified contents, perform an incremental scan of the
-   * two pieces of text. Verify that the incremental scan produced the same tokens as those that
-   * would be produced by a full scan of the new contents.
+   * Given a description of the original and modified contents, perform an
+   * incremental scan of the two pieces of text. Verify that the incremental
+   * scan produced the same tokens as those that would be produced by a full
+   * scan of the new contents.
    *
-   * @param prefix the unchanged text before the edit region
-   * @param removed the text that was removed from the original contents
-   * @param added the text that was added to the modified contents
-   * @param suffix the unchanged text after the edit region
+   * The original content is the concatenation of the [prefix], [removed] and
+   * [suffix] fragments. The modeified content is the concatenation of the
+   * [prefix], [added] and [suffix] fragments.
    */
   void _scan(String prefix, String removed, String added, String suffix) {
     //
     // Compute the information needed to perform the test.
     //
-    String originalContents = "${prefix}${removed}${suffix}";
-    String modifiedContents = "${prefix}${added}${suffix}";
+    String originalContents = "$prefix$removed$suffix";
+    String modifiedContents = "$prefix$added$suffix";
     int replaceStart = prefix.length;
     Source source = new TestSource();
     //
     // Scan the original contents.
     //
     GatheringErrorListener originalListener = new GatheringErrorListener();
-    Scanner originalScanner = new Scanner(source, new CharSequenceReader(originalContents), originalListener);
+    Scanner originalScanner = new Scanner(
+        source,
+        new CharSequenceReader(originalContents),
+        originalListener);
     _originalTokens = originalScanner.tokenize();
-    JUnitTestCase.assertNotNull(_originalTokens);
+    expect(_originalTokens, isNotNull);
     //
     // Scan the modified contents.
     //
     GatheringErrorListener modifiedListener = new GatheringErrorListener();
-    Scanner modifiedScanner = new Scanner(source, new CharSequenceReader(modifiedContents), modifiedListener);
+    Scanner modifiedScanner = new Scanner(
+        source,
+        new CharSequenceReader(modifiedContents),
+        modifiedListener);
     Token modifiedTokens = modifiedScanner.tokenize();
-    JUnitTestCase.assertNotNull(modifiedTokens);
+    expect(modifiedTokens, isNotNull);
     //
     // Incrementally scan the modified contents.
     //
     GatheringErrorListener incrementalListener = new GatheringErrorListener();
-    _incrementalScanner = new IncrementalScanner(source, new CharSequenceReader(modifiedContents), incrementalListener);
-    _incrementalTokens = _incrementalScanner.rescan(_originalTokens, replaceStart, removed.length, added.length);
+    _incrementalScanner = new IncrementalScanner(
+        source,
+        new CharSequenceReader(modifiedContents),
+        incrementalListener);
+    _incrementalTokens = _incrementalScanner.rescan(
+        _originalTokens,
+        replaceStart,
+        removed.length,
+        added.length);
     //
-    // Validate that the results of the incremental scan are the same as the full scan of the
-    // modified source.
+    // Validate that the results of the incremental scan are the same as the
+    // full scan of the modified source.
     //
     Token incrementalToken = _incrementalTokens;
-    JUnitTestCase.assertNotNull(incrementalToken);
-    while (incrementalToken.type != TokenType.EOF && modifiedTokens.type != TokenType.EOF) {
-      JUnitTestCase.assertSameMsg("Wrong type for token", modifiedTokens.type, incrementalToken.type);
-      JUnitTestCase.assertEqualsMsg("Wrong offset for token", modifiedTokens.offset, incrementalToken.offset);
-      JUnitTestCase.assertEqualsMsg("Wrong length for token", modifiedTokens.length, incrementalToken.length);
-      JUnitTestCase.assertEqualsMsg("Wrong lexeme for token", modifiedTokens.lexeme, incrementalToken.lexeme);
+    expect(incrementalToken, isNotNull);
+    while (incrementalToken.type != TokenType.EOF
+        && modifiedTokens.type != TokenType.EOF) {
+      expect(
+          incrementalToken.type,
+          same(modifiedTokens.type),
+          reason: "Wrong type for token");
+      expect(
+          incrementalToken.offset,
+              modifiedTokens.offset,
+              reason: "Wrong offset for token");
+      expect(
+          incrementalToken.length,
+              modifiedTokens.length,
+              reason: "Wrong length for token");
+      expect(
+          incrementalToken.lexeme,
+              modifiedTokens.lexeme,
+              reason: "Wrong lexeme for token");
       incrementalToken = incrementalToken.next;
       modifiedTokens = modifiedTokens.next;
     }
-    JUnitTestCase.assertSameMsg("Too many tokens", TokenType.EOF, incrementalToken.type);
-    JUnitTestCase.assertSameMsg("Not enough tokens", TokenType.EOF, modifiedTokens.type);
+    expect(
+        incrementalToken.type,
+        same(TokenType.EOF),
+        reason: "Too many tokens");
+    expect(
+        modifiedTokens.type,
+        same(TokenType.EOF),
+        reason: "Not enough tokens");
     // TODO(brianwilkerson) Verify that the errors are correct?
   }
 }
 
-class KeywordStateTest extends JUnitTestCase {
+class KeywordStateTest {
   void test_KeywordState() {
     //
     // Generate the test data to be scanned.
@@ -487,21 +561,21 @@ class KeywordStateTest extends JUnitTestCase {
       }
       if (i < keywordCount) {
         // keyword
-        JUnitTestCase.assertNotNull(state);
-        JUnitTestCase.assertNotNull(state.keyword());
-        JUnitTestCase.assertEquals(keywords[i], state.keyword());
+        expect(state, isNotNull);
+        expect(state.keyword(), isNotNull);
+        expect(state.keyword(), keywords[i]);
       } else if (i < keywordCount * 2) {
         // keyword + "x"
-        JUnitTestCase.assertNull(state);
+        expect(state, isNull);
       } else {
         // keyword.substring(0, keyword.length() - 1)
-        JUnitTestCase.assertNotNull(state);
+        expect(state, isNotNull);
       }
     }
   }
 }
 
-class ScannerTest extends JUnitTestCase {
+class ScannerTest {
   void fail_incomplete_string_interpolation() {
     // https://code.google.com/p/dart/issues/detail?id=18073
     _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 9, "\"foo \${bar", [
@@ -586,8 +660,8 @@ class ScannerTest extends JUnitTestCase {
     Scanner scanner = new Scanner(null, new CharSequenceReader("/* comment */ "), AnalysisErrorListener.NULL_LISTENER);
     scanner.preserveComments = false;
     Token token = scanner.tokenize();
-    JUnitTestCase.assertNotNull(token);
-    JUnitTestCase.assertNull(token.precedingComments);
+    expect(token, isNotNull);
+    expect(token.precedingComments, isNull);
   }
 
   void test_comment_multi() {
@@ -1054,9 +1128,9 @@ class ScannerTest extends JUnitTestCase {
     scanner.setSourceStart(3, 9);
     scanner.tokenize();
     List<int> lineStarts = scanner.lineStarts;
-    JUnitTestCase.assertNotNull(lineStarts);
-    JUnitTestCase.assertEquals(3, lineStarts.length);
-    JUnitTestCase.assertEquals(33, lineStarts[2]);
+    expect(lineStarts, isNotNull);
+    expect(lineStarts.length, 3);
+    expect(lineStarts[2], 33);
   }
 
   void test_slash() {
@@ -1078,11 +1152,11 @@ class ScannerTest extends JUnitTestCase {
   void test_startAndEnd() {
     Token token = _scan("a");
     Token previous = token.previous;
-    JUnitTestCase.assertEquals(token, previous.next);
-    JUnitTestCase.assertEquals(previous, previous.previous);
+    expect(previous.next, token);
+    expect(previous.previous, previous);
     Token next = token.next;
-    JUnitTestCase.assertEquals(next, next.next);
-    JUnitTestCase.assertEquals(token, next.previous);
+    expect(next.next, next);
+    expect(next.previous, token);
   }
 
   void test_string_multi_double() {
@@ -1170,7 +1244,7 @@ class ScannerTest extends JUnitTestCase {
 
   void test_string_raw_simple_unterminated_eol() {
     String source = "r'string";
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "${source}\n", [new StringToken(TokenType.STRING, source, 0)]);
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "$source\n", [new StringToken(TokenType.STRING, source, 0)]);
   }
 
   void test_string_simple_double() {
@@ -1264,7 +1338,7 @@ class ScannerTest extends JUnitTestCase {
 
   void test_string_simple_unterminated_eol() {
     String source = "'string";
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, "${source}\r", [new StringToken(TokenType.STRING, source, 0)]);
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, "$source\r", [new StringToken(TokenType.STRING, source, 0)]);
   }
 
   void test_string_simple_unterminated_interpolation_block() {
@@ -1305,26 +1379,26 @@ class ScannerTest extends JUnitTestCase {
     // Test without a trailing end-of-line marker
     //
     Token token = _scan(source);
-    JUnitTestCase.assertNotNull(token);
-    JUnitTestCase.assertEquals(TokenType.EOF, token.type);
+    expect(token, isNotNull);
+    expect(token.type, TokenType.EOF);
     Token comment = token.precedingComments;
-    JUnitTestCase.assertNotNull(comment);
-    JUnitTestCase.assertEquals(commentType, comment.type);
-    JUnitTestCase.assertEquals(0, comment.offset);
-    JUnitTestCase.assertEquals(source.length, comment.length);
-    JUnitTestCase.assertEquals(source, comment.lexeme);
+    expect(comment, isNotNull);
+    expect(comment.type, commentType);
+    expect(comment.offset, 0);
+    expect(comment.length, source.length);
+    expect(comment.lexeme, source);
     //
     // Test with a trailing end-of-line marker
     //
-    token = _scan("${source}\n");
-    JUnitTestCase.assertNotNull(token);
-    JUnitTestCase.assertEquals(TokenType.EOF, token.type);
+    token = _scan("$source\n");
+    expect(token, isNotNull);
+    expect(token.type, TokenType.EOF);
     comment = token.precedingComments;
-    JUnitTestCase.assertNotNull(comment);
-    JUnitTestCase.assertEquals(commentType, comment.type);
-    JUnitTestCase.assertEquals(0, comment.offset);
-    JUnitTestCase.assertEquals(source.length, comment.length);
-    JUnitTestCase.assertEquals(source, comment.lexeme);
+    expect(comment, isNotNull);
+    expect(comment.type, commentType);
+    expect(comment.offset, 0);
+    expect(comment.length, source.length);
+    expect(comment.lexeme, source);
   }
 
   /**
@@ -1364,24 +1438,24 @@ class ScannerTest extends JUnitTestCase {
    */
   void _assertKeywordToken(String source) {
     Token token = _scan(source);
-    JUnitTestCase.assertNotNull(token);
-    JUnitTestCase.assertEquals(TokenType.KEYWORD, token.type);
-    JUnitTestCase.assertEquals(0, token.offset);
-    JUnitTestCase.assertEquals(source.length, token.length);
-    JUnitTestCase.assertEquals(source, token.lexeme);
+    expect(token, isNotNull);
+    expect(token.type, TokenType.KEYWORD);
+    expect(token.offset, 0);
+    expect(token.length, source.length);
+    expect(token.lexeme, source);
     Object value = token.value();
-    JUnitTestCase.assertTrue(value is Keyword);
-    JUnitTestCase.assertEquals(source, (value as Keyword).syntax);
-    token = _scan(" ${source} ");
-    JUnitTestCase.assertNotNull(token);
-    JUnitTestCase.assertEquals(TokenType.KEYWORD, token.type);
-    JUnitTestCase.assertEquals(1, token.offset);
-    JUnitTestCase.assertEquals(source.length, token.length);
-    JUnitTestCase.assertEquals(source, token.lexeme);
+    expect(value is Keyword, isTrue);
+    expect((value as Keyword).syntax, source);
+    token = _scan(" $source ");
+    expect(token, isNotNull);
+    expect(token.type, TokenType.KEYWORD);
+    expect(token.offset, 1);
+    expect(token.length, source.length);
+    expect(token.lexeme, source);
     value = token.value();
-    JUnitTestCase.assertTrue(value is Keyword);
-    JUnitTestCase.assertEquals(source, (value as Keyword).syntax);
-    JUnitTestCase.assertEquals(TokenType.EOF, token.next.type);
+    expect(value is Keyword, isTrue);
+    expect((value as Keyword).syntax, source);
+    expect(token.next.type, TokenType.EOF);
   }
 
   void _assertLineInfo(String source, List<ScannerTest_ExpectedLocation> expectedLocations) {
@@ -1389,11 +1463,11 @@ class ScannerTest extends JUnitTestCase {
     _scanWithListener(source, listener);
     listener.assertNoErrors();
     LineInfo info = listener.getLineInfo(new TestSource());
-    JUnitTestCase.assertNotNull(info);
+    expect(info, isNotNull);
     for (ScannerTest_ExpectedLocation expectedLocation in expectedLocations) {
       LineInfo_Location location = info.getLocation(expectedLocation._offset);
-      JUnitTestCase.assertEquals(expectedLocation._lineNumber, location.lineNumber);
-      JUnitTestCase.assertEquals(expectedLocation._columnNumber, location.columnNumber);
+      expect(location.lineNumber, expectedLocation._lineNumber);
+      expect(location.columnNumber, expectedLocation._columnNumber);
     }
   }
 
@@ -1405,44 +1479,44 @@ class ScannerTest extends JUnitTestCase {
    */
   Token _assertToken(TokenType expectedType, String source) {
     Token originalToken = _scan(source);
-    JUnitTestCase.assertNotNull(originalToken);
-    JUnitTestCase.assertEquals(expectedType, originalToken.type);
-    JUnitTestCase.assertEquals(0, originalToken.offset);
-    JUnitTestCase.assertEquals(source.length, originalToken.length);
-    JUnitTestCase.assertEquals(source, originalToken.lexeme);
+    expect(originalToken, isNotNull);
+    expect(originalToken.type, expectedType);
+    expect(originalToken.offset, 0);
+    expect(originalToken.length, source.length);
+    expect(originalToken.lexeme, source);
     if (expectedType == TokenType.SCRIPT_TAG) {
       // Adding space before the script tag is not allowed, and adding text at the end changes nothing.
       return originalToken;
     } else if (expectedType == TokenType.SINGLE_LINE_COMMENT) {
       // Adding space to an end-of-line comment changes the comment.
-      Token tokenWithSpaces = _scan(" ${source}");
-      JUnitTestCase.assertNotNull(tokenWithSpaces);
-      JUnitTestCase.assertEquals(expectedType, tokenWithSpaces.type);
-      JUnitTestCase.assertEquals(1, tokenWithSpaces.offset);
-      JUnitTestCase.assertEquals(source.length, tokenWithSpaces.length);
-      JUnitTestCase.assertEquals(source, tokenWithSpaces.lexeme);
+      Token tokenWithSpaces = _scan(" $source");
+      expect(tokenWithSpaces, isNotNull);
+      expect(tokenWithSpaces.type, expectedType);
+      expect(tokenWithSpaces.offset, 1);
+      expect(tokenWithSpaces.length, source.length);
+      expect(tokenWithSpaces.lexeme, source);
       return originalToken;
     } else if (expectedType == TokenType.INT || expectedType == TokenType.DOUBLE) {
       Token tokenWithLowerD = _scan("${source}d");
-      JUnitTestCase.assertNotNull(tokenWithLowerD);
-      JUnitTestCase.assertEquals(expectedType, tokenWithLowerD.type);
-      JUnitTestCase.assertEquals(0, tokenWithLowerD.offset);
-      JUnitTestCase.assertEquals(source.length, tokenWithLowerD.length);
-      JUnitTestCase.assertEquals(source, tokenWithLowerD.lexeme);
+      expect(tokenWithLowerD, isNotNull);
+      expect(tokenWithLowerD.type, expectedType);
+      expect(tokenWithLowerD.offset, 0);
+      expect(tokenWithLowerD.length, source.length);
+      expect(tokenWithLowerD.lexeme, source);
       Token tokenWithUpperD = _scan("${source}D");
-      JUnitTestCase.assertNotNull(tokenWithUpperD);
-      JUnitTestCase.assertEquals(expectedType, tokenWithUpperD.type);
-      JUnitTestCase.assertEquals(0, tokenWithUpperD.offset);
-      JUnitTestCase.assertEquals(source.length, tokenWithUpperD.length);
-      JUnitTestCase.assertEquals(source, tokenWithUpperD.lexeme);
+      expect(tokenWithUpperD, isNotNull);
+      expect(tokenWithUpperD.type, expectedType);
+      expect(tokenWithUpperD.offset, 0);
+      expect(tokenWithUpperD.length, source.length);
+      expect(tokenWithUpperD.lexeme, source);
     }
-    Token tokenWithSpaces = _scan(" ${source} ");
-    JUnitTestCase.assertNotNull(tokenWithSpaces);
-    JUnitTestCase.assertEquals(expectedType, tokenWithSpaces.type);
-    JUnitTestCase.assertEquals(1, tokenWithSpaces.offset);
-    JUnitTestCase.assertEquals(source.length, tokenWithSpaces.length);
-    JUnitTestCase.assertEquals(source, tokenWithSpaces.lexeme);
-    JUnitTestCase.assertEquals(TokenType.EOF, originalToken.next.type);
+    Token tokenWithSpaces = _scan(" $source ");
+    expect(tokenWithSpaces, isNotNull);
+    expect(tokenWithSpaces.type, expectedType);
+    expect(tokenWithSpaces.offset, 1);
+    expect(tokenWithSpaces.length, source.length);
+    expect(tokenWithSpaces.lexeme, source);
+    expect(originalToken.next.type, TokenType.EOF);
     return originalToken;
   }
 
@@ -1459,18 +1533,18 @@ class ScannerTest extends JUnitTestCase {
   }
 
   void _checkTokens(Token firstToken, List<Token> expectedTokens) {
-    JUnitTestCase.assertNotNull(firstToken);
+    expect(firstToken, isNotNull);
     Token token = firstToken;
     for (int i = 0; i < expectedTokens.length; i++) {
       Token expectedToken = expectedTokens[i];
-      JUnitTestCase.assertEqualsMsg("Wrong type for token ${i}", expectedToken.type, token.type);
-      JUnitTestCase.assertEqualsMsg("Wrong offset for token ${i}", expectedToken.offset, token.offset);
-      JUnitTestCase.assertEqualsMsg("Wrong length for token ${i}", expectedToken.length, token.length);
-      JUnitTestCase.assertEqualsMsg("Wrong lexeme for token ${i}", expectedToken.lexeme, token.lexeme);
+      expect(token.type, expectedToken.type, reason: "Wrong type for token $i");
+      expect(token.offset, expectedToken.offset, reason: "Wrong offset for token $i");
+      expect(token.length, expectedToken.length, reason: "Wrong length for token $i");
+      expect(token.lexeme, expectedToken.lexeme, reason: "Wrong lexeme for token $i");
       token = token.next;
-      JUnitTestCase.assertNotNull(token);
+      expect(token, isNotNull);
     }
-    JUnitTestCase.assertEquals(TokenType.EOF, token.type);
+    expect(token.type, TokenType.EOF);
   }
 
   Token _scan(String source) {
@@ -1513,14 +1587,14 @@ class TokenStreamValidator {
    * @param token the first token in the stream of tokens to be validated
    */
   void validate(Token token) {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    _validateStream(builder, token);
-    if (builder.length > 0) {
-      JUnitTestCase.fail(builder.toString());
+    StringBuffer buffer = new StringBuffer();
+    _validateStream(buffer, token);
+    if (buffer.length > 0) {
+      fail(buffer.toString());
     }
   }
 
-  void _validateStream(JavaStringBuilder builder, Token token) {
+  void _validateStream(StringBuffer buffer, Token token) {
     if (token == null) {
       return;
     }
@@ -1528,24 +1602,24 @@ class TokenStreamValidator {
     int previousEnd = -1;
     Token currentToken = token;
     while (currentToken != null && currentToken.type != TokenType.EOF) {
-      _validateStream(builder, currentToken.precedingComments);
+      _validateStream(buffer, currentToken.precedingComments);
       TokenType type = currentToken.type;
       if (type == TokenType.OPEN_CURLY_BRACKET || type == TokenType.OPEN_PAREN || type == TokenType.OPEN_SQUARE_BRACKET || type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
         if (currentToken is! BeginToken) {
-          builder.append("\r\nExpected BeginToken, found ");
-          builder.append(currentToken.runtimeType.toString());
-          builder.append(" ");
-          _writeToken(builder, currentToken);
+          buffer.write("\r\nExpected BeginToken, found ");
+          buffer.write(currentToken.runtimeType.toString());
+          buffer.write(" ");
+          _writeToken(buffer, currentToken);
         }
       }
       int currentStart = currentToken.offset;
       int currentLength = currentToken.length;
       int currentEnd = currentStart + currentLength - 1;
       if (currentStart <= previousEnd) {
-        builder.append("\r\nInvalid token sequence: ");
-        _writeToken(builder, previousToken);
-        builder.append(" followed by ");
-        _writeToken(builder, currentToken);
+        buffer.write("\r\nInvalid token sequence: ");
+        _writeToken(buffer, previousToken);
+        buffer.write(" followed by ");
+        _writeToken(buffer, currentToken);
       }
       previousEnd = currentEnd;
       previousToken = currentToken;
@@ -1553,88 +1627,88 @@ class TokenStreamValidator {
     }
   }
 
-  void _writeToken(JavaStringBuilder builder, Token token) {
-    builder.append("[");
-    builder.append(token.type);
-    builder.append(", '");
-    builder.append(token.lexeme);
-    builder.append("', ");
-    builder.append(token.offset);
-    builder.append(", ");
-    builder.append(token.length);
-    builder.append("]");
+  void _writeToken(StringBuffer buffer, Token token) {
+    buffer.write("[");
+    buffer.write(token.type);
+    buffer.write(", '");
+    buffer.write(token.lexeme);
+    buffer.write("', ");
+    buffer.write(token.offset);
+    buffer.write(", ");
+    buffer.write(token.length);
+    buffer.write("]");
   }
 }
 
 class TokenTypeTest extends EngineTestCase {
   void test_isOperator() {
-    JUnitTestCase.assertTrue(TokenType.AMPERSAND.isOperator);
-    JUnitTestCase.assertTrue(TokenType.AMPERSAND_AMPERSAND.isOperator);
-    JUnitTestCase.assertTrue(TokenType.AMPERSAND_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.BANG.isOperator);
-    JUnitTestCase.assertTrue(TokenType.BANG_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.BAR.isOperator);
-    JUnitTestCase.assertTrue(TokenType.BAR_BAR.isOperator);
-    JUnitTestCase.assertTrue(TokenType.BAR_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.CARET.isOperator);
-    JUnitTestCase.assertTrue(TokenType.CARET_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.EQ_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.GT.isOperator);
-    JUnitTestCase.assertTrue(TokenType.GT_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.GT_GT.isOperator);
-    JUnitTestCase.assertTrue(TokenType.GT_GT_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.INDEX.isOperator);
-    JUnitTestCase.assertTrue(TokenType.INDEX_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.IS.isOperator);
-    JUnitTestCase.assertTrue(TokenType.LT.isOperator);
-    JUnitTestCase.assertTrue(TokenType.LT_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.LT_LT.isOperator);
-    JUnitTestCase.assertTrue(TokenType.LT_LT_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.MINUS.isOperator);
-    JUnitTestCase.assertTrue(TokenType.MINUS_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.MINUS_MINUS.isOperator);
-    JUnitTestCase.assertTrue(TokenType.PERCENT.isOperator);
-    JUnitTestCase.assertTrue(TokenType.PERCENT_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.PERIOD_PERIOD.isOperator);
-    JUnitTestCase.assertTrue(TokenType.PLUS.isOperator);
-    JUnitTestCase.assertTrue(TokenType.PLUS_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.PLUS_PLUS.isOperator);
-    JUnitTestCase.assertTrue(TokenType.QUESTION.isOperator);
-    JUnitTestCase.assertTrue(TokenType.SLASH.isOperator);
-    JUnitTestCase.assertTrue(TokenType.SLASH_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.STAR.isOperator);
-    JUnitTestCase.assertTrue(TokenType.STAR_EQ.isOperator);
-    JUnitTestCase.assertTrue(TokenType.TILDE.isOperator);
-    JUnitTestCase.assertTrue(TokenType.TILDE_SLASH.isOperator);
-    JUnitTestCase.assertTrue(TokenType.TILDE_SLASH_EQ.isOperator);
+    expect(TokenType.AMPERSAND.isOperator, isTrue);
+    expect(TokenType.AMPERSAND_AMPERSAND.isOperator, isTrue);
+    expect(TokenType.AMPERSAND_EQ.isOperator, isTrue);
+    expect(TokenType.BANG.isOperator, isTrue);
+    expect(TokenType.BANG_EQ.isOperator, isTrue);
+    expect(TokenType.BAR.isOperator, isTrue);
+    expect(TokenType.BAR_BAR.isOperator, isTrue);
+    expect(TokenType.BAR_EQ.isOperator, isTrue);
+    expect(TokenType.CARET.isOperator, isTrue);
+    expect(TokenType.CARET_EQ.isOperator, isTrue);
+    expect(TokenType.EQ.isOperator, isTrue);
+    expect(TokenType.EQ_EQ.isOperator, isTrue);
+    expect(TokenType.GT.isOperator, isTrue);
+    expect(TokenType.GT_EQ.isOperator, isTrue);
+    expect(TokenType.GT_GT.isOperator, isTrue);
+    expect(TokenType.GT_GT_EQ.isOperator, isTrue);
+    expect(TokenType.INDEX.isOperator, isTrue);
+    expect(TokenType.INDEX_EQ.isOperator, isTrue);
+    expect(TokenType.IS.isOperator, isTrue);
+    expect(TokenType.LT.isOperator, isTrue);
+    expect(TokenType.LT_EQ.isOperator, isTrue);
+    expect(TokenType.LT_LT.isOperator, isTrue);
+    expect(TokenType.LT_LT_EQ.isOperator, isTrue);
+    expect(TokenType.MINUS.isOperator, isTrue);
+    expect(TokenType.MINUS_EQ.isOperator, isTrue);
+    expect(TokenType.MINUS_MINUS.isOperator, isTrue);
+    expect(TokenType.PERCENT.isOperator, isTrue);
+    expect(TokenType.PERCENT_EQ.isOperator, isTrue);
+    expect(TokenType.PERIOD_PERIOD.isOperator, isTrue);
+    expect(TokenType.PLUS.isOperator, isTrue);
+    expect(TokenType.PLUS_EQ.isOperator, isTrue);
+    expect(TokenType.PLUS_PLUS.isOperator, isTrue);
+    expect(TokenType.QUESTION.isOperator, isTrue);
+    expect(TokenType.SLASH.isOperator, isTrue);
+    expect(TokenType.SLASH_EQ.isOperator, isTrue);
+    expect(TokenType.STAR.isOperator, isTrue);
+    expect(TokenType.STAR_EQ.isOperator, isTrue);
+    expect(TokenType.TILDE.isOperator, isTrue);
+    expect(TokenType.TILDE_SLASH.isOperator, isTrue);
+    expect(TokenType.TILDE_SLASH_EQ.isOperator, isTrue);
   }
 
   void test_isUserDefinableOperator() {
-    JUnitTestCase.assertTrue(TokenType.AMPERSAND.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.BAR.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.CARET.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.EQ_EQ.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.GT.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.GT_EQ.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.GT_GT.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.INDEX.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.INDEX_EQ.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.LT.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.LT_EQ.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.LT_LT.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.MINUS.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.PERCENT.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.PLUS.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.SLASH.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.STAR.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.TILDE.isUserDefinableOperator);
-    JUnitTestCase.assertTrue(TokenType.TILDE_SLASH.isUserDefinableOperator);
+    expect(TokenType.AMPERSAND.isUserDefinableOperator, isTrue);
+    expect(TokenType.BAR.isUserDefinableOperator, isTrue);
+    expect(TokenType.CARET.isUserDefinableOperator, isTrue);
+    expect(TokenType.EQ_EQ.isUserDefinableOperator, isTrue);
+    expect(TokenType.GT.isUserDefinableOperator, isTrue);
+    expect(TokenType.GT_EQ.isUserDefinableOperator, isTrue);
+    expect(TokenType.GT_GT.isUserDefinableOperator, isTrue);
+    expect(TokenType.INDEX.isUserDefinableOperator, isTrue);
+    expect(TokenType.INDEX_EQ.isUserDefinableOperator, isTrue);
+    expect(TokenType.LT.isUserDefinableOperator, isTrue);
+    expect(TokenType.LT_EQ.isUserDefinableOperator, isTrue);
+    expect(TokenType.LT_LT.isUserDefinableOperator, isTrue);
+    expect(TokenType.MINUS.isUserDefinableOperator, isTrue);
+    expect(TokenType.PERCENT.isUserDefinableOperator, isTrue);
+    expect(TokenType.PLUS.isUserDefinableOperator, isTrue);
+    expect(TokenType.SLASH.isUserDefinableOperator, isTrue);
+    expect(TokenType.STAR.isUserDefinableOperator, isTrue);
+    expect(TokenType.TILDE.isUserDefinableOperator, isTrue);
+    expect(TokenType.TILDE_SLASH.isUserDefinableOperator, isTrue);
   }
 }
 
 main() {
-  _ut.groupSep = ' | ';
+  groupSep = ' | ';
   runReflectiveTests(CharSequenceReaderTest);
   runReflectiveTests(IncrementalScannerTest);
   runReflectiveTests(KeywordStateTest);

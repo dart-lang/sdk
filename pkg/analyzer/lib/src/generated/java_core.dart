@@ -1,7 +1,5 @@
 library java.core;
 
-import "dart:math" as math;
-
 final Stopwatch nanoTimeStopwatch = new Stopwatch();
 
 const int LONG_MAX_VALUE = 0x7fffffffffffffff;
@@ -51,7 +49,6 @@ class JavaArrays {
     }
     return result;
   }
-  static List asList(List list) => list;
 }
 
 class Character {
@@ -117,20 +114,6 @@ class Character {
     int c1 = (offset & 0x3ff) + MIN_LOW_SURROGATE;
     return new String.fromCharCodes([c0, c1]);
   }
-}
-
-class CharSequence {
-  final String _content;
-  CharSequence(this._content);
-  static CharSequence wrap(String content) => new CharBuffer(content);
-  int charAt(int index) => _content.codeUnitAt(index);
-  int length() => _content.length;
-  String subSequence(int start, int end) => _content.substring(start, end);
-}
-
-class CharBuffer extends CharSequence {
-  CharBuffer(String content) : super(content);
-  static CharBuffer wrap(String content) => new CharBuffer(content);
 }
 
 class JavaString {
@@ -248,6 +231,10 @@ class StringUtils {
     return iter.join(separator);
   }
 
+  static void printf(StringBuffer buffer, String fmt, List args) {
+    buffer.write(_printf(fmt, args));
+  }
+
   static String remove(String str, String remove) {
     if (isEmpty(str) || isEmpty(remove)) {
       return str;
@@ -283,11 +270,6 @@ class StringUtils {
   }
 }
 
-class Math {
-  static num max(num a, num b) => math.max(a, b);
-  static num min(num a, num b) => math.min(a, b);
-}
-
 class RuntimeException extends JavaException {
   RuntimeException({String message: "", Exception cause: null}) :
     super(message, cause);
@@ -298,7 +280,7 @@ class JavaException implements Exception {
   final Exception cause;
   JavaException([this.message = "", this.cause = null]);
   JavaException.withCause(this.cause) : message = null;
-  String toString() => "${runtimeType}: $message $cause";
+  String toString() => "$runtimeType: $message $cause";
 }
 
 class JavaIOException extends JavaException {
@@ -361,65 +343,6 @@ class MissingFormatArgumentException implements Exception {
   MissingFormatArgumentException(this.s);
 }
 
-class JavaIterator<E> {
-  Iterable<E> _iterable;
-  List<E> _elements = new List<E>();
-  int _coPos = 0;
-  int _elPos = 0;
-  E _current = null;
-  JavaIterator(this._iterable) {
-    Iterator iterator = _iterable.iterator;
-    while (iterator.moveNext()) {
-      _elements.add(iterator.current);
-    }
-  }
-
-  bool get hasNext {
-    return _elPos < _elements.length;
-  }
-
-  E next() {
-    _current = _elements[_elPos];
-    _coPos++;
-    _elPos++;
-    return _current;
-  }
-
-  void remove() {
-    if (_iterable is List) {
-      _coPos--;
-      (_iterable as List).remove(_coPos);
-    } else if (_iterable is Set) {
-      (_iterable as Set).remove(_current);
-    } else {
-      throw new StateError("Unsupported iterable ${_iterable.runtimeType}");
-    }
-  }
-}
-
-class MapEntry<K, V> {
-  final Map<K, V> _map;
-  final K _key;
-  V _value;
-  MapEntry(this._map, this._key, this._value);
-  K getKey() => _key;
-  V getValue() => _value;
-  V setValue(V v) {
-    V prevValue = _value;
-    _value = v;
-    _map[_key] = v;
-    return prevValue;
-  }
-}
-
-Iterable<MapEntry> getMapEntrySet(Map m) {
-  List<MapEntry> result = [];
-  m.forEach((k, v) {
-    result.add(new MapEntry(m, k, v));
-  });
-  return result;
-}
-
 javaListSet(List list, int index, newValue) {
   var oldValue = list[index];
   list[index] = newValue;
@@ -434,12 +357,6 @@ bool javaSetEquals(Set a, Set b) {
   return a.containsAll(b) && b.containsAll(a);
 }
 
-javaMapPut(Map target, key, value) {
-  var oldValue = target[key];
-  target[key] = value;
-  return oldValue;
-}
-
 bool javaStringEqualsIgnoreCase(String a, String b) {
   return a.toLowerCase() == b.toLowerCase();
 }
@@ -452,48 +369,6 @@ bool javaStringRegionMatches(String t, int toffset, String o, int ooffset, int l
   if (tend > t.length) return false;
   if (oend > o.length) return false;
   return t.substring(toffset, tend) == o.substring(ooffset, oend);
-}
-
-bool javaBooleanOr(bool a, bool b) {
-  return a || b;
-}
-
-bool javaBooleanAnd(bool a, bool b) {
-  return a && b;
-}
-
-int javaByte(Object o) {
-  return (o as int) & 0xFF;
-}
-
-class JavaStringBuilder {
-  StringBuffer sb = new StringBuffer();
-  String toString() => sb.toString();
-  JavaStringBuilder append(x) {
-    sb.write(x);
-    return this;
-  }
-  JavaStringBuilder appendChar(int c) {
-    sb.writeCharCode(c);
-    return this;
-  }
-  int get length => sb.length;
-  void set length(int newLength) {
-    if (newLength < 0) {
-      throw new StringIndexOutOfBoundsException(newLength);
-    }
-    if (sb.length < newLength) {
-      while (sb.length < newLength) {
-        sb.writeCharCode(0);
-      }
-    } else if (sb.length > newLength) {
-      var s = sb.toString().substring(0, newLength);
-      sb = new StringBuffer(s);
-    }
-  }
-  void clear() {
-    sb = new StringBuffer();
-  }
 }
 
 abstract class Enum<E extends Enum> implements Comparable<E> {

@@ -28,6 +28,7 @@ inline uintptr_t AtomicOperations::FetchAndIncrement(uintptr_t* p) {
 }
 
 
+#if !defined(USING_SIMULATOR)
 inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
                                                   uword old_value,
                                                   uword new_value) {
@@ -45,6 +46,7 @@ inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
   UNIMPLEMENTED();
 #endif
 }
+#endif  // !defined(USING_SIMULATOR)
 
 }  // namespace dart
 

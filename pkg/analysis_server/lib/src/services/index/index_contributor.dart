@@ -421,6 +421,18 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
   }
 
   @override
+  Object visitEnumDeclaration(EnumDeclaration node) {
+    ClassElement element = node.element;
+    enterScope(element);
+    try {
+      _recordElementDefinition(element);
+      return super.visitEnumDeclaration(node);
+    } finally {
+      _exitScope();
+    }
+  }
+
+  @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
     ClassElement element = node.element;
     enterScope(element);

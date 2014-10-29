@@ -38,8 +38,9 @@ DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, trace_constant_propagation);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 
-Definition::Definition()
-    : range_(NULL),
+Definition::Definition(intptr_t deopt_id)
+    : Instruction(deopt_id),
+      range_(NULL),
       type_(NULL),
       temp_index_(-1),
       ssa_temp_index_(-1),
@@ -108,7 +109,8 @@ CheckClassInstr::CheckClassInstr(Value* value,
                                  intptr_t deopt_id,
                                  const ICData& unary_checks,
                                  intptr_t token_pos)
-    : unary_checks_(unary_checks),
+    : TemplateInstruction(deopt_id),
+      unary_checks_(unary_checks),
       cids_(unary_checks.NumberOfChecks()),
       licm_hoisted_(false),
       token_pos_(token_pos) {
@@ -118,7 +120,6 @@ CheckClassInstr::CheckClassInstr(Value* value,
   ASSERT(unary_checks_.NumberOfChecks() > 0);
   ASSERT(unary_checks_.NumArgsTested() == 1);
   SetInputAt(0, value);
-  deopt_id_ = deopt_id;
   // Otherwise use CheckSmiInstr.
   ASSERT((unary_checks_.NumberOfChecks() != 1) ||
          (unary_checks_.GetReceiverClassIdAt(0) != kSmiCid));
@@ -291,7 +292,8 @@ bool AssertAssignableInstr::AttributesEqual(Instruction* other) const {
 bool StrictCompareInstr::AttributesEqual(Instruction* other) const {
   StrictCompareInstr* other_op = other->AsStrictCompare();
   ASSERT(other_op != NULL);
-  return kind() == other_op->kind();
+  return ComparisonInstr::AttributesEqual(other) &&
+    (needs_number_check() == other_op->needs_number_check());
 }
 
 
@@ -356,18 +358,6 @@ const Field& LoadStaticFieldInstr::StaticField() const {
   Field& field = Field::Handle();
   field ^= field_value()->BoundConstant().raw();
   return field;
-}
-
-
-EffectSet LoadIndexedInstr::Dependencies() const {
-  return EffectSet::All();
-}
-
-
-bool LoadIndexedInstr::AttributesEqual(Instruction* other) const {
-  LoadIndexedInstr* other_load = other->AsLoadIndexed();
-  ASSERT(other_load != NULL);
-  return class_id() == other_load->class_id();
 }
 
 
@@ -1621,7 +1611,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
                                        Token::kSHL,
                                        left()->CopyWithType(),
                                        new Value(constant_1),
-                                       deopt_id_,
+                                       GetDeoptId(),
                                        can_overflow(),
                                        is_truncating(),
                                        range());
@@ -1659,7 +1649,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
             UnaryIntegerOpInstr::Make(representation(),
                                       Token::kBIT_NOT,
                                       left()->CopyWithType(),
-                                      deopt_id_,
+                                      GetDeoptId(),
                                       range());
         if (bit_not != NULL) {
           flow_graph->InsertBefore(this, bit_not, env(), FlowGraph::kValue);
@@ -1682,7 +1672,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
             UnaryIntegerOpInstr::Make(representation(),
                                       Token::kNEGATE,
                                       left()->CopyWithType(),
-                                      deopt_id_,
+                                      GetDeoptId(),
                                       range());
         if (negation != NULL) {
           flow_graph->InsertBefore(this, negation, env(), FlowGraph::kValue);
@@ -1696,7 +1686,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
         return left()->definition();
       } else if (rhs < 0) {
         DeoptimizeInstr* deopt =
-            new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, deopt_id_);
+            new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, GetDeoptId());
         flow_graph->InsertBefore(this, deopt, env(), FlowGraph::kEffect);
         return flow_graph->GetConstant(Smi::Handle(Smi::New(0)));
       }
@@ -1709,7 +1699,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       } else if ((rhs < 0) || (rhs >= kMaxShift)) {
         if ((rhs < 0) || !is_truncating()) {
           DeoptimizeInstr* deopt =
-              new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, deopt_id_);
+              new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, GetDeoptId());
           flow_graph->InsertBefore(this, deopt, env(), FlowGraph::kEffect);
         }
         return flow_graph->GetConstant(Smi::Handle(Smi::New(0)));
@@ -1960,7 +1950,7 @@ Definition* UnboxIntNInstr::Canonicalize(FlowGraph* flow_graph) {
           representation(),
           box_defn->value()->CopyWithType(),
           (representation() == kUnboxedInt32) ?
-              deopt_id_ : Isolate::kNoDeoptId);
+              GetDeoptId() : Isolate::kNoDeoptId);
       if ((representation() == kUnboxedInt32) && is_truncating()) {
         converter->mark_truncating();
       }
@@ -1987,7 +1977,7 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
         box_defn->from(),
         representation(),
         box_defn->value()->CopyWithType(),
-        (to() == kUnboxedInt32) ? deopt_id_ : Isolate::kNoDeoptId);
+        (to() == kUnboxedInt32) ? GetDeoptId() : Isolate::kNoDeoptId);
     if ((representation() == kUnboxedInt32) && is_truncating()) {
       converter->mark_truncating();
     }
@@ -2004,7 +1994,7 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
     // and code path that unboxes Mint into Int32. We should just schedule
     // these instructions close to each other instead of fusing them.
     Definition* replacement =
-        new UnboxInt32Instr(unbox_defn->value()->CopyWithType(), deopt_id_);
+        new UnboxInt32Instr(unbox_defn->value()->CopyWithType(), GetDeoptId());
     if (is_truncating()) {
       replacement->AsUnboxInt32()->mark_truncating();
     }
@@ -2495,7 +2485,7 @@ void JoinEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
   if (!compiler->is_optimizing()) {
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
-                                   deopt_id_,
+                                   GetDeoptId(),
                                    Scanner::kNoSourcePos);
   }
   if (HasParallelMove()) {
@@ -2521,7 +2511,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // uniformity with ARM and MIPS, where we can reuse pattern matching
     // code that matches backwards from the end of the pattern.
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
-                                   deopt_id_,
+                                   GetDeoptId(),
                                    Scanner::kNoSourcePos);
   }
   if (HasParallelMove()) {
@@ -2727,9 +2717,12 @@ StrictCompareInstr::StrictCompareInstr(intptr_t token_pos,
                                        Value* left,
                                        Value* right,
                                        bool needs_number_check)
-    : ComparisonInstr(token_pos, kind, left, right),
+    : ComparisonInstr(token_pos,
+                      kind,
+                      left,
+                      right,
+                      Isolate::Current()->GetNextDeoptId()),
       needs_number_check_(needs_number_check) {
-  deopt_id_ = Isolate::Current()->GetNextDeoptId();
   ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
 }
 
@@ -3044,8 +3037,7 @@ ComparisonInstr* TestCidsInstr::CopyWithNewOperands(Value* new_left,
 
 bool TestCidsInstr::AttributesEqual(Instruction* other) const {
   TestCidsInstr* other_instr = other->AsTestCids();
-  ASSERT(other != NULL);
-  if (kind() != other_instr->kind()) {
+  if (!ComparisonInstr::AttributesEqual(other)) {
     return false;
   }
   if (cid_results().length() != other_instr->cid_results().length()) {
@@ -3216,10 +3208,11 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
 
 InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
     ZoneGrowableArray<Value*>* inputs,
-    intptr_t original_deopt_id,
+    intptr_t deopt_id,
     MethodRecognizer::Kind recognized_kind,
     intptr_t token_pos)
-    : inputs_(inputs),
+    : PureDefinition(deopt_id),
+      inputs_(inputs),
       recognized_kind_(recognized_kind),
       token_pos_(token_pos) {
   ASSERT(inputs_->length() == ArgumentCountFor(recognized_kind_));
@@ -3228,7 +3221,6 @@ InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
     (*inputs)[i]->set_instruction(this);
     (*inputs)[i]->set_use_index(i);
   }
-  deopt_id_ = original_deopt_id;
 }
 
 
@@ -3338,9 +3330,10 @@ const char* MathUnaryInstr::KindToCString(MathUnaryKind kind) {
 
 
 MergedMathInstr::MergedMathInstr(ZoneGrowableArray<Value*>* inputs,
-                                 intptr_t original_deopt_id,
+                                 intptr_t deopt_id,
                                  MergedMathInstr::Kind kind)
-    : inputs_(inputs),
+    : PureDefinition(deopt_id),
+      inputs_(inputs),
       kind_(kind) {
   ASSERT(inputs_->length() == InputCountFor(kind_));
   for (intptr_t i = 0; i < inputs_->length(); ++i) {
@@ -3348,7 +3341,6 @@ MergedMathInstr::MergedMathInstr(ZoneGrowableArray<Value*>* inputs,
     (*inputs)[i]->set_instruction(this);
     (*inputs)[i]->set_use_index(i);
   }
-  deopt_id_ = original_deopt_id;
 }
 
 

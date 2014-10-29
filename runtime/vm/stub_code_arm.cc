@@ -45,8 +45,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ Push(IP);  // Push 0 for the PC marker.
   __ EnterFrame((1 << FP) | (1 << LR), 0);
 
-  // Load current Isolate pointer from Context structure into R0.
-  __ ldr(R0, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(R0);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
@@ -159,8 +158,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ Push(IP);  // Push 0 for the PC marker.
   __ EnterFrame((1 << FP) | (1 << LR), 0);
 
-  // Load current Isolate pointer from Context structure into R0.
-  __ ldr(R0, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(R0);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
@@ -267,8 +265,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ Push(IP);  // Push 0 for the PC marker.
   __ EnterFrame((1 << FP) | (1 << LR), 0);
 
-  // Load current Isolate pointer from Context structure into R0.
-  __ ldr(R0, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(R0);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
@@ -788,8 +785,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ EnterFrame((1 << FP) | (1 << LR), 0);
 
   // Save new context and C++ ABI callee-saved registers.
-  const intptr_t kNewContextOffsetFromFp =
-      -(1 + kAbiPreservedCpuRegCount) * kWordSize;
   __ PushList((1 << R3) | kAbiPreservedCpuRegs);
 
   const DRegister firstd = EvenDRegisterOf(kAbiFirstPreservedFpuReg);
@@ -815,7 +810,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Cache the new Context pointer into CTX while executing Dart code.
   __ ldr(CTX, Address(R3, VMHandles::kOffsetOfRawPtrInHandle));
 
-  // Load Isolate pointer into temporary register R8.
   __ LoadIsolate(R8);
 
   // Save the current VMTag on the stack.
@@ -875,14 +869,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Call the Dart code entrypoint.
   __ blx(R0);  // R4 is the arguments descriptor array.
 
-  // Read the saved new Context pointer.
-  __ ldr(CTX, Address(FP, kNewContextOffsetFromFp));
-  __ ldr(CTX, Address(CTX, VMHandles::kOffsetOfRawPtrInHandle));
-
   // Get rid of arguments pushed on the stack.
   __ AddImmediate(SP, FP, kSavedContextSlotFromEntryFp * kWordSize);
 
-  // Load Isolate pointer into CTX. Drop Context.
+  // Load Isolate pointer into CTX.
   __ LoadIsolate(CTX);
 
   // Restore the saved Context pointer into the Isolate structure.
@@ -988,16 +978,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R4: allocation stats address.
     __ str(R1, FieldAddress(R0, Context::num_variables_offset()));
 
-    // Setup isolate field.
-    // Load Isolate pointer into R3.
-    // R0: new object.
-    // R1: number of context variables.
-    // R2: object size.
-    // R4: allocation stats address.
-    __ LoadIsolate(R3);
-    // R3: isolate, not an object.
-    __ str(R3, FieldAddress(R0, Context::isolate_offset()));
-
     // Setup the parent field.
     // R0: new object.
     // R1: number of context variables.
@@ -1065,8 +1045,25 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ Ret();
 
   __ Bind(&add_to_buffer);
-  __ orr(R2, R2, Operand(1 << RawObject::kRememberedBit));
-  __ str(R2, FieldAddress(R0, Object::tags_offset()));
+  // R2: Header word.
+  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+    // TODO(21263): Implement 'swp' and use it below.
+    ASSERT(OS::NumberOfAvailableProcessors() <= 1);
+    __ orr(R2, R2, Operand(1 << RawObject::kRememberedBit));
+    __ str(R2, FieldAddress(R0, Object::tags_offset()));
+  } else {
+    // Atomically set the remembered bit of the object header.
+    ASSERT(Object::tags_offset() == 0);
+    __ sub(R3, R0, Operand(kHeapObjectTag));
+    // R3: Untagged address of header word (ldrex/strex do not support offsets).
+    Label retry;
+    __ Bind(&retry);
+    __ ldrex(R2, R3);
+    __ orr(R2, R2, Operand(1 << RawObject::kRememberedBit));
+    __ strex(R1, R2, R3);
+    __ cmp(R1, Operand(1));
+    __ b(&retry, EQ);
+  }
 
   // Load the isolate.
   // Spilled: R1, R2, R3.
@@ -1761,7 +1758,7 @@ void StubCode::GenerateDebugStepCheckStub(
     Assembler* assembler) {
   // Check single stepping.
   Label stepping, done_stepping;
-  __ ldr(R1, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(R1);
   __ ldrb(R1, Address(R1, Isolate::single_step_offset()));
   __ CompareImmediate(R1, 0);
   __ b(&stepping, NE);
@@ -2021,7 +2018,7 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
   // Check single stepping.
   Label stepping, done_stepping;
-  __ ldr(R1, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(R1);
   __ ldrb(R1, Address(R1, Isolate::single_step_offset()));
   __ CompareImmediate(R1, 0);
   __ b(&stepping, NE);

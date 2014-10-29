@@ -133,17 +133,35 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       } else if (declaration is TopLevelVariableDeclaration) {
         _addTopLevelVarSuggestions(declaration.variables);
       } else if (declaration is ClassTypeAlias) {
-        _addSuggestion(
+        CompletionSuggestion suggestion = _addSuggestion(
             declaration.name,
             CompletionSuggestionKind.CLASS_ALIAS,
             null,
             null);
+        if (suggestion != null) {
+          suggestion.element = _createElement(
+              protocol.ElementKind.CLASS_TYPE_ALIAS,
+              declaration.name,
+              null,
+              NO_RETURN_TYPE,
+              true,
+              _isDeprecated(declaration.metadata));
+        }
       } else if (declaration is FunctionTypeAlias) {
-        _addSuggestion(
+        CompletionSuggestion suggestion = _addSuggestion(
             declaration.name,
             CompletionSuggestionKind.FUNCTION_TYPE_ALIAS,
             declaration.returnType,
             null);
+        if (suggestion != null) {
+          suggestion.element = _createElement(
+              protocol.ElementKind.FUNCTION_TYPE_ALIAS,
+              declaration.name,
+              null, // TODO (danrubel) determine parameters
+              NO_RETURN_TYPE, // TODO (danrubel) determine return type
+              true,
+              _isDeprecated(declaration.metadata));
+        }
       }
     });
   }

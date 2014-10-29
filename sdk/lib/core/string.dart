@@ -463,11 +463,30 @@ abstract class String implements Comparable<String>, Pattern {
   String replaceAllMapped(Pattern from, String replace(Match match));
 
   /**
-   * Splits the string at matches of [pattern]. Returns
-   * a list of substrings.
+   * Splits the string at matches of [pattern] and returns a list of substrings.
    *
-   * Splitting with an empty string pattern (`''`) splits at UTF-16 code unit
-   * boundaries and not at rune boundaries:
+   * Finds all the matches of `pattern` in this string,
+   * and returns the list of the substrings between the matches.
+   *
+   *     var string = "Hello world!";
+   *     string.split(" ");                      // ['Hello', 'world!'];
+   *
+   * Empty matches at the beginning and end of the strings are ignored,
+   * and so are empty matches right after another match.
+   *
+   *     var string = "abba";
+   *     string.split(new RegExp(r"b*"));        // ['a', 'a']
+   *                                             // not ['', 'a', 'a', '']
+   *
+   * If this string is empty, the result is an empty list if `pattern` matches
+   * the empty string, and it is `[""]` if the pattern doesn't match.
+   *
+   *     var string = '';
+   *     string.split('');                       // []
+   *     string.split("a");                      // ['']
+   *
+   * Splitting with an empty pattern splits the string into single-code unit
+   * strings.
    *
    *     var string = 'Pub';
    *     string.split('');                       // ['P', 'u', 'b']
@@ -476,15 +495,18 @@ abstract class String implements Comparable<String>, Pattern {
    *       return new String.fromCharCode(unit);
    *     }).toList();                            // ['P', 'u', 'b']
    *
+   * Splitting happens at UTF-16 code unit boundaries,
+   * and not at rune boundaries:
+   *
    *     // String made up of two code units, but one rune.
    *     string = '\u{1D11E}';
-   *     string.split('').length;                 // 2
+   *     string.split('').length;                 // 2 surrogate values
    *
-   * You should [map] the runes unless you are certain that the string is in
-   * the basic multilingual plane (meaning that each code unit represents a
-   * rune):
+   * To get a list of strings containing the individual runes of a string,
+   * you should not use split. You can instead map each rune to a string
+   * as follows:
    *
-   *     string.runes.map((rune) => new String.fromCharCode(rune));
+   *     string.runes.map((rune) => new String.fromCharCode(rune)).toList();
    */
   List<String> split(Pattern pattern);
 

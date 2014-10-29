@@ -1133,6 +1133,13 @@ DART_EXPORT Dart_Handle Dart_HandleMessage();
 DART_EXPORT bool Dart_HandleServiceMessages();
 
 /**
+ * Does the current isolate have pending service messages?
+ *
+ * \return true if the isolate has pending service messages, false otherwise.
+ */
+DART_EXPORT bool Dart_HasServiceMessages();
+
+/**
  * Processes any incoming messages for the current isolate.
  *
  * This function may only be used when the embedder has not provided

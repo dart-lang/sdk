@@ -805,7 +805,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (write) issueWriteEvent();
     if (!flagsSent && !isClosing) {
       flagsSent = true;
-      int flags = typeFlags & TYPE_TYPE_MASK;
+      int flags = 0;
       if (!isClosedRead) flags |= 1 << READ_EVENT;
       if (!isClosedWrite) flags |= 1 << WRITE_EVENT;
       sendToEventHandler(flags);
@@ -861,9 +861,10 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   void sendToEventHandler(int data) {
+    int fullData = (typeFlags & TYPE_TYPE_MASK) | data;
     assert(!isClosing);
     connectToEventHandler();
-    _EventHandler._sendData(this, eventPort.sendPort, data);
+    _EventHandler._sendData(this, eventPort.sendPort, fullData);
   }
 
   void connectToEventHandler() {
@@ -1182,6 +1183,7 @@ class _RawServerSocket extends Stream<RawSocket>
         _controller.close();
         if (_referencePort != null) {
           _referencePort.close();
+          _referencePort = null;
         }
       });
     return _controller.stream.listen(
@@ -1195,7 +1197,15 @@ class _RawServerSocket extends Stream<RawSocket>
 
   InternetAddress get address => _socket.address;
 
-  Future close() => _socket.close().then((_) => this);
+  Future close() {
+    return _socket.close().then((_) {
+      if (_referencePort != null) {
+        _referencePort.close();
+        _referencePort = null;
+      }
+      return this;
+    });
+  }
 
   void _pause() {
     _socket.setListening(read: false, write: false);

@@ -6,6 +6,7 @@ library analyzer2dart.cps_generator;
 
 import 'package:analyzer/analyzer.dart';
 
+import 'package:compiler/implementation/dart_types.dart' as dart2js;
 import 'package:compiler/implementation/elements/elements.dart' as dart2js;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/element.dart' as analyzer;
@@ -45,8 +46,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
       function.parameters.forEach((analyzer.ParameterElement parameter) {
         // TODO(johnniwinther): Support "closure variables", that is variables
         // accessed from an inner function.
-        irBuilder.createParameter(converter.convertElement(parameter),
-                                  isClosureVariable: false);
+        irBuilder.createParameter(converter.convertElement(parameter));
       });
       // Visit the body directly to avoid processing the signature as
       // expressions.
@@ -69,6 +69,12 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   }
 
   @override
+  ir.Node visitMethodInvocation(MethodInvocation node) {
+    // Overridden to avoid eager visits of the receiver and arguments.
+    return handleMethodInvocation(node);
+  }
+
+  @override
   ir.Primitive visitDynamicInvocation(MethodInvocation node,
                                       AccessSemantics semantics) {
     // TODO(johnniwinther): Handle implicit `this`.
@@ -76,7 +82,8 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     List<ir.Definition> arguments = visitArguments(node.argumentList);
     return irBuilder.buildDynamicInvocation(
         receiver,
-        createSelectorFromMethodInvocation(node, node.methodName.name),
+        createSelectorFromMethodInvocation(
+            node.argumentList, node.methodName.name),
         arguments);
   }
 
@@ -88,8 +95,30 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     List<ir.Definition> arguments = visitArguments(node.argumentList);
     return irBuilder.buildStaticInvocation(
         element,
-        createSelectorFromMethodInvocation(node, node.methodName.name),
+        createSelectorFromMethodInvocation(
+            node.argumentList, node.methodName.name),
         arguments);
+  }
+
+  @override
+  ir.Primitive visitInstanceCreationExpression(
+      InstanceCreationExpression node) {
+    analyzer.Element staticElement = node.staticElement;
+    if (staticElement != null) {
+      dart2js.Element element = converter.convertElement(staticElement);
+      dart2js.DartType type = converter.convertType(node.staticType);
+      List<ir.Definition> arguments = visitArguments(node.argumentList);
+      String name = '';
+      if (node.constructorName.name != null) {
+        name = node.constructorName.name.name;
+      }
+      return irBuilder.buildConstructorInvocation(
+          element,
+          createSelectorFromMethodInvocation(node.argumentList, name),
+          type,
+          arguments);
+    }
+    return giveUp(node, "Unresolved constructor invocation.");
   }
 
   @override
@@ -137,6 +166,12 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   }
 
   @override
+  ir.Node visitPropertyAccess(PropertyAccess node) {
+    // Overridden to avoid eager visits of the receiver.
+    return handlePropertyAccess(node);
+  }
+
+  @override
   ir.Node visitLocalVariableAccess(AstNode node, AccessSemantics semantics) {
     return handleLocalAccess(node, semantics);
   }
@@ -155,11 +190,43 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
         initialValue: initialValue);
   }
 
-  ir.Primitive handleLocalAccess(AstNode node, AccessSemantics semantics) {
+  dart2js.Element getLocal(AstNode node, AccessSemantics semantics) {
     analyzer.Element element = semantics.element;
     dart2js.Element target = converter.convertElement(element);
     assert(invariant(node, target.isLocal, '$target expected to be local.'));
-    return irBuilder.buildLocalGet(target);
+    return target;
+  }
+
+  ir.Primitive handleLocalAccess(AstNode node, AccessSemantics semantics) {
+    return irBuilder.buildLocalGet(getLocal(node, semantics));
+  }
+
+  ir.Primitive handleLocalAssignment(AssignmentExpression node,
+                                     AccessSemantics semantics) {
+    if (node.operator.lexeme != '=') {
+      return giveUp(node, 'Assignment operator: ${node.operator.lexeme}');
+    }
+    return irBuilder.buildLocalSet(
+        getLocal(node, semantics),
+        build(node.rightHandSide));
+  }
+
+  @override
+  ir.Node visitAssignmentExpression(AssignmentExpression node) {
+    // Avoid eager visiting of left and right hand side.
+    return handleAssignmentExpression(node);
+  }
+
+  @override
+  ir.Node visitLocalVariableAssignment(AssignmentExpression node,
+                                       AccessSemantics semantics) {
+    return handleLocalAssignment(node, semantics);
+  }
+
+  @override
+  ir.Node visitParameterAssignment(AssignmentExpression node,
+                                   AccessSemantics semantics) {
+    return handleLocalAssignment(node, semantics);
   }
 
   @override
@@ -229,5 +296,25 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
         build(node.condition),
         subbuild(node.thenStatement),
         subbuild(node.elseStatement));
+  }
+
+  @override
+  visitBlock(Block node) {
+    irBuilder.buildBlock(node.statements, build);
+  }
+
+  @override
+  visitForStatement(ForStatement node) {
+    // TODO(johnniwinther): Support `for` as a jump target.
+    SubbuildFunction buildInitializer;
+    if (node.variables != null) {
+      buildInitializer = subbuild(node.variables);
+    } else {
+      buildInitializer = subbuild(node.initialization);
+    }
+    irBuilder.buildFor(buildInitializer: buildInitializer,
+                       buildCondition: subbuild(node.condition),
+                       buildBody: subbuild(node.body),
+                       buildUpdate: subbuildSequence(node.updaters));
   }
 }

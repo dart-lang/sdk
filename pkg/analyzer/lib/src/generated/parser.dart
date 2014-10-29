@@ -8,6 +8,8 @@
 library engine.parser;
 
 import 'dart:collection';
+import "dart:math" as math;
+
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'instrumentation.dart';
@@ -1171,7 +1173,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
    * @param visitedNode the visited node that should have been the parent of the node to be replaced
    */
   AstNode _notAChild(AstNode visitedNode) {
-    throw new IncrementalParseException.con1("Internal error: the visited node (a ${visitedNode.runtimeType.toString()}) was not the parent of the node to be replaced (a ${_oldNode.runtimeType.toString()})");
+    throw new IncrementalParseException.con1("Internal error: the visited node (a ${visitedNode.runtimeType}) was not the parent of the node to be replaced (a ${_oldNode.runtimeType})");
   }
 }
 
@@ -1429,15 +1431,15 @@ class Modifiers {
 
   @override
   String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    bool needsSpace = _appendKeyword(builder, false, abstractKeyword);
-    needsSpace = _appendKeyword(builder, needsSpace, constKeyword);
-    needsSpace = _appendKeyword(builder, needsSpace, externalKeyword);
-    needsSpace = _appendKeyword(builder, needsSpace, factoryKeyword);
-    needsSpace = _appendKeyword(builder, needsSpace, finalKeyword);
-    needsSpace = _appendKeyword(builder, needsSpace, staticKeyword);
-    _appendKeyword(builder, needsSpace, varKeyword);
-    return builder.toString();
+    StringBuffer buffer = new StringBuffer();
+    bool needsSpace = _appendKeyword(buffer, false, abstractKeyword);
+    needsSpace = _appendKeyword(buffer, needsSpace, constKeyword);
+    needsSpace = _appendKeyword(buffer, needsSpace, externalKeyword);
+    needsSpace = _appendKeyword(buffer, needsSpace, factoryKeyword);
+    needsSpace = _appendKeyword(buffer, needsSpace, finalKeyword);
+    needsSpace = _appendKeyword(buffer, needsSpace, staticKeyword);
+    _appendKeyword(buffer, needsSpace, varKeyword);
+    return buffer.toString();
   }
 
   /**
@@ -1449,12 +1451,12 @@ class Modifiers {
    * @param keyword the keyword to be appended
    * @return `true` if subsequent keywords need to be prefixed with a space
    */
-  bool _appendKeyword(JavaStringBuilder builder, bool needsSpace, Token keyword) {
+  bool _appendKeyword(StringBuffer buffer, bool needsSpace, Token keyword) {
     if (keyword != null) {
       if (needsSpace) {
-        builder.appendChar(0x20);
+        buffer.writeCharCode(0x20);
       }
-      builder.append(keyword.lexeme);
+      buffer.write(keyword.lexeme);
       return true;
     }
     return needsSpace;
@@ -2827,15 +2829,15 @@ class Parser {
    * @param startIndex the index of the first character representing the scalar value
    * @param endIndex the index of the last character representing the scalar value
    */
-  void _appendScalarValue(JavaStringBuilder builder, String escapeSequence, int scalarValue, int startIndex, int endIndex) {
+  void _appendScalarValue(StringBuffer buffer, String escapeSequence, int scalarValue, int startIndex, int endIndex) {
     if (scalarValue < 0 || scalarValue > Character.MAX_CODE_POINT || (scalarValue >= 0xD800 && scalarValue <= 0xDFFF)) {
       _reportErrorForCurrentToken(ParserErrorCode.INVALID_CODE_POINT, [escapeSequence]);
       return;
     }
     if (scalarValue < Character.MAX_VALUE) {
-      builder.appendChar(scalarValue);
+      buffer.writeCharCode(scalarValue);
     } else {
-      builder.append(Character.toChars(scalarValue));
+      buffer.write(Character.toChars(scalarValue));
     }
   }
 
@@ -2872,18 +2874,18 @@ class Parser {
       }
     }
     if (end - start + 1 < 0) {
-      AnalysisEngine.instance.logger.logError("Internal error: computeStringValue(${lexeme}, ${first}, ${last})");
+      AnalysisEngine.instance.logger.logError("Internal error: computeStringValue($lexeme, $first, $last)");
       return "";
     }
     if (isRaw) {
       return lexeme.substring(start, end);
     }
-    JavaStringBuilder builder = new JavaStringBuilder();
+    StringBuffer buffer = new StringBuffer();
     int index = start;
     while (index < end) {
-      index = _translateCharacter(builder, lexeme, index);
+      index = _translateCharacter(buffer, lexeme, index);
     }
-    return builder.toString();
+    return buffer.toString();
   }
 
   /**
@@ -4526,7 +4528,7 @@ class Parser {
     } else {
       // Internal error: this method should not have been invoked if the current token was something
       // other than one of the above.
-      throw new IllegalStateException("parseDirective invoked in an invalid state; currentToken = ${_currentToken}");
+      throw new IllegalStateException("parseDirective invoked in an invalid state; currentToken = $_currentToken");
     }
   }
 
@@ -4598,9 +4600,8 @@ class Parser {
     if (commentTokens.isEmpty) {
       return null;
     }
-    List<Token> tokens = new List.from(commentTokens);
-    List<CommentReference> references = _parseCommentReferences(tokens);
-    return Comment.createDocumentationCommentWithReferences(tokens, references);
+    List<CommentReference> references = _parseCommentReferences(commentTokens);
+    return Comment.createDocumentationCommentWithReferences(commentTokens, references);
   }
 
   /**
@@ -6442,7 +6443,7 @@ class Parser {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER, []);
       components.add(_createSyntheticToken(TokenType.IDENTIFIER));
     }
-    return new SymbolLiteral(poundSign, new List.from(components));
+    return new SymbolLiteral(poundSign, components);
   }
 
   /**
@@ -6885,7 +6886,7 @@ class Parser {
     if (token.type == TokenType.EOF) {
       token = token.previous;
     }
-    _reportError(new AnalysisError.con2(_source, token.offset, Math.max(token.length, 1), errorCode, arguments));
+    _reportError(new AnalysisError.con2(_source, token.offset, math.max(token.length, 1), errorCode, arguments));
   }
 
   /**
@@ -7366,52 +7367,48 @@ class Parser {
   bool _tokenMatchesString(Token token, String identifier) => token.type == TokenType.IDENTIFIER && token.lexeme == identifier;
 
   /**
-   * Translate the characters at the given index in the given string, appending the translated
-   * character to the given builder. The index is assumed to be valid.
-   *
-   * @param builder the builder to which the translated character is to be appended
-   * @param lexeme the string containing the character(s) to be translated
-   * @param index the index of the character to be translated
-   * @return the index of the next character to be translated
+   * Translate the characters at the given [index] in the given [lexeme],
+   * appending the translated character to the given [buffer]. The index is
+   * assumed to be valid.
    */
-  int _translateCharacter(JavaStringBuilder builder, String lexeme, int index) {
+  int _translateCharacter(StringBuffer buffer, String lexeme, int index) {
     int currentChar = lexeme.codeUnitAt(index);
     if (currentChar != 0x5C) {
-      builder.appendChar(currentChar);
+      buffer.writeCharCode(currentChar);
       return index + 1;
     }
     //
-    // We have found an escape sequence, so we parse the string to determine what kind of escape
-    // sequence and what character to add to the builder.
+    // We have found an escape sequence, so we parse the string to determine
+    // what kind of escape sequence and what character to add to the builder.
     //
     int length = lexeme.length;
     int currentIndex = index + 1;
     if (currentIndex >= length) {
-      // Illegal escape sequence: no char after escape
-      // This cannot actually happen because it would require the escape character to be the last
-      // character in the string, but if it were it would escape the closing quote, leaving the
-      // string unclosed.
+      // Illegal escape sequence: no char after escape.
+      // This cannot actually happen because it would require the escape
+      // character to be the last character in the string, but if it were it
+      // would escape the closing quote, leaving the string unclosed.
       // reportError(ParserErrorCode.MISSING_CHAR_IN_ESCAPE_SEQUENCE);
       return length;
     }
     currentChar = lexeme.codeUnitAt(currentIndex);
     if (currentChar == 0x6E) {
-      builder.appendChar(0xA);
+      buffer.writeCharCode(0xA);
       // newline
     } else if (currentChar == 0x72) {
-      builder.appendChar(0xD);
+      buffer.writeCharCode(0xD);
       // carriage return
     } else if (currentChar == 0x66) {
-      builder.appendChar(0xC);
+      buffer.writeCharCode(0xC);
       // form feed
     } else if (currentChar == 0x62) {
-      builder.appendChar(0x8);
+      buffer.writeCharCode(0x8);
       // backspace
     } else if (currentChar == 0x74) {
-      builder.appendChar(0x9);
+      buffer.writeCharCode(0x9);
       // tab
     } else if (currentChar == 0x76) {
-      builder.appendChar(0xB);
+      buffer.writeCharCode(0xB);
       // vertical tab
     } else if (currentChar == 0x78) {
       if (currentIndex + 2 >= length) {
@@ -7425,7 +7422,9 @@ class Parser {
         // Illegal escape sequence: invalid hex digit
         _reportErrorForCurrentToken(ParserErrorCode.INVALID_HEX_ESCAPE, []);
       } else {
-        builder.appendChar(((Character.digit(firstDigit, 16) << 4) + Character.digit(secondDigit, 16)));
+        int charCode = (Character.digit(firstDigit, 16) << 4)
+            + Character.digit(secondDigit, 16);
+        buffer.writeCharCode(charCode);
       }
       return currentIndex + 3;
     } else if (currentChar == 0x75) {
@@ -7440,7 +7439,9 @@ class Parser {
         currentIndex++;
         if (currentIndex >= length) {
           // Illegal escape sequence: incomplete escape
-          _reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          _reportErrorForCurrentToken(
+              ParserErrorCode.INVALID_UNICODE_ESCAPE,
+              []);
           return length;
         }
         currentChar = lexeme.codeUnitAt(currentIndex);
@@ -7449,9 +7450,12 @@ class Parser {
         while (currentChar != 0x7D) {
           if (!_isHexDigit(currentChar)) {
             // Illegal escape sequence: invalid hex digit
-            _reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+            _reportErrorForCurrentToken(
+                ParserErrorCode.INVALID_UNICODE_ESCAPE,
+                []);
             currentIndex++;
-            while (currentIndex < length && lexeme.codeUnitAt(currentIndex) != 0x7D) {
+            while (currentIndex < length
+                && lexeme.codeUnitAt(currentIndex) != 0x7D) {
               currentIndex++;
             }
             return currentIndex + 1;
@@ -7461,37 +7465,59 @@ class Parser {
           currentIndex++;
           if (currentIndex >= length) {
             // Illegal escape sequence: incomplete escape
-            _reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+            _reportErrorForCurrentToken(
+                ParserErrorCode.INVALID_UNICODE_ESCAPE,
+                []);
             return length;
           }
           currentChar = lexeme.codeUnitAt(currentIndex);
         }
         if (digitCount < 1 || digitCount > 6) {
           // Illegal escape sequence: not enough or too many hex digits
-          _reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          _reportErrorForCurrentToken(
+              ParserErrorCode.INVALID_UNICODE_ESCAPE,
+              []);
         }
-        _appendScalarValue(builder, lexeme.substring(index, currentIndex + 1), value, index, currentIndex);
+        _appendScalarValue(
+            buffer,
+            lexeme.substring(index, currentIndex + 1),
+            value,
+            index,
+            currentIndex);
         return currentIndex + 1;
       } else {
         if (currentIndex + 3 >= length) {
           // Illegal escape sequence: not enough hex digits
-          _reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          _reportErrorForCurrentToken(
+              ParserErrorCode.INVALID_UNICODE_ESCAPE,
+              []);
           return length;
         }
         int firstDigit = currentChar;
         int secondDigit = lexeme.codeUnitAt(currentIndex + 1);
         int thirdDigit = lexeme.codeUnitAt(currentIndex + 2);
         int fourthDigit = lexeme.codeUnitAt(currentIndex + 3);
-        if (!_isHexDigit(firstDigit) || !_isHexDigit(secondDigit) || !_isHexDigit(thirdDigit) || !_isHexDigit(fourthDigit)) {
+        if (!_isHexDigit(firstDigit)
+            || !_isHexDigit(secondDigit)
+            || !_isHexDigit(thirdDigit)
+            || !_isHexDigit(fourthDigit)) {
           // Illegal escape sequence: invalid hex digits
           _reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
         } else {
-          _appendScalarValue(builder, lexeme.substring(index, currentIndex + 1), (((((Character.digit(firstDigit, 16) << 4) + Character.digit(secondDigit, 16)) << 4) + Character.digit(thirdDigit, 16)) << 4) + Character.digit(fourthDigit, 16), index, currentIndex + 3);
+          _appendScalarValue(
+              buffer,
+              lexeme.substring(index, currentIndex + 1),
+              (((((Character.digit(firstDigit, 16) << 4)
+                  + Character.digit(secondDigit, 16)) << 4)
+                  + Character.digit(thirdDigit, 16)) << 4)
+                  + Character.digit(fourthDigit, 16),
+              index,
+              currentIndex + 3);
         }
         return currentIndex + 4;
       }
     } else {
-      builder.appendChar(currentChar);
+      buffer.writeCharCode(currentChar);
     }
     return currentIndex + 1;
   }
@@ -8299,7 +8325,7 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
   ErrorType get type => ErrorType.SYNTACTIC_ERROR;
 
   @override
-  String get uniqueName => "${runtimeType.toString()}.${name}";
+  String get uniqueName => "$runtimeType.$name";
 }
 
 /**
@@ -8353,7 +8379,12 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitAnnotation(Annotation node) {
     Annotation toNode = this._toNode as Annotation;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.atSign, toNode.atSign), _isEqualNodes(node.name, toNode.name)), _isEqualTokens(node.period, toNode.period)), _isEqualNodes(node.constructorName, toNode.constructorName)), _isEqualNodes(node.arguments, toNode.arguments))) {
+    if (_and(
+        _isEqualTokens(node.atSign, toNode.atSign),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualTokens(node.period, toNode.period),
+        _isEqualNodes(node.constructorName, toNode.constructorName),
+        _isEqualNodes(node.arguments, toNode.arguments))) {
       toNode.element = node.element;
       return true;
     }
@@ -8363,13 +8394,19 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitArgumentList(ArgumentList node) {
     ArgumentList toNode = this._toNode as ArgumentList;
-    return javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.leftParenthesis, toNode.leftParenthesis), _isEqualNodeLists(node.arguments, toNode.arguments)), _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis));
+    return _and(
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodeLists(node.arguments, toNode.arguments),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis));
   }
 
   @override
   bool visitAsExpression(AsExpression node) {
     AsExpression toNode = this._toNode as AsExpression;
-    if (javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.expression, toNode.expression), _isEqualTokens(node.asOperator, toNode.asOperator)), _isEqualNodes(node.type, toNode.type))) {
+    if (_and(
+        _isEqualNodes(node.expression, toNode.expression),
+        _isEqualTokens(node.asOperator, toNode.asOperator),
+        _isEqualNodes(node.type, toNode.type))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8380,13 +8417,21 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitAssertStatement(AssertStatement node) {
     AssertStatement toNode = this._toNode as AssertStatement;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.keyword, toNode.keyword), _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis)), _isEqualNodes(node.condition, toNode.condition)), _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis)), _isEqualTokens(node.semicolon, toNode.semicolon));
+    return _and(
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.condition, toNode.condition),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   @override
   bool visitAssignmentExpression(AssignmentExpression node) {
     AssignmentExpression toNode = this._toNode as AssignmentExpression;
-    if (javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.leftHandSide, toNode.leftHandSide), _isEqualTokens(node.operator, toNode.operator)), _isEqualNodes(node.rightHandSide, toNode.rightHandSide))) {
+    if (_and(
+        _isEqualNodes(node.leftHandSide, toNode.leftHandSide),
+        _isEqualTokens(node.operator, toNode.operator),
+        _isEqualNodes(node.rightHandSide, toNode.rightHandSide))) {
       toNode.propagatedElement = node.propagatedElement;
       toNode.propagatedType = node.propagatedType;
       toNode.staticElement = node.staticElement;
@@ -8399,13 +8444,18 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitAwaitExpression(AwaitExpression node) {
     AwaitExpression toNode = this._toNode as AwaitExpression;
-    return javaBooleanAnd(_isEqualTokens(node.awaitKeyword, toNode.awaitKeyword), _isEqualNodes(node.expression, toNode.expression));
+    return _and(
+        _isEqualTokens(node.awaitKeyword, toNode.awaitKeyword),
+        _isEqualNodes(node.expression, toNode.expression));
   }
 
   @override
   bool visitBinaryExpression(BinaryExpression node) {
     BinaryExpression toNode = this._toNode as BinaryExpression;
-    if (javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.leftOperand, toNode.leftOperand), _isEqualTokens(node.operator, toNode.operator)), _isEqualNodes(node.rightOperand, toNode.rightOperand))) {
+    if (_and(
+        _isEqualNodes(node.leftOperand, toNode.leftOperand),
+        _isEqualTokens(node.operator, toNode.operator),
+        _isEqualNodes(node.rightOperand, toNode.rightOperand))) {
       toNode.propagatedElement = node.propagatedElement;
       toNode.propagatedType = node.propagatedType;
       toNode.staticElement = node.staticElement;
@@ -8418,7 +8468,10 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitBlock(Block node) {
     Block toNode = this._toNode as Block;
-    return javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.leftBracket, toNode.leftBracket), _isEqualNodeLists(node.statements, toNode.statements)), _isEqualTokens(node.rightBracket, toNode.rightBracket));
+    return _and(
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.statements, toNode.statements),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket));
   }
 
   @override
@@ -8430,7 +8483,9 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitBooleanLiteral(BooleanLiteral node) {
     BooleanLiteral toNode = this._toNode as BooleanLiteral;
-    if (javaBooleanAnd(_isEqualTokens(node.literal, toNode.literal), node.value == toNode.value)) {
+    if (_and(
+        _isEqualTokens(node.literal, toNode.literal),
+        node.value == toNode.value)) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8441,13 +8496,18 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitBreakStatement(BreakStatement node) {
     BreakStatement toNode = this._toNode as BreakStatement;
-    return javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.keyword, toNode.keyword), _isEqualNodes(node.label, toNode.label)), _isEqualTokens(node.semicolon, toNode.semicolon));
+    return _and(
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.label, toNode.label),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   @override
   bool visitCascadeExpression(CascadeExpression node) {
     CascadeExpression toNode = this._toNode as CascadeExpression;
-    if (javaBooleanAnd(_isEqualNodes(node.target, toNode.target), _isEqualNodeLists(node.cascadeSections, toNode.cascadeSections))) {
+    if (_and(
+        _isEqualNodes(node.target, toNode.target),
+        _isEqualNodeLists(node.cascadeSections, toNode.cascadeSections))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8458,19 +8518,51 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitCatchClause(CatchClause node) {
     CatchClause toNode = this._toNode as CatchClause;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.onKeyword, toNode.onKeyword), _isEqualNodes(node.exceptionType, toNode.exceptionType)), _isEqualTokens(node.catchKeyword, toNode.catchKeyword)), _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis)), _isEqualNodes(node.exceptionParameter, toNode.exceptionParameter)), _isEqualTokens(node.comma, toNode.comma)), _isEqualNodes(node.stackTraceParameter, toNode.stackTraceParameter)), _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis)), _isEqualNodes(node.body, toNode.body));
+    return _and(
+        _isEqualTokens(node.onKeyword, toNode.onKeyword),
+        _isEqualNodes(node.exceptionType, toNode.exceptionType),
+        _isEqualTokens(node.catchKeyword, toNode.catchKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.exceptionParameter, toNode.exceptionParameter),
+        _isEqualTokens(node.comma, toNode.comma),
+        _isEqualNodes(node.stackTraceParameter, toNode.stackTraceParameter),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualNodes(node.body, toNode.body));
   }
 
   @override
   bool visitClassDeclaration(ClassDeclaration node) {
     ClassDeclaration toNode = this._toNode as ClassDeclaration;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualTokens(node.abstractKeyword, toNode.abstractKeyword)), _isEqualTokens(node.classKeyword, toNode.classKeyword)), _isEqualNodes(node.name, toNode.name)), _isEqualNodes(node.typeParameters, toNode.typeParameters)), _isEqualNodes(node.extendsClause, toNode.extendsClause)), _isEqualNodes(node.withClause, toNode.withClause)), _isEqualNodes(node.implementsClause, toNode.implementsClause)), _isEqualTokens(node.leftBracket, toNode.leftBracket)), _isEqualNodeLists(node.members, toNode.members)), _isEqualTokens(node.rightBracket, toNode.rightBracket));
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.abstractKeyword, toNode.abstractKeyword),
+        _isEqualTokens(node.classKeyword, toNode.classKeyword),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualNodes(node.typeParameters, toNode.typeParameters),
+        _isEqualNodes(node.extendsClause, toNode.extendsClause),
+        _isEqualNodes(node.withClause, toNode.withClause),
+        _isEqualNodes(node.implementsClause, toNode.implementsClause),
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.members, toNode.members),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket));
   }
 
   @override
   bool visitClassTypeAlias(ClassTypeAlias node) {
     ClassTypeAlias toNode = this._toNode as ClassTypeAlias;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualTokens(node.keyword, toNode.keyword)), _isEqualNodes(node.name, toNode.name)), _isEqualNodes(node.typeParameters, toNode.typeParameters)), _isEqualTokens(node.equals, toNode.equals)), _isEqualTokens(node.abstractKeyword, toNode.abstractKeyword)), _isEqualNodes(node.superclass, toNode.superclass)), _isEqualNodes(node.withClause, toNode.withClause)), _isEqualNodes(node.implementsClause, toNode.implementsClause)), _isEqualTokens(node.semicolon, toNode.semicolon));
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualNodes(node.typeParameters, toNode.typeParameters),
+        _isEqualTokens(node.equals, toNode.equals),
+        _isEqualTokens(node.abstractKeyword, toNode.abstractKeyword),
+        _isEqualNodes(node.superclass, toNode.superclass),
+        _isEqualNodes(node.withClause, toNode.withClause),
+        _isEqualNodes(node.implementsClause, toNode.implementsClause),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   @override
@@ -8482,13 +8574,20 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitCommentReference(CommentReference node) {
     CommentReference toNode = this._toNode as CommentReference;
-    return javaBooleanAnd(_isEqualTokens(node.newKeyword, toNode.newKeyword), _isEqualNodes(node.identifier, toNode.identifier));
+    return _and(
+        _isEqualTokens(node.newKeyword, toNode.newKeyword),
+        _isEqualNodes(node.identifier, toNode.identifier));
   }
 
   @override
   bool visitCompilationUnit(CompilationUnit node) {
     CompilationUnit toNode = this._toNode as CompilationUnit;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.beginToken, toNode.beginToken), _isEqualNodes(node.scriptTag, toNode.scriptTag)), _isEqualNodeLists(node.directives, toNode.directives)), _isEqualNodeLists(node.declarations, toNode.declarations)), _isEqualTokens(node.endToken, toNode.endToken))) {
+    if (_and(
+        _isEqualTokens(node.beginToken, toNode.beginToken),
+        _isEqualNodes(node.scriptTag, toNode.scriptTag),
+        _isEqualNodeLists(node.directives, toNode.directives),
+        _isEqualNodeLists(node.declarations, toNode.declarations),
+        _isEqualTokens(node.endToken, toNode.endToken))) {
       toNode.element = node.element;
       return true;
     }
@@ -8498,7 +8597,12 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitConditionalExpression(ConditionalExpression node) {
     ConditionalExpression toNode = this._toNode as ConditionalExpression;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.condition, toNode.condition), _isEqualTokens(node.question, toNode.question)), _isEqualNodes(node.thenExpression, toNode.thenExpression)), _isEqualTokens(node.colon, toNode.colon)), _isEqualNodes(node.elseExpression, toNode.elseExpression))) {
+    if (_and(
+        _isEqualNodes(node.condition, toNode.condition),
+        _isEqualTokens(node.question, toNode.question),
+        _isEqualNodes(node.thenExpression, toNode.thenExpression),
+        _isEqualTokens(node.colon, toNode.colon),
+        _isEqualNodes(node.elseExpression, toNode.elseExpression))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8509,7 +8613,20 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorDeclaration toNode = this._toNode as ConstructorDeclaration;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualTokens(node.externalKeyword, toNode.externalKeyword)), _isEqualTokens(node.constKeyword, toNode.constKeyword)), _isEqualTokens(node.factoryKeyword, toNode.factoryKeyword)), _isEqualNodes(node.returnType, toNode.returnType)), _isEqualTokens(node.period, toNode.period)), _isEqualNodes(node.name, toNode.name)), _isEqualNodes(node.parameters, toNode.parameters)), _isEqualTokens(node.separator, toNode.separator)), _isEqualNodeLists(node.initializers, toNode.initializers)), _isEqualNodes(node.redirectedConstructor, toNode.redirectedConstructor)), _isEqualNodes(node.body, toNode.body))) {
+    if (_and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.externalKeyword, toNode.externalKeyword),
+        _isEqualTokens(node.constKeyword, toNode.constKeyword),
+        _isEqualTokens(node.factoryKeyword, toNode.factoryKeyword),
+        _isEqualNodes(node.returnType, toNode.returnType),
+        _isEqualTokens(node.period, toNode.period),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualNodes(node.parameters, toNode.parameters),
+        _isEqualTokens(node.separator, toNode.separator),
+        _isEqualNodeLists(node.initializers, toNode.initializers),
+        _isEqualNodes(node.redirectedConstructor, toNode.redirectedConstructor),
+        _isEqualNodes(node.body, toNode.body))) {
       toNode.element = node.element;
       return true;
     }
@@ -8519,13 +8636,21 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     ConstructorFieldInitializer toNode = this._toNode as ConstructorFieldInitializer;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.keyword, toNode.keyword), _isEqualTokens(node.period, toNode.period)), _isEqualNodes(node.fieldName, toNode.fieldName)), _isEqualTokens(node.equals, toNode.equals)), _isEqualNodes(node.expression, toNode.expression));
+    return _and(
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualTokens(node.period, toNode.period),
+        _isEqualNodes(node.fieldName, toNode.fieldName),
+        _isEqualTokens(node.equals, toNode.equals),
+        _isEqualNodes(node.expression, toNode.expression));
   }
 
   @override
   bool visitConstructorName(ConstructorName node) {
     ConstructorName toNode = this._toNode as ConstructorName;
-    if (javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.type, toNode.type), _isEqualTokens(node.period, toNode.period)), _isEqualNodes(node.name, toNode.name))) {
+    if (_and(
+        _isEqualNodes(node.type, toNode.type),
+        _isEqualTokens(node.period, toNode.period),
+        _isEqualNodes(node.name, toNode.name))) {
       toNode.staticElement = node.staticElement;
       return true;
     }
@@ -8535,31 +8660,52 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitContinueStatement(ContinueStatement node) {
     ContinueStatement toNode = this._toNode as ContinueStatement;
-    return javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.keyword, toNode.keyword), _isEqualNodes(node.label, toNode.label)), _isEqualTokens(node.semicolon, toNode.semicolon));
+    return _and(
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.label, toNode.label),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   @override
   bool visitDeclaredIdentifier(DeclaredIdentifier node) {
     DeclaredIdentifier toNode = this._toNode as DeclaredIdentifier;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualTokens(node.keyword, toNode.keyword)), _isEqualNodes(node.type, toNode.type)), _isEqualNodes(node.identifier, toNode.identifier));
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.type, toNode.type),
+        _isEqualNodes(node.identifier, toNode.identifier));
   }
 
   @override
   bool visitDefaultFormalParameter(DefaultFormalParameter node) {
     DefaultFormalParameter toNode = this._toNode as DefaultFormalParameter;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.parameter, toNode.parameter), node.kind == toNode.kind), _isEqualTokens(node.separator, toNode.separator)), _isEqualNodes(node.defaultValue, toNode.defaultValue));
+    return _and(
+        _isEqualNodes(node.parameter, toNode.parameter),
+        node.kind == toNode.kind,
+        _isEqualTokens(node.separator, toNode.separator),
+        _isEqualNodes(node.defaultValue, toNode.defaultValue));
   }
 
   @override
   bool visitDoStatement(DoStatement node) {
     DoStatement toNode = this._toNode as DoStatement;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.doKeyword, toNode.doKeyword), _isEqualNodes(node.body, toNode.body)), _isEqualTokens(node.whileKeyword, toNode.whileKeyword)), _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis)), _isEqualNodes(node.condition, toNode.condition)), _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis)), _isEqualTokens(node.semicolon, toNode.semicolon));
+    return _and(
+        _isEqualTokens(node.doKeyword, toNode.doKeyword),
+        _isEqualNodes(node.body, toNode.body),
+        _isEqualTokens(node.whileKeyword, toNode.whileKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.condition, toNode.condition),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   @override
   bool visitDoubleLiteral(DoubleLiteral node) {
     DoubleLiteral toNode = this._toNode as DoubleLiteral;
-    if (javaBooleanAnd(_isEqualTokens(node.literal, toNode.literal), node.value == toNode.value)) {
+    if (_and(
+        _isEqualTokens(node.literal, toNode.literal),
+            node.value == toNode.value)) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8582,19 +8728,35 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     EnumConstantDeclaration toNode = this._toNode as EnumConstantDeclaration;
-    return javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualNodes(node.name, toNode.name));
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualNodes(node.name, toNode.name));
   }
 
   @override
   bool visitEnumDeclaration(EnumDeclaration node) {
     EnumDeclaration toNode = this._toNode as EnumDeclaration;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualTokens(node.keyword, toNode.keyword)), _isEqualNodes(node.name, toNode.name)), _isEqualTokens(node.leftBracket, toNode.leftBracket)), _isEqualNodeLists(node.constants, toNode.constants)), _isEqualTokens(node.rightBracket, toNode.rightBracket));
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.constants, toNode.constants),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket));
   }
 
   @override
   bool visitExportDirective(ExportDirective node) {
     ExportDirective toNode = this._toNode as ExportDirective;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualTokens(node.keyword, toNode.keyword)), _isEqualNodes(node.uri, toNode.uri)), _isEqualNodeLists(node.combinators, toNode.combinators)), _isEqualTokens(node.semicolon, toNode.semicolon))) {
+    if (_and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.uri, toNode.uri),
+        _isEqualNodeLists(node.combinators, toNode.combinators),
+        _isEqualTokens(node.semicolon, toNode.semicolon))) {
       toNode.element = node.element;
       return true;
     }
@@ -8604,55 +8766,102 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitExpressionFunctionBody(ExpressionFunctionBody node) {
     ExpressionFunctionBody toNode = this._toNode as ExpressionFunctionBody;
-    return javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.functionDefinition, toNode.functionDefinition), _isEqualNodes(node.expression, toNode.expression)), _isEqualTokens(node.semicolon, toNode.semicolon));
+    return _and(
+        _isEqualTokens(node.functionDefinition, toNode.functionDefinition),
+        _isEqualNodes(node.expression, toNode.expression),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   @override
   bool visitExpressionStatement(ExpressionStatement node) {
     ExpressionStatement toNode = this._toNode as ExpressionStatement;
-    return javaBooleanAnd(_isEqualNodes(node.expression, toNode.expression), _isEqualTokens(node.semicolon, toNode.semicolon));
+    return _and(
+        _isEqualNodes(node.expression, toNode.expression),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   @override
   bool visitExtendsClause(ExtendsClause node) {
     ExtendsClause toNode = this._toNode as ExtendsClause;
-    return javaBooleanAnd(_isEqualTokens(node.keyword, toNode.keyword), _isEqualNodes(node.superclass, toNode.superclass));
+    return _and(
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.superclass, toNode.superclass));
   }
 
   @override
   bool visitFieldDeclaration(FieldDeclaration node) {
     FieldDeclaration toNode = this._toNode as FieldDeclaration;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualTokens(node.staticKeyword, toNode.staticKeyword)), _isEqualNodes(node.fields, toNode.fields)), _isEqualTokens(node.semicolon, toNode.semicolon));
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.staticKeyword, toNode.staticKeyword),
+        _isEqualNodes(node.fields, toNode.fields),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   @override
   bool visitFieldFormalParameter(FieldFormalParameter node) {
     FieldFormalParameter toNode = this._toNode as FieldFormalParameter;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualTokens(node.keyword, toNode.keyword)), _isEqualNodes(node.type, toNode.type)), _isEqualTokens(node.thisToken, toNode.thisToken)), _isEqualTokens(node.period, toNode.period)), _isEqualNodes(node.identifier, toNode.identifier));
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.type, toNode.type),
+        _isEqualTokens(node.thisToken, toNode.thisToken),
+        _isEqualTokens(node.period, toNode.period),
+        _isEqualNodes(node.identifier, toNode.identifier));
   }
 
   @override
   bool visitForEachStatement(ForEachStatement node) {
     ForEachStatement toNode = this._toNode as ForEachStatement;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.forKeyword, toNode.forKeyword), _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis)), _isEqualNodes(node.loopVariable, toNode.loopVariable)), _isEqualTokens(node.inKeyword, toNode.inKeyword)), _isEqualNodes(node.iterator, toNode.iterator)), _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis)), _isEqualNodes(node.body, toNode.body));
+    return _and(
+        _isEqualTokens(node.forKeyword, toNode.forKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.loopVariable, toNode.loopVariable),
+        _isEqualTokens(node.inKeyword, toNode.inKeyword),
+        _isEqualNodes(node.iterator, toNode.iterator),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualNodes(node.body, toNode.body));
   }
 
   @override
   bool visitFormalParameterList(FormalParameterList node) {
     FormalParameterList toNode = this._toNode as FormalParameterList;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.leftParenthesis, toNode.leftParenthesis), _isEqualNodeLists(node.parameters, toNode.parameters)), _isEqualTokens(node.leftDelimiter, toNode.leftDelimiter)), _isEqualTokens(node.rightDelimiter, toNode.rightDelimiter)), _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis));
+    return _and(
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodeLists(node.parameters, toNode.parameters),
+        _isEqualTokens(node.leftDelimiter, toNode.leftDelimiter),
+        _isEqualTokens(node.rightDelimiter, toNode.rightDelimiter),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis));
   }
 
   @override
   bool visitForStatement(ForStatement node) {
     ForStatement toNode = this._toNode as ForStatement;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.forKeyword, toNode.forKeyword), _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis)), _isEqualNodes(node.variables, toNode.variables)), _isEqualNodes(node.initialization, toNode.initialization)), _isEqualTokens(node.leftSeparator, toNode.leftSeparator)), _isEqualNodes(node.condition, toNode.condition)), _isEqualTokens(node.rightSeparator, toNode.rightSeparator)), _isEqualNodeLists(node.updaters, toNode.updaters)), _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis)), _isEqualNodes(node.body, toNode.body));
+    return _and(_isEqualTokens(node.forKeyword, toNode.forKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.variables, toNode.variables),
+        _isEqualNodes(node.initialization, toNode.initialization),
+        _isEqualTokens(node.leftSeparator, toNode.leftSeparator),
+        _isEqualNodes(node.condition, toNode.condition),
+        _isEqualTokens(node.rightSeparator, toNode.rightSeparator),
+        _isEqualNodeLists(node.updaters, toNode.updaters),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualNodes(node.body, toNode.body));
   }
 
   @override
   bool visitFunctionDeclaration(FunctionDeclaration node) {
     FunctionDeclaration toNode = this._toNode as FunctionDeclaration;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualTokens(node.externalKeyword, toNode.externalKeyword)), _isEqualNodes(node.returnType, toNode.returnType)), _isEqualTokens(node.propertyKeyword, toNode.propertyKeyword)), _isEqualNodes(node.name, toNode.name)), _isEqualNodes(node.functionExpression, toNode.functionExpression));
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.externalKeyword, toNode.externalKeyword),
+        _isEqualNodes(node.returnType, toNode.returnType),
+        _isEqualTokens(node.propertyKeyword, toNode.propertyKeyword),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualNodes(node.functionExpression, toNode.functionExpression));
   }
 
   @override
@@ -8664,7 +8873,9 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitFunctionExpression(FunctionExpression node) {
     FunctionExpression toNode = this._toNode as FunctionExpression;
-    if (javaBooleanAnd(_isEqualNodes(node.parameters, toNode.parameters), _isEqualNodes(node.body, toNode.body))) {
+    if (_and(
+        _isEqualNodes(node.parameters, toNode.parameters),
+        _isEqualNodes(node.body, toNode.body))) {
       toNode.element = node.element;
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
@@ -8676,7 +8887,9 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     FunctionExpressionInvocation toNode = this._toNode as FunctionExpressionInvocation;
-    if (javaBooleanAnd(_isEqualNodes(node.function, toNode.function), _isEqualNodes(node.argumentList, toNode.argumentList))) {
+    if (_and(
+        _isEqualNodes(node.function, toNode.function),
+        _isEqualNodes(node.argumentList, toNode.argumentList))) {
       toNode.propagatedElement = node.propagatedElement;
       toNode.propagatedType = node.propagatedType;
       toNode.staticElement = node.staticElement;
@@ -8689,37 +8902,69 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitFunctionTypeAlias(FunctionTypeAlias node) {
     FunctionTypeAlias toNode = this._toNode as FunctionTypeAlias;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualTokens(node.keyword, toNode.keyword)), _isEqualNodes(node.returnType, toNode.returnType)), _isEqualNodes(node.name, toNode.name)), _isEqualNodes(node.typeParameters, toNode.typeParameters)), _isEqualNodes(node.parameters, toNode.parameters)), _isEqualTokens(node.semicolon, toNode.semicolon));
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.returnType, toNode.returnType),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualNodes(node.typeParameters, toNode.typeParameters),
+        _isEqualNodes(node.parameters, toNode.parameters),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   @override
   bool visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     FunctionTypedFormalParameter toNode = this._toNode as FunctionTypedFormalParameter;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualNodes(node.returnType, toNode.returnType)), _isEqualNodes(node.identifier, toNode.identifier)), _isEqualNodes(node.parameters, toNode.parameters));
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualNodes(node.returnType, toNode.returnType),
+        _isEqualNodes(node.identifier, toNode.identifier),
+        _isEqualNodes(node.parameters, toNode.parameters));
   }
 
   @override
   bool visitHideCombinator(HideCombinator node) {
     HideCombinator toNode = this._toNode as HideCombinator;
-    return javaBooleanAnd(_isEqualTokens(node.keyword, toNode.keyword), _isEqualNodeLists(node.hiddenNames, toNode.hiddenNames));
+    return _and(
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodeLists(node.hiddenNames, toNode.hiddenNames));
   }
 
   @override
   bool visitIfStatement(IfStatement node) {
     IfStatement toNode = this._toNode as IfStatement;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.ifKeyword, toNode.ifKeyword), _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis)), _isEqualNodes(node.condition, toNode.condition)), _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis)), _isEqualNodes(node.thenStatement, toNode.thenStatement)), _isEqualTokens(node.elseKeyword, toNode.elseKeyword)), _isEqualNodes(node.elseStatement, toNode.elseStatement));
+    return _and(
+        _isEqualTokens(node.ifKeyword, toNode.ifKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.condition, toNode.condition),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualNodes(node.thenStatement, toNode.thenStatement),
+        _isEqualTokens(node.elseKeyword, toNode.elseKeyword),
+        _isEqualNodes(node.elseStatement, toNode.elseStatement));
   }
 
   @override
   bool visitImplementsClause(ImplementsClause node) {
     ImplementsClause toNode = this._toNode as ImplementsClause;
-    return javaBooleanAnd(_isEqualTokens(node.keyword, toNode.keyword), _isEqualNodeLists(node.interfaces, toNode.interfaces));
+    return _and(
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodeLists(node.interfaces, toNode.interfaces));
   }
 
   @override
   bool visitImportDirective(ImportDirective node) {
     ImportDirective toNode = this._toNode as ImportDirective;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualTokens(node.keyword, toNode.keyword)), _isEqualNodes(node.uri, toNode.uri)), _isEqualTokens(node.asToken, toNode.asToken)), _isEqualNodes(node.prefix, toNode.prefix)), _isEqualNodeLists(node.combinators, toNode.combinators)), _isEqualTokens(node.semicolon, toNode.semicolon))) {
+    if (_and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.uri, toNode.uri),
+        _isEqualTokens(node.asToken, toNode.asToken),
+        _isEqualNodes(node.prefix, toNode.prefix),
+        _isEqualNodeLists(node.combinators, toNode.combinators),
+        _isEqualTokens(node.semicolon, toNode.semicolon))) {
       toNode.element = node.element;
       return true;
     }
@@ -8729,7 +8974,11 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitIndexExpression(IndexExpression node) {
     IndexExpression toNode = this._toNode as IndexExpression;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.target, toNode.target), _isEqualTokens(node.leftBracket, toNode.leftBracket)), _isEqualNodes(node.index, toNode.index)), _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
+    if (_and(
+        _isEqualNodes(node.target, toNode.target),
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodes(node.index, toNode.index),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
       toNode.auxiliaryElements = node.auxiliaryElements;
       toNode.propagatedElement = node.propagatedElement;
       toNode.propagatedType = node.propagatedType;
@@ -8743,7 +8992,10 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitInstanceCreationExpression(InstanceCreationExpression node) {
     InstanceCreationExpression toNode = this._toNode as InstanceCreationExpression;
-    if (javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.keyword, toNode.keyword), _isEqualNodes(node.constructorName, toNode.constructorName)), _isEqualNodes(node.argumentList, toNode.argumentList))) {
+    if (_and(
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.constructorName, toNode.constructorName),
+        _isEqualNodes(node.argumentList, toNode.argumentList))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticElement = node.staticElement;
       toNode.staticType = node.staticType;
@@ -8755,7 +9007,9 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitIntegerLiteral(IntegerLiteral node) {
     IntegerLiteral toNode = this._toNode as IntegerLiteral;
-    if (javaBooleanAnd(_isEqualTokens(node.literal, toNode.literal), identical(node.value, toNode.value))) {
+    if (_and(
+        _isEqualTokens(node.literal, toNode.literal),
+        node.value == toNode.value)) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8766,19 +9020,28 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitInterpolationExpression(InterpolationExpression node) {
     InterpolationExpression toNode = this._toNode as InterpolationExpression;
-    return javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.leftBracket, toNode.leftBracket), _isEqualNodes(node.expression, toNode.expression)), _isEqualTokens(node.rightBracket, toNode.rightBracket));
+    return _and(
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodes(node.expression, toNode.expression),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket));
   }
 
   @override
   bool visitInterpolationString(InterpolationString node) {
     InterpolationString toNode = this._toNode as InterpolationString;
-    return javaBooleanAnd(_isEqualTokens(node.contents, toNode.contents), node.value == toNode.value);
+    return _and(
+        _isEqualTokens(node.contents, toNode.contents),
+            node.value == toNode.value);
   }
 
   @override
   bool visitIsExpression(IsExpression node) {
     IsExpression toNode = this._toNode as IsExpression;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.expression, toNode.expression), _isEqualTokens(node.isOperator, toNode.isOperator)), _isEqualTokens(node.notOperator, toNode.notOperator)), _isEqualNodes(node.type, toNode.type))) {
+    if (_and(
+        _isEqualNodes(node.expression, toNode.expression),
+        _isEqualTokens(node.isOperator, toNode.isOperator),
+        _isEqualTokens(node.notOperator, toNode.notOperator),
+        _isEqualNodes(node.type, toNode.type))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8789,19 +9052,28 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitLabel(Label node) {
     Label toNode = this._toNode as Label;
-    return javaBooleanAnd(_isEqualNodes(node.label, toNode.label), _isEqualTokens(node.colon, toNode.colon));
+    return _and(
+        _isEqualNodes(node.label, toNode.label),
+        _isEqualTokens(node.colon, toNode.colon));
   }
 
   @override
   bool visitLabeledStatement(LabeledStatement node) {
     LabeledStatement toNode = this._toNode as LabeledStatement;
-    return javaBooleanAnd(_isEqualNodeLists(node.labels, toNode.labels), _isEqualNodes(node.statement, toNode.statement));
+    return _and(
+        _isEqualNodeLists(node.labels, toNode.labels),
+        _isEqualNodes(node.statement, toNode.statement));
   }
 
   @override
   bool visitLibraryDirective(LibraryDirective node) {
     LibraryDirective toNode = this._toNode as LibraryDirective;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualTokens(node.libraryToken, toNode.libraryToken)), _isEqualNodes(node.name, toNode.name)), _isEqualTokens(node.semicolon, toNode.semicolon));
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.libraryToken, toNode.libraryToken),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   @override
@@ -8818,7 +9090,12 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitListLiteral(ListLiteral node) {
     ListLiteral toNode = this._toNode as ListLiteral;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.constKeyword, toNode.constKeyword), _isEqualNodes(node.typeArguments, toNode.typeArguments)), _isEqualTokens(node.leftBracket, toNode.leftBracket)), _isEqualNodeLists(node.elements, toNode.elements)), _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
+    if (_and(
+        _isEqualTokens(node.constKeyword, toNode.constKeyword),
+        _isEqualNodes(node.typeArguments, toNode.typeArguments),
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.elements, toNode.elements),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8829,7 +9106,12 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitMapLiteral(MapLiteral node) {
     MapLiteral toNode = this._toNode as MapLiteral;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.constKeyword, toNode.constKeyword), _isEqualNodes(node.typeArguments, toNode.typeArguments)), _isEqualTokens(node.leftBracket, toNode.leftBracket)), _isEqualNodeLists(node.entries, toNode.entries)), _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
+    if (_and(
+        _isEqualTokens(node.constKeyword, toNode.constKeyword),
+        _isEqualNodes(node.typeArguments, toNode.typeArguments),
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.entries, toNode.entries),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8840,19 +9122,36 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitMapLiteralEntry(MapLiteralEntry node) {
     MapLiteralEntry toNode = this._toNode as MapLiteralEntry;
-    return javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.key, toNode.key), _isEqualTokens(node.separator, toNode.separator)), _isEqualNodes(node.value, toNode.value));
+    return _and(
+        _isEqualNodes(node.key, toNode.key),
+        _isEqualTokens(node.separator, toNode.separator),
+        _isEqualNodes(node.value, toNode.value));
   }
 
   @override
   bool visitMethodDeclaration(MethodDeclaration node) {
     MethodDeclaration toNode = this._toNode as MethodDeclaration;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualTokens(node.externalKeyword, toNode.externalKeyword)), _isEqualTokens(node.modifierKeyword, toNode.modifierKeyword)), _isEqualNodes(node.returnType, toNode.returnType)), _isEqualTokens(node.propertyKeyword, toNode.propertyKeyword)), _isEqualTokens(node.propertyKeyword, toNode.propertyKeyword)), _isEqualNodes(node.name, toNode.name)), _isEqualNodes(node.parameters, toNode.parameters)), _isEqualNodes(node.body, toNode.body));
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.externalKeyword, toNode.externalKeyword),
+        _isEqualTokens(node.modifierKeyword, toNode.modifierKeyword),
+        _isEqualNodes(node.returnType, toNode.returnType),
+        _isEqualTokens(node.propertyKeyword, toNode.propertyKeyword),
+        _isEqualTokens(node.propertyKeyword, toNode.propertyKeyword),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualNodes(node.parameters, toNode.parameters),
+        _isEqualNodes(node.body, toNode.body));
   }
 
   @override
   bool visitMethodInvocation(MethodInvocation node) {
     MethodInvocation toNode = this._toNode as MethodInvocation;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.target, toNode.target), _isEqualTokens(node.period, toNode.period)), _isEqualNodes(node.methodName, toNode.methodName)), _isEqualNodes(node.argumentList, toNode.argumentList))) {
+    if (_and(
+        _isEqualNodes(node.target, toNode.target),
+        _isEqualTokens(node.period, toNode.period),
+        _isEqualNodes(node.methodName, toNode.methodName),
+        _isEqualNodes(node.argumentList, toNode.argumentList))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8863,7 +9162,9 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitNamedExpression(NamedExpression node) {
     NamedExpression toNode = this._toNode as NamedExpression;
-    if (javaBooleanAnd(_isEqualNodes(node.name, toNode.name), _isEqualNodes(node.expression, toNode.expression))) {
+    if (_and(
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualNodes(node.expression, toNode.expression))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8874,13 +9175,18 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitNativeClause(NativeClause node) {
     NativeClause toNode = this._toNode as NativeClause;
-    return javaBooleanAnd(_isEqualTokens(node.keyword, toNode.keyword), _isEqualNodes(node.name, toNode.name));
+    return _and(
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.name, toNode.name));
   }
 
   @override
   bool visitNativeFunctionBody(NativeFunctionBody node) {
     NativeFunctionBody toNode = this._toNode as NativeFunctionBody;
-    return javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.nativeToken, toNode.nativeToken), _isEqualNodes(node.stringLiteral, toNode.stringLiteral)), _isEqualTokens(node.semicolon, toNode.semicolon));
+    return _and(
+        _isEqualTokens(node.nativeToken, toNode.nativeToken),
+        _isEqualNodes(node.stringLiteral, toNode.stringLiteral),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   @override
@@ -8897,7 +9203,10 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitParenthesizedExpression(ParenthesizedExpression node) {
     ParenthesizedExpression toNode = this._toNode as ParenthesizedExpression;
-    if (javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.leftParenthesis, toNode.leftParenthesis), _isEqualNodes(node.expression, toNode.expression)), _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis))) {
+    if (_and(
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.expression, toNode.expression),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8908,7 +9217,12 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitPartDirective(PartDirective node) {
     PartDirective toNode = this._toNode as PartDirective;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualTokens(node.partToken, toNode.partToken)), _isEqualNodes(node.uri, toNode.uri)), _isEqualTokens(node.semicolon, toNode.semicolon))) {
+    if (_and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.partToken, toNode.partToken),
+        _isEqualNodes(node.uri, toNode.uri),
+        _isEqualTokens(node.semicolon, toNode.semicolon))) {
       toNode.element = node.element;
       return true;
     }
@@ -8918,7 +9232,13 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitPartOfDirective(PartOfDirective node) {
     PartOfDirective toNode = this._toNode as PartOfDirective;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualTokens(node.partToken, toNode.partToken)), _isEqualTokens(node.ofToken, toNode.ofToken)), _isEqualNodes(node.libraryName, toNode.libraryName)), _isEqualTokens(node.semicolon, toNode.semicolon))) {
+    if (_and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.partToken, toNode.partToken),
+        _isEqualTokens(node.ofToken, toNode.ofToken),
+        _isEqualNodes(node.libraryName, toNode.libraryName),
+        _isEqualTokens(node.semicolon, toNode.semicolon))) {
       toNode.element = node.element;
       return true;
     }
@@ -8928,7 +9248,9 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitPostfixExpression(PostfixExpression node) {
     PostfixExpression toNode = this._toNode as PostfixExpression;
-    if (javaBooleanAnd(_isEqualNodes(node.operand, toNode.operand), _isEqualTokens(node.operator, toNode.operator))) {
+    if (_and(
+        _isEqualNodes(node.operand, toNode.operand),
+        _isEqualTokens(node.operator, toNode.operator))) {
       toNode.propagatedElement = node.propagatedElement;
       toNode.propagatedType = node.propagatedType;
       toNode.staticElement = node.staticElement;
@@ -8941,7 +9263,10 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitPrefixedIdentifier(PrefixedIdentifier node) {
     PrefixedIdentifier toNode = this._toNode as PrefixedIdentifier;
-    if (javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.prefix, toNode.prefix), _isEqualTokens(node.period, toNode.period)), _isEqualNodes(node.identifier, toNode.identifier))) {
+    if (_and(
+        _isEqualNodes(node.prefix, toNode.prefix),
+        _isEqualTokens(node.period, toNode.period),
+        _isEqualNodes(node.identifier, toNode.identifier))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8952,7 +9277,9 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitPrefixExpression(PrefixExpression node) {
     PrefixExpression toNode = this._toNode as PrefixExpression;
-    if (javaBooleanAnd(_isEqualTokens(node.operator, toNode.operator), _isEqualNodes(node.operand, toNode.operand))) {
+    if (_and(
+        _isEqualTokens(node.operator, toNode.operator),
+        _isEqualNodes(node.operand, toNode.operand))) {
       toNode.propagatedElement = node.propagatedElement;
       toNode.propagatedType = node.propagatedType;
       toNode.staticElement = node.staticElement;
@@ -8965,7 +9292,10 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitPropertyAccess(PropertyAccess node) {
     PropertyAccess toNode = this._toNode as PropertyAccess;
-    if (javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.target, toNode.target), _isEqualTokens(node.operator, toNode.operator)), _isEqualNodes(node.propertyName, toNode.propertyName))) {
+    if (_and(
+        _isEqualNodes(node.target, toNode.target),
+        _isEqualTokens(node.operator, toNode.operator),
+        _isEqualNodes(node.propertyName, toNode.propertyName))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -8976,7 +9306,11 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     RedirectingConstructorInvocation toNode = this._toNode as RedirectingConstructorInvocation;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.keyword, toNode.keyword), _isEqualTokens(node.period, toNode.period)), _isEqualNodes(node.constructorName, toNode.constructorName)), _isEqualNodes(node.argumentList, toNode.argumentList))) {
+    if (_and(
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualTokens(node.period, toNode.period),
+        _isEqualNodes(node.constructorName, toNode.constructorName),
+        _isEqualNodes(node.argumentList, toNode.argumentList))) {
       toNode.staticElement = node.staticElement;
       return true;
     }
@@ -8997,7 +9331,10 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitReturnStatement(ReturnStatement node) {
     ReturnStatement toNode = this._toNode as ReturnStatement;
-    return javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.keyword, toNode.keyword), _isEqualNodes(node.expression, toNode.expression)), _isEqualTokens(node.semicolon, toNode.semicolon));
+    return _and(
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.expression, toNode.expression),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   @override
@@ -9009,13 +9346,20 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitShowCombinator(ShowCombinator node) {
     ShowCombinator toNode = this._toNode as ShowCombinator;
-    return javaBooleanAnd(_isEqualTokens(node.keyword, toNode.keyword), _isEqualNodeLists(node.shownNames, toNode.shownNames));
+    return _and(
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodeLists(node.shownNames, toNode.shownNames));
   }
 
   @override
   bool visitSimpleFormalParameter(SimpleFormalParameter node) {
     SimpleFormalParameter toNode = this._toNode as SimpleFormalParameter;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualTokens(node.keyword, toNode.keyword)), _isEqualNodes(node.type, toNode.type)), _isEqualNodes(node.identifier, toNode.identifier));
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.type, toNode.type),
+        _isEqualNodes(node.identifier, toNode.identifier));
   }
 
   @override
@@ -9035,7 +9379,9 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitSimpleStringLiteral(SimpleStringLiteral node) {
     SimpleStringLiteral toNode = this._toNode as SimpleStringLiteral;
-    if (javaBooleanAnd(_isEqualTokens(node.literal, toNode.literal), identical(node.value, toNode.value))) {
+    if (_and(
+        _isEqualTokens(node.literal, toNode.literal),
+        node.value == toNode.value)) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -9057,7 +9403,11 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     SuperConstructorInvocation toNode = this._toNode as SuperConstructorInvocation;
-    if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.keyword, toNode.keyword), _isEqualTokens(node.period, toNode.period)), _isEqualNodes(node.constructorName, toNode.constructorName)), _isEqualNodes(node.argumentList, toNode.argumentList))) {
+    if (_and(
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualTokens(node.period, toNode.period),
+        _isEqualNodes(node.constructorName, toNode.constructorName),
+        _isEqualNodes(node.argumentList, toNode.argumentList))) {
       toNode.staticElement = node.staticElement;
       return true;
     }
@@ -9078,25 +9428,43 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitSwitchCase(SwitchCase node) {
     SwitchCase toNode = this._toNode as SwitchCase;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodeLists(node.labels, toNode.labels), _isEqualTokens(node.keyword, toNode.keyword)), _isEqualNodes(node.expression, toNode.expression)), _isEqualTokens(node.colon, toNode.colon)), _isEqualNodeLists(node.statements, toNode.statements));
+    return _and(
+        _isEqualNodeLists(node.labels, toNode.labels),
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.expression, toNode.expression),
+        _isEqualTokens(node.colon, toNode.colon),
+        _isEqualNodeLists(node.statements, toNode.statements));
   }
 
   @override
   bool visitSwitchDefault(SwitchDefault node) {
     SwitchDefault toNode = this._toNode as SwitchDefault;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodeLists(node.labels, toNode.labels), _isEqualTokens(node.keyword, toNode.keyword)), _isEqualTokens(node.colon, toNode.colon)), _isEqualNodeLists(node.statements, toNode.statements));
+    return _and(
+        _isEqualNodeLists(node.labels, toNode.labels),
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualTokens(node.colon, toNode.colon),
+        _isEqualNodeLists(node.statements, toNode.statements));
   }
 
   @override
   bool visitSwitchStatement(SwitchStatement node) {
     SwitchStatement toNode = this._toNode as SwitchStatement;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.keyword, toNode.keyword), _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis)), _isEqualNodes(node.expression, toNode.expression)), _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis)), _isEqualTokens(node.leftBracket, toNode.leftBracket)), _isEqualNodeLists(node.members, toNode.members)), _isEqualTokens(node.rightBracket, toNode.rightBracket));
+    return _and(
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.expression, toNode.expression),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.members, toNode.members),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket));
   }
 
   @override
   bool visitSymbolLiteral(SymbolLiteral node) {
     SymbolLiteral toNode = this._toNode as SymbolLiteral;
-    if (javaBooleanAnd(_isEqualTokens(node.poundSign, toNode.poundSign), _isEqualTokenLists(node.components, toNode.components))) {
+    if (_and(
+        _isEqualTokens(node.poundSign, toNode.poundSign),
+        _isEqualTokenLists(node.components, toNode.components))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -9118,7 +9486,9 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitThrowExpression(ThrowExpression node) {
     ThrowExpression toNode = this._toNode as ThrowExpression;
-    if (javaBooleanAnd(_isEqualTokens(node.keyword, toNode.keyword), _isEqualNodes(node.expression, toNode.expression))) {
+    if (_and(
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.expression, toNode.expression))) {
       toNode.propagatedType = node.propagatedType;
       toNode.staticType = node.staticType;
       return true;
@@ -9129,25 +9499,39 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     TopLevelVariableDeclaration toNode = this._toNode as TopLevelVariableDeclaration;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualNodes(node.variables, toNode.variables)), _isEqualTokens(node.semicolon, toNode.semicolon));
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualNodes(node.variables, toNode.variables),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   @override
   bool visitTryStatement(TryStatement node) {
     TryStatement toNode = this._toNode as TryStatement;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.tryKeyword, toNode.tryKeyword), _isEqualNodes(node.body, toNode.body)), _isEqualNodeLists(node.catchClauses, toNode.catchClauses)), _isEqualTokens(node.finallyKeyword, toNode.finallyKeyword)), _isEqualNodes(node.finallyBlock, toNode.finallyBlock));
+    return _and(
+        _isEqualTokens(node.tryKeyword, toNode.tryKeyword),
+        _isEqualNodes(node.body, toNode.body),
+        _isEqualNodeLists(node.catchClauses, toNode.catchClauses),
+        _isEqualTokens(node.finallyKeyword, toNode.finallyKeyword),
+        _isEqualNodes(node.finallyBlock, toNode.finallyBlock));
   }
 
   @override
   bool visitTypeArgumentList(TypeArgumentList node) {
     TypeArgumentList toNode = this._toNode as TypeArgumentList;
-    return javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.leftBracket, toNode.leftBracket), _isEqualNodeLists(node.arguments, toNode.arguments)), _isEqualTokens(node.rightBracket, toNode.rightBracket));
+    return _and(
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.arguments, toNode.arguments),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket));
   }
 
   @override
   bool visitTypeName(TypeName node) {
     TypeName toNode = this._toNode as TypeName;
-    if (javaBooleanAnd(_isEqualNodes(node.name, toNode.name), _isEqualNodes(node.typeArguments, toNode.typeArguments))) {
+    if (_and(
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualNodes(node.typeArguments, toNode.typeArguments))) {
       toNode.type = node.type;
       return true;
     }
@@ -9157,49 +9541,89 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitTypeParameter(TypeParameter node) {
     TypeParameter toNode = this._toNode as TypeParameter;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualNodes(node.name, toNode.name)), _isEqualTokens(node.keyword, toNode.keyword)), _isEqualNodes(node.bound, toNode.bound));
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.bound, toNode.bound));
   }
 
   @override
   bool visitTypeParameterList(TypeParameterList node) {
     TypeParameterList toNode = this._toNode as TypeParameterList;
-    return javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.leftBracket, toNode.leftBracket), _isEqualNodeLists(node.typeParameters, toNode.typeParameters)), _isEqualTokens(node.rightBracket, toNode.rightBracket));
+    return _and(
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.typeParameters, toNode.typeParameters),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket));
   }
 
   @override
   bool visitVariableDeclaration(VariableDeclaration node) {
     VariableDeclaration toNode = this._toNode as VariableDeclaration;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualNodes(node.name, toNode.name)), _isEqualTokens(node.equals, toNode.equals)), _isEqualNodes(node.initializer, toNode.initializer));
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualTokens(node.equals, toNode.equals),
+        _isEqualNodes(node.initializer, toNode.initializer));
   }
 
   @override
   bool visitVariableDeclarationList(VariableDeclarationList node) {
     VariableDeclarationList toNode = this._toNode as VariableDeclarationList;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualNodes(node.documentationComment, toNode.documentationComment), _isEqualNodeLists(node.metadata, toNode.metadata)), _isEqualTokens(node.keyword, toNode.keyword)), _isEqualNodes(node.type, toNode.type)), _isEqualNodeLists(node.variables, toNode.variables));
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.type, toNode.type),
+        _isEqualNodeLists(node.variables, toNode.variables));
   }
 
   @override
   bool visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     VariableDeclarationStatement toNode = this._toNode as VariableDeclarationStatement;
-    return javaBooleanAnd(_isEqualNodes(node.variables, toNode.variables), _isEqualTokens(node.semicolon, toNode.semicolon));
+    return _and(
+        _isEqualNodes(node.variables, toNode.variables),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   @override
   bool visitWhileStatement(WhileStatement node) {
     WhileStatement toNode = this._toNode as WhileStatement;
-    return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.keyword, toNode.keyword), _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis)), _isEqualNodes(node.condition, toNode.condition)), _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis)), _isEqualNodes(node.body, toNode.body));
+    return _and(
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.condition, toNode.condition),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualNodes(node.body, toNode.body));
   }
 
   @override
   bool visitWithClause(WithClause node) {
     WithClause toNode = this._toNode as WithClause;
-    return javaBooleanAnd(_isEqualTokens(node.withKeyword, toNode.withKeyword), _isEqualNodeLists(node.mixinTypes, toNode.mixinTypes));
+    return _and(
+        _isEqualTokens(node.withKeyword, toNode.withKeyword),
+        _isEqualNodeLists(node.mixinTypes, toNode.mixinTypes));
   }
 
   @override
   bool visitYieldStatement(YieldStatement node) {
     YieldStatement toNode = this._toNode as YieldStatement;
-    return javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.yieldKeyword, toNode.yieldKeyword), _isEqualNodes(node.expression, toNode.expression)), _isEqualTokens(node.semicolon, toNode.semicolon));
+    return _and(
+        _isEqualTokens(node.yieldKeyword, toNode.yieldKeyword),
+        _isEqualNodes(node.expression, toNode.expression),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
+  }
+
+  /**
+   * Return `true` if all of the parameters are `true`.
+   */
+  bool _and(bool b1, bool b2, [bool b3 = true, bool b4 = true, bool b5 = true,
+      bool b6 = true, bool b7 = true, bool b8 = true, bool b9 = true,
+      bool b10 = true, bool b11 = true, bool b12 = true, bool b13 = true]) {
+    return b1 && b2 && b3 && b4 && b5 && b6 && b7 && b8 && b9 && b10 && b11
+        && b12 && b13;
   }
 
   /**

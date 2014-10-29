@@ -26,6 +26,7 @@ mixin_forwarding_constructor2_test: Fail # Issue 13641
 async_test/*: Skip
 async_control_structures_test: Skip
 await_test: Skip
+await_for_test: Skip
 await_future_test: Skip
 await_nonfuture_test: Skip
 await_exceptions_test: Skip
@@ -37,6 +38,7 @@ vm/optimized_await_regress_test: Skip
 async_test/*: Skip
 async_control_structures_test: Skip
 await_test: Skip
+await_for_test: Skip
 await_future_test: Skip
 await_nonfuture_test: Skip
 await_exceptions_test: Skip

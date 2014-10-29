@@ -25,6 +25,10 @@ void main(List<String> args) {
  * containing sources to be analyzed.
  */
 class _FuzzTest {
+  /**
+   * The name of the application that is used to start the fuzz tester.
+   */
+  static const BINARY_NAME = 'fuzz';
 
   //TODO (danrubel) extract common behavior for use in multiple test scenarios
   //TODO (danrubel) cleanup test to use async/await for better readability
@@ -158,9 +162,9 @@ class _FuzzTest {
 
   /// Print information about how to use the server.
   void _printUsage(ArgParser parser) {
-    print('Usage: analyzer [flags] <application_directory>');
+    print('Usage: $BINARY_NAME [flags] <application_directory>');
     print('');
     print('Supported flags are:');
-    print(parser.getUsage());
+    print(parser.usage);
   }
 }

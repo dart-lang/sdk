@@ -199,11 +199,12 @@ String expectedData(List<String> urls, {package: 'a', experimental: false}) {
 
 const EMPTY_DATA = '{"experimental_bootstrap":false,"script_ids":[]}';
 
-const WEB_COMPONENTS_TAG =
-    '<script src="packages/web_components/platform.js"></script>\n'
-    '<script src="packages/web_components/dart_support.js"></script>\n';
 const DART_SUPPORT_TAG =
     '<script src="packages/web_components/dart_support.js"></script>\n';
+const PLATFORM_JS_TAG =
+    '<script src="packages/web_components/platform.js"></script>\n';
+const WEB_COMPONENTS_TAG =
+    '$PLATFORM_JS_TAG$DART_SUPPORT_TAG';
 
 const INTEROP_TAG = '<script src="packages/browser/interop.js"></script>\n';
 const DART_JS_TAG = '<script src="packages/browser/dart.js"></script>';

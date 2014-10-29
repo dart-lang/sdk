@@ -17,11 +17,12 @@
 #endif
 
 #include "vm/constants_arm.h"
-#include "vm/object.h"
 
 namespace dart {
 
 class Isolate;
+class Mutex;
+class RawObject;
 class SimulatorSetjmpBuffer;
 
 typedef struct {

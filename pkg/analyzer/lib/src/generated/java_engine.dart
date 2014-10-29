@@ -40,6 +40,9 @@ class StringUtilities {
     if (str == null || str.isEmpty) {
       return str;
     }
+    if (separator == null) {
+      return str;
+    }
     int pos = str.indexOf(separator);
     if (pos < 0) {
       return str;
@@ -204,24 +207,6 @@ class FileNameUtilities {
       return fileName.substring(index + 1);
     }
     return "";
-  }
-}
-
-class ArrayUtils {
-  static List add(List target, Object value) {
-    target = new List.from(target);
-    target.add(value);
-    return target;
-  }
-  static List addAt(List target, int index, Object value) {
-    target = new List.from(target);
-    target.insert(index, value);
-    return target;
-  }
-  static List addAll(List target, List source) {
-    List result = new List.from(target);
-    result.addAll(source);
-    return result;
   }
 }
 

@@ -139,6 +139,7 @@ def GetBuildInfo(builder_name, is_buildbot):
 
   # We have both 10.8 and 10.7 bots, functionality is the same.
   if system == 'mac10.8' or system == 'mac10.7':
+    builder_tag = system.replace('.', '_')
     system = 'mac'
 
   if (system == 'windows' and platform.system() != 'Windows') or (
@@ -348,6 +349,8 @@ def RunCompilerTests(build_info):
   if build_info.minified: test_flags += ['--minified']
   if build_info.host_checked: test_flags += ['--host-checked']
   if build_info.batch: test_flags += ['--dart2js-batch']
+  if build_info.builder_tag: test_flags += ['--builder-tag=' +
+                                             build_info.builder_tag]
 
   if build_info.dart2js_full:
     compiler = build_info.compiler

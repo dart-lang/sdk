@@ -1542,12 +1542,13 @@ class AnalysisNavigationParams implements HasToJson {
   String file;
 
   /**
-   * The navigation regions contained in the file. Each navigation region
-   * represents a list of targets associated with some range. The lists will
-   * usually contain a single target, but can contain more in the case of a
-   * part that is included in multiple libraries or in Dart code that is
-   * compiled against multiple versions of a package. Note that the navigation
-   * regions that are returned do not overlap other navigation regions.
+   * The navigation regions contained in the file. The regions are sorted by
+   * their offsets. Each navigation region represents a list of targets
+   * associated with some range. The lists will usually contain a single
+   * target, but can contain more in the case of a part that is included in
+   * multiple libraries or in Dart code that is compiled against multiple
+   * versions of a package. Note that the navigation regions that are returned
+   * do not overlap other navigation regions.
    */
   List<NavigationRegion> regions;
 
@@ -6409,6 +6410,8 @@ class HighlightRegion implements HasToJson {
  *   CONSTRUCTOR
  *   DIRECTIVE
  *   DYNAMIC_TYPE
+ *   ENUM
+ *   ENUM_CONSTANT
  *   FIELD
  *   FIELD_STATIC
  *   FUNCTION
@@ -6456,6 +6459,10 @@ class HighlightRegionType implements Enum {
   static const DIRECTIVE = const HighlightRegionType._("DIRECTIVE");
 
   static const DYNAMIC_TYPE = const HighlightRegionType._("DYNAMIC_TYPE");
+
+  static const ENUM = const HighlightRegionType._("ENUM");
+
+  static const ENUM_CONSTANT = const HighlightRegionType._("ENUM_CONSTANT");
 
   static const FIELD = const HighlightRegionType._("FIELD");
 
@@ -6535,6 +6542,10 @@ class HighlightRegionType implements Enum {
         return DIRECTIVE;
       case "DYNAMIC_TYPE":
         return DYNAMIC_TYPE;
+      case "ENUM":
+        return ENUM;
+      case "ENUM_CONSTANT":
+        return ENUM_CONSTANT;
       case "FIELD":
         return FIELD;
       case "FIELD_STATIC":

@@ -95,7 +95,7 @@ $else
       'metaKey': metaKey,
       'relatedTarget': relatedTarget,
     };
-    return _blink.BlinkWheelEvent.constructorCallback(type, options);
+    return _blink.BlinkWheelEvent.constructorCallback_2(type, options);
 $endif
   }
 

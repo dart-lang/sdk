@@ -8,6 +8,8 @@
 library engine.utilities.collection;
 
 import 'dart:collection';
+import "dart:math" as math;
+
 import 'java_core.dart';
 import 'scanner.dart' show Token;
 
@@ -76,7 +78,7 @@ class BooleanArray {
    */
   static void _checkIndex(int index) {
     if (index < 0 || index > 30) {
-      throw new RangeError("Index not between 0 and 30: ${index}");
+      throw new RangeError("Index not between 0 and 30: $index");
     }
   }
 }
@@ -440,10 +442,10 @@ class DirectedGraph_SccFinder<N> {
         if (wInfo == null) {
           // Successor w has not yet been visited; recurse on it
           wInfo = _strongConnect(w);
-          vInfo.lowlink = Math.min(vInfo.lowlink, wInfo.lowlink);
+          vInfo.lowlink = math.min(vInfo.lowlink, wInfo.lowlink);
         } else if (wInfo.onStack) {
           // Successor w is in stack S and hence in the current SCC
-          vInfo.lowlink = Math.min(vInfo.lowlink, wInfo.index);
+          vInfo.lowlink = math.min(vInfo.lowlink, wInfo.index);
         }
       }
     }

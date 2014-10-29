@@ -243,7 +243,7 @@ class DirectoryBasedDartSdk implements DartSdk {
     JavaFile file = new JavaFile.fromUri(uri);
     String filePath = file.getAbsolutePath();
     String libPath = libraryDirectory.getAbsolutePath();
-    if (!filePath.startsWith("${libPath}${JavaFile.separator}")) {
+    if (!filePath.startsWith("$libPath${JavaFile.separator}")) {
       return null;
     }
     filePath = filePath.substring(libPath.length + 1);
@@ -254,17 +254,17 @@ class DirectoryBasedDartSdk implements DartSdk {
         try {
           return new FileBasedSource.con2(parseUriWithException(path), file);
         } on URISyntaxException catch (exception) {
-          AnalysisEngine.instance.logger.logInformation2("Failed to create URI: ${path}", exception);
+          AnalysisEngine.instance.logger.logInformation2("Failed to create URI: $path", exception);
           return null;
         }
       }
       libraryPath = new JavaFile(libraryPath).getParent();
-      if (filePath.startsWith("${libraryPath}${JavaFile.separator}")) {
+      if (filePath.startsWith("$libraryPath${JavaFile.separator}")) {
         String path = "${library.shortName}/${filePath.substring(libraryPath.length + 1)}";
         try {
           return new FileBasedSource.con2(parseUriWithException(path), file);
         } on URISyntaxException catch (exception) {
-          AnalysisEngine.instance.logger.logInformation2("Failed to create URI: ${path}", exception);
+          AnalysisEngine.instance.logger.logInformation2("Failed to create URI: $path", exception);
           return null;
         }
       }
@@ -369,7 +369,7 @@ class DirectoryBasedDartSdk implements DartSdk {
       return null;
     }
     JavaFile libDir = new JavaFile.relative(dir, libraryName);
-    JavaFile docFile = new JavaFile.relative(libDir, "${libraryName}${_DOC_FILE_SUFFIX}");
+    JavaFile docFile = new JavaFile.relative(libDir, "$libraryName$_DOC_FILE_SUFFIX");
     if (docFile.exists()) {
       return docFile;
     }

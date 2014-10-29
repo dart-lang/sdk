@@ -8,6 +8,8 @@
 library engine.scanner;
 
 import 'dart:collection';
+import "dart:math" as math;
+
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'source.dart';
@@ -313,10 +315,10 @@ class IncrementalScanner extends Scanner {
     // Compute the range of characters that are known to need to be rescanned. If the index is
     // within an existing token, then we need to start at the beginning of the token.
     //
-    int scanStart = Math.min(oldFirst.offset, index);
+    int scanStart = math.min(oldFirst.offset, index);
     int oldEnd = oldLast.end + delta - 1;
     int newEnd = index + insertedLength - 1;
-    int scanEnd = Math.max(newEnd, oldEnd);
+    int scanEnd = math.max(newEnd, oldEnd);
     //
     // Starting at the start of the scan region, scan tokens from the modifiedSource until the end
     // of the just scanned token is greater than or equal to end of the scan region in the modified
@@ -1925,7 +1927,7 @@ class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
   ErrorType get type => ErrorType.SYNTACTIC_ERROR;
 
   @override
-  String get uniqueName => "${runtimeType.toString()}.${name}";
+  String get uniqueName => "$runtimeType.$name";
 }
 
 /**

@@ -18,6 +18,11 @@ import 'package:analysis_server/src/socket_server.dart';
  */
 class HttpAnalysisServer {
   /**
+   * Number of lines of print output to capture.
+   */
+  static const int MAX_PRINT_BUFFER_LENGTH = 1000;
+
+  /**
    * An object that can handle either a WebSocket connection or a connection
    * to the client over stdio.
    */
@@ -37,6 +42,11 @@ class HttpAnalysisServer {
    * Future that is completed with the HTTP server once it is running.
    */
   Future<HttpServer> _server;
+
+  /**
+   * Last PRINT_BUFFER_LENGTH lines printed.
+   */
+  List<String> _printBuffer = <String>[];
 
   /**
    * Attach a listener to a newly created HTTP server.
@@ -61,7 +71,7 @@ class HttpAnalysisServer {
    */
   void _handleGetRequest(HttpRequest request) {
     if (getHandler == null) {
-      getHandler = new GetHandler(socketServer);
+      getHandler = new GetHandler(socketServer, _printBuffer);
     }
     getHandler.handleGetRequest(request);
   }
@@ -98,5 +108,16 @@ class HttpAnalysisServer {
     _server.then((HttpServer server) {
       server.close();
     });
+  }
+
+  /**
+   * Record that the given line was printed out by the analysis server.
+   */
+  void recordPrint(String line) {
+    _printBuffer.add(line);
+    if (_printBuffer.length > MAX_PRINT_BUFFER_LENGTH) {
+      _printBuffer.removeRange(0,
+          _printBuffer.length - MAX_PRINT_BUFFER_LENGTH);
+    }
   }
 }

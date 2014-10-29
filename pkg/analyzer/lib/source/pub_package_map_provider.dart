@@ -51,7 +51,7 @@ class PubPackageMapProvider implements PackageMapProvider {
           executable, [PUB_LIST_COMMAND], workingDirectory: folder.path);
     } on io.ProcessException catch (exception, stackTrace) {
       AnalysisEngine.instance.logger.logInformation(
-          "Error running pub $PUB_LIST_COMMAND\n${exception}\n${stackTrace}");
+          "Error running pub $PUB_LIST_COMMAND\n$exception\n$stackTrace");
     }
     if (result.exitCode != 0) {
       AnalysisEngine.instance.logger.logInformation(
@@ -62,7 +62,7 @@ class PubPackageMapProvider implements PackageMapProvider {
       return parsePackageMap(result.stdout, folder);
     } catch (exception, stackTrace) {
       AnalysisEngine.instance.logger.logError(
-          "Malformed output from pub $PUB_LIST_COMMAND\n${exception}\n${stackTrace}");
+          "Malformed output from pub $PUB_LIST_COMMAND\n$exception\n$stackTrace");
     }
 
     return _error(folder);

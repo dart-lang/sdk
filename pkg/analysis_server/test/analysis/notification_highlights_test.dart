@@ -161,6 +161,32 @@ main() {
     });
   }
 
+  test_BUILT_IN_async() {
+    addTestFile('''
+fa() async {}
+fb() async* {}
+main() {
+  bool async = false;
+}
+''');
+    return prepareHighlights().then((_) {
+      assertHasStringRegion(HighlightRegionType.BUILT_IN, 'async');
+      assertHasStringRegion(HighlightRegionType.BUILT_IN, 'async*');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'async = false');
+    });
+  }
+
+  test_BUILT_IN_await() {
+    addTestFile('''
+main() async {
+  await 42;
+}
+''');
+    return prepareHighlights().then((_) {
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'await 42');
+    });
+  }
+
   test_BUILT_IN_deferred() {
     addTestFile('''
 import 'dart:math' deferred as math;
@@ -400,6 +426,21 @@ main() {
     });
   }
 
+  test_BUILT_IN_sync() {
+    addTestFile('''
+fa() sync {}
+fb() sync* {}
+main() {
+  bool sync = false;
+}
+''');
+    return prepareHighlights().then((_) {
+      assertHasStringRegion(HighlightRegionType.BUILT_IN, 'sync');
+      assertHasStringRegion(HighlightRegionType.BUILT_IN, 'sync*');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'sync = false');
+    });
+  }
+
   test_BUILT_IN_typedef() {
     addTestFile('''
 typedef A();
@@ -409,6 +450,28 @@ main() {
     return prepareHighlights().then((_) {
       assertHasRegion(HighlightRegionType.BUILT_IN, 'typedef A();');
       assertNoRegion(HighlightRegionType.BUILT_IN, 'typedef = 42');
+    });
+  }
+
+  test_BUILT_IN_yield() {
+    addTestFile('''
+main() async* {
+  yield 42;
+}
+''');
+    return prepareHighlights().then((_) {
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'yield 42');
+    });
+  }
+
+  test_BUILT_IN_yieldStar() {
+    addTestFile('''
+main() async* {
+  yield* [];
+}
+''');
+    return prepareHighlights().then((_) {
+      assertHasStringRegion(HighlightRegionType.BUILT_IN, 'yield*');
     });
   }
 
@@ -525,6 +588,33 @@ main(p) {
       assertHasRegion(HighlightRegionType.DYNAMIC_TYPE, 'v1 =');
       assertNoRegion(HighlightRegionType.DYNAMIC_TYPE, 'v2;');
       assertNoRegion(HighlightRegionType.DYNAMIC_TYPE, 'v3 =');
+    });
+  }
+
+  test_ENUM() {
+    addTestFile('''
+enum MyEnum {A, B, C}
+MyEnum value;
+''');
+    return prepareHighlights().then((_) {
+      assertHasRegion(HighlightRegionType.ENUM, 'MyEnum {');
+      assertHasRegion(HighlightRegionType.ENUM, 'MyEnum value;');
+    });
+  }
+
+  test_ENUM_CONSTANT() {
+    addTestFile('''
+enum MyEnum {AAA, BBB}
+main() {
+  print(MyEnum.AAA);
+  print(MyEnum.BBB);
+}
+''');
+    return prepareHighlights().then((_) {
+      assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'AAA, ');
+      assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'BBB}');
+      assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'AAA);');
+      assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'BBB);');
     });
   }
 

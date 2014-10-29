@@ -16,7 +16,6 @@ import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analyzer/source/package_map_provider.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -42,10 +41,10 @@ class ServerContextManager extends ContextManager {
       : super(resourceProvider, packageMapProvider);
 
   @override
-  void addContext(Folder folder, Map<String, List<Folder>> packageMap) {
+  void addContext(Folder folder, UriResolver packageUriResolver) {
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     analysisServer.folderMap[folder] = context;
-    context.sourceFactory = _createSourceFactory(packageMap);
+    context.sourceFactory = _createSourceFactory(packageUriResolver);
     context.analysisOptions = new AnalysisOptionsImpl.con1(defaultOptions);
     analysisServer.schedulePerformAnalysisOperation(context);
   }
@@ -71,22 +70,22 @@ class ServerContextManager extends ContextManager {
   }
 
   @override
-  void updateContextPackageMap(Folder contextFolder, Map<String,
-      List<Folder>> packageMap) {
+  void updateContextPackageUriResolver(Folder contextFolder,
+                                       UriResolver packageUriResolver) {
     AnalysisContext context = analysisServer.folderMap[contextFolder];
-    context.sourceFactory = _createSourceFactory(packageMap);
+    context.sourceFactory = _createSourceFactory(packageUriResolver);
     analysisServer.schedulePerformAnalysisOperation(context);
   }
 
   /**
    * Set up a [SourceFactory] that resolves packages using the given
-   * [packageMap].
+   * [packageUriResolver].
    */
-  SourceFactory _createSourceFactory(Map<String, List<Folder>> packageMap) {
+  SourceFactory _createSourceFactory(UriResolver packageUriResolver) {
     List<UriResolver> resolvers = <UriResolver>[
         new DartUriResolver(analysisServer.defaultSdk),
         new ResourceUriResolver(resourceProvider),
-        new PackageMapUriResolver(resourceProvider, packageMap)];
+        packageUriResolver];
     return new SourceFactory(resolvers);
   }
 }
@@ -181,12 +180,13 @@ class AnalysisServer {
 
   /**
    * A queue of the operations to perform in this server.
-   *
-   * Invariant: when this queue is non-empty, there is exactly one pending call
-   * to [performOperation] on the event queue.  When this list is empty, there are
-   * no calls to [performOperation] on the event queue.
    */
   ServerOperationQueue operationQueue;
+
+  /**
+   * True if there is a pending future which will execute [performOperation].
+   */
+  bool performOperationPending = false;
 
   /**
    * A set of the [ServerService]s to send notifications for.
@@ -269,9 +269,8 @@ class AnalysisServer {
    * Schedules execution of the given [ServerOperation].
    */
   void scheduleOperation(ServerOperation operation) {
-    bool wasEmpty = operationQueue.isEmpty;
     addOperation(operation);
-    if (wasEmpty) {
+    if (!performOperationPending) {
       _schedulePerformOperation();
     }
   }
@@ -486,6 +485,8 @@ class AnalysisServer {
    * Perform the next available [ServerOperation].
    */
   void performOperation() {
+    assert(performOperationPending);
+    performOperationPending = false;
     if (!running) {
       // An error has occurred, or the connection to the client has been
       // closed, since this method was scheduled on the event queue.  So
@@ -495,6 +496,12 @@ class AnalysisServer {
     }
     // prepare next operation
     ServerOperation operation = operationQueue.take();
+    if (operation == null) {
+      // This can happen if the operation queue is cleared while the operation
+      // loop is in progress.  No problem; we just need to exit the operation
+      // loop and wait for the next operation to be added.
+      return;
+    }
     sendStatusNotification(operation);
     // perform the operation
     try {
@@ -791,7 +798,7 @@ class AnalysisServer {
     List<Source> librarySources = context.getLibrariesContaining(unitSource);
     for (Source librarySource in librarySources) {
       CompilationUnit unit =
-          context.getResolvedCompilationUnit2(unitSource, librarySource);
+          context.resolveCompilationUnit2(unitSource, librarySource);
       if (unit != null) {
         units.add(unit);
       }
@@ -801,7 +808,7 @@ class AnalysisServer {
   }
 
   /**
-   * Returns [AstNode]s at the given [offset] of the given [file].
+   * Returns resolved [AstNode]s at the given [offset] of the given [file].
    *
    * May be empty, but not `null`.
    */
@@ -820,7 +827,7 @@ class AnalysisServer {
   /**
    * Returns [Element]s at the given [offset] of the given [file].
    *
-   * May be empty if not resolved, but not `null`.
+   * May be empty if cannot be resolved, but not `null`.
    */
   List<Element> getElementsAtOffset(String file, int offset) {
     List<AstNode> nodes = getNodesAtOffset(file, offset);
@@ -912,7 +919,9 @@ class AnalysisServer {
    * Schedules [performOperation] exection.
    */
   void _schedulePerformOperation() {
+    assert (!performOperationPending);
     new Future(performOperation);
+    performOperationPending = true;
   }
 
   /**

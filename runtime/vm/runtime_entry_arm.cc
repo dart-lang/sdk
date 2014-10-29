@@ -49,7 +49,7 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     // informative error message.
     __ LoadImmediate(R5, entry);
     __ LoadImmediate(R4, argument_count);
-    __ BranchLink(&StubCode::CallToRuntimeLabel());
+    __ BranchLink(&Isolate::Current()->stub_code()->CallToRuntimeLabel());
   }
 }
 

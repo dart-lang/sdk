@@ -2074,9 +2074,11 @@ class JavaScriptBackend extends Backend {
     // Just checking for [:TypedData:] is not sufficient, as it is an
     // abstract class any user-defined class can implement. So we also
     // check for the interface [JavaScriptIndexingBehavior].
-    return compiler.typedDataClass != null
-        && mask.satisfies(compiler.typedDataClass, compiler.world)
-        && mask.satisfies(jsIndexingBehaviorInterface, compiler.world);
+    return
+        compiler.typedDataClass != null &&
+        compiler.world.isInstantiated(compiler.typedDataClass) &&
+        mask.satisfies(compiler.typedDataClass, compiler.world) &&
+        mask.satisfies(jsIndexingBehaviorInterface, compiler.world);
   }
 
   bool couldBeTypedArray(TypeMask mask) {
@@ -2084,11 +2086,13 @@ class JavaScriptBackend extends Backend {
         !type1.intersection(type2, compiler.world).isEmpty;
     // TODO(herhut): Maybe cache the TypeMask for typedDataClass and
     //               jsIndexingBehaviourInterface.
-    return compiler.typedDataClass != null &&
-           intersects(mask, new TypeMask.subtype(compiler.typedDataClass,
-                                                 compiler.world)) &&
-           intersects(mask, new TypeMask.subtype(jsIndexingBehaviorInterface,
-                                                 compiler.world));
+    return
+        compiler.typedDataClass != null &&
+        compiler.world.isInstantiated(compiler.typedDataClass) &&
+        intersects(mask,
+            new TypeMask.subtype(compiler.typedDataClass, compiler.world)) &&
+        intersects(mask,
+            new TypeMask.subtype(jsIndexingBehaviorInterface, compiler.world));
   }
 
   /// Returns all static fields that are referenced through [targetsUsed].

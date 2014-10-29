@@ -44,8 +44,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   __ EnterFrame(0);
 
-  // Load current Isolate pointer from Context structure into RAX.
-  __ movq(RAX, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(RAX);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
@@ -156,8 +155,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   __ EnterFrame(0);
 
-  // Load current Isolate pointer from Context structure into R8.
-  __ movq(R8, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(R8);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
@@ -245,8 +243,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   __ EnterFrame(0);
 
-  // Load current Isolate pointer from Context structure into R8.
-  __ movq(R8, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(R8);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
@@ -750,7 +747,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Save arguments descriptor array and new context.
   const intptr_t kArgumentsDescOffset = -(kInitialOffset) * kWordSize;
   __ pushq(kArgDescReg);
-  const intptr_t kNewContextOffset = -(kInitialOffset + 1) * kWordSize;
   __ pushq(kNewContextReg);
 
   // Save C++ ABI callee-saved registers.
@@ -868,10 +864,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Call the Dart code entrypoint.
   __ call(kEntryPointReg);  // R10 is the arguments descriptor array.
 
-  // Restore CTX from the saved context handle.
-  __ movq(CTX, Address(RBP, kNewContextOffset));
-  __ movq(CTX, Address(CTX, VMHandles::kOffsetOfRawPtrInHandle));
-
   // Read the saved arguments descriptor array to obtain the number of passed
   // arguments.
   __ movq(kArgDescReg, Address(RBP, kArgumentsDescOffset));
@@ -978,13 +970,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // RAX: new object.
     // R10: number of context variables as integer value (not object).
     __ movq(FieldAddress(RAX, Context::num_variables_offset()), R10);
-
-    // Setup isolate field.
-    // RAX: new object.
-    // R10: number of context variables.
-    // R13: Isolate, not an object.
-    __ LoadIsolate(R13);
-    __ movq(FieldAddress(RAX, Context::isolate_offset()), R13);
 
     // Setup the parent field.
     // RAX: new object.
@@ -1754,7 +1739,7 @@ void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
 void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
   // Check single stepping.
   Label stepping, done_stepping;
-  __ movq(RAX, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(RAX);
   __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
   __ cmpq(RAX, Immediate(0));
   __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
@@ -2021,7 +2006,7 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
   // Check single stepping.
   Label stepping, done_stepping;
-  __ movq(RAX, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(RAX);
   __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
   __ cmpq(RAX, Immediate(0));
   __ j(NOT_EQUAL, &stepping);

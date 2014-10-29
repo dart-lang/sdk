@@ -47,8 +47,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   __ EnterFrame(0);
 
-  // Load current Isolate pointer from Context structure into EAX.
-  __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(EAX);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
@@ -168,8 +167,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   __ EnterFrame(0);
 
-  // Load current Isolate pointer from Context structure into EDI.
-  __ movl(EDI, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(EDI);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to dart VM code.
@@ -273,8 +271,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   __ EnterFrame(0);
 
-  // Load current Isolate pointer from Context structure into EDI.
-  __ movl(EDI, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(EDI);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to dart VM code.
@@ -882,10 +879,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Call the dart code entrypoint.
   __ call(Address(EBP, kEntryPointOffset));
 
-  // Reread the Context pointer.
-  __ movl(CTX, Address(EBP, kNewContextOffset));
-  __ movl(CTX, Address(CTX, VMHandles::kOffsetOfRawPtrInHandle));
-
   // Reread the arguments descriptor array to obtain the number of passed
   // arguments.
   __ movl(EDX, Address(EBP, kArgumentsDescOffset));
@@ -894,7 +887,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Get rid of arguments pushed on the stack.
   __ leal(ESP, Address(ESP, EDX, TIMES_2, 0));  // EDX is a Smi.
 
-  // Load Isolate pointer into CTX. Drop Context.
+  // Load Isolate pointer into CTX.
   __ LoadIsolate(CTX);
 
   // Restore the saved Context pointer into the Isolate structure.
@@ -994,13 +987,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // EAX: new object.
     // EDX: number of context variables as integer value (not object).
     __ movl(FieldAddress(EAX, Context::num_variables_offset()), EDX);
-
-    // Setup isolate field.
-    // Load Isolate pointer from Context structure into EBX.
-    // EAX: new object.
-    // EDX: number of context variables.
-    __ movl(FieldAddress(EAX, Context::isolate_offset()),
-            Immediate(reinterpret_cast<int32_t>(isolate)));
 
     const Immediate& raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -1794,7 +1780,7 @@ void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
 void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
   // Check single stepping.
   Label stepping, done_stepping;
-  __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(EAX);
   __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
   __ cmpl(EAX, Immediate(0));
   __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
@@ -2056,7 +2042,7 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
   // Check single stepping.
   Label stepping, done_stepping;
-  __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(EAX);
   __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
   __ cmpl(EAX, Immediate(0));
   __ j(NOT_EQUAL, &stepping);

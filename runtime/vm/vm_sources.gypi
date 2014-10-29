@@ -40,6 +40,7 @@
     'atomic_android.h',
     'atomic_linux.h',
     'atomic_macos.h',
+    'atomic_simulator.h',
     'atomic_win.h',
     'base_isolate.h',
     'benchmark_test.cc',

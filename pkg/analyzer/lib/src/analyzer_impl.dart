@@ -172,7 +172,7 @@ class AnalyzerImpl {
       }
       exitCode = status.ordinal;
     }).catchError((ex, st) {
-      AnalysisEngine.instance.logger.logError("${ex}\n${st}");
+      AnalysisEngine.instance.logger.logError("$ex\n$st");
     });
   }
 

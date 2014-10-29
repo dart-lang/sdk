@@ -51,12 +51,14 @@ class AsynchronyIntegrationTest {
 
       // Begin processing responses from the server.
       server.listenToOutput((String event, params) {
-        // No notifications are expected.
-        fail('Unexpected notification: $event');
+        // The only expected notification is server.connected.
+        if (event != 'server.connected') {
+          fail('Unexpected notification: $event');
+        }
       });
 
       // Terminate the test when the response to the last message is received.
-      lastMessageResult.then((_) {
+      return lastMessageResult.then((_) {
         server.send("server.shutdown", null).then((_) {
           return server.exitCode;
         });

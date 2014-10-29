@@ -56,12 +56,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   RefactoringStatus checkNewName() {
     RefactoringStatus result = super.checkNewName();
     if (element is LocalVariableElement) {
-      LocalVariableElement variableElement = element;
-      if (variableElement.isConst) {
-        result.addStatus(validateConstantName(newName));
-      } else {
-        result.addStatus(validateVariableName(newName));
-      }
+      result.addStatus(validateVariableName(newName));
     } else if (element is ParameterElement) {
       result.addStatus(validateParameterName(newName));
     } else if (element is FunctionElement) {

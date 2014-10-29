@@ -88,7 +88,7 @@ List<List> _expandTestPairs() {
   assert(2 == BEE_STRING.length);
   var tests = [];
   tests.addAll(_TEST_PAIRS);
-  tests.addAll(_TEST_PAIRS.expand((test) {
+  tests.addAll(_TEST_PAIRS.map((test) {
     var bytes = test[0];
     var string = test[1];
     var longBytes = [];
@@ -97,7 +97,7 @@ List<List> _expandTestPairs() {
       longBytes.addAll(bytes);
       longString += string;
     }
-    return [test, [longBytes, longString]];
+    return [longBytes, longString];
   }));
   return tests;
 }

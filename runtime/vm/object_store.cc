@@ -37,6 +37,7 @@ ObjectStore::ObjectStore()
     string_type_(Type::null()),
     future_class_(Class::null()),
     completer_class_(Class::null()),
+    stream_iterator_class_(Class::null()),
     one_byte_string_class_(Class::null()),
     two_byte_string_class_(Class::null()),
     external_one_byte_string_class_(Class::null()),
@@ -182,6 +183,9 @@ void ObjectStore::InitAsyncObjects() {
   cls = async_lib.LookupClass(Symbols::Completer());
   ASSERT(!cls.IsNull());
   set_completer_class(cls);
+  cls = async_lib.LookupClass(Symbols::StreamIterator());
+  ASSERT(!cls.IsNull());
+  set_stream_iterator_class(cls);
 }
 
 }  // namespace dart

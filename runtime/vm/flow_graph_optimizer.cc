@@ -1347,11 +1347,8 @@ bool FlowGraphOptimizer::InlineSetIndexed(
                                      new(I) Value(instantiator),
                                      new(I) Value(type_args),
                                      value_type,
-                                     Symbols::Value());
-    // Newly inserted instructions that can deoptimize or throw an exception
-    // must have a deoptimization id that is valid for lookup in the unoptimized
-    // code.
-    assert_value->deopt_id_ = call->deopt_id();
+                                     Symbols::Value(),
+                                     call->deopt_id());
     cursor = flow_graph()->AppendTo(cursor,
                                     assert_value,
                                     call->env(),
@@ -3323,8 +3320,7 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Constructor(
     return false;
   }
   if (recognized_kind == MethodRecognizer::kFloat32x4Zero) {
-    Float32x4ZeroInstr* zero =
-        new(I) Float32x4ZeroInstr(call->deopt_id());
+    Float32x4ZeroInstr* zero = new(I) Float32x4ZeroInstr();
     ReplaceCall(call, zero);
     return true;
   } else if (recognized_kind == MethodRecognizer::kFloat32x4Splat) {
@@ -3367,8 +3363,7 @@ bool FlowGraphOptimizer::TryInlineFloat64x2Constructor(
     return false;
   }
   if (recognized_kind == MethodRecognizer::kFloat64x2Zero) {
-    Float64x2ZeroInstr* zero =
-        new(I) Float64x2ZeroInstr(call->deopt_id());
+    Float64x2ZeroInstr* zero = new(I) Float64x2ZeroInstr();
     ReplaceCall(call, zero);
     return true;
   } else if (recognized_kind == MethodRecognizer::kFloat64x2Splat) {
@@ -4333,11 +4328,8 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
                                    new(I) Value(instantiator),
                                    new(I) Value(type_args),
                                    type,
-                                   dst_name);
-  // Newly inserted instructions that can deoptimize or throw an exception
-  // must have a deoptimization id that is valid for lookup in the unoptimized
-  // code.
-  assert_as->deopt_id_ = call->deopt_id();
+                                   dst_name,
+                                   call->deopt_id());
   ReplaceCall(call, assert_as);
 }
 

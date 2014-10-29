@@ -8,6 +8,8 @@
 library engine.resolver;
 
 import 'dart:collection';
+import "dart:math" as math;
+
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'instrumentation.dart';
@@ -422,10 +424,10 @@ class AngularCompilationUnitBuilder {
    * Parses [AngularPropertyElement]s from [annotation] and [classDeclaration].
    */
   List<AngularPropertyElement> _parseComponentProperties() {
-    List<AngularPropertyElement> properties = [];
+    List<AngularPropertyElement> properties = <AngularPropertyElement>[];
     _parseComponentProperties_fromMap(properties);
     _parseComponentProperties_fromFields(properties);
-    return new List.from(properties);
+    return properties;
   }
 
   /**
@@ -611,9 +613,9 @@ class AngularCompilationUnitBuilder {
   }
 
   List<AngularScopePropertyElement> _parseScopeProperties() {
-    List<AngularScopePropertyElement> properties = [];
+    List<AngularScopePropertyElement> properties = <AngularScopePropertyElement>[];
     _classDeclaration.accept(new RecursiveAstVisitor_AngularCompilationUnitBuilder_parseScopeProperties(properties));
-    return new List.from(properties);
+    return properties;
   }
 
   /**
@@ -621,10 +623,10 @@ class AngularCompilationUnitBuilder {
    * where <code>view</code> is <code>ViewFactory</code>.
    */
   void _parseViews() {
-    List<AngularViewElement> views = [];
+    List<AngularViewElement> views = <AngularViewElement>[];
     _unit.accept(new RecursiveAstVisitor_AngularCompilationUnitBuilder_parseViews(views));
     if (!views.isEmpty) {
-      List<AngularViewElement> viewArray = new List.from(views);
+      List<AngularViewElement> viewArray = views;
       (_unit.element as CompilationUnitElementImpl).angularViews = viewArray;
     }
   }
@@ -976,7 +978,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     }
     bool problemReported = false;
     for (Expression argument in argumentList.arguments) {
-      problemReported = javaBooleanOr(problemReported, _checkForArgumentTypeNotAssignableForArgument(argument));
+      if (_checkForArgumentTypeNotAssignableForArgument(argument)) {
+        problemReported = true;
+      }
     }
     return problemReported;
   }
@@ -999,7 +1003,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         ConstructorElement constructorElement = element;
         displayName = constructorElement.enclosingElement.displayName;
         if (!constructorElement.displayName.isEmpty) {
-          displayName = "${displayName}.${constructorElement.displayName}";
+          displayName = "$displayName.${constructorElement.displayName}";
         }
       }
       _errorReporter.reportErrorForNode(HintCode.DEPRECATED_MEMBER_USE, node, [displayName]);
@@ -3371,17 +3375,17 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
     ParameterElement element = parameters == null ? null : _findIdentifier(parameters, parameterName);
     if (element == null) {
-      PrintStringWriter writer = new PrintStringWriter();
-      writer.println("Invalid state found in the Analysis Engine:");
-      writer.println("DeclarationResolver.getElementForParameter() is visiting a parameter that does not appear to be in a method or function.");
-      writer.println("Ancestors:");
+      StringBuffer buffer = new StringBuffer();
+      buffer.writeln("Invalid state found in the Analysis Engine:");
+      buffer.writeln("DeclarationResolver.getElementForParameter() is visiting a parameter that does not appear to be in a method or function.");
+      buffer.writeln("Ancestors:");
       AstNode parent = node.parent;
       while (parent != null) {
-        writer.println(parent.runtimeType.toString());
-        writer.println("---------");
+        buffer.writeln(parent.runtimeType.toString());
+        buffer.writeln("---------");
         parent = parent.parent;
       }
-      AnalysisEngine.instance.logger.logError2(writer.toString(), new CaughtException(new AnalysisException(), null));
+      AnalysisEngine.instance.logger.logError2(buffer.toString(), new CaughtException(new AnalysisException(), null));
     }
     return element;
   }
@@ -3985,13 +3989,13 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     } catch (ex) {
       if (node.name.staticElement == null) {
         ClassDeclaration classNode = node.getAncestor((node) => node is ClassDeclaration);
-        JavaStringBuilder builder = new JavaStringBuilder();
-        builder.append("The element for the method ");
-        builder.append(node.name);
-        builder.append(" in ");
-        builder.append(classNode.name);
-        builder.append(" was not set while trying to build the element model.");
-        AnalysisEngine.instance.logger.logError2(builder.toString(), new AnalysisException(builder.toString(), new CaughtException(ex, null)));
+        StringBuffer buffer = new StringBuffer();
+        buffer.write("The element for the method ");
+        buffer.write(node.name);
+        buffer.write(" in ");
+        buffer.write(classNode.name);
+        buffer.write(" was not set while trying to build the element model.");
+        AnalysisEngine.instance.logger.logError2(buffer.toString(), new AnalysisException(buffer.toString(), new CaughtException(ex, null)));
       } else {
         String message = "Exception caught in ElementBuilder.visitMethodDeclaration()";
         AnalysisEngine.instance.logger.logError2(message, new AnalysisException(message, new CaughtException(ex, null)));
@@ -3999,13 +4003,13 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     } finally {
       if (node.name.staticElement == null) {
         ClassDeclaration classNode = node.getAncestor((node) => node is ClassDeclaration);
-        JavaStringBuilder builder = new JavaStringBuilder();
-        builder.append("The element for the method ");
-        builder.append(node.name);
-        builder.append(" in ");
-        builder.append(classNode.name);
-        builder.append(" was not set while trying to resolve types.");
-        AnalysisEngine.instance.logger.logError2(builder.toString(), new CaughtException(new AnalysisException(builder.toString()), null));
+        StringBuffer buffer = new StringBuffer();
+        buffer.write("The element for the method ");
+        buffer.write(node.name);
+        buffer.write(" in ");
+        buffer.write(classNode.name);
+        buffer.write(" was not set while trying to resolve types.");
+        AnalysisEngine.instance.logger.logError2(buffer.toString(), new CaughtException(new AnalysisException(buffer.toString()), null));
       }
     }
     return null;
@@ -4298,7 +4302,7 @@ class ElementHolder {
 
   List<LabelElement> _labels;
 
-  List<VariableElement> _localVariables;
+  List<LocalVariableElement> _localVariables;
 
   List<MethodElement> _methods;
 
@@ -4356,7 +4360,7 @@ class ElementHolder {
 
   void addLocalVariable(LocalVariableElement element) {
     if (_localVariables == null) {
-      _localVariables = new List<VariableElement>();
+      _localVariables = new List<LocalVariableElement>();
     }
     _localVariables.add(element);
   }
@@ -4407,7 +4411,7 @@ class ElementHolder {
     if (_accessors == null) {
       return PropertyAccessorElementImpl.EMPTY_ARRAY;
     }
-    List<PropertyAccessorElement> result = new List.from(_accessors);
+    List<PropertyAccessorElement> result = _accessors;
     _accessors = null;
     return result;
   }
@@ -4416,7 +4420,7 @@ class ElementHolder {
     if (_constructors == null) {
       return ConstructorElementImpl.EMPTY_ARRAY;
     }
-    List<ConstructorElement> result = new List.from(_constructors);
+    List<ConstructorElement> result = _constructors;
     _constructors = null;
     return result;
   }
@@ -4425,7 +4429,7 @@ class ElementHolder {
     if (_enums == null) {
       return ClassElementImpl.EMPTY_ARRAY;
     }
-    List<ClassElement> result = new List.from(_enums);
+    List<ClassElement> result = _enums;
     _enums = null;
     return result;
   }
@@ -4446,7 +4450,7 @@ class ElementHolder {
     if (_fields == null) {
       return FieldElementImpl.EMPTY_ARRAY;
     }
-    List<FieldElement> result = new List.from(_fields);
+    List<FieldElement> result = _fields;
     _fields = null;
     return result;
   }
@@ -4455,7 +4459,7 @@ class ElementHolder {
     if (_fields == null) {
       return FieldElementImpl.EMPTY_ARRAY;
     }
-    List<FieldElement> result = new List.from(_fields);
+    List<FieldElement> result = _fields;
     return result;
   }
 
@@ -4463,7 +4467,7 @@ class ElementHolder {
     if (_functions == null) {
       return FunctionElementImpl.EMPTY_ARRAY;
     }
-    List<FunctionElement> result = new List.from(_functions);
+    List<FunctionElement> result = _functions;
     _functions = null;
     return result;
   }
@@ -4472,7 +4476,7 @@ class ElementHolder {
     if (_labels == null) {
       return LabelElementImpl.EMPTY_ARRAY;
     }
-    List<LabelElement> result = new List.from(_labels);
+    List<LabelElement> result = _labels;
     _labels = null;
     return result;
   }
@@ -4481,7 +4485,7 @@ class ElementHolder {
     if (_localVariables == null) {
       return LocalVariableElementImpl.EMPTY_ARRAY;
     }
-    List<LocalVariableElement> result = new List.from(_localVariables);
+    List<LocalVariableElement> result = _localVariables;
     _localVariables = null;
     return result;
   }
@@ -4490,7 +4494,7 @@ class ElementHolder {
     if (_methods == null) {
       return MethodElementImpl.EMPTY_ARRAY;
     }
-    List<MethodElement> result = new List.from(_methods);
+    List<MethodElement> result = _methods;
     _methods = null;
     return result;
   }
@@ -4499,7 +4503,7 @@ class ElementHolder {
     if (_parameters == null) {
       return ParameterElementImpl.EMPTY_ARRAY;
     }
-    List<ParameterElement> result = new List.from(_parameters);
+    List<ParameterElement> result = _parameters;
     _parameters = null;
     return result;
   }
@@ -4520,7 +4524,7 @@ class ElementHolder {
     if (_topLevelVariables == null) {
       return TopLevelVariableElementImpl.EMPTY_ARRAY;
     }
-    List<TopLevelVariableElement> result = new List.from(_topLevelVariables);
+    List<TopLevelVariableElement> result = _topLevelVariables;
     _topLevelVariables = null;
     return result;
   }
@@ -4529,7 +4533,7 @@ class ElementHolder {
     if (_typeAliases == null) {
       return FunctionTypeAliasElementImpl.EMPTY_ARRAY;
     }
-    List<FunctionTypeAliasElement> result = new List.from(_typeAliases);
+    List<FunctionTypeAliasElement> result = _typeAliases;
     _typeAliases = null;
     return result;
   }
@@ -4538,7 +4542,7 @@ class ElementHolder {
     if (_typeParameters == null) {
       return TypeParameterElementImpl.EMPTY_ARRAY;
     }
-    List<TypeParameterElement> result = new List.from(_typeParameters);
+    List<TypeParameterElement> result = _typeParameters;
     _typeParameters = null;
     return result;
   }
@@ -4547,96 +4551,96 @@ class ElementHolder {
     if (_types == null) {
       return ClassElementImpl.EMPTY_ARRAY;
     }
-    List<ClassElement> result = new List.from(_types);
+    List<ClassElement> result = _types;
     _types = null;
     return result;
   }
 
   void validate() {
-    JavaStringBuilder builder = new JavaStringBuilder();
+    StringBuffer buffer = new StringBuffer();
     if (_accessors != null) {
-      builder.append(_accessors.length);
-      builder.append(" accessors");
+      buffer.write(_accessors.length);
+      buffer.write(" accessors");
     }
     if (_constructors != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_constructors.length);
-      builder.append(" constructors");
+      buffer.write(_constructors.length);
+      buffer.write(" constructors");
     }
     if (_fields != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_fields.length);
-      builder.append(" fields");
+      buffer.write(_fields.length);
+      buffer.write(" fields");
     }
     if (_functions != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_functions.length);
-      builder.append(" functions");
+      buffer.write(_functions.length);
+      buffer.write(" functions");
     }
     if (_labels != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_labels.length);
-      builder.append(" labels");
+      buffer.write(_labels.length);
+      buffer.write(" labels");
     }
     if (_localVariables != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_localVariables.length);
-      builder.append(" local variables");
+      buffer.write(_localVariables.length);
+      buffer.write(" local variables");
     }
     if (_methods != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_methods.length);
-      builder.append(" methods");
+      buffer.write(_methods.length);
+      buffer.write(" methods");
     }
     if (_parameters != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_parameters.length);
-      builder.append(" parameters");
+      buffer.write(_parameters.length);
+      buffer.write(" parameters");
     }
     if (_topLevelVariables != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_topLevelVariables.length);
-      builder.append(" top-level variables");
+      buffer.write(_topLevelVariables.length);
+      buffer.write(" top-level variables");
     }
     if (_types != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_types.length);
-      builder.append(" types");
+      buffer.write(_types.length);
+      buffer.write(" types");
     }
     if (_typeAliases != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_typeAliases.length);
-      builder.append(" type aliases");
+      buffer.write(_typeAliases.length);
+      buffer.write(" type aliases");
     }
     if (_typeParameters != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_typeParameters.length);
-      builder.append(" type parameters");
+      buffer.write(_typeParameters.length);
+      buffer.write(" type parameters");
     }
-    if (builder.length > 0) {
-      AnalysisEngine.instance.logger.logError("Failed to capture elements: ${builder.toString()}");
+    if (buffer.length > 0) {
+      AnalysisEngine.instance.logger.logError("Failed to capture elements: $buffer");
     }
   }
 }
@@ -6881,7 +6885,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         String nameStr = name.name;
         Element element = namespace.get(nameStr);
         if (element == null) {
-          element = namespace.get("${nameStr}=");
+          element = namespace.get("$nameStr=");
         }
         if (element != null) {
           // Ensure that the name always resolves to a top-level variable
@@ -6981,7 +6985,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         // Look to see whether the name of the method is really part of a prefixed identifier for an
         // imported top-level function or top-level getter that returns a function.
         //
-        String name = "${target.name}.${methodName}";
+        String name = "${target.name}.$methodName";
         Identifier functionName = new ElementResolver_SyntheticIdentifier(name);
         Element element = _resolver.nameScope.lookup(functionName, _definingLibrary);
         if (element != null) {
@@ -7178,7 +7182,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
     }
     if (!annotationList.isEmpty) {
-      (element as ElementImpl).metadata = new List.from(annotationList);
+      (element as ElementImpl).metadata = annotationList;
     }
   }
 
@@ -7197,7 +7201,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     List<ElementAnnotationImpl> annotationList = new List<ElementAnnotationImpl>();
     _addAnnotations(annotationList, node.metadata);
     if (!annotationList.isEmpty) {
-      (element as ElementImpl).metadata = new List.from(annotationList);
+      (element as ElementImpl).metadata = annotationList;
     }
   }
 
@@ -7401,8 +7405,8 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
     //
     // Finish building the enum.
     //
-    enumElement.fields = new List.from(fields);
-    enumElement.accessors = new List.from(getters);
+    enumElement.fields = fields;
+    enumElement.accessors = getters;
     // Client code isn't allowed to invoke the constructor, so we do not model it.
     return super.visitEnumDeclaration(node);
   }
@@ -7417,6 +7421,7 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.forVariable(field);
     getter.getter = true;
     getter.returnType = field.type;
+    getter.type = new FunctionTypeImpl.con1(getter);
     field.getter = getter;
     return getter;
   }
@@ -8558,19 +8563,25 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         }
       }
     }
-    // Visit all of the states in the map to ensure that none were never initialized.
-    for (MapEntry<FieldElement, INIT_STATE> entry in getMapEntrySet(fieldElementsMap)) {
-      if (entry.getValue() == INIT_STATE.NOT_INIT) {
-        FieldElement fieldElement = entry.getKey();
+    // Visit all of the states in the map to ensure that none were never
+    // initialized.
+    fieldElementsMap.forEach((FieldElement fieldElement, INIT_STATE state) {
+      if (state == INIT_STATE.NOT_INIT) {
         if (fieldElement.isConst) {
-          _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_NOT_INITIALIZED, node.returnType, [fieldElement.name]);
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+                  node.returnType,
+                  [fieldElement.name]);
           foundError = true;
         } else if (fieldElement.isFinal) {
-          _errorReporter.reportErrorForNode(StaticWarningCode.FINAL_NOT_INITIALIZED, node.returnType, [fieldElement.name]);
+          _errorReporter.reportErrorForNode(
+              StaticWarningCode.FINAL_NOT_INITIALIZED,
+                  node.returnType,
+                  [fieldElement.name]);
           foundError = true;
         }
       }
-    }
+    });
     return foundError;
   }
 
@@ -8631,17 +8642,16 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           overriddenExecutable.enclosingElement.displayName]);
       return true;
     }
-    // For each named parameter in the overridden method, verify that there is the same name in
-    // the overriding method, and in the same order.
-    Set<String> overridingParameterNameSet = overridingNamedPT.keys.toSet();
-    JavaIterator<String> overriddenParameterNameIterator = new JavaIterator(overriddenNamedPT.keys.toSet());
-    while (overriddenParameterNameIterator.hasNext) {
-      String overriddenParamName = overriddenParameterNameIterator.next();
-      if (!overridingParameterNameSet.contains(overriddenParamName)) {
-        // The overridden method expected the overriding method to have overridingParamName,
-        // but it does not.
-        _errorReporter.reportErrorForNode(StaticWarningCode.INVALID_OVERRIDE_NAMED, errorNameTarget, [
-            overriddenParamName,
+    // For each named parameter in the overridden method, verify that there is
+    // the same name in the overriding method.
+    for (String overriddenParamName in overriddenNamedPT.keys) {
+      if (!overridingNamedPT.containsKey(overriddenParamName)) {
+        // The overridden method expected the overriding method to have
+        // overridingParamName, but it does not.
+        _errorReporter.reportErrorForNode(
+            StaticWarningCode.INVALID_OVERRIDE_NAMED,
+            errorNameTarget,
+            [overriddenParamName,
             overriddenExecutable.enclosingElement.displayName]);
         return true;
       }
@@ -8681,31 +8691,33 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       parameterIndex++;
     }
     // SWC.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE & SWC.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES
-    JavaIterator<MapEntry<String, DartType>> overriddenNamedPTIterator = new JavaIterator(getMapEntrySet(overriddenNamedPT));
-    while (overriddenNamedPTIterator.hasNext) {
-      MapEntry<String, DartType> overriddenNamedPTEntry = overriddenNamedPTIterator.next();
-      DartType overridingType = overridingNamedPT[overriddenNamedPTEntry.getKey()];
+    for (String overriddenName in overriddenNamedPT.keys) {
+      DartType overridingType = overridingNamedPT[overriddenName];
       if (overridingType == null) {
-        // Error, this is never reached- INVALID_OVERRIDE_NAMED would have been created above if
-        // this could be reached.
+        // Error, this is never reached- INVALID_OVERRIDE_NAMED would have been
+        // created above if this could be reached.
         continue;
       }
-      if (!overriddenNamedPTEntry.getValue().isAssignableTo(overridingType)) {
+      DartType overriddenType = overriddenNamedPT[overriddenName];
+      if (!overriddenType.isAssignableTo(overridingType)) {
         // lookup the parameter for the error to select
         ParameterElement parameterToSelect = null;
         AstNode parameterLocationToSelect = null;
         for (int i = 0; i < parameters.length; i++) {
           ParameterElement parameter = parameters[i];
-          if (parameter.parameterKind == ParameterKind.NAMED && overriddenNamedPTEntry.getKey() == parameter.name) {
+          if (parameter.parameterKind == ParameterKind.NAMED
+              && overriddenName == parameter.name) {
             parameterToSelect = parameter;
             parameterLocationToSelect = parameterLocations[i];
             break;
           }
         }
         if (parameterToSelect != null) {
-          _errorReporter.reportTypeErrorForNode(StaticWarningCode.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE, parameterLocationToSelect, [
-              overridingType,
-              overriddenNamedPTEntry.getValue(),
+          _errorReporter.reportTypeErrorForNode(
+              StaticWarningCode.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE,
+              parameterLocationToSelect,
+              [overridingType,
+              overriddenType,
               overriddenExecutable.enclosingElement.displayName]);
           return true;
         }
@@ -8849,10 +8861,22 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       PropertyAccessorElement setter = element.setter;
       SimpleIdentifier fieldName = field.name;
       if (getter != null) {
-        hasProblems = javaBooleanOr(hasProblems, _checkForAllInvalidOverrideErrorCodesForExecutable(getter, ParameterElementImpl.EMPTY_ARRAY, AstNode.EMPTY_ARRAY, fieldName));
+        if (_checkForAllInvalidOverrideErrorCodesForExecutable(
+            getter,
+            ParameterElementImpl.EMPTY_ARRAY,
+            AstNode.EMPTY_ARRAY,
+            fieldName)) {
+          hasProblems = true;
+        }
       }
       if (setter != null) {
-        hasProblems = javaBooleanOr(hasProblems, _checkForAllInvalidOverrideErrorCodesForExecutable(setter, setter.parameters, <AstNode> [fieldName], fieldName));
+        if (_checkForAllInvalidOverrideErrorCodesForExecutable(
+            setter,
+            setter.parameters,
+            <AstNode> [fieldName],
+            fieldName)) {
+          hasProblems = true;
+        }
       }
     }
     return hasProblems;
@@ -8902,14 +8926,26 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (mixinType is! InterfaceType) {
         continue;
       }
-      if (_checkForExtendsOrImplementsDisallowedClass(mixinName, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS)) {
+      if (_checkForExtendsOrImplementsDisallowedClass(
+          mixinName,
+          CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS)) {
         problemReported = true;
       } else {
         ClassElement mixinElement = (mixinType as InterfaceType).element;
-        problemReported = javaBooleanOr(problemReported, _checkForExtendsOrImplementsDeferredClass(mixinName, CompileTimeErrorCode.MIXIN_DEFERRED_CLASS));
-        problemReported = javaBooleanOr(problemReported, _checkForMixinDeclaresConstructor(mixinName, mixinElement));
-        problemReported = javaBooleanOr(problemReported, _checkForMixinInheritsNotFromObject(mixinName, mixinElement));
-        problemReported = javaBooleanOr(problemReported, _checkForMixinReferencesSuper(mixinName, mixinElement));
+        if (_checkForExtendsOrImplementsDeferredClass(
+            mixinName,
+            CompileTimeErrorCode.MIXIN_DEFERRED_CLASS)) {
+          problemReported = true;
+        }
+        if (_checkForMixinDeclaresConstructor(mixinName, mixinElement)) {
+          problemReported = true;
+        }
+        if (_checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {
+          problemReported = true;
+        }
+        if (_checkForMixinReferencesSuper(mixinName, mixinElement)) {
+          problemReported = true;
+        }
       }
     }
     return problemReported;
@@ -9041,9 +9077,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // check exported names
     Namespace namespace = new NamespaceBuilder().createExportNamespaceForDirective(exportElement);
     Map<String, Element> definedNames = namespace.definedNames;
-    for (MapEntry<String, Element> definedEntry in getMapEntrySet(definedNames)) {
-      String name = definedEntry.getKey();
-      Element element = definedEntry.getValue();
+    for (String name in definedNames.keys) {
+      Element element = definedNames[name];
       Element prevElement = _exportedElements[name];
       if (element != null && prevElement != null && prevElement != element) {
         _errorReporter.reportErrorForNode(CompileTimeErrorCode.AMBIGUOUS_EXPORT, node, [
@@ -9144,7 +9179,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     bool problemReported = false;
     for (Expression argument in argumentList.arguments) {
-      problemReported = javaBooleanOr(problemReported, _checkForArgumentTypeNotAssignableForArgument(argument));
+      if (_checkForArgumentTypeNotAssignableForArgument(argument)) {
+        problemReported = true;
+      }
     }
     return problemReported;
   }
@@ -9308,8 +9345,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     int lastMember = members.length - 1;
     for (int i = 0; i < lastMember; i++) {
       SwitchMember member = members[i];
-      if (member is SwitchCase) {
-        foundError = javaBooleanOr(foundError, _checkForCaseBlockNotTerminated(member));
+      if (member is SwitchCase && _checkForCaseBlockNotTerminated(member)) {
+        foundError = true;
       }
     }
     return foundError;
@@ -9559,7 +9596,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
                 _enclosingClass.displayName,
                 name.name,
                 enclosingElementOfSetter.displayName]);
-            foundError = javaBooleanOr(foundError, true);
+            foundError = true;
             addThisMemberToTheMap = false;
           }
         } else if (isSetter) {
@@ -9568,7 +9605,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           if (conflictingMethod != null && conflictingMethod is MethodDeclaration && !conflictingMethod.isGetter) {
             // report problem
             _errorReporter.reportErrorForNode(StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER2, name, [_enclosingClass.displayName, name.name]);
-            foundError = javaBooleanOr(foundError, true);
+            foundError = true;
             addThisMemberToTheMap = false;
           }
         }
@@ -9912,7 +9949,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (typeArguments != null) {
       bool hasError = false;
       for (TypeName argument in typeArguments.arguments) {
-        hasError = javaBooleanOr(hasError, _checkForConstWithTypeParameters(argument));
+        if (_checkForConstWithTypeParameters(argument)) {
+          hasError = true;
+        }
       }
       return hasError;
     }
@@ -10056,16 +10095,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     bool hasProblem = false;
     for (ExecutableElement member in _enclosingClass.methods) {
-      if (!member.isStatic) {
-        continue;
+      if (member.isStatic && _checkForDuplicateDefinitionOfMember(member)) {
+        hasProblem = true;
       }
-      hasProblem = javaBooleanOr(hasProblem, _checkForDuplicateDefinitionOfMember(member));
     }
     for (ExecutableElement member in _enclosingClass.accessors) {
-      if (!member.isStatic) {
-        continue;
+      if (member.isStatic && _checkForDuplicateDefinitionOfMember(member)) {
+        hasProblem = true;
       }
-      hasProblem = javaBooleanOr(hasProblem, _checkForDuplicateDefinitionOfMember(member));
     }
     return hasProblem;
   }
@@ -10457,9 +10494,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     bool foundError = false;
     for (ClassMember classMember in classMembers) {
-      if (classMember is FieldDeclaration) {
-        FieldDeclaration field = classMember;
-        foundError = javaBooleanOr(foundError, _checkForFinalNotInitialized(field.fields));
+      if (classMember is FieldDeclaration
+          && _checkForFinalNotInitialized(classMember.fields)) {
+        foundError = true;
       }
     }
     return foundError;
@@ -10478,7 +10515,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     bool foundError = false;
     for (TypeName type in node.interfaces) {
-      foundError = javaBooleanOr(foundError, _checkForExtendsOrImplementsDeferredClass(type, CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS));
+      if (_checkForExtendsOrImplementsDeferredClass(
+          type,
+          CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS)) {
+        foundError = true;
+      }
     }
     return foundError;
   }
@@ -10497,7 +10538,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     bool foundError = false;
     for (TypeName type in node.interfaces) {
-      foundError = javaBooleanOr(foundError, _checkForExtendsOrImplementsDisallowedClass(type, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS));
+      if (_checkForExtendsOrImplementsDisallowedClass(
+          type,
+          CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS)) {
+        foundError = true;
+      }
     }
     return foundError;
   }
@@ -10936,11 +10981,21 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     bool hasProblems = false;
     for (Expression element in node.elements) {
       if (node.constKeyword != null) {
-        // TODO(paulberry): this error should be based on the actual type of the list element, not
-        // the static type.  See dartbug.com/21119.
-        hasProblems = javaBooleanOr(hasProblems, _checkForArgumentTypeNotAssignableWithExpectedTypes(element, listElementType, CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE));
+        // TODO(paulberry): this error should be based on the actual type of the
+        // list element, not the static type.  See dartbug.com/21119.
+        if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
+            element,
+            listElementType,
+            CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE)) {
+          hasProblems = true;
+        }
       }
-      hasProblems = javaBooleanOr(hasProblems, _checkForArgumentTypeNotAssignableWithExpectedTypes(element, listElementType, StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE));
+      if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
+          element,
+          listElementType,
+          StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE)) {
+        hasProblems = true;
+      }
     }
     return hasProblems;
   }
@@ -10972,13 +11027,33 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       Expression key = entry.key;
       Expression value = entry.value;
       if (node.constKeyword != null) {
-        // TODO(paulberry): this error should be based on the actual type of the list element, not
-        // the static type.  See dartbug.com/21119.
-        hasProblems = javaBooleanOr(hasProblems, _checkForArgumentTypeNotAssignableWithExpectedTypes(key, keyType, CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE));
-        hasProblems = javaBooleanOr(hasProblems, _checkForArgumentTypeNotAssignableWithExpectedTypes(value, valueType, CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE));
+        // TODO(paulberry): this error should be based on the actual type of the
+        // list element, not the static type.  See dartbug.com/21119.
+        if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
+            key,
+            keyType,
+            CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE)) {
+          hasProblems = true;
+        }
+        if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
+            value,
+            valueType,
+            CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE)) {
+          hasProblems = true;
+        }
       }
-      hasProblems = javaBooleanOr(hasProblems, _checkForArgumentTypeNotAssignableWithExpectedTypes(key, keyType, StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE));
-      hasProblems = javaBooleanOr(hasProblems, _checkForArgumentTypeNotAssignableWithExpectedTypes(value, valueType, StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE));
+      if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
+          key,
+          keyType,
+          StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE)) {
+        hasProblems = true;
+      }
+      if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
+          value,
+          valueType,
+          StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE)) {
+        hasProblems = true;
+      }
     }
     return hasProblems;
   }
@@ -11434,9 +11509,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         }
       }
       if (enclosingElement != null) {
-        newStrMember = "${prefix}'${enclosingElement.displayName}.${missingOverridesArray[i].displayName}'";
+        newStrMember = "$prefix'${enclosingElement.displayName}.${missingOverridesArray[i].displayName}'";
       } else {
-        newStrMember = "${prefix}'${missingOverridesArray[i].displayName}'";
+        newStrMember = "$prefix'${missingOverridesArray[i].displayName}'";
       }
       stringMembersArrayListSet.add(newStrMember);
     }
@@ -12058,7 +12133,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // iterate over each bounded type parameter and corresponding argument
     NodeList<TypeName> typeNameArgList = node.typeArguments.arguments;
     List<DartType> typeArguments = (type as InterfaceType).typeArguments;
-    int loopThroughIndex = Math.min(typeNameArgList.length, boundingElts.length);
+    int loopThroughIndex = math.min(typeNameArgList.length, boundingElts.length);
     bool foundError = false;
     for (int i = 0; i < loopThroughIndex; i++) {
       TypeName argTypeName = typeNameArgList[i];
@@ -12709,13 +12784,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (size > 1) {
         // Construct a string showing the cyclic implements path: "A, B, C, D, A"
         String separator = ", ";
-        JavaStringBuilder builder = new JavaStringBuilder();
+        StringBuffer buffer = new StringBuffer();
         for (int i = 0; i < size; i++) {
-          builder.append(path[i].displayName);
-          builder.append(separator);
+          buffer.write(path[i].displayName);
+          buffer.write(separator);
         }
-        builder.append(classElt.displayName);
-        _errorReporter.reportErrorForOffset(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, _enclosingClass.nameOffset, enclosingClassName.length, [enclosingClassName, builder.toString()]);
+        buffer.write(classElt.displayName);
+        _errorReporter.reportErrorForOffset(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, _enclosingClass.nameOffset, enclosingClassName.length, [enclosingClassName, buffer.toString()]);
         return true;
       } else {
         // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS or
@@ -13035,8 +13110,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     _enclosingBlockContainsBreak = false;
     try {
       bool hasDefault = false;
-      NodeList<SwitchMember> memberList = node.members;
-      List<SwitchMember> members = new List.from(memberList);
+      List<SwitchMember> members = node.members;
       for (int i = 0; i < members.length; i++) {
         SwitchMember switchMember = members[i];
         if (switchMember is SwitchDefault) {
@@ -13259,9 +13333,9 @@ class FunctionTypeScope extends EnclosedScope {
 }
 
 class GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction extends GeneralizingAstVisitor<Object> {
-  List<DartType> result;
+  DartType result = null;
 
-  GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction(this.result) : super();
+  GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction();
 
   @override
   Object visitExpression(Expression node) => null;
@@ -13277,10 +13351,10 @@ class GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnTypeOfFun
       type = BottomTypeImpl.instance;
     }
     // merge types
-    if (result[0] == null) {
-      result[0] = type;
+    if (result == null) {
+      result = type;
     } else {
-      result[0] = result[0].getLeastUpperBound(type);
+      result = result.getLeastUpperBound(type);
     }
     return null;
   }
@@ -13634,25 +13708,25 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
     // least once. This code will guard against infinite recursion and might help us identify the
     // cause of the issue.
     //
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append("Found circularity in XML nodes: ");
+    StringBuffer buffer = new StringBuffer();
+    buffer.write("Found circularity in XML nodes: ");
     bool first = true;
     for (ht.XmlTagNode pathNode in _parentNodes) {
       if (first) {
         first = false;
       } else {
-        builder.append(", ");
+        buffer.write(", ");
       }
       String tagName = pathNode.tag;
       if (identical(pathNode, node)) {
-        builder.append("*");
-        builder.append(tagName);
-        builder.append("*");
+        buffer.write("*");
+        buffer.write(tagName);
+        buffer.write("*");
       } else {
-        builder.append(tagName);
+        buffer.write(tagName);
       }
     }
-    AnalysisEngine.instance.logger.logError(builder.toString());
+    AnalysisEngine.instance.logger.logError(buffer.toString());
     return null;
   }
 
@@ -13765,7 +13839,7 @@ class ImplicitConstructorBuilder extends ScopedVisitor {
               implicitConstructors.add(_createImplicitContructor(classType, explicitConstructor, parameterTypes, argumentTypes));
             }
           }
-          classElement.constructors = new List.from(implicitConstructors);
+          classElement.constructors = implicitConstructors;
         }
       }
     }
@@ -13837,7 +13911,7 @@ class ImplicitConstructorBuilder extends ScopedVisitor {
       }
     } else {
       NodeList<TypeName> arguments = typeArguments.arguments;
-      int argumentCount = Math.min(arguments.length, parameterCount);
+      int argumentCount = math.min(arguments.length, parameterCount);
       for (int i = 0; i < argumentCount; i++) {
         types[i] = arguments[i].type;
       }
@@ -14289,7 +14363,7 @@ class IncrementalResolver {
   bool _elementModelChanged(AstNode node) {
     Element element = _getElement(node);
     if (element == null) {
-      throw new AnalysisException("Cannot resolve node: a ${node.runtimeType.toString()} does not define an element");
+      throw new AnalysisException("Cannot resolve node: a ${node.runtimeType} does not define an element");
     }
     DeclarationMatcher matcher = new DeclarationMatcher();
     return !matcher.matches(node, element);
@@ -15082,9 +15156,7 @@ class InheritanceManager {
    */
   MemberMap _resolveInheritanceLookup(ClassElement classElt, HashMap<String, List<ExecutableElement>> unionMap) {
     MemberMap resultMap = new MemberMap();
-    for (MapEntry<String, List<ExecutableElement>> entry in getMapEntrySet(unionMap)) {
-      String key = entry.getKey();
-      List<ExecutableElement> list = entry.getValue();
+    unionMap.forEach((String key, List<ExecutableElement> list) {
       int numOfEltsWithMatchingNames = list.length;
       if (numOfEltsWithMatchingNames == 1) {
         //
@@ -15181,7 +15253,7 @@ class InheritanceManager {
               // of the other, we create a warning, and have this class inherit nothing.
               //
               if (!classHasMember) {
-                String firstTwoFuntionTypesStr = "${executableElementTypes[0].toString()}, ${executableElementTypes[1].toString()}";
+                String firstTwoFuntionTypesStr = "${executableElementTypes[0]}, ${executableElementTypes[1]}";
                 _reportError(classElt, classElt.nameOffset, classElt.displayName.length, StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE, [key, firstTwoFuntionTypesStr]);
               }
             } else {
@@ -15204,7 +15276,7 @@ class InheritanceManager {
           _reportError(classElt, classElt.nameOffset, classElt.displayName.length, StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD, [key]);
         }
       }
-    }
+    });
     return resultMap;
   }
 
@@ -15465,7 +15537,7 @@ class Library {
         unitArrayList.add(getAST(source));
       }
     }
-    return new List.from(unitArrayList);
+    return unitArrayList;
   }
 
   /**
@@ -15740,7 +15812,7 @@ class LibraryElementBuilder {
       libraryElement.entryPoint = entryPoint;
     }
     int sourcedUnitCount = sourcedCompilationUnits.length;
-    libraryElement.parts = new List.from(sourcedCompilationUnits);
+    libraryElement.parts = sourcedCompilationUnits;
     for (Directive directive in directivesToResolve) {
       directive.element = libraryElement;
     }
@@ -15828,7 +15900,7 @@ class LibraryElementBuilder {
       libraryElement.entryPoint = entryPoint;
     }
     int sourcedUnitCount = sourcedCompilationUnits.length;
-    libraryElement.parts = new List.from(sourcedCompilationUnits);
+    libraryElement.parts = sourcedCompilationUnits;
     for (Directive directive in directivesToResolve) {
       directive.element = libraryElement;
     }
@@ -16054,20 +16126,19 @@ class LibraryImportScope extends Scope {
       }
     }
     int indirectCount = indirectSources.length;
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append(library.definingCompilationUnit.displayName);
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(library.definingCompilationUnit.displayName);
     if (indirectCount > 0) {
-      builder.append(" (via ");
+      buffer.write(" (via ");
       if (indirectCount > 1) {
-        List<String> indirectNames = new List.from(indirectSources);
-        indirectNames.sort();
-        builder.append(StringUtilities.printListOfQuotedNames(indirectNames));
+        indirectSources.sort();
+        buffer.write(StringUtilities.printListOfQuotedNames(indirectSources));
       } else {
-        builder.append(indirectSources[0]);
+        buffer.write(indirectSources[0]);
       }
-      builder.append(")");
+      buffer.write(")");
     }
-    return builder.toString();
+    return buffer.toString();
   }
 
   /**
@@ -16105,7 +16176,7 @@ class LibraryImportScope extends Scope {
       return conflictingMembers[0];
     } else if (to == 0) {
       // All members were removed
-      AnalysisEngine.instance.logger.logInformation("Multiply defined SDK element: ${foundElement}");
+      AnalysisEngine.instance.logger.logInformation("Multiply defined SDK element: $foundElement");
       return foundElement;
     }
     List<Element> remaining = new List<Element>(to);
@@ -16449,7 +16520,7 @@ class LibraryResolver {
         combinators.add(show);
       }
     }
-    return new List.from(combinators);
+    return combinators;
   }
 
   /**
@@ -16541,8 +16612,8 @@ class LibraryResolver {
         imports.add(importElement);
       }
       LibraryElementImpl libraryElement = library.libraryElement;
-      libraryElement.imports = new List.from(imports);
-      libraryElement.exports = new List.from(exports);
+      libraryElement.imports = imports;
+      libraryElement.exports = exports;
       if (libraryElement.entryPoint == null) {
         Namespace namespace = new NamespaceBuilder().createExportNamespaceForLibrary(libraryElement);
         Element element = namespace.get(LibraryElementBuilder.ENTRY_POINT_NAME);
@@ -16756,7 +16827,7 @@ class LibraryResolver {
         importedLibraries.add(importedLibrary);
       }
     }
-    library.importedLibraries = new List.from(importedLibraries);
+    library.importedLibraries = importedLibraries;
     List<Library> exportedLibraries = new List<Library>();
     for (Source exportedSource in exportedSources) {
       Library exportedLibrary = _libraryMap[exportedSource];
@@ -16770,7 +16841,7 @@ class LibraryResolver {
         exportedLibraries.add(exportedLibrary);
       }
     }
-    library.exportedLibraries = new List.from(exportedLibraries);
+    library.exportedLibraries = exportedLibraries;
     library.explicitlyImportsCore = explicitlyImportsCore;
     if (!explicitlyImportsCore && _coreLibrarySource != library.librarySource) {
       Library importedLibrary = _libraryMap[_coreLibrarySource];
@@ -17111,7 +17182,7 @@ class LibraryResolver2 {
         combinators.add(show);
       }
     }
-    return new List.from(combinators);
+    return combinators;
   }
 
   /**
@@ -17207,8 +17278,8 @@ class LibraryResolver2 {
         imports.add(importElement);
       }
       LibraryElementImpl libraryElement = library.libraryElement;
-      libraryElement.imports = new List.from(imports);
-      libraryElement.exports = new List.from(exports);
+      libraryElement.imports = imports;
+      libraryElement.exports = exports;
       if (libraryElement.entryPoint == null) {
         Namespace namespace = new NamespaceBuilder().createExportNamespaceForLibrary(libraryElement);
         Element element = namespace.get(LibraryElementBuilder.ENTRY_POINT_NAME);
@@ -17828,9 +17899,9 @@ class NamespaceBuilder {
    * @param namespace the namespace containing the names to be added to this namespace
    */
   void _addAllFromMap(Map<String, Element> definedNames, Map<String, Element> newNames) {
-    for (MapEntry<String, Element> entry in getMapEntrySet(newNames)) {
-      definedNames[entry.getKey()] = entry.getValue();
-    }
+    newNames.forEach((String name, Element element) {
+      definedNames[name] = element;
+    });
   }
 
   /**
@@ -17895,7 +17966,7 @@ class NamespaceBuilder {
         definedNames = _show(definedNames, combinator.shownNames);
       } else {
         // Internal error.
-        AnalysisEngine.instance.logger.logError("Unknown type of combinator: ${combinator.runtimeType.toString()}");
+        AnalysisEngine.instance.logger.logError("Unknown type of combinator: ${combinator.runtimeType}");
       }
     }
     return definedNames;
@@ -17911,9 +17982,9 @@ class NamespaceBuilder {
     if (prefixElement != null) {
       String prefix = prefixElement.name;
       HashMap<String, Element> newNames = new HashMap<String, Element>();
-      for (MapEntry<String, Element> entry in getMapEntrySet(definedNames)) {
-        newNames["${prefix}.${entry.getKey()}"] = entry.getValue();
-      }
+      definedNames.forEach((String name, Element element) {
+        newNames["$prefix.$name"] = element;
+      });
       return newNames;
     } else {
       return definedNames;
@@ -17960,7 +18031,7 @@ class NamespaceBuilder {
   void _hide(HashMap<String, Element> definedNames, List<String> hiddenNames) {
     for (String name in hiddenNames) {
       definedNames.remove(name);
-      definedNames.remove("${name}=");
+      definedNames.remove("$name=");
     }
   }
 
@@ -17978,7 +18049,7 @@ class NamespaceBuilder {
       if (element != null) {
         newNames[name] = element;
       }
-      String setterName = "${name}=";
+      String setterName = "$name=";
       element = definedNames[setterName];
       if (element != null) {
         newNames[setterName] = element;
@@ -18449,11 +18520,11 @@ class RecursiveAstVisitor_AngularCompilationUnitBuilder_parseViews extends Recur
 }
 
 class RecursiveAstVisitor_ResolverVisitor_isVariableAccessedInClosure extends RecursiveAstVisitor<Object> {
-  List<bool> result;
+  final Element variable;
 
-  Element variable;
+  bool result = false;
 
-  RecursiveAstVisitor_ResolverVisitor_isVariableAccessedInClosure(this.result, this.variable) : super();
+  RecursiveAstVisitor_ResolverVisitor_isVariableAccessedInClosure(this.variable);
 
   bool _inClosure = false;
 
@@ -18470,31 +18541,31 @@ class RecursiveAstVisitor_ResolverVisitor_isVariableAccessedInClosure extends Re
 
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
-    if (result[0]) {
+    if (result) {
       return null;
     }
     if (_inClosure && identical(node.staticElement, variable)) {
-      result[0] = javaBooleanOr(result[0], true);
+      result = true;
     }
     return null;
   }
 }
 
 class RecursiveAstVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn extends RecursiveAstVisitor<Object> {
-  List<bool> result;
+  final Element variable;
 
-  Element variable;
+  bool result = false;
 
-  RecursiveAstVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn(this.result, this.variable) : super();
+  RecursiveAstVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn(this.variable);
 
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
-    if (result[0]) {
+    if (result) {
       return null;
     }
     if (identical(node.staticElement, variable)) {
       if (node.inSetterContext()) {
-        result[0] = javaBooleanOr(result[0], true);
+        result = true;
       }
     }
     return null;
@@ -18815,7 +18886,7 @@ class ResolverErrorCode extends Enum<ResolverErrorCode> implements ErrorCode {
   ErrorSeverity get errorSeverity => type.severity;
 
   @override
-  String get uniqueName => "${runtimeType.toString()}.${name}";
+  String get uniqueName => "$runtimeType.$name";
 }
 
 /**
@@ -19977,9 +20048,10 @@ class ResolverVisitor extends ScopedVisitor {
    * @return `true` if this variable is potentially mutated somewhere in the given ASTNode
    */
   bool _isVariableAccessedInClosure(Element variable, AstNode target) {
-    List<bool> result = [false];
-    target.accept(new RecursiveAstVisitor_ResolverVisitor_isVariableAccessedInClosure(result, variable));
-    return result[0];
+    RecursiveAstVisitor_ResolverVisitor_isVariableAccessedInClosure visitor
+        = new RecursiveAstVisitor_ResolverVisitor_isVariableAccessedInClosure(variable);
+    target.accept(visitor);
+    return visitor.result;
   }
 
   /**
@@ -19991,9 +20063,10 @@ class ResolverVisitor extends ScopedVisitor {
    * @return `true` if this variable is potentially mutated somewhere in the given ASTNode
    */
   bool _isVariablePotentiallyMutatedIn(Element variable, AstNode target) {
-    List<bool> result = [false];
-    target.accept(new RecursiveAstVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn(result, variable));
-    return result[0];
+    RecursiveAstVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn visitor
+        = new RecursiveAstVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn(variable);
+    target.accept(visitor);
+    return visitor.result;
   }
 
   /**
@@ -20667,16 +20740,16 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     Scope outerScope = _nameScope;
     try {
       if (constructorElement == null) {
-        JavaStringBuilder builder = new JavaStringBuilder();
-        builder.append("Missing element for constructor ");
-        builder.append(node.returnType.name);
+        StringBuffer buffer = new StringBuffer();
+        buffer.write("Missing element for constructor ");
+        buffer.write(node.returnType.name);
         if (node.name != null) {
-          builder.append(".");
-          builder.append(node.name.name);
+          buffer.write(".");
+          buffer.write(node.name.name);
         }
-        builder.append(" in ");
-        builder.append(definingLibrary.source.fullName);
-        AnalysisEngine.instance.logger.logInformation2(builder.toString(), new JavaException());
+        buffer.write(" in ");
+        buffer.write(definingLibrary.source.fullName);
+        AnalysisEngine.instance.logger.logInformation2(buffer.toString(), new JavaException());
       } else {
         _nameScope = new FunctionScope(_nameScope, constructorElement);
       }
@@ -20783,19 +20856,19 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       try {
         ExecutableElement functionElement = node.element;
         if (functionElement == null) {
-          JavaStringBuilder builder = new JavaStringBuilder();
-          builder.append("Missing element for function ");
+          StringBuffer buffer = new StringBuffer();
+          buffer.write("Missing element for function ");
           AstNode parent = node.parent;
           while (parent != null) {
             if (parent is Declaration) {
               Element parentElement = (parent as Declaration).element;
-              builder.append(parentElement == null ? "<unknown> " : ("${parentElement.name} "));
+              buffer.write(parentElement == null ? "<unknown> " : "${parentElement.name} ");
             }
             parent = parent.parent;
           }
-          builder.append("in ");
-          builder.append(definingLibrary.source.fullName);
-          AnalysisEngine.instance.logger.logInformation2(builder.toString(), new JavaException());
+          buffer.write("in ");
+          buffer.write(definingLibrary.source.fullName);
+          AnalysisEngine.instance.logger.logInformation2(buffer.toString(), new JavaException());
         } else {
           _nameScope = new FunctionScope(_nameScope, functionElement);
         }
@@ -22366,9 +22439,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       return expressionBody.expression.bestType;
     }
     if (body is BlockFunctionBody) {
-      List<DartType> result = [null];
-      body.accept(new GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction(result));
-      return result[0];
+      GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction visitor
+          = new GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction();
+      body.accept(visitor);
+      return visitor.result;
     }
     return null;
   }
@@ -23193,9 +23267,9 @@ class TypeOverrideManager_TypeOverrideScope {
    * @param overrides the overrides to be applied
    */
   void applyOverrides(Map<VariableElement, DartType> overrides) {
-    for (MapEntry<VariableElement, DartType> entry in getMapEntrySet(overrides)) {
-      _overridenTypes[entry.getKey()] = entry.getValue();
-    }
+    overrides.forEach((VariableElement element, DartType type) {
+      _overridenTypes[element] = type;
+    });
   }
 
   /**
@@ -23705,7 +23779,7 @@ class TypeProviderImpl implements TypeProvider {
   InterfaceType _getType(Namespace namespace, String typeName) {
     Element element = namespace.get(typeName);
     if (element == null) {
-      AnalysisEngine.instance.logger.logInformation("No definition of type ${typeName}");
+      AnalysisEngine.instance.logger.logInformation("No definition of type $typeName");
       return null;
     }
     return (element as ClassElement).type;
@@ -23947,19 +24021,19 @@ class TypeResolverVisitor extends ScopedVisitor {
     ExecutableElementImpl element = node.element as ExecutableElementImpl;
     if (element == null) {
       ClassDeclaration classNode = node.getAncestor((node) => node is ClassDeclaration);
-      JavaStringBuilder builder = new JavaStringBuilder();
-      builder.append("The element for the constructor ");
-      builder.append(node.name == null ? "<unnamed>" : node.name.name);
-      builder.append(" in ");
+      StringBuffer buffer = new StringBuffer();
+      buffer.write("The element for the constructor ");
+      buffer.write(node.name == null ? "<unnamed>" : node.name.name);
+      buffer.write(" in ");
       if (classNode == null) {
-        builder.append("<unknown class>");
+        buffer.write("<unknown class>");
       } else {
-        builder.append(classNode.name.name);
+        buffer.write(classNode.name.name);
       }
-      builder.append(" in ");
-      builder.append(source.fullName);
-      builder.append(" was not set while trying to resolve types.");
-      AnalysisEngine.instance.logger.logError2(builder.toString(), new CaughtException(new AnalysisException(), null));
+      buffer.write(" in ");
+      buffer.write(source.fullName);
+      buffer.write(" was not set while trying to resolve types.");
+      AnalysisEngine.instance.logger.logError2(buffer.toString(), new CaughtException(new AnalysisException(), null));
     } else {
       ClassElement definingClass = element.enclosingElement as ClassElement;
       element.returnType = definingClass.type;
@@ -24021,13 +24095,13 @@ class TypeResolverVisitor extends ScopedVisitor {
     super.visitFunctionDeclaration(node);
     ExecutableElementImpl element = node.element as ExecutableElementImpl;
     if (element == null) {
-      JavaStringBuilder builder = new JavaStringBuilder();
-      builder.append("The element for the top-level function ");
-      builder.append(node.name);
-      builder.append(" in ");
-      builder.append(source.fullName);
-      builder.append(" was not set while trying to resolve types.");
-      AnalysisEngine.instance.logger.logError2(builder.toString(), new CaughtException(new AnalysisException(), null));
+      StringBuffer buffer = new StringBuffer();
+      buffer.write("The element for the top-level function ");
+      buffer.write(node.name);
+      buffer.write(" in ");
+      buffer.write(source.fullName);
+      buffer.write(" was not set while trying to resolve types.");
+      AnalysisEngine.instance.logger.logError2(buffer.toString(), new CaughtException(new AnalysisException(), null));
     }
     element.returnType = _computeReturnType(node.returnType);
     FunctionTypeImpl type = new FunctionTypeImpl.con1(element);
@@ -24068,19 +24142,19 @@ class TypeResolverVisitor extends ScopedVisitor {
     ExecutableElementImpl element = node.element as ExecutableElementImpl;
     if (element == null) {
       ClassDeclaration classNode = node.getAncestor((node) => node is ClassDeclaration);
-      JavaStringBuilder builder = new JavaStringBuilder();
-      builder.append("The element for the method ");
-      builder.append(node.name.name);
-      builder.append(" in ");
+      StringBuffer buffer = new StringBuffer();
+      buffer.write("The element for the method ");
+      buffer.write(node.name.name);
+      buffer.write(" in ");
       if (classNode == null) {
-        builder.append("<unknown class>");
+        buffer.write("<unknown class>");
       } else {
-        builder.append(classNode.name.name);
+        buffer.write(classNode.name.name);
       }
-      builder.append(" in ");
-      builder.append(source.fullName);
-      builder.append(" was not set while trying to resolve types.");
-      AnalysisEngine.instance.logger.logError2(builder.toString(), new CaughtException(new AnalysisException(), null));
+      buffer.write(" in ");
+      buffer.write(source.fullName);
+      buffer.write(" was not set while trying to resolve types.");
+      AnalysisEngine.instance.logger.logError2(buffer.toString(), new CaughtException(new AnalysisException(), null));
     }
     element.returnType = _computeReturnType(node.returnType);
     FunctionTypeImpl type = new FunctionTypeImpl.con1(element);
@@ -24478,7 +24552,7 @@ class TypeResolverVisitor extends ScopedVisitor {
         elements.add(element);
       }
     }
-    return new List.from(elements);
+    return elements;
   }
 
   /**
@@ -24700,17 +24774,17 @@ class TypeResolverVisitor extends ScopedVisitor {
         classElement.interfaces = interfaceTypes;
       }
       // TODO(brianwilkerson) Move the following checks to ErrorVerifier.
-      List<TypeName> typeNames = new List.from(interfaces);
-      List<bool> detectedRepeatOnIndex = new List<bool>.filled(typeNames.length, false);
+      int count = interfaces.length;
+      List<bool> detectedRepeatOnIndex = new List<bool>.filled(count, false);
       for (int i = 0; i < detectedRepeatOnIndex.length; i++) {
         detectedRepeatOnIndex[i] = false;
       }
-      for (int i = 0; i < typeNames.length; i++) {
-        TypeName typeName = typeNames[i];
+      for (int i = 0; i < count; i++) {
+        TypeName typeName = interfaces[i];
         if (!detectedRepeatOnIndex[i]) {
           Element element = typeName.name.staticElement;
-          for (int j = i + 1; j < typeNames.length; j++) {
-            TypeName typeName2 = typeNames[j];
+          for (int j = i + 1; j < count; j++) {
+            TypeName typeName2 = interfaces[j];
             Identifier identifier2 = typeName2.name;
             String name2 = identifier2.name;
             Element element2 = identifier2.staticElement;
@@ -24772,7 +24846,7 @@ class TypeResolverVisitor extends ScopedVisitor {
         types.add(type);
       }
     }
-    return new List.from(types);
+    return types;
   }
 
   void _setElement(Identifier typeName, Element element) {

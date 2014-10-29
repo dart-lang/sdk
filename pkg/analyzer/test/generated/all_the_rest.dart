@@ -19,7 +19,6 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
-import 'package:analyzer/src/generated/java_junit.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -31,7 +30,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/html_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:unittest/unittest.dart' as _ut;
+import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
 import 'parser_test.dart';
@@ -40,7 +39,7 @@ import 'test_support.dart';
 
 
 main() {
-  _ut.groupSep = ' | ';
+  groupSep = ' | ';
   runReflectiveTests(AngularCompilationUnitBuilderTest);
   runReflectiveTests(AngularHtmlUnitResolverTest);
   runReflectiveTests(AngularHtmlUnitUtilsTest);
@@ -74,7 +73,7 @@ main() {
   runReflectiveTests(StringScannerTest);
 }
 
-abstract class AbstractScannerTest extends JUnitTestCase {
+abstract class AbstractScannerTest {
   ht.AbstractScanner newScanner(String input);
 
   void test_tokenize_attribute() {
@@ -250,11 +249,11 @@ abstract class AbstractScannerTest extends JUnitTestCase {
             " "],
         <int>[0, 9, 21, 25, 28, 38, 49]);
     token = token.next;
-    JUnitTestCase.assertEquals(1, token.offset);
+    expect(token.offset, 1);
     token = token.next;
-    JUnitTestCase.assertEquals(3, token.offset);
+    expect(token.offset, 3);
     token = token.next;
-    JUnitTestCase.assertEquals(10, token.offset);
+    expect(token.offset, 10);
   }
 
   void test_tokenize_string() {
@@ -309,7 +308,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     ht.Token token =
         _tokenize("<html>", <Object>[ht.TokenType.LT, "html", ht.TokenType.GT]);
     token = token.next;
-    JUnitTestCase.assertEquals(1, token.offset);
+    expect(token.offset, 1);
   }
 
   void test_tokenize_tag_incomplete_with_special_characters() {
@@ -369,8 +368,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
       }
       return ht.TokenType.TEXT;
     }
-    JUnitTestCase.fail(
-        "Unknown expected token ${count}: ${(expected != null ? expected.runtimeType : "null")}");
+    fail("Unknown expected token $count: ${expected != null ? expected.runtimeType : "null"}");
     return null;
   }
 
@@ -397,38 +395,32 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     ht.Token firstToken = scanner.tokenize();
     ht.Token token = firstToken;
     ht.Token previousToken = token.previous;
-    JUnitTestCase.assertTrue(previousToken.type == ht.TokenType.EOF);
-    JUnitTestCase.assertSame(previousToken, previousToken.previous);
-    JUnitTestCase.assertEquals(-1, previousToken.offset);
-    JUnitTestCase.assertSame(token, previousToken.next);
-    JUnitTestCase.assertEquals(0, token.offset);
+    expect(previousToken.type == ht.TokenType.EOF, isTrue);
+    expect(previousToken.previous, same(previousToken));
+    expect(previousToken.offset, -1);
+    expect(previousToken.next, same(token));
+    expect(token.offset, 0);
     while (token.type != ht.TokenType.EOF) {
       if (count == expectedTokens.length) {
-        JUnitTestCase.fail("too many parsed tokens");
+        fail("too many parsed tokens");
       }
       Object expected = expectedTokens[count];
       ht.TokenType expectedTokenType = _getExpectedTokenType(count, expected);
-      JUnitTestCase.assertSameMsg(
-          "token ${count}",
-          expectedTokenType,
-          token.type);
+      expect(token.type, same(expectedTokenType), reason: "token $count");
       if (expectedTokenType.lexeme != null) {
-        JUnitTestCase.assertEqualsMsg(
-            "token ${count}",
-            expectedTokenType.lexeme,
-            token.lexeme);
+        expect(token.lexeme, expectedTokenType.lexeme, reason: "token $count");
       } else {
-        JUnitTestCase.assertEqualsMsg("token ${count}", expected, token.lexeme);
+        expect(token.lexeme, expected, reason: "token $count");
       }
       count++;
       previousToken = token;
       token = token.next;
-      JUnitTestCase.assertSame(previousToken, token.previous);
+      expect(token.previous, same(previousToken));
     }
-    JUnitTestCase.assertSame(token, token.next);
-    JUnitTestCase.assertEquals(input.length, token.offset);
+    expect(token.next, same(token));
+    expect(token.offset, input.length);
     if (count != expectedTokens.length) {
-      JUnitTestCase.assertTrueMsg("not enough parsed tokens", false);
+      expect(false, isTrue, reason: "not enough parsed tokens");
     }
     List<int> lineStarts = scanner.lineStarts;
     bool success = expectedLineStarts.length == lineStarts.length;
@@ -441,18 +433,18 @@ abstract class AbstractScannerTest extends JUnitTestCase {
       }
     }
     if (!success) {
-      JavaStringBuilder msg = new JavaStringBuilder();
-      msg.append("Expected line starts ");
+      StringBuffer buffer = new StringBuffer();
+      buffer.write("Expected line starts ");
       for (int start in expectedLineStarts) {
-        msg.append(start);
-        msg.append(", ");
+        buffer.write(start);
+        buffer.write(", ");
       }
-      msg.append(" but found ");
+      buffer.write(" but found ");
       for (int start in lineStarts) {
-        msg.append(start);
-        msg.append(", ");
+        buffer.write(start);
+        buffer.write(", ");
       }
-      JUnitTestCase.fail(msg.toString());
+      fail(buffer.toString());
     }
     return firstToken;
   }
@@ -461,32 +453,31 @@ abstract class AbstractScannerTest extends JUnitTestCase {
 
 class AngularCompilationUnitBuilderTest extends AngularTest {
   void test_Decorator() {
-    String mainContent = _createAngularSource(
-        [
-            "@Decorator(selector: '[my-dir]',",
-            "             map: const {",
-            "               'my-dir' : '=>myPropA',",
-            "               '.' : '&myPropB',",
-            "             })",
-            "class MyDirective {",
-            "  set myPropA(value) {}",
-            "  set myPropB(value) {}",
-            "  @NgTwoWay('my-prop-c')",
-            "  String myPropC;",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Decorator(selector: '[my-dir]',
+             map: const {
+               'my-dir' : '=>myPropA',
+               '.' : '&myPropB',
+             })
+class MyDirective {
+  set myPropA(value) {}
+  set myPropB(value) {}
+  @NgTwoWay('my-prop-c')
+  String myPropC;
+}''');
     resolveMainSourceNoErrors(mainContent);
     // prepare AngularDirectiveElement
     ClassElement classElement = mainUnitElement.getType("MyDirective");
     AngularDecoratorElement directive =
         getAngularElement(classElement, (e) => e is AngularDecoratorElement);
-    JUnitTestCase.assertNotNull(directive);
+    expect(directive, isNotNull);
     // verify
-    JUnitTestCase.assertEquals(null, directive.name);
-    JUnitTestCase.assertEquals(-1, directive.nameOffset);
+    expect(directive.name, null);
+    expect(directive.nameOffset, -1);
     _assertHasAttributeSelector(directive.selector, "my-dir");
     // verify properties
     List<AngularPropertyElement> properties = directive.properties;
-    EngineTestCase.assertLength(3, properties);
+    expect(properties, hasLength(3));
     _assertProperty(
         properties[0],
         "my-dir",
@@ -511,58 +502,60 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   void test_Decorator_bad_cannotParseSelector() {
-    String mainContent = _createAngularSource(
-        [
-            "@Decorator(selector: '~bad-selector',",
-            "             map: const {",
-            "               'my-dir' : '=>myPropA',",
-            "               '.' : '&myPropB',",
-            "             })",
-            "class MyDirective {",
-            "  set myPropA(value) {}",
-            "  set myPropB(value) {}",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Decorator(selector: '~bad-selector',
+             map: const {
+               'my-dir' : '=>myPropA',
+               '.' : '&myPropB',
+             })
+class MyDirective {
+  set myPropA(value) {}
+  set myPropB(value) {}
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.CANNOT_PARSE_SELECTOR]);
   }
 
   void test_Decorator_bad_missingSelector() {
-    String mainContent = _createAngularSource(
-        [
-            "@Decorator(/*selector: '[my-dir]',*/",
-            "             map: const {",
-            "               'my-dir' : '=>myPropA',",
-            "               '.' : '&myPropB',",
-            "             })",
-            "class MyDirective {",
-            "  set myPropA(value) {}",
-            "  set myPropB(value) {}",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Decorator(/*selector: '[my-dir]',*/
+             map: const {
+               'my-dir' : '=>myPropA',
+               '.' : '&myPropB',
+             })
+class MyDirective {
+  set myPropA(value) {}
+  set myPropB(value) {}
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.MISSING_SELECTOR]);
   }
 
   void test_Formatter() {
-    String mainContent = _createAngularSource(
-        ["@Formatter(name: 'myFilter')", "class MyFilter {", "  call(p1, p2) {}", "}"]);
+    String mainContent = _createAngularSource(r'''
+@Formatter(name: 'myFilter')
+class MyFilter {
+  call(p1, p2) {}
+}''');
     resolveMainSourceNoErrors(mainContent);
     // prepare AngularFilterElement
     ClassElement classElement = mainUnitElement.getType("MyFilter");
     AngularFormatterElement filter =
         getAngularElement(classElement, (e) => e is AngularFormatterElement);
-    JUnitTestCase.assertNotNull(filter);
+    expect(filter, isNotNull);
     // verify
-    JUnitTestCase.assertEquals("myFilter", filter.name);
-    JUnitTestCase.assertEquals(
-        AngularTest.findOffset(mainContent, "myFilter'"),
-        filter.nameOffset);
+    expect(filter.name, "myFilter");
+    expect(filter.nameOffset, AngularTest.findOffset(mainContent, "myFilter'"));
   }
 
   void test_Formatter_missingName() {
-    String mainContent = _createAngularSource(
-        ["@Formatter()", "class MyFilter {", "  call(p1, p2) {}", "}"]);
+    String mainContent = _createAngularSource(r'''
+@Formatter()
+class MyFilter {
+  call(p1, p2) {}
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.MISSING_NAME]);
@@ -570,18 +563,17 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
     ClassElement classElement = mainUnitElement.getType("MyFilter");
     AngularFormatterElement filter =
         getAngularElement(classElement, (e) => e is AngularFormatterElement);
-    JUnitTestCase.assertNull(filter);
+    expect(filter, isNull);
   }
 
   void test_NgComponent_bad_cannotParseSelector() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', selector: '~myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: '~myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
+class MyComponent {
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.CANNOT_PARSE_SELECTOR]);
@@ -590,12 +582,11 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   void test_NgComponent_bad_missingSelector() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', /*selector: 'myComp',*/",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', /*selector: 'myComp',*/
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
+class MyComponent {
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.MISSING_SELECTOR]);
@@ -609,25 +600,23 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
     contextHelper.addSource("/my_template", "");
     contextHelper.addSource("/my_styles.css", "");
     addMainSource(
-        _createAngularSource(
-            [
-                "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
-                "             templateUrl: 'my_template', cssUrl: 'my_styles.css')",
-                "class MyComponent {",
-                "}"]));
+        _createAngularSource(r'''
+@NgComponent(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template', cssUrl: 'my_styles.css')
+class MyComponent {
+}'''));
     contextHelper.runTasks();
   }
 
   void test_NgComponent_bad_properties_invalidBinding() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-            "             map: const {'name' : '?field'})",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+             map: const {'name' : '?field'})
+class MyComponent {
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.INVALID_PROPERTY_KIND]);
@@ -636,13 +625,12 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   void test_NgComponent_bad_properties_nameNotStringLiteral() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-            "             map: const {null : 'field'})",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+             map: const {null : 'field'})
+class MyComponent {
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.INVALID_PROPERTY_NAME]);
@@ -651,13 +639,12 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   void test_NgComponent_bad_properties_noSuchField() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-            "             map: const {'name' : '=>field'})",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+             map: const {'name' : '=>field'})
+class MyComponent {
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.INVALID_PROPERTY_FIELD]);
@@ -666,13 +653,12 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   void test_NgComponent_bad_properties_notMapLiteral() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-            "             map: null)",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+             map: null)
+class MyComponent {
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.INVALID_PROPERTY_MAP]);
@@ -681,13 +667,12 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   void test_NgComponent_bad_properties_specNotStringLiteral() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-            "             map: const {'name' : null})",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+             map: const {'name' : null})
+class MyComponent {
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.INVALID_PROPERTY_SPEC]);
@@ -696,62 +681,59 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   void test_NgComponent_no_cssUrl() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html'/*, cssUrl: 'my_styles.css'*/)",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html'/*, cssUrl: 'my_styles.css'*/)
+class MyComponent {
+}''');
     resolveMainSource(mainContent);
     // prepare AngularComponentElement
     ClassElement classElement = mainUnitElement.getType("MyComponent");
     AngularComponentElement component =
         getAngularElement(classElement, (e) => e is AngularComponentElement);
-    JUnitTestCase.assertNotNull(component);
+    expect(component, isNotNull);
     // no CSS
-    JUnitTestCase.assertEquals(null, component.styleUri);
-    JUnitTestCase.assertEquals(-1, component.styleUriOffset);
+    expect(component.styleUri, null);
+    expect(component.styleUriOffset, -1);
   }
 
   void test_NgComponent_no_publishAs() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(/*publishAs: 'ctrl',*/ selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(/*publishAs: 'ctrl',*/ selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
+class MyComponent {
+}''');
     resolveMainSource(mainContent);
     // prepare AngularComponentElement
     ClassElement classElement = mainUnitElement.getType("MyComponent");
     AngularComponentElement component =
         getAngularElement(classElement, (e) => e is AngularComponentElement);
-    JUnitTestCase.assertNotNull(component);
+    expect(component, isNotNull);
     // no name
-    JUnitTestCase.assertEquals(null, component.name);
-    JUnitTestCase.assertEquals(-1, component.nameOffset);
+    expect(component.name, null);
+    expect(component.nameOffset, -1);
   }
 
   void test_NgComponent_no_templateUrl() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', selector: 'myComp',",
-            "             /*templateUrl: 'my_template.html',*/ cssUrl: 'my_styles.css')",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             /*templateUrl: 'my_template.html',*/ cssUrl: 'my_styles.css')
+class MyComponent {
+}''');
     resolveMainSource(mainContent);
     // prepare AngularComponentElement
     ClassElement classElement = mainUnitElement.getType("MyComponent");
     AngularComponentElement component =
         getAngularElement(classElement, (e) => e is AngularComponentElement);
-    JUnitTestCase.assertNotNull(component);
+    expect(component, isNotNull);
     // no template
-    JUnitTestCase.assertEquals(null, component.templateUri);
-    JUnitTestCase.assertEquals(null, component.templateSource);
-    JUnitTestCase.assertEquals(-1, component.templateUriOffset);
+    expect(component.templateUri, null);
+    expect(component.templateSource, null);
+    expect(component.templateUriOffset, -1);
   }
 
   /**
@@ -760,15 +742,14 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   void test_NgComponent_notAngular() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = EngineTestCase.createSource(
-        [
-            "class Component {",
-            "  const Component(a, b);",
-            "}",
-            "",
-            "@Component('foo', 42)",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = r'''
+class Component {
+  const Component(a, b);
+}
+
+@Component('foo', 42)
+class MyComponent {
+}''';
     resolveMainSource(mainContent);
     assertNoMainErrors();
   }
@@ -777,29 +758,28 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
     resolveMainSourceNoErrors(
-        _createAngularSource(
-            [
-                "class MySuper {",
-                "  var myPropA;",
-                "}",
-                "",
-                "",
-                "",
-                "@Component(publishAs: 'ctrl', selector: 'myComp',",
-                "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-                "             map: const {",
-                "               'prop-a' : '@myPropA'",
-                "             })",
-                "class MyComponent extends MySuper {",
-                "}"]));
+        _createAngularSource(r'''
+class MySuper {
+  var myPropA;
+}
+
+
+
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+             map: const {
+               'prop-a' : '@myPropA'
+             })
+class MyComponent extends MySuper {
+}'''));
     // prepare AngularComponentElement
     ClassElement classElement = mainUnitElement.getType("MyComponent");
     AngularComponentElement component =
         getAngularElement(classElement, (e) => e is AngularComponentElement);
-    JUnitTestCase.assertNotNull(component);
+    expect(component, isNotNull);
     // verify
     List<AngularPropertyElement> properties = component.properties;
-    EngineTestCase.assertLength(1, properties);
+    expect(properties, hasLength(1));
     _assertProperty(
         properties[0],
         "prop-a",
@@ -813,30 +793,29 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
     resolveMainSourceNoErrors(
-        _createAngularSource(
-            [
-                "@Component(publishAs: 'ctrl', selector: 'myComp',",
-                "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-                "class MyComponent {",
-                "  @NgAttr('prop-a')",
-                "  var myPropA;",
-                "  @NgCallback('prop-b')",
-                "  var myPropB;",
-                "  @NgOneWay('prop-c')",
-                "  var myPropC;",
-                "  @NgOneWayOneTime('prop-d')",
-                "  var myPropD;",
-                "  @NgTwoWay('prop-e')",
-                "  var myPropE;",
-                "}"]));
+        _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
+class MyComponent {
+  @NgAttr('prop-a')
+  var myPropA;
+  @NgCallback('prop-b')
+  var myPropB;
+  @NgOneWay('prop-c')
+  var myPropC;
+  @NgOneWayOneTime('prop-d')
+  var myPropD;
+  @NgTwoWay('prop-e')
+  var myPropE;
+}'''));
     // prepare AngularComponentElement
     ClassElement classElement = mainUnitElement.getType("MyComponent");
     AngularComponentElement component =
         getAngularElement(classElement, (e) => e is AngularComponentElement);
-    JUnitTestCase.assertNotNull(component);
+    expect(component, isNotNull);
     // verify
     List<AngularPropertyElement> properties = component.properties;
-    EngineTestCase.assertLength(5, properties);
+    expect(properties, hasLength(5));
     _assertProperty(
         properties[0],
         "prop-a",
@@ -878,32 +857,31 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
     resolveMainSourceNoErrors(
-        _createAngularSource(
-            [
-                "@Component(publishAs: 'ctrl', selector: 'myComp',",
-                "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-                "             map: const {",
-                "               'prop-a' : '@myPropA',",
-                "               'prop-b' : '&myPropB',",
-                "               'prop-c' : '=>myPropC',",
-                "               'prop-d' : '=>!myPropD',",
-                "               'prop-e' : '<=>myPropE'",
-                "             })",
-                "class MyComponent {",
-                "  var myPropA;",
-                "  var myPropB;",
-                "  var myPropC;",
-                "  var myPropD;",
-                "  var myPropE;",
-                "}"]));
+        _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+             map: const {
+               'prop-a' : '@myPropA',
+               'prop-b' : '&myPropB',
+               'prop-c' : '=>myPropC',
+               'prop-d' : '=>!myPropD',
+               'prop-e' : '<=>myPropE'
+             })
+class MyComponent {
+  var myPropA;
+  var myPropB;
+  var myPropC;
+  var myPropD;
+  var myPropE;
+}'''));
     // prepare AngularComponentElement
     ClassElement classElement = mainUnitElement.getType("MyComponent");
     AngularComponentElement component =
         getAngularElement(classElement, (e) => e is AngularComponentElement);
-    JUnitTestCase.assertNotNull(component);
+    expect(component, isNotNull);
     // verify
     List<AngularPropertyElement> properties = component.properties;
-    EngineTestCase.assertLength(5, properties);
+    expect(properties, hasLength(5));
     _assertProperty(
         properties[0],
         "prop-a",
@@ -944,138 +922,124 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   void test_NgComponent_properties_no() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
+class MyComponent {
+}''');
     resolveMainSourceNoErrors(mainContent);
     // prepare AngularComponentElement
     ClassElement classElement = mainUnitElement.getType("MyComponent");
     AngularComponentElement component =
         getAngularElement(classElement, (e) => e is AngularComponentElement);
-    JUnitTestCase.assertNotNull(component);
+    expect(component, isNotNull);
     // verify
-    JUnitTestCase.assertEquals("ctrl", component.name);
-    JUnitTestCase.assertEquals(
-        AngularTest.findOffset(mainContent, "ctrl'"),
-        component.nameOffset);
+    expect(component.name, "ctrl");
+    expect(component.nameOffset, AngularTest.findOffset(mainContent, "ctrl'"));
     _assertIsTagSelector(component.selector, "myComp");
-    JUnitTestCase.assertEquals("my_template.html", component.templateUri);
-    JUnitTestCase.assertEquals(
-        AngularTest.findOffset(mainContent, "my_template.html'"),
-        component.templateUriOffset);
-    JUnitTestCase.assertEquals("my_styles.css", component.styleUri);
-    JUnitTestCase.assertEquals(
-        AngularTest.findOffset(mainContent, "my_styles.css'"),
-        component.styleUriOffset);
-    EngineTestCase.assertLength(0, component.properties);
+    expect(component.templateUri, "my_template.html");
+    expect(component.templateUriOffset, AngularTest.findOffset(mainContent, "my_template.html'"));
+    expect(component.styleUri, "my_styles.css");
+    expect(component.styleUriOffset, AngularTest.findOffset(mainContent, "my_styles.css'"));
+    expect(component.properties, hasLength(0));
   }
 
   void test_NgComponent_scopeProperties() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-            "class MyComponent {",
-            "  MyComponent(Scope scope) {",
-            "    scope.context['boolProp'] = true;",
-            "    scope.context['intProp'] = 42;",
-            "    scope.context['stringProp'] = 'foo';",
-            "    // duplicate is ignored",
-            "    scope.context['boolProp'] = true;",
-            "    // LHS is not an IndexExpression",
-            "    var v1;",
-            "    v1 = 1;",
-            "    // LHS is not a Scope access",
-            "    var v2;",
-            "    v2['name'] = 2;",
-            "  }",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
+class MyComponent {
+  MyComponent(Scope scope) {
+    scope.context['boolProp'] = true;
+    scope.context['intProp'] = 42;
+    scope.context['stringProp'] = 'foo';
+    // duplicate is ignored
+    scope.context['boolProp'] = true;
+    // LHS is not an IndexExpression
+    var v1;
+    v1 = 1;
+    // LHS is not a Scope access
+    var v2;
+    v2['name'] = 2;
+  }
+}''');
     resolveMainSourceNoErrors(mainContent);
     // prepare AngularComponentElement
     ClassElement classElement = mainUnitElement.getType("MyComponent");
     AngularComponentElement component =
         getAngularElement(classElement, (e) => e is AngularComponentElement);
-    JUnitTestCase.assertNotNull(component);
+    expect(component, isNotNull);
     // verify
     List<AngularScopePropertyElement> scopeProperties =
         component.scopeProperties;
-    EngineTestCase.assertLength(3, scopeProperties);
+    expect(scopeProperties, hasLength(3));
     {
       AngularScopePropertyElement property = scopeProperties[0];
-      JUnitTestCase.assertSame(property, findMainElement2("boolProp"));
-      JUnitTestCase.assertEquals("boolProp", property.name);
-      JUnitTestCase.assertEquals(
-          AngularTest.findOffset(mainContent, "boolProp'"),
-          property.nameOffset);
-      JUnitTestCase.assertEquals("bool", property.type.name);
+      expect(findMainElement2("boolProp"), same(property));
+      expect(property.name, "boolProp");
+      expect(property.nameOffset, AngularTest.findOffset(mainContent, "boolProp'"));
+      expect(property.type.name, "bool");
     }
     {
       AngularScopePropertyElement property = scopeProperties[1];
-      JUnitTestCase.assertSame(property, findMainElement2("intProp"));
-      JUnitTestCase.assertEquals("intProp", property.name);
-      JUnitTestCase.assertEquals(
-          AngularTest.findOffset(mainContent, "intProp'"),
-          property.nameOffset);
-      JUnitTestCase.assertEquals("int", property.type.name);
+      expect(findMainElement2("intProp"), same(property));
+      expect(property.name, "intProp");
+      expect(property.nameOffset, AngularTest.findOffset(mainContent, "intProp'"));
+      expect(property.type.name, "int");
     }
     {
       AngularScopePropertyElement property = scopeProperties[2];
-      JUnitTestCase.assertSame(property, findMainElement2("stringProp"));
-      JUnitTestCase.assertEquals("stringProp", property.name);
-      JUnitTestCase.assertEquals(
-          AngularTest.findOffset(mainContent, "stringProp'"),
-          property.nameOffset);
-      JUnitTestCase.assertEquals("String", property.type.name);
+      expect(findMainElement2("stringProp"), same(property));
+      expect(property.name, "stringProp");
+      expect(property.nameOffset, AngularTest.findOffset(mainContent, "stringProp'"));
+      expect(property.type.name, "String");
     }
   }
 
   void test_NgController() {
-    String mainContent = _createAngularSource(
-        [
-            "@Controller(publishAs: 'ctrl', selector: '[myApp]')",
-            "class MyController {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Controller(publishAs: 'ctrl', selector: '[myApp]')
+class MyController {
+}''');
     resolveMainSourceNoErrors(mainContent);
     // prepare AngularControllerElement
     ClassElement classElement = mainUnitElement.getType("MyController");
     AngularControllerElement controller =
         getAngularElement(classElement, (e) => e is AngularControllerElement);
-    JUnitTestCase.assertNotNull(controller);
+    expect(controller, isNotNull);
     // verify
-    JUnitTestCase.assertEquals("ctrl", controller.name);
-    JUnitTestCase.assertEquals(
-        AngularTest.findOffset(mainContent, "ctrl'"),
-        controller.nameOffset);
+    expect(controller.name, "ctrl");
+    expect(controller.nameOffset, AngularTest.findOffset(mainContent, "ctrl'"));
     _assertHasAttributeSelector(controller.selector, "myApp");
   }
 
   void test_NgController_cannotParseSelector() {
-    String mainContent = _createAngularSource(
-        [
-            "@Controller(publishAs: 'ctrl', selector: '~unknown')",
-            "class MyController {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Controller(publishAs: 'ctrl', selector: '~unknown')
+class MyController {
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.CANNOT_PARSE_SELECTOR]);
   }
 
   void test_NgController_missingPublishAs() {
-    String mainContent = _createAngularSource(
-        ["@Controller(selector: '[myApp]')", "class MyController {", "}"]);
+    String mainContent = _createAngularSource(r'''
+@Controller(selector: '[myApp]')
+class MyController {
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.MISSING_PUBLISH_AS]);
   }
 
   void test_NgController_missingSelector() {
-    String mainContent = _createAngularSource(
-        ["@Controller(publishAs: 'ctrl')", "class MyController {", "}"]);
+    String mainContent = _createAngularSource(r'''
+@Controller(publishAs: 'ctrl')
+class MyController {
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.MISSING_SELECTOR]);
@@ -1083,37 +1047,40 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
 
   void test_NgController_noAnnotationArguments() {
     String mainContent =
-        _createAngularSource(["@NgController", "class MyController {", "}"]);
+        _createAngularSource(r'''
+@NgController
+class MyController {
+}''');
     resolveMainSource(mainContent);
   }
 
   void test_bad_notConstructorAnnotation() {
-    String mainContent = EngineTestCase.createSource(
-        ["const MY_ANNOTATION = null;", "@MY_ANNOTATION()", "class MyFilter {", "}"]);
+    String mainContent = r'''
+const MY_ANNOTATION = null;
+@MY_ANNOTATION()
+class MyFilter {
+}''';
     resolveMainSource(mainContent);
     // prepare AngularFilterElement
     ClassElement classElement = mainUnitElement.getType("MyFilter");
     AngularFormatterElement filter =
         getAngularElement(classElement, (e) => e is AngularFormatterElement);
-    JUnitTestCase.assertNull(filter);
+    expect(filter, isNull);
   }
 
   void test_getElement_SimpleStringLiteral_withToolkitElement() {
     SimpleStringLiteral literal = AstFactory.string2("foo");
     Element element = new AngularScopePropertyElementImpl("foo", 0, null);
     literal.toolkitElement = element;
-    JUnitTestCase.assertSame(
-        element,
-        AngularCompilationUnitBuilder.getElement(literal, -1));
+    expect(AngularCompilationUnitBuilder.getElement(literal, -1), same(element));
   }
 
   void test_getElement_component_name() {
     resolveMainSource(
-        _createAngularSource(
-            [
-                "@Component(publishAs: 'ctrl', selector: 'myComp',",
-                "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-                "class MyComponent {}"]));
+        _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
+class MyComponent {}'''));
     SimpleStringLiteral node =
         _findMainNode("ctrl'", (n) => n is SimpleStringLiteral);
     int offset = node.offset;
@@ -1127,38 +1094,36 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
 
   void test_getElement_component_property_fromFieldAnnotation() {
     resolveMainSource(
-        _createAngularSource(
-            [
-                "@Component(publishAs: 'ctrl', selector: 'myComp',",
-                "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-                "class MyComponent {",
-                "  @NgOneWay('prop')",
-                "  var field;",
-                "}"]));
+        _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
+class MyComponent {
+  @NgOneWay('prop')
+  var field;
+}'''));
     // prepare node
     SimpleStringLiteral node =
         _findMainNode("prop'", (n) => n is SimpleStringLiteral);
     int offset = node.offset;
     // prepare Element
     Element element = AngularCompilationUnitBuilder.getElement(node, offset);
-    JUnitTestCase.assertNotNull(element);
+    expect(element, isNotNull);
     // check AngularPropertyElement
     AngularPropertyElement property = element as AngularPropertyElement;
-    JUnitTestCase.assertEquals("prop", property.name);
+    expect(property.name, "prop");
   }
 
   void test_getElement_component_property_fromMap() {
     resolveMainSource(
-        _createAngularSource(
-            [
-                "@Component(publishAs: 'ctrl', selector: 'myComp',",
-                "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-                "             map: const {",
-                "               'prop' : '@field',",
-                "             })",
-                "class MyComponent {",
-                "  var field;",
-                "}"]));
+        _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+             map: const {
+               'prop' : '@field',
+             })
+class MyComponent {
+  var field;
+}'''));
     // AngularPropertyElement
     {
       SimpleStringLiteral node =
@@ -1166,10 +1131,10 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
       int offset = node.offset;
       // prepare Element
       Element element = AngularCompilationUnitBuilder.getElement(node, offset);
-      JUnitTestCase.assertNotNull(element);
+      expect(element, isNotNull);
       // check AngularPropertyElement
       AngularPropertyElement property = element as AngularPropertyElement;
-      JUnitTestCase.assertEquals("prop", property.name);
+      expect(property.name, "prop");
     }
     // FieldElement
     {
@@ -1178,20 +1143,19 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
       int offset = node.offset;
       // prepare Element
       Element element = AngularCompilationUnitBuilder.getElement(node, offset);
-      JUnitTestCase.assertNotNull(element);
+      expect(element, isNotNull);
       // check FieldElement
       FieldElement field = element as FieldElement;
-      JUnitTestCase.assertEquals("field", field.name);
+      expect(field.name, "field");
     }
   }
 
   void test_getElement_component_selector() {
     resolveMainSource(
-        _createAngularSource(
-            [
-                "@Component(publishAs: 'ctrl', selector: 'myComp',",
-                "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-                "class MyComponent {}"]));
+        _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
+class MyComponent {}'''));
     SimpleStringLiteral node =
         _findMainNode("myComp'", (n) => n is SimpleStringLiteral);
     int offset = node.offset;
@@ -1205,11 +1169,10 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
 
   void test_getElement_controller_name() {
     resolveMainSource(
-        _createAngularSource(
-            [
-                "@Controller(publishAs: 'ctrl', selector: '[myApp]')",
-                "class MyController {",
-                "}"]));
+        _createAngularSource(r'''
+@Controller(publishAs: 'ctrl', selector: '[myApp]')
+class MyController {
+}'''));
     SimpleStringLiteral node =
         _findMainNode("ctrl'", (n) => n is SimpleStringLiteral);
     int offset = node.offset;
@@ -1223,31 +1186,31 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
 
   void test_getElement_directive_property() {
     resolveMainSource(
-        _createAngularSource(
-            [
-                "@Decorator(selector: '[my-dir]',",
-                "             map: const {",
-                "               'my-dir' : '=>field'",
-                "             })",
-                "class MyDirective {",
-                "  set field(value) {}",
-                "}"]));
+        _createAngularSource(r'''
+@Decorator(selector: '[my-dir]',
+             map: const {
+               'my-dir' : '=>field'
+             })
+class MyDirective {
+  set field(value) {}
+}'''));
     // prepare node
     SimpleStringLiteral node =
         _findMainNode("my-dir'", (n) => n is SimpleStringLiteral);
     int offset = node.offset;
     // prepare Element
     Element element = AngularCompilationUnitBuilder.getElement(node, offset);
-    JUnitTestCase.assertNotNull(element);
+    expect(element, isNotNull);
     // check AngularPropertyElement
     AngularPropertyElement property = element as AngularPropertyElement;
-    JUnitTestCase.assertEquals("my-dir", property.name);
+    expect(property.name, "my-dir");
   }
 
   void test_getElement_directive_selector() {
     resolveMainSource(
-        _createAngularSource(
-            ["@Decorator(selector: '[my-dir]')", "class MyDirective {}"]));
+        _createAngularSource(r'''
+@Decorator(selector: '[my-dir]')
+class MyDirective {}'''));
     SimpleStringLiteral node =
         _findMainNode("my-dir]'", (n) => n is SimpleStringLiteral);
     int offset = node.offset;
@@ -1261,12 +1224,11 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
 
   void test_getElement_filter_name() {
     resolveMainSource(
-        _createAngularSource(
-            [
-                "@Formatter(name: 'myFilter')",
-                "class MyFilter {",
-                "  call(p1, p2) {}",
-                "}"]));
+        _createAngularSource(r'''
+@Formatter(name: 'myFilter')
+class MyFilter {
+  call(p1, p2) {}
+}'''));
     SimpleStringLiteral node =
         _findMainNode("myFilter'", (n) => n is SimpleStringLiteral);
     int offset = node.offset;
@@ -1283,13 +1245,17 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
     SimpleStringLiteral node =
         _findMainNode("bar'", (n) => n is SimpleStringLiteral);
     Element element = AngularCompilationUnitBuilder.getElement(node, 0);
-    JUnitTestCase.assertNull(element);
+    expect(element, isNull);
   }
 
   void test_getElement_noClassElement() {
-    resolveMainSource(
-        EngineTestCase.createSource(
-            ["class A {", "  const A(p);", "}", "", "@A('bar')", "class B {}"]));
+    resolveMainSource(r'''
+class A {
+  const A(p);
+}
+
+@A('bar')
+class B {}''');
     SimpleStringLiteral node =
         _findMainNode("bar'", (n) => n is SimpleStringLiteral);
     // reset B element
@@ -1298,32 +1264,33 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
     classDeclaration.name.staticElement = null;
     // class is not resolved - no element
     Element element = AngularCompilationUnitBuilder.getElement(node, 0);
-    JUnitTestCase.assertNull(element);
+    expect(element, isNull);
   }
 
   void test_getElement_noNode() {
     Element element = AngularCompilationUnitBuilder.getElement(null, 0);
-    JUnitTestCase.assertNull(element);
+    expect(element, isNull);
   }
 
   void test_getElement_notFound() {
-    resolveMainSource(
-        EngineTestCase.createSource(
-            ["class MyComponent {", "  var str = 'some string';", "}"]));
+    resolveMainSource(r'''
+class MyComponent {
+  var str = 'some string';
+}''');
     // prepare node
     SimpleStringLiteral node =
         _findMainNode("some string'", (n) => n is SimpleStringLiteral);
     int offset = node.offset;
     // no Element
     Element element = AngularCompilationUnitBuilder.getElement(node, offset);
-    JUnitTestCase.assertNull(element);
+    expect(element, isNull);
   }
 
   void test_parseSelector_hasAttribute() {
     AngularSelectorElement selector =
         AngularCompilationUnitBuilder.parseSelector(42, "[name]");
     _assertHasAttributeSelector(selector, "name");
-    JUnitTestCase.assertEquals(42 + 1, selector.nameOffset);
+    expect(selector.nameOffset, 42 + 1);
   }
 
   void test_parseSelector_hasClass() {
@@ -1331,20 +1298,20 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
         AngularCompilationUnitBuilder.parseSelector(42, ".my-class");
     AngularHasClassSelectorElementImpl classSelector =
         selector as AngularHasClassSelectorElementImpl;
-    JUnitTestCase.assertEquals("my-class", classSelector.name);
-    JUnitTestCase.assertEquals(".my-class", classSelector.toString());
-    JUnitTestCase.assertEquals(42 + 1, selector.nameOffset);
+    expect(classSelector.name, "my-class");
+    expect(classSelector.toString(), ".my-class");
+    expect(selector.nameOffset, 42 + 1);
     // test apply()
     {
       ht.XmlTagNode node =
           HtmlFactory.tagNode("div", [HtmlFactory.attribute("class", "one two")]);
-      JUnitTestCase.assertFalse(classSelector.apply(node));
+      expect(classSelector.apply(node), isFalse);
     }
     {
       ht.XmlTagNode node = HtmlFactory.tagNode(
           "div",
           [HtmlFactory.attribute("class", "one my-class two")]);
-      JUnitTestCase.assertTrue(classSelector.apply(node));
+      expect(classSelector.apply(node), isTrue);
     }
   }
 
@@ -1352,7 +1319,7 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
     AngularSelectorElement selector =
         AngularCompilationUnitBuilder.parseSelector(42, "name");
     _assertIsTagSelector(selector, "name");
-    JUnitTestCase.assertEquals(42, selector.nameOffset);
+    expect(selector.nameOffset, 42);
   }
 
   void test_parseSelector_isTag_hasAttribute() {
@@ -1362,71 +1329,62 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
         (obj) => obj is IsTagHasAttributeSelectorElementImpl,
         IsTagHasAttributeSelectorElementImpl,
         selector);
-    JUnitTestCase.assertEquals("tag[attr]", selector.name);
-    JUnitTestCase.assertEquals(-1, selector.nameOffset);
-    JUnitTestCase.assertEquals(
-        "tag",
-        (selector as IsTagHasAttributeSelectorElementImpl).tagName);
-    JUnitTestCase.assertEquals(
-        "attr",
-        (selector as IsTagHasAttributeSelectorElementImpl).attributeName);
+    expect(selector.name, "tag[attr]");
+    expect(selector.nameOffset, -1);
+    expect((selector as IsTagHasAttributeSelectorElementImpl).tagName, "tag");
+    expect((selector as IsTagHasAttributeSelectorElementImpl).attributeName, "attr");
   }
 
   void test_parseSelector_unknown() {
     AngularSelectorElement selector =
         AngularCompilationUnitBuilder.parseSelector(0, "~unknown");
-    JUnitTestCase.assertNull(selector);
+    expect(selector, isNull);
   }
 
   void test_view() {
     contextHelper.addSource("/wrong.html", "");
     contextHelper.addSource("/my_templateA.html", "");
     contextHelper.addSource("/my_templateB.html", "");
-    String mainContent = _createAngularSource(
-        [
-            "class MyRouteInitializer {",
-            "  init(ViewFactory view, foo) {",
-            "    foo.view('wrong.html');   // has target",
-            "    foo();                    // less than one argument",
-            "    foo('wrong.html', 'bar'); // more than one argument",
-            "    foo('wrong' + '.html');   // not literal",
-            "    foo('wrong.html');        // not ViewFactory",
-            "    view('my_templateA.html');",
-            "    view('my_templateB.html');",
-            "  }",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+class MyRouteInitializer {
+  init(ViewFactory view, foo) {
+    foo.view('wrong.html');   // has target
+    foo();                    // less than one argument
+    foo('wrong.html', 'bar'); // more than one argument
+    foo('wrong' + '.html');   // not literal
+    foo('wrong.html');        // not ViewFactory
+    view('my_templateA.html');
+    view('my_templateB.html');
+  }
+}''');
     resolveMainSourceNoErrors(mainContent);
     // prepare AngularViewElement(s)
     List<AngularViewElement> views = mainUnitElement.angularViews;
-    EngineTestCase.assertLength(2, views);
+    expect(views, hasLength(2));
     {
       AngularViewElement view = views[0];
-      JUnitTestCase.assertEquals("my_templateA.html", view.templateUri);
-      JUnitTestCase.assertEquals(null, view.name);
-      JUnitTestCase.assertEquals(-1, view.nameOffset);
-      JUnitTestCase.assertEquals(
-          AngularTest.findOffset(mainContent, "my_templateA.html'"),
-          view.templateUriOffset);
+      expect(view.templateUri, "my_templateA.html");
+      expect(view.name, null);
+      expect(view.nameOffset, -1);
+      expect(view.templateUriOffset, AngularTest.findOffset(mainContent, "my_templateA.html'"));
     }
     {
       AngularViewElement view = views[1];
-      JUnitTestCase.assertEquals("my_templateB.html", view.templateUri);
-      JUnitTestCase.assertEquals(null, view.name);
-      JUnitTestCase.assertEquals(-1, view.nameOffset);
-      JUnitTestCase.assertEquals(
-          AngularTest.findOffset(mainContent, "my_templateB.html'"),
-          view.templateUriOffset);
+      expect(view.templateUri, "my_templateB.html");
+      expect(view.name, null);
+      expect(view.nameOffset, -1);
+      expect(view.templateUriOffset, AngularTest.findOffset(mainContent, "my_templateB.html'"));
     }
   }
 
   void _assertProperty(AngularPropertyElement property, String expectedName,
       int expectedNameOffset, AngularPropertyKind expectedKind,
       String expectedFieldName, int expectedFieldOffset) {
-    JUnitTestCase.assertEquals(expectedName, property.name);
-    JUnitTestCase.assertEquals(expectedNameOffset, property.nameOffset);
-    JUnitTestCase.assertSame(expectedKind, property.propertyKind);
-    JUnitTestCase.assertEquals(expectedFieldName, property.field.name);
-    JUnitTestCase.assertEquals(expectedFieldOffset, property.fieldNameOffset);
+    expect(property.name, expectedName);
+    expect(property.nameOffset, expectedNameOffset);
+    expect(property.propertyKind, same(expectedKind));
+    expect(property.field.name, expectedFieldName);
+    expect(property.fieldNameOffset, expectedFieldOffset);
   }
 
   /**
@@ -1463,9 +1421,7 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
         (obj) => obj is HasAttributeSelectorElementImpl,
         HasAttributeSelectorElementImpl,
         selector);
-    JUnitTestCase.assertEquals(
-        name,
-        (selector as HasAttributeSelectorElementImpl).name);
+    expect((selector as HasAttributeSelectorElementImpl).name, name);
   }
 
   static void _assertIsTagSelector(AngularSelectorElement selector,
@@ -1474,41 +1430,36 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
         (obj) => obj is AngularTagSelectorElementImpl,
         AngularTagSelectorElementImpl,
         selector);
-    JUnitTestCase.assertEquals(
-        name,
-        (selector as AngularTagSelectorElementImpl).name);
+    expect((selector as AngularTagSelectorElementImpl).name, name);
   }
 
-  static String _createAngularSource(List<String> lines) {
-    String source = "import 'angular.dart';\n";
-    source += EngineTestCase.createSource(lines);
-    return source;
+  static String _createAngularSource(String code) {
+    return "import 'angular.dart';\n" + code;
   }
 }
 
 
 class AngularHtmlUnitResolverTest extends AngularTest {
   void test_NgComponent_resolveTemplateFile() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Component(",
-                "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-                "    publishAs: 'ctrl',",
-                "    selector: 'myComponent')",
-                "class MyComponent {",
-                "  String field;",
-                "}"]));
+    addMainSource(r'''
+import 'angular.dart';
+
+@Component(
+    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+    publishAs: 'ctrl',
+    selector: 'myComponent')
+class MyComponent {
+  String field;
+}''');
     contextHelper.addSource(
         "/entry-point.html",
-        AngularTest.createHtmlWithAngular([]));
+        AngularTest.createHtmlWithAngular(''));
     addIndexSource2(
         "/my_template.html",
-        EngineTestCase.createSource(
-            ["    <div>", "      {{ctrl.field}}", "    </div>"]));
+        r'''
+<div>
+  {{ctrl.field}}
+</div>''');
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     resolveIndex();
@@ -1520,29 +1471,30 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   void test_NgComponent_updateDartFile() {
     Source componentSource = contextHelper.addSource(
         "/my_component.dart",
-        EngineTestCase.createSource(
-            [
-                "library my.component;",
-                "import 'angular.dart';",
-                "@Component(selector: 'myComponent')",
-                "class MyComponent {",
-                "}"]));
+        r'''
+library my.component;
+import 'angular.dart';
+@Component(selector: 'myComponent')
+class MyComponent {
+}''');
     contextHelper.addSource(
         "/my_module.dart",
-        EngineTestCase.createSource(
-            ["library my.module;", "import 'my_component.dart';"]));
-    addMainSource(
-        EngineTestCase.createSource(["library main;", "import 'my_module.dart';"]));
+        r'''
+library my.module;
+import 'my_component.dart';''');
+    addMainSource(r'''
+library main;
+import 'my_module.dart';''');
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(["<myComponent/>"]));
+        AngularTest.createHtmlWithMyController("<myComponent/>"));
     // "myComponent" tag was resolved
     {
       ht.XmlTagNode tagNode =
           ht.HtmlUnitUtils.getTagNode(indexUnit, findOffset2("myComponent"));
       AngularSelectorElement tagElement =
           tagNode.element as AngularSelectorElement;
-      JUnitTestCase.assertNotNull(tagElement);
-      JUnitTestCase.assertEquals("myComponent", tagElement.name);
+      expect(tagElement, isNotNull);
+      expect(tagElement.name, "myComponent");
     }
     // replace "myComponent" with "myComponent2"
     // in my_component.dart and index.html
@@ -1562,116 +1514,110 @@ class AngularHtmlUnitResolverTest extends AngularTest {
           ht.HtmlUnitUtils.getTagNode(indexUnit, findOffset2("myComponent2"));
       AngularSelectorElement tagElement =
           tagNode.element as AngularSelectorElement;
-      JUnitTestCase.assertNotNull(tagElement);
-      JUnitTestCase.assertEquals("myComponent2", tagElement.name);
+      expect(tagElement, isNotNull);
+      expect(tagElement.name, "myComponent2");
     }
   }
 
   void test_NgComponent_use_resolveAttributes() {
     contextHelper.addSource(
         "/my_template.html",
-        EngineTestCase.createSource(
-            ["    <div>", "      {{ctrl.field}}", "    </div>"]));
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Component(",
-                "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-                "    publishAs: 'ctrl',",
-                "    selector: 'myComponent', // selector",
-                "    map: const {'attrA' : '=>setA', 'attrB' : '@setB'})",
-                "class MyComponent {",
-                "  set setA(value) {}",
-                "  set setB(value) {}",
-                "}"]));
+        r'''
+    <div>
+      {{ctrl.field}}
+    </div>''');
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Component(
+    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+    publishAs: 'ctrl',
+    selector: 'myComponent', // selector
+    map: const {'attrA' : '=>setA', 'attrB' : '@setB'})
+class MyComponent {
+  set setA(value) {}
+  set setB(value) {}
+}''');
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            [
-                "<input type='text' ng-model='someModel'/>",
-                "<myComponent attrA='someModel' attrB='bbb'/>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<input type='text' ng-model='someModel'/>
+<myComponent attrA='someModel' attrB='bbb'/>'''));
     // "attrA" attribute expression was resolved
-    JUnitTestCase.assertNotNull(findIdentifier("someModel"));
+    expect(findIdentifier("someModel"), isNotNull);
     // "myComponent" tag was resolved
     ht.XmlTagNode tagNode =
         ht.HtmlUnitUtils.getTagNode(indexUnit, findOffset2("myComponent"));
     AngularSelectorElement tagElement =
         tagNode.element as AngularSelectorElement;
-    JUnitTestCase.assertNotNull(tagElement);
-    JUnitTestCase.assertEquals("myComponent", tagElement.name);
-    JUnitTestCase.assertEquals(
-        findMainOffset("myComponent', // selector"),
-        tagElement.nameOffset);
+    expect(tagElement, isNotNull);
+    expect(tagElement.name, "myComponent");
+    expect(tagElement.nameOffset, findMainOffset("myComponent', // selector"));
     // "attrA" attribute was resolved
     {
       ht.XmlAttributeNode node =
           ht.HtmlUnitUtils.getAttributeNode(indexUnit, findOffset2("attrA='"));
       AngularPropertyElement element = node.element as AngularPropertyElement;
-      JUnitTestCase.assertNotNull(element);
-      JUnitTestCase.assertEquals("attrA", element.name);
-      JUnitTestCase.assertEquals("setA", element.field.name);
+      expect(element, isNotNull);
+      expect(element.name, "attrA");
+      expect(element.field.name, "setA");
     }
     // "attrB" attribute was resolved, even if it @binding
     {
       ht.XmlAttributeNode node =
           ht.HtmlUnitUtils.getAttributeNode(indexUnit, findOffset2("attrB='"));
       AngularPropertyElement element = node.element as AngularPropertyElement;
-      JUnitTestCase.assertNotNull(element);
-      JUnitTestCase.assertEquals("attrB", element.name);
-      JUnitTestCase.assertEquals("setB", element.field.name);
+      expect(element, isNotNull);
+      expect(element.name, "attrB");
+      expect(element.field.name, "setB");
     }
   }
 
   void test_NgDirective_noAttribute() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@NgDirective(selector: '[my-directive]', map: const {'foo': '=>input'})",
-                "class MyDirective {",
-                "  set input(value) {}",
-                "}"]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@NgDirective(selector: '[my-directive]', map: const {'foo': '=>input'})
+class MyDirective {
+  set input(value) {}
+}''');
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(["<div my-directive>", "</div>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<div my-directive>
+</div>'''));
   }
 
   void test_NgDirective_noExpression() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@NgDirective(selector: '[my-directive]', map: const {'.': '=>input'})",
-                "class MyDirective {",
-                "  set input(value) {}",
-                "}"]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@NgDirective(selector: '[my-directive]', map: const {'.': '=>input'})
+class MyDirective {
+  set input(value) {}
+}''');
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(["<div my-directive>", "</div>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<div my-directive>
+</div>'''));
   }
 
   void test_NgDirective_resolvedExpression() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Decorator(selector: '[my-directive]')",
-                "class MyDirective {",
-                "  @NgOneWay('my-property')",
-                "  String condition;",
-                "}"]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Decorator(selector: '[my-directive]')
+class MyDirective {
+  @NgOneWay('my-property')
+  String condition;
+}''');
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            [
-                "<input type='text' ng-model='name'>",
-                "<div my-directive my-property='name != null'>",
-                "</div>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<input type='text' ng-model='name'>
+<div my-directive my-property='name != null'>
+</div>'''));
     resolveMainNoErrors();
     // "my-directive" attribute was resolved
     {
@@ -1679,8 +1625,8 @@ class AngularHtmlUnitResolverTest extends AngularTest {
           findMainElement(ElementKind.ANGULAR_SELECTOR, "my-directive");
       ht.XmlAttributeNode attrNodeSelector =
           ht.HtmlUnitUtils.getAttributeNode(indexUnit, findOffset2("my-directive"));
-      JUnitTestCase.assertNotNull(attrNodeSelector);
-      JUnitTestCase.assertSame(selector, attrNodeSelector.element);
+      expect(attrNodeSelector, isNotNull);
+      expect(attrNodeSelector.element, same(selector));
     }
     // "my-property" attribute was resolved
     {
@@ -1688,189 +1634,177 @@ class AngularHtmlUnitResolverTest extends AngularTest {
           ht.HtmlUnitUtils.getAttributeNode(indexUnit, findOffset2("my-property='"));
       AngularPropertyElement propertyElement =
           attrNodeProperty.element as AngularPropertyElement;
-      JUnitTestCase.assertNotNull(propertyElement);
-      JUnitTestCase.assertSame(
-          AngularPropertyKind.ONE_WAY,
-          propertyElement.propertyKind);
-      JUnitTestCase.assertEquals("condition", propertyElement.field.name);
+      expect(propertyElement, isNotNull);
+      expect(propertyElement.propertyKind, same(AngularPropertyKind.ONE_WAY));
+      expect(propertyElement.field.name, "condition");
     }
     // "name" expression was resolved
-    JUnitTestCase.assertNotNull(findIdentifier("name != null"));
+    expect(findIdentifier("name != null"), isNotNull);
   }
 
   void test_NgDirective_resolvedExpression_attrString() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@NgDirective(selector: '[my-directive])",
-                "class MyDirective {",
-                "  @NgAttr('my-property')",
-                "  String property;",
-                "}"]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@NgDirective(selector: '[my-directive])
+class MyDirective {
+  @NgAttr('my-property')
+  String property;
+}''');
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            [
-                "<input type='text' ng-model='name'>",
-                "<div my-directive my-property='name != null'>",
-                "</div>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<input type='text' ng-model='name'>
+<div my-directive my-property='name != null'>
+</div>'''));
     resolveMain();
     // @NgAttr means "string attribute", which we don't parse
-    JUnitTestCase.assertNull(findIdentifierMaybe("name != null"));
+    expect(findIdentifierMaybe("name != null"), isNull);
   }
 
   void test_NgDirective_resolvedExpression_dotAsName() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Decorator(",
-                "    selector: '[my-directive]',",
-                "    map: const {'.' : '=>condition'})",
-                "class MyDirective {",
-                "  set condition(value) {}",
-                "}"]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Decorator(
+    selector: '[my-directive]',
+    map: const {'.' : '=>condition'})
+class MyDirective {
+  set condition(value) {}
+}''');
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            [
-                "<input type='text' ng-model='name'>",
-                "<div my-directive='name != null'>",
-                "</div>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<input type='text' ng-model='name'>
+<div my-directive='name != null'>
+</div>'''));
     // "name" attribute was resolved
-    JUnitTestCase.assertNotNull(findIdentifier("name != null"));
+    expect(findIdentifier("name != null"), isNotNull);
   }
 
   void fail_analysisContext_changeDart_invalidateApplication() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Component(",
-                "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-                "    publishAs: 'ctrl',",
-                "    selector: 'myComponent')",
-                "class MyComponent {",
-                "}"]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Component(
+    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+    publishAs: 'ctrl',
+    selector: 'myComponent')
+class MyComponent {
+}''');
     contextHelper.addSource(
         "/entry-point.html",
-        AngularTest.createHtmlWithAngular([]));
+        AngularTest.createHtmlWithAngular(''));
     addIndexSource2(
         "/my_template.html",
-        EngineTestCase.createSource(
-            ["    <div>", "      {{ctrl.noMethod()}}", "    </div>"]));
+        r'''
+<div>
+  {{ctrl.noMethod()}}
+</div>''');
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     // there are some errors in my_template.html
     {
       List<AnalysisError> errors = context.getErrors(indexSource).errors;
-      JUnitTestCase.assertTrue(errors.length != 0);
+      expect(errors.length != 0, isTrue);
     }
     // change main.dart, there are no MyComponent anymore
     context.setContents(mainSource, "");
     // ...errors in my_template.html should be removed
     {
       List<AnalysisError> errors = context.getErrors(indexSource).errors;
-      _ut.expect(errors, _ut.isEmpty);
-      JUnitTestCase.assertTrue(errors.length == 0);
+      expect(errors, isEmpty);
+      expect(errors.length == 0, isTrue);
     }
   }
 
   void test_analysisContext_changeEntryPoint_clearAngularErrors_inDart() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Component(",
-                "    templateUrl: 'no-such-template.html', cssUrl: 'my_styles.css',",
-                "    publishAs: 'ctrl',",
-                "    selector: 'myComponent')",
-                "class MyComponent {",
-                "}"]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Component(
+    templateUrl: 'no-such-template.html', cssUrl: 'my_styles.css',
+    publishAs: 'ctrl',
+    selector: 'myComponent')
+class MyComponent {
+}''');
     Source entrySource = contextHelper.addSource(
         "/entry-point.html",
-        AngularTest.createHtmlWithAngular([]));
+        AngularTest.createHtmlWithAngular(''));
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     // there are some errors in MyComponent
     {
       List<AnalysisError> errors = context.getErrors(mainSource).errors;
-      JUnitTestCase.assertTrue(errors.length != 0);
+      expect(errors.length != 0, isTrue);
     }
     // make entry-point.html non-Angular
     context.setContents(entrySource, "<html/>");
     // ...errors in MyComponent should be removed
     {
       List<AnalysisError> errors = context.getErrors(mainSource).errors;
-      JUnitTestCase.assertTrue(errors.length == 0);
+      expect(errors.length == 0, isTrue);
     }
   }
 
   void test_analysisContext_changeEntryPoint_clearAngularErrors_inTemplate() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Component(",
-                "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-                "    publishAs: 'ctrl',",
-                "    selector: 'myComponent')",
-                "class MyComponent {",
-                "}"]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Component(
+    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+    publishAs: 'ctrl',
+    selector: 'myComponent')
+class MyComponent {
+}''');
     Source entrySource = contextHelper.addSource(
         "/entry-point.html",
-        AngularTest.createHtmlWithAngular([]));
+        AngularTest.createHtmlWithAngular(''));
     addIndexSource2(
         "/my_template.html",
-        EngineTestCase.createSource(
-            ["    <div>", "      {{ctrl.noMethod()}}", "    </div>"]));
+        r'''
+<div>
+  {{ctrl.noMethod()}}
+</div>''');
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     // there are some errors in my_template.html
     {
       List<AnalysisError> errors = context.getErrors(indexSource).errors;
-      JUnitTestCase.assertTrue(errors.length != 0);
+      expect(errors.length != 0, isTrue);
     }
     // make entry-point.html non-Angular
     context.setContents(entrySource, "<html/>");
     // ...errors in my_template.html should be removed
     {
       List<AnalysisError> errors = context.getErrors(indexSource).errors;
-      JUnitTestCase.assertTrue(errors.length == 0);
+      expect(errors.length == 0, isTrue);
     }
   }
 
   void test_analysisContext_removeEntryPoint_clearAngularErrors_inDart() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Component(",
-                "    templateUrl: 'no-such-template.html', cssUrl: 'my_styles.css',",
-                "    publishAs: 'ctrl',",
-                "    selector: 'myComponent')",
-                "class MyComponent {",
-                "}"]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Component(
+    templateUrl: 'no-such-template.html', cssUrl: 'my_styles.css',
+    publishAs: 'ctrl',
+    selector: 'myComponent')
+class MyComponent {
+}''');
     Source entrySource = contextHelper.addSource(
         "/entry-point.html",
-        AngularTest.createHtmlWithAngular([]));
+        AngularTest.createHtmlWithAngular(''));
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     // there are some errors in MyComponent
     {
       List<AnalysisError> errors = context.getErrors(mainSource).errors;
-      JUnitTestCase.assertTrue(errors.length != 0);
+      expect(errors.length != 0, isTrue);
     }
     // remove entry-point.html
     {
@@ -1881,15 +1815,19 @@ class AngularHtmlUnitResolverTest extends AngularTest {
     // ...errors in MyComponent should be removed
     {
       List<AnalysisError> errors = context.getErrors(mainSource).errors;
-      JUnitTestCase.assertTrue(errors.length == 0);
+      expect(errors.length == 0, isTrue);
     }
   }
 
   void test_contextProperties() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithAngular(
-            ["<div>", "  {{\$id}}", "  {{\$parent}}", "  {{\$root}}", "</div>"]));
+        AngularTest.createHtmlWithAngular(r'''
+<div>
+  {{$id}}
+  {{$parent}}
+  {{$root}}
+</div>'''));
     assertResolvedIdentifier("\$id");
     assertResolvedIdentifier("\$parent");
     assertResolvedIdentifier("\$root");
@@ -1907,21 +1845,17 @@ class AngularHtmlUnitResolverTest extends AngularTest {
     // set AngularElement
     AngularElement angularElement = new AngularControllerElementImpl("ctrl", 0);
     local.toolkitObjects = <AngularElement>[angularElement];
-    JUnitTestCase.assertSame(
-        angularElement,
-        AngularHtmlUnitResolver.getAngularElement(local));
+    expect(AngularHtmlUnitResolver.getAngularElement(local), same(angularElement));
   }
 
   void test_getAngularElement_notAngular() {
     Element element = ElementFactory.localVariableElement2("name");
-    JUnitTestCase.assertNull(
-        AngularHtmlUnitResolver.getAngularElement(element));
+    expect(AngularHtmlUnitResolver.getAngularElement(element), isNull);
   }
 
   void test_getAngularElement_notLocal() {
     Element element = ElementFactory.classElement2("Test", []);
-    JUnitTestCase.assertNull(
-        AngularHtmlUnitResolver.getAngularElement(element));
+    expect(AngularHtmlUnitResolver.getAngularElement(element), isNull);
   }
 
   /**
@@ -1930,8 +1864,7 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   void test_ngClick() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<button ng-click='ctrl.doSomething(\$event)'/>"]));
+        AngularTest.createHtmlWithMyController(r"<button ng-click='ctrl.doSomething($event)'/>"));
     assertResolvedIdentifier("doSomething");
   }
 
@@ -1941,15 +1874,16 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   void test_ngIf() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(["<div ng-if='ctrl.field != null'/>"]));
+        AngularTest.createHtmlWithMyController("<div ng-if='ctrl.field != null'/>"));
     assertResolvedIdentifier("field");
   }
 
   void test_ngModel_modelAfterUsage() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<h3>Hello {{name}}!</h3>", "<input type='text' ng-model='name'>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<h3>Hello {{name}}!</h3>
+<input type='text' ng-model='name'>'''));
     assertResolvedIdentifier2("name}}!", "String");
     assertResolvedIdentifier2("name'>", "String");
   }
@@ -1957,19 +1891,19 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   void test_ngModel_modelBeforeUsage() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<input type='text' ng-model='name'>", "<h3>Hello {{name}}!</h3>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<input type='text' ng-model='name'>
+<h3>Hello {{name}}!</h3>'''));
     assertResolvedIdentifier2("name}}!", "String");
     Element element = assertResolvedIdentifier2("name'>", "String");
-    JUnitTestCase.assertEquals("name", element.name);
-    JUnitTestCase.assertEquals(findOffset2("name'>"), element.nameOffset);
+    expect(element.name, "name");
+    expect(element.nameOffset, findOffset2("name'>"));
   }
 
   void test_ngModel_notIdentifier() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<input type='text' ng-model='ctrl.field'>"]));
+        AngularTest.createHtmlWithMyController("<input type='text' ng-model='ctrl.field'>"));
     assertResolvedIdentifier2("field'>", "String");
   }
 
@@ -1979,19 +1913,17 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   void test_ngMouseOut() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<button ng-mouseout='ctrl.doSomething(\$event)'/>"]));
+        AngularTest.createHtmlWithMyController(r"<button ng-mouseout='ctrl.doSomething($event)'/>"));
     assertResolvedIdentifier("doSomething");
   }
 
   void fail_ngRepeat_additionalVariables() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            [
-                "<li ng-repeat='name in ctrl.names'>",
-                "  {{\$index}} {{\$first}} {{\$middle}} {{\$last}} {{\$even}} {{\$odd}}",
-                "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat='name in ctrl.names'>
+  {{$index}} {{$first}} {{$middle}} {{$last}} {{$even}} {{$odd}}
+</li>'''));
     assertResolvedIdentifier2("\$index", "int");
     assertResolvedIdentifier2("\$first", "bool");
     assertResolvedIdentifier2("\$middle", "bool");
@@ -2003,24 +1935,27 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   void fail_ngRepeat_bad_expectedIdentifier() {
     addMyController();
     resolveIndex2(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat='name + 42 in ctrl.names'>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat='name + 42 in ctrl.names'>
+</li>'''));
     assertErrors(indexSource, [AngularCode.INVALID_REPEAT_ITEM_SYNTAX]);
   }
 
   void fail_ngRepeat_bad_expectedIn() {
     addMyController();
     resolveIndex2(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat='name : ctrl.names'>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat='name : ctrl.names'>
+</li>'''));
     assertErrors(indexSource, [AngularCode.INVALID_REPEAT_SYNTAX]);
   }
 
   void fail_ngRepeat_filters_filter_literal() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat='item in ctrl.items | filter:42:null'/>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat='item in ctrl.items | filter:42:null'/>
+</li>'''));
     // filter "filter" is resolved
     Element filterElement = assertResolvedIdentifier("filter");
     EngineTestCase.assertInstanceOf(
@@ -2032,10 +1967,9 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   void fail_ngRepeat_filters_filter_propertyMap() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            [
-                "<li ng-repeat='item in ctrl.items | filter:{name:null, done:false}'/>",
-                "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat='item in ctrl.items | filter:{name:null, done:false}'/>
+</li>'''));
     assertResolvedIdentifier2("name:", "String");
     assertResolvedIdentifier2("done:", "bool");
   }
@@ -2043,16 +1977,18 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   void fail_ngRepeat_filters_missingColon() {
     addMyController();
     resolveIndex2(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat=\"item in ctrl.items | orderBy:'' true\"/>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy:'' true"/>
+</li>'''));
     assertErrors(indexSource, [AngularCode.MISSING_FORMATTER_COLON]);
   }
 
   void fail_ngRepeat_filters_noArgs() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat=\"item in ctrl.items | orderBy\"/>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy"/>
+</li>'''));
     // filter "orderBy" is resolved
     Element filterElement = assertResolvedIdentifier("orderBy");
     EngineTestCase.assertInstanceOf(
@@ -2064,8 +2000,9 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   void fail_ngRepeat_filters_orderBy_emptyString() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat=\"item in ctrl.items | orderBy:'':true\"/>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy:'':true"/>
+</li>'''));
     // filter "orderBy" is resolved
     Element filterElement = assertResolvedIdentifier("orderBy");
     EngineTestCase.assertInstanceOf(
@@ -2077,10 +2014,9 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   void fail_ngRepeat_filters_orderBy_propertyList() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            [
-                "<li ng-repeat=\"item in ctrl.items | orderBy:['name', 'done']\"/>",
-                "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy:['name', 'done']"/>
+</li>'''));
     assertResolvedIdentifier2("name'", "String");
     assertResolvedIdentifier2("done'", "bool");
   }
@@ -2088,42 +2024,45 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   void fail_ngRepeat_filters_orderBy_propertyName() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat=\"item in ctrl.items | orderBy:'name'\"/>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy:'name'"/>
+</li>'''));
     assertResolvedIdentifier2("name'", "String");
   }
 
   void fail_ngRepeat_filters_orderBy_propertyName_minus() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat=\"item in ctrl.items | orderBy:'-name'\"/>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy:'-name'"/>
+</li>'''));
     assertResolvedIdentifier2("name'", "String");
   }
 
   void fail_ngRepeat_filters_orderBy_propertyName_plus() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat=\"item in ctrl.items | orderBy:'+name'\"/>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy:'+name'"/>
+</li>'''));
     assertResolvedIdentifier2("name'", "String");
   }
 
   void fail_ngRepeat_filters_orderBy_propertyName_untypedItems() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat=\"item in ctrl.untypedItems | orderBy:'name'\"/>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.untypedItems | orderBy:'name'"/>
+</li>'''));
     assertResolvedIdentifier2("name'", "dynamic");
   }
 
   void fail_ngRepeat_filters_two() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            [
-                "<li ng-repeat=\"item in ctrl.items | orderBy:'+' | orderBy:'-'\"/>",
-                "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy:'+' | orderBy:'-'"/>
+</li>'''));
     EngineTestCase.assertInstanceOf(
         (obj) => obj is AngularFormatterElement,
         AngularFormatterElement,
@@ -2137,8 +2076,10 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   void fail_ngRepeat_resolvedExpressions() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat='name in ctrl.names'>", "  {{name}}", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat='name in ctrl.names'>
+  {{name}}
+</li>'''));
     assertResolvedIdentifier2("name in", "String");
     assertResolvedIdentifier2("ctrl.", "MyController");
     assertResolvedIdentifier2("names'", "List<String>");
@@ -2148,8 +2089,9 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   void fail_ngRepeat_trackBy() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat='name in ctrl.names track by name.length'/>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat='name in ctrl.names track by name.length'/>
+</li>'''));
     assertResolvedIdentifier2("length'", "int");
   }
 
@@ -2159,123 +2101,108 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   void test_ngShow() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<div ng-show='ctrl.field != null'/>"]));
+        AngularTest.createHtmlWithMyController("<div ng-show='ctrl.field != null'/>"));
     assertResolvedIdentifier("field");
   }
 
   void test_notResolved_noDartScript() {
-    resolveIndex2(
-        EngineTestCase.createSource(
-            [
-                "<html ng-app>",
-                "  <body>",
-                "    <div my-marker>",
-                "      {{ctrl.field}}",
-                "    </div>",
-                "  </body>",
-                "</html>"]));
+    resolveIndex2(r'''
+<html ng-app>
+  <body>
+    <div my-marker>
+      {{ctrl.field}}
+    </div>
+  </body>
+</html>''');
     assertNoErrors();
     // Angular is not initialized, so "ctrl" is not parsed
     Expression expression =
         ht.HtmlUnitUtils.getExpression(indexUnit, findOffset2("ctrl"));
-    JUnitTestCase.assertNull(expression);
+    expect(expression, isNull);
   }
 
   void test_notResolved_notAngular() {
-    resolveIndex2(
-        EngineTestCase.createSource(
-            [
-                "<html no-ng-app>",
-                "  <body>",
-                "    <div my-marker>",
-                "      {{ctrl.field}}",
-                "    </div>",
-                "  </body>",
-                "</html>"]));
+    resolveIndex2(r'''
+<html no-ng-app>
+  <body>
+    <div my-marker>
+      {{ctrl.field}}
+    </div>
+  </body>
+</html>''');
     assertNoErrors();
     // Angular is not initialized, so "ctrl" is not parsed
     Expression expression =
         ht.HtmlUnitUtils.getExpression(indexUnit, findOffset2("ctrl"));
-    JUnitTestCase.assertNull(expression);
+    expect(expression, isNull);
   }
 
   void test_notResolved_wrongControllerMarker() {
     addMyController();
-    addIndexSource(
-        EngineTestCase.createSource(
-            [
-                "<html ng-app>",
-                "  <body>",
-                "    <div not-my-marker>",
-                "      {{ctrl.field}}",
-                "    </div>",
-                "    <script type='application/dart' src='main.dart'></script>",
-                "  </body>",
-                "</html>"]));
+    addIndexSource(r'''
+<html ng-app>
+  <body>
+    <div not-my-marker>
+      {{ctrl.field}}
+    </div>
+    <script type='application/dart' src='main.dart'></script>
+  </body>
+</html>''');
     contextHelper.runTasks();
     resolveIndex();
     // no errors, because we decided to ignore them at the moment
     assertNoErrors();
     // "ctrl" is not resolved
     SimpleIdentifier identifier = findIdentifier("ctrl");
-    JUnitTestCase.assertNull(identifier.bestElement);
+    expect(identifier.bestElement, isNull);
   }
 
   void test_resolveExpression_evenWithout_ngBootstrap() {
-    resolveMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Controller(",
-                "    selector: '[my-controller]',",
-                "    publishAs: 'ctrl')",
-                "class MyController {",
-                "  String field;",
-                "}"]));
-    _resolveIndexNoErrors(
-        EngineTestCase.createSource(
-            [
-                "<html ng-app>",
-                "  <body>",
-                "    <div my-controller>",
-                "      {{ctrl.field}}",
-                "    </div>",
-                "    <script type='application/dart' src='main.dart'></script>",
-                "  </body>",
-                "</html>"]));
+    resolveMainSource(r'''
+
+import 'angular.dart';
+
+@Controller(
+    selector: '[my-controller]',
+    publishAs: 'ctrl')
+class MyController {
+  String field;
+}''');
+    _resolveIndexNoErrors(r'''
+<html ng-app>
+  <body>
+    <div my-controller>
+      {{ctrl.field}}
+    </div>
+    <script type='application/dart' src='main.dart'></script>
+  </body>
+</html>''');
     assertResolvedIdentifier2("ctrl.", "MyController");
   }
 
   void test_resolveExpression_ignoreUnresolved() {
-    resolveMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Controller(",
-                "    selector: '[my-controller]',",
-                "    publishAs: 'ctrl')",
-                "class MyController {",
-                "  Map map;",
-                "  Object obj;",
-                "}"]));
-    resolveIndex2(
-        EngineTestCase.createSource(
-            [
-                "<html ng-app>",
-                "  <body>",
-                "    <div my-controller>",
-                "      {{ctrl.map.property}}",
-                "      {{ctrl.obj.property}}",
-                "      {{invisibleScopeProperty}}",
-                "    </div>",
-                "    <script type='application/dart' src='main.dart'></script>",
-                "  </body>",
-                "</html>"]));
+    resolveMainSource(r'''
+
+import 'angular.dart';
+
+@Controller(
+    selector: '[my-controller]',
+    publishAs: 'ctrl')
+class MyController {
+  Map map;
+  Object obj;
+}''');
+    resolveIndex2(r'''
+<html ng-app>
+  <body>
+    <div my-controller>
+      {{ctrl.map.property}}
+      {{ctrl.obj.property}}
+      {{invisibleScopeProperty}}
+    </div>
+    <script type='application/dart' src='main.dart'></script>
+  </body>
+</html>''');
     assertNoErrors();
     // "ctrl.map" and "ctrl.obj" are resolved
     assertResolvedIdentifier2("map", "Map<dynamic, dynamic>");
@@ -2283,38 +2210,35 @@ class AngularHtmlUnitResolverTest extends AngularTest {
     // ...but not "invisibleScopeProperty"
     {
       SimpleIdentifier identifier = findIdentifier("invisibleScopeProperty");
-      JUnitTestCase.assertNull(identifier.bestElement);
+      expect(identifier.bestElement, isNull);
     }
   }
 
   void test_resolveExpression_inAttribute() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<button title='{{ctrl.field}}'></button>"]));
+        AngularTest.createHtmlWithMyController("<button title='{{ctrl.field}}'></button>"));
     assertResolvedIdentifier2("ctrl", "MyController");
   }
 
   void test_resolveExpression_ngApp_onBody() {
     addMyController();
-    _resolveIndexNoErrors(
-        EngineTestCase.createSource(
-            [
-                "<html>",
-                "  <body ng-app>",
-                "    <div my-controller>",
-                "      {{ctrl.field}}",
-                "    </div>",
-                "    <script type='application/dart' src='main.dart'></script>",
-                "  </body>",
-                "</html>"]));
+    _resolveIndexNoErrors(r'''
+<html>
+  <body ng-app>
+    <div my-controller>
+      {{ctrl.field}}
+    </div>
+    <script type='application/dart' src='main.dart'></script>
+  </body>
+</html>''');
     assertResolvedIdentifier2("ctrl", "MyController");
   }
 
   void test_resolveExpression_withFilter() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(["{{ctrl.field | uppercase}}"]));
+        AngularTest.createHtmlWithMyController("{{ctrl.field | uppercase}}"));
     assertResolvedIdentifier2("ctrl", "MyController");
     assertResolvedIdentifier("uppercase");
   }
@@ -2322,35 +2246,35 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   void test_resolveExpression_withFilter_notSimpleIdentifier() {
     addMyController();
     resolveIndex2(
-        AngularTest.createHtmlWithMyController(["{{ctrl.field | not.supported}}"]));
+        AngularTest.createHtmlWithMyController("{{ctrl.field | not.supported}}"));
     assertErrors(indexSource, [AngularCode.INVALID_FORMATTER_NAME]);
   }
 
   void test_scopeProperties() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Component(",
-                "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-                "    publishAs: 'ctrl',",
-                "    selector: 'myComponent')",
-                "class MyComponent {",
-                "  String field;",
-                "  MyComponent(Scope scope) {",
-                "    scope.context['scopeProperty'] = 'abc';",
-                "  }",
-                "}",
-                ""]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Component(
+    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+    publishAs: 'ctrl',
+    selector: 'myComponent')
+class MyComponent {
+  String field;
+  MyComponent(Scope scope) {
+    scope.context['scopeProperty'] = 'abc';
+  }
+}
+''');
     contextHelper.addSource(
         "/entry-point.html",
-        AngularTest.createHtmlWithAngular([]));
+        AngularTest.createHtmlWithAngular(''));
     addIndexSource2(
         "/my_template.html",
-        EngineTestCase.createSource(
-            ["    <div>", "      {{scopeProperty}}", "    </div>"]));
+        r'''
+<div>
+  {{scopeProperty}}
+</div>''');
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     resolveIndex();
@@ -2364,29 +2288,30 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   void test_scopeProperties_hideWithComponent() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Component(",
-                "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-                "    publishAs: 'ctrl',",
-                "    selector: 'myComponent')",
-                "class MyComponent {",
-                "}",
-                "",
-                "void setScopeProperties(Scope scope) {",
-                "  scope.context['ctrl'] = 1;",
-                "}",
-                ""]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Component(
+    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+    publishAs: 'ctrl',
+    selector: 'myComponent')
+class MyComponent {
+}
+
+void setScopeProperties(Scope scope) {
+  scope.context['ctrl'] = 1;
+}
+''');
     contextHelper.addSource(
         "/entry-point.html",
-        AngularTest.createHtmlWithAngular([]));
+        AngularTest.createHtmlWithAngular(''));
     addIndexSource2(
         "/my_template.html",
-        EngineTestCase.createSource(["    <div>", "      {{ctrl}}", "    </div>"]));
+        r'''
+<div>
+  {{ctrl}}
+</div>''');
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     resolveIndex();
@@ -2402,31 +2327,31 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   void test_view_resolveTemplateFile() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Controller(",
-                "    selector: '[my-controller]',",
-                "    publishAs: 'ctrl')",
-                "class MyController {",
-                "  String field;",
-                "}",
-                "",
-                "class MyRouteInitializer {",
-                "  init(ViewFactory view) {",
-                "    view('my_template.html');",
-                "  }",
-                "}"]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Controller(
+    selector: '[my-controller]',
+    publishAs: 'ctrl')
+class MyController {
+  String field;
+}
+
+class MyRouteInitializer {
+  init(ViewFactory view) {
+    view('my_template.html');
+  }
+}''');
     contextHelper.addSource(
         "/entry-point.html",
-        AngularTest.createHtmlWithAngular([]));
+        AngularTest.createHtmlWithAngular(''));
     addIndexSource2(
         "/my_template.html",
-        EngineTestCase.createSource(
-            ["    <div my-controller>", "      {{ctrl.field}}", "    </div>"]));
+        r'''
+<div my-controller>
+  {{ctrl.field}}
+</div>''');
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     resolveIndex();
@@ -2463,7 +2388,7 @@ class AngularHtmlUnitUtilsTest extends AngularTest {
         (obj) => obj is AngularControllerElement,
         AngularControllerElement,
         element);
-    JUnitTestCase.assertEquals("ctrl", element.name);
+    expect(element.name, "ctrl");
   }
 
   void test_getElementToOpen_field() {
@@ -2478,7 +2403,7 @@ class AngularHtmlUnitUtilsTest extends AngularTest {
         (obj) => obj is PropertyAccessorElement,
         PropertyAccessorElement,
         element);
-    JUnitTestCase.assertEquals("field", element.name);
+    expect(element.name, "field");
   }
 
   void test_getElement_forExpression() {
@@ -2493,12 +2418,12 @@ class AngularHtmlUnitUtilsTest extends AngularTest {
         (obj) => obj is VariableElement,
         VariableElement,
         element);
-    JUnitTestCase.assertEquals("ctrl", element.name);
+    expect(element.name, "ctrl");
   }
 
   void test_getElement_forExpression_null() {
     Element element = ht.HtmlUnitUtils.getElement(null);
-    JUnitTestCase.assertNull(element);
+    expect(element, isNull);
   }
 
   void test_getElement_forOffset() {
@@ -2507,7 +2432,7 @@ class AngularHtmlUnitUtilsTest extends AngularTest {
     // no expression
     {
       Element element = ht.HtmlUnitUtils.getElementAtOffset(indexUnit, 0);
-      JUnitTestCase.assertNull(element);
+      expect(element, isNull);
     }
     // has expression at offset
     {
@@ -2517,79 +2442,70 @@ class AngularHtmlUnitUtilsTest extends AngularTest {
           (obj) => obj is PropertyAccessorElement,
           PropertyAccessorElement,
           element);
-      JUnitTestCase.assertEquals("field", element.name);
+      expect(element.name, "field");
     }
   }
 
   void test_getEnclosingTagNode() {
-    resolveIndex2(
-        EngineTestCase.createSource(
-            [
-                "<html>",
-                "  <body ng-app>",
-                "    <badge name='abc'> 123 </badge>",
-                "  </body>",
-                "</html>"]));
+    resolveIndex2(r'''
+<html>
+  <body ng-app>
+    <badge name='abc'> 123 </badge>
+  </body>
+</html>''');
     // no unit
-    JUnitTestCase.assertNull(ht.HtmlUnitUtils.getEnclosingTagNode(null, 0));
+    expect(ht.HtmlUnitUtils.getEnclosingTagNode(null, 0), isNull);
     // wrong offset
-    JUnitTestCase.assertNull(
-        ht.HtmlUnitUtils.getEnclosingTagNode(indexUnit, -1));
+    expect(ht.HtmlUnitUtils.getEnclosingTagNode(indexUnit, -1), isNull);
     // valid offset
     ht.XmlTagNode expected = _getEnclosingTagNode("<badge");
-    JUnitTestCase.assertNotNull(expected);
-    JUnitTestCase.assertEquals("badge", expected.tag);
-    JUnitTestCase.assertSame(expected, _getEnclosingTagNode("badge"));
-    JUnitTestCase.assertSame(expected, _getEnclosingTagNode("name="));
-    JUnitTestCase.assertSame(expected, _getEnclosingTagNode("123"));
-    JUnitTestCase.assertSame(expected, _getEnclosingTagNode("/badge"));
+    expect(expected, isNotNull);
+    expect(expected.tag, "badge");
+    expect(_getEnclosingTagNode("badge"), same(expected));
+    expect(_getEnclosingTagNode("name="), same(expected));
+    expect(_getEnclosingTagNode("123"), same(expected));
+    expect(_getEnclosingTagNode("/badge"), same(expected));
   }
 
   void test_getExpression() {
     addMyController();
     _resolveSimpleCtrlFieldHtml();
     // try offset without expression
-    JUnitTestCase.assertNull(ht.HtmlUnitUtils.getExpression(indexUnit, 0));
+    expect(ht.HtmlUnitUtils.getExpression(indexUnit, 0), isNull);
     // try offset with expression
     int offset = indexContent.indexOf("ctrl");
-    JUnitTestCase.assertNotNull(
-        ht.HtmlUnitUtils.getExpression(indexUnit, offset));
-    JUnitTestCase.assertNotNull(
-        ht.HtmlUnitUtils.getExpression(indexUnit, offset + 1));
-    JUnitTestCase.assertNotNull(
-        ht.HtmlUnitUtils.getExpression(indexUnit, offset + 2));
-    JUnitTestCase.assertNotNull(
-        ht.HtmlUnitUtils.getExpression(indexUnit, offset + "ctrl.field".length));
+    expect(ht.HtmlUnitUtils.getExpression(indexUnit, offset), isNotNull);
+    expect(ht.HtmlUnitUtils.getExpression(indexUnit, offset + 1), isNotNull);
+    expect(ht.HtmlUnitUtils.getExpression(indexUnit, offset + 2), isNotNull);
+    expect(ht.HtmlUnitUtils.getExpression(indexUnit, offset + "ctrl.field".length), isNotNull);
     // try without unit
-    JUnitTestCase.assertNull(ht.HtmlUnitUtils.getExpression(null, offset));
+    expect(ht.HtmlUnitUtils.getExpression(null, offset), isNull);
   }
 
   void test_getTagNode() {
-    resolveIndex2(
-        EngineTestCase.createSource(
-            [
-                "<html>",
-                "  <body ng-app>",
-                "    <badge name='abc'> 123 </badge> done",
-                "  </body>",
-                "</html>"]));
+    resolveIndex2(r'''
+<html>
+  <body ng-app>
+    <badge name='abc'> 123 </badge> done
+  </body>
+</html>''');
     // no unit
-    JUnitTestCase.assertNull(ht.HtmlUnitUtils.getTagNode(null, 0));
+    expect(ht.HtmlUnitUtils.getTagNode(null, 0), isNull);
     // wrong offset
-    JUnitTestCase.assertNull(ht.HtmlUnitUtils.getTagNode(indexUnit, -1));
+    expect(ht.HtmlUnitUtils.getTagNode(indexUnit, -1), isNull);
     // on tag name
     ht.XmlTagNode expected = _getTagNode("badge name=");
-    JUnitTestCase.assertNotNull(expected);
-    JUnitTestCase.assertEquals("badge", expected.tag);
-    JUnitTestCase.assertSame(expected, _getTagNode("badge"));
-    JUnitTestCase.assertSame(expected, _getTagNode(" name="));
-    JUnitTestCase.assertSame(expected, _getTagNode("adge name="));
-    JUnitTestCase.assertSame(expected, _getTagNode("badge>"));
-    JUnitTestCase.assertSame(expected, _getTagNode("adge>"));
-    JUnitTestCase.assertSame(expected, _getTagNode("> done"));
+    expect(expected, isNotNull);
+    expect(expected.tag, "badge");
+    expect(_getTagNode("badge"), same(expected));
+    expect(_getTagNode(" name="), same(expected));
+    expect(_getTagNode("adge name="), same(expected));
+    expect(_getTagNode("badge>"), same(expected));
+    expect(_getTagNode("adge>"), same(expected));
+    expect(_getTagNode("> done"), same(expected));
     // in tag node, but not on the name token
-    JUnitTestCase.assertNull(_getTagNode("name="));
-    JUnitTestCase.assertNull(_getTagNode("123"));
+    expect(_getTagNode("name="), isNull);
+    expect(_getTagNode("123"), isNull);
   }
 
   ht.XmlTagNode _getEnclosingTagNode(String search) {
@@ -2603,17 +2519,15 @@ class AngularHtmlUnitUtilsTest extends AngularTest {
   }
 
   void _resolveSimpleCtrlFieldHtml() {
-    resolveIndex2(
-        EngineTestCase.createSource(
-            [
-                "<html>",
-                "  <body ng-app>",
-                "    <div my-controller>",
-                "      {{ctrl.field}}",
-                "    </div>",
-                "    <script type='application/dart' src='main.dart'></script>",
-                "  </body>",
-                "</html>"]));
+    resolveIndex2(r'''
+<html>
+  <body ng-app>
+    <div my-controller>
+      {{ctrl.field}}
+    </div>
+    <script type='application/dart' src='main.dart'></script>
+  </body>
+</html>''');
   }
 }
 
@@ -2656,27 +2570,25 @@ abstract class AngularTest extends EngineTestCase {
     mainSource = contextHelper.addSource("/main.dart", content);
   }
   void addMyController() {
-    resolveMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "class Item {",
-                "  String name;",
-                "  bool done;",
-                "}",
-                "",
-                "@Controller(",
-                "    selector: '[my-controller]',",
-                "    publishAs: 'ctrl')",
-                "class MyController {",
-                "  String field;",
-                "  List<String> names;",
-                "  List<Item> items;",
-                "  var untypedItems;",
-                "  doSomething(event) {}",
-                "}"]));
+    resolveMainSource(r'''
+
+import 'angular.dart';
+
+class Item {
+  String name;
+  bool done;
+}
+
+@Controller(
+    selector: '[my-controller]',
+    publishAs: 'ctrl')
+class MyController {
+  String field;
+  List<String> names;
+  List<Item> items;
+  var untypedItems;
+  doSomething(event) {}
+}''');
   }
   /**
    * Assert that the number of errors reported against the given source matches the number of errors
@@ -2728,7 +2640,7 @@ abstract class AngularTest extends EngineTestCase {
     SimpleIdentifier identifier = findIdentifier(name);
     // check Element
     Element element = identifier.bestElement;
-    JUnitTestCase.assertNotNull(element);
+    expect(element, isNotNull);
     // return Element for further analysis
     return element;
   }
@@ -2737,11 +2649,11 @@ abstract class AngularTest extends EngineTestCase {
     SimpleIdentifier identifier = findIdentifier(name);
     // check Element
     Element element = identifier.bestElement;
-    JUnitTestCase.assertNotNull(element);
+    expect(element, isNotNull);
     // check Type
     DartType type = identifier.bestType;
-    JUnitTestCase.assertNotNull(type);
-    JUnitTestCase.assertEquals(expectedTypeName, type.toString());
+    expect(type, isNotNull);
+    expect(type.toString(), expectedTypeName);
     // return Element for further analysis
     return element;
   }
@@ -2759,13 +2671,13 @@ abstract class AngularTest extends EngineTestCase {
    */
   SimpleIdentifier findIdentifier(String search) {
     SimpleIdentifier identifier = findIdentifierMaybe(search);
-    JUnitTestCase.assertNotNullMsg("${search} in ${indexContent}", identifier);
+    expect(identifier, isNotNull, reason: "$search in $indexContent");
     // check that offset/length of the identifier is valid
     {
       int offset = identifier.offset;
       int end = identifier.end;
       String contentStr = indexContent.substring(offset, end);
-      JUnitTestCase.assertEquals(identifier.name, contentStr);
+      expect(contentStr, identifier.name);
     }
     // done
     return identifier;
@@ -2897,152 +2809,152 @@ abstract class AngularTest extends EngineTestCase {
   void _configureForAngular(AnalysisContextHelper contextHelper) {
     contextHelper.addSource(
         "/angular.dart",
-        EngineTestCase.createSource(
-            [
-                "library angular;",
-                "",
-                "class Scope {",
-                "  Map context;",
-                "}",
-                "",
-                "class Formatter {",
-                "  final String name;",
-                "  const Formatter({this.name});",
-                "}",
-                "",
-                "class Directive {",
-                "  const Directive({",
-                "    selector,",
-                "    children,",
-                "    visibility,",
-                "    module,",
-                "    map,",
-                "    exportedExpressions,",
-                "    exportedExpressionAttrs",
-                "  });",
-                "}",
-                "",
-                "class Decorator {",
-                "  const Decorator({",
-                "    children/*: Directive.COMPILE_CHILDREN*/,",
-                "    map,",
-                "    selector,",
-                "    module,",
-                "    visibility,",
-                "    exportedExpressions,",
-                "    exportedExpressionAttrs",
-                "  });",
-                "}",
-                "",
-                "class Controller {",
-                "  const Controller({",
-                "    children,",
-                "    publishAs,",
-                "    map,",
-                "    selector,",
-                "    visibility,",
-                "    publishTypes,",
-                "    exportedExpressions,",
-                "    exportedExpressionAttrs",
-                "  });",
-                "}",
-                "",
-                "class NgAttr {",
-                "  const NgAttr(String name);",
-                "}",
-                "class NgCallback {",
-                "  const NgCallback(String name);",
-                "}",
-                "class NgOneWay {",
-                "  const NgOneWay(String name);",
-                "}",
-                "class NgOneWayOneTime {",
-                "  const NgOneWayOneTime(String name);",
-                "}",
-                "class NgTwoWay {",
-                "  const NgTwoWay(String name);",
-                "}",
-                "",
-                "class Component extends Directive {",
-                "  const Component({",
-                "    this.template,",
-                "    this.templateUrl,",
-                "    this.cssUrl,",
-                "    this.applyAuthorStyles,",
-                "    this.resetStyleInheritance,",
-                "    publishAs,",
-                "    module,",
-                "    map,",
-                "    selector,",
-                "    visibility,",
-                "    exportExpressions,",
-                "    exportExpressionAttrs",
-                "  }) : super(selector: selector,",
-                "             children: null/*NgAnnotation.COMPILE_CHILDREN*/,",
-                "             visibility: visibility,",
-                "             map: map,",
-                "             module: module,",
-                "             exportExpressions: exportExpressions,",
-                "             exportExpressionAttrs: exportExpressionAttrs);",
-                "}",
-                "",
-                "@Decorator(selector: '[ng-click]', map: const {'ng-click': '&onEvent'})",
-                "@Decorator(selector: '[ng-mouseout]', map: const {'ng-mouseout': '&onEvent'})",
-                "class NgEventDirective {",
-                "  set onEvent(value) {}",
-                "}",
-                "",
-                "@Decorator(selector: '[ng-if]', map: const {'ng-if': '=>condition'})",
-                "class NgIfDirective {",
-                "  set condition(value) {}",
-                "}",
-                "",
-                "@Decorator(selector: '[ng-show]', map: const {'ng-show': '=>show'})",
-                "class NgShowDirective {",
-                "  set show(value) {}",
-                "}",
-                "",
-                "@Formatter(name: 'filter')",
-                "class FilterFormatter {}",
-                "",
-                "@Formatter(name: 'orderBy')",
-                "class OrderByFilter {}",
-                "",
-                "@Formatter(name: 'uppercase')",
-                "class UppercaseFilter {}",
-                "",
-                "class ViewFactory {",
-                "  call(String templateUrl) => null;",
-                "}",
-                "",
-                "class Module {",
-                "  install(Module m) {}",
-                "  type(Type t) {}",
-                "  value(Type t, value) {}",
-                "}",
-                "",
-                "class Injector {}",
-                "",
-                "Injector ngBootstrap({",
-                "        Module module: null,",
-                "        List<Module> modules: null,",
-                "        /*dom.Element*/ element: null,",
-                "        String selector: '[ng-app]',",
-                "        /*Injector*/ injectorFactory/*(List<Module> modules): _defaultInjectorFactory*/}) {}",
-                ""]));
+        r'''
+library angular;
+
+class Scope {
+  Map context;
+}
+
+class Formatter {
+  final String name;
+  const Formatter({this.name});
+}
+
+class Directive {
+  const Directive({
+    selector,
+    children,
+    visibility,
+    module,
+    map,
+    exportedExpressions,
+    exportedExpressionAttrs
+  });
+}
+
+class Decorator {
+  const Decorator({
+    children/*: Directive.COMPILE_CHILDREN*/,
+    map,
+    selector,
+    module,
+    visibility,
+    exportedExpressions,
+    exportedExpressionAttrs
+  });
+}
+
+class Controller {
+  const Controller({
+    children,
+    publishAs,
+    map,
+    selector,
+    visibility,
+    publishTypes,
+    exportedExpressions,
+    exportedExpressionAttrs
+  });
+}
+
+class NgAttr {
+  const NgAttr(String name);
+}
+class NgCallback {
+  const NgCallback(String name);
+}
+class NgOneWay {
+  const NgOneWay(String name);
+}
+class NgOneWayOneTime {
+  const NgOneWayOneTime(String name);
+}
+class NgTwoWay {
+  const NgTwoWay(String name);
+}
+
+class Component extends Directive {
+  const Component({
+    this.template,
+    this.templateUrl,
+    this.cssUrl,
+    this.applyAuthorStyles,
+    this.resetStyleInheritance,
+    publishAs,
+    module,
+    map,
+    selector,
+    visibility,
+    exportExpressions,
+    exportExpressionAttrs
+  }) : super(selector: selector,
+             children: null/*NgAnnotation.COMPILE_CHILDREN*/,
+             visibility: visibility,
+             map: map,
+             module: module,
+             exportExpressions: exportExpressions,
+             exportExpressionAttrs: exportExpressionAttrs);
+}
+
+@Decorator(selector: '[ng-click]', map: const {'ng-click': '&onEvent'})
+@Decorator(selector: '[ng-mouseout]', map: const {'ng-mouseout': '&onEvent'})
+class NgEventDirective {
+  set onEvent(value) {}
+}
+
+@Decorator(selector: '[ng-if]', map: const {'ng-if': '=>condition'})
+class NgIfDirective {
+  set condition(value) {}
+}
+
+@Decorator(selector: '[ng-show]', map: const {'ng-show': '=>show'})
+class NgShowDirective {
+  set show(value) {}
+}
+
+@Formatter(name: 'filter')
+class FilterFormatter {}
+
+@Formatter(name: 'orderBy')
+class OrderByFilter {}
+
+@Formatter(name: 'uppercase')
+class UppercaseFilter {}
+
+class ViewFactory {
+  call(String templateUrl) => null;
+}
+
+class Module {
+  install(Module m) {}
+  type(Type t) {}
+  value(Type t, value) {}
+}
+
+class Injector {}
+
+Injector ngBootstrap({
+        Module module: null,
+        List<Module> modules: null,
+        /*dom.Element*/ element: null,
+        String selector: '[ng-app]',
+        /*Injector*/ injectorFactory/*(List<Module> modules): _defaultInjectorFactory*/}) {}
+''');
   }
 
   /**
-   * Creates an HTML content that has Angular marker and script with "main.dart" reference.
+   * Creates an HTML content that has Angular marker and script with
+   * the "main.dart" reference.
    */
-  static String createHtmlWithAngular(List<String> lines) {
-    String source = EngineTestCase.createSource(["<html ng-app>", "  <body>"]);
-    source += EngineTestCase.createSource(lines);
-    source += EngineTestCase.createSource(
-        [
-            "    <script type='application/dart' src='main.dart'></script>",
-            "  </body>",
-            "</html>"]);
+  static String createHtmlWithAngular(String innerCode) {
+    String source = '''
+<html ng-app>
+  <body>
+$innerCode
+    <script type='application/dart' src='main.dart'></script>
+  </body>
+</html>''';
     return source;
   }
 
@@ -3050,16 +2962,16 @@ abstract class AngularTest extends EngineTestCase {
    * Creates an HTML content that has Angular marker, script with "main.dart" reference and
    * "MyController" injected.
    */
-  static String createHtmlWithMyController(List<String> lines) {
-    String source = EngineTestCase.createSource(
-        ["<html ng-app>", "  <body>", "    <div my-controller>"]);
-    source += EngineTestCase.createSource(lines);
-    source += EngineTestCase.createSource(
-        [
-            "    </div>",
-            "    <script type='application/dart' src='main.dart'></script>",
-            "  </body>",
-            "</html>"]);
+  static String createHtmlWithMyController(String innerHtml) {
+    String source = '''
+<html ng-app>
+  <body>
+    <div my-controller>
+$innerHtml
+    </div>
+    <script type='application/dart' src='main.dart'></script>
+  </body>
+</html>''';
     return source;
   }
 
@@ -3074,9 +2986,9 @@ abstract class AngularTest extends EngineTestCase {
    * @return the found [Element] or `null` if not found
    */
   static Element findElement(Element root, ElementKind kind, String name) {
-    List<Element> result = [null];
-    root.accept(new _AngularTest_findElement(kind, name, result));
-    return result[0];
+    _AngularTest_findElement visitor = new _AngularTest_findElement(kind, name);
+    root.accept(visitor);
+    return visitor.result;
   }
 
   /**
@@ -3096,7 +3008,7 @@ abstract class AngularTest extends EngineTestCase {
    */
   static int findOffset(String content, String search) {
     int offset = content.indexOf(search);
-    _ut.expect(offset, _ut.isNot(-1));
+    expect(offset, isNot(-1));
     return offset;
   }
 }
@@ -3105,51 +3017,51 @@ abstract class AngularTest extends EngineTestCase {
 class ConstantEvaluatorTest extends ResolverTestCase {
   void fail_constructor() {
     EvaluationResult result = _getExpressionValue("?");
-    JUnitTestCase.assertTrue(result.isValid);
+    expect(result.isValid, isTrue);
     DartObject value = result.value;
-    JUnitTestCase.assertEquals(null, value);
+    expect(value, null);
   }
 
   void fail_identifier_class() {
     EvaluationResult result = _getExpressionValue("?");
-    JUnitTestCase.assertTrue(result.isValid);
+    expect(result.isValid, isTrue);
     DartObject value = result.value;
-    JUnitTestCase.assertEquals(null, value);
+    expect(value, null);
   }
 
   void fail_identifier_function() {
     EvaluationResult result = _getExpressionValue("?");
-    JUnitTestCase.assertTrue(result.isValid);
+    expect(result.isValid, isTrue);
     DartObject value = result.value;
-    JUnitTestCase.assertEquals(null, value);
+    expect(value, null);
   }
 
   void fail_identifier_static() {
     EvaluationResult result = _getExpressionValue("?");
-    JUnitTestCase.assertTrue(result.isValid);
+    expect(result.isValid, isTrue);
     DartObject value = result.value;
-    JUnitTestCase.assertEquals(null, value);
+    expect(value, null);
   }
 
   void fail_identifier_staticMethod() {
     EvaluationResult result = _getExpressionValue("?");
-    JUnitTestCase.assertTrue(result.isValid);
+    expect(result.isValid, isTrue);
     DartObject value = result.value;
-    JUnitTestCase.assertEquals(null, value);
+    expect(value, null);
   }
 
   void fail_identifier_topLevel() {
     EvaluationResult result = _getExpressionValue("?");
-    JUnitTestCase.assertTrue(result.isValid);
+    expect(result.isValid, isTrue);
     DartObject value = result.value;
-    JUnitTestCase.assertEquals(null, value);
+    expect(value, null);
   }
 
   void fail_identifier_typeParameter() {
     EvaluationResult result = _getExpressionValue("?");
-    JUnitTestCase.assertTrue(result.isValid);
+    expect(result.isValid, isTrue);
     DartObject value = result.value;
-    JUnitTestCase.assertEquals(null, value);
+    expect(value, null);
   }
 
   void fail_plus_string_string() {
@@ -3158,44 +3070,44 @@ class ConstantEvaluatorTest extends ResolverTestCase {
 
   void fail_prefixedIdentifier_invalid() {
     EvaluationResult result = _getExpressionValue("?");
-    JUnitTestCase.assertTrue(result.isValid);
+    expect(result.isValid, isTrue);
     DartObject value = result.value;
-    JUnitTestCase.assertEquals(null, value);
+    expect(value, null);
   }
 
   void fail_prefixedIdentifier_valid() {
     EvaluationResult result = _getExpressionValue("?");
-    JUnitTestCase.assertTrue(result.isValid);
+    expect(result.isValid, isTrue);
     DartObject value = result.value;
-    JUnitTestCase.assertEquals(null, value);
+    expect(value, null);
   }
 
   void fail_propertyAccess_invalid() {
     EvaluationResult result = _getExpressionValue("?");
-    JUnitTestCase.assertTrue(result.isValid);
+    expect(result.isValid, isTrue);
     DartObject value = result.value;
-    JUnitTestCase.assertEquals(null, value);
+    expect(value, null);
   }
 
   void fail_propertyAccess_valid() {
     EvaluationResult result = _getExpressionValue("?");
-    JUnitTestCase.assertTrue(result.isValid);
+    expect(result.isValid, isTrue);
     DartObject value = result.value;
-    JUnitTestCase.assertEquals(null, value);
+    expect(value, null);
   }
 
   void fail_simpleIdentifier_invalid() {
     EvaluationResult result = _getExpressionValue("?");
-    JUnitTestCase.assertTrue(result.isValid);
+    expect(result.isValid, isTrue);
     DartObject value = result.value;
-    JUnitTestCase.assertEquals(null, value);
+    expect(value, null);
   }
 
   void fail_simpleIdentifier_valid() {
     EvaluationResult result = _getExpressionValue("?");
-    JUnitTestCase.assertTrue(result.isValid);
+    expect(result.isValid, isTrue);
     DartObject value = result.value;
-    JUnitTestCase.assertEquals(null, value);
+    expect(value, null);
   }
 
   void fail_stringLength_complex() {
@@ -3227,10 +3139,10 @@ class ConstantEvaluatorTest extends ResolverTestCase {
 
   void test_divide_double_double_byZero() {
     EvaluationResult result = _getExpressionValue("3.2 / 0.0");
-    JUnitTestCase.assertTrue(result.isValid);
+    expect(result.isValid, isTrue);
     DartObject value = result.value;
-    JUnitTestCase.assertEquals("double", value.type.name);
-    JUnitTestCase.assertTrue(value.doubleValue.isInfinite);
+    expect(value.type.name, "double");
+    expect(value.doubleValue.isInfinite, isTrue);
   }
 
   void test_divide_int_int() {
@@ -3239,7 +3151,7 @@ class ConstantEvaluatorTest extends ResolverTestCase {
 
   void test_divide_int_int_byZero() {
     EvaluationResult result = _getExpressionValue("3 / 0");
-    JUnitTestCase.assertTrue(result.isValid);
+    expect(result.isValid, isTrue);
   }
 
   void test_equal_boolean_boolean() {
@@ -3252,12 +3164,12 @@ class ConstantEvaluatorTest extends ResolverTestCase {
 
   void test_equal_invalidLeft() {
     EvaluationResult result = _getExpressionValue("a == 3");
-    JUnitTestCase.assertFalse(result.isValid);
+    expect(result.isValid, isFalse);
   }
 
   void test_equal_invalidRight() {
     EvaluationResult result = _getExpressionValue("2 == a");
-    JUnitTestCase.assertFalse(result.isValid);
+    expect(result.isValid, isFalse);
   }
 
   void test_equal_string_string() {
@@ -3293,20 +3205,20 @@ class ConstantEvaluatorTest extends ResolverTestCase {
 
   void test_literal_list() {
     EvaluationResult result = _getExpressionValue("const ['a', 'b', 'c']");
-    JUnitTestCase.assertTrue(result.isValid);
+    expect(result.isValid, isTrue);
   }
 
   void test_literal_map() {
     EvaluationResult result =
         _getExpressionValue("const {'a' : 'm', 'b' : 'n', 'c' : 'o'}");
-    JUnitTestCase.assertTrue(result.isValid);
+    expect(result.isValid, isTrue);
   }
 
   void test_literal_null() {
     EvaluationResult result = _getExpressionValue("null");
-    JUnitTestCase.assertTrue(result.isValid);
+    expect(result.isValid, isTrue);
     DartObject value = result.value;
-    JUnitTestCase.assertTrue(value.isNull);
+    expect(value.isNull, isTrue);
   }
 
   void test_literal_number_double() {
@@ -3323,7 +3235,7 @@ class ConstantEvaluatorTest extends ResolverTestCase {
 
   void test_literal_string_interpolation_invalid() {
     EvaluationResult result = _getExpressionValue("'a\${f()}c'");
-    JUnitTestCase.assertFalse(result.isValid);
+    expect(result.isValid, isFalse);
   }
 
   void test_literal_string_interpolation_valid() {
@@ -3356,7 +3268,7 @@ class ConstantEvaluatorTest extends ResolverTestCase {
 
   void test_negated_boolean() {
     EvaluationResult result = _getExpressionValue("-true");
-    JUnitTestCase.assertFalse(result.isValid);
+    expect(result.isValid, isFalse);
   }
 
   void test_negated_double() {
@@ -3377,12 +3289,12 @@ class ConstantEvaluatorTest extends ResolverTestCase {
 
   void test_notEqual_invalidLeft() {
     EvaluationResult result = _getExpressionValue("a != 3");
-    JUnitTestCase.assertFalse(result.isValid);
+    expect(result.isValid, isFalse);
   }
 
   void test_notEqual_invalidRight() {
     EvaluationResult result = _getExpressionValue("2 != a");
-    JUnitTestCase.assertFalse(result.isValid);
+    expect(result.isValid, isFalse);
   }
 
   void test_notEqual_string_string() {
@@ -3432,44 +3344,44 @@ class ConstantEvaluatorTest extends ResolverTestCase {
   void _assertValue(bool expectedValue, String contents) {
     EvaluationResult result = _getExpressionValue(contents);
     DartObject value = result.value;
-    JUnitTestCase.assertEquals("bool", value.type.name);
-    JUnitTestCase.assertEquals(expectedValue, value.boolValue);
+    expect(value.type.name, "bool");
+    expect(value.boolValue, expectedValue);
   }
 
   void _assertValue2(double expectedValue, String contents) {
     EvaluationResult result = _getExpressionValue(contents);
-    JUnitTestCase.assertTrue(result.isValid);
+    expect(result.isValid, isTrue);
     DartObject value = result.value;
-    JUnitTestCase.assertEquals("double", value.type.name);
-    JUnitTestCase.assertEquals(expectedValue, value.doubleValue);
+    expect(value.type.name, "double");
+    expect(value.doubleValue, expectedValue);
   }
 
   void _assertValue3(int expectedValue, String contents) {
     EvaluationResult result = _getExpressionValue(contents);
-    JUnitTestCase.assertTrue(result.isValid);
+    expect(result.isValid, isTrue);
     DartObject value = result.value;
-    JUnitTestCase.assertEquals("int", value.type.name);
-    JUnitTestCase.assertEquals(expectedValue, value.intValue);
+    expect(value.type.name, "int");
+    expect(value.intValue, expectedValue);
   }
 
   void _assertValue4(String expectedValue, String contents) {
     EvaluationResult result = _getExpressionValue(contents);
     DartObject value = result.value;
-    JUnitTestCase.assertNotNull(value);
+    expect(value, isNotNull);
     ParameterizedType type = value.type;
-    JUnitTestCase.assertNotNull(type);
-    JUnitTestCase.assertEquals("String", type.name);
-    JUnitTestCase.assertEquals(expectedValue, value.stringValue);
+    expect(type, isNotNull);
+    expect(type.name, "String");
+    expect(value.stringValue, expectedValue);
   }
 
   EvaluationResult _getExpressionValue(String contents) {
-    Source source = addSource("var x = ${contents};");
+    Source source = addSource("var x = $contents;");
     LibraryElement library = resolve(source);
     CompilationUnit unit =
         analysisContext.resolveCompilationUnit(source, library);
-    JUnitTestCase.assertNotNull(unit);
+    expect(unit, isNotNull);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
-    EngineTestCase.assertSizeOfList(1, declarations);
+    expect(declarations, hasLength(1));
     CompilationUnitMember declaration = declarations[0];
     EngineTestCase.assertInstanceOf(
         (obj) => obj is TopLevelVariableDeclaration,
@@ -3477,7 +3389,7 @@ class ConstantEvaluatorTest extends ResolverTestCase {
         declaration);
     NodeList<VariableDeclaration> variables =
         (declaration as TopLevelVariableDeclaration).variables.variables;
-    EngineTestCase.assertSizeOfList(1, variables);
+    expect(variables, hasLength(1));
     ConstantEvaluator evaluator = new ConstantEvaluator(
         source,
         (analysisContext as AnalysisContextImpl).typeProvider);
@@ -3491,37 +3403,37 @@ class ConstantFinderTest extends EngineTestCase {
 
   void test_visitConstructorDeclaration_const() {
     ConstructorElement element = _setupConstructorDeclaration("A", true);
-    JUnitTestCase.assertSame(_node, _findConstantDeclarations()[element]);
+    expect(_findConstantDeclarations()[element], same(_node));
   }
 
   void test_visitConstructorDeclaration_nonConst() {
     _setupConstructorDeclaration("A", false);
-    JUnitTestCase.assertTrue(_findConstantDeclarations().isEmpty);
+    expect(_findConstantDeclarations().isEmpty, isTrue);
   }
 
   void test_visitInstanceCreationExpression_const() {
     _setupInstanceCreationExpression("A", true);
-    JUnitTestCase.assertTrue(_findConstructorInvocations().contains(_node));
+    expect(_findConstructorInvocations().contains(_node), isTrue);
   }
 
   void test_visitInstanceCreationExpression_nonConst() {
     _setupInstanceCreationExpression("A", false);
-    JUnitTestCase.assertTrue(_findConstructorInvocations().isEmpty);
+    expect(_findConstructorInvocations().isEmpty, isTrue);
   }
 
   void test_visitVariableDeclaration_const() {
     VariableElement element = _setupVariableDeclaration("v", true, true);
-    JUnitTestCase.assertSame(_node, _findVariableDeclarations()[element]);
+    expect(_findVariableDeclarations()[element], same(_node));
   }
 
   void test_visitVariableDeclaration_noInitializer() {
     _setupVariableDeclaration("v", true, false);
-    JUnitTestCase.assertTrue(_findVariableDeclarations().isEmpty);
+    expect(_findVariableDeclarations().isEmpty, isTrue);
   }
 
   void test_visitVariableDeclaration_nonConst() {
     _setupVariableDeclaration("v", false, true);
-    JUnitTestCase.assertTrue(_findVariableDeclarations().isEmpty);
+    expect(_findVariableDeclarations().isEmpty, isTrue);
   }
 
   Map<ConstructorElement, ConstructorDeclaration> _findConstantDeclarations() {
@@ -3529,7 +3441,7 @@ class ConstantFinderTest extends EngineTestCase {
     _node.accept(finder);
     Map<ConstructorElement, ConstructorDeclaration> constructorMap =
         finder.constructorMap;
-    JUnitTestCase.assertNotNull(constructorMap);
+    expect(constructorMap, isNotNull);
     return constructorMap;
   }
 
@@ -3538,7 +3450,7 @@ class ConstantFinderTest extends EngineTestCase {
     _node.accept(finder);
     List<InstanceCreationExpression> constructorInvocations =
         finder.constructorInvocations;
-    JUnitTestCase.assertNotNull(constructorInvocations);
+    expect(constructorInvocations, isNotNull);
     return constructorInvocations;
   }
 
@@ -3546,7 +3458,7 @@ class ConstantFinderTest extends EngineTestCase {
     ConstantFinder finder = new ConstantFinder();
     _node.accept(finder);
     Map<VariableElement, VariableDeclaration> variableMap = finder.variableMap;
-    JUnitTestCase.assertNotNull(variableMap);
+    expect(variableMap, isNotNull);
     return variableMap;
   }
 
@@ -3597,36 +3509,38 @@ class ConstantValueComputerTest extends ResolverTestCase {
   void test_computeValues_cycle() {
     TestLogger logger = new TestLogger();
     AnalysisEngine.instance.logger = logger;
-    Source librarySource = addSource(
-        EngineTestCase.createSource(
-            ["const int a = c;", "const int b = a;", "const int c = b;"]));
+    Source librarySource = addSource(r'''
+const int a = c;
+const int b = a;
+const int c = b;''');
     LibraryElement libraryElement = resolve(librarySource);
     CompilationUnit unit =
         analysisContext.resolveCompilationUnit(librarySource, libraryElement);
     analysisContext.computeErrors(librarySource);
-    JUnitTestCase.assertNotNull(unit);
+    expect(unit, isNotNull);
     ConstantValueComputer computer = _makeConstantValueComputer();
     computer.add(unit);
     computer.computeValues();
     NodeList<CompilationUnitMember> members = unit.declarations;
-    EngineTestCase.assertSizeOfList(3, members);
+    expect(members, hasLength(3));
     _validate(false, (members[0] as TopLevelVariableDeclaration).variables);
     _validate(false, (members[1] as TopLevelVariableDeclaration).variables);
     _validate(false, (members[2] as TopLevelVariableDeclaration).variables);
   }
 
   void test_computeValues_dependentVariables() {
-    Source librarySource = addSource(
-        EngineTestCase.createSource(["const int b = a;", "const int a = 0;"]));
+    Source librarySource = addSource(r'''
+const int b = a;
+const int a = 0;''');
     LibraryElement libraryElement = resolve(librarySource);
     CompilationUnit unit =
         analysisContext.resolveCompilationUnit(librarySource, libraryElement);
-    JUnitTestCase.assertNotNull(unit);
+    expect(unit, isNotNull);
     ConstantValueComputer computer = _makeConstantValueComputer();
     computer.add(unit);
     computer.computeValues();
     NodeList<CompilationUnitMember> members = unit.declarations;
-    EngineTestCase.assertSizeOfList(2, members);
+    expect(members, hasLength(2));
     _validate(true, (members[0] as TopLevelVariableDeclaration).variables);
     _validate(true, (members[1] as TopLevelVariableDeclaration).variables);
   }
@@ -3639,25 +3553,30 @@ class ConstantValueComputerTest extends ResolverTestCase {
   void test_computeValues_multipleSources() {
     Source librarySource = addNamedSource(
         "/lib.dart",
-        EngineTestCase.createSource(
-            ["library lib;", "part 'part.dart';", "const int c = b;", "const int a = 0;"]));
+        r'''
+library lib;
+part 'part.dart';
+const int c = b;
+const int a = 0;''');
     Source partSource = addNamedSource(
         "/part.dart",
-        EngineTestCase.createSource(
-            ["part of lib;", "const int b = a;", "const int d = c;"]));
+        r'''
+part of lib;
+const int b = a;
+const int d = c;''');
     LibraryElement libraryElement = resolve(librarySource);
     CompilationUnit libraryUnit =
         analysisContext.resolveCompilationUnit(librarySource, libraryElement);
-    JUnitTestCase.assertNotNull(libraryUnit);
+    expect(libraryUnit, isNotNull);
     CompilationUnit partUnit =
         analysisContext.resolveCompilationUnit(partSource, libraryElement);
-    JUnitTestCase.assertNotNull(partUnit);
+    expect(partUnit, isNotNull);
     ConstantValueComputer computer = _makeConstantValueComputer();
     computer.add(libraryUnit);
     computer.add(partUnit);
     computer.computeValues();
     NodeList<CompilationUnitMember> libraryMembers = libraryUnit.declarations;
-    EngineTestCase.assertSizeOfList(2, libraryMembers);
+    expect(libraryMembers, hasLength(2));
     _validate(
         true,
         (libraryMembers[0] as TopLevelVariableDeclaration).variables);
@@ -3665,7 +3584,7 @@ class ConstantValueComputerTest extends ResolverTestCase {
         true,
         (libraryMembers[1] as TopLevelVariableDeclaration).variables);
     NodeList<CompilationUnitMember> partMembers = libraryUnit.declarations;
-    EngineTestCase.assertSizeOfList(2, partMembers);
+    expect(partMembers, hasLength(2));
     _validate(true, (partMembers[0] as TopLevelVariableDeclaration).variables);
     _validate(true, (partMembers[1] as TopLevelVariableDeclaration).variables);
   }
@@ -3675,283 +3594,246 @@ class ConstantValueComputerTest extends ResolverTestCase {
     LibraryElement libraryElement = resolve(librarySource);
     CompilationUnit unit =
         analysisContext.resolveCompilationUnit(librarySource, libraryElement);
-    JUnitTestCase.assertNotNull(unit);
+    expect(unit, isNotNull);
     ConstantValueComputer computer = _makeConstantValueComputer();
     computer.add(unit);
     computer.computeValues();
     NodeList<CompilationUnitMember> members = unit.declarations;
-    EngineTestCase.assertSizeOfList(1, members);
+    expect(members, hasLength(1));
     _validate(true, (members[0] as TopLevelVariableDeclaration).variables);
   }
 
   void test_dependencyOnConstructor() {
     // x depends on "const A()"
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            ["class A {", "  const A();", "}", "const x = const A();"]),
+    _assertProperDependencies(r'''
+class A {
+  const A();
+}
+const x = const A();''',
         []);
   }
 
   void test_dependencyOnConstructorArgument() {
     // "const A(x)" depends on x
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "class A {",
-                "  const A(this.next);",
-                "  final A next;",
-                "}",
-                "const A x = const A(null);",
-                "const A y = const A(x);"]),
+    _assertProperDependencies(r'''
+class A {
+  const A(this.next);
+  final A next;
+}
+const A x = const A(null);
+const A y = const A(x);''',
         []);
   }
 
   void test_dependencyOnConstructorArgument_unresolvedConstructor() {
     // "const A.a(x)" depends on x even if the constructor A.a can't be found.
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            ["class A {", "}", "const int x = 1;", "const A y = const A.a(x);"]),
+    _assertProperDependencies(r'''
+class A {
+}
+const int x = 1;
+const A y = const A.a(x);''',
         [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR]);
   }
 
   void test_dependencyOnConstructorInitializer() {
     // "const A()" depends on x
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "const int x = 1;",
-                "class A {",
-                "  const A() : v = x;",
-                "  final int v;",
-                "}"]),
+    _assertProperDependencies(r'''
+const int x = 1;
+class A {
+  const A() : v = x;
+  final int v;
+}''',
         []);
   }
 
   void test_dependencyOnExplicitSuperConstructor() {
     // b depends on B() depends on A()
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "class A {",
-                "  const A(this.x);",
-                "  final int x;",
-                "}",
-                "class B extends A {",
-                "  const B() : super(5);",
-                "}",
-                "const B b = const B();"]),
+    _assertProperDependencies(r'''
+class A {
+  const A(this.x);
+  final int x;
+}
+class B extends A {
+  const B() : super(5);
+}
+const B b = const B();''',
         []);
   }
 
   void test_dependencyOnExplicitSuperConstructorParameters() {
     // b depends on B() depends on i
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "class A {",
-                "  const A(this.x);",
-                "  final int x;",
-                "}",
-                "class B extends A {",
-                "  const B() : super(i);",
-                "}",
-                "const B b = const B();",
-                "const int i = 5;"]),
+    _assertProperDependencies(r'''
+class A {
+  const A(this.x);
+  final int x;
+}
+class B extends A {
+  const B() : super(i);
+}
+const B b = const B();
+const int i = 5;''',
         []);
   }
 
   void test_dependencyOnFactoryRedirect() {
     // a depends on A.foo() depends on A.bar()
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "const A a = const A.foo();",
-                "class A {",
-                "  factory const A.foo() = A.bar;",
-                "  const A.bar();",
-                "}"]),
+    _assertProperDependencies(r'''
+const A a = const A.foo();
+class A {
+  factory const A.foo() = A.bar;
+  const A.bar();
+}''',
         []);
   }
 
   void test_dependencyOnFactoryRedirectWithTypeParams() {
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "class A {",
-                "  const factory A(var a) = B<int>;",
-                "}",
-                "",
-                "class B<T> implements A {",
-                "  final T x;",
-                "  const B(this.x);",
-                "}",
-                "",
-                "const A a = const A(10);"]),
+    _assertProperDependencies(r'''
+class A {
+  const factory A(var a) = B<int>;
+}
+
+class B<T> implements A {
+  final T x;
+  const B(this.x);
+}
+
+const A a = const A(10);''',
         []);
   }
 
   void test_dependencyOnImplicitSuperConstructor() {
     // b depends on B() depends on A()
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "class A {",
-                "  const A() : x = 5;",
-                "  final int x;",
-                "}",
-                "class B extends A {",
-                "  const B();",
-                "}",
-                "const B b = const B();"]),
+    _assertProperDependencies(r'''
+class A {
+  const A() : x = 5;
+  final int x;
+}
+class B extends A {
+  const B();
+}
+const B b = const B();''',
         []);
   }
 
   void test_dependencyOnNonFactoryRedirect() {
     // a depends on A.foo() depends on A.bar()
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "const A a = const A.foo();",
-                "class A {",
-                "  const A.foo() : this.bar();",
-                "  const A.bar();",
-                "}"]),
+    _assertProperDependencies(r'''
+const A a = const A.foo();
+class A {
+  const A.foo() : this.bar();
+  const A.bar();
+}''',
         []);
   }
 
   void test_dependencyOnNonFactoryRedirect_arg() {
     // a depends on A.foo() depends on b
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "const A a = const A.foo();",
-                "const int b = 1;",
-                "class A {",
-                "  const A.foo() : this.bar(b);",
-                "  const A.bar(x) : y = x;",
-                "  final int y;"
-                "}"]),
+    _assertProperDependencies(r'''
+const A a = const A.foo();
+const int b = 1;
+class A {
+  const A.foo() : this.bar(b);
+  const A.bar(x) : y = x;
+  final int y;
+}''',
         []);
   }
 
   void test_dependencyOnNonFactoryRedirect_defaultValue() {
     // a depends on A.foo() depends on A.bar() depends on b
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "const A a = const A.foo();",
-                "const int b = 1;",
-                "class A {",
-                "  const A.foo() : this.bar();",
-                "  const A.bar([x = b]) : y = x;",
-                "  final int y;",
-                "}"]),
+    _assertProperDependencies(r'''
+const A a = const A.foo();
+const int b = 1;
+class A {
+  const A.foo() : this.bar();
+  const A.bar([x = b]) : y = x;
+  final int y;
+}''',
         []);
   }
 
   void test_dependencyOnNonFactoryRedirect_toMissing() {
     // a depends on A.foo() which depends on nothing, since A.bar() is
     // missing.
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "const A a = const A.foo();",
-                "class A {",
-                "  const A.foo() : this.bar();",
-                "}"]),
+    _assertProperDependencies(r'''
+const A a = const A.foo();
+class A {
+  const A.foo() : this.bar();
+}''',
         [CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR]);
   }
 
   void test_dependencyOnNonFactoryRedirect_toNonConst() {
     // a depends on A.foo() which depends on nothing, since A.bar() is
     // non-const.
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "const A a = const A.foo();",
-                "class A {",
-                "  const A.foo() : this.bar();",
-                "  A.bar();",
-                "}"]),
+    _assertProperDependencies(r'''
+const A a = const A.foo();
+class A {
+  const A.foo() : this.bar();
+  A.bar();
+}''',
         []);
   }
 
   void test_dependencyOnNonFactoryRedirect_unnamed() {
     // a depends on A.foo() depends on A()
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "const A a = const A.foo();",
-                "class A {",
-                "  const A.foo() : this();",
-                "  const A();",
-                "}"]),
+    _assertProperDependencies(r'''
+const A a = const A.foo();
+class A {
+  const A.foo() : this();
+  const A();
+}''',
         []);
   }
 
   void test_dependencyOnOptionalParameterDefault() {
     // a depends on A() depends on B()
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "class A {",
-                "  const A([x = const B()]) : b = x;",
-                "  final B b;",
-                "}",
-                "class B {",
-                "  const B();",
-                "}",
-                "const A a = const A();"]),
+    _assertProperDependencies(r'''
+class A {
+  const A([x = const B()]) : b = x;
+  final B b;
+}
+class B {
+  const B();
+}
+const A a = const A();''',
         []);
   }
 
   void test_dependencyOnVariable() {
     // x depends on y
-    _assertProperDependencies(
-        EngineTestCase.createSource(["const x = y + 1;", "const y = 2;"]),
+    _assertProperDependencies(r'''
+const x = y + 1;
+const y = 2;''',
         []);
   }
 
   void test_fromEnvironment_bool_default_false() {
-    JUnitTestCase.assertEquals(
-        false,
-        _assertValidBool(_check_fromEnvironment_bool(null, "false")));
+    expect(_assertValidBool(_check_fromEnvironment_bool(null, "false")), false);
   }
 
   void test_fromEnvironment_bool_default_overridden() {
-    JUnitTestCase.assertEquals(
-        false,
-        _assertValidBool(_check_fromEnvironment_bool("false", "true")));
+    expect(_assertValidBool(_check_fromEnvironment_bool("false", "true")), false);
   }
 
   void test_fromEnvironment_bool_default_parseError() {
-    JUnitTestCase.assertEquals(
-        true,
-        _assertValidBool(_check_fromEnvironment_bool("parseError", "true")));
+    expect(_assertValidBool(_check_fromEnvironment_bool("parseError", "true")), true);
   }
 
   void test_fromEnvironment_bool_default_true() {
-    JUnitTestCase.assertEquals(
-        true,
-        _assertValidBool(_check_fromEnvironment_bool(null, "true")));
+    expect(_assertValidBool(_check_fromEnvironment_bool(null, "true")), true);
   }
 
   void test_fromEnvironment_bool_false() {
-    JUnitTestCase.assertEquals(
-        false,
-        _assertValidBool(_check_fromEnvironment_bool("false", null)));
+    expect(_assertValidBool(_check_fromEnvironment_bool("false", null)), false);
   }
 
   void test_fromEnvironment_bool_parseError() {
-    JUnitTestCase.assertEquals(
-        false,
-        _assertValidBool(_check_fromEnvironment_bool("parseError", null)));
+    expect(_assertValidBool(_check_fromEnvironment_bool("parseError", null)), false);
   }
 
   void test_fromEnvironment_bool_true() {
-    JUnitTestCase.assertEquals(
-        true,
-        _assertValidBool(_check_fromEnvironment_bool("true", null)));
+    expect(_assertValidBool(_check_fromEnvironment_bool("true", null)), true);
   }
 
   void test_fromEnvironment_bool_undeclared() {
@@ -3959,27 +3841,19 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_fromEnvironment_int_default_overridden() {
-    JUnitTestCase.assertEquals(
-        234,
-        _assertValidInt(_check_fromEnvironment_int("234", "123")));
+    expect(_assertValidInt(_check_fromEnvironment_int("234", "123")), 234);
   }
 
   void test_fromEnvironment_int_default_parseError() {
-    JUnitTestCase.assertEquals(
-        123,
-        _assertValidInt(_check_fromEnvironment_int("parseError", "123")));
+    expect(_assertValidInt(_check_fromEnvironment_int("parseError", "123")), 123);
   }
 
   void test_fromEnvironment_int_default_undeclared() {
-    JUnitTestCase.assertEquals(
-        123,
-        _assertValidInt(_check_fromEnvironment_int(null, "123")));
+    expect(_assertValidInt(_check_fromEnvironment_int(null, "123")), 123);
   }
 
   void test_fromEnvironment_int_ok() {
-    JUnitTestCase.assertEquals(
-        234,
-        _assertValidInt(_check_fromEnvironment_int("234", null)));
+    expect(_assertValidInt(_check_fromEnvironment_int("234", null)), 234);
   }
 
   void test_fromEnvironment_int_parseError() {
@@ -3999,27 +3873,19 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_fromEnvironment_string_default_overridden() {
-    JUnitTestCase.assertEquals(
-        "abc",
-        _assertValidString(_check_fromEnvironment_string("abc", "'def'")));
+    expect(_assertValidString(_check_fromEnvironment_string("abc", "'def'")), "abc");
   }
 
   void test_fromEnvironment_string_default_undeclared() {
-    JUnitTestCase.assertEquals(
-        "def",
-        _assertValidString(_check_fromEnvironment_string(null, "'def'")));
+    expect(_assertValidString(_check_fromEnvironment_string(null, "'def'")), "def");
   }
 
   void test_fromEnvironment_string_empty() {
-    JUnitTestCase.assertEquals(
-        "",
-        _assertValidString(_check_fromEnvironment_string("", null)));
+    expect(_assertValidString(_check_fromEnvironment_string("", null)), "");
   }
 
   void test_fromEnvironment_string_ok() {
-    JUnitTestCase.assertEquals(
-        "abc",
-        _assertValidString(_check_fromEnvironment_string("abc", null)));
+    expect(_assertValidString(_check_fromEnvironment_string("abc", null)), "abc");
   }
 
   void test_fromEnvironment_string_undeclared() {
@@ -4031,18 +3897,16 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_computedField() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A(4, 5);",
-                "class A {",
-                "  const A(int i, int j) : k = 2 * i + j;",
-                "  final int k;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A(4, 5);
+class A {
+  const A(int i, int j) : k = 2 * i + j;
+  final int k;
+}''');
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "A");
-    EngineTestCase.assertSizeOfMap(1, fields);
+    expect(fields, hasLength(1));
     _assertIntField(fields, "k", 13);
   }
 
@@ -4067,101 +3931,91 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_computedField_usesConstConstructor() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A(3);",
-                "class A {",
-                "  const A(int i) : b = const B(4);",
-                "  final int b;",
-                "}",
-                "class B {",
-                "  const B(this.k);",
-                "  final int k;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A(3);
+class A {
+  const A(int i) : b = const B(4);
+  final int b;
+}
+class B {
+  const B(this.k);
+  final int k;
+}''');
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     Map<String, DartObjectImpl> fieldsOfA = _assertType(result, "A");
-    EngineTestCase.assertSizeOfMap(1, fieldsOfA);
+    expect(fieldsOfA, hasLength(1));
     Map<String, DartObjectImpl> fieldsOfB =
         _assertFieldType(fieldsOfA, "b", "B");
-    EngineTestCase.assertSizeOfMap(1, fieldsOfB);
+    expect(fieldsOfB, hasLength(1));
     _assertIntField(fieldsOfB, "k", 4);
   }
 
   void test_instanceCreationExpression_computedField_usesStaticConst() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A(3);",
-                "class A {",
-                "  const A(int i) : k = i + B.bar;",
-                "  final int k;",
-                "}",
-                "class B {",
-                "  static const bar = 4;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A(3);
+class A {
+  const A(int i) : k = i + B.bar;
+  final int k;
+}
+class B {
+  static const bar = 4;
+}''');
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "A");
-    EngineTestCase.assertSizeOfMap(1, fields);
+    expect(fields, hasLength(1));
     _assertIntField(fields, "k", 7);
   }
 
   void test_instanceCreationExpression_computedField_usesToplevelConst() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A(3);",
-                "const bar = 4;",
-                "class A {",
-                "  const A(int i) : k = i + bar;",
-                "  final int k;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A(3);
+const bar = 4;
+class A {
+  const A(int i) : k = i + bar;
+  final int k;
+}''');
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "A");
-    EngineTestCase.assertSizeOfMap(1, fields);
+    expect(fields, hasLength(1));
     _assertIntField(fields, "k", 7);
   }
 
   void test_instanceCreationExpression_explicitSuper() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const B(4, 5);",
-                "class A {",
-                "  const A(this.x);",
-                "  final int x;",
-                "}",
-                "class B extends A {",
-                "  const B(int x, this.y) : super(x * 2);",
-                "  final int y;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const B(4, 5);
+class A {
+  const A(this.x);
+  final int x;
+}
+class B extends A {
+  const B(int x, this.y) : super(x * 2);
+  final int y;
+}''');
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "B");
-    EngineTestCase.assertSizeOfMap(2, fields);
+    expect(fields, hasLength(2));
     _assertIntField(fields, "y", 5);
     Map<String, DartObjectImpl> superclassFields =
         _assertFieldType(fields, GenericState.SUPERCLASS_FIELD, "A");
-    EngineTestCase.assertSizeOfMap(1, superclassFields);
+    expect(superclassFields, hasLength(1));
     _assertIntField(superclassFields, "x", 8);
   }
 
   void test_instanceCreationExpression_fieldFormalParameter() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A(42);",
-                "class A {",
-                "  int x;",
-                "  const A(this.x)",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A(42);
+class A {
+  int x;
+  const A(this.x)
+}''');
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "A");
-    EngineTestCase.assertSizeOfMap(1, fields);
+    expect(fields, hasLength(1));
     _assertIntField(fields, "x", 42);
   }
 
@@ -4186,39 +4040,35 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_implicitSuper() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const B(4);",
-                "class A {",
-                "  const A() : x(3);",
-                "  final int x;",
-                "}",
-                "class B extends A {",
-                "  const B(this.y);",
-                "  final int y;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const B(4);
+class A {
+  const A() : x(3);
+  final int x;
+}
+class B extends A {
+  const B(this.y);
+  final int y;
+}''');
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "B");
-    EngineTestCase.assertSizeOfMap(2, fields);
+    expect(fields, hasLength(2));
     _assertIntField(fields, "y", 4);
     Map<String, DartObjectImpl> superclassFields =
         _assertFieldType(fields, GenericState.SUPERCLASS_FIELD, "A");
-    EngineTestCase.assertSizeOfMap(1, superclassFields);
+    expect(superclassFields, hasLength(1));
     _assertIntField(superclassFields, "x", 3);
   }
 
   void test_instanceCreationExpression_nonFactoryRedirect() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A.a1();",
-                "class A {",
-                "  const A.a1() : this.a2();",
-                "  const A.a2() : x = 5;",
-                "  final int x;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A.a1();
+class A {
+  const A.a1() : this.a2();
+  const A.a2() : x = 5;
+  final int x;
+}''');
     Map<String, DartObjectImpl> aFields = _assertType(
         _evaluateInstanceCreationExpression(compilationUnit, "foo"),
         "A");
@@ -4226,15 +4076,13 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_nonFactoryRedirect_arg() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A.a1(1);",
-                "class A {",
-                "  const A.a1(x) : this.a2(x + 100);",
-                "  const A.a2(x) : y = x + 10;",
-                "  final int y;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A.a1(1);
+class A {
+  const A.a1(x) : this.a2(x + 100);
+  const A.a2(x) : y = x + 10;
+  final int y;
+}''');
     Map<String, DartObjectImpl> aFields = _assertType(
         _evaluateInstanceCreationExpression(compilationUnit, "foo"),
         "A");
@@ -4245,28 +4093,24 @@ class ConstantValueComputerTest extends ResolverTestCase {
     // It is an error to have a cycle in non-factory redirects; however, we
     // need to make sure that even if the error occurs, attempting to evaluate
     // the constant will terminate.
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A();",
-                "class A {",
-                "  const A() : this.b();",
-                "  const A.b() : this();",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A();
+class A {
+  const A() : this.b();
+  const A.b() : this();
+}''');
     _assertValidUnknown(
         _evaluateInstanceCreationExpression(compilationUnit, "foo"));
   }
 
   void test_instanceCreationExpression_nonFactoryRedirect_defaultArg() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A.a1();",
-                "class A {",
-                "  const A.a1() : this.a2();",
-                "  const A.a2([x = 100]) : y = x + 10;",
-                "  final int y;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A.a1();
+class A {
+  const A.a1() : this.a2();
+  const A.a2([x = 100]) : y = x + 10;
+  final int y;
+}''');
     Map<String, DartObjectImpl> aFields = _assertType(
         _evaluateInstanceCreationExpression(compilationUnit, "foo"),
         "A");
@@ -4274,13 +4118,11 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_nonFactoryRedirect_toMissing() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A.a1();",
-                "class A {",
-                "  const A.a1() : this.a2();",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A.a1();
+class A {
+  const A.a1() : this.a2();
+}''');
     // We don't care what value foo evaluates to (since there is a compile
     // error), but we shouldn't crash, and we should figure
     // out that it evaluates to an instance of class A.
@@ -4290,14 +4132,12 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_nonFactoryRedirect_toNonConst() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A.a1();",
-                "class A {",
-                "  const A.a1() : this.a2();",
-                "  A.a2();",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A.a1();
+class A {
+  const A.a1() : this.a2();
+  A.a2();
+}''');
     // We don't care what value foo evaluates to (since there is a compile
     // error), but we shouldn't crash, and we should figure
     // out that it evaluates to an instance of class A.
@@ -4307,15 +4147,13 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_nonFactoryRedirect_unnamed() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A.a1();",
-                "class A {",
-                "  const A.a1() : this();",
-                "  const A() : x = 5;",
-                "  final int x;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A.a1();
+class A {
+  const A.a1() : this();
+  const A() : x = 5;
+  final int x;
+}''');
     Map<String, DartObjectImpl> aFields = _assertType(
         _evaluateInstanceCreationExpression(compilationUnit, "foo"),
         "A");
@@ -4323,39 +4161,35 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_redirect() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A();",
-                "class A {",
-                "  const factory A() = B;",
-                "}",
-                "class B implements A {",
-                "  const B();",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A();
+class A {
+  const factory A() = B;
+}
+class B implements A {
+  const B();
+}''');
     _assertType(
         _evaluateInstanceCreationExpression(compilationUnit, "foo"),
         "B");
   }
 
   void test_instanceCreationExpression_redirectWithTypeParams() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "class A {",
-                "  const factory A(var a) = B<int>;",
-                "}",
-                "",
-                "class B<T> implements A {",
-                "  final T x;",
-                "  const B(this.x);",
-                "}",
-                "",
-                "const A a = const A(10);"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+class A {
+  const factory A(var a) = B<int>;
+}
+
+class B<T> implements A {
+  final T x;
+  const B(this.x);
+}
+
+const A a = const A(10);''');
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "a");
     Map<String, DartObjectImpl> fields = _assertType(result, "B<int>");
-    EngineTestCase.assertSizeOfMap(1, fields);
+    expect(fields, hasLength(1));
     _assertIntField(fields, "x", 10);
   }
 
@@ -4363,23 +4197,21 @@ class ConstantValueComputerTest extends ResolverTestCase {
     // To evaluate the redirection of A<int>,
     // A's template argument (T=int) must be substituted
     // into B's template argument (B<U> where U=T) to get B<int>.
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "class A<T> {",
-                "  const factory A(var a) = B<T>;",
-                "}",
-                "",
-                "class B<U> implements A {",
-                "  final U x;",
-                "  const B(this.x);",
-                "}",
-                "",
-                "const A<int> a = const A<int>(10);"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+class A<T> {
+  const factory A(var a) = B<T>;
+}
+
+class B<U> implements A {
+  final U x;
+  const B(this.x);
+}
+
+const A<int> a = const A<int>(10);''');
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "a");
     Map<String, DartObjectImpl> fields = _assertType(result, "B<int>");
-    EngineTestCase.assertSizeOfMap(1, fields);
+    expect(fields, hasLength(1));
     _assertIntField(fields, "x", 10);
   }
 
@@ -4387,22 +4219,22 @@ class ConstantValueComputerTest extends ResolverTestCase {
     // It is an error to have a cycle in factory redirects; however, we need
     // to make sure that even if the error occurs, attempting to evaluate the
     // constant will terminate.
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A();",
-                "class A {",
-                "  const factory A() = A.b;",
-                "  const factory A.b() = A;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A();
+class A {
+  const factory A() = A.b;
+  const factory A.b() = A;
+}''');
     _assertValidUnknown(
         _evaluateInstanceCreationExpression(compilationUnit, "foo"));
   }
 
   void test_instanceCreationExpression_redirect_extern() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            ["const foo = const A();", "class A {", "  external const factory A();", "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A();
+class A {
+  external const factory A();
+}''');
     _assertValidUnknown(
         _evaluateInstanceCreationExpression(compilationUnit, "foo"));
   }
@@ -4411,27 +4243,25 @@ class ConstantValueComputerTest extends ResolverTestCase {
     // It is an error for a const factory constructor redirect to a non-const
     // constructor; however, we need to make sure that even if the error
     // attempting to evaluate the constant won't cause a crash.
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A();",
-                "class A {",
-                "  const factory A() = A.b;",
-                "  A.b();",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A();
+class A {
+  const factory A() = A.b;
+  A.b();
+}''');
     _assertValidUnknown(
         _evaluateInstanceCreationExpression(compilationUnit, "foo"));
   }
 
   void test_instanceCreationExpression_symbol() {
     CompilationUnit compilationUnit =
-        resolveSource(EngineTestCase.createSource(["const foo = const Symbol('a');"]));
+        resolveSource("const foo = const Symbol('a');");
     EvaluationResultImpl evaluationResult =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
-    JUnitTestCase.assertNotNull(evaluationResult.value);
+    expect(evaluationResult.value, isNotNull);
     DartObjectImpl value = evaluationResult.value;
-    JUnitTestCase.assertEquals(typeProvider.symbolType, value.type);
-    JUnitTestCase.assertEquals("a", value.value);
+    expect(value.type, typeProvider.symbolType);
+    expect(value.value, "a");
   }
 
   void test_instanceCreationExpression_withSupertypeParams_explicit() {
@@ -4443,14 +4273,12 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_withTypeParams() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "class C<E> {",
-                "  const C();",
-                "}",
-                "const c_int = const C<int>();",
-                "const c_num = const C<num>();"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+class C<E> {
+  const C();
+}
+const c_int = const C<int>();
+const c_num = const C<num>();''');
     EvaluationResultImpl c_int =
         _evaluateInstanceCreationExpression(compilationUnit, "c_int");
     _assertType(c_int, "C<int>");
@@ -4459,80 +4287,65 @@ class ConstantValueComputerTest extends ResolverTestCase {
         _evaluateInstanceCreationExpression(compilationUnit, "c_num");
     _assertType(c_num, "C<num>");
     DartObjectImpl c_num_value = c_num.value;
-    JUnitTestCase.assertFalse(c_int_value == c_num_value);
+    expect(c_int_value == c_num_value, isFalse);
   }
 
   void test_isValidSymbol() {
-    JUnitTestCase.assertTrue(ConstantValueComputer.isValidPublicSymbol(""));
-    JUnitTestCase.assertTrue(ConstantValueComputer.isValidPublicSymbol("foo"));
-    JUnitTestCase.assertTrue(
-        ConstantValueComputer.isValidPublicSymbol("foo.bar"));
-    JUnitTestCase.assertTrue(
-        ConstantValueComputer.isValidPublicSymbol("foo\$"));
-    JUnitTestCase.assertTrue(
-        ConstantValueComputer.isValidPublicSymbol("foo\$bar"));
-    JUnitTestCase.assertTrue(ConstantValueComputer.isValidPublicSymbol("iff"));
-    JUnitTestCase.assertTrue(ConstantValueComputer.isValidPublicSymbol("gif"));
-    JUnitTestCase.assertTrue(ConstantValueComputer.isValidPublicSymbol("if\$"));
-    JUnitTestCase.assertTrue(ConstantValueComputer.isValidPublicSymbol("\$if"));
-    JUnitTestCase.assertTrue(ConstantValueComputer.isValidPublicSymbol("foo="));
-    JUnitTestCase.assertTrue(
-        ConstantValueComputer.isValidPublicSymbol("foo.bar="));
-    JUnitTestCase.assertTrue(
-        ConstantValueComputer.isValidPublicSymbol("foo.+"));
-    JUnitTestCase.assertTrue(ConstantValueComputer.isValidPublicSymbol("void"));
-    JUnitTestCase.assertFalse(
-        ConstantValueComputer.isValidPublicSymbol("_foo"));
-    JUnitTestCase.assertFalse(
-        ConstantValueComputer.isValidPublicSymbol("_foo.bar"));
-    JUnitTestCase.assertFalse(
-        ConstantValueComputer.isValidPublicSymbol("foo._bar"));
-    JUnitTestCase.assertFalse(ConstantValueComputer.isValidPublicSymbol("if"));
-    JUnitTestCase.assertFalse(
-        ConstantValueComputer.isValidPublicSymbol("if.foo"));
-    JUnitTestCase.assertFalse(
-        ConstantValueComputer.isValidPublicSymbol("foo.if"));
-    JUnitTestCase.assertFalse(
-        ConstantValueComputer.isValidPublicSymbol("foo=.bar"));
-    JUnitTestCase.assertFalse(
-        ConstantValueComputer.isValidPublicSymbol("foo."));
-    JUnitTestCase.assertFalse(
-        ConstantValueComputer.isValidPublicSymbol("+.foo"));
-    JUnitTestCase.assertFalse(
-        ConstantValueComputer.isValidPublicSymbol("void.foo"));
-    JUnitTestCase.assertFalse(
-        ConstantValueComputer.isValidPublicSymbol("foo.void"));
+    expect(ConstantValueComputer.isValidPublicSymbol(""), isTrue);
+    expect(ConstantValueComputer.isValidPublicSymbol("foo"), isTrue);
+    expect(ConstantValueComputer.isValidPublicSymbol("foo.bar"), isTrue);
+    expect(ConstantValueComputer.isValidPublicSymbol("foo\$"), isTrue);
+    expect(ConstantValueComputer.isValidPublicSymbol("foo\$bar"), isTrue);
+    expect(ConstantValueComputer.isValidPublicSymbol("iff"), isTrue);
+    expect(ConstantValueComputer.isValidPublicSymbol("gif"), isTrue);
+    expect(ConstantValueComputer.isValidPublicSymbol("if\$"), isTrue);
+    expect(ConstantValueComputer.isValidPublicSymbol("\$if"), isTrue);
+    expect(ConstantValueComputer.isValidPublicSymbol("foo="), isTrue);
+    expect(ConstantValueComputer.isValidPublicSymbol("foo.bar="), isTrue);
+    expect(ConstantValueComputer.isValidPublicSymbol("foo.+"), isTrue);
+    expect(ConstantValueComputer.isValidPublicSymbol("void"), isTrue);
+    expect(ConstantValueComputer.isValidPublicSymbol("_foo"), isFalse);
+    expect(ConstantValueComputer.isValidPublicSymbol("_foo.bar"), isFalse);
+    expect(ConstantValueComputer.isValidPublicSymbol("foo._bar"), isFalse);
+    expect(ConstantValueComputer.isValidPublicSymbol("if"), isFalse);
+    expect(ConstantValueComputer.isValidPublicSymbol("if.foo"), isFalse);
+    expect(ConstantValueComputer.isValidPublicSymbol("foo.if"), isFalse);
+    expect(ConstantValueComputer.isValidPublicSymbol("foo=.bar"), isFalse);
+    expect(ConstantValueComputer.isValidPublicSymbol("foo."), isFalse);
+    expect(ConstantValueComputer.isValidPublicSymbol("+.foo"), isFalse);
+    expect(ConstantValueComputer.isValidPublicSymbol("void.foo"), isFalse);
+    expect(ConstantValueComputer.isValidPublicSymbol("foo.void"), isFalse);
   }
 
   void test_symbolLiteral_void() {
     CompilationUnit compilationUnit =
-        resolveSource(EngineTestCase.createSource(["const voidSymbol = #void;"]));
+        resolveSource("const voidSymbol = #void;");
     VariableDeclaration voidSymbol =
         findTopLevelDeclaration(compilationUnit, "voidSymbol");
     EvaluationResultImpl voidSymbolResult =
         (voidSymbol.element as VariableElementImpl).evaluationResult;
     DartObjectImpl value = voidSymbolResult.value;
-    JUnitTestCase.assertEquals(typeProvider.symbolType, value.type);
-    JUnitTestCase.assertEquals("void", value.value);
+    expect(value.type, typeProvider.symbolType);
+    expect(value.value, "void");
   }
 
   Map<String, DartObjectImpl> _assertFieldType(Map<String,
       DartObjectImpl> fields, String fieldName, String expectedType) {
     DartObjectImpl field = fields[fieldName];
-    JUnitTestCase.assertEquals(expectedType, field.type.displayName);
+    expect(field.type.displayName, expectedType);
     return field.fields;
   }
 
   void _assertIntField(Map<String, DartObjectImpl> fields, String fieldName,
       int expectedValue) {
     DartObjectImpl field = fields[fieldName];
-    JUnitTestCase.assertEquals("int", field.type.name);
-    JUnitTestCase.assertEquals(expectedValue, field.intValue);
+    expect(field.type.name, "int");
+    expect(field.intValue, expectedValue);
   }
 
   void _assertNullField(Map<String, DartObjectImpl> fields, String fieldName) {
     DartObjectImpl field = fields[fieldName];
-    JUnitTestCase.assertTrue(field.isNull);
+    expect(field.isNull, isTrue);
   }
 
   void _assertProperDependencies(String sourceText,
@@ -4541,7 +4354,7 @@ class ConstantValueComputerTest extends ResolverTestCase {
     LibraryElement element = resolve(source);
     CompilationUnit unit =
         analysisContext.resolveCompilationUnit(source, element);
-    JUnitTestCase.assertNotNull(unit);
+    expect(unit, isNotNull);
     ConstantValueComputer computer = _makeConstantValueComputer();
     computer.add(unit);
     computer.computeValues();
@@ -4550,45 +4363,45 @@ class ConstantValueComputerTest extends ResolverTestCase {
 
   Map<String, DartObjectImpl> _assertType(EvaluationResultImpl result,
       String typeName) {
-    JUnitTestCase.assertNotNull(result.value);
+    expect(result.value, isNotNull);
     DartObjectImpl value = result.value;
-    JUnitTestCase.assertEquals(typeName, value.type.displayName);
+    expect(value.type.displayName, typeName);
     return value.fields;
   }
 
   bool _assertValidBool(EvaluationResultImpl result) {
-    JUnitTestCase.assertNotNull(result.value);
+    expect(result.value, isNotNull);
     DartObjectImpl value = result.value;
-    JUnitTestCase.assertEquals(typeProvider.boolType, value.type);
+    expect(value.type, typeProvider.boolType);
     bool boolValue = value.boolValue;
-    JUnitTestCase.assertNotNull(boolValue);
+    expect(boolValue, isNotNull);
     return boolValue;
   }
 
   int _assertValidInt(EvaluationResultImpl result) {
-    JUnitTestCase.assertNotNull(result.value);
+    expect(result.value, isNotNull);
     DartObjectImpl value = result.value;
-    JUnitTestCase.assertEquals(typeProvider.intType, value.type);
+    expect(value.type, typeProvider.intType);
     return value.intValue;
   }
 
   void _assertValidNull(EvaluationResultImpl result) {
-    JUnitTestCase.assertNotNull(result.value);
+    expect(result.value, isNotNull);
     DartObjectImpl value = result.value;
-    JUnitTestCase.assertEquals(typeProvider.nullType, value.type);
+    expect(value.type, typeProvider.nullType);
   }
 
   String _assertValidString(EvaluationResultImpl result) {
-    JUnitTestCase.assertNotNull(result.value);
+    expect(result.value, isNotNull);
     DartObjectImpl value = result.value;
-    JUnitTestCase.assertEquals(typeProvider.stringType, value.type);
+    expect(value.type, typeProvider.stringType);
     return value.stringValue;
   }
 
   void _assertValidUnknown(EvaluationResultImpl result) {
-    JUnitTestCase.assertNotNull(result.value);
+    expect(result.value, isNotNull);
     DartObjectImpl value = result.value;
-    JUnitTestCase.assertTrue(value.isUnknown);
+    expect(value.isUnknown, isTrue);
   }
 
   void _checkInstanceCreationOptionalParams(bool isFieldFormal, bool isNamed,
@@ -4596,20 +4409,18 @@ class ConstantValueComputerTest extends ResolverTestCase {
     String fieldName = "j";
     String paramName = isFieldFormal ? fieldName : "i";
     String formalParam =
-        "${(isFieldFormal ? "this." : "int ")}${paramName}${(hasDefault ? " = 3" : "")}";
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const x = const A();",
-                "const y = const A(${(isNamed ? "${paramName}: " : "")}10);",
-                "class A {",
-                "  const A(${(isNamed ? "{${formalParam}}" : "[${formalParam}]")})${(isFieldFormal ? "" : " : ${fieldName} = ${paramName}")};",
-                "  final int ${fieldName};",
-                "}"]));
+        "${isFieldFormal ? "this." : "int "}$paramName${hasDefault ? " = 3" : ""}";
+    CompilationUnit compilationUnit = resolveSource("""
+const x = const A();
+const y = const A(${isNamed ? '$paramName: ' : ''}10);
+class A {
+  const A(${isNamed ? "{$formalParam}" : "[$formalParam]"})${isFieldFormal ? "" : " : $fieldName = $paramName"};
+  final int $fieldName;
+}""");
     EvaluationResultImpl x =
         _evaluateInstanceCreationExpression(compilationUnit, "x");
     Map<String, DartObjectImpl> fieldsOfX = _assertType(x, "A");
-    EngineTestCase.assertSizeOfMap(1, fieldsOfX);
+    expect(fieldsOfX, hasLength(1));
     if (hasDefault) {
       _assertIntField(fieldsOfX, fieldName, 3);
     } else {
@@ -4618,26 +4429,24 @@ class ConstantValueComputerTest extends ResolverTestCase {
     EvaluationResultImpl y =
         _evaluateInstanceCreationExpression(compilationUnit, "y");
     Map<String, DartObjectImpl> fieldsOfY = _assertType(y, "A");
-    EngineTestCase.assertSizeOfMap(1, fieldsOfY);
+    expect(fieldsOfY, hasLength(1));
     _assertIntField(fieldsOfY, fieldName, 10);
   }
 
   void _checkInstanceCreation_withSupertypeParams(bool isExplicit) {
     String superCall = isExplicit ? " : super()" : "";
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "class A<T> {",
-                "  const A();",
-                "}",
-                "class B<T, U> extends A<T> {",
-                "  const B()${superCall};",
-                "}",
-                "class C<T, U> extends A<U> {",
-                "  const C()${superCall};",
-                "}",
-                "const b_int_num = const B<int, num>();",
-                "const c_int_num = const C<int, num>();"]));
+    CompilationUnit compilationUnit = resolveSource("""
+class A<T> {
+  const A();
+}
+class B<T, U> extends A<T> {
+  const B()$superCall;
+}
+class C<T, U> extends A<U> {
+  const C()$superCall;
+}
+const b_int_num = const B<int, num>();
+const c_int_num = const C<int, num>();""");
     EvaluationResultImpl b_int_num =
         _evaluateInstanceCreationExpression(compilationUnit, "b_int_num");
     Map<String, DartObjectImpl> b_int_num_fields =
@@ -4658,11 +4467,9 @@ class ConstantValueComputerTest extends ResolverTestCase {
       analysisContext2.declaredVariables.define(envVarName, valueInEnvironment);
     }
     String defaultArg =
-        defaultExpr == null ? "" : ", defaultValue: ${defaultExpr}";
+        defaultExpr == null ? "" : ", defaultValue: $defaultExpr";
     CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const ${varName} = const bool.fromEnvironment('${envVarName}'${defaultArg});"]));
+                "const $varName = const bool.fromEnvironment('$envVarName'$defaultArg);");
     return _evaluateInstanceCreationExpression(compilationUnit, varName);
   }
 
@@ -4674,11 +4481,9 @@ class ConstantValueComputerTest extends ResolverTestCase {
       analysisContext2.declaredVariables.define(envVarName, valueInEnvironment);
     }
     String defaultArg =
-        defaultExpr == null ? "" : ", defaultValue: ${defaultExpr}";
+        defaultExpr == null ? "" : ", defaultValue: $defaultExpr";
     CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const ${varName} = const int.fromEnvironment('${envVarName}'${defaultArg});"]));
+                "const $varName = const int.fromEnvironment('$envVarName'$defaultArg);");
     return _evaluateInstanceCreationExpression(compilationUnit, varName);
   }
 
@@ -4690,11 +4495,9 @@ class ConstantValueComputerTest extends ResolverTestCase {
       analysisContext2.declaredVariables.define(envVarName, valueInEnvironment);
     }
     String defaultArg =
-        defaultExpr == null ? "" : ", defaultValue: ${defaultExpr}";
+        defaultExpr == null ? "" : ", defaultValue: $defaultExpr";
     CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const ${varName} = const String.fromEnvironment('${envVarName}'${defaultArg});"]));
+                "const $varName = const String.fromEnvironment('$envVarName'$defaultArg);");
     return _evaluateInstanceCreationExpression(compilationUnit, varName);
   }
 
@@ -4715,12 +4518,12 @@ class ConstantValueComputerTest extends ResolverTestCase {
   void _validate(bool shouldBeValid, VariableDeclarationList declarationList) {
     for (VariableDeclaration declaration in declarationList.variables) {
       VariableElementImpl element = declaration.element as VariableElementImpl;
-      JUnitTestCase.assertNotNull(element);
+      expect(element, isNotNull);
       EvaluationResultImpl result = element.evaluationResult;
       if (shouldBeValid) {
-        JUnitTestCase.assertNotNull(result.value);
+        expect(result.value, isNotNull);
       } else {
-        JUnitTestCase.assertNull(result.value);
+        expect(result.value, isNull);
       }
     }
   }
@@ -4742,8 +4545,7 @@ class ConstantValueComputerTest_ValidatingConstantVisitor extends
     // If we are getting the evaluation result for a node in the graph,
     // make sure we properly recorded the dependency.
     if (_referenceGraph.nodes.contains(node)) {
-      JUnitTestCase.assertTrue(
-          _referenceGraph.containsPath(_nodeBeingEvaluated, node));
+      expect(_referenceGraph.containsPath(_nodeBeingEvaluated, node), isTrue);
     }
   }
 }
@@ -4810,7 +4612,7 @@ class ConstantVisitorTest extends ResolverTestCase {
         new ErrorReporter(errorListener, _dummySource());
     DartObjectImpl result = expression.accept(
         new ConstantVisitor.con1(new TestTypeProvider(), errorReporter));
-    JUnitTestCase.assertNull(result);
+    expect(result, isNull);
     errorListener.assertErrorsWithCodes(
         [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL]);
   }
@@ -4827,7 +4629,7 @@ class ConstantVisitorTest extends ResolverTestCase {
         new ErrorReporter(errorListener, _dummySource());
     DartObjectImpl result = expression.accept(
         new ConstantVisitor.con1(new TestTypeProvider(), errorReporter));
-    JUnitTestCase.assertNull(result);
+    expect(result, isNull);
     errorListener.assertErrorsWithCodes(
         [CompileTimeErrorCode.INVALID_CONSTANT]);
   }
@@ -4844,7 +4646,7 @@ class ConstantVisitorTest extends ResolverTestCase {
         new ErrorReporter(errorListener, _dummySource());
     DartObjectImpl result = expression.accept(
         new ConstantVisitor.con1(new TestTypeProvider(), errorReporter));
-    JUnitTestCase.assertNull(result);
+    expect(result, isNull);
     errorListener.assertErrorsWithCodes(
         [CompileTimeErrorCode.INVALID_CONSTANT]);
   }
@@ -4868,7 +4670,9 @@ class ConstantVisitorTest extends ResolverTestCase {
 
   void test_visitSimpleIdentifier_inEnvironment() {
     CompilationUnit compilationUnit =
-        resolveSource(EngineTestCase.createSource(["const a = b;", "const b = 3;"]));
+        resolveSource(r'''
+const a = b;
+const b = 3;''');
     Map<String, DartObjectImpl> environment = new Map<String, DartObjectImpl>();
     DartObjectImpl six =
         new DartObjectImpl(typeProvider.intType, new IntState(6));
@@ -4878,7 +4682,9 @@ class ConstantVisitorTest extends ResolverTestCase {
 
   void test_visitSimpleIdentifier_notInEnvironment() {
     CompilationUnit compilationUnit =
-        resolveSource(EngineTestCase.createSource(["const a = b;", "const b = 3;"]));
+        resolveSource(r'''
+const a = b;
+const b = 3;''');
     Map<String, DartObjectImpl> environment = new Map<String, DartObjectImpl>();
     DartObjectImpl six =
         new DartObjectImpl(typeProvider.intType, new IntState(6));
@@ -4888,14 +4694,16 @@ class ConstantVisitorTest extends ResolverTestCase {
 
   void test_visitSimpleIdentifier_withoutEnvironment() {
     CompilationUnit compilationUnit =
-        resolveSource(EngineTestCase.createSource(["const a = b;", "const b = 3;"]));
+        resolveSource(r'''
+const a = b;
+const b = 3;''');
     _assertValue(3, _evaluateConstant(compilationUnit, "a", null));
   }
 
   void _assertValue(int expectedValue, DartObjectImpl result) {
-    JUnitTestCase.assertNotNull(result);
-    JUnitTestCase.assertEquals("int", result.type.name);
-    JUnitTestCase.assertEquals(expectedValue, result.intValue);
+    expect(result, isNotNull);
+    expect(result.type.name, "int");
+    expect(result.intValue, expectedValue);
   }
 
   NonExistingSource _dummySource() {
@@ -4917,21 +4725,21 @@ class ConstantVisitorTest extends ResolverTestCase {
 }
 
 
-class ContentCacheTest extends JUnitTestCase {
+class ContentCacheTest {
   void test_setContents() {
     Source source = new TestSource();
     ContentCache cache = new ContentCache();
-    JUnitTestCase.assertNull(cache.getContents(source));
-    JUnitTestCase.assertNull(cache.getModificationStamp(source));
+    expect(cache.getContents(source), isNull);
+    expect(cache.getModificationStamp(source), isNull);
     String contents = "library lib;";
-    JUnitTestCase.assertNull(cache.setContents(source, contents));
-    JUnitTestCase.assertEquals(contents, cache.getContents(source));
-    JUnitTestCase.assertNotNull(cache.getModificationStamp(source));
-    JUnitTestCase.assertEquals(contents, cache.setContents(source, contents));
-    JUnitTestCase.assertEquals(contents, cache.setContents(source, null));
-    JUnitTestCase.assertNull(cache.getContents(source));
-    JUnitTestCase.assertNull(cache.getModificationStamp(source));
-    JUnitTestCase.assertNull(cache.setContents(source, null));
+    expect(cache.setContents(source, contents), isNull);
+    expect(cache.getContents(source), contents);
+    expect(cache.getModificationStamp(source), isNotNull);
+    expect(cache.setContents(source, contents), contents);
+    expect(cache.setContents(source, null), contents);
+    expect(cache.getContents(source), isNull);
+    expect(cache.getModificationStamp(source), isNull);
+    expect(cache.setContents(source, null), isNull);
   }
 }
 
@@ -4940,21 +4748,21 @@ class DartObjectImplTest extends EngineTestCase {
   TypeProvider _typeProvider = new TestTypeProvider();
 
   void fail_add_knownString_knownString() {
-    JUnitTestCase.fail("New constant semantics are not yet enabled");
+    fail("New constant semantics are not yet enabled");
     _assertAdd(_stringValue("ab"), _stringValue("a"), _stringValue("b"));
   }
 
   void fail_add_knownString_unknownString() {
-    JUnitTestCase.fail("New constant semantics are not yet enabled");
+    fail("New constant semantics are not yet enabled");
     _assertAdd(_stringValue(null), _stringValue("a"), _stringValue(null));
   }
 
   void fail_add_unknownString_knownString() {
-    JUnitTestCase.fail("New constant semantics are not yet enabled");
+    fail("New constant semantics are not yet enabled");
     _assertAdd(_stringValue(null), _stringValue(null), _stringValue("b"));
   }
   void fail_add_unknownString_unknownString() {
-    JUnitTestCase.fail("New constant semantics are not yet enabled");
+    fail("New constant semantics are not yet enabled");
     _assertAdd(_stringValue(null), _stringValue(null), _stringValue(null));
   }
 
@@ -5252,87 +5060,83 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_equals_list_false_differentSizes() {
-    JUnitTestCase.assertFalse(
-        _listValue([_boolValue(true)]) ==
-            _listValue([_boolValue(true), _boolValue(false)]));
+    expect(_listValue([_boolValue(true)]) ==
+            _listValue([_boolValue(true), _boolValue(false)]), isFalse);
   }
 
   void test_equals_list_false_sameSize() {
-    JUnitTestCase.assertFalse(
-        _listValue([_boolValue(true)]) == _listValue([_boolValue(false)]));
+    expect(_listValue([_boolValue(true)]) == _listValue([_boolValue(false)]), isFalse);
   }
 
   void test_equals_list_true_empty() {
-    JUnitTestCase.assertEquals(_listValue([]), _listValue([]));
+    expect(_listValue([]), _listValue([]));
   }
 
   void test_equals_list_true_nonEmpty() {
-    JUnitTestCase.assertEquals(
-        _listValue([_boolValue(true)]),
-        _listValue([_boolValue(true)]));
+    expect(_listValue([_boolValue(true)]), _listValue([_boolValue(true)]));
   }
 
   void test_equals_map_true_empty() {
-    JUnitTestCase.assertEquals(_mapValue([]), _mapValue([]));
+    expect(_mapValue([]), _mapValue([]));
   }
 
   void test_equals_symbol_false() {
-    JUnitTestCase.assertFalse(_symbolValue("a") == _symbolValue("b"));
+    expect(_symbolValue("a") == _symbolValue("b"), isFalse);
   }
 
   void test_equals_symbol_true() {
-    JUnitTestCase.assertEquals(_symbolValue("a"), _symbolValue("a"));
+    expect(_symbolValue("a"), _symbolValue("a"));
   }
 
   void test_getValue_bool_false() {
-    JUnitTestCase.assertEquals(false, _boolValue(false).value);
+    expect(_boolValue(false).value, false);
   }
 
   void test_getValue_bool_true() {
-    JUnitTestCase.assertEquals(true, _boolValue(true).value);
+    expect(_boolValue(true).value, true);
   }
 
   void test_getValue_bool_unknown() {
-    JUnitTestCase.assertNull(_boolValue(null).value);
+    expect(_boolValue(null).value, isNull);
   }
 
   void test_getValue_double_known() {
     double value = 2.3;
-    JUnitTestCase.assertEquals(value, _doubleValue(value).value);
+    expect(_doubleValue(value).value, value);
   }
 
   void test_getValue_double_unknown() {
-    JUnitTestCase.assertNull(_doubleValue(null).value);
+    expect(_doubleValue(null).value, isNull);
   }
 
   void test_getValue_int_known() {
     int value = 23;
-    JUnitTestCase.assertEquals(value, _intValue(value).value);
+    expect(_intValue(value).value, value);
   }
 
   void test_getValue_int_unknown() {
-    JUnitTestCase.assertNull(_intValue(null).value);
+    expect(_intValue(null).value, isNull);
   }
 
   void test_getValue_list_empty() {
     Object result = _listValue([]).value;
     _assertInstanceOfObjectArray(result);
     List<Object> array = result as List<Object>;
-    EngineTestCase.assertLength(0, array);
+    expect(array, hasLength(0));
   }
 
   void test_getValue_list_valid() {
     Object result = _listValue([_intValue(23)]).value;
     _assertInstanceOfObjectArray(result);
     List<Object> array = result as List<Object>;
-    EngineTestCase.assertLength(1, array);
+    expect(array, hasLength(1));
   }
 
   void test_getValue_map_empty() {
     Object result = _mapValue([]).value;
     EngineTestCase.assertInstanceOf((obj) => obj is Map, Map, result);
     Map map = result as Map;
-    EngineTestCase.assertSizeOfMap(0, map);
+    expect(map, hasLength(0));
   }
 
   void test_getValue_map_valid() {
@@ -5340,20 +5144,20 @@ class DartObjectImplTest extends EngineTestCase {
         _mapValue([_stringValue("key"), _stringValue("value")]).value;
     EngineTestCase.assertInstanceOf((obj) => obj is Map, Map, result);
     Map map = result as Map;
-    EngineTestCase.assertSizeOfMap(1, map);
+    expect(map, hasLength(1));
   }
 
   void test_getValue_null() {
-    JUnitTestCase.assertNull(_nullValue().value);
+    expect(_nullValue().value, isNull);
   }
 
   void test_getValue_string_known() {
     String value = "twenty-three";
-    JUnitTestCase.assertEquals(value, _stringValue(value).value);
+    expect(_stringValue(value).value, value);
   }
 
   void test_getValue_string_unknown() {
-    JUnitTestCase.assertNull(_stringValue(null).value);
+    expect(_stringValue(null).value, isNull);
   }
 
   void test_greaterThanOrEqual_knownDouble_knownDouble_false() {
@@ -5515,82 +5319,79 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_hasExactValue_bool_false() {
-    JUnitTestCase.assertTrue(_boolValue(false).hasExactValue);
+    expect(_boolValue(false).hasExactValue, isTrue);
   }
 
   void test_hasExactValue_bool_true() {
-    JUnitTestCase.assertTrue(_boolValue(true).hasExactValue);
+    expect(_boolValue(true).hasExactValue, isTrue);
   }
 
   void test_hasExactValue_bool_unknown() {
-    JUnitTestCase.assertTrue(_boolValue(null).hasExactValue);
+    expect(_boolValue(null).hasExactValue, isTrue);
   }
 
   void test_hasExactValue_double_known() {
-    JUnitTestCase.assertTrue(_doubleValue(2.3).hasExactValue);
+    expect(_doubleValue(2.3).hasExactValue, isTrue);
   }
 
   void test_hasExactValue_double_unknown() {
-    JUnitTestCase.assertTrue(_doubleValue(null).hasExactValue);
+    expect(_doubleValue(null).hasExactValue, isTrue);
   }
 
   void test_hasExactValue_dynamic() {
-    JUnitTestCase.assertFalse(_dynamicValue().hasExactValue);
+    expect(_dynamicValue().hasExactValue, isFalse);
   }
 
   void test_hasExactValue_int_known() {
-    JUnitTestCase.assertTrue(_intValue(23).hasExactValue);
+    expect(_intValue(23).hasExactValue, isTrue);
   }
 
   void test_hasExactValue_int_unknown() {
-    JUnitTestCase.assertTrue(_intValue(null).hasExactValue);
+    expect(_intValue(null).hasExactValue, isTrue);
   }
 
   void test_hasExactValue_list_empty() {
-    JUnitTestCase.assertTrue(_listValue([]).hasExactValue);
+    expect(_listValue([]).hasExactValue, isTrue);
   }
 
   void test_hasExactValue_list_invalid() {
-    JUnitTestCase.assertFalse(_dynamicValue().hasExactValue);
+    expect(_dynamicValue().hasExactValue, isFalse);
   }
 
   void test_hasExactValue_list_valid() {
-    JUnitTestCase.assertTrue(_listValue([_intValue(23)]).hasExactValue);
+    expect(_listValue([_intValue(23)]).hasExactValue, isTrue);
   }
 
   void test_hasExactValue_map_empty() {
-    JUnitTestCase.assertTrue(_mapValue([]).hasExactValue);
+    expect(_mapValue([]).hasExactValue, isTrue);
   }
 
   void test_hasExactValue_map_invalidKey() {
-    JUnitTestCase.assertFalse(
-        _mapValue([_dynamicValue(), _stringValue("value")]).hasExactValue);
+    expect(_mapValue([_dynamicValue(), _stringValue("value")]).hasExactValue, isFalse);
   }
 
   void test_hasExactValue_map_invalidValue() {
-    JUnitTestCase.assertFalse(
-        _mapValue([_stringValue("key"), _dynamicValue()]).hasExactValue);
+    expect(_mapValue([_stringValue("key"), _dynamicValue()]).hasExactValue, isFalse);
   }
 
   void test_hasExactValue_map_valid() {
-    JUnitTestCase.assertTrue(
-        _mapValue([_stringValue("key"), _stringValue("value")]).hasExactValue);
+    expect(_mapValue([_stringValue("key"), _stringValue("value")]).hasExactValue, isTrue);
   }
 
   void test_hasExactValue_null() {
-    JUnitTestCase.assertTrue(_nullValue().hasExactValue);
+    expect(_nullValue().hasExactValue, isTrue);
   }
 
   void test_hasExactValue_num() {
-    JUnitTestCase.assertFalse(_numValue().hasExactValue);
+    expect(_numValue().hasExactValue, isFalse);
   }
 
   void test_hasExactValue_string_known() {
-    JUnitTestCase.assertTrue(_stringValue("twenty-three").hasExactValue);
+    expect(_stringValue("twenty-three").hasExactValue, isTrue);
   }
 
   void test_hasExactValue_string_unknown() {
-    JUnitTestCase.assertTrue(_stringValue(null).hasExactValue);
+    expect(_stringValue(null).hasExactValue, isTrue);
   }
 
   void test_integerDivide_knownDouble_knownDouble() {
@@ -5652,56 +5453,55 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_isBoolNumStringOrNull_bool_false() {
-    JUnitTestCase.assertTrue(_boolValue(false).isBoolNumStringOrNull);
+    expect(_boolValue(false).isBoolNumStringOrNull, isTrue);
   }
 
   void test_isBoolNumStringOrNull_bool_true() {
-    JUnitTestCase.assertTrue(_boolValue(true).isBoolNumStringOrNull);
+    expect(_boolValue(true).isBoolNumStringOrNull, isTrue);
   }
 
   void test_isBoolNumStringOrNull_bool_unknown() {
-    JUnitTestCase.assertTrue(_boolValue(null).isBoolNumStringOrNull);
+    expect(_boolValue(null).isBoolNumStringOrNull, isTrue);
   }
 
   void test_isBoolNumStringOrNull_double_known() {
-    JUnitTestCase.assertTrue(_doubleValue(2.3).isBoolNumStringOrNull);
+    expect(_doubleValue(2.3).isBoolNumStringOrNull, isTrue);
   }
 
   void test_isBoolNumStringOrNull_double_unknown() {
-    JUnitTestCase.assertTrue(_doubleValue(null).isBoolNumStringOrNull);
+    expect(_doubleValue(null).isBoolNumStringOrNull, isTrue);
   }
 
   void test_isBoolNumStringOrNull_dynamic() {
-    JUnitTestCase.assertTrue(_dynamicValue().isBoolNumStringOrNull);
+    expect(_dynamicValue().isBoolNumStringOrNull, isTrue);
   }
 
   void test_isBoolNumStringOrNull_int_known() {
-    JUnitTestCase.assertTrue(_intValue(23).isBoolNumStringOrNull);
+    expect(_intValue(23).isBoolNumStringOrNull, isTrue);
   }
 
   void test_isBoolNumStringOrNull_int_unknown() {
-    JUnitTestCase.assertTrue(_intValue(null).isBoolNumStringOrNull);
+    expect(_intValue(null).isBoolNumStringOrNull, isTrue);
   }
 
   void test_isBoolNumStringOrNull_list() {
-    JUnitTestCase.assertFalse(_listValue([]).isBoolNumStringOrNull);
+    expect(_listValue([]).isBoolNumStringOrNull, isFalse);
   }
 
   void test_isBoolNumStringOrNull_null() {
-    JUnitTestCase.assertTrue(_nullValue().isBoolNumStringOrNull);
+    expect(_nullValue().isBoolNumStringOrNull, isTrue);
   }
 
   void test_isBoolNumStringOrNull_num() {
-    JUnitTestCase.assertTrue(_numValue().isBoolNumStringOrNull);
+    expect(_numValue().isBoolNumStringOrNull, isTrue);
   }
 
   void test_isBoolNumStringOrNull_string_known() {
-    JUnitTestCase.assertTrue(
-        _stringValue("twenty-three").isBoolNumStringOrNull);
+    expect(_stringValue("twenty-three").isBoolNumStringOrNull, isTrue);
   }
 
   void test_isBoolNumStringOrNull_string_unknown() {
-    JUnitTestCase.assertTrue(_stringValue(null).isBoolNumStringOrNull);
+    expect(_stringValue(null).isBoolNumStringOrNull, isTrue);
   }
 
   void test_lessThanOrEqual_knownDouble_knownDouble_false() {
@@ -5857,7 +5657,7 @@ class DartObjectImplTest extends EngineTestCase {
   void test_logicalAnd_false_null() {
     try {
       _assertLogicalAnd(_boolValue(false), _boolValue(false), _nullValue());
-      JUnitTestCase.fail("Expected EvaluationException");
+      fail("Expected EvaluationException");
     } on EvaluationException catch (exception) {
     }
   }
@@ -5868,7 +5668,7 @@ class DartObjectImplTest extends EngineTestCase {
           _boolValue(false),
           _boolValue(false),
           _stringValue("false"));
-      JUnitTestCase.fail("Expected EvaluationException");
+      fail("Expected EvaluationException");
     } on EvaluationException catch (exception) {
     }
   }
@@ -5880,7 +5680,7 @@ class DartObjectImplTest extends EngineTestCase {
   void test_logicalAnd_null_false() {
     try {
       _assertLogicalAnd(_boolValue(false), _nullValue(), _boolValue(false));
-      JUnitTestCase.fail("Expected EvaluationException");
+      fail("Expected EvaluationException");
     } on EvaluationException catch (exception) {
     }
   }
@@ -5888,7 +5688,7 @@ class DartObjectImplTest extends EngineTestCase {
   void test_logicalAnd_null_true() {
     try {
       _assertLogicalAnd(_boolValue(false), _nullValue(), _boolValue(true));
-      JUnitTestCase.fail("Expected EvaluationException");
+      fail("Expected EvaluationException");
     } on EvaluationException catch (exception) {
     }
   }
@@ -5899,7 +5699,7 @@ class DartObjectImplTest extends EngineTestCase {
           _boolValue(false),
           _stringValue("true"),
           _boolValue(false));
-      JUnitTestCase.fail("Expected EvaluationException");
+      fail("Expected EvaluationException");
     } on EvaluationException catch (exception) {
     }
   }
@@ -5910,7 +5710,7 @@ class DartObjectImplTest extends EngineTestCase {
           _boolValue(false),
           _stringValue("false"),
           _boolValue(true));
-      JUnitTestCase.fail("Expected EvaluationException");
+      fail("Expected EvaluationException");
     } on EvaluationException catch (exception) {
     }
   }
@@ -5929,7 +5729,7 @@ class DartObjectImplTest extends EngineTestCase {
           _boolValue(false),
           _boolValue(true),
           _stringValue("true"));
-      JUnitTestCase.fail("Expected EvaluationException");
+      fail("Expected EvaluationException");
     } on EvaluationException catch (exception) {
     }
   }
@@ -5949,7 +5749,7 @@ class DartObjectImplTest extends EngineTestCase {
   void test_logicalNot_string() {
     try {
       _assertLogicalNot(_boolValue(true), _stringValue(null));
-      JUnitTestCase.fail("Expected EvaluationException");
+      fail("Expected EvaluationException");
     } on EvaluationException catch (exception) {
     }
   }
@@ -5976,7 +5776,7 @@ class DartObjectImplTest extends EngineTestCase {
           _boolValue(false),
           _boolValue(false),
           _stringValue("false"));
-      JUnitTestCase.fail("Expected EvaluationException");
+      fail("Expected EvaluationException");
     } on EvaluationException catch (exception) {
     }
   }
@@ -5988,7 +5788,7 @@ class DartObjectImplTest extends EngineTestCase {
   void test_logicalOr_null_false() {
     try {
       _assertLogicalOr(_boolValue(false), _nullValue(), _boolValue(false));
-      JUnitTestCase.fail("Expected EvaluationException");
+      fail("Expected EvaluationException");
     } on EvaluationException catch (exception) {
     }
   }
@@ -5996,7 +5796,7 @@ class DartObjectImplTest extends EngineTestCase {
   void test_logicalOr_null_true() {
     try {
       _assertLogicalOr(_boolValue(true), _nullValue(), _boolValue(true));
-      JUnitTestCase.fail("Expected EvaluationException");
+      fail("Expected EvaluationException");
     } on EvaluationException catch (exception) {
     }
   }
@@ -6007,7 +5807,7 @@ class DartObjectImplTest extends EngineTestCase {
           _boolValue(false),
           _stringValue("true"),
           _boolValue(false));
-      JUnitTestCase.fail("Expected EvaluationException");
+      fail("Expected EvaluationException");
     } on EvaluationException catch (exception) {
     }
   }
@@ -6018,7 +5818,7 @@ class DartObjectImplTest extends EngineTestCase {
           _boolValue(true),
           _stringValue("false"),
           _boolValue(true));
-      JUnitTestCase.fail("Expected EvaluationException");
+      fail("Expected EvaluationException");
     } on EvaluationException catch (exception) {
     }
   }
@@ -6030,7 +5830,7 @@ class DartObjectImplTest extends EngineTestCase {
   void test_logicalOr_true_null() {
     try {
       _assertLogicalOr(_boolValue(true), _boolValue(true), _nullValue());
-      JUnitTestCase.fail("Expected EvaluationException");
+      fail("Expected EvaluationException");
     } on EvaluationException catch (exception) {
     }
   }
@@ -6041,7 +5841,7 @@ class DartObjectImplTest extends EngineTestCase {
           _boolValue(true),
           _boolValue(true),
           _stringValue("true"));
-      JUnitTestCase.fail("Expected EvaluationException");
+      fail("Expected EvaluationException");
     } on EvaluationException catch (exception) {
     }
   }
@@ -6334,7 +6134,7 @@ class DartObjectImplTest extends EngineTestCase {
   void test_stringLength_int() {
     try {
       _assertStringLength(_intValue(null), _intValue(0));
-      JUnitTestCase.fail("Expected EvaluationException");
+      fail("Expected EvaluationException");
     } on EvaluationException catch (exception) {
     }
   }
@@ -6413,13 +6213,13 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         leftOperand.add(_typeProvider, rightOperand);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result = leftOperand.add(_typeProvider, rightOperand);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6437,13 +6237,13 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         leftOperand.bitAnd(_typeProvider, rightOperand);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result = leftOperand.bitAnd(_typeProvider, rightOperand);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6459,13 +6259,13 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         operand.bitNot(_typeProvider);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result = operand.bitNot(_typeProvider);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6483,13 +6283,13 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         leftOperand.bitOr(_typeProvider, rightOperand);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result = leftOperand.bitOr(_typeProvider, rightOperand);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6507,13 +6307,13 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         leftOperand.bitXor(_typeProvider, rightOperand);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result = leftOperand.bitXor(_typeProvider, rightOperand);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6531,14 +6331,14 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         leftOperand.concatenate(_typeProvider, rightOperand);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result =
           leftOperand.concatenate(_typeProvider, rightOperand);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6556,13 +6356,13 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         leftOperand.divide(_typeProvider, rightOperand);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result = leftOperand.divide(_typeProvider, rightOperand);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6580,14 +6380,14 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         leftOperand.equalEqual(_typeProvider, rightOperand);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result =
           leftOperand.equalEqual(_typeProvider, rightOperand);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6605,14 +6405,14 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         leftOperand.greaterThan(_typeProvider, rightOperand);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result =
           leftOperand.greaterThan(_typeProvider, rightOperand);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6630,14 +6430,14 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         leftOperand.greaterThanOrEqual(_typeProvider, rightOperand);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result =
           leftOperand.greaterThanOrEqual(_typeProvider, rightOperand);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6659,14 +6459,14 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         leftOperand.integerDivide(_typeProvider, rightOperand);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result =
           leftOperand.integerDivide(_typeProvider, rightOperand);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6684,13 +6484,13 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         leftOperand.lessThan(_typeProvider, rightOperand);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result = leftOperand.lessThan(_typeProvider, rightOperand);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6708,14 +6508,14 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         leftOperand.lessThanOrEqual(_typeProvider, rightOperand);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result =
           leftOperand.lessThanOrEqual(_typeProvider, rightOperand);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6733,14 +6533,14 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         leftOperand.logicalAnd(_typeProvider, rightOperand);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result =
           leftOperand.logicalAnd(_typeProvider, rightOperand);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6756,13 +6556,13 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         operand.logicalNot(_typeProvider);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result = operand.logicalNot(_typeProvider);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6780,14 +6580,14 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         leftOperand.logicalOr(_typeProvider, rightOperand);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result =
           leftOperand.logicalOr(_typeProvider, rightOperand);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6805,13 +6605,13 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         leftOperand.minus(_typeProvider, rightOperand);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result = leftOperand.minus(_typeProvider, rightOperand);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6827,13 +6627,13 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         operand.negated(_typeProvider);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result = operand.negated(_typeProvider);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6851,13 +6651,13 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         leftOperand.notEqual(_typeProvider, rightOperand);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result = leftOperand.notEqual(_typeProvider, rightOperand);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6873,13 +6673,13 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         operand.performToString(_typeProvider);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result = operand.performToString(_typeProvider);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6897,14 +6697,14 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         leftOperand.remainder(_typeProvider, rightOperand);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result =
           leftOperand.remainder(_typeProvider, rightOperand);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6922,14 +6722,14 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         leftOperand.shiftLeft(_typeProvider, rightOperand);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result =
           leftOperand.shiftLeft(_typeProvider, rightOperand);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6947,14 +6747,14 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         leftOperand.shiftRight(_typeProvider, rightOperand);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result =
           leftOperand.shiftRight(_typeProvider, rightOperand);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6970,13 +6770,13 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         operand.stringLength(_typeProvider);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result = operand.stringLength(_typeProvider);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -6994,13 +6794,13 @@ class DartObjectImplTest extends EngineTestCase {
     if (expected == null) {
       try {
         leftOperand.times(_typeProvider, rightOperand);
-        JUnitTestCase.fail("Expected an EvaluationException");
+        fail("Expected an EvaluationException");
       } on EvaluationException catch (exception) {
       }
     } else {
       DartObjectImpl result = leftOperand.times(_typeProvider, rightOperand);
-      JUnitTestCase.assertNotNull(result);
-      JUnitTestCase.assertEquals(expected, result);
+      expect(result, isNotNull);
+      expect(result, expected);
     }
   }
 
@@ -7014,7 +6814,7 @@ class DartObjectImplTest extends EngineTestCase {
     } else if (identical(value, true)) {
       return new DartObjectImpl(_typeProvider.boolType, BoolState.TRUE_STATE);
     }
-    JUnitTestCase.fail("Invalid boolean value used in test");
+    fail("Invalid boolean value used in test");
     return null;
   }
 
@@ -7084,47 +6884,47 @@ class DartObjectImplTest extends EngineTestCase {
 }
 
 
-class DartUriResolverTest extends JUnitTestCase {
+class DartUriResolverTest {
   void test_creation() {
     JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    JUnitTestCase.assertNotNull(sdkDirectory);
+    expect(sdkDirectory, isNotNull);
     DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
-    JUnitTestCase.assertNotNull(new DartUriResolver(sdk));
+    expect(new DartUriResolver(sdk), isNotNull);
   }
 
   void test_isDartUri_null_scheme() {
     Uri uri = parseUriWithException("foo.dart");
-    JUnitTestCase.assertEquals(uri.scheme, '');
-    JUnitTestCase.assertFalse(DartUriResolver.isDartUri(uri));
+    expect('', uri.scheme);
+    expect(DartUriResolver.isDartUri(uri), isFalse);
   }
 
   void test_resolve_dart() {
     JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    JUnitTestCase.assertNotNull(sdkDirectory);
+    expect(sdkDirectory, isNotNull);
     DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
     UriResolver resolver = new DartUriResolver(sdk);
     Source result =
         resolver.resolveAbsolute(parseUriWithException("dart:core"));
-    JUnitTestCase.assertNotNull(result);
+    expect(result, isNotNull);
   }
 
   void test_resolve_dart_nonExistingLibrary() {
     JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    JUnitTestCase.assertNotNull(sdkDirectory);
+    expect(sdkDirectory, isNotNull);
     DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
     UriResolver resolver = new DartUriResolver(sdk);
     Source result = resolver.resolveAbsolute(parseUriWithException("dart:cor"));
-    JUnitTestCase.assertNull(result);
+    expect(result, isNull);
   }
 
   void test_resolve_nonDart() {
     JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    JUnitTestCase.assertNotNull(sdkDirectory);
+    expect(sdkDirectory, isNotNull);
     DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
     UriResolver resolver = new DartUriResolver(sdk);
     Source result =
         resolver.resolveAbsolute(parseUriWithException("package:some/file.dart"));
-    JUnitTestCase.assertNull(result);
+    expect(result, isNull);
   }
 }
 
@@ -7136,8 +6936,8 @@ class DeclaredVariablesTest extends EngineTestCase {
     DeclaredVariables variables = new DeclaredVariables();
     variables.define(variableName, "false");
     DartObject object = variables.getBool(typeProvider, variableName);
-    JUnitTestCase.assertNotNull(object);
-    JUnitTestCase.assertEquals(false, object.boolValue);
+    expect(object, isNotNull);
+    expect(object.boolValue, false);
   }
 
   void test_getBool_invalid() {
@@ -7156,15 +6956,16 @@ class DeclaredVariablesTest extends EngineTestCase {
     DeclaredVariables variables = new DeclaredVariables();
     variables.define(variableName, "true");
     DartObject object = variables.getBool(typeProvider, variableName);
-    JUnitTestCase.assertNotNull(object);
-    JUnitTestCase.assertEquals(true, object.boolValue);
+    expect(object, isNotNull);
+    expect(object.boolValue, true);
   }
 
   void test_getBool_undefined() {
     TestTypeProvider typeProvider = new TestTypeProvider();
     String variableName = "var";
     DeclaredVariables variables = new DeclaredVariables();
-    _assertUnknownDartObject(variables.getBool(typeProvider, variableName));
+    _assertUnknownDartObject(typeProvider.boolType,
+        variables.getBool(typeProvider, variableName));
   }
 
   void test_getInt_invalid() {
@@ -7181,7 +6982,8 @@ class DeclaredVariablesTest extends EngineTestCase {
     TestTypeProvider typeProvider = new TestTypeProvider();
     String variableName = "var";
     DeclaredVariables variables = new DeclaredVariables();
-    _assertUnknownDartObject(variables.getInt(typeProvider, variableName));
+    _assertUnknownDartObject(typeProvider.intType,
+        variables.getInt(typeProvider, variableName));
   }
 
   void test_getInt_valid() {
@@ -7190,8 +6992,8 @@ class DeclaredVariablesTest extends EngineTestCase {
     DeclaredVariables variables = new DeclaredVariables();
     variables.define(variableName, "23");
     DartObject object = variables.getInt(typeProvider, variableName);
-    JUnitTestCase.assertNotNull(object);
-    JUnitTestCase.assertEquals(23, object.intValue);
+    expect(object, isNotNull);
+    expect(object.intValue, 23);
   }
 
   void test_getString_defined() {
@@ -7201,43 +7003,45 @@ class DeclaredVariablesTest extends EngineTestCase {
     DeclaredVariables variables = new DeclaredVariables();
     variables.define(variableName, value);
     DartObject object = variables.getString(typeProvider, variableName);
-    JUnitTestCase.assertNotNull(object);
-    JUnitTestCase.assertEquals(value, object.stringValue);
+    expect(object, isNotNull);
+    expect(object.stringValue, value);
   }
 
   void test_getString_undefined() {
     TestTypeProvider typeProvider = new TestTypeProvider();
     String variableName = "var";
     DeclaredVariables variables = new DeclaredVariables();
-    _assertUnknownDartObject(variables.getString(typeProvider, variableName));
+    _assertUnknownDartObject(typeProvider.stringType,
+        variables.getString(typeProvider, variableName));
   }
 
   void _assertNullDartObject(TestTypeProvider typeProvider, DartObject result) {
-    JUnitTestCase.assertEquals(typeProvider.nullType, result.type);
+    expect(result.type, typeProvider.nullType);
   }
 
-  void _assertUnknownDartObject(DartObject result) {
-    JUnitTestCase.assertTrue((result as DartObjectImpl).isUnknown);
+  void _assertUnknownDartObject(ParameterizedType expectedType,
+                                DartObject result) {
+    expect((result as DartObjectImpl).isUnknown, isTrue);
+    expect(result.type, expectedType);
   }
 }
 
 
-class DirectoryBasedDartSdkTest extends JUnitTestCase {
+class DirectoryBasedDartSdkTest {
   void fail_getDocFileFor() {
     DirectoryBasedDartSdk sdk = _createDartSdk();
     JavaFile docFile = sdk.getDocFileFor("html");
-    JUnitTestCase.assertNotNull(docFile);
+    expect(docFile, isNotNull);
   }
 
   void test_creation() {
     DirectoryBasedDartSdk sdk = _createDartSdk();
-    JUnitTestCase.assertNotNull(sdk);
+    expect(sdk, isNotNull);
   }
 
   void test_fromFile_invalid() {
     DirectoryBasedDartSdk sdk = _createDartSdk();
-    JUnitTestCase.assertNull(
-        sdk.fromFileUri(new JavaFile("/not/in/the/sdk.dart").toURI()));
+    expect(sdk.fromFileUri(new JavaFile("/not/in/the/sdk.dart").toURI()), isNull);
   }
 
   void test_fromFile_library() {
@@ -7246,9 +7050,9 @@ class DirectoryBasedDartSdkTest extends JUnitTestCase {
         new JavaFile.relative(
             new JavaFile.relative(sdk.libraryDirectory, "core"),
             "core.dart").toURI());
-    JUnitTestCase.assertNotNull(source);
-    JUnitTestCase.assertTrue(source.isInSystemLibrary);
-    JUnitTestCase.assertEquals("dart:core", source.uri.toString());
+    expect(source, isNotNull);
+    expect(source.isInSystemLibrary, isTrue);
+    expect(source.uri.toString(), "dart:core");
   }
 
   void test_fromFile_part() {
@@ -7257,81 +7061,79 @@ class DirectoryBasedDartSdkTest extends JUnitTestCase {
         new JavaFile.relative(
             new JavaFile.relative(sdk.libraryDirectory, "core"),
             "num.dart").toURI());
-    JUnitTestCase.assertNotNull(source);
-    JUnitTestCase.assertTrue(source.isInSystemLibrary);
-    JUnitTestCase.assertEquals("dart:core/num.dart", source.uri.toString());
+    expect(source, isNotNull);
+    expect(source.isInSystemLibrary, isTrue);
+    expect(source.uri.toString(), "dart:core/num.dart");
   }
 
   void test_getDart2JsExecutable() {
     DirectoryBasedDartSdk sdk = _createDartSdk();
     JavaFile executable = sdk.dart2JsExecutable;
-    JUnitTestCase.assertNotNull(executable);
-    JUnitTestCase.assertTrue(executable.exists());
-    JUnitTestCase.assertTrue(executable.isExecutable());
+    expect(executable, isNotNull);
+    expect(executable.exists(), isTrue);
+    expect(executable.isExecutable(), isTrue);
   }
 
   void test_getDartFmtExecutable() {
     DirectoryBasedDartSdk sdk = _createDartSdk();
     JavaFile executable = sdk.dartFmtExecutable;
-    JUnitTestCase.assertNotNull(executable);
-    JUnitTestCase.assertTrue(executable.exists());
-    JUnitTestCase.assertTrue(executable.isExecutable());
+    expect(executable, isNotNull);
+    expect(executable.exists(), isTrue);
+    expect(executable.isExecutable(), isTrue);
   }
 
   void test_getDirectory() {
     DirectoryBasedDartSdk sdk = _createDartSdk();
     JavaFile directory = sdk.directory;
-    JUnitTestCase.assertNotNull(directory);
-    JUnitTestCase.assertTrue(directory.exists());
+    expect(directory, isNotNull);
+    expect(directory.exists(), isTrue);
   }
 
   void test_getDocDirectory() {
     DirectoryBasedDartSdk sdk = _createDartSdk();
     JavaFile directory = sdk.docDirectory;
-    JUnitTestCase.assertNotNull(directory);
+    expect(directory, isNotNull);
   }
 
   void test_getLibraryDirectory() {
     DirectoryBasedDartSdk sdk = _createDartSdk();
     JavaFile directory = sdk.libraryDirectory;
-    JUnitTestCase.assertNotNull(directory);
-    JUnitTestCase.assertTrue(directory.exists());
+    expect(directory, isNotNull);
+    expect(directory.exists(), isTrue);
   }
 
   void test_getPubExecutable() {
     DirectoryBasedDartSdk sdk = _createDartSdk();
     JavaFile executable = sdk.pubExecutable;
-    JUnitTestCase.assertNotNull(executable);
-    JUnitTestCase.assertTrue(executable.exists());
-    JUnitTestCase.assertTrue(executable.isExecutable());
+    expect(executable, isNotNull);
+    expect(executable.exists(), isTrue);
+    expect(executable.isExecutable(), isTrue);
   }
 
   void test_getSdkVersion() {
     DirectoryBasedDartSdk sdk = _createDartSdk();
     String version = sdk.sdkVersion;
-    JUnitTestCase.assertNotNull(version);
-    JUnitTestCase.assertTrue(version.length > 0);
+    expect(version, isNotNull);
+    expect(version.length > 0, isTrue);
   }
 
   void test_getVmExecutable() {
     DirectoryBasedDartSdk sdk = _createDartSdk();
     JavaFile executable = sdk.vmExecutable;
-    JUnitTestCase.assertNotNull(executable);
-    JUnitTestCase.assertTrue(executable.exists());
-    JUnitTestCase.assertTrue(executable.isExecutable());
+    expect(executable, isNotNull);
+    expect(executable.exists(), isTrue);
+    expect(executable.isExecutable(), isTrue);
   }
 
   DirectoryBasedDartSdk _createDartSdk() {
     JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    JUnitTestCase.assertNotNullMsg(
-        "No SDK configured; set the property 'com.google.dart.sdk' on the command line",
-        sdkDirectory);
+    expect(sdkDirectory, isNotNull, reason: "No SDK configured; set the property 'com.google.dart.sdk' on the command line");
     return new DirectoryBasedDartSdk(sdkDirectory);
   }
 }
 
 
-class DirectoryBasedSourceContainerTest extends JUnitTestCase {
+class DirectoryBasedSourceContainerTest {
   void test_contains() {
     JavaFile dir = FileUtilities2.createFile("/does/not/exist");
     JavaFile file1 = FileUtilities2.createFile("/does/not/exist/some.dart");
@@ -7343,9 +7145,9 @@ class DirectoryBasedSourceContainerTest extends JUnitTestCase {
     FileBasedSource source3 = new FileBasedSource.con1(file3);
     DirectoryBasedSourceContainer container =
         new DirectoryBasedSourceContainer.con1(dir);
-    JUnitTestCase.assertTrue(container.contains(source1));
-    JUnitTestCase.assertTrue(container.contains(source2));
-    JUnitTestCase.assertFalse(container.contains(source3));
+    expect(container.contains(source1), isTrue);
+    expect(container.contains(source2), isTrue);
+    expect(container.contains(source3), isFalse);
   }
 }
 
@@ -7360,21 +7162,21 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.catchClause2(exceptionParameterName, stackParameterName, []);
     clause.accept(builder);
     List<LocalVariableElement> variables = holder.localVariables;
-    EngineTestCase.assertLength(2, variables);
+    expect(variables, hasLength(2));
     VariableElement exceptionVariable = variables[0];
-    JUnitTestCase.assertNotNull(exceptionVariable);
-    JUnitTestCase.assertEquals(exceptionParameterName, exceptionVariable.name);
-    JUnitTestCase.assertFalse(exceptionVariable.isSynthetic);
-    JUnitTestCase.assertFalse(exceptionVariable.isConst);
-    JUnitTestCase.assertFalse(exceptionVariable.isFinal);
-    JUnitTestCase.assertNull(exceptionVariable.initializer);
+    expect(exceptionVariable, isNotNull);
+    expect(exceptionVariable.name, exceptionParameterName);
+    expect(exceptionVariable.isSynthetic, isFalse);
+    expect(exceptionVariable.isConst, isFalse);
+    expect(exceptionVariable.isFinal, isFalse);
+    expect(exceptionVariable.initializer, isNull);
     VariableElement stackVariable = variables[1];
-    JUnitTestCase.assertNotNull(stackVariable);
-    JUnitTestCase.assertEquals(stackParameterName, stackVariable.name);
-    JUnitTestCase.assertFalse(stackVariable.isSynthetic);
-    JUnitTestCase.assertFalse(stackVariable.isConst);
-    JUnitTestCase.assertFalse(stackVariable.isFinal);
-    JUnitTestCase.assertNull(stackVariable.initializer);
+    expect(stackVariable, isNotNull);
+    expect(stackVariable.name, stackParameterName);
+    expect(stackVariable.isSynthetic, isFalse);
+    expect(stackVariable.isConst, isFalse);
+    expect(stackVariable.isFinal, isFalse);
+    expect(stackVariable.initializer, isNull);
   }
 
   void test_visitClassDeclaration_abstract() {
@@ -7391,14 +7193,14 @@ class ElementBuilderTest extends EngineTestCase {
         []);
     classDeclaration.accept(builder);
     List<ClassElement> types = holder.types;
-    EngineTestCase.assertLength(1, types);
+    expect(types, hasLength(1));
     ClassElement type = types[0];
-    JUnitTestCase.assertNotNull(type);
-    JUnitTestCase.assertEquals(className, type.name);
+    expect(type, isNotNull);
+    expect(type.name, className);
     List<TypeParameterElement> typeParameters = type.typeParameters;
-    EngineTestCase.assertLength(0, typeParameters);
-    JUnitTestCase.assertTrue(type.isAbstract);
-    JUnitTestCase.assertFalse(type.isSynthetic);
+    expect(typeParameters, hasLength(0));
+    expect(type.isAbstract, isTrue);
+    expect(type.isSynthetic, isFalse);
   }
 
   void test_visitClassDeclaration_minimal() {
@@ -7409,14 +7211,14 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.classDeclaration(null, className, null, null, null, null, []);
     classDeclaration.accept(builder);
     List<ClassElement> types = holder.types;
-    EngineTestCase.assertLength(1, types);
+    expect(types, hasLength(1));
     ClassElement type = types[0];
-    JUnitTestCase.assertNotNull(type);
-    JUnitTestCase.assertEquals(className, type.name);
+    expect(type, isNotNull);
+    expect(type.name, className);
     List<TypeParameterElement> typeParameters = type.typeParameters;
-    EngineTestCase.assertLength(0, typeParameters);
-    JUnitTestCase.assertFalse(type.isAbstract);
-    JUnitTestCase.assertFalse(type.isSynthetic);
+    expect(typeParameters, hasLength(0));
+    expect(type.isAbstract, isFalse);
+    expect(type.isSynthetic, isFalse);
   }
 
   void test_visitClassDeclaration_parameterized() {
@@ -7435,16 +7237,16 @@ class ElementBuilderTest extends EngineTestCase {
         []);
     classDeclaration.accept(builder);
     List<ClassElement> types = holder.types;
-    EngineTestCase.assertLength(1, types);
+    expect(types, hasLength(1));
     ClassElement type = types[0];
-    JUnitTestCase.assertNotNull(type);
-    JUnitTestCase.assertEquals(className, type.name);
+    expect(type, isNotNull);
+    expect(type.name, className);
     List<TypeParameterElement> typeParameters = type.typeParameters;
-    EngineTestCase.assertLength(2, typeParameters);
-    JUnitTestCase.assertEquals(firstVariableName, typeParameters[0].name);
-    JUnitTestCase.assertEquals(secondVariableName, typeParameters[1].name);
-    JUnitTestCase.assertFalse(type.isAbstract);
-    JUnitTestCase.assertFalse(type.isSynthetic);
+    expect(typeParameters, hasLength(2));
+    expect(typeParameters[0].name, firstVariableName);
+    expect(typeParameters[1].name, secondVariableName);
+    expect(type.isAbstract, isFalse);
+    expect(type.isSynthetic, isFalse);
   }
 
   void test_visitClassDeclaration_withMembers() {
@@ -7476,27 +7278,27 @@ class ElementBuilderTest extends EngineTestCase {
                 AstFactory.blockFunctionBody2([]))]);
     classDeclaration.accept(builder);
     List<ClassElement> types = holder.types;
-    EngineTestCase.assertLength(1, types);
+    expect(types, hasLength(1));
     ClassElement type = types[0];
-    JUnitTestCase.assertNotNull(type);
-    JUnitTestCase.assertEquals(className, type.name);
-    JUnitTestCase.assertFalse(type.isAbstract);
-    JUnitTestCase.assertFalse(type.isSynthetic);
+    expect(type, isNotNull);
+    expect(type.name, className);
+    expect(type.isAbstract, isFalse);
+    expect(type.isSynthetic, isFalse);
     List<TypeParameterElement> typeParameters = type.typeParameters;
-    EngineTestCase.assertLength(1, typeParameters);
+    expect(typeParameters, hasLength(1));
     TypeParameterElement typeParameter = typeParameters[0];
-    JUnitTestCase.assertNotNull(typeParameter);
-    JUnitTestCase.assertEquals(typeParameterName, typeParameter.name);
+    expect(typeParameter, isNotNull);
+    expect(typeParameter.name, typeParameterName);
     List<FieldElement> fields = type.fields;
-    EngineTestCase.assertLength(1, fields);
+    expect(fields, hasLength(1));
     FieldElement field = fields[0];
-    JUnitTestCase.assertNotNull(field);
-    JUnitTestCase.assertEquals(fieldName, field.name);
+    expect(field, isNotNull);
+    expect(field.name, fieldName);
     List<MethodElement> methods = type.methods;
-    EngineTestCase.assertLength(1, methods);
+    expect(methods, hasLength(1));
     MethodElement method = methods[0];
-    JUnitTestCase.assertNotNull(method);
-    JUnitTestCase.assertEquals(methodName, method.name);
+    expect(method, isNotNull);
+    expect(method.name, methodName);
   }
 
   void test_visitConstructorDeclaration_factory() {
@@ -7514,15 +7316,15 @@ class ElementBuilderTest extends EngineTestCase {
             AstFactory.blockFunctionBody2([]));
     constructorDeclaration.accept(builder);
     List<ConstructorElement> constructors = holder.constructors;
-    EngineTestCase.assertLength(1, constructors);
+    expect(constructors, hasLength(1));
     ConstructorElement constructor = constructors[0];
-    JUnitTestCase.assertNotNull(constructor);
-    JUnitTestCase.assertTrue(constructor.isFactory);
-    JUnitTestCase.assertEquals("", constructor.name);
-    EngineTestCase.assertLength(0, constructor.functions);
-    EngineTestCase.assertLength(0, constructor.labels);
-    EngineTestCase.assertLength(0, constructor.localVariables);
-    EngineTestCase.assertLength(0, constructor.parameters);
+    expect(constructor, isNotNull);
+    expect(constructor.isFactory, isTrue);
+    expect(constructor.name, "");
+    expect(constructor.functions, hasLength(0));
+    expect(constructor.labels, hasLength(0));
+    expect(constructor.localVariables, hasLength(0));
+    expect(constructor.parameters, hasLength(0));
   }
 
   void test_visitConstructorDeclaration_minimal() {
@@ -7540,15 +7342,15 @@ class ElementBuilderTest extends EngineTestCase {
             AstFactory.blockFunctionBody2([]));
     constructorDeclaration.accept(builder);
     List<ConstructorElement> constructors = holder.constructors;
-    EngineTestCase.assertLength(1, constructors);
+    expect(constructors, hasLength(1));
     ConstructorElement constructor = constructors[0];
-    JUnitTestCase.assertNotNull(constructor);
-    JUnitTestCase.assertFalse(constructor.isFactory);
-    JUnitTestCase.assertEquals("", constructor.name);
-    EngineTestCase.assertLength(0, constructor.functions);
-    EngineTestCase.assertLength(0, constructor.labels);
-    EngineTestCase.assertLength(0, constructor.localVariables);
-    EngineTestCase.assertLength(0, constructor.parameters);
+    expect(constructor, isNotNull);
+    expect(constructor.isFactory, isFalse);
+    expect(constructor.name, "");
+    expect(constructor.functions, hasLength(0));
+    expect(constructor.labels, hasLength(0));
+    expect(constructor.localVariables, hasLength(0));
+    expect(constructor.parameters, hasLength(0));
   }
 
   void test_visitConstructorDeclaration_named() {
@@ -7567,19 +7369,17 @@ class ElementBuilderTest extends EngineTestCase {
             AstFactory.blockFunctionBody2([]));
     constructorDeclaration.accept(builder);
     List<ConstructorElement> constructors = holder.constructors;
-    EngineTestCase.assertLength(1, constructors);
+    expect(constructors, hasLength(1));
     ConstructorElement constructor = constructors[0];
-    JUnitTestCase.assertNotNull(constructor);
-    JUnitTestCase.assertFalse(constructor.isFactory);
-    JUnitTestCase.assertEquals(constructorName, constructor.name);
-    EngineTestCase.assertLength(0, constructor.functions);
-    EngineTestCase.assertLength(0, constructor.labels);
-    EngineTestCase.assertLength(0, constructor.localVariables);
-    EngineTestCase.assertLength(0, constructor.parameters);
-    JUnitTestCase.assertSame(
-        constructor,
-        constructorDeclaration.name.staticElement);
-    JUnitTestCase.assertSame(constructor, constructorDeclaration.element);
+    expect(constructor, isNotNull);
+    expect(constructor.isFactory, isFalse);
+    expect(constructor.name, constructorName);
+    expect(constructor.functions, hasLength(0));
+    expect(constructor.labels, hasLength(0));
+    expect(constructor.localVariables, hasLength(0));
+    expect(constructor.parameters, hasLength(0));
+    expect(constructorDeclaration.name.staticElement, same(constructor));
+    expect(constructorDeclaration.element, same(constructor));
   }
 
   void test_visitConstructorDeclaration_unnamed() {
@@ -7597,16 +7397,16 @@ class ElementBuilderTest extends EngineTestCase {
             AstFactory.blockFunctionBody2([]));
     constructorDeclaration.accept(builder);
     List<ConstructorElement> constructors = holder.constructors;
-    EngineTestCase.assertLength(1, constructors);
+    expect(constructors, hasLength(1));
     ConstructorElement constructor = constructors[0];
-    JUnitTestCase.assertNotNull(constructor);
-    JUnitTestCase.assertFalse(constructor.isFactory);
-    JUnitTestCase.assertEquals("", constructor.name);
-    EngineTestCase.assertLength(0, constructor.functions);
-    EngineTestCase.assertLength(0, constructor.labels);
-    EngineTestCase.assertLength(0, constructor.localVariables);
-    EngineTestCase.assertLength(0, constructor.parameters);
-    JUnitTestCase.assertSame(constructor, constructorDeclaration.element);
+    expect(constructor, isNotNull);
+    expect(constructor.isFactory, isFalse);
+    expect(constructor.name, "");
+    expect(constructor.functions, hasLength(0));
+    expect(constructor.labels, hasLength(0));
+    expect(constructor.localVariables, hasLength(0));
+    expect(constructor.parameters, hasLength(0));
+    expect(constructorDeclaration.element, same(constructor));
   }
 
   void test_visitEnumDeclaration() {
@@ -7617,10 +7417,10 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.enumDeclaration2(enumName, ["ONE"]);
     enumDeclaration.accept(builder);
     List<ClassElement> enums = holder.enums;
-    EngineTestCase.assertLength(1, enums);
+    expect(enums, hasLength(1));
     ClassElement enumElement = enums[0];
-    JUnitTestCase.assertNotNull(enumElement);
-    JUnitTestCase.assertEquals(enumName, enumElement.name);
+    expect(enumElement, isNotNull);
+    expect(enumElement.name, enumName);
   }
 
   void test_visitFieldDeclaration() {
@@ -7636,21 +7436,21 @@ class ElementBuilderTest extends EngineTestCase {
             AstFactory.variableDeclaration(secondFieldName)]);
     fieldDeclaration.accept(builder);
     List<FieldElement> fields = holder.fields;
-    EngineTestCase.assertLength(2, fields);
+    expect(fields, hasLength(2));
     FieldElement firstField = fields[0];
-    JUnitTestCase.assertNotNull(firstField);
-    JUnitTestCase.assertEquals(firstFieldName, firstField.name);
-    JUnitTestCase.assertNull(firstField.initializer);
-    JUnitTestCase.assertFalse(firstField.isConst);
-    JUnitTestCase.assertFalse(firstField.isFinal);
-    JUnitTestCase.assertFalse(firstField.isSynthetic);
+    expect(firstField, isNotNull);
+    expect(firstField.name, firstFieldName);
+    expect(firstField.initializer, isNull);
+    expect(firstField.isConst, isFalse);
+    expect(firstField.isFinal, isFalse);
+    expect(firstField.isSynthetic, isFalse);
     FieldElement secondField = fields[1];
-    JUnitTestCase.assertNotNull(secondField);
-    JUnitTestCase.assertEquals(secondFieldName, secondField.name);
-    JUnitTestCase.assertNull(secondField.initializer);
-    JUnitTestCase.assertFalse(secondField.isConst);
-    JUnitTestCase.assertFalse(secondField.isFinal);
-    JUnitTestCase.assertFalse(secondField.isSynthetic);
+    expect(secondField, isNotNull);
+    expect(secondField.name, secondFieldName);
+    expect(secondField.initializer, isNull);
+    expect(secondField.isConst, isFalse);
+    expect(secondField.isFinal, isFalse);
+    expect(secondField.isSynthetic, isFalse);
   }
 
   void test_visitFieldFormalParameter() {
@@ -7661,16 +7461,16 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.fieldFormalParameter(null, null, parameterName);
     formalParameter.accept(builder);
     List<ParameterElement> parameters = holder.parameters;
-    EngineTestCase.assertLength(1, parameters);
+    expect(parameters, hasLength(1));
     ParameterElement parameter = parameters[0];
-    JUnitTestCase.assertNotNull(parameter);
-    JUnitTestCase.assertEquals(parameterName, parameter.name);
-    JUnitTestCase.assertNull(parameter.initializer);
-    JUnitTestCase.assertFalse(parameter.isConst);
-    JUnitTestCase.assertFalse(parameter.isFinal);
-    JUnitTestCase.assertFalse(parameter.isSynthetic);
-    JUnitTestCase.assertEquals(ParameterKind.REQUIRED, parameter.parameterKind);
-    EngineTestCase.assertLength(0, parameter.parameters);
+    expect(parameter, isNotNull);
+    expect(parameter.name, parameterName);
+    expect(parameter.initializer, isNull);
+    expect(parameter.isConst, isFalse);
+    expect(parameter.isFinal, isFalse);
+    expect(parameter.isSynthetic, isFalse);
+    expect(parameter.parameterKind, ParameterKind.REQUIRED);
+    expect(parameter.parameters, hasLength(0));
   }
 
   void test_visitFieldFormalParameter_funtionTyped() {
@@ -7684,16 +7484,16 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.formalParameterList([AstFactory.simpleFormalParameter3("a")]));
     formalParameter.accept(builder);
     List<ParameterElement> parameters = holder.parameters;
-    EngineTestCase.assertLength(1, parameters);
+    expect(parameters, hasLength(1));
     ParameterElement parameter = parameters[0];
-    JUnitTestCase.assertNotNull(parameter);
-    JUnitTestCase.assertEquals(parameterName, parameter.name);
-    JUnitTestCase.assertNull(parameter.initializer);
-    JUnitTestCase.assertFalse(parameter.isConst);
-    JUnitTestCase.assertFalse(parameter.isFinal);
-    JUnitTestCase.assertFalse(parameter.isSynthetic);
-    JUnitTestCase.assertEquals(ParameterKind.REQUIRED, parameter.parameterKind);
-    EngineTestCase.assertLength(1, parameter.parameters);
+    expect(parameter, isNotNull);
+    expect(parameter.name, parameterName);
+    expect(parameter.initializer, isNull);
+    expect(parameter.isConst, isFalse);
+    expect(parameter.isFinal, isFalse);
+    expect(parameter.isSynthetic, isFalse);
+    expect(parameter.parameterKind, ParameterKind.REQUIRED);
+    expect(parameter.parameters, hasLength(1));
   }
 
   void test_visitFormalParameterList() {
@@ -7707,9 +7507,9 @@ class ElementBuilderTest extends EngineTestCase {
             AstFactory.simpleFormalParameter3(secondParameterName)]);
     parameterList.accept(builder);
     List<ParameterElement> parameters = holder.parameters;
-    EngineTestCase.assertLength(2, parameters);
-    JUnitTestCase.assertEquals(firstParameterName, parameters[0].name);
-    JUnitTestCase.assertEquals(secondParameterName, parameters[1].name);
+    expect(parameters, hasLength(2));
+    expect(parameters[0].name, firstParameterName);
+    expect(parameters[1].name, secondParameterName);
   }
 
   void test_visitFunctionDeclaration_getter() {
@@ -7725,21 +7525,21 @@ class ElementBuilderTest extends EngineTestCase {
             AstFactory.blockFunctionBody2([])));
     declaration.accept(builder);
     List<PropertyAccessorElement> accessors = holder.accessors;
-    EngineTestCase.assertLength(1, accessors);
+    expect(accessors, hasLength(1));
     PropertyAccessorElement accessor = accessors[0];
-    JUnitTestCase.assertNotNull(accessor);
-    JUnitTestCase.assertEquals(functionName, accessor.name);
-    JUnitTestCase.assertSame(accessor, declaration.element);
-    JUnitTestCase.assertSame(accessor, declaration.functionExpression.element);
-    JUnitTestCase.assertTrue(accessor.isGetter);
-    JUnitTestCase.assertFalse(accessor.isSetter);
-    JUnitTestCase.assertFalse(accessor.isSynthetic);
+    expect(accessor, isNotNull);
+    expect(accessor.name, functionName);
+    expect(declaration.element, same(accessor));
+    expect(declaration.functionExpression.element, same(accessor));
+    expect(accessor.isGetter, isTrue);
+    expect(accessor.isSetter, isFalse);
+    expect(accessor.isSynthetic, isFalse);
     PropertyInducingElement variable = accessor.variable;
     EngineTestCase.assertInstanceOf(
         (obj) => obj is TopLevelVariableElement,
         TopLevelVariableElement,
         variable);
-    JUnitTestCase.assertTrue(variable.isSynthetic);
+    expect(variable.isSynthetic, isTrue);
   }
 
   void test_visitFunctionDeclaration_plain() {
@@ -7755,13 +7555,13 @@ class ElementBuilderTest extends EngineTestCase {
             AstFactory.blockFunctionBody2([])));
     declaration.accept(builder);
     List<FunctionElement> functions = holder.functions;
-    EngineTestCase.assertLength(1, functions);
+    expect(functions, hasLength(1));
     FunctionElement function = functions[0];
-    JUnitTestCase.assertNotNull(function);
-    JUnitTestCase.assertEquals(functionName, function.name);
-    JUnitTestCase.assertSame(function, declaration.element);
-    JUnitTestCase.assertSame(function, declaration.functionExpression.element);
-    JUnitTestCase.assertFalse(function.isSynthetic);
+    expect(function, isNotNull);
+    expect(function.name, functionName);
+    expect(declaration.element, same(function));
+    expect(declaration.functionExpression.element, same(function));
+    expect(function.isSynthetic, isFalse);
   }
 
   void test_visitFunctionDeclaration_setter() {
@@ -7777,21 +7577,21 @@ class ElementBuilderTest extends EngineTestCase {
             AstFactory.blockFunctionBody2([])));
     declaration.accept(builder);
     List<PropertyAccessorElement> accessors = holder.accessors;
-    EngineTestCase.assertLength(1, accessors);
+    expect(accessors, hasLength(1));
     PropertyAccessorElement accessor = accessors[0];
-    JUnitTestCase.assertNotNull(accessor);
-    JUnitTestCase.assertEquals("${functionName}=", accessor.name);
-    JUnitTestCase.assertSame(accessor, declaration.element);
-    JUnitTestCase.assertSame(accessor, declaration.functionExpression.element);
-    JUnitTestCase.assertFalse(accessor.isGetter);
-    JUnitTestCase.assertTrue(accessor.isSetter);
-    JUnitTestCase.assertFalse(accessor.isSynthetic);
+    expect(accessor, isNotNull);
+    expect(accessor.name, "$functionName=");
+    expect(declaration.element, same(accessor));
+    expect(declaration.functionExpression.element, same(accessor));
+    expect(accessor.isGetter, isFalse);
+    expect(accessor.isSetter, isTrue);
+    expect(accessor.isSynthetic, isFalse);
     PropertyInducingElement variable = accessor.variable;
     EngineTestCase.assertInstanceOf(
         (obj) => obj is TopLevelVariableElement,
         TopLevelVariableElement,
         variable);
-    JUnitTestCase.assertTrue(variable.isSynthetic);
+    expect(variable.isSynthetic, isTrue);
   }
 
   void test_visitFunctionExpression() {
@@ -7802,11 +7602,11 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.blockFunctionBody2([]));
     expression.accept(builder);
     List<FunctionElement> functions = holder.functions;
-    EngineTestCase.assertLength(1, functions);
+    expect(functions, hasLength(1));
     FunctionElement function = functions[0];
-    JUnitTestCase.assertNotNull(function);
-    JUnitTestCase.assertSame(function, expression.element);
-    JUnitTestCase.assertFalse(function.isSynthetic);
+    expect(function, isNotNull);
+    expect(expression.element, same(function));
+    expect(function.isSynthetic, isFalse);
   }
 
   void test_visitFunctionTypeAlias() {
@@ -7821,16 +7621,16 @@ class ElementBuilderTest extends EngineTestCase {
         null);
     aliasNode.accept(builder);
     List<FunctionTypeAliasElement> aliases = holder.typeAliases;
-    EngineTestCase.assertLength(1, aliases);
+    expect(aliases, hasLength(1));
     FunctionTypeAliasElement alias = aliases[0];
-    JUnitTestCase.assertNotNull(alias);
-    JUnitTestCase.assertEquals(aliasName, alias.name);
-    EngineTestCase.assertLength(0, alias.parameters);
+    expect(alias, isNotNull);
+    expect(alias.name, aliasName);
+    expect(alias.parameters, hasLength(0));
     List<TypeParameterElement> typeParameters = alias.typeParameters;
-    EngineTestCase.assertLength(1, typeParameters);
+    expect(typeParameters, hasLength(1));
     TypeParameterElement typeParameter = typeParameters[0];
-    JUnitTestCase.assertNotNull(typeParameter);
-    JUnitTestCase.assertEquals(parameterName, typeParameter.name);
+    expect(typeParameter, isNotNull);
+    expect(typeParameter.name, parameterName);
   }
 
   void test_visitFunctionTypedFormalParameter() {
@@ -7842,19 +7642,19 @@ class ElementBuilderTest extends EngineTestCase {
     _useParameterInMethod(formalParameter, 100, 110);
     formalParameter.accept(builder);
     List<ParameterElement> parameters = holder.parameters;
-    EngineTestCase.assertLength(1, parameters);
+    expect(parameters, hasLength(1));
     ParameterElement parameter = parameters[0];
-    JUnitTestCase.assertNotNull(parameter);
-    JUnitTestCase.assertEquals(parameterName, parameter.name);
-    JUnitTestCase.assertNull(parameter.initializer);
-    JUnitTestCase.assertFalse(parameter.isConst);
-    JUnitTestCase.assertFalse(parameter.isFinal);
-    JUnitTestCase.assertFalse(parameter.isSynthetic);
-    JUnitTestCase.assertEquals(ParameterKind.REQUIRED, parameter.parameterKind);
+    expect(parameter, isNotNull);
+    expect(parameter.name, parameterName);
+    expect(parameter.initializer, isNull);
+    expect(parameter.isConst, isFalse);
+    expect(parameter.isFinal, isFalse);
+    expect(parameter.isSynthetic, isFalse);
+    expect(parameter.parameterKind, ParameterKind.REQUIRED);
     {
       SourceRange visibleRange = parameter.visibleRange;
-      JUnitTestCase.assertEquals(visibleRange.offset, 100);
-      JUnitTestCase.assertEquals(visibleRange.end, 110);
+      expect(100, visibleRange.offset);
+      expect(110, visibleRange.end);
     }
   }
 
@@ -7867,11 +7667,11 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.breakStatement());
     statement.accept(builder);
     List<LabelElement> labels = holder.labels;
-    EngineTestCase.assertLength(1, labels);
+    expect(labels, hasLength(1));
     LabelElement label = labels[0];
-    JUnitTestCase.assertNotNull(label);
-    JUnitTestCase.assertEquals(labelName, label.name);
-    JUnitTestCase.assertFalse(label.isSynthetic);
+    expect(label, isNotNull);
+    expect(label.name, labelName);
+    expect(label.isSynthetic, isFalse);
   }
 
   void test_visitMethodDeclaration_abstract() {
@@ -7888,17 +7688,17 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.emptyFunctionBody());
     methodDeclaration.accept(builder);
     List<MethodElement> methods = holder.methods;
-    EngineTestCase.assertLength(1, methods);
+    expect(methods, hasLength(1));
     MethodElement method = methods[0];
-    JUnitTestCase.assertNotNull(method);
-    JUnitTestCase.assertEquals(methodName, method.name);
-    EngineTestCase.assertLength(0, method.functions);
-    EngineTestCase.assertLength(0, method.labels);
-    EngineTestCase.assertLength(0, method.localVariables);
-    EngineTestCase.assertLength(0, method.parameters);
-    JUnitTestCase.assertTrue(method.isAbstract);
-    JUnitTestCase.assertFalse(method.isStatic);
-    JUnitTestCase.assertFalse(method.isSynthetic);
+    expect(method, isNotNull);
+    expect(method.name, methodName);
+    expect(method.functions, hasLength(0));
+    expect(method.labels, hasLength(0));
+    expect(method.localVariables, hasLength(0));
+    expect(method.parameters, hasLength(0));
+    expect(method.isAbstract, isTrue);
+    expect(method.isStatic, isFalse);
+    expect(method.isSynthetic, isFalse);
   }
 
   void test_visitMethodDeclaration_getter() {
@@ -7915,23 +7715,23 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.blockFunctionBody2([]));
     methodDeclaration.accept(builder);
     List<FieldElement> fields = holder.fields;
-    EngineTestCase.assertLength(1, fields);
+    expect(fields, hasLength(1));
     FieldElement field = fields[0];
-    JUnitTestCase.assertNotNull(field);
-    JUnitTestCase.assertEquals(methodName, field.name);
-    JUnitTestCase.assertTrue(field.isSynthetic);
-    JUnitTestCase.assertNull(field.setter);
+    expect(field, isNotNull);
+    expect(field.name, methodName);
+    expect(field.isSynthetic, isTrue);
+    expect(field.setter, isNull);
     PropertyAccessorElement getter = field.getter;
-    JUnitTestCase.assertNotNull(getter);
-    JUnitTestCase.assertFalse(getter.isAbstract);
-    JUnitTestCase.assertTrue(getter.isGetter);
-    JUnitTestCase.assertFalse(getter.isSynthetic);
-    JUnitTestCase.assertEquals(methodName, getter.name);
-    JUnitTestCase.assertEquals(field, getter.variable);
-    EngineTestCase.assertLength(0, getter.functions);
-    EngineTestCase.assertLength(0, getter.labels);
-    EngineTestCase.assertLength(0, getter.localVariables);
-    EngineTestCase.assertLength(0, getter.parameters);
+    expect(getter, isNotNull);
+    expect(getter.isAbstract, isFalse);
+    expect(getter.isGetter, isTrue);
+    expect(getter.isSynthetic, isFalse);
+    expect(getter.name, methodName);
+    expect(getter.variable, field);
+    expect(getter.functions, hasLength(0));
+    expect(getter.labels, hasLength(0));
+    expect(getter.localVariables, hasLength(0));
+    expect(getter.parameters, hasLength(0));
   }
 
   void test_visitMethodDeclaration_getter_abstract() {
@@ -7948,23 +7748,23 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.emptyFunctionBody());
     methodDeclaration.accept(builder);
     List<FieldElement> fields = holder.fields;
-    EngineTestCase.assertLength(1, fields);
+    expect(fields, hasLength(1));
     FieldElement field = fields[0];
-    JUnitTestCase.assertNotNull(field);
-    JUnitTestCase.assertEquals(methodName, field.name);
-    JUnitTestCase.assertTrue(field.isSynthetic);
-    JUnitTestCase.assertNull(field.setter);
+    expect(field, isNotNull);
+    expect(field.name, methodName);
+    expect(field.isSynthetic, isTrue);
+    expect(field.setter, isNull);
     PropertyAccessorElement getter = field.getter;
-    JUnitTestCase.assertNotNull(getter);
-    JUnitTestCase.assertTrue(getter.isAbstract);
-    JUnitTestCase.assertTrue(getter.isGetter);
-    JUnitTestCase.assertFalse(getter.isSynthetic);
-    JUnitTestCase.assertEquals(methodName, getter.name);
-    JUnitTestCase.assertEquals(field, getter.variable);
-    EngineTestCase.assertLength(0, getter.functions);
-    EngineTestCase.assertLength(0, getter.labels);
-    EngineTestCase.assertLength(0, getter.localVariables);
-    EngineTestCase.assertLength(0, getter.parameters);
+    expect(getter, isNotNull);
+    expect(getter.isAbstract, isTrue);
+    expect(getter.isGetter, isTrue);
+    expect(getter.isSynthetic, isFalse);
+    expect(getter.name, methodName);
+    expect(getter.variable, field);
+    expect(getter.functions, hasLength(0));
+    expect(getter.labels, hasLength(0));
+    expect(getter.localVariables, hasLength(0));
+    expect(getter.parameters, hasLength(0));
   }
 
   void test_visitMethodDeclaration_getter_external() {
@@ -7980,23 +7780,23 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.formalParameterList([]));
     methodDeclaration.accept(builder);
     List<FieldElement> fields = holder.fields;
-    EngineTestCase.assertLength(1, fields);
+    expect(fields, hasLength(1));
     FieldElement field = fields[0];
-    JUnitTestCase.assertNotNull(field);
-    JUnitTestCase.assertEquals(methodName, field.name);
-    JUnitTestCase.assertTrue(field.isSynthetic);
-    JUnitTestCase.assertNull(field.setter);
+    expect(field, isNotNull);
+    expect(field.name, methodName);
+    expect(field.isSynthetic, isTrue);
+    expect(field.setter, isNull);
     PropertyAccessorElement getter = field.getter;
-    JUnitTestCase.assertNotNull(getter);
-    JUnitTestCase.assertFalse(getter.isAbstract);
-    JUnitTestCase.assertTrue(getter.isGetter);
-    JUnitTestCase.assertFalse(getter.isSynthetic);
-    JUnitTestCase.assertEquals(methodName, getter.name);
-    JUnitTestCase.assertEquals(field, getter.variable);
-    EngineTestCase.assertLength(0, getter.functions);
-    EngineTestCase.assertLength(0, getter.labels);
-    EngineTestCase.assertLength(0, getter.localVariables);
-    EngineTestCase.assertLength(0, getter.parameters);
+    expect(getter, isNotNull);
+    expect(getter.isAbstract, isFalse);
+    expect(getter.isGetter, isTrue);
+    expect(getter.isSynthetic, isFalse);
+    expect(getter.name, methodName);
+    expect(getter.variable, field);
+    expect(getter.functions, hasLength(0));
+    expect(getter.labels, hasLength(0));
+    expect(getter.localVariables, hasLength(0));
+    expect(getter.parameters, hasLength(0));
   }
 
   void test_visitMethodDeclaration_minimal() {
@@ -8013,17 +7813,17 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.blockFunctionBody2([]));
     methodDeclaration.accept(builder);
     List<MethodElement> methods = holder.methods;
-    EngineTestCase.assertLength(1, methods);
+    expect(methods, hasLength(1));
     MethodElement method = methods[0];
-    JUnitTestCase.assertNotNull(method);
-    JUnitTestCase.assertEquals(methodName, method.name);
-    EngineTestCase.assertLength(0, method.functions);
-    EngineTestCase.assertLength(0, method.labels);
-    EngineTestCase.assertLength(0, method.localVariables);
-    EngineTestCase.assertLength(0, method.parameters);
-    JUnitTestCase.assertFalse(method.isAbstract);
-    JUnitTestCase.assertFalse(method.isStatic);
-    JUnitTestCase.assertFalse(method.isSynthetic);
+    expect(method, isNotNull);
+    expect(method.name, methodName);
+    expect(method.functions, hasLength(0));
+    expect(method.labels, hasLength(0));
+    expect(method.localVariables, hasLength(0));
+    expect(method.parameters, hasLength(0));
+    expect(method.isAbstract, isFalse);
+    expect(method.isStatic, isFalse);
+    expect(method.isSynthetic, isFalse);
   }
 
   void test_visitMethodDeclaration_operator() {
@@ -8040,17 +7840,17 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.blockFunctionBody2([]));
     methodDeclaration.accept(builder);
     List<MethodElement> methods = holder.methods;
-    EngineTestCase.assertLength(1, methods);
+    expect(methods, hasLength(1));
     MethodElement method = methods[0];
-    JUnitTestCase.assertNotNull(method);
-    JUnitTestCase.assertEquals(methodName, method.name);
-    EngineTestCase.assertLength(0, method.functions);
-    EngineTestCase.assertLength(0, method.labels);
-    EngineTestCase.assertLength(0, method.localVariables);
-    EngineTestCase.assertLength(1, method.parameters);
-    JUnitTestCase.assertFalse(method.isAbstract);
-    JUnitTestCase.assertFalse(method.isStatic);
-    JUnitTestCase.assertFalse(method.isSynthetic);
+    expect(method, isNotNull);
+    expect(method.name, methodName);
+    expect(method.functions, hasLength(0));
+    expect(method.labels, hasLength(0));
+    expect(method.localVariables, hasLength(0));
+    expect(method.parameters, hasLength(1));
+    expect(method.isAbstract, isFalse);
+    expect(method.isStatic, isFalse);
+    expect(method.isSynthetic, isFalse);
   }
 
   void test_visitMethodDeclaration_setter() {
@@ -8067,24 +7867,24 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.blockFunctionBody2([]));
     methodDeclaration.accept(builder);
     List<FieldElement> fields = holder.fields;
-    EngineTestCase.assertLength(1, fields);
+    expect(fields, hasLength(1));
     FieldElement field = fields[0];
-    JUnitTestCase.assertNotNull(field);
-    JUnitTestCase.assertEquals(methodName, field.name);
-    JUnitTestCase.assertTrue(field.isSynthetic);
-    JUnitTestCase.assertNull(field.getter);
+    expect(field, isNotNull);
+    expect(field.name, methodName);
+    expect(field.isSynthetic, isTrue);
+    expect(field.getter, isNull);
     PropertyAccessorElement setter = field.setter;
-    JUnitTestCase.assertNotNull(setter);
-    JUnitTestCase.assertFalse(setter.isAbstract);
-    JUnitTestCase.assertTrue(setter.isSetter);
-    JUnitTestCase.assertFalse(setter.isSynthetic);
-    JUnitTestCase.assertEquals("${methodName}=", setter.name);
-    JUnitTestCase.assertEquals(methodName, setter.displayName);
-    JUnitTestCase.assertEquals(field, setter.variable);
-    EngineTestCase.assertLength(0, setter.functions);
-    EngineTestCase.assertLength(0, setter.labels);
-    EngineTestCase.assertLength(0, setter.localVariables);
-    EngineTestCase.assertLength(0, setter.parameters);
+    expect(setter, isNotNull);
+    expect(setter.isAbstract, isFalse);
+    expect(setter.isSetter, isTrue);
+    expect(setter.isSynthetic, isFalse);
+    expect(setter.name, "$methodName=");
+    expect(setter.displayName, methodName);
+    expect(setter.variable, field);
+    expect(setter.functions, hasLength(0));
+    expect(setter.labels, hasLength(0));
+    expect(setter.localVariables, hasLength(0));
+    expect(setter.parameters, hasLength(0));
   }
 
   void test_visitMethodDeclaration_setter_abstract() {
@@ -8101,24 +7901,24 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.emptyFunctionBody());
     methodDeclaration.accept(builder);
     List<FieldElement> fields = holder.fields;
-    EngineTestCase.assertLength(1, fields);
+    expect(fields, hasLength(1));
     FieldElement field = fields[0];
-    JUnitTestCase.assertNotNull(field);
-    JUnitTestCase.assertEquals(methodName, field.name);
-    JUnitTestCase.assertTrue(field.isSynthetic);
-    JUnitTestCase.assertNull(field.getter);
+    expect(field, isNotNull);
+    expect(field.name, methodName);
+    expect(field.isSynthetic, isTrue);
+    expect(field.getter, isNull);
     PropertyAccessorElement setter = field.setter;
-    JUnitTestCase.assertNotNull(setter);
-    JUnitTestCase.assertTrue(setter.isAbstract);
-    JUnitTestCase.assertTrue(setter.isSetter);
-    JUnitTestCase.assertFalse(setter.isSynthetic);
-    JUnitTestCase.assertEquals("${methodName}=", setter.name);
-    JUnitTestCase.assertEquals(methodName, setter.displayName);
-    JUnitTestCase.assertEquals(field, setter.variable);
-    EngineTestCase.assertLength(0, setter.functions);
-    EngineTestCase.assertLength(0, setter.labels);
-    EngineTestCase.assertLength(0, setter.localVariables);
-    EngineTestCase.assertLength(0, setter.parameters);
+    expect(setter, isNotNull);
+    expect(setter.isAbstract, isTrue);
+    expect(setter.isSetter, isTrue);
+    expect(setter.isSynthetic, isFalse);
+    expect(setter.name, "$methodName=");
+    expect(setter.displayName, methodName);
+    expect(setter.variable, field);
+    expect(setter.functions, hasLength(0));
+    expect(setter.labels, hasLength(0));
+    expect(setter.localVariables, hasLength(0));
+    expect(setter.parameters, hasLength(0));
   }
 
   void test_visitMethodDeclaration_setter_external() {
@@ -8134,24 +7934,24 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.formalParameterList([]));
     methodDeclaration.accept(builder);
     List<FieldElement> fields = holder.fields;
-    EngineTestCase.assertLength(1, fields);
+    expect(fields, hasLength(1));
     FieldElement field = fields[0];
-    JUnitTestCase.assertNotNull(field);
-    JUnitTestCase.assertEquals(methodName, field.name);
-    JUnitTestCase.assertTrue(field.isSynthetic);
-    JUnitTestCase.assertNull(field.getter);
+    expect(field, isNotNull);
+    expect(field.name, methodName);
+    expect(field.isSynthetic, isTrue);
+    expect(field.getter, isNull);
     PropertyAccessorElement setter = field.setter;
-    JUnitTestCase.assertNotNull(setter);
-    JUnitTestCase.assertFalse(setter.isAbstract);
-    JUnitTestCase.assertTrue(setter.isSetter);
-    JUnitTestCase.assertFalse(setter.isSynthetic);
-    JUnitTestCase.assertEquals("${methodName}=", setter.name);
-    JUnitTestCase.assertEquals(methodName, setter.displayName);
-    JUnitTestCase.assertEquals(field, setter.variable);
-    EngineTestCase.assertLength(0, setter.functions);
-    EngineTestCase.assertLength(0, setter.labels);
-    EngineTestCase.assertLength(0, setter.localVariables);
-    EngineTestCase.assertLength(0, setter.parameters);
+    expect(setter, isNotNull);
+    expect(setter.isAbstract, isFalse);
+    expect(setter.isSetter, isTrue);
+    expect(setter.isSynthetic, isFalse);
+    expect(setter.name, "$methodName=");
+    expect(setter.displayName, methodName);
+    expect(setter.variable, field);
+    expect(setter.functions, hasLength(0));
+    expect(setter.labels, hasLength(0));
+    expect(setter.localVariables, hasLength(0));
+    expect(setter.parameters, hasLength(0));
   }
 
   void test_visitMethodDeclaration_static() {
@@ -8168,17 +7968,17 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.blockFunctionBody2([]));
     methodDeclaration.accept(builder);
     List<MethodElement> methods = holder.methods;
-    EngineTestCase.assertLength(1, methods);
+    expect(methods, hasLength(1));
     MethodElement method = methods[0];
-    JUnitTestCase.assertNotNull(method);
-    JUnitTestCase.assertEquals(methodName, method.name);
-    EngineTestCase.assertLength(0, method.functions);
-    EngineTestCase.assertLength(0, method.labels);
-    EngineTestCase.assertLength(0, method.localVariables);
-    EngineTestCase.assertLength(0, method.parameters);
-    JUnitTestCase.assertFalse(method.isAbstract);
-    JUnitTestCase.assertTrue(method.isStatic);
-    JUnitTestCase.assertFalse(method.isSynthetic);
+    expect(method, isNotNull);
+    expect(method.name, methodName);
+    expect(method.functions, hasLength(0));
+    expect(method.labels, hasLength(0));
+    expect(method.localVariables, hasLength(0));
+    expect(method.parameters, hasLength(0));
+    expect(method.isAbstract, isFalse);
+    expect(method.isStatic, isTrue);
+    expect(method.isSynthetic, isFalse);
   }
 
   void test_visitMethodDeclaration_withMembers() {
@@ -8211,34 +8011,33 @@ class ElementBuilderTest extends EngineTestCase {
                     [AstFactory.catchClause(exceptionParameterName, [])])]));
     methodDeclaration.accept(builder);
     List<MethodElement> methods = holder.methods;
-    EngineTestCase.assertLength(1, methods);
+    expect(methods, hasLength(1));
     MethodElement method = methods[0];
-    JUnitTestCase.assertNotNull(method);
-    JUnitTestCase.assertEquals(methodName, method.name);
-    JUnitTestCase.assertFalse(method.isAbstract);
-    JUnitTestCase.assertFalse(method.isStatic);
-    JUnitTestCase.assertFalse(method.isSynthetic);
+    expect(method, isNotNull);
+    expect(method.name, methodName);
+    expect(method.isAbstract, isFalse);
+    expect(method.isStatic, isFalse);
+    expect(method.isSynthetic, isFalse);
     List<VariableElement> parameters = method.parameters;
-    EngineTestCase.assertLength(1, parameters);
+    expect(parameters, hasLength(1));
     VariableElement parameter = parameters[0];
-    JUnitTestCase.assertNotNull(parameter);
-    JUnitTestCase.assertEquals(parameterName, parameter.name);
+    expect(parameter, isNotNull);
+    expect(parameter.name, parameterName);
     List<VariableElement> localVariables = method.localVariables;
-    EngineTestCase.assertLength(2, localVariables);
+    expect(localVariables, hasLength(2));
     VariableElement firstVariable = localVariables[0];
     VariableElement secondVariable = localVariables[1];
-    JUnitTestCase.assertNotNull(firstVariable);
-    JUnitTestCase.assertNotNull(secondVariable);
-    JUnitTestCase.assertTrue(
-        (firstVariable.name == localVariableName &&
+    expect(firstVariable, isNotNull);
+    expect(secondVariable, isNotNull);
+    expect((firstVariable.name == localVariableName &&
             secondVariable.name == exceptionParameterName) ||
             (firstVariable.name == exceptionParameterName &&
-                secondVariable.name == localVariableName));
+                secondVariable.name == localVariableName), isTrue);
     List<LabelElement> labels = method.labels;
-    EngineTestCase.assertLength(1, labels);
+    expect(labels, hasLength(1));
     LabelElement label = labels[0];
-    JUnitTestCase.assertNotNull(label);
-    JUnitTestCase.assertEquals(labelName, label.name);
+    expect(label, isNotNull);
+    expect(label.name, labelName);
   }
 
   void test_visitNamedFormalParameter() {
@@ -8251,23 +8050,23 @@ class ElementBuilderTest extends EngineTestCase {
     _useParameterInMethod(formalParameter, 100, 110);
     formalParameter.accept(builder);
     List<ParameterElement> parameters = holder.parameters;
-    EngineTestCase.assertLength(1, parameters);
+    expect(parameters, hasLength(1));
     ParameterElement parameter = parameters[0];
-    JUnitTestCase.assertNotNull(parameter);
-    JUnitTestCase.assertEquals(parameterName, parameter.name);
-    JUnitTestCase.assertFalse(parameter.isConst);
-    JUnitTestCase.assertFalse(parameter.isFinal);
-    JUnitTestCase.assertFalse(parameter.isSynthetic);
-    JUnitTestCase.assertEquals(ParameterKind.NAMED, parameter.parameterKind);
+    expect(parameter, isNotNull);
+    expect(parameter.name, parameterName);
+    expect(parameter.isConst, isFalse);
+    expect(parameter.isFinal, isFalse);
+    expect(parameter.isSynthetic, isFalse);
+    expect(parameter.parameterKind, ParameterKind.NAMED);
     {
       SourceRange visibleRange = parameter.visibleRange;
-      JUnitTestCase.assertEquals(visibleRange.offset, 100);
-      JUnitTestCase.assertEquals(visibleRange.end, 110);
+      expect(100, visibleRange.offset);
+      expect(110, visibleRange.end);
     }
-    JUnitTestCase.assertEquals("42", parameter.defaultValueCode);
+    expect(parameter.defaultValueCode, "42");
     FunctionElement initializer = parameter.initializer;
-    JUnitTestCase.assertNotNull(initializer);
-    JUnitTestCase.assertTrue(initializer.isSynthetic);
+    expect(initializer, isNotNull);
+    expect(initializer.isSynthetic, isTrue);
   }
 
   void test_visitSimpleFormalParameter() {
@@ -8279,19 +8078,19 @@ class ElementBuilderTest extends EngineTestCase {
     _useParameterInMethod(formalParameter, 100, 110);
     formalParameter.accept(builder);
     List<ParameterElement> parameters = holder.parameters;
-    EngineTestCase.assertLength(1, parameters);
+    expect(parameters, hasLength(1));
     ParameterElement parameter = parameters[0];
-    JUnitTestCase.assertNotNull(parameter);
-    JUnitTestCase.assertEquals(parameterName, parameter.name);
-    JUnitTestCase.assertNull(parameter.initializer);
-    JUnitTestCase.assertFalse(parameter.isConst);
-    JUnitTestCase.assertFalse(parameter.isFinal);
-    JUnitTestCase.assertFalse(parameter.isSynthetic);
-    JUnitTestCase.assertEquals(ParameterKind.REQUIRED, parameter.parameterKind);
+    expect(parameter, isNotNull);
+    expect(parameter.name, parameterName);
+    expect(parameter.initializer, isNull);
+    expect(parameter.isConst, isFalse);
+    expect(parameter.isFinal, isFalse);
+    expect(parameter.isSynthetic, isFalse);
+    expect(parameter.parameterKind, ParameterKind.REQUIRED);
     {
       SourceRange visibleRange = parameter.visibleRange;
-      JUnitTestCase.assertEquals(visibleRange.offset, 100);
-      JUnitTestCase.assertEquals(visibleRange.end, 110);
+      expect(100, visibleRange.offset);
+      expect(110, visibleRange.end);
     }
   }
 
@@ -8302,12 +8101,12 @@ class ElementBuilderTest extends EngineTestCase {
     TypeAlias typeAlias = AstFactory.typeAlias(null, aliasName, null, null);
     typeAlias.accept(builder);
     List<FunctionTypeAliasElement> aliases = holder.typeAliases;
-    EngineTestCase.assertLength(1, aliases);
+    expect(aliases, hasLength(1));
     FunctionTypeAliasElement alias = aliases[0];
-    JUnitTestCase.assertNotNull(alias);
-    JUnitTestCase.assertEquals(aliasName, alias.name);
-    JUnitTestCase.assertNotNull(alias.type);
-    JUnitTestCase.assertFalse(alias.isSynthetic);
+    expect(alias, isNotNull);
+    expect(alias.name, aliasName);
+    expect(alias.type, isNotNull);
+    expect(alias.isSynthetic, isFalse);
   }
 
   void test_visitTypeAlias_withFormalParameters() {
@@ -8326,19 +8125,19 @@ class ElementBuilderTest extends EngineTestCase {
                 AstFactory.simpleFormalParameter3(secondParameterName)]));
     typeAlias.accept(builder);
     List<FunctionTypeAliasElement> aliases = holder.typeAliases;
-    EngineTestCase.assertLength(1, aliases);
+    expect(aliases, hasLength(1));
     FunctionTypeAliasElement alias = aliases[0];
-    JUnitTestCase.assertNotNull(alias);
-    JUnitTestCase.assertEquals(aliasName, alias.name);
-    JUnitTestCase.assertNotNull(alias.type);
-    JUnitTestCase.assertFalse(alias.isSynthetic);
+    expect(alias, isNotNull);
+    expect(alias.name, aliasName);
+    expect(alias.type, isNotNull);
+    expect(alias.isSynthetic, isFalse);
     List<VariableElement> parameters = alias.parameters;
-    EngineTestCase.assertLength(2, parameters);
-    JUnitTestCase.assertEquals(firstParameterName, parameters[0].name);
-    JUnitTestCase.assertEquals(secondParameterName, parameters[1].name);
+    expect(parameters, hasLength(2));
+    expect(parameters[0].name, firstParameterName);
+    expect(parameters[1].name, secondParameterName);
     List<TypeParameterElement> typeParameters = alias.typeParameters;
-    JUnitTestCase.assertNotNull(typeParameters);
-    EngineTestCase.assertLength(0, typeParameters);
+    expect(typeParameters, isNotNull);
+    expect(typeParameters, hasLength(0));
   }
 
   void test_visitTypeAlias_withTypeParameters() {
@@ -8354,19 +8153,19 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.formalParameterList([]));
     typeAlias.accept(builder);
     List<FunctionTypeAliasElement> aliases = holder.typeAliases;
-    EngineTestCase.assertLength(1, aliases);
+    expect(aliases, hasLength(1));
     FunctionTypeAliasElement alias = aliases[0];
-    JUnitTestCase.assertNotNull(alias);
-    JUnitTestCase.assertEquals(aliasName, alias.name);
-    JUnitTestCase.assertNotNull(alias.type);
-    JUnitTestCase.assertFalse(alias.isSynthetic);
+    expect(alias, isNotNull);
+    expect(alias.name, aliasName);
+    expect(alias.type, isNotNull);
+    expect(alias.isSynthetic, isFalse);
     List<VariableElement> parameters = alias.parameters;
-    JUnitTestCase.assertNotNull(parameters);
-    EngineTestCase.assertLength(0, parameters);
+    expect(parameters, isNotNull);
+    expect(parameters, hasLength(0));
     List<TypeParameterElement> typeParameters = alias.typeParameters;
-    EngineTestCase.assertLength(2, typeParameters);
-    JUnitTestCase.assertEquals(firstTypeParameterName, typeParameters[0].name);
-    JUnitTestCase.assertEquals(secondTypeParameterName, typeParameters[1].name);
+    expect(typeParameters, hasLength(2));
+    expect(typeParameters[0].name, firstTypeParameterName);
+    expect(typeParameters[1].name, secondTypeParameterName);
   }
 
   void test_visitTypeParameter() {
@@ -8376,12 +8175,12 @@ class ElementBuilderTest extends EngineTestCase {
     TypeParameter typeParameter = AstFactory.typeParameter(parameterName);
     typeParameter.accept(builder);
     List<TypeParameterElement> typeParameters = holder.typeParameters;
-    EngineTestCase.assertLength(1, typeParameters);
+    expect(typeParameters, hasLength(1));
     TypeParameterElement typeParameterElement = typeParameters[0];
-    JUnitTestCase.assertNotNull(typeParameterElement);
-    JUnitTestCase.assertEquals(parameterName, typeParameterElement.name);
-    JUnitTestCase.assertNull(typeParameterElement.bound);
-    JUnitTestCase.assertFalse(typeParameterElement.isSynthetic);
+    expect(typeParameterElement, isNotNull);
+    expect(typeParameterElement.name, parameterName);
+    expect(typeParameterElement.bound, isNull);
+    expect(typeParameterElement.isSynthetic, isFalse);
   }
 
   void test_visitVariableDeclaration_inConstructor() {
@@ -8405,12 +8204,12 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.blockFunctionBody2([statement]));
     constructor.accept(builder);
     List<ConstructorElement> constructors = holder.constructors;
-    EngineTestCase.assertLength(1, constructors);
+    expect(constructors, hasLength(1));
     List<LocalVariableElement> variableElements =
         constructors[0].localVariables;
-    EngineTestCase.assertLength(1, variableElements);
+    expect(variableElements, hasLength(1));
     LocalVariableElement variableElement = variableElements[0];
-    JUnitTestCase.assertEquals(variableName, variableElement.name);
+    expect(variableElement.name, variableName);
   }
 
   void test_visitVariableDeclaration_inMethod() {
@@ -8434,11 +8233,11 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.blockFunctionBody2([statement]));
     constructor.accept(builder);
     List<MethodElement> methods = holder.methods;
-    EngineTestCase.assertLength(1, methods);
+    expect(methods, hasLength(1));
     List<LocalVariableElement> variableElements = methods[0].localVariables;
-    EngineTestCase.assertLength(1, variableElements);
+    expect(variableElements, hasLength(1));
     LocalVariableElement variableElement = variableElements[0];
-    JUnitTestCase.assertEquals(variableName, variableElement.name);
+    expect(variableElement.name, variableName);
   }
 
   void test_visitVariableDeclaration_localNestedInField() {
@@ -8462,21 +8261,21 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.fieldDeclaration2(false, null, [field]);
     fieldDeclaration.accept(builder);
     List<FieldElement> variables = holder.fields;
-    EngineTestCase.assertLength(1, variables);
+    expect(variables, hasLength(1));
     FieldElement fieldElement = variables[0];
-    JUnitTestCase.assertNotNull(fieldElement);
+    expect(fieldElement, isNotNull);
     FunctionElement initializerElement = fieldElement.initializer;
-    JUnitTestCase.assertNotNull(initializerElement);
+    expect(initializerElement, isNotNull);
     List<FunctionElement> functionElements = initializerElement.functions;
-    EngineTestCase.assertLength(1, functionElements);
+    expect(functionElements, hasLength(1));
     List<LocalVariableElement> variableElements =
         functionElements[0].localVariables;
-    EngineTestCase.assertLength(1, variableElements);
+    expect(variableElements, hasLength(1));
     LocalVariableElement variableElement = variableElements[0];
-    JUnitTestCase.assertEquals(variableName, variableElement.name);
-    JUnitTestCase.assertFalse(variableElement.isConst);
-    JUnitTestCase.assertFalse(variableElement.isFinal);
-    JUnitTestCase.assertFalse(variableElement.isSynthetic);
+    expect(variableElement.name, variableName);
+    expect(variableElement.isConst, isFalse);
+    expect(variableElement.isFinal, isFalse);
+    expect(variableElement.isSynthetic, isFalse);
   }
 
   void test_visitVariableDeclaration_noInitializer() {
@@ -8488,16 +8287,16 @@ class ElementBuilderTest extends EngineTestCase {
     AstFactory.variableDeclarationList2(null, [variableDeclaration]);
     variableDeclaration.accept(builder);
     List<TopLevelVariableElement> variables = holder.topLevelVariables;
-    EngineTestCase.assertLength(1, variables);
+    expect(variables, hasLength(1));
     TopLevelVariableElement variable = variables[0];
-    JUnitTestCase.assertNotNull(variable);
-    JUnitTestCase.assertNull(variable.initializer);
-    JUnitTestCase.assertEquals(variableName, variable.name);
-    JUnitTestCase.assertFalse(variable.isConst);
-    JUnitTestCase.assertFalse(variable.isFinal);
-    JUnitTestCase.assertFalse(variable.isSynthetic);
-    JUnitTestCase.assertNotNull(variable.getter);
-    JUnitTestCase.assertNotNull(variable.setter);
+    expect(variable, isNotNull);
+    expect(variable.initializer, isNull);
+    expect(variable.name, variableName);
+    expect(variable.isConst, isFalse);
+    expect(variable.isFinal, isFalse);
+    expect(variable.isSynthetic, isFalse);
+    expect(variable.getter, isNotNull);
+    expect(variable.setter, isNotNull);
   }
 
   void _useParameterInMethod(FormalParameter formalParameter, int blockOffset,
@@ -8520,7 +8319,7 @@ class ElementBuilderTest extends EngineTestCase {
 
 class ElementLocatorTest extends ResolverTestCase {
   void fail_locate_ExportDirective() {
-    AstNode id = _findNodeIn("export", ["export 'dart:core';"]);
+    AstNode id = _findNodeIn("export", "export 'dart:core';");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ImportElement,
@@ -8529,7 +8328,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void fail_locate_Identifier_libraryDirective() {
-    AstNode id = _findNodeIn("foo", ["library foo.bar;"]);
+    AstNode id = _findNodeIn("foo", "library foo.bar;");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is LibraryElement,
@@ -8542,7 +8341,7 @@ class ElementLocatorTest extends ResolverTestCase {
     //    AstNode id = findNodeIn("foo", "part of foo.bar;");
     //    Element element = ElementLocator.locate(id);
     //    assertInstanceOf(LibraryElement.class, element);
-    JUnitTestCase.fail("Test this case");
+    fail("Test this case");
   }
 
   @override
@@ -8553,7 +8352,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locateWithOffset_BinaryExpression() {
-    AstNode id = _findNodeIn("+", ["var x = 3 + 4;"]);
+    AstNode id = _findNodeIn("+", "var x = 3 + 4;");
     Element element = ElementLocator.locateWithOffset(id, 0);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodElement,
@@ -8562,14 +8361,18 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locateWithOffset_StringLiteral() {
-    AstNode id = _findNodeIn("abc", ["var x = 'abc';"]);
+    AstNode id = _findNodeIn("abc", "var x = 'abc';");
     Element element = ElementLocator.locateWithOffset(id, 1);
-    JUnitTestCase.assertNull(element);
+    expect(element, isNull);
   }
 
   void test_locate_AssignmentExpression() {
     AstNode id =
-        _findNodeIn("+=", ["int x = 0;", "void main() {", "  x += 1;", "}"]);
+        _findNodeIn("+=", r'''
+int x = 0;
+void main() {
+  x += 1;
+}''');
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodElement,
@@ -8578,7 +8381,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_BinaryExpression() {
-    AstNode id = _findNodeIn("+", ["var x = 3 + 4;"]);
+    AstNode id = _findNodeIn("+", "var x = 3 + 4;");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodElement,
@@ -8587,7 +8390,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_ClassDeclaration() {
-    AstNode id = _findNodeIn("class", ["class A { }"]);
+    AstNode id = _findNodeIn("class", "class A { }");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ClassElement,
@@ -8596,15 +8399,18 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_CompilationUnit() {
-    CompilationUnit cu = _resolveContents(["// only comment"]);
-    JUnitTestCase.assertNotNull(cu.element);
+    CompilationUnit cu = _resolveContents("// only comment");
+    expect(cu.element, isNotNull);
     Element element = ElementLocator.locate(cu);
-    JUnitTestCase.assertSame(cu.element, element);
+    expect(element, same(cu.element));
   }
 
   void test_locate_ConstructorDeclaration() {
     AstNode id =
-        _findNodeIndexedIn("bar", 0, ["class A {", "  A.bar() {}", "}"]);
+        _findNodeIndexedIn("bar", 0, r'''
+class A {
+  A.bar() {}
+}''');
     ConstructorDeclaration declaration =
         id.getAncestor((node) => node is ConstructorDeclaration);
     Element element = ElementLocator.locate(declaration);
@@ -8615,7 +8421,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_FunctionDeclaration() {
-    AstNode id = _findNodeIn("f", ["int f() => 3;"]);
+    AstNode id = _findNodeIn("f", "int f() => 3;");
     FunctionDeclaration declaration =
         id.getAncestor((node) => node is FunctionDeclaration);
     Element element = ElementLocator.locate(declaration);
@@ -8630,12 +8436,12 @@ class ElementLocatorTest extends ResolverTestCase {
     AstNode id = _findNodeIndexedIn(
         "Class",
         2,
-        [
-            "class Class {",
-            "  const Class.name();",
-            "}",
-            "void main(@Class.name() parameter) {",
-            "}"]);
+        r'''
+class Class {
+  const Class.name();
+}
+void main(@Class.name() parameter) {
+}''');
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ClassElement,
@@ -8648,12 +8454,12 @@ class ElementLocatorTest extends ResolverTestCase {
     AstNode id = _findNodeIndexedIn(
         "Class",
         2,
-        [
-            "class Class {",
-            "  const Class();",
-            "}",
-            "void main(@Class() parameter) {",
-            "}"]);
+        r'''
+class Class {
+  const Class();
+}
+void main(@Class() parameter) {
+}''');
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ConstructorElement,
@@ -8662,7 +8468,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_Identifier_className() {
-    AstNode id = _findNodeIn("A", ["class A { }"]);
+    AstNode id = _findNodeIn("A", "class A { }");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ClassElement,
@@ -8672,7 +8478,10 @@ class ElementLocatorTest extends ResolverTestCase {
 
   void test_locate_Identifier_constructor_named() {
     AstNode id =
-        _findNodeIndexedIn("bar", 0, ["class A {", "  A.bar() {}", "}"]);
+        _findNodeIndexedIn("bar", 0, r'''
+class A {
+  A.bar() {}
+}''');
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ConstructorElement,
@@ -8681,7 +8490,10 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_Identifier_constructor_unnamed() {
-    AstNode id = _findNodeIndexedIn("A", 1, ["class A {", "  A() {}", "}"]);
+    AstNode id = _findNodeIndexedIn("A", 1, r'''
+class A {
+  A() {}
+}''');
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ConstructorElement,
@@ -8690,7 +8502,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_Identifier_fieldName() {
-    AstNode id = _findNodeIn("x", ["class A { var x; }"]);
+    AstNode id = _findNodeIn("x", "class A { var x; }");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is FieldElement,
@@ -8700,7 +8512,10 @@ class ElementLocatorTest extends ResolverTestCase {
 
   void test_locate_Identifier_propertAccess() {
     AstNode id =
-        _findNodeIn("length", ["void main() {", " int x = 'foo'.length;", "}"]);
+        _findNodeIn("length", r'''
+void main() {
+ int x = 'foo'.length;
+}''');
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is PropertyAccessorElement,
@@ -8709,7 +8524,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_ImportDirective() {
-    AstNode id = _findNodeIn("import", ["import 'dart:core';"]);
+    AstNode id = _findNodeIn("import", "import 'dart:core';");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ImportElement,
@@ -8721,7 +8536,11 @@ class ElementLocatorTest extends ResolverTestCase {
     AstNode id = _findNodeIndexedIn(
         "\\[",
         1,
-        ["void main() {", "  List x = [1, 2];", "  var y = x[0];", "}"]);
+        r'''
+void main() {
+  List x = [1, 2];
+  var y = x[0];
+}''');
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodElement,
@@ -8731,7 +8550,11 @@ class ElementLocatorTest extends ResolverTestCase {
 
   void test_locate_InstanceCreationExpression() {
     AstNode node =
-        _findNodeIndexedIn("A(", 0, ["class A {}", "void main() {", " new A();", "}"]);
+        _findNodeIndexedIn("A(", 0, r'''
+class A {}
+void main() {
+ new A();
+}''');
     Element element = ElementLocator.locate(node);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ConstructorElement,
@@ -8758,7 +8581,7 @@ class ElementLocatorTest extends ResolverTestCase {
     creation.constructorName.staticElement = constructorElement;
     // verify that "A" is resolved to ConstructorElement
     Element element = ElementLocator.locate(identifier);
-    JUnitTestCase.assertSame(classElement, element);
+    expect(element, same(classElement));
   }
 
   void test_locate_InstanceCreationExpression_type_simpleIdentifier() {
@@ -8778,11 +8601,11 @@ class ElementLocatorTest extends ResolverTestCase {
     creation.constructorName.staticElement = constructorElement;
     // verify that "A" is resolved to ConstructorElement
     Element element = ElementLocator.locate(identifier);
-    JUnitTestCase.assertSame(classElement, element);
+    expect(element, same(classElement));
   }
 
   void test_locate_LibraryDirective() {
-    AstNode id = _findNodeIn("library", ["library foo;"]);
+    AstNode id = _findNodeIn("library", "library foo;");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is LibraryElement,
@@ -8791,7 +8614,10 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_MethodDeclaration() {
-    AstNode id = _findNodeIn("m", ["class A {", "  void m() {}", "}"]);
+    AstNode id = _findNodeIn("m", r'''
+class A {
+  void m() {}
+}''');
     MethodDeclaration declaration =
         id.getAncestor((node) => node is MethodDeclaration);
     Element element = ElementLocator.locate(declaration);
@@ -8805,13 +8631,13 @@ class ElementLocatorTest extends ResolverTestCase {
     AstNode id = _findNodeIndexedIn(
         "bar",
         1,
-        [
-            "class A {",
-            "  int bar() => 42;",
-            "}",
-            "void main() {",
-            " var f = new A().bar();",
-            "}"]);
+        r'''
+class A {
+  int bar() => 42;
+}
+void main() {
+ var f = new A().bar();
+}''');
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodElement,
@@ -8820,10 +8646,14 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_MethodInvocation_topLevel() {
-    String contents =
-        EngineTestCase.createSource(["foo(x) {}", "void main() {", " foo(0);", "}"]);
-    CompilationUnit cu = _resolveContents([contents]);
-    int offset = contents.indexOf('foo(0)');
+    String code =
+        r'''
+foo(x) {}
+void main() {
+ foo(0);
+}''';
+    CompilationUnit cu = _resolveContents(code);
+    int offset = code.indexOf('foo(0)');
     AstNode node = new NodeLocator.con1(offset).searchWithin(cu);
     MethodInvocation invocation =
         node.getAncestor((n) => n is MethodInvocation);
@@ -8835,7 +8665,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_PostfixExpression() {
-    AstNode id = _findNodeIn("++", ["int addOne(int x) => x++;"]);
+    AstNode id = _findNodeIn("++", "int addOne(int x) => x++;");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodElement,
@@ -8844,7 +8674,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_PrefixExpression() {
-    AstNode id = _findNodeIn("++", ["int addOne(int x) => ++x;"]);
+    AstNode id = _findNodeIn("++", "int addOne(int x) => ++x;");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodElement,
@@ -8854,7 +8684,9 @@ class ElementLocatorTest extends ResolverTestCase {
 
   void test_locate_PrefixedIdentifier() {
     AstNode id =
-        _findNodeIn("int", ["import 'dart:core' as core;", "core.int value;"]);
+        _findNodeIn("int", r'''
+import 'dart:core' as core;
+core.int value;''');
     PrefixedIdentifier identifier =
         id.getAncestor((node) => node is PrefixedIdentifier);
     Element element = ElementLocator.locate(identifier);
@@ -8866,7 +8698,7 @@ class ElementLocatorTest extends ResolverTestCase {
 
   void test_locate_StringLiteral_exportUri() {
     addNamedSource("/foo.dart", "library foo;");
-    AstNode id = _findNodeIn("'foo.dart'", ["export 'foo.dart';"]);
+    AstNode id = _findNodeIn("'foo.dart'", "export 'foo.dart';");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is LibraryElement,
@@ -8875,15 +8707,15 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_StringLiteral_expression() {
-    AstNode id = _findNodeIn("abc", ["var x = 'abc';"]);
+    AstNode id = _findNodeIn("abc", "var x = 'abc';");
     Element element = ElementLocator.locate(id);
-    JUnitTestCase.assertNull(element);
+    expect(element, isNull);
   }
 
   void test_locate_StringLiteral_importUri() {
     addNamedSource("/foo.dart", "library foo; class A {}");
     AstNode id =
-        _findNodeIn("'foo.dart'", ["import 'foo.dart'; class B extends A {}"]);
+        _findNodeIn("'foo.dart'", "import 'foo.dart'; class B extends A {}");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is LibraryElement,
@@ -8893,7 +8725,7 @@ class ElementLocatorTest extends ResolverTestCase {
 
   void test_locate_StringLiteral_partUri() {
     addNamedSource("/foo.dart", "part of app;");
-    AstNode id = _findNodeIn("'foo.dart'", ["library app; part 'foo.dart';"]);
+    AstNode id = _findNodeIn("'foo.dart'", "library app; part 'foo.dart';");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is CompilationUnitElement,
@@ -8902,7 +8734,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_VariableDeclaration() {
-    AstNode id = _findNodeIn("x", ["var x = 'abc';"]);
+    AstNode id = _findNodeIn("x", "var x = 'abc';");
     VariableDeclaration declaration =
         id.getAncestor((node) => node is VariableDeclaration);
     Element element = ElementLocator.locate(declaration);
@@ -8915,30 +8747,27 @@ class ElementLocatorTest extends ResolverTestCase {
   /**
    * Find the first AST node matching a pattern in the resolved AST for the given source.
    *
-   * @param nodePattern the (unique) pattern used to identify the node of interest
-   * @param lines the lines to be merged into a single source string
-   * @return the matched node in the resolved AST for the given source lines
-   * @throws Exception if source cannot be verified
+   * [nodePattern] the (unique) pattern used to identify the node of interest.
+   * [code] the code to resolve.
+   * Returns the matched node in the resolved AST for the given source lines.
    */
-  AstNode _findNodeIn(String nodePattern, List<String> lines) {
-    return _findNodeIndexedIn(nodePattern, 0, lines);
+  AstNode _findNodeIn(String nodePattern, String code) {
+    return _findNodeIndexedIn(nodePattern, 0, code);
   }
 
   /**
    * Find the AST node matching the given indexed occurrence of a pattern in the resolved AST for
    * the given source.
    *
-   * @param nodePattern the pattern used to identify the node of interest
-   * @param index the index of the pattern match of interest
-   * @param lines the lines to be merged into a single source string
-   * @return the matched node in the resolved AST for the given source lines
-   * @throws Exception if source cannot be verified
+   * [nodePattern] the pattern used to identify the node of interest.
+   * [index] the index of the pattern match of interest.
+   * [code] the code to resolve.
+   * Returns the matched node in the resolved AST for the given source lines
    */
   AstNode _findNodeIndexedIn(String nodePattern, int index,
-      List<String> lines) {
-    String contents = EngineTestCase.createSource(lines);
-    CompilationUnit cu = _resolveContents([contents]);
-    int start = _getOffsetOfMatch(contents, nodePattern, index);
+                             String code) {
+    CompilationUnit cu = _resolveContents(code);
+    int start = _getOffsetOfMatch(code, nodePattern, index);
     int end = start + nodePattern.length;
     return new NodeLocator.con2(start, end).searchWithin(cu);
   }
@@ -8960,14 +8789,18 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   /**
-   * Parse, resolve and verify the given source lines to produce a fully resolved AST.
+   * Parse, resolve and verify the given source lines to produce a fully
+   * resolved AST.
    *
-   * @param lines the lines to be merged into a single source string
-   * @return the result of resolving the AST structure representing the content of the source
-   * @throws Exception if source cannot be verified
+   * [code] the code to resolve.
+   *
+   * Returns the result of resolving the AST structure representing the content
+   * of the source.
+   *
+   * Throws if source cannot be verified.
    */
-  CompilationUnit _resolveContents(List<String> lines) {
-    Source source = addSource(EngineTestCase.createSource(lines));
+  CompilationUnit _resolveContents(String code) {
+    Source source = addSource(code);
     LibraryElement library = resolve(source);
     assertNoErrors(source);
     verify([source]);
@@ -8983,44 +8816,65 @@ class EnumMemberBuilderTest extends EngineTestCase {
     String thirdName = "THREE";
     EnumDeclaration enumDeclaration =
         AstFactory.enumDeclaration2("E", [firstName, secondName, thirdName]);
+
     ClassElement enumElement = _buildElement(enumDeclaration);
     List<FieldElement> fields = enumElement.fields;
-    EngineTestCase.assertLength(5, fields);
+    expect(fields, hasLength(5));
+
     FieldElement constant = fields[2];
-    JUnitTestCase.assertNotNull(constant);
-    JUnitTestCase.assertEquals(firstName, constant.name);
-    JUnitTestCase.assertTrue(constant.isStatic);
+    expect(constant, isNotNull);
+    expect(constant.name, firstName);
+    expect(constant.isStatic, isTrue);
+    _assertGetter(constant);
+
     constant = fields[3];
-    JUnitTestCase.assertNotNull(constant);
-    JUnitTestCase.assertEquals(secondName, constant.name);
-    JUnitTestCase.assertTrue(constant.isStatic);
+    expect(constant, isNotNull);
+    expect(constant.name, secondName);
+    expect(constant.isStatic, isTrue);
+    _assertGetter(constant);
+
     constant = fields[4];
-    JUnitTestCase.assertNotNull(constant);
-    JUnitTestCase.assertEquals(thirdName, constant.name);
-    JUnitTestCase.assertTrue(constant.isStatic);
+    expect(constant, isNotNull);
+    expect(constant.name, thirdName);
+    expect(constant.isStatic, isTrue);
+    _assertGetter(constant);
   }
 
   void test_visitEnumDeclaration_single() {
     String firstName = "ONE";
     EnumDeclaration enumDeclaration =
         AstFactory.enumDeclaration2("E", [firstName]);
+
     ClassElement enumElement = _buildElement(enumDeclaration);
     List<FieldElement> fields = enumElement.fields;
-    EngineTestCase.assertLength(3, fields);
+    expect(fields, hasLength(3));
+
     FieldElement field = fields[0];
-    JUnitTestCase.assertNotNull(field);
-    JUnitTestCase.assertEquals("index", field.name);
-    JUnitTestCase.assertFalse(field.isStatic);
-    JUnitTestCase.assertTrue(field.isSynthetic);
+    expect(field, isNotNull);
+    expect(field.name, "index");
+    expect(field.isStatic, isFalse);
+    expect(field.isSynthetic, isTrue);
+    _assertGetter(field);
+
     field = fields[1];
-    JUnitTestCase.assertNotNull(field);
-    JUnitTestCase.assertEquals("values", field.name);
-    JUnitTestCase.assertTrue(field.isStatic);
-    JUnitTestCase.assertTrue(field.isSynthetic);
+    expect(field, isNotNull);
+    expect(field.name, "values");
+    expect(field.isStatic, isTrue);
+    expect(field.isSynthetic, isTrue);
+    _assertGetter(field);
+
     FieldElement constant = fields[2];
-    JUnitTestCase.assertNotNull(constant);
-    JUnitTestCase.assertEquals(firstName, constant.name);
-    JUnitTestCase.assertTrue(constant.isStatic);
+    expect(constant, isNotNull);
+    expect(constant.name, firstName);
+    expect(constant.isStatic, isTrue);
+    _assertGetter(constant);
+  }
+
+  void _assertGetter(FieldElement field) {
+    PropertyAccessorElement getter = field.getter;
+    expect(getter, isNotNull);
+    expect(getter.variable, same(field));
+    expect(getter.type, isNotNull);
   }
 
   ClassElement _buildElement(EnumDeclaration enumDeclaration) {
@@ -9031,7 +8885,7 @@ class EnumMemberBuilderTest extends EngineTestCase {
         new EnumMemberBuilder(new TestTypeProvider());
     enumDeclaration.accept(memberBuilder);
     List<ClassElement> enums = holder.enums;
-    EngineTestCase.assertLength(1, enums);
+    expect(enums, hasLength(1));
     return enums[0];
   }
 }
@@ -9055,7 +8909,7 @@ class ErrorReporterTest extends EngineTestCase {
   void test_creation() {
     GatheringErrorListener listener = new GatheringErrorListener();
     TestSource source = new TestSource();
-    JUnitTestCase.assertNotNull(new ErrorReporter(listener, source));
+    expect(new ErrorReporter(listener, source), isNotNull);
   }
 
   void test_reportTypeErrorForNode_differentNames() {
@@ -9069,7 +8923,7 @@ class ErrorReporterTest extends EngineTestCase {
         AstFactory.identifier3("x"),
         [firstType, secondType]);
     AnalysisError error = listener.errors[0];
-    JUnitTestCase.assertTrue(error.message.indexOf("(") < 0);
+    expect(error.message.indexOf("(") < 0, isTrue);
   }
 
   void test_reportTypeErrorForNode_sameName() {
@@ -9084,64 +8938,46 @@ class ErrorReporterTest extends EngineTestCase {
         AstFactory.identifier3("x"),
         [firstType, secondType]);
     AnalysisError error = listener.errors[0];
-    JUnitTestCase.assertTrue(error.message.indexOf("(") >= 0);
+    expect(error.message.indexOf("(") >= 0, isTrue);
   }
 }
 
 
 class ErrorSeverityTest extends EngineTestCase {
   void test_max_error_error() {
-    JUnitTestCase.assertSame(
-        ErrorSeverity.ERROR,
-        ErrorSeverity.ERROR.max(ErrorSeverity.ERROR));
+    expect(ErrorSeverity.ERROR.max(ErrorSeverity.ERROR), same(ErrorSeverity.ERROR));
   }
 
   void test_max_error_none() {
-    JUnitTestCase.assertSame(
-        ErrorSeverity.ERROR,
-        ErrorSeverity.ERROR.max(ErrorSeverity.NONE));
+    expect(ErrorSeverity.ERROR.max(ErrorSeverity.NONE), same(ErrorSeverity.ERROR));
   }
 
   void test_max_error_warning() {
-    JUnitTestCase.assertSame(
-        ErrorSeverity.ERROR,
-        ErrorSeverity.ERROR.max(ErrorSeverity.WARNING));
+    expect(ErrorSeverity.ERROR.max(ErrorSeverity.WARNING), same(ErrorSeverity.ERROR));
   }
 
   void test_max_none_error() {
-    JUnitTestCase.assertSame(
-        ErrorSeverity.ERROR,
-        ErrorSeverity.NONE.max(ErrorSeverity.ERROR));
+    expect(ErrorSeverity.NONE.max(ErrorSeverity.ERROR), same(ErrorSeverity.ERROR));
   }
 
   void test_max_none_none() {
-    JUnitTestCase.assertSame(
-        ErrorSeverity.NONE,
-        ErrorSeverity.NONE.max(ErrorSeverity.NONE));
+    expect(ErrorSeverity.NONE.max(ErrorSeverity.NONE), same(ErrorSeverity.NONE));
   }
 
   void test_max_none_warning() {
-    JUnitTestCase.assertSame(
-        ErrorSeverity.WARNING,
-        ErrorSeverity.NONE.max(ErrorSeverity.WARNING));
+    expect(ErrorSeverity.NONE.max(ErrorSeverity.WARNING), same(ErrorSeverity.WARNING));
   }
 
   void test_max_warning_error() {
-    JUnitTestCase.assertSame(
-        ErrorSeverity.ERROR,
-        ErrorSeverity.WARNING.max(ErrorSeverity.ERROR));
+    expect(ErrorSeverity.WARNING.max(ErrorSeverity.ERROR), same(ErrorSeverity.ERROR));
   }
 
   void test_max_warning_none() {
-    JUnitTestCase.assertSame(
-        ErrorSeverity.WARNING,
-        ErrorSeverity.WARNING.max(ErrorSeverity.NONE));
+    expect(ErrorSeverity.WARNING.max(ErrorSeverity.NONE), same(ErrorSeverity.WARNING));
   }
 
   void test_max_warning_warning() {
-    JUnitTestCase.assertSame(
-        ErrorSeverity.WARNING,
-        ErrorSeverity.WARNING.max(ErrorSeverity.WARNING));
+    expect(ErrorSeverity.WARNING.max(ErrorSeverity.WARNING), same(ErrorSeverity.WARNING));
   }
 }
 
@@ -9276,7 +9112,7 @@ class ExitDetectorTest extends ParserTestCase {
   }
 
   void test_creation() {
-    JUnitTestCase.assertNotNull(new ExitDetector());
+    expect(new ExitDetector(), isNotNull);
   }
 
   void test_doStatement_throwCondition() {
@@ -9626,7 +9462,7 @@ class ExitDetectorTest extends ParserTestCase {
   void _assertHasReturn(bool expectedResult, String source) {
     ExitDetector detector = new ExitDetector();
     Statement statement = ParserTestCase.parseStatement(source, []);
-    JUnitTestCase.assertSame(expectedResult, statement.accept(detector));
+    expect(statement.accept(detector), same(expectedResult));
   }
 
   void _assertTrue(String source) {
@@ -9647,19 +9483,19 @@ class ExpressionVisitor_AngularTest_verify extends ExpressionVisitor {
 }
 
 
-class FileBasedSourceTest extends JUnitTestCase {
+class FileBasedSourceTest {
   void test_equals_false_differentFiles() {
     JavaFile file1 = FileUtilities2.createFile("/does/not/exist1.dart");
     JavaFile file2 = FileUtilities2.createFile("/does/not/exist2.dart");
     FileBasedSource source1 = new FileBasedSource.con1(file1);
     FileBasedSource source2 = new FileBasedSource.con1(file2);
-    JUnitTestCase.assertFalse(source1 == source2);
+    expect(source1 == source2, isFalse);
   }
 
   void test_equals_false_null() {
     JavaFile file = FileUtilities2.createFile("/does/not/exist1.dart");
     FileBasedSource source1 = new FileBasedSource.con1(file);
-    JUnitTestCase.assertFalse(source1 == null);
+    expect(source1 == null, isFalse);
   }
 
   void test_equals_true() {
@@ -9667,7 +9503,7 @@ class FileBasedSourceTest extends JUnitTestCase {
     JavaFile file2 = FileUtilities2.createFile("/does/not/exist.dart");
     FileBasedSource source1 = new FileBasedSource.con1(file1);
     FileBasedSource source2 = new FileBasedSource.con1(file2);
-    JUnitTestCase.assertTrue(source1 == source2);
+    expect(source1 == source2, isTrue);
   }
 
   void test_getEncoding() {
@@ -9675,20 +9511,20 @@ class FileBasedSourceTest extends JUnitTestCase {
     String fullPath = "/does/not/exist.dart";
     JavaFile file = FileUtilities2.createFile(fullPath);
     FileBasedSource source = new FileBasedSource.con1(file);
-    JUnitTestCase.assertEquals(source, factory.fromEncoding(source.encoding));
+    expect(factory.fromEncoding(source.encoding), source);
   }
 
   void test_getFullName() {
     String fullPath = "/does/not/exist.dart";
     JavaFile file = FileUtilities2.createFile(fullPath);
     FileBasedSource source = new FileBasedSource.con1(file);
-    JUnitTestCase.assertEquals(file.getAbsolutePath(), source.fullName);
+    expect(source.fullName, file.getAbsolutePath());
   }
 
   void test_getShortName() {
     JavaFile file = FileUtilities2.createFile("/does/not/exist.dart");
     FileBasedSource source = new FileBasedSource.con1(file);
-    JUnitTestCase.assertEquals("exist.dart", source.shortName);
+    expect(source.shortName, "exist.dart");
   }
 
   void test_hashCode() {
@@ -9696,72 +9532,72 @@ class FileBasedSourceTest extends JUnitTestCase {
     JavaFile file2 = FileUtilities2.createFile("/does/not/exist.dart");
     FileBasedSource source1 = new FileBasedSource.con1(file1);
     FileBasedSource source2 = new FileBasedSource.con1(file2);
-    JUnitTestCase.assertEquals(source1.hashCode, source2.hashCode);
+    expect(source2.hashCode, source1.hashCode);
   }
 
   void test_isInSystemLibrary_contagious() {
     JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    JUnitTestCase.assertNotNull(sdkDirectory);
+    expect(sdkDirectory, isNotNull);
     DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
     UriResolver resolver = new DartUriResolver(sdk);
     SourceFactory factory = new SourceFactory([resolver]);
     // resolve dart:core
     Source result =
         resolver.resolveAbsolute(parseUriWithException("dart:core"));
-    JUnitTestCase.assertNotNull(result);
-    JUnitTestCase.assertTrue(result.isInSystemLibrary);
+    expect(result, isNotNull);
+    expect(result.isInSystemLibrary, isTrue);
     // system libraries reference only other system libraries
     Source partSource = factory.resolveUri(result, "num.dart");
-    JUnitTestCase.assertNotNull(partSource);
-    JUnitTestCase.assertTrue(partSource.isInSystemLibrary);
+    expect(partSource, isNotNull);
+    expect(partSource.isInSystemLibrary, isTrue);
   }
 
   void test_isInSystemLibrary_false() {
     JavaFile file = FileUtilities2.createFile("/does/not/exist.dart");
     FileBasedSource source = new FileBasedSource.con1(file);
-    JUnitTestCase.assertNotNull(source);
-    JUnitTestCase.assertEquals(file.getAbsolutePath(), source.fullName);
-    JUnitTestCase.assertFalse(source.isInSystemLibrary);
+    expect(source, isNotNull);
+    expect(source.fullName, file.getAbsolutePath());
+    expect(source.isInSystemLibrary, isFalse);
   }
 
   void test_issue14500() {
     // see https://code.google.com/p/dart/issues/detail?id=14500
     FileBasedSource source = new FileBasedSource.con1(
         FileUtilities2.createFile("/some/packages/foo:bar.dart"));
-    JUnitTestCase.assertNotNull(source);
-    JUnitTestCase.assertFalse(source.exists());
+    expect(source, isNotNull);
+    expect(source.exists(), isFalse);
   }
 
   void test_resolveRelative_dart_fileName() {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
     FileBasedSource source =
         new FileBasedSource.con2(parseUriWithException("dart:test"), file);
-    JUnitTestCase.assertNotNull(source);
+    expect(source, isNotNull);
     Uri relative = source.resolveRelativeUri(parseUriWithException("lib.dart"));
-    JUnitTestCase.assertNotNull(relative);
-    JUnitTestCase.assertEquals("dart:test/lib.dart", relative.toString());
+    expect(relative, isNotNull);
+    expect(relative.toString(), "dart:test/lib.dart");
   }
 
   void test_resolveRelative_dart_filePath() {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
     FileBasedSource source =
         new FileBasedSource.con2(parseUriWithException("dart:test"), file);
-    JUnitTestCase.assertNotNull(source);
+    expect(source, isNotNull);
     Uri relative =
         source.resolveRelativeUri(parseUriWithException("c/lib.dart"));
-    JUnitTestCase.assertNotNull(relative);
-    JUnitTestCase.assertEquals("dart:test/c/lib.dart", relative.toString());
+    expect(relative, isNotNull);
+    expect(relative.toString(), "dart:test/c/lib.dart");
   }
 
   void test_resolveRelative_dart_filePathWithParent() {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
     FileBasedSource source =
         new FileBasedSource.con2(parseUriWithException("dart:test/b/test.dart"), file);
-    JUnitTestCase.assertNotNull(source);
+    expect(source, isNotNull);
     Uri relative =
         source.resolveRelativeUri(parseUriWithException("../c/lib.dart"));
-    JUnitTestCase.assertNotNull(relative);
-    JUnitTestCase.assertEquals("dart:test/c/lib.dart", relative.toString());
+    expect(relative, isNotNull);
+    expect(relative.toString(), "dart:test/c/lib.dart");
   }
 
   void test_resolveRelative_file_fileName() {
@@ -9773,10 +9609,10 @@ class FileBasedSourceTest extends JUnitTestCase {
     }
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource.con1(file);
-    JUnitTestCase.assertNotNull(source);
+    expect(source, isNotNull);
     Uri relative = source.resolveRelativeUri(parseUriWithException("lib.dart"));
-    JUnitTestCase.assertNotNull(relative);
-    JUnitTestCase.assertEquals("file:///a/b/lib.dart", relative.toString());
+    expect(relative, isNotNull);
+    expect(relative.toString(), "file:///a/b/lib.dart");
   }
 
   void test_resolveRelative_file_filePath() {
@@ -9788,11 +9624,11 @@ class FileBasedSourceTest extends JUnitTestCase {
     }
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource.con1(file);
-    JUnitTestCase.assertNotNull(source);
+    expect(source, isNotNull);
     Uri relative =
         source.resolveRelativeUri(parseUriWithException("c/lib.dart"));
-    JUnitTestCase.assertNotNull(relative);
-    JUnitTestCase.assertEquals("file:///a/b/c/lib.dart", relative.toString());
+    expect(relative, isNotNull);
+    expect(relative.toString(), "file:///a/b/c/lib.dart");
   }
 
   void test_resolveRelative_file_filePathWithParent() {
@@ -9803,86 +9639,84 @@ class FileBasedSourceTest extends JUnitTestCase {
     }
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource.con1(file);
-    JUnitTestCase.assertNotNull(source);
+    expect(source, isNotNull);
     Uri relative =
         source.resolveRelativeUri(parseUriWithException("../c/lib.dart"));
-    JUnitTestCase.assertNotNull(relative);
-    JUnitTestCase.assertEquals("file:///a/c/lib.dart", relative.toString());
+    expect(relative, isNotNull);
+    expect(relative.toString(), "file:///a/c/lib.dart");
   }
 
   void test_resolveRelative_package_fileName() {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
     FileBasedSource source =
         new FileBasedSource.con2(parseUriWithException("package:b/test.dart"), file);
-    JUnitTestCase.assertNotNull(source);
+    expect(source, isNotNull);
     Uri relative = source.resolveRelativeUri(parseUriWithException("lib.dart"));
-    JUnitTestCase.assertNotNull(relative);
-    JUnitTestCase.assertEquals("package:b/lib.dart", relative.toString());
+    expect(relative, isNotNull);
+    expect(relative.toString(), "package:b/lib.dart");
   }
 
   void test_resolveRelative_package_fileNameWithoutPackageName() {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
     FileBasedSource source =
         new FileBasedSource.con2(parseUriWithException("package:test.dart"), file);
-    JUnitTestCase.assertNotNull(source);
+    expect(source, isNotNull);
     Uri relative = source.resolveRelativeUri(parseUriWithException("lib.dart"));
-    JUnitTestCase.assertNotNull(relative);
-    JUnitTestCase.assertEquals("package:lib.dart", relative.toString());
+    expect(relative, isNotNull);
+    expect(relative.toString(), "package:lib.dart");
   }
 
   void test_resolveRelative_package_filePath() {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
     FileBasedSource source =
         new FileBasedSource.con2(parseUriWithException("package:b/test.dart"), file);
-    JUnitTestCase.assertNotNull(source);
+    expect(source, isNotNull);
     Uri relative =
         source.resolveRelativeUri(parseUriWithException("c/lib.dart"));
-    JUnitTestCase.assertNotNull(relative);
-    JUnitTestCase.assertEquals("package:b/c/lib.dart", relative.toString());
+    expect(relative, isNotNull);
+    expect(relative.toString(), "package:b/c/lib.dart");
   }
 
   void test_resolveRelative_package_filePathWithParent() {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
     FileBasedSource source =
         new FileBasedSource.con2(parseUriWithException("package:a/b/test.dart"), file);
-    JUnitTestCase.assertNotNull(source);
+    expect(source, isNotNull);
     Uri relative =
         source.resolveRelativeUri(parseUriWithException("../c/lib.dart"));
-    JUnitTestCase.assertNotNull(relative);
-    JUnitTestCase.assertEquals("package:a/c/lib.dart", relative.toString());
+    expect(relative, isNotNull);
+    expect(relative.toString(), "package:a/c/lib.dart");
   }
 
   void test_system() {
     JavaFile file = FileUtilities2.createFile("/does/not/exist.dart");
     FileBasedSource source =
         new FileBasedSource.con2(parseUriWithException("dart:core"), file);
-    JUnitTestCase.assertNotNull(source);
-    JUnitTestCase.assertEquals(file.getAbsolutePath(), source.fullName);
-    JUnitTestCase.assertTrue(source.isInSystemLibrary);
+    expect(source, isNotNull);
+    expect(source.fullName, file.getAbsolutePath());
+    expect(source.isInSystemLibrary, isTrue);
   }
 }
 
 
-class FileUriResolverTest extends JUnitTestCase {
+class FileUriResolverTest {
   void test_creation() {
-    JUnitTestCase.assertNotNull(new FileUriResolver());
+    expect(new FileUriResolver(), isNotNull);
   }
 
   void test_resolve_file() {
     UriResolver resolver = new FileUriResolver();
     Source result =
         resolver.resolveAbsolute(parseUriWithException("file:/does/not/exist.dart"));
-    JUnitTestCase.assertNotNull(result);
-    JUnitTestCase.assertEquals(
-        FileUtilities2.createFile("/does/not/exist.dart").getAbsolutePath(),
-        result.fullName);
+    expect(result, isNotNull);
+    expect(result.fullName, FileUtilities2.createFile("/does/not/exist.dart").getAbsolutePath());
   }
 
   void test_resolve_nonFile() {
     UriResolver resolver = new FileUriResolver();
     Source result =
         resolver.resolveAbsolute(parseUriWithException("dart:core"));
-    JUnitTestCase.assertNull(result);
+    expect(result, isNull);
   }
 }
 
@@ -9893,23 +9727,20 @@ class HtmlParserTest extends EngineTestCase {
    */
   static String _TAG_SCRIPT = "script";
   void fail_parse_scriptWithComment() {
-    String scriptBody = EngineTestCase.createSource(
-        [
-            "      /**",
-            "       *     <editable-label bind-value=\"dartAsignableValue\">",
-            "       *     </editable-label>",
-            "       */",
-            "      class Foo {}"]);
-    ht.HtmlUnit htmlUnit = parse(
-        EngineTestCase.createSource(
-            [
-                "  <html>",
-                "    <body>",
-                "      <script type=\"application/dart\">",
-                scriptBody,
-                "      </script>",
-                "    </body>",
-                "  </html>"]));
+    String scriptBody = r'''
+      /**
+       *     <editable-label bind-value="dartAsignableValue">
+       *     </editable-label>
+       */
+      class Foo {}''';
+    ht.HtmlUnit htmlUnit = parse("""
+<html>
+  <body>
+    <script type='application/dart'>
+$scriptBody
+    </script>
+  </body>
+</html>""");
     _validate(
         htmlUnit,
         [
@@ -9918,7 +9749,7 @@ class HtmlParserTest extends EngineTestCase {
                 [
                     _t4(
                         "body",
-                        [_t("script", _a(["type", "\"application/dart\""]), scriptBody, [])])])]);
+                        [_t("script", _a(["type", "'application/dart'"]), scriptBody, [])])])]);
   }
   ht.HtmlUnit parse(String contents) {
 //    TestSource source =
@@ -9940,7 +9771,7 @@ class HtmlParserTest extends EngineTestCase {
         [_t4("html", [_t("body", _a(["foo", "\"sdfsdf\""]), "", [])])]);
     ht.XmlTagNode htmlNode = htmlUnit.tagNodes[0];
     ht.XmlTagNode bodyNode = htmlNode.tagNodes[0];
-    JUnitTestCase.assertEquals("sdfsdf", bodyNode.attributes[0].text);
+    expect(bodyNode.attributes[0].text, "sdfsdf");
   }
   void test_parse_attribute_EOF() {
     ht.HtmlUnit htmlUnit = parse("<html><body foo=\"sdfsdf\"");
@@ -9955,7 +9786,7 @@ class HtmlParserTest extends EngineTestCase {
         [_t4("html", [_t("body", _a(["foo", "\"sdfsd"]), "", [])])]);
     ht.XmlTagNode htmlNode = htmlUnit.tagNodes[0];
     ht.XmlTagNode bodyNode = htmlNode.tagNodes[0];
-    JUnitTestCase.assertEquals("sdfsd", bodyNode.attributes[0].text);
+    expect(bodyNode.attributes[0].text, "sdfsd");
   }
   void test_parse_attribute_extra_quote() {
     ht.HtmlUnit htmlUnit = parse("<html><body foo=\"sdfsdf\"\"></body></html>");
@@ -9970,7 +9801,7 @@ class HtmlParserTest extends EngineTestCase {
         [_t4("html", [_t("body", _a(["foo", "'sdfsdf'"]), "", [])])]);
     ht.XmlTagNode htmlNode = htmlUnit.tagNodes[0];
     ht.XmlTagNode bodyNode = htmlNode.tagNodes[0];
-    JUnitTestCase.assertEquals("sdfsdf", bodyNode.attributes[0].text);
+    expect(bodyNode.attributes[0].text, "sdfsdf");
   }
   void test_parse_comment_embedded() {
     ht.HtmlUnit htmlUnit = parse("<html <!-- comment -->></html>");
@@ -10014,29 +9845,28 @@ class HtmlParserTest extends EngineTestCase {
     ht.HtmlUnit htmlUnit = parse("<html><body foo=\"sdfsdf\"></body></html>");
     ht.XmlTagNode htmlNode = htmlUnit.tagNodes[0];
     ht.XmlTagNode bodyNode = htmlNode.tagNodes[0];
-    JUnitTestCase.assertEquals("sdfsdf", bodyNode.getAttribute("foo").text);
-    JUnitTestCase.assertEquals(null, bodyNode.getAttribute("bar"));
-    JUnitTestCase.assertEquals(null, bodyNode.getAttribute(null));
+    expect(bodyNode.getAttribute("foo").text, "sdfsdf");
+    expect(bodyNode.getAttribute("bar"), null);
+    expect(bodyNode.getAttribute(null), null);
   }
   void test_parse_getAttributeText() {
     ht.HtmlUnit htmlUnit = parse("<html><body foo=\"sdfsdf\"></body></html>");
     ht.XmlTagNode htmlNode = htmlUnit.tagNodes[0];
     ht.XmlTagNode bodyNode = htmlNode.tagNodes[0];
-    JUnitTestCase.assertEquals("sdfsdf", bodyNode.getAttributeText("foo"));
-    JUnitTestCase.assertEquals(null, bodyNode.getAttributeText("bar"));
-    JUnitTestCase.assertEquals(null, bodyNode.getAttributeText(null));
+    expect(bodyNode.getAttributeText("foo"), "sdfsdf");
+    expect(bodyNode.getAttributeText("bar"), null);
+    expect(bodyNode.getAttributeText(null), null);
   }
   void test_parse_headers() {
-    String code = EngineTestCase.createSource(
-        [
-            "<html>",
-            "  <body>",
-            "    <h2>000</h2>",
-            "    <div>",
-            "      111",
-            "    </div>",
-            "  </body>",
-            "</html>"]);
+    String code = r'''
+<html>
+  <body>
+    <h2>000</h2>
+    <div>
+      111
+    </div>
+  </body>
+</html>''';
     ht.HtmlUnit htmlUnit = parse(code);
     _validate(
         htmlUnit,
@@ -10080,24 +9910,22 @@ class HtmlParserTest extends EngineTestCase {
 class HtmlTagInfoBuilderTest extends HtmlParserTest {
   void test_builder() {
     HtmlTagInfoBuilder builder = new HtmlTagInfoBuilder();
-    ht.HtmlUnit unit = parse(
-        EngineTestCase.createSource(
-            [
-                "<html>",
-                "  <body>",
-                "    <div id=\"x\"></div>",
-                "    <p class='c'></p>",
-                "    <div class='c'></div>",
-                "  </body>",
-                "</html>"]));
+    ht.HtmlUnit unit = parse(r'''
+<html>
+  <body>
+    <div id="x"></div>
+    <p class='c'></p>
+    <div class='c'></div>
+  </body>
+</html>''');
     unit.accept(builder);
     HtmlTagInfo info = builder.getTagInfo();
-    JUnitTestCase.assertNotNull(info);
+    expect(info, isNotNull);
     List<String> allTags = info.allTags;
-    EngineTestCase.assertLength(4, allTags);
-    JUnitTestCase.assertEquals("div", info.getTagWithId("x"));
+    expect(allTags, hasLength(4));
+    expect(info.getTagWithId("x"), "div");
     List<String> tagsWithClass = info.getTagsWithClass("c");
-    EngineTestCase.assertLength(2, tagsWithClass);
+    expect(tagsWithClass, hasLength(2));
   }
 }
 
@@ -10114,55 +9942,53 @@ class HtmlUnitBuilderTest extends EngineTestCase {
     super.tearDown();
   }
   void test_embedded_script() {
-    HtmlElementImpl element = _build(
-        EngineTestCase.createSource(
-            ["<html>", "<script type=\"application/dart\">foo=2;</script>", "</html>"]));
+    HtmlElementImpl element = _build(r'''
+<html>
+<script type="application/dart">foo=2;</script>
+</html>''');
     _validate(element, [_s(_l([_v("foo")]))]);
   }
   void test_embedded_script_no_content() {
-    HtmlElementImpl element = _build(
-        EngineTestCase.createSource(
-            ["<html>", "<script type=\"application/dart\"></script>", "</html>"]));
+    HtmlElementImpl element = _build(r'''
+<html>
+<script type="application/dart"></script>
+</html>''');
     _validate(element, [_s(_l([]))]);
   }
   void test_external_script() {
-    HtmlElementImpl element = _build(
-        EngineTestCase.createSource(
-            [
-                "<html>",
-                "<script type=\"application/dart\" src=\"other.dart\"/>",
-                "</html>"]));
+    HtmlElementImpl element = _build(r'''
+<html>
+<script type="application/dart" src="other.dart"/>
+</html>''');
     _validate(element, [_s2("other.dart")]);
   }
   void test_external_script_no_source() {
-    HtmlElementImpl element = _build(
-        EngineTestCase.createSource(
-            ["<html>", "<script type=\"application/dart\"/>", "</html>"]));
+    HtmlElementImpl element = _build(r'''
+<html>
+<script type="application/dart"/>
+</html>''');
     _validate(element, [_s2(null)]);
   }
   void test_external_script_with_content() {
-    HtmlElementImpl element = _build(
-        EngineTestCase.createSource(
-            [
-                "<html>",
-                "<script type=\"application/dart\" src=\"other.dart\">blat=2;</script>",
-                "</html>"]));
+    HtmlElementImpl element = _build(r'''
+<html>
+<script type="application/dart" src="other.dart">blat=2;</script>
+</html>''');
     _validate(element, [_s2("other.dart")]);
   }
   void test_no_scripts() {
-    HtmlElementImpl element = _build(
-        EngineTestCase.createSource(["<!DOCTYPE html>", "<html><p></p></html>"]));
+    HtmlElementImpl element = _build(r'''
+<!DOCTYPE html>
+<html><p></p></html>''');
     _validate(element, []);
   }
   void test_two_dart_scripts() {
-    HtmlElementImpl element = _build(
-        EngineTestCase.createSource(
-            [
-                "<html>",
-                "<script type=\"application/dart\">bar=2;</script>",
-                "<script type=\"application/dart\" src=\"other.dart\"/>",
-                "<script src=\"dart.js\"/>",
-                "</html>"]));
+    HtmlElementImpl element = _build(r'''
+<html>
+<script type="application/dart">bar=2;</script>
+<script type="application/dart" src="other.dart"/>
+<script src="dart.js"/>
+</html>''');
     _validate(element, [_s(_l([_v("bar")])), _s2("other.dart")]);
   }
   HtmlElementImpl _build(String contents) {
@@ -10189,10 +10015,10 @@ class HtmlUnitBuilderTest extends EngineTestCase {
       new HtmlUnitBuilderTest_ExpectedVariable(varName);
   void _validate(HtmlElementImpl element,
       List<_ExpectedScript> expectedScripts) {
-    JUnitTestCase.assertSame(_context, element.context);
+    expect(element.context, same(_context));
     List<HtmlScriptElement> scripts = element.scripts;
-    JUnitTestCase.assertNotNull(scripts);
-    EngineTestCase.assertLength(expectedScripts.length, scripts);
+    expect(scripts, isNotNull);
+    expect(scripts, hasLength(expectedScripts.length));
     for (int scriptIndex = 0; scriptIndex < scripts.length; scriptIndex++) {
       expectedScripts[scriptIndex]._validate(scriptIndex, scripts[scriptIndex]);
     }
@@ -10207,22 +10033,16 @@ class HtmlUnitBuilderTest_ExpectedLibrary {
       this._expectedVariables);
   void _validate(int scriptIndex, EmbeddedHtmlScriptElementImpl script) {
     LibraryElement library = script.scriptLibrary;
-    JUnitTestCase.assertNotNullMsg("script ${scriptIndex}", library);
-    JUnitTestCase.assertSameMsg(
-        "script ${scriptIndex}",
-        HtmlUnitBuilderTest_this._context,
-        script.context);
+    expect(library, isNotNull, reason: "script $scriptIndex");
+    expect(script.context, same(HtmlUnitBuilderTest_this._context), reason: "script $scriptIndex");
     CompilationUnitElement unit = library.definingCompilationUnit;
-    JUnitTestCase.assertNotNullMsg("script ${scriptIndex}", unit);
+    expect(unit, isNotNull, reason: "script $scriptIndex");
     List<TopLevelVariableElement> variables = unit.topLevelVariables;
-    EngineTestCase.assertLength(_expectedVariables.length, variables);
+    expect(variables, hasLength(_expectedVariables.length));
     for (int index = 0; index < variables.length; index++) {
       _expectedVariables[index].validate(scriptIndex, variables[index]);
     }
-    JUnitTestCase.assertSameMsg(
-        "script ${scriptIndex}",
-        script,
-        library.enclosingElement);
+    expect(library.enclosingElement, same(script), reason: "script $scriptIndex");
   }
 }
 
@@ -10231,11 +10051,8 @@ class HtmlUnitBuilderTest_ExpectedVariable {
   final String _expectedName;
   HtmlUnitBuilderTest_ExpectedVariable(this._expectedName);
   void validate(int scriptIndex, TopLevelVariableElement variable) {
-    JUnitTestCase.assertNotNullMsg("script ${scriptIndex}", variable);
-    JUnitTestCase.assertEqualsMsg(
-        "script ${scriptIndex}",
-        _expectedName,
-        variable.name);
+    expect(variable, isNotNull, reason: "script $scriptIndex");
+    expect(variable.name, _expectedName, reason: "script $scriptIndex");
   }
 }
 
@@ -10280,31 +10097,27 @@ class HtmlWarningCodeTest extends EngineTestCase {
   }
 
   void test_invalidUri() {
-    _verify(
-        EngineTestCase.createSource(
-            ["<html>", "<script type='application/dart' src='ht:'/>", "</html>"]),
+    _verify(r'''
+<html>
+<script type='application/dart' src='ht:'/>
+</html>''',
         [HtmlWarningCode.INVALID_URI]);
     _assertErrorLocation2(_errors[0], "ht:");
   }
 
   void test_uriDoesNotExist() {
-    _verify(
-        EngineTestCase.createSource(
-            ["<html>", "<script type='application/dart' src='other.dart'/>", "</html>"]),
+    _verify(r'''
+<html>
+<script type='application/dart' src='other.dart'/>
+</html>''',
         [HtmlWarningCode.URI_DOES_NOT_EXIST]);
     _assertErrorLocation2(_errors[0], "other.dart");
   }
 
   void _assertErrorLocation(AnalysisError error, int expectedOffset,
       int expectedLength) {
-    JUnitTestCase.assertEqualsMsg(
-        error.toString(),
-        expectedOffset,
-        error.offset);
-    JUnitTestCase.assertEqualsMsg(
-        error.toString(),
-        expectedLength,
-        error.length);
+    expect(error.offset, expectedOffset, reason: error.toString());
+    expect(error.length, expectedLength, reason: error.toString());
   }
 
   void _assertErrorLocation2(AnalysisError error, String expectedString) {
@@ -10434,12 +10247,12 @@ class ReferenceFinderTest extends EngineTestCase {
   }
   void _assertNoArcs() {
     Set<AstNode> tails = _referenceGraph.getTails(_head);
-    EngineTestCase.assertSizeOfSet(0, tails);
+    expect(tails, hasLength(0));
   }
   void _assertOneArc(AstNode tail) {
     Set<AstNode> tails = _referenceGraph.getTails(_head);
-    EngineTestCase.assertSizeOfSet(1, tails);
-    JUnitTestCase.assertSame(tail, new JavaIterator(tails).next());
+    expect(tails, hasLength(1));
+    expect(tails.first, same(tail));
   }
   ReferenceFinder _createReferenceFinder(AstNode source) =>
       new ReferenceFinder(
@@ -10530,87 +10343,85 @@ class SDKLibrariesReaderTest extends EngineTestCase {
     LibraryMap libraryMap = new SdkLibrariesReader(
         true).readFromFile(
             FileUtilities2.createFile("/libs.dart"),
-            EngineTestCase.createSource(
-                [
-                    "final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {",
-                    "  'first' : const LibraryInfo(",
-                    "    'first/first.dart',",
-                    "    category: 'First',",
-                    "    documented: true,",
-                    "    platforms: VM_PLATFORM,",
-                    "    dart2jsPath: 'first/first_dart2js.dart'),",
-                    "};"]));
-    JUnitTestCase.assertNotNull(libraryMap);
-    JUnitTestCase.assertEquals(1, libraryMap.size());
+            r'''
+final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
+  'first' : const LibraryInfo(
+    'first/first.dart',
+    category: 'First',
+    documented: true,
+    platforms: VM_PLATFORM,
+    dart2jsPath: 'first/first_dart2js.dart'),
+};''');
+    expect(libraryMap, isNotNull);
+    expect(libraryMap.size(), 1);
     SdkLibrary first = libraryMap.getLibrary("dart:first");
-    JUnitTestCase.assertNotNull(first);
-    JUnitTestCase.assertEquals("First", first.category);
-    JUnitTestCase.assertEquals("first/first_dart2js.dart", first.path);
-    JUnitTestCase.assertEquals("dart:first", first.shortName);
-    JUnitTestCase.assertEquals(false, first.isDart2JsLibrary);
-    JUnitTestCase.assertEquals(true, first.isDocumented);
-    JUnitTestCase.assertEquals(false, first.isImplementation);
-    JUnitTestCase.assertEquals(true, first.isVmLibrary);
+    expect(first, isNotNull);
+    expect(first.category, "First");
+    expect(first.path, "first/first_dart2js.dart");
+    expect(first.shortName, "dart:first");
+    expect(first.isDart2JsLibrary, false);
+    expect(first.isDocumented, true);
+    expect(first.isImplementation, false);
+    expect(first.isVmLibrary, true);
   }
   void test_readFrom_empty() {
     LibraryMap libraryMap = new SdkLibrariesReader(
         false).readFromFile(FileUtilities2.createFile("/libs.dart"), "");
-    JUnitTestCase.assertNotNull(libraryMap);
-    JUnitTestCase.assertEquals(0, libraryMap.size());
+    expect(libraryMap, isNotNull);
+    expect(libraryMap.size(), 0);
   }
   void test_readFrom_normal() {
     LibraryMap libraryMap = new SdkLibrariesReader(
         false).readFromFile(
             FileUtilities2.createFile("/libs.dart"),
-            EngineTestCase.createSource(
-                [
-                    "final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {",
-                    "  'first' : const LibraryInfo(",
-                    "    'first/first.dart',",
-                    "    category: 'First',",
-                    "    documented: true,",
-                    "    platforms: VM_PLATFORM),",
-                    "",
-                    "  'second' : const LibraryInfo(",
-                    "    'second/second.dart',",
-                    "    category: 'Second',",
-                    "    documented: false,",
-                    "    implementation: true,",
-                    "    platforms: 0),",
-                    "};"]));
-    JUnitTestCase.assertNotNull(libraryMap);
-    JUnitTestCase.assertEquals(2, libraryMap.size());
+            r'''
+final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
+  'first' : const LibraryInfo(
+    'first/first.dart',
+    category: 'First',
+    documented: true,
+    platforms: VM_PLATFORM),
+
+  'second' : const LibraryInfo(
+    'second/second.dart',
+    category: 'Second',
+    documented: false,
+    implementation: true,
+    platforms: 0),
+};''');
+    expect(libraryMap, isNotNull);
+    expect(libraryMap.size(), 2);
     SdkLibrary first = libraryMap.getLibrary("dart:first");
-    JUnitTestCase.assertNotNull(first);
-    JUnitTestCase.assertEquals("First", first.category);
-    JUnitTestCase.assertEquals("first/first.dart", first.path);
-    JUnitTestCase.assertEquals("dart:first", first.shortName);
-    JUnitTestCase.assertEquals(false, first.isDart2JsLibrary);
-    JUnitTestCase.assertEquals(true, first.isDocumented);
-    JUnitTestCase.assertEquals(false, first.isImplementation);
-    JUnitTestCase.assertEquals(true, first.isVmLibrary);
+    expect(first, isNotNull);
+    expect(first.category, "First");
+    expect(first.path, "first/first.dart");
+    expect(first.shortName, "dart:first");
+    expect(first.isDart2JsLibrary, false);
+    expect(first.isDocumented, true);
+    expect(first.isImplementation, false);
+    expect(first.isVmLibrary, true);
     SdkLibrary second = libraryMap.getLibrary("dart:second");
-    JUnitTestCase.assertNotNull(second);
-    JUnitTestCase.assertEquals("Second", second.category);
-    JUnitTestCase.assertEquals("second/second.dart", second.path);
-    JUnitTestCase.assertEquals("dart:second", second.shortName);
-    JUnitTestCase.assertEquals(false, second.isDart2JsLibrary);
-    JUnitTestCase.assertEquals(false, second.isDocumented);
-    JUnitTestCase.assertEquals(true, second.isImplementation);
-    JUnitTestCase.assertEquals(false, second.isVmLibrary);
+    expect(second, isNotNull);
+    expect(second.category, "Second");
+    expect(second.path, "second/second.dart");
+    expect(second.shortName, "dart:second");
+    expect(second.isDart2JsLibrary, false);
+    expect(second.isDocumented, false);
+    expect(second.isImplementation, true);
+    expect(second.isVmLibrary, false);
   }
 }
 
 
-class SourceFactoryTest extends JUnitTestCase {
+class SourceFactoryTest {
   void test_creation() {
-    JUnitTestCase.assertNotNull(new SourceFactory([]));
+    expect(new SourceFactory([]), isNotNull);
   }
   void test_fromEncoding_invalidUri() {
     SourceFactory factory = new SourceFactory([]);
     try {
       factory.fromEncoding("<:&%>");
-      JUnitTestCase.fail("Expected IllegalArgumentException");
+      fail("Expected IllegalArgumentException");
     } on IllegalArgumentException catch (exception) {
     }
   }
@@ -10618,7 +10429,7 @@ class SourceFactoryTest extends JUnitTestCase {
     SourceFactory factory = new SourceFactory([]);
     try {
       factory.fromEncoding("foo:/does/not/exist.dart");
-      JUnitTestCase.fail("Expected IllegalArgumentException");
+      fail("Expected IllegalArgumentException");
     } on IllegalArgumentException catch (exception) {
     }
   }
@@ -10626,14 +10437,14 @@ class SourceFactoryTest extends JUnitTestCase {
     String encoding = "file:///does/not/exist.dart";
     SourceFactory factory = new SourceFactory(
         [new UriResolver_SourceFactoryTest_test_fromEncoding_valid(encoding)]);
-    JUnitTestCase.assertNotNull(factory.fromEncoding(encoding));
+    expect(factory.fromEncoding(encoding), isNotNull);
   }
   void test_resolveUri_absolute() {
-    List<bool> invoked = [false];
+    UriResolver_absolute resolver = new UriResolver_absolute();
     SourceFactory factory =
-        new SourceFactory([new UriResolver_absolute(invoked)]);
+        new SourceFactory([resolver]);
     factory.resolveUri(null, "dart:core");
-    JUnitTestCase.assertTrue(invoked[0]);
+    expect(resolver.invoked, isTrue);
   }
   void test_resolveUri_nonAbsolute_absolute() {
     SourceFactory factory =
@@ -10642,9 +10453,7 @@ class SourceFactoryTest extends JUnitTestCase {
     Source containingSource =
         new FileBasedSource.con1(FileUtilities2.createFile("/does/not/exist.dart"));
     Source result = factory.resolveUri(containingSource, absolutePath);
-    JUnitTestCase.assertEquals(
-        FileUtilities2.createFile(absolutePath).getAbsolutePath(),
-        result.fullName);
+    expect(result.fullName, FileUtilities2.createFile(absolutePath).getAbsolutePath());
   }
   void test_resolveUri_nonAbsolute_relative() {
     SourceFactory factory =
@@ -10652,9 +10461,7 @@ class SourceFactoryTest extends JUnitTestCase {
     Source containingSource =
         new FileBasedSource.con1(FileUtilities2.createFile("/does/not/have.dart"));
     Source result = factory.resolveUri(containingSource, "exist.dart");
-    JUnitTestCase.assertEquals(
-        FileUtilities2.createFile("/does/not/exist.dart").getAbsolutePath(),
-        result.fullName);
+    expect(result.fullName, FileUtilities2.createFile("/does/not/exist.dart").getAbsolutePath());
   }
   void test_restoreUri() {
     JavaFile file1 = FileUtilities2.createFile("/some/file1.dart");
@@ -10664,8 +10471,8 @@ class SourceFactoryTest extends JUnitTestCase {
     Uri expected1 = parseUriWithException("file:///my_file.dart");
     SourceFactory factory =
         new SourceFactory([new UriResolver_restoreUri(source1, expected1)]);
-    JUnitTestCase.assertSame(expected1, factory.restoreUri(source1));
-    JUnitTestCase.assertSame(null, factory.restoreUri(source2));
+    expect(factory.restoreUri(source1), same(expected1));
+    expect(factory.restoreUri(source2), same(null));
   }
 }
 
@@ -10730,23 +10537,23 @@ class ToSourceVisitorTest extends EngineTestCase {
   void _assertSource(String expectedSource, ht.XmlNode node) {
     PrintStringWriter writer = new PrintStringWriter();
     node.accept(new ht.ToSourceVisitor(writer));
-    JUnitTestCase.assertEquals(expectedSource, writer.toString());
+    expect(writer.toString(), expectedSource);
   }
 }
 
 
-class UriKindTest extends JUnitTestCase {
+class UriKindTest {
   void test_fromEncoding() {
-    JUnitTestCase.assertSame(UriKind.DART_URI, UriKind.fromEncoding(0x64));
-    JUnitTestCase.assertSame(UriKind.FILE_URI, UriKind.fromEncoding(0x66));
-    JUnitTestCase.assertSame(UriKind.PACKAGE_URI, UriKind.fromEncoding(0x70));
-    JUnitTestCase.assertSame(null, UriKind.fromEncoding(0x58));
+    expect(UriKind.fromEncoding(0x64), same(UriKind.DART_URI));
+    expect(UriKind.fromEncoding(0x66), same(UriKind.FILE_URI));
+    expect(UriKind.fromEncoding(0x70), same(UriKind.PACKAGE_URI));
+    expect(UriKind.fromEncoding(0x58), same(null));
   }
 
   void test_getEncoding() {
-    JUnitTestCase.assertEquals(0x64, UriKind.DART_URI.encoding);
-    JUnitTestCase.assertEquals(0x66, UriKind.FILE_URI.encoding);
-    JUnitTestCase.assertEquals(0x70, UriKind.PACKAGE_URI.encoding);
+    expect(UriKind.DART_URI.encoding, 0x64);
+    expect(UriKind.FILE_URI.encoding, 0x66);
+    expect(UriKind.PACKAGE_URI.encoding, 0x70);
   }
 }
 
@@ -10768,13 +10575,13 @@ class UriResolver_SourceFactoryTest_test_fromEncoding_valid extends UriResolver
 
 
 class UriResolver_absolute extends UriResolver {
-  List<bool> invoked;
+  bool invoked = false;
 
-  UriResolver_absolute(this.invoked);
+  UriResolver_absolute();
 
   @override
   Source resolveAbsolute(Uri uri) {
-    invoked[0] = true;
+    invoked = true;
     return null;
   }
 }
@@ -10835,8 +10642,7 @@ class ValidatingConstantValueComputer extends ConstantValueComputer {
     // make sure we properly recorded the dependency.
     ConstructorDeclaration node = findConstructorDeclaration(constructor);
     if (node != null && referenceGraph.nodes.contains(node)) {
-      JUnitTestCase.assertTrue(
-          referenceGraph.containsPath(_nodeBeingEvaluated, node));
+      expect(referenceGraph.containsPath(_nodeBeingEvaluated, node), isTrue);
     }
   }
 
@@ -10855,7 +10661,7 @@ class ValidatingConstantValueComputer extends ConstantValueComputer {
         break;
       }
     }
-    JUnitTestCase.assertTrue(parameterIndex < numParameters);
+    expect(parameterIndex < numParameters, isTrue);
     // If we are getting the default parameter for a constructor in the graph,
     // make sure we properly recorded the dependency on the parameter.
     ConstructorDeclaration constructorNode =
@@ -10863,9 +10669,8 @@ class ValidatingConstantValueComputer extends ConstantValueComputer {
     if (constructorNode != null) {
       FormalParameter parameterNode =
           constructorNode.parameters.parameters[parameterIndex];
-      JUnitTestCase.assertTrue(referenceGraph.nodes.contains(parameterNode));
-      JUnitTestCase.assertTrue(
-          referenceGraph.containsPath(_nodeBeingEvaluated, parameterNode));
+      expect(referenceGraph.nodes.contains(parameterNode), isTrue);
+      expect(referenceGraph.containsPath(_nodeBeingEvaluated, parameterNode), isTrue);
     }
   }
 
@@ -10914,17 +10719,17 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
     while (_expectedTagsIndex < _expectedTagsInOrderVisited.length) {
       String expectedTag =
           _expectedTagsInOrderVisited[_expectedTagsIndex++]._tag;
-      _errors.add("Expected to visit node with tag: ${expectedTag}");
+      _errors.add("Expected to visit node with tag: $expectedTag");
     }
     if (!_errors.isEmpty) {
-      PrintStringWriter writer = new PrintStringWriter();
-      writer.print("Invalid XML structure:");
+      StringBuffer buffer = new StringBuffer();
+      buffer.write("Invalid XML structure:");
       for (String message in _errors) {
-        writer.newLine();
-        writer.print("   ");
-        writer.print(message);
+        buffer.writeln();
+        buffer.write("   ");
+        buffer.write(message);
       }
-      JUnitTestCase.fail(writer.toString());
+      fail(buffer.toString());
     }
   }
   /**
@@ -10936,7 +10741,7 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
     // Flatten the hierarchy into expected order in which the tags are visited
     List<XmlValidator_Tag> expected = new List<XmlValidator_Tag>();
     _expectTags(expected, expectedTags);
-    this._expectedTagsInOrderVisited = new List.from(expected);
+    this._expectedTagsInOrderVisited = expected;
   }
   @override
   Object visitHtmlUnit(ht.HtmlUnit node) {
@@ -10953,7 +10758,7 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
   Object visitXmlAttributeNode(ht.XmlAttributeNode actual) {
     if (actual.parent is! ht.XmlTagNode) {
       _errors.add(
-          "Expected ${actual.runtimeType.toString()} to have parent of type XmlTagNode");
+          "Expected ${actual.runtimeType} to have parent of type XmlTagNode");
     }
     String actualName = actual.name;
     String actualValue = actual.valueToken.lexeme;
@@ -10962,17 +10767,17 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
           _expectedAttributeKeyValuePairs[_expectedAttributeIndex];
       if (expectedName != actualName) {
         _errors.add(
-            "Expected ${(_expectedTagsIndex - 1)} tag: ${_expectedTagsInOrderVisited[_expectedTagsIndex - 1]._tag} attribute ${(_expectedAttributeIndex ~/ 2)} to have name: ${expectedName} but found: ${actualName}");
+            "Expected ${_expectedTagsIndex - 1} tag: ${_expectedTagsInOrderVisited[_expectedTagsIndex - 1]._tag} attribute ${_expectedAttributeIndex ~/ 2} to have name: $expectedName but found: $actualName");
       }
       String expectedValue =
           _expectedAttributeKeyValuePairs[_expectedAttributeIndex + 1];
       if (expectedValue != actualValue) {
         _errors.add(
-            "Expected ${(_expectedTagsIndex - 1)} tag: ${_expectedTagsInOrderVisited[_expectedTagsIndex - 1]._tag} attribute ${(_expectedAttributeIndex ~/ 2)} to have value: ${expectedValue} but found: ${actualValue}");
+            "Expected ${_expectedTagsIndex - 1} tag: ${_expectedTagsInOrderVisited[_expectedTagsIndex - 1]._tag} attribute ${_expectedAttributeIndex ~/ 2} to have value: $expectedValue but found: $actualValue");
       }
     } else {
       _errors.add(
-          "Unexpected ${(_expectedTagsIndex - 1)} tag: ${_expectedTagsInOrderVisited[_expectedTagsIndex - 1]._tag} attribute ${(_expectedAttributeIndex ~/ 2)} name: ${actualName} value: ${actualValue}");
+          "Unexpected ${_expectedTagsIndex - 1} tag: ${_expectedTagsInOrderVisited[_expectedTagsIndex - 1]._tag} attribute ${_expectedAttributeIndex ~/ 2} name: $actualName value: $actualValue");
     }
     _expectedAttributeIndex += 2;
     _validateNode(actual);
@@ -10982,7 +10787,7 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
   Object visitXmlTagNode(ht.XmlTagNode actual) {
     if (!(actual.parent is ht.HtmlUnit || actual.parent is ht.XmlTagNode)) {
       _errors.add(
-          "Expected ${actual.runtimeType.toString()} to have parent of type HtmlUnit or XmlTagNode");
+          "Expected ${actual.runtimeType} to have parent of type HtmlUnit or XmlTagNode");
     }
     if (_expectedTagsInOrderVisited != null) {
       String actualTag = actual.tag;
@@ -10991,7 +10796,7 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
             _expectedTagsInOrderVisited[_expectedTagsIndex];
         if (expected._tag != actualTag) {
           _errors.add(
-              "Expected ${_expectedTagsIndex} tag: ${expected._tag} but found: ${actualTag}");
+              "Expected $_expectedTagsIndex tag: ${expected._tag} but found: $actualTag");
         }
         _expectedAttributeKeyValuePairs = expected._attributes._keyValuePairs;
         int expectedAttributeCount =
@@ -11000,54 +10805,52 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
         int actualAttributeCount = actual.attributes.length;
         if (expectedAttributeCount != actualAttributeCount) {
           _errors.add(
-              "Expected ${_expectedTagsIndex} tag: ${expected._tag} to have ${expectedAttributeCount} attributes but found ${actualAttributeCount}");
+              "Expected $_expectedTagsIndex tag: ${expected._tag} to have $expectedAttributeCount attributes but found $actualAttributeCount");
         }
         _expectedAttributeIndex = 0;
         _expectedTagsIndex++;
-        JUnitTestCase.assertNotNull(actual.attributeEnd);
-        JUnitTestCase.assertNotNull(actual.contentEnd);
+        expect(actual.attributeEnd, isNotNull);
+        expect(actual.contentEnd, isNotNull);
         int count = 0;
         ht.Token token = actual.attributeEnd.next;
         ht.Token lastToken = actual.contentEnd;
         while (!identical(token, lastToken)) {
           token = token.next;
           if (++count > 1000) {
-            JUnitTestCase.fail(
-                "Expected ${_expectedTagsIndex} tag: ${expected._tag} to have a sequence of tokens from getAttributeEnd() to getContentEnd()");
+            fail("Expected $_expectedTagsIndex tag: ${expected._tag} to have a sequence of tokens from getAttributeEnd() to getContentEnd()");
             break;
           }
         }
         if (actual.attributeEnd.type == ht.TokenType.GT) {
           if (ht.HtmlParser.SELF_CLOSING.contains(actual.tag)) {
-            JUnitTestCase.assertNull(actual.closingTag);
+            expect(actual.closingTag, isNull);
           } else {
-            JUnitTestCase.assertNotNull(actual.closingTag);
+            expect(actual.closingTag, isNotNull);
           }
         } else if (actual.attributeEnd.type == ht.TokenType.SLASH_GT) {
-          JUnitTestCase.assertNull(actual.closingTag);
+          expect(actual.closingTag, isNull);
         } else {
-          JUnitTestCase.fail(
-              "Unexpected attribute end token: ${actual.attributeEnd.lexeme}");
+          fail("Unexpected attribute end token: ${actual.attributeEnd.lexeme}");
         }
         if (expected._content != null && expected._content != actual.content) {
           _errors.add(
-              "Expected ${_expectedTagsIndex} tag: ${expected._tag} to have content '${expected._content}' but found '${actual.content}'");
+              "Expected $_expectedTagsIndex tag: ${expected._tag} to have content '${expected._content}' but found '${actual.content}'");
         }
         if (expected._children.length != actual.tagNodes.length) {
           _errors.add(
-              "Expected ${_expectedTagsIndex} tag: ${expected._tag} to have ${expected._children.length} children but found ${actual.tagNodes.length}");
+              "Expected $_expectedTagsIndex tag: ${expected._tag} to have ${expected._children.length} children but found ${actual.tagNodes.length}");
         } else {
           for (int index = 0; index < expected._children.length; index++) {
             String expectedChildTag = expected._children[index]._tag;
             String actualChildTag = actual.tagNodes[index].tag;
             if (expectedChildTag != actualChildTag) {
               _errors.add(
-                  "Expected ${_expectedTagsIndex} tag: ${expected._tag} child ${index} to have tag: ${expectedChildTag} but found: ${actualChildTag}");
+                  "Expected $_expectedTagsIndex tag: ${expected._tag} child $index to have tag: $expectedChildTag but found: $actualChildTag");
             }
           }
         }
       } else {
-        _errors.add("Visited unexpected tag: ${actualTag}");
+        _errors.add("Visited unexpected tag: $actualTag");
       }
     }
     _validateNode(actual);
@@ -11068,15 +10871,15 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
   }
   void _validateNode(ht.XmlNode node) {
     if (node.beginToken == null) {
-      _errors.add("No begin token for ${node.runtimeType.toString()}");
+      _errors.add("No begin token for ${node.runtimeType}");
     }
     if (node.endToken == null) {
-      _errors.add("No end token for ${node.runtimeType.toString()}");
+      _errors.add("No end token for ${node.runtimeType}");
     }
     int nodeStart = node.offset;
     int nodeLength = node.length;
     if (nodeStart < 0 || nodeLength < 0) {
-      _errors.add("No source info for ${node.runtimeType.toString()}");
+      _errors.add("No source info for ${node.runtimeType}");
     }
     ht.XmlNode parent = node.parent;
     if (parent != null) {
@@ -11085,11 +10888,11 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
       int parentEnd = parentStart + parent.length;
       if (nodeStart < parentStart) {
         _errors.add(
-            "Invalid source start (${nodeStart}) for ${node.runtimeType.toString()} inside ${parent.runtimeType.toString()} (${parentStart})");
+            "Invalid source start ($nodeStart) for ${node.runtimeType} inside ${parent.runtimeType} ($parentStart)");
       }
       if (nodeEnd > parentEnd) {
         _errors.add(
-            "Invalid source end (${nodeEnd}) for ${node.runtimeType.toString()} inside ${parent.runtimeType.toString()} (${parentStart})");
+            "Invalid source end ($nodeEnd) for ${node.runtimeType} inside ${parent.runtimeType} ($parentStart)");
       }
     }
   }
@@ -11112,18 +10915,18 @@ class XmlValidator_Tag {
 
 
 class _AngularTest_findElement extends GeneralizingElementVisitor<Object> {
-  ElementKind kind;
+  final ElementKind kind;
 
-  String name;
+  final String name;
 
-  List<Element> result;
+  Element result;
 
-  _AngularTest_findElement(this.kind, this.name, this.result);
+  _AngularTest_findElement(this.kind, this.name);
 
   @override
   Object visitElement(Element element) {
     if ((kind == null || element.kind == kind) && name == element.name) {
-      result[0] = element;
+      result = element;
     }
     return super.visitElement(element);
   }
@@ -11150,8 +10953,7 @@ class _ExpectedScript {
   }
   void _validateEmbedded(int scriptIndex, HtmlScriptElement script) {
     if (script is! EmbeddedHtmlScriptElementImpl) {
-      JUnitTestCase.fail(
-          "Expected script ${scriptIndex} to be embedded, but found ${(script != null ? script.runtimeType : "null")}");
+      fail("Expected script $scriptIndex to be embedded, but found ${script != null ? script.runtimeType : "null"}");
     }
     EmbeddedHtmlScriptElementImpl embeddedScript =
         script as EmbeddedHtmlScriptElementImpl;
@@ -11159,21 +10961,17 @@ class _ExpectedScript {
   }
   void _validateExternal(int scriptIndex, HtmlScriptElement script) {
     if (script is! ExternalHtmlScriptElementImpl) {
-      JUnitTestCase.fail(
-          "Expected script ${scriptIndex} to be external with src=${_expectedExternalScriptName} but found ${(script != null ? script.runtimeType : "null")}");
+      fail("Expected script $scriptIndex to be external with src=$_expectedExternalScriptName but found ${script != null ? script.runtimeType : "null"}");
     }
     ExternalHtmlScriptElementImpl externalScript =
         script as ExternalHtmlScriptElementImpl;
     Source scriptSource = externalScript.scriptSource;
     if (_expectedExternalScriptName == null) {
-      JUnitTestCase.assertNullMsg("script ${scriptIndex}", scriptSource);
+      expect(scriptSource, isNull, reason: "script $scriptIndex");
     } else {
-      JUnitTestCase.assertNotNullMsg("script ${scriptIndex}", scriptSource);
+      expect(scriptSource, isNotNull, reason: "script $scriptIndex");
       String actualExternalScriptName = scriptSource.shortName;
-      JUnitTestCase.assertEqualsMsg(
-          "script ${scriptIndex}",
-          _expectedExternalScriptName,
-          actualExternalScriptName);
+      expect(actualExternalScriptName, _expectedExternalScriptName, reason: "script $scriptIndex");
     }
   }
 }

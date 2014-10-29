@@ -67,10 +67,14 @@ abstract class AbstractAnalysisServerIntegrationTest extends
    * overwritten.
    *
    * Parent directories are created as necessary.
+   *
+   * Return a normalized path to the file (with symbolic links resolved).
    */
-  void writeFile(String pathname, String contents) {
+  String writeFile(String pathname, String contents) {
     new Directory(dirname(pathname)).createSync(recursive: true);
-    new File(pathname).writeAsStringSync(contents);
+    File file = new File(pathname);
+    file.writeAsStringSync(contents);
+    return file.resolveSymbolicLinksSync();
   }
 
   /**
@@ -149,6 +153,10 @@ abstract class AbstractAnalysisServerIntegrationTest extends
     onServerConnected.listen((_) {
       expect(serverConnected.isCompleted, isFalse);
       serverConnected.complete();
+    });
+    onServerError.listen((ServerErrorParams params) {
+      // A server error should never happen during an integration test.
+      fail(params.message);
     });
     return server.start().then((_) {
       server.listenToOutput(dispatchNotification);
@@ -679,10 +687,12 @@ class Server {
   }
 
   /**
-   * Start the server.  If [debugServer] is true, the server will be started
-   * with "--debug", allowing a debugger to be attached.
+   * Start the server.  If [debugServer] is `true`, the server will be started
+   * with "--debug", allowing a debugger to be attached. If [profileServer] is
+   * `true`, the server will be started with "--observe" and
+   * "--pause-isolates-on-exit", allowing the observatory to be used.
    */
-  Future start({bool debugServer: false}) {
+  Future start({bool debugServer: false, bool profileServer: false}) {
     if (_process != null) {
       throw new Exception('Process already started');
     }
@@ -694,6 +704,10 @@ class Server {
     List<String> arguments = [];
     if (debugServer) {
       arguments.add('--debug');
+    }
+    if (profileServer) {
+      arguments.add('--observe');
+      arguments.add('--pause-isolates-on-exit');
     }
     if (Platform.packageRoot.isNotEmpty) {
       arguments.add('--package-root=${Platform.packageRoot}');

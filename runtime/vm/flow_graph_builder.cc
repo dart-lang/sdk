@@ -1454,12 +1454,15 @@ AssertAssignableInstr* EffectGraphVisitor::BuildAssertAssignable(
                             &instantiator,
                             &instantiator_type_arguments);
   }
+
+  const intptr_t deopt_id = Isolate::Current()->GetNextDeoptId();
   return new(I) AssertAssignableInstr(token_pos,
                                       value,
                                       instantiator,
                                       instantiator_type_arguments,
                                       dst_type,
-                                      dst_name);
+                                      dst_name,
+                                      deopt_id);
 }
 
 

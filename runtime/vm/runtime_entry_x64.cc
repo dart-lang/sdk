@@ -30,7 +30,7 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     // informative error message.
     __ movq(RBX, Immediate(GetEntryPoint()));
     __ movq(R10, Immediate(argument_count));
-    __ Call(&StubCode::CallToRuntimeLabel(), PP);
+    __ Call(&Isolate::Current()->stub_code()->CallToRuntimeLabel(), PP);
   }
 }
 

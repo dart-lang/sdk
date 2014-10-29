@@ -201,16 +201,16 @@ class AnalysisError {
 
   @override
   String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append((source != null) ? source.fullName : "<unknown source>");
-    builder.append("(");
-    builder.append(_offset);
-    builder.append("..");
-    builder.append(_offset + _length - 1);
-    builder.append("): ");
-    //builder.append("(" + lineNumber + ":" + columnNumber + "): ");
-    builder.append(_message);
-    return builder.toString();
+    StringBuffer buffer = new StringBuffer();
+    buffer.write((source != null) ? source.fullName : "<unknown source>");
+    buffer.write("(");
+    buffer.write(_offset);
+    buffer.write("..");
+    buffer.write(_offset + _length - 1);
+    buffer.write("): ");
+    //buffer.write("(" + lineNumber + ":" + columnNumber + "): ");
+    buffer.write(_message);
+    return buffer.toString();
   }
 }
 
@@ -357,7 +357,7 @@ class AngularCode extends Enum<AngularCode> implements ErrorCode {
   ErrorType get type => ErrorType.ANGULAR;
 
   @override
-  String get uniqueName => "${runtimeType.toString()}.${name}";
+  String get uniqueName => "$runtimeType.$name";
 }
 
 /**
@@ -525,7 +525,7 @@ class CheckedModeCompileTimeErrorCode extends Enum<CheckedModeCompileTimeErrorCo
   ErrorType get type => ErrorType.CHECKED_MODE_COMPILE_TIME_ERROR;
 
   @override
-  String get uniqueName => "${runtimeType.toString()}.${name}";
+  String get uniqueName => "$runtimeType.$name";
 }
 
 /**
@@ -2089,7 +2089,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
   ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
 
   @override
-  String get uniqueName => "${runtimeType.toString()}.${name}";
+  String get uniqueName => "$runtimeType.$name";
 }
 
 /**
@@ -2769,7 +2769,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
   ErrorType get type => ErrorType.HINT;
 
   @override
-  String get uniqueName => "${runtimeType.toString()}.${name}";
+  String get uniqueName => "$runtimeType.$name";
 }
 
 /**
@@ -2830,7 +2830,7 @@ class HtmlWarningCode extends Enum<HtmlWarningCode> implements ErrorCode {
   ErrorType get type => ErrorType.STATIC_WARNING;
 
   @override
-  String get uniqueName => "${runtimeType.toString()}.${name}";
+  String get uniqueName => "$runtimeType.$name";
 }
 
 /**
@@ -2882,7 +2882,7 @@ class PolymerCode extends Enum<PolymerCode> implements ErrorCode {
   ErrorType get type => ErrorType.POLYMER;
 
   @override
-  String get uniqueName => "${runtimeType.toString()}.${name}";
+  String get uniqueName => "$runtimeType.$name";
 }
 
 /**
@@ -3243,7 +3243,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
   ErrorType get type => ErrorType.STATIC_TYPE_WARNING;
 
   @override
-  String get uniqueName => "${runtimeType.toString()}.${name}";
+  String get uniqueName => "$runtimeType.$name";
 }
 
 /**
@@ -4173,7 +4173,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
   ErrorType get type => ErrorType.STATIC_WARNING;
 
   @override
-  String get uniqueName => "${runtimeType.toString()}.${name}";
+  String get uniqueName => "$runtimeType.$name";
 }
 
 /**
@@ -4217,5 +4217,5 @@ class TodoCode extends Enum<TodoCode> implements ErrorCode {
   ErrorType get type => ErrorType.TODO;
 
   @override
-  String get uniqueName => "${runtimeType.toString()}.${name}";
+  String get uniqueName => "$runtimeType.$name";
 }
