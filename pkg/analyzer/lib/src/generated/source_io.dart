@@ -399,20 +399,18 @@ class PackageUriResolver extends UriResolver {
 
   @override
   Uri restoreAbsolute(Source source) {
-    if (source is FileBasedSource) {
-      String sourcePath = source.file.getPath();
-      for (JavaFile packagesDirectory in _packagesDirectories) {
-        List<JavaFile> pkgFolders = packagesDirectory.listFiles();
-        if (pkgFolders != null) {
-          for (JavaFile pkgFolder in pkgFolders) {
-            try {
-              String pkgCanonicalPath = pkgFolder.getCanonicalPath();
-              if (sourcePath.startsWith(pkgCanonicalPath)) {
-                String relPath = sourcePath.substring(pkgCanonicalPath.length);
-                return parseUriWithException("$PACKAGE_SCHEME:${pkgFolder.getName()}$relPath");
-              }
-            } catch (e) {
+    String sourcePath = source.fullName;
+    for (JavaFile packagesDirectory in _packagesDirectories) {
+      List<JavaFile> pkgFolders = packagesDirectory.listFiles();
+      if (pkgFolders != null) {
+        for (JavaFile pkgFolder in pkgFolders) {
+          try {
+            String pkgCanonicalPath = pkgFolder.getCanonicalPath();
+            if (sourcePath.startsWith(pkgCanonicalPath)) {
+              String relPath = sourcePath.substring(pkgCanonicalPath.length);
+              return parseUriWithException("$PACKAGE_SCHEME:${pkgFolder.getName()}$relPath");
             }
+          } catch (e) {
           }
         }
       }
