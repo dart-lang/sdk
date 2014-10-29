@@ -7,6 +7,12 @@ cc/ArrayNew_Overflow_Crash: Crash
 cc/AllocGeneric_Overflow: Crash
 cc/CodeImmutability: Crash
 
+# Negative tests of VerifiedMemory should crash iff in DEBUG mode.
+# TODO(koda): Improve support for negative tests.
+[ $mode == debug ]
+cc/VerifyImplicit_Crash: Crash
+cc/VerifyExplicit_Crash: Crash
+
 cc/SNPrint_BadArgs: Skip
 
 # These tests are skipped because of the workaround to open issue 8594.
