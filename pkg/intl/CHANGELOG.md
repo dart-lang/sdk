@@ -1,3 +1,8 @@
+## 0.11.10
+  * Fix some style glitches with naming. The only publicly visible one
+    is DateFormat.parseUtc, but the parseUTC variant is still retained
+    for backward-compatibility.
+
 ## 0.11.9
   * Fix bug with per-mille parsing (only divided by 100, not 1000)
   

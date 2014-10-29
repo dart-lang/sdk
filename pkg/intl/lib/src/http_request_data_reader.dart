@@ -13,11 +13,11 @@ import 'dart:async';
 import 'dart:html';
 import 'intl_helpers.dart';
 
-class HTTPRequestDataReader implements LocaleDataReader {
+class HttpRequestDataReader implements LocaleDataReader {
 
   /** The base url from which we read the data. */
   String url;
-  HTTPRequestDataReader(this.url);
+  HttpRequestDataReader(this.url);
 
   Future read(String locale) {
     // TODO(alanknight): Remove this once it's not necessary for Chrome.

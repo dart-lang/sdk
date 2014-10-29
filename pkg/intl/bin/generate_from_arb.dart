@@ -137,5 +137,5 @@ class BasicTranslatedMessage extends TranslatedMessage {
   List<MainMessage> _findOriginals() => originalMessages = messages[id];
 }
 
-final pluralAndGenderParser = new ICUParser().message;
-final plainParser = new ICUParser().nonIcuMessage;
+final pluralAndGenderParser = new IcuParser().message;
+final plainParser = new IcuParser().nonIcuMessage;
