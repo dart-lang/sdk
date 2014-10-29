@@ -177,8 +177,9 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   }
 
   String visitLiteralMap(LiteralMap node) {
-    String keys = node.keys.map((v) => names[v.definition]).join(' ');
-    String values = node.values.map((v) => names[v.definition]).join(' ');
+    String keys = node.entries.map((e) => names[e.key.definition]).join(' ');
+    String values =
+        node.entries.map((e) => names[e.value.definition]).join(' ');
     return '(LiteralMap ($keys) ($values))';
   }
 

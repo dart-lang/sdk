@@ -156,9 +156,9 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitLiteralMap(cps_ir.LiteralMap node) {
     String dummy = names.name(node);
     List<String> entries = new List<String>();
-    for (int i = 0; i < node.values.length; ++i) {
-      String key = formatReference(node.keys[i]);
-      String value = formatReference(node.values[i]);
+    for (cps_ir.LiteralMapEntry entry in node.entries) {
+      String key = formatReference(entry.key);
+      String value = formatReference(entry.value);
       entries.add("$key: $value");
     }
     printStmt(dummy, "LiteralMap (${entries.join(', ')})");

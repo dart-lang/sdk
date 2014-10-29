@@ -501,6 +501,38 @@ main(a) {
 '''),
   ]),
 
+  const Group('List literal', const <TestSpec>[
+    const TestSpec('''
+main() {
+  return [];
+}
+'''),
+
+    const TestSpec('''
+main() {
+  return <int>[];
+}
+'''),
+
+    const TestSpec('''
+main() {
+  return <int>[0];
+}
+'''),
+
+    const TestSpec('''
+main(a) {
+  return <int>[0, 1, a];
+}
+'''),
+
+    const TestSpec('''
+main(a) {
+  return [0, [1], [a, <int>[3]]];
+}
+'''),
+  ]),
+
   const Group('Constructor invocation', const <TestSpec>[
     const TestSpec('''
 main(a) {
@@ -515,6 +547,37 @@ main(a) {
 '''),
   ]),
 
+  const Group('Map literal', const <TestSpec>[
+    const TestSpec('''
+main() {
+  return {};
+}
+'''),
+
+    const TestSpec('''
+main() {
+  return <int, String>{};
+}
+'''),
+
+    const TestSpec('''
+main() {
+  return <String, int>{"a": 0};
+}
+'''),
+
+    const TestSpec('''
+main(a) {
+  return <String, int>{"a": 0, "b": 1, "c": a};
+}
+'''),
+
+    const TestSpec('''
+main(a) {
+  return {0: "a", 1: {2: "b"}, a: {3: "c"}};
+}
+'''),
+  ]),
   const Group('For loop', const <TestSpec>[
     const TestSpec('''
 main() {

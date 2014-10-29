@@ -127,6 +127,9 @@ class JumpCollector {
   }
 }
 
+/// Function for building a node in the context of the current builder.
+typedef ir.Node BuildFunction(node);
+
 /// Function for building nodes in the context of the provided [builder].
 typedef ir.Node SubbuildFunction(IrBuilder builder);
 
@@ -385,6 +388,36 @@ class IrBuilder {
   ir.Constant buildStringLiteral(String value) {
     return _buildPrimitiveConstant(
         state.constantSystem.createString(new ast.DartString.literal(value)));
+  }
+
+  /// Creates a non-constant list literal of the provided [type] and with the
+  /// provided [values].
+  ir.Primitive buildListLiteral(InterfaceType type,
+                                Iterable<ir.Primitive> values) {
+    assert(isOpen);
+    ir.Primitive result = new ir.LiteralList(type, values);
+    add(new ir.LetPrim(result));
+    return result;
+  }
+
+  /// Creates a non-constant map literal of the provided [type] and with the
+  /// entries build from the [keys] and [values] using [build].
+  ir.Primitive buildMapLiteral(InterfaceType type,
+                               Iterable keys,
+                               Iterable values,
+                               BuildFunction build) {
+    assert(isOpen);
+    List<ir.LiteralMapEntry> entries = <ir.LiteralMapEntry>[];
+    Iterator key = keys.iterator;
+    Iterator value = values.iterator;
+    while (key.moveNext() && value.moveNext()) {
+      entries.add(new ir.LiteralMapEntry(
+          build(key.current), build(value.current)));
+    }
+    assert(!key.moveNext() && !value.moveNext());
+    ir.Primitive result = new ir.LiteralMap(type, entries);
+    add(new ir.LetPrim(result));
+    return result;
   }
 
   /// Creates a conditional expression with the provided [condition] where the
@@ -880,7 +913,7 @@ class IrBuilder {
   /// statements. The first statement is assumed to be reachable.
   // TODO(johnniwinther): Type [statements] as `Iterable` when `NodeList` uses
   // `List` instead of `Link`.
-  void buildBlock(var statements, build(statement)) {
+  void buildBlock(var statements, BuildFunction build) {
     // Build(Block(stamements), C) = C'
     //   where C' = statements.fold(Build, C)
     assert(isOpen);
@@ -892,7 +925,7 @@ class IrBuilder {
   /// The first node in the sequence does not need to be reachable.
   // TODO(johnniwinther): Type [nodes] as `Iterable` when `NodeList` uses
   // `List` instead of `Link`.
-  void buildSequence(var nodes, build(node)) {
+  void buildSequence(var nodes, BuildFunction build) {
     for (var node in nodes) {
       if (!isOpen) return;
       build(node);

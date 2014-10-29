@@ -223,12 +223,18 @@ class LiteralList extends Expression {
   accept(ExpressionVisitor visitor) => visitor.visitLiteralList(this);
 }
 
+class LiteralMapEntry {
+  Expression key;
+  Expression value;
+
+  LiteralMapEntry(this.key, this.value);
+}
+
 class LiteralMap extends Expression {
   final GenericType type;
-  final List<Expression> keys;
-  final List<Expression> values;
+  final List<LiteralMapEntry> entries;
 
-  LiteralMap(this.type, this.keys, this.values);
+  LiteralMap(this.type, this.entries);
 
   accept(ExpressionVisitor visitor) => visitor.visitLiteralMap(this);
 }
@@ -595,10 +601,10 @@ class RecursiveVisitor extends Visitor {
   }
 
   visitLiteralMap(LiteralMap node) {
-    for (int i=0; i<node.keys.length; i++) {
-      visitExpression(node.keys[i]);
-      visitExpression(node.values[i]);
-    }
+    node.entries.forEach((LiteralMapEntry entry) {
+      visitExpression(entry.key);
+      visitExpression(entry.value);
+    });
   }
 
   visitTypeOperator(TypeOperator node) {

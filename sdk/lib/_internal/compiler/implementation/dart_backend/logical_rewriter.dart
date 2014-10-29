@@ -197,8 +197,10 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
   }
 
   Expression visitLiteralMap(LiteralMap node) {
-    _rewriteList(node.keys);
-    _rewriteList(node.values);
+    node.entries.forEach((LiteralMapEntry entry) {
+      entry.key = visitExpression(entry.key);
+      entry.value = visitExpression(entry.value);
+    });
     return node;
   }
 

@@ -816,6 +816,115 @@ main(a) {
 '''),
   ]),
 
+  const Group('List literal', const <TestSpec>[
+    const TestSpec('''
+main() {
+  return [];
+}
+''', '''
+(FunctionDefinition main ( return)
+  (LetPrim v0 (LiteralList ()))
+  (InvokeContinuation return v0))
+'''),
+
+    const TestSpec('''
+main() {
+  return [0];
+}
+''', '''
+(FunctionDefinition main ( return)
+  (LetPrim v0 (Constant IntConstant(0)))
+  (LetPrim v1 (LiteralList (v0)))
+  (InvokeContinuation return v1))
+'''),
+
+    const TestSpec('''
+main(a) {
+  return [0, 1, a];
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetPrim v0 (Constant IntConstant(0)))
+  (LetPrim v1 (Constant IntConstant(1)))
+  (LetPrim v2 (LiteralList (v0 v1 a)))
+  (InvokeContinuation return v2))
+'''),
+
+    const TestSpec('''
+main(a) {
+  return [0, [1], [a, [3]]];
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetPrim v0 (Constant IntConstant(0)))
+  (LetPrim v1 (Constant IntConstant(1)))
+  (LetPrim v2 (LiteralList (v1)))
+  (LetPrim v3 (Constant IntConstant(3)))
+  (LetPrim v4 (LiteralList (v3)))
+  (LetPrim v5 (LiteralList (a v4)))
+  (LetPrim v6 (LiteralList (v0 v2 v5)))
+  (InvokeContinuation return v6))
+'''),
+  ]),
+
+  const Group('Map literal', const <TestSpec>[
+    const TestSpec('''
+main() {
+  return {};
+}
+''', '''
+(FunctionDefinition main ( return)
+  (LetPrim v0 (LiteralMap () ()))
+  (InvokeContinuation return v0))
+'''),
+
+    const TestSpec('''
+main() {
+  return {"a": 0};
+}
+''', '''
+(FunctionDefinition main ( return)
+  (LetPrim v0 (Constant StringConstant("a")))
+  (LetPrim v1 (Constant IntConstant(0)))
+  (LetPrim v2 (LiteralMap (v0) (v1)))
+  (InvokeContinuation return v2))
+'''),
+
+    const TestSpec('''
+main(a) {
+  return {"a": 0, "b": 1, "c": a};
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetPrim v0 (Constant StringConstant("a")))
+  (LetPrim v1 (Constant IntConstant(0)))
+  (LetPrim v2 (Constant StringConstant("b")))
+  (LetPrim v3 (Constant IntConstant(1)))
+  (LetPrim v4 (Constant StringConstant("c")))
+  (LetPrim v5 (LiteralMap (v0 v2 v4) (v1 v3 a)))
+  (InvokeContinuation return v5))
+'''),
+
+    const TestSpec('''
+main(a) {
+  return {0: "a", 1: {2: "b"}, a: {3: "c"}};
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetPrim v0 (Constant IntConstant(0)))
+  (LetPrim v1 (Constant StringConstant("a")))
+  (LetPrim v2 (Constant IntConstant(1)))
+  (LetPrim v3 (Constant IntConstant(2)))
+  (LetPrim v4 (Constant StringConstant("b")))
+  (LetPrim v5 (LiteralMap (v3) (v4)))
+  (LetPrim v6 (Constant IntConstant(3)))
+  (LetPrim v7 (Constant StringConstant("c")))
+  (LetPrim v8 (LiteralMap (v6) (v7)))
+  (LetPrim v9 (LiteralMap (v0 v2 a) (v1 v5 v8)))
+  (InvokeContinuation return v9))
+'''),
+  ]),
+
   const Group('For loop', const <TestSpec>[
     const TestSpec('''
 main() {

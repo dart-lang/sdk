@@ -430,8 +430,12 @@ class Builder extends cps_ir.Visitor<Node> {
   Expression visitLiteralMap(cps_ir.LiteralMap node) {
     return new LiteralMap(
         node.type,
-        translateArguments(node.keys),
-        translateArguments(node.values));
+        new List<LiteralMapEntry>.generate(node.entries.length, (int index) {
+          return new LiteralMapEntry(
+              getVariableReference(node.entries[index].key),
+              getVariableReference(node.entries[index].value));
+        })
+    );
   }
 
   FunctionDefinition makeSubFunction(cps_ir.FunctionDefinition function) {

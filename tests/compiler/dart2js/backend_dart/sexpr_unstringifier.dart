@@ -659,8 +659,13 @@ class SExpressionUnstringifier {
     List<Primitive> keys   = parsePrimitiveList();
     List<Primitive> values = parsePrimitiveList();
 
+    List<LiteralMapEntry> entries = <LiteralMapEntry>[];
+    for (int i = 0; i < keys.length; i++) {
+      entries.add(new LiteralMapEntry(keys[i], values[i]));
+    }
+
     tokens.consumeEnd();
-    return new LiteralMap(null, keys, values);
+    return new LiteralMap(null, entries);
   }
 
   /// (ReifyTypeVar type)

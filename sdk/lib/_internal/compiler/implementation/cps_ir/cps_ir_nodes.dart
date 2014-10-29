@@ -481,20 +481,26 @@ class LiteralList extends Primitive {
   final GenericType type;
   final List<Reference> values;
 
-  LiteralList(this.type, List<Primitive> values)
+  LiteralList(this.type, Iterable<Primitive> values)
       : this.values = _referenceList(values);
 
   accept(Visitor visitor) => visitor.visitLiteralList(this);
 }
 
+class LiteralMapEntry {
+  final Reference key;
+  final Reference value;
+
+  LiteralMapEntry(Primitive key, Primitive value)
+      : this.key = new Reference(key),
+        this.value = new Reference(value);
+}
+
 class LiteralMap extends Primitive {
   final GenericType type;
-  final List<Reference> keys;
-  final List<Reference> values;
+  final List<LiteralMapEntry> entries;
 
-  LiteralMap(this.type, List<Primitive> keys, List<Primitive> values)
-      : this.keys = _referenceList(keys),
-        this.values = _referenceList(values);
+  LiteralMap(this.type, this.entries);
 
   accept(Visitor visitor) => visitor.visitLiteralMap(this);
 }
@@ -566,7 +572,7 @@ class FunctionDefinition extends Node implements InteriorNode {
   bool get isAbstract => body == null;
 }
 
-List<Reference> _referenceList(List<Definition> definitions) {
+List<Reference> _referenceList(Iterable<Definition> definitions) {
   return definitions.map((e) => new Reference(e)).toList();
 }
 
@@ -731,9 +737,9 @@ abstract class RecursiveVisitor extends Visitor {
   processLiteralMap(LiteralMap node) {}
   visitLiteralMap(LiteralMap node) {
     processLiteralMap(node);
-    for (int i = 0; i < node.keys.length; i++) {
-      processReference(node.keys[i]);
-      processReference(node.values[i]);
+    for (LiteralMapEntry entry in node.entries) {
+      processReference(entry.key);
+      processReference(entry.value);
     }
   }
 
@@ -886,9 +892,9 @@ class RegisterAllocator extends Visitor {
   }
 
   void visitLiteralMap(LiteralMap node) {
-    for (int i = 0; i < node.keys.length; ++i) {
-      visitReference(node.keys[i]);
-      visitReference(node.values[i]);
+    for (LiteralMapEntry entry in node.entries) {
+      visitReference(entry.key);
+      visitReference(entry.value);
     }
   }
 

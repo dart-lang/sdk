@@ -465,32 +465,24 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   }
 
   ir.Primitive visitLiteralList(ast.LiteralList node) {
-    assert(irBuilder.isOpen);
     if (node.isConst) {
       return translateConstant(node);
     }
     List<ir.Primitive> values = node.elements.nodes.mapToList(visit);
-    GenericType type = elements.getType(node);
-    ir.Primitive result = new ir.LiteralList(type, values);
-    irBuilder.add(new ir.LetPrim(result));
-    return result;
+    InterfaceType type = elements.getType(node);
+    return irBuilder.buildListLiteral(type, values);
   }
 
   ir.Primitive visitLiteralMap(ast.LiteralMap node) {
-    assert(irBuilder.isOpen);
     if (node.isConst) {
       return translateConstant(node);
     }
-    List<ir.Primitive> keys = new List<ir.Primitive>();
-    List<ir.Primitive> values = new List<ir.Primitive>();
-    node.entries.nodes.forEach((ast.LiteralMapEntry node) {
-      keys.add(visit(node.key));
-      values.add(visit(node.value));
-    });
-    GenericType type = elements.getType(node);
-    ir.Primitive result = new ir.LiteralMap(type, keys, values);
-    irBuilder.add(new ir.LetPrim(result));
-    return result;
+    InterfaceType type = elements.getType(node);
+    return irBuilder.buildMapLiteral(
+        type,
+        node.entries.nodes.map((e) => e.key),
+        node.entries.nodes.map((e) => e.value),
+        build);
   }
 
   ir.Primitive visitLiteralSymbol(ast.LiteralSymbol node) {

@@ -304,6 +304,25 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   }
 
   @override
+  ir.Node visitListLiteral(ListLiteral node) {
+    dart2js.InterfaceType type = converter.convertType(node.staticType);
+    // TODO(johnniwinther): Use `build` instead of `(e) => build(e)` when issue
+    // 18630 has been resolved.
+    Iterable<ir.Primitive> values = node.elements.map((e) => build(e));
+    return irBuilder.buildListLiteral(type, values);
+  }
+
+  @override
+  ir.Node visitMapLiteral(MapLiteral node) {
+    dart2js.InterfaceType type = converter.convertType(node.staticType);
+    return irBuilder.buildMapLiteral(
+        type,
+        node.entries.map((e) => e.key),
+        node.entries.map((e) => e.value),
+        build);
+  }
+
+  @override
   visitForStatement(ForStatement node) {
     // TODO(johnniwinther): Support `for` as a jump target.
     SubbuildFunction buildInitializer;

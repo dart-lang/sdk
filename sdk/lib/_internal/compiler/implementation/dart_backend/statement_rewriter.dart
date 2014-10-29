@@ -357,9 +357,9 @@ class StatementRewriter extends Visitor<Statement, Expression> {
 
   Expression visitLiteralMap(LiteralMap node) {
     // Process arguments right-to-left, the opposite of evaluation order.
-    for (int i = node.values.length - 1; i >= 0; --i) {
-      node.values[i] = visitExpression(node.values[i]);
-      node.keys[i] = visitExpression(node.keys[i]);
+    for (LiteralMapEntry entry in node.entries.reversed) {
+      entry.value = visitExpression(entry.value);
+      entry.key = visitExpression(entry.key);
     }
     return node;
   }
