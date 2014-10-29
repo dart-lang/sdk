@@ -2605,8 +2605,10 @@ bool shouldRetryCommand(CommandOutput output) {
       }
     }
 
-    // We currently rerun dartium tests, see issue 14074
-    if (command is BrowserTestCommand && command.displayName == 'dartium') {
+    // We currently rerun dartium tests, see issue 14074.
+    // We rerun tests on Safari because 6.2 and 7.1 are flaky. Issue 21434.
+    if (command is BrowserTestCommand &&
+        (command.browser == 'dartium' || command.browser == 'safari')) {
       return true;
     }
   }

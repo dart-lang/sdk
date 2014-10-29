@@ -26,7 +26,7 @@ DART2JS_BUILDER = (
     r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?(-(minified))?(-(x64))?(-(batch))?-?(\d*)-?(\d*)')
 DART2JS_FULL_BUILDER = r'full-(linux|mac|win7|win8)(-(ie10|ie11))?(-checked)?(-minified)?-(\d+)-(\d+)'
 WEB_BUILDER = (
-    r'dart2js-(ie9|ie10|ie11|ff|safari|chrome|chromeOnAndroid|safarimobilesim|opera|drt)-(win7|win8|mac10\.8|mac10\.7|linux)(-(all|html))?(-(csp))?(-(\d+)-(\d+))?')
+    r'dart2js-(ie9|ie10|ie11|ff|safari|chrome|chromeOnAndroid|safarimobilesim|opera|drt)-(win7|win8|mac10\.7|mac10\.8|mac10\.9|linux)(-(all|html))?(-(csp))?(-(\d+)-(\d+))?')
 
 IE_VERSIONS = ['ie10', 'ie11']
 
@@ -138,7 +138,7 @@ def GetBuildInfo(builder_name, is_buildbot):
     system = 'windows'
 
   # We have both 10.8 and 10.7 bots, functionality is the same.
-  if system == 'mac10.8' or system == 'mac10.7':
+  if system == 'mac10.7' or system == 'mac10.8' or system == 'mac10.9':
     builder_tag = system.replace('.', '_')
     system = 'mac'
 
