@@ -432,35 +432,34 @@ class Entrypoint {
   /// If [result] is passed, this loads the graph from it without re-parsing the
   /// lockfile or any pubspecs. Otherwise, before loading, this makes sure the
   /// lockfile and dependencies are installed and up to date.
-  Future<PackageGraph> loadPackageGraph([SolveResult result]) {
-    if (_packageGraph != null) return new Future.value(_packageGraph);
+  Future<PackageGraph> loadPackageGraph([SolveResult result]) async {
+    if (_packageGraph != null) return _packageGraph;
 
-    return new Future.sync(() {
+    var graph = await log.progress("Loading package graph", () async {
       if (result != null) {
-        return Future.wait(result.packages.map((id) {
-          return cache.sources[id.source].getDirectory(id)
-              .then((dir) => new Package(result.pubspecs[id.name], dir));
-        })).then((packages) {
-          return new PackageGraph(this, new LockFile(result.packages),
-              new Map.fromIterable(packages, key: (package) => package.name));
-        });
-      } else {
-        return ensureLockFileIsUpToDate().then((_) {
-          return Future.wait(lockFile.packages.values.map((id) {
-            var source = cache.sources[id.source];
-            return source.getDirectory(id)
-                .then((dir) => new Package.load(id.name, dir, cache.sources));
-          })).then((packages) {
-            var packageMap = new Map.fromIterable(packages, key: (p) => p.name);
-            packageMap[root.name] = root;
-            return new PackageGraph(this, lockFile, packageMap);
-          });
-        });
+        var packages = await Future.wait(result.packages.map((id) async {
+          var dir = await cache.sources[id.source].getDirectory(id);
+          return new Package(result.pubspecs[id.name], dir);
+        }));
+
+        return new PackageGraph(this, new LockFile(result.packages),
+            new Map.fromIterable(packages, key: (package) => package.name));
       }
-    }).then((graph) {
-      _packageGraph = graph;
-      return graph;
-    });
+
+      await ensureLockFileIsUpToDate();
+      var packages = await Future.wait(lockFile.packages.values.map((id) async {
+        var source = cache.sources[id.source];
+        var dir = await source.getDirectory(id);
+        return new Package.load(id.name, dir, cache.sources);
+      }));
+
+      var packageMap = new Map.fromIterable(packages, key: (p) => p.name);
+      packageMap[root.name] = root;
+      return new PackageGraph(this, lockFile, packageMap);
+    }, fine: true);
+
+    _packageGraph = graph;
+    return graph;
   }
 
   /// Saves a list of concrete package versions to the `pubspec.lock` file.

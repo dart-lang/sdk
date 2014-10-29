@@ -646,36 +646,117 @@ class Entrypoint {
   /// lockfile or any pubspecs. Otherwise, before loading, this makes sure the
   /// lockfile and dependencies are installed and up to date.
   Future<PackageGraph> loadPackageGraph([SolveResult result]) {
-    if (_packageGraph != null) return new Future.value(_packageGraph);
-
-    return new Future.sync(() {
-      if (result != null) {
-        return Future.wait(result.packages.map((id) {
-          return cache.sources[id.source].getDirectory(
-              id).then((dir) => new Package(result.pubspecs[id.name], dir));
-        })).then((packages) {
-          return new PackageGraph(
-              this,
-              new LockFile(result.packages),
-              new Map.fromIterable(packages, key: (package) => package.name));
-        });
-      } else {
-        return ensureLockFileIsUpToDate().then((_) {
-          return Future.wait(lockFile.packages.values.map((id) {
-            var source = cache.sources[id.source];
-            return source.getDirectory(
-                id).then((dir) => new Package.load(id.name, dir, cache.sources));
-          })).then((packages) {
-            var packageMap = new Map.fromIterable(packages, key: (p) => p.name);
-            packageMap[root.name] = root;
-            return new PackageGraph(this, lockFile, packageMap);
-          });
-        });
+    final completer0 = new Completer();
+    scheduleMicrotask(() {
+      try {
+        join0() {
+          log.progress("Loading package graph", (() {
+            final completer0 = new Completer();
+            scheduleMicrotask(() {
+              try {
+                join0() {
+                  ensureLockFileIsUpToDate().then((x0) {
+                    try {
+                      x0;
+                      Future.wait(lockFile.packages.values.map(((id) {
+                        final completer0 = new Completer();
+                        scheduleMicrotask(() {
+                          try {
+                            var source = cache.sources[id.source];
+                            source.getDirectory(id).then((x0) {
+                              try {
+                                var dir = x0;
+                                completer0.complete(
+                                    new Package.load(id.name, dir, cache.sources));
+                              } catch (e0, s0) {
+                                completer0.completeError(e0, s0);
+                              }
+                            }, onError: completer0.completeError);
+                          } catch (e, s) {
+                            completer0.completeError(e, s);
+                          }
+                        });
+                        return completer0.future;
+                      }))).then((x1) {
+                        try {
+                          var packages = x1;
+                          var packageMap =
+                              new Map.fromIterable(packages, key: ((p) {
+                            return p.name;
+                          }));
+                          packageMap[root.name] = root;
+                          completer0.complete(
+                              new PackageGraph(this, lockFile, packageMap));
+                        } catch (e0, s0) {
+                          completer0.completeError(e0, s0);
+                        }
+                      }, onError: completer0.completeError);
+                    } catch (e1, s1) {
+                      completer0.completeError(e1, s1);
+                    }
+                  }, onError: completer0.completeError);
+                }
+                if (result != null) {
+                  Future.wait(result.packages.map(((id) {
+                    final completer0 = new Completer();
+                    scheduleMicrotask(() {
+                      try {
+                        cache.sources[id.source].getDirectory(id).then((x0) {
+                          try {
+                            var dir = x0;
+                            completer0.complete(
+                                new Package(result.pubspecs[id.name], dir));
+                          } catch (e0, s0) {
+                            completer0.completeError(e0, s0);
+                          }
+                        }, onError: completer0.completeError);
+                      } catch (e, s) {
+                        completer0.completeError(e, s);
+                      }
+                    });
+                    return completer0.future;
+                  }))).then((x2) {
+                    try {
+                      var packages = x2;
+                      completer0.complete(
+                          new PackageGraph(
+                              this,
+                              new LockFile(result.packages),
+                              new Map.fromIterable(packages, key: ((package) {
+                        return package.name;
+                      }))));
+                    } catch (e2, s2) {
+                      completer0.completeError(e2, s2);
+                    }
+                  }, onError: completer0.completeError);
+                } else {
+                  join0();
+                }
+              } catch (e, s) {
+                completer0.completeError(e, s);
+              }
+            });
+            return completer0.future;
+          }), fine: true).then((x0) {
+            try {
+              var graph = x0;
+              _packageGraph = graph;
+              completer0.complete(graph);
+            } catch (e0, s0) {
+              completer0.completeError(e0, s0);
+            }
+          }, onError: completer0.completeError);
+        }
+        if (_packageGraph != null) {
+          completer0.complete(_packageGraph);
+        } else {
+          join0();
+        }
+      } catch (e, s) {
+        completer0.completeError(e, s);
       }
-    }).then((graph) {
-      _packageGraph = graph;
-      return graph;
     });
+    return completer0.future;
   }
 
   /// Saves a list of concrete package versions to the `pubspec.lock` file.
