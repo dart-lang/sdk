@@ -5,11 +5,12 @@
 library test.services.correction.name_suggestion;
 
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
-import '../../abstract_single_unit.dart';
-import '../../reflective_tests.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:unittest/unittest.dart';
+
+import '../../abstract_single_unit.dart';
+import '../../reflective_tests.dart';
 
 
 main() {
@@ -45,29 +46,11 @@ main() {
     DartType expectedType = (findElement('node') as LocalVariableElement).type;
     Expression assignedExpression =
         findNodeAtString('null;', (node) => node is NullLiteral);
-    List<String> suggestions =
-        getVariableNameSuggestionsForExpression(
-            expectedType,
-            assignedExpression,
-            excluded);
+    List<String> suggestions = getVariableNameSuggestionsForExpression(
+        expectedType,
+        assignedExpression,
+        excluded);
     expect(suggestions, unorderedEquals(['treeNode', 'node']));
-  }
-
-  void test_forExpression_expectedType_String() {
-    resolveTestUnit('''
-main() {
-  String res = 'abc';
-}
-''');
-    DartType expectedType = (findElement('res') as LocalVariableElement).type;
-    Expression assignedExpression = findNodeAtString("'abc';");
-    // first choice for "String" is "s"
-    expect(
-        getVariableNameSuggestionsForExpression(
-            expectedType,
-            assignedExpression,
-            new Set.from([])),
-        unorderedEquals(['s']));
   }
 
   void test_forExpression_expectedType_double() {
@@ -116,6 +99,23 @@ main() {
             assignedExpression,
             new Set.from(['i', 'j'])),
         unorderedEquals(['k']));
+  }
+
+  void test_forExpression_expectedType_String() {
+    resolveTestUnit('''
+main() {
+  String res = 'abc';
+}
+''');
+    DartType expectedType = (findElement('res') as LocalVariableElement).type;
+    Expression assignedExpression = findNodeAtString("'abc';");
+    // first choice for "String" is "s"
+    expect(
+        getVariableNameSuggestionsForExpression(
+            expectedType,
+            assignedExpression,
+            new Set.from([])),
+        unorderedEquals(['s']));
   }
 
   void test_forExpression_instanceCreation() {
@@ -268,6 +268,21 @@ main(p) {
         unorderedEquals([]));
   }
 
+  void test_forExpression_prefixedIdentifier() {
+    resolveTestUnit('''
+main(p) {
+  var res = p.sortedNodes;
+}
+''');
+    var excluded = new Set.from([]);
+    expect(
+        getVariableNameSuggestionsForExpression(
+            null,
+            findNodeAtString('p.sorted', (node) => node is PrefixedIdentifier),
+            excluded),
+        unorderedEquals(['sortedNodes', 'nodes']));
+  }
+
   void test_forExpression_privateName() {
     resolveTestUnit('''
 main(p) {
@@ -293,15 +308,14 @@ main(p) {
   void test_forExpression_propertyAccess() {
     resolveTestUnit('''
 main(p) {
-  var res = p.sortedNodes;
+  var res = p.q.sortedNodes;
 }
 ''');
     var excluded = new Set.from([]);
+    PropertyAccess expression =
+        findNodeAtString('p.q.sorted', (node) => node is PropertyAccess);
     expect(
-        getVariableNameSuggestionsForExpression(
-            null,
-            findNodeAtString('p.sorted', (node) => node is PrefixedIdentifier),
-            excluded),
+        getVariableNameSuggestionsForExpression(null, expression, excluded),
         unorderedEquals(['sortedNodes', 'nodes']));
   }
 
