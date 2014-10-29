@@ -7,12 +7,6 @@ cc/ArrayNew_Overflow_Crash: Crash
 cc/AllocGeneric_Overflow: Crash
 cc/CodeImmutability: Crash
 
-# Negative tests of VerifiedMemory should crash iff in DEBUG mode.
-# TODO(koda): Improve support for negative tests.
-[ $mode == debug ]
-cc/VerifyImplicit_Crash: Crash
-cc/VerifyExplicit_Crash: Crash
-
 cc/SNPrint_BadArgs: Skip
 
 # These tests are skipped because of the workaround to open issue 8594.
@@ -28,6 +22,10 @@ cc/IsolateInterrupt: Skip
 [ $mode == debug ]
 # This is a benchmark that is not informative in debug mode.
 cc/CorelibIsolateStartup: Skip
+# Negative tests of VerifiedMemory should crash iff in DEBUG mode.
+# TODO(koda): Improve support for negative tests.
+cc/VerifyImplicit_Crash: Crash
+cc/VerifyExplicit_Crash: Crash
 
 # The following section refers to the dart vm tests which live under
 # runtime/tests/vm/dart.
