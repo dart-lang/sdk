@@ -69,12 +69,6 @@ class InvokeDynamicSpecializer {
       } else if (selector.name == '>=') {
         return const GreaterEqualSpecializer();
       }
-    } else if (selector.kind == SelectorKind.CALL) {
-      if (selector.argumentCount == 1 && selector.namedArguments.length == 0) {
-        if (selector.name == 'codeUnitAt') {
-          return const CodeUnitAtSpecializer();
-        }
-      }
     }
     return const InvokeDynamicSpecializer();
   }
@@ -730,20 +724,5 @@ class LessEqualSpecializer extends RelationalSpecializer {
     return new HLessEqual(
         instruction.inputs[1], instruction.inputs[2],
         instruction.selector, backend.boolType);
-  }
-}
-
-class CodeUnitAtSpecializer extends InvokeDynamicSpecializer {
-  const CodeUnitAtSpecializer();
-
-  BinaryOperation operation(ConstantSystem constantSystem) {
-    return constantSystem.codeUnitAt;
-  }
-
-  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
-                                   Compiler compiler) {
-    // TODO(sra): Implement a builtin HCodeUnitAt instruction and the same index
-    // bounds checking optimizations as for HIndex.
-    return null;
   }
 }

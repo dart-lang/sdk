@@ -339,7 +339,6 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
         operator[](index) {}
         toString() {}
         operator+(other) => this;
-        codeUnitAt(index) => 42;
       }''',
   'JSUInt31': 'class JSUInt31 extends JSUInt32 {}',
   'JSUInt32': 'class JSUInt32 extends JSPositiveInt {}',
@@ -362,3 +361,4 @@ const Map<String, String> DEFAULT_MIRRORS_LIBRARY = const <String, String>{
   'MirrorSystem': 'class MirrorSystem {}',
   'MirrorsUsed': 'class MirrorsUsed {}',
 };
+
