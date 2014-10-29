@@ -174,8 +174,8 @@ class AssistProcessor {
       ForEachStatement forEach = node.getAncestor((n) => n is ForEachStatement);
       int offset = node.offset;
       if (forEach != null &&
-          forEach.iterator != null &&
-          offset < forEach.iterator.offset) {
+          forEach.iterable != null &&
+          offset < forEach.iterable.offset) {
         declaredIdentifier = forEach.loopVariable;
       }
     }

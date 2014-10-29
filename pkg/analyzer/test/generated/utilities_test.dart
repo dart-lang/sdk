@@ -2795,13 +2795,13 @@ class Getter_NodeReplacerTest_test_forEachStatement_withIdentifier_2 implements
 class Getter_NodeReplacerTest_test_forEachStatement_withIdentifier_3 implements
     NodeReplacerTest_Getter {
   @override
-  Expression get(ForEachStatement node) => node.iterator;
+  Expression get(ForEachStatement node) => node.iterable;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withLoopVariable implements
     NodeReplacerTest_Getter {
   @override
-  Expression get(ForEachStatement node) => node.iterator;
+  Expression get(ForEachStatement node) => node.iterable;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withLoopVariable_2

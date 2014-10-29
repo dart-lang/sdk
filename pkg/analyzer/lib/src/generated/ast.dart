@@ -1390,7 +1390,7 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneToken(node.leftParenthesis),
           cloneNode(node.identifier),
           cloneToken(node.inKeyword),
-          cloneNode(node.iterator),
+          cloneNode(node.iterable),
           cloneToken(node.rightParenthesis),
           cloneNode(node.body));
     }
@@ -1400,7 +1400,7 @@ class AstCloner implements AstVisitor<AstNode> {
         cloneToken(node.leftParenthesis),
         cloneNode(loopVariable),
         cloneToken(node.inKeyword),
-        cloneNode(node.iterator),
+        cloneNode(node.iterable),
         cloneToken(node.rightParenthesis),
         cloneNode(node.body));
   }
@@ -2157,7 +2157,7 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitForEachStatement(ForEachStatement node) {
     ForEachStatement other = this._other as ForEachStatement;
-    return isEqualTokens(node.forKeyword, other.forKeyword) && isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodes(node.loopVariable, other.loopVariable) && isEqualTokens(node.inKeyword, other.inKeyword) && isEqualNodes(node.iterator, other.iterator) && isEqualTokens(node.rightParenthesis, other.rightParenthesis) && isEqualNodes(node.body, other.body);
+    return isEqualTokens(node.forKeyword, other.forKeyword) && isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodes(node.loopVariable, other.loopVariable) && isEqualTokens(node.inKeyword, other.inKeyword) && isEqualNodes(node.iterable, other.iterable) && isEqualTokens(node.rightParenthesis, other.rightParenthesis) && isEqualNodes(node.body, other.body);
   }
 
   @override
@@ -7518,7 +7518,7 @@ class ForEachStatement extends Statement {
   /**
    * The expression evaluated to produce the iterator.
    */
-  Expression _iterator;
+  Expression _iterable;
 
   /**
    * The right parenthesis.
@@ -7543,7 +7543,7 @@ class ForEachStatement extends Statement {
    */
   ForEachStatement.con1(this.awaitKeyword, this.forKeyword, this.leftParenthesis, DeclaredIdentifier loopVariable, this.inKeyword, Expression iterator, this.rightParenthesis, Statement body) {
     this._loopVariable = becomeParentOf(loopVariable);
-    this._iterator = becomeParentOf(iterator);
+    this._iterable = becomeParentOf(iterator);
     this._body = becomeParentOf(body);
   }
 
@@ -7560,7 +7560,7 @@ class ForEachStatement extends Statement {
    */
   ForEachStatement.con2(this.awaitKeyword, this.forKeyword, this.leftParenthesis, SimpleIdentifier identifier, this.inKeyword, Expression iterator, this.rightParenthesis, Statement body) {
     this._identifier = becomeParentOf(identifier);
-    this._iterator = becomeParentOf(iterator);
+    this._iterable = becomeParentOf(iterator);
     this._body = becomeParentOf(body);
   }
 
@@ -7592,7 +7592,7 @@ class ForEachStatement extends Statement {
    *
    * @return the expression evaluated to produce the iterator
    */
-  Expression get iterator => _iterator;
+  Expression get iterable => _iterable;
 
   /**
    * Return the declaration of the loop variable, or `null` if the loop variable is a simple
@@ -7625,8 +7625,8 @@ class ForEachStatement extends Statement {
    *
    * @param expression the expression evaluated to produce the iterator
    */
-  void set iterator(Expression expression) {
-    _iterator = becomeParentOf(expression);
+  void set iterable(Expression expression) {
+    _iterable = becomeParentOf(expression);
   }
 
   /**
@@ -7642,7 +7642,7 @@ class ForEachStatement extends Statement {
   void visitChildren(AstVisitor visitor) {
     safelyVisitChild(_loopVariable, visitor);
     safelyVisitChild(_identifier, visitor);
-    safelyVisitChild(_iterator, visitor);
+    safelyVisitChild(_iterable, visitor);
     safelyVisitChild(_body, visitor);
   }
 }
@@ -9879,9 +9879,9 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   ForEachStatement visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (loopVariable == null) {
-      return new ForEachStatement.con2(_mapToken(node.awaitKeyword), _mapToken(node.forKeyword), _mapToken(node.leftParenthesis), _cloneNode(node.identifier), _mapToken(node.inKeyword), _cloneNode(node.iterator), _mapToken(node.rightParenthesis), _cloneNode(node.body));
+      return new ForEachStatement.con2(_mapToken(node.awaitKeyword), _mapToken(node.forKeyword), _mapToken(node.leftParenthesis), _cloneNode(node.identifier), _mapToken(node.inKeyword), _cloneNode(node.iterable), _mapToken(node.rightParenthesis), _cloneNode(node.body));
     }
-    return new ForEachStatement.con1(_mapToken(node.awaitKeyword), _mapToken(node.forKeyword), _mapToken(node.leftParenthesis), _cloneNode(loopVariable), _mapToken(node.inKeyword), _cloneNode(node.iterator), _mapToken(node.rightParenthesis), _cloneNode(node.body));
+    return new ForEachStatement.con1(_mapToken(node.awaitKeyword), _mapToken(node.forKeyword), _mapToken(node.leftParenthesis), _cloneNode(loopVariable), _mapToken(node.inKeyword), _cloneNode(node.iterable), _mapToken(node.rightParenthesis), _cloneNode(node.body));
   }
 
   @override
@@ -12939,8 +12939,8 @@ class NodeReplacer implements AstVisitor<bool> {
     } else if (identical(node.identifier, _oldNode)) {
       node.identifier = _newNode as SimpleIdentifier;
       return true;
-    } else if (identical(node.iterator, _oldNode)) {
-      node.iterator = _newNode as Expression;
+    } else if (identical(node.iterable, _oldNode)) {
+      node.iterable = _newNode as Expression;
       return true;
     } else if (identical(node.body, _oldNode)) {
       node.body = _newNode as Statement;
@@ -17765,7 +17765,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
       _visitNode(loopVariable);
     }
     _writer.print(" in ");
-    _visitNode(node.iterator);
+    _visitNode(node.iterable);
     _writer.print(") ");
     _visitNode(node.body);
     return null;

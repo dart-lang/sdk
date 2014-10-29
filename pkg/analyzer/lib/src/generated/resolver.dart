@@ -12950,7 +12950,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     bool outerBreakValue = _enclosingBlockContainsBreak;
     _enclosingBlockContainsBreak = false;
     try {
-      return _nodeExits(node.iterator);
+      return _nodeExits(node.iterable);
     } finally {
       _enclosingBlockContainsBreak = outerBreakValue;
     }
@@ -19806,8 +19806,8 @@ class ResolverVisitor extends ScopedVisitor {
     // We visit the iterator before the loop variable because the loop variable cannot be in scope
     // while visiting the iterator.
     //
-    Expression iterator = node.iterator;
-    safelyVisit(iterator);
+    Expression iterable = node.iterable;
+    safelyVisit(iterable);
     DeclaredIdentifier loopVariable = node.loopVariable;
     SimpleIdentifier identifier = node.identifier;
     safelyVisit(loopVariable);
@@ -19816,17 +19816,17 @@ class ResolverVisitor extends ScopedVisitor {
     if (body != null) {
       _overrideManager.enterScope();
       try {
-        if (loopVariable != null && iterator != null) {
+        if (loopVariable != null && iterable != null) {
           LocalVariableElement loopElement = loopVariable.element;
           if (loopElement != null) {
-            DartType iteratorElementType = _getIteratorElementType(iterator);
+            DartType iteratorElementType = _getIteratorElementType(iterable);
             overrideVariable(loopElement, iteratorElementType, true);
             _recordPropagatedType(loopVariable.identifier, iteratorElementType);
           }
-        } else if (identifier != null && iterator != null) {
+        } else if (identifier != null && iterable != null) {
           Element identifierElement = identifier.staticElement;
           if (identifierElement is VariableElement) {
-            DartType iteratorElementType = _getIteratorElementType(iterator);
+            DartType iteratorElementType = _getIteratorElementType(iterable);
             overrideVariable(identifierElement, iteratorElementType, true);
             _recordPropagatedType(identifier, iteratorElementType);
           }
@@ -21084,7 +21084,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     // while visiting the iterator.
     //
     safelyVisit(node.identifier);
-    safelyVisit(node.iterator);
+    safelyVisit(node.iterable);
     safelyVisit(node.loopVariable);
     visitStatementInScope(node.body);
   }
