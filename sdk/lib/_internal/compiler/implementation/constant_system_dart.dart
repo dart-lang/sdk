@@ -318,6 +318,37 @@ class IdentityOperation implements BinaryOperation {
   apply(left, right) => identical(left, right);
 }
 
+abstract class CodeUnitAtOperation implements BinaryOperation {
+  final String name = 'charCodeAt';
+  const CodeUnitAtOperation();
+  apply(left, right) => left.codeUnitAt(right);
+}
+
+class CodeUnitAtConstantOperation extends CodeUnitAtOperation {
+  const CodeUnitAtConstantOperation();
+  ConstantValue fold(ConstantValue left, ConstantValue right) {
+    // 'a'.codeUnitAt(0) is not a constant expression.
+    return null;
+  }
+}
+
+class CodeUnitAtRuntimeOperation extends CodeUnitAtOperation {
+  const CodeUnitAtRuntimeOperation();
+  IntConstantValue fold(ConstantValue left, ConstantValue right) {
+    if (left.isString && right.isInt) {
+      StringConstantValue stringConstant = left;
+      IntConstantValue indexConstant = right;
+      DartString dartString = stringConstant.primitiveValue;
+      int index = indexConstant.primitiveValue;
+      if (index < 0 || index >= dartString.length) return null;
+      String string = dartString.slowToString();
+      int value = string.codeUnitAt(index);
+      return DART_CONSTANT_SYSTEM.createInt(value);
+    }
+    return null;
+  }
+}
+
 /**
  * A constant system implementing the Dart semantics. This system relies on
  * the underlying runtime-system. That is, if dart2js is run in an environment
@@ -347,6 +378,7 @@ class DartConstantSystem extends ConstantSystem {
   final shiftRight = const ShiftRightOperation();
   final subtract = const SubtractOperation();
   final truncatingDivide = const TruncatingDivideOperation();
+  final codeUnitAt = const CodeUnitAtConstantOperation();
 
   const DartConstantSystem();
 
