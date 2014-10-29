@@ -317,4 +317,11 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
                        buildBody: subbuild(node.body),
                        buildUpdate: subbuildSequence(node.updaters));
   }
+
+  @override
+  visitWhileStatement(WhileStatement node) {
+    // TODO(johnniwinther): Support `while` as a jump target.
+    irBuilder.buildWhile(buildCondition: subbuild(node.condition),
+                         buildBody: subbuild(node.body));
+  }
 }

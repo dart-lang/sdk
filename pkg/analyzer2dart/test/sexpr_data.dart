@@ -836,7 +836,7 @@ main() {
 
 const TestSpec('''
 main() {
-  for (int i = 0; i < 10; i = i + 1) {
+  for (var i = 0; i < 10; i = i + 1) {
     print(i);
   }
 }
@@ -869,6 +869,54 @@ main(i) {
 }
 ''', '''
 (FunctionDefinition main (i return)
+  (LetPrim v0 (Constant IntConstant(0)))
+  (LetCont* (k0 v1)
+    (LetPrim v2 (Constant IntConstant(10)))
+    (LetCont (k1 v3)
+      (LetCont (k2)
+        (LetPrim v4 (Constant NullConstant))
+        (InvokeContinuation return v4))
+      (LetCont (k3)
+        (LetCont (k4 v5)
+          (LetPrim v6 (Constant IntConstant(1)))
+          (LetCont (k5 v7)
+            (InvokeContinuation* k0 v7))
+          (InvokeMethod v1 + v6 k5))
+        (InvokeStatic print v1 k4))
+      (Branch (IsTrue v3) k3 k2))
+    (InvokeMethod v1 < v2 k1))
+  (InvokeContinuation k0 v0))
+'''),
+  ]),
+
+  const Group('While loop', const <TestSpec>[
+    const TestSpec('''
+main() {
+  while (true) {}
+}
+''', '''
+(FunctionDefinition main ( return)
+  (LetCont* (k0)
+    (LetPrim v0 (Constant BoolConstant(true)))
+    (LetCont (k1)
+      (LetPrim v1 (Constant NullConstant))
+      (InvokeContinuation return v1))
+    (LetCont (k2)
+      (InvokeContinuation* k0 ))
+    (Branch (IsTrue v0) k2 k1))
+  (InvokeContinuation k0 ))
+'''),
+
+const TestSpec('''
+main() {
+  var i = 0;
+  while (i < 10) {
+    print(i);
+    i = i + 1;
+  }
+}
+''', '''
+(FunctionDefinition main ( return)
   (LetPrim v0 (Constant IntConstant(0)))
   (LetCont* (k0 v1)
     (LetPrim v2 (Constant IntConstant(10)))

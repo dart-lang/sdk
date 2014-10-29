@@ -245,85 +245,11 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
         : giveup(node, 'labeled statement');
   }
 
-  ir.Primitive visitWhile(ast.While node) {
-    assert(irBuilder.isOpen);
-    // While loops use four named continuations: the entry to the body, the
-    // loop exit, the loop back edge (continue), and the loop exit (break).
-    // The CPS translation of [[while (condition) body; successor]] is:
-    //
-    // let cont continue(x, ...) =
-    //     let prim cond = [[condition]] in
-    //     let cont break() = [[successor]] in
-    //     let cont exit() = break(v, ...) in
-    //     let cont body() = [[body]]; continue(v, ...) in
-    //     branch cond (body, exit) in
-    // continue(v, ...)
-    //
-    // If there are no breaks in the body, the break continuation is inlined
-    // in the exit continuation (i.e., the translation of the successor
-    // statement occurs in the exit continuation).
-
-    // The condition and body are delimited.
-    IrBuilder condBuilder = new IrBuilder.recursive(irBuilder);
-    ir.Primitive condition =
-        withBuilder(condBuilder, () => visit(node.condition));
-
-    JumpTarget target = elements.getTargetDefinition(node);
-    JumpCollector breakCollector = new JumpCollector(target);
-    JumpCollector continueCollector = new JumpCollector(target);
-    irBuilder.state.breakCollectors.add(breakCollector);
-    irBuilder.state.continueCollectors.add(continueCollector);
-
-    IrBuilder bodyBuilder = new IrBuilder.delimited(condBuilder);
-    withBuilder(bodyBuilder, () => visit(node.body));
-    assert(irBuilder.state.breakCollectors.last == breakCollector);
-    assert(irBuilder.state.continueCollectors.last == continueCollector);
-    irBuilder.state.breakCollectors.removeLast();
-    irBuilder.state.continueCollectors.removeLast();
-
-    // Create body entry and loop exit continuations and a branch to them.
-    ir.Continuation bodyContinuation = new ir.Continuation([]);
-    ir.Continuation exitContinuation = new ir.Continuation([]);
-    ir.LetCont branch =
-        new ir.LetCont(exitContinuation,
-            new ir.LetCont(bodyContinuation,
-                new ir.Branch(new ir.IsTrue(condition),
-                              bodyContinuation,
-                              exitContinuation)));
-    // If there are breaks in the body, then there must be a join-point
-    // continuation for the normal exit and the breaks.
-    bool hasBreaks = !breakCollector.isEmpty;
-    ir.LetCont letJoin;
-    if (hasBreaks) {
-      letJoin = new ir.LetCont(null, branch);
-      condBuilder.add(letJoin);
-      condBuilder._current = branch;
-    } else {
-      condBuilder.add(branch);
-    }
-    ir.Continuation loopContinuation =
-        new ir.Continuation(condBuilder._parameters);
-    if (bodyBuilder.isOpen) continueCollector.addJump(bodyBuilder);
-    irBuilder.invokeFullJoin(
-        loopContinuation, continueCollector, recursive: true);
-    bodyContinuation.body = bodyBuilder._root;
-
-    loopContinuation.body = condBuilder._root;
-    irBuilder.add(new ir.LetCont(loopContinuation,
-            new ir.InvokeContinuation(loopContinuation,
-                                      irBuilder.environment.index2value)));
-    if (hasBreaks) {
-      irBuilder._current = branch;
-      irBuilder.environment = condBuilder.environment;
-      breakCollector.addJump(irBuilder);
-      letJoin.continuation =
-          irBuilder.createJoin(irBuilder.environment.length, breakCollector);
-      irBuilder._current = letJoin;
-    } else {
-      irBuilder._current = condBuilder._current;
-      irBuilder.environment = condBuilder.environment;
-    }
-    return null;
+  visitWhile(ast.While node) {
+    irBuilder.buildWhile(
+        buildCondition: subbuild(node.condition),
+        buildBody: subbuild(node.body),
+        target: elements.getTargetDefinition(node));
   }
 
   ir.Primitive visitForIn(ast.ForIn node) {

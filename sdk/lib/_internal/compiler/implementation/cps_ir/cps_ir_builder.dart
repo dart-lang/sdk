@@ -777,6 +777,90 @@ class IrBuilder {
     }
   }
 
+
+  /// Creates a while loop in which the condition and body are created by
+  /// [buildCondition] and [buildBody], respectively.
+  ///
+  /// The jump [target] is used to identify which `break` and `continue`
+  /// statements that have this `while` statement as their target.
+  void buildWhile({SubbuildFunction buildCondition,
+                   SubbuildFunction buildBody,
+                   JumpTarget target}) {
+    assert(isOpen);
+    // While loops use four named continuations: the entry to the body, the
+    // loop exit, the loop back edge (continue), and the loop exit (break).
+    // The CPS translation of [[while (condition) body; successor]] is:
+    //
+    // let cont continue(x, ...) =
+    //     let prim cond = [[condition]] in
+    //     let cont break() = [[successor]] in
+    //     let cont exit() = break(v, ...) in
+    //     let cont body() = [[body]]; continue(v, ...) in
+    //     branch cond (body, exit) in
+    // continue(v, ...)
+    //
+    // If there are no breaks in the body, the break continuation is inlined
+    // in the exit continuation (i.e., the translation of the successor
+    // statement occurs in the exit continuation).
+
+    // The condition and body are delimited.
+    IrBuilder condBuilder = new IrBuilder.recursive(this);
+    ir.Primitive condition = buildCondition(condBuilder);
+
+    JumpCollector breakCollector = new JumpCollector(target);
+    JumpCollector continueCollector = new JumpCollector(target);
+    state.breakCollectors.add(breakCollector);
+    state.continueCollectors.add(continueCollector);
+
+    IrBuilder bodyBuilder = new IrBuilder.delimited(condBuilder);
+    buildBody(bodyBuilder);
+    assert(state.breakCollectors.last == breakCollector);
+    assert(state.continueCollectors.last == continueCollector);
+    state.breakCollectors.removeLast();
+    state.continueCollectors.removeLast();
+
+    // Create body entry and loop exit continuations and a branch to them.
+    ir.Continuation bodyContinuation = new ir.Continuation([]);
+    ir.Continuation exitContinuation = new ir.Continuation([]);
+    ir.LetCont branch =
+        new ir.LetCont(exitContinuation,
+            new ir.LetCont(bodyContinuation,
+                new ir.Branch(new ir.IsTrue(condition),
+                              bodyContinuation,
+                              exitContinuation)));
+    // If there are breaks in the body, then there must be a join-point
+    // continuation for the normal exit and the breaks.
+    bool hasBreaks = !breakCollector.isEmpty;
+    ir.LetCont letJoin;
+    if (hasBreaks) {
+      letJoin = new ir.LetCont(null, branch);
+      condBuilder.add(letJoin);
+      condBuilder._current = branch;
+    } else {
+      condBuilder.add(branch);
+    }
+    ir.Continuation loopContinuation =
+        new ir.Continuation(condBuilder._parameters);
+    if (bodyBuilder.isOpen) continueCollector.addJump(bodyBuilder);
+    invokeFullJoin(loopContinuation, continueCollector, recursive: true);
+    bodyContinuation.body = bodyBuilder._root;
+
+    loopContinuation.body = condBuilder._root;
+    add(new ir.LetCont(loopContinuation,
+            new ir.InvokeContinuation(loopContinuation,
+                                      environment.index2value)));
+    if (hasBreaks) {
+      _current = branch;
+      environment = condBuilder.environment;
+      breakCollector.addJump(this);
+      letJoin.continuation = createJoin(environment.length, breakCollector);
+      _current = letJoin;
+    } else {
+      _current = condBuilder._current;
+      environment = condBuilder.environment;
+    }
+  }
+
   /// Create a return statement `return value;` or `return;` if [value] is
   /// null.
   void buildReturn([ir.Primitive value]) {

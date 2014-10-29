@@ -528,7 +528,7 @@ main() {
 
 const TestSpec('''
 main() {
-  for (int i = 0; i < 10; i = i + 1) {
+  for (var i = 0; i < 10; i = i + 1) {
     print(i);
   }
 }
@@ -557,5 +557,29 @@ main(i) {
   }
 }
 '''),
+  ]),
+
+  const Group('While loop', const <TestSpec>[
+    const TestSpec('''
+main() {
+  while (true) {}
+}
+'''),
+
+const TestSpec('''
+main() {
+  var i = 0;
+  while (i < 10) {
+    print(i);
+    i = i + 1;
+  }
+}''', '''
+main() {
+  var i = 0;
+  while (i < 10) {
+    print(i);
+    ++i;
+  }
+}'''),
   ]),
 ];
