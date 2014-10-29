@@ -39,7 +39,7 @@ class ImportedComputer extends DartCompletionComputer {
 }
 
 /**
- * A visitor for determining which imported class and top level variable
+ * A visitor for determining which imported classes and top level variables
  * should be suggested and building those suggestions.
  */
 class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
@@ -194,10 +194,12 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     var directive = node.getAncestor((parent) => parent is NamespaceDirective);
     if (directive is NamespaceDirective) {
       LibraryElement library = directive.uriElement;
-      LibraryElementSuggestionBuilder.suggestionsFor(request, library);
+      LibraryElementSuggestionBuilder.suggestionsFor(
+          request,
+          CompletionSuggestionKind.IDENTIFIER,
+          library);
       return new Future.value(true);
     }
-
     return new Future.value(false);
   }
 
@@ -219,12 +221,9 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
       return;
     }
 
-    CompletionSuggestionKind kind =
-        newCompletionSuggestionKind_fromElementKind(element.kind);
-
     String completion = element.displayName;
     CompletionSuggestion suggestion = new CompletionSuggestion(
-        kind,
+        CompletionSuggestionKind.INVOCATION,
         relevance,
         completion,
         completion.length,
@@ -381,7 +380,7 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     String completion = importElem.prefix.displayName;
     if (completion != null && completion.length > 0) {
       CompletionSuggestion suggestion = new CompletionSuggestion(
-          CompletionSuggestionKind.LIBRARY_PREFIX,
+          CompletionSuggestionKind.INVOCATION,
           CompletionRelevance.DEFAULT,
           completion,
           completion.length,

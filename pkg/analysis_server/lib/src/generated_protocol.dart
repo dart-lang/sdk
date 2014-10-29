@@ -5561,70 +5561,47 @@ class CompletionSuggestion implements HasToJson {
  *
  * enum {
  *   ARGUMENT_LIST
- *   CLASS
- *   CLASS_ALIAS
- *   CONSTRUCTOR
- *   FIELD
- *   FUNCTION
- *   FUNCTION_TYPE_ALIAS
- *   GETTER
  *   IMPORT
+ *   IDENTIFIER
+ *   INVOCATION
  *   KEYWORD
- *   LABEL
- *   LIBRARY_PREFIX
- *   LOCAL_VARIABLE
- *   METHOD
- *   METHOD_NAME
  *   NAMED_ARGUMENT
  *   OPTIONAL_ARGUMENT
  *   PARAMETER
- *   SETTER
- *   TOP_LEVEL_VARIABLE
- *   TYPE_PARAMETER
  * }
  */
 class CompletionSuggestionKind implements Enum {
   static const ARGUMENT_LIST = const CompletionSuggestionKind._("ARGUMENT_LIST");
 
-  static const CLASS = const CompletionSuggestionKind._("CLASS");
-
-  static const CLASS_ALIAS = const CompletionSuggestionKind._("CLASS_ALIAS");
-
-  static const CONSTRUCTOR = const CompletionSuggestionKind._("CONSTRUCTOR");
-
-  static const FIELD = const CompletionSuggestionKind._("FIELD");
-
-  static const FUNCTION = const CompletionSuggestionKind._("FUNCTION");
-
-  static const FUNCTION_TYPE_ALIAS = const CompletionSuggestionKind._("FUNCTION_TYPE_ALIAS");
-
-  static const GETTER = const CompletionSuggestionKind._("GETTER");
-
   static const IMPORT = const CompletionSuggestionKind._("IMPORT");
 
+  /**
+   * The element identifier should be inserted at the completion location. For
+   * example "someMethod" in import 'myLib.dart' show someMethod; . For
+   * suggestions of this kind, the element attribute is defined and the
+   * completion field is the element's identifier.
+   */
+  static const IDENTIFIER = const CompletionSuggestionKind._("IDENTIFIER");
+
+  /**
+   * The element is being invoked at the completion location. For example,
+   * "someMethod" in x.someMethod(); . For suggestions of this kind, the
+   * element attribute is defined and the completion field is the element's
+   * identifier.
+   */
+  static const INVOCATION = const CompletionSuggestionKind._("INVOCATION");
+
+  /**
+   * A keyword is being suggested. For suggestions of this kind, the completion
+   * is the keyword.
+   */
   static const KEYWORD = const CompletionSuggestionKind._("KEYWORD");
-
-  static const LABEL = const CompletionSuggestionKind._("LABEL");
-
-  static const LIBRARY_PREFIX = const CompletionSuggestionKind._("LIBRARY_PREFIX");
-
-  static const LOCAL_VARIABLE = const CompletionSuggestionKind._("LOCAL_VARIABLE");
-
-  static const METHOD = const CompletionSuggestionKind._("METHOD");
-
-  static const METHOD_NAME = const CompletionSuggestionKind._("METHOD_NAME");
 
   static const NAMED_ARGUMENT = const CompletionSuggestionKind._("NAMED_ARGUMENT");
 
   static const OPTIONAL_ARGUMENT = const CompletionSuggestionKind._("OPTIONAL_ARGUMENT");
 
   static const PARAMETER = const CompletionSuggestionKind._("PARAMETER");
-
-  static const SETTER = const CompletionSuggestionKind._("SETTER");
-
-  static const TOP_LEVEL_VARIABLE = const CompletionSuggestionKind._("TOP_LEVEL_VARIABLE");
-
-  static const TYPE_PARAMETER = const CompletionSuggestionKind._("TYPE_PARAMETER");
 
   final String name;
 
@@ -5634,46 +5611,20 @@ class CompletionSuggestionKind implements Enum {
     switch (name) {
       case "ARGUMENT_LIST":
         return ARGUMENT_LIST;
-      case "CLASS":
-        return CLASS;
-      case "CLASS_ALIAS":
-        return CLASS_ALIAS;
-      case "CONSTRUCTOR":
-        return CONSTRUCTOR;
-      case "FIELD":
-        return FIELD;
-      case "FUNCTION":
-        return FUNCTION;
-      case "FUNCTION_TYPE_ALIAS":
-        return FUNCTION_TYPE_ALIAS;
-      case "GETTER":
-        return GETTER;
       case "IMPORT":
         return IMPORT;
+      case "IDENTIFIER":
+        return IDENTIFIER;
+      case "INVOCATION":
+        return INVOCATION;
       case "KEYWORD":
         return KEYWORD;
-      case "LABEL":
-        return LABEL;
-      case "LIBRARY_PREFIX":
-        return LIBRARY_PREFIX;
-      case "LOCAL_VARIABLE":
-        return LOCAL_VARIABLE;
-      case "METHOD":
-        return METHOD;
-      case "METHOD_NAME":
-        return METHOD_NAME;
       case "NAMED_ARGUMENT":
         return NAMED_ARGUMENT;
       case "OPTIONAL_ARGUMENT":
         return OPTIONAL_ARGUMENT;
       case "PARAMETER":
         return PARAMETER;
-      case "SETTER":
-        return SETTER;
-      case "TOP_LEVEL_VARIABLE":
-        return TOP_LEVEL_VARIABLE;
-      case "TYPE_PARAMETER":
-        return TYPE_PARAMETER;
     }
     throw new Exception('Illegal enum value: $name');
   }

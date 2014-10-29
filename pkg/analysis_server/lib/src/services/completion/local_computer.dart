@@ -135,7 +135,6 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       } else if (declaration is ClassTypeAlias) {
         CompletionSuggestion suggestion = _addSuggestion(
             declaration.name,
-            CompletionSuggestionKind.CLASS_ALIAS,
             null,
             null);
         if (suggestion != null) {
@@ -150,17 +149,16 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       } else if (declaration is FunctionTypeAlias) {
         CompletionSuggestion suggestion = _addSuggestion(
             declaration.name,
-            CompletionSuggestionKind.FUNCTION_TYPE_ALIAS,
             declaration.returnType,
             null);
         if (suggestion != null) {
           suggestion.element = _createElement(
               protocol.ElementKind.FUNCTION_TYPE_ALIAS,
               declaration.name,
-              null, // TODO (danrubel) determine parameters
-              NO_RETURN_TYPE, // TODO (danrubel) determine return type
-              true,
-              _isDeprecated(declaration.metadata));
+              null,
+              // TODO (danrubel) determine parameters
+          NO_RETURN_TYPE, // TODO (danrubel) determine return type
+          true, _isDeprecated(declaration.metadata));
         }
       }
     });
@@ -309,7 +307,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
 
   void _addClassSuggestion(ClassDeclaration declaration) {
     CompletionSuggestion suggestion =
-        _addSuggestion(declaration.name, CompletionSuggestionKind.CLASS, null, null);
+        _addSuggestion(declaration.name, null, null);
     if (suggestion != null) {
       suggestion.element = _createElement(
           protocol.ElementKind.CLASS,
@@ -329,7 +327,6 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
     fieldDecl.fields.variables.forEach((VariableDeclaration varDecl) {
       CompletionSuggestion suggestion = _addSuggestion(
           varDecl.name,
-          CompletionSuggestionKind.GETTER,
           fieldDecl.fields.type,
           node);
       if (suggestion != null) {
@@ -353,7 +350,6 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
     }
     CompletionSuggestion suggestion = _addSuggestion(
         declaration.name,
-        CompletionSuggestionKind.FUNCTION,
         declaration.returnType,
         null);
     if (suggestion != null) {
@@ -372,7 +368,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       return;
     }
     CompletionSuggestion suggestion =
-        _addSuggestion(id, CompletionSuggestionKind.LOCAL_VARIABLE, returnType, null);
+        _addSuggestion(id, returnType, null);
     if (suggestion != null) {
       suggestion.element = _createElement(
           protocol.ElementKind.LOCAL_VARIABLE,
@@ -389,29 +385,27 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       return;
     }
     protocol.ElementKind kind;
-    CompletionSuggestionKind csKind;
     String parameters;
     if (classMbr.isGetter) {
       kind = protocol.ElementKind.GETTER;
-      csKind = CompletionSuggestionKind.GETTER;
       parameters = '()';
     } else if (classMbr.isSetter) {
       if (excludeVoidReturn) {
         return;
       }
       kind = protocol.ElementKind.SETTER;
-      csKind = CompletionSuggestionKind.SETTER;
       parameters = '(${classMbr.returnType.toSource()} value)';
     } else {
       if (excludeVoidReturn && _isVoid(classMbr.returnType)) {
         return;
       }
       kind = protocol.ElementKind.METHOD;
-      csKind = CompletionSuggestionKind.METHOD;
       parameters = classMbr.parameters.toSource();
     }
-    CompletionSuggestion suggestion =
-        _addSuggestion(classMbr.name, csKind, classMbr.returnType, node);
+    CompletionSuggestion suggestion = _addSuggestion(
+        classMbr.name,
+        classMbr.returnType,
+        node);
     if (suggestion != null) {
       suggestion.element = _createElement(
           kind,
@@ -453,7 +447,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       return;
     }
     CompletionSuggestion suggestion =
-        _addSuggestion(identifier, CompletionSuggestionKind.PARAMETER, type, null);
+        _addSuggestion(identifier, type, null);
     if (suggestion != null) {
       suggestion.element = _createElement(
           protocol.ElementKind.PARAMETER,
@@ -466,12 +460,12 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   CompletionSuggestion _addSuggestion(SimpleIdentifier id,
-      CompletionSuggestionKind kind, TypeName typeName, ClassDeclaration classDecl) {
+      TypeName typeName, ClassDeclaration classDecl) {
     if (id != null) {
       String completion = id.name;
       if (completion != null && completion.length > 0 && completion != '_') {
         CompletionSuggestion suggestion = new CompletionSuggestion(
-            kind,
+            CompletionSuggestionKind.INVOCATION,
             CompletionRelevance.DEFAULT,
             completion,
             completion.length,
@@ -512,7 +506,6 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       varList.variables.forEach((VariableDeclaration varDecl) {
         CompletionSuggestion suggestion = _addSuggestion(
             varDecl.name,
-            CompletionSuggestionKind.TOP_LEVEL_VARIABLE,
             varList.type,
             null);
         if (suggestion != null) {
@@ -542,8 +535,8 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
    * Create a new protocol Element for inclusion in a completion suggestion.
    */
   protocol.Element _createElement(protocol.ElementKind kind,
-      SimpleIdentifier id, String parameters, TypeName returnType,
-      bool isAbstract, bool isDeprecated) {
+      SimpleIdentifier id, String parameters, TypeName returnType, bool isAbstract,
+      bool isDeprecated) {
     String name = id.name;
     int flags = protocol.Element.makeFlags(
         isAbstract: isAbstract,

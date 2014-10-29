@@ -1879,26 +1879,35 @@
         </p>
         <enum>
           <value><code>ARGUMENT_LIST</code></value>
-          <value><code>CLASS</code></value>
-          <value><code>CLASS_ALIAS</code></value>
-          <value><code>CONSTRUCTOR</code></value>
-          <value><code>FIELD</code></value>
-          <value><code>FUNCTION</code></value>
-          <value><code>FUNCTION_TYPE_ALIAS</code></value>
-          <value><code>GETTER</code></value>
           <value><code>IMPORT</code></value>
-          <value><code>KEYWORD</code></value>
-          <value><code>LABEL</code></value>
-          <value><code>LIBRARY_PREFIX</code></value>
-          <value><code>LOCAL_VARIABLE</code></value>
-          <value><code>METHOD</code></value>
-          <value><code>METHOD_NAME</code></value>
+          <value>
+            <code>IDENTIFIER</code>
+            <p>
+              The element identifier should be inserted at the completion location.
+              For example "someMethod" in import 'myLib.dart' show someMethod; .
+              For suggestions of this kind, the element attribute is defined 
+              and the completion field is the element's identifier.
+            </p>
+          </value>
+          <value>
+            <code>INVOCATION</code>
+            <p>
+              The element is being invoked at the completion location.
+              For example, "someMethod" in x.someMethod(); .
+              For suggestions of this kind, the element attribute is defined 
+              and the completion field is the element's identifier.
+            </p>
+          </value>
+          <value>
+            <code>KEYWORD</code>
+            <p>
+              A keyword is being suggested.
+              For suggestions of this kind, the completion is the keyword.
+            </p>
+          </value>
           <value><code>NAMED_ARGUMENT</code></value>
           <value><code>OPTIONAL_ARGUMENT</code></value>
           <value><code>PARAMETER</code></value>
-          <value><code>SETTER</code></value>
-          <value><code>TOP_LEVEL_VARIABLE</code></value>
-          <value><code>TYPE_PARAMETER</code></value>
         </enum>
       </type>
       <type name="Element">

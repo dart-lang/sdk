@@ -12,6 +12,8 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
+import '../../protocol_server.dart' show CompletionSuggestionKind;
+
 /**
  * A computer for calculating invocation / access suggestions
  * `completion.getSuggestions` request results.
@@ -140,7 +142,10 @@ class _InvocationElementVisitor extends GeneralizingElementVisitor<Future<bool>>
     if (element != null) {
       InterfaceType type = element.type;
       if (type != null) {
-        ClassElementSuggestionBuilder.staticSuggestionsFor(request, type.element);
+        ClassElementSuggestionBuilder.suggestionsFor(
+            request,
+            type.element,
+            staticOnly: true);
       }
     }
     return new Future.value(false);
@@ -163,7 +168,10 @@ class _InvocationElementVisitor extends GeneralizingElementVisitor<Future<bool>>
           if (directive.prefix.name == element.name) {
             // Suggest elements from the imported library
             LibraryElement library = directive.uriElement;
-            LibraryElementSuggestionBuilder.suggestionsFor(request, library);
+            LibraryElementSuggestionBuilder.suggestionsFor(
+                request,
+                CompletionSuggestionKind.INVOCATION,
+                library);
             modified = true;
           }
         }

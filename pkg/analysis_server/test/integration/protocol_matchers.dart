@@ -1036,50 +1036,24 @@ final Matcher isCompletionSuggestion = new LazyMatcher(() => new MatchesJsonObje
  *
  * enum {
  *   ARGUMENT_LIST
- *   CLASS
- *   CLASS_ALIAS
- *   CONSTRUCTOR
- *   FIELD
- *   FUNCTION
- *   FUNCTION_TYPE_ALIAS
- *   GETTER
  *   IMPORT
+ *   IDENTIFIER
+ *   INVOCATION
  *   KEYWORD
- *   LABEL
- *   LIBRARY_PREFIX
- *   LOCAL_VARIABLE
- *   METHOD
- *   METHOD_NAME
  *   NAMED_ARGUMENT
  *   OPTIONAL_ARGUMENT
  *   PARAMETER
- *   SETTER
- *   TOP_LEVEL_VARIABLE
- *   TYPE_PARAMETER
  * }
  */
 final Matcher isCompletionSuggestionKind = new MatchesEnum("CompletionSuggestionKind", [
   "ARGUMENT_LIST",
-  "CLASS",
-  "CLASS_ALIAS",
-  "CONSTRUCTOR",
-  "FIELD",
-  "FUNCTION",
-  "FUNCTION_TYPE_ALIAS",
-  "GETTER",
   "IMPORT",
+  "IDENTIFIER",
+  "INVOCATION",
   "KEYWORD",
-  "LABEL",
-  "LIBRARY_PREFIX",
-  "LOCAL_VARIABLE",
-  "METHOD",
-  "METHOD_NAME",
   "NAMED_ARGUMENT",
   "OPTIONAL_ARGUMENT",
-  "PARAMETER",
-  "SETTER",
-  "TOP_LEVEL_VARIABLE",
-  "TYPE_PARAMETER"
+  "PARAMETER"
 ]);
 
 /**

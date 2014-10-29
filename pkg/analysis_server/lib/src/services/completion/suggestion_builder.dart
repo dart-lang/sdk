@@ -96,9 +96,8 @@ void visitInheritedTypes(ClassDeclaration node, void
 class ClassElementSuggestionBuilder extends _AbstractSuggestionBuilder {
   final bool staticOnly;
 
-  ClassElementSuggestionBuilder(DartCompletionRequest request, {bool staticOnly:
-      false})
-      : super(request),
+  ClassElementSuggestionBuilder(DartCompletionRequest request, bool staticOnly)
+      : super(request, CompletionSuggestionKind.INVOCATION),
         this.staticOnly = staticOnly;
 
   @override
@@ -119,11 +118,7 @@ class ClassElementSuggestionBuilder extends _AbstractSuggestionBuilder {
     if (staticOnly && !element.isStatic) {
       return;
     }
-    _addElementSuggestion(
-        element,
-        CompletionSuggestionKind.GETTER,
-        element.type,
-        element.enclosingElement);
+    _addElementSuggestion(element, element.type, element.enclosingElement);
   }
 
   @override
@@ -136,7 +131,6 @@ class ClassElementSuggestionBuilder extends _AbstractSuggestionBuilder {
     }
     _addElementSuggestion(
         element,
-        CompletionSuggestionKind.METHOD,
         element.returnType,
         element.enclosingElement);
   }
@@ -149,13 +143,11 @@ class ClassElementSuggestionBuilder extends _AbstractSuggestionBuilder {
     if (element.isGetter) {
       _addElementSuggestion(
           element,
-          CompletionSuggestionKind.GETTER,
           element.returnType,
           element.enclosingElement);
     } else if (element.isSetter) {
       _addElementSuggestion(
           element,
-          CompletionSuggestionKind.SETTER,
           element.returnType,
           element.enclosingElement);
     }
@@ -164,19 +156,12 @@ class ClassElementSuggestionBuilder extends _AbstractSuggestionBuilder {
   /**
    * Add suggestions for the visible members in the given class
    */
-  static void suggestionsFor(DartCompletionRequest request, Element element) {
+  static void suggestionsFor(DartCompletionRequest request, Element element,
+      {bool staticOnly: false}) {
     if (element is ClassElement) {
-      return element.accept(new ClassElementSuggestionBuilder(request));
+      return element.accept(
+          new ClassElementSuggestionBuilder(request, staticOnly));
     }
-  }
-
-  /**
-   * Add suggestions for the visible static members in the given class
-   */
-  static void staticSuggestionsFor(DartCompletionRequest request,
-      ClassElement element) {
-    return element.accept(
-        new ClassElementSuggestionBuilder(request, staticOnly: true));
   }
 }
 
@@ -187,12 +172,13 @@ class ClassElementSuggestionBuilder extends _AbstractSuggestionBuilder {
  */
 class LibraryElementSuggestionBuilder extends _AbstractSuggestionBuilder {
 
-  LibraryElementSuggestionBuilder(DartCompletionRequest request)
-      : super(request);
+  LibraryElementSuggestionBuilder(DartCompletionRequest request,
+      CompletionSuggestionKind kind)
+      : super(request, kind);
 
   @override
   visitClassElement(ClassElement element) {
-    _addElementSuggestion(element, CompletionSuggestionKind.CLASS, null, null);
+    _addElementSuggestion(element, null, null);
   }
 
   @override
@@ -207,38 +193,26 @@ class LibraryElementSuggestionBuilder extends _AbstractSuggestionBuilder {
 
   @override
   visitFunctionElement(FunctionElement element) {
-    _addElementSuggestion(
-        element,
-        CompletionSuggestionKind.FUNCTION,
-        element.returnType,
-        null);
+    _addElementSuggestion(element, element.returnType, null);
   }
 
   @override
   visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    _addElementSuggestion(
-        element,
-        CompletionSuggestionKind.FUNCTION_TYPE_ALIAS,
-        element.returnType,
-        null);
+    _addElementSuggestion(element, element.returnType, null);
   }
 
   @override
   visitTopLevelVariableElement(TopLevelVariableElement element) {
-    _addElementSuggestion(
-        element,
-        CompletionSuggestionKind.TOP_LEVEL_VARIABLE,
-        element.type,
-        null);
+    _addElementSuggestion(element, element.type, null);
   }
 
   /**
    * Add suggestions for the visible members in the given library
    */
   static void suggestionsFor(DartCompletionRequest request,
-      LibraryElement library) {
+      CompletionSuggestionKind kind, LibraryElement library) {
     if (library != null) {
-      library.visitChildren(new LibraryElementSuggestionBuilder(request));
+      library.visitChildren(new LibraryElementSuggestionBuilder(request, kind));
     }
   }
 }
@@ -251,7 +225,7 @@ class LibraryElementSuggestionBuilder extends _AbstractSuggestionBuilder {
 class NamedConstructorSuggestionBuilder extends _AbstractSuggestionBuilder {
 
   NamedConstructorSuggestionBuilder(DartCompletionRequest request)
-      : super(request);
+      : super(request, CompletionSuggestionKind.INVOCATION);
 
   @override
   visitClassElement(ClassElement element) {
@@ -262,7 +236,6 @@ class NamedConstructorSuggestionBuilder extends _AbstractSuggestionBuilder {
   visitConstructorElement(ConstructorElement element) {
     _addElementSuggestion(
         element,
-        CompletionSuggestionKind.CONSTRUCTOR,
         element.returnType,
         element.enclosingElement);
   }
@@ -287,12 +260,13 @@ class NamedConstructorSuggestionBuilder extends _AbstractSuggestionBuilder {
  */
 class _AbstractSuggestionBuilder extends GeneralizingElementVisitor {
   final DartCompletionRequest request;
+  final CompletionSuggestionKind kind;
   final Set<String> _completions = new Set<String>();
 
-  _AbstractSuggestionBuilder(this.request);
+  _AbstractSuggestionBuilder(this.request, this.kind);
 
-  void _addElementSuggestion(Element element, CompletionSuggestionKind kind,
-      DartType type, ClassElement enclosingElement) {
+  void _addElementSuggestion(Element element, DartType type,
+      ClassElement enclosingElement) {
     if (element.isSynthetic) {
       return;
     }
