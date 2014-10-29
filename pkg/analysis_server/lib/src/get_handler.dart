@@ -9,8 +9,10 @@ import 'dart:io';
 
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'analysis_server.dart';
 
 /**
  * Instances of the class [GetHandler] handle GET requests.
@@ -20,6 +22,30 @@ class GetHandler {
    * The path used to request the status of the analysis server as a whole.
    */
   static const String STATUS_PATH = '/status';
+
+  /**
+   * The path used to request the list of source files in a certain cache
+   * state.
+   */
+  static const String CACHE_STATE_PATH = '/cache_state';
+
+  /**
+   * Query parameter used to represent the cache state to search for, when
+   * accessing [CACHE_STATE_PATH].
+   */
+  static const String STATE_QUERY_PARAM = 'state';
+
+  /**
+   * Query parameter used to represent the context to search for, when
+   * accessing [CACHE_STATE_PATH].
+   */
+  static const String CONTEXT_QUERY_PARAM = 'context';
+
+  /**
+   * Query parameter used to represent the descriptor to search for, when
+   * accessing [CACHE_STATE_PATH].
+   */
+  static const String DESCRIPTOR_QUERY_PARAM = 'descriptor';
 
   /**
    * The socket server whose status is to be reported on.
@@ -43,9 +69,97 @@ class GetHandler {
     String path = request.uri.path;
     if (path == STATUS_PATH) {
       _returnServerStatus(request);
+    } else if (path == CACHE_STATE_PATH) {
+      _returnCacheState(request);
     } else {
       _returnUnknownRequest(request);
     }
+  }
+
+  /**
+   * Create a link to [path] with query parameters [params], with inner HTML
+   * [innerHtml].
+   */
+  String _makeLink(String path, Map<String, String> params, String innerHtml) {
+    Uri uri = new Uri(path: path, queryParameters: params);
+    return '<a href="${HTML_ESCAPE.convert(uri.toString())}">$innerHtml</a>';
+  }
+
+  /**
+   * Return a response indicating the set of source files in a certain cache
+   * state.
+   */
+  void _returnCacheState(HttpRequest request) {
+    // Figure out what CacheState is being searched for.
+    String stateQueryParam = request.uri.queryParameters[STATE_QUERY_PARAM];
+    if (stateQueryParam == null) {
+      return _returnFailure(request,
+          'Query parameter $STATE_QUERY_PARAM required');
+    }
+    CacheState stateFilter = null;
+    for (CacheState value in CacheState.values) {
+      if (value.toString() == stateQueryParam) {
+        stateFilter = value;
+      }
+    }
+    if (stateFilter == null) {
+      return _returnFailure(request,
+          'Query parameter $STATE_QUERY_PARAM is invalid');
+    }
+
+    // Figure out which context is being searched for.
+    String contextFilter = request.uri.queryParameters[CONTEXT_QUERY_PARAM];
+    if (contextFilter == null) {
+      return _returnFailure(request,
+          'Query parameter $CONTEXT_QUERY_PARAM required');
+    }
+
+    // Figure out which descriptor is being searched for.
+    String descriptorFilter =
+        request.uri.queryParameters[DESCRIPTOR_QUERY_PARAM];
+    if (descriptorFilter == null) {
+      return _returnFailure(request,
+          'Query parameter $DESCRIPTOR_QUERY_PARAM required');
+    }
+
+    AnalysisServer analysisServer = _server.analysisServer;
+    if (analysisServer == null) {
+      return _returnFailure(request, 'Analysis server not running');
+    }
+    HttpResponse response = request.response;
+    response.statusCode = HttpStatus.OK;
+    response.headers.add(HttpHeaders.CONTENT_TYPE, "text/html");
+    response.write('<html>');
+    response.write('<head>');
+    response.write('<title>Dart Analysis Server - Search result</title>');
+    response.write('</head>');
+    response.write('<body>');
+    response.write('<h1>');
+    response.write('Files with state ${HTML_ESCAPE.convert(stateQueryParam)}');
+    response.write(' for descriptor ${HTML_ESCAPE.convert(descriptorFilter)}');
+    response.write(' in context ${HTML_ESCAPE.convert(contextFilter)}');
+    response.write('</h1>');
+    response.write('<ul>');
+    int count = 0;
+    analysisServer.folderMap.forEach((Folder folder,
+                                      AnalysisContextImpl context) {
+      if (folder.path != contextFilter) {
+        return;
+      }
+      context.visitCacheItems((Source source, SourceEntry dartEntry,
+                               DataDescriptor rowDesc, CacheState state) {
+        if (state != stateFilter || rowDesc.toString() != descriptorFilter) {
+          return;
+        }
+        response.write('<li>${HTML_ESCAPE.convert(source.fullName)}</li>');
+        count++;
+      });
+    });
+    response.write('</ul>');
+    response.write('<p>$count files found</p>');
+    response.write('</body>');
+    response.write('</html>');
+    response.close();
   }
 
   /**
@@ -68,32 +182,26 @@ class GetHandler {
       response.write('<h1>Analysis Contexts</h1>');
       response.write('<h2>Summary</h2>');
       response.write('<table>');
-      _writeRow(
-          response,
-          ['Context', 'ERROR', 'FLUSHED', 'IN_PROCESS', 'INVALID', 'VALID'],
-          true);
+      List headerRowText = ['Context'];
+      headerRowText.addAll(CacheState.values);
+      _writeRow(response, headerRowText, true);
       _server.analysisServer.folderMap.forEach((Folder folder, AnalysisContextImpl context) {
         String key = folder.shortName;
         AnalysisContextStatistics statistics = context.statistics;
-        int errorCount = 0;
-        int flushedCount = 0;
-        int inProcessCount = 0;
-        int invalidCount = 0;
-        int validCount = 0;
+        Map<CacheState, int> totals = <CacheState, int>{};
+        for (CacheState state in CacheState.values) {
+          totals[state] = 0;
+        }
         statistics.cacheRows.forEach((AnalysisContextStatistics_CacheRow row) {
-          errorCount += row.errorCount;
-          flushedCount += row.flushedCount;
-          inProcessCount += row.inProcessCount;
-          invalidCount += row.invalidCount;
-          validCount += row.validCount;
+          for (CacheState state in CacheState.values) {
+            totals[state] += row.getCount(state);
+          }
         });
-        _writeRow(response, [
-            '<a href="#context_${HTML_ESCAPE.convert(key)}">$key</a>',
-            errorCount,
-            flushedCount,
-            inProcessCount,
-            invalidCount,
-            validCount]);
+        List rowText = ['<a href="#context_${HTML_ESCAPE.convert(key)}">$key</a>'];
+        for (CacheState state in CacheState.values) {
+          rowText.add(totals[state]);
+        }
+        _writeRow(response, rowText);
       });
       response.write('</table>');
       _server.analysisServer.folderMap.forEach((Folder folder, AnalysisContextImpl context) {
@@ -101,19 +209,19 @@ class GetHandler {
         response.write('<h2><a name="context_${HTML_ESCAPE.convert(key)}">Analysis Context: $key</a></h2>');
         AnalysisContextStatistics statistics = context.statistics;
         response.write('<table>');
-        _writeRow(
-            response,
-            ['Item', 'ERROR', 'FLUSHED', 'IN_PROCESS', 'INVALID', 'VALID'],
-            true);
+        _writeRow(response, headerRowText, true);
         statistics.cacheRows.forEach((AnalysisContextStatistics_CacheRow row) {
-          _writeRow(
-              response,
-              [row.name,
-               row.errorCount,
-               row.flushedCount,
-               row.inProcessCount,
-               row.invalidCount,
-               row.validCount]);
+          List rowText = [row.name];
+          for (CacheState state in CacheState.values) {
+            String text = row.getCount(state).toString();
+            Map<String, String> params = <String, String>{
+              STATE_QUERY_PARAM: state.toString(),
+              CONTEXT_QUERY_PARAM: folder.path,
+              DESCRIPTOR_QUERY_PARAM: row.name
+            };
+            rowText.add(_makeLink(CACHE_STATE_PATH, params, text));
+          }
+          _writeRow(response, rowText);
         });
         response.write('</table>');
         List<CaughtException> exceptions = statistics.exceptions;
@@ -143,6 +251,21 @@ class GetHandler {
     response.statusCode = HttpStatus.NOT_FOUND;
     response.headers.add(HttpHeaders.CONTENT_TYPE, "text/plain");
     response.write('Not found');
+    response.close();
+  }
+
+  void _returnFailure(HttpRequest request, String message) {
+    HttpResponse response = request.response;
+    response.statusCode = HttpStatus.OK;
+    response.headers.add(HttpHeaders.CONTENT_TYPE, "text/html");
+    response.write('<html>');
+    response.write('<head>');
+    response.write('<title>Dart Analysis Server - Failure</title>');
+    response.write('</head>');
+    response.write('<body>');
+    response.write(HTML_ESCAPE.convert(message));
+    response.write('</body>');
+    response.write('</html>');
     response.close();
   }
 

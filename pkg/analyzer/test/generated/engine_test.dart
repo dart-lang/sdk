@@ -5600,6 +5600,12 @@ class TestAnalysisContext implements InternalAnalysisContext {
   void setContents(Source source, String contents) {
     fail("Unexpected invocation of setContents");
   }
+  @override
+  void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
+                                     DataDescriptor rowDesc,
+                                     CacheState state)) {
+    fail("Unexpected invocation of visitCacheItems");
+  }
 }
 
 

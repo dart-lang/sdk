@@ -1613,55 +1613,72 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  AnalysisContextStatistics get statistics {
+  void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
+                                     DataDescriptor rowDesc,
+                                     CacheState state)) {
+    void handleCacheItem(Source source, SourceEntry dartEntry,
+                         DataDescriptor descriptor) {
+      callback(source, dartEntry, descriptor, dartEntry.getState(descriptor));
+    }
+    void handleCacheItemInLibrary(DartEntry dartEntry, Source librarySource,
+                                  DataDescriptor descriptor) {
+      callback(librarySource, dartEntry, descriptor,
+          dartEntry.getStateInLibrary(descriptor, librarySource));
+    }
+
     bool hintsEnabled = _options.hint;
-    AnalysisContextStatisticsImpl statistics = new AnalysisContextStatisticsImpl();
     MapIterator<Source, SourceEntry> iterator = _cache.iterator();
     while (iterator.moveNext()) {
+      Source source = iterator.key;
       SourceEntry sourceEntry = iterator.value;
       if (sourceEntry is DartEntry) {
-        Source source = iterator.key;
         DartEntry dartEntry = sourceEntry;
         SourceKind kind = dartEntry.getValue(DartEntry.SOURCE_KIND);
         // get library independent values
-        statistics.putCacheItem(dartEntry, SourceEntry.LINE_INFO);
-        statistics.putCacheItem(dartEntry, DartEntry.PARSE_ERRORS);
-        statistics.putCacheItem(dartEntry, DartEntry.PARSED_UNIT);
-        statistics.putCacheItem(dartEntry, DartEntry.SOURCE_KIND);
+        handleCacheItem(source, dartEntry, SourceEntry.LINE_INFO);
+        handleCacheItem(source, dartEntry, DartEntry.PARSE_ERRORS);
+        handleCacheItem(source, dartEntry, DartEntry.PARSED_UNIT);
+        handleCacheItem(source, dartEntry, DartEntry.SOURCE_KIND);
         if (kind == SourceKind.LIBRARY) {
-          statistics.putCacheItem(dartEntry, DartEntry.ELEMENT);
-          statistics.putCacheItem(dartEntry, DartEntry.EXPORTED_LIBRARIES);
-          statistics.putCacheItem(dartEntry, DartEntry.IMPORTED_LIBRARIES);
-          statistics.putCacheItem(dartEntry, DartEntry.INCLUDED_PARTS);
-          statistics.putCacheItem(dartEntry, DartEntry.IS_CLIENT);
-          statistics.putCacheItem(dartEntry, DartEntry.IS_LAUNCHABLE);
+          handleCacheItem(source, dartEntry, DartEntry.ELEMENT);
+          handleCacheItem(source, dartEntry, DartEntry.EXPORTED_LIBRARIES);
+          handleCacheItem(source, dartEntry, DartEntry.IMPORTED_LIBRARIES);
+          handleCacheItem(source, dartEntry, DartEntry.INCLUDED_PARTS);
+          handleCacheItem(source, dartEntry, DartEntry.IS_CLIENT);
+          handleCacheItem(source, dartEntry, DartEntry.IS_LAUNCHABLE);
           // The public namespace isn't computed by performAnalysisTask() and therefore isn't
           // interesting.
-          //statistics.putCacheItem(dartEntry, DartEntry.PUBLIC_NAMESPACE);
+          //handleCacheItem(key, dartEntry, DartEntry.PUBLIC_NAMESPACE);
         }
         // get library-specific values
         List<Source> librarySources = getLibrariesContaining(source);
         for (Source librarySource in librarySources) {
-          statistics.putCacheItemInLibrary(dartEntry, librarySource, DartEntry.RESOLUTION_ERRORS);
-          statistics.putCacheItemInLibrary(dartEntry, librarySource, DartEntry.RESOLVED_UNIT);
+          handleCacheItemInLibrary(dartEntry, librarySource, DartEntry.RESOLUTION_ERRORS);
+          handleCacheItemInLibrary(dartEntry, librarySource, DartEntry.RESOLVED_UNIT);
           if (_generateSdkErrors || !source.isInSystemLibrary) {
-            statistics.putCacheItemInLibrary(dartEntry, librarySource, DartEntry.VERIFICATION_ERRORS);
+            handleCacheItemInLibrary(dartEntry, librarySource, DartEntry.VERIFICATION_ERRORS);
             if (hintsEnabled) {
-              statistics.putCacheItemInLibrary(dartEntry, librarySource, DartEntry.HINTS);
+              handleCacheItemInLibrary(dartEntry, librarySource, DartEntry.HINTS);
             }
           }
         }
       } else if (sourceEntry is HtmlEntry) {
         HtmlEntry htmlEntry = sourceEntry;
-        statistics.putCacheItem(htmlEntry, SourceEntry.LINE_INFO);
-        statistics.putCacheItem(htmlEntry, HtmlEntry.PARSE_ERRORS);
-        statistics.putCacheItem(htmlEntry, HtmlEntry.PARSED_UNIT);
-        statistics.putCacheItem(htmlEntry, HtmlEntry.RESOLUTION_ERRORS);
-        statistics.putCacheItem(htmlEntry, HtmlEntry.RESOLVED_UNIT);
+        handleCacheItem(source, htmlEntry, SourceEntry.LINE_INFO);
+        handleCacheItem(source, htmlEntry, HtmlEntry.PARSE_ERRORS);
+        handleCacheItem(source, htmlEntry, HtmlEntry.PARSED_UNIT);
+        handleCacheItem(source, htmlEntry, HtmlEntry.RESOLUTION_ERRORS);
+        handleCacheItem(source, htmlEntry, HtmlEntry.RESOLVED_UNIT);
         // We are not currently recording any hints related to HTML.
-        // statistics.putCacheItem(htmlEntry, HtmlEntry.HINTS);
+        // handleCacheItem(key, htmlEntry, HtmlEntry.HINTS);
       }
     }
+  }
+
+  @override
+  AnalysisContextStatistics get statistics {
+    AnalysisContextStatisticsImpl statistics = new AnalysisContextStatisticsImpl();
+    visitCacheItems(statistics._internalPutCacheItem);
     statistics.partitionData = _cache.partitionData;
     return statistics;
   }
@@ -5113,14 +5130,6 @@ class AnalysisContextStatisticsImpl implements AnalysisContextStatistics {
   @override
   List<Source> get sources => _sources;
 
-  void putCacheItem(SourceEntry dartEntry, DataDescriptor descriptor) {
-    _internalPutCacheItem(dartEntry, descriptor, dartEntry.getState(descriptor));
-  }
-
-  void putCacheItemInLibrary(DartEntry dartEntry, Source librarySource, DataDescriptor descriptor) {
-    _internalPutCacheItem(dartEntry, descriptor, dartEntry.getStateInLibrary(descriptor, librarySource));
-  }
-
   /**
    * Set the partition data returned by this object to the given data.
    */
@@ -5128,7 +5137,8 @@ class AnalysisContextStatisticsImpl implements AnalysisContextStatistics {
     _partitionData = data;
   }
 
-  void _internalPutCacheItem(SourceEntry dartEntry, DataDescriptor rowDesc, CacheState state) {
+  void _internalPutCacheItem(Source source, SourceEntry dartEntry,
+                             DataDescriptor rowDesc, CacheState state) {
     String rowName = rowDesc.toString();
     AnalysisContextStatisticsImpl_CacheRowImpl row = _dataMap[rowName] as AnalysisContextStatisticsImpl_CacheRowImpl;
     if (row == null) {
@@ -5148,15 +5158,7 @@ class AnalysisContextStatisticsImpl implements AnalysisContextStatistics {
 class AnalysisContextStatisticsImpl_CacheRowImpl implements AnalysisContextStatistics_CacheRow {
   final String name;
 
-  int _errorCount = 0;
-
-  int _flushedCount = 0;
-
-  int _inProcessCount = 0;
-
-  int _invalidCount = 0;
-
-  int _validCount = 0;
+  Map<CacheState, int> _counts = <CacheState, int>{};
 
   AnalysisContextStatisticsImpl_CacheRowImpl(this.name);
 
@@ -5164,38 +5166,38 @@ class AnalysisContextStatisticsImpl_CacheRowImpl implements AnalysisContextStati
   bool operator ==(Object obj) => obj is AnalysisContextStatisticsImpl_CacheRowImpl && obj.name == name;
 
   @override
-  int get errorCount => _errorCount;
+  int get errorCount => getCount(CacheState.ERROR);
 
   @override
-  int get flushedCount => _flushedCount;
+  int get flushedCount => getCount(CacheState.FLUSHED);
 
   @override
-  int get inProcessCount => _inProcessCount;
+  int get inProcessCount => getCount(CacheState.IN_PROCESS);
 
   @override
-  int get invalidCount => _invalidCount;
+  int get invalidCount => getCount(CacheState.INVALID);
 
   @override
-  int get validCount => _validCount;
+  int get validCount => getCount(CacheState.VALID);
 
   @override
   int get hashCode => name.hashCode;
 
+  @override
+  int getCount(CacheState state) {
+    int count = _counts[state];
+    if (count != null) {
+      return count;
+    } else {
+      return 0;
+    }
+  }
+
   void _incState(CacheState state) {
-    if (state == CacheState.ERROR) {
-      _errorCount++;
-    }
-    if (state == CacheState.FLUSHED) {
-      _flushedCount++;
-    }
-    if (state == CacheState.IN_PROCESS) {
-      _inProcessCount++;
-    }
-    if (state == CacheState.INVALID) {
-      _invalidCount++;
-    }
-    if (state == CacheState.VALID) {
-      _validCount++;
+    if (_counts[state] == null) {
+      _counts[state] = 1;
+    } else {
+      _counts[state]++;
     }
   }
 }
@@ -5212,6 +5214,18 @@ class AnalysisContextStatisticsImpl_PartitionDataImpl implements AnalysisContext
  * Information about single piece of data in the cache.
  */
 abstract class AnalysisContextStatistics_CacheRow {
+  /**
+   * List of possible states which can be queried.
+   */
+  static const List<CacheState> STATES = const <CacheState>[
+      CacheState.ERROR, CacheState.FLUSHED, CacheState.IN_PROCESS,
+      CacheState.INVALID, CacheState.VALID];
+
+  /**
+   * Return the number of entries whose state is [state].
+   */
+  int getCount(CacheState state);
+
   /**
    * Return the number of entries whose state is [CacheState.ERROR].
    */
@@ -10209,6 +10223,13 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
       instrumentation.log();
     }
   }
+
+  @override
+  void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
+                                     DataDescriptor rowDesc,
+                                     CacheState state)) {
+    _basis.visitCacheItems(callback);
+  }
 }
 
 /**
@@ -10306,6 +10327,13 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    *          the elements representing the libraries
    */
   void recordLibraryElements(Map<Source, LibraryElement> elementMap);
+
+  /**
+   * Call the given callback function for eache cache item in the context.
+   */
+  void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
+                                     DataDescriptor rowDesc,
+                                     CacheState state));
 }
 
 /**
