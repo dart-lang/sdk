@@ -34,28 +34,31 @@ class SpanScanner extends StringScanner implements LineScanner {
     this.position = state.position;
   }
 
-  /// The [SourceSpan] for [lastMatch].
+  /// The [FileSpan] for [lastMatch].
   ///
   /// This is the span for the entire match. There's no way to get spans for
   /// subgroups since [Match] exposes no information about their positions.
-  SourceSpan get lastSpan => _lastSpan;
-  SourceSpan _lastSpan;
+  FileSpan get lastSpan => _lastSpan;
+  FileSpan _lastSpan;
+
+  /// The current location of the scanner.
+  FileLocation get location => _sourceFile.location(position);
 
   /// Returns an empty span at the current location.
-  SourceSpan get emptySpan => _sourceFile.location(position).pointSpan();
+  FileSpan get emptySpan => location.pointSpan();
 
   /// Creates a new [SpanScanner] that starts scanning from [position].
   ///
   /// [sourceUrl] is used as [SourceLocation.sourceUrl] for the returned
-  /// [SourceSpan]s as well as for error reporting. It can be a [String], a
+  /// [FileSpan]s as well as for error reporting. It can be a [String], a
   /// [Uri], or `null`.
   SpanScanner(String string, {sourceUrl, int position})
       : _sourceFile = new SourceFile(string, url: sourceUrl),
         super(string, sourceUrl: sourceUrl, position: position);
 
-  /// Creates a [SourceSpan] representing the source range between [startState]
+  /// Creates a [FileSpan] representing the source range between [startState]
   /// and the current position.
-  SourceSpan spanFrom(LineScannerState startState) =>
+  FileSpan spanFrom(LineScannerState startState) =>
       _sourceFile.span(startState.position, position);
 
   bool matches(Pattern pattern) {
