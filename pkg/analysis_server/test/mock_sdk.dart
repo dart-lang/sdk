@@ -60,11 +60,22 @@ class Deprecated extends Object {
 }
 const Object deprecated = const Deprecated("next release");
 
-abstract class List<E> extends Object {
+class Iterator<E> {
+  bool moveNext();
+  E get current;
+}
+
+abstract class Iterable<E> {
+  Iterator<E> get iterator;
+}
+
+abstract class List<E> implements Iterable<E> {
   void add(E value);
   E operator [](int index);
   void operator []=(int index, E value);
+  Iterator<E> get iterator => null;
 }
+
 class Map<K, V> extends Object {}
 
 external bool identical(Object a, Object b);

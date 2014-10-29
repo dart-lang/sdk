@@ -73,7 +73,8 @@ class AssistProcessor {
     node =
         new NodeLocator.con2(selectionOffset, selectionEnd).searchWithin(unit);
     // try to add proposals
-    _addProposal_addTypeAnnotation();
+    _addProposal_addTypeAnnotation_DeclaredIdentifier();
+    _addProposal_addTypeAnnotation_VariableDeclaration();
     _addProposal_assignToLocalVariable();
     _addProposal_convertToBlockFunctionBody();
     _addProposal_convertToExpressionFunctionBody();
@@ -166,7 +167,49 @@ class AssistProcessor {
     edits.add(edit);
   }
 
-  void _addProposal_addTypeAnnotation() {
+  void _addProposal_addTypeAnnotation_DeclaredIdentifier() {
+    DeclaredIdentifier declaredIdentifier =
+        node.getAncestor((n) => n is DeclaredIdentifier);
+    if (declaredIdentifier == null) {
+      ForEachStatement forEach = node.getAncestor((n) => n is ForEachStatement);
+      int offset = node.offset;
+      if (forEach != null &&
+          forEach.iterator != null &&
+          offset < forEach.iterator.offset) {
+        declaredIdentifier = forEach.loopVariable;
+      }
+    }
+    if (declaredIdentifier == null) {
+      _coverageMarker();
+      return;
+    }
+    // may be has type annotation already
+    if (declaredIdentifier.type != null) {
+      _coverageMarker();
+      return;
+    }
+    // prepare type source
+    String typeSource;
+    DartType type = declaredIdentifier.identifier.bestType;
+    if (type is InterfaceType || type is FunctionType) {
+      typeSource = utils.getTypeSource(type);
+    } else {
+      _coverageMarker();
+      return;
+    }
+    // add edit
+    Token keyword = declaredIdentifier.keyword;
+    if (keyword is KeywordToken && keyword.keyword == Keyword.VAR) {
+      SourceRange range = rangeToken(keyword);
+      _addReplaceEdit(range, typeSource);
+    } else {
+      _addInsertEdit(declaredIdentifier.identifier.offset, '$typeSource ');
+    }
+    // add proposal
+    _addAssist(AssistKind.ADD_TYPE_ANNOTATION, []);
+  }
+
+  void _addProposal_addTypeAnnotation_VariableDeclaration() {
     // prepare VariableDeclarationList
     VariableDeclarationList declarationList =
         node.getAncestor((node) => node is VariableDeclarationList);
