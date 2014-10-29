@@ -1999,45 +1999,7 @@ class CompilationUnitMock extends TypedMock implements CompilationUnit {
 
 
 class DartEntryTest extends EngineTestCase {
-  void set state2(DataDescriptor descriptor) {
-    DartEntry entry = new DartEntry();
-    expect(entry.getState(descriptor), isNot(same(CacheState.FLUSHED)));
-    entry.setState(descriptor, CacheState.FLUSHED);
-    expect(entry.getState(descriptor), same(CacheState.FLUSHED));
-  }
-
-  void set state3(DataDescriptor descriptor) {
-    Source source = new TestSource();
-    DartEntry entry = new DartEntry();
-    expect(entry.getStateInLibrary(descriptor, source), isNot(same(CacheState.FLUSHED)));
-    entry.setStateInLibrary(descriptor, source, CacheState.FLUSHED);
-    expect(entry.getStateInLibrary(descriptor, source), same(CacheState.FLUSHED));
-  }
-
-  void test_creation() {
-    Source librarySource = new TestSource();
-    DartEntry entry = new DartEntry();
-    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.INVALID));
-    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.HINTS, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource), same(CacheState.INVALID));
-  }
-
-  void test_getAllErrors() {
+  void test_allErrors() {
     Source source = new TestSource();
     DartEntry entry = new DartEntry();
     expect(entry.allErrors, hasLength(0));
@@ -2069,10 +2031,42 @@ class DartEntryTest extends EngineTestCase {
                 StaticWarningCode.CASE_BLOCK_NOT_TERMINATED,
                 [])]);
     entry.setValueInLibrary(
+        DartEntry.ANGULAR_ERRORS,
+        source,
+        <AnalysisError>[new AnalysisError.con1(source, AngularCode.MISSING_NAME, [])]);
+    entry.setValueInLibrary(
         DartEntry.HINTS,
         source,
         <AnalysisError>[new AnalysisError.con1(source, HintCode.DEAD_CODE, [])]);
     expect(entry.allErrors, hasLength(5));
+  }
+
+  void test_creation() {
+    Source librarySource = new TestSource();
+    DartEntry entry = new DartEntry();
+    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.INVALID));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.INVALID));
+
+    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.HINTS, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource), same(CacheState.INVALID));
   }
 
   void test_getResolvableCompilationUnit_none() {
@@ -2305,50 +2299,90 @@ class DartEntryTest extends EngineTestCase {
   }
 
   void test_invalidateAllInformation() {
-    DartEntry entry = _entryWithValidState();
+    Source librarySource = new TestSource();
+    DartEntry entry = _entryWithValidState(librarySource);
     entry.invalidateAllInformation();
+    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.INVALID));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
     expect(entry.getState(DartEntry.ELEMENT), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.INVALID));
-    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.INVALID));
+
+    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.HINTS, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource), same(CacheState.INVALID));
   }
 
   void test_invalidateAllResolutionInformation() {
-    DartEntry entry = _entryWithValidState();
+    Source librarySource = new TestSource();
+    DartEntry entry = _entryWithValidState(librarySource);
     entry.invalidateAllResolutionInformation(false);
-    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.INVALID));
+    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.VALID));
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.VALID));
     expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.VALID));
     expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.VALID));
-  }
-
-  void test_invalidateAllResolutionInformation_includingUris() {
-    DartEntry entry = _entryWithValidState();
-    entry.invalidateAllResolutionInformation(true);
-    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.INVALID));
-    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
     expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.VALID));
     expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.VALID));
     expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
+
+    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.HINTS, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource), same(CacheState.INVALID));
+  }
+
+  void test_invalidateAllResolutionInformation_includingUris() {
+    Source librarySource = new TestSource();
+    DartEntry entry = _entryWithValidState(librarySource);
+    entry.invalidateAllResolutionInformation(true);
+    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.VALID));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
+
+    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.HINTS, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource), same(CacheState.INVALID));
+    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource), same(CacheState.INVALID));
   }
 
   void test_isClient() {
@@ -2382,243 +2416,335 @@ class DartEntryTest extends EngineTestCase {
   }
 
   void test_recordBuildElementError() {
-    // TODO(brianwilkerson) This test should set the state for two libraries,
-    // record an error in one library, then verify that the data for the other
-    // library is still valid.
-    Source source = new TestSource();
-    DartEntry entry = new DartEntry();
+    Source firstLibrary = new TestSource('first.dart');
+    Source secondLibrary = new TestSource('second.dart');
+    DartEntry entry = _entryWithValidState(firstLibrary, secondLibrary);
     entry.recordBuildElementErrorInLibrary(
-        source,
+        firstLibrary,
         new CaughtException(new AnalysisException(), null));
-    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, source), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, source), same(CacheState.ERROR));
+    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.VALID));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
     expect(entry.getState(DartEntry.ELEMENT), same(CacheState.ERROR));
-    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.VALID));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.ERROR));
-    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.VALID));
     expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.ERROR));
-    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.HINTS, source), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
+
+    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.HINTS, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary), same(CacheState.ERROR));
+
+    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.HINTS, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, secondLibrary), same(CacheState.VALID));
   }
 
   void test_recordContentError() {
-    DartEntry entry = new DartEntry();
+    Source firstLibrary = new TestSource('first.dart');
+//    Source secondLibrary = new TestSource('second.dart');
+    DartEntry entry = _entryWithValidState(firstLibrary);
     entry.recordContentError(
         new CaughtException(new AnalysisException(), null));
     expect(entry.getState(SourceEntry.CONTENT), same(CacheState.ERROR));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
     expect(entry.getState(DartEntry.ELEMENT), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.ERROR));
-    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.ERROR));
+
+    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.HINTS, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary), same(CacheState.ERROR));
+
     // The following lines are commented out because we don't currently have
     // any way of setting the state for data associated with a library we
     // don't know anything about.
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
+//    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.HINTS, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, secondLibrary), same(CacheState.ERROR));
   }
 
   void test_recordHintErrorInLibrary() {
-    // TODO(brianwilkerson) This test should set the state for two libraries,
-    // record an error in one library, then verify that the data for the other
-    // library is still valid.
-    Source source = new TestSource();
-    DartEntry entry = new DartEntry();
+    Source firstLibrary = new TestSource('first.dart');
+    Source secondLibrary = new TestSource('second.dart');
+    DartEntry entry = _entryWithValidState(firstLibrary, secondLibrary);
     entry.recordHintErrorInLibrary(
-        source,
+        firstLibrary,
         new CaughtException(new AnalysisException(), null));
-    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.INVALID));
-    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.HINTS, source), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source), same(CacheState.INVALID));
+    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.VALID));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
+
+    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.HINTS, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary), same(CacheState.VALID));
+
+    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.HINTS, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, secondLibrary), same(CacheState.VALID));
   }
 
   void test_recordParseError() {
-    DartEntry entry = new DartEntry();
+    Source firstLibrary = new TestSource('first.dart');
+//    Source secondLibrary = new TestSource('second.dart');
+    DartEntry entry = _entryWithValidState(firstLibrary);
     entry.recordParseError(new CaughtException(new AnalysisException(), null));
-    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.INVALID));
+    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.VALID));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
     expect(entry.getState(DartEntry.ELEMENT), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.ERROR));
-    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.ERROR));
-    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.VALID));
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.ERROR));
-    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
+
+    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.HINTS, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary), same(CacheState.ERROR));
+
     // The following lines are commented out because we don't currently have
     // any way of setting the state for data associated with a library we
     // don't know anything about.
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
+//    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.HINTS, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, secondLibrary), same(CacheState.ERROR));
   }
 
   void test_recordResolutionError() {
-    //    Source source = new TestSource();
-    DartEntry entry = new DartEntry();
+    Source firstLibrary = new TestSource('first.dart');
+//    Source secondLibrary = new TestSource('second.dart');
+    DartEntry entry = _entryWithValidState(firstLibrary);
     entry.recordResolutionError(
         new CaughtException(new AnalysisException(), null));
-    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.INVALID));
+    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.VALID));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
     expect(entry.getState(DartEntry.ELEMENT), same(CacheState.ERROR));
-    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.VALID));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.ERROR));
-    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.VALID));
     expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.ERROR));
-    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
+
+    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.HINTS, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary), same(CacheState.ERROR));
+
     // The following lines are commented out because we don't currently have
     // any way of setting the state for data associated with a library we
     // don't know anything about.
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
+//    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.HINTS, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, secondLibrary), same(CacheState.ERROR));
   }
 
   void test_recordResolutionErrorInLibrary() {
-    // TODO(brianwilkerson) This test should set the state for two libraries,
-    // record an error in one library, then verify that the data for the other
-    // library is still valid.
-    Source source = new TestSource();
-    DartEntry entry = new DartEntry();
+    Source firstLibrary = new TestSource('first.dart');
+    Source secondLibrary = new TestSource('second.dart');
+    DartEntry entry = _entryWithValidState(firstLibrary, secondLibrary);
     entry.recordResolutionErrorInLibrary(
-        source,
+        firstLibrary,
         new CaughtException(new AnalysisException(), null));
-    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.INVALID));
+    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.VALID));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
     expect(entry.getState(DartEntry.ELEMENT), same(CacheState.ERROR));
-    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.VALID));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.ERROR));
-    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.INVALID));
+    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.VALID));
     expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.ERROR));
-    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.HINTS, source), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
+
+    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.HINTS, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary), same(CacheState.ERROR));
+
+    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.HINTS, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, secondLibrary), same(CacheState.VALID));
   }
 
   void test_recordScanError() {
-//    Source source = new TestSource();
-    DartEntry entry = new DartEntry();
+    Source firstLibrary = new TestSource('first.dart');
+//    Source secondLibrary = new TestSource('second.dart');
+    DartEntry entry = _entryWithValidState(firstLibrary);
     entry.recordScanError(new CaughtException(new AnalysisException(), null));
-    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.INVALID));
+    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.VALID));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.ERROR));
+    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
     expect(entry.getState(DartEntry.ELEMENT), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.ERROR));
-    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.ERROR));
+
+    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.HINTS, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary), same(CacheState.ERROR));
+
     // The following lines are commented out because we don't currently have
     // any way of setting the state for data associated with a library we
     // don't know anything about.
-//    JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, source));
-//    JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
-//    JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
-//    JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
-//    JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
-//    JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
+//    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.HINTS, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, secondLibrary), same(CacheState.ERROR));
+//    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, secondLibrary), same(CacheState.ERROR));
   }
 
   void test_recordVerificationErrorInLibrary() {
-    // TODO(brianwilkerson) This test should set the state for two libraries,
-    // record an error in one library, then verify that the data for the other
-    // library is still valid.
-    Source source = new TestSource();
-    DartEntry entry = new DartEntry();
+    Source firstLibrary = new TestSource('first.dart');
+    Source secondLibrary = new TestSource('second.dart');
+    DartEntry entry = _entryWithValidState(firstLibrary, secondLibrary);
     entry.recordVerificationErrorInLibrary(
-        source,
+        firstLibrary,
         new CaughtException(new AnalysisException(), null));
-    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.INVALID));
-    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.HINTS, source), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source), same(CacheState.ERROR));
+    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.VALID));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.ELEMENT), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
+
+    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.HINTS, firstLibrary), same(CacheState.ERROR));
+    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary), same(CacheState.ERROR));
+
+    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.HINTS, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, secondLibrary), same(CacheState.VALID));
+    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, secondLibrary), same(CacheState.VALID));
   }
 
   void test_removeResolution_multiple_first() {
-    Source source1 = new TestSource();
-    Source source2 = new TestSource();
-    Source source3 = new TestSource();
+    Source source1 = new TestSource('first.dart');
+    Source source2 = new TestSource('second.dart');
+    Source source3 = new TestSource('third.dart');
     DartEntry entry = new DartEntry();
     entry.setValueInLibrary(
         DartEntry.RESOLVED_UNIT,
@@ -2636,9 +2762,9 @@ class DartEntryTest extends EngineTestCase {
   }
 
   void test_removeResolution_multiple_last() {
-    Source source1 = new TestSource();
-    Source source2 = new TestSource();
-    Source source3 = new TestSource();
+    Source source1 = new TestSource('first.dart');
+    Source source2 = new TestSource('second.dart');
+    Source source3 = new TestSource('third.dart');
     DartEntry entry = new DartEntry();
     entry.setValueInLibrary(
         DartEntry.RESOLVED_UNIT,
@@ -2656,9 +2782,9 @@ class DartEntryTest extends EngineTestCase {
   }
 
   void test_removeResolution_multiple_middle() {
-    Source source1 = new TestSource();
-    Source source2 = new TestSource();
-    Source source3 = new TestSource();
+    Source source1 = new TestSource('first.dart');
+    Source source2 = new TestSource('second.dart');
+    Source source3 = new TestSource('third.dart');
     DartEntry entry = new DartEntry();
     entry.setValueInLibrary(
         DartEntry.RESOLVED_UNIT,
@@ -2686,23 +2812,23 @@ class DartEntryTest extends EngineTestCase {
   }
 
   void test_setState_element() {
-    state2 = DartEntry.ELEMENT;
+    _setState(DartEntry.ELEMENT);
   }
 
   void test_setState_exportedLibraries() {
-    state2 = DartEntry.EXPORTED_LIBRARIES;
+    _setState(DartEntry.EXPORTED_LIBRARIES);
   }
 
   void test_setState_hints() {
-    state3 = DartEntry.HINTS;
+    _setStateInLibrary(DartEntry.HINTS);
   }
 
   void test_setState_importedLibraries() {
-    state2 = DartEntry.IMPORTED_LIBRARIES;
+    _setState(DartEntry.IMPORTED_LIBRARIES);
   }
 
   void test_setState_includedParts() {
-    state2 = DartEntry.INCLUDED_PARTS;
+    _setState(DartEntry.INCLUDED_PARTS);
   }
 
   void test_setState_invalid_element() {
@@ -2745,108 +2871,108 @@ class DartEntryTest extends EngineTestCase {
    }
 
   void test_setState_isClient() {
-    state2 = DartEntry.IS_CLIENT;
+    _setState(DartEntry.IS_CLIENT);
   }
 
   void test_setState_isLaunchable() {
-    state2 = DartEntry.IS_LAUNCHABLE;
+    _setState(DartEntry.IS_LAUNCHABLE);
   }
 
   void test_setState_lineInfo() {
-    state2 = SourceEntry.LINE_INFO;
+    _setState(SourceEntry.LINE_INFO);
   }
 
   void test_setState_parseErrors() {
-    state2 = DartEntry.PARSE_ERRORS;
+    _setState(DartEntry.PARSE_ERRORS);
   }
 
   void test_setState_parsedUnit() {
-    state2 = DartEntry.PARSED_UNIT;
+    _setState(DartEntry.PARSED_UNIT);
   }
 
   void test_setState_publicNamespace() {
-    state2 = DartEntry.PUBLIC_NAMESPACE;
+    _setState(DartEntry.PUBLIC_NAMESPACE);
   }
 
   void test_setState_resolutionErrors() {
-    state3 = DartEntry.RESOLUTION_ERRORS;
+    _setStateInLibrary(DartEntry.RESOLUTION_ERRORS);
   }
 
   void test_setState_resolvedUnit() {
-    state3 = DartEntry.RESOLVED_UNIT;
+    _setStateInLibrary(DartEntry.RESOLVED_UNIT);
   }
 
   void test_setState_scanErrors() {
-    state2 = DartEntry.SCAN_ERRORS;
+    _setState(DartEntry.SCAN_ERRORS);
   }
 
   void test_setState_sourceKind() {
-    state2 = DartEntry.SOURCE_KIND;
+    _setState(DartEntry.SOURCE_KIND);
   }
 
   void test_setState_tokenStream() {
-    state2 = DartEntry.TOKEN_STREAM;
+    _setState(DartEntry.TOKEN_STREAM);
   }
 
   void test_setState_verificationErrors() {
-    state3 = DartEntry.VERIFICATION_ERRORS;
+    _setStateInLibrary(DartEntry.VERIFICATION_ERRORS);
   }
 
   void test_setValue_element() {
-    _setValue2(
+    _setValue(
         DartEntry.ELEMENT,
         new LibraryElementImpl.forNode(null, AstFactory.libraryIdentifier2(["lib"])));
   }
 
   void test_setValue_exportedLibraries() {
-    _setValue2(DartEntry.EXPORTED_LIBRARIES, <Source>[new TestSource()]);
+    _setValue(DartEntry.EXPORTED_LIBRARIES, <Source>[new TestSource()]);
   }
 
   void test_setValue_hints() {
-    _setValue3(
+    _setValueInLibrary(
         DartEntry.HINTS,
         <AnalysisError>[new AnalysisError.con1(null, HintCode.DEAD_CODE, [])]);
   }
 
   void test_setValue_importedLibraries() {
-    _setValue2(DartEntry.IMPORTED_LIBRARIES, <Source>[new TestSource()]);
+    _setValue(DartEntry.IMPORTED_LIBRARIES, <Source>[new TestSource()]);
   }
 
   void test_setValue_includedParts() {
-    _setValue2(DartEntry.INCLUDED_PARTS, <Source>[new TestSource()]);
+    _setValue(DartEntry.INCLUDED_PARTS, <Source>[new TestSource()]);
   }
 
   void test_setValue_isClient() {
-    _setValue2(DartEntry.IS_CLIENT, true);
+    _setValue(DartEntry.IS_CLIENT, true);
   }
 
   void test_setValue_isLaunchable() {
-    _setValue2(DartEntry.IS_LAUNCHABLE, true);
+    _setValue(DartEntry.IS_LAUNCHABLE, true);
   }
 
   void test_setValue_lineInfo() {
-    _setValue2(SourceEntry.LINE_INFO, new LineInfo(<int>[0]));
+    _setValue(SourceEntry.LINE_INFO, new LineInfo(<int>[0]));
   }
 
   void test_setValue_parseErrors() {
-    _setValue2(
+    _setValue(
         DartEntry.PARSE_ERRORS,
         <AnalysisError>[
             new AnalysisError.con1(null, ParserErrorCode.ABSTRACT_CLASS_MEMBER, [])]);
   }
 
   void test_setValue_parsedUnit() {
-    _setValue2(DartEntry.PARSED_UNIT, AstFactory.compilationUnit());
+    _setValue(DartEntry.PARSED_UNIT, AstFactory.compilationUnit());
   }
 
   void test_setValue_publicNamespace() {
-    _setValue2(
+    _setValue(
         DartEntry.PUBLIC_NAMESPACE,
         new Namespace(new HashMap<String, Element>()));
   }
 
   void test_setValue_resolutionErrors() {
-    _setValue3(
+    _setValueInLibrary(
         DartEntry.RESOLUTION_ERRORS,
         <AnalysisError>[
             new AnalysisError.con1(
@@ -2856,11 +2982,11 @@ class DartEntryTest extends EngineTestCase {
   }
 
   void test_setValue_resolvedUnit() {
-    _setValue3(DartEntry.RESOLVED_UNIT, AstFactory.compilationUnit());
+    _setValueInLibrary(DartEntry.RESOLVED_UNIT, AstFactory.compilationUnit());
   }
 
   void test_setValue_scanErrors() {
-    _setValue2(
+    _setValue(
         DartEntry.SCAN_ERRORS,
         <AnalysisError>[
             new AnalysisError.con1(
@@ -2870,46 +2996,110 @@ class DartEntryTest extends EngineTestCase {
   }
 
   void test_setValue_sourceKind() {
-    _setValue2(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
+    _setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
   }
 
   void test_setValue_tokenStream() {
-    _setValue2(DartEntry.TOKEN_STREAM, new Token(TokenType.LT, 5));
+    _setValue(DartEntry.TOKEN_STREAM, new Token(TokenType.LT, 5));
   }
 
   void test_setValue_verificationErrors() {
-    _setValue3(
+    _setValueInLibrary(
         DartEntry.VERIFICATION_ERRORS,
         <AnalysisError>[
             new AnalysisError.con1(null, StaticWarningCode.CASE_BLOCK_NOT_TERMINATED, [])]);
   }
 
-  DartEntry _entryWithValidState() {
+  DartEntry _entryWithValidState([Source firstLibrary, Source secondLibrary]) {
     DartEntry entry = new DartEntry();
+    entry.setValue(SourceEntry.CONTENT, null);
+    entry.setValue(SourceEntry.LINE_INFO, null);
+    entry.setValue(DartEntry.CONTAINING_LIBRARIES, null);
     entry.setValue(DartEntry.ELEMENT, null);
     entry.setValue(DartEntry.EXPORTED_LIBRARIES, null);
     entry.setValue(DartEntry.IMPORTED_LIBRARIES, null);
     entry.setValue(DartEntry.INCLUDED_PARTS, null);
-    entry.setValue(DartEntry.IS_CLIENT, true);
-    entry.setValue(DartEntry.IS_LAUNCHABLE, true);
-    entry.setValue(SourceEntry.LINE_INFO, null);
+    entry.setValue(DartEntry.IS_CLIENT, null);
+    entry.setValue(DartEntry.IS_LAUNCHABLE, null);
     entry.setValue(DartEntry.PARSE_ERRORS, null);
     entry.setValue(DartEntry.PARSED_UNIT, null);
     entry.setValue(DartEntry.PUBLIC_NAMESPACE, null);
+    entry.setValue(DartEntry.SCAN_ERRORS, null);
+    entry.setValue(DartEntry.SOURCE_KIND, null);
+    entry.setValue(DartEntry.TOKEN_STREAM, null);
+    if (firstLibrary != null) {
+      entry.setValueInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary, null);
+      entry.setValueInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary, null);
+      entry.setValueInLibrary(DartEntry.BUILT_UNIT, firstLibrary, null);
+      entry.setValueInLibrary(DartEntry.HINTS, firstLibrary, null);
+      entry.setValueInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary, null);
+      entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary, null);
+      entry.setValueInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary, null);
+    }
+    if (secondLibrary != null) {
+      entry.setValueInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary, null);
+      entry.setValueInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary, null);
+      entry.setValueInLibrary(DartEntry.BUILT_UNIT, secondLibrary, null);
+      entry.setValueInLibrary(DartEntry.HINTS, secondLibrary, null);
+      entry.setValueInLibrary(DartEntry.RESOLUTION_ERRORS, secondLibrary, null);
+      entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, secondLibrary, null);
+      entry.setValueInLibrary(DartEntry.VERIFICATION_ERRORS, secondLibrary, null);
+    }
+    //
+    // Validate that the state was set correctly.
+    //
+    expect(entry.getState(SourceEntry.CONTENT), same(CacheState.VALID));
+    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
     expect(entry.getState(DartEntry.ELEMENT), same(CacheState.VALID));
     expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.VALID));
     expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.VALID));
     expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.VALID));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.VALID));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.VALID));
-    expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
     expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.VALID));
     expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.VALID));
     expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.VALID));
+    expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
+    if (firstLibrary != null) {
+      expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary), same(CacheState.VALID));
+      expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary), same(CacheState.VALID));
+      expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary), same(CacheState.VALID));
+      expect(entry.getStateInLibrary(DartEntry.HINTS, firstLibrary), same(CacheState.VALID));
+      expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary), same(CacheState.VALID));
+      expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary), same(CacheState.VALID));
+      expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary), same(CacheState.VALID));
+    }
+    if (secondLibrary != null) {
+      expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary), same(CacheState.VALID));
+      expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary), same(CacheState.VALID));
+      expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, secondLibrary), same(CacheState.VALID));
+      expect(entry.getStateInLibrary(DartEntry.HINTS, secondLibrary), same(CacheState.VALID));
+      expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, secondLibrary), same(CacheState.VALID));
+      expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, secondLibrary), same(CacheState.VALID));
+      expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, secondLibrary), same(CacheState.VALID));
+    }
     return entry;
   }
 
-  void _setValue2(DataDescriptor descriptor, Object newValue) {
+  void _setState(DataDescriptor descriptor) {
+    DartEntry entry = new DartEntry();
+    expect(entry.getState(descriptor), isNot(same(CacheState.FLUSHED)));
+    entry.setState(descriptor, CacheState.FLUSHED);
+    expect(entry.getState(descriptor), same(CacheState.FLUSHED));
+  }
+
+  void _setStateInLibrary(DataDescriptor descriptor) {
+    Source source = new TestSource();
+    DartEntry entry = new DartEntry();
+    expect(entry.getStateInLibrary(descriptor, source), isNot(same(CacheState.FLUSHED)));
+    entry.setStateInLibrary(descriptor, source, CacheState.FLUSHED);
+    expect(entry.getStateInLibrary(descriptor, source), same(CacheState.FLUSHED));
+  }
+
+  void _setValue(DataDescriptor descriptor, Object newValue) {
     DartEntry entry = new DartEntry();
     Object value = entry.getValue(descriptor);
     expect(newValue, isNot(same(value)));
@@ -2918,7 +3108,7 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getValue(descriptor), same(newValue));
   }
 
-  void _setValue3(DataDescriptor descriptor, Object newValue) {
+  void _setValueInLibrary(DataDescriptor descriptor, Object newValue) {
     Source source = new TestSource();
     DartEntry entry = new DartEntry();
     Object value = entry.getValueInLibrary(descriptor, source);

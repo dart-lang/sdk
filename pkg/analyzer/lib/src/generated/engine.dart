@@ -8533,7 +8533,8 @@ class DartEntry extends SourceEntry {
    * relative to a library.
    */
   bool _isValidLibraryDescriptor(DataDescriptor descriptor) {
-    return descriptor == BUILT_ELEMENT
+    return descriptor == ANGULAR_ERRORS
+        || descriptor == BUILT_ELEMENT
         || descriptor == BUILT_UNIT
         || descriptor == HINTS
         || descriptor == RESOLUTION_ERRORS
@@ -12016,6 +12017,7 @@ class ResolutionState {
     setState(DartEntry.RESOLVED_UNIT, CacheState.ERROR);
     setState(DartEntry.RESOLUTION_ERRORS, CacheState.ERROR);
     recordVerificationError();
+    setState(DartEntry.ANGULAR_ERRORS, CacheState.ERROR);
   }
 
   /**
