@@ -112,6 +112,19 @@ class AbstractCompletionTest extends AbstractContextTest {
     return cs;
   }
 
+  CompletionSuggestion assertSuggestClassTypeAlias(String name,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    CompletionSuggestion cs =
+        assertSuggest(CompletionSuggestionKind.CLASS_ALIAS, name, relevance);
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.CLASS_TYPE_ALIAS));
+    expect(element.name, equals(name));
+    expect(element.parameters, isNull);
+    expect(element.returnType, isNull);
+    return cs;
+  }
+
   CompletionSuggestion assertSuggestFunction(String name, String returnType,
       bool isDeprecated, [CompletionRelevance relevance =
       CompletionRelevance.DEFAULT]) {
@@ -553,6 +566,15 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
+  CompletionSuggestion assertSuggestLocalClassTypeAlias(String name,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    if (computer is LocalComputer) {
+      return assertSuggestClassTypeAlias(name, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
   CompletionSuggestion assertSuggestLocalFunction(String name,
       String returnType, [bool isDeprecated = false, CompletionRelevance relevance =
       CompletionRelevance.DEFAULT]) {
@@ -982,6 +1004,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       var T1;
       PB F1() => new PB();
       typedef PB2 F2(int blat);
+      class Clz = Object with Object;
       class PB { }''');
     addSource('/testCD.dart', '''
       class C { }
@@ -997,6 +1020,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestImportedClass('PB');
       assertSuggestImportedTopLevelVar('T1', null);
       assertSuggestImportedFunction('F1', 'PB');
+      assertSuggestImportedClass('Clz');
       assertSuggestImportedFunctionTypeAlias('F2', null);
       assertNotSuggested('C');
       assertNotSuggested('D');
@@ -1056,6 +1080,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('''
       import "/testA.dart";
       typedef int F2(int blat);
+      class Clz = Object with Object;
       class C {foo(){O^} void bar() {}}''');
     computeFast();
     return computeFull(true).then((_) {
@@ -1065,6 +1090,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalMethod('foo', 'C', null);
       assertSuggestLocalMethod('bar', 'C', 'void');
       assertSuggestLocalFunctionTypeAlias('F2', 'int');
+      assertSuggestLocalClassTypeAlias('Clz');
       assertSuggestLocalClass('C');
       assertNotSuggested('x');
       assertNotSuggested('_B');
