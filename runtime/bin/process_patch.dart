@@ -451,6 +451,8 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
       return encoding.decode(output);
     }
 
+    _processes.remove(_serviceId);
+
     return new _ProcessResult(
         result[0],
         result[1],
