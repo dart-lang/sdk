@@ -13,6 +13,7 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, prune_dead_locals, true, "optimize dead locals away");
 DECLARE_FLAG(bool, reorder_basic_blocks);
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, verify_compiler);
@@ -733,7 +734,8 @@ void FlowGraph::InsertPhis(
   // Insert phis for each variable in turn.
   GrowableArray<BlockEntryInstr*> worklist;
   for (intptr_t var_index = 0; var_index < variable_count(); ++var_index) {
-    const bool always_live = var_index == CurrentContextEnvIndex();
+    const bool always_live = !FLAG_prune_dead_locals ||
+        (var_index == CurrentContextEnvIndex());
     // Add to the worklist each block containing an assignment.
     for (intptr_t block_index = 0; block_index < block_count; ++block_index) {
       if (assigned_vars[block_index]->Contains(var_index)) {
@@ -898,7 +900,9 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
   for (intptr_t i = 0; i < variable_count(); i++) {
     // TODO(fschneider): Make sure that live_in always contains the
     // CurrentContext variable to avoid the special case here.
-    if (!live_in->Contains(i) && (i != CurrentContextEnvIndex())) {
+    if (FLAG_prune_dead_locals &&
+        !live_in->Contains(i) &&
+        (i != CurrentContextEnvIndex())) {
       (*env)[i] = constant_dead();
     }
   }
@@ -966,7 +970,8 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           intptr_t index = store->local().BitIndexIn(num_non_copied_params_);
           result = store->value()->definition();
 
-          if (variable_liveness->IsStoreAlive(block_entry, store)) {
+          if (!FLAG_prune_dead_locals ||
+              variable_liveness->IsStoreAlive(block_entry, store)) {
             (*env)[index] = result;
           } else {
             (*env)[index] = constant_dead();
@@ -984,7 +989,8 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
             live_phis->Add(phi);
           }
 
-          if (variable_liveness->IsLastLoad(block_entry, load)) {
+          if (FLAG_prune_dead_locals &&
+              variable_liveness->IsLastLoad(block_entry, load)) {
             (*env)[index] = constant_dead();
           }
 
