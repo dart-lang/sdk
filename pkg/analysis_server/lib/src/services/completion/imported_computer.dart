@@ -100,9 +100,21 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   }
 
   @override
+  Future<bool> visitFormalParameterList(FormalParameterList node) {
+    Token leftParen = node.leftParenthesis;
+    if (leftParen != null && request.offset > leftParen.offset) {
+      Token rightParen = node.rightParenthesis;
+      if (rightParen == null || request.offset <= rightParen.offset) {
+        return _addImportedElementSuggestions(node);
+      }
+    }
+    return new Future.value(false);
+  }
+
+  @override
   Future<bool> visitForStatement(ForStatement node) {
-    Token leftParenthesis = node.leftParenthesis;
-    if (leftParenthesis != null && request.offset >= leftParenthesis.end) {
+    Token leftParen = node.leftParenthesis;
+    if (leftParen != null && request.offset >= leftParen.end) {
       return _addImportedElementSuggestions(node);
     }
     return new Future.value(false);

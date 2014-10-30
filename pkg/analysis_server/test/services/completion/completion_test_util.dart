@@ -674,14 +674,19 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       void baz() { }''');
     addTestSource('''
       import '/libA.dart'
+      class B { }
       String bar() => true;
       void main() {expect(^)}''');
     computeFast();
     return computeFull(true).then((_) {
       assertSuggestLocalFunction('bar', 'String');
       assertSuggestImportedFunction('hasLength', 'bool');
+      assertSuggestImportedFunction('identical', 'bool');
+      assertSuggestLocalClass('B');
+      assertSuggestImportedClass('Object');
       assertNotSuggested('main');
       assertNotSuggested('baz');
+      assertNotSuggested('print');
     });
   }
 
@@ -1593,6 +1598,23 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestParameter('x', 'X');
       assertSuggestParameter('y', 'int');
       assertSuggestImportedClass('String');
+    });
+  }
+
+  test_FormalParameterList() {
+    // FormalParameterList MethodDeclaration
+    addTestSource('''
+      foo() { }
+      void bar() { }
+      class A {a(^) { }}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalFunction('foo', null);
+      assertSuggestLocalMethod('a', 'A', null);
+      assertSuggestLocalClass('A');
+      assertSuggestImportedClass('String');
+      assertSuggestImportedFunction('identical', 'bool');
+      assertNotSuggested('bar');
     });
   }
 
