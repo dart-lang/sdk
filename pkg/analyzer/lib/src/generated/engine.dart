@@ -1635,10 +1635,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         DartEntry dartEntry = sourceEntry;
         SourceKind kind = dartEntry.getValue(DartEntry.SOURCE_KIND);
         // get library independent values
+        handleCacheItem(source, dartEntry, SourceEntry.CONTENT);
         handleCacheItem(source, dartEntry, SourceEntry.LINE_INFO);
+        // The list of containing libraries is always valid, so the state isn't
+        // interesting.
+//        handleCacheItem(source, dartEntry, DartEntry.CONTAINING_LIBRARIES);
         handleCacheItem(source, dartEntry, DartEntry.PARSE_ERRORS);
         handleCacheItem(source, dartEntry, DartEntry.PARSED_UNIT);
+        handleCacheItem(source, dartEntry, DartEntry.SCAN_ERRORS);
         handleCacheItem(source, dartEntry, DartEntry.SOURCE_KIND);
+        handleCacheItem(source, dartEntry, DartEntry.TOKEN_STREAM);
         if (kind == SourceKind.LIBRARY) {
           handleCacheItem(source, dartEntry, DartEntry.ELEMENT);
           handleCacheItem(source, dartEntry, DartEntry.EXPORTED_LIBRARIES);
@@ -1646,13 +1652,18 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           handleCacheItem(source, dartEntry, DartEntry.INCLUDED_PARTS);
           handleCacheItem(source, dartEntry, DartEntry.IS_CLIENT);
           handleCacheItem(source, dartEntry, DartEntry.IS_LAUNCHABLE);
-          // The public namespace isn't computed by performAnalysisTask() and therefore isn't
-          // interesting.
+          // The public namespace isn't computed by performAnalysisTask()
+          // and therefore isn't interesting.
           //handleCacheItem(key, dartEntry, DartEntry.PUBLIC_NAMESPACE);
         }
         // get library-specific values
         List<Source> librarySources = getLibrariesContaining(source);
         for (Source librarySource in librarySources) {
+          // These values are not currently being computed, so their state is
+          // not interesting.
+//          handleCacheItemInLibrary(dartEntry, librarySource, DartEntry.ANGULAR_ERRORS);
+//          handleCacheItemInLibrary(dartEntry, librarySource, DartEntry.BUILT_ELEMENT);
+//          handleCacheItemInLibrary(dartEntry, librarySource, DartEntry.BUILT_UNIT);
           handleCacheItemInLibrary(dartEntry, librarySource, DartEntry.RESOLUTION_ERRORS);
           handleCacheItemInLibrary(dartEntry, librarySource, DartEntry.RESOLVED_UNIT);
           if (_generateSdkErrors || !source.isInSystemLibrary) {
@@ -1664,13 +1675,25 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         }
       } else if (sourceEntry is HtmlEntry) {
         HtmlEntry htmlEntry = sourceEntry;
+        handleCacheItem(source, htmlEntry, SourceEntry.CONTENT);
         handleCacheItem(source, htmlEntry, SourceEntry.LINE_INFO);
+        // These values are not currently being computed, so their state is
+        // not interesting.
+//        handleCacheItem(source, htmlEntry, HtmlEntry.ANGULAR_APPLICATION);
+//        handleCacheItem(source, htmlEntry, HtmlEntry.ANGULAR_COMPONENT);
+//        handleCacheItem(source, htmlEntry, HtmlEntry.ANGULAR_ENTRY);
+//        handleCacheItem(source, htmlEntry, HtmlEntry.ANGULAR_ERRORS);
+        handleCacheItem(source, htmlEntry, HtmlEntry.ELEMENT);
         handleCacheItem(source, htmlEntry, HtmlEntry.PARSE_ERRORS);
         handleCacheItem(source, htmlEntry, HtmlEntry.PARSED_UNIT);
+        // These values are not currently being computed, so their state is
+        // not interesting.
+//        handleCacheItem(source, htmlEntry, HtmlEntry.POLYMER_BUILD_ERRORS);
+//        handleCacheItem(source, htmlEntry, HtmlEntry.POLYMER_RESOLUTION_ERRORS);
         handleCacheItem(source, htmlEntry, HtmlEntry.RESOLUTION_ERRORS);
         handleCacheItem(source, htmlEntry, HtmlEntry.RESOLVED_UNIT);
         // We are not currently recording any hints related to HTML.
-        // handleCacheItem(key, htmlEntry, HtmlEntry.HINTS);
+//        handleCacheItem(key, htmlEntry, HtmlEntry.HINTS);
       }
     }
   }

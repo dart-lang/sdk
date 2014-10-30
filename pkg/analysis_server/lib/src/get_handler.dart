@@ -6,7 +6,9 @@ library get.handler;
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -172,20 +174,33 @@ class GetHandler {
     response.write('<html>');
     response.write('<head>');
     response.write('<title>Dart Analysis Server - Status</title>');
+    response.write('<style>');
+    response.write('td.right {text-align: right;}');
+    response.write('</style>');
     response.write('</head>');
     response.write('<body>');
     response.write('<h1>Analysis Server</h1>');
-    if (_server.analysisServer == null) {
+    AnalysisServer analysisServer = _server.analysisServer;
+    if (analysisServer == null) {
       response.write('<p>Not running</p>');
     } else {
-      response.write('<p>Running</p>');
+      if (analysisServer.statusAnalyzing) {
+        response.write('<p>Running (analyzing)</p>');
+      } else {
+        response.write('<p>Running (not analyzing)</p>');
+      }
       response.write('<h1>Analysis Contexts</h1>');
       response.write('<h2>Summary</h2>');
       response.write('<table>');
       List headerRowText = ['Context'];
       headerRowText.addAll(CacheState.values);
-      _writeRow(response, headerRowText, true);
-      _server.analysisServer.folderMap.forEach((Folder folder, AnalysisContextImpl context) {
+      _writeRow(response, headerRowText, header: true);
+      Map<Folder, AnalysisContext> folderMap = analysisServer.folderMap;
+      List<Folder> folders = folderMap.keys.toList();
+      folders.sort((Folder first, Folder second)
+          => first.shortName.compareTo(second.shortName));
+      folders.forEach((Folder folder) {
+        AnalysisContextImpl context = folderMap[folder];
         String key = folder.shortName;
         AnalysisContextStatistics statistics = context.statistics;
         Map<CacheState, int> totals = <CacheState, int>{};
@@ -201,15 +216,16 @@ class GetHandler {
         for (CacheState state in CacheState.values) {
           rowText.add(totals[state]);
         }
-        _writeRow(response, rowText);
+        _writeRow(response, rowText, classes: [null, "right"]);
       });
       response.write('</table>');
-      _server.analysisServer.folderMap.forEach((Folder folder, AnalysisContextImpl context) {
+      folders.forEach((Folder folder) {
+        AnalysisContextImpl context = folderMap[folder];
         String key = folder.shortName;
         response.write('<h2><a name="context_${HTML_ESCAPE.convert(key)}">Analysis Context: $key</a></h2>');
         AnalysisContextStatistics statistics = context.statistics;
         response.write('<table>');
-        _writeRow(response, headerRowText, true);
+        _writeRow(response, headerRowText, header: true);
         statistics.cacheRows.forEach((AnalysisContextStatistics_CacheRow row) {
           List rowText = [row.name];
           for (CacheState state in CacheState.values) {
@@ -221,7 +237,7 @@ class GetHandler {
             };
             rowText.add(_makeLink(CACHE_STATE_PATH, params, text));
           }
-          _writeRow(response, rowText);
+          _writeRow(response, rowText, classes: [null, "right"]);
         });
         response.write('</table>');
         List<CaughtException> exceptions = statistics.exceptions;
@@ -274,21 +290,31 @@ class GetHandler {
    * will have one cell for each of the [columns], and will be a header row if
    * [header] is `true`.
    */
-  void _writeRow(HttpResponse response, List<Object> columns, [bool header = false]) {
+  void _writeRow(HttpResponse response, List<Object> columns,
+        {bool header : false, List<String> classes}) {
     response.write('<tr>');
-    columns.forEach((Object value) {
-      if (header) {
-        response.write('<th>');
-      } else {
-        response.write('<td>');
+    int count = columns.length;
+    int maxClassIndex = classes == null ? 0 : classes.length - 1;
+    for (int i = 0; i < count; i++) {
+      String classAttribute = '';
+      if (classes != null) {
+        String className = classes[min(i, maxClassIndex)];
+        if (className != null) {
+          classAttribute = ' class="$className"';
+        }
       }
-      response.write(value);
+      if (header) {
+        response.write('<th$classAttribute>');
+      } else {
+        response.write('<td$classAttribute>');
+      }
+      response.write(columns[i]);
       if (header) {
         response.write('</th>');
       } else {
         response.write('</td>');
       }
-    });
+    };
     response.write('</tr>');
   }
 }
