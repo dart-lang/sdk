@@ -165,6 +165,6 @@ class _FuzzTest {
     print('Usage: $BINARY_NAME [flags] <application_directory>');
     print('');
     print('Supported flags are:');
-    print(parser.usage);
+    print(parser.getUsage());
   }
 }

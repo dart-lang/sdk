@@ -157,6 +157,6 @@ class Driver {
     print('Usage: $BINARY_NAME [flags]');
     print('');
     print('Supported flags are:');
-    print(parser.usage);
+    print(parser.getUsage());
   }
 }
