@@ -213,7 +213,7 @@ class MirrorsReader extends MirrorsVisitor {
     visit(mirror, 'isStatic', () => mirror.isStatic);
     visit(mirror, 'isSynthetic', () => mirror.isSynthetic);
     visit(mirror, 'parameters', () => mirror.parameters);
-    // visit(mirror, 'returnType', () => mirror.returnType);  // Issue 21474.
+    visit(mirror, 'returnType', () => mirror.returnType);
     visit(mirror, 'source', () => mirror.source);
   }
 
@@ -226,7 +226,7 @@ class MirrorsReader extends MirrorsVisitor {
     }
     visit(mirror, 'isNamed', () => mirror.isNamed);
     visit(mirror, 'isOptional', () => mirror.isOptional);
-    // visit(mirror, 'type', () => mirror.type);  // Issue 21474.
+    visit(mirror, 'type', () => mirror.type);
   }
 
   visitSourceLocation(SourceLocation location) {
@@ -258,6 +258,6 @@ class MirrorsReader extends MirrorsVisitor {
     visit(mirror, 'isConst', () => mirror.isConst);
     visit(mirror, 'isFinal', () => mirror.isFinal);
     visit(mirror, 'isStatic', () => mirror.isStatic);
-    // visit(mirror, 'type', () => mirror.type);  // Issue 21474.
+    visit(mirror, 'type', () => mirror.type);
   }
 }
