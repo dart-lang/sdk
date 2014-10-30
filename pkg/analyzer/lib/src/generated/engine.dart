@@ -8037,10 +8037,10 @@ class DartEntry extends SourceEntry {
       if (state.getState(BUILT_UNIT) == CacheState.VALID) {
         // TODO(brianwilkerson) We're cloning the structure to remove any
         // previous resolution data, but I'm not sure that's necessary.
-        return state.getValue(BUILT_UNIT).accept(new AstCloner()) as CompilationUnit;
+        return state.getValue(BUILT_UNIT).accept(new AstCloner());
       }
       if (state.getState(RESOLVED_UNIT) == CacheState.VALID) {
-        return state.getValue(RESOLVED_UNIT).accept(new AstCloner()) as CompilationUnit;
+        return state.getValue(RESOLVED_UNIT).accept(new AstCloner());
       }
       state = state._nextState;
     }
@@ -8147,10 +8147,14 @@ class DartEntry extends SourceEntry {
       ResolutionState state = _resolutionState;
       while (state != null) {
         if (state.getState(BUILT_UNIT) == CacheState.VALID) {
-          setValue(PARSED_UNIT, state.getValue(BUILT_UNIT));
+          CompilationUnit unit = state.getValue(BUILT_UNIT);
+          ResolutionEraser.erase(unit);
+          setValue(PARSED_UNIT, unit);
           break;
         } else if (state.getState(RESOLVED_UNIT) == CacheState.VALID) {
-          setValue(PARSED_UNIT, state.getValue(RESOLVED_UNIT));
+          CompilationUnit unit = state.getValue(RESOLVED_UNIT);
+          ResolutionEraser.erase(unit);
+          setValue(PARSED_UNIT, unit);
           break;
         }
         state = state._nextState;
@@ -11798,10 +11802,17 @@ class RecursiveXmlVisitor_ResolveHtmlTask_internalPerform extends ht.RecursiveXm
 }
 
 /**
- * Instances of the class `ResolutionEraser` remove any resolution information from an AST
+ * A `ResolutionEraser` removes any resolution information from an AST
  * structure when used to visit that structure.
  */
 class ResolutionEraser extends GeneralizingAstVisitor<Object> {
+  /**
+   * Remove any resolution information from the given AST structure.
+   */
+  static void erase(AstNode node) {
+    node.accept(new ResolutionEraser());
+  }
+
   @override
   Object visitAssignmentExpression(AssignmentExpression node) {
     node.staticElement = null;
@@ -11984,10 +11995,12 @@ class ResolutionState {
   void invalidateAllResolutionInformation() {
     _nextState = null;
     _librarySource = null;
+    setState(DartEntry.BUILT_UNIT, CacheState.INVALID);
+    setState(DartEntry.BUILT_ELEMENT, CacheState.INVALID);
+    setState(DartEntry.HINTS, CacheState.INVALID);
     setState(DartEntry.RESOLVED_UNIT, CacheState.INVALID);
     setState(DartEntry.RESOLUTION_ERRORS, CacheState.INVALID);
     setState(DartEntry.VERIFICATION_ERRORS, CacheState.INVALID);
-    setState(DartEntry.HINTS, CacheState.INVALID);
   }
 
   /**
@@ -13040,8 +13053,8 @@ abstract class SourceEntry {
       result.state = state;
       if (state != CacheState.IN_PROCESS) {
         //
-        // If the state is in-process, we can leave the current value in the cache
-        // for any 'get' methods to access.
+        // If the state is in-process, we can leave the current value in the
+        // cache for any 'get' methods to access.
         //
         result.value = descriptor.defaultValue;
       }

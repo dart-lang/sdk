@@ -2811,6 +2811,49 @@ class DartEntryTest extends EngineTestCase {
     entry.removeResolution(source1);
   }
 
+  void test_resolvableCompilationUnit_builtUnit() {
+    Source librarySource = new TestSource('/lib.dart');
+    CompilationUnit unit = AstFactory.compilationUnit();
+    CompilationUnitElement element = ElementFactory.compilationUnit('test.dart');
+    unit.element = element;
+    DartEntry entry = new DartEntry();
+    entry.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
+    entry.setValueInLibrary(DartEntry.BUILT_UNIT, librarySource, unit);
+    entry.invalidateAllResolutionInformation(false);
+    CompilationUnit resolvableUnit = entry.resolvableCompilationUnit;
+    expect(resolvableUnit, isNotNull);
+    expect(resolvableUnit.element, isNull);
+    expect(entry.resolvableCompilationUnit, isNull);
+  }
+
+  void test_resolvableCompilationUnit_none() {
+    DartEntry entry = new DartEntry();
+    expect(entry.resolvableCompilationUnit, isNull);
+  }
+
+  void test_resolvableCompilationUnit_parsed() {
+    CompilationUnit unit = AstFactory.compilationUnit();
+    DartEntry entry = new DartEntry();
+    entry.setValue(DartEntry.PARSED_UNIT, unit);
+    expect(entry.resolvableCompilationUnit, unit);
+    expect(entry.resolvableCompilationUnit, isNull);
+  }
+
+  void test_resolvableCompilationUnit_resolved() {
+    Source librarySource = new TestSource('/lib.dart');
+    CompilationUnit unit = AstFactory.compilationUnit();
+    CompilationUnitElement element = ElementFactory.compilationUnit('test.dart');
+    unit.element = element;
+    DartEntry entry = new DartEntry();
+    entry.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource, unit);
+    entry.invalidateAllResolutionInformation(false);
+    CompilationUnit resolvableUnit = entry.resolvableCompilationUnit;
+    expect(resolvableUnit, isNotNull);
+    expect(resolvableUnit.element, isNull);
+    expect(entry.resolvableCompilationUnit, isNull);
+  }
+
   void test_setState_element() {
     _setState(DartEntry.ELEMENT);
   }

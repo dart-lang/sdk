@@ -25,6 +25,7 @@ import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import '../reflective_tests.dart';
+import 'parser_test.dart';
 
 
 /**
@@ -977,7 +978,7 @@ class C {
 const int ZERO = 0;
 class C {
   int m(int p) {
-    return (p * p) + (p * p) + ZERO;
+    return p + p;
   }
 }''');
   }
@@ -1063,9 +1064,7 @@ class C {
     Source source = addSource(oldContent);
     LibraryElement library = resolve(source);
     CompilationUnit oldUnit = resolveCompilationUnit(source, library);
-    AnalysisContext context = analysisContext;
-    context.setContents(source, newContent);
-    CompilationUnit newUnit = context.parseCompilationUnit(source);
+    CompilationUnit newUnit = ParserTestCase.parseCompilationUnit(newContent, []);
     DeclarationMatcher matcher = new DeclarationMatcher();
     expect(matcher.matches(newUnit, oldUnit.element), expectMatch);
   }
