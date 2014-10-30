@@ -252,7 +252,6 @@ analyzer/test/generated/java_core_test: Pass, Timeout # Issue 19747
 polymer/e2e_test/*: Pass, RuntimeError # Issue 19265
 polymer/test/event_handlers_test: Pass, Timeout # Issue 19327
 polymer_expressions/*: Pass, RuntimeError # Issue 19265
-template_binding/test/custom_element_bindings_test: Pass, RuntimeError # Issue 20714
 template_binding/test/template_binding_test: Pass, RuntimeError # Issue 19265
 typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here explicitly, since this is not the same as on ie9)
 
@@ -298,7 +297,6 @@ polymer/e2e_test/experimental_boot: Skip
 # This test uses third_party/pkg/perf_api/lib/perf_api.dart, which
 # contains illegal constant constructors.
 third_party/angular_tests/browser_test: CompileTimeError
-custom_element/test/analyzer_test: StaticWarning # Issue 20939
 
 [ $compiler == dart2js && $runtime == none]
 polymer/e2e_test/canonicalization: Skip
@@ -446,7 +444,6 @@ unittest/test/testcases_immutable_test: RuntimeError # 13921
 
 [ $runtime == vm ]
 # Skip tests on the VM if the package depends on dart:html
-custom_element: Skip
 template_binding: Skip
 mutation_observer: Skip
 polymer_expressions/test/syntax_test: Skip
