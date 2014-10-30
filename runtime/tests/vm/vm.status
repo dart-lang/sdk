@@ -27,6 +27,10 @@ cc/CorelibIsolateStartup: Skip
 cc/VerifyImplicit_Crash: Crash
 cc/VerifyExplicit_Crash: Crash
 
+[ $mode == debug && $system == windows ]
+cc/VerifiedMemoryBasic: Crash # Issue 21469
+cc/VerifiedMemoryAccept: Crash # Issue 21469
+
 # The following section refers to the dart vm tests which live under
 # runtime/tests/vm/dart.
 [ $system == windows ]
