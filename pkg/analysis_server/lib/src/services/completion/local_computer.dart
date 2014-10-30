@@ -133,10 +133,9 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       } else if (declaration is TopLevelVariableDeclaration) {
         _addTopLevelVarSuggestions(declaration.variables);
       } else if (declaration is ClassTypeAlias) {
-        CompletionSuggestion suggestion = _addSuggestion(
-            declaration.name,
-            null,
-            null);
+        bool isDeprecated = _isDeprecated(declaration);
+        CompletionSuggestion suggestion =
+            _addSuggestion(declaration.name, null, null, isDeprecated);
         if (suggestion != null) {
           suggestion.element = _createElement(
               protocol.ElementKind.CLASS_TYPE_ALIAS,
@@ -144,21 +143,21 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
               null,
               NO_RETURN_TYPE,
               true,
-              _isDeprecated(declaration.metadata));
+              isDeprecated);
         }
       } else if (declaration is FunctionTypeAlias) {
-        CompletionSuggestion suggestion = _addSuggestion(
-            declaration.name,
-            declaration.returnType,
-            null);
+        bool isDeprecated = _isDeprecated(declaration);
+        CompletionSuggestion suggestion =
+            _addSuggestion(declaration.name, declaration.returnType, null, isDeprecated);
         if (suggestion != null) {
+          // TODO (danrubel) determine parameters and return type
           suggestion.element = _createElement(
               protocol.ElementKind.FUNCTION_TYPE_ALIAS,
               declaration.name,
               null,
-              // TODO (danrubel) determine parameters
-          NO_RETURN_TYPE, // TODO (danrubel) determine return type
-          true, _isDeprecated(declaration.metadata));
+              NO_RETURN_TYPE,
+              true,
+              isDeprecated);
         }
       }
     });
@@ -306,8 +305,9 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   void _addClassSuggestion(ClassDeclaration declaration) {
+    bool isDeprecated = _isDeprecated(declaration);
     CompletionSuggestion suggestion =
-        _addSuggestion(declaration.name, null, null);
+        _addSuggestion(declaration.name, null, null, isDeprecated);
     if (suggestion != null) {
       suggestion.element = _createElement(
           protocol.ElementKind.CLASS,
@@ -315,7 +315,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
           null,
           NO_RETURN_TYPE,
           declaration.isAbstract,
-          _isDeprecated(declaration.metadata));
+          isDeprecated);
     }
   }
 
@@ -323,12 +323,14 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
     if (typesOnly) {
       return;
     }
-    bool isDeprecated = _isDeprecated(fieldDecl.metadata);
+    bool isDeprecated = _isDeprecated(fieldDecl);
     fieldDecl.fields.variables.forEach((VariableDeclaration varDecl) {
+      bool isSingleFieldDeprecated = isDeprecated || _isDeprecated(varDecl);
       CompletionSuggestion suggestion = _addSuggestion(
           varDecl.name,
           fieldDecl.fields.type,
-          node);
+          node,
+          isSingleFieldDeprecated);
       if (suggestion != null) {
         suggestion.element = _createElement(
             protocol.ElementKind.GETTER,
@@ -336,7 +338,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
             '()',
             fieldDecl.fields.type,
             false,
-            isDeprecated || _isDeprecated(varDecl.metadata));
+            isSingleFieldDeprecated);
       }
     });
   }
@@ -348,10 +350,9 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
     if (excludeVoidReturn && _isVoid(declaration.returnType)) {
       return;
     }
-    CompletionSuggestion suggestion = _addSuggestion(
-        declaration.name,
-        declaration.returnType,
-        null);
+    bool isDeprecated = _isDeprecated(declaration);
+    CompletionSuggestion suggestion =
+        _addSuggestion(declaration.name, declaration.returnType, null, isDeprecated);
     if (suggestion != null) {
       suggestion.element = _createElement(
           protocol.ElementKind.FUNCTION,
@@ -359,7 +360,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
           declaration.functionExpression.parameters.toSource(),
           declaration.returnType,
           false,
-          _isDeprecated(declaration.metadata));
+          isDeprecated);
     }
   }
 
@@ -368,7 +369,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       return;
     }
     CompletionSuggestion suggestion =
-        _addSuggestion(id, returnType, null);
+        _addSuggestion(id, returnType, null, false);
     if (suggestion != null) {
       suggestion.element = _createElement(
           protocol.ElementKind.LOCAL_VARIABLE,
@@ -402,10 +403,9 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       kind = protocol.ElementKind.METHOD;
       parameters = classMbr.parameters.toSource();
     }
-    CompletionSuggestion suggestion = _addSuggestion(
-        classMbr.name,
-        classMbr.returnType,
-        node);
+    bool isDeprecated = _isDeprecated(classMbr);
+    CompletionSuggestion suggestion =
+        _addSuggestion(classMbr.name, classMbr.returnType, node, isDeprecated);
     if (suggestion != null) {
       suggestion.element = _createElement(
           kind,
@@ -413,7 +413,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
           parameters,
           classMbr.returnType,
           classMbr.isAbstract,
-          _isDeprecated(classMbr.metadata));
+          isDeprecated);
     }
   }
 
@@ -447,7 +447,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       return;
     }
     CompletionSuggestion suggestion =
-        _addSuggestion(identifier, type, null);
+        _addSuggestion(identifier, type, null, false);
     if (suggestion != null) {
       suggestion.element = _createElement(
           protocol.ElementKind.PARAMETER,
@@ -459,14 +459,14 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
     }
   }
 
-  CompletionSuggestion _addSuggestion(SimpleIdentifier id,
-      TypeName typeName, ClassDeclaration classDecl) {
+  CompletionSuggestion _addSuggestion(SimpleIdentifier id, TypeName typeName,
+      ClassDeclaration classDecl, bool isDeprecated) {
     if (id != null) {
       String completion = id.name;
       if (completion != null && completion.length > 0 && completion != '_') {
         CompletionSuggestion suggestion = new CompletionSuggestion(
             CompletionSuggestionKind.INVOCATION,
-            CompletionRelevance.DEFAULT,
+            isDeprecated ? CompletionRelevance.LOW : CompletionRelevance.DEFAULT,
             completion,
             completion.length,
             0,
@@ -502,12 +502,11 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       return;
     }
     if (varList != null) {
-      bool isDeprecated = _isDeprecated(varList.metadata);
+      bool isDeprecated = _isDeprecated(varList);
       varList.variables.forEach((VariableDeclaration varDecl) {
-        CompletionSuggestion suggestion = _addSuggestion(
-            varDecl.name,
-            varList.type,
-            null);
+        bool isSingleVarDeprecated = isDeprecated || _isDeprecated(varDecl);
+        CompletionSuggestion suggestion =
+            _addSuggestion(varDecl.name, varList.type, null, isSingleVarDeprecated);
         if (suggestion != null) {
           suggestion.element = _createElement(
               protocol.ElementKind.TOP_LEVEL_VARIABLE,
@@ -515,7 +514,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
               null,
               varList.type,
               false,
-              isDeprecated || _isDeprecated(varDecl.metadata));
+              isSingleVarDeprecated);
         }
       });
     }
@@ -550,13 +549,21 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
         returnType: _nameForType(returnType));
   }
 
+
   /**
    * Return `true` if the @deprecated annotation is present
    */
-  bool _isDeprecated(NodeList<Annotation> metadata) =>
-      metadata != null &&
-          metadata.any(
-              (Annotation a) => a.name is SimpleIdentifier && a.name.name == 'deprecated');
+  bool _isDeprecated(AnnotatedNode node) {
+    if (node != null) {
+      NodeList<Annotation> metadata = node.metadata;
+      if (metadata != null) {
+        return metadata.any((Annotation a) {
+          return a.name is SimpleIdentifier && a.name.name == 'deprecated';
+        });
+      }
+    }
+    return false;
+  }
 
   bool _isVoid(TypeName returnType) {
     if (returnType != null) {

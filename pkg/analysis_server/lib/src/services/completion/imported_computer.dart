@@ -224,7 +224,7 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     String completion = element.displayName;
     CompletionSuggestion suggestion = new CompletionSuggestion(
         CompletionSuggestionKind.INVOCATION,
-        relevance,
+        element.isDeprecated ? CompletionRelevance.LOW : relevance,
         completion,
         completion.length,
         0,

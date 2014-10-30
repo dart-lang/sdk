@@ -283,13 +283,14 @@ class _AbstractSuggestionBuilder extends GeneralizingElementVisitor {
         !_completions.add(completion)) {
       return;
     }
+    bool isDeprecated = element.isDeprecated;
     CompletionSuggestion suggestion = new CompletionSuggestion(
         kind,
-        CompletionRelevance.DEFAULT,
+        isDeprecated ? CompletionRelevance.LOW : CompletionRelevance.DEFAULT,
         completion,
         completion.length,
         0,
-        element.isDeprecated,
+        isDeprecated,
         false);
     suggestion.element = protocol.newElement_fromEngine(element);
     if (suggestion.element != null) {
