@@ -2454,7 +2454,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
     // same closure, do not add a second one. We compare the origin
     // class, token position, and parent function to detect duplicates.
     // Note that we can have two different closure object for the same
-    // source text represntation of the closure: one with a non-closurized
+    // source text representation of the closure: one with a non-closurized
     // parent, and one with a closurized parent function.
 
     const Function& found_func = Function::Handle(
