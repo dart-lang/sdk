@@ -44,7 +44,7 @@ class ParsedFunction : public ZoneAllocated {
         node_sequence_(NULL),
         instantiator_(NULL),
         default_parameter_values_(Array::ZoneHandle(isolate, Array::null())),
-        saved_current_context_var_(NULL),
+        current_context_var_(NULL),
         saved_entry_context_var_(NULL),
         expression_temp_var_(NULL),
         finally_return_temp_var_(NULL),
@@ -58,6 +58,13 @@ class ParsedFunction : public ZoneAllocated {
         async_saved_try_ctx_name_(String::ZoneHandle(isolate, String::null())),
         isolate_(isolate) {
     ASSERT(function.IsZoneHandle());
+    // Every function has a local variable for the current context.
+    LocalVariable* temp = new(isolate) LocalVariable(
+        function.token_pos(),
+        Symbols::CurrentContextVar(),
+        Type::ZoneHandle(isolate, Type::DynamicType()));
+    ASSERT(temp != NULL);
+    current_context_var_ = temp;
   }
 
   const Function& function() const { return function_; }
@@ -81,15 +88,8 @@ class ParsedFunction : public ZoneAllocated {
     default_parameter_values_ = default_parameter_values.raw();
   }
 
-  LocalVariable* saved_current_context_var() const {
-    return saved_current_context_var_;
-  }
-  void set_saved_current_context_var(LocalVariable* saved_current_context_var) {
-    ASSERT(saved_current_context_var != NULL);
-    saved_current_context_var_ = saved_current_context_var;
-  }
-  bool has_saved_current_context_var() const {
-    return saved_current_context_var_ != NULL;
+  LocalVariable* current_context_var() const {
+    return current_context_var_;
   }
 
   LocalVariable* saved_entry_context_var() const {
@@ -125,7 +125,6 @@ class ParsedFunction : public ZoneAllocated {
   }
   void EnsureFinallyReturnTemp();
 
-  static LocalVariable* CreateExpressionTempVar(intptr_t token_pos);
   LocalVariable* EnsureExpressionTemp();
 
   bool HasDeferredPrefixes() const { return deferred_prefixes_->length() != 0; }
@@ -173,7 +172,7 @@ class ParsedFunction : public ZoneAllocated {
   SequenceNode* node_sequence_;
   LocalVariable* instantiator_;
   Array& default_parameter_values_;
-  LocalVariable* saved_current_context_var_;
+  LocalVariable* current_context_var_;
   LocalVariable* saved_entry_context_var_;
   LocalVariable* expression_temp_var_;
   LocalVariable* finally_return_temp_var_;
@@ -734,7 +733,6 @@ class Parser : public ValueObject {
   void CheckOperatorArity(const MemberDesc& member);
 
   void EnsureExpressionTemp();
-  void EnsureSavedCurrentContext();
   bool IsLegalAssignableSyntax(AstNode* expr, intptr_t end_pos);
   AstNode* CreateAssignmentNode(AstNode* original,
                                 AstNode* rhs,

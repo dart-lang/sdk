@@ -425,6 +425,9 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void BuildSaveContext(const LocalVariable& variable);
   void BuildRestoreContext(const LocalVariable& variable);
 
+  Definition* BuildStoreContext(Value* value);
+  Definition* BuildCurrentContext();
+
   void BuildThrowNode(ThrowNode* node);
 
   StaticCallInstr* BuildStaticNoSuchMethodCall(

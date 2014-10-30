@@ -3987,7 +3987,7 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
   DARTSCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
   const Instance& closure_obj = Api::UnwrapInstanceHandle(isolate, closure);
-  if (closure_obj.IsNull() || !closure_obj.IsCallable(NULL, NULL)) {
+  if (closure_obj.IsNull() || !closure_obj.IsCallable(NULL)) {
     RETURN_TYPE_ERROR(isolate, closure, Instance);
   }
   if (number_of_arguments < 0) {

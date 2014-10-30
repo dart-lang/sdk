@@ -225,7 +225,8 @@ bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
 
 
 static bool IsEmptyBlock(BlockEntryInstr* block) {
-  return !block->HasNonRedundantParallelMove() &&
+  return !block->IsCatchBlockEntry() &&
+         !block->HasNonRedundantParallelMove() &&
          block->next()->IsGoto() &&
          !block->next()->AsGoto()->HasNonRedundantParallelMove();
 }
@@ -287,7 +288,7 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
       // own so that it can control the placement.
       AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                            instr->deopt_id(),
-                           Scanner::kNoSourcePos);
+                           instr->token_pos());
     }
     AllocateRegistersLocally(instr);
   } else if (instr->MayThrow()  &&
@@ -1108,7 +1109,6 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   }
 
   // Do not allocate known registers.
-  blocked_registers[CTX] = true;
   blocked_registers[SPREG] = true;
   blocked_registers[FPREG] = true;
   if (TMP != kNoRegister) {
@@ -1385,7 +1385,6 @@ ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
       reg_(kNoRegister),
       spilled_(false) {
   uword blocked_mask = MaskBit(blocked)
-                     | MaskBit(CTX)
                      | MaskBit(SPREG)
                      | MaskBit(FPREG)
                      | MaskBit(TMP)

@@ -1113,15 +1113,48 @@ void FlowGraphCompiler::CompileGraph() {
     CopyParameters();
   }
 
+  if (function.IsClosureFunction() && !flow_graph().IsCompiledForOsr()) {
+    // Load context from the closure object (first argument).
+    LocalScope* scope = parsed_function().node_sequence()->scope();
+    LocalVariable* closure_parameter = scope->VariableAt(0);
+    __ movq(CTX, Address(RBP, closure_parameter->index() * kWordSize));
+    __ movq(CTX, FieldAddress(CTX, Closure::context_offset()));
+#ifdef dEBUG
+    Label ok;
+    __ LoadClassId(RAX, CTX);
+    __ cmpq(RAX, Immediate(kContextCid));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Incorrect context at entry");
+    __ Bind(&ok);
+#endif
+  }
+
   // In unoptimized code, initialize (non-argument) stack allocated slots to
   // null.
-  if (!is_optimizing() && (num_locals > 0)) {
+  if (!is_optimizing()) {
+    ASSERT(num_locals > 0);  // There is always at least context_var.
     __ Comment("Initialize spill slots");
     const intptr_t slot_base = parsed_function().first_stack_local_index();
-    __ LoadObject(RAX, Object::null_object(), PP);
+    const intptr_t context_index =
+        parsed_function().current_context_var()->index();
+    if (num_locals > 1) {
+      __ LoadObject(RAX, Object::null_object(), PP);
+    }
     for (intptr_t i = 0; i < num_locals; ++i) {
       // Subtract index i (locals lie at lower addresses than RBP).
-      __ movq(Address(RBP, (slot_base - i) * kWordSize), RAX);
+      if (((slot_base - i) == context_index)) {
+        if (function.IsClosureFunction()) {
+          __ movq(Address(RBP, (slot_base - i) * kWordSize), CTX);
+        } else {
+          const Context& empty_context = Context::ZoneHandle(
+              isolate(), isolate()->object_store()->empty_context());
+          __ StoreObject(
+              Address(RBP, (slot_base - i) * kWordSize), empty_context, PP);
+        }
+      } else {
+        ASSERT(num_locals > 1);
+        __ movq(Address(RBP, (slot_base - i) * kWordSize), RAX);
+      }
     }
   }
 

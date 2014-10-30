@@ -336,7 +336,7 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
         desc.info.end_pos = 0;
         desc.info.set_index(var->index());
         vars->Add(desc);
-      } else if (var->name().raw() == Symbols::SavedCurrentContextVar().raw()) {
+      } else if (var->name().raw() == Symbols::CurrentContextVar().raw()) {
         // This is the local variable in which the function saves its
         // own context before calling a closure function.
         VarDesc desc;

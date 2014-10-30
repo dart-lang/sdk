@@ -44,9 +44,7 @@ static void GenerateCallToCallRuntimeStub(Assembler* assembler,
   const int argc = 2;
   const Smi& smi1 = Smi::ZoneHandle(Smi::New(value1));
   const Smi& smi2 = Smi::ZoneHandle(Smi::New(value2));
-  const Context& context = Context::ZoneHandle(Context::New(0, Heap::kOld));
   __ EnterStubFrame(true);
-  __ LoadObject(CTX, context, PP);
   __ PushObject(Object::null_object(), PP);  // Push Null obj for return value.
   __ PushObject(smi1, PP);  // Push argument 1 smi1.
   __ PushObject(smi2, PP);  // Push argument 2 smi2.

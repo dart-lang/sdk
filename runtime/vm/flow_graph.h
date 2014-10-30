@@ -111,6 +111,15 @@ class FlowGraph : public ZoneAllocated {
     return num_non_copied_params_;
   }
 
+  LocalVariable* CurrentContextVar() const {
+    return parsed_function().current_context_var();
+  }
+
+  intptr_t CurrentContextEnvIndex() const {
+    return parsed_function().current_context_var()->BitIndexIn(
+        num_non_copied_params_);
+  }
+
   // Flow graph orders.
   const GrowableArray<BlockEntryInstr*>& preorder() const {
     return preorder_;
@@ -157,6 +166,10 @@ class FlowGraph : public ZoneAllocated {
 
   ConstantInstr* constant_dead() const {
     return constant_dead_;
+  }
+
+  ConstantInstr* constant_empty_context() const {
+    return constant_empty_context_;
   }
 
   intptr_t alloc_ssa_temp_index() { return current_ssa_temp_index_++; }
@@ -296,7 +309,8 @@ class FlowGraph : public ZoneAllocated {
   void InsertPhis(
       const GrowableArray<BlockEntryInstr*>& preorder,
       const GrowableArray<BitVector*>& assigned_vars,
-      const GrowableArray<BitVector*>& dom_frontier);
+      const GrowableArray<BitVector*>& dom_frontier,
+      GrowableArray<PhiInstr*>* live_phis);
 
   void RemoveDeadPhis(GrowableArray<PhiInstr*>* live_phis);
 
@@ -333,6 +347,7 @@ class FlowGraph : public ZoneAllocated {
   GrowableArray<BlockEntryInstr*> optimized_block_order_;
   ConstantInstr* constant_null_;
   ConstantInstr* constant_dead_;
+  ConstantInstr* constant_empty_context_;
 
   BlockEffects* block_effects_;
   bool licm_allowed_;

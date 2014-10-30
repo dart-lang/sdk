@@ -401,7 +401,6 @@ Isolate::Isolate()
       terminate_capability_(0),
       heap_(NULL),
       object_store_(NULL),
-      top_context_(Context::null()),
       top_exit_frame_info_(0),
       init_callback_data_(NULL),
       environment_callback_(NULL),
@@ -461,7 +460,6 @@ Isolate::Isolate(Isolate* original)
       terminate_capability_(0),
       heap_(NULL),
       object_store_(NULL),
-      top_context_(Context::null()),
       top_exit_frame_info_(0),
       init_callback_data_(NULL),
       environment_callback_(NULL),
@@ -1129,9 +1127,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   if (api_state() != NULL) {
     api_state()->VisitObjectPointers(visitor, visit_prologue_weak_handles);
   }
-
-  // Visit the top context which is stored in the isolate.
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&top_context_));
 
   // Visit the current tag which is stored in the isolate.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&current_tag_));

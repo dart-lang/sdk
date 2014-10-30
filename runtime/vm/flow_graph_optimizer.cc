@@ -5140,8 +5140,7 @@ void LICM::TrySpecializeSmiPhi(PhiInstr* phi,
 static bool IsLoadEliminationCandidate(Instruction* instr) {
   return instr->IsLoadField()
       || instr->IsLoadIndexed()
-      || instr->IsLoadStaticField()
-      || instr->IsCurrentContext();
+      || instr->IsLoadStaticField();
 }
 
 
@@ -5284,9 +5283,6 @@ class Place : public ValueObject {
 
     // Indexed location with a constant index.
     kConstantIndexed,
-
-    // Current context.
-    kContext
   };
 
   Place(const Place& other)
@@ -5373,21 +5369,6 @@ class Place : public ValueObject {
         break;
       }
 
-      case Instruction::kCurrentContext:
-        kind_ = kContext;
-        ASSERT(instr->AsCurrentContext()->representation() == kTagged);
-        representation_ = kTagged;
-        *is_load = true;
-        break;
-
-      case Instruction::kStoreContext:
-        kind_ = kContext;
-        ASSERT(instr->AsStoreContext()->RequiredInputRepresentation(
-            StoreContextInstr::kValuePos) == kTagged);
-        representation_ = kTagged;
-        *is_store = true;
-        break;
-
       default:
         break;
     }
@@ -5427,7 +5408,6 @@ class Place : public ValueObject {
       case kConstantIndexed:
         return true;
 
-      case kContext:
       case kNone:
         return false;
     }
@@ -5527,9 +5507,6 @@ class Place : public ValueObject {
             "<%s[%" Pd "]>",
             DefinitionName(instance()),
             index_constant());
-
-      case kContext:
-        return "<context>";
     }
     UNREACHABLE();
     return "<?>";
@@ -5956,9 +5933,7 @@ class AliasedSet : public ZoneAllocated {
           // X.f or X.@offs alias with *.f and *.@offs respectively.
           CrossAlias(alias, alias->CopyWithoutInstance());
         }
-
-      case Place::kContext:
-        return;
+        break;
 
       case Place::kNone:
         UNREACHABLE();
@@ -6156,10 +6131,6 @@ static Definition* GetStoredValue(Instruction* instr) {
   StoreStaticFieldInstr* store_static_field = instr->AsStoreStaticField();
   if (store_static_field != NULL) {
     return store_static_field->value()->definition();
-  }
-
-  if (instr->IsStoreContext()) {
-    return instr->InputAt(0)->definition();
   }
 
   UNREACHABLE();  // Should only be called for supported store instructions.
@@ -7225,7 +7196,6 @@ class StoreOptimizer : public LivenessAnalysis {
           // Can't eliminate stores that initialized unboxed fields.
           return false;
         }
-      case Instruction::kStoreContext:
       case Instruction::kStoreIndexed:
       case Instruction::kStoreStaticField:
         return true;
@@ -7765,9 +7735,6 @@ void ConstantPropagator::VisitBranch(BranchInstr* instr) {
 // --------------------------------------------------------------------------
 // Analysis of non-definition instructions.  They do not have values so they
 // cannot have constant values.
-void ConstantPropagator::VisitStoreContext(StoreContextInstr* instr) { }
-
-
 void ConstantPropagator::VisitCheckStackOverflow(
     CheckStackOverflowInstr* instr) { }
 

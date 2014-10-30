@@ -546,6 +546,8 @@ bool CompileType::IsNull() {
 
 const AbstractType* CompileType::ToAbstractType() {
   if (type_ == NULL) {
+    ASSERT(cid_ != kIllegalCid);
+
     // VM internal Function and Context objects don't have a compile-type.
     // Return dynamic-type in this case.
     if (cid_ == kFunctionCid || cid_ == kContextCid) {

@@ -10789,7 +10789,7 @@ static const char* VarKindString(int kind) {
       return "SavedEntryCtx";
       break;
     case RawLocalVarDescriptors::kSavedCurrentContext:
-      return "SavedCurrentCtx";
+      return "CurrentCtx";
       break;
     default:
       UNREACHABLE();
@@ -13493,14 +13493,11 @@ bool Instance::IsClosure() const {
 }
 
 
-bool Instance::IsCallable(Function* function, Context* context) const {
+bool Instance::IsCallable(Function* function) const {
   Class& cls = Class::Handle(clazz());
   if (cls.IsSignatureClass()) {
     if (function != NULL) {
       *function = Closure::function(*this);
-    }
-    if (context != NULL) {
-      *context = Closure::context(*this);
     }
     return true;
   }
@@ -13511,9 +13508,6 @@ bool Instance::IsCallable(Function* function, Context* context) const {
     if (!call_function.IsNull()) {
       if (function != NULL) {
         *function = call_function.raw();
-      }
-      if (context != NULL) {
-        *context = Isolate::Current()->object_store()->empty_context();
       }
       return true;
     }

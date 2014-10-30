@@ -44,9 +44,7 @@ static const int kCallerSpSlotFromFp = 2;
 static const int kSavedAboveReturnAddress = 3;  // Saved above return address.
 
 // Entry and exit frame layout.
-static const int kSavedContextSlotFromEntryFp = -22;
-static const int kExitLinkSlotFromEntryFp = -21;
-static const int kSavedVMTagSlotFromEntryFp = -20;
+static const int kExitLinkSlotFromEntryFp = -20;
 
 }  // namespace dart
 

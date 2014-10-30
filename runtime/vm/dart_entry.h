@@ -13,7 +13,6 @@ namespace dart {
 // Forward declarations.
 class Array;
 class Closure;
-class Context;
 class Function;
 class Instance;
 class Integer;
@@ -103,8 +102,7 @@ class DartEntry : public AllStatic {
   // On success, returns a RawInstance.  On failure, a RawError.
   typedef RawObject* (*invokestub)(uword entry_point,
                                    const Array& arguments_descriptor,
-                                   const Array& arguments,
-                                   const Context& context);
+                                   const Array& arguments);
 
   // Invokes the specified instance function or static function.
   // The first argument of an instance function is the receiver.
@@ -113,18 +111,11 @@ class DartEntry : public AllStatic {
   static RawObject* InvokeFunction(const Function& function,
                                    const Array& arguments);
 
-  // Invokes the specified instance or static function.
-  // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* InvokeFunction(const Function& function,
-                                   const Array& arguments,
-                                   const Array& arguments_descriptor);
-
   // Invokes the specified instance, static, or closure function.
   // On success, returns a RawInstance.  On failure, a RawError.
   static RawObject* InvokeFunction(const Function& function,
                                    const Array& arguments,
-                                   const Array& arguments_descriptor,
-                                   const Context& context);
+                                   const Array& arguments_descriptor);
 
   // Invokes the closure object given as the first argument.
   // On success, returns a RawInstance.  On failure, a RawError.

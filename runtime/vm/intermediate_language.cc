@@ -1055,7 +1055,7 @@ void BlockEntryInstr::ClearAllInstructions() {
 }
 
 
-void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
+PhiInstr* JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
   // Lazily initialize the array of phis.
   // Currently, phis are stored in a sparse array that holds the phi
   // for variable with index i at position i.
@@ -1067,7 +1067,7 @@ void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
     }
   }
   ASSERT((*phis_)[var_index] == NULL);
-  (*phis_)[var_index] = new PhiInstr(this, PredecessorCount());
+  return (*phis_)[var_index] = new PhiInstr(this, PredecessorCount());
 }
 
 
@@ -2645,33 +2645,15 @@ void MaterializeObjectInstr::RemapRegisters(intptr_t* fpu_reg_slots,
 
 LocationSummary* CurrentContextInstr::MakeLocationSummary(Isolate* isolate,
                                                           bool opt) const {
-  return LocationSummary::Make(isolate,
-                               0,
-                               Location::RegisterLocation(CTX),
-                               LocationSummary::kNoCall);
+  // Only appears in initial definitions, never in normal code.
+  UNREACHABLE();
+  return NULL;
 }
 
 
 void CurrentContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // No code to emit. Just assert the correct result register.
-  ASSERT(locs()->out(0).reg() == CTX);
-}
-
-
-LocationSummary* StoreContextInstr::MakeLocationSummary(Isolate* isolate,
-                                                        bool optimizing) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RegisterLocation(CTX));
-  return summary;
-}
-
-
-void StoreContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Nothing to do.  Context register was loaded by the register allocator.
-  ASSERT(locs()->in(0).reg() == CTX);
+  // Only appears in initial definitions, never in normal code.
+  UNREACHABLE();
 }
 
 
@@ -2729,7 +2711,7 @@ StrictCompareInstr::StrictCompareInstr(intptr_t token_pos,
 
 LocationSummary* InstanceCallInstr::MakeLocationSummary(Isolate* isolate,
                                                         bool optimizing) const {
-  return MakeCallSummary();
+  return MakeCallSummary(isolate);
 }
 
 
@@ -2847,7 +2829,7 @@ bool PolymorphicInstanceCallInstr::HasOnlyDispatcherTargets() const {
 
 LocationSummary* StaticCallInstr::MakeLocationSummary(Isolate* isolate,
                                                       bool optimizing) const {
-  return MakeCallSummary();
+  return MakeCallSummary(isolate);
 }
 
 

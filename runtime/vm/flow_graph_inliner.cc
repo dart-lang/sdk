@@ -926,6 +926,20 @@ class CallSiteInliner : public ValueObject {
         constant->ReplaceUsesWith(
             caller_graph_->GetConstant(constant->value()));
       }
+      CurrentContextInstr* context = (*defns)[i]->AsCurrentContext();
+      if ((context != NULL) && context->HasUses()) {
+        ASSERT(call->IsClosureCall());
+        LoadFieldInstr* context_load = new(isolate()) LoadFieldInstr(
+            new Value((*arguments)[0]->definition()),
+            Closure::context_offset(),
+            AbstractType::ZoneHandle(isolate(), AbstractType::null()),
+            call_data->call->token_pos());
+        context_load->set_is_immutable(true);
+        context_load->set_ssa_temp_index(
+            caller_graph_->alloc_ssa_temp_index());
+        context_load->InsertBefore(callee_entry->next());
+        context->ReplaceUsesWith(context_load);
+      }
     }
 
     // Check that inlining maintains use lists.
@@ -1334,6 +1348,20 @@ bool PolymorphicInliner::TryInliningPoly(intptr_t receiver_cid,
     if ((constant != NULL) && constant->HasUses()) {
       constant->ReplaceUsesWith(
           owner_->caller_graph()->GetConstant(constant->value()));
+    }
+    CurrentContextInstr* context = (*defns)[i]->AsCurrentContext();
+    if ((context != NULL) && context->HasUses()) {
+      ASSERT(call_data.call->IsClosureCall());
+      LoadFieldInstr* context_load = new(isolate()) LoadFieldInstr(
+          new Value(redefinition),
+          Closure::context_offset(),
+          AbstractType::ZoneHandle(isolate(), AbstractType::null()),
+          call_data.call->token_pos());
+      context_load->set_is_immutable(true);
+      context_load->set_ssa_temp_index(
+          owner_->caller_graph()->alloc_ssa_temp_index());
+      context_load->InsertAfter(redefinition);
+      context->ReplaceUsesWith(context_load);
     }
   }
   return true;

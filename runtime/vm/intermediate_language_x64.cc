@@ -30,8 +30,8 @@ DECLARE_FLAG(bool, use_osr);
 
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register RAX.
-LocationSummary* Instruction::MakeCallSummary() {
-  LocationSummary* result = new LocationSummary(
+LocationSummary* Instruction::MakeCallSummary(Isolate* isolate) {
+  LocationSummary* result = new(isolate) LocationSummary(
       Isolate::Current(), 0, 0, LocationSummary::kCall);
   result->set_out(0, Location::RegisterLocation(RAX));
   return result;
@@ -752,22 +752,11 @@ void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 
 LocationSummary* NativeCallInstr::MakeLocationSummary(Isolate* isolate,
                                                       bool opt) const {
-  const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = 3;
-  LocationSummary* locs = new(isolate) LocationSummary(
-      isolate, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_temp(0, Location::RegisterLocation(RAX));
-  locs->set_temp(1, Location::RegisterLocation(RBX));
-  locs->set_temp(2, Location::RegisterLocation(R10));
-  locs->set_out(0, Location::RegisterLocation(RAX));
-  return locs;
+  return MakeCallSummary(isolate);
 }
 
 
 void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(locs()->temp(0).reg() == RAX);
-  ASSERT(locs()->temp(1).reg() == RBX);
-  ASSERT(locs()->temp(2).reg() == R10);
   Register result = locs()->out(0).reg();
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
   const bool is_leaf_call =
@@ -5299,7 +5288,7 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
     Isolate* isolate, bool opt) const {
-  return MakeCallSummary();
+  return MakeCallSummary(isolate);
 }
 
 
@@ -6375,7 +6364,7 @@ void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AllocateObjectInstr::MakeLocationSummary(Isolate* isolate,
                                                           bool opt) const {
-  return MakeCallSummary();
+  return MakeCallSummary(isolate);
 }
 
 

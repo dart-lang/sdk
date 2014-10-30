@@ -36,7 +36,6 @@ DECLARE_FLAG(bool, trace_optimized_ic_calls);
 //   R10 : number of arguments to the call.
 // Must preserve callee saved registers R12 and R13.
 void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
-  ASSERT((R12 != CTX) && (R13 != CTX));
   const intptr_t isolate_offset = NativeArguments::isolate_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
@@ -44,23 +43,19 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   __ EnterFrame(0);
 
-  __ LoadIsolate(RAX);
+  COMPILE_ASSERT(
+      (CallingConventions::kCalleeSaveCpuRegisters & (1 << R12)) != 0);
+  __ LoadIsolate(R12);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  __ movq(Address(RAX, Isolate::top_exit_frame_info_offset()), RSP);
-
-  // Save current Context pointer into Isolate structure.
-  __ movq(Address(RAX, Isolate::top_context_offset()), CTX);
-
-  // Cache Isolate pointer into CTX while executing runtime code.
-  __ movq(CTX, RAX);
+  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), RSP);
 
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
     __ movq(RAX, Immediate(VMTag::kDartTagId));
-    __ cmpq(RAX, Address(CTX, Isolate::vm_tag_offset()));
+    __ cmpq(RAX, Address(R12, Isolate::vm_tag_offset()));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -68,7 +63,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing VM code.
-  __ movq(Address(CTX, Isolate::vm_tag_offset()), RBX);
+  __ movq(Address(R12, Isolate::vm_tag_offset()), RBX);
 
   // Reserve space for arguments and align frame before entering C++ world.
   __ subq(RSP, Immediate(sizeof(NativeArguments)));
@@ -77,7 +72,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call runtime.
-  __ movq(Address(RSP, isolate_offset), CTX);  // Set isolate in NativeArgs.
+  __ movq(Address(RSP, isolate_offset), R12);  // Set isolate in NativeArgs.
   // There are no runtime calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
   __ movq(Address(RSP, argc_tag_offset), R10);  // Set argc in NativeArguments.
@@ -92,21 +87,11 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ CallCFunction(RBX);
 
   // Mark that the isolate is executing Dart code.
-  __ movq(Address(CTX, Isolate::vm_tag_offset()),
+  __ movq(Address(R12, Isolate::vm_tag_offset()),
           Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
-  __ movq(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
-
-  // Load Context pointer from Isolate structure into RBX.
-  __ movq(RBX, Address(CTX, Isolate::top_context_offset()));
-
-  // Reset Context pointer in Isolate structure.
-  __ LoadObject(R12, Object::null_object(), PP);
-  __ movq(Address(CTX, Isolate::top_context_offset()), R12);
-
-  // Cache Context pointer into CTX while executing Dart code.
-  __ movq(CTX, RBX);
+  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), Immediate(0));
 
   __ LeaveFrame();
   __ ret();
@@ -155,23 +140,19 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   __ EnterFrame(0);
 
-  __ LoadIsolate(R8);
+  COMPILE_ASSERT(
+      (CallingConventions::kCalleeSaveCpuRegisters & (1 << R12)) != 0);
+  __ LoadIsolate(R12);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ movq(Address(R8, Isolate::top_exit_frame_info_offset()), RSP);
-
-// Save current Context pointer into Isolate structure.
-  __ movq(Address(R8, Isolate::top_context_offset()), CTX);
-
-  // Cache Isolate pointer into CTX while executing native code.
-  __ movq(CTX, R8);
+  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), RSP);
 
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
     __ movq(R8, Immediate(VMTag::kDartTagId));
-    __ cmpq(R8, Address(CTX, Isolate::vm_tag_offset()));
+    __ cmpq(R8, Address(R12, Isolate::vm_tag_offset()));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -179,7 +160,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing Native code.
-  __ movq(Address(CTX, Isolate::vm_tag_offset()), RBX);
+  __ movq(Address(R12, Isolate::vm_tag_offset()), RBX);
 
   // Reserve space for the native arguments structure passed on the stack (the
   // outgoing pointer parameter to the native arguments structure is passed in
@@ -190,7 +171,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call native function.
-  __ movq(Address(RSP, isolate_offset), CTX);  // Set isolate in NativeArgs.
+  __ movq(Address(RSP, isolate_offset), R12);  // Set isolate in NativeArgs.
   __ movq(Address(RSP, argc_tag_offset), R10);  // Set argc in NativeArguments.
   __ movq(Address(RSP, argv_offset), RAX);  // Set argv in NativeArguments.
   __ leaq(RAX, Address(RBP, 2 * kWordSize));  // Compute return value addr.
@@ -203,21 +184,11 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ CallCFunction(&NativeEntry::NativeCallWrapperLabel());
 
   // Mark that the isolate is executing Dart code.
-  __ movq(Address(CTX, Isolate::vm_tag_offset()),
+  __ movq(Address(R12, Isolate::vm_tag_offset()),
           Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
-  __ movq(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
-
-  // Load Context pointer from Isolate structure into R8.
-  __ movq(R8, Address(CTX, Isolate::top_context_offset()));
-
-  // Reset Context pointer in Isolate structure.
-  __ LoadObject(R12, Object::null_object(), PP);
-  __ movq(Address(CTX, Isolate::top_context_offset()), R12);
-
-  // Cache Context pointer into CTX while executing Dart code.
-  __ movq(CTX, R8);
+  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), Immediate(0));
 
   __ LeaveFrame();
   __ ret();
@@ -243,23 +214,19 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   __ EnterFrame(0);
 
-  __ LoadIsolate(R8);
+  COMPILE_ASSERT(
+      (CallingConventions::kCalleeSaveCpuRegisters & (1 << R12)) != 0);
+  __ LoadIsolate(R12);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ movq(Address(R8, Isolate::top_exit_frame_info_offset()), RSP);
-
-  // Save current Context pointer into Isolate structure.
-  __ movq(Address(R8, Isolate::top_context_offset()), CTX);
-
-  // Cache Isolate pointer into CTX while executing native code.
-  __ movq(CTX, R8);
+  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), RSP);
 
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
     __ movq(R8, Immediate(VMTag::kDartTagId));
-    __ cmpq(R8, Address(CTX, Isolate::vm_tag_offset()));
+    __ cmpq(R8, Address(R12, Isolate::vm_tag_offset()));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -267,7 +234,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing Native code.
-  __ movq(Address(CTX, Isolate::vm_tag_offset()), RBX);
+  __ movq(Address(R12, Isolate::vm_tag_offset()), RBX);
 
   // Reserve space for the native arguments structure passed on the stack (the
   // outgoing pointer parameter to the native arguments structure is passed in
@@ -278,7 +245,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call native function.
-  __ movq(Address(RSP, isolate_offset), CTX);  // Set isolate in NativeArgs.
+  __ movq(Address(RSP, isolate_offset), R12);  // Set isolate in NativeArgs.
   __ movq(Address(RSP, argc_tag_offset), R10);  // Set argc in NativeArguments.
   __ movq(Address(RSP, argv_offset), RAX);  // Set argv in NativeArguments.
   __ leaq(RAX, Address(RBP, 2 * kWordSize));  // Compute return value addr.
@@ -289,21 +256,11 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ CallCFunction(RBX);
 
   // Mark that the isolate is executing Dart code.
-  __ movq(Address(CTX, Isolate::vm_tag_offset()),
+  __ movq(Address(R12, Isolate::vm_tag_offset()),
           Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
-  __ movq(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
-
-  // Load Context pointer from Isolate structure into R8.
-  __ movq(R8, Address(CTX, Isolate::top_context_offset()));
-
-  // Reset Context pointer in Isolate structure.
-  __ LoadObject(R12, Object::null_object(), PP);
-  __ movq(Address(CTX, Isolate::top_context_offset()), R12);
-
-  // Cache Context pointer into CTX while executing Dart code.
-  __ movq(CTX, R8);
+  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), Immediate(0));
 
   __ LeaveFrame();
   __ ret();
@@ -737,17 +694,15 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   const Register kEntryPointReg = CallingConventions::kArg1Reg;
   const Register kArgDescReg    = CallingConventions::kArg2Reg;
   const Register kArgsReg       = CallingConventions::kArg3Reg;
-  const Register kNewContextReg = CallingConventions::kArg4Reg;
 
   // At this point, the stack looks like:
   // | saved RBP                                      | <-- RBP
   // | saved PC (return to DartEntry::InvokeFunction) |
 
   const intptr_t kInitialOffset = 1;
-  // Save arguments descriptor array and new context.
+  // Save arguments descriptor array.
   const intptr_t kArgumentsDescOffset = -(kInitialOffset) * kWordSize;
   __ pushq(kArgDescReg);
-  __ pushq(kNewContextReg);
 
   // Save C++ ABI callee-saved registers.
   __ PushRegisters(CallingConventions::kCalleeSaveCpuRegisters,
@@ -759,36 +714,15 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ LoadPoolPointer(PP);
 
   // If any additional (or fewer) values are pushed, the offsets in
-  // kExitLinkSlotFromEntryFp and kSavedContextSlotFromEntryFp will need to be
-  // changed.
-
-  // The new Context structure contains a pointer to the current Isolate
-  // structure. Cache the Context pointer in the CTX register so that it is
-  // available in generated code and calls to Isolate::Current() need not be
-  // done. The assumption is that this register will never be clobbered by
-  // compiled or runtime stub code.
-
-  // Cache the new Context pointer into CTX while executing Dart code.
-  __ movq(CTX, Address(kNewContextReg, VMHandles::kOffsetOfRawPtrInHandle));
-
-  const Register kIsolateReg = RBX;
+  // kExitLinkSlotFromEntryFp will need to be changed.
 
   // Load Isolate pointer into kIsolateReg.
+  const Register kIsolateReg = RBX;
   __ LoadIsolate(kIsolateReg);
 
   // Save the current VMTag on the stack.
   __ movq(RAX, Address(kIsolateReg, Isolate::vm_tag_offset()));
   __ pushq(RAX);
-#if defined(DEBUG)
-  {
-    Label ok;
-    __ leaq(RAX, Address(RBP, kSavedVMTagSlotFromEntryFp * kWordSize));
-    __ cmpq(RAX, RSP);
-    __ j(EQUAL, &ok);
-    __ Stop("kSavedVMTagSlotFromEntryFp mismatch");
-    __ Bind(&ok);
-  }
-#endif
 
   // Mark that the isolate is executing Dart code.
   __ movq(Address(kIsolateReg, Isolate::vm_tag_offset()),
@@ -813,26 +747,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   __ movq(Address(kIsolateReg, Isolate::top_exit_frame_info_offset()),
           Immediate(0));
-
-  // Save the old Context pointer. Use RAX as a temporary register.
-  // Note that VisitObjectPointers will find this saved Context pointer during
-  // GC marking, since it traverses any information between SP and
-  // FP - kExitLinkSlotFromEntryFp * kWordSize.
-  // EntryFrame::SavedContext reads the context saved in this frame.
-  // The constant kSavedContextSlotFromEntryFp must be kept in sync with
-  // the code below.
-  __ movq(RAX, Address(kIsolateReg, Isolate::top_context_offset()));
-  __ pushq(RAX);
-#if defined(DEBUG)
-  {
-    Label ok;
-    __ leaq(RAX, Address(RBP, kSavedContextSlotFromEntryFp * kWordSize));
-    __ cmpq(RAX, RSP);
-    __ j(EQUAL, &ok);
-    __ Stop("kSavedContextSlotFromEntryFp mismatch");
-    __ Bind(&ok);
-  }
-#endif
 
   // Load arguments descriptor array into R10, which is passed to Dart code.
   __ movq(R10, Address(kArgDescReg, VMHandles::kOffsetOfRawPtrInHandle));
@@ -872,11 +786,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Get rid of arguments pushed on the stack.
   __ leaq(RSP, Address(RSP, RDX, TIMES_4, 0));  // RDX is a Smi.
 
-  __ LoadIsolate(kIsolateReg);
-  // Restore the saved Context pointer into the Isolate structure.
-  __ popq(Address(kIsolateReg, Isolate::top_context_offset()));
-
   // Restore the saved top exit frame info back into the Isolate structure.
+  __ LoadIsolate(kIsolateReg);
   __ popq(Address(kIsolateReg, Isolate::top_exit_frame_info_offset()));
 
   // Restore the current VMTag from the stack.

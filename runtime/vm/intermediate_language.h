@@ -437,7 +437,6 @@ class EmbeddedArray<T, 0> {
   M(AssertAssignable)                                                          \
   M(AssertBoolean)                                                             \
   M(CurrentContext)                                                            \
-  M(StoreContext)                                                              \
   M(ClosureCall)                                                               \
   M(InstanceCall)                                                              \
   M(PolymorphicInstanceCall)                                                   \
@@ -726,7 +725,7 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
     locs_ = MakeLocationSummary(isolate, optimizing);
   }
 
-  static LocationSummary* MakeCallSummary();
+  static LocationSummary* MakeCallSummary(Isolate* isolate);
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     UNIMPLEMENTED();
@@ -1358,7 +1357,7 @@ class JoinEntryInstr : public BlockEntryInstr {
 
   ZoneGrowableArray<PhiInstr*>* phis() const { return phis_; }
 
-  void InsertPhi(intptr_t var_index, intptr_t var_count);
+  PhiInstr* InsertPhi(intptr_t var_index, intptr_t var_count);
   void RemoveDeadPhis(Definition* replacement);
 
   void InsertPhi(PhiInstr* phi);
@@ -2327,31 +2326,6 @@ class BranchInstr : public Instruction {
   TargetEntryInstr* constant_target_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
-};
-
-
-class StoreContextInstr : public TemplateInstruction<1, NoThrow> {
- public:
-  explicit StoreContextInstr(Value* value) {
-    SetInputAt(kValuePos, value);
-  }
-
-  enum {
-    kValuePos = 0
-  };
-
-  DECLARE_INSTRUCTION(StoreContext)
-
-  virtual intptr_t ArgumentCount() const { return 0; }
-
-  Value* value() const { return inputs_[kValuePos]; }
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(StoreContextInstr);
 };
 
 

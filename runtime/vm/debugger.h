@@ -179,7 +179,6 @@ class ActivationFrame : public ZoneAllocated {
   RawArray* GetLocalVariables();
   RawObject* GetReceiver();
 
-  RawContext* GetSavedEntryContext();
   RawContext* GetSavedCurrentContext();
 
   RawObject* Evaluate(const String& expr);
@@ -199,7 +198,6 @@ class ActivationFrame : public ZoneAllocated {
 
   RawObject* GetLocalVar(intptr_t slot_index);
   RawInstance* GetLocalInstanceVar(intptr_t slot_index);
-  RawContext* GetLocalContextVar(intptr_t slot_index);
 
   RawInstance* GetLocalVarValue(intptr_t slot_index);
   RawInstance* GetInstanceCallReceiver(intptr_t num_actual_args);
@@ -481,9 +479,7 @@ class Debugger {
                                            StackFrame* frame,
                                            const Code& code,
                                            const Array& deopt_frame,
-                                           intptr_t deopt_frame_offset,
-                                           ActivationFrame* callee_activation,
-                                           const Context& entry_ctx);
+                                           intptr_t deopt_frame_offset);
   static RawArray* DeoptimizeToArray(Isolate* isolate,
                                      StackFrame* frame,
                                      const Code& code);

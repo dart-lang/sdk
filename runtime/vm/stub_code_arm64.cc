@@ -44,22 +44,17 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ Comment("CallToRuntimeStub");
   __ EnterFrame(0);
 
-  __ LoadIsolate(R0, kNoPP);
+  COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R28)) != 0);
+  __ LoadIsolate(R28, kNoPP);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  __ StoreToOffset(SP, R0, Isolate::top_exit_frame_info_offset(), kNoPP);
-
-  // Save current Context pointer into Isolate structure.
-  __ StoreToOffset(CTX, R0, Isolate::top_context_offset(), kNoPP);
-
-  // Cache Isolate pointer into CTX while executing runtime code.
-  __ mov(CTX, R0);
+  __ StoreToOffset(SP, R28, Isolate::top_exit_frame_info_offset(), kNoPP);
 
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
-    __ LoadFromOffset(R8, R0, Isolate::vm_tag_offset(), kNoPP);
+    __ LoadFromOffset(R8, R28, Isolate::vm_tag_offset(), kNoPP);
     __ CompareImmediate(R8, VMTag::kDartTagId, kNoPP);
     __ b(&ok, EQ);
     __ Stop("Not coming from Dart code.");
@@ -68,7 +63,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing VM code.
-  __ StoreToOffset(R5, R0, Isolate::vm_tag_offset(), kNoPP);
+  __ StoreToOffset(R5, R28, Isolate::vm_tag_offset(), kNoPP);
 
   // Reserve space for arguments and align frame before entering C++ world.
   // NativeArguments are passed in registers.
@@ -81,7 +76,8 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Registers R0, R1, R2, and R3 are used.
 
   ASSERT(isolate_offset == 0 * kWordSize);
-  // Set isolate in NativeArgs: R0 already contains CTX.
+  // Set isolate in NativeArgs.
+  __ mov(R0, R28);
 
   // There are no runtime calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
@@ -119,22 +115,10 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Retval is next to 1st argument.
   // Mark that the isolate is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId, kNoPP);
-  __ StoreToOffset(R2, CTX, Isolate::vm_tag_offset(), kNoPP);
+  __ StoreToOffset(R2, R28, Isolate::vm_tag_offset(), kNoPP);
 
   // Reset exit frame information in Isolate structure.
-  __ StoreToOffset(ZR, CTX, Isolate::top_exit_frame_info_offset(), kNoPP);
-
-  // Load Context pointer from Isolate structure into A2.
-  __ LoadFromOffset(R2, CTX, Isolate::top_context_offset(), kNoPP);
-
-  // Load null.
-  __ LoadObject(TMP, Object::null_object(), PP);
-
-  // Reset Context pointer in Isolate structure.
-  __ StoreToOffset(TMP, CTX, Isolate::top_context_offset(), kNoPP);
-
-  // Cache Context pointer into CTX while executing Dart code.
-  __ mov(CTX, R2);
+  __ StoreToOffset(ZR, R28, Isolate::top_exit_frame_info_offset(), kNoPP);
 
   __ LeaveFrame();
   __ ret();
@@ -160,22 +144,17 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   __ EnterFrame(0);
 
-  __ LoadIsolate(R0, kNoPP);
+  COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R28)) != 0);
+  __ LoadIsolate(R28, kNoPP);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ StoreToOffset(SP, R0, Isolate::top_exit_frame_info_offset(), kNoPP);
-
-  // Save current Context pointer into Isolate structure.
-  __ StoreToOffset(CTX, R0, Isolate::top_context_offset(), kNoPP);
-
-  // Cache Isolate pointer into CTX while executing native code.
-  __ mov(CTX, R0);
+  __ StoreToOffset(SP, R28, Isolate::top_exit_frame_info_offset(), kNoPP);
 
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
-    __ LoadFromOffset(R6, CTX, Isolate::vm_tag_offset(), kNoPP);
+    __ LoadFromOffset(R6, R28, Isolate::vm_tag_offset(), kNoPP);
     __ CompareImmediate(R6, VMTag::kDartTagId, kNoPP);
     __ b(&ok, EQ);
     __ Stop("Not coming from Dart code.");
@@ -184,7 +163,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing Native code.
-  __ StoreToOffset(R5, CTX, Isolate::vm_tag_offset(), kNoPP);
+  __ StoreToOffset(R5, R28, Isolate::vm_tag_offset(), kNoPP);
 
   // Reserve space for the native arguments structure passed on the stack (the
   // outgoing pointer parameter to the native arguments structure is passed in
@@ -195,7 +174,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Registers R0, R1, R2, and R3 are used.
 
   ASSERT(isolate_offset == 0 * kWordSize);
-  // Set isolate in NativeArgs: R0 already contains CTX.
+  // Set isolate in NativeArgs.
+  __ mov(R0, R28);
 
   // There are no native calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
@@ -242,20 +222,10 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Mark that the isolate is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId, kNoPP);
-  __ StoreToOffset(R2, CTX, Isolate::vm_tag_offset(), kNoPP);
+  __ StoreToOffset(R2, R28, Isolate::vm_tag_offset(), kNoPP);
 
   // Reset exit frame information in Isolate structure.
-  __ StoreToOffset(ZR, CTX, Isolate::top_exit_frame_info_offset(), kNoPP);
-
-  // Load Context pointer from Isolate structure into R2.
-  __ LoadFromOffset(R2, CTX, Isolate::top_context_offset(), kNoPP);
-
-  // Reset Context pointer in Isolate structure.
-  __ LoadObject(R3, Object::null_object(), PP);
-  __ StoreToOffset(R3, CTX, Isolate::top_context_offset(), kNoPP);
-
-  // Cache Context pointer into CTX while executing Dart code.
-  __ mov(CTX, R2);
+  __ StoreToOffset(ZR, R28, Isolate::top_exit_frame_info_offset(), kNoPP);
 
   __ LeaveFrame();
   __ ret();
@@ -276,22 +246,17 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   __ EnterFrame(0);
 
-  __ LoadIsolate(R0, kNoPP);
+  COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R28)) != 0);
+  __ LoadIsolate(R28, kNoPP);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ StoreToOffset(SP, R0, Isolate::top_exit_frame_info_offset(), kNoPP);
-
-  // Save current Context pointer into Isolate structure.
-  __ StoreToOffset(CTX, R0, Isolate::top_context_offset(), kNoPP);
-
-  // Cache Isolate pointer into CTX while executing native code.
-  __ mov(CTX, R0);
+  __ StoreToOffset(SP, R28, Isolate::top_exit_frame_info_offset(), kNoPP);
 
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
-    __ LoadFromOffset(R6, CTX, Isolate::vm_tag_offset(), kNoPP);
+    __ LoadFromOffset(R6, R28, Isolate::vm_tag_offset(), kNoPP);
     __ CompareImmediate(R6, VMTag::kDartTagId, kNoPP);
     __ b(&ok, EQ);
     __ Stop("Not coming from Dart code.");
@@ -300,7 +265,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing Native code.
-  __ StoreToOffset(R5, CTX, Isolate::vm_tag_offset(), kNoPP);
+  __ StoreToOffset(R5, R28, Isolate::vm_tag_offset(), kNoPP);
 
   // Reserve space for the native arguments structure passed on the stack (the
   // outgoing pointer parameter to the native arguments structure is passed in
@@ -311,7 +276,8 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Registers R0, R1, R2, and R3 are used.
 
   ASSERT(isolate_offset == 0 * kWordSize);
-  // Set isolate in NativeArgs: R0 already contains CTX.
+  // Set isolate in NativeArgs.
+  __ mov(R0, R28);
 
   // There are no native calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
@@ -349,20 +315,10 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   // Mark that the isolate is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId, kNoPP);
-  __ StoreToOffset(R2, CTX, Isolate::vm_tag_offset(), kNoPP);
+  __ StoreToOffset(R2, R28, Isolate::vm_tag_offset(), kNoPP);
 
   // Reset exit frame information in Isolate structure.
-  __ StoreToOffset(ZR, CTX, Isolate::top_exit_frame_info_offset(), kNoPP);
-
-  // Load Context pointer from Isolate structure into R2.
-  __ LoadFromOffset(R2, CTX, Isolate::top_context_offset(), kNoPP);
-
-  // Reset Context pointer in Isolate structure.
-  __ LoadObject(R3, Object::null_object(), PP);
-  __ StoreToOffset(R3, CTX, Isolate::top_context_offset(), kNoPP);
-
-  // Cache Context pointer into CTX while executing Dart code.
-  __ mov(CTX, R2);
+  __ StoreToOffset(ZR, R28, Isolate::top_exit_frame_info_offset(), kNoPP);
 
   __ LeaveFrame();
   __ ret();
@@ -833,41 +789,15 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
     __ PushDouble(r);
   }
 
-  // Push new context.
-  __ Push(R3);
-#if defined(DEBUG)
-  {
-    Label ok;
-    // The new context, saved vm tag, the top exit frame, and the old context.
-    const intptr_t kNewContextOffsetFromFp =
-        -(1 + kAbiPreservedCpuRegCount + kAbiPreservedFpuRegCount) * kWordSize;
-    __ AddImmediate(R4, FP, kNewContextOffsetFromFp, kNoPP);
-    __ CompareRegisters(R4, SP);
-    __ b(&ok, EQ);
-    __ Stop("kNewContextOffsetFromFp mismatch");
-    __ Bind(&ok);
-  }
-#endif
-
   // We now load the pool pointer(PP) as we are about to invoke dart code and we
   // could potentially invoke some intrinsic functions which need the PP to be
   // set up.
   __ LoadPoolPointer(PP);
 
-  // The new Context structure contains a pointer to the current Isolate
-  // structure. Cache the Context pointer in the CTX register so that it is
-  // available in generated code and calls to Isolate::Current() need not be
-  // done. The assumption is that this register will never be clobbered by
-  // compiled or runtime stub code.
-
-  // Cache the new Context pointer into CTX while executing Dart code.
-  __ LoadFromOffset(CTX, R3, VMHandles::kOffsetOfRawPtrInHandle, PP);
-
   // Load Isolate pointer into temporary register R5.
   __ LoadIsolate(R5, PP);
 
   // Save the current VMTag on the stack.
-  ASSERT(kSavedVMTagSlotFromEntryFp == -20);
   __ LoadFromOffset(R4, R5, Isolate::vm_tag_offset(), PP);
   __ Push(R4);
 
@@ -880,19 +810,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ LoadFromOffset(R6, R5, Isolate::top_exit_frame_info_offset(), PP);
   __ StoreToOffset(ZR, R5, Isolate::top_exit_frame_info_offset(), PP);
 
-  // Save the old Context pointer. Use R4 as a temporary register.
-  // Note that VisitObjectPointers will find this saved Context pointer during
-  // GC marking, since it traverses any information between SP and
-  // FP - kExitLinkSlotFromEntryFp.
-  // EntryFrame::SavedContext reads the context saved in this frame.
-  __ LoadFromOffset(R4, R5, Isolate::top_context_offset(), PP);
-
-  // The constants kSavedContextSlotFromEntryFp and
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
-  ASSERT(kExitLinkSlotFromEntryFp == -21);
-  ASSERT(kSavedContextSlotFromEntryFp == -22);
+  ASSERT(kExitLinkSlotFromEntryFp == -20);
   __ Push(R6);
-  __ Push(R4);
 
   // Load arguments descriptor array into R4, which is passed to Dart code.
   __ LoadFromOffset(R4, R1, VMHandles::kOffsetOfRawPtrInHandle, PP);
@@ -928,26 +848,18 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ LoadPoolPointer(PP);
 
   // Get rid of arguments pushed on the stack.
-  __ AddImmediate(SP, FP, kSavedContextSlotFromEntryFp * kWordSize, PP);
+  __ AddImmediate(SP, FP, kExitLinkSlotFromEntryFp * kWordSize, PP);
 
-  // Load Isolate pointer into CTX.
-  __ LoadIsolate(CTX, PP);
+  __ LoadIsolate(R28, PP);
 
-  // Restore the current VMTag from the stack.
-  __ ldr(R4, Address(SP, 2 * kWordSize));
-  __ StoreToOffset(R4, CTX, Isolate::vm_tag_offset(), PP);
-
-  // Restore the saved Context pointer into the Isolate structure.
-  // Uses R4 as a temporary register for this.
   // Restore the saved top exit frame info back into the Isolate structure.
   // Uses R6 as a temporary register for this.
-  __ Pop(R4);
   __ Pop(R6);
-  __ StoreToOffset(R4, CTX, Isolate::top_context_offset(), PP);
-  __ StoreToOffset(R6, CTX, Isolate::top_exit_frame_info_offset(), PP);
+  __ StoreToOffset(R6, R28, Isolate::top_exit_frame_info_offset(), PP);
 
-  __ Pop(R3);
+  // Restore the current VMTag from the stack.
   __ Pop(R4);
+  __ StoreToOffset(R4, R28, Isolate::vm_tag_offset(), PP);
 
   // Restore the bottom 64-bits of callee-saved V registers.
   for (int i = kAbiLastPreservedFpuReg; i >= kAbiFirstPreservedFpuReg; i--) {

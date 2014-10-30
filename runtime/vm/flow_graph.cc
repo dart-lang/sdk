@@ -8,6 +8,7 @@
 #include "vm/flow_graph_builder.h"
 #include "vm/intermediate_language.h"
 #include "vm/growable_array.h"
+#include "vm/object_store.h"
 #include "vm/report.h"
 
 namespace dart {
@@ -36,6 +37,7 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
     optimized_block_order_(),
     constant_null_(NULL),
     constant_dead_(NULL),
+    constant_empty_context_(NULL),
     block_effects_(NULL),
     licm_allowed_(true),
     loop_headers_(NULL),
@@ -465,10 +467,13 @@ class VariableLivenessAnalysis : public LivenessAnalysis {
   // Returns true if the value set by the given store reaches any load from the
   // same local variable.
   bool IsStoreAlive(BlockEntryInstr* block, StoreLocalInstr* store) {
+    if (store->local().Equals(*flow_graph_->CurrentContextVar())) {
+      return true;
+    }
+
     if (store->is_dead()) {
       return false;
     }
-
     if (store->is_last()) {
       const intptr_t index = store->local().BitIndexIn(num_non_copied_params_);
       return GetLiveOutSet(block)->Contains(index);
@@ -480,6 +485,9 @@ class VariableLivenessAnalysis : public LivenessAnalysis {
   // Returns true if the given load is the last for the local and the value
   // of the local will not flow into another one.
   bool IsLastLoad(BlockEntryInstr* block, LoadLocalInstr* load) {
+    if (load->local().Equals(*flow_graph_->CurrentContextVar())) {
+      return false;
+    }
     const intptr_t index = load->local().BitIndexIn(num_non_copied_params_);
     return load->is_last() && !GetLiveOutSet(block)->Contains(index);
   }
@@ -565,11 +573,13 @@ void FlowGraph::ComputeSSA(
   VariableLivenessAnalysis variable_liveness(this);
   variable_liveness.Analyze();
 
+  GrowableArray<PhiInstr*> live_phis;
+
   InsertPhis(preorder_,
              variable_liveness.ComputeAssignedVars(),
-             dominance_frontier);
+             dominance_frontier,
+             &live_phis);
 
-  GrowableArray<PhiInstr*> live_phis;
 
   // Rename uses to reference inserted phis where appropriate.
   // Collect phis that reach a non-environment use.
@@ -702,7 +712,8 @@ void FlowGraph::CompressPath(intptr_t start_index,
 void FlowGraph::InsertPhis(
     const GrowableArray<BlockEntryInstr*>& preorder,
     const GrowableArray<BitVector*>& assigned_vars,
-    const GrowableArray<BitVector*>& dom_frontier) {
+    const GrowableArray<BitVector*>& dom_frontier,
+    GrowableArray<PhiInstr*>* live_phis) {
   const intptr_t block_count = preorder.length();
   // Map preorder block number to the highest variable index that has a phi
   // in that block.  Use it to avoid inserting multiple phis for the same
@@ -722,6 +733,7 @@ void FlowGraph::InsertPhis(
   // Insert phis for each variable in turn.
   GrowableArray<BlockEntryInstr*> worklist;
   for (intptr_t var_index = 0; var_index < variable_count(); ++var_index) {
+    const bool always_live = var_index == CurrentContextEnvIndex();
     // Add to the worklist each block containing an assignment.
     for (intptr_t block_index = 0; block_index < block_count; ++block_index) {
       if (assigned_vars[block_index]->Contains(var_index)) {
@@ -740,7 +752,12 @@ void FlowGraph::InsertPhis(
         if (has_already[index] < var_index) {
           BlockEntryInstr* block = preorder[index];
           ASSERT(block->IsJoinEntry());
-          block->AsJoinEntry()->InsertPhi(var_index, variable_count());
+          PhiInstr* phi = block->AsJoinEntry()->InsertPhi(var_index,
+                                                          variable_count());
+          if (always_live) {
+            phi->mark_alive();
+            live_phis->Add(phi);
+          }
           has_already[index] = var_index;
           if (work[index] < var_index) {
             work[index] = var_index;
@@ -764,6 +781,8 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   // Add global constants to the initial definitions.
   constant_null_ = GetConstant(Object::ZoneHandle());
   constant_dead_ = GetConstant(Symbols::OptimizedOut());
+  constant_empty_context_ = GetConstant(Context::Handle(
+      isolate()->object_store()->empty_context()));
 
   // Add parameters to the initial definitions and renaming environment.
   if (inlining_parameters != NULL) {
@@ -787,11 +806,22 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
     }
   }
 
-  // Initialize all locals with #null in the renaming environment.  For OSR,
-  // the locals have already been handled as parameters.
+  // Initialize all locals in the renaming environment  For OSR, the locals have
+  // already been handled as parameters.
   if (!IsCompiledForOsr()) {
     for (intptr_t i = parameter_count(); i < variable_count(); ++i) {
-      env.Add(constant_null());
+      if (i == CurrentContextEnvIndex()) {
+        if (parsed_function().function().IsClosureFunction()) {
+          CurrentContextInstr* context = new CurrentContextInstr();
+          context->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
+          AddToInitialDefinitions(context);
+          env.Add(context);
+        } else {
+          env.Add(constant_empty_context());
+        }
+      } else {
+        env.Add(constant_null());
+      }
     }
   }
 
@@ -812,12 +842,6 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
                         *env,
                         num_non_copied_params_,
                         &parsed_function_);
-  // TODO(fschneider): Add predicates CanEagerlyDeoptimize and
-  // CanLazilyDeoptimize to instructions to generally deal with instructions
-  // that have pushed arguments and input operands.
-  // Right now, closure calls are the only instructions that have both. They
-  // also don't have an eager deoptimziation point, so the environment attached
-  // here is only used for after the call.
   if (instr->IsClosureCall()) {
     deopt_env = deopt_env->DeepCopy(isolate(),
                                     deopt_env->Length() - instr->InputCount());
@@ -846,7 +870,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         if (phi != NULL) {
           (*env)[i] = phi;
           phi->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
-          if (block_entry->InsideTryBlock()) {
+          if (block_entry->InsideTryBlock() && !phi->is_alive()) {
             // This is a safe approximation.  Inside try{} all locals are
             // used at every call implicitly, so we mark all phis as live
             // from the start.
@@ -872,7 +896,9 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
   // slots with null.
   BitVector* live_in = variable_liveness->GetLiveInSet(block_entry);
   for (intptr_t i = 0; i < variable_count(); i++) {
-    if (!live_in->Contains(i)) {
+    // TODO(fschneider): Make sure that live_in always contains the
+    // CurrentContext variable to avoid the special case here.
+    if (!live_in->Contains(i) && (i != CurrentContextEnvIndex())) {
       (*env)[i] = constant_dead();
     }
   }

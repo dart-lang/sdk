@@ -28,15 +28,6 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
 }
 
 
-RawObject* DartEntry::InvokeFunction(const Function& function,
-                                     const Array& arguments,
-                                     const Array& arguments_descriptor) {
-  const Context& context =
-      Context::Handle(Isolate::Current()->object_store()->empty_context());
-  return InvokeFunction(function, arguments, arguments_descriptor, context);
-}
-
-
 class ScopedIsolateStackLimits : public ValueObject {
  public:
   explicit ScopedIsolateStackLimits(Isolate* isolate)
@@ -65,8 +56,7 @@ class ScopedIsolateStackLimits : public ValueObject {
 
 RawObject* DartEntry::InvokeFunction(const Function& function,
                                      const Array& arguments,
-                                     const Array& arguments_descriptor,
-                                     const Context& context) {
+                                     const Array& arguments_descriptor) {
   // Get the entrypoint corresponding to the function specified, this
   // will result in a compilation of the function if it is not already
   // compiled.
@@ -93,20 +83,19 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
         static_cast<int64_t>(code.EntryPoint()),
         reinterpret_cast<int64_t>(&arguments_descriptor),
         reinterpret_cast<int64_t>(&arguments),
-        reinterpret_cast<int64_t>(&context)));
+        0));
 #else
     return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
         reinterpret_cast<int32_t>(entrypoint),
         static_cast<int32_t>(code.EntryPoint()),
         reinterpret_cast<int32_t>(&arguments_descriptor),
         reinterpret_cast<int32_t>(&arguments),
-        reinterpret_cast<int32_t>(&context)));
+        0));
 #endif
 #else
     return entrypoint(code.EntryPoint(),
                       arguments_descriptor,
-                      arguments,
-                      context);
+                      arguments);
 #endif
 }
 
@@ -126,8 +115,7 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
   // method of the instance. This will result in a compilation of the function
   // if it is not already compiled.
   Function& function = Function::Handle();
-  Context& context = Context::Handle();
-  if (instance.IsCallable(&function, &context)) {
+  if (instance.IsCallable(&function)) {
     // Only invoke the function if its arguments are compatible.
     const ArgumentsDescriptor args_desc(arguments_descriptor);
     if (function.AreValidArgumentCounts(args_desc.Count(),
@@ -135,7 +123,7 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
                                         NULL)) {
       // The closure or non-closure object (receiver) is passed as implicit
       // first argument. It is already included in the arguments array.
-      return InvokeFunction(function, arguments, arguments_descriptor, context);
+      return InvokeFunction(function, arguments, arguments_descriptor);
     }
   }
   // There is no compatible 'call' method, so invoke noSuchMethod.

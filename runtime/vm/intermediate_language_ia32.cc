@@ -30,10 +30,11 @@ DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register EAX.
-LocationSummary* Instruction::MakeCallSummary() {
-  Isolate* isolate = Isolate::Current();
+LocationSummary* Instruction::MakeCallSummary(Isolate* isolate) {
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps= 0;
   LocationSummary* result = new(isolate) LocationSummary(
-      isolate, 0, 0, LocationSummary::kCall);
+      isolate, kNumInputs, kNumTemps, LocationSummary::kCall);
   result->set_out(0, Location::RegisterLocation(EAX));
   return result;
 }
@@ -803,22 +804,11 @@ void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 
 LocationSummary* NativeCallInstr::MakeLocationSummary(Isolate* isolate,
                                                       bool opt) const {
-  const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = 3;
-  LocationSummary* locs = new(isolate) LocationSummary(
-      isolate, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_temp(0, Location::RegisterLocation(EAX));
-  locs->set_temp(1, Location::RegisterLocation(ECX));
-  locs->set_temp(2, Location::RegisterLocation(EDX));
-  locs->set_out(0, Location::RegisterLocation(EAX));
-  return locs;
+  return MakeCallSummary(isolate);
 }
 
 
 void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(locs()->temp(0).reg() == EAX);
-  ASSERT(locs()->temp(1).reg() == ECX);
-  ASSERT(locs()->temp(2).reg() == EDX);
   Register result = locs()->out(0).reg();
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
   const bool is_leaf_call =
@@ -5395,7 +5385,7 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
     Isolate* isolate, bool opt) const {
-  return MakeCallSummary();
+  return MakeCallSummary(isolate);
 }
 
 
@@ -6740,7 +6730,7 @@ void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AllocateObjectInstr::MakeLocationSummary(Isolate* isolate,
                                                           bool opt) const {
-  return MakeCallSummary();
+  return MakeCallSummary(isolate);
 }
 
 
@@ -6765,7 +6755,6 @@ void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const ExternalLabel label(stub_code->DebugStepCheckEntryPoint());
   compiler->GenerateCall(token_pos(), &label, stub_kind_, locs());
 #if defined(DEBUG)
-  __ movl(EDX, Immediate(kInvalidObjectPointer));
   __ movl(EDX, Immediate(kInvalidObjectPointer));
 #endif
 }

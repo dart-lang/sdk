@@ -150,8 +150,6 @@ class EntryFrame : public StackFrame {
   bool IsStubFrame() const { return false; }
   bool IsEntryFrame() const { return true; }
 
-  RawContext* SavedContext() const;
-
   // Visit objects in the frame.
   virtual void VisitObjectPointers(ObjectPointerVisitor* visitor);
 

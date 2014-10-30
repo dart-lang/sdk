@@ -106,7 +106,6 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph,
   for (intptr_t i = kLastFreeCpuRegister + 1; i < kNumberOfCpuRegisters; i++) {
     blocked_cpu_registers_[i] = true;
   }
-  blocked_cpu_registers_[CTX] = true;
   if (TMP != kNoRegister) {
     blocked_cpu_registers_[TMP] = true;
   }
@@ -661,6 +660,16 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
                                                      param->base_reg()));
     range->set_spill_slot(Location::StackSlot(slot_index,
                                               param->base_reg()));
+  } else if (defn->IsCurrentContext()) {
+    AssignSafepoints(defn, range);
+    range->finger()->Initialize(range);
+    range->set_assigned_location(Location::RegisterLocation(CTX));
+    if (range->End() > kNormalEntryPos) {
+      LiveRange* tail = range->SplitAt(kNormalEntryPos);
+      CompleteRange(tail, Location::kRegister);
+    }
+    ConvertAllUses(range);
+    return;
   } else {
     ConstantInstr* constant = defn->AsConstant();
     ASSERT(constant != NULL);
@@ -2433,6 +2442,14 @@ MoveOperands* FlowGraphAllocator::AddMoveAt(intptr_t pos,
                                             Location to,
                                             Location from) {
   ASSERT(!IsBlockEntry(pos));
+
+  if (pos < kNormalEntryPos) {
+    ASSERT(pos > 0);
+    // Parallel moves added to the GraphEntry (B0) will be added at the start
+    // of the normal entry (B1)
+    BlockEntryInstr* entry = InstructionAt(kNormalEntryPos)->AsBlockEntry();
+    return entry->GetParallelMove()->AddMove(to, from);
+  }
 
   Instruction* instr = InstructionAt(pos);
 

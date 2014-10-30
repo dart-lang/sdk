@@ -101,7 +101,9 @@ class NativeArguments {
     int function_bits = FunctionBits::decode(argc_tag_);
     if (function_bits == (kClosureFunctionBit | kInstanceFunctionBit)) {
       // Retrieve the receiver from the context.
-      const Context& context = Context::Handle(isolate_->top_context());
+      const Object& closure = Object::Handle(ArgAt(0));
+      const Context& context =
+          Context::Handle(Closure::context(Instance::Cast(closure)));
       return context.At(0);
     }
     return ArgAt(NumHiddenArgs(function_bits));

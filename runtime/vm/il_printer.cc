@@ -356,7 +356,7 @@ void AssertBooleanInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void ClosureCallInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("function=");
+  f->Print(" function=");
   InputAt(0)->PrintTo(f);
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
@@ -366,7 +366,7 @@ void ClosureCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", function_name().ToCString());
+  f->Print(" %s", function_name().ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
@@ -378,7 +378,7 @@ void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", instance_call()->function_name().ToCString());
+  f->Print(" %s", instance_call()->function_name().ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
@@ -417,7 +417,7 @@ void EqualityCompareInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void StaticCallInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s ", String::Handle(function().name()).ToCString());
+  f->Print(" %s ", String::Handle(function().name()).ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     if (i > 0) f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);

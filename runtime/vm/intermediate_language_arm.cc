@@ -31,8 +31,7 @@ DECLARE_FLAG(bool, use_osr);
 
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register R0.
-LocationSummary* Instruction::MakeCallSummary() {
-  Isolate* isolate = Isolate::Current();
+LocationSummary* Instruction::MakeCallSummary(Isolate* isolate) {
   LocationSummary* result = new(isolate) LocationSummary(
       isolate, 0, 0, LocationSummary::kCall);
   result->set_out(0, Location::RegisterLocation(R0));
@@ -919,22 +918,11 @@ void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 
 LocationSummary* NativeCallInstr::MakeLocationSummary(Isolate* isolate,
                                                       bool opt) const {
-  const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = 3;
-  LocationSummary* locs = new(isolate) LocationSummary(
-      isolate, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_temp(0, Location::RegisterLocation(R1));
-  locs->set_temp(1, Location::RegisterLocation(R2));
-  locs->set_temp(2, Location::RegisterLocation(R5));
-  locs->set_out(0, Location::RegisterLocation(R0));
-  return locs;
+  return MakeCallSummary(isolate);
 }
 
 
 void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(locs()->temp(0).reg() == R1);
-  ASSERT(locs()->temp(1).reg() == R2);
-  ASSERT(locs()->temp(2).reg() == R5);
   const Register result = locs()->out(0).reg();
 
   // Push the result place holder initialized to NULL.
@@ -5746,7 +5734,7 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
     Isolate* isolate, bool opt) const {
-  return MakeCallSummary();
+  return MakeCallSummary(isolate);
 }
 
 
@@ -6961,7 +6949,7 @@ void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AllocateObjectInstr::MakeLocationSummary(Isolate* isolate,
                                                           bool opt) const {
-  return MakeCallSummary();
+  return MakeCallSummary(isolate);
 }
 
 

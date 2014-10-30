@@ -864,10 +864,8 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   if (parsed_function->has_expression_temp_var()) {
     node_sequence->scope()->AddVariable(parsed_function->expression_temp_var());
   }
-  if (parsed_function->has_saved_current_context_var()) {
-    node_sequence->scope()->AddVariable(
-        parsed_function->saved_current_context_var());
-  }
+  node_sequence->scope()->AddVariable(
+      parsed_function->current_context_var());
   if (parsed_function->has_finally_return_temp_var()) {
     node_sequence->scope()->AddVariable(
         parsed_function->finally_return_temp_var());
@@ -1068,9 +1066,7 @@ ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
   if (parsed_function->has_expression_temp_var()) {
     body->scope()->AddVariable(parsed_function->expression_temp_var());
   }
-  if (parsed_function->has_saved_current_context_var()) {
-    body->scope()->AddVariable(parsed_function->saved_current_context_var());
-  }
+  body->scope()->AddVariable(parsed_function->current_context_var());
   if (parsed_function->has_finally_return_temp_var()) {
     body->scope()->AddVariable(parsed_function->finally_return_temp_var());
   }
@@ -1387,7 +1383,6 @@ SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func,
   ASSERT(!owner.IsNull());
   AstNode* result = NULL;
   if (owner.IsSignatureClass() && name.Equals(Symbols::Call())) {
-    EnsureSavedCurrentContext();
     result = new ClosureCallNode(token_pos, getter_call, args);
   } else {
     result = BuildClosureCall(token_pos, getter_call, args);
@@ -8692,19 +8687,6 @@ AstNode* Parser::ParseAwaitableExprList() {
 void Parser::EnsureExpressionTemp() {
   // Temporary used later by the flow_graph_builder.
   parsed_function()->EnsureExpressionTemp();
-}
-
-
-void Parser::EnsureSavedCurrentContext() {
-  // Used later by the flow_graph_builder to save current context.
-  if (!parsed_function()->has_saved_current_context_var()) {
-    LocalVariable* temp = new(I) LocalVariable(
-        current_function().token_pos(),
-        Symbols::SavedCurrentContextVar(),
-        Type::ZoneHandle(I, Type::DynamicType()));
-    ASSERT(temp != NULL);
-    parsed_function()->set_saved_current_context_var(temp);
-  }
 }
 
 

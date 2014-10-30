@@ -4505,9 +4505,8 @@ class Instance : public Object {
 
   // If the instance is a callable object, i.e. a closure or the instance of a
   // class implementing a 'call' method, return true and set the function
-  // (if not NULL) to call and the context (if not NULL) to pass to the
-  // function.
-  bool IsCallable(Function* function, Context* context) const;
+  // (if not NULL) to call.
+  bool IsCallable(Function* function) const;
 
   // Evaluate the given expression as if it appeared in an instance
   // method of this instance and return the resulting value, or an

@@ -60,12 +60,6 @@ void ExitFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
-RawContext* EntryFrame::SavedContext() const {
-  return *(reinterpret_cast<RawContext**>(
-      fp() + (kSavedContextSlotFromEntryFp * kWordSize)));
-}
-
-
 void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(isolate() == Isolate::Current());
   // Visit objects between SP and (FP - callee_save_area).

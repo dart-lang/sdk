@@ -458,29 +458,7 @@ intptr_t ActivationFrame::ContextLevel() {
 }
 
 
-RawContext* ActivationFrame::GetSavedEntryContext() {
-  // Attempt to find a saved context.
-  GetVarDescriptors();
-  intptr_t var_desc_len = var_descriptors_.Length();
-  for (intptr_t i = 0; i < var_desc_len; i++) {
-    RawLocalVarDescriptors::VarInfo var_info;
-    var_descriptors_.GetInfo(i, &var_info);
-    const int8_t kind = var_info.kind();
-    if (kind == RawLocalVarDescriptors::kSavedEntryContext) {
-      if (FLAG_trace_debugger_stacktrace) {
-        OS::PrintErr("\tFound saved entry ctx at index %d\n", var_info.index());
-      }
-      return GetLocalContextVar(var_info.index());
-    }
-  }
-
-  // No saved context.  Return the current context.
-  return ctx_.raw();
-}
-
-
-// Get the saved context if the callee of this activation frame is a
-// closure function.
+// Get the saved current context of this activation.
 RawContext* ActivationFrame::GetSavedCurrentContext() {
   GetVarDescriptors();
   intptr_t var_desc_len = var_descriptors_.Length();
@@ -493,7 +471,8 @@ RawContext* ActivationFrame::GetSavedCurrentContext() {
         OS::PrintErr("\tFound saved current ctx at index %d\n",
             var_info.index());
       }
-      return GetLocalContextVar(var_info.index());
+      ASSERT(Object::Handle(GetLocalVar(var_info.index())).IsContext());
+      return reinterpret_cast<RawContext*>(GetLocalVar(var_info.index()));
     }
   }
   UNREACHABLE();
@@ -678,21 +657,6 @@ RawInstance* ActivationFrame::GetLocalInstanceVar(intptr_t slot_index) {
 }
 
 
-RawContext* ActivationFrame::GetLocalContextVar(intptr_t slot_index) {
-  Object& context = Object::Handle(GetLocalVar(slot_index));
-  if (context.IsContext()) {
-    // We found a saved context.
-    return Context::Cast(context).raw();
-  } else if (context.raw() == Symbols::OptimizedOut().raw()) {
-    // The optimizing compiler has eliminated the saved context.
-    return Context::null();
-  } else {
-    UNREACHABLE();
-    return Context::null();
-  }
-}
-
-
 void ActivationFrame::PrintContextMismatchError(
     const String& var_name,
     intptr_t ctx_slot,
@@ -761,13 +725,7 @@ void ActivationFrame::VariableAt(intptr_t i,
     *value = GetLocalInstanceVar(var_info.index());
   } else {
     ASSERT(kind == RawLocalVarDescriptors::kContextVar);
-    if (ctx_.IsNull()) {
-      // The context has been removed by the optimizing compiler.
-      //
-      // TODO(turnidge): This may be erroneous.  Revisit.
-      *value = Symbols::OptimizedOut().raw();
-      return;
-    }
+    ASSERT(!ctx_.IsNull());
 
     // The context level at the PC/token index of this activation frame.
     intptr_t frame_ctx_level = ContextLevel();
@@ -1234,21 +1192,13 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
                                             StackFrame* frame,
                                             const Code& code,
                                             const Array& deopt_frame,
-                                            intptr_t deopt_frame_offset,
-                                            ActivationFrame* callee_activation,
-                                            const Context& entry_ctx) {
+                                            intptr_t deopt_frame_offset) {
   ASSERT(code.ContainsInstructionAt(pc));
-  // We provide either a callee activation or an entry context.  Not both.
-  ASSERT(((callee_activation != NULL) && entry_ctx.IsNull()) ||
-         ((callee_activation == NULL) && !entry_ctx.IsNull()));
   ActivationFrame* activation =
       new ActivationFrame(pc, frame->fp(), frame->sp(), code,
                           deopt_frame, deopt_frame_offset);
 
   // Is there a closure call at the current PC?
-  //
-  // We can't just check the callee_activation to see if it is a
-  // closure function, because it may not be on the stack yet.
   bool is_closure_call = false;
   const PcDescriptors& pc_desc =
       PcDescriptors::Handle(isolate, code.pc_descriptors());
@@ -1272,27 +1222,13 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
       OS::PrintErr("\tUsing closure call ctx: %s\n",
                    closure_call_ctx.ToCString());
     }
-  } else if (callee_activation == NULL) {
-    // No callee available.  Use incoming entry context.  Could be from
-    // isolate's top context or from an entry frame.
-    ASSERT(!entry_ctx.IsNull());
-    activation->SetContext(entry_ctx);
-    if (FLAG_trace_debugger_stacktrace) {
-      OS::PrintErr("\tUsing entry ctx: %s\n", entry_ctx.ToCString());
-    }
   } else {
-    // Use the context provided by our callee.  This is either the
-    // callee's context or a context that was saved in the callee's
-    // frame.
-    //
-    // The callee's saved context may be NULL if it was eliminated by
-    // the optimizing compiler.
-    const Context& callee_ctx =
-        Context::Handle(isolate, callee_activation->GetSavedEntryContext());
-    activation->SetContext(callee_ctx);
+    const Context& ctx =
+        Context::Handle(isolate, activation->GetSavedCurrentContext());
+    ASSERT(!ctx.IsNull());
+    activation->SetContext(ctx);
     if (FLAG_trace_debugger_stacktrace) {
-      OS::PrintErr("\tUsing callee call ctx: %s\n",
-                   callee_ctx.ToCString());
+      OS::PrintErr("\tUsing entry ctx: %s\n", ctx.ToCString());
     }
   }
   if (FLAG_trace_debugger_stacktrace) {
@@ -1330,8 +1266,6 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
   Isolate* isolate = Isolate::Current();
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
   StackFrameIterator iterator(false);
-  ActivationFrame* current_activation = NULL;
-  Context& entry_ctx = Context::Handle(isolate, isolate->top_context());
   Code& code = Code::Handle(isolate);
   Code& inlined_code = Code::Handle(isolate);
   Array& deopt_frame = Array::Handle(isolate);
@@ -1344,15 +1278,7 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
       OS::PrintErr("CollectStackTrace: visiting frame:\n\t%s\n",
                    frame->ToCString());
     }
-    if (frame->IsEntryFrame()) {
-      current_activation = NULL;
-      entry_ctx = reinterpret_cast<EntryFrame*>(frame)->SavedContext();
-      if (FLAG_trace_debugger_stacktrace) {
-        OS::PrintErr("\tFound saved ctx in  entry frame:\n\t%s\n",
-                     entry_ctx.ToCString());
-      }
-
-    } else if (frame->IsDartFrame()) {
+    if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
       if (code.is_optimized()) {
         deopt_frame = DeoptimizeToArray(isolate, frame, code);
@@ -1368,28 +1294,20 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
                          function.ToFullyQualifiedCString());
           }
           intptr_t deopt_frame_offset = it.GetDeoptFpOffset();
-          current_activation = CollectDartFrame(isolate,
-                                                it.pc(),
-                                                frame,
-                                                inlined_code,
-                                                deopt_frame,
-                                                deopt_frame_offset,
-                                                current_activation,
-                                                entry_ctx);
-          stack_trace->AddActivation(current_activation);
-          entry_ctx = Context::null();  // Only use entry context once.
+          stack_trace->AddActivation(CollectDartFrame(isolate,
+                                                      it.pc(),
+                                                      frame,
+                                                      inlined_code,
+                                                      deopt_frame,
+                                                      deopt_frame_offset));
         }
       } else {
-        current_activation = CollectDartFrame(isolate,
-                                              frame->pc(),
-                                              frame,
-                                              code,
-                                              Object::null_array(),
-                                              0,
-                                              current_activation,
-                                              entry_ctx);
-        stack_trace->AddActivation(current_activation);
-        entry_ctx = Context::null();  // Only use entry context once.
+        stack_trace->AddActivation(CollectDartFrame(isolate,
+                                                    frame->pc(),
+                                                    frame,
+                                                    code,
+                                                    Object::null_array(),
+                                                    0));
       }
     }
   }

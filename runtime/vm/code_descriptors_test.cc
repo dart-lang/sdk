@@ -21,22 +21,8 @@ static const intptr_t kPos = Scanner::kNoSourcePos;
 
 
 CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
-  Assembler assembler;
-  const String& function_name = String::ZoneHandle(Symbols::New("test"));
-  Class& cls = Class::ZoneHandle();
-  const Script& script = Script::Handle();
-  cls = Class::New(function_name, script, Scanner::kNoSourcePos);
-  const Function& function = Function::ZoneHandle(
-      Function::New(function_name, RawFunction::kRegularFunction,
-                    true, false, false, false, false, cls, 0));
-  function.set_result_type(Type::Handle(Type::DynamicType()));
-  const Array& functions = Array::Handle(Array::New(1));
-  functions.SetAt(0, function);
-  cls.SetFunctions(functions);
-  Library& lib = Library::Handle(Library::CoreLibrary());
-  lib.AddClass(cls);
   ParsedFunction* parsed_function =
-      new ParsedFunction(Isolate::Current(), function);
+      new ParsedFunction(Isolate::Current(), test->function());
   LiteralNode* l = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(1)));
   test->node_sequence()->Add(new ReturnNode(kPos, l));
   l = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(2)));
@@ -46,6 +32,11 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
   parsed_function->SetNodeSequence(test->node_sequence());
   parsed_function->set_instantiator(NULL);
   parsed_function->set_default_parameter_values(Object::null_array());
+  parsed_function->EnsureExpressionTemp();
+  test->node_sequence()->scope()->AddVariable(
+      parsed_function->expression_temp_var());
+  test->node_sequence()->scope()->AddVariable(
+      parsed_function->current_context_var());
   parsed_function->AllocateVariables();
   bool retval;
   Isolate* isolate = Isolate::Current();
@@ -133,7 +124,7 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
     const Error& error =
         Error::Handle(Compiler::CompileParsedFunction(parsed_function));
     EXPECT(error.IsNull());
-    const Code& code = Code::Handle(function.CurrentCode());
+    const Code& code = Code::Handle(test->function().CurrentCode());
 
     const Array& stack_maps =
         Array::Handle(stackmap_table_builder->FinalizeStackmaps(code));
