@@ -172,7 +172,7 @@ class B extends A {
     });
   }
 
-  test_checkFinalConditions_shadowsInSubClass_notImportedLib() {
+  xtest_checkFinalConditions_shadowsInSubClass_notImportedLib() {
     indexTestUnit('''
 class Test {}
 ''');
