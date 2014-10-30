@@ -6,6 +6,7 @@ library dart2js.cmdline;
 
 import 'dart:async'
     show Future, EventSink;
+import 'dart:convert' show UTF8, LineSplitter;
 import 'dart:io'
     show exit, File, FileMode, Platform, RandomAccessFile, FileSystemException,
          stdin, stderr;
@@ -635,7 +636,6 @@ const _EXIT_SIGNAL = const Object();
 
 void batchMain(List<String> batchArguments) {
   int exitCode;
-
   exitFunc = (errorCode) {
     // Since we only throw another part of the compiler might intercept our
     // exception and try to exit with a different code.
@@ -645,24 +645,24 @@ void batchMain(List<String> batchArguments) {
     throw _EXIT_SIGNAL;
   };
 
-  runJob() {
+  var stream = stdin.transform(UTF8.decoder).transform(new LineSplitter());
+  var subscription;
+  subscription = stream.listen((line) {
     new Future.sync(() {
+      subscription.pause();
       exitCode = 0;
-      String line = stdin.readLineSync();
       if (line == null) exit(0);
       List<String> args = <String>[];
       args.addAll(batchArguments);
       args.addAll(splitLine(line, windows: Platform.isWindows));
       return internalMain(args);
-    })
-    .catchError((exception, trace) {
+    }).catchError((exception, trace) {
       if (!identical(exception, _EXIT_SIGNAL)) {
         exitCode = 253;
       }
-    })
-    .whenComplete(() {
-      // The testing framework waits for a status line on stdout and stderr
-      // before moving to the next test.
+    }).whenComplete(() {
+      // The testing framework waits for a status line on stdout and
+      // stderr before moving to the next test.
       if (exitCode == 0){
         print(">>> TEST OK");
       } else if (exitCode == 253) {
@@ -671,9 +671,7 @@ void batchMain(List<String> batchArguments) {
         print(">>> TEST FAIL");
       }
       stderr.writeln(">>> EOF STDERR");
-      runJob();
+      subscription.resume();
     });
-  }
-
-  runJob();
+  });
 }
