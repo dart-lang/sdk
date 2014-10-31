@@ -210,6 +210,11 @@ class AssistProcessor {
   }
 
   void _addProposal_addTypeAnnotation_VariableDeclaration() {
+    AstNode node = this.node;
+    // check if "var v = 42;^"
+    if (node is VariableDeclarationStatement) {
+      node = (node as VariableDeclarationStatement).variables;
+    }
     // prepare VariableDeclarationList
     VariableDeclarationList declarationList =
         node.getAncestor((node) => node is VariableDeclarationList);

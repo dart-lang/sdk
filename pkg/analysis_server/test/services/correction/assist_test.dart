@@ -203,6 +203,19 @@ main(List<String> items) {
 ''');
   }
 
+  void test_addTypeAnnotation_local_OK_onVariableDeclarationStatement() {
+    _indexTestUnit('''
+main() {
+  var v = 123; // marker
+}
+''');
+    assertHasAssistAt(' // marker', AssistKind.ADD_TYPE_ANNOTATION, '''
+main() {
+  int v = 123; // marker
+}
+''');
+  }
+
   void test_addTypeAnnotation_local_OK_Function() {
     _indexTestUnit('''
 main() {
