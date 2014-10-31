@@ -3385,7 +3385,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         buffer.writeln("---------");
         parent = parent.parent;
       }
-      AnalysisEngine.instance.logger.logError2(buffer.toString(), new CaughtException(new AnalysisException(), null));
+      AnalysisEngine.instance.logger.logError(
+          buffer.toString(),
+          new CaughtException(new AnalysisException(), null));
     }
     return element;
   }
@@ -3986,7 +3988,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         }
       }
       holder.validate();
-    } catch (ex) {
+    } catch (exception, stackTrace) {
       if (node.name.staticElement == null) {
         ClassDeclaration classNode = node.getAncestor((node) => node is ClassDeclaration);
         StringBuffer buffer = new StringBuffer();
@@ -3995,10 +3997,14 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         buffer.write(" in ");
         buffer.write(classNode.name);
         buffer.write(" was not set while trying to build the element model.");
-        AnalysisEngine.instance.logger.logError2(buffer.toString(), new AnalysisException(buffer.toString(), new CaughtException(ex, null)));
+        AnalysisEngine.instance.logger.logError(
+            buffer.toString(),
+            new CaughtException(exception, stackTrace));
       } else {
         String message = "Exception caught in ElementBuilder.visitMethodDeclaration()";
-        AnalysisEngine.instance.logger.logError2(message, new AnalysisException(message, new CaughtException(ex, null)));
+        AnalysisEngine.instance.logger.logError(
+            message,
+            new CaughtException(exception, stackTrace));
       }
     } finally {
       if (node.name.staticElement == null) {
@@ -4009,7 +4015,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         buffer.write(" in ");
         buffer.write(classNode.name);
         buffer.write(" was not set while trying to resolve types.");
-        AnalysisEngine.instance.logger.logError2(buffer.toString(), new CaughtException(new AnalysisException(buffer.toString()), null));
+        AnalysisEngine.instance.logger.logError(
+            buffer.toString(),
+            new CaughtException(new AnalysisException(buffer.toString()), null));
       }
     }
     return null;
@@ -13626,7 +13634,9 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
           _errorListener.addAll(resolver.errorListener);
         } on AnalysisException catch (exception, stackTrace) {
           //TODO (danrubel): Handle or forward the exception
-          AnalysisEngine.instance.logger.logError2("Could not resolve script tag", new CaughtException(exception, stackTrace));
+          AnalysisEngine.instance.logger.logError(
+              "Could not resolve script tag",
+              new CaughtException(exception, stackTrace));
         }
         node.scriptElement = script;
         _scripts.add(script);
@@ -15610,7 +15620,9 @@ class Library {
       try {
         _libraryElement = _analysisContext.computeLibraryElement(librarySource) as LibraryElementImpl;
       } on AnalysisException catch (exception, stackTrace) {
-        AnalysisEngine.instance.logger.logError2("Could not compute library element for ${librarySource.fullName}", new CaughtException(exception, stackTrace));
+        AnalysisEngine.instance.logger.logError(
+            "Could not compute library element for ${librarySource.fullName}",
+            new CaughtException(exception, stackTrace));
       }
     }
     return _libraryElement;
@@ -16917,7 +16929,9 @@ class LibraryResolver {
               computer.add(unit);
             }
           } on AnalysisException catch (exception, stackTrace) {
-            AnalysisEngine.instance.logger.logError2("Internal Error: Could not access AST for ${source.fullName} during constant evaluation", new CaughtException(exception, stackTrace));
+            AnalysisEngine.instance.logger.logError(
+                "Internal Error: Could not access AST for ${source.fullName} during constant evaluation",
+                new CaughtException(exception, stackTrace));
           }
         }
       }
@@ -20707,7 +20721,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     Scope outerScope = _nameScope;
     try {
       if (classElement == null) {
-        AnalysisEngine.instance.logger.logInformation2("Missing element for class declaration ${node.name.name} in ${definingLibrary.source.fullName}", new JavaException());
+        AnalysisEngine.instance.logger.logInformation(
+            "Missing element for class declaration ${node.name.name} in ${definingLibrary.source.fullName}",
+            new CaughtException(new AnalysisException(), null));
         super.visitClassDeclaration(node);
       } else {
         _nameScope = new TypeParameterScope(_nameScope, classElement);
@@ -20749,7 +20765,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
         }
         buffer.write(" in ");
         buffer.write(definingLibrary.source.fullName);
-        AnalysisEngine.instance.logger.logInformation2(buffer.toString(), new JavaException());
+        AnalysisEngine.instance.logger.logInformation(
+            buffer.toString(),
+            new CaughtException(new AnalysisException(), null));
       } else {
         _nameScope = new FunctionScope(_nameScope, constructorElement);
       }
@@ -20832,7 +20850,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     Scope outerScope = _nameScope;
     try {
       if (functionElement == null) {
-        AnalysisEngine.instance.logger.logInformation2("Missing element for top-level function ${node.name.name} in ${definingLibrary.source.fullName}", new JavaException());
+        AnalysisEngine.instance.logger.logInformation(
+            "Missing element for top-level function ${node.name.name} in ${definingLibrary.source.fullName}",
+            new CaughtException(new AnalysisException(), null));
       } else {
         _nameScope = new FunctionScope(_nameScope, functionElement);
       }
@@ -20868,7 +20888,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
           }
           buffer.write("in ");
           buffer.write(definingLibrary.source.fullName);
-          AnalysisEngine.instance.logger.logInformation2(buffer.toString(), new JavaException());
+          AnalysisEngine.instance.logger.logInformation(
+              buffer.toString(),
+              new CaughtException(new AnalysisException(), null));
         } else {
           _nameScope = new FunctionScope(_nameScope, functionElement);
         }
@@ -20917,7 +20939,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     try {
       ExecutableElement methodElement = node.element;
       if (methodElement == null) {
-        AnalysisEngine.instance.logger.logInformation2("Missing element for method ${node.name.name} in ${definingLibrary.source.fullName}", new JavaException());
+        AnalysisEngine.instance.logger.logInformation(
+            "Missing element for method ${node.name.name} in ${definingLibrary.source.fullName}",
+            new CaughtException(new AnalysisException(), null));
       } else {
         _nameScope = new FunctionScope(_nameScope, methodElement);
       }
@@ -24033,7 +24057,9 @@ class TypeResolverVisitor extends ScopedVisitor {
       buffer.write(" in ");
       buffer.write(source.fullName);
       buffer.write(" was not set while trying to resolve types.");
-      AnalysisEngine.instance.logger.logError2(buffer.toString(), new CaughtException(new AnalysisException(), null));
+      AnalysisEngine.instance.logger.logError(
+          buffer.toString(),
+          new CaughtException(new AnalysisException(), null));
     } else {
       ClassElement definingClass = element.enclosingElement as ClassElement;
       element.returnType = definingClass.type;
@@ -24101,7 +24127,9 @@ class TypeResolverVisitor extends ScopedVisitor {
       buffer.write(" in ");
       buffer.write(source.fullName);
       buffer.write(" was not set while trying to resolve types.");
-      AnalysisEngine.instance.logger.logError2(buffer.toString(), new CaughtException(new AnalysisException(), null));
+      AnalysisEngine.instance.logger.logError(
+          buffer.toString(),
+          new CaughtException(new AnalysisException(), null));
     }
     element.returnType = _computeReturnType(node.returnType);
     FunctionTypeImpl type = new FunctionTypeImpl.con1(element);
@@ -24154,7 +24182,9 @@ class TypeResolverVisitor extends ScopedVisitor {
       buffer.write(" in ");
       buffer.write(source.fullName);
       buffer.write(" was not set while trying to resolve types.");
-      AnalysisEngine.instance.logger.logError2(buffer.toString(), new CaughtException(new AnalysisException(), null));
+      AnalysisEngine.instance.logger.logError(
+          buffer.toString(),
+          new CaughtException(new AnalysisException(), null));
     }
     element.returnType = _computeReturnType(node.returnType);
     FunctionTypeImpl type = new FunctionTypeImpl.con1(element);

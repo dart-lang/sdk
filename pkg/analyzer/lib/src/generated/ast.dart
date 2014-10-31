@@ -801,7 +801,9 @@ class AssignmentExpression extends Expression {
       } else {
         message = "The right-hand size is null";
       }
-      AnalysisEngine.instance.logger.logError2(message, new JavaException(message));
+      AnalysisEngine.instance.logger.logError(
+          message,
+          new CaughtException(new AnalysisException(message), null));
     }
     this._leftHandSide = becomeParentOf(leftHandSide);
     this._rightHandSide = becomeParentOf(rightHandSide);
@@ -12443,8 +12445,10 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
       node.accept(this);
     } on NodeLocator_NodeFoundException catch (exception) {
       // A node with the right source position was found.
-    } catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Unable to locate element at offset ($_startOffset - $_endOffset)", exception);
+    } catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logInformation(
+          "Unable to locate element at offset ($_startOffset - $_endOffset)",
+          new CaughtException(exception, stackTrace));
       return null;
     }
     return _foundNode;
@@ -12463,10 +12467,12 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
     try {
       node.visitChildren(this);
     } on NodeLocator_NodeFoundException catch (exception) {
-      throw exception;
-    } catch (exception) {
+      rethrow;
+    } catch (exception, stackTrace) {
       // Ignore the exception and proceed in order to visit the rest of the structure.
-      AnalysisEngine.instance.logger.logInformation2("Exception caught while traversing an AST structure.", exception);
+      AnalysisEngine.instance.logger.logInformation(
+          "Exception caught while traversing an AST structure.",
+          new CaughtException(exception, stackTrace));
     }
     if (start <= _startOffset && _endOffset <= end) {
       _foundNode = node;
@@ -16452,7 +16458,9 @@ class SimpleIdentifier extends Identifier {
    */
   Element _returnOrReportElement(AstNode parent, bool isValid, Element element) {
     if (!isValid) {
-      AnalysisEngine.instance.logger.logInformation2("Internal error: attempting to set the name of a ${parent.runtimeType} to a ${element.runtimeType}", new JavaException());
+      AnalysisEngine.instance.logger.logInformation(
+          "Internal error: attempting to set the name of a ${parent.runtimeType} to a ${element.runtimeType}",
+          new CaughtException(new AnalysisException(), null));
       return null;
     }
     return element;

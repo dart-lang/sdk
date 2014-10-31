@@ -1543,7 +1543,11 @@ abstract class XmlNode {
     XmlNode current = newParent;
     while (current != null) {
       if (identical(current, this)) {
-        AnalysisEngine.instance.logger.logError2("Circular structure while setting an XML node's parent", new IllegalArgumentException(_buildRecursiveStructureMessage(newParent)));
+        AnalysisEngine.instance.logger.logError(
+            "Circular structure while setting an XML node's parent",
+            new CaughtException(
+                new ArgumentError(_buildRecursiveStructureMessage(newParent)),
+                null));
         return;
       }
       current = current.parent;

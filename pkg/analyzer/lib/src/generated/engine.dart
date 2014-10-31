@@ -111,11 +111,13 @@ class AnalysisCache {
       }
     }
     //
-    // We should never get to this point because the last partition should always be a universal
-    // partition, except in the case of the SDK context, in which case the source should always be
-    // part of the SDK.
+    // We should never get to this point because the last partition should
+    // always be a universal partition, except in the case of the SDK context,
+    // in which case the source should always be part of the SDK.
     //
-    AnalysisEngine.instance.logger.logInformation2("Could not find context for ${source.fullName}", new JavaException());
+    AnalysisEngine.instance.logger.logInformation(
+        "Could not find context for ${source.fullName}",
+        new CaughtException(new AnalysisException(), null));
     return null;
   }
 
@@ -1158,8 +1160,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             }
           }
         }
-      } on ObsoleteSourceAnalysisException catch (exception) {
-        AnalysisEngine.instance.logger.logInformation2("Could not compute errors", exception);
+      } on ObsoleteSourceAnalysisException catch (exception, stackTrace) {
+        AnalysisEngine.instance.logger.logInformation(
+            "Could not compute errors",
+            new CaughtException(exception, stackTrace));
       }
       if (errors.isEmpty) {
         return AnalysisError.NO_ERRORS;
@@ -1169,8 +1173,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       HtmlEntry htmlEntry = sourceEntry;
       try {
         return _getHtmlResolutionData2(source, htmlEntry, HtmlEntry.RESOLUTION_ERRORS);
-      } on ObsoleteSourceAnalysisException catch (exception) {
-        AnalysisEngine.instance.logger.logInformation2("Could not compute errors", exception);
+      } on ObsoleteSourceAnalysisException catch (exception, stackTrace) {
+        AnalysisEngine.instance.logger.logInformation(
+            "Could not compute errors",
+            new CaughtException(exception, stackTrace));
       }
     }
     return AnalysisError.NO_ERRORS;
@@ -1212,8 +1218,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       } else if (sourceEntry is DartEntry) {
         return _getDartScanData2(source, SourceEntry.LINE_INFO, null);
       }
-    } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not compute ${SourceEntry.LINE_INFO}", exception);
+    } on ObsoleteSourceAnalysisException catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logInformation(
+          "Could not compute ${SourceEntry.LINE_INFO}",
+          new CaughtException(exception, stackTrace));
     }
     return null;
   }
@@ -1529,7 +1537,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       NamespaceBuilder builder = new NamespaceBuilder();
       namespace = builder.createPublicNamespaceForLibrary(library);
       if (dartEntry == null) {
-        AnalysisEngine.instance.logger.logError2("Could not compute the public namespace for ${library.source.fullName}", new CaughtException(new AnalysisException("A Dart file became a non-Dart file: ${source.fullName}"), null));
+        AnalysisEngine.instance.logger.logError(
+            "Could not compute the public namespace for ${library.source.fullName}",
+            new CaughtException(
+                new AnalysisException("A Dart file became a non-Dart file: ${source.fullName}"),
+                null));
         return null;
       }
       if (identical(dartEntry.getValue(DartEntry.ELEMENT), library)) {
@@ -1770,11 +1782,15 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     int performStart = JavaSystem.currentTimeMillis();
     try {
       task.perform(_resultRecorder);
-    } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not perform analysis task: $taskDescription", exception);
-    } on AnalysisException catch (exception) {
+    } on ObsoleteSourceAnalysisException catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logInformation(
+          "Could not perform analysis task: $taskDescription",
+          new CaughtException(exception, stackTrace));
+    } on AnalysisException catch (exception, stackTrace) {
       if (exception.cause is! JavaIOException) {
-        AnalysisEngine.instance.logger.logError2("Internal error while performing the task: $task", exception);
+        AnalysisEngine.instance.logger.logError(
+            "Internal error while performing the task: $task",
+            new CaughtException(exception, stackTrace));
       }
     }
     int performEnd = JavaSystem.currentTimeMillis();
@@ -2551,8 +2567,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     CompilationUnit unit = unitEntry.getValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource);
     if (unit == null) {
-      CaughtException exception = new CaughtException(new AnalysisException("Entry has VALID state for RESOLVED_UNIT but null value for ${unitSource.fullName} in ${librarySource.fullName}"), null);
-      AnalysisEngine.instance.logger.logInformation2(exception.toString(), exception);
+      CaughtException exception = new CaughtException(
+          new AnalysisException("Entry has VALID state for RESOLVED_UNIT but null value for ${unitSource.fullName} in ${librarySource.fullName}"),
+          null);
+      AnalysisEngine.instance.logger.logInformation(exception.toString(), exception);
       unitEntry.recordResolutionError(exception);
       return new AnalysisContextImpl_TaskData(null, false);
     }
@@ -2719,7 +2737,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return new AnalysisContextImpl_TaskData(new ResolveDartLibraryCycleTask(this, source, source, builder.librariesInCycle), false);
     } on AnalysisException catch (exception, stackTrace) {
       dartEntry.recordResolutionError(new CaughtException(exception, stackTrace));
-      AnalysisEngine.instance.logger.logError2("Internal error trying to create a ResolveDartLibraryTask", new CaughtException(exception, stackTrace));
+      AnalysisEngine.instance.logger.logError(
+          "Internal error trying to create a ResolveDartLibraryTask",
+          new CaughtException(exception, stackTrace));
     }
     return new AnalysisContextImpl_TaskData(null, false);
   }
@@ -2877,8 +2897,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     try {
       return _getDartParseData(source, dartEntry, descriptor);
-    } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not compute $descriptor", exception);
+    } on ObsoleteSourceAnalysisException catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logInformation(
+          "Could not compute $descriptor",
+          new CaughtException(exception, stackTrace));
       return defaultValue;
     }
   }
@@ -2931,8 +2953,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     try {
       return _getDartResolutionData(unitSource, librarySource, dartEntry, descriptor);
-    } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not compute $descriptor", exception);
+    } on ObsoleteSourceAnalysisException catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logInformation(
+          "Could not compute $descriptor",
+          new CaughtException(exception, stackTrace));
       return defaultValue;
     }
   }
@@ -2976,8 +3000,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     try {
       return _getDartScanData(source, dartEntry, descriptor);
-    } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not compute $descriptor", exception);
+    } on ObsoleteSourceAnalysisException catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logInformation(
+          "Could not compute $descriptor",
+          new CaughtException(exception, stackTrace));
       return defaultValue;
     }
   }
@@ -3050,8 +3076,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     try {
       return _getHtmlResolutionData2(source, htmlEntry, descriptor);
-    } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not compute $descriptor", exception);
+    } on ObsoleteSourceAnalysisException catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logInformation(
+          "Could not compute $descriptor",
+          new CaughtException(exception, stackTrace));
       return defaultValue;
     }
   }
@@ -3694,20 +3722,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   void _logInformation(String message) {
     AnalysisEngine.instance.logger.logInformation(message);
-  }
-
-  /**
-   * Log the given debugging information.
-   *
-   * @param message the message to be added to the log
-   * @param exception the exception to be included in the log entry
-   */
-  void _logInformation2(String message, Exception exception) {
-    if (exception == null) {
-      AnalysisEngine.instance.logger.logInformation(message);
-    } else {
-      AnalysisEngine.instance.logger.logInformation2(message, exception);
-    }
   }
 
   /**
@@ -5973,7 +5987,9 @@ abstract class AnalysisTask {
       _safelyPerform();
     } on AnalysisException catch (exception, stackTrace) {
       _thrownException = new CaughtException(exception, stackTrace);
-      AnalysisEngine.instance.logger.logInformation2("Task failed: $taskDescription", new CaughtException(exception, stackTrace));
+      AnalysisEngine.instance.logger.logInformation(
+          "Task failed: $taskDescription",
+          new CaughtException(exception, stackTrace));
     }
     return accept(visitor);
   }
@@ -7462,7 +7478,9 @@ class ChangeNoticeImpl implements ChangeNotice {
     this._errors = errors;
     this._lineInfo = lineInfo;
     if (lineInfo == null) {
-      AnalysisEngine.instance.logger.logInformation2("No line info: $source", new JavaException());
+      AnalysisEngine.instance.logger.logInformation(
+          "No line info: $source",
+          new CaughtException(new AnalysisException(), null));
     }
   }
 

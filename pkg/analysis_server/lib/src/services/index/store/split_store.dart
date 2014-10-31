@@ -82,10 +82,10 @@ class FileNodeManager implements NodeManager {
       }
       _DataInputStream stream = new _DataInputStream(bytes);
       return _readNode(stream);
-    }).catchError((e, stackTrace) {
-      _logger.logError2(
+    }).catchError((exception, stackTrace) {
+      _logger.logError(
           'Exception during reading index file ${name}',
-          new CaughtException(e, stackTrace));
+          new CaughtException(exception, stackTrace));
     });
   }
 
@@ -108,10 +108,10 @@ class FileNodeManager implements NodeManager {
       _writeNode(node, stream);
       var bytes = stream.getBytes();
       return _fileManager.write(name, bytes);
-    }).catchError((e, stackTrace) {
-      _logger.logError2(
+    }).catchError((exception, stackTrace) {
+      _logger.logError(
           'Exception during reading index file ${name}',
-          new CaughtException(e, stackTrace));
+          new CaughtException(exception, stackTrace));
     });
   }
 

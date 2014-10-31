@@ -132,7 +132,7 @@ class _FileNodeManagerTest {
       // no IndexNode
       expect(node, isNull);
       // failed
-      verify(logger.logError2(anyObject, anyObject)).once();
+      verify(logger.logError(anyObject, anyObject)).once();
     });
   }
 
@@ -145,7 +145,7 @@ class _FileNodeManagerTest {
     return nodeManager.getNode(name).then((IndexNode node) {
       expect(node, isNull);
       // failed
-      verify(logger.logError2(anyString, anyObject)).once();
+      verify(logger.logError(anyString, anyObject)).once();
     });
   }
 
@@ -236,7 +236,7 @@ class _FileNodeManagerTest {
     // try to put
     return nodeManager.putNode(name, node).then((_) {
       // failed
-      verify(logger.logError2(anyString, anyObject)).once();
+      verify(logger.logError(anyString, anyObject)).once();
     });
   }
 

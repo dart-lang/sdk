@@ -521,8 +521,10 @@ class SourceFactory {
       if (uri.isAbsolute) {
         return _internalResolveUri(null, uri);
       }
-    } catch (exception) {
-      AnalysisEngine.instance.logger.logError2("Could not resolve URI: $absoluteUri", exception);
+    } catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logError(
+          "Could not resolve URI: $absoluteUri",
+          new CaughtException(exception, stackTrace));
     }
     return null;
   }
@@ -539,7 +541,9 @@ class SourceFactory {
       try {
         return _internalResolveUri(null, absoluteUri);
       } on AnalysisException catch (exception, stackTrace) {
-        AnalysisEngine.instance.logger.logError2("Could not resolve URI: $absoluteUri", new CaughtException(exception, stackTrace));
+        AnalysisEngine.instance.logger.logError(
+            "Could not resolve URI: $absoluteUri",
+            new CaughtException(exception, stackTrace));
       }
     }
     return null;
@@ -603,8 +607,10 @@ class SourceFactory {
     try {
       // Force the creation of an escaped URI to deal with spaces, etc.
       return _internalResolveUri(containingSource, parseUriWithException(containedUri));
-    } catch (exception) {
-      AnalysisEngine.instance.logger.logError2("Could not resolve URI ($containedUri) relative to source (${containingSource.fullName})", exception);
+    } catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logError(
+          "Could not resolve URI ($containedUri) relative to source (${containingSource.fullName})",
+          new CaughtException(exception, stackTrace));
       return null;
     }
   }

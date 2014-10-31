@@ -431,12 +431,16 @@ class PackageUriResolver extends UriResolver {
     JavaFile pkgDir = new JavaFile.relative(packagesDirectory, pkgName);
     try {
       pkgDir = pkgDir.getCanonicalFile();
-    } on JavaIOException catch (e) {
-      if (!e.toString().contains("Required key not available")) {
-        AnalysisEngine.instance.logger.logError2("Canonical failed: $pkgDir", e);
+    } on JavaIOException catch (exception, stackTrace) {
+      if (!exception.toString().contains("Required key not available")) {
+        AnalysisEngine.instance.logger.logError(
+            "Canonical failed: $pkgDir",
+            new CaughtException(exception, stackTrace));
       } else if (_CanLogRequiredKeyIoException) {
         _CanLogRequiredKeyIoException = false;
-        AnalysisEngine.instance.logger.logError2("Canonical failed: $pkgDir", e);
+        AnalysisEngine.instance.logger.logError(
+            "Canonical failed: $pkgDir",
+            new CaughtException(exception, stackTrace));
       }
     }
     return new JavaFile.relative(pkgDir, relPath.replaceAll('/', new String.fromCharCode(JavaFile.separatorChar)));

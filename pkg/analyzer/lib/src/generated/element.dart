@@ -8166,7 +8166,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       InterfaceType futureType = futureElement.type;
       return futureType.substitute4(<DartType> [DynamicTypeImpl.instance]);
     } on AnalysisException catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logError2("Could not build the element model for dart:async", new CaughtException(exception, stackTrace));
+      AnalysisEngine.instance.logger.logError(
+          "Could not build the element model for dart:async",
+          new CaughtException(exception, stackTrace));
       return VoidTypeImpl.instance;
     }
   }
