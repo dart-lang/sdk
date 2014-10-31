@@ -277,10 +277,8 @@ TEST_CASE(Parser_AllocateVariables_CapturedVar) {
       " 0 ContextLevel  level=1   scope=1   begin=2   end=37\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      " 2 SavedEntryCtx scope=0   begin=0   end=0"
-      "   name=:saved_entry_context_var\n"
-      " 3 ContextVar    level=1   begin=7   end=37  name=value\n"
-      " 4 StackVar      scope=2   begin=12  end=37  name=f\n",
+      " 2 ContextVar    level=1   begin=7   end=37  name=value\n"
+      " 3 StackVar      scope=2   begin=12  end=37  name=f\n",
       CaptureVarsAtLine(lib, "main", 4));
 }
 
@@ -320,10 +318,8 @@ TEST_CASE(Parser_AllocateVariables_NestedCapturedVar) {
       " 0 ContextLevel  level=1   scope=1   begin=8   end=38\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      " 2 SavedEntryCtx scope=0   begin=0   end=0"
-      "   name=:saved_entry_context_var\n"
-      " 3 ContextVar    level=1   begin=13  end=38  name=value\n"
-      " 4 StackVar      scope=2   begin=18  end=38  name=c\n"
+      " 2 ContextVar    level=1   begin=13  end=38  name=value\n"
+      " 3 StackVar      scope=2   begin=18  end=38  name=c\n"
 
       // Closure call saves current context.
       "(dynamic) => int.call\n"
@@ -381,10 +377,8 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
       " 0 ContextLevel  level=1   scope=1   begin=20  end=50\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      " 2 SavedEntryCtx scope=0   begin=0   end=0"
-      "   name=:saved_entry_context_var\n"
-      " 3 ContextVar    level=1   begin=25  end=50  name=value2\n"
-      " 4 StackVar      scope=2   begin=30  end=50  name=bb\n"
+      " 2 ContextVar    level=1   begin=25  end=50  name=value2\n"
+      " 3 StackVar      scope=2   begin=30  end=50  name=bb\n"
 
       // Closure call saves current context.
       "(dynamic) => int.call\n"
@@ -410,10 +404,8 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
       " 0 ContextLevel  level=1   scope=1   begin=2   end=68\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      " 2 SavedEntryCtx scope=0   begin=0   end=0"
-      "   name=:saved_entry_context_var\n"
-      " 3 ContextVar    level=1   begin=7   end=68  name=value1\n"
-      " 4 StackVar      scope=2   begin=12  end=68  name=b\n",
+      " 2 ContextVar    level=1   begin=7   end=68  name=value1\n"
+      " 3 StackVar      scope=2   begin=12  end=68  name=b\n",
       CaptureVarsAtLine(lib, "a", 7));
 }
 
@@ -453,8 +445,6 @@ TEST_CASE(Parser_AllocateVariables_Issue7681) {
       " 1 ContextVar    level=1   begin=42  end=62  name=y\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      " 3 SavedEntryCtx scope=0   begin=0   end=0"
-      "   name=:saved_entry_context_var\n"
 
       // Closure call saves current context.
       "(dynamic, dynamic) => dynamic.call\n"
@@ -512,12 +502,10 @@ TEST_CASE(Parser_AllocateVariables_CaptureLoopVar) {
       "::.outer\n"
       " 0 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      " 1 SavedEntryCtx scope=0   begin=0   end=0"
-      "   name=:saved_entry_context_var\n"
-      " 2 StackVar      scope=3   begin=9   end=50  name=i\n"
-      " 3 ContextLevel  level=1   scope=4   begin=20  end=50\n"
-      " 4 ContextVar    level=1   begin=23  end=50  name=value\n"
-      " 5 StackVar      scope=4   begin=30  end=50  name=inner\n",
+      " 1 StackVar      scope=3   begin=9   end=50  name=i\n"
+      " 2 ContextLevel  level=1   scope=4   begin=20  end=50\n"
+      " 3 ContextVar    level=1   begin=23  end=50  name=value\n"
+      " 4 StackVar      scope=4   begin=30  end=50  name=inner\n",
       CaptureVarsAtLine(lib, "outer", 5));
 }
 
@@ -569,10 +557,8 @@ TEST_CASE(Parser_AllocateVariables_MiddleChain) {
       " 0 ContextLevel  level=1   scope=1   begin=1   end=76\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      " 2 SavedEntryCtx scope=0   begin=0   end=0"
-      "   name=:saved_entry_context_var\n"
-      " 3 ContextVar    level=1   begin=6   end=76  name=x\n"
-      " 4 StackVar      scope=2   begin=11  end=76  name=b\n",
+      " 2 ContextVar    level=1   begin=6   end=76  name=x\n"
+      " 3 StackVar      scope=2   begin=11  end=76  name=b\n",
       CaptureVarsAtLine(lib, "a", 10));
 }
 

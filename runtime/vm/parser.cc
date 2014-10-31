@@ -193,30 +193,6 @@ void ParsedFunction::AllocateVariables() {
                                &context_owner,
                                &found_captured_variables);
 
-  // We save the entry context for a function when...
-  //
-  //   - some variable in the function is captured by nested functions, and
-  //   - the function does not capture any variables from parent functions.
-  //
-  // We used to link to the parent context in these cases, but this
-  // had the effect of unintentionally retaining parent contexts which
-  // would never be accessed.  By breaking the context chain at this
-  // point, we allow these outer contexts to be collected.
-  if (found_captured_variables) {
-    const ContextScope& context_scope =
-        ContextScope::Handle(function().context_scope());
-    if (context_scope.IsNull() || (context_scope.num_variables() == 0)) {
-      // Allocate a local variable for saving the entry context.
-      LocalVariable* context_var =
-          new LocalVariable(function().token_pos(),
-                            Symbols::SavedEntryContextVar(),
-                            Type::ZoneHandle(Type::DynamicType()));
-      context_var->set_index(next_free_frame_index--);
-      scope->AddVariable(context_var);
-      set_saved_entry_context_var(context_var);
-    }
-  }
-
   // Frame indices are relative to the frame pointer and are decreasing.
   ASSERT(next_free_frame_index <= first_stack_local_index_);
   num_stack_locals_ = first_stack_local_index_ - next_free_frame_index;

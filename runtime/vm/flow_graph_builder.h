@@ -407,7 +407,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   virtual void BuildTypeTest(ComparisonNode* node);
   virtual void BuildTypeCast(ComparisonNode* node);
 
-  bool MustSaveRestoreContext(SequenceNode* node) const;
+  bool HasContextScope() const;
 
   // Moves the nth parent context into the context register.
   void UnchainContexts(intptr_t n);

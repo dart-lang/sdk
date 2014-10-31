@@ -199,10 +199,6 @@ class ActivationFrame : public ZoneAllocated {
   RawObject* GetLocalVar(intptr_t slot_index);
   RawInstance* GetLocalInstanceVar(intptr_t slot_index);
 
-  RawInstance* GetLocalVarValue(intptr_t slot_index);
-  RawInstance* GetInstanceCallReceiver(intptr_t num_actual_args);
-  RawObject* GetClosureObject(intptr_t num_acatual_args);
-
   uword pc_;
   uword fp_;
   uword sp_;

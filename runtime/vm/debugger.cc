@@ -472,7 +472,7 @@ RawContext* ActivationFrame::GetSavedCurrentContext() {
             var_info.index());
       }
       ASSERT(Object::Handle(GetLocalVar(var_info.index())).IsContext());
-      return reinterpret_cast<RawContext*>(GetLocalVar(var_info.index()));
+      return Context::RawCast(GetLocalVar(var_info.index()));
     }
   }
   UNREACHABLE();
@@ -1198,38 +1198,13 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
       new ActivationFrame(pc, frame->fp(), frame->sp(), code,
                           deopt_frame, deopt_frame_offset);
 
-  // Is there a closure call at the current PC?
-  bool is_closure_call = false;
-  const PcDescriptors& pc_desc =
-      PcDescriptors::Handle(isolate, code.pc_descriptors());
-  PcDescriptors::Iterator iter(pc_desc, RawPcDescriptors::kClosureCall);
-  while (iter.MoveNext()) {
-    if (iter.Pc() == pc) {
-      is_closure_call = true;
-      break;
-    }
-  }
-
   // Recover the context for this frame.
-  if (is_closure_call) {
-    // If the callee is a closure, we should have stored the context
-    // in the current frame before making the call.
-    const Context& closure_call_ctx =
-        Context::Handle(isolate, activation->GetSavedCurrentContext());
-    ASSERT(!closure_call_ctx.IsNull());
-    activation->SetContext(closure_call_ctx);
-    if (FLAG_trace_debugger_stacktrace) {
-      OS::PrintErr("\tUsing closure call ctx: %s\n",
-                   closure_call_ctx.ToCString());
-    }
-  } else {
-    const Context& ctx =
-        Context::Handle(isolate, activation->GetSavedCurrentContext());
-    ASSERT(!ctx.IsNull());
-    activation->SetContext(ctx);
-    if (FLAG_trace_debugger_stacktrace) {
-      OS::PrintErr("\tUsing entry ctx: %s\n", ctx.ToCString());
-    }
+  const Context& ctx =
+      Context::Handle(isolate, activation->GetSavedCurrentContext());
+  ASSERT(!ctx.IsNull());
+  activation->SetContext(ctx);
+  if (FLAG_trace_debugger_stacktrace) {
+    OS::PrintErr("\tUsing saved context: %s\n", ctx.ToCString());
   }
   if (FLAG_trace_debugger_stacktrace) {
     OS::PrintErr("\tLine number: %" Pd "\n", activation->LineNumber());

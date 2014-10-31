@@ -59,7 +59,6 @@ class ObjectPointerVisitor;
   V(GetIterator, "iterator")                                                   \
   V(NoSuchMethod, "noSuchMethod")                                              \
   V(CurrentContextVar, ":current_context_var")                                 \
-  V(SavedEntryContextVar, ":saved_entry_context_var")                          \
   V(SavedTryContextVar, ":saved_try_context_var")                              \
   V(ExceptionParameter, ":exception")                                          \
   V(StackTraceParameter, ":stack_trace")                                       \

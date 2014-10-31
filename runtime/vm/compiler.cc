@@ -761,9 +761,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
     RawLocalVarDescriptors::VarInfo var_info;
     var_descriptors.GetInfo(i, &var_info);
     const int8_t kind = var_info.kind();
-    if (kind == RawLocalVarDescriptors::kSavedEntryContext) {
-      OS::Print("  saved caller's CTX reg offset %d\n", var_info.index());
-    } else if (kind == RawLocalVarDescriptors::kSavedCurrentContext) {
+    if (kind == RawLocalVarDescriptors::kSavedCurrentContext) {
       OS::Print("  saved current CTX reg offset %d\n", var_info.index());
     } else {
       if (kind == RawLocalVarDescriptors::kContextLevel) {

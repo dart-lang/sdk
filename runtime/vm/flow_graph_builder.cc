@@ -1098,10 +1098,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
 
   intptr_t current_context_level = owner()->context_level();
   ASSERT(current_context_level >= 0);
-  if (owner()->parsed_function()->saved_entry_context_var() != NULL) {
-    // CTX on entry was saved, but not linked as context parent.
-    BuildRestoreContext(*owner()->parsed_function()->saved_entry_context_var());
-  } else {
+  if (HasContextScope()) {
     UnchainContexts(current_context_level);
   }
 
@@ -3653,9 +3650,10 @@ void ValueGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
 }
 
 
-bool EffectGraphVisitor::MustSaveRestoreContext(SequenceNode* node) const {
-  return (node == owner()->parsed_function()->node_sequence()) &&
-         (owner()->parsed_function()->saved_entry_context_var() != NULL);
+bool EffectGraphVisitor::HasContextScope() const {
+  const ContextScope& context_scope = ContextScope::Handle(
+      owner()->parsed_function()->function().context_scope());
+  return !context_scope.IsNull() && (context_scope.num_variables() > 0);
 }
 
 
@@ -3682,46 +3680,35 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   LocalScope* scope = node->scope();
   const intptr_t num_context_variables =
       (scope != NULL) ? scope->num_context_variables() : 0;
+  const bool is_top_level_sequence =
+      node == owner()->parsed_function()->node_sequence();
   // The outermost function sequence cannot contain a label.
-  ASSERT((node->label() == NULL) ||
-         (node != owner()->parsed_function()->node_sequence()));
+  ASSERT((node->label() == NULL) || !is_top_level_sequence);
   NestedBlock nested_block(owner(), node);
 
   if (num_context_variables > 0) {
-    // The loop local scope declares variables that are captured.
-    // Allocate and chain a new context.
-    // Allocate context computation (uses current context)
+    // The local scope declares variables that are captured.
+    // Allocate and chain a new context (Except don't chain when at the function
+    // entry if the function does not capture any variables from outer scopes).
     Value* allocated_context =
         Bind(new(I) AllocateContextInstr(node->token_pos(),
                                          num_context_variables));
     { LocalVariable* tmp_var = EnterTempLocalScope(allocated_context);
-      // If this node_sequence is the body of the function being compiled, and
-      // if this function allocates context variables, but none of its enclosing
-      // functions do, the context on entry is not linked as parent of the
-      // allocated context but saved on entry and restored on exit as to prevent
-      // memory leaks.
-      // In this case, the parser pre-allocates a variable to save the context.
-      Value* tmp_val = Bind(new(I) LoadLocalInstr(*tmp_var));
-      Value* parent_context = NULL;
-      if (MustSaveRestoreContext(node)) {
-        BuildSaveContext(
-            *owner()->parsed_function()->saved_entry_context_var());
-        parent_context = Bind(
-            new(I) ConstantInstr(Object::ZoneHandle(I, Object::null())));
-      } else {
-        parent_context = Bind(BuildCurrentContext());
+      if (HasContextScope() || !is_top_level_sequence) {
+        Value* tmp_val = Bind(new(I) LoadLocalInstr(*tmp_var));
+        Value* parent_context = Bind(BuildCurrentContext());
+        Do(new(I) StoreInstanceFieldInstr(Context::parent_offset(),
+                                          tmp_val,
+                                          parent_context,
+                                          kEmitStoreBarrier,
+                                          Scanner::kNoSourcePos));
       }
-      Do(new(I) StoreInstanceFieldInstr(Context::parent_offset(),
-                                        tmp_val,
-                                        parent_context,
-                                        kEmitStoreBarrier,
-                                        Scanner::kNoSourcePos));
       Do(BuildStoreContext(Bind(ExitTempLocalScope(tmp_var))));
     }
 
     // If this node_sequence is the body of the function being compiled, copy
     // the captured parameters from the frame into the context.
-    if (node == owner()->parsed_function()->node_sequence()) {
+    if (is_top_level_sequence) {
       ASSERT(scope->context_level() == 1);
       const Function& function = owner()->parsed_function()->function();
       const int num_params = function.NumParameters();
@@ -3757,22 +3744,12 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         }
       }
     }
-  } else if (MustSaveRestoreContext(node)) {
-    // Even when the current scope has no context variables, we may
-    // still need to save the current context if, for example, there
-    // are loop scopes below this which will allocate a context
-    // object.
-    BuildSaveContext(
-        *owner()->parsed_function()->saved_entry_context_var());
-    Do(BuildStoreContext(Bind(new(I) ConstantInstr(Object::ZoneHandle(
-        I, I->object_store()->empty_context())))));
   }
 
   // This check may be deleted if the generated code is leaf.
   // Native functions don't need a stack check at entry.
   const Function& function = owner()->parsed_function()->function();
-  if ((node == owner()->parsed_function()->node_sequence()) &&
-      !function.is_native()) {
+  if (is_top_level_sequence && !function.is_native()) {
     // Always allocate CheckOverflowInstr so that deopt-ids match regardless
     // if we inline or not.
     if (!function.IsImplicitGetterFunction() &&
@@ -3787,8 +3764,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     }
   }
 
-  if (FLAG_enable_type_checks &&
-      (node == owner()->parsed_function()->node_sequence())) {
+  if (FLAG_enable_type_checks && is_top_level_sequence) {
     const Function& function = owner()->parsed_function()->function();
     const int num_params = function.NumParameters();
     int pos = 0;
@@ -3827,7 +3803,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   // If this node sequence is the body of an async closure leave room for a
   // preamble. The preamble is generated after visiting the body.
   GotoInstr* preamble_start = NULL;
-  if ((node == owner()->parsed_function()->node_sequence()) &&
+  if (is_top_level_sequence &&
       (owner()->parsed_function()->function().is_async_closure())) {
     JoinEntryInstr* preamble_end = new(I) JoinEntryInstr(
         owner()->AllocateBlockId(), owner()->try_index());
@@ -3853,7 +3829,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   // Continuation part:
   // After generating the CFG for the body we can create the preamble because we
   // know exactly how many continuation states we need.
-  if ((node == owner()->parsed_function()->node_sequence()) &&
+  if (is_top_level_sequence &&
       (owner()->parsed_function()->function().is_async_closure())) {
     ASSERT(preamble_start != NULL);
     // We are at the top level. Fetch the corresponding scope.
@@ -3914,13 +3890,10 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     exit_ = saved_exit;
   }
 
-  if (is_open()) {
-    if (MustSaveRestoreContext(node)) {
-      BuildRestoreContext(
-          *owner()->parsed_function()->saved_entry_context_var());
-    } else if (num_context_variables > 0) {
-      UnchainContexts(1);
-    }
+  if (is_open() &&
+      (num_context_variables > 0) &&
+      (HasContextScope() || !is_top_level_sequence)) {
+    UnchainContexts(1);
   }
 
   // If this node sequence is labeled, a break out of the sequence will have

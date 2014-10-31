@@ -10785,9 +10785,6 @@ static const char* VarKindString(int kind) {
     case RawLocalVarDescriptors::kContextLevel:
       return "ContextLevel";
       break;
-    case RawLocalVarDescriptors::kSavedEntryContext:
-      return "SavedEntryCtx";
-      break;
     case RawLocalVarDescriptors::kSavedCurrentContext:
       return "CurrentCtx";
       break;
@@ -10907,8 +10904,6 @@ const char* LocalVarDescriptors::KindToStr(intptr_t kind) {
       return "ContextVar";
     case RawLocalVarDescriptors::kContextLevel:
       return "ContextLevel";
-    case RawLocalVarDescriptors::kSavedEntryContext:
-      return "SavedEntryContext";
     case RawLocalVarDescriptors::kSavedCurrentContext:
       return "SavedCurrentContext";
     default:

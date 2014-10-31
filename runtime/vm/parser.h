@@ -45,7 +45,6 @@ class ParsedFunction : public ZoneAllocated {
         instantiator_(NULL),
         default_parameter_values_(Array::ZoneHandle(isolate, Array::null())),
         current_context_var_(NULL),
-        saved_entry_context_var_(NULL),
         expression_temp_var_(NULL),
         finally_return_temp_var_(NULL),
         deferred_prefixes_(new ZoneGrowableArray<const LibraryPrefix*>()),
@@ -90,14 +89,6 @@ class ParsedFunction : public ZoneAllocated {
 
   LocalVariable* current_context_var() const {
     return current_context_var_;
-  }
-
-  LocalVariable* saved_entry_context_var() const {
-    return saved_entry_context_var_;
-  }
-  void set_saved_entry_context_var(LocalVariable* saved_entry_context_var) {
-    ASSERT(saved_entry_context_var != NULL);
-    saved_entry_context_var_ = saved_entry_context_var;
   }
 
   LocalVariable* expression_temp_var() const {
@@ -173,7 +164,6 @@ class ParsedFunction : public ZoneAllocated {
   LocalVariable* instantiator_;
   Array& default_parameter_values_;
   LocalVariable* current_context_var_;
-  LocalVariable* saved_entry_context_var_;
   LocalVariable* expression_temp_var_;
   LocalVariable* finally_return_temp_var_;
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes_;

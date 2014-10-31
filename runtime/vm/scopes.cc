@@ -325,17 +325,6 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
         desc.info.end_pos = var->owner()->end_token_pos();
         desc.info.set_index(var->index());
         vars->Add(desc);
-      } else if (var->name().raw() == Symbols::SavedEntryContextVar().raw()) {
-        // This is the local variable in which the function saves the
-        // caller's chain of closure contexts (caller's CTX register).
-        VarDesc desc;
-        desc.name = &var->name();
-        desc.info.set_kind(RawLocalVarDescriptors::kSavedEntryContext);
-        desc.info.scope_id = 0;
-        desc.info.begin_pos = 0;
-        desc.info.end_pos = 0;
-        desc.info.set_index(var->index());
-        vars->Add(desc);
       } else if (var->name().raw() == Symbols::CurrentContextVar().raw()) {
         // This is the local variable in which the function saves its
         // own context before calling a closure function.
