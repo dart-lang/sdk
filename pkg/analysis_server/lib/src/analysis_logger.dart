@@ -6,6 +6,7 @@ library analysis.logger;
 
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:logging/logging.dart' as logging;
+import 'package:analyzer/src/generated/java_engine.dart';
 
 /**
  * Instances of the class [AnalysisLogger] translate from the analysis engine's
@@ -18,22 +19,30 @@ class AnalysisLogger implements Logger {
   final logging.Logger baseLogger = new logging.Logger('analysis.server');
 
   @override
-  void logError(String message) {
-    baseLogger.severe(message);
+  void logError(String message, [CaughtException exception]) {
+    if (exception == null) {
+      baseLogger.severe(message);
+    } else {
+      baseLogger.severe(message, exception.exception, exception.stackTrace);
+    }
   }
 
   @override
-  void logError2(String message, Exception exception) {
+  void logError2(String message, Object exception) {
     baseLogger.severe(message, exception);
   }
 
   @override
-  void logInformation(String message) {
-    baseLogger.info(message);
+  void logInformation(String message, [CaughtException exception]) {
+    if (exception == null) {
+      baseLogger.info(message);
+    } else {
+      baseLogger.info(message, exception.exception, exception.stackTrace);
+    }
   }
 
   @override
-  void logInformation2(String message, Exception exception) {
+  void logInformation2(String message, Object exception) {
     baseLogger.info(message, exception);
   }
 }

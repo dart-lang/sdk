@@ -5238,55 +5238,6 @@ class StringUtilitiesTest {
   }
 }
 
-/**
- * Instances of the class `TestLogger` implement a logger that can be used by tests.
- */
-class TestLogger implements Logger {
-  /**
-   * The number of error messages that were logged.
-   */
-  int _errorCount = 0;
-
-  /**
-   * The number of informational messages that were logged.
-   */
-  int _infoCount = 0;
-
-  /**
-   * Return the number of error messages that were logged.
-   *
-   * @return the number of error messages that were logged
-   */
-  int get errorCount => _errorCount;
-
-  /**
-   * Return the number of informational messages that were logged.
-   *
-   * @return the number of informational messages that were logged
-   */
-  int get infoCount => _infoCount;
-
-  @override
-  void logError(String message) {
-    _errorCount++;
-  }
-
-  @override
-  void logError2(String message, Exception exception) {
-    _errorCount++;
-  }
-
-  @override
-  void logInformation(String message) {
-    _infoCount++;
-  }
-
-  @override
-  void logInformation2(String message, Exception exception) {
-    _infoCount++;
-  }
-}
-
 
 class TokenMapTest {
   void test_creation() {

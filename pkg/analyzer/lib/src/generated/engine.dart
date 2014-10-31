@@ -10365,20 +10365,24 @@ abstract class InternalAnalysisContext implements AnalysisContext {
 }
 
 /**
- * The interface `Logger` defines the behavior of objects that can be used to receive
- * information about errors within the analysis engine. Implementations usually write this
- * information to a file, but can also record the information for later use (such as during testing)
- * or even ignore the information.
+ * A `Logger` is an object that can be used to receive information about errors
+ * within the analysis engine. Implementations usually write this information to
+ * a file, but can also record the information for later use (such as during
+ * testing) or even ignore the information.
  */
 abstract class Logger {
-  static final Logger NULL = new Logger_NullLogger();
+  /**
+   * A logger that ignores all logging.
+   */
+  static final Logger NULL = new NullLogger();
 
   /**
-   * Log the given message as an error.
-   *
-   * @param message an explanation of why the error occurred or what it means
+   * Log the given message as an error. The [message] is expected to be an
+   * explanation of why the error occurred or what it means. The [exception] is
+   * expected to be the reason for the error. At least one argument must be
+   * provided.
    */
-  void logError(String message);
+  void logError(String message, [CaughtException exception]);
 
   /**
    * Log the given exception as one representing an error.
@@ -10386,15 +10390,15 @@ abstract class Logger {
    * @param message an explanation of why the error occurred or what it means
    * @param exception the exception being logged
    */
-  void logError2(String message, Exception exception);
+  @deprecated
+  void logError2(String message, Object exception);
 
   /**
-   * Log the given informational message.
-   *
-   * @param message an explanation of why the error occurred or what it means
-   * @param exception the exception being logged
+   * Log the given informational message. The [message] is expected to be an
+   * explanation of why the error occurred or what it means. The [exception] is
+   * expected to be the reason for the error.
    */
-  void logInformation(String message);
+  void logInformation(String message, [CaughtException exception]);
 
   /**
    * Log the given exception as one representing an informational message.
@@ -10402,27 +10406,28 @@ abstract class Logger {
    * @param message an explanation of why the error occurred or what it means
    * @param exception the exception being logged
    */
-  void logInformation2(String message, Exception exception);
+  @deprecated
+  void logInformation2(String message, Object exception);
 }
 
 /**
- * Implementation of [Logger] that does nothing.
+ * An implementation of [Logger] that does nothing.
  */
-class Logger_NullLogger implements Logger {
+class NullLogger implements Logger {
   @override
-  void logError(String message) {
+  void logError(String message, [CaughtException exception]) {
   }
 
   @override
-  void logError2(String message, Exception exception) {
+  void logError2(String message, Object exception) {
   }
 
   @override
-  void logInformation(String message) {
+  void logInformation(String message, [CaughtException exception]) {
   }
 
   @override
-  void logInformation2(String message, Exception exception) {
+  void logInformation2(String message, Object exception) {
   }
 }
 
