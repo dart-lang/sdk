@@ -7,6 +7,7 @@ library test.services.completion.dart;
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/services/completion/combinator_computer.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/imported_computer.dart';
 import 'package:analysis_server/src/services/completion/invocation_computer.dart';
@@ -93,7 +94,7 @@ class DartCompletionManager extends CompletionManager {
       int count = computers.length;
       computers.forEach((c) {
         c.computeFull(request).then((bool changed) {
-          var last = --count == 0;
+          bool last = --count == 0;
           if (changed || last) {
             sendResults(last);
           }
@@ -110,6 +111,7 @@ class DartCompletionManager extends CompletionManager {
       computers = [
           new KeywordComputer(),
           new LocalComputer(),
+          new CombinatorComputer(),
           new ImportedComputer(),
           new InvocationComputer()];
     }

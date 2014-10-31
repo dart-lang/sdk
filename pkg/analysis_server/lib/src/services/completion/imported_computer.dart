@@ -79,11 +79,6 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   }
 
   @override
-  Future<bool> visitCombinator(Combinator node) {
-    return _addCombinatorSuggestions(node);
-  }
-
-  @override
   Future<bool> visitExpression(Expression node) {
     return _addImportedElementSuggestions(node, excludeVoidReturn: true);
   }
@@ -198,19 +193,6 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     // Make suggestions for the RHS of a variable declaration
     if (equals != null && request.offset >= equals.end) {
       return _addImportedElementSuggestions(node, excludeVoidReturn: true);
-    }
-    return new Future.value(false);
-  }
-
-  Future _addCombinatorSuggestions(Combinator node) {
-    var directive = node.getAncestor((parent) => parent is NamespaceDirective);
-    if (directive is NamespaceDirective) {
-      LibraryElement library = directive.uriElement;
-      LibraryElementSuggestionBuilder.suggestionsFor(
-          request,
-          CompletionSuggestionKind.IDENTIFIER,
-          library);
-      return new Future.value(true);
     }
     return new Future.value(false);
   }

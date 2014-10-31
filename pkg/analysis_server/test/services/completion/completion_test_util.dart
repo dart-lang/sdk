@@ -1068,33 +1068,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class X {}''');
     computeFast();
     return computeFull(true).then((_) {
-      assertSuggestImportedClass(
-          'A',
-          CompletionRelevance.DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestImportedClass(
-          'B',
-          CompletionRelevance.DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestImportedClass(
-          'PB',
-          CompletionRelevance.DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestImportedTopLevelVar(
-          'T1',
-          null,
-          CompletionRelevance.DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestImportedFunction(
-          'F1',
-          'PB',
-          false,
-          CompletionRelevance.DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
-      assertNotSuggested('C');
-      assertNotSuggested('D');
-      assertNotSuggested('X');
-      assertNotSuggested('Object');
+      assertNoSuggestions();
     });
   }
 
@@ -1121,43 +1095,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class X {}''');
     computeFast();
     return computeFull(true).then((_) {
-      assertSuggestImportedClass(
-          'A',
-          CompletionRelevance.DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestImportedClass(
-          'B',
-          CompletionRelevance.DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestImportedClass(
-          'PB',
-          CompletionRelevance.DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestImportedTopLevelVar(
-          'T1',
-          null,
-          CompletionRelevance.DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestImportedFunction(
-          'F1',
-          'PB',
-          false,
-          CompletionRelevance.DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestImportedClass(
-          'Clz',
-          CompletionRelevance.DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
-      assertSuggestImportedFunctionTypeAlias(
-          'F2',
-          null,
-          false,
-          CompletionRelevance.DEFAULT,
-          CompletionSuggestionKind.IDENTIFIER);
-      assertNotSuggested('C');
-      assertNotSuggested('D');
-      assertNotSuggested('X');
-      assertNotSuggested('Object');
+      assertNoSuggestions();
     });
   }
 
@@ -1286,6 +1224,23 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull(true).then((_) {
       assertSuggestLocalVariable('foo', null);
       assertSuggestImportedClass('Object');
+    });
+  }
+
+  test_FormalParameterList() {
+    // FormalParameterList MethodDeclaration
+    addTestSource('''
+      foo() { }
+      void bar() { }
+      class A {a(^) { }}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalFunction('foo', null);
+      assertSuggestLocalMethod('a', 'A', null);
+      assertSuggestLocalClass('A');
+      assertSuggestImportedClass('String');
+      assertSuggestImportedFunction('identical', 'bool');
+      assertNotSuggested('bar');
     });
   }
 
@@ -1598,23 +1553,6 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestParameter('x', 'X');
       assertSuggestParameter('y', 'int');
       assertSuggestImportedClass('String');
-    });
-  }
-
-  test_FormalParameterList() {
-    // FormalParameterList MethodDeclaration
-    addTestSource('''
-      foo() { }
-      void bar() { }
-      class A {a(^) { }}''');
-    computeFast();
-    return computeFull(true).then((_) {
-      assertSuggestLocalFunction('foo', null);
-      assertSuggestLocalMethod('a', 'A', null);
-      assertSuggestLocalClass('A');
-      assertSuggestImportedClass('String');
-      assertSuggestImportedFunction('identical', 'bool');
-      assertNotSuggested('bar');
     });
   }
 
