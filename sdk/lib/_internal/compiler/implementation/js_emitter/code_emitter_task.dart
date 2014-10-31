@@ -54,9 +54,6 @@ class CodeEmitterTask extends CompilerTask {
         : oldEmitter;
     nativeEmitter = new NativeEmitter(this);
     typeTestEmitter.emitter = this.oldEmitter;
-    // TODO(18886): Remove this call (and the show in the import) once the
-    // memory-leak in the VM is fixed.
-    templateManager.clear();
   }
 
 
