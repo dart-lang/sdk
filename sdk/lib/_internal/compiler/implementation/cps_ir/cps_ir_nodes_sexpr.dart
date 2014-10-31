@@ -28,8 +28,8 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
         })
         .join(' ');
     String body = indentBlock(() => visit(node.body));
-    return '$indentation(FunctionDefinition $name ($parameters return)\n' +
-                 '$body)';
+    return '$indentation(FunctionDefinition $name ($parameters return)\n'
+           '$body)';
   }
 
   String visitLetPrim(LetPrim node) {
@@ -53,8 +53,8 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
     String contBody = indentBlock(() => visit(node.continuation.body));
     String body = visit(node.body);
     String op = node.continuation.isRecursive ? 'LetCont*' : 'LetCont';
-    return '$indentation($op ($cont$parameters)\n' +
-               '$contBody)\n' +
+    return '$indentation($op ($cont$parameters)\n'
+           '$contBody)\n'
            '$body';
   }
 
@@ -160,15 +160,15 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   String visitSetClosureVariable(SetClosureVariable node) {
     String value = names[node.value.definition];
     String body = indentBlock(() => visit(node.body));
-    return '$indentation(SetClosureVariable ${node.variable.name} $value\n' +
-                '$body)';
+    return '$indentation(SetClosureVariable ${node.variable.name} $value\n'
+           '$body)';
   }
 
   String visitTypeOperator(TypeOperator node) {
     String receiver = names[node.receiver.definition];
     String cont = names[node.continuation.definition];
-    return '$indentation(TypeOperator ${node.operator} $receiver ' +
-                        '${node.type} $cont)';
+    String operator = node.isTypeTest ? 'is' : 'as';
+    return '$indentation(TypeOperator $operator $receiver ${node.type} $cont)';
   }
 
   String visitLiteralList(LiteralList node) {
@@ -186,9 +186,9 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   String visitDeclareFunction(DeclareFunction node) {
     String function = indentBlock(() => visit(node.definition));
     String body = indentBlock(() => visit(node.body));
-    return '$indentation(DeclareFunction ${node.variable.name} =\n' +
-                '$function in\n' +
-                '$body)';
+    return '$indentation(DeclareFunction ${node.variable.name} =\n'
+           '$function in\n'
+           '$body)';
   }
 
   String visitIsTrue(IsTrue node) {

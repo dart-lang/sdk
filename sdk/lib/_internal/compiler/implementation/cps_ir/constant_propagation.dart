@@ -492,7 +492,7 @@ class _ConstPropagationVisitor extends Visitor {
       setValue(returnValue, updateValue);
     }
 
-    if (node.operator != "is") {
+    if (node.isTypeCast) {
       // TODO(jgruber): Add support for `as` casts.
       setValues(_ConstnessLattice.NonConst);
     }

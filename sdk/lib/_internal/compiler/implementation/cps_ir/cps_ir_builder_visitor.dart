@@ -313,13 +313,11 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     if (Elements.isLocal(variableElement)) {
       bodyBuilder.buildLocalSet(variableElement, currentValue);
     } else if (Elements.isStaticOrTopLevel(variableElement)) {
-      withBuilder(bodyBuilder,
-          () => setStatic(variableElement, selector, currentValue));
+      bodyBuilder.buildStaticSet(variableElement, selector, currentValue);
     } else {
       ir.Primitive receiver =
           withBuilder(bodyBuilder, () => lookupThis());
-      withBuilder(bodyBuilder,
-          () => setDynamic(null, receiver, selector, currentValue));
+      bodyBuilder.buildDynamicSet(receiver, selector, currentValue);
     }
 
     withBuilder(bodyBuilder, () => visit(node.body));
@@ -549,8 +547,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
                      closureSelector.argumentCount,
                      closureSelector.namedArguments);
     List<ir.Primitive> args = arguments.nodes.mapToList(visit, growable:false);
-    return irBuilder.continueWithExpression(
-        (k) => new ir.InvokeMethod(receiver, namedCallSelector, k, args));
+    return irBuilder.buildDynamicInvocation(receiver, namedCallSelector, args);
   }
 
   ir.Primitive visitClosureSend(ast.Send node) {
@@ -581,16 +578,10 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     return visit(node);
   }
 
-  /// Makes an [InvokeMethod] unless [node.receiver.isSuper()], in that case
-  /// makes an [InvokeSuperMethod] ignoring [receiver].
-  ir.Expression createDynamicInvoke(ast.Send node,
-                                    Selector selector,
-                                    ir.Definition receiver,
-                                    ir.Continuation k,
-                                    List<ir.Definition> arguments) {
-    return node != null && node.receiver != null && node.receiver.isSuper()
-        ? new ir.InvokeSuperMethod(selector, k, arguments)
-        : new ir.InvokeMethod(receiver, selector, k, arguments);
+  /// Returns `true` if [node] is a super call.
+  // TODO(johnniwinther): Remove the need for this.
+  bool isSuperCall(ast.Send node) {
+    return node != null && node.receiver != null && node.receiver.isSuper();
   }
 
   ir.Primitive visitDynamicSend(ast.Send node) {
@@ -636,8 +627,12 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
 
       assert(selector.kind == SelectorKind.GETTER ||
              selector.kind == SelectorKind.INDEX);
-      result = irBuilder.continueWithExpression(
-          (k) => createDynamicInvoke(node, selector, receiver, k, arguments));
+      if (isSuperCall(node)) {
+        result = irBuilder.buildSuperInvocation(selector, arguments);
+      } else {
+        result =
+            irBuilder.buildDynamicInvocation(receiver, selector, arguments);
+      }
     } else if (element.isField || element.isGetter || element.isErroneous ||
                element.isSetter) {
       // TODO(johnniwinther): Change handling of setter selectors.
@@ -703,9 +698,10 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
            message: "unexpected operator $op"));
     DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
     ir.Primitive receiver = visit(node.receiver);
-    ir.Primitive check = irBuilder.continueWithExpression(
-        (k) => new ir.TypeOperator(op.source, receiver, type, k));
-    return node.isIsNotCheck ? irBuilder.buildNegation(check) : check;
+    return irBuilder.buildTypeOperator(
+        receiver, type,
+        isTypeTest: op.source == "is",
+        isNotCheck: node.isIsNotCheck);
   }
 
   // Build(StaticSend(f, arguments), C) = C[C'[InvokeStatic(f, xs)]]
@@ -726,7 +722,6 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
                                                              growable:false);
     return irBuilder.buildStaticInvocation(element, selector, arguments);
   }
-
 
   ir.Primitive visitSuperSend(ast.Send node) {
     assert(irBuilder.isOpen);
@@ -763,32 +758,6 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     } else {
       return translateConstant(node);
     }
-  }
-
-  void setStatic(Element element,
-                 Selector selector,
-                 ir.Primitive valueToStore) {
-    assert(element.isErroneous || element.isField || element.isSetter);
-    irBuilder.continueWithExpression(
-        (k) => new ir.InvokeStatic(element, selector, k, [valueToStore]));
-  }
-
-  void setDynamic(ast.Node node,
-                  ir.Primitive receiver, Selector selector,
-                  ir.Primitive valueToStore) {
-    List<ir.Definition> arguments = [valueToStore];
-    irBuilder.continueWithExpression(
-        (k) => createDynamicInvoke(node, selector, receiver, k, arguments));
-  }
-
-  void setIndex(ast.Node node,
-                ir.Primitive receiver,
-                Selector selector,
-                ir.Primitive index,
-                ir.Primitive valueToStore) {
-    List<ir.Definition> arguments = [index, valueToStore];
-    irBuilder.continueWithExpression(
-        (k) => createDynamicInvoke(node, selector, receiver, k, arguments));
   }
 
   ir.Primitive visitSendSet(ast.SendSet node) {
@@ -858,16 +827,25 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
       irBuilder.buildLocalSet(element, valueToStore);
     } else if ((!node.isSuperCall && Elements.isErroneousElement(element)) ||
                 Elements.isStaticOrTopLevel(element)) {
-      setStatic(element, elements.getSelector(node), valueToStore);
+      irBuilder.buildStaticSet(
+          element, elements.getSelector(node), valueToStore);
     } else {
       // Setter or index-setter invocation
       Selector selector = elements.getSelector(node);
       assert(selector.kind == SelectorKind.SETTER ||
           selector.kind == SelectorKind.INDEX);
       if (selector.isIndexSet) {
-        setIndex(node, receiver, selector, index, valueToStore);
+        if (isSuperCall(node)) {
+          irBuilder.buildSuperIndexSet(index, valueToStore);
+        } else {
+          irBuilder.buildDynamicIndexSet(receiver, index, valueToStore);
+        }
       } else {
-        setDynamic(node, receiver, selector, valueToStore);
+        if (isSuperCall(node)) {
+          irBuilder.buildSuperSet(selector, valueToStore);
+        } else {
+          irBuilder.buildDynamicSet(receiver, selector, valueToStore);
+        }
       }
     }
 
@@ -891,15 +869,13 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
         node.send.arguments.mapToList(visit, growable:false);
     return irBuilder.buildConstructorInvocation(
         element, selector, type, arguments);
-
   }
 
   ir.Primitive visitStringJuxtaposition(ast.StringJuxtaposition node) {
     assert(irBuilder.isOpen);
     ir.Primitive first = visit(node.first);
     ir.Primitive second = visit(node.second);
-    return irBuilder.continueWithExpression(
-        (k) => new ir.ConcatenateStrings(k, [first, second]));
+    return irBuilder.buildStringConcatenation([first, second]);
   }
 
   ir.Primitive visitStringInterpolation(ast.StringInterpolation node) {
@@ -912,8 +888,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
       arguments.add(visit(part.expression));
       arguments.add(visitLiteralString(part.string));
     }
-    return irBuilder.continueWithExpression(
-        (k) => new ir.ConcatenateStrings(k, arguments));
+    return irBuilder.buildStringConcatenation(arguments);
   }
 
   ir.Primitive translateConstant(ast.Node node, [ConstantExpression constant]) {

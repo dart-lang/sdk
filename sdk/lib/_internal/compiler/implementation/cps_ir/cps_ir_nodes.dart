@@ -283,16 +283,19 @@ class TypeOperator extends Expression {
   final Reference receiver;
   final DartType type;
   final Reference continuation;
-  final String operator;
+  // TODO(johnniwinther): Use `Operator` class to encapsule the operator type.
+  final bool isTypeTest;
 
-  TypeOperator(this.operator,
-                Primitive receiver,
-                this.type,
-                Continuation cont)
+  TypeOperator(Primitive receiver,
+               this.type,
+               Continuation cont,
+               {bool this.isTypeTest})
       : this.receiver = new Reference(receiver),
         this.continuation = new Reference(cont) {
-    assert(operator == "is" || operator == "as");
+    assert(isTypeTest != null);
   }
+
+  bool get isTypeCast => !isTypeTest;
 
   accept(Visitor visitor) => visitor.visitTypeOperator(this);
 }

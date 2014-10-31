@@ -166,7 +166,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visitTypeOperator(cps_ir.TypeOperator node) {
     String dummy = names.name(node);
-    String operator = node.operator;
+    String operator = node.isTypeTest ? 'is' : 'as';
     List<String> entries = new List<String>();
     String receiver = formatReference(node.receiver);
     printStmt(dummy, "TypeOperator ($operator $receiver ${node.type})");

@@ -502,7 +502,7 @@ class SExpressionUnstringifier {
     assert(cont != null);
 
     tokens.consumeEnd();
-    return new TypeOperator(operator, recv, type, cont);
+    return new TypeOperator(recv, type, cont, isTypeTest: operator == 'is');
   }
 
   /// (LetPrim name (primitive)) body

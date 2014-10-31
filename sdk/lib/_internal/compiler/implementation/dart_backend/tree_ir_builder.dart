@@ -346,7 +346,8 @@ class Builder extends cps_ir.Visitor<Node> {
 
   Statement visitTypeOperator(cps_ir.TypeOperator node) {
     Expression receiver = getVariableReference(node.receiver);
-    Expression concat = new TypeOperator(receiver, node.type, node.operator);
+    Expression concat =
+        new TypeOperator(receiver, node.type, isTypeTest: node.isTypeTest);
     return continueWithExpression(node.continuation, concat);
   }
 

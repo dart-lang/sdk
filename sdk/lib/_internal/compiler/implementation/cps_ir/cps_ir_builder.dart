@@ -343,13 +343,37 @@ class IrBuilder {
     }
   }
 
-  ir.Primitive continueWithExpression(ir.Expression build(ir.Continuation k)) {
+  ir.Primitive _continueWithExpression(ir.Expression build(ir.Continuation k)) {
     ir.Parameter v = new ir.Parameter(null);
     ir.Continuation k = new ir.Continuation([v]);
     ir.Expression expression = build(k);
     add(new ir.LetCont(k, expression));
     return v;
   }
+
+  ir.Primitive _buildInvokeStatic(Element element,
+                                  Selector selector,
+                                  List<ir.Definition> arguments) {
+    assert(isOpen);
+    return _continueWithExpression(
+        (k) => new ir.InvokeStatic(element, selector, k, arguments));
+  }
+
+  ir.Primitive _buildInvokeSuper(Selector selector,
+                                 List<ir.Definition> arguments) {
+    assert(isOpen);
+    return _continueWithExpression(
+        (k) => new ir.InvokeSuperMethod(selector, k, arguments));
+  }
+
+  ir.Primitive _buildInvokeDynamic(ir.Primitive receiver,
+                                   Selector selector,
+                                   List<ir.Definition> arguments) {
+    assert(isOpen);
+    return _continueWithExpression(
+        (k) => new ir.InvokeMethod(receiver, selector, k, arguments));
+  }
+
 
   /// Create a constant literal from [constant].
   ir.Constant buildConstantLiteral(ConstantExpression constant) {
@@ -470,55 +494,12 @@ class IrBuilder {
 
   }
 
-  /// Create a read access of [local].
-  ir.Primitive buildLocalGet(LocalElement local) {
-    assert(isOpen);
-    if (isClosureVariable(local)) {
-      ir.Primitive result = new ir.GetClosureVariable(local);
-      add(new ir.LetPrim(result));
-      return result;
-    } else {
-      return environment.lookup(local);
-    }
-  }
-
-  /// Create a write access to [local].
-  ir.Primitive buildLocalSet(LocalElement local, ir.Primitive valueToStore) {
-    assert(isOpen);
-    if (isClosureVariable(local)) {
-      add(new ir.SetClosureVariable(local, valueToStore));
-    } else {
-      valueToStore.useElementAsHint(local);
-      environment.update(local, valueToStore);
-    }
-    return valueToStore;
-  }
-
-  /// Create a get access of the static [element].
-  ir.Primitive buildStaticGet(Element element, Selector selector) {
-    assert(isOpen);
-    assert(selector.isGetter);
-    return continueWithExpression(
-        (k) => new ir.InvokeStatic(
-            element, selector, k, const <ir.Definition>[]));
-  }
-
-  /// Create a dynamic get access on [receiver] where the property is defined
-  /// by the getter [selector].
-  ir.Primitive buildDynamicGet(ir.Primitive receiver, Selector selector) {
-    assert(isOpen);
-    assert(selector.isGetter);
-    return continueWithExpression(
-        (k) => new ir.InvokeMethod(
-            receiver, selector, k, const <ir.Definition>[]));
-  }
-
   /**
    * Add an explicit `return null` for functions that don't have a return
    * statement on each branch. This includes functions with an empty body,
    * such as `foo(){ }`.
    */
-  void ensureReturn() {
+  void _ensureReturn() {
     if (!isOpen) return;
     ir.Constant constant = buildNullLiteral();
     add(new ir.InvokeContinuation(state.returnContinuation, [constant]));
@@ -533,7 +514,7 @@ class IrBuilder {
       FunctionElement element,
       List<ConstantExpression> defaults) {
     if (!element.isAbstract) {
-      ensureReturn();
+      _ensureReturn();
       return new ir.FunctionDefinition(
           element, state.returnContinuation, _parameters, _root,
           state.localConstants, defaults);
@@ -549,46 +530,139 @@ class IrBuilder {
   }
 
 
-  /// Create a super invocation with method name and arguments structure defined
-  /// by [selector] and argument values defined by [arguments].
+  /// Create a super invocation where the method name and the argument structure
+  /// are defined by [selector] and the argument values are defined by
+  /// [arguments].
   ir.Primitive buildSuperInvocation(Selector selector,
                                     List<ir.Definition> arguments) {
-    assert(isOpen);
-    return continueWithExpression(
-        (k) => new ir.InvokeSuperMethod(selector, k, arguments));
-
+    return _buildInvokeSuper(selector, arguments);
   }
 
-  /// Create a dynamic invocation on [receiver] with method name and argument
-  /// structure defined by [selector] and argument values defined by
-  /// [arguments].
+  /// Create a getter invocation on the super class where the getter name is
+  /// defined by [selector].
+  ir.Primitive buildSuperGet(Selector selector) {
+    assert(selector.isGetter);
+    return _buildInvokeSuper(selector, const <ir.Definition>[]);
+  }
+
+  /// Create a setter invocation on the super class where the setter name and
+  /// argument are defined by [selector] and [value], respectively.
+  ir.Primitive buildSuperSet(Selector selector, ir.Primitive value) {
+    assert(selector.isSetter);
+    _buildInvokeSuper(selector, <ir.Definition>[value]);
+    return value;
+  }
+
+  /// Create an index set invocation on the super class with the provided
+  /// [index] and [value].
+  ir.Primitive buildSuperIndexSet(ir.Primitive index,
+                                  ir.Primitive value) {
+    _buildInvokeSuper(new Selector.indexSet(), <ir.Definition>[index, value]);
+    return value;
+  }
+
+  /// Create a dynamic invocation on [receiver] where the method name and
+  /// argument structure are defined by [selector] and the argument values are
+  /// defined by [arguments].
   ir.Primitive buildDynamicInvocation(ir.Definition receiver,
                                       Selector selector,
                                       List<ir.Definition> arguments) {
-    assert(isOpen);
-    return continueWithExpression(
-        (k) => new ir.InvokeMethod(receiver, selector, k, arguments));
+    return _buildInvokeDynamic(receiver, selector, arguments);
   }
 
-  /// Create a static invocation of [element] with argument structure defined
-  /// by [selector] and argument values defined by [arguments].
+  /// Create a dynamic getter invocation on [receiver] where the getter name is
+  /// defined by [selector].
+  ir.Primitive buildDynamicGet(ir.Primitive receiver, Selector selector) {
+    assert(selector.isGetter);
+    return _buildInvokeDynamic(receiver, selector, const <ir.Definition>[]);
+  }
+
+  /// Create a dynamic setter invocation on [receiver] where the setter name and
+  /// argument are defined by [selector] and [value], respectively.
+  ir.Primitive buildDynamicSet(ir.Primitive receiver,
+                               Selector selector,
+                               ir.Primitive value) {
+    assert(selector.isSetter);
+    _buildInvokeDynamic(receiver, selector, <ir.Definition>[value]);
+    return value;
+  }
+
+  /// Create a dynamic index set invocation on [receiver] with the provided
+  /// [index] and [value].
+  ir.Primitive  buildDynamicIndexSet(ir.Primitive receiver,
+                                     ir.Primitive index,
+                                     ir.Primitive value) {
+    _buildInvokeDynamic(
+        receiver, new Selector.indexSet(), <ir.Definition>[index, value]);
+    return value;
+  }
+
+  /// Create a static invocation of [element] where argument structure is
+  /// defined by [selector] and the argument values are defined by [arguments].
   ir.Primitive buildStaticInvocation(Element element,
                                      Selector selector,
                                      List<ir.Definition> arguments) {
-    return continueWithExpression(
-        (k) => new ir.InvokeStatic(element, selector, k, arguments));
+    return _buildInvokeStatic(element, selector, arguments);
   }
 
-  /// Create a constructor invocation of [element] on [type] with argument
-  /// structure defined by [selector] and argument values defined by
-  /// [arguments].
+  /// Create a static getter invocation of [element] where the getter name is
+  /// defined by [selector].
+  ir.Primitive buildStaticGet(Element element, Selector selector) {
+    assert(selector.isGetter);
+    return _buildInvokeStatic(element, selector, const <ir.Definition>[]);
+  }
+
+  /// Create a static setter invocation of [element] where the setter name and
+  /// argument are defined by [selector] and [value], respectively.
+  ir.Primitive buildStaticSet(Element element,
+                              Selector selector,
+                              ir.Primitive value) {
+    assert(selector.isSetter);
+    _buildInvokeStatic(element, selector, <ir.Definition>[value]);
+    return value;
+  }
+
+  /// Create a constructor invocation of [element] on [type] where the
+  /// constructor name and argument structure are defined by [selector] and the
+  /// argument values are defined by [arguments].
   ir.Primitive buildConstructorInvocation(FunctionElement element,
-                                         Selector selector,
-                                         DartType type,
-                                         List<ir.Definition> arguments) {
+                                          Selector selector,
+                                          DartType type,
+                                          List<ir.Definition> arguments) {
     assert(isOpen);
-    return continueWithExpression(
+    return _continueWithExpression(
         (k) => new ir.InvokeConstructor(type, element, selector, k, arguments));
+  }
+
+  /// Create a string concatenation of the [arguments].
+  ir.Primitive buildStringConcatenation(List<ir.Definition> arguments) {
+    assert(isOpen);
+    return _continueWithExpression(
+        (k) => new ir.ConcatenateStrings(k, arguments));
+  }
+
+  /// Create a read access of [local].
+  ir.Primitive buildLocalGet(LocalElement local) {
+    assert(isOpen);
+    if (isClosureVariable(local)) {
+      ir.Primitive result = new ir.GetClosureVariable(local);
+      add(new ir.LetPrim(result));
+      return result;
+    } else {
+      return environment.lookup(local);
+    }
+  }
+
+  /// Create a write access to [local] with the provided [value].
+  ir.Primitive buildLocalSet(LocalElement local, ir.Primitive value) {
+    assert(isOpen);
+    if (isClosureVariable(local)) {
+      add(new ir.SetClosureVariable(local, value));
+    } else {
+      value.useElementAsHint(local);
+      environment.update(local, value);
+    }
+    return value;
   }
 
   /// Creates an if-then-else statement with the provided [condition] where the
@@ -992,6 +1066,23 @@ class IrBuilder {
                             thenContinuation,
                             elseContinuation)))));
     return resultParameter;
+  }
+
+  /// Creates a type test or type cast of [receiver] against [type].
+  ///
+  /// Set [isTypeTest] to `true` to create a type test and furthermore set
+  /// [isNotCheck] to `true` to create a negated type test.
+  ir.Primitive buildTypeOperator(ir.Primitive receiver,
+                                 DartType type,
+                                 {bool isTypeTest: false,
+                                  bool isNotCheck: false}) {
+    assert(isOpen);
+    assert(isTypeTest != null);
+    assert(!isNotCheck || isTypeTest);
+    ir.Primitive check = _continueWithExpression(
+        (k) => new ir.TypeOperator(receiver, type, k, isTypeTest: isTypeTest));
+    return isNotCheck ? buildNegation(check) : check;
+
   }
 
   /// Create a lazy and/or expression. [leftValue] is the value of the left

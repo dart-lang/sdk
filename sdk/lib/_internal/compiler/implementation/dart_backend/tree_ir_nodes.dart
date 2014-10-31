@@ -242,11 +242,13 @@ class LiteralMap extends Expression {
 class TypeOperator extends Expression {
   Expression receiver;
   final DartType type;
-  final String operator;
+  final bool isTypeTest;
 
-  TypeOperator(this.receiver, this.type, this.operator) ;
+  TypeOperator(this.receiver, this.type, {bool this.isTypeTest});
 
   accept(ExpressionVisitor visitor) => visitor.visitTypeOperator(this);
+
+  String get operator => isTypeTest ? 'is' : 'as';
 }
 
 /// A conditional expression.
