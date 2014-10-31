@@ -156,6 +156,12 @@ class LineInfo {
   final List<int> _lineStarts;
 
   /**
+   * The zero-based [_lineStarts] index resulting from the last call to
+   * [getLocation].
+   */
+  int _previousLine = 0;
+
+  /**
    * Initialize a newly created set of line information to represent the data encoded in the given
    * array.
    *
@@ -176,13 +182,37 @@ class LineInfo {
    * @return the location information for the character at the given offset
    */
   LineInfo_Location getLocation(int offset) {
-    int lineCount = _lineStarts.length;
-    for (int i = 1; i < lineCount; i++) {
-      if (offset < _lineStarts[i]) {
-        return new LineInfo_Location(i, offset - _lineStarts[i - 1] + 1);
+    var min = 0;
+    var max = _lineStarts.length - 1;
+
+    // Subsequent calls to [getLocation] are often for offsets near each other.
+    // To take advantage of that, we cache the index of the line start we found
+    // when this was last called. If the current offset is on that line or
+    // later, we'll skip those early indices completely when searching.
+    if (offset >= _lineStarts[_previousLine]) {
+      min = _previousLine;
+
+      // Before kicking off a full binary search, do a quick check here to see
+      // if the new offset is on that exact line.
+      if (min == _lineStarts.length - 1 || offset < _lineStarts[min + 1]) {
+        return new LineInfo_Location(min + 1, offset - _lineStarts[min] + 1);
       }
     }
-    return new LineInfo_Location(lineCount, offset - _lineStarts[lineCount - 1] + 1);
+
+    // Binary search to fine the line containing this offset.
+    while (min < max) {
+      var midpoint = (max - min + 1) ~/ 2 + min;
+
+      if (_lineStarts[midpoint] > offset) {
+        max = midpoint - 1;
+      } else {
+        min = midpoint;
+      }
+    }
+
+    _previousLine = min;
+
+    return new LineInfo_Location(min + 1, offset - _lineStarts[min] + 1);
   }
 }
 
