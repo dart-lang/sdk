@@ -1045,4 +1045,69 @@ main() {
   (InvokeContinuation k0 v0))
 '''),
   ]),
+
+  const Group('Type operators', const <TestSpec>[
+    const TestSpec('''
+main(a) {
+  return a is String;
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetCont (k0 v0)
+    (InvokeContinuation return v0))
+  (TypeOperator is a String k0))
+'''),
+
+    const TestSpec('''
+main(a) {
+  return a is List<String>;
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetCont (k0 v0)
+    (InvokeContinuation return v0))
+  (TypeOperator is a List<String> k0))
+'''),
+
+    const TestSpec('''
+main(a) {
+  return a is Comparator<String>;
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetCont (k0 v0)
+    (InvokeContinuation return v0))
+  (TypeOperator is a Comparator<String> k0))
+'''),
+
+  const TestSpec('''
+main(a) {
+  return a is! String;
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetCont (k0 v0)
+    (LetCont (k1 v1)
+      (InvokeContinuation return v1))
+    (LetCont (k2)
+      (LetPrim v2 (Constant BoolConstant(false)))
+      (InvokeContinuation k1 v2))
+    (LetCont (k3)
+      (LetPrim v3 (Constant BoolConstant(true)))
+      (InvokeContinuation k1 v3))
+    (Branch (IsTrue v0) k2 k3))
+  (TypeOperator is a String k0))
+'''),
+
+const TestSpec('''
+main(a) {
+  return a as String;
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetCont (k0 v0)
+    (InvokeContinuation return v0))
+  (TypeOperator as a String k0))
+'''),
+  ]),
 ];

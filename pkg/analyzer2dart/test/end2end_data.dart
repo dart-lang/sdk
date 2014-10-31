@@ -645,4 +645,40 @@ main() {
   }
 }'''),
   ]),
+
+  const Group('Type operators', const <TestSpec>[
+    const TestSpec('''
+main(a) {
+  return a is String;
+}
+'''),
+
+    const TestSpec('''
+main(a) {
+  return a is List<String>;
+}
+'''),
+
+    const TestSpec('''
+main(a) {
+  return a is Comparator<String>;
+}
+'''),
+
+  const TestSpec('''
+main(a) {
+  return a is! String;
+}
+''', '''
+main(a) {
+  return !(a is String);
+}
+'''),
+
+const TestSpec('''
+main(a) {
+  return a as String;
+}
+'''),
+  ]),
 ];

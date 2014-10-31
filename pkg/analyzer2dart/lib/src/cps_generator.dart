@@ -343,4 +343,21 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     irBuilder.buildWhile(buildCondition: subbuild(node.condition),
                          buildBody: subbuild(node.body));
   }
+
+  @override
+  ir.Primitive visitIsExpression(IsExpression node) {
+    return irBuilder.buildTypeOperator(
+        visit(node.expression),
+        converter.convertType(node.type.type),
+        isTypeTest: true,
+        isNotCheck: node.notOperator != null);
+  }
+
+  @override
+  ir.Primitive visitAsExpression(AsExpression node) {
+    return irBuilder.buildTypeOperator(
+        visit(node.expression),
+        converter.convertType(node.type.type),
+        isTypeTest: false);
+  }
 }
