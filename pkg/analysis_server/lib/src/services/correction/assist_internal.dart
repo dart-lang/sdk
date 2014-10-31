@@ -1130,11 +1130,9 @@ class AssistProcessor {
     }
     // returns
     if (thenStatement is ReturnStatement && elseStatement is ReturnStatement) {
-      ReturnStatement thenReturn = thenStatement as ReturnStatement;
-      ReturnStatement elseReturn = elseStatement as ReturnStatement;
       String conditionSrc = _getNodeText(ifStatement.condition);
-      String theSrc = _getNodeText(thenReturn.expression);
-      String elseSrc = _getNodeText(elseReturn.expression);
+      String theSrc = _getNodeText(thenStatement.expression);
+      String elseSrc = _getNodeText(elseStatement.expression);
       _addReplaceEdit(
           rangeNode(ifStatement),
           'return $conditionSrc ? $theSrc : $elseSrc;');
