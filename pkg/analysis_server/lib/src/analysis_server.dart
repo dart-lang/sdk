@@ -435,8 +435,9 @@ class AnalysisServer {
           channel.sendResponse(exception.response);
           return;
         } catch (exception, stackTrace) {
-          RequestError error =
-              new RequestError(RequestErrorCode.SERVER_ERROR, exception);
+          RequestError error = new RequestError(
+              RequestErrorCode.SERVER_ERROR,
+              exception.toString());
           if (stackTrace != null) {
             error.stackTrace = stackTrace.toString();
           }
