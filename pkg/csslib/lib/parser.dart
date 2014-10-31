@@ -2093,7 +2093,7 @@ class _Parser {
     return expressions;
   }
 
-  static final int MAX_UNICODE = int.parse('0x10FFFF');
+  static const int MAX_UNICODE = 0x10FFFF;
 
   //  Term grammar:
   //
