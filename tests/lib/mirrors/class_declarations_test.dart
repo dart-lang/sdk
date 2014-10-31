@@ -190,7 +190,11 @@ main() {
         ' with test.declarations_model.Mixin.inheritedRedirectingConstructor)'
         ' in s(test.declarations_model.Superclass'
         ' with test.declarations_model.Mixin), constructor)',
-    'Method(s(toString) in s(Object))'],
+    'Method(s(toString) in s(Object))',
+    'Variable(s(mixinStaticVariable) in s(Mixin), static)',
+    'Method(s(mixinStaticGetter) in s(Mixin), static, getter)',
+    'Method(s(mixinStaticSetter=) in s(Mixin), static, setter)',
+    'Method(s(mixinStaticMethod) in s(Mixin), static)'],
     inheritedDeclarations(cm).where((dm) => !dm.isPrivate).map(stringify),
     'transitive public');
   // The public members of Object should be the same in all implementations, so
@@ -322,7 +326,15 @@ main() {
     'Method(s(test.declarations_model.Superclass'
         ' with test.declarations_model.Mixin.inheritedRedirectingConstructor)'
         ' in s(test.declarations_model.Superclass'
-        ' with test.declarations_model.Mixin), constructor)'],
+        ' with test.declarations_model.Mixin), constructor)',
+    'Variable(s(mixinStaticVariable) in s(Mixin), static)',
+    'Variable(s(_mixinStaticVariable) in s(Mixin), private, static)',
+    'Method(s(mixinStaticGetter) in s(Mixin), static, getter)',
+    'Method(s(mixinStaticSetter=) in s(Mixin), static, setter)',
+    'Method(s(mixinStaticMethod) in s(Mixin), static)',
+    'Method(s(_mixinStaticGetter) in s(Mixin), private, static, getter)',
+    'Method(s(_mixinStaticSetter=) in s(Mixin), private, static, setter)',
+    'Method(s(_mixinStaticMethod) in s(Mixin), private, static)'],
     inheritedDeclarations(cm)
         .difference(reflectClass(Object).declarations.values.toSet())
         .map(stringify),

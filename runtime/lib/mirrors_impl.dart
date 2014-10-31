@@ -773,7 +773,7 @@ class _LocalClassMirror extends _LocalObjectMirror
   Map<Symbol, Mirror> get _members {
     if (_cachedMembers == null) {
       var whoseMembers = _isMixinAlias ? _trueSuperclass : this;
-      _cachedMembers = _makeMemberMap(mixin._computeMembers(whoseMembers._reflectee));
+      _cachedMembers = _makeMemberMap(mixin._computeMembers(whoseMembers.mixin._reflectee));
     }
     return _cachedMembers;
   }
