@@ -451,10 +451,12 @@ bool Intrinsifier::Build_Float64ArraySetIndexed(FlowGraph* flow_graph) {
                           value_check,
                           builder.TokenPos()));
   Definition* double_value = builder.AddDefinition(
-      new UnboxDoubleInstr(new Value(value), Isolate::kNoDeoptId));
+      UnboxInstr::Create(kUnboxedDouble,
+                         new Value(value),
+                         Isolate::kNoDeoptId));
   // Manually adjust reaching type because there is no type propagation
   // when building intrinsics.
-  double_value->AsUnboxDouble()->value()->SetReachingType(
+  double_value->AsUnbox()->value()->SetReachingType(
       ZoneCompileType::Wrap(CompileType::FromCid(kDoubleCid)));
 
   builder.AddInstruction(
@@ -494,7 +496,7 @@ bool Intrinsifier::Build_Float64ArrayGetIndexed(FlowGraph* flow_graph) {
                            Isolate::kNoDeoptId,
                            builder.TokenPos()));
   Definition* result = builder.AddDefinition(
-      new BoxDoubleInstr(new Value(unboxed_value)));
+      BoxInstr::Create(kUnboxedDouble, new Value(unboxed_value)));
   builder.AddIntrinsicReturn(new Value(result));
   return true;
 }

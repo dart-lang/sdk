@@ -3183,239 +3183,267 @@ void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* BoxDoubleInstr::MakeLocationSummary(Isolate* isolate,
+LocationSummary* BoxInstr::MakeLocationSummary(Isolate* isolate,
                                                      bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, kNumInputs,
-                          kNumTemps,
-                          LocationSummary::kCallOnSlowPath);
+      isolate, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresFpuRegister());
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
 
-void BoxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void BoxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register out_reg = locs()->out(0).reg();
   XmmRegister value = locs()->in(0).fpu_reg();
 
   BoxAllocationSlowPath::Allocate(
-      compiler, this, compiler->double_class(), out_reg);
+      compiler, this, compiler->BoxClassFor(from_representation()), out_reg);
   __ movsd(FieldAddress(out_reg, Double::value_offset()), value);
+  switch (from_representation()) {
+    case kUnboxedDouble:
+      __ movsd(FieldAddress(out_reg, ValueOffset()), value);
+      break;
+    case kUnboxedFloat32x4:
+    case kUnboxedFloat64x2:
+    case kUnboxedInt32x4:
+      __ movups(FieldAddress(out_reg, ValueOffset()), value);
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
 }
 
 
-LocationSummary* UnboxDoubleInstr::MakeLocationSummary(Isolate* isolate,
-                                                       bool opt) const {
+LocationSummary* UnboxInstr::MakeLocationSummary(Isolate* isolate,
+                                                 bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
+  const bool needs_writable_input =
+      (representation() != kUnboxedMint) &&
+      (value()->Type()->ToNullableCid() != BoxCid());
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  const bool needs_writable_input = (value()->Type()->ToCid() != kDoubleCid);
-  summary->set_in(0, needs_writable_input
-                     ? Location::WritableRegister()
-                     : Location::RequiresRegister());
-  summary->set_out(0, Location::RequiresFpuRegister());
+  summary->set_in(0, needs_writable_input ? Location::WritableRegister()
+                                          : Location::RequiresRegister());
+  if (representation() == kUnboxedMint) {
+    summary->set_out(0, Location::SameAsFirstInput());
+  } else {
+    summary->set_out(0, Location::RequiresFpuRegister());
+  }
   return summary;
 }
 
 
-void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  CompileType* value_type = value()->Type();
-  const intptr_t value_cid = value_type->ToCid();
-  const Register value = locs()->in(0).reg();
-  const XmmRegister result = locs()->out(0).fpu_reg();
+void UnboxInstr::EmitLoadFromBox(FlowGraphCompiler* compiler) {
+  const Register box = locs()->in(0).reg();
 
-  if (value_cid == kDoubleCid) {
-    __ movsd(result, FieldAddress(value, Double::value_offset()));
-  } else if (value_cid == kSmiCid) {
-    __ SmiUntag(value);  // Untag input before conversion.
-    __ cvtsi2sdq(result, value);
+  switch (representation()) {
+    case kUnboxedMint: {
+      const Register result = locs()->out(0).reg();
+      __ movq(result, FieldAddress(box, ValueOffset()));
+      break;
+    }
+
+    case kUnboxedDouble: {
+      const FpuRegister result = locs()->out(0).fpu_reg();
+      __ movsd(result, FieldAddress(box, ValueOffset()));
+      break;
+    }
+
+    case kUnboxedFloat32x4:
+    case kUnboxedFloat64x2:
+    case kUnboxedInt32x4: {
+      const FpuRegister result = locs()->out(0).fpu_reg();
+      __ movups(result, FieldAddress(box, ValueOffset()));
+      break;
+    }
+
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
+
+void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
+  const Register box = locs()->in(0).reg();
+
+  switch (representation()) {
+    case kUnboxedMint: {
+      const Register result = locs()->out(0).reg();
+      ASSERT(result == box);
+      __ SmiUntag(box);
+      break;
+    }
+
+    case kUnboxedDouble: {
+      const FpuRegister result = locs()->out(0).fpu_reg();
+      __ SmiUntag(box);
+      __ cvtsi2sdq(result, box);
+      break;
+    }
+
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
+
+void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const intptr_t value_cid = value()->Type()->ToCid();
+  const intptr_t box_cid = BoxCid();
+
+  if (value_cid == box_cid) {
+    EmitLoadFromBox(compiler);
+  } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
+    EmitSmiConversion(compiler);
   } else {
+    const Register box = locs()->in(0).reg();
     Label* deopt = compiler->AddDeoptStub(GetDeoptId(),
-                                          ICData::kDeoptBinaryDoubleOp);
-    if (value_type->is_nullable() &&
-        (value_type->ToNullableCid() == kDoubleCid)) {
+                                          ICData::kDeoptCheckClass);
+    Label is_smi;
+
+    if ((value()->Type()->ToNullableCid() == box_cid) &&
+        value()->Type()->is_nullable()) {
       const Immediate& raw_null =
           Immediate(reinterpret_cast<intptr_t>(Object::null()));
-      __ cmpq(value, raw_null);
+      __ cmpq(box, raw_null);
       __ j(EQUAL, deopt);
-      // It must be double now.
-      __ movsd(result, FieldAddress(value, Double::value_offset()));
     } else {
-      Label is_smi, done;
-      __ testq(value, Immediate(kSmiTagMask));
-      __ j(ZERO, &is_smi);
-      __ CompareClassId(value, kDoubleCid);
+      __ testq(box, Immediate(kSmiTagMask));
+      __ j(ZERO, CanConvertSmi() ? &is_smi : deopt);
+      __ CompareClassId(box, box_cid);
       __ j(NOT_EQUAL, deopt);
-      __ movsd(result, FieldAddress(value, Double::value_offset()));
+    }
+
+    EmitLoadFromBox(compiler);
+
+    if (is_smi.IsLinked()) {
+      Label done;
       __ jmp(&done);
       __ Bind(&is_smi);
-      __ SmiUntag(value);
-      __ cvtsi2sdq(result, value);
+      EmitSmiConversion(compiler);
       __ Bind(&done);
     }
   }
 }
 
 
-LocationSummary* BoxFloat32x4Instr::MakeLocationSummary(Isolate* isolate,
-                                                        bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, kNumInputs,
-                          kNumTemps,
-                          LocationSummary::kCallOnSlowPath);
-  summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(0, Location::RequiresRegister());
-  return summary;
-}
-
-
-void BoxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register out_reg = locs()->out(0).reg();
-  XmmRegister value = locs()->in(0).fpu_reg();
-
-  BoxAllocationSlowPath::Allocate(
-      compiler, this, compiler->float32x4_class(), out_reg);
-  __ movups(FieldAddress(out_reg, Float32x4::value_offset()), value);
-}
-
-
-LocationSummary* UnboxFloat32x4Instr::MakeLocationSummary(Isolate* isolate,
+LocationSummary* UnboxInteger32Instr::MakeLocationSummary(Isolate* isolate,
                                                           bool opt) const {
   const intptr_t kNumInputs = 1;
-  return LocationSummary::Make(isolate,
-                               kNumInputs,
-                               Location::RequiresFpuRegister(),
-                               LocationSummary::kNoCall);
-}
-
-
-void UnboxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const intptr_t value_cid = value()->Type()->ToCid();
-  const Register value = locs()->in(0).reg();
-  const XmmRegister result = locs()->out(0).fpu_reg();
-
-  if (value_cid != kFloat32x4Cid) {
-    Label* deopt =
-        compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptCheckClass);
-    __ testq(value, Immediate(kSmiTagMask));
-    __ j(ZERO, deopt);
-    __ CompareClassId(value, kFloat32x4Cid);
-    __ j(NOT_EQUAL, deopt);
-  }
-  __ movups(result, FieldAddress(value, Float32x4::value_offset()));
-}
-
-
-LocationSummary* BoxFloat64x2Instr::MakeLocationSummary(Isolate* isolate,
-                                                        bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, kNumInputs,
-                          kNumTemps,
-                          LocationSummary::kCallOnSlowPath);
-  summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(0, Location::RequiresRegister());
-  return summary;
-}
-
-
-void BoxFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register out_reg = locs()->out(0).reg();
-  XmmRegister value = locs()->in(0).fpu_reg();
-
-  BoxAllocationSlowPath::Allocate(
-      compiler, this, compiler->float64x2_class(), out_reg);
-  __ movups(FieldAddress(out_reg, Float64x2::value_offset()), value);
-}
-
-
-LocationSummary* UnboxFloat64x2Instr::MakeLocationSummary(Isolate* isolate,
-                                                          bool opt) const {
-  const intptr_t value_cid = value()->Type()->ToCid();
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = value_cid == kFloat64x2Cid ? 0 : 1;
+  const intptr_t kNumTemps = (!is_truncating() && CanDeoptimize()) ? 1 : 0;
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(0, Location::RequiresFpuRegister());
+  summary->set_out(0, Location::SameAsFirstInput());
+  if (kNumTemps > 0) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
   return summary;
 }
 
 
-void UnboxFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t value_cid = value()->Type()->ToCid();
   const Register value = locs()->in(0).reg();
-  const XmmRegister result = locs()->out(0).fpu_reg();
+  Label* deopt = CanDeoptimize() ?
+      compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptUnboxInteger) : NULL;
+  ASSERT(value == locs()->out(0).reg());
 
-  if (value_cid != kFloat64x2Cid) {
-    Label* deopt =
-        compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptCheckClass);
-    __ testq(value, Immediate(kSmiTagMask));
-    __ j(ZERO, deopt);
-    __ CompareClassId(value, kFloat64x2Cid);
+  if (value_cid == kSmiCid) {
+    __ SmiUntag(value);
+  } else if (value_cid == kMintCid) {
+    __ movq(value, FieldAddress(value, Mint::value_offset()));
+  } else {
+    Label done;
+    // Optimistically untag value.
+    __ SmiUntagOrCheckClass(value, kMintCid, &done);
+    __ j(NOT_EQUAL, deopt);
+    // Undo untagging by multiplying value with 2.
+    __ movq(value, Address(value, TIMES_2, Mint::value_offset()));
+    __ Bind(&done);
+  }
+
+  // TODO(vegorov): as it is implemented right now truncating unboxing would
+  // leave "garbage" in the higher word.
+  if (!is_truncating() && (deopt != NULL)) {
+    ASSERT(representation() == kUnboxedInt32);
+    Register temp = locs()->temp(0).reg();
+    __ movsxd(temp, value);
+    __ cmpq(temp, value);
     __ j(NOT_EQUAL, deopt);
   }
-  __ movups(result, FieldAddress(value, Float64x2::value_offset()));
 }
 
 
-LocationSummary* BoxInt32x4Instr::MakeLocationSummary(Isolate* isolate,
+LocationSummary* BoxInteger32Instr::MakeLocationSummary(Isolate* isolate,
+                                                   bool opt) const {
+  ASSERT((from_representation() == kUnboxedInt32) ||
+         (from_representation() == kUnboxedUint32));
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate,
+      kNumInputs,
+      kNumTemps,
+      LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+
+void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register value = locs()->in(0).reg();
+  const Register out = locs()->out(0).reg();
+  ASSERT(value != out);
+
+  ASSERT(kSmiTagSize == 1);
+  if (from_representation() == kUnboxedInt32) {
+    __ movsxd(out, value);
+  } else {
+    ASSERT(from_representation() == kUnboxedUint32);
+    __ movl(out, value);
+  }
+  __ SmiTag(out);
+}
+
+
+LocationSummary* BoxInt64Instr::MakeLocationSummary(Isolate* isolate,
                                                       bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, kNumInputs,
-                          kNumTemps,
-                          LocationSummary::kCallOnSlowPath);
-  summary->set_in(0, Location::RequiresFpuRegister());
+      isolate,
+      kNumInputs,
+      kNumTemps,
+      ValueFitsSmi() ? LocationSummary::kNoCall
+                     : LocationSummary::kCallOnSlowPath);
+  summary->set_in(0, Location::RequiresRegister());
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
 
-void BoxInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register out_reg = locs()->out(0).reg();
-  XmmRegister value = locs()->in(0).fpu_reg();
-
-  BoxAllocationSlowPath::Allocate(
-      compiler, this, compiler->int32x4_class(), out_reg);
-  __ movups(FieldAddress(out_reg, Int32x4::value_offset()), value);
-}
-
-
-LocationSummary* UnboxInt32x4Instr::MakeLocationSummary(Isolate* isolate,
-                                                        bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(0, Location::RequiresFpuRegister());
-  return summary;
-}
-
-
-void UnboxInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const intptr_t value_cid = value()->Type()->ToCid();
+void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register out = locs()->out(0).reg();
   const Register value = locs()->in(0).reg();
-  const XmmRegister result = locs()->out(0).fpu_reg();
-
-  if (value_cid != kInt32x4Cid) {
-    Label* deopt =
-        compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptCheckClass);
-    __ testq(value, Immediate(kSmiTagMask));
-    __ j(ZERO, deopt);
-    __ CompareClassId(value, kInt32x4Cid);
-    __ j(NOT_EQUAL, deopt);
+  __ MoveRegister(out, value);
+  __ SmiTag(out);
+  if (!ValueFitsSmi()) {
+    Label done;
+    __ j(NO_OVERFLOW, &done);
+    BoxAllocationSlowPath::Allocate(
+        compiler, this, compiler->mint_class(), out);
+    __ movq(FieldAddress(out, Mint::value_offset()), value);
+    __ Bind(&done);
   }
-  __ movups(result, FieldAddress(value, Int32x4::value_offset()));
 }
 
 
@@ -5521,77 +5549,6 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* UnboxIntegerInstr::MakeLocationSummary(Isolate* isolate,
-                                                        bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs = new(isolate) LocationSummary(
-      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_out(0, Location::SameAsFirstInput());
-  return locs;
-}
-
-
-void UnboxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const intptr_t value_cid = value()->Type()->ToCid();
-  const Register value = locs()->in(0).reg();
-  const Register result = locs()->out(0).reg();
-  ASSERT(value == result);
-
-  if (value_cid == kMintCid) {
-    __ movq(result, FieldAddress(value, Mint::value_offset()));
-  } else if (value_cid == kSmiCid) {
-    __ SmiUntag(result);
-  } else {
-    Label* deopt = compiler->AddDeoptStub(GetDeoptId(),
-                                          ICData::kDeoptUnboxInteger);
-    Label done;
-    __ SmiUntagOrCheckClass(value, kMintCid, &done);
-    __ j(NOT_EQUAL, deopt);
-    // Undo untagging by multiplying value with 2.
-    __ movq(result, Address(value, TIMES_2, Mint::value_offset()));
-    __ Bind(&done);
-  }
-}
-
-
-LocationSummary* BoxIntegerInstr::MakeLocationSummary(Isolate* isolate,
-                                                      bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, kNumInputs, kNumTemps, is_smi()
-                                          ? LocationSummary::kNoCall
-                                          : LocationSummary::kCallOnSlowPath);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(0, Location::RequiresRegister());
-  return summary;
-}
-
-
-void BoxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register out = locs()->out(0).reg();
-  const Register value = locs()->in(0).reg();
-
-  if (is_smi()) {
-    __ movq(out, value);
-    __ SmiTag(out);
-    return;
-  }
-
-  Label is_smi;
-  Label done;
-  __ movq(out, value);
-  __ SmiTag(out);   // shlq sets OF := SF ^ CF on 1 bit shifts
-  __ j(NO_OVERFLOW, &done);
-  BoxAllocationSlowPath::Allocate(
-      compiler, this, compiler->mint_class(), out);
-  __ movq(FieldAddress(out, Mint::value_offset()), value);
-  __ Bind(&done);
-}
-
-
 template<typename OperandType>
 static void EmitInt64Arithmetic(FlowGraphCompiler* compiler,
                                 Token::Kind op_kind,
@@ -5974,87 +5931,6 @@ void UnaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 DEFINE_UNIMPLEMENTED_INSTRUCTION(BinaryInt32OpInstr)
-
-
-LocationSummary* UnboxIntNInstr::MakeLocationSummary(Isolate* isolate,
-                                                     bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = (!is_truncating() && CanDeoptimize()) ? 1 : 0;
-  LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(0, Location::SameAsFirstInput());
-  if (kNumTemps > 0) {
-    summary->set_temp(0, Location::RequiresRegister());
-  }
-  return summary;
-}
-
-
-void UnboxIntNInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const intptr_t value_cid = value()->Type()->ToCid();
-  const Register value = locs()->in(0).reg();
-  Label* deopt = CanDeoptimize() ?
-      compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptUnboxInteger) : NULL;
-  ASSERT(value == locs()->out(0).reg());
-
-  if (value_cid == kSmiCid) {
-    __ SmiUntag(value);
-  } else if (value_cid == kMintCid) {
-    __ movq(value, FieldAddress(value, Mint::value_offset()));
-  } else {
-    Label done;
-    // Optimistically untag value.
-    __ SmiUntagOrCheckClass(value, kMintCid, &done);
-    __ j(NOT_EQUAL, deopt);
-    // Undo untagging by multiplying value with 2.
-    __ movq(value, Address(value, TIMES_2, Mint::value_offset()));
-    __ Bind(&done);
-  }
-
-  // TODO(vegorov): as it is implemented right now truncating unboxing would
-  // leave "garbage" in the higher word.
-  if (!is_truncating() && (deopt != NULL)) {
-    ASSERT(representation() == kUnboxedInt32);
-    Register temp = locs()->temp(0).reg();
-    __ movsxd(temp, value);
-    __ cmpq(temp, value);
-    __ j(NOT_EQUAL, deopt);
-  }
-}
-
-
-LocationSummary* BoxIntNInstr::MakeLocationSummary(Isolate* isolate,
-                                                   bool opt) const {
-  ASSERT((from_representation() == kUnboxedInt32) ||
-         (from_representation() == kUnboxedUint32));
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new(isolate) LocationSummary(
-      isolate,
-      kNumInputs,
-      kNumTemps,
-      LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(0, Location::RequiresRegister());
-  return summary;
-}
-
-
-void BoxIntNInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register value = locs()->in(0).reg();
-  const Register out = locs()->out(0).reg();
-  ASSERT(value != out);
-
-  ASSERT(kSmiTagSize == 1);
-  if (from_representation() == kUnboxedInt32) {
-    __ movsxd(out, value);
-  } else {
-    ASSERT(from_representation() == kUnboxedUint32);
-    __ movl(out, value);
-  }
-  __ SmiTag(out);
-}
 
 
 LocationSummary* UnboxedIntConverterInstr::MakeLocationSummary(Isolate* isolate,

@@ -1044,7 +1044,7 @@ CompileType ConstraintInstr::ComputeType() const {
 }
 
 // Note that MintOp may produce Smi-s as result of an
-// appended BoxIntegerInstr node.
+// appended BoxInt64Instr node.
 CompileType BinaryMintOpInstr::ComputeType() const {
   return CompileType::Int();
 }
@@ -1061,29 +1061,11 @@ CompileType UnaryMintOpInstr::ComputeType() const {
 
 
 CompileType BoxIntegerInstr::ComputeType() const {
-  if (is_smi()) {
-    return CompileType::FromCid(kSmiCid);
-  }
-  return CompileType::Int();
-}
-
-
-bool BoxIntegerInstr::RecomputeType() {
-  return UpdateType(ComputeType());
-}
-
-
-CompileType BoxIntNInstr::ComputeType() const {
   return ValueFitsSmi() ? CompileType::FromCid(kSmiCid) : CompileType::Int();
 }
 
 
-CompileType UnboxIntNInstr::ComputeType() const {
-  return CompileType::Int();
-}
-
-
-bool BoxIntNInstr::RecomputeType() {
+bool BoxIntegerInstr::RecomputeType() {
   return UpdateType(ComputeType());
 }
 
@@ -1290,43 +1272,48 @@ CompileType MathMinMaxInstr::ComputeType() const {
 }
 
 
-CompileType UnboxDoubleInstr::ComputeType() const {
-  return CompileType::FromCid(kDoubleCid);
+CompileType UnboxInstr::ComputeType() const {
+  switch (representation()) {
+    case kUnboxedDouble:
+      return CompileType::FromCid(kDoubleCid);
+
+    case kUnboxedFloat32x4:
+      return CompileType::FromCid(kFloat32x4Cid);
+
+    case kUnboxedFloat64x2:
+      return CompileType::FromCid(kFloat64x2Cid);
+
+    case kUnboxedInt32x4:
+      return CompileType::FromCid(kInt32x4Cid);
+
+    case kUnboxedMint:
+      return CompileType::Int();
+
+    default:
+      UNREACHABLE();
+      return CompileType::Dynamic();
+  }
 }
 
 
-CompileType BoxDoubleInstr::ComputeType() const {
-  return CompileType::FromCid(kDoubleCid);
-}
+CompileType BoxInstr::ComputeType() const {
+  switch (from_representation()) {
+    case kUnboxedDouble:
+      return CompileType::FromCid(kDoubleCid);
 
+    case kUnboxedFloat32x4:
+      return CompileType::FromCid(kFloat32x4Cid);
 
-CompileType UnboxFloat32x4Instr::ComputeType() const {
-  return CompileType::FromCid(kFloat32x4Cid);
-}
+    case kUnboxedFloat64x2:
+      return CompileType::FromCid(kFloat64x2Cid);
 
+    case kUnboxedInt32x4:
+      return CompileType::FromCid(kInt32x4Cid);
 
-CompileType BoxFloat32x4Instr::ComputeType() const {
-  return CompileType::FromCid(kFloat32x4Cid);
-}
-
-
-CompileType UnboxFloat64x2Instr::ComputeType() const {
-  return CompileType::FromCid(kFloat64x2Cid);
-}
-
-
-CompileType BoxFloat64x2Instr::ComputeType() const {
-  return CompileType::FromCid(kFloat64x2Cid);
-}
-
-
-CompileType UnboxInt32x4Instr::ComputeType() const {
-  return CompileType::FromCid(kInt32x4Cid);
-}
-
-
-CompileType BoxInt32x4Instr::ComputeType() const {
-  return CompileType::FromCid(kInt32x4Cid);
+    default:
+      UNREACHABLE();
+      return CompileType::Dynamic();
+  }
 }
 
 

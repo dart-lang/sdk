@@ -20,7 +20,7 @@ DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 
 class BitVector;
 class BlockEntryInstr;
-class BoxIntNInstr;
+class BoxIntegerInstr;
 class BufferFormatter;
 class CatchBlockEntryInstr;
 class ComparisonInstr;
@@ -36,7 +36,7 @@ class ParsedFunction;
 class Range;
 class RangeAnalysis;
 class RangeBoundary;
-class UnboxIntNInstr;
+class UnboxIntegerInstr;
 
 // CompileType describes type of the value produced by the definition.
 //
@@ -490,14 +490,10 @@ class EmbeddedArray<T, 0> {
   M(BinaryDoubleOp)                                                            \
   M(MathUnary)                                                                 \
   M(MathMinMax)                                                                \
-  M(UnboxDouble)                                                               \
-  M(BoxDouble)                                                                 \
-  M(BoxFloat32x4)                                                              \
-  M(UnboxFloat32x4)                                                            \
-  M(BoxInt32x4)                                                                \
-  M(UnboxInt32x4)                                                              \
-  M(UnboxInteger)                                                              \
-  M(BoxInteger)                                                                \
+  M(Box)                                                                       \
+  M(Unbox)                                                                     \
+  M(BoxInt64)                                                                  \
+  M(UnboxInt64)                                                                \
   M(BinaryMintOp)                                                              \
   M(ShiftMintOp)                                                               \
   M(UnaryMintOp)                                                               \
@@ -536,8 +532,6 @@ class EmbeddedArray<T, 0> {
   M(BinaryInt32x4Op)                                                           \
   M(TestSmi)                                                                   \
   M(TestCids)                                                                  \
-  M(BoxFloat64x2)                                                              \
-  M(UnboxFloat64x2)                                                            \
   M(BinaryFloat64x2Op)                                                         \
   M(Float64x2Zero)                                                             \
   M(Float64x2Constructor)                                                      \
@@ -560,8 +554,8 @@ class EmbeddedArray<T, 0> {
 
 #define FOR_EACH_ABSTRACT_INSTRUCTION(M)                                       \
   M(BlockEntry)                                                                \
-  M(BoxIntN)                                                                   \
-  M(UnboxIntN)                                                                 \
+  M(BoxInteger)                                                                \
+  M(UnboxInteger)                                                              \
   M(Comparison)                                                                \
   M(UnaryIntegerOp)                                                            \
   M(BinaryIntegerOp)                                                           \
@@ -1620,14 +1614,7 @@ class Definition : public Instruction {
   }
 
   // Does this define a mint?
-  bool IsMintDefinition() {
-    return (Type()->ToCid() == kMintCid) ||
-            IsBinaryMintOp() ||
-            IsUnaryMintOp() ||
-            IsShiftMintOp() ||
-            IsBoxInteger() ||
-            IsUnboxInteger();
-  }
+  inline bool IsMintDefinition();
 
   bool IsInt32Definition() {
     return IsBinaryInt32Op() ||
@@ -4393,319 +4380,356 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2, NoThrow, Pure> {
 };
 
 
-class BoxDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class Boxing : public AllStatic {
  public:
-  explicit BoxDoubleInstr(Value* value) {
-    SetInputAt(0, value);
+  static bool Supports(Representation rep) {
+    switch (rep) {
+      case kUnboxedDouble:
+      case kUnboxedFloat32x4:
+      case kUnboxedFloat64x2:
+      case kUnboxedInt32x4:
+      case kUnboxedMint:
+      case kUnboxedInt32:
+      case kUnboxedUint32:
+        return true;
+      default:
+        return false;
+    }
   }
 
-  Value* value() const { return inputs_[0]; }
+  static intptr_t ValueOffset(Representation rep) {
+    switch (rep) {
+      case kUnboxedDouble:
+        return Double::value_offset();
 
-  DECLARE_INSTRUCTION(BoxDouble)
-  virtual CompileType ComputeType() const;
+      case kUnboxedFloat32x4:
+        return Float32x4::value_offset();
 
-  virtual bool CanDeoptimize() const { return false; }
+      case kUnboxedFloat64x2:
+        return Float64x2::value_offset();
 
-  virtual intptr_t DeoptimizationTarget() const {
-    return Isolate::kNoDeoptId;
+      case kUnboxedInt32x4:
+        return Int32x4::value_offset();
+
+      case kUnboxedMint:
+        return Mint::value_offset();
+
+      default:
+        UNREACHABLE();
+        return 0;
+    }
   }
 
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT(idx == 0);
-    return kUnboxedDouble;
+  static intptr_t BoxCid(Representation rep) {
+    switch (rep) {
+      case kUnboxedMint:
+        return kMintCid;
+      case kUnboxedDouble:
+        return kDoubleCid;
+      case kUnboxedFloat32x4:
+        return kFloat32x4Cid;
+      case kUnboxedFloat64x2:
+        return kFloat64x2Cid;
+      case kUnboxedInt32x4:
+        return kInt32x4Cid;
+      default:
+        UNREACHABLE();
+        return kIllegalCid;
+    }
   }
-
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  Definition* Canonicalize(FlowGraph* flow_graph);
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(BoxDoubleInstr);
 };
 
 
-class BoxFloat32x4Instr : public TemplateDefinition<1, NoThrow, Pure> {
+class BoxInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
-  explicit BoxFloat32x4Instr(Value* value) {
-    SetInputAt(0, value);
-  }
+  static BoxInstr* Create(Representation from, Value* value);
 
   Value* value() const { return inputs_[0]; }
+  Representation from_representation() const { return from_representation_; }
+
+  DECLARE_INSTRUCTION(Box)
+  virtual CompileType ComputeType() const;
 
   virtual bool CanDeoptimize() const { return false; }
-
   virtual intptr_t DeoptimizationTarget() const {
     return Isolate::kNoDeoptId;
   }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
-    return kUnboxedFloat32x4;
+    return from_representation();
   }
 
-  DECLARE_INSTRUCTION(BoxFloat32x4)
-  virtual CompileType ComputeType() const;
-
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->AsBox()->from_representation() == from_representation();
+  }
 
   Definition* Canonicalize(FlowGraph* flow_graph);
 
- private:
-  DISALLOW_COPY_AND_ASSIGN(BoxFloat32x4Instr);
-};
-
-
-class BoxFloat64x2Instr : public TemplateDefinition<1, NoThrow, Pure> {
- public:
-  explicit BoxFloat64x2Instr(Value* value) {
+ protected:
+  BoxInstr(Representation from_representation, Value* value)
+      : from_representation_(from_representation) {
     SetInputAt(0, value);
   }
 
-  Value* value() const { return inputs_[0]; }
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual intptr_t DeoptimizationTarget() const {
-    return Isolate::kNoDeoptId;
-  }
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT(idx == 0);
-    return kUnboxedFloat64x2;
-  }
-
-  DECLARE_INSTRUCTION(BoxFloat64x2)
-  virtual CompileType ComputeType() const;
-
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  Definition* Canonicalize(FlowGraph* flow_graph);
-
  private:
-  DISALLOW_COPY_AND_ASSIGN(BoxFloat64x2Instr);
+  intptr_t ValueOffset() const {
+    return Boxing::ValueOffset(from_representation());
+  }
+
+  const Representation from_representation_;
+
+  DISALLOW_COPY_AND_ASSIGN(BoxInstr);
 };
 
 
-
-class BoxInt32x4Instr : public TemplateDefinition<1, NoThrow, Pure> {
+class BoxIntegerInstr : public BoxInstr {
  public:
-  explicit BoxInt32x4Instr(Value* value) {
-    SetInputAt(0, value);
-  }
+  BoxIntegerInstr(Representation representation, Value* value)
+      : BoxInstr(representation, value) { }
 
-  Value* value() const { return inputs_[0]; }
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual intptr_t DeoptimizationTarget() const {
-    return Isolate::kNoDeoptId;
-  }
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT(idx == 0);
-    return kUnboxedInt32x4;
-  }
-
-  DECLARE_INSTRUCTION(BoxInt32x4)
-  virtual CompileType ComputeType() const;
-
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  Definition* Canonicalize(FlowGraph* flow_graph);
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(BoxInt32x4Instr);
-};
-
-
-class BoxIntegerInstr : public TemplateDefinition<1, NoThrow, Pure> {
- public:
-  explicit BoxIntegerInstr(Value* value) : is_smi_(false) {
-    SetInputAt(0, value);
-  }
-
-  Value* value() const { return inputs_[0]; }
-
-  bool is_smi() const { return is_smi_; }
-  void set_is_smi(bool is_smi) { is_smi_ = is_smi; }
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual intptr_t DeoptimizationTarget() const {
-    return Isolate::kNoDeoptId;
-  }
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT(idx == 0);
-    return kUnboxedMint;
-  }
-
-  DECLARE_INSTRUCTION(BoxInteger)
-  virtual CompileType ComputeType() const;
-  virtual bool RecomputeType();
+  virtual bool ValueFitsSmi() const;
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual CompileType ComputeType() const;
+  virtual bool RecomputeType();
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
- private:
-  bool is_smi_;
+  DEFINE_INSTRUCTION_TYPE_CHECK(BoxInteger)
 
+ private:
   DISALLOW_COPY_AND_ASSIGN(BoxIntegerInstr);
 };
 
 
-class UnboxDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class BoxInteger32Instr : public BoxIntegerInstr {
  public:
-  UnboxDoubleInstr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id) {
-    SetInputAt(0, value);
-  }
+  BoxInteger32Instr(Representation representation, Value* value)
+      : BoxIntegerInstr(representation, value) { }
 
-  Value* value() const { return inputs_[0]; }
-
-  virtual bool CanDeoptimize() const {
-    return (value()->Type()->ToCid() != kDoubleCid)
-        && (value()->Type()->ToCid() != kSmiCid);
-  }
-
-  virtual Representation representation() const {
-    return kUnboxedDouble;
-  }
-
-  DECLARE_INSTRUCTION(UnboxDouble)
-  virtual CompileType ComputeType() const;
-
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  Definition* Canonicalize(FlowGraph* flow_graph);
+  DECLARE_INSTRUCTION_BACKEND()
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(UnboxDoubleInstr);
+  DISALLOW_COPY_AND_ASSIGN(BoxInteger32Instr);
 };
 
 
-class UnboxFloat32x4Instr : public TemplateDefinition<1, NoThrow, Pure> {
+class BoxInt32Instr : public BoxInteger32Instr {
  public:
-  UnboxFloat32x4Instr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id) {
-    SetInputAt(0, value);
-  }
+  explicit BoxInt32Instr(Value* value)
+      : BoxInteger32Instr(kUnboxedInt32, value) { }
 
-  Value* value() const { return inputs_[0]; }
-
-  virtual bool CanDeoptimize() const {
-    return (value()->Type()->ToCid() != kFloat32x4Cid);
-  }
-
-  virtual Representation representation() const {
-    return kUnboxedFloat32x4;
-  }
-
-  DECLARE_INSTRUCTION(UnboxFloat32x4)
-  virtual CompileType ComputeType() const;
-
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  Definition* Canonicalize(FlowGraph* flow_graph);
+  DECLARE_INSTRUCTION_NO_BACKEND(BoxInt32)
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(UnboxFloat32x4Instr);
+  DISALLOW_COPY_AND_ASSIGN(BoxInt32Instr);
 };
 
 
-class UnboxFloat64x2Instr : public TemplateDefinition<1, NoThrow, Pure> {
+class BoxUint32Instr : public BoxInteger32Instr {
  public:
-  UnboxFloat64x2Instr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id) {
-    SetInputAt(0, value);
-  }
+  explicit BoxUint32Instr(Value* value)
+      : BoxInteger32Instr(kUnboxedUint32, value) { }
 
-  Value* value() const { return inputs_[0]; }
-
-  virtual bool CanDeoptimize() const {
-    return (value()->Type()->ToCid() != kFloat64x2Cid);
-  }
-
-  virtual Representation representation() const {
-    return kUnboxedFloat64x2;
-  }
-
-  DECLARE_INSTRUCTION(UnboxFloat64x2)
-  virtual CompileType ComputeType() const;
-
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  Definition* Canonicalize(FlowGraph* flow_graph);
+  DECLARE_INSTRUCTION_NO_BACKEND(BoxUint32)
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(UnboxFloat64x2Instr);
+  DISALLOW_COPY_AND_ASSIGN(BoxUint32Instr);
 };
 
 
-class UnboxInt32x4Instr : public TemplateDefinition<1, NoThrow, Pure> {
+class BoxInt64Instr : public BoxIntegerInstr {
  public:
-  UnboxInt32x4Instr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id) {
-    SetInputAt(0, value);
-  }
+  explicit BoxInt64Instr(Value* value)
+      : BoxIntegerInstr(kUnboxedMint, value) { }
 
-  Value* value() const { return inputs_[0]; }
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool CanDeoptimize() const {
-    return (value()->Type()->ToCid() != kInt32x4Cid);
-  }
-
-  virtual Representation representation() const {
-    return kUnboxedInt32x4;
-  }
-
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  DECLARE_INSTRUCTION(UnboxInt32x4)
-  virtual CompileType ComputeType() const;
-
-  Definition* Canonicalize(FlowGraph* flow_graph);
+  DECLARE_INSTRUCTION(BoxInt64)
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(UnboxInt32x4Instr);
+  DISALLOW_COPY_AND_ASSIGN(BoxInt64Instr);
 };
 
 
-class UnboxIntegerInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
-  UnboxIntegerInstr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id) {
-    SetInputAt(0, value);
-  }
+  static UnboxInstr* Create(Representation to, Value* value, intptr_t deopt_id);
 
   Value* value() const { return inputs_[0]; }
 
   virtual bool CanDeoptimize() const {
+    const intptr_t value_cid = value()->Type()->ToCid();
+
+    if (CanConvertSmi() &&
+        (value()->Type()->ToCid() == kSmiCid)) {
+      return false;
+    }
+
+    return (value_cid != BoxCid());
+  }
+
+  virtual Representation representation() const {
+    return representation_;
+  }
+
+  DECLARE_INSTRUCTION(Unbox)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return representation() == other->AsUnbox()->representation();
+  }
+
+  Definition* Canonicalize(FlowGraph* flow_graph);
+
+  virtual intptr_t DeoptimizationTarget() const {
+    return GetDeoptId();
+  }
+
+ protected:
+  UnboxInstr(Representation representation,
+             Value* value,
+             intptr_t deopt_id)
+      : TemplateDefinition(deopt_id),
+        representation_(representation) {
+    SetInputAt(0, value);
+  }
+
+ private:
+  bool CanConvertSmi() const;
+  void EmitLoadFromBox(FlowGraphCompiler* compiler);
+  void EmitSmiConversion(FlowGraphCompiler* compiler);
+
+  intptr_t BoxCid() const {
+    return Boxing::BoxCid(representation_);
+  }
+
+  intptr_t ValueOffset() const {
+    return Boxing::ValueOffset(representation_);
+  }
+
+  const Representation representation_;
+
+  DISALLOW_COPY_AND_ASSIGN(UnboxInstr);
+};
+
+
+class UnboxIntegerInstr : public UnboxInstr {
+ public:
+  enum TruncationMode { kTruncate, kNoTruncation };
+
+  UnboxIntegerInstr(Representation representation,
+                    TruncationMode truncation_mode,
+                    Value* value,
+                    intptr_t deopt_id)
+      : UnboxInstr(representation, value, deopt_id),
+        is_truncating_(truncation_mode == kTruncate) {
+  }
+
+  bool is_truncating() const { return is_truncating_; }
+
+  virtual CompileType ComputeType() const;
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    UnboxIntegerInstr* other_unbox = other->AsUnboxInteger();
+    return UnboxInstr::AttributesEqual(other) &&
+        (other_unbox->is_truncating_ == is_truncating_);
+  }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  DEFINE_INSTRUCTION_TYPE_CHECK(UnboxInteger)
+
+ private:
+  bool is_truncating_;
+
+  DISALLOW_COPY_AND_ASSIGN(UnboxIntegerInstr);
+};
+
+
+class UnboxInteger32Instr : public UnboxIntegerInstr {
+ public:
+  UnboxInteger32Instr(Representation representation,
+                      TruncationMode truncation_mode,
+                      Value* value,
+                      intptr_t deopt_id)
+      : UnboxIntegerInstr(representation, truncation_mode, value, deopt_id) { }
+
+  DECLARE_INSTRUCTION_BACKEND()
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(UnboxInteger32Instr);
+};
+
+
+class UnboxUint32Instr : public UnboxInteger32Instr {
+ public:
+  UnboxUint32Instr(Value* value, intptr_t deopt_id)
+      : UnboxInteger32Instr(kUnboxedUint32, kTruncate, value, deopt_id) {
+    ASSERT(is_truncating());
+  }
+
+  virtual bool CanDeoptimize() const {
+    ASSERT(is_truncating());
     return (value()->Type()->ToCid() != kSmiCid)
         && (value()->Type()->ToCid() != kMintCid);
   }
 
-  virtual Representation representation() const {
-    return kUnboxedMint;
+  DECLARE_INSTRUCTION_NO_BACKEND(UnboxUint32)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(UnboxUint32Instr);
+};
+
+
+class UnboxInt32Instr : public UnboxInteger32Instr {
+ public:
+  UnboxInt32Instr(TruncationMode truncation_mode,
+                  Value* value,
+                  intptr_t deopt_id)
+      : UnboxInteger32Instr(kUnboxedInt32, truncation_mode, value, deopt_id) {
   }
 
-  intptr_t deopt_id() const { return GetDeoptId(); }
+  virtual bool CanDeoptimize() const;
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
-  DECLARE_INSTRUCTION(UnboxInteger)
-  virtual CompileType ComputeType() const;
-
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
+  DECLARE_INSTRUCTION_NO_BACKEND(UnboxInt32)
+
  private:
-  DISALLOW_COPY_AND_ASSIGN(UnboxIntegerInstr);
+  DISALLOW_COPY_AND_ASSIGN(UnboxInt32Instr);
 };
+
+
+class UnboxInt64Instr : public UnboxIntegerInstr {
+ public:
+  UnboxInt64Instr(Value* value, intptr_t deopt_id)
+      : UnboxIntegerInstr(kUnboxedMint, kNoTruncation, value, deopt_id) {
+  }
+
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
+
+  DECLARE_INSTRUCTION_NO_BACKEND(UnboxInt64)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(UnboxInt64Instr);
+};
+
+
+bool Definition::IsMintDefinition() {
+  return (Type()->ToCid() == kMintCid) ||
+          IsBinaryMintOp() ||
+          IsUnaryMintOp() ||
+          IsShiftMintOp() ||
+          IsBoxInt64() ||
+          IsUnboxInt64();
+}
 
 
 class MathUnaryInstr : public TemplateDefinition<1, NoThrow, Pure> {
@@ -7441,155 +7465,6 @@ class CheckArrayBoundInstr : public TemplateInstruction<2, NoThrow, Pure> {
   bool licm_hoisted_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundInstr);
-};
-
-
-class BoxIntNInstr : public TemplateDefinition<1, NoThrow, Pure> {
- public:
-  BoxIntNInstr(Representation representation, Value* value)
-      : from_representation_(representation) {
-    SetInputAt(0, value);
-  }
-
-  Representation from_representation() const { return from_representation_; }
-
-  Value* value() const { return inputs_[0]; }
-  virtual bool ValueFitsSmi() const;
-
-  virtual CompileType ComputeType() const;
-  virtual bool RecomputeType();
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual intptr_t DeoptimizationTarget() const {
-    return Isolate::kNoDeoptId;
-  }
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT(idx == 0);
-    return from_representation_;
-  }
-
-  virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsBoxIntN()->from_representation_ == from_representation_;
-  }
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
-  DEFINE_INSTRUCTION_TYPE_CHECK(BoxIntN)
-  DECLARE_INSTRUCTION_BACKEND()
-
- private:
-  const Representation from_representation_;
-
-  DISALLOW_COPY_AND_ASSIGN(BoxIntNInstr);
-};
-
-
-class BoxUint32Instr : public BoxIntNInstr {
- public:
-  explicit BoxUint32Instr(Value* value)
-      : BoxIntNInstr(kUnboxedUint32, value) { }
-
-  DECLARE_INSTRUCTION_NO_BACKEND(BoxUint32)
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(BoxUint32Instr);
-};
-
-
-class BoxInt32Instr : public BoxIntNInstr {
- public:
-  explicit BoxInt32Instr(Value* value)
-      : BoxIntNInstr(kUnboxedInt32, value) { }
-
-  virtual void InferRange(RangeAnalysis* analysis, Range* range);
-
-  DECLARE_INSTRUCTION_NO_BACKEND(BoxInt32)
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(BoxInt32Instr);
-};
-
-
-class UnboxIntNInstr : public TemplateDefinition<1, NoThrow, Pure> {
- public:
-  UnboxIntNInstr(Representation representation,
-                 Value* value,
-                 intptr_t deopt_id)
-      : TemplateDefinition(deopt_id),
-        representation_(representation),
-        is_truncating_(representation == kUnboxedUint32) {
-    SetInputAt(0, value);
-  }
-
-  Value* value() const { return inputs_[0]; }
-
-  bool is_truncating() const { return is_truncating_; }
-  void mark_truncating() { is_truncating_ = true; }
-
-  virtual Representation representation() const {
-    return representation_;
-  }
-
-  virtual CompileType ComputeType() const;
-
-  virtual bool AttributesEqual(Instruction* other) const {
-    UnboxIntNInstr* other_unbox = other->AsUnboxIntN();
-    return (other_unbox->representation_ == representation_) &&
-        (other_unbox->is_truncating_ == is_truncating_);
-  }
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  DEFINE_INSTRUCTION_TYPE_CHECK(UnboxIntN)
-  DECLARE_INSTRUCTION_BACKEND()
-
- private:
-  const Representation representation_;
-  bool is_truncating_;
-
-  DISALLOW_COPY_AND_ASSIGN(UnboxIntNInstr);
-};
-
-
-class UnboxUint32Instr : public UnboxIntNInstr {
- public:
-  UnboxUint32Instr(Value* value, intptr_t deopt_id)
-      : UnboxIntNInstr(kUnboxedUint32, value, deopt_id) {
-    ASSERT(is_truncating());
-  }
-
-  virtual bool CanDeoptimize() const {
-    return (value()->Type()->ToCid() != kSmiCid)
-        && (value()->Type()->ToCid() != kMintCid);
-  }
-
-  DECLARE_INSTRUCTION_NO_BACKEND(UnboxUint32)
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(UnboxUint32Instr);
-};
-
-
-class UnboxInt32Instr : public UnboxIntNInstr {
- public:
-  UnboxInt32Instr(Value* value, intptr_t deopt_id)
-      : UnboxIntNInstr(kUnboxedInt32, value, deopt_id) {
-  }
-
-  virtual bool CanDeoptimize() const;
-
-  virtual void InferRange(RangeAnalysis* analysis, Range* range);
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
-  DECLARE_INSTRUCTION_NO_BACKEND(UnboxInt32)
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(UnboxInt32Instr);
 };
 
 

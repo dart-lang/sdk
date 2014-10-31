@@ -628,138 +628,41 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
   }
 
   Definition* converted = NULL;
-  if ((from == kTagged) && (to == kUnboxedMint)) {
-    ASSERT((deopt_target != NULL) ||
-           (use->Type()->ToCid() == kUnboxedMint));
-    const intptr_t deopt_id = (deopt_target != NULL) ?
-        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
-    converted = new(I) UnboxIntegerInstr(use->CopyWithType(), deopt_id);
-  } else if ((from == kUnboxedMint) && (to == kTagged)) {
-    converted = new(I) BoxIntegerInstr(use->CopyWithType());
-  } else if ((from == kUnboxedUint32) && (to == kTagged)) {
-    converted = new(I) BoxUint32Instr(use->CopyWithType());
-  } else if (IsUnboxedInteger(from) && IsUnboxedInteger(to)) {
+  if (IsUnboxedInteger(from) && IsUnboxedInteger(to)) {
     const intptr_t deopt_id = (to == kUnboxedInt32) && (deopt_target != NULL) ?
-        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+      deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
     converted = new(I) UnboxedIntConverterInstr(from,
                                                 to,
                                                 use->CopyWithType(),
                                                 deopt_id);
   } else if ((from == kUnboxedInt32) && (to == kUnboxedDouble)) {
     converted = new Int32ToDoubleInstr(use->CopyWithType());
-  } else if ((from == kTagged) && (to == kUnboxedInt32)) {
+  } else if ((from == kUnboxedMint) &&
+             (to == kUnboxedDouble) &&
+             CanConvertUnboxedMintToDouble()) {
     const intptr_t deopt_id = (deopt_target != NULL) ?
-        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
-    converted = new UnboxInt32Instr(use->CopyWithType(), deopt_id);
-  } else if ((from == kUnboxedInt32) && (to == kTagged)) {
-    converted = new BoxInt32Instr(use->CopyWithType());
-  } else if ((from == kTagged) && (to == kUnboxedUint32)) {
-    const intptr_t deopt_id = (deopt_target != NULL) ?
-        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
-    converted = new UnboxUint32Instr(use->CopyWithType(), deopt_id);
-  } else if (from == kUnboxedMint && to == kUnboxedDouble) {
+      deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
     ASSERT(CanUnboxDouble());
+    converted = new MintToDoubleInstr(use->CopyWithType(), deopt_id);
+  } else if ((from == kTagged) && Boxing::Supports(to)) {
     const intptr_t deopt_id = (deopt_target != NULL) ?
-        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
-    if (CanConvertUnboxedMintToDouble()) {
-      // Fast path.
-      converted = new MintToDoubleInstr(use->CopyWithType(), deopt_id);
-    } else {
-      // Slow path.
-      BoxIntegerInstr* boxed = new(I) BoxIntegerInstr(use->CopyWithType());
-      use->BindTo(boxed);
-      InsertBefore(insert_before, boxed, NULL, FlowGraph::kValue);
-      converted = new(I) UnboxDoubleInstr(new(I) Value(boxed), deopt_id);
-    }
-  } else if ((from == kUnboxedDouble) && (to == kTagged)) {
-    ASSERT(CanUnboxDouble());
-    converted = new(I) BoxDoubleInstr(use->CopyWithType());
-  } else if ((from == kTagged) && (to == kUnboxedDouble)) {
-    ASSERT(CanUnboxDouble());
-    ASSERT((deopt_target != NULL) ||
-           (use->Type()->ToCid() == kDoubleCid));
-    const intptr_t deopt_id = (deopt_target != NULL) ?
-        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
-    ConstantInstr* constant = use->definition()->AsConstant();
-    if ((constant != NULL) && constant->value().IsSmi()) {
-      const double dbl_val = Smi::Cast(constant->value()).AsDoubleValue();
-      const Double& dbl_obj =
-          Double::ZoneHandle(I, Double::NewCanonical(dbl_val));
-      ConstantInstr* double_const = flow_graph()->GetConstant(dbl_obj);
-      converted = new(I) UnboxDoubleInstr(new(I) Value(double_const), deopt_id);
-    } else {
-      converted = new(I) UnboxDoubleInstr(use->CopyWithType(), deopt_id);
-    }
-  } else if ((from == kTagged) && (to == kUnboxedFloat32x4)) {
-    ASSERT((deopt_target != NULL) ||
-           (use->Type()->ToCid() == kFloat32x4Cid));
-    const intptr_t deopt_id = (deopt_target != NULL) ?
-        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
-    converted = new(I) UnboxFloat32x4Instr(
-        use->CopyWithType(), deopt_id);
-  } else if ((from == kUnboxedFloat32x4) && (to == kTagged)) {
-    converted = new(I) BoxFloat32x4Instr(use->CopyWithType());
-  } else if ((from == kTagged) && (to == kUnboxedInt32x4)) {
-    ASSERT((deopt_target != NULL) || (use->Type()->ToCid() == kInt32x4Cid));
-    const intptr_t deopt_id = (deopt_target != NULL) ?
-        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
-    converted = new(I) UnboxInt32x4Instr(use->CopyWithType(), deopt_id);
-  } else if ((from == kUnboxedInt32x4) && (to == kTagged)) {
-    converted = new(I) BoxInt32x4Instr(use->CopyWithType());
-  } else if ((from == kTagged) && (to == kUnboxedFloat64x2)) {
-    ASSERT((deopt_target != NULL) || (use->Type()->ToCid() == kFloat64x2Cid));
-    const intptr_t deopt_id = (deopt_target != NULL) ?
-        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
-    converted = new(I) UnboxFloat64x2Instr(use->CopyWithType(), deopt_id);
-  } else if ((from == kUnboxedFloat64x2) && (to == kTagged)) {
-    converted = new(I) BoxFloat64x2Instr(use->CopyWithType());
+      deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+    converted = UnboxInstr::Create(to, use->CopyWithType(), deopt_id);
+  } else if ((to == kTagged) && Boxing::Supports(from)) {
+    converted = BoxInstr::Create(from, use->CopyWithType());
   } else {
     // We have failed to find a suitable conversion instruction.
     // Insert two "dummy" conversion instructions with the correct
     // "from" and "to" representation. The inserted instructions will
     // trigger a deoptimization if executed. See #12417 for a discussion.
     const intptr_t deopt_id = (deopt_target != NULL) ?
-        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
-    ASSERT(from != kTagged);
-    ASSERT(to != kTagged);
-    Definition* boxed = NULL;
-    if (from == kUnboxedDouble) {
-      boxed = new(I) BoxDoubleInstr(use->CopyWithType());
-    } else if (from == kUnboxedInt32x4) {
-      boxed = new(I) BoxInt32x4Instr(use->CopyWithType());
-    } else if (from == kUnboxedFloat32x4) {
-      boxed = new(I) BoxFloat32x4Instr(use->CopyWithType());
-    } else if (from == kUnboxedMint) {
-      boxed = new(I) BoxIntegerInstr(use->CopyWithType());
-    } else if (from == kUnboxedFloat64x2) {
-      boxed = new(I) BoxFloat64x2Instr(use->CopyWithType());
-    } else if (from == kUnboxedInt32) {
-      boxed = new(I) BoxInt32Instr(use->CopyWithType());
-    } else if (from == kUnboxedUint32) {
-      boxed = new(I) BoxUint32Instr(use->CopyWithType());
-    } else {
-      UNIMPLEMENTED();
-    }
+      deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+    ASSERT(Boxing::Supports(from));
+    ASSERT(Boxing::Supports(to));
+    Definition* boxed = BoxInstr::Create(from, use->CopyWithType());
     use->BindTo(boxed);
     InsertBefore(insert_before, boxed, NULL, FlowGraph::kValue);
-    Value* to_value = new(I) Value(boxed);
-    if (to == kUnboxedDouble) {
-      converted = new(I) UnboxDoubleInstr(to_value, deopt_id);
-    } else if (to == kUnboxedInt32x4) {
-      converted = new(I) UnboxInt32x4Instr(to_value, deopt_id);
-    } else if (to == kUnboxedFloat32x4) {
-      converted = new(I) UnboxFloat32x4Instr(to_value, deopt_id);
-    } else if (to == kUnboxedMint) {
-      converted = new(I) UnboxIntegerInstr(to_value, deopt_id);
-    } else if (to == kUnboxedFloat64x2) {
-      converted = new(I) UnboxFloat64x2Instr(to_value, deopt_id);
-    } else if (to == kUnboxedInt32) {
-      boxed = new(I) UnboxInt32Instr(use->CopyWithType(), deopt_id);
-    } else if (to == kUnboxedUint32) {
-      boxed = new(I) UnboxUint32Instr(use->CopyWithType(), deopt_id);
-    } else {
-      UNIMPLEMENTED();
-    }
+    converted = UnboxInstr::Create(to, new(I) Value(boxed), deopt_id);
   }
   ASSERT(converted != NULL);
   InsertBefore(insert_before, converted, use->instruction()->env(),
@@ -1394,9 +1297,9 @@ bool FlowGraphOptimizer::InlineSetIndexed(
                                     FlowGraph::kValue);
   } else if (array_cid == kTypedDataInt32ArrayCid) {
     stored_value = new(I) UnboxInt32Instr(
+        UnboxInt32Instr::kTruncate,
         new(I) Value(stored_value),
         call->deopt_id());
-    stored_value->AsUnboxIntN()->mark_truncating();
     cursor = flow_graph()->AppendTo(cursor,
                                     stored_value,
                                     call->env(),
@@ -1405,7 +1308,7 @@ bool FlowGraphOptimizer::InlineSetIndexed(
     stored_value = new(I) UnboxUint32Instr(
         new(I) Value(stored_value),
         call->deopt_id());
-    ASSERT(stored_value->AsUnboxIntN()->is_truncating());
+    ASSERT(stored_value->AsUnboxInteger()->is_truncating());
     cursor = flow_graph()->AppendTo(cursor,
                                     stored_value,
                                     call->env(),
@@ -3882,9 +3785,9 @@ bool FlowGraphOptimizer::InlineByteArrayViewStore(const Function& target,
                                     FlowGraph::kValue);
   } else if (view_cid == kTypedDataInt32ArrayCid) {
     stored_value = new(I) UnboxInt32Instr(
+        UnboxInt32Instr::kTruncate,
         new(I) Value(stored_value),
         call->deopt_id());
-    stored_value->AsUnboxIntN()->mark_truncating();
     cursor = flow_graph()->AppendTo(cursor,
                                     stored_value,
                                     call->env(),
@@ -3893,7 +3796,7 @@ bool FlowGraphOptimizer::InlineByteArrayViewStore(const Function& target,
     stored_value = new(I) UnboxUint32Instr(
         new(I) Value(stored_value),
         call->deopt_id());
-    ASSERT(stored_value->AsUnboxIntN()->is_truncating());
+    ASSERT(stored_value->AsUnboxInteger()->is_truncating());
     cursor = flow_graph()->AppendTo(cursor,
                                     stored_value,
                                     call->env(),
@@ -8367,13 +8270,13 @@ void ConstantPropagator::VisitShiftMintOp(ShiftMintOpInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitBoxInteger(BoxIntegerInstr* instr) {
+void ConstantPropagator::VisitBoxInt64(BoxInt64Instr* instr) {
   // TODO(kmillikin): Handle box operation.
   SetValue(instr, non_constant_);
 }
 
 
-void ConstantPropagator::VisitUnboxInteger(UnboxIntegerInstr* instr) {
+void ConstantPropagator::VisitUnboxInt64(UnboxInt64Instr* instr) {
   // TODO(kmillikin): Handle unbox operation.
   SetValue(instr, non_constant_);
 }
@@ -8756,7 +8659,7 @@ void ConstantPropagator::VisitMathMinMax(MathMinMaxInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitUnboxDouble(UnboxDoubleInstr* instr) {
+void ConstantPropagator::VisitUnbox(UnboxInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {
     SetValue(instr, non_constant_);
@@ -8767,73 +8670,7 @@ void ConstantPropagator::VisitUnboxDouble(UnboxDoubleInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitBoxDouble(BoxDoubleInstr* instr) {
-  const Object& value = instr->value()->definition()->constant_value();
-  if (IsNonConstant(value)) {
-    SetValue(instr, non_constant_);
-  } else if (IsConstant(value)) {
-    // TODO(kmillikin): Handle conversion.
-    SetValue(instr, non_constant_);
-  }
-}
-
-
-void ConstantPropagator::VisitUnboxFloat32x4(UnboxFloat32x4Instr* instr) {
-  const Object& value = instr->value()->definition()->constant_value();
-  if (IsNonConstant(value)) {
-    SetValue(instr, non_constant_);
-  } else if (IsConstant(value)) {
-    // TODO(kmillikin): Handle conversion.
-    SetValue(instr, non_constant_);
-  }
-}
-
-
-void ConstantPropagator::VisitBoxFloat32x4(BoxFloat32x4Instr* instr) {
-  const Object& value = instr->value()->definition()->constant_value();
-  if (IsNonConstant(value)) {
-    SetValue(instr, non_constant_);
-  } else if (IsConstant(value)) {
-    // TODO(kmillikin): Handle conversion.
-    SetValue(instr, non_constant_);
-  }
-}
-
-
-void ConstantPropagator::VisitUnboxFloat64x2(UnboxFloat64x2Instr* instr) {
-  const Object& value = instr->value()->definition()->constant_value();
-  if (IsNonConstant(value)) {
-    SetValue(instr, non_constant_);
-  } else if (IsConstant(value)) {
-    // TODO(kmillikin): Handle conversion.
-    SetValue(instr, non_constant_);
-  }
-}
-
-
-void ConstantPropagator::VisitBoxFloat64x2(BoxFloat64x2Instr* instr) {
-  const Object& value = instr->value()->definition()->constant_value();
-  if (IsNonConstant(value)) {
-    SetValue(instr, non_constant_);
-  } else if (IsConstant(value)) {
-    // TODO(kmillikin): Handle conversion.
-    SetValue(instr, non_constant_);
-  }
-}
-
-
-void ConstantPropagator::VisitUnboxInt32x4(UnboxInt32x4Instr* instr) {
-  const Object& value = instr->value()->definition()->constant_value();
-  if (IsNonConstant(value)) {
-    SetValue(instr, non_constant_);
-  } else if (IsConstant(value)) {
-    // TODO(kmillikin): Handle conversion.
-    SetValue(instr, non_constant_);
-  }
-}
-
-
-void ConstantPropagator::VisitBoxInt32x4(BoxInt32x4Instr* instr) {
+void ConstantPropagator::VisitBox(BoxInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {
     SetValue(instr, non_constant_);
@@ -9860,9 +9697,7 @@ void AllocationSinking::Optimize() {
     MaterializeObjectInstr* mat = materializations_[i];
     for (intptr_t j = 0; j < mat->InputCount(); j++) {
       Definition* defn = mat->InputAt(j)->definition();
-      if (defn->IsBoxDouble() ||
-          defn->IsBoxFloat32x4() ||
-          defn->IsBoxInt32x4()) {
+      if (defn->IsBox()) {
         mat->InputAt(j)->BindTo(defn->InputAt(0)->definition());
       }
     }

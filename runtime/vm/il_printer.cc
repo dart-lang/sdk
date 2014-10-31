@@ -986,7 +986,7 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
 }
 
 
-void UnboxIntNInstr::PrintOperandsTo(BufferFormatter* f) const {
+void UnboxIntegerInstr::PrintOperandsTo(BufferFormatter* f) const {
   if (is_truncating()) {
     f->Print("[tr], ");
   }

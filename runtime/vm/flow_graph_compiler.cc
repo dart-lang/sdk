@@ -1496,4 +1496,24 @@ intptr_t FlowGraphCompiler::GetOptimizationThreshold() const {
   return threshold;
 }
 
+
+const Class& FlowGraphCompiler::BoxClassFor(Representation rep) {
+  switch (rep) {
+    case kUnboxedDouble:
+      return double_class();
+    case kUnboxedFloat32x4:
+      return float32x4_class();
+    case kUnboxedFloat64x2:
+      return float64x2_class();
+    case kUnboxedInt32x4:
+      return int32x4_class();
+    case kUnboxedMint:
+      return mint_class();
+    default:
+      UNREACHABLE();
+      return Class::ZoneHandle();
+  }
+}
+
+
 }  // namespace dart
