@@ -1498,7 +1498,20 @@ class HInvokeSuper extends HInvokeStatic {
                type,
                {this.isSetter})
       : super(element, inputs, type);
-  toString() => 'invoke super: ${element.name}';
+
+  HInstruction get receiver => inputs[0];
+  HInstruction getDartReceiver(Compiler compiler) {
+    return isCallOnInterceptor(compiler) ? inputs[1] : inputs[0];
+  }
+
+  /**
+   * Returns whether this call is on an interceptor object.
+   */
+  bool isCallOnInterceptor(Compiler compiler) {
+    return isInterceptedCall && receiver.isInterceptor(compiler);
+  }
+
+  toString() => 'invoke super: $element';
   accept(HVisitor visitor) => visitor.visitInvokeSuper(this);
 
   HInstruction get value {
