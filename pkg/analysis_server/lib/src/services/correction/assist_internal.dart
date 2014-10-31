@@ -1129,7 +1129,7 @@ class AssistProcessor {
       return;
     }
     // returns
-    if (thenStatement is ReturnStatement || elseStatement is ReturnStatement) {
+    if (thenStatement is ReturnStatement && elseStatement is ReturnStatement) {
       ReturnStatement thenReturn = thenStatement as ReturnStatement;
       ReturnStatement elseReturn = elseStatement as ReturnStatement;
       String conditionSrc = _getNodeText(ifStatement.condition);

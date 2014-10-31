@@ -203,19 +203,6 @@ main(List<String> items) {
 ''');
   }
 
-  void test_addTypeAnnotation_local_OK_onVariableDeclarationStatement() {
-    _indexTestUnit('''
-main() {
-  var v = 123; // marker
-}
-''');
-    assertHasAssistAt(' // marker', AssistKind.ADD_TYPE_ANNOTATION, '''
-main() {
-  int v = 123; // marker
-}
-''');
-  }
-
   void test_addTypeAnnotation_local_OK_Function() {
     _indexTestUnit('''
 main() {
@@ -290,6 +277,19 @@ main() {
     assertHasAssistAt('var ', AssistKind.ADD_TYPE_ANNOTATION, '''
 main() {
   int v = 0;
+}
+''');
+  }
+
+  void test_addTypeAnnotation_local_OK_onVariableDeclarationStatement() {
+    _indexTestUnit('''
+main() {
+  var v = 123; // marker
+}
+''');
+    assertHasAssistAt(' // marker', AssistKind.ADD_TYPE_ANNOTATION, '''
+main() {
+  int v = 123; // marker
 }
 ''');
   }
@@ -1978,6 +1978,19 @@ main() {
   return true ? 111 : 222;
 }
 ''');
+  }
+
+  void test_replaceIfElseWithConditional_wrong_expressionVsReturn() {
+    _indexTestUnit('''
+main() {
+  if (true) {
+    print(42);
+  } else {
+    return;
+  }
+}
+''');
+    assertNoAssistAt('else', AssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL);
   }
 
   void test_replaceIfElseWithConditional_wrong_notIfStatement() {
