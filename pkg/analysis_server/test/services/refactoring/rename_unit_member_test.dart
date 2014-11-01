@@ -172,10 +172,7 @@ class B extends A {
     });
   }
 
-  xtest_checkFinalConditions_shadowsInSubClass_notImportedLib() {
-    indexTestUnit('''
-class Test {}
-''');
+  test_checkFinalConditions_shadowsInSubClass_notImportedLib() {
     indexUnit('/lib.dart', '''
 library my.lib;
 class A {
@@ -186,6 +183,9 @@ class B extends A {
     NewName(); // super-ref
   }",
 }
+''');
+    indexTestUnit('''
+class Test {}
 ''');
     createRenameRefactoringAtString('Test {}');
     // check status
