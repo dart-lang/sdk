@@ -332,12 +332,14 @@ void testContentType() {
 
   contentType = new ContentType("text",
                                 "html",
-                                parameters: {"CHARSET": "UTF-8", "xxx": "yyy"});
-  check(contentType, "text", "html", {"charset": "utf-8", "xxx": "yyy"});
+                                parameters: {"CHARSET": "UTF-8", "xxx": "YYY"});
+  check(contentType, "text", "html", {"charset": "utf-8", "xxx": "YYY"});
   String s = contentType.toString();
-  bool expectedToString = (s == "text/html; charset=utf-8; xxx=yyy" ||
-                           s == "text/html; xxx=yyy; charset=utf-8");
+  bool expectedToString = (s == "text/html; charset=utf-8; xxx=YYY" ||
+                           s == "text/html; xxx=YYY; charset=utf-8");
   Expect.isTrue(expectedToString);
+  contentType = ContentType.parse("text/html; CHARSET=UTF-8; xxx=YYY");
+  check(contentType, "text", "html", {"charset": "utf-8", "xxx": "YYY"});
   Expect.throws(() => contentType.parameters["xxx"] = "yyy",
                 (e) => e is UnsupportedError);
 
