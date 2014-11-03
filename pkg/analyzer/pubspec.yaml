@@ -6,7 +6,7 @@ homepage: http://www.dartlang.org
 environment:
   sdk: '>=0.8.10+6 <2.0.0'
 dependencies:
-  args: '>=0.10.0 <0.13.0'
+  args: '>=0.12.1 <0.13.0'
   logging: '>=0.9.0 <0.10.0'
   path: '>=0.9.0 <2.0.0'
   watcher: '>=0.9.0 <0.10.0'

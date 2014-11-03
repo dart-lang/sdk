@@ -7,7 +7,7 @@ environment:
   sdk: '>=1.0.0 <2.0.0'
 dependencies:
   analyzer: 0.23.0-dev.13
-  args: any
+  args: '>=0.12.1 <0.13.0'
   logging: any
   path: any
   watcher: any
