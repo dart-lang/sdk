@@ -953,6 +953,15 @@ class SimpleIdentifierTest extends ParserTestCase {
     }
   }
 
+  void test_inGetterContext_forEachLoop() {
+    SimpleIdentifier identifier = AstFactory.identifier3("a");
+    Expression iterator = AstFactory.listLiteral([]);
+    Statement body = AstFactory.block([]);
+    ForEachStatement forEachStatement =
+        AstFactory.forEachStatement2(identifier, iterator, body);
+    expect(identifier.inGetterContext(), isFalse);
+  }
+
   void test_inReferenceContext() {
     SimpleIdentifier identifier = AstFactory.identifier3("id");
     AstFactory.namedExpression(AstFactory.label(identifier), AstFactory.identifier3("_"));
@@ -975,6 +984,15 @@ class SimpleIdentifierTest extends ParserTestCase {
         }
       }
     }
+  }
+
+  void test_inSetterContext_forEachLoop() {
+    SimpleIdentifier identifier = AstFactory.identifier3("a");
+    Expression iterator = AstFactory.listLiteral([]);
+    Statement body = AstFactory.block([]);
+    ForEachStatement forEachStatement =
+        AstFactory.forEachStatement2(identifier, iterator, body);
+    expect(identifier.inSetterContext(), isTrue);
   }
 
   void test_isQualified_inMethodInvocation_noTarget() {

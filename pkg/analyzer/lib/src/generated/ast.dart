@@ -16354,6 +16354,12 @@ class SimpleIdentifier extends Identifier {
         return false;
       }
     }
+    if (parent is ForEachStatement) {
+      ForEachStatement stmt = parent as ForEachStatement;
+      if (identical(stmt.identifier, target)) {
+        return false;
+      }
+    }
     return true;
   }
 
@@ -16393,6 +16399,8 @@ class SimpleIdentifier extends Identifier {
       return true;
     } else if (parent is AssignmentExpression) {
       return identical((parent as AssignmentExpression).leftHandSide, target);
+    } else if (parent is ForEachStatement) {
+      return identical((parent as ForEachStatement).identifier, target);
     }
     return false;
   }
