@@ -163,29 +163,25 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
     Element element = node.staticElement;
     ConstructorName constructorName = node.constructorName;
     if (element != null && constructorName != null) {
-      ClassElement classElement = element.enclosingElement;
+      // if a synthetic constructor, navigate to the class
       if (element.isSynthetic) {
+        ClassElement classElement = element.enclosingElement;
         element = classElement;
-        computer._addRegion_nodeStart_nodeStart(
-            node,
-            node.argumentList,
+      }
+      // "new ", excluding last character
+      computer._addRegion_nodeStart_nodeStart(
+          node,
+          constructorName.type,
+          element,
+          excludeLastChar: true);
+      // "ClassName<TypeA, TypeB>"
+      _safelyVisit(constructorName.type);
+      // optional ".name"
+      if (constructorName.period != null) {
+        computer._addRegion_tokenStart_nodeEnd(
+            constructorName.period,
+            constructorName,
             element);
-      } else {
-        // "new ", excluding last character
-        computer._addRegion_nodeStart_nodeStart(
-            node,
-            constructorName.type,
-            element,
-            excludeLastChar: true);
-        // "ClassName"
-        computer._addRegionForNode(constructorName.type, classElement);
-        // optional ".name"
-        if (constructorName.period != null) {
-          computer._addRegion_tokenStart_nodeEnd(
-              constructorName.period,
-              constructorName,
-              element);
-        }
       }
     }
     _safelyVisit(node.argumentList);
