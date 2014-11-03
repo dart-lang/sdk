@@ -8189,13 +8189,11 @@ class DartEntry extends SourceEntry {
       while (state != null) {
         if (state.getState(BUILT_UNIT) == CacheState.VALID) {
           CompilationUnit unit = state.getValue(BUILT_UNIT);
-          ResolutionEraser.erase(unit);
-          setValue(PARSED_UNIT, unit);
+          setValue(PARSED_UNIT, unit.accept(new AstCloner()));
           break;
         } else if (state.getState(RESOLVED_UNIT) == CacheState.VALID) {
           CompilationUnit unit = state.getValue(RESOLVED_UNIT);
-          ResolutionEraser.erase(unit);
-          setValue(PARSED_UNIT, unit);
+          setValue(PARSED_UNIT, unit.accept(new AstCloner()));
           break;
         }
         state = state._nextState;
