@@ -4955,6 +4955,27 @@ RawTypeArguments* TypeArguments::CloneUnfinalized() const {
 }
 
 
+RawTypeArguments* TypeArguments::CloneUninstantiated(
+    const Class& new_owner) const {
+  ASSERT(!IsNull());
+  ASSERT(IsFinalized());
+  ASSERT(!IsInstantiated());
+  AbstractType& type = AbstractType::Handle();
+  const intptr_t num_types = Length();
+  const TypeArguments& clone = TypeArguments::Handle(
+      TypeArguments::New(num_types));
+  for (intptr_t i = 0; i < num_types; i++) {
+    type = TypeAt(i);
+    if (!type.IsInstantiated()) {
+      type = type.CloneUninstantiated(new_owner);
+    }
+    clone.SetTypeAt(i, type);
+  }
+  ASSERT(clone.IsFinalized());
+  return clone.raw();
+}
+
+
 RawTypeArguments* TypeArguments::Canonicalize(
     GrowableObjectArray* trail) const {
   if (IsNull() || IsCanonical()) {
@@ -6155,6 +6176,21 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   clone.set_optimized_instruction_count(0);
   clone.set_optimized_call_site_count(0);
   clone.set_ic_data_array(Array::Handle());
+  if (new_owner.NumTypeParameters() > 0) {
+    // Adjust uninstantiated types to refer to type parameters of the new owner.
+    AbstractType& type = AbstractType::Handle(clone.result_type());
+    type ^= type.CloneUninstantiated(new_owner);
+    clone.set_result_type(type);
+    const intptr_t num_params = clone.NumParameters();
+    Array& array = Array::Handle(clone.parameter_types());
+    array ^= Object::Clone(array, Heap::kOld);
+    clone.set_parameter_types(array);
+    for (intptr_t i = 0; i < num_params; i++) {
+      type = clone.ParameterTypeAt(i);
+      type ^= type.CloneUninstantiated(new_owner);
+      clone.SetParameterTypeAt(i, type);
+    }
+  }
   return clone.raw();
 }
 
@@ -7026,6 +7062,12 @@ RawField* Field::Clone(const Class& new_owner) const {
   clone.set_dependent_code(Object::null_array());
   if (!clone.is_static()) {
     clone.SetOffset(0);
+  }
+  if (new_owner.NumTypeParameters() > 0) {
+    // Adjust the field type to refer to type parameters of the new owner.
+    AbstractType& type = AbstractType::Handle(clone.type());
+    type ^= type.CloneUninstantiated(new_owner);
+    clone.set_type(type);
   }
   return clone.raw();
 }
@@ -13823,6 +13865,14 @@ RawAbstractType* AbstractType::CloneUnfinalized() const {
 }
 
 
+RawAbstractType* AbstractType::CloneUninstantiated(
+    const Class& new_owner) const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+  return NULL;
+}
+
+
 RawAbstractType* AbstractType::Canonicalize(GrowableObjectArray* trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
@@ -14522,9 +14572,24 @@ RawAbstractType* Type::CloneUnfinalized() const {
   TypeArguments& type_args = TypeArguments::Handle(arguments());
   type_args = type_args.CloneUnfinalized();
   const Class& type_cls = Class::Handle(type_class());
-  const Type& type = Type::Handle(Type::New(type_cls, type_args, token_pos()));
-  type.set_is_resolved();
-  return type.raw();
+  const Type& clone = Type::Handle(Type::New(type_cls, type_args, token_pos()));
+  clone.set_is_resolved();
+  return clone.raw();
+}
+
+
+RawAbstractType* Type::CloneUninstantiated(const Class& new_owner) const {
+  ASSERT(IsFinalized());
+  ASSERT(!IsMalformed());
+  if (IsInstantiated()) {
+    return raw();
+  }
+  TypeArguments& type_args = TypeArguments::Handle(arguments());
+  type_args = type_args.CloneUninstantiated(new_owner);
+  const Class& type_cls = Class::Handle(type_class());
+  const Type& clone = Type::Handle(Type::New(type_cls, type_args, token_pos()));
+  clone.SetIsFinalized();
+  return clone.raw();
 }
 
 
@@ -15064,6 +15129,25 @@ RawAbstractType* TypeParameter::CloneUnfinalized() const {
 }
 
 
+RawAbstractType* TypeParameter::CloneUninstantiated(
+    const Class& new_owner) const {
+  ASSERT(IsFinalized());
+  AbstractType& upper_bound = AbstractType::Handle(bound());
+  upper_bound = upper_bound.CloneUninstantiated(new_owner);
+  const Class& old_owner = Class::Handle(parameterized_class());
+  const intptr_t new_index = index() +
+      new_owner.NumTypeArguments() - old_owner.NumTypeArguments();
+  const TypeParameter& clone = TypeParameter::Handle(
+      TypeParameter::New(new_owner,
+                         new_index,
+                         String::Handle(name()),
+                         upper_bound,
+                         token_pos()));
+  clone.set_is_finalized();
+  return clone.raw();
+}
+
+
 intptr_t TypeParameter::Hash() const {
   ASSERT(IsFinalized());
   uint32_t result = Class::Handle(parameterized_class()).id();
@@ -15281,6 +15365,21 @@ RawAbstractType* BoundedType::CloneUnfinalized() const {
   return BoundedType::New(bounded_type,
                           AbstractType::Handle(bound()),
                           TypeParameter::Handle(type_parameter()));
+}
+
+
+RawAbstractType* BoundedType::CloneUninstantiated(
+    const Class& new_owner) const {
+  if (IsInstantiated()) {
+    return raw();
+  }
+  AbstractType& bounded_type = AbstractType::Handle(type());
+  bounded_type = bounded_type.CloneUninstantiated(new_owner);
+  AbstractType& upper_bound = AbstractType::Handle(bound());
+  upper_bound = upper_bound.CloneUninstantiated(new_owner);
+  TypeParameter& type_param =  TypeParameter::Handle(type_parameter());
+  type_param ^= type_param.CloneUninstantiated(new_owner);
+  return BoundedType::New(bounded_type, upper_bound, type_param);
 }
 
 

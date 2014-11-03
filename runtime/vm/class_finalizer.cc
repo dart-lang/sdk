@@ -2135,7 +2135,10 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
       }
       continue;  // Skip the implicit constructor.
     }
-    if (!func.is_static()) {
+    if (!func.is_static() &&
+        !func.IsMethodExtractor() &&
+        !func.IsNoSuchMethodDispatcher() &&
+        !func.IsInvokeFieldDispatcher()) {
       func = func.Clone(cls);
       cloned_funcs.Add(func);
     }
@@ -2153,6 +2156,8 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
   const intptr_t num_fields = fields.Length();
   for (intptr_t i = 0; i < num_fields; i++) {
     field ^= fields.At(i);
+    // Static fields are shared between the mixin class and the mixin
+    // application class.
     if (!field.is_static()) {
       field = field.Clone(cls);
       cloned_fields.Add(field);
