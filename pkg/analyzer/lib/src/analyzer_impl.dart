@@ -68,7 +68,8 @@ class AnalyzerImpl {
   final HashMap<Source, AnalysisErrorInfo> sourceErrorsMap =
       new HashMap<Source, AnalysisErrorInfo>();
 
-  AnalyzerImpl(this.sourcePath, this.options, this.startTime) {
+  AnalyzerImpl(String sourcePath, this.options, this.startTime)
+      : sourcePath = _normalizeSourcePath(sourcePath) {
     if (sdk == null) {
       sdk = new DirectoryBasedDartSdk(new JavaFile(options.dartSdkPath));
     }
@@ -110,6 +111,13 @@ class AnalyzerImpl {
 
     // prepare context
     prepareAnalysisContext(sourceFile, librarySource);
+  }
+
+  /**
+   * Convert [sourcePath] into an absolute path.
+   */
+  static String _normalizeSourcePath(String sourcePath) {
+    return new File(sourcePath).absolute.path;
   }
 
   /// The sync version of analysis.
