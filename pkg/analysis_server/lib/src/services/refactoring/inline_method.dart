@@ -19,6 +19,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 
 /**
@@ -46,8 +47,9 @@ SourceRange _getLocalsConflictingRange(AstNode node) {
  * Returns the source which should replace given invocation with given
  * arguments.
  */
-String _getMethodSourceForInvocation(_SourcePart part, CorrectionUtils utils,
-    AstNode contextNode, Expression targetExpression, List<Expression> arguments) {
+String _getMethodSourceForInvocation(RefactoringStatus status, _SourcePart part,
+    CorrectionUtils utils, AstNode contextNode, Expression targetExpression,
+    List<Expression> arguments) {
   // prepare edits to replace parameters with arguments
   List<SourceEdit> edits = <SourceEdit>[];
   part._parameters.forEach(
@@ -63,15 +65,34 @@ String _getMethodSourceForInvocation(_SourcePart part, CorrectionUtils utils,
     if (argument is NamedExpression) {
       argument = (argument as NamedExpression).expression;
     }
-    int argumentPrecedence = getExpressionPrecedence(argument);
-    String argumentSource = utils.getNodeText(argument);
+    // prepare argument properties
+    int argumentPrecedence;
+    String argumentSource;
+    if (argument != null) {
+      argumentPrecedence = getExpressionPrecedence(argument);
+      argumentSource = utils.getNodeText(argument);
+    } else {
+      // report about a missing required parameter
+      if (parameter.parameterKind == ParameterKind.REQUIRED) {
+        status.addError(
+            'No argument for the parameter "${parameter.name}".',
+            newLocation_fromNode(contextNode));
+        return;
+      }
+      // an optional parameter
+      argumentPrecedence = -1000;
+      argumentSource = parameter.defaultValueCode;
+      if (argumentSource == null) {
+        argumentSource = 'null';
+      }
+    }
     // replace all occurrences of this parameter
     for (_ParameterOccurrence occurrence in occurrences) {
       SourceRange range = occurrence.range;
       // prepare argument source to apply at this occurrence
       String occurrenceArgumentSource;
       if (argumentPrecedence < occurrence.parentPrecedence) {
-        occurrenceArgumentSource = "(${argumentSource})";
+        occurrenceArgumentSource = "($argumentSource)";
       } else {
         occurrenceArgumentSource = argumentSource;
       }
@@ -488,6 +509,7 @@ class _ReferenceProcessor {
       if (ref._methodStatementsPart != null) {
         // prepare statements source for invocation
         String source = _getMethodSourceForInvocation(
+            status,
             ref._methodStatementsPart,
             _refUtils,
             usage,
@@ -506,6 +528,7 @@ class _ReferenceProcessor {
       if (ref._methodExpressionPart != null) {
         // prepare expression source for invocation
         String source = _getMethodSourceForInvocation(
+            status,
             ref._methodExpressionPart,
             _refUtils,
             usage,
