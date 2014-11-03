@@ -137,7 +137,6 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
     // prepare initializer
     Expression initializer = _variableNode.initializer;
     String initializerCode = utils.getNodeText(initializer);
-    int initializerPrecedence = getExpressionPrecedence(initializer);
     // replace references
     for (SearchMatch reference in _references) {
       SourceRange range = reference.sourceRange;
@@ -171,7 +170,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
         } else {
           codeForReference = initializerCode;
         }
-      } else if (initializerPrecedence < getExpressionParentPrecedence(node)) {
+      } else if (_shouldUseParenthesis(initializer, node)) {
         codeForReference = '($initializerCode)';
       } else {
         codeForReference = initializerCode;
@@ -194,5 +193,26 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
     TokenType targetType = target.beginToken.type;
     return targetType == TokenType.STRING_INTERPOLATION_IDENTIFIER &&
         expression is! SimpleIdentifier;
+  }
+
+  static bool _shouldUseParenthesis(Expression init, AstNode node) {
+    // check precedence
+    int initPrecedence = getExpressionPrecedence(init);
+    if (initPrecedence < getExpressionParentPrecedence(node)) {
+      return true;
+    }
+    // special case for '-'
+    AstNode parent = node.parent;
+    if (init is PrefixExpression && parent is PrefixExpression) {
+      if (parent.operator.type == TokenType.MINUS) {
+        TokenType initializerOperator = init.operator.type;
+        if (initializerOperator == TokenType.MINUS ||
+            initializerOperator == TokenType.MINUS_MINUS) {
+          return true;
+        }
+      }
+    }
+    // no () is needed
+    return false;
   }
 }
