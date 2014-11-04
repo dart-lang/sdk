@@ -74,6 +74,11 @@ class BoolState extends InstanceState {
   @override
   BoolState equalEqual(InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
+    return isIdentical(rightOperand);
+  }
+
+  @override
+  BoolState isIdentical(InstanceState rightOperand) {
     if (value == null) {
       return UNKNOWN_VALUE;
     }
@@ -1253,7 +1258,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
             if (library.isDartCore) {
               DartObjectImpl leftArgument = arguments[0].accept(this);
               DartObjectImpl rightArgument = arguments[1].accept(this);
-              return _dartObjectComputer.equalEqual(node, leftArgument, rightArgument);
+              return _dartObjectComputer.isIdentical(node, leftArgument,
+                  rightArgument);
             }
           }
         }
@@ -1727,6 +1733,18 @@ class DartObjectComputer {
     return null;
   }
 
+  DartObjectImpl isIdentical(Expression node, DartObjectImpl leftOperand,
+                             DartObjectImpl rightOperand) {
+    if (leftOperand != null && rightOperand != null) {
+      try {
+        return leftOperand.isIdentical(_typeProvider, rightOperand);
+      } on EvaluationException catch (exception) {
+        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+      }
+    }
+    return null;
+  }
+
   DartObjectImpl lessThan(BinaryExpression node, DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
@@ -2117,6 +2135,21 @@ class DartObjectImpl implements DartObject {
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
   DartObjectImpl integerDivide(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.intType, _state.integerDivide(rightOperand._state));
+
+  /**
+   * Return the result of invoking the identical function on this object with
+   * the given argument.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the identical function on this object with
+   *         the given argument
+   */
+  DartObjectImpl isIdentical(TypeProvider typeProvider,
+                             DartObjectImpl rightOperand) {
+    return new DartObjectImpl(typeProvider.boolType,
+        _state.isIdentical(rightOperand._state));
+  }
 
   /**
    * Return `true` if this object represents an object whose type is 'bool'.
@@ -2517,6 +2550,11 @@ class DoubleState extends NumState {
   @override
   BoolState equalEqual(InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
+    return isIdentical(rightOperand);
+  }
+
+  @override
+  BoolState isIdentical(InstanceState rightOperand) {
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
     }
@@ -2824,6 +2862,11 @@ class DynamicState extends InstanceState {
   }
 
   @override
+  BoolState isIdentical(InstanceState rightOperand) {
+    return BoolState.UNKNOWN_VALUE;
+  }
+
+  @override
   String get typeName => "dynamic";
 
   @override
@@ -3080,6 +3123,11 @@ class FunctionState extends InstanceState {
 
   @override
   BoolState equalEqual(InstanceState rightOperand) {
+    return isIdentical(rightOperand);
+  }
+
+  @override
+  BoolState isIdentical(InstanceState rightOperand) {
     if (_element == null) {
       return BoolState.UNKNOWN_VALUE;
     }
@@ -3138,6 +3186,11 @@ class GenericState extends InstanceState {
   @override
   BoolState equalEqual(InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
+    return isIdentical(rightOperand);
+  }
+
+  @override
+  BoolState isIdentical(InstanceState rightOperand) {
     if (rightOperand is DynamicState) {
       return BoolState.UNKNOWN_VALUE;
     }
@@ -3374,6 +3427,16 @@ abstract class InstanceState {
     assertNumOrNull(rightOperand);
     throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
+
+  /**
+   * Return the result of invoking the identical function on this object with
+   * the given argument.
+   *
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the identical function on this object with
+   *         the given argument
+   */
+  BoolState isIdentical(InstanceState rightOperand);
 
   /**
    * Return `true` if this object represents an object whose type is 'bool'.
@@ -3760,6 +3823,11 @@ class IntState extends NumState {
   @override
   BoolState equalEqual(InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
+    return isIdentical(rightOperand);
+  }
+
+  @override
+  BoolState isIdentical(InstanceState rightOperand) {
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
     }
@@ -4080,6 +4148,11 @@ class ListState extends InstanceState {
   @override
   BoolState equalEqual(InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
+    return isIdentical(rightOperand);
+  }
+
+  @override
+  BoolState isIdentical(InstanceState rightOperand) {
     if (rightOperand is DynamicState) {
       return BoolState.UNKNOWN_VALUE;
     }
@@ -4168,6 +4241,11 @@ class MapState extends InstanceState {
   @override
   BoolState equalEqual(InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
+    return isIdentical(rightOperand);
+  }
+
+  @override
+  BoolState isIdentical(InstanceState rightOperand) {
     if (rightOperand is DynamicState) {
       return BoolState.UNKNOWN_VALUE;
     }
@@ -4252,6 +4330,11 @@ class NullState extends InstanceState {
   @override
   BoolState equalEqual(InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
+    return isIdentical(rightOperand);
+  }
+
+  @override
+  BoolState isIdentical(InstanceState rightOperand) {
     if (rightOperand is DynamicState) {
       return BoolState.UNKNOWN_VALUE;
     }
@@ -4310,6 +4393,11 @@ class NumState extends InstanceState {
   @override
   BoolState equalEqual(InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
+    return BoolState.UNKNOWN_VALUE;
+  }
+
+  @override
+  BoolState isIdentical(InstanceState rightOperand) {
     return BoolState.UNKNOWN_VALUE;
   }
 
@@ -4539,6 +4627,11 @@ class StringState extends InstanceState {
   @override
   BoolState equalEqual(InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
+    return isIdentical(rightOperand);
+  }
+
+  @override
+  BoolState isIdentical(InstanceState rightOperand) {
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
     }
@@ -4612,6 +4705,11 @@ class SymbolState extends InstanceState {
   @override
   BoolState equalEqual(InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
+    return isIdentical(rightOperand);
+  }
+
+  @override
+  BoolState isIdentical(InstanceState rightOperand) {
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
     }
@@ -4673,6 +4771,11 @@ class TypeState extends InstanceState {
   @override
   BoolState equalEqual(InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
+    return isIdentical(rightOperand);
+  }
+
+  @override
+  BoolState isIdentical(InstanceState rightOperand) {
     if (_element == null) {
       return BoolState.UNKNOWN_VALUE;
     }

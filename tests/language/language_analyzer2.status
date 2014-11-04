@@ -455,5 +455,3 @@ regress_12561_test: StaticWarning
 main_not_a_function_test/01: Fail # http://dartbug.com/20030
 main_test/03: Fail # http://dartbug.com/20030
 no_main_test/01: Fail # http://dartbug.com/20030
-
-compile_time_constant10_test/none: CompileTimeError # Issue 21177

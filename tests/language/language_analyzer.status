@@ -17,7 +17,7 @@ external_test/21: Fail
 external_test/24: Fail
 external_test/25: Fail
 constructor_duplicate_final_test/03: Fail
-
+identical_const_test: Fail # Issue 21177
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.

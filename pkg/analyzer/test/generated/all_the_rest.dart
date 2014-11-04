@@ -5394,6 +5394,85 @@ class DartObjectImplTest extends EngineTestCase {
     expect(_stringValue(null).hasExactValue, isTrue);
   }
 
+  void test_identical_bool_false() {
+    _assertIdentical(_boolValue(false), _boolValue(false), _boolValue(true));
+  }
+
+  void test_identical_bool_true() {
+    _assertIdentical(_boolValue(true), _boolValue(true), _boolValue(true));
+  }
+
+  void test_identical_bool_unknown() {
+    _assertIdentical(_boolValue(null), _boolValue(null), _boolValue(false));
+  }
+
+  void test_identical_double_false() {
+    _assertIdentical(_boolValue(false), _doubleValue(2.0), _doubleValue(4.0));
+  }
+
+  void test_identical_double_true() {
+    _assertIdentical(_boolValue(true), _doubleValue(2.0), _doubleValue(2.0));
+  }
+
+  void test_identical_double_unknown() {
+    _assertIdentical(_boolValue(null), _doubleValue(1.0), _doubleValue(null));
+  }
+
+  void test_identical_int_false() {
+    _assertIdentical(_boolValue(false), _intValue(-5), _intValue(5));
+  }
+
+  void test_identical_int_true() {
+    _assertIdentical(_boolValue(true), _intValue(5), _intValue(5));
+  }
+
+  void test_identical_int_unknown() {
+    _assertIdentical(_boolValue(null), _intValue(null), _intValue(3));
+  }
+
+  void test_identical_list_empty() {
+    _assertIdentical(_boolValue(true), _listValue([]), _listValue([]));
+  }
+
+  void test_identical_list_false() {
+    _assertIdentical(_boolValue(false), _listValue([]),
+        _listValue([_intValue(3)]));
+  }
+
+  void test_identical_map_empty() {
+    _assertIdentical(_boolValue(true), _mapValue([]), _mapValue([]));
+  }
+
+  void test_identical_map_false() {
+    _assertIdentical(_boolValue(false), _mapValue([]),
+        _mapValue([_intValue(1), _intValue(2)]));
+  }
+
+  void test_identical_null() {
+    _assertIdentical(_boolValue(true), _nullValue(), _nullValue());
+  }
+
+  void test_identical_string_false() {
+    _assertIdentical(
+        _boolValue(false),
+        _stringValue("abc"),
+        _stringValue("def"));
+  }
+
+  void test_identical_string_true() {
+    _assertIdentical(
+        _boolValue(true),
+        _stringValue("abc"),
+        _stringValue("abc"));
+  }
+
+  void test_identical_string_unknown() {
+    _assertIdentical(
+        _boolValue(null),
+        _stringValue(null),
+        _stringValue("def"));
+  }
+
   void test_integerDivide_knownDouble_knownDouble() {
     _assertIntegerDivide(_intValue(3), _doubleValue(6.0), _doubleValue(2.0));
   }
@@ -6439,6 +6518,22 @@ class DartObjectImplTest extends EngineTestCase {
       expect(result, isNotNull);
       expect(result, expected);
     }
+  }
+
+  /**
+   * Assert that the result of comparing the left and right operands using
+   * identical() is the expected value.
+   *
+   * @param expected the expected result of the operation
+   * @param leftOperand the left operand to the operation
+   * @param rightOperand the left operand to the operation
+   */
+  void _assertIdentical(DartObjectImpl expected, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    DartObjectImpl result =
+        leftOperand.isIdentical(_typeProvider, rightOperand);
+    expect(result, isNotNull);
+    expect(result, expected);
   }
 
   void _assertInstanceOfObjectArray(Object result) {
