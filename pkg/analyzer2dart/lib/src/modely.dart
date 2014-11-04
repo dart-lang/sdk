@@ -361,6 +361,9 @@ abstract class FunctionElementMixin
 
   @override
   bool get hasFunctionSignature => unsupported('hasFunctionSignature');
+
+  @override
+  get asyncMarker => unsupported('asyncMarker');
 }
 
 class TopLevelFunctionElementY extends ElementY
