@@ -17,7 +17,7 @@ main() {
   test('fails from browser', () {
     // APIs should not work in standard browser apps.
     expect(() {
-      _chrome.app.window.create('foo.html');
+      _chrome.app.window.create('IntentionallyMissingFile.html');
     }, throws);
   });
 }

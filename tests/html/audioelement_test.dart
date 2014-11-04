@@ -13,9 +13,9 @@ main() {
     });
 
   test('constructorTest2', () {
-      var audio = new AudioElement('hahaURL');
+      var audio = new AudioElement('IntentionallyMissingFileURL');
       expect(audio, isNotNull);
       expect(audio is AudioElement, isTrue);
-      expect(audio.src, contains('hahaURL'));
+      expect(audio.src, contains('IntentionallyMissingFileURL'));
     });
 }
