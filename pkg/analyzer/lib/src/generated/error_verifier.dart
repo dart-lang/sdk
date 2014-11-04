@@ -1359,6 +1359,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           String parameterName = parameterElt.name;
           for (int j = 0; j < overriddenParameterElts.length; j++) {
             ParameterElementImpl overriddenParameterElt = overriddenParameterElts[j];
+            if (overriddenParameterElt.initializer == null) {
+              // There is no warning if the overridden parameter has an
+              // implicit default.
+              continue;
+            }
             String overriddenParameterName = overriddenParameterElt.name;
             if (parameterName != null && parameterName == overriddenParameterName) {
               EvaluationResultImpl overriddenResult = overriddenParameterElt.evaluationResult;
@@ -1385,6 +1390,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             continue;
           }
           ParameterElementImpl overriddenParameterElt = overriddenParameterElts[i];
+          if (overriddenParameterElt.initializer == null) {
+            // There is no warning if the overridden parameter has an implicit
+            // default.
+            continue;
+          }
           EvaluationResultImpl overriddenResult = overriddenParameterElt.evaluationResult;
           if (_isUserDefinedObject(overriddenResult)) {
             continue;

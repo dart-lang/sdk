@@ -1700,14 +1700,19 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
       if (parameter is DefaultFormalParameter) {
         DefaultFormalParameter defaultParameter = parameter;
         Expression defaultValue = defaultParameter.defaultValue;
-        if (defaultValue != null) {
-          DartObjectImpl result = _validate(defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
-          VariableElementImpl element = parameter.element as VariableElementImpl;
-          element.evaluationResult = new EvaluationResultImpl.con1(result);
+        DartObjectImpl result;
+        if (defaultValue == null) {
+          result = new DartObjectImpl(_typeProvider.nullType,
+              NullState.NULL_STATE);
+        } else {
+          result = _validate(defaultValue,
+              CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
           if (result != null) {
             _reportErrorIfFromDeferredLibrary(defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY);
           }
         }
+        VariableElementImpl element = parameter.element as VariableElementImpl;
+        element.evaluationResult = new EvaluationResultImpl.con1(result);
       }
     }
   }

@@ -1727,6 +1727,112 @@ class B extends A {
     verify([source]);
   }
 
+  void test_invalidOverride_defaultOverridesNonDefault() {
+    // If the base class provided an explicit value for a default parameter,
+    // then it is a static warning for the derived class to provide a different
+    // value, even if implicitly.
+    Source source = addSource(r'''
+class A {
+  foo([x = 1]) {}
+}
+class B extends A {
+  foo([x]) {}
+}
+''');
+    resolve(source);
+    assertErrors(source, [
+        StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL]);
+    verify([source]);
+  }
+
+  void test_invalidOverride_defaultOverridesNonDefault_named() {
+    // If the base class provided an explicit value for a default parameter,
+    // then it is a static warning for the derived class to provide a different
+    // value, even if implicitly.
+    Source source = addSource(r'''
+class A {
+  foo({x: 1}) {}
+}
+class B extends A {
+  foo({x}) {}
+}
+''');
+    resolve(source);
+    assertErrors(source, [
+        StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED]);
+    verify([source]);
+  }
+
+  void test_invalidOverride_defaultOverridesNonDefaultNull() {
+    // If the base class provided an explicit null value for a default
+    // parameter, then it is ok for the derived class to let the default value
+    // be implicit, because the implicit default value of null matches the
+    // explicit default value of null.
+    Source source = addSource(r'''
+class A {
+  foo([x = null]) {}
+}
+class B extends A {
+  foo([x]) {}
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_invalidOverride_defaultOverridesNonDefaultNull_named() {
+    // If the base class provided an explicit null value for a default
+    // parameter, then it is ok for the derived class to let the default value
+    // be implicit, because the implicit default value of null matches the
+    // explicit default value of null.
+    Source source = addSource(r'''
+class A {
+  foo({x: null}) {}
+}
+class B extends A {
+  foo({x}) {}
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_invalidOverride_nonDefaultOverridesDefault() {
+    // If the base class lets the default parameter be implicit, then it is ok
+    // for the derived class to provide an explicit default value, even if it's
+    // not null.
+    Source source = addSource(r'''
+class A {
+  foo([x]) {}
+}
+class B extends A {
+  foo([x = 1]) {}
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_invalidOverride_nonDefaultOverridesDefault_named() {
+    // If the base class lets the default parameter be implicit, then it is ok
+    // for the derived class to provide an explicit default value, even if it's
+    // not null.
+    Source source = addSource(r'''
+class A {
+  foo({x}) {}
+}
+class B extends A {
+  foo({x: 1}) {}
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_invalidOverrideDifferentDefaultValues_named() {
     Source source = addSource(r'''
 class A {

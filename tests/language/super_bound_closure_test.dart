@@ -72,15 +72,15 @@ class B extends A {
   fooIntercept27() => confuse(super.lastWhere)(0);
   fooIntercept28() => confuse(super.lastWhere)(3, orElse: 77);
 
-  bar([var optional]) => -1;
-  bar2({ namedOptional }) => -1;
-  bar3(x, [var optional]) => -1;
-  bar4(x, { namedOptional }) => -1;
+  bar([var optional]) => -1;        /// 01: static type warning
+  bar2({ namedOptional }) => -1;    /// 01: continued
+  bar3(x, [var optional]) => -1;    /// 01: continued
+  bar4(x, { namedOptional }) => -1; /// 01: continued
 
-  gee([var optional]) => -1;
-  gee2({ namedOptional }) => -1;
-  gee3(x, [var optional]) => -1;
-  gee4(x, { namedOptional }) => -1;
+  gee([var optional]) => -1;        /// 01: continued
+  gee2({ namedOptional }) => -1;    /// 01: continued
+  gee3(x, [var optional]) => -1;    /// 01: continued
+  gee4(x, { namedOptional }) => -1; /// 01: continued
 
   add([var optional = 33]) => -1;
   trim({ namedOptional: 22 }) => -1;
@@ -106,27 +106,27 @@ main() {
   var ignored2 = list[confuse(3)];
 
   var t = b.gee() + b.gee2() + b.gee3(9) + b.gee4(19);
-  Expect.equals(-4, t);
+  Expect.equals(-4, t); /// 01: continued
   t = b.shuffle() + b.toList() + b.lastIndexOf(1) + b.lastWhere(2);
   Expect.equals(-4, t);
 
-  Expect.equals(499, b.foo());
-  Expect.equals(500, b.foo2());
-  Expect.equals(42, b.foo3());
-  Expect.equals(117, b.foo4());
-  Expect.equals(498, b.foo5());
-  Expect.equals(468, b.foo6());
-  Expect.equals(426, b.foo7());
-  Expect.equals(502, b.foo8());
+  Expect.equals(499, b.foo());  /// 01: continued
+  Expect.equals(500, b.foo2()); /// 01: continued
+  Expect.equals(42, b.foo3());  /// 01: continued
+  Expect.equals(117, b.foo4()); /// 01: continued
+  Expect.equals(498, b.foo5()); /// 01: continued
+  Expect.equals(468, b.foo6()); /// 01: continued
+  Expect.equals(426, b.foo7()); /// 01: continued
+  Expect.equals(502, b.foo8()); /// 01: continued
 
-  Expect.equals(499, b.fooGee());
-  Expect.equals(500, b.fooGee2());
-  Expect.equals(42, b.fooGee3());
-  Expect.equals(117, b.fooGee4());
-  Expect.equals(498, b.fooGee5());
-  Expect.equals(468, b.fooGee6());
-  Expect.equals(426, b.fooGee7());
-  Expect.equals(502, b.fooGee8());
+  Expect.equals(499, b.fooGee());  /// 01: continued
+  Expect.equals(500, b.fooGee2()); /// 01: continued
+  Expect.equals(42, b.fooGee3());  /// 01: continued
+  Expect.equals(117, b.fooGee4()); /// 01: continued
+  Expect.equals(498, b.fooGee5()); /// 01: continued
+  Expect.equals(468, b.fooGee6()); /// 01: continued
+  Expect.equals(426, b.fooGee7()); /// 01: continued
+  Expect.equals(502, b.fooGee8()); /// 01: continued
 
   Expect.equals(1267, b.fooIntercept());
   Expect.equals(1236, b.fooIntercept2());
