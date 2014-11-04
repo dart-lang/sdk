@@ -34,10 +34,7 @@ poi/*: Skip # http://dartbug.com/20031
 [ $runtime != ff && ( $checked || ($system == windows && $compiler == dart2js))]
 web/incremental_compilation_update_test: Slow, Pass
 
-[ $runtime == ff && $unchecked && $system != windows ]
-web/incremental_compilation_update_test: Slow, Pass
-
-[ $runtime == ff && $unchecked && $system == windows ]
+[ $runtime == ff && $unchecked ]
 # Compilation is slow, test fails at runtime due to time out.
 web/incremental_compilation_update_test: Slow, Fail
 
