@@ -257,7 +257,7 @@ class JsonEncoder extends Converter<Object, String> {
     } else if (sink is _Utf8EncoderSink) {
       return new _JsonUtf8EncoderSink(sink._sink, _toEncodable,
                                       JsonUtf8Encoder._utf8Encode(indent),
-                                      _JsonUtf8EncoderSink.DEFAULT_BUFFER_SIZE);
+                                      JsonUtf8Encoder.DEFAULT_BUFFER_SIZE);
     }
     return new _JsonEncoderSink(sink, _toEncodable, indent);
   }
