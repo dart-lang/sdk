@@ -1418,12 +1418,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // Compute the overridden executable from the InheritanceManager
     //
     List<ExecutableElement> overriddenExecutables = _inheritanceManager.lookupOverrides(_enclosingClass, executableElement.name);
-    if (overriddenExecutables.isEmpty) {
-      // Nothing is overridden, so we just have to check if the new name collides
-      // with a static defined in the superclass.
-      // TODO(paulberry): currently we don't do this check if the new element
-      // overrides a method in an interface (see issue 18947).
-      return _checkForInstanceMethodNameCollidesWithSuperclassStatic(executableElement, errorNameTarget);
+    if (_checkForInstanceMethodNameCollidesWithSuperclassStatic(
+        executableElement, errorNameTarget)) {
+      return true;
     }
     for (ExecutableElement overriddenElement in overriddenExecutables) {
       if (_checkForAllInvalidOverrideErrorCodes(executableElement, overriddenElement, parameters, parameterLocations, errorNameTarget)) {

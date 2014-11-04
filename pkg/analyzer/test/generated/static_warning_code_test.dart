@@ -1373,6 +1373,24 @@ class C extends B {
     verify([source]);
   }
 
+  void test_instanceMethodNameCollidesWithSuperclassStatic_interface() {
+    Source source = addSource(r'''
+class Base {
+  static foo() {}
+}
+abstract class Ifc {
+  foo();
+}
+class C extends Base implements Ifc {
+  foo() {}
+}
+''');
+    resolve(source);
+    assertErrors(source, [
+        StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC]);
+    verify([source]);
+  }
+
   void test_instanceMethodNameCollidesWithSuperclassStatic_method() {
     Source source = addSource(r'''
 class A {
