@@ -8148,6 +8148,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
+    bool wasInConstInstanceCreation = _isInConstInstanceCreation;
     _isInConstInstanceCreation = node.isConst;
     try {
       ConstructorName constructorName = node.constructorName;
@@ -8168,7 +8169,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
       return super.visitInstanceCreationExpression(node);
     } finally {
-      _isInConstInstanceCreation = false;
+      _isInConstInstanceCreation = wasInConstInstanceCreation;
     }
   }
 
@@ -8433,13 +8434,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // visit initializer
     String name = nameNode.name;
     _namesForReferenceToDeclaredVariableInInitializer.add(name);
+    bool wasInInstanceVariableInitializer = _isInInstanceVariableInitializer;
     _isInInstanceVariableInitializer = _isInInstanceVariableDeclaration;
     try {
       if (initializerNode != null) {
         initializerNode.accept(this);
       }
     } finally {
-      _isInInstanceVariableInitializer = false;
+      _isInInstanceVariableInitializer = wasInInstanceVariableInitializer;
       _namesForReferenceToDeclaredVariableInInitializer.remove(name);
     }
     // done
