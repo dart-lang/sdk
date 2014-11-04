@@ -8414,6 +8414,16 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
+  void test_visitSimpleIdentifier_dynamic() {
+    // "dynamic"
+    SimpleIdentifier identifier = AstFactory.identifier3('dynamic');
+    DynamicElementImpl element = DynamicElementImpl.instance;
+    identifier.staticElement = element;
+    identifier.staticType = _typeProvider.typeType;
+    expect(_analyze(identifier), same(_typeProvider.typeType));
+    _listener.assertNoErrors();
+  }
+
   void test_visitSimpleStringLiteral() {
     // "a"
     Expression node = _resolvedString("a");

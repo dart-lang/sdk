@@ -22324,6 +22324,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       staticType = _promoteManager.getStaticType(variable);
     } else if (element is PrefixElement) {
       return null;
+    } else if (element is DynamicElementImpl) {
+      staticType = _typeProvider.typeType;
     } else {
       staticType = _dynamicType;
     }

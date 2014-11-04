@@ -209,7 +209,11 @@ field4_negative_test: CompileTimeError
 field5_negative_test: CompileTimeError
 field6a_negative_test: CompileTimeError
 field6_negative_test: CompileTimeError
-first_class_types_literals_test: StaticWarning # Issue 18731
+first_class_types_literals_test/08: MissingStaticWarning # Issue 18731
+first_class_types_literals_test/09: MissingStaticWarning # Issue 18731
+first_class_types_literals_test/10: MissingStaticWarning # Issue 18731
+first_class_types_literals_test/11: MissingStaticWarning # Issue 18731
+first_class_types_literals_test/12: MissingStaticWarning # Issue 18731
 function_malformed_result_type_test: StaticWarning
 function_subtype_bound_closure7_test: StaticWarning
 function_subtype_checked0_test: StaticWarning
