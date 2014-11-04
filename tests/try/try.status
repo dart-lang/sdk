@@ -31,12 +31,10 @@ poi/serialize_test: SkipByDesign # Uses dart:io.
 [ $compiler == dart2js ]
 poi/*: Skip # http://dartbug.com/20031
 
-[ $runtime != ff && ( $checked || ($system == windows && $compiler == dart2js))]
-web/incremental_compilation_update_test: Slow, Pass
-
 [ $runtime == ff && $unchecked ]
 # Compilation is slow, test fails at runtime due to time out.
 web/incremental_compilation_update_test: Slow, Fail
 
-[ $runtime == ff && $checked ]
+[ $compiler == dart2js && $checked ]
+# Compilation is slow, test fails at runtime due to time out.
 web/incremental_compilation_update_test: Slow, Fail
