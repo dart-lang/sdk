@@ -18,6 +18,7 @@ import 'utilities_collection.dart';
 import 'utilities_general.dart';
 import 'instrumentation.dart';
 import 'error.dart';
+import 'error_verifier.dart';
 import 'source.dart';
 import 'scanner.dart';
 import 'ast.dart';
