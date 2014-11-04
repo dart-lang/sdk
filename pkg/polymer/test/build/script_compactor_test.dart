@@ -245,7 +245,8 @@ initializerTests(phases) {
           '<!DOCTYPE html><html><head>'
           '</head><body><div></div>',
       'a|web/test.html._data':
-          expectedData(['web/a.dart', 'web/b.dart', 'web/c.dart', 'web/d.dart']),
+          expectedData(['web/a.dart', 'web/b.dart', 'web/c.dart',
+              'web/i.dart', 'web/j.dart', 'web/d.dart']),
       'a|web/d.dart':
           'library d;\n'
           'import "package:polymer/polymer.dart";\n'
@@ -253,6 +254,7 @@ initializerTests(phases) {
 
       'a|web/a.dart':
           'import "package:polymer/polymer.dart";\n'
+          'export "i.dart" hide mI2;\n'
           '@initMethod mA(){}\n',
 
       'a|web/b.dart':
@@ -296,6 +298,15 @@ initializerTests(phases) {
           '@initMethod mH1(){}\n'
           '@CustomTag("x-h2") class XH2 extends PolymerElement {}\n'
           '@initMethod mH2(){}\n',
+
+      'a|web/i.dart':
+          'import "package:polymer/polymer.dart";\n'
+          '@CustomTag("x-i") class XI extends PolymerElement {}\n'
+          '@initMethod mI1(){}\n'
+          '@initMethod mI2(){}\n',
+
+      'a|web/j.dart':
+          'export "a.dart";\n',
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body><div></div>'
@@ -308,36 +319,43 @@ initializerTests(phases) {
           import 'a.dart' as i0;
           import 'b.dart' as i1;
           import 'c.dart' as i2;
-          import 'd.dart' as i3;
+          import 'i.dart' as i3;
+          import 'j.dart' as i4;
+          import 'd.dart' as i5;
           ${DEFAULT_IMPORTS.join('\n')}
-          import 'e.dart' as smoke_0;
+          import 'i.dart' as smoke_0;
           import 'package:polymer/polymer.dart' as smoke_1;
-          import 'f.dart' as smoke_2;
-          import 'g.dart' as smoke_3;
-          import 'h.dart' as smoke_4;
-          import 'c.dart' as smoke_5;
+          import 'e.dart' as smoke_2;
+          import 'f.dart' as smoke_3;
+          import 'g.dart' as smoke_4;
+          import 'h.dart' as smoke_5;
+          import 'c.dart' as smoke_6;
 
           void main() {
             useGeneratedCode(new StaticConfiguration(
                 checkedMode: false,
                 parents: {
-                  smoke_5.XC1: smoke_1.PolymerElement,
-                  smoke_5.XC2: smoke_1.PolymerElement,
-                  smoke_0.XE: smoke_1.PolymerElement,
-                  smoke_2.XF1: smoke_1.PolymerElement,
-                  smoke_3.XG2: smoke_1.PolymerElement,
-                  smoke_4.XH1: smoke_1.PolymerElement,
+                  smoke_6.XC1: smoke_1.PolymerElement,
+                  smoke_6.XC2: smoke_1.PolymerElement,
+                  smoke_2.XE: smoke_1.PolymerElement,
+                  smoke_3.XF1: smoke_1.PolymerElement,
+                  smoke_4.XG2: smoke_1.PolymerElement,
+                  smoke_5.XH1: smoke_1.PolymerElement,
+                  smoke_0.XI: smoke_1.PolymerElement,
                 },
                 declarations: {
-                  smoke_5.XC1: {},
-                  smoke_5.XC2: {},
-                  smoke_0.XE: {},
-                  smoke_2.XF1: {},
-                  smoke_3.XG2: {},
-                  smoke_4.XH1: {},
+                  smoke_6.XC1: {},
+                  smoke_6.XC2: {},
+                  smoke_2.XE: {},
+                  smoke_3.XF1: {},
+                  smoke_4.XG2: {},
+                  smoke_5.XH1: {},
+                  smoke_0.XI: {},
                 }));
             configureForDeployment([
                 i0.mA,
+                i0.mI1,
+                () => Polymer.register('x-i', i0.XI),
                 i1.mB,
                 i1.mE,
                 i1.mF1,
@@ -348,9 +366,10 @@ initializerTests(phases) {
                 () => Polymer.register('x-h1', i1.XH1),
                 () => Polymer.register('x-c1', i2.XC1),
                 () => Polymer.register('x-c2', i2.XC2),
-                i3.mD,
+                i3.mI2,
+                i5.mD,
               ]);
-            i3.main();
+            i5.main();
           }
           '''.replaceAll('\n          ', '\n'),
     }, null);
