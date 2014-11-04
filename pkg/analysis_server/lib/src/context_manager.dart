@@ -239,20 +239,23 @@ abstract class ContextManager {
     List<Resource> children = folder.getChildren();
     for (Resource child in children) {
       String path = child.path;
-      // ignore if wasn't previously excluded
-      bool wasExcluded =
-          _isExcludedBy(oldExcludedPaths, path) &&
-          !_isExcludedBy(excludedPaths, path);
-      if (!wasExcluded) {
-        continue;
-      }
       // add files, recurse into folders
       if (child is File) {
-        if (_shouldFileBeAnalyzed(child)) {
-          Source source = child.createSource();
-          changeSet.addedSource(source);
-          info.sources[path] = source;
+        // ignore if should not be analyzed at all
+        if (!_shouldFileBeAnalyzed(child)) {
+          continue;
         }
+        // ignore if was not excluded
+        bool wasExcluded =
+            _isExcludedBy(oldExcludedPaths, path) &&
+            !_isExcludedBy(excludedPaths, path);
+        if (!wasExcluded) {
+          continue;
+        }
+        // do add the file
+        Source source = child.createSource();
+        changeSet.addedSource(source);
+        info.sources[path] = source;
       } else if (child is Folder) {
         if (child.shortName == PACKAGES_NAME) {
           continue;
