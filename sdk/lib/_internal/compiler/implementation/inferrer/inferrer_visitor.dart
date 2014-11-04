@@ -79,6 +79,16 @@ abstract class TypeSystem<T> {
    */
   T allocatePhi(Node node, Local variable, T inputType);
 
+
+  /**
+   * Returns a new type for holding the potential types of [element].
+   * [inputType] is the first incoming type of the phi. [allocateLoopPhi]
+   * only differs from [allocatePhi] in that it allows the underlying
+   * implementation of [TypeSystem] to differentiate Phi nodes due to loops
+   * from other merging uses.
+   */
+  T allocateLoopPhi(Node node, Local variable, T inputType);
+
   /**
    * Simplies the phi representing [element] and of the type
    * [phiType]. For example, if this phi has one incoming input, an
@@ -605,7 +615,7 @@ class LocalsHandler<T> {
 
   void startLoop(Node loop) {
     locals.forEachLocal((Local variable, T type) {
-      T newType = types.allocatePhi(loop, variable, type);
+      T newType = types.allocateLoopPhi(loop, variable, type);
       if (newType != type) {
         locals[variable] = newType;
       }

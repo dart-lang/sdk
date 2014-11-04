@@ -26,7 +26,8 @@ import '../elements/elements.dart';
 import '../native/native.dart' as native;
 import '../tree/tree.dart' as ast
     show DartString,
-         Node;
+         Node,
+         TryStatement;
 import '../types/types.dart'
     show ContainerTypeMask,
          DictionaryTypeMask,
@@ -439,6 +440,17 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     return result;
   }
 
+  PhiElementTypeInformation _addPhi(ast.Node node,
+                                    Local variable,
+                                    inputType,
+                                    bool isLoop) {
+    PhiElementTypeInformation result =
+        new PhiElementTypeInformation(currentMember, node, isLoop, variable);
+    allocatedTypes.add(result);
+    result.addAssignment(inputType);
+    return result;
+  }
+
   PhiElementTypeInformation allocatePhi(ast.Node node,
                                         Local variable,
                                         inputType) {
@@ -446,19 +458,23 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     // the try/catch block [node]. If it is, no need to allocate a new
     // phi.
     if (inputType is PhiElementTypeInformation &&
-        inputType.branchNode == node) {
+        inputType.branchNode == node &&
+        inputType.branchNode is ast.TryStatement) {
       return inputType;
     }
-    PhiElementTypeInformation result =
-        new PhiElementTypeInformation(currentMember, node, true, variable);
-    allocatedTypes.add(result);
-    result.addAssignment(inputType);
-    return result;
+    return _addPhi(node, variable, inputType, false);
+  }
+
+  PhiElementTypeInformation allocateLoopPhi(ast.Node node,
+                                            Local variable,
+                                            inputType) {
+    return _addPhi(node, variable, inputType, true);
   }
 
   TypeInformation simplifyPhi(ast.Node node,
                               Local variable,
                               PhiElementTypeInformation phiType) {
+    assert(phiType.branchNode == node);
     if (phiType.assignments.length == 1) return phiType.assignments.first;
     return phiType;
   }
