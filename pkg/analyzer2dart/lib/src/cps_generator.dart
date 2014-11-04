@@ -31,6 +31,8 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
 
   Source get currentSource => element.source;
 
+  analyzer.LibraryElement get currentLibrary => element.library;
+
   ir.Node visit(AstNode node) => node.accept(this);
 
   @override
@@ -344,6 +346,46 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
                          buildBody: subbuild(node.body));
   }
 
+  @override
+  visitDeclaredIdentifier(DeclaredIdentifier node) {
+    giveUp(node, "Unexpected node: DeclaredIdentifier");
+  }
+
+  @override
+  visitForEachStatement(ForEachStatement node) {
+    SubbuildFunction buildVariableDeclaration;
+    dart2js.Element variableElement;
+    Selector variableSelector;
+    if (node.identifier != null) {
+       AccessSemantics accessSemantics =
+           node.identifier.accept(ACCESS_SEMANTICS_VISITOR);
+       if (accessSemantics.kind == AccessKind.DYNAMIC) {
+         variableSelector = new Selector.setter(
+             node.identifier.name, converter.convertElement(currentLibrary));
+       } else if (accessSemantics.element != null) {
+         variableElement = converter.convertElement(accessSemantics.element);
+         variableSelector = new Selector.setter(
+             variableElement.name,
+             converter.convertElement(accessSemantics.element.library));
+       } else {
+         giveUp(node, 'For-in of unresolved variable: $accessSemantics');
+       }
+    } else {
+      assert(invariant(
+          node, node.loopVariable != null, "Loop variable expected"));
+      variableElement = converter.convertElement(node.loopVariable.element);
+      buildVariableDeclaration = (IrBuilder builder) {
+        builder.declareLocalVariable(variableElement);
+      };
+    }
+    // TODO(johnniwinther): Support `for-in` as a jump target.
+    irBuilder.buildForIn(
+        buildExpression: subbuild(node.iterable),
+        buildVariableDeclaration: buildVariableDeclaration,
+        variableElement: variableElement,
+        variableSelector: variableSelector,
+        buildBody: subbuild(node.body));
+  }
   @override
   ir.Primitive visitIsExpression(IsExpression node) {
     return irBuilder.buildTypeOperator(

@@ -252,123 +252,23 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
         target: elements.getTargetDefinition(node));
   }
 
-  ir.Primitive visitForIn(ast.ForIn node) {
-    // The for-in loop
-    //
-    // for (a in e) s;
-    //
-    // Is compiled analogously to:
-    //
-    // a = e.iterator;
-    // while (a.moveNext()) {
-    //   var n0 = a.current;
-    //   s;
-    // }
-
-    // The condition and body are delimited.
-    IrBuilder condBuilder = new IrBuilder.recursive(irBuilder);
-
-    ir.Primitive expressionReceiver = visit(node.expression);
-    List<ir.Primitive> emptyArguments = new List<ir.Primitive>();
-
-    ir.Parameter iterator = new ir.Parameter(null);
-    ir.Continuation iteratorInvoked = new ir.Continuation([iterator]);
-    irBuilder.add(new ir.LetCont(iteratorInvoked,
-        new ir.InvokeMethod(expressionReceiver,
-            new Selector.getter("iterator", null), iteratorInvoked,
-            emptyArguments)));
-
-    ir.Parameter condition = new ir.Parameter(null);
-    ir.Continuation moveNextInvoked = new ir.Continuation([condition]);
-    condBuilder.add(new ir.LetCont(moveNextInvoked,
-        new ir.InvokeMethod(iterator,
-            new Selector.call("moveNext", null, 0),
-            moveNextInvoked, emptyArguments)));
-
-    JumpTarget target = elements.getTargetDefinition(node);
-    JumpCollector breakCollector = new JumpCollector(target);
-    JumpCollector continueCollector = new JumpCollector(target);
-    irBuilder.state.breakCollectors.add(breakCollector);
-    irBuilder.state.continueCollectors.add(continueCollector);
-
-    IrBuilder bodyBuilder = new IrBuilder.delimited(condBuilder);
+  visitForIn(ast.ForIn node) {
+    // [node.declaredIdentifier] can be either an [ast.VariableDefinitions]
+    // (defining a new local variable) or a send designating some existing
+    // variable.
     ast.Node identifier = node.declaredIdentifier;
+    ast.VariableDefinitions variableDeclaration =
+        identifier.asVariableDefinitions();
     Element variableElement = elements.getForInVariable(node);
     Selector selector = elements.getSelector(identifier);
 
-    // node.declaredIdentifier can be either an ast.VariableDefinitions
-    // (defining a new local variable) or a send designating some existing
-    // variable.
-    ast.Node declaredIdentifier = node.declaredIdentifier;
-
-    if (declaredIdentifier is ast.VariableDefinitions) {
-      withBuilder(bodyBuilder, () => visit(declaredIdentifier));
-    }
-
-    ir.Parameter currentValue = new ir.Parameter(null);
-    ir.Continuation currentInvoked = new ir.Continuation([currentValue]);
-    bodyBuilder.add(new ir.LetCont(currentInvoked,
-        new ir.InvokeMethod(iterator, new Selector.getter("current", null),
-            currentInvoked, emptyArguments)));
-    if (Elements.isLocal(variableElement)) {
-      bodyBuilder.buildLocalSet(variableElement, currentValue);
-    } else if (Elements.isStaticOrTopLevel(variableElement)) {
-      bodyBuilder.buildStaticSet(variableElement, selector, currentValue);
-    } else {
-      ir.Primitive receiver =
-          withBuilder(bodyBuilder, () => lookupThis());
-      bodyBuilder.buildDynamicSet(receiver, selector, currentValue);
-    }
-
-    withBuilder(bodyBuilder, () => visit(node.body));
-    assert(irBuilder.state.breakCollectors.last == breakCollector);
-    assert(irBuilder.state.continueCollectors.last == continueCollector);
-    irBuilder.state.breakCollectors.removeLast();
-    irBuilder.state.continueCollectors.removeLast();
-
-    // Create body entry and loop exit continuations and a branch to them.
-    ir.Continuation bodyContinuation = new ir.Continuation([]);
-    ir.Continuation exitContinuation = new ir.Continuation([]);
-    ir.LetCont branch =
-        new ir.LetCont(exitContinuation,
-            new ir.LetCont(bodyContinuation,
-                new ir.Branch(new ir.IsTrue(condition),
-                              bodyContinuation,
-                              exitContinuation)));
-    // If there are breaks in the body, then there must be a join-point
-    // continuation for the normal exit and the breaks.
-    bool hasBreaks = !breakCollector.isEmpty;
-    ir.LetCont letJoin;
-    if (hasBreaks) {
-      letJoin = new ir.LetCont(null, branch);
-      condBuilder.add(letJoin);
-      condBuilder._current = branch;
-    } else {
-      condBuilder.add(branch);
-    }
-    ir.Continuation loopContinuation =
-        new ir.Continuation(condBuilder._parameters);
-    if (bodyBuilder.isOpen) continueCollector.addJump(bodyBuilder);
-    irBuilder.invokeFullJoin(
-        loopContinuation, continueCollector, recursive: true);
-    bodyContinuation.body = bodyBuilder._root;
-
-    loopContinuation.body = condBuilder._root;
-    irBuilder.add(new ir.LetCont(loopContinuation,
-            new ir.InvokeContinuation(loopContinuation,
-                                      irBuilder.environment.index2value)));
-    if (hasBreaks) {
-      irBuilder._current = branch;
-      irBuilder.environment = condBuilder.environment;
-      breakCollector.addJump(irBuilder);
-      letJoin.continuation =
-          irBuilder.createJoin(irBuilder.environment.length, breakCollector);
-      irBuilder._current = letJoin;
-    } else {
-      irBuilder._current = condBuilder._current;
-      irBuilder.environment = condBuilder.environment;
-    }
-    return null;
+    irBuilder.buildForIn(
+        buildExpression: subbuild(node.expression),
+        buildVariableDeclaration: subbuild(variableDeclaration),
+        variableElement: variableElement,
+        variableSelector: selector,
+        buildBody: subbuild(node.body),
+        target: elements.getTargetDefinition(node));
   }
 
   ir.Primitive visitVariableDefinitions(ast.VariableDefinitions node) {
@@ -489,10 +389,9 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   }
 
   ir.Primitive visitIdentifier(ast.Identifier node) {
-    assert(irBuilder.isOpen);
     // "this" is the only identifier that should be met by the visitor.
     assert(node.isThis());
-    return lookupThis();
+    return irBuilder.buildThis();
   }
 
   ir.Primitive visitParenthesizedExpression(
@@ -519,12 +418,6 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     ir.Primitive receiver = _currentCascadeReceiver;
     _currentCascadeReceiver = oldCascadeReceiver;
     return receiver;
-  }
-
-  ir.Primitive lookupThis() {
-    ir.Primitive result = new ir.This();
-    irBuilder.add(new ir.LetPrim(result));
-    return result;
   }
 
   // ==== Sends ====
@@ -573,7 +466,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   /// If [node] is super, returns null (for special handling)
   /// Otherwise visits [node] and returns the result.
   ir.Primitive visitReceiver(ast.Expression node) {
-    if (node == null) return lookupThis();
+    if (node == null) return irBuilder.buildThis();
     if (node.isSuper()) return null;
     return visit(node);
   }

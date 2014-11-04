@@ -681,4 +681,59 @@ main(a) {
 }
 '''),
   ]),
+
+  const Group('For in loop', const <TestSpec>[
+// TODO(johnniwinther): Add tests for `i` as top-level, static and instance
+// fields.
+    const TestSpec('''
+main(a) {
+  for (var i in a) {
+    print(i);
+  }
+}
+''', '''
+main(a) {
+  var v0 = a.iterator;
+  while (v0.moveNext()) {
+    print(v0.current);
+  }
+}'''),
+
+    const TestSpec('''
+main(a) {
+  for (var i in a) {
+    print(i);
+    i = 0;
+    print(i);
+  }
+}
+''', '''
+main(a) {
+  var v0 = a.iterator, i;
+  while (v0.moveNext()) {
+    i = v0.current;
+    print(i);
+    i = 0;
+    print(i);
+  }
+}
+'''),
+
+    const TestSpec('''
+main(a) {
+  var i;
+  for (i in a) {
+    print(i);
+  }
+}
+''', '''
+main(a) {
+  var i, v0 = a.iterator;
+  while (v0.moveNext()) {
+    i = v0.current;
+    print(i);
+  }
+}
+'''),
+  ]),
 ];

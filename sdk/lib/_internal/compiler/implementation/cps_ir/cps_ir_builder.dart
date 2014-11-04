@@ -884,6 +884,133 @@ class IrBuilder {
     }
   }
 
+  /// Creates a for-in loop, `for (v in e) b`.
+  ///
+  /// [buildExpression] creates the expression, `e`. The variable, `v`, can
+  /// take one of three forms:
+  ///     1) `v` can be declared within the for-in statement, like in
+  ///        `for (var v in e)`, in which case, [buildVariableDeclaration]
+  ///        creates its declaration and [variableElement] is the element for
+  ///        the declared variable,
+  ///     2) `v` is predeclared statically known variable, that is top-level,
+  ///        static, or local variable, in which case [variableElement] is the
+  ///        variable element, and [variableSelector] defines its write access,
+  ///     3) `v` is an instance variable in which case [variableSelector]
+  ///        defines its write access.
+  /// [buildBody] creates the body, `b`, of the loop. The jump [target] is used
+  /// to identify which `break` and `continue` statements that have this for-in
+  /// statement as their target.
+  void buildForIn({SubbuildFunction buildExpression,
+                   SubbuildFunction buildVariableDeclaration,
+                   Element variableElement,
+                   Selector variableSelector,
+                   SubbuildFunction buildBody,
+                   JumpTarget target}) {
+    // The for-in loop
+    //
+    // for (a in e) s;
+    //
+    // Is compiled analogously to:
+    //
+    // a = e.iterator;
+    // while (a.moveNext()) {
+    //   var n0 = a.current;
+    //   s;
+    // }
+
+    // The condition and body are delimited.
+    IrBuilder condBuilder = new IrBuilder.recursive(this);
+
+    ir.Primitive expressionReceiver = buildExpression(this);
+    List<ir.Primitive> emptyArguments = new List<ir.Primitive>();
+
+    ir.Parameter iterator = new ir.Parameter(null);
+    ir.Continuation iteratorInvoked = new ir.Continuation([iterator]);
+    add(new ir.LetCont(iteratorInvoked,
+        new ir.InvokeMethod(expressionReceiver,
+            new Selector.getter("iterator", null), iteratorInvoked,
+            emptyArguments)));
+
+    ir.Parameter condition = new ir.Parameter(null);
+    ir.Continuation moveNextInvoked = new ir.Continuation([condition]);
+    condBuilder.add(new ir.LetCont(moveNextInvoked,
+        new ir.InvokeMethod(iterator,
+            new Selector.call("moveNext", null, 0),
+            moveNextInvoked, emptyArguments)));
+
+    JumpCollector breakCollector = new JumpCollector(target);
+    JumpCollector continueCollector = new JumpCollector(target);
+    state.breakCollectors.add(breakCollector);
+    state.continueCollectors.add(continueCollector);
+
+    IrBuilder bodyBuilder = new IrBuilder.delimited(condBuilder);
+    if (buildVariableDeclaration != null) {
+      buildVariableDeclaration(bodyBuilder);
+    }
+
+    ir.Parameter currentValue = new ir.Parameter(null);
+    ir.Continuation currentInvoked = new ir.Continuation([currentValue]);
+    bodyBuilder.add(new ir.LetCont(currentInvoked,
+        new ir.InvokeMethod(iterator, new Selector.getter("current", null),
+            currentInvoked, emptyArguments)));
+    if (Elements.isLocal(variableElement)) {
+      bodyBuilder.buildLocalSet(variableElement, currentValue);
+    } else if (Elements.isStaticOrTopLevel(variableElement)) {
+      bodyBuilder.buildStaticSet(
+          variableElement, variableSelector, currentValue);
+    } else {
+      ir.Primitive receiver = bodyBuilder.buildThis();
+      bodyBuilder.buildDynamicSet(receiver, variableSelector, currentValue);
+    }
+
+    buildBody(bodyBuilder);
+    assert(state.breakCollectors.last == breakCollector);
+    assert(state.continueCollectors.last == continueCollector);
+    state.breakCollectors.removeLast();
+    state.continueCollectors.removeLast();
+
+    // Create body entry and loop exit continuations and a branch to them.
+    ir.Continuation bodyContinuation = new ir.Continuation([]);
+    ir.Continuation exitContinuation = new ir.Continuation([]);
+    ir.LetCont branch =
+        new ir.LetCont(exitContinuation,
+            new ir.LetCont(bodyContinuation,
+                new ir.Branch(new ir.IsTrue(condition),
+                              bodyContinuation,
+                              exitContinuation)));
+    // If there are breaks in the body, then there must be a join-point
+    // continuation for the normal exit and the breaks.
+    bool hasBreaks = !breakCollector.isEmpty;
+    ir.LetCont letJoin;
+    if (hasBreaks) {
+      letJoin = new ir.LetCont(null, branch);
+      condBuilder.add(letJoin);
+      condBuilder._current = branch;
+    } else {
+      condBuilder.add(branch);
+    }
+    ir.Continuation loopContinuation =
+        new ir.Continuation(condBuilder._parameters);
+    if (bodyBuilder.isOpen) continueCollector.addJump(bodyBuilder);
+    invokeFullJoin(
+        loopContinuation, continueCollector, recursive: true);
+    bodyContinuation.body = bodyBuilder._root;
+
+    loopContinuation.body = condBuilder._root;
+    add(new ir.LetCont(loopContinuation,
+            new ir.InvokeContinuation(loopContinuation,
+                                      environment.index2value)));
+    if (hasBreaks) {
+      _current = branch;
+      environment = condBuilder.environment;
+      breakCollector.addJump(this);
+      letJoin.continuation = createJoin(environment.length, breakCollector);
+      _current = letJoin;
+    } else {
+      _current = condBuilder._current;
+      environment = condBuilder.environment;
+    }
+  }
 
   /// Creates a while loop in which the condition and body are created by
   /// [buildCondition] and [buildBody], respectively.
@@ -1168,6 +1295,14 @@ class IrBuilder {
     // There is always a join parameter for the result value, because it
     // is different on at least two paths.
     return joinContinuation.parameters.last;
+  }
+
+  /// Creates an access to `this`.
+  ir.Primitive buildThis() {
+    assert(isOpen);
+    ir.Primitive result = new ir.This();
+    add(new ir.LetPrim(result));
+    return result;
   }
 
   /// Create a non-recursive join-point continuation.

@@ -1110,4 +1110,95 @@ main(a) {
   (TypeOperator as a String k0))
 '''),
   ]),
+
+  const Group('For in loop', const <TestSpec>[
+// TODO(johnniwinther): Add tests for `i` as top-level, static and instance
+// fields.
+    const TestSpec('''
+main(a) {
+  for (var i in a) {
+    print(i);
+  }
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetCont (k0 v0)
+    (LetCont* (k1 v1)
+      (LetCont (k2 v2)
+        (LetCont (k3)
+          (LetPrim v3 (Constant NullConstant))
+          (InvokeContinuation return v3))
+        (LetCont (k4)
+          (LetPrim v4 (Constant NullConstant))
+          (LetCont (k5 v5)
+            (LetCont (k6 v6)
+              (InvokeContinuation* k1 v1))
+            (InvokeStatic print v5 k6))
+          (InvokeMethod v0 current  k5))
+        (Branch (IsTrue v2) k4 k3))
+      (InvokeMethod v0 moveNext  k2))
+    (InvokeContinuation k1 a))
+  (InvokeMethod a iterator  k0))
+'''),
+
+    const TestSpec('''
+main(a) {
+  for (var i in a) {
+    print(i);
+    i = 0;
+    print(i);
+  }
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetCont (k0 v0)
+    (LetCont* (k1 v1)
+      (LetCont (k2 v2)
+        (LetCont (k3)
+          (LetPrim v3 (Constant NullConstant))
+          (InvokeContinuation return v3))
+        (LetCont (k4)
+          (LetPrim v4 (Constant NullConstant))
+          (LetCont (k5 v5)
+            (LetCont (k6 v6)
+              (LetPrim v7 (Constant IntConstant(0)))
+              (LetCont (k7 v8)
+                (InvokeContinuation* k1 v1))
+              (InvokeStatic print v7 k7))
+            (InvokeStatic print v5 k6))
+          (InvokeMethod v0 current  k5))
+        (Branch (IsTrue v2) k4 k3))
+      (InvokeMethod v0 moveNext  k2))
+    (InvokeContinuation k1 a))
+  (InvokeMethod a iterator  k0))
+'''),
+
+    const TestSpec('''
+main(a) {
+  var i;
+  for (i in a) {
+    print(i);
+  }
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetPrim v0 (Constant NullConstant))
+  (LetCont (k0 v1)
+    (LetCont* (k1 v2 v3)
+      (LetCont (k2 v4)
+        (LetCont (k3)
+          (LetPrim v5 (Constant NullConstant))
+          (InvokeContinuation return v5))
+        (LetCont (k4)
+          (LetCont (k5 v6)
+            (LetCont (k6 v7)
+              (InvokeContinuation* k1 v2 v6))
+            (InvokeStatic print v6 k6))
+          (InvokeMethod v1 current  k5))
+        (Branch (IsTrue v4) k4 k3))
+      (InvokeMethod v1 moveNext  k2))
+    (InvokeContinuation k1 a v0))
+  (InvokeMethod a iterator  k0))
+'''),
+  ]),
 ];
