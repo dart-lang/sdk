@@ -72,6 +72,8 @@ void useConstant(constants.ConstantValue constant,
 
 void useNode(tree.Node node) {
   node
+    ..asAsyncModifier()
+    ..asAwait()
     ..asBreakStatement()
     ..asCascade()
     ..asCatchBlock()
@@ -110,7 +112,8 @@ void useNode(tree.Node node) {
     ..asTypeAnnotation()
     ..asTypeVariable()
     ..asTypedef()
-    ..asWhile();
+    ..asWhile()
+    ..asYield();
 }
 
 void useUtil(util.Link link) {

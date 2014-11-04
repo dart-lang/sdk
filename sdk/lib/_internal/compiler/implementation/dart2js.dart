@@ -114,6 +114,7 @@ Future compile(List<String> argv) {
   bool stripArgumentSet = false;
   bool analyzeOnly = false;
   bool analyzeAll = false;
+  bool enableAsyncAwait = false;
   bool trustTypeAnnotations = false;
   bool checkedMode = false;
   // List of provided options that imply that output is expected.
@@ -186,6 +187,11 @@ Future compile(List<String> argv) {
 
   setAnalyzeAll(String argument) {
     analyzeAll = true;
+    passThrough(argument);
+  }
+
+  setEnableAsync(String argument) {
+    enableAsyncAwait = true;
     passThrough(argument);
   }
 
@@ -317,6 +323,7 @@ Future compile(List<String> argv) {
                       (_) => hasDisallowUnsafeEval = true),
     new OptionHandler('--show-package-warnings', passThrough),
     new OptionHandler('--csp', passThrough),
+    new OptionHandler('--enable-async', setEnableAsync),
     new OptionHandler('-D.+=.*', addInEnvironment),
 
     // The following two options must come last.
@@ -377,6 +384,10 @@ Future compile(List<String> argv) {
         api.Diagnostic.INFO);
   }
   if (analyzeAll) analyzeOnly = true;
+  if (enableAsyncAwait && !analyzeOnly) {
+    helpAndFail("Option '--enable-async' is currently only supported in "
+                "combination with the '--analyze-only' option.");
+  }
 
   diagnosticHandler.info('Package root is $packageRoot');
 

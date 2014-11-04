@@ -38,6 +38,7 @@ Future<MirrorSystem> analyze(List<Uri> libraries,
   options.add('--analyze-signatures-only');
   options.add('--analyze-all');
   options.add('--categories=Client,Server');
+  options.add('--enable-async');
 
   bool compilationFailed = false;
   void internalDiagnosticHandler(Uri uri, int begin, int end,

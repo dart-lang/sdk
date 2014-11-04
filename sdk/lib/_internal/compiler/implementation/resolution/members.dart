@@ -616,6 +616,44 @@ class ResolverTask extends CompilerTask {
     }
   }
 
+  static void processAsyncMarker(Compiler compiler,
+                                 BaseFunctionElementX element) {
+    FunctionExpression functionExpression = element.node;
+    AsyncModifier asyncModifier = functionExpression.asyncModifier;
+    if (asyncModifier != null) {
+      if (!compiler.enableAsyncAwait) {
+        compiler.reportError(asyncModifier,
+            MessageKind.EXPERIMENTAL_ASYNC_AWAIT,
+            {'modifier': element.asyncMarker});
+      } else if (!compiler.analyzeOnly) {
+        compiler.reportError(asyncModifier,
+            MessageKind.EXPERIMENTAL_ASYNC_AWAIT,
+            {'modifier': element.asyncMarker});
+      }
+
+      if (asyncModifier.isAsynchronous) {
+        element.asyncMarker = asyncModifier.isYielding
+            ? AsyncMarker.ASYNC_STAR : AsyncMarker.ASYNC;
+      } else {
+        element.asyncMarker = AsyncMarker.SYNC_STAR;
+      }
+      if (element.isAbstract) {
+        compiler.reportError(asyncModifier,
+            MessageKind.ASYNC_MODIFIER_ON_ABSTRACT_METHOD,
+            {'modifier': element.asyncMarker});
+      } else if (element.isConstructor) {
+        compiler.reportError(asyncModifier,
+            MessageKind.ASYNC_MODIFIER_ON_CONSTRUCTOR,
+            {'modifier': element.asyncMarker});
+      } else if (functionExpression.body.asReturn() != null &&
+                 element.asyncMarker.isYielding) {
+        compiler.reportError(asyncModifier,
+            MessageKind.YIELDING_MODIFIER_ON_ARROW_BODY,
+            {'modifier': element.asyncMarker});
+      }
+    }
+  }
+
   TreeElements resolveMethodElement(FunctionElementX element) {
     assert(invariant(element, element.isDeclaration));
     return compiler.withCurrentElement(element, () {
@@ -651,6 +689,7 @@ class ResolverTask extends CompilerTask {
       }
       element.parseNode(compiler);
       element.computeType(compiler);
+      processAsyncMarker(compiler, element);
       if (element.isPatched) {
         FunctionElementX patch = element.patch;
         compiler.withCurrentElement(patch, () {
@@ -659,6 +698,7 @@ class ResolverTask extends CompilerTask {
         });
         checkMatchingPatchSignatures(element, patch);
         element = patch;
+        processAsyncMarker(compiler, element);
       }
       return compiler.withCurrentElement(element, () {
         FunctionExpression tree = element.node;
@@ -2104,6 +2144,8 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
       : typeResolver = new TypeResolver(compiler),
         super(compiler);
 
+  AsyncMarker get currentAsyncMarker => AsyncMarker.SYNC;
+
   /// Add [element] to the current scope and check for duplicate definitions.
   void addToScope(Element element) {
     Element existing = scope.add(element);
@@ -2112,9 +2154,23 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
     }
   }
 
+  void checkLocalDefinitionName(Node node, Element element) {
+    if (currentAsyncMarker != AsyncMarker.SYNC) {
+      if (element.name == 'yield' ||
+          element.name == 'async' ||
+          element.name == 'await') {
+        compiler.reportError(
+            node, MessageKind.ASYNC_KEYWORD_AS_IDENTIFIER,
+            {'keyword': element.name,
+             'modifier': currentAsyncMarker});
+      }
+    }
+  }
+
   /// Register [node] as the definition of [element].
   void defineLocalVariable(Node node, LocalVariableElement element) {
     invariant(node, element != null);
+    checkLocalDefinitionName(node, element);
     registry.defineElement(node, element);
   }
 
@@ -2222,6 +2278,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           !element.enclosingElement.isTypedef,
       inCatchBlock = false,
       super(compiler, registry);
+
+  AsyncMarker get currentAsyncMarker {
+    if (enclosingElement is FunctionElement) {
+      FunctionElement function = enclosingElement;
+      return function.asyncMarker;
+    }
+    return AsyncMarker.SYNC;
+  }
 
   Element reportLookupErrorIfAny(Element result, Node node, String name) {
     if (!Elements.isUnresolved(result)) {
@@ -2518,6 +2582,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     function.functionSignatureCache =
         SignatureResolver.analyze(compiler, node.parameters, node.returnType,
             function, registry, createRealParameters: true);
+    ResolverTask.processAsyncMarker(compiler, function);
+    checkLocalDefinitionName(node, function);
     registry.defineFunction(node, function);
     if (doAddToScope) {
       addToScope(function);
@@ -3143,6 +3209,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     visit(node.expression);
   }
 
+  visitYield(Yield node) {
+    compiler.streamClass.ensureResolved(compiler);
+    compiler.iterableClass.ensureResolved(compiler);
+    visit(node.expression);
+  }
+
   visitRedirectingFactoryBody(RedirectingFactoryBody node) {
     final isSymbolConstructor = enclosingElement == compiler.symbolConstructor;
     if (!enclosingElement.isFactoryConstructor) {
@@ -3210,6 +3282,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   visitThrow(Throw node) {
     registry.registerThrowExpression();
+    visit(node.expression);
+  }
+
+  visitAwait(Await node) {
+    compiler.futureClass.ensureResolved(compiler);
     visit(node.expression);
   }
 

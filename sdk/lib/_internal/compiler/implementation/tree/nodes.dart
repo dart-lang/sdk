@@ -9,6 +9,8 @@ abstract class Visitor<R> {
 
   R visitNode(Node node);
 
+  R visitAsyncModifier(AsyncModifier node) => visitNode(node);
+  R visitAwait(Await node) => visitExpression(node);
   R visitBlock(Block node) => visitStatement(node);
   R visitBreakStatement(BreakStatement node) => visitGotoStatement(node);
   R visitCascade(Cascade node) => visitExpression(node);
@@ -88,6 +90,7 @@ abstract class Visitor<R> {
   R visitTypeVariable(TypeVariable node) => visitNode(node);
   R visitVariableDefinitions(VariableDefinitions node) => visitStatement(node);
   R visitWhile(While node) => visitLoop(node);
+  R visitYield(Yield node) => visitStatement(node);
 }
 
 Token firstBeginToken(Node first, Node second) {
@@ -141,6 +144,8 @@ abstract class Node extends NullTreeElementMixin implements Spannable {
 
   Token getEndToken();
 
+  AsyncModifier asAsyncModifier() => null;
+  Await asAwait() => null;
   Block asBlock() => null;
   BreakStatement asBreakStatement() => null;
   Cascade asCascade() => null;
@@ -207,6 +212,7 @@ abstract class Node extends NullTreeElementMixin implements Spannable {
   Typedef asTypedef() => null;
   VariableDefinitions asVariableDefinitions() => null;
   While asWhile() => null;
+  Yield asYield() => null;
 
   bool isValidBreakTarget() => false;
   bool isValidContinueTarget() => false;
@@ -707,6 +713,34 @@ class FunctionDeclaration extends Statement {
   Token getEndToken() => function.getEndToken();
 }
 
+/// Node representing the method implementation modifiers `sync*`, `async`, and
+/// `async*` or the invalid modifier `sync`.
+class AsyncModifier extends Node {
+  /// The `async` or `sync` token.
+  final Token asyncToken;
+
+  /// The `*` token.
+  final Token starToken;
+
+  AsyncModifier(this.asyncToken, this.starToken);
+
+  AsyncModifier asAsyncModifier() => this;
+
+  accept(Visitor visitor) => visitor.visitAsyncModifier(this);
+
+  visitChildren(Visitor visitor) {}
+
+  Token getBeginToken() => asyncToken;
+
+  Token getEndToken() => starToken != null ? starToken : asyncToken;
+
+  /// Is `true` if this modifier is either `async` or `async*`.
+  bool get isAsynchronous => asyncToken.value == 'async';
+
+  /// Is `true` if this modifier is either `sync*` or `async*`.
+  bool get isYielding => starToken != null;
+}
+
 class FunctionExpression extends Expression with StoredTreeElementMixin {
   final Node name;
 
@@ -723,9 +757,11 @@ class FunctionExpression extends Expression with StoredTreeElementMixin {
   final NodeList initializers;
 
   final Token getOrSet;
+  final AsyncModifier asyncModifier;
 
   FunctionExpression(this.name, this.parameters, this.body, this.returnType,
-                     this.modifiers, this.initializers, this.getOrSet) {
+                     this.modifiers, this.initializers, this.getOrSet,
+                     this.asyncModifier) {
     assert(modifiers != null);
   }
 
@@ -743,6 +779,7 @@ class FunctionExpression extends Expression with StoredTreeElementMixin {
     if (name != null) name.accept(visitor);
     if (parameters != null) parameters.accept(visitor);
     if (initializers != null) initializers.accept(visitor);
+    if (asyncModifier != null) asyncModifier.accept(visitor);
     if (body != null) body.accept(visitor);
   }
 
@@ -1041,6 +1078,29 @@ class Return extends Statement {
   }
 }
 
+class Yield extends Statement {
+  final Node expression;
+  final Token yieldToken;
+  final Token starToken;
+  final Token endToken;
+
+  Yield(this.yieldToken, this.starToken, this.expression, this.endToken);
+
+  Yield asYield() => this;
+
+  bool get hasStar => starToken != null;
+
+  accept(Visitor visitor) => visitor.visitYield(this);
+
+  visitChildren(Visitor visitor) {
+    expression.accept(visitor);
+  }
+
+  Token getBeginToken() => yieldToken;
+
+  Token getEndToken() => endToken;
+}
+
 class RedirectingFactoryBody extends Statement with StoredTreeElementMixin {
   final Node constructorReference;
   final Token beginToken;
@@ -1100,6 +1160,26 @@ class Throw extends Expression {
   Token getBeginToken() => throwToken;
 
   Token getEndToken() => endToken;
+}
+
+class Await extends Expression {
+  final Expression expression;
+
+  final Token awaitToken;
+
+  Await(this.awaitToken, this.expression);
+
+  Await asAwait() => this;
+
+  accept(Visitor visitor) => visitor.visitAwait(this);
+
+  visitChildren(Visitor visitor) {
+    expression.accept(visitor);
+  }
+
+  Token getBeginToken() => awaitToken;
+
+  Token getEndToken() => expression.getEndToken();
 }
 
 class Rethrow extends Statement {
@@ -1694,11 +1774,15 @@ class ForIn extends Loop with StoredTreeElementMixin {
   final Node declaredIdentifier;
   final Expression expression;
 
+  final Token awaitToken;
   final Token forToken;
   final Token inToken;
 
   ForIn(this.declaredIdentifier, this.expression,
-        Statement body, this.forToken, this.inToken) : super(body);
+        Statement body, this.awaitToken, this.forToken, this.inToken)
+      : super(body);
+
+  bool get isAsync => awaitToken != null;
 
   Expression get condition => null;
 
@@ -1712,7 +1796,7 @@ class ForIn extends Loop with StoredTreeElementMixin {
     body.accept(visitor);
   }
 
-  Token getBeginToken() => forToken;
+  Token getBeginToken() => awaitToken != null ? awaitToken : forToken;
 
   Token getEndToken() => body.getEndToken();
 }
@@ -2168,6 +2252,7 @@ class ErrorNode
   bool get isErroneous => true;
 
   // FunctionExpression.
+  get asyncModifier => null;
   get parameters => null;
   get body => null;
   get returnType => null;

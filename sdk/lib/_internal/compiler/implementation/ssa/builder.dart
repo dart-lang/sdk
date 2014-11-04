@@ -5058,6 +5058,17 @@ class SsaBuilder extends ResolvedVisitor {
     }
   }
 
+  visitYield(ast.Yield node) {
+    // Dummy implementation.
+    visit(node.expression);
+    pop();
+  }
+
+  visitAwait(ast.Await node) {
+    // Dummy implementation.
+    visit(node.expression);
+  }
+
   visitTypeAnnotation(ast.TypeAnnotation node) {
     compiler.internalError(node,
         'Visiting type annotation in SSA builder.');

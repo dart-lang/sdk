@@ -250,6 +250,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   Node lastSeenNode;
   DartType expectedReturnType;
+  AsyncMarker currentAsyncMarker = AsyncMarker.SYNC;
 
   final ClassElement currentClass;
 
@@ -604,10 +605,13 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       returnType = functionType.returnType;
       type = functionType;
     }
-    DartType previous = expectedReturnType;
+    DartType previousReturnType = expectedReturnType;
     expectedReturnType = returnType;
+    AsyncMarker previousAsyncMarker = currentAsyncMarker;
+    currentAsyncMarker = element.asyncMarker;
     analyze(node.body);
-    expectedReturnType = previous;
+    expectedReturnType = previousReturnType;
+    currentAsyncMarker = previousAsyncMarker;
     return type;
   }
 
@@ -1587,6 +1591,36 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     // TODO(johnniwinther): Handle reachability.
     analyze(node.expression);
     return const DynamicType();
+  }
+
+  DartType visitAwait(Await node) {
+    DartType expressionType = analyze(node.expression);
+    DartType resultType = expressionType;
+    if (expressionType is InterfaceType) {
+      InterfaceType futureType =
+          expressionType.asInstanceOf(compiler.futureClass);
+      if (futureType != null) {
+        resultType = futureType.typeArguments.first;
+      }
+    }
+    return resultType;
+  }
+
+  DartType visitYield(Yield node) {
+    DartType resultType = analyze(node.expression);
+    if (!node.hasStar) {
+      if (currentAsyncMarker.isAsync) {
+        resultType =
+            compiler.streamClass.thisType.createInstantiation(
+                <DartType>[resultType]);
+      } else {
+        resultType =
+            compiler.iterableClass.thisType.createInstantiation(
+                 <DartType>[resultType]);
+      }
+    }
+    checkAssignable(node, resultType, expectedReturnType);
+    return const StatementType();
   }
 
   DartType visitTypeAnnotation(TypeAnnotation node) {

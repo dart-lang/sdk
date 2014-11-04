@@ -217,6 +217,13 @@ class Unparser extends Indentation implements Visitor {
     }
   }
 
+  visitAsyncModifier(AsyncModifier node) {
+    write(node.asyncToken.value);
+    if (node.starToken != null) {
+      write(node.starToken.value);
+    }
+  }
+
   visitFunctionExpression(FunctionExpression node) {
     if (!node.modifiers.nodes.isEmpty) {
       visit(node.modifiers);
@@ -239,6 +246,7 @@ class Unparser extends Indentation implements Visitor {
       unparseNodeListFrom(node.initializers, node.initializers.nodes,
           spaces: true);
     }
+    visit(node.asyncModifier);
     if (node.body != null && node.body is! EmptyStatement) space();
     visit(node.body);
   }
@@ -378,6 +386,15 @@ class Unparser extends Indentation implements Visitor {
     if (node.endToken != null) write(node.endToken.value);
   }
 
+  visitYield(Yield node) {
+    write(node.yieldToken);
+    write(node.starToken);
+    space();
+    visit(node.expression);
+    write(node.endToken);
+  }
+
+
   unparseSendReceiver(Send node, {bool spacesNeeded: false}) {
     if (node.receiver == null) return;
     visit(node.receiver);
@@ -488,6 +505,12 @@ class Unparser extends Indentation implements Visitor {
     visit(node.expression);
   }
 
+  visitAwait(Await node) {
+    write(node.awaitToken.value);
+    write(' ');
+    visit(node.expression);
+  }
+
   visitTypeAnnotation(TypeAnnotation node) {
     visit(node.typeName);
     visit(node.typeArguments);
@@ -582,6 +605,10 @@ class Unparser extends Indentation implements Visitor {
   }
 
   visitForIn(ForIn node) {
+    if (node.awaitToken != null) {
+      write(node.awaitToken.value);
+      write(' ');
+    }
     write(node.forToken.value);
     space();
     write('(');

@@ -93,6 +93,7 @@ class TreePrinter {
   final Token whileToken = makeIdToken('while');
   final Token ifToken = makeIdToken('if');
   final Token elseToken = makeIdToken('else');
+  final Token awaitToken = makeIdToken('await');
   final Token forToken = makeIdToken('for');
   final Token inToken = makeIdToken('in');
   final Token returnToken = makeIdToken('return');
@@ -416,7 +417,8 @@ class TreePrinter {
             : makeType(exp.returnType),
           makeFunctionModifiers(exp),
           null,  // initializers
-          getOrSet);
+          getOrSet,  // get/set
+          null); // async modifier
       setElement(result, exp.element, exp);
     } else if (exp is Identifier) {
       precedence = CALLEE;
@@ -702,6 +704,7 @@ class TreePrinter {
           left,
           makeExpression(stmt.expression),
           makeStatement(stmt.body, shortIf: shortIf),
+          awaitToken,
           forToken,
           inToken);
     } else if (stmt is FunctionDeclaration) {
@@ -712,7 +715,8 @@ class TreePrinter {
           stmt.returnType != null ? makeType(stmt.returnType) : null,
           makeEmptyModifiers(),
           null,  // initializers
-          null);  // get/set
+          null,  // get/set
+          null); // async modifier
       setElement(function, stmt.function.element, stmt);
       return new tree.FunctionDeclaration(function);
     } else if (stmt is If) {
@@ -886,8 +890,9 @@ class TreePrinter {
           null, // body
           param.type == null ? null : makeType(param.type),
           makeEmptyModifiers(), // TODO: Function parameter modifiers?
-          null, // initializers
-          null); // get/set
+          null,  // initializers
+          null,  // get/set
+          null); // async modifier
       if (param.element != null) {
         setElement(definition, param.element, param);
       }

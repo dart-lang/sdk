@@ -417,11 +417,13 @@ class AstBuilder extends Listener {
   handleNoFormalParameters(tok) {
     push(new Parameters([]));
   }
-  endUnamedFunction(t) {
+
+  endUnnamedFunction(t) {
     Statement body = pop();
     Parameters parameters = pop();
     push(new FunctionExpression(parameters, body));
   }
+
   handleNoType(Token token) {
     push(null);
   }
@@ -572,7 +574,7 @@ class AstBuilder extends Listener {
     push(null);
   }
 
-  endForIn(Token begin, Token inKeyword, Token end) {
+  endForIn(Token await, Token begin, Token inKeyword, Token end) {
     Statement body = pop();
     Expression exp = pop();
     Node declaredIdentifier = pop();

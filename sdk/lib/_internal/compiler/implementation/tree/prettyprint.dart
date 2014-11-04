@@ -121,6 +121,12 @@ class PrettyPrinter extends Indentation implements Visitor {
     closeNode();
   }
 
+  visitAsyncModifier(AsyncModifier node) {
+    openAndCloseNode(node, "AsyncModifier",
+        {'asyncToken': node.asyncToken,
+         'starToken': node.starToken});
+  }
+
   visitBlock(Block node) {
     visitNodeWithChildren(node, "Block");
   }
@@ -181,7 +187,9 @@ class PrettyPrinter extends Indentation implements Visitor {
   }
 
   visitForIn(ForIn node) {
-    visitNodeWithChildren(node, "ForIn");
+    openNode(node, "ForIn", {'await': node.awaitToken});
+    node.visitChildren(this);
+    closeNode();
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
@@ -318,6 +326,12 @@ class PrettyPrinter extends Indentation implements Visitor {
     closeNode();
   }
 
+  visitYield(Yield node) {
+    openNode(node, "Yield", {'star': node.starToken});
+    visitChildNode(node.expression, "expression");
+    closeNode();
+  }
+
   visitChildNode(Node node, String fieldName) {
     if (node == null) return;
     addCurrentIndent();
@@ -379,6 +393,10 @@ class PrettyPrinter extends Indentation implements Visitor {
 
   visitThrow(Throw node) {
     visitNodeWithChildren(node, "Throw");
+  }
+
+  visitAwait(Await node) {
+    visitNodeWithChildren(node, "Await");
   }
 
   visitTryStatement(TryStatement node) {

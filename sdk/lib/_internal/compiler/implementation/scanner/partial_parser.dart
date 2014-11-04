@@ -103,8 +103,29 @@ class PartialParser extends Parser {
     return endGroup;
   }
 
+  Token skipAsyncModifier(Token token) {
+    String value = token.stringValue;
+    if (identical(value, 'async')) {
+      token = token.next;
+      value = token.stringValue;
+
+      if (identical(value, '*')) {
+        token = token.next;
+      }
+    } else if (identical(value, 'sync')) {
+      token = token.next;
+      value = token.stringValue;
+
+      if (identical(value, '*')) {
+        token = token.next;
+      }
+    }
+    return token;
+  }
+
   Token parseFunctionBody(Token token, bool isExpression, bool allowAbstract) {
     assert(!isExpression);
+    token = skipAsyncModifier(token);
     String value = token.stringValue;
     if (identical(value, ';')) {
       if (!allowAbstract) {

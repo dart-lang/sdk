@@ -287,6 +287,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
     throw 'unsupported operation on erroneous element';
   }
 
+  get asyncMarker => AsyncMarker.SYNC;
   Link<MetadataAnnotation> get metadata => unsupported();
   bool get hasNode => false;
   get node => unsupported();
@@ -1539,6 +1540,8 @@ abstract class BaseFunctionElementX
   final bool _hasNoBody;
 
   AbstractFieldElement abstractField;
+
+  AsyncMarker asyncMarker = AsyncMarker.SYNC;
 
   BaseFunctionElementX(String name,
                        ElementKind kind,

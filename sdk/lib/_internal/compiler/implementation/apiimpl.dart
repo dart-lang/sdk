@@ -77,7 +77,8 @@ class Compiler extends leg.Compiler {
             hasIncrementalSupport:
                 forceIncrementalSupport ||
                 hasOption(options, '--incremental-support'),
-            suppressWarnings: hasOption(options, '--suppress-warnings')) {
+            suppressWarnings: hasOption(options, '--suppress-warnings'),
+            enableAsyncAwait: hasOption(options, '--enable-async')) {
     tasks.addAll([
         userHandlerTask = new leg.GenericTask('Diagnostic handler', this),
         userProviderTask = new leg.GenericTask('Input provider', this),
@@ -87,6 +88,10 @@ class Compiler extends leg.Compiler {
     }
     if (packageRoot != null && !packageRoot.path.endsWith("/")) {
       throw new ArgumentError("packageRoot must end with a /");
+    }
+    if (enableAsyncAwait && !analyzeOnly) {
+      throw new ArgumentError(
+          "--enable-async is currently only supported with --analyze-only");
     }
   }
 

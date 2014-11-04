@@ -82,7 +82,13 @@ class MessageKind {
    */
   final List examples;
 
-  const MessageKind(this.template, {this.howToFix, this.examples});
+  /// Additional options needed for the examples to work.
+  final List<String> options;
+
+  const MessageKind(this.template,
+                    {this.howToFix,
+                     this.examples,
+                     this.options: const <String>[]});
 
   /// Do not use this. It is here for legacy and debugging. It violates item 4
   /// above.
@@ -1975,6 +1981,105 @@ Please include the following information:
     "When run on the command-line, the compiled output might"
     " require a preamble file located in:\n"
     "  <sdk>/lib/_internal/compiler/js_lib/preambles.");
+
+
+  static const MessageKind EXPERIMENTAL_ASYNC_AWAIT = const MessageKind(
+      "Experimental language feature 'async/await' is not supported.");
+
+  static const MessageKind INVALID_STARRED_KEYWORD = const MessageKind(
+      "Invalid '#{keyword}' keyword.",
+      options: const ['--enable-async'],
+      howToFix: "Try removing whitespace between '#{keyword}' and '*'.",
+      examples: const [
+        "main() async * {}",
+        "main() sync * {}",
+        "main() async* { yield * 0; }"
+      ]);
+
+  static const MessageKind INVALID_SYNC_MODIFIER = const MessageKind(
+      "Invalid modifier 'sync'.",
+      options: const ['--enable-async'],
+      howToFix: "Try replacing 'sync' with 'sync*'.",
+      examples: const [
+        "main() sync {}"
+      ]);
+
+  static const MessageKind INVALID_AWAIT_FOR = const MessageKind(
+      "'await' is only supported on for-in loops.",
+      options: const ['--enable-async'],
+      howToFix: "Try rewriting the loop as a for-in loop or removing the "
+                "'await' keyword.",
+      examples: const ["""
+main() async* {
+  await for (int i = 0; i < 10; i++) {}
+}
+"""]);
+
+  static const MessageKind ASYNC_MODIFIER_ON_ABSTRACT_METHOD =
+      const MessageKind(
+          "The modifier '#{modifier}' is not allowed on an abstract method.",
+          options: const ['--enable-async'],
+          howToFix: "Try removing the '#{modifier}' modifier or adding a "
+                    "body to the method.",
+          examples: const ["""
+abstract class A {
+  method() async;
+}
+class B extends A {
+  method() {}
+}
+main() {
+  A a = new B();
+  a.method();
+}
+"""]);
+
+  static const MessageKind ASYNC_MODIFIER_ON_CONSTRUCTOR =
+      const MessageKind(
+          "The modifier '#{modifier}' is not allowed on constructors.",
+          options: const ['--enable-async'],
+          howToFix: "Try removing the '#{modifier}' modifier.",
+          examples: const ["""
+class A {
+  A() async;
+}
+main() => new A();""",
+
+"""
+class A {
+  A();
+  factory A.a() async* => new A();
+}
+main() => new A.a();"""]);
+
+  static const MessageKind YIELDING_MODIFIER_ON_ARROW_BODY =
+      const MessageKind(
+          "The modifier '#{modifier}' is not allowed on methods implemented "
+          "using '=>'.",
+          options: const ['--enable-async'],
+          howToFix: "Try removing the '#{modifier}' modifier or implementing "
+                    "the method body using a block: '{ ... }'.",
+          examples: const ["main() sync* => null;", "main() async* => null;"]);
+
+  // TODO(johnniwinther): Check for 'async' as identifier.
+  static const MessageKind ASYNC_KEYWORD_AS_IDENTIFIER = const MessageKind(
+      "'#{keyword}' cannot be used as an identifier in a function body marked "
+      "with '#{modifier}'.",
+      options: const ['--enable-async'],
+      howToFix: "Try removing the '#{modifier}' modifier or renaming the "
+                "identifier.",
+      examples: const ["""
+main() async {
+ var await;
+}""",
+"""
+main() async* {
+ var yield;
+}""",
+"""
+main() sync* {
+ var yield;
+}"""]);
 
   //////////////////////////////////////////////////////////////////////////////
   // Patch errors start.

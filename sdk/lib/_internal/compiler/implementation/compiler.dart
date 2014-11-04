@@ -718,6 +718,9 @@ abstract class Compiler implements DiagnosticListener {
 
   final bool suppressWarnings;
 
+  /// `true` if async/await features are supported.
+  final bool enableAsyncAwait;
+
   /// If `true`, some values are cached for reuse in incremental compilation.
   /// Incremental compilation is basically calling [run] more than once.
   final bool hasIncrementalSupport;
@@ -761,6 +764,9 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement symbolClass;
   ClassElement stackTraceClass;
   ClassElement typedDataClass;
+  ClassElement futureClass;
+  ClassElement iterableClass;
+  ClassElement streamClass;
 
   /// The constant for the [proxy] variable defined in dart:core.
   ConstantValue proxyConstant;
@@ -958,6 +964,7 @@ abstract class Compiler implements DiagnosticListener {
             this.useContentSecurityPolicy: false,
             this.suppressWarnings: false,
             bool hasIncrementalSupport: false,
+            this.enableAsyncAwait: false,
             api.CompilerOutputProvider outputProvider,
             List<String> strips: const []})
       : this.disableTypeInferenceFlag =
@@ -1075,6 +1082,8 @@ abstract class Compiler implements DiagnosticListener {
       return node;
     } else if (node is Node) {
       return spanFromNode(node);
+    } else if (node is TokenPair) {
+      return spanFromTokens(node.begin, node.end);
     } else if (node is Token) {
       return spanFromTokens(node, node);
     } else if (node is HInstruction) {
@@ -1190,6 +1199,8 @@ abstract class Compiler implements DiagnosticListener {
       mirrorsUsedClass = findRequiredElement(library, 'MirrorsUsed');
     } else if (uri == DART_ASYNC) {
       deferredLibraryClass = findRequiredElement(library, 'DeferredLibrary');
+      futureClass = findRequiredElement(library, 'Future');
+      streamClass = findRequiredElement(library, 'Stream');
     } else if (uri == DART_NATIVE_TYPED_DATA) {
       typedDataClass = findRequiredElement(library, 'NativeTypedData');
     } else if (uri == js_backend.JavaScriptBackend.DART_JS_HELPER) {
@@ -1286,6 +1297,7 @@ abstract class Compiler implements DiagnosticListener {
     mapClass = lookupCoreClass('Map');
     nullClass = lookupCoreClass('Null');
     stackTraceClass = lookupCoreClass('StackTrace');
+    iterableClass = lookupCoreClass('Iterable');
     symbolClass = lookupCoreClass('Symbol');
     if (!missingCoreClasses.isEmpty) {
       internalError(coreLibrary,

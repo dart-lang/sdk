@@ -169,6 +169,15 @@ abstract class Token implements Spannable {
   int get hashCode => computeHashCode(charOffset, info, value);
 }
 
+/// A pair of tokens marking the beginning and the end of a span. Use for error
+/// reporting.
+class TokenPair implements Spannable {
+  final Token begin;
+  final Token end;
+
+  TokenPair(this.begin, this.end);
+}
+
 /**
  * A [SymbolToken] represents the symbol in its precendence info.
  * Also used for end of file with EOF_INFO.

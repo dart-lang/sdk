@@ -107,6 +107,8 @@ class MockCompiler extends Compiler {
                    buildLibrarySource(DEFAULT_ISOLATE_HELPER_LIBRARY));
     registerSource(Compiler.DART_MIRRORS,
                    buildLibrarySource(DEFAULT_MIRRORS_LIBRARY));
+    registerSource(Compiler.DART_ASYNC,
+                   buildLibrarySource(DEFAULT_ASYNC_LIBRARY));
   }
 
   /// Initialize the mock compiler with an empty main library.

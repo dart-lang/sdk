@@ -67,7 +67,11 @@ class Keyword {
       const Keyword("on", isPseudo: true),
       const Keyword("show", isPseudo: true),
       const Keyword("source", isPseudo: true),
-      const Keyword("deferred", isPseudo: true)];
+      const Keyword("deferred", isPseudo: true),
+      const Keyword("async", isPseudo: true),
+      const Keyword("sync", isPseudo: true),
+      const Keyword("await", isPseudo: true),
+      const Keyword("yield", isPseudo: true)];
 
   final String syntax;
   final bool isPseudo;
