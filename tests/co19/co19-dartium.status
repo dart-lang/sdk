@@ -864,6 +864,8 @@ LayoutTests/fast/url/trivial-segments_t01: RuntimeError # co19-roll r786: Please
 LayoutTests/fast/url/trivial_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-bad-mimetype_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-invalid-values_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/dom/HTMLDialogElement/top-layer-position-relative_t01: RuntimeError # Reenable fast/dom tests: Please triage this failure.
+LayoutTests/fast/dom/HTMLDialogElement/top-layer-position-static_t01: RuntimeError # Reenable fast/dom tests: Please triage this failure.
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $mode == debug ]
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/mode_t01: Skip # Issue 19495.
