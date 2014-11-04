@@ -22,6 +22,8 @@ import 'web_compiler_test_case.dart' show
 
 import 'program_result.dart';
 
+const int TIMEOUT = 100;
+
 const List<List<ProgramResult>> tests = const <List<ProgramResult>>[
     // Basic hello-world test.
     const <ProgramResult>[
@@ -203,7 +205,7 @@ Future compileAndRun(List<ProgramResult> programs) {
           Uri uri = test.scriptUri.resolve('?v${version++}');
           inputProvider.cachedSources[uri] = new Future.value(program.code);
           Future future = test.incrementalCompiler.compileUpdates(
-              {test.scriptUri: uri}, logVerbose: print, logTime: print);
+              {test.scriptUri: uri}, logVerbose: logger, logTime: logger);
           return future.then((String update) {
             print({'update': update});
             iframe.contentWindow.postMessage(['apply-update', update], '*');
@@ -220,4 +222,14 @@ Future compileAndRun(List<ProgramResult> programs) {
     // Remove the iframe to work around a bug in test.dart.
     iframe.remove();
   });
+}
+
+void logger(x) {
+  print(x);
+  bool isCheckedMode = false;
+  assert(isCheckedMode = true);
+  int timeout = isCheckedMode ? TIMEOUT * 2 : TIMEOUT;
+  if (listener.elapsed > timeout) {
+    throw 'Test timed out.';
+  }
 }
