@@ -23,7 +23,7 @@
         '../../pkg/pkg_files.gyp:pkg_files_stamp',
       ],
       'includes': [
-        '../../sdk/lib/core/corelib_sources.gypi',
+        '../../sdk/lib/core/core_sources.gypi',
       ],
       'actions': [
         {

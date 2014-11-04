@@ -21,10 +21,10 @@ class Bootstrap : public AllStatic {
 
   // Source path mapping for library URI and 'parts'.
   static const char* async_source_paths_[];
-  static const char* corelib_source_paths_[];
+  static const char* core_source_paths_[];
   static const char* collection_source_paths_[];
   static const char* convert_source_paths_[];
-  static const char* internal_source_paths_[];
+  static const char* _internal_source_paths_[];
   static const char* isolate_source_paths_[];
   static const char* json_source_paths_[];
   static const char* math_source_paths_[];
@@ -35,10 +35,10 @@ class Bootstrap : public AllStatic {
 
   // Source path mapping for patch URI and 'parts'.
   static const char* async_patch_paths_[];
-  static const char* corelib_patch_paths_[];
+  static const char* core_patch_paths_[];
   static const char* collection_patch_paths_[];
   static const char* convert_patch_paths_[];
-  static const char* internal_patch_paths_[];
+  static const char* _internal_patch_paths_[];
   static const char* isolate_patch_paths_[];
   static const char* math_patch_paths_[];
   static const char* mirrors_patch_paths_[];

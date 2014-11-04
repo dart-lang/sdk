@@ -80,7 +80,7 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
                            Dart_ServiceIsolateCreateCalback service_create) {
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
-    return "VM already initialized.";
+    return "VM already initialized or flags not initialized.";
   }
   Isolate::SetFileCallbacks(file_open, file_read, file_write, file_close);
   Isolate::SetEntropySourceCallback(entropy_source);

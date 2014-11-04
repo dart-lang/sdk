@@ -14,7 +14,7 @@ namespace bin {
 
 Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
   /* { url_, source_, patch_url_, patch_source_, has_natives_ } */
-  { DartUtils::kBuiltinLibURL, builtin_source_paths_, NULL, NULL, true },
+  { DartUtils::kBuiltinLibURL, _builtin_source_paths_, NULL, NULL, true },
   { DartUtils::kIOLibURL, io_source_paths_,
     DartUtils::kIOLibPatchURL, io_patch_paths_, true },
 };
