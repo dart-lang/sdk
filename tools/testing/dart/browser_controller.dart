@@ -1466,11 +1466,14 @@ class BrowserTestingServer {
       var number_of_tests = 0;
       var current_id;
       var next_id;
-      // Describes a state where we are currently fetching the next test
-      // from the server. We use this to never double request tasks.
+
+      // Has the test in the current iframe reported that it is done?
       var test_completed = true;
+      // Has the test in the current iframe reported that it is started?
+      var test_started = false;
       var testing_window;
 
+      var embedded_iframe_div = document.getElementById('embedded_iframe_div');
       var embedded_iframe = document.getElementById('embedded_iframe');
       var number_div = document.getElementById('number');
       var executing_div = document.getElementById('currently_executing');
@@ -1582,6 +1585,11 @@ class BrowserTestingServer {
           } else {
             embedded_iframe.onload = null;
           }
+          embedded_iframe_div.removeChild(embedded_iframe);
+          embedded_iframe = document.createElement('iframe');
+          embedded_iframe.id = "embedded_iframe";
+          embedded_iframe.style="width:100%;height:100%";
+          embedded_iframe_div.appendChild(embedded_iframe);
           embedded_iframe.src = url;
         } else {
           if (typeof testing_window != 'undefined') {
@@ -1589,6 +1597,8 @@ class BrowserTestingServer {
           }
           testing_window = window.open(url);
         }
+        test_started = false;
+        test_completed = false;
       }
 
       window.onerror = function (message, url, lineNumber) {
@@ -1613,8 +1623,14 @@ class BrowserTestingServer {
 
       function reportMessage(msg, isFirstMessage, isStatusUpdate) {
         if (isFirstMessage) {
-          test_completed = false;
+          if (test_started) {
+            reportMessage(
+                "FAIL: test started more than once (test reloads itself) " +
+                msg, false, false);
+            return;
+          }
           current_id = next_id;
+          test_started = true;
           contactBrowserController(
             'POST', '$startedPath/${browserId}?id=' + current_id,
             function () {}, msg, true);
@@ -1666,7 +1682,12 @@ class BrowserTestingServer {
       function messageHandler(e) {
         var msg = e.data;
         if (typeof msg != 'string') return;
-
+        var expectedSource =
+            use_iframe ? embedded_iframe.contentWindow : testing_window;
+        if (e.source != expectedSource) {
+            reportError("Message received from old test window: " + msg);
+            return;
+        }
         var parsedData = parseResult(msg);
         if (parsedData) {
           // Only if the JSON message contains all required parameters,
@@ -1744,7 +1765,7 @@ class BrowserTestingServer {
     Currently executing: <span id="currently_executing"></span><br>
     Unhandled error: <span id="unhandled_error"></span>
     </div>
-    <div class="test box">
+    <div id="embedded_iframe_div" class="test box">
       <iframe style="width:100%;height:100%;" id="embedded_iframe"></iframe>
     </div>
   </body>

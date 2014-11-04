@@ -35,17 +35,12 @@ LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: Skip # 
 LibTest/html/Window/document_A01_t01: RuntimeError # Issue 20146
 LibTest/html/Window/postMessage_A01_t02: RuntimeError # Issue 20146
 LibTest/html/Window/moveBy_A01_t01: RuntimeError # Issue 20146
-LayoutTests/fast/dom: Skip # Unknown tests are breaking the test infrastructure. Issue 18558
-LayoutTests/fast/filesystem: Skip # Unknown tests are breaking the test infrastructure. Issue 18558
-LayoutTests/fast/css-generated-content/malformed-url_t01.dart: Skip # Breaks the test infrastructure. Issue 18558.
-LayoutTests/fast/css-generated-content/bug91547_t01.dart: Skip # Breaks the test infrastructure. Issue 18558.
-LayoutTests/fast/dom/HTMLButtonElement/change-type_t01: Skip # Breaks the test infrastructure. Issue 18558
-LayoutTests/fast/dom/shadow/form-in-shadow_t01: Skip # Breaks the test infrastructure. Issue 18558.
-# Only one of the next two causes the problem - not sure which.
-LayoutTests/fast/dom/Range/create-contextual-fragment-script-not-ran_t01: Skip # Breaks the test infrastructure. Issue 18558.
-LayoutTests/fast/dom/Range/bug-19527_t01: Skip # Breaks the test infrastructure. Issue 18558.
-LayoutTests/fast/dom/MutationObserver/database-callback-delivery_t01: Skip # Breaks the test infrastructure. Issue 18558.
-LayoutTests/fast/filesystem/file-after-reload-crash_t01.dart: Skip # Breaks the test infrastructure. Issue 18558.
+LayoutTests/fast/css-generated-content/bug91547_t01: Skip # Test reloads itself. Issue 18558.
+LayoutTests/fast/filesystem/file-after-reload-crash_t01: Skip # Test reloads itself. Issue 18558.
+LayoutTests/fast/dom/StyleSheet/discarded-sheet-owner-null_t01: Skip # Test reloads itself. Issue 18558.
+LayoutTests/fast/dom/css-cached-import-rule_t01: Skip # Test reloads itself. Issue 18558.
+LayoutTests/fast/dom/cssTarget-crash_t01: Skip # Test reloads itself. Issue 18558.
+LayoutTests/fast/dom/empty-hash-and-search_t01: Skip # Test reloads itself. Issue 18558.
 
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Pass, Fail # Issue 13719: Please triage this failure.
 Language/14_Libraries_and_Scripts/3_Parts_A02_t02: Skip # Issue 13719: Please triage this failure.
@@ -157,7 +152,7 @@ LayoutTests/fast/dom/DOMImplementation/createDocument-namespace-err_t01: Runtime
 LayoutTests/fast/dom/Document/CaretRangeFromPoint/basic_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LayoutTests/fast/dom/Document/CaretRangeFromPoint/caretRangeFromPoint-in-zoom-and-scroll_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LayoutTests/fast/dom/Document/CaretRangeFromPoint/hittest-relative-to-viewport_t01: RuntimeError # Issue 17758.  Please triage this failure.
-LayoutTests/fast/dom/Document/CaretRangeFromPoint/replace-element_t01: RuntimeError # Issue 17758.  Please triage this failure.
+LayoutTests/fast/dom/Document/CaretRangeFromPoint/replace-element_t01: Pass, RuntimeError # Issue 17758.  Please triage this failure.
 LayoutTests/fast/dom/Document/createElementNS-namespace-err_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LayoutTests/fast/dom/Element/attribute-uppercase_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LayoutTests/fast/dom/Element/getClientRects_t01: RuntimeError # Issue 17758.  Please triage this failure.
@@ -237,13 +232,8 @@ LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-port_t01: RuntimeError
 LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-protocol_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-search_t01: RuntimeError, Pass # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/dialog-autofocus_t01: RuntimeError # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLDialogElement/dialog-close-event_t01: RuntimeError # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLDialogElement/dialog-enabled_t01: RuntimeError # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLDialogElement/dialog-open_t01: RuntimeError # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLDialogElement/dialog-return-value_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/dialog-scrolled-viewport_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/dialog-show-modal_t01: RuntimeError, Pass # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLDialogElement/inert-does-not-match-disabled-selector_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unfocusable_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unselectable_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/multiple-centered-dialogs_t01: RuntimeError # co19-roll r722: Please triage this failure.
@@ -251,10 +241,6 @@ LayoutTests/fast/dom/HTMLDialogElement/non-anchored-dialog-positioning_t01: Runt
 LayoutTests/fast/dom/HTMLOutputElement/dom-settable-token-list_t01: RuntimeError # Issue 18931
 LayoutTests/fast/dom/HTMLObjectElement/set-type-to-null-crash_t01: RuntimeError # Issue 18931
 LayoutTests/fast/dom/HTMLDialogElement/show-modal-focusing-steps_t01: RuntimeError # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLDialogElement/submit-dialog-close-event_t01: RuntimeError # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLDialogElement/synthetic-click-inert_t01: RuntimeError # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLDialogElement/top-layer-position-relative_t01: RuntimeError # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLDialogElement/top-layer-position-static_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLElement/set-inner-outer-optimization_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLElement/spellcheck_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLFormElement/move-option-between-documents_t01: RuntimeError # co19-roll r722: Please triage this failure.
@@ -267,7 +253,6 @@ LayoutTests/fast/dom/HTMLLinkElement/prefetch-onload_t01: Skip # co19-roll r722:
 LayoutTests/fast/dom/HTMLLinkElement/prefetch_t01: Skip # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLLinkElement/resolve-url-on-insertion_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLObjectElement/beforeload-set-text-crash_t01: Skip # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLObjectElement/children-changed_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLScriptElement/script-set-src_t01: RuntimeError, Pass # co19-roll r722: Please triage this failure.
 LibTest/html/IFrameElement/outerHtml_setter_A01_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LibTest/html/IFrameElement/paddingEdge_A01_t01: RuntimeError # co19-roll r722: Please triage this failure.
@@ -414,9 +399,7 @@ LayoutTests/fast/dom/dataset_t01: RuntimeError # co19-roll r738: Please triage t
 LayoutTests/fast/dom/focus-contenteditable_t01: RuntimeError, Pass # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # co19-roll r738: Please triage this failure.
-LayoutTests/fast/dom/importNode-null_t01: RuntimeError # co19-roll r738: Please triage this failure.
-LayoutTests/fast/dom/importNode-unsupported-node-type_t01: RuntimeError # co19-roll r738: Please triage this failure.
-LayoutTests/fast/dom/location-hash_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/location-hash_t01: Pass, RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/option-properties_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/partial-layout-overlay-scrollbars_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/set-innerHTML_t01: RuntimeError # co19-roll r738: Please triage this failure.
@@ -616,6 +599,7 @@ WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Skip # 
 # co19-roll r786
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css/font-face-insert-link_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css-generated-content/malformed-url_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css-generated-content/pseudo-animation_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css-generated-content/pseudo-element-events_t01: Skip # Timeout. co19-roll r786: Please triage this failure.
@@ -798,6 +782,20 @@ LayoutTests/fast/xpath/py-dom-xpath/paths_t01: RuntimeError # co19-roll r786: Pl
 LayoutTests/fast/xsl/default-html_t01: RuntimeError # co19-roll r786: Please triage this failure.
 WebPlatformTest/html/semantics/forms/the-input-element/password_t01: RuntimeError # co19-roll r786: Please triage this failure.
 WebPlatformTest/html/syntax/parsing/Document.getElementsByTagName-foreign_t02: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/dom/52776_t01: RuntimeError # Re-enable fast/dom tests: Please triage this failure.
+LayoutTests/fast/dom/DOMException/XPathException_t01: RuntimeError # Re-enable fast/dom tests: Please triage this failure.
+LayoutTests/fast/dom/Node/fragment-mutation_t01: RuntimeError # Re-enable fast/dom tests: Please triage this failure.
+LayoutTests/fast/dom/Range/bug-19527_t01: RuntimeError # Re-enable fast/dom tests: Please triage this failure.
+LayoutTests/fast/dom/Range/insertNode-empty-fragment-crash_t01: RuntimeError # Re-enable fast/dom tests: Please triage this failure.
+LayoutTests/fast/dom/Range/mutation_t01: RuntimeError # Re-enable fast/dom tests: Please triage this failure.
+LayoutTests/fast/dom/Range/range-constructor_t01: RuntimeError # Re-enable fast/dom tests: Please triage this failure.
+LayoutTests/fast/dom/Range/range-expand_t01: RuntimeError # Re-enable fast/dom tests: Please triage this failure.
+LayoutTests/fast/dom/Range/range-insertNode-separate-endContainer_t01: RuntimeError # Re-enable fast/dom tests: Please triage this failure.
+LayoutTests/fast/dom/Range/range-insertNode-splittext_t01: RuntimeError # Re-enable fast/dom tests: Please triage this failure.
+LayoutTests/fast/dom/document-importNode-arguments_t01: RuntimeError # Re-enable fast/dom tests: Please triage this failure.
+LayoutTests/fast/dom/domparser-parsefromstring-mimetype-support_t01: RuntimeError # Re-enable fast/dom tests: Please triage this failure.
+LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Re-enable fast/dom tests: Please triage this failure.
+LayoutTests/fast/dom/text-api-arguments_t01: RuntimeError # Re-enable fast/dom tests: Please triage this failure.
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid ) && $checked ]
 # New Dartium checked failures on new co19 browser tests in co19 revision 706.
