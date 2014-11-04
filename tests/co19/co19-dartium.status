@@ -599,7 +599,7 @@ WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Skip # 
 # co19-roll r786
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css/font-face-insert-link_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css-generated-content/malformed-url_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css-generated-content/pseudo-animation_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css-generated-content/pseudo-element-events_t01: Skip # Timeout. co19-roll r786: Please triage this failure.
