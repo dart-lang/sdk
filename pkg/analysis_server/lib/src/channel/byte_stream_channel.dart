@@ -80,9 +80,11 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
 
   @override
   void close() {
-    if (!_closed.isCompleted) {
-      _closed.complete();
-    }
+    output.flush().then((_) {
+      if (!_closed.isCompleted) {
+        _closed.complete();
+      }
+    });
   }
 
   @override
