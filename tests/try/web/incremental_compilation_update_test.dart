@@ -159,8 +159,43 @@ main() {
   instance.m();
 }
 """,
-            // TODO(ahe): This test is failing, should print "v2".
+            const <String> ['v2']),
+    ],
+
+    // Test that a stored instance tearoff changes behavior when updated.
+    const <ProgramResult>[
+        const ProgramResult(
+            """
+class C {
+  m() {
+    print('v1');
+  }
+}
+var closure;
+main() {
+  if (closure == null) {
+    closure = new C().m;
+  }
+  closure();
+}
+""",
             const <String> ['v1']),
+        const ProgramResult(
+            """
+class C {
+  m() {
+    print('v2');
+  }
+}
+var closure;
+main() {
+  if (closure == null) {
+    closure = new C().m;
+  }
+  closure();
+}
+""",
+            const <String> ['v2']),
     ],
 ];
 

@@ -305,20 +305,26 @@ class LibraryUpdater {
     }
     String name = info.name;
     jsAst.Node function = info.code;
-    jsAst.Node elementAccess = namer.elementAccess(element);
-    jsAst.Expression globalFunctionsAccess =
-        emitter.generateEmbeddedGlobalAccess(embeddedNames.GLOBAL_FUNCTIONS);
     List<jsAst.Statement> statements = <jsAst.Statement>[];
-    statements.add(
-        js.statement(
-            '#.# = # = f',
-            [globalFunctionsAccess, name, elementAccess]));
-    if (info.canTearOff) {
-      String globalName = namer.globalObjectFor(element);
+    if (element.isInstanceMember) {
+      jsAst.Node elementAccess = namer.elementAccess(element.enclosingClass);
+      statements.add(
+          js.statement('#.prototype.# = f', [elementAccess, name]));
+    } else {
+      jsAst.Node elementAccess = namer.elementAccess(element);
+      jsAst.Expression globalFunctionsAccess =
+          emitter.generateEmbeddedGlobalAccess(embeddedNames.GLOBAL_FUNCTIONS);
       statements.add(
           js.statement(
-              '#.#().# = f',
-              [globalName, info.tearOffName, callNameFor(element)]));
+              '#.# = # = f',
+              [globalFunctionsAccess, name, elementAccess]));
+      if (info.canTearOff) {
+        String globalName = namer.globalObjectFor(element);
+        statements.add(
+            js.statement(
+                '#.#().# = f',
+                [globalName, info.tearOffName, callNameFor(element)]));
+      }
     }
     // Create a scope by creating a new function. The updated function literal
     // is passed as an argument to this function which ensures that temporary
