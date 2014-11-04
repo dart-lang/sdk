@@ -21,6 +21,36 @@ patch _parseJson(String json, reviver(var key, var value)) {
   return listener.result;
 }
 
+patch class Utf8Decoder {
+  /* patch */
+  Converter<List<int>, dynamic> fuse(Converter<String, dynamic> next) {
+    if (next is JsonDecoder) {
+      return new _JsonUtf8Decoder(next._reviver, this._allowMalformed);
+    }
+    // TODO(lrn): Recognize a fused decoder where the next step is JsonDecoder.
+    return super.fuse(next);
+  }
+}
+
+class _JsonUtf8Decoder extends Converter<List<int>, Object> {
+  final _Reviver _reviver;
+  final bool _allowMalformed;
+
+  _JsonUtf8Decoder(this._reviver, this._allowMalformed);
+
+  dynamic convert(List<int> input) {
+    var parser = _JsonUtf8DecoderSink._createParser(_reviver, _allowMalformed);
+    parser.chunk = input;
+    parser.chunkEnd = input.length;
+    parser.parse(0);
+    return parser.result;
+  }
+
+  ByteConversionSink startChunkedConversion(Sink<Object> sink) {
+    return new _JsonUtf8DecoderSink(_reviver, sink, _allowMalformed);
+  }
+}
+
 //// Implementation ///////////////////////////////////////////////////////////
 
 // Simple API for JSON parsing.
@@ -760,6 +790,9 @@ abstract class _ChunkedJsonParser {
     int state = this.state;
     while (position < length) {
       int char = getChar(position);
+      if (char == null) {
+        print("[[[$chunk]]] - $position - ${chunk.runtimeType}");
+      }
       switch (char) {
         case SPACE:
         case CARRIAGE_RETURN:
@@ -847,6 +880,7 @@ abstract class _ChunkedJsonParser {
         default:
           if ((state & ALLOW_VALUE_MASK) != 0) fail(position);
           state |= VALUE_READ_BITS;
+          if (char == null) print("$chunk - $position");
           position = parseNumber(char, position);
           break;
       }
@@ -1240,7 +1274,7 @@ abstract class _ChunkedJsonParser {
       listener.handleNumber(sign * intValue);
       return position;
     }
-    // Double values at or above this value (2**53) may have lost precission.
+    // Double values at or above this value (2 ** 53) may have lost precission.
     // Only trust results that are below this value.
     const double maxExactDouble = 9007199254740992.0;
     if (doubleValue < maxExactDouble) {

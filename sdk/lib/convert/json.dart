@@ -167,7 +167,11 @@ class JsonEncoder extends Converter<Object, String> {
    */
   final String indent;
 
-  final _toEncodableFunction;
+  /**
+   * Function called on non-encodable objects to return a replacement
+   * encodable object that will be encoded in the orignal's place.
+   */
+  final Function _toEncodable;
 
   /**
    * Creates a JSON encoder.
@@ -183,7 +187,7 @@ class JsonEncoder extends Converter<Object, String> {
    */
   const JsonEncoder([Object toEncodable(Object nonSerializable)])
       : this.indent = null,
-        this._toEncodableFunction = toEncodable;
+        this._toEncodable = toEncodable;
 
   /**
    * Creates a JSON encoder that creates multi-line JSON.
@@ -205,7 +209,7 @@ class JsonEncoder extends Converter<Object, String> {
    */
   const JsonEncoder.withIndent(this.indent,
       [Object toEncodable(Object nonSerializable)])
-      : this._toEncodableFunction = toEncodable;
+      : this._toEncodable = toEncodable;
 
   /**
    * Converts [object] to a JSON [String].
@@ -236,7 +240,7 @@ class JsonEncoder extends Converter<Object, String> {
    * first serialized, the new values may not be reflected in the result.
    */
   String convert(Object object) =>
-      _JsonStringifier.stringify(object, _toEncodableFunction, indent);
+      _JsonStringStringifier.stringify(object, _toEncodable, indent);
 
   /**
    * Starts a chunked conversion.
@@ -250,12 +254,146 @@ class JsonEncoder extends Converter<Object, String> {
   ChunkedConversionSink<Object> startChunkedConversion(Sink<String> sink) {
     if (sink is! StringConversionSink) {
       sink = new StringConversionSink.from(sink);
+    } else if (sink is _Utf8EncoderSink) {
+      return new _JsonUtf8EncoderSink(sink._sink, _toEncodable,
+                                      JsonUtf8Encoder._utf8Encode(indent),
+                                      _JsonUtf8EncoderSink.DEFAULT_BUFFER_SIZE);
     }
-    return new _JsonEncoderSink(sink, _toEncodableFunction, indent);
+    return new _JsonEncoderSink(sink, _toEncodable, indent);
   }
 
   // Override the base-classes bind, to provide a better type.
   Stream<String> bind(Stream<Object> stream) => super.bind(stream);
+
+  Converter<Object, dynamic> fuse(Converter<String, dynamic> other) {
+    if (other is Utf8Encoder) {
+      return new JsonUtf8Encoder(indent, _toEncodable);
+    }
+    return super.fuse(other);
+  }
+}
+
+/**
+ * Encoder that encodes a single object as a UTF-8 encoded JSON string.
+ *
+ * This encoder works equivalently to first converting the object to
+ * a JSON string, and then UTF-8 encoding the string, but without
+ * creating an intermediate string.
+ */
+class JsonUtf8Encoder extends Converter<Object, List<int>> {
+  /** Default buffer size used by the JSON-to-UTF-8 encoder. */
+  static const int DEFAULT_BUFFER_SIZE = 256;
+  /** Indentation used in pretty-print mode, `null` if not pretty. */
+  final List<int> _indent;
+  /** Function called with each un-encodable object encountered. */
+  final Function _toEncodable;
+  /** UTF-8 buffer size. */
+  final int _bufferSize;
+
+  /**
+   * Create converter.
+   *
+   * If [indent] is non-`null`, the converter attempts to "pretty-print" the
+   * JSON, and uses `indent` as the indentation. Otherwise the result has no
+   * whitespace outside of string literals.
+   * If `indent` contains characters that are not valid JSON whitespace
+   * characters, the result will not be valid JSON. JSON whitespace characters
+   * are space (U+0020), tab (U+0009), line feed (U+000a) and carriage return
+   * (U+000d) (ECMA 404).
+   *
+   * The [bufferSize] is the size of the internal buffers used to collect
+   * UTF-8 code units.
+   * If using [startChunkedConversion], it will be the size of the chunks.
+   *
+   * The JSON encoder handles numbers, strings, booleans, null, lists and
+   * maps directly.
+   *
+   * Any other object is attempted converted by [toEncodable] to an
+   * object that is of one of the convertible types.
+   *
+   * If [toEncodable] is omitted, it defaults to calling `.toJson()` on
+   * the object.
+   */
+  JsonUtf8Encoder([String indent,
+                   toEncodable(Object object),
+                   int bufferSize = DEFAULT_BUFFER_SIZE])
+      : _indent = _utf8Encode(indent),
+        _toEncodable = toEncodable,
+        _bufferSize = bufferSize;
+
+  static List<int> _utf8Encode(String string) {
+    if (string == null) return null;
+    if (string.isEmpty) return new Uint8List(0);
+    checkAscii: {
+      for (int i = 0; i < string.length; i++) {
+        if (string.codeUnitAt(i) >= 0x80) break checkAscii;
+      }
+      return string.codeUnits;
+    }
+    return UTF8.encode(string);
+  }
+
+  /** Convert [object] into UTF-8 encoded JSON. */
+  List<int> convert(Object object) {
+    List<List<int>> bytes = [];
+    // The `stringify` function always converts into chunks.
+    // Collect the chunks into the `bytes` list, then combine them afterwards.
+    void addChunk(Uint8List chunk, int start, int end) {
+      if (start > 0 || end < chunk.length) {
+        int length = end - start;
+        chunk = new Uint8List.view(chunk.buffer,
+                                   chunk.offsetInBytes + start,
+                                   length);
+      }
+      bytes.add(chunk);
+    }
+    _JsonUtf8Stringifier.stringify(object,
+                                   _indent,
+                                   _toEncodable,
+                                   _bufferSize,
+                                   addChunk);
+    if (bytes.length == 1) return bytes[0];
+    int length = 0;
+    for (int i = 0; i < bytes.length; i++) {
+      length += bytes[i].length;
+    }
+    Uint8List result = new Uint8List(length);
+    for (int i = 0, offset = 0; i < bytes.length; i++) {
+      var byteList = bytes[i];
+      int end = offset + byteList.length;
+      result.setRange(offset, end, byteList);
+      offset = end;
+    }
+    return result;
+  }
+
+  /**
+   * Start a chunked conversion.
+   *
+   * Only one object can be passed into the returned sink.
+   *
+   * The argument [sink] will receive byte lists in sizes depending on the
+   * `bufferSize` passed to the constructor when creating this encoder.
+   */
+  ChunkedConversionSink<Object> startChunkedConversion(Sink<List<int>> sink) {
+    ByteConversionSink byteSink;
+    if (sink is ByteConversionSink) {
+      byteSink = sink;
+    } else {
+      byteSink = new ByteConversionSink.from(sink);
+    }
+    return new _JsonUtf8EncoderSink(byteSink, _toEncodable,
+                                    _indent, _bufferSize);
+  }
+
+  // Override the base-classes bind, to provide a better type.
+  Stream<List<int>> bind(Stream<Object> stream) {
+    return super.bind(stream);
+  }
+
+  Converter<Object, dynamic> fuse(Converter<List<int>, dynamic> other) {
+    return super.fuse(other);
+  }
 }
 
 /**
@@ -265,11 +403,11 @@ class JsonEncoder extends Converter<Object, String> {
  */
 class _JsonEncoderSink extends ChunkedConversionSink<Object> {
   final String _indent;
-  final Function _toEncodableFunction;
+  final Function _toEncodable;
   final StringConversionSink _sink;
   bool _isDone = false;
 
-  _JsonEncoderSink(this._sink, this._toEncodableFunction, this._indent);
+  _JsonEncoderSink(this._sink, this._toEncodable, this._indent);
 
   /**
    * Encodes the given object [o].
@@ -284,11 +422,48 @@ class _JsonEncoderSink extends ChunkedConversionSink<Object> {
     }
     _isDone = true;
     ClosableStringSink stringSink = _sink.asStringSink();
-    _JsonStringifier.printOn(o, stringSink, _toEncodableFunction, _indent);
+    _JsonStringStringifier.printOn(o, stringSink, _toEncodable, _indent);
     stringSink.close();
   }
 
   void close() { /* do nothing */ }
+}
+
+/**
+ * Sink returned when starting a chunked conversion from object to bytes.
+ */
+class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object> {
+  /** The byte sink receiveing the encoded chunks. */
+  final ByteConversionSink _sink;
+  final List<int> _indent;
+  final Function _toEncodable;
+  final int _bufferSize;
+  bool _isDone = false;
+  _JsonUtf8EncoderSink(this._sink, this._toEncodable, this._indent,
+                       this._bufferSize);
+
+  /** Callback called for each slice of result bytes. */
+  void _addChunk(Uint8List chunk, int start, int end) {
+    _sink.addSlice(chunk, start, end, false);
+  }
+
+  void add(Object object) {
+    if (_isDone) {
+      throw new StateError("Only one call to add allowed");
+    }
+    _isDone = true;
+    _JsonUtf8Stringifier.stringify(object, _indent, _toEncodable,
+                                   _bufferSize,
+                                   _addChunk);
+    _sink.close();
+  }
+
+  void close() {
+    if (!_isDone) {
+      _isDone = true;
+      _sink.close();
+    }
+  }
 }
 
 /**
@@ -340,7 +515,13 @@ external _parseJson(String source, reviver(key, value));
 
 Object _defaultToEncodable(object) => object.toJson();
 
-class _JsonStringifier {
+/**
+ * JSON encoder that traverses an object structure and writes JSON source.
+ *
+ * This is an abstract implementation that doesn't decide on the output
+ * format, but writes the JSON through abstract methods like [writeString].
+ */
+abstract class _JsonStringifier {
   // Character code constants.
   static const int BACKSPACE       = 0x08;
   static const int TAB             = 0x09;
@@ -357,87 +538,86 @@ class _JsonStringifier {
   static const int CHAR_t          = 0x74;
   static const int CHAR_u          = 0x75;
 
+  /** List of objects currently being traversed. Used to detect cycles. */
+  final List _seen = new List();
+  /** Function called for each un-encodable object encountered. */
   final Function _toEncodable;
-  final StringSink _sink;
-  final List _seen;
 
-  factory _JsonStringifier(StringSink sink, Function toEncodable,
-      String indent) {
-    if (indent == null) return new _JsonStringifier._(sink, toEncodable);
-    return new _JsonStringifierPretty(sink, toEncodable, indent);
-  }
+  _JsonStringifier(Object _toEncodable(Object o))
+      : _toEncodable = (_toEncodable != null) ? _toEncodable
+                                              : _defaultToEncodable;
 
-  _JsonStringifier._(this._sink, this._toEncodable)
-      : this._seen = new List();
-
-  static String stringify(object, toEncodable(object), String indent) {
-    if (toEncodable == null) toEncodable = _defaultToEncodable;
-    StringBuffer output = new StringBuffer();
-    printOn(object, output, toEncodable, indent);
-    return output.toString();
-  }
-
-  static void printOn(object, StringSink output, toEncodable(object),
-      String indent) {
-    new _JsonStringifier(output, toEncodable, indent).stringifyValue(object);
-  }
-
-  static String numberToString(num x) {
-    return x.toString();
-  }
+  /** Append a string to the JSON output. */
+  void writeString(String characters);
+  /** Append part of a string to the JSON output. */
+  void writeStringSlice(String characters, int start, int end);
+  /** Append a single character, given by its code point, to the JSON output. */
+  void writeCharCode(int charCode);
+  /** Write a number to the JSON output. */
+  void writeNumber(num number);
 
   // ('0' + x) or ('a' + x - 10)
   static int hexDigit(int x) => x < 10 ? 48 + x : 87 + x;
 
-  void escape(String s) {
+  /**
+   * Write, and suitably escape, a string's content as a JSON string literal.
+   */
+  void writeStringContent(String s) {
     int offset = 0;
     final int length = s.length;
     for (int i = 0; i < length; i++) {
       int charCode = s.codeUnitAt(i);
       if (charCode > BACKSLASH) continue;
       if (charCode < 32) {
-        if (i > offset) _sink.write(s.substring(offset, i));
+        if (i > offset) writeStringSlice(s, offset, i);
         offset = i + 1;
-        _sink.writeCharCode(BACKSLASH);
+        writeCharCode(BACKSLASH);
         switch (charCode) {
         case BACKSPACE:
-          _sink.writeCharCode(CHAR_b);
+          writeCharCode(CHAR_b);
           break;
         case TAB:
-          _sink.writeCharCode(CHAR_t);
+          writeCharCode(CHAR_t);
           break;
         case NEWLINE:
-          _sink.writeCharCode(CHAR_n);
+          writeCharCode(CHAR_n);
           break;
         case FORM_FEED:
-          _sink.writeCharCode(CHAR_f);
+          writeCharCode(CHAR_f);
           break;
         case CARRIAGE_RETURN:
-          _sink.writeCharCode(CHAR_r);
+          writeCharCode(CHAR_r);
           break;
         default:
-          _sink.writeCharCode(CHAR_u);
-          _sink.writeCharCode(CHAR_0);
-          _sink.writeCharCode(CHAR_0);
-          _sink.writeCharCode(hexDigit((charCode >> 4) & 0xf));
-          _sink.writeCharCode(hexDigit(charCode & 0xf));
+          writeCharCode(CHAR_u);
+          writeCharCode(CHAR_0);
+          writeCharCode(CHAR_0);
+          writeCharCode(hexDigit((charCode >> 4) & 0xf));
+          writeCharCode(hexDigit(charCode & 0xf));
           break;
         }
       } else if (charCode == QUOTE || charCode == BACKSLASH) {
-        if (i > offset) _sink.write(s.substring(offset, i));
+        if (i > offset) writeStringSlice(s, offset, i);
         offset = i + 1;
-        _sink.writeCharCode(BACKSLASH);
-        _sink.writeCharCode(charCode);
+        writeCharCode(BACKSLASH);
+        writeCharCode(charCode);
       }
     }
     if (offset == 0) {
-      _sink.write(s);
+      writeString(s);
     } else if (offset < length) {
-      _sink.write(s.substring(offset, length));
+      writeStringSlice(s, offset, length);
     }
   }
 
-  void checkCycle(object) {
+  /**
+   * Check if an encountered object is already being traversed.
+   *
+   * Records the object if it isn't already seen.
+   * Should have a matching call to [_removeSeen] when the object
+   * is no longer being traversed.
+   */
+  void _checkCycle(object) {
     for (int i = 0; i < _seen.length; i++) {
       if (identical(object, _seen[i])) {
         throw new JsonCyclicError(object);
@@ -446,21 +626,38 @@ class _JsonStringifier {
     _seen.add(object);
   }
 
-  void stringifyValue(object) {
+  /**
+   * Removes object from the list of currently traversed objects.
+   *
+   * Should be called in the opposite order of the matching [_checkCycle]
+   * calls.
+   */
+  void _removeSeen(object) {
+    assert(!_seen.isEmpty);
+    assert(identical(_seen.last, object));
+    _seen.removeLast();
+  }
+
+  /**
+   * Writes an object.
+   *
+   * If the object isn't directly encodable, the [_toEncodable] function
+   * gets one chance to return a replacement which is encodable.
+   */
+  void writeObject(object) {
     // Tries stringifying object directly. If it's not a simple value, List or
     // Map, call toJson() to get a custom representation and try serializing
     // that.
-    if (!stringifyJsonValue(object)) {
-      checkCycle(object);
-      try {
-        var customJson = _toEncodable(object);
-        if (!stringifyJsonValue(customJson)) {
-          throw new JsonUnsupportedObjectError(object);
-        }
-        _removeSeen(object);
-      } catch (e) {
-        throw new JsonUnsupportedObjectError(object, cause: e);
+    if (writeJsonValue(object)) return;
+    _checkCycle(object);
+    try {
+      var customJson = _toEncodable(object);
+      if (!writeJsonValue(customJson)) {
+        throw new JsonUnsupportedObjectError(object);
       }
+      _removeSeen(object);
+    } catch (e) {
+      throw new JsonUnsupportedObjectError(object, cause: e);
     }
   }
 
@@ -470,52 +667,33 @@ class _JsonStringifier {
    * Returns true if the value is one of these types, and false if not.
    * If a value is both a [List] and a [Map], it's serialized as a [List].
    */
-  bool stringifyJsonValue(object) {
+  bool writeJsonValue(object) {
     if (object is num) {
       if (!object.isFinite) return false;
-      _sink.write(numberToString(object));
+      writeNumber(object);
       return true;
     } else if (identical(object, true)) {
-      _sink.write('true');
+      writeString('true');
       return true;
     } else if (identical(object, false)) {
-      _sink.write('false');
+      writeString('false');
        return true;
     } else if (object == null) {
-      _sink.write('null');
+      writeString('null');
       return true;
     } else if (object is String) {
-      _sink.write('"');
-      escape(object);
-      _sink.write('"');
+      writeString('"');
+      writeStringContent(object);
+      writeString('"');
       return true;
     } else if (object is List) {
-      checkCycle(object);
-      List a = object;
-      _sink.write('[');
-      if (a.length > 0) {
-        stringifyValue(a[0]);
-        for (int i = 1; i < a.length; i++) {
-          _sink.write(',');
-          stringifyValue(a[i]);
-        }
-      }
-      _sink.write(']');
+      _checkCycle(object);
+      writeList(object);
       _removeSeen(object);
       return true;
     } else if (object is Map) {
-      checkCycle(object);
-      Map<String, Object> m = object;
-      _sink.write('{');
-      String separator = '"';
-      m.forEach((String key, value) {
-        _sink.write(separator);
-        separator = ',"';
-        escape(key);
-        _sink.write('":');
-        stringifyValue(value);
-      });
-      _sink.write('}');
+      _checkCycle(object);
+      writeMap(object);
       _removeSeen(object);
       return true;
     } else {
@@ -523,85 +701,338 @@ class _JsonStringifier {
     }
   }
 
-  void _removeSeen(object) {
-    assert(!_seen.isEmpty);
-    assert(identical(_seen.last, object));
-    _seen.removeLast();
+  /** Serializes a [List]. */
+  void writeList(List list) {
+    writeString('[');
+    if (list.length > 0) {
+      writeObject(list[0]);
+      for (int i = 1; i < list.length; i++) {
+        writeString(',');
+        writeObject(list[i]);
+      }
+    }
+    writeString(']');
+  }
+
+  /** Serializes a [Map]. */
+  void writeMap(Map<String, Object> map) {
+    writeString('{');
+    String separator = '"';
+    map.forEach((String key, value) {
+      writeString(separator);
+      separator = ',"';
+      writeStringContent(key);
+      writeString('":');
+      writeObject(value);
+    });
+    writeString('}');
   }
 }
 
 /**
- * A subclass of [_JsonStringifier] which indents the contents of [List] and
+ * A modification of [_JsonStringifier] which indents the contents of [List] and
  * [Map] objects using the specified indent value.
+ *
+ * Subclasses should implement [writeIndentation].
  */
-class _JsonStringifierPretty extends _JsonStringifier {
-  final String _indent;
-
+abstract class _JsonPrettyPrintMixin implements _JsonStringifier {
   int _indentLevel = 0;
 
-  _JsonStringifierPretty(_sink, _toEncodable, this._indent)
-      : super._(_sink, _toEncodable);
+  /**
+   * Add [indentLevel] indentations to the JSON output.
+   */
+  void writeIndentation(indentLevel);
 
-  void _write([String value = '']) {
-    _sink.write(_indent * _indentLevel);
-    _sink.write(value);
+  void writeList(List list) {
+    if (list.isEmpty) {
+      writeString('[]');
+    } else {
+      writeString('[\n');
+      _indentLevel++;
+      writeIndentation(_indentLevel);
+      writeObject(list[0]);
+      for (int i = 1; i < list.length; i++) {
+        writeString(',\n');
+        writeIndentation(_indentLevel);
+        writeObject(list[i]);
+      }
+      writeString('\n');
+      _indentLevel--;
+      writeIndentation(_indentLevel);
+      writeString(']');
+    }
+  }
+
+  void writeMap(Map map) {
+    if (map.isEmpty) {
+      writeString('{}');
+    } else {
+      writeString('{\n');
+      _indentLevel++;
+      bool first = true;
+      map.forEach((String key, Object value) {
+        if (!first) {
+          writeString(",\n");
+        }
+        writeIndentation(_indentLevel);
+        writeString('"');
+        writeStringContent(key);
+        writeString('": ');
+        writeObject(value);
+        first = false;
+      });
+      writeString('\n');
+      _indentLevel--;
+      writeIndentation(_indentLevel);
+      writeString('}');
+    }
+  }
+}
+
+/**
+ * A specialziation of [_JsonStringifier] that writes its JSON to a string.
+ */
+class _JsonStringStringifier extends _JsonStringifier {
+  final StringSink _sink;
+
+  _JsonStringStringifier(this._sink, _toEncodable) : super(_toEncodable);
+
+  /**
+   * Convert object to a string.
+   *
+   * The [toEncodable] function is used to convert non-encodable objects
+   * to encodable ones.
+   *
+   * If [indent] is not `null`, the resulting JSON will be "pretty-printed"
+   * with newlines and indentation. The `indent` string is added as indentation
+   * for each indentation level. It should only contain valid JSON whitespace
+   * characters (space, tab, carriage return or line feed).
+   */
+  static String stringify(object, toEncodable(object), String indent) {
+    StringBuffer output = new StringBuffer();
+    printOn(object, output, toEncodable, indent);
+    return output.toString();
   }
 
   /**
-   * Serializes a [num], [String], [bool], [Null], [List] or [Map] value.
+   * Convert object to a string, and write the result to the [output] sink.
    *
-   * Returns true if the value is one of these types, and false if not.
-   * If a value is both a [List] and a [Map], it's serialized as a [List].
+   * The result is written piecemally to the sink.
    */
-  bool stringifyJsonValue(final object) {
-    if (object is List) {
-      checkCycle(object);
-      List a = object;
-      if (a.isEmpty) {
-        _sink.write('[]');
-      } else {
-        _sink.writeln('[');
-        _indentLevel++;
-        _write();
-        stringifyValue(a[0]);
-        for (int i = 1; i < a.length; i++) {
-          _sink.writeln(',');
-          _write();
-          stringifyValue(a[i]);
-        }
-        _sink.writeln();
-        _indentLevel--;
-        _write(']');
-      }
-      _seen.remove(object);
-      return true;
-    } else if (object is Map) {
-      checkCycle(object);
-      Map<String, Object> m = object;
-      if (m.isEmpty) {
-        _sink.write('{}');
-      } else {
-        _sink.write('{');
-        _sink.writeln();
-        _indentLevel++;
-        bool first = true;
-        m.forEach((String key, Object value) {
-          if (!first) {
-            _sink.writeln(',');
-          }
-          _write('"');
-          escape(key);
-          _sink.write('": ');
-          stringifyValue(value);
-          first = false;
-        });
-        _sink.writeln();
-        _indentLevel--;
-        _write('}');
-      }
-      _seen.remove(object);
-      return true;
+  static void printOn(object, StringSink output, toEncodable(object),
+                      String indent) {
+    var stringifier;
+    if (indent == null) {
+      stringifier = new _JsonStringStringifier(output, toEncodable);
+    } else {
+      stringifier =
+          new _JsonStringStringifierPretty(output, toEncodable, indent);
     }
-    return super.stringifyJsonValue(object);
+    stringifier.writeObject(object);
+  }
+
+  void writeNumber(num number) {
+    _sink.write(number.toString());
+  }
+  void writeString(String string) {
+    _sink.write(string);
+  }
+  void writeStringSlice(String string, int start, int end) {
+    _sink.write(string.substring(start, end));
+  }
+  void writeCharCode(int charCode) {
+    _sink.writeCharCode(charCode);
+  }
+}
+
+class _JsonStringStringifierPretty extends _JsonStringStringifier
+                                   with _JsonPrettyPrintMixin {
+  final String _indent;
+
+  _JsonStringStringifierPretty(StringSink sink, Function toEncodable,
+                               this._indent)
+      : super(sink, toEncodable);
+
+  void writeIndentation(int count) {
+    for (int i = 0; i < count; i++) writeString(_indent);
+  }
+}
+
+/**
+ * Specialization of [_JsonStringifier] that writes the JSON as UTF-8.
+ *
+ * The JSON text is UTF-8 encoded and written to [Uint8List] buffers.
+ * The buffers are then passed back to a user provided callback method.
+ */
+class _JsonUtf8Stringifier extends _JsonStringifier {
+  final int bufferSize;
+  final Function addChunk;
+  Uint8List buffer;
+  int index = 0;
+
+  _JsonUtf8Stringifier(toEncodable, int bufferSize, this.addChunk)
+      : super(toEncodable),
+        this.bufferSize = bufferSize,
+        buffer = new Uint8List(bufferSize);
+
+  /**
+   * Convert [object] to UTF-8 encoded JSON.
+   *
+   * Calls [addChunk] with slices of UTF-8 code units.
+   * These will typically have size [bufferSize], but may be shorter.
+   * The buffers are not reused, so the [addChunk] call may keep and reuse
+   * the chunks.
+   *
+   * If [indent] is non-`null`, the result will be "pretty-printed" with
+   * extra newlines and indentation, using [indent] as the indentation.
+   */
+  static void stringify(Object object,
+                        List<int> indent,
+                        toEncodableFunction(Object o),
+                        int bufferSize,
+                        void addChunk(Uint8List chunk, int start, int end)) {
+    _JsonUtf8Stringifier stringifier;
+    if (indent != null) {
+      stringifier = new _JsonUtf8StringifierPretty(toEncodableFunction, indent,
+                                                   bufferSize, addChunk);
+    } else {
+      stringifier = new _JsonUtf8Stringifier(toEncodableFunction,
+                                             bufferSize, addChunk);
+    }
+    stringifier.writeObject(object);
+    stringifier.flush();
+  }
+
+  /**
+   * Must be called at the end to push the last chunk to the [addChunk]
+   * callback.
+   */
+  void flush() {
+    if (index > 0) {
+      addChunk(buffer, 0, index);
+    }
+    buffer = null;
+    index = 0;
+  }
+
+  void writeNumber(num number) {
+    writeAsciiString(number.toString());
+  }
+
+  /** Write a string that is known to not have non-ASCII characters. */
+  void writeAsciiString(String string) {
+    // TODO(lrn): Optimize by copying directly into buffer instead of going
+    // through writeCharCode;
+    for (int i = 0; i < string.length; i++) {
+      int char = string.codeUnitAt(i);
+      assert(char <= 0x7f);
+      writeByte(char);
+    }
+  }
+
+  void writeString(String string) {
+    writeStringSlice(string, 0, string.length);
+  }
+
+  void writeStringSlice(String string, int start, int end) {
+    // TODO(lrn): Optimize by copying directly into buffer instead of going
+    // through writeCharCode/writeByte. Assumption is the most characters
+    // in starings are plain ASCII.
+    for (int i = start; i < end; i++) {
+      int char = string.codeUnitAt(i);
+      if (char <= 0x7f) {
+        writeByte(char);
+      } else {
+        if ((char & 0xFC00) == 0xD800 && i + 1 < end) {
+          // Lead surrogate.
+          int nextChar = string.codeUnitAt(i + 1);
+          if ((nextChar & 0xFC00) == 0xDC00) {
+            // Tail surrogate.
+            char = 0x10000 + ((char & 0x3ff) << 10) + (nextChar & 0x3ff);
+            writeFourByteCharCode(char);
+            i++;
+            continue;
+          }
+        }
+        writeMultiByteCharCode(char);
+      }
+    }
+  }
+
+  void writeCharCode(int charCode) {
+    if (charCode <= 0x7f) {
+      writeByte(charCode);
+      return;
+    }
+    writeMultiByteCharCode(charCode);
+  }
+
+  void writeMultiByteCharCode(int charCode) {
+    if (charCode <= 0x7ff) {
+      writeByte(0xC0 | (charCode >> 6));
+      writeByte(0x80 | (charCode & 0x3f));
+      return;
+    }
+    if (charCode <= 0xffff) {
+      writeByte(0xE0 | (charCode >> 12));
+      writeByte(0x80 | ((charCode >> 6) & 0x3f));
+      writeByte(0x80 | (charCode & 0x3f));
+      return;
+    }
+    writeFourByteCharCode(charCode);
+  }
+
+  void writeFourByteCharCode(int charCode) {
+    assert(charCode <= 0x10ffff);
+    writeByte(0xF0 | (charCode >> 18));
+    writeByte(0x80 | ((charCode >> 12) & 0x3f));
+    writeByte(0x80 | ((charCode >> 6) & 0x3f));
+    writeByte(0x80 | (charCode & 0x3f));
+  }
+
+  void writeByte(int byte) {
+    assert(byte <= 0xff);
+    if (index == buffer.length) {
+      addChunk(buffer, 0, index);
+      buffer = new Uint8List(bufferSize);
+      index = 0;
+    }
+    buffer[index++] = byte;
+  }
+}
+
+/**
+ * Pretty-printing version of [_JsonUtf8Stringifier].
+ */
+class _JsonUtf8StringifierPretty extends _JsonUtf8Stringifier
+                                 with _JsonPrettyPrintMixin {
+  final List<int> indent;
+  _JsonUtf8StringifierPretty(toEncodableFunction, this.indent,
+                             bufferSize, addChunk)
+      : super(toEncodableFunction, bufferSize, addChunk);
+
+  void writeIndentation(int count) {
+    List<int> indent = this.indent;
+    int indentLength = indent.length;
+    if (indentLength == 1) {
+      int char = indent[0];
+      while (count > 0) {
+        writeByte(char);
+        count -= 1;
+      }
+      return;
+    }
+    while (count > 0) {
+      count--;
+      int end = index + indentLength;
+      if (end <= buffer.length) {
+        buffer.setRange(index, end, indent);
+        index = end;
+      } else {
+        for (int i = 0; i < indentLength; i++) {
+          writeByte(indent[i]);
+        }
+      }
+    }
   }
 }
