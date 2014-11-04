@@ -67,17 +67,12 @@ class TransformOptions {
   final Map<String, bool> inlineStylesheets;
 
   /// True to enable Content Security Policy.
-  /// This means the HTML page will include *.dart.precompiled.js
-  ///
-  /// This flag has no effect unless [directlyIncludeJS] is enabled.
+  /// This means the HTML page will not have inlined .js code.
   final bool contentSecurityPolicy;
 
   /// True to include the compiled JavaScript directly from the HTML page.
   /// If enabled this will remove "packages/browser/dart.js" and replace
   /// `type="application/dart"` scripts with equivalent *.dart.js files.
-  ///
-  /// If [contentSecurityPolicy] enabled, this will reference files
-  /// named *.dart.precompiled.js.
   final bool directlyIncludeJS;
 
   /// Run transformers to create a releasable app. For example, include the

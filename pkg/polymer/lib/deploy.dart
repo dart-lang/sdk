@@ -163,7 +163,7 @@ ArgResults _parseArgs(arguments) {
           'web_components/platform.concat.js instead of the minified one.\n',
           defaultsTo: false)
       ..addFlag('csp', help:
-          'replaces *.dart with *.dart.precompiled.js to comply with \n'
+          'extracts inlined JavaScript code to comply with \n'
           'Content Security Policy restrictions.');
   try {
     var results = parser.parse(arguments);
