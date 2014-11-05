@@ -17,17 +17,21 @@ import 'package:analyzer/src/generated/element.dart';
  * A computer for calculating `completion.getSuggestions` request results
  * for the import combinators show and hide.
  */
-
 class CombinatorComputer extends DartCompletionComputer {
+  _CombinatorSuggestionBuilder builder;
 
   @override
   bool computeFast(DartCompletionRequest request) {
-    return false;
+    builder = request.node.accept(new _CombinatorAstVisitor(request));
+    return builder == null;
   }
 
   @override
   Future<bool> computeFull(DartCompletionRequest request) {
-    return request.node.accept(new _CombinatorAstVisitor(request));
+    if (builder != null) {
+      return builder.execute(request.node);
+    }
+    return new Future.value(false);
   }
 }
 
@@ -35,35 +39,49 @@ class CombinatorComputer extends DartCompletionComputer {
  * A visitor for determining which imported classes and top level variables
  * should be suggested and building those suggestions.
  */
-class _CombinatorAstVisitor extends GeneralizingAstVisitor<Future<bool>> {
+class _CombinatorAstVisitor extends
+    GeneralizingAstVisitor<_CombinatorSuggestionBuilder> {
   final DartCompletionRequest request;
 
   _CombinatorAstVisitor(this.request);
 
   @override
-  Future<bool> visitCombinator(Combinator node) {
-    return _addCombinatorSuggestions(node);
+  _CombinatorSuggestionBuilder visitCombinator(Combinator node) {
+    return new _CombinatorSuggestionBuilder(
+        request,
+        CompletionSuggestionKind.IDENTIFIER);
   }
 
   @override
-  Future<bool> visitNode(AstNode node) {
-    return new Future.value(false);
+  _CombinatorSuggestionBuilder visitNode(AstNode node) {
+    return null;
   }
 
   @override
-  Future<bool> visitSimpleIdentifier(SimpleIdentifier node) {
+  _CombinatorSuggestionBuilder visitSimpleIdentifier(SimpleIdentifier node) {
     return node.parent.accept(this);
   }
+}
 
-  Future _addCombinatorSuggestions(Combinator node) {
+/**
+ * A `_CombinatorSuggestionBuilder` determines which imported classes
+ * and top level variables should be suggested and builds those suggestions.
+ * This operation is instantiated during `computeFast`
+ * and calculates the suggestions during `computeFull`.
+ */
+class _CombinatorSuggestionBuilder extends LibraryElementSuggestionBuilder {
+
+  _CombinatorSuggestionBuilder(DartCompletionRequest request,
+      CompletionSuggestionKind kind)
+      : super(request, kind);
+
+  Future<bool> execute(AstNode node) {
     var directive = node.getAncestor((parent) => parent is NamespaceDirective);
     if (directive is NamespaceDirective) {
       LibraryElement library = directive.uriElement;
-      LibraryElementSuggestionBuilder.suggestionsFor(
-          request,
-          CompletionSuggestionKind.IDENTIFIER,
-          library);
-      return new Future.value(true);
+      if (library != null) {
+        library.visitChildren(this);
+      }
     }
     return new Future.value(false);
   }
