@@ -320,7 +320,7 @@ class LocationData {
   LocationData.forData(this.elementId, this.offset, this.length, this.flags);
 
   LocationData.forObject(ElementCodec elementCodec, Location location)
-      : elementId = elementCodec.encode(location.element),
+      : elementId = elementCodec.encode(location.element, false),
         offset = location.offset,
         length = location.length,
         flags = (location.isQualified ? _FLAG_QUALIFIED : 0) |
@@ -425,7 +425,7 @@ class RelationKeyData {
 
   RelationKeyData.forObject(ElementCodec elementCodec,
       RelationshipCodec relationshipCodec, Element element, Relationship relationship)
-      : elementId = elementCodec.encode(element),
+      : elementId = elementCodec.encode(element, true),
         relationshipId = relationshipCodec.encode(relationship);
 
   @override

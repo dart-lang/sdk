@@ -249,7 +249,7 @@ class _FileNodeManagerTest {
   Element _mockElement() {
     int elementId = nextElementId++;
     Element element = new MockElement();
-    when(elementCodec.encode(element)).thenReturn(elementId);
+    when(elementCodec.encode(element, anyBool)).thenReturn(elementId);
     when(elementCodec.decode(context, elementId)).thenReturn(element);
     return element;
   }
@@ -335,7 +335,7 @@ class _IndexNodeTest {
   Element _mockElement() {
     int elementId = nextElementId++;
     Element element = new MockElement();
-    when(elementCodec.encode(element)).thenReturn(elementId);
+    when(elementCodec.encode(element, anyBool)).thenReturn(elementId);
     when(elementCodec.decode(context, elementId)).thenReturn(element);
     return element;
   }
@@ -363,7 +363,7 @@ class _LocationDataTest {
   void test_newForObject() {
     // prepare Element
     Element element = new MockElement();
-    when(elementCodec.encode(element)).thenReturn(42);
+    when(elementCodec.encode(element, anyBool)).thenReturn(42);
     when(elementCodec.decode(context, 42)).thenReturn(element);
     // create
     Location location = new Location(element, 1, 2);
@@ -452,7 +452,7 @@ class _RelationKeyDataTest {
       ElementLocation location = new ElementLocationImpl.con3(['foo', 'bar']);
       when(element.location).thenReturn(location);
       when(context.getElement(location)).thenReturn(element);
-      when(elementCodec.encode(element)).thenReturn(elementId);
+      when(elementCodec.encode(element, anyBool)).thenReturn(elementId);
     }
     // prepare relationship
     Relationship relationship = Relationship.getRelationship('my-relationship');
@@ -526,6 +526,7 @@ class _SplitIndexStoreTest {
     when(contextA.getElement(elementLocationB)).thenReturn(elementB);
     when(contextA.getElement(elementLocationC)).thenReturn(elementC);
     when(contextA.getElement(elementLocationD)).thenReturn(elementD);
+    when(librarySource.fullName).thenReturn('/home/user/librarySource.dart');
     when(sourceA.fullName).thenReturn('/home/user/sourceA.dart');
     when(sourceB.fullName).thenReturn('/home/user/sourceB.dart');
     when(sourceC.fullName).thenReturn('/home/user/sourceC.dart');

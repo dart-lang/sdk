@@ -638,8 +638,10 @@ class SourceFactory {
       // Force the creation of an escaped URI to deal with spaces, etc.
       return _internalResolveUri(containingSource, parseUriWithException(containedUri));
     } catch (exception, stackTrace) {
+      String containingFullName =
+          containingSource != null ? containingSource.fullName : '<null>';
       AnalysisEngine.instance.logger.logError(
-          "Could not resolve URI ($containedUri) relative to source (${containingSource.fullName})",
+          "Could not resolve URI ($containedUri) relative to source ($containingFullName)",
           new CaughtException(exception, stackTrace));
       return null;
     }

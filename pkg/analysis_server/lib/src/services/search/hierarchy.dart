@@ -64,9 +64,7 @@ Future<Set<ClassElement>> getDirectSubClasses(SearchEngine searchEngine,
     Set<ClassElement> subClasses = new HashSet<ClassElement>();
     for (SearchMatch match in matches) {
       ClassElement subClass = match.element;
-      if (subClass.context == seed.context) {
-        subClasses.add(subClass);
-      }
+      subClasses.add(subClass);
     }
     return subClasses;
   });
