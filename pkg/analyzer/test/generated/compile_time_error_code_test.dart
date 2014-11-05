@@ -4415,6 +4415,22 @@ main() {
     verify([source]);
   }
 
+  void test_typeAliasCannotReferenceItself_19459() {
+    // A complex example involving multiple classes.  This is legal, since
+    // typedef F references itself only via a class.
+    Source source = addSource(r'''
+class A<B, C> {}
+abstract class D {
+  f(E e);
+}
+abstract class E extends A<dynamic, F> {}
+typedef D F();
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_typeAliasCannotReferenceItself_parameterType_named() {
     Source source = addSource("typedef A({A a});");
     resolve(source);
@@ -4444,6 +4460,7 @@ main() {
   }
 
   void test_typeAliasCannotReferenceItself_returnClass_withTypeAlias() {
+    // A typedef is allowed to indirectly reference itself via a class.
     Source source = addSource(r'''
 typedef C A();
 typedef A B();
@@ -4451,7 +4468,7 @@ class C {
   B a;
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
+    assertNoErrors(source);
     verify([source]);
   }
 

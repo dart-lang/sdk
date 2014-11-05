@@ -5188,6 +5188,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   bool _hasTypedefSelfReference(Element target) {
     Set<Element> checked = new HashSet<Element>();
     List<Element> toCheck = new List<Element>();
+    GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference elementVisitor =
+        new GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference(toCheck);
     toCheck.add(target);
     bool firstIteration = true;
     while (true) {
@@ -5213,7 +5215,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         }
       }
       // check current element
-      current.accept(new GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference(target, toCheck));
+      current.accept(elementVisitor);
       checked.add(current);
     }
   }
@@ -5428,35 +5430,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 }
 
 class GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference extends GeneralizingElementVisitor<Object> {
-  Element target;
-
   List<Element> toCheck;
 
-  GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference(this.target, this.toCheck) : super();
-
-  bool _inClass = false;
+  GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference(
+      this.toCheck) : super();
 
   @override
   Object visitClassElement(ClassElement element) {
-    _addTypeToCheck(element.supertype);
-    for (InterfaceType mixin in element.mixins) {
-      _addTypeToCheck(mixin);
-    }
-    _inClass = !element.isTypedef;
-    try {
-      return super.visitClassElement(element);
-    } finally {
-      _inClass = false;
-    }
-  }
-
-  @override
-  Object visitExecutableElement(ExecutableElement element) {
-    if (element.isSynthetic) {
-      return null;
-    }
-    _addTypeToCheck(element.returnType);
-    return super.visitExecutableElement(element);
+    // Typedefs are allowed to reference themselves via classes.
+    return null;
   }
 
   @override
@@ -5477,23 +5459,12 @@ class GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference extends G
     return super.visitTypeParameterElement(element);
   }
 
-  @override
-  Object visitVariableElement(VariableElement element) {
-    _addTypeToCheck(element.type);
-    return super.visitVariableElement(element);
-  }
-
   void _addTypeToCheck(DartType type) {
     if (type == null) {
       return;
     }
-    Element element = type.element;
-    // it is OK to reference target from class
-    if (_inClass && target == element) {
-      return;
-    }
     // schedule for checking
-    toCheck.add(element);
+    toCheck.add(type.element);
     // type arguments
     if (type is InterfaceType) {
       InterfaceType interfaceType = type;
