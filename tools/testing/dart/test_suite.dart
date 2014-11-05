@@ -839,9 +839,10 @@ class StandardTestSuite extends TestSuite {
     String testName = buildTestCaseDisplayName(suiteDir, info.originTestPath,
         multitestName: info.multitestKey);
     Set<Expectation> expectations = testExpectations.expectations(testName);
-    if (info is HtmlTestInformation &&
-        TestUtils.isBrowserRuntime(configuration['runtime'])) {
-      enqueueBrowserTest([], null, info, testName, expectations);
+    if (info is HtmlTestInformation) {
+      if (TestUtils.isBrowserRuntime(configuration['runtime'])) {
+        enqueueBrowserTest([], null, info, testName, expectations);
+      }
       return;
     }
     var filePath = info.filePath;
