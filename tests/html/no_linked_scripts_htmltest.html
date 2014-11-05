@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<!-- 
+Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<!--
+START_HTML_DART_TEST
+{
+  "scripts": [ ],
+  "expectedMessages": ["hest", "fisk"]
+}
+END_HTML_DART_TEST
+-->
+<html>
+<head>
+<script>window.parent.dispatchEvent(new Event('detect_errors'));</script>
+<title>No Linked Scripts HTML test</title>
+</head><body>
+<h1>No Linked Scripts HTML test</h1>
+<script>
+window.postMessage('fisk', '*');
+window.postMessage('ged', '*');
+window.postMessage('fisk', '*');
+
+function delayed() {
+    parent.postMessage('ko', '*');
+    window.postMessage('hest', '*');
+  }
+setTimeout(delayed, 5000);
+</script>
+</body>
+</html>

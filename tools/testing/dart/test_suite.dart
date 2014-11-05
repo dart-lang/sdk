@@ -17,6 +17,7 @@ library test_suite;
 import "dart:async";
 import "dart:io";
 import "drt_updater.dart";
+import "html_test.dart" as htmlTest;
 import "multitest.dart";
 import "status_file_parser.dart";
 import "test_runner.dart";
@@ -45,13 +46,13 @@ RegExp multiTestRegExp = new RegExp(r"\S *"
 typedef bool Predicate<T>(T arg);
 
 typedef void CreateTest(Path filePath,
+                        Path originTestPath,
                         bool hasCompileError,
                         bool hasRuntimeError,
                         {bool isNegativeIfChecked,
                          bool hasCompileErrorIfChecked,
                          bool hasStaticWarning,
-                         String multitestKey,
-                         Path originTestPath});
+                         String multitestKey});
 
 typedef void VoidFunction();
 
@@ -68,6 +69,7 @@ Future asynchronously(function()) {
 
   return completer.future;
 }
+
 
 /** A completer that waits until all added [Future]s complete. */
 // TODO(rnystrom): Copied from web_components. Remove from here when it gets
@@ -109,6 +111,7 @@ class FutureGroup {
 
   Future<List> get future => _completer.future;
 }
+
 
 /**
  * A TestSuite represents a collection of tests.  It creates a [TestCase]
@@ -563,8 +566,8 @@ class CCTestSuite extends TestSuite {
 
 
 class TestInformation {
-  Path originTestPath;
   Path filePath;
+  Path originTestPath;
   Map optionsFromFile;
   bool hasCompileError;
   bool hasRuntimeError;
@@ -573,15 +576,26 @@ class TestInformation {
   bool hasStaticWarning;
   String multitestKey;
 
-  TestInformation(this.filePath, this.optionsFromFile,
+  TestInformation(this.filePath, this.originTestPath, this.optionsFromFile,
                   this.hasCompileError, this.hasRuntimeError,
                   this.isNegativeIfChecked, this.hasCompileErrorIfChecked,
                   this.hasStaticWarning,
-                  {this.multitestKey, this.originTestPath}) {
+                  {this.multitestKey: ''}) {
     assert(filePath.isAbsolute);
-    if (originTestPath == null) originTestPath = filePath;
   }
 }
+
+
+class HtmlTestInformation extends TestInformation {
+  List<String> expectedMessages;
+  List<String> scripts;
+
+  HtmlTestInformation(Path filePath, this.expectedMessages, this.scripts)
+      : super(filePath, filePath,
+              {'isMultitest': false, 'isMultiHtmlTest': false},
+              false, false, false, false, false) {}
+}
+
 
 /**
  * A standard [TestSuite] implementation that searches for tests in a
@@ -671,9 +685,10 @@ class StandardTestSuite extends TestSuite {
   bool isTestFile(String filename) {
     // Use the specified predicate, if provided.
     if (isTestFilePredicate != null) return isTestFilePredicate(filename);
-
     return filename.endsWith("Test.dart");
   }
+
+  bool isHtmlTestFile(String filename) => filename.endsWith('_htmltest.html');
 
   List<String> additionalOptions(Path filePath) => [];
 
@@ -768,6 +783,17 @@ class StandardTestSuite extends TestSuite {
   }
 
   void enqueueFile(String filename, FutureGroup group) {
+    if (isHtmlTestFile(filename)) {
+      var info = htmlTest.getInformation(filename);
+      if (info == null) {
+        DebugLogger.error(
+            "HtmlTest $filename does not contain required annotations");
+        return;
+      }
+      cachedTests.add(info);
+      enqueueTestCaseFromTestInformation(info);
+      return;
+    }
     if (!isTestFile(filename)) return;
     Path filePath = new Path(filename);
 
@@ -781,6 +807,7 @@ class StandardTestSuite extends TestSuite {
       group.add(doMultitest(filePath, buildDir, suiteDir, createTestCase));
     } else {
       createTestCase(filePath,
+                     filePath,
                      optionsFromFile['hasCompileError'],
                      optionsFromFile['hasRuntimeError'],
                      hasStaticWarning: optionsFromFile['hasStaticWarning']);
@@ -809,6 +836,14 @@ class StandardTestSuite extends TestSuite {
   }
 
   void enqueueTestCaseFromTestInformation(TestInformation info) {
+    String testName = buildTestCaseDisplayName(suiteDir, info.originTestPath,
+        multitestName: info.multitestKey);
+    Set<Expectation> expectations = testExpectations.expectations(testName);
+    if (info is HtmlTestInformation &&
+        TestUtils.isBrowserRuntime(configuration['runtime'])) {
+      enqueueBrowserTest([], null, info, testName, expectations);
+      return;
+    }
     var filePath = info.filePath;
     var optionsFromFile = info.optionsFromFile;
 
@@ -876,15 +911,15 @@ class StandardTestSuite extends TestSuite {
     Path packageRoot;
     if (configuration['use_repository_packages'] ||
         configuration['use_public_packages']) {
-        Path pubspecYamlFile = _findPubspecYamlFile(filePath);
-        if (pubspecYamlFile != null) {
-          var result = buildSpecialPackageRoot(pubspecYamlFile);
-          baseCommands.addAll(result['commands']);
-          packageRoot = result['package-root'];
-          if (optionsFromFile['packageRoot'] == null ||
-              optionsFromFile['packageRoot'] == "") {
-            optionsFromFile['packageRoot'] = packageRoot.toNativePath();
-          }
+      Path pubspecYamlFile = _findPubspecYamlFile(filePath);
+      if (pubspecYamlFile != null) {
+        var result = buildSpecialPackageRoot(pubspecYamlFile);
+        baseCommands.addAll(result['commands']);
+        packageRoot = result['package-root'];
+        if (optionsFromFile['packageRoot'] == null ||
+            optionsFromFile['packageRoot'] == "") {
+          optionsFromFile['packageRoot'] = packageRoot.toNativePath();
+        }
       }
     }
     if (configuration['package_root'] != null) {
@@ -892,10 +927,6 @@ class StandardTestSuite extends TestSuite {
       optionsFromFile['packageRoot'] = packageRoot.toNativePath();
     }
 
-    String testName = buildTestCaseDisplayName(suiteDir, info.originTestPath,
-        multitestName: optionsFromFile['isMultitest'] ? info.multitestKey : "");
-
-    Set<Expectation> expectations = testExpectations.expectations(testName);
     if (new CompilerConfiguration(configuration).hasCompiler &&
         expectCompileError(info)) {
       // If a compile-time error is expected, and we're testing a
@@ -1020,23 +1051,23 @@ class StandardTestSuite extends TestSuite {
 
   CreateTest makeTestCaseCreator(Map optionsFromFile) {
     return (Path filePath,
+            Path originTestPath,
             bool hasCompileError,
             bool hasRuntimeError,
             {bool isNegativeIfChecked: false,
              bool hasCompileErrorIfChecked: false,
              bool hasStaticWarning: false,
-             String multitestKey,
-             Path originTestPath}) {
+             String multitestKey}) {
       // Cache the test information for each test case.
       var info = new TestInformation(filePath,
+                                     originTestPath,
                                      optionsFromFile,
                                      hasCompileError,
                                      hasRuntimeError,
                                      isNegativeIfChecked,
                                      hasCompileErrorIfChecked,
                                      hasStaticWarning,
-                                     multitestKey: multitestKey,
-                                     originTestPath: originTestPath);
+                                     multitestKey: multitestKey);
       cachedTests.add(info);
       enqueueTestCaseFromTestInformation(info);
     };
@@ -1133,6 +1164,33 @@ class StandardTestSuite extends TestSuite {
 
     final String compiler = configuration['compiler'];
     final String runtime = configuration['runtime'];
+
+    if (info is HtmlTestInformation) {
+      if (compiler != 'none' || runtime != 'dartium') {
+        // TODO(whesse): Enable compilation of scripts to dart2js, and
+        // rewriting of script links in html file.  Currently unimplemented.
+        return;
+      }
+      if (info.scripts.length > 0) {
+        // TODO(whesse): Copy scripts into output directory.
+        return;
+      }
+      final String tempDir = createOutputDirectory(info.filePath, '');
+      final String htmlFile = '$tempDir/${filePath.filename}';
+      new File(htmlFile).writeAsStringSync(htmlTest.getContents(info));
+
+      String testDisplayName = '$suiteName/$testName';
+      var htmlPath = _createUrlPathFromFile(new Path(htmlFile));
+      var fullHtmlPath = _getUriForBrowserTest(info, htmlPath,
+                                               null, null);
+      var commands = [CommandBuilder.instance.getBrowserHtmlTestCommand(
+          runtime, fullHtmlPath, configuration, info.expectedMessages)];
+      var testCase = new BrowserTestCase(testDisplayName,
+                    commands, configuration, expectations,
+                    info, isNegative(info), fullHtmlPath);
+      enqueueNewTestCase(testCase);
+      return;
+    }
 
     for (var vmOptions in getVmOptions(optionsFromFile)) {
       // Create a unique temporary directory for each set of vmOptions.
@@ -1671,6 +1729,7 @@ class StandardTestSuite extends TestSuite {
   }
 }
 
+
 /// Used for testing packages in on off settings, i.e., we pass in the actual
 /// directory that we want to test.
 class PKGTestSuite extends StandardTestSuite {
@@ -1753,6 +1812,7 @@ class DartcCompilationTestSuite extends StandardTestSuite {
   }
 }
 
+
 class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
   AnalyzeLibraryTestSuite(Map configuration)
       : super(configuration,
@@ -1778,6 +1838,7 @@ class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
 
   bool get listRecursively => true;
 }
+
 
 class PkgBuildTestSuite extends TestSuite {
   final String statusFilePath;
@@ -1913,6 +1974,7 @@ class LastModifiedCache {
   }
 }
 
+
 class ExistsCache {
   Map<String, bool> _cache = <String, bool>{};
 
@@ -1928,6 +1990,7 @@ class ExistsCache {
     return _cache[path];
   }
 }
+
 
 class TestUtils {
   /**
@@ -2274,6 +2337,7 @@ class TestUtils {
     return path;
   }
 }
+
 
 class SummaryReport {
   static int total = 0;

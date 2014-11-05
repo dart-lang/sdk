@@ -290,6 +290,24 @@ class BrowserTestCommand extends Command {
   }
 }
 
+class BrowserHtmlTestCommand extends BrowserTestCommand {
+  List<String> expectedMessages;
+  BrowserHtmlTestCommand._(String browser,
+                           String url,
+                           Map configuration,
+                           this.expectedMessages)
+      : super._(browser, url, configuration);
+
+  void _buildHashCode(HashCodeBuilder builder) {
+    super._buildHashCode(builder);
+    builder.addJson(expectedMessages);
+  }
+
+  bool _equal(BrowserHtmlTestCommand other) =>
+      super._equal(other) &&
+      identical(expectedMessages, other.expectedMessages);
+}
+
 class AnalysisCommand extends ProcessCommand {
   final String flavor;
 
@@ -550,6 +568,15 @@ class CommandBuilder {
                                            String url,
                                            Map configuration) {
     var command = new BrowserTestCommand._(browser, url, configuration);
+    return _getUniqueCommand(command);
+  }
+
+  BrowserHtmlTestCommand getBrowserHtmlTestCommand(String browser,
+                                               String url,
+                                               Map configuration,
+                                               List<String> expectedMessages) {
+    var command = new BrowserHtmlTestCommand._(
+        browser, url, configuration, expectedMessages);
     return _getUniqueCommand(command);
   }
 
@@ -2346,7 +2373,7 @@ class CommandQueue {
         _numProcesses--;
         if (isBrowserCommand) _numBrowserProcesses--;
 
-        // Don't loose a process
+        // Don't lose a process
         Timer.run(() => _tryRunNextCommand());
       });
     }
@@ -2499,9 +2526,14 @@ class CommandExecutorImpl implements CommandExecutor {
       completer.complete(
           new BrowserControllerTestOutcome(browserCommand, output));
     };
-    BrowserTest browserTest = new BrowserTest(browserCommand.url,
-                                              callback,
-                                              timeout);
+
+    BrowserTest browserTest;
+    if (browserCommand is BrowserHtmlTestCommand) {
+      browserTest = new HtmlTest(browserCommand.url, callback, timeout,
+          browserCommand.expectedMessages);
+    } else {
+      browserTest = new BrowserTest(browserCommand.url, callback, timeout);
+    }
     _getBrowserTestRunner(browserCommand.browser, browserCommand.configuration)
         .then((testRunner) {
       testRunner.queueTest(browserTest);
