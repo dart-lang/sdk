@@ -11,20 +11,39 @@ import 'package:pub_semver/pub_semver.dart';
 import '../entrypoint.dart';
 import '../log.dart' as log;
 import '../package.dart';
+import '../utils.dart';
 import '../validator.dart';
+
+/// The range of all pub versions that don't support `^` version constraints.
+final _preCaretPubVersions = new VersionConstraint.parse("<1.8.0-dev.3.0");
+
+// TODO(nweiz): replace this with "^1.8.0" for the 1.8 release.
+/// The range of all pub versions that do support `^` version constraints.
+///
+/// This is intersected with the user's SDK constraint to provide a suggested
+/// constraint.
+final _postCaretPubVersions = new VersionConstraint.parse("^1.8.0-dev.3.0");
 
 /// A validator that validates a package's dependencies.
 class DependencyValidator extends Validator {
+  /// Whether the SDK constraint guarantees that `^` version constraints are
+  /// safe.
+  bool get _caretAllowed => entrypoint.root.pubspec.environment.sdkVersion
+      .intersect(_preCaretPubVersions).isEmpty;
+
   DependencyValidator(Entrypoint entrypoint)
     : super(entrypoint);
 
-  Future validate() {
-    return Future.forEach(entrypoint.root.pubspec.dependencies, (dependency) {
-      if (dependency.source != "hosted") {
-        return _warnAboutSource(dependency);
-      }
+  Future validate() async {
+    var caretDeps = [];
 
-      if (dependency.constraint.isAny) {
+    // TODO(nweiz): Replace this with a real for/in loop when we update
+    // async_await.
+    await Future.forEach(entrypoint.root.pubspec.dependencies,
+        (dependency) async {
+      if (dependency.source != "hosted") {
+        await _warnAboutSource(dependency);
+      } else if (dependency.constraint.isAny) {
         _warnAboutNoConstraint(dependency);
       } else if (dependency.constraint is Version) {
         _warnAboutSingleVersionConstraint(dependency);
@@ -34,10 +53,16 @@ class DependencyValidator extends Validator {
         } else if (dependency.constraint.max == null) {
           _warnAboutNoConstraintUpperBound(dependency);
         }
-      }
 
-      return new Future.value();
+        if (dependency.constraint.toString().startsWith("^")) {
+          caretDeps.add(dependency);
+        }
+      }
     });
+
+    if (caretDeps.isNotEmpty && !_caretAllowed) {
+      _errorAboutCaretConstraints(caretDeps);
+    }
   }
 
   /// Warn that dependencies should use the hosted source.
@@ -128,27 +153,63 @@ class DependencyValidator extends Validator {
 
   /// Warn that dependencies should have upper bounds on their constraints.
   void _warnAboutNoConstraintUpperBound(PackageDep dep) {
+    var constraint;
+    if ((dep.constraint as VersionRange).includeMin) {
+      constraint = _constraintForVersion(dep.constraint.min);
+    } else {
+      constraint = '"${dep.constraint} '
+          '<${(dep.constraint as VersionRange).min.nextBreaking}"';
+    }
+
     warnings.add(
         'Your dependency on "${dep.name}" should have an upper bound. For '
             'example:\n'
         '\n'
         'dependencies:\n'
-        '  ${dep.name}: "${dep.constraint} '
-            '${_upperBoundForVersion((dep.constraint as VersionRange).min)}"\n'
+        '  ${dep.name}: $constraint\n'
         '\n'
         'Without an upper bound, you\'re promising to support '
             '${log.bold("all")} future versions of ${dep.name}.');
   }
 
+  /// Emits an error for any version constraints that use `^` without an
+  /// appropriate SDK constraint.
+  void _errorAboutCaretConstraints(List<PackageDeps> caretDeps) {
+    var newSdkConstraint = entrypoint.root.pubspec.environment.sdkVersion
+        .intersect(_postCaretPubVersions);
+
+    if (newSdkConstraint.isEmpty) newSdkConstraint = _postCaretPubVersions;
+
+    var buffer = new StringBuffer(
+        "Older versions of pub don't support ^ version constraints.\n"
+        "Make sure your SDK constraint excludes those old versions:\n"
+        "\n"
+        "environment:\n"
+        "  sdk: \"$newSdkConstraint\"\n"
+        "\n");
+
+    if (caretDeps.length == 1) {
+      buffer.writeln("Or use a fully-expanded constraint:");
+    } else {
+      buffer.writeln("Or use fully-expanded constraints:");
+    }
+
+    buffer.writeln();
+    buffer.writeln("dependencies:");
+
+    caretDeps.forEach((dep) {
+      VersionRange constraint = dep.constraint;
+      buffer.writeln(
+          "  ${dep.name}: \">=${constraint.min} <${constraint.max}\"");
+    });
+
+    errors.add(buffer.toString().trim());
+  }
+
   /// Returns the suggested version constraint for a dependency that was tested
   /// against [version].
-  String _constraintForVersion(Version version) =>
-      '">=$version ${_upperBoundForVersion(version)}"';
-
-  /// Returns the suggested upper bound for a dependency that was tested against
-  /// [version].
-  String _upperBoundForVersion(Version version) {
-    if (version.major != 0) return '<${version.major + 1}.0.0';
-    return '<${version.major}.${version.minor + 1}.0';
+  String _constraintForVersion(Version version) {
+    if (_caretAllowed) return "^$version";
+    return '">=$version <${version.nextBreaking}"';
   }
 }

@@ -59,9 +59,18 @@ setUpDependency(Map dep, {List<String> hostedVersions}) {
 main() {
   initConfig();
 
-  integration('should consider a package valid if it looks normal', () {
-    d.validPackage.create();
-    expectNoValidationError(dependency);
+  group('should consider a package valid if it', () {
+    integration('looks normal', () {
+      d.validPackage.create();
+      expectNoValidationError(dependency);
+    });
+
+    integration('has a ^ constraint with an appropriate SDK constraint', () {
+      d.dir(appPath, [d.libPubspec("test_pkg", "1.0.0", deps: {
+          "foo": "^1.2.3"
+        }, sdk: ">=1.8.0 <2.0.0")]).create();
+      expectNoValidationError(dependency);
+    });
   });
 
   group('should consider a package invalid if it', () {
@@ -378,6 +387,24 @@ main() {
           })]).create();
 
         expectDependencyValidationWarning('  foo: ">1.2.3 <2.0.0"');
+      });
+    });
+
+    group('has a ^ dependency', () {
+      integration("without an SDK constraint", () {
+        d.dir(appPath, [d.libPubspec("integration_pkg", "1.0.0", deps: {
+            "foo": "^1.2.3"
+          })]).create();
+
+        expectDependencyValidationError('  foo: ">=1.2.3 <2.0.0"');
+      });
+
+      integration("with a too-broad SDK constraint", () {
+        d.dir(appPath, [d.libPubspec("test_pkg", "1.0.0", deps: {
+            "foo": "^1.2.3"
+          }, sdk: ">=1.5.0 <2.0.0")]).create();
+
+        expectDependencyValidationError('  foo: ">=1.2.3 <2.0.0"');
       });
     });
   });
