@@ -75,7 +75,6 @@ main() {
       d.dir('build', [
         d.dir('web', [
           d.matcherFile('file.dart.js', isMinifiedDart2JSOutput),
-          d.matcherFile('file.dart.precompiled.js', isNot(isEmpty)),
           d.dir('packages', [
             d.dir('browser', [
               d.file('dart.js', 'contents of dart.js'),

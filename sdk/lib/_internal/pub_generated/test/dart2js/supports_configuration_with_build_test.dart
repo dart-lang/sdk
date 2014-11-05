@@ -83,7 +83,6 @@ main() {
                         'web',
                         [
                             d.matcherFile('file.dart.js', isMinifiedDart2JSOutput),
-                            d.matcherFile('file.dart.precompiled.js', isNot(isEmpty)),
                             d.dir(
                                 'packages',
                                 [

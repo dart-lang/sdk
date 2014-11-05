@@ -89,7 +89,6 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
   void declareOutputs(DeclaringTransform transform) {
     var primaryId = transform.primaryId;
     transform.declareOutput(primaryId.addExtension(".js"));
-    transform.declareOutput(primaryId.addExtension(".precompiled.js"));
     if (_generateSourceMaps) {
       transform.declareOutput(primaryId.addExtension(".js.map"));
     }
@@ -283,6 +282,10 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     if (!generateSourceMaps && extension.endsWith(".map")) {
       return new NullSink<String>();
     }
+
+    // TODO(nweiz): remove this special case when dart2js stops generating these
+    // files.
+    if (extension.endsWith(".precompiled.js")) return new NullSink<String>();
 
     var primaryId = _transform.primaryInput.id;
 

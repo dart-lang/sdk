@@ -53,40 +53,34 @@ main() {
                         'benchmark',
                         [
                             d.matcherFile('file.dart.js', isNot(isEmpty)),
-                            d.matcherFile('file.dart.precompiled.js', isNot(isEmpty)),
                             d.nothing('file.dart'),
                             d.nothing('lib.dart'),
                             d.dir(
                                 'subdir',
                                 [
                                     d.matcherFile('subfile.dart.js', isNot(isEmpty)),
-                                    d.matcherFile('subfile.dart.precompiled.js', isNot(isEmpty)),
                                     d.nothing('subfile.dart')])]),
                     d.dir(
                         'foo',
                         [
                             d.matcherFile('file.dart.js', isNot(isEmpty)),
-                            d.matcherFile('file.dart.precompiled.js', isNot(isEmpty)),
                             d.nothing('file.dart'),
                             d.nothing('lib.dart'),
                             d.dir(
                                 'subdir',
                                 [
                                     d.matcherFile('subfile.dart.js', isNot(isEmpty)),
-                                    d.matcherFile('subfile.dart.precompiled.js', isNot(isEmpty)),
                                     d.nothing('subfile.dart')])]),
                     d.dir(
                         'web',
                         [
                             d.matcherFile('file.dart.js', isNot(isEmpty)),
-                            d.matcherFile('file.dart.precompiled.js', isNot(isEmpty)),
                             d.nothing('file.dart'),
                             d.nothing('lib.dart'),
                             d.dir(
                                 'subdir',
                                 [
                                     d.matcherFile('subfile.dart.js', isNot(isEmpty)),
-                                    d.matcherFile('subfile.dart.precompiled.js', isNot(isEmpty)),
                                     d.nothing('subfile.dart')])])])]).validate();
   });
 }
