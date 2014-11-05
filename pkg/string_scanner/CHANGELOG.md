@@ -1,3 +1,7 @@
+## 0.1.2
+
+* Add `StringScanner.substring`, which returns a substring of the source string.
+
 ## 0.1.1
 
 * Declare `SpanScanner`'s exposed `SourceSpan`s and `SourceLocation`s to be

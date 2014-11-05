@@ -131,6 +131,15 @@ class StringScanner {
     return _lastMatch != null;
   }
 
+  /// Returns the substring of [string] between [start] and [end].
+  ///
+  /// Unlike [String.substring], [end] defaults to [position] rather than the
+  /// end of the string.
+  String substring(int start, [int end]) {
+    if (end == null) end = position;
+    return string.substring(start, end);
+  }
+
   /// Throws a [FormatException] with [message] as well as a detailed
   /// description of the location of the error in the string.
   ///

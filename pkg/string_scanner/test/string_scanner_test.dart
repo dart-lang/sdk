@@ -61,6 +61,10 @@ void main() {
       expect(scanner.position, equals(0));
     });
 
+    test("substring returns the empty string", () {
+      expect(scanner.substring(0), isEmpty);
+    });
+
     test('setting position to 1 throws an ArgumentError', () {
       expect(() {
         scanner.position = 1;
@@ -165,6 +169,18 @@ void main() {
       expect(scanner.rest, equals('foo bar'));
     });
 
+    test("substring from the beginning returns the empty string", () {
+      expect(scanner.substring(0), isEmpty);
+    });
+
+    test("substring with a custom end returns the substring", () {
+      expect(scanner.substring(0, 3), equals('foo'));
+    });
+
+    test("substring with the string length returns the whole string", () {
+      expect(scanner.substring(0, 7), equals('foo bar'));
+    });
+
     test('setting position to 1 moves the cursor forward', () {
       scanner.position = 1;
       expect(scanner.position, equals(1));
@@ -258,6 +274,18 @@ void main() {
       expect(scanner.matches(new RegExp('.')), isFalse);
       expect(scanner.lastMatch, isNull);
       expect(scanner.position, equals(7));
+    });
+
+    test("substring from the beginning returns the whole string", () {
+      expect(scanner.substring(0), equals('foo bar'));
+    });
+
+    test("substring with a custom start returns a substring from there", () {
+      expect(scanner.substring(4), equals('bar'));
+    });
+
+    test("substring with a custom start and end returns that substring", () {
+      expect(scanner.substring(3, 5), equals(' b'));
     });
 
     test('setting position to 1 moves the cursor backward', () {
