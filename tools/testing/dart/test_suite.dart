@@ -837,7 +837,8 @@ class StandardTestSuite extends TestSuite {
 
   void enqueueTestCaseFromTestInformation(TestInformation info) {
     String testName = buildTestCaseDisplayName(suiteDir, info.originTestPath,
-        multitestName: info.multitestKey);
+        multitestName:
+          info.optionsFromFile['isMultitest'] ? info.multitestKey : "");
     Set<Expectation> expectations = testExpectations.expectations(testName);
     if (info is HtmlTestInformation) {
       if (TestUtils.isBrowserRuntime(configuration['runtime'])) {
