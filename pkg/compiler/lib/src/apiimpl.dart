@@ -10,7 +10,7 @@ import '../compiler.dart' as api;
 import 'dart2jslib.dart' as leg;
 import 'tree/tree.dart' as tree;
 import 'elements/elements.dart' as elements;
-import '../../libraries.dart';
+import 'package:_internal/libraries.dart';
 import 'source_file.dart';
 
 const bool forceIncrementalSupport =

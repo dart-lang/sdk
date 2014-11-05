@@ -6,16 +6,16 @@ library analyzer2dart.cps_generator;
 
 import 'package:analyzer/analyzer.dart';
 
-import 'package:compiler/implementation/dart_types.dart' as dart2js;
-import 'package:compiler/implementation/elements/elements.dart' as dart2js;
+import 'package:compiler/src/dart_types.dart' as dart2js;
+import 'package:compiler/src/elements/elements.dart' as dart2js;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/element.dart' as analyzer;
 
-import 'package:compiler/implementation/dart2jslib.dart'
+import 'package:compiler/src/dart2jslib.dart'
     show DART_CONSTANT_SYSTEM;
-import 'package:compiler/implementation/cps_ir/cps_ir_nodes.dart' as ir;
-import 'package:compiler/implementation/cps_ir/cps_ir_builder.dart';
-import 'package:compiler/implementation/universe/universe.dart';
+import 'package:compiler/src/cps_ir/cps_ir_nodes.dart' as ir;
+import 'package:compiler/src/cps_ir/cps_ir_builder.dart';
+import 'package:compiler/src/universe/universe.dart';
 
 import 'semantic_visitor.dart';
 import 'element_converter.dart';

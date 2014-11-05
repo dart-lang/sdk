@@ -12,7 +12,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:compiler/implementation/source_file_provider.dart';
+import 'package:compiler/src/source_file_provider.dart';
 
 import '../lib/src/closed_world.dart';
 import '../lib/src/driver.dart';

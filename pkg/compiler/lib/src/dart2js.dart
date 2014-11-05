@@ -18,9 +18,9 @@ import 'filenames.dart';
 import 'util/uri_extras.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
 import 'util/command_line.dart';
-import '../../libraries.dart';
+import 'package:_internal/libraries.dart';
 
-const String LIBRARY_ROOT = '../../../../..';
+const String LIBRARY_ROOT = '../../../../../sdk';
 const String OUTPUT_LANGUAGE_DART = 'Dart';
 
 /**

@@ -10,7 +10,7 @@
 //     "pattern": ".",
 //     "action": [
 //       "dart/sdk/bin/dart",
-//       "dart/sdk/lib/_internal/compiler/samples/darttags/darttags.dart",
+//       "dart/sdk/pkg/compiler/samples/darttags/darttags.dart",
 //       "dart/TAGS"
 //     ],
 //   },
@@ -27,23 +27,23 @@ import 'dart:io';
 
 import 'dart:mirrors';
 
-import '../../../libraries.dart'
+import 'package:_internal/libraries.dart'
     show LIBRARIES, LibraryInfo;
 
-import '../../implementation/mirrors/analyze.dart'
+import '../../lib/src/mirrors/analyze.dart'
     show analyze;
-import '../../implementation/mirrors/dart2js_mirrors.dart'
+import '../../lib/src/mirrors/dart2js_mirrors.dart'
     show BackDoor;
-import '../../implementation/mirrors/mirrors_util.dart' show nameOf;
+import '../../lib/src/mirrors/mirrors_util.dart' show nameOf;
 
-import '../../implementation/filenames.dart';
-import '../../implementation/source_file.dart';
-import '../../implementation/source_file_provider.dart';
-import '../../implementation/util/uri_extras.dart';
+import '../../lib/src/filenames.dart';
+import '../../lib/src/source_file.dart';
+import '../../lib/src/source_file_provider.dart';
+import '../../lib/src/util/uri_extras.dart';
 
-const DART2JS = '../../implementation/dart2js.dart';
-const DART2JS_MIRROR = '../../implementation/mirrors/dart2js_mirrors.dart';
-const SDK_ROOT = '../../../../../';
+const DART2JS = '../../lib/src/dart2js.dart';
+const DART2JS_MIRROR = '../../lib/src/mirrors/dart2js_mirrors.dart';
+const SDK_ROOT = '../../sdk/';
 
 bool isPublicDart2jsLibrary(String name) {
   return !name.startsWith('_') && LIBRARIES[name].isDart2jsLibrary;

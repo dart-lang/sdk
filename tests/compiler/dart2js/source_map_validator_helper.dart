@@ -9,13 +9,13 @@ import 'dart:async';
 import 'package:path/path.dart' as path;
 import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart' hide SourceFile;
-import 'package:compiler/implementation/apiimpl.dart';
-import 'package:compiler/implementation/elements/elements.dart'
+import 'package:compiler/src/apiimpl.dart';
+import 'package:compiler/src/elements/elements.dart'
     show LibraryElement,
          CompilationUnitElement,
          ClassElement,
          AstElement;
-import 'package:compiler/implementation/source_file.dart' show SourceFile;
+import 'package:compiler/src/source_file.dart' show SourceFile;
 
 validateSourceMap(Uri targetUri, [Compiler compiler]) {
   Uri mapUri = getMapUri(targetUri);

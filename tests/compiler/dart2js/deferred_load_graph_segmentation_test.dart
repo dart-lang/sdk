@@ -11,10 +11,10 @@ import "package:async_helper/async_helper.dart";
 import 'memory_source_file_helper.dart';
 import "dart:async";
 
-import 'package:compiler/implementation/dart2jslib.dart'
+import 'package:compiler/src/dart2jslib.dart'
        as dart2js;
 
-import 'package:compiler/implementation/deferred_load.dart';
+import 'package:compiler/src/deferred_load.dart';
 
 class FakeOutputStream<T> extends EventSink<T> {
   void add(T event) {}

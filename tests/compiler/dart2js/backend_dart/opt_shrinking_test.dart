@@ -4,9 +4,9 @@
 
 import 'sexpr_unstringifier.dart';
 import "package:expect/expect.dart";
-import 'package:compiler/implementation/cps_ir/cps_ir_nodes.dart';
-import 'package:compiler/implementation/cps_ir/cps_ir_nodes_sexpr.dart';
-import 'package:compiler/implementation/cps_ir/optimizers.dart';
+import 'package:compiler/src/cps_ir/cps_ir_nodes.dart';
+import 'package:compiler/src/cps_ir/cps_ir_nodes_sexpr.dart';
+import 'package:compiler/src/cps_ir/optimizers.dart';
 
 // The tests in this file that ensure shrinking reductions work as expected.
 // Reductions and their corresponding names are taken from

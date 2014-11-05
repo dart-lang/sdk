@@ -82,8 +82,9 @@ import '../util/util.dart' show
 import '../deferred_load.dart' show
     OutputUnit;
 
-import '../../js_lib/shared/runtime_data.dart' as encoding;
-import '../../js_lib/shared/embedded_names.dart' as embeddedNames;
+import 'package:_internal/compiler/js_lib/shared/runtime_data.dart' as encoding;
+import 'package:_internal/compiler/js_lib/shared/embedded_names.dart'
+    as embeddedNames;
 
 import '../hash/sha1.dart';
 

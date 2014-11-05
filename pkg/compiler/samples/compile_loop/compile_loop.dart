@@ -31,7 +31,7 @@ Future<String> compile(source) {
   void handler(Uri uri, int begin, int end,
                String message, compiler.Diagnostic kind) {
     // TODO(ahe): Remove dart:io import from
-    // ../../implementation/source_file_provider.dart and use
+    // ../../lib/src/source_file_provider.dart and use
     // FormattingDiagnosticHandler instead.
     print({ 'uri': '$uri',
             'begin': begin,

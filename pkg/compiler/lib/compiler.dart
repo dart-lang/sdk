@@ -5,7 +5,7 @@
 library compiler;
 
 import 'dart:async';
-import 'implementation/apiimpl.dart';
+import 'src/apiimpl.dart';
 
 // Unless explicitly allowed, passing [:null:] for any argument to the
 // methods of library will result in an Error being thrown.
