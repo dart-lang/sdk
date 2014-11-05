@@ -2625,134 +2625,107 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
 }
 
 /**
- * The interface `Type` defines the behavior of objects representing the declared type of
- * elements in the element model.
+ * The interface `DartType` defines the behavior of objects representing the
+ * declared type of elements in the element model.
  */
 abstract class DartType {
   /**
-   * Return the name of this type as it should appear when presented to users in contexts such as
-   * error messages.
-   *
-   * @return the name of this type
+   * Return the name of this type as it should appear when presented to users in
+   * contexts such as error messages.
    */
   String get displayName;
 
   /**
-   * Return the element representing the declaration of this type, or `null` if the type has
-   * not, or cannot, be associated with an element. The former case will occur if the element model
-   * is not yet complete; the latter case will occur if this object represents an undefined type.
-   *
-   * @return the element representing the declaration of this type
+   * Return the element representing the declaration of this type, or `null` if
+   * the type has not, or cannot, be associated with an element. The former case
+   * will occur if the element model is not yet complete; the latter case will
+   * occur if this object represents an undefined type.
    */
   Element get element;
 
   /**
-   * Return the least upper bound of this type and the given type, or `null` if there is no
-   * least upper bound.
-   *
-   * @param type the other type used to compute the least upper bound
-   * @return the least upper bound of this type and the given type
+   * Return the least upper bound of this type and the given [type], or `null`
+   * if there is no least upper bound.
    */
   DartType getLeastUpperBound(DartType type);
 
   /**
-   * Return the name of this type, or `null` if the type does not have a name, such as when
-   * the type represents the type of an unnamed function.
-   *
-   * @return the name of this type
+   * Return the name of this type, or `null` if the type does not have a name,
+   * such as when the type represents the type of an unnamed function.
    */
   String get name;
 
   /**
-   * Return `true` if this type is assignable to the given type. A type <i>T</i> may be
-   * assigned to a type <i>S</i>, written <i>T</i> &hArr; <i>S</i>, iff either <i>T</i> <: <i>S</i>
-   * or <i>S</i> <: <i>T</i>.
-   *
-   * @param type the type being compared with this type
-   * @return `true` if this type is assignable to the given type
+   * Return `true` if this type is assignable to the given [type]. A type
+   * <i>T</i> may be assigned to a type <i>S</i>, written <i>T</i> &hArr;
+   * <i>S</i>, iff either <i>T</i> <: <i>S</i> or <i>S</i> <: <i>T</i>.
    */
   bool isAssignableTo(DartType type);
 
   /**
    * Return `true` if this type represents the bottom type.
-   *
-   * @return `true` if this type represents the bottom type
    */
   bool get isBottom;
 
   /**
-   * Return `true` if this type represents the type 'Function' defined in the dart:core
-   * library.
-   *
-   * @return `true` if this type represents the type 'Function' defined in the dart:core
-   *         library
+   * Return `true` if this type represents the type 'Function' defined in the
+   * dart:core library.
    */
   bool get isDartCoreFunction;
 
   /**
    * Return `true` if this type represents the type 'dynamic'.
-   *
-   * @return `true` if this type represents the type 'dynamic'
    */
   bool get isDynamic;
 
   /**
-   * Return `true` if this type is more specific than the given type.
-   *
-   * @param type the type being compared with this type
-   * @return `true` if this type is more specific than the given type
+   * Return `true` if this type is more specific than the given [type].
    */
   bool isMoreSpecificThan(DartType type);
 
   /**
    * Return `true` if this type represents the type 'Object'.
-   *
-   * @return `true` if this type represents the type 'Object'
    */
   bool get isObject;
 
   /**
-   * Return `true` if this type is a subtype of the given type.
-   *
-   * @param type the type being compared with this type
-   * @return `true` if this type is a subtype of the given type
+   * Return `true` if this type is a subtype of the given [type].
    */
   bool isSubtypeOf(DartType type);
 
   /**
-   * Return `true` if this type is a supertype of the given type. A type <i>S</i> is a
-   * supertype of <i>T</i>, written <i>S</i> :> <i>T</i>, iff <i>T</i> is a subtype of <i>S</i>.
-   *
-   * @param type the type being compared with this type
-   * @return `true` if this type is a supertype of the given type
+   * Return `true` if this type is a supertype of the given [type]. A type
+   * <i>S</i> is a supertype of <i>T</i>, written <i>S</i> :> <i>T</i>, iff
+   * <i>T</i> is a subtype of <i>S</i>.
    */
   bool isSupertypeOf(DartType type);
 
   /**
-   * Return `true` if this type represents a typename that couldn't be
-   * resolved.
+   * Return `true` if this type represents a typename that couldn't be resolved.
    */
   bool get isUndefined;
 
   /**
    * Return `true` if this type represents the type 'void'.
-   *
-   * @return `true` if this type represents the type 'void'
    */
   bool get isVoid;
 
   /**
-   * Return the type resulting from substituting the given arguments for the given parameters in
-   * this type. The specification defines this operation in section 2: <blockquote> The notation
-   * <i>[x<sub>1</sub>, ..., x<sub>n</sub>/y<sub>1</sub>, ..., y<sub>n</sub>]E</i> denotes a copy of
-   * <i>E</i> in which all occurrences of <i>y<sub>i</sub>, 1 <= i <= n</i> have been replaced with
-   * <i>x<sub>i</sub></i>.</blockquote> Note that, contrary to the specification, this method will
-   * not create a copy of this type if no substitutions were required, but will return this type
-   * directly.
+   * Return the type resulting from substituting the given [argumentTypes] for
+   * the given [parameterTypes] in this type. The specification defines this
+   * operation in section 2:
+   * <blockquote>
+   * The notation <i>[x<sub>1</sub>, ..., x<sub>n</sub>/y<sub>1</sub>, ...,
+   * y<sub>n</sub>]E</i> denotes a copy of <i>E</i> in which all occurrences of
+   * <i>y<sub>i</sub>, 1 <= i <= n</i> have been replaced with
+   * <i>x<sub>i</sub></i>.
+   * </blockquote>
+   * Note that, contrary to the specification, this method will not create a
+   * copy of this type if no substitutions were required, but will return this
+   * type directly.
    *
-   * @param argumentTypes the actual type arguments being substituted for the parameters
-   * @param parameterTypes the parameters to be replaced
-   * @return the result of performing the substitution
+   * Note too that the current implementation of this method is only guaranteed
+   * to work when the argument types are type variables.
    */
   DartType substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes);
 }
@@ -6693,11 +6666,9 @@ abstract class InterfaceType implements ParameterizedType {
   PropertyAccessorElement lookUpSetterInSuperclass(String setterName, LibraryElement library);
 
   /**
-   * Return the type resulting from substituting the given arguments for this type's parameters.
-   * This is fully equivalent to `substitute(argumentTypes, getTypeArguments())`.
-   *
-   * @param argumentTypes the actual type arguments being substituted for the type parameters
-   * @return the result of performing the substitution
+   * Return the type resulting from substituting the given arguments for this
+   * type's parameters. This is fully equivalent to `substitute2(argumentTypes,
+   * getTypeArguments())`.
    */
   InterfaceType substitute4(List<DartType> argumentTypes);
 
