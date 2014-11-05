@@ -5,7 +5,7 @@
 library analyze_dart2js;
 
 import "package:expect/expect.dart";
-import 'package:compiler/src/filenames.dart';
+import 'package:compiler/implementation/filenames.dart';
 import 'analyze_helper.dart';
 import "package:async_helper/async_helper.dart";
 
@@ -24,6 +24,7 @@ const Map<String,List<String>> WHITE_LIST = const {
 };
 
 void main() {
-  var uri = currentDirectory.resolve('pkg/compiler/lib/src/dart2js.dart');
+  var uri = currentDirectory.resolve(
+      'sdk/lib/_internal/compiler/implementation/dart2js.dart');
   asyncTest(() => analyze([uri], WHITE_LIST));
 }

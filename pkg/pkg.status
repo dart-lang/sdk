@@ -294,8 +294,6 @@ mock/test/mock_stepwise_negative_test: Skip
 polymer/e2e_test/canonicalization: Skip
 polymer/e2e_test/experimental_boot: Skip
 
-compiler/samples/compile_loop/compile_loop: CompileTimeError  # Issue 16524
-
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 # This test uses third_party/pkg/perf_api/lib/perf_api.dart, which
 # contains illegal constant constructors.

@@ -12,18 +12,18 @@ import "package:async_helper/async_helper.dart";
 import 'memory_compiler.dart' show
     compilerFor;
 
-import 'package:compiler/src/apiimpl.dart' show
+import 'package:compiler/implementation/apiimpl.dart' show
     Compiler;
 
-import 'package:compiler/src/constants/values.dart' show
+import 'package:compiler/implementation/constants/values.dart' show
     ConstantValue,
     TypeConstantValue;
 
-import 'package:compiler/src/elements/elements.dart' show
+import 'package:compiler/implementation/elements/elements.dart' show
     Element,
     Elements;
 
-import 'package:compiler/src/js_backend/js_backend.dart' show
+import 'package:compiler/implementation/js_backend/js_backend.dart' show
     JavaScriptBackend;
 
 void expectOnlyVerboseInfo(Uri uri, int begin, int end, String message, kind) {

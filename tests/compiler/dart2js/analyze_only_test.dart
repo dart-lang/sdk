@@ -12,7 +12,7 @@ import "package:async_helper/async_helper.dart";
 import '../../utils/dummy_compiler_test.dart' as dummy;
 import 'package:compiler/compiler.dart';
 
-import 'package:compiler/src/dart2jslib.dart' show
+import 'package:compiler/implementation/dart2jslib.dart' show
     MessageKind;
 
 runCompiler(String main, List<String> options,

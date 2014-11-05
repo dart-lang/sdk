@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/constants/values.dart'
+import 'package:compiler/implementation/constants/values.dart'
     show PrimitiveConstantValue;
 import 'package:expect/expect.dart';
 import 'compiler_helper.dart';

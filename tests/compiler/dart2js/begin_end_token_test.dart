@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 import 'parser_helper.dart';
-import 'package:compiler/src/tree/tree.dart';
+import 'package:compiler/implementation/tree/tree.dart';
 
 void testNode(Node node, String expected, String text, [bool hard = true]) {
   var debug = 'text=$text,expected=$expected,node:${node}';

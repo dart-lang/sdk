@@ -13,10 +13,10 @@ import 'package:markdown/markdown.dart' as markdown;
 import 'package:path/path.dart' as path;
 
 import 'package:compiler/compiler.dart' as api;
-import 'package:compiler/src/filenames.dart';
-import 'package:compiler/src/mirrors/analyze.dart'
+import 'package:compiler/implementation/filenames.dart';
+import 'package:compiler/implementation/mirrors/analyze.dart'
     as dart2js;
-import 'package:compiler/src/source_file_provider.dart';
+import 'package:compiler/implementation/source_file_provider.dart';
 
 import 'exports/dart2js_mirrors.dart' as dart2js_mirrors;
 import 'exports/libraries.dart';

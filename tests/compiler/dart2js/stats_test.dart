@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
-import 'package:compiler/src/helpers/helpers.dart';
+import 'package:compiler/implementation/helpers/helpers.dart';
 
 class CollectingOutput implements StatsOutput {
   final StringBuffer sb = new StringBuffer();

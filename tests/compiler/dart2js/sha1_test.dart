@@ -6,7 +6,7 @@
 // into the compiler.
 
 library sha1_test;
-import 'package:compiler/src/hash/sha1.dart';
+import 'package:compiler/implementation/hash/sha1.dart';
 
 import "package:unittest/unittest.dart";
 

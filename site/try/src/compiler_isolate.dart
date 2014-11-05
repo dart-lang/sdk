@@ -16,7 +16,7 @@ import 'package:compiler/compiler.dart' as compiler;
 import 'package:dart2js_incremental/dart2js_incremental.dart' show
     reuseCompiler;
 
-import 'package:compiler/src/dart2jslib.dart' show
+import 'package:compiler/implementation/dart2jslib.dart' show
     Compiler;
 
 const bool THROW_ON_ERROR = false;

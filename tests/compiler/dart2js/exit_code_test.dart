@@ -13,14 +13,14 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
 import 'package:compiler/compiler.dart' as api;
-import 'package:compiler/src/dart2js.dart' as entry;
-import 'package:compiler/src/dart2jslib.dart';
-import 'package:compiler/src/apiimpl.dart' as apiimpl;
-import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/library_loader.dart';
-import 'package:compiler/src/resolution/resolution.dart';
-import 'package:compiler/src/scanner/scannerlib.dart';
-import 'package:compiler/src/util/util.dart';
+import 'package:compiler/implementation/dart2js.dart' as entry;
+import 'package:compiler/implementation/dart2jslib.dart';
+import 'package:compiler/implementation/apiimpl.dart' as apiimpl;
+import 'package:compiler/implementation/elements/elements.dart';
+import 'package:compiler/implementation/library_loader.dart';
+import 'package:compiler/implementation/resolution/resolution.dart';
+import 'package:compiler/implementation/scanner/scannerlib.dart';
+import 'package:compiler/implementation/util/util.dart';
 
 class TestCompiler extends apiimpl.Compiler {
   final String testMarker;

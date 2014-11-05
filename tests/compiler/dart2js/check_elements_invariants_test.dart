@@ -3,22 +3,22 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'package:compiler/src/apiimpl.dart';
-import 'package:compiler/src/dart2jslib.dart' show NullSink;
+import 'package:compiler/implementation/apiimpl.dart';
+import 'package:compiler/implementation/dart2jslib.dart' show NullSink;
 import 'package:expect/expect.dart';
-import 'package:compiler/src/filenames.dart';
-import 'package:compiler/src/source_file_provider.dart';
-import 'package:compiler/src/elements/elements.dart'
+import 'package:compiler/implementation/filenames.dart';
+import 'package:compiler/implementation/source_file_provider.dart';
+import 'package:compiler/implementation/elements/elements.dart'
     show ClassElement;
-import 'package:compiler/src/resolution/class_members.dart'
+import 'package:compiler/implementation/resolution/class_members.dart'
     show ClassMemberMixin;
 import "package:async_helper/async_helper.dart";
 
 
 const String DART2JS_SOURCE =
-    'pkg/compiler/lib/src/dart2js.dart';
+    'sdk/lib/_internal/compiler/implementation/dart2js.dart';
 const List<String> DART2JS_OPTIONS = const <String>[
-      '--categories=Client,Server',
+      '--categories=Client,Server', 
       '--disable-type-inference'
     ];
 

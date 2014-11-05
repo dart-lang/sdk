@@ -7,7 +7,7 @@ library reexport_handled_test;
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'mock_compiler.dart';
-import 'package:compiler/src/elements/elements.dart'
+import 'package:compiler/implementation/elements/elements.dart'
     show Element,
          LibraryElement;
 

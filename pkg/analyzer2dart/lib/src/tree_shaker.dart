@@ -9,7 +9,7 @@ import 'dart:collection';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:compiler/src/universe/universe.dart';
+import 'package:compiler/implementation/universe/universe.dart';
 
 import 'closed_world.dart';
 import 'util.dart';

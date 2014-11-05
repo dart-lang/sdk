@@ -5,16 +5,16 @@
 library dart_printer_test;
 
 import "package:expect/expect.dart";
-import 'package:compiler/src/constants/values.dart';
-import 'package:compiler/src/dart_backend/backend_ast_nodes.dart';
-import 'package:compiler/src/scanner/scannerlib.dart';
-import 'package:compiler/src/source_file.dart';
-import 'package:compiler/src/dart2jslib.dart';
-import 'package:compiler/src/tree/tree.dart' show DartString;
+import 'package:compiler/implementation/constants/values.dart';
+import 'package:compiler/implementation/dart_backend/backend_ast_nodes.dart';
+import 'package:compiler/implementation/scanner/scannerlib.dart';
+import 'package:compiler/implementation/source_file.dart';
+import 'package:compiler/implementation/dart2jslib.dart';
+import 'package:compiler/implementation/tree/tree.dart' show DartString;
 import 'dart:mirrors';
-import 'package:compiler/src/tree/tree.dart' as tree;
-import 'package:compiler/src/string_validator.dart';
-import 'package:compiler/src/dart_backend/backend_ast_to_frontend_ast.dart'
+import 'package:compiler/implementation/tree/tree.dart' as tree;
+import 'package:compiler/implementation/string_validator.dart';
+import 'package:compiler/implementation/dart_backend/backend_ast_to_frontend_ast.dart'
     show TreePrinter;
 
 /// For debugging the [AstBuilder] stack. Prints information about [x].

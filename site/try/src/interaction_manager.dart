@@ -21,7 +21,7 @@ import 'dart:async' show
 import 'dart:collection' show
     Queue;
 
-import 'package:compiler/src/scanner/scannerlib.dart' show
+import 'package:compiler/implementation/scanner/scannerlib.dart' show
     BeginGroupToken,
     EOF_TOKEN,
     ErrorToken,
@@ -33,13 +33,13 @@ import 'package:compiler/src/scanner/scannerlib.dart' show
     UnmatchedToken,
     UnterminatedToken;
 
-import 'package:compiler/src/source_file.dart' show
+import 'package:compiler/implementation/source_file.dart' show
     StringSourceFile;
 
-import 'package:compiler/src/string_validator.dart' show
+import 'package:compiler/implementation/string_validator.dart' show
     StringValidator;
 
-import 'package:compiler/src/tree/tree.dart' show
+import 'package:compiler/implementation/tree/tree.dart' show
     StringQuoting;
 
 import 'compilation.dart' show

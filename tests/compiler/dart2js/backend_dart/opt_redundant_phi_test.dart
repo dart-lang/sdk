@@ -4,9 +4,9 @@
 
 import 'sexpr_unstringifier.dart';
 import "package:expect/expect.dart";
-import 'package:compiler/src/cps_ir/cps_ir_nodes.dart';
-import 'package:compiler/src/cps_ir/cps_ir_nodes_sexpr.dart';
-import 'package:compiler/src/cps_ir/optimizers.dart';
+import 'package:compiler/implementation/cps_ir/cps_ir_nodes.dart';
+import 'package:compiler/implementation/cps_ir/cps_ir_nodes_sexpr.dart';
+import 'package:compiler/implementation/cps_ir/optimizers.dart';
 
 // The 'read in loop' IR tests the most basic case of redundant phi removal
 // and represents the following source code:

@@ -6,8 +6,8 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'mock_compiler.dart';
-import 'package:compiler/src/js/js.dart' as jsAst;
-import 'package:compiler/src/js/js.dart' show js;
+import 'package:compiler/implementation/js/js.dart' as jsAst;
+import 'package:compiler/implementation/js/js.dart' show js;
 
 
 Future testStatement(String statement, List arguments, String expect) {

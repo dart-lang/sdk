@@ -5,9 +5,9 @@
 import '../compiler_helper.dart';
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/dart2jslib.dart';
-import 'package:compiler/src/dart_backend/dart_backend.dart';
-import 'package:compiler/src/dart_backend/backend_ast_to_frontend_ast.dart'
+import 'package:compiler/implementation/dart2jslib.dart';
+import 'package:compiler/implementation/dart_backend/dart_backend.dart';
+import 'package:compiler/implementation/dart_backend/backend_ast_to_frontend_ast.dart'
     show INSERT_NEW_BACKEND_COMMENT;
 
 const String TestStaticField = """

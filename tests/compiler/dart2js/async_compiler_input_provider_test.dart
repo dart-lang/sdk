@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 
 import 'package:compiler/compiler.dart' as compiler;
-import 'package:compiler/src/filenames.dart';
+import 'package:compiler/implementation/filenames.dart';
 
 const SOURCES = const {
   "/main.dart": """

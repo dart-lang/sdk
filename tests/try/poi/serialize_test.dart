@@ -21,10 +21,10 @@ import 'package:async_helper/async_helper.dart';
 
 import 'package:expect/expect.dart';
 
-import 'package:compiler/src/elements/elements.dart' show
+import 'package:compiler/implementation/elements/elements.dart' show
     Element;
 
-import 'package:compiler/src/source_file_provider.dart' show
+import 'package:compiler/implementation/source_file_provider.dart' show
     FormattingDiagnosticHandler;
 
 Future testInteresting() {

@@ -48,23 +48,6 @@ void TestCaseBase::RunAll() {
   }
 }
 
-static const char* kPackageScheme = "package:";
-
-static bool IsPackageSchemeURL(const char* url_name) {
-  static const intptr_t kPackageSchemeLen = strlen(kPackageScheme);
-  return (strncmp(url_name, kPackageScheme, kPackageSchemeLen) == 0);
-}
-
-static Dart_Handle ResolvePackageUri(Dart_Handle builtin_lib,
-                                     const char* uri_chars) {
-  const int kNumArgs = 1;
-  Dart_Handle dart_args[kNumArgs];
-  dart_args[0] = DartUtils::NewString(uri_chars);
-  return Dart_Invoke(builtin_lib,
-                     DartUtils::NewString("_filePathFromUri"),
-                     kNumArgs,
-                     dart_args);
-}
 
 static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                      Dart_Handle library,
@@ -124,15 +107,6 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                            Builtin::PartSource(Builtin::kIOLibrary,
                                                url_chars),
                            0, 0);
-  }
-  if (IsPackageSchemeURL(url_chars)) {
-    Dart_Handle resolved_uri = ResolvePackageUri(builtin_lib, url_chars);
-    DART_CHECK_VALID(resolved_uri);
-    url_chars = NULL;
-    Dart_Handle result = Dart_StringToCString(resolved_uri, &url_chars);
-    if (Dart_IsError(result)) {
-      return Dart_NewApiError("accessing url characters failed");
-    }
   }
   // Do sync loading since unit_test doesn't support async.
   Dart_Handle source = DartUtils::ReadStringFromFile(url_chars);

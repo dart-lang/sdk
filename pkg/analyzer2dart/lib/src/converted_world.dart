@@ -7,9 +7,9 @@ library analyzer2dart.convertedWorld;
 import 'dart:collection';
 
 import 'package:analyzer/analyzer.dart';
-import 'package:compiler/src/elements/elements.dart' as dart2js;
+import 'package:compiler/implementation/elements/elements.dart' as dart2js;
 import 'package:analyzer/src/generated/element.dart' as analyzer;
-import 'package:compiler/src/cps_ir/cps_ir_nodes.dart' as ir;
+import 'package:compiler/implementation/cps_ir/cps_ir_nodes.dart' as ir;
 
 import 'closed_world.dart';
 import 'element_converter.dart';

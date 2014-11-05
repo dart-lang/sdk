@@ -5,8 +5,8 @@
 import 'dart:async';
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import 'package:compiler/src/types/types.dart';
-import 'package:compiler/src/inferrer/concrete_types_inferrer.dart';
+import 'package:compiler/implementation/types/types.dart';
+import 'package:compiler/implementation/inferrer/concrete_types_inferrer.dart';
 
 import "compiler_helper.dart";
 import "type_mask_test_helper.dart";
@@ -437,7 +437,7 @@ testToplevelVariable2() {
 testToplevelVariable3() {
   final String source = r"""
       var top = "a";
-
+      
       f() => top;
 
       main() {
@@ -678,7 +678,7 @@ testToplevelGetters() {
   final String source = """
       int _x = 42;
       get x => _x;
-
+ 
       f() => x;
 
       main() {
@@ -740,7 +740,7 @@ testToplevelSetters() {
   final String source = """
       int _x = 42;
       set x(y) => _x = y;
-
+ 
       f(y) { x = y; }
 
       main() {
@@ -1754,7 +1754,7 @@ testClosures2() {
       main() {
         // We make sure that x doesn't have type dynamic by adding C to the
         // set of seen classes and by checking that a's type doesn't contain
-        // bool.
+        // bool. 
         new C();
 
         var a;

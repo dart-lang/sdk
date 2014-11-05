@@ -21,14 +21,14 @@ all:
 	| grep -v DEPRECATED_MEMBER_USE \
 	| grep -v DEAD_CODE \
 	| grep -v -E 'INFO\|HINT\|ARGUMENT_TYPE_NOT_ASSIGNABLE\|' \
-	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/src/cps_ir/optimizers\.dart\|7\|8\|27\|' \
-	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/src/dart2jslib\.dart\|26\|8\|22\|' \
-	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/src/dart_types\.dart\|17\|8\|22\|' \
-	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/src/elements/elements\.dart\|[0-9]+\|8\|25\|' \
-	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/src/elements/modelx\.dart\|[0-9]+\|8\|25\|' \
-	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/src/js_emitter/js_emitter\.dart\|[0-9]+\|8\|25\|' \
-	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/src/library_loader\.dart\|25\|8\|22\|' \
-	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/src/patch_parser\.dart\|[0-9]+\|8\|22\|' \
-	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/src/resolution/class_members\.dart\|22\|8\|25\|' \
+	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/implementation/cps_ir/optimizers\.dart\|7\|8\|27\|' \
+	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/implementation/dart2jslib\.dart\|26\|8\|22\|' \
+	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/implementation/dart_types\.dart\|17\|8\|22\|' \
+	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/implementation/elements/elements\.dart\|[0-9]+\|8\|25\|' \
+	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/implementation/elements/modelx\.dart\|[0-9]+\|8\|25\|' \
+	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/implementation/js_emitter/js_emitter\.dart\|[0-9]+\|8\|25\|' \
+	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/implementation/library_loader\.dart\|25\|8\|22\|' \
+	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/implementation/patch_parser\.dart\|[0-9]+\|8\|22\|' \
+	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/implementation/resolution/class_members\.dart\|22\|8\|25\|' \
 	| sed -e "s,$(PWD)/,," \
 	| awk -F'|' '{print $$4 ":" $$5 ":" $$6 ":\n [" n$$3 "]" $$8 }' \

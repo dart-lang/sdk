@@ -10,7 +10,7 @@ library source_mirrors_test;
 import 'dart:async';
 import "package:async_helper/async_helper.dart";
 
-import 'package:compiler/src/mirrors/analyze.dart';
+import 'package:compiler/implementation/mirrors/analyze.dart';
 import 'dummy_compiler_test.dart';
 
 main() {

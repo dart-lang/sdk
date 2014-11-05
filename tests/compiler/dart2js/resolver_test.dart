@@ -7,12 +7,12 @@ import 'dart:async';
 import "package:async_helper/async_helper.dart";
 import 'dart:collection';
 
-import "package:compiler/src/resolution/resolution.dart";
+import "package:compiler/implementation/resolution/resolution.dart";
 import "compiler_helper.dart";
 import "parser_helper.dart";
 
-import 'package:compiler/src/dart_types.dart';
-import 'package:compiler/src/elements/modelx.dart';
+import 'package:compiler/implementation/dart_types.dart';
+import 'package:compiler/implementation/elements/modelx.dart';
 import 'link_helper.dart';
 
 Node buildIdentifier(String name) => new Identifier(scan(name));
@@ -590,8 +590,8 @@ Future testOneInterface() {
 Future testTwoInterfaces() {
   return MockCompiler.create((MockCompiler compiler) {
     compiler.parseScript(
-        """abstract class I1 {}
-           abstract class I2 {}
+        """abstract class I1 {} 
+           abstract class I2 {} 
            class C implements I1, I2 {}""");
     compiler.resolveStatement("Foo bar;");
 
@@ -761,7 +761,7 @@ Future testClassHierarchy() {
     }),
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript("""class A<T> {}
-                              class B<Z,W> extends A<int>
+                              class B<Z,W> extends A<int> 
                                   implements I<Z,List<W>> {}
                               class I<X,Y> {}
                               class C extends B<bool,String> {}

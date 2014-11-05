@@ -8,7 +8,7 @@ import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'memory_source_file_helper.dart';
 
-import 'package:compiler/src/dart2jslib.dart'
+import 'package:compiler/implementation/dart2jslib.dart'
        show NullSink;
 
 import 'package:compiler/compiler.dart'

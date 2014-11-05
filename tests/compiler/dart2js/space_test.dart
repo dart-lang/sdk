@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'package:compiler/src/dart2js.dart'
+import 'package:compiler/implementation/dart2js.dart'
   as dart2js;
 
 main() {

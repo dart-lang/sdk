@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
-import 'package:compiler/src/types/types.dart'
+import 'package:compiler/implementation/types/types.dart'
     show TypeMask;
 
 import 'compiler_helper.dart';

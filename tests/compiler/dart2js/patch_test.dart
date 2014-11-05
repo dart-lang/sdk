@@ -5,12 +5,12 @@
 import 'dart:async';
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import "package:compiler/src/dart2jslib.dart";
-import "package:compiler/src/elements/elements.dart";
-import "package:compiler/src/tree/tree.dart";
+import "package:compiler/implementation/dart2jslib.dart";
+import "package:compiler/implementation/elements/elements.dart";
+import "package:compiler/implementation/tree/tree.dart";
 import "mock_compiler.dart";
 import "mock_libraries.dart";
-import 'package:compiler/src/elements/modelx.dart';
+import 'package:compiler/implementation/elements/modelx.dart';
 
 Future<Compiler> applyPatch(String script, String patch,
                             {bool analyzeAll: false, bool analyzeOnly: false,

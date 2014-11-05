@@ -44,27 +44,24 @@ def Main(argv):
   # sdk/lib/_internal
   SOURCE = join(dirname(dirname(HOME)), 'sdk', 'lib', '_internal')
 
-  # pkg
-  PKG_SOURCE = join(dirname(dirname(HOME)), 'pkg')
-
   # clean compiler_unsupported/lib
   if not os.path.exists(TARGET):
     os.mkdir(TARGET)
-  shutil.rmtree(join(TARGET, 'src'), True)
+  shutil.rmtree(join(TARGET, 'implementation'), True)
   RemoveFile(join(TARGET, 'compiler.dart'))
   RemoveFile(join(TARGET, 'libraries.dart'))
 
   # copy dart2js code
-  shutil.copy(join(PKG_SOURCE, 'compiler', 'lib', 'compiler.dart'), TARGET)
+  shutil.copy(join(SOURCE, 'compiler', 'compiler.dart'), TARGET)
   shutil.copy(join(SOURCE, 'libraries.dart'), TARGET)
   shutil.copytree(
-      join(PKG_SOURCE, 'compiler', 'lib', 'src'),
-      join(TARGET, 'src'))
+      join(SOURCE, 'compiler', 'implementation'),
+      join(TARGET, 'implementation'))
 
   # patch up the libraries.dart references
   replace = [(r'\.\./\.\./libraries\.dart', r'\.\./libraries\.dart')]
 
-  for root, dirs, files in os.walk(join(TARGET, 'src')):
+  for root, dirs, files in os.walk(join(TARGET, 'implementation')):
     for name in files:
       if name.endswith('.dart'):
         ReplaceInFiles([join(root, name)], replace)

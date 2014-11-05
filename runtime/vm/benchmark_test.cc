@@ -227,7 +227,7 @@ static char* ComputeDart2JSPath(const char* arg) {
   char buffer[2048];
   char* dart2js_path = strdup(File::GetCanonicalPath(arg));
   const char* compiler_path =
-      "%s%spkg%scompiler%slib%scompiler.dart";
+      "%s%ssdk%slib%s_internal%scompiler%scompiler.dart";
   const char* path_separator = File::PathSeparator();
   ASSERT(path_separator != NULL && strlen(path_separator) == 1);
   char* ptr = strrchr(dart2js_path, *path_separator);
@@ -265,34 +265,17 @@ static Dart_NativeFunction NativeResolver(Dart_Handle name,
   return &func;
 }
 
-static void SetupDart2JSPackagePath() {
-  Dart_Handle builtin_lib =
-      bin::Builtin::LoadAndCheckLibrary(bin::Builtin::kBuiltinLibrary);
-  DART_CHECK_VALID(builtin_lib);
-
-  bool worked = bin::DartUtils::SetOriginalWorkingDirectory();
-  EXPECT(worked);
-  char buffer[2048];
-  char* executable_path =
-      strdup(File::GetCanonicalPath(Benchmark::Executable()));
-  const char* packages_path = "%s%s..%spackages";
-  const char* path_separator = File::PathSeparator();
-  OS::SNPrint(buffer, 2048, packages_path,
-              executable_path, path_separator, path_separator);
-  bin::DartUtils::PrepareForScriptLoading(buffer, builtin_lib);
-}
 
 BENCHMARK(Dart2JSCompileAll) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
-  SetupDart2JSPackagePath();
   char* dart_root = ComputeDart2JSPath(Benchmark::Executable());
   char* script = NULL;
   if (dart_root != NULL) {
     Isolate* isolate = Isolate::Current();
     HANDLESCOPE(isolate);
     const char* kFormatStr =
-        "import '%s/pkg/compiler/lib/compiler.dart';";
+        "import '%s/sdk/lib/_internal/compiler/compiler.dart';";
     intptr_t len = OS::SNPrint(NULL, 0, kFormatStr, dart_root) + 1;
     script = reinterpret_cast<char*>(malloc(len));
     EXPECT(script != NULL);
@@ -303,7 +286,7 @@ BENCHMARK(Dart2JSCompileAll) {
     EXPECT_VALID(lib);
   } else {
     Dart_Handle lib = TestCase::LoadTestScript(
-        "import 'pkg/compiler/lib/compiler.dart';",
+        "import 'sdk/lib/_internal/compiler/compiler.dart';",
         reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
     EXPECT_VALID(lib);
   }

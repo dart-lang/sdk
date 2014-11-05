@@ -4,10 +4,10 @@
 
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import "package:compiler/src/elements/elements.dart";
+import "package:compiler/implementation/elements/elements.dart";
 import "mock_compiler.dart";
 import "parser_helper.dart";
-import 'package:compiler/src/elements/modelx.dart';
+import 'package:compiler/implementation/elements/modelx.dart';
 
 String TEST_0 = '''
 class Foo {

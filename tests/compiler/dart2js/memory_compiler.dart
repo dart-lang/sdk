@@ -6,7 +6,7 @@ library dart2js.test.memory_compiler;
 
 import 'memory_source_file_helper.dart';
 
-import 'package:compiler/src/dart2jslib.dart'
+import 'package:compiler/implementation/dart2jslib.dart'
        show NullSink;
 
 import 'package:compiler/compiler.dart'
@@ -14,8 +14,8 @@ import 'package:compiler/compiler.dart'
 
 import 'dart:async';
 
-import 'package:compiler/src/mirrors/source_mirrors.dart';
-import 'package:compiler/src/mirrors/analyze.dart';
+import 'package:compiler/implementation/mirrors/source_mirrors.dart';
+import 'package:compiler/implementation/mirrors/analyze.dart';
 
 class DiagnosticMessage {
   final Uri uri;

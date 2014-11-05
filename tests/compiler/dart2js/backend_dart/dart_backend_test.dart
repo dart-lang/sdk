@@ -8,10 +8,10 @@ import "package:async_helper/async_helper.dart";
 import '../mock_compiler.dart';
 import '../mock_libraries.dart';
 import 'package:compiler/compiler.dart';
-import 'package:compiler/src/dart2jslib.dart' as leg;
-import 'package:compiler/src/dart_backend/dart_backend.dart';
-import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/tree/tree.dart';
+import 'package:compiler/implementation/dart2jslib.dart' as leg;
+import 'package:compiler/implementation/dart_backend/dart_backend.dart';
+import 'package:compiler/implementation/elements/elements.dart';
+import 'package:compiler/implementation/tree/tree.dart';
 
 const ioLib = r'''
 library io;

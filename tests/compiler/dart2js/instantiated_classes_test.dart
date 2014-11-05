@@ -7,7 +7,7 @@ library instantiated_classes_test;
 import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/elements/elements.dart'
+import 'package:compiler/implementation/elements/elements.dart'
     show ClassElement;
 import 'type_test_helper.dart';
 

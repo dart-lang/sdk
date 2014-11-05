@@ -11,9 +11,9 @@ import 'package:expect/expect.dart';
 
 import 'package:compiler/compiler.dart'
        show Diagnostic;
-import 'package:compiler/src/dart2js.dart'
+import 'package:compiler/implementation/dart2js.dart'
        show exitFunc, compileFunc, compile, diagnosticHandler;
-import 'package:compiler/src/source_file_provider.dart'
+import 'package:compiler/implementation/source_file_provider.dart'
        show FormattingDiagnosticHandler;
 
 class CollectingFormattingDiagnosticHandler

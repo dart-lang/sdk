@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
-import 'package:compiler/src/resolution/class_members.dart'
+import 'package:compiler/implementation/resolution/class_members.dart'
     show MembersCreator;
 
 main() {

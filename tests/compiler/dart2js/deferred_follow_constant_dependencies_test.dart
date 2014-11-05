@@ -6,7 +6,7 @@
 
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/constants/values.dart';
+import 'package:compiler/implementation/constants/values.dart';
 import 'package:expect/expect.dart';
 import 'memory_source_file_helper.dart';
 

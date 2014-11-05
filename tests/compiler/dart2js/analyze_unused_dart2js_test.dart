@@ -6,8 +6,8 @@ library analyze_unused_dart2js;
 
 import 'package:async_helper/async_helper.dart';
 
-import 'package:compiler/src/dart2jslib.dart';
-import 'package:compiler/src/filenames.dart';
+import 'package:compiler/implementation/dart2jslib.dart';
+import 'package:compiler/implementation/filenames.dart';
 
 import 'analyze_helper.dart';
 
@@ -15,30 +15,34 @@ import 'analyze_helper.dart';
 // unused members refers to WHITE_LIST by name.
 const Map<String, List<String>> WHITE_LIST = const {
   // Helper methods for debugging should never be called from production code:
-  "lib/src/helpers/": const [" is never "],
+  "implementation/helpers/": const [" is never "],
 
   // Node.asLiteralBool is never used.
-  "lib/src/tree/nodes.dart": const [
+  "implementation/tree/nodes.dart": const [
       "The method 'asLiteralBool' is never called"],
 
   // Some things in dart_printer are not yet used
-  "lib/src/dart_backend/backend_ast_nodes.dart": const [" is never "],
+  "implementation/dart_backend/backend_ast_nodes.dart": const [" is never "],
+
+  // dart2js uses only the encoding functions, the decoding functions are used
+  // from the generated code.
+  "js_lib/shared/runtime_data.dart": const [" is never "],
 
   // MethodElement
   // TODO(20377): Why is MethodElement unused?
-  "lib/src/elements/elements.dart": const [" is never "]
+  "implementation/elements/elements.dart": const [" is never "]
 };
 
 void main() {
   var uri = currentDirectory.resolve(
-      'pkg/compiler/lib/src/use_unused_api.dart');
+      'sdk/lib/_internal/compiler/implementation/use_unused_api.dart');
   asyncTest(() => analyze([uri], WHITE_LIST,
       analyzeAll: false, checkResults: checkResults));
 }
 
 bool checkResults(Compiler compiler, CollectingDiagnosticHandler handler) {
   var helperUri = currentDirectory.resolve(
-      'pkg/compiler/lib/src/helpers/helpers.dart');
+      'sdk/lib/_internal/compiler/implementation/helpers/helpers.dart');
   void checkLive(member) {
     if (member.isFunction) {
       if (compiler.enqueuer.resolution.hasBeenResolved(member)) {

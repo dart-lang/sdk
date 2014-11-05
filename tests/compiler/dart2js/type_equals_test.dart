@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/implementation/dart_types.dart';
 import "compiler_helper.dart";
 import "parser_helper.dart";
 

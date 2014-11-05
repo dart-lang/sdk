@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 import 'parser_helper.dart';
 import 'mock_compiler.dart';
-import 'package:compiler/src/tree/tree.dart';
+import 'package:compiler/implementation/tree/tree.dart';
 
 testUnparse(String statement) {
   Node node = parseStatement(statement);

@@ -21,7 +21,8 @@
                 '"polymer/e2e_test/"])',
             '<!@(["python", "../tools/list_pkg_directories.py", '
                 '"../runtime/bin/vmservice"])',
-            '../sdk/lib/_internal',
+            '../sdk/lib/_internal/compiler',
+            '../sdk/lib/_internal/libraries.dart',
             '../site/try',
           ],
           'outputs': [
@@ -68,7 +69,8 @@
                 '"third_party"])',
             '<!@(["python", "../tools/list_pkg_directories.py", '
                 '"../third_party/pkg"])',
-            '../sdk/lib/_internal',
+            '../sdk/lib/_internal/compiler',
+            '../sdk/lib/_internal/libraries.dart',
             '<(SHARED_INTERMEDIATE_DIR)/remove_html_imports/http/lib/http.dart',
           ],
           'outputs': [

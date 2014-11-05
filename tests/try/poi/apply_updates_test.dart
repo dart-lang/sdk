@@ -13,7 +13,7 @@ import 'package:dart2js_incremental/library_updater.dart' show
     LibraryUpdater,
     Update;
 
-import 'package:compiler/src/scanner/scannerlib.dart' show
+import 'package:compiler/implementation/scanner/scannerlib.dart' show
     PartialFunctionElement;
 
 import 'compiler_test_case.dart';

@@ -7,9 +7,9 @@ import '../mock_compiler.dart';
 import 'sexpr_unstringifier.dart';
 import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
-import 'package:compiler/src/cps_ir/cps_ir_nodes_sexpr.dart';
-import 'package:compiler/src/cps_ir/optimizers.dart';
-import 'package:compiler/src/dart2jslib.dart' as dart2js;
+import 'package:compiler/implementation/cps_ir/cps_ir_nodes_sexpr.dart';
+import 'package:compiler/implementation/cps_ir/optimizers.dart';
+import 'package:compiler/implementation/dart2jslib.dart' as dart2js;
 
 // The tests in this file that ensure that sparse constant propagation on the
 // CPS IR works as expected.

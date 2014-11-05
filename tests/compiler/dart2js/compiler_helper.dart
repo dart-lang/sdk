@@ -7,16 +7,16 @@ library compiler_helper;
 import 'dart:async';
 import "package:expect/expect.dart";
 
-import 'package:compiler/src/elements/elements.dart'
+import 'package:compiler/implementation/elements/elements.dart'
        as lego;
-export 'package:compiler/src/elements/elements.dart';
+export 'package:compiler/implementation/elements/elements.dart';
 
-import 'package:compiler/src/js_backend/js_backend.dart'
+import 'package:compiler/implementation/js_backend/js_backend.dart'
        as js;
 
-import 'package:compiler/src/dart2jslib.dart'
+import 'package:compiler/implementation/dart2jslib.dart'
        as leg;
-export 'package:compiler/src/dart2jslib.dart'
+export 'package:compiler/implementation/dart2jslib.dart'
        show Constant,
             Message,
             MessageKind,
@@ -25,22 +25,22 @@ export 'package:compiler/src/dart2jslib.dart'
             SourceSpan,
             World;
 
-import 'package:compiler/src/ssa/ssa.dart' as ssa;
+import 'package:compiler/implementation/ssa/ssa.dart' as ssa;
 
-import 'package:compiler/src/types/types.dart'
+import 'package:compiler/implementation/types/types.dart'
        as types;
-export 'package:compiler/src/types/types.dart'
+export 'package:compiler/implementation/types/types.dart'
        show TypeMask;
 
-import 'package:compiler/src/util/util.dart';
-export 'package:compiler/src/util/util.dart';
+import 'package:compiler/implementation/util/util.dart';
+export 'package:compiler/implementation/util/util.dart';
 
-import 'package:compiler/src/source_file.dart';
+import 'package:compiler/implementation/source_file.dart';
 
-import 'package:compiler/src/dart2jslib.dart'
+import 'package:compiler/implementation/dart2jslib.dart'
        show Compiler;
 
-export 'package:compiler/src/tree/tree.dart';
+export 'package:compiler/implementation/tree/tree.dart';
 
 import 'mock_compiler.dart';
 export 'mock_compiler.dart';

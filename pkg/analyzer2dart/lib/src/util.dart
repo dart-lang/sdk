@@ -8,8 +8,8 @@ library analyzer2dart.util;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:compiler/src/universe/universe.dart';
-import 'package:compiler/src/source_file.dart';
+import 'package:compiler/implementation/universe/universe.dart';
+import 'package:compiler/implementation/source_file.dart';
 
 Selector createSelectorFromMethodInvocation(ArgumentList node,
                                             String name) {
