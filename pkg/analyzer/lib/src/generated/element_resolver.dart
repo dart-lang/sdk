@@ -868,7 +868,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (prefixElement is PrefixElement) {
       Element element = _resolver.nameScope.lookup(node, _definingLibrary);
       if (element == null && identifier.inSetterContext()) {
-        element = _resolver.nameScope.lookup(new ElementResolver_SyntheticIdentifier("${node.name}="), _definingLibrary);
+        element = _resolver.nameScope.lookup(new SyntheticIdentifier(
+            "${node.name}=", node),
+            _definingLibrary);
       }
       if (element == null) {
         if (identifier.inSetterContext()) {
@@ -1329,7 +1331,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     for (ImportElement importElement in _definingLibrary.imports) {
       PrefixElement prefixElement = importElement.prefix;
       if (prefixElement != null) {
-        Identifier prefixedIdentifier = new ElementResolver_SyntheticIdentifier("${prefixElement.name}.${identifier.name}");
+        Identifier prefixedIdentifier = new SyntheticIdentifier(
+            "${prefixElement.name}.${identifier.name}",
+            identifier);
         Element importedElement = nameScope.lookup(prefixedIdentifier, _definingLibrary);
         if (importedElement != null) {
           if (element == null) {
@@ -2355,7 +2359,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         // imported top-level function or top-level getter that returns a function.
         //
         String name = "${target.name}.$methodName";
-        Identifier functionName = new ElementResolver_SyntheticIdentifier(name);
+        Identifier functionName = new SyntheticIdentifier(name, methodName);
         Element element = _resolver.nameScope.lookup(functionName, _definingLibrary);
         if (element != null) {
           // TODO(brianwilkerson) This isn't a method invocation, it's a function invocation where
@@ -2487,8 +2491,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           element = setter;
         }
       }
-    } else if (element == null && (node.inSetterContext() || node.parent is CommentReference)) {
-      element = _resolver.nameScope.lookup(new ElementResolver_SyntheticIdentifier("${node.name}="), _definingLibrary);
+    } else if (element == null
+        && (node.inSetterContext() || node.parent is CommentReference)) {
+      element = _resolver.nameScope.lookup(
+          new SyntheticIdentifier("${node.name}=", node),
+          _definingLibrary);
     }
     ClassElement enclosingClass = _resolver.enclosingClass;
     if (element == null && enclosingClass != null) {
@@ -2591,23 +2598,28 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 }
 
 /**
- * Instances of the class `SyntheticIdentifier` implement an identifier that can be used to
- * look up names in the lexical scope when there is no identifier in the AST structure. There is
- * no identifier in the AST when the parser could not distinguish between a method invocation and
- * an invocation of a top-level function imported with a prefix.
+ * A `SyntheticIdentifier` is an identifier that can be used to look up names in
+ * the lexical scope when there is no identifier in the AST structure. There is
+ * no identifier in the AST when the parser could not distinguish between a
+ * method invocation and an invocation of a top-level function imported with a
+ * prefix.
  */
-class ElementResolver_SyntheticIdentifier extends Identifier {
+class SyntheticIdentifier extends Identifier {
   /**
    * The name of the synthetic identifier.
    */
   final String name;
 
   /**
-   * Initialize a newly created synthetic identifier to have the given name.
-   *
-   * @param name the name of the synthetic identifier
+   * The identifier to be highlighted in case of an error
    */
-  ElementResolver_SyntheticIdentifier(this.name);
+  final Identifier targetIdentifier;
+
+  /**
+   * Initialize a newly created synthetic identifier to have the given [name]
+   * and [targetIdentifier].
+   */
+  SyntheticIdentifier(this.name, this.targetIdentifier);
 
   @override
   accept(AstVisitor visitor) => null;
@@ -2622,6 +2634,12 @@ class ElementResolver_SyntheticIdentifier extends Identifier {
   sc.Token get endToken => null;
 
   @override
+  int get length => targetIdentifier.length;
+
+  @override
+  int get offset => targetIdentifier.offset;
+
+  @override
   int get precedence => 16;
 
   @override
@@ -2634,4 +2652,3 @@ class ElementResolver_SyntheticIdentifier extends Identifier {
   void visitChildren(AstVisitor visitor) {
   }
 }
-

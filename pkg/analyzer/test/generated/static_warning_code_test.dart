@@ -252,6 +252,24 @@ var v;''');
     assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
+  void test_ambiguousImport_withPrefix() {
+    Source source = addSource(r'''
+library test;
+import 'lib1.dart' as p;
+import 'lib2.dart' as p;
+main() {
+  p.f();
+}''');
+    addNamedSource("/lib1.dart", r'''
+library lib1;
+f() {}''');
+    addNamedSource("/lib2.dart", r'''
+library lib2;
+f() {}''');
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
+  }
+
   void test_argumentTypeNotAssignable_ambiguousClassName() {
     // See dartbug.com/19624
     Source source = addNamedSource("/lib1.dart", r'''

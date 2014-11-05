@@ -164,8 +164,6 @@ override_inheritance_no_such_method_test/03: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/04: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/05: StaticWarning # Issue 16132
 
-regress_19413_test/01: MissingStaticWarning # Issue 19424
-
 # test issue 20074
 regress_20074_test: CompileTimeError # Issue 20074
 

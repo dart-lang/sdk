@@ -7928,6 +7928,15 @@ class LibraryImportScope extends Scope {
   }
 
   @override
+  Source getSource(AstNode node) {
+    Source source = super.getSource(node);
+    if (source == null) {
+      source = _definingLibrary.definingCompilationUnit.source;
+    }
+    return source;
+  }
+
+  @override
   Element internalLookup(Identifier identifier, String name, LibraryElement referencingLibrary) {
     Element foundElement = localLookup(name, referencingLibrary);
     if (foundElement != null) {
