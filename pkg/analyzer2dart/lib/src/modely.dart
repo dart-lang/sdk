@@ -503,7 +503,7 @@ class ClassElementY extends TypeDeclarationElementY
   void forEachClassMember(f) => unsupported('forEachClassMember');
 
   @override
-  void forEachInstanceField(f, {includeSuperAndInjectedMembers}) {
+  void forEachInstanceField(f, {includeSuperAndInjectedMembers: false}) {
     unsupported('forEachInstanceField');
   }
 
@@ -515,7 +515,8 @@ class ClassElementY extends TypeDeclarationElementY
 
   @override
   void forEachMember(f,
-                     {includeBackendMembers, includeSuperAndInjectedMembers}) {
+                     {includeBackendMembers: false,
+                      includeSuperAndInjectedMembers: false}) {
     unsupported('forEachMember');
   }
 
