@@ -14,14 +14,14 @@ import 'package:expect/expect.dart' show
 import 'package:async_helper/async_helper.dart' show
     asyncTest;
 
-import 'package:compiler/implementation/dart2jslib.dart' show
+import 'package:compiler/src/dart2jslib.dart' show
     Compiler,
     Script;
 
-import 'package:compiler/implementation/source_file.dart' show
+import 'package:compiler/src/source_file.dart' show
     StringSourceFile;
 
-import 'package:compiler/implementation/elements/elements.dart' show
+import 'package:compiler/src/elements/elements.dart' show
     Element,
     LibraryElement;
 

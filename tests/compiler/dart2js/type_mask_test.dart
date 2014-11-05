@@ -6,7 +6,7 @@ import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
-import "package:compiler/implementation/types/types.dart";
+import "package:compiler/src/types/types.dart";
 
 const String CODE = """
 class A {}

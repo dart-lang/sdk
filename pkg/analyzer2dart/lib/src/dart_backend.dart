@@ -4,9 +4,9 @@
 
 library analyzer2dart.dart_backend;
 
-import 'package:compiler/implementation/elements/elements.dart';
-import 'package:compiler/implementation/dart_backend/dart_backend.dart';
-import 'package:compiler/implementation/dart2jslib.dart';
+import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/dart_backend/dart_backend.dart';
+import 'package:compiler/src/dart2jslib.dart';
 
 import 'driver.dart';
 import 'converted_world.dart';

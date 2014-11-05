@@ -15,8 +15,6 @@ lib/typed_data/dart2js/typed_data_dart2js: CompileTimeError # Issue 16522
 lib/web_audio/dart2js/web_audio_dart2js: CompileTimeError # Issue 16522
 lib/web_gl/dart2js/web_gl_dart2js: CompileTimeError # Issue 16522
 lib/web_sql/dart2js/web_sql_dart2js: CompileTimeError # Issue 16522
- 
-lib/_internal/compiler/samples/compile_loop/compile_loop: CompileTimeError  # Issue 16524
 
 # The async_await compiler isn't part of the repo so it shouldn't be tested by
 # repo tests.

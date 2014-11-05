@@ -7,22 +7,22 @@
 
 library sexpr_unstringifier;
 
-import 'package:compiler/implementation/constants/expressions.dart'
+import 'package:compiler/src/constants/expressions.dart'
     show PrimitiveConstantExpression;
-import 'package:compiler/implementation/constants/values.dart';
-import 'package:compiler/implementation/dart2jslib.dart' as dart2js
+import 'package:compiler/src/constants/values.dart';
+import 'package:compiler/src/dart2jslib.dart' as dart2js
     show MessageKind;
-import 'package:compiler/implementation/dart_types.dart' as dart_types
+import 'package:compiler/src/dart_types.dart' as dart_types
     show DartType;
-import 'package:compiler/implementation/elements/elements.dart'
+import 'package:compiler/src/elements/elements.dart'
    show Entity, Element, Elements, Local, TypeVariableElement, ErroneousElement,
          TypeDeclarationElement, ExecutableElement;
-import 'package:compiler/implementation/elements/modelx.dart'
+import 'package:compiler/src/elements/modelx.dart'
     show ErroneousElementX, TypeVariableElementX;
-import 'package:compiler/implementation/tree/tree.dart' show LiteralDartString;
-import 'package:compiler/implementation/universe/universe.dart'
+import 'package:compiler/src/tree/tree.dart' show LiteralDartString;
+import 'package:compiler/src/universe/universe.dart'
     show Selector, SelectorKind;
-import 'package:compiler/implementation/cps_ir/cps_ir_nodes.dart';
+import 'package:compiler/src/cps_ir/cps_ir_nodes.dart';
 
 /// Used whenever a node constructed by [SExpressionUnstringifier] needs a
 /// named entity.

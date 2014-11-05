@@ -75,7 +75,7 @@
             # This dependency is redundant for now, as this directory is
             # implicitly part of the dependencies for dart-sdk/README.
             '<!@(["python", "../../tools/list_files.py", "\\.dart$", '
-                 '"../../sdk/lib/_internal/compiler/samples/jsonify"])',
+                 '"../../pkg/compiler/samples/jsonify"])',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/sdk.json',
@@ -87,7 +87,8 @@
 
             '-Dlist_all_libraries=true',
             '-DoutputJson=true',
-            '../../sdk/lib/_internal/compiler/samples/jsonify/jsonify.dart',
+            '--package-root=<(PRODUCT_DIR)/packages/',
+            '../../pkg/compiler/samples/jsonify/jsonify.dart',
             '<(SHARED_INTERMEDIATE_DIR)/sdk.json',
           ],
         },

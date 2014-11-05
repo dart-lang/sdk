@@ -4,8 +4,8 @@
 
 library type_mask_test_helper;
 
-import 'package:compiler/implementation/types/types.dart';
-import 'package:compiler/implementation/dart2jslib.dart'
+import 'package:compiler/src/types/types.dart';
+import 'package:compiler/src/dart2jslib.dart'
     show Compiler;
 
 TypeMask simplify(TypeMask mask, Compiler compiler) {

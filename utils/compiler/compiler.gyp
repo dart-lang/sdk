@@ -35,7 +35,7 @@
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             'create_snapshot.dart',
             '--output_dir=<(SHARED_INTERMEDIATE_DIR)',
-            '--dart2js_main=sdk/lib/_internal/compiler/implementation/dart2js.dart',
+            '--dart2js_main=pkg/compiler/lib/src/dart2js.dart',
             '--docgen_main=pkg/docgen/bin/docgen.dart',
             '--package_root=<(PRODUCT_DIR)/packages/',
           ],
@@ -44,7 +44,7 @@
     },
     # Other targets depend on dart2js files, but have to many inputs,
     # which causes issues on some platforms.
-    # This target lists all the files in sdk/lib/_internal/compiler,
+    # This target lists all the files in pkg/compiler,
     # and creates a single dart2js_files.stamp
     {
       'target_name': 'dart2js_files_stamp',
@@ -55,7 +55,7 @@
           'inputs': [
             '../../tools/create_timestamp_file.py',
             '<!@(["python", "../../tools/list_files.py", "\\.dart$",'
-                ' "../../sdk/lib/_internal/compiler"])',
+                ' "../../pkg/compiler/lib"])',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/dart2js_files.stamp',

@@ -7,8 +7,8 @@ library subtype_test;
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'type_test_helper.dart';
-import 'package:compiler/implementation/dart_types.dart';
-import "package:compiler/implementation/elements/elements.dart"
+import 'package:compiler/src/dart_types.dart';
+import "package:compiler/src/elements/elements.dart"
        show Element, ClassElement, MemberSignature, PublicName;
 
 void main() {

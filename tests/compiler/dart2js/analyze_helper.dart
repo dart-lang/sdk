@@ -7,12 +7,12 @@ library analyze_helper;
 import 'dart:async';
 import 'dart:io';
 import 'package:compiler/compiler.dart' as api;
-import 'package:compiler/implementation/apiimpl.dart';
-import 'package:compiler/implementation/dart2jslib.dart'
+import 'package:compiler/src/apiimpl.dart';
+import 'package:compiler/src/dart2jslib.dart'
     hide Compiler;
-import 'package:compiler/implementation/filenames.dart';
-import 'package:compiler/implementation/source_file_provider.dart';
-import 'package:compiler/implementation/util/uri_extras.dart';
+import 'package:compiler/src/filenames.dart';
+import 'package:compiler/src/source_file_provider.dart';
+import 'package:compiler/src/util/uri_extras.dart';
 
 /**
  * Map of whitelisted warnings and errors.
@@ -142,7 +142,7 @@ Future analyze(List<Uri> uriList,
   print("""
 
 
-=== 
+===
 === NOTE: If this test fails, update [WHITE_LIST] in $testFileName
 ===
 
@@ -150,6 +150,8 @@ Future analyze(List<Uri> uriList,
 """);
 
   var libraryRoot = currentDirectory.resolve('sdk/');
+  var packageRoot =
+      currentDirectory.resolveUri(new Uri.file('${Platform.packageRoot}/'));
   var provider = new CompilerSourceFileProvider();
   var handler = new CollectingDiagnosticHandler(whiteList, provider);
   var options = <String>['--analyze-only', '--categories=Client,Server'];
@@ -158,17 +160,17 @@ Future analyze(List<Uri> uriList,
       provider.readStringFromUri,
       null,
       handler.diagnosticHandler,
-      libraryRoot, libraryRoot,
+      libraryRoot, packageRoot,
       options,
       {});
   String MESSAGE = """
 
 
-=== 
+===
 === ERROR: Unexpected result of analysis.
-=== 
+===
 === Please update [WHITE_LIST] in $testFileName
-=== 
+===
 """;
 
   void onCompletion(_) {

@@ -12,43 +12,44 @@ import 'dart:convert' show
 
 import 'package:compiler/compiler.dart' as api;
 
-import 'package:compiler/implementation/dart2jslib.dart' show
+import 'package:compiler/src/dart2jslib.dart' show
     Compiler,
     Script;
 
-import 'package:compiler/implementation/elements/elements.dart' show
+import 'package:compiler/src/elements/elements.dart' show
     Element,
     FunctionElement,
     LibraryElement,
     ScopeContainerElement;
 
-import 'package:compiler/implementation/scanner/scannerlib.dart' show
+import 'package:compiler/src/scanner/scannerlib.dart' show
     EOF_TOKEN,
     PartialClassElement,
     PartialElement,
     PartialFunctionElement,
     Token;
 
-import 'package:compiler/implementation/source_file.dart' show
+import 'package:compiler/src/source_file.dart' show
     StringSourceFile;
 
-import 'package:compiler/implementation/tree/tree.dart' show
+import 'package:compiler/src/tree/tree.dart' show
     ClassNode,
     FunctionExpression,
     NodeList;
 
-import 'package:compiler/implementation/js/js.dart' show
+import 'package:compiler/src/js/js.dart' show
     js;
 
-import 'package:compiler/implementation/js/js.dart' as jsAst;
+import 'package:compiler/src/js/js.dart' as jsAst;
 
-import 'package:compiler/implementation/js_emitter/js_emitter.dart' show
+import 'package:compiler/src/js_emitter/js_emitter.dart' show
     CodeEmitterTask,
     MemberInfo;
 
-import 'package:compiler/js_lib/shared/embedded_names.dart' as embeddedNames;
+import 'package:_internal/compiler/js_lib/shared/embedded_names.dart'
+    as embeddedNames;
 
-import 'package:compiler/implementation/js_backend/js_backend.dart' show
+import 'package:compiler/src/js_backend/js_backend.dart' show
     JavaScriptBackend,
     Namer;
 

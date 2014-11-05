@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import 'package:compiler/implementation/elements/elements.dart';
+import 'package:compiler/src/elements/elements.dart';
 import 'parser_helper.dart';
 
-import 'package:compiler/implementation/elements/modelx.dart'
+import 'package:compiler/src/elements/modelx.dart'
     show ErroneousElementX;
 
-import 'package:compiler/implementation/dart2jslib.dart'
+import 'package:compiler/src/dart2jslib.dart'
     show MessageKind;
 
 void main() {

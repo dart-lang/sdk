@@ -9,7 +9,7 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:compiler/implementation/cps_ir/cps_ir_nodes_sexpr.dart';
+import 'package:compiler/src/cps_ir/cps_ir_nodes_sexpr.dart';
 import 'package:unittest/unittest.dart';
 
 import '../lib/src/closed_world.dart';

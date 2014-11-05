@@ -1,0 +1,64 @@
+#!/bin/bash
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+function follow_links() {
+  file="$1"
+  while [ -h "$file" ]; do
+    # On Mac OS, readlink -f doesn't work.
+    file="$(readlink "$file")"
+  done
+  echo "$file"
+}
+
+# Unlike $0, $BASH_SOURCE points to the absolute path of this file.
+PROG_NAME="$(follow_links "$BASH_SOURCE")"
+
+# Handle the case where dart-sdk/bin has been symlinked to.
+BIN_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
+
+SDK_DIR="$(cd "${BIN_DIR}/.." ; pwd -P)"
+
+DART="$BIN_DIR/dart"
+
+SNAPSHOT_DIR="$BIN_DIR/snapshots"
+SNAPSHOT="$SNAPSHOT_DIR/dart2js.dart.snapshot"
+
+unset EXTRA_OPTIONS
+declare -a EXTRA_OPTIONS
+
+if test -t 1; then
+  # Stdout is a terminal.
+  if test 8 -le `tput colors`; then
+    # Stdout has at least 8 colors, so enable colors.
+    EXTRA_OPTIONS+=('--enable-diagnostic-colors')
+  fi
+fi
+
+unset EXTRA_VM_OPTIONS
+declare -a EXTRA_VM_OPTIONS
+
+if test -f "$SNAPSHOT"; then
+  EXTRA_OPTIONS+=("--library-root=$SDK_DIR")
+fi
+
+# Tell the VM to grow the heap more aggressively. This should only
+# be necessary temporarily until the VM is better at detecting how
+# applications use memory.
+# TODO(ahe): Remove this option (http://dartbug.com/6495).
+EXTRA_VM_OPTIONS[${#EXTRA_VM_OPTIONS[@]}]='--heap_growth_rate=512'
+
+case $0 in
+  *_developer)
+    EXTRA_VM_OPTIONS+=('--checked')
+    ;;
+esac
+
+# We allow extra vm options to be passed in through an environment variable.
+if [[ $DART_VM_OPTIONS ]]; then
+  read -a OPTIONS <<< "$DART_VM_OPTIONS"
+  EXTRA_VM_OPTIONS+=("${OPTIONS[@]}")
+fi
+
+exec "$DART" "${EXTRA_VM_OPTIONS[@]}" "$SNAPSHOT" "${EXTRA_OPTIONS[@]}" "$@"

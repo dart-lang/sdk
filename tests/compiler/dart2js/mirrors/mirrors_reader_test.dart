@@ -12,9 +12,9 @@ import "package:async_helper/async_helper.dart";
 
 import "mirrors_test_helper.dart";
 import "../../../lib/mirrors/mirrors_reader.dart";
-import "package:compiler/implementation/util/util.dart";
-import "package:compiler/implementation/mirrors/dart2js_mirrors.dart";
-import "package:compiler/implementation/mirrors/source_mirrors.dart";
+import "package:compiler/src/util/util.dart";
+import "package:compiler/src/mirrors/dart2js_mirrors.dart";
+import "package:compiler/src/mirrors/source_mirrors.dart";
 
 class SourceMirrorsReader extends MirrorsReader {
   final Dart2JsMirrorSystem mirrorSystem;

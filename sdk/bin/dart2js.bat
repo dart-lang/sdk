@@ -17,19 +17,13 @@ for %%i in ("%BIN_DIR%\..\") do set SDK_DIR=%%~fi
 rem Remove trailing backslash if there is one
 IF %SDK_DIR:~-1%==\ set SDK_DIR=%SDK_DIR:~0,-1%
 
-set DART2JS=%SDK_DIR%\lib\_internal\compiler\implementation\dart2js.dart
 set DART=%BIN_DIR%\dart
-set SNAPSHOT=%BIN_DIR%\snapshots\dart2js.dart.snapshot
 
 set EXTRA_OPTIONS=
 set EXTRA_VM_OPTIONS=
 
 if _%DART2JS_DEVELOPER_MODE%_ == _1_ (
   set EXTRA_VM_OPTIONS=%EXTRA_VM_OPTIONS% --checked
-)
-
-if exist "%SNAPSHOT%" (
-  set EXTRA_OPTIONS=%EXTRA_OPTIONS% "--library-root=%SDK_DIR%"
 )
 
 rem See comments regarding options below in dart2js shell script.
@@ -40,11 +34,22 @@ if not "_%DART_VM_OPTIONS%_" == "__" (
   set EXTRA_VM_OPTIONS=%EXTRA_VM_OPTIONS% %DART_VM_OPTIONS%
 )
 
-if exist "%SNAPSHOT%" (
-  "%DART%" %EXTRA_VM_OPTIONS% "%SNAPSHOT%" %EXTRA_OPTIONS% %*
-) else (
-  "%DART%" %EXTRA_VM_OPTIONS% "%DART2JS%" %EXTRA_OPTIONS% %*
-)
+rem Get absolute full name for DART_ROOT.
+for %%i in ("%SDK_DIR%\..\") do set DART_ROOT=%%~fi
+
+rem Remove trailing backslash if there is one
+if %DART_ROOT:~-1%==\ set DART_ROOT=%DART_ROOT:~0,-1%
+
+set DART2JS=%DART_ROOT%\pkg\compiler\lib\src\dart2js.dart
+
+rem DART_CONFIGURATION defaults to ReleaseIA32
+if "%DART_CONFIGURATION%"=="" set DART_CONFIGURATION=ReleaseIA32
+
+set BUILD_DIR=%DART_ROOT%\build\%DART_CONFIGURATION%
+
+set PACKAGE_ROOT=%BUILD_DIR%\packages
+
+"%DART%" %EXTRA_VM_OPTIONS% "--package-root=%PACKAGE_ROOT%" "%DART2JS%" %EXTRA_OPTIONS% %*
 
 endlocal
 

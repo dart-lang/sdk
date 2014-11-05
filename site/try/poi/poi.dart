@@ -19,22 +19,22 @@ import 'package:dart2js_incremental/dart2js_incremental.dart' show
 import 'package:dart2js_incremental/library_updater.dart' show
     LibraryUpdater;
 
-import 'package:compiler/implementation/source_file_provider.dart' show
+import 'package:compiler/src/source_file_provider.dart' show
     FormattingDiagnosticHandler;
 
 import 'package:compiler/compiler.dart' as api;
 
-import 'package:compiler/implementation/dart2jslib.dart' show
+import 'package:compiler/src/dart2jslib.dart' show
     Compiler,
     CompilerTask,
     Enqueuer,
     QueueFilter,
     WorkItem;
 
-import 'package:compiler/implementation/elements/visitor.dart' show
+import 'package:compiler/src/elements/visitor.dart' show
     ElementVisitor;
 
-import 'package:compiler/implementation/elements/elements.dart' show
+import 'package:compiler/src/elements/elements.dart' show
     AbstractFieldElement,
     ClassElement,
     CompilationUnitElement,
@@ -44,15 +44,15 @@ import 'package:compiler/implementation/elements/elements.dart' show
     LibraryElement,
     ScopeContainerElement;
 
-import 'package:compiler/implementation/elements/modelx.dart' as modelx;
+import 'package:compiler/src/elements/modelx.dart' as modelx;
 
-import 'package:compiler/implementation/elements/modelx.dart' show
+import 'package:compiler/src/elements/modelx.dart' show
     DeclarationSite;
 
-import 'package:compiler/implementation/dart_types.dart' show
+import 'package:compiler/src/dart_types.dart' show
     DartType;
 
-import 'package:compiler/implementation/scanner/scannerlib.dart' show
+import 'package:compiler/src/scanner/scannerlib.dart' show
     EOF_TOKEN,
     IDENTIFIER_TOKEN,
     KEYWORD_TOKEN,
@@ -60,7 +60,7 @@ import 'package:compiler/implementation/scanner/scannerlib.dart' show
     PartialElement,
     Token;
 
-import 'package:compiler/implementation/js/js.dart' show
+import 'package:compiler/src/js/js.dart' show
     js;
 
 /// Enabled by the option --enable-dart-mind.  Controls if this program should
