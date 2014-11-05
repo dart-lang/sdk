@@ -6313,19 +6313,15 @@ class LoadOptimizer : public ValueObject {
         }
 
         // For object allocation forward initial values of the fields to
-        // subsequent loads. For simplicity we ignore escaping objects.
-        //
-        // The reason to ignore escaping objects is that final fields are
+        // subsequent loads. For skip final fields.  Final fields are
         // initialized in constructor that potentially can be not inlined into
         // the function that we are currently optimizing. However at the same
         // time we assume that values of the final fields can be forwarded
         // across side-effects. If we add 'null' as known values for these
         // fields here we will incorrectly propagate this null across
         // constructor invocation.
-        // TODO(vegorov): record null-values at least for not final fields of
-        // escaping object.
         AllocateObjectInstr* alloc = instr->AsAllocateObject();
-        if ((alloc != NULL) && !aliased_set_->CanBeAliased(alloc)) {
+        if ((alloc != NULL)) {
           for (Value* use = alloc->input_use_list();
                use != NULL;
                use = use->next_use()) {
@@ -6338,20 +6334,27 @@ class LoadOptimizer : public ValueObject {
             if (load != NULL) {
               // Found a load. Initialize current value of the field to null for
               // normal fields, or with type arguments.
-              gen->Add(load->place_id());
-              if (out_values == NULL) out_values = CreateBlockOutValues();
 
+              // Forward for all fields for non-escaping objects and only
+              // non-final fields and type arguments for escaping ones.
+              if (aliased_set_->CanBeAliased(alloc) &&
+                  (load->field() != NULL) &&
+                  load->field()->is_final()) {
+                continue;
+              }
+
+              Definition* forward_def = graph_->constant_null();
               if (alloc->ArgumentCount() > 0) {
                 ASSERT(alloc->ArgumentCount() == 1);
                 intptr_t type_args_offset =
                     alloc->cls().type_arguments_field_offset();
                 if (load->offset_in_bytes() == type_args_offset) {
-                  (*out_values)[load->place_id()] =
-                      alloc->PushArgumentAt(0)->value()->definition();
-                  continue;
+                  forward_def = alloc->PushArgumentAt(0)->value()->definition();
                 }
               }
-              (*out_values)[load->place_id()] = graph_->constant_null();
+              gen->Add(load->place_id());
+              if (out_values == NULL) out_values = CreateBlockOutValues();
+              (*out_values)[load->place_id()] = forward_def;
             }
           }
           continue;
