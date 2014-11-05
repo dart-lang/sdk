@@ -63,12 +63,8 @@
             '../../sdk/bin/dart.bat',
             '../../sdk/bin/dart2js',
             '../../sdk/bin/dart2js.bat',
-            # TODO(alanknight): The docgen name is deprecated in favour of
-            # dartdocgen, and should be removed eventually.
             '../../sdk/bin/docgen',
-            '../../sdk/bin/dartdocgen',
             '../../sdk/bin/docgen.bat',
-            '../../sdk/bin/dartdocgen.bat',
             '../../tools/only_in_release_mode.py',
             '<(PRODUCT_DIR)/dart-sdk/README',
             '<(SHARED_INTERMEDIATE_DIR)/pkg_files.stamp',
@@ -81,7 +77,7 @@
             '../../tools/only_in_release_mode.py',
             '<@(_outputs)',
             '--',
-            '<(PRODUCT_DIR)/dart-sdk/bin/dartdocgen<(script_suffix)',
+            '<(PRODUCT_DIR)/dart-sdk/bin/docgen<(script_suffix)',
             '--out=<(PRODUCT_DIR)/api_docs/docgen',
             '--include-sdk',
             '--no-include-dependent-packages',
@@ -94,7 +90,7 @@
             '--exclude-lib=try',
             '../../pkg'
           ],
-          'message': 'Running dartdocgen: <(_action)',
+          'message': 'Running docgen: <(_action)',
         },
       ],
     }

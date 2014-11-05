@@ -62,8 +62,8 @@ void main(List<String> arguments) {
  * Print help if we are passed the help option or invalid arguments.
  */
 void _printHelpAndExit() {
-  print(_initArgParser().usage);
-  print('Usage: dartdocgen [OPTIONS] fooDir/barFile');
+  print(_initArgParser().getUsage());
+  print('Usage: dart docgen.dart [OPTIONS] fooDir/barFile');
   exit(0);
 }
 
