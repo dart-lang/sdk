@@ -475,6 +475,12 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
   }
 
   @override
+  ConcreteType allocateLoopPhi(Node node, Local variable,
+                               ConcreteType inputType) {
+    return inputType;
+  }
+
+  @override
   ConcreteType computeLUB(ConcreteType firstType, ConcreteType secondType) {
     if (firstType == null) {
       return secondType;

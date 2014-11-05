@@ -998,6 +998,85 @@ main() {
 ''');
   }
 
+  test_noArgument_named_hasDefault() {
+    verifyNoTestUnitErrors = false;
+    indexTestUnit(r'''
+test({a: 42}) {
+  print(a);
+}
+main() {
+  test();
+}
+''');
+    _createRefactoring('test(');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+main() {
+  print(42);
+}
+''');
+  }
+
+  test_noArgument_positional_hasDefault() {
+    verifyNoTestUnitErrors = false;
+    indexTestUnit(r'''
+test([a = 42]) {
+  print(a);
+}
+main() {
+  test();
+}
+''');
+    _createRefactoring('test(');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+main() {
+  print(42);
+}
+''');
+  }
+
+  test_noArgument_positional_noDefault() {
+    verifyNoTestUnitErrors = false;
+    indexTestUnit(r'''
+test([a]) {
+  print(a);
+}
+main() {
+  test();
+}
+''');
+    _createRefactoring('test(');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+main() {
+  print(null);
+}
+''');
+  }
+
+  test_noArgument_required() {
+    verifyNoTestUnitErrors = false;
+    indexTestUnit(r'''
+test(a) {
+  print(a);
+}
+main() {
+  test();
+}
+''');
+    _createRefactoring('test();');
+    // error
+    return refactoring.checkAllConditions().then((status) {
+      var location = new SourceRange(findOffset('test();'), 'test()'.length);
+      assertRefactoringStatus(
+          status,
+          RefactoringProblemSeverity.ERROR,
+          expectedMessage: 'No argument for the parameter "a".',
+          expectedContextRange: location);
+    });
+  }
+
   test_reference_expressionBody() {
     indexTestUnit(r'''
 String message() => 'Hello, World!';

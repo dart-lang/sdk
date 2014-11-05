@@ -1074,15 +1074,40 @@ void FlowGraphCompiler::CompileGraph() {
     CopyParameters();
   }
 
+  if (function.IsClosureFunction() && !flow_graph().IsCompiledForOsr()) {
+    // Load context from the closure object (first argument).
+    LocalScope* scope = parsed_function().node_sequence()->scope();
+    LocalVariable* closure_parameter = scope->VariableAt(0);
+    __ ldr(CTX, Address(FP, closure_parameter->index() * kWordSize));
+    __ ldr(CTX, FieldAddress(CTX, Closure::context_offset()));
+  }
+
   // In unoptimized code, initialize (non-argument) stack allocated slots to
   // null.
-  if (!is_optimizing() && (num_locals > 0)) {
+  if (!is_optimizing()) {
+    ASSERT(num_locals > 0);  // There is always at least context_var.
     __ Comment("Initialize spill slots");
     const intptr_t slot_base = parsed_function().first_stack_local_index();
-    __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+    const intptr_t context_index =
+        parsed_function().current_context_var()->index();
+    if (num_locals > 1) {
+      __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+    }
     for (intptr_t i = 0; i < num_locals; ++i) {
       // Subtract index i (locals lie at lower addresses than FP).
-      __ StoreToOffset(kWord, R0, FP, (slot_base - i) * kWordSize);
+      if (((slot_base - i) == context_index)) {
+        if (function.IsClosureFunction()) {
+          __ StoreToOffset(kWord, CTX, FP, (slot_base - i) * kWordSize);
+        } else {
+          const Context& empty_context = Context::ZoneHandle(
+              isolate(), isolate()->object_store()->empty_context());
+          __ LoadObject(R1, empty_context);
+          __ StoreToOffset(kWord, R1, FP, (slot_base - i) * kWordSize);
+        }
+      } else {
+        ASSERT(num_locals > 1);
+        __ StoreToOffset(kWord, R0, FP, (slot_base - i) * kWordSize);
+      }
     }
   }
 

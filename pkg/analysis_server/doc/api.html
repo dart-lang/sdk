@@ -2106,7 +2106,29 @@ dt.typeDefinition {
           in a completion suggestion.
         </p>
         
-      <dl><dt class="value">ARGUMENT_LIST</dt><dt class="value">CLASS</dt><dt class="value">CLASS_ALIAS</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">FIELD</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">IMPORT</dt><dt class="value">KEYWORD</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY_PREFIX</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">METHOD_NAME</dt><dt class="value">NAMED_ARGUMENT</dt><dt class="value">OPTIONAL_ARGUMENT</dt><dt class="value">PARAMETER</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt></dl></dd><dt class="typeDefinition"><a name="type_Element">Element: object</a></dt><dd>
+      <dl><dt class="value">ARGUMENT_LIST</dt><dt class="value">IMPORT</dt><dt class="value">IDENTIFIER</dt><dd>
+            
+            <p>
+              The element identifier should be inserted at the completion location.
+              For example "someMethod" in import 'myLib.dart' show someMethod; .
+              For suggestions of this kind, the element attribute is defined 
+              and the completion field is the element's identifier.
+            </p>
+          </dd><dt class="value">INVOCATION</dt><dd>
+            
+            <p>
+              The element is being invoked at the completion location.
+              For example, "someMethod" in x.someMethod(); .
+              For suggestions of this kind, the element attribute is defined 
+              and the completion field is the element's identifier.
+            </p>
+          </dd><dt class="value">KEYWORD</dt><dd>
+            
+            <p>
+              A keyword is being suggested.
+              For suggestions of this kind, the completion is the keyword.
+            </p>
+          </dd><dt class="value">NAMED_ARGUMENT</dt><dt class="value">OPTIONAL_ARGUMENT</dt><dt class="value">PARAMETER</dt></dl></dd><dt class="typeDefinition"><a name="type_Element">Element: object</a></dt><dd>
         <p>
           Information about an element (something that can be declared
           in code).

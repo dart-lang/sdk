@@ -72,6 +72,8 @@ void useConstant(constants.ConstantValue constant,
 
 void useNode(tree.Node node) {
   node
+    ..asAsyncModifier()
+    ..asAwait()
     ..asBreakStatement()
     ..asCascade()
     ..asCatchBlock()
@@ -110,7 +112,8 @@ void useNode(tree.Node node) {
     ..asTypeAnnotation()
     ..asTypeVariable()
     ..asTypedef()
-    ..asWhile();
+    ..asWhile()
+    ..asYield();
 }
 
 void useUtil(util.Link link) {
@@ -233,7 +236,8 @@ useIr(cps_ir_nodes_sexpr.SExpressionStringifier stringifier,
     ..buildBooleanLiteral(null)
     ..buildNullLiteral()
     ..buildStringLiteral(null)
-    ..buildDynamicGet(null, null);
+    ..buildDynamicGet(null, null)
+    ..buildSuperGet(null);
 }
 
 useCompiler(dart2jslib.Compiler compiler) {

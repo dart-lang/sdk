@@ -13,11 +13,11 @@ import 'package:petitparser/petitparser.dart';
 
 /**
  * This defines a grammar for ICU MessageFormat syntax. Usage is
- *       new ICUParser.message.parse(<string>).value;
+ *       new IcuParser.message.parse(<string>).value;
  * The "parse" method will return a Success or Failure object which responds
  * to "value".
  */
-class ICUParser {
+class IcuParser {
   get openCurly => char("{");
 
   get closeCurly => char("}");
@@ -69,7 +69,7 @@ class ICUParser {
       gender.map((values) => new Gender.from(values.first, values[3], null));
   get selectClause => (id & openCurly & interiorText & closeCurly).map(
       (x) => [x.first, x[2]]);
-  get generalSelect => preface & selectLiteral & comma & 
+  get generalSelect => preface & selectLiteral & comma &
       selectClause.plus() & closeCurly;
   get intlSelect => generalSelect.map(
       (values) => new Select.from(values.first, values[3], null));
@@ -79,7 +79,7 @@ class ICUParser {
   get contents => pluralOrGenderOrSelect | parameter | messageText;
   get simpleText => (nonIcuMessageText | parameter | openCurly).plus();
   get empty => epsilon().map((_) => '');
-  
+
   get parameter => (openCurly & id & closeCurly).map(
       (param) => new VariableSubstitution.named(param[1], null));
 
@@ -91,17 +91,16 @@ class ICUParser {
       Message.from(chunk, null));
 
   /**
-   * Represents an ordinary message, i.e. not a plural/gender/select, although 
+   * Represents an ordinary message, i.e. not a plural/gender/select, although
    * it may have parameters.
    */
   get nonIcuMessage => (simpleText | empty).map((chunk) =>
-      Message.from(chunk, null));  
-  
+      Message.from(chunk, null));
+
   get stuff => (pluralOrGenderOrSelect | empty).map(
       (chunk) => Message.from(chunk, null));
-  
 
-  ICUParser() {
+  IcuParser() {
     // There is a cycle here, so we need the explicit set to avoid
     // infinite recursion.
     interiorText.set(contents.plus() | empty);

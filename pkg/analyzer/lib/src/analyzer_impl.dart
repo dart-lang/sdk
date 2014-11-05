@@ -24,6 +24,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 
 /**
  * The maximum number of sources for which AST structures should be kept in the cache.
@@ -67,7 +68,8 @@ class AnalyzerImpl {
   final HashMap<Source, AnalysisErrorInfo> sourceErrorsMap =
       new HashMap<Source, AnalysisErrorInfo>();
 
-  AnalyzerImpl(this.sourcePath, this.options, this.startTime) {
+  AnalyzerImpl(String sourcePath, this.options, this.startTime)
+      : sourcePath = _normalizeSourcePath(sourcePath) {
     if (sdk == null) {
       sdk = new DirectoryBasedDartSdk(new JavaFile(options.dartSdkPath));
     }
@@ -109,6 +111,13 @@ class AnalyzerImpl {
 
     // prepare context
     prepareAnalysisContext(sourceFile, librarySource);
+  }
+
+  /**
+   * Convert [sourcePath] into an absolute path.
+   */
+  static String _normalizeSourcePath(String sourcePath) {
+    return new File(sourcePath).absolute.path;
   }
 
   /// The sync version of analysis.
@@ -411,24 +420,30 @@ class StdLogger extends Logger {
   StdLogger(this.log);
 
   @override
-  void logError(String message) {
+  void logError(String message, [CaughtException exception]) {
     stderr.writeln(message);
-  }
-
-  @override
-  void logError2(String message, Exception exception) {
-    stderr.writeln(message);
-  }
-
-  @override
-  void logInformation(String message) {
-    if (log) {
-      stdout.writeln(message);
+    if (exception != null) {
+      stderr.writeln(exception);
     }
   }
 
   @override
-  void logInformation2(String message, Exception exception) {
+  void logError2(String message, Object exception) {
+    stderr.writeln(message);
+  }
+
+  @override
+  void logInformation(String message, [CaughtException exception]) {
+    if (log) {
+      stdout.writeln(message);
+      if (exception != null) {
+        stderr.writeln(exception);
+      }
+    }
+  }
+
+  @override
+  void logInformation2(String message, Object exception) {
     if (log) {
       stdout.writeln(message);
     }

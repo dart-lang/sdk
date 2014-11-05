@@ -15,6 +15,7 @@ import '../tree/tree.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
     show BaseClassElementX,
+         BaseFunctionElementX,
          ConstructorElementX,
          ErroneousElementX,
          FieldElementX,

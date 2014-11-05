@@ -47,36 +47,17 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   __ EnterFrame(0);
 
-  __ LoadIsolate(EAX);
+  __ LoadIsolate(ESI);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  __ movl(Address(EAX, Isolate::top_exit_frame_info_offset()), ESP);
-
-#if defined(DEBUG)
-  if (FLAG_verify_incoming_contexts) {
-    Label ok;
-    // Check that the isolate's saved ctx is null.
-    const Immediate& raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    __ cmpl(Address(EAX, Isolate::top_context_offset()), raw_null);
-    __ j(EQUAL, &ok, Assembler::kNearJump);
-    __ Stop("Found non-null incoming top context: call to runtime stub");
-    __ Bind(&ok);
-  }
-#endif
-
-  // Save current Context pointer into Isolate structure.
-  __ movl(Address(EAX, Isolate::top_context_offset()), CTX);
-
-  // Cache Isolate pointer into CTX while executing runtime code.
-  __ movl(CTX, EAX);
+  __ movl(Address(ESI, Isolate::top_exit_frame_info_offset()), ESP);
 
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
-    __ movl(EAX, Address(CTX, Isolate::vm_tag_offset()));
-    __ cmpl(EAX, Immediate(VMTag::kDartTagId));
+    __ cmpl(Address(ESI, Isolate::vm_tag_offset()),
+            Immediate(VMTag::kDartTagId));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -84,7 +65,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing VM code.
-  __ movl(Address(CTX, Isolate::vm_tag_offset()), ECX);
+  __ movl(Address(ESI, Isolate::vm_tag_offset()), ECX);
 
   // Reserve space for arguments and align frame before entering C++ world.
   __ AddImmediate(ESP, Immediate(-INT32_SIZEOF(NativeArguments)));
@@ -93,7 +74,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call runtime.
-  __ movl(Address(ESP, isolate_offset), CTX);  // Set isolate in NativeArgs.
+  __ movl(Address(ESP, isolate_offset), ESI);  // Set isolate in NativeArgs.
   // There are no runtime calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
   __ movl(Address(ESP, argc_tag_offset), EDX);  // Set argc in NativeArguments.
@@ -103,23 +84,12 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ movl(Address(ESP, retval_offset), EAX);  // Set retval in NativeArguments.
   __ call(ECX);
 
-  // Mark that the isolate is executing Dart code.
-  __ movl(Address(CTX, Isolate::vm_tag_offset()),
+  // Mark that the isolate is executing Dart code. ESI is callee saved.
+  __ movl(Address(ESI, Isolate::vm_tag_offset()),
           Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
-  __ movl(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
-
-  // Load Context pointer from Isolate structure into ECX.
-  __ movl(ECX, Address(CTX, Isolate::top_context_offset()));
-
-  // Reset Context pointer in Isolate structure.
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ movl(Address(CTX, Isolate::top_context_offset()), raw_null);
-
-  // Cache Context pointer into CTX while executing Dart code.
-  __ movl(CTX, ECX);
+  __ movl(Address(ESI, Isolate::top_exit_frame_info_offset()), Immediate(0));
 
   __ LeaveFrame();
   __ ret();
@@ -167,37 +137,17 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   __ EnterFrame(0);
 
-  __ LoadIsolate(EDI);
+  __ LoadIsolate(ESI);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to dart VM code.
-  __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), ESP);
-
-#if defined(DEBUG)
-  if (FLAG_verify_incoming_contexts) {
-    Label ok;
-    // Check that the isolate's saved ctx is null.
-    const Immediate& raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    __ cmpl(Address(EDI, Isolate::top_context_offset()), raw_null);
-    __ j(EQUAL, &ok, Assembler::kNearJump);
-    __ Stop("Found non-null incoming top context: "
-            "call to native c function stub");
-    __ Bind(&ok);
-  }
-#endif
-
-  // Save current Context pointer into Isolate structure.
-  __ movl(Address(EDI, Isolate::top_context_offset()), CTX);
-
-  // Cache Isolate pointer into CTX while executing native code.
-  __ movl(CTX, EDI);
+  __ movl(Address(ESI, Isolate::top_exit_frame_info_offset()), ESP);
 
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
-    __ movl(EDI, Address(CTX, Isolate::vm_tag_offset()));
-    __ cmpl(EDI, Immediate(VMTag::kDartTagId));
+    __ cmpl(Address(ESI, Isolate::vm_tag_offset()),
+            Immediate(VMTag::kDartTagId));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -205,7 +155,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing Native code.
-  __ movl(Address(CTX, Isolate::vm_tag_offset()), ECX);
+  __ movl(Address(ESI, Isolate::vm_tag_offset()), ECX);
 
   // Reserve space for the native arguments structure, the outgoing parameters
   // (pointer to the native arguments structure, the C function entry point)
@@ -217,7 +167,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call native function.
-  __ movl(Address(ESP, isolate_offset), CTX);  // Set isolate in NativeArgs.
+  __ movl(Address(ESP, isolate_offset), ESI);  // Set isolate in NativeArgs.
   __ movl(Address(ESP, argc_tag_offset), EDX);  // Set argc in NativeArguments.
   __ movl(Address(ESP, argv_offset), EAX);  // Set argv in NativeArguments.
   __ leal(EAX, Address(EBP, 2 * kWordSize));  // Compute return value addr.
@@ -228,23 +178,12 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ movl(Address(ESP, kWordSize), ECX);  // Function to call.
   __ call(&NativeEntry::NativeCallWrapperLabel());
 
-  // Mark that the isolate is executing Dart code.
-  __ movl(Address(CTX, Isolate::vm_tag_offset()),
+  // Mark that the isolate is executing Dart code. ESI is callee saved.
+  __ movl(Address(ESI, Isolate::vm_tag_offset()),
           Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
-  __ movl(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
-
-  // Load Context pointer from Isolate structure into EDI.
-  __ movl(EDI, Address(CTX, Isolate::top_context_offset()));
-
-  // Reset Context pointer in Isolate structure.
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ movl(Address(CTX, Isolate::top_context_offset()), raw_null);
-
-  // Cache Context pointer into CTX while executing Dart code.
-  __ movl(CTX, EDI);
+  __ movl(Address(ESI, Isolate::top_exit_frame_info_offset()), Immediate(0));
 
   __ LeaveFrame();
   __ ret();
@@ -271,37 +210,17 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   __ EnterFrame(0);
 
-  __ LoadIsolate(EDI);
+  __ LoadIsolate(ESI);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to dart VM code.
-  __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), ESP);
-
-#if defined(DEBUG)
-  if (FLAG_verify_incoming_contexts) {
-    Label ok;
-    // Check that the isolate's saved ctx is null.
-    const Immediate& raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    __ cmpl(Address(EDI, Isolate::top_context_offset()), raw_null);
-    __ j(EQUAL, &ok, Assembler::kNearJump);
-    __ Stop("Found non-null incoming top context: "
-            "call to bootstrap c function stub");
-    __ Bind(&ok);
-  }
-#endif
-
-  // Save current Context pointer into Isolate structure.
-  __ movl(Address(EDI, Isolate::top_context_offset()), CTX);
-
-  // Cache Isolate pointer into CTX while executing native code.
-  __ movl(CTX, EDI);
+  __ movl(Address(ESI, Isolate::top_exit_frame_info_offset()), ESP);
 
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
-    __ movl(EDI, Address(CTX, Isolate::vm_tag_offset()));
-    __ cmpl(EDI, Immediate(VMTag::kDartTagId));
+    __ cmpl(Address(ESI, Isolate::vm_tag_offset()),
+            Immediate(VMTag::kDartTagId));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
@@ -309,7 +228,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing Native code.
-  __ movl(Address(CTX, Isolate::vm_tag_offset()), ECX);
+  __ movl(Address(ESI, Isolate::vm_tag_offset()), ECX);
 
   // Reserve space for the native arguments structure, the outgoing parameter
   // (pointer to the native arguments structure) and align frame before
@@ -320,7 +239,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call native function.
-  __ movl(Address(ESP, isolate_offset), CTX);  // Set isolate in NativeArgs.
+  __ movl(Address(ESP, isolate_offset), ESI);  // Set isolate in NativeArgs.
   __ movl(Address(ESP, argc_tag_offset), EDX);  // Set argc in NativeArguments.
   __ movl(Address(ESP, argv_offset), EAX);  // Set argv in NativeArguments.
   __ leal(EAX, Address(EBP, 2 * kWordSize));  // Compute return value addr.
@@ -329,23 +248,12 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ movl(Address(ESP, 0), EAX);  // Pass the pointer to the NativeArguments.
   __ call(ECX);
 
-  // Mark that the isolate is executing Dart code.
-  __ movl(Address(CTX, Isolate::vm_tag_offset()),
+  // Mark that the isolate is executing Dart code. ESI is callee saved.
+  __ movl(Address(ESI, Isolate::vm_tag_offset()),
           Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
-  __ movl(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
-
-  // Load Context pointer from Isolate structure into EDI.
-  __ movl(EDI, Address(CTX, Isolate::top_context_offset()));
-
-  // Reset Context pointer in Isolate structure.
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ movl(Address(CTX, Isolate::top_context_offset()), raw_null);
-
-  // Cache Context pointer into CTX while executing Dart code.
-  __ movl(CTX, EDI);
+  __ movl(Address(ESI, Isolate::top_exit_frame_info_offset()), Immediate(0));
 
   __ LeaveFrame();
   __ ret();
@@ -779,13 +687,11 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 //   ESP + 4 : entrypoint of the dart function to call.
 //   ESP + 8 : arguments descriptor array.
 //   ESP + 12 : arguments array.
-//   ESP + 16 : new context containing the current isolate pointer.
 // Uses EAX, EDX, ECX, EDI as temporary registers.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   const intptr_t kEntryPointOffset = 2 * kWordSize;
   const intptr_t kArgumentsDescOffset = 3 * kWordSize;
   const intptr_t kArgumentsOffset = 4 * kWordSize;
-  const intptr_t kNewContextOffset = 5 * kWordSize;
 
   // Save frame pointer coming in.
   __ EnterFrame(0);
@@ -795,25 +701,14 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ pushl(ESI);
   __ pushl(EDI);
 
-  // The new Context structure contains a pointer to the current Isolate
-  // structure. Cache the Context pointer in the CTX register so that it is
-  // available in generated code and calls to Isolate::Current() need not be
-  // done. The assumption is that this register will never be clobbered by
-  // compiled or runtime stub code.
-
-  // Cache the new Context pointer into CTX while executing dart code.
-  __ movl(CTX, Address(EBP, kNewContextOffset));
-  __ movl(CTX, Address(CTX, VMHandles::kOffsetOfRawPtrInHandle));
-
-  __ LoadIsolate(EDI);
+  __ LoadIsolate(ESI);
 
   // Save the current VMTag on the stack.
-  ASSERT(kSavedVMTagSlotFromEntryFp == -4);
-  __ movl(ECX, Address(EDI, Isolate::vm_tag_offset()));
+  __ movl(ECX, Address(ESI, Isolate::vm_tag_offset()));
   __ pushl(ECX);
 
   // Mark that the isolate is executing Dart code.
-  __ movl(Address(EDI, Isolate::vm_tag_offset()),
+  __ movl(Address(ESI, Isolate::vm_tag_offset()),
           Immediate(VMTag::kDartTagId));
 
   // Save the top exit frame info. Use EDX as a temporary register.
@@ -821,32 +716,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // The constant kExitLinkSlotFromEntryFp must be kept in sync with the
   // code below.
   ASSERT(kExitLinkSlotFromEntryFp == -5);
-  __ movl(EDX, Address(EDI, Isolate::top_exit_frame_info_offset()));
+  __ movl(EDX, Address(ESI, Isolate::top_exit_frame_info_offset()));
   __ pushl(EDX);
-  __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), Immediate(0));
-
-  // Save the old Context pointer. Use ECX as a temporary register.
-  // Note that VisitObjectPointers will find this saved Context pointer during
-  // GC marking, since it traverses any information between SP and
-  // FP - kExitLinkSlotFromEntryFp.
-  // EntryFrame::SavedContext reads the context saved in this frame.
-  // The constant kSavedContextSlotFromEntryFp must be kept in sync with
-  // the code below.
-  ASSERT(kSavedContextSlotFromEntryFp == -6);
-  __ movl(ECX, Address(EDI, Isolate::top_context_offset()));
-  __ pushl(ECX);
-
-  // TODO(turnidge): This code should probably be emitted all the time
-  // on all architectures but I am leaving it under DEBUG/flag for
-  // now.
-#if defined(DEBUG)
-  if (FLAG_verify_incoming_contexts) {
-    // Clear Context pointer in Isolate structure.
-    const Immediate& raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    __ movl(Address(EDI, Isolate::top_context_offset()), raw_null);
-  }
-#endif
+  __ movl(Address(ESI, Isolate::top_exit_frame_info_offset()), Immediate(0));
 
   // Load arguments descriptor array into EDX.
   __ movl(EDX, Address(EBP, kArgumentsDescOffset));
@@ -887,17 +759,12 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Get rid of arguments pushed on the stack.
   __ leal(ESP, Address(ESP, EDX, TIMES_2, 0));  // EDX is a Smi.
 
-  // Load Isolate pointer into CTX.
-  __ LoadIsolate(CTX);
-
-  // Restore the saved Context pointer into the Isolate structure.
-  __ popl(Address(CTX, Isolate::top_context_offset()));
-
   // Restore the saved top exit frame info back into the Isolate structure.
-  __ popl(Address(CTX, Isolate::top_exit_frame_info_offset()));
+  __ LoadIsolate(ESI);
+  __ popl(Address(ESI, Isolate::top_exit_frame_info_offset()));
 
   // Restore the current VMTag from the stack.
-  __ popl(Address(CTX, Isolate::vm_tag_offset()));
+  __ popl(Address(ESI, Isolate::vm_tag_offset()));
 
   // Restore C++ ABI callee-saved registers.
   __ popl(EDI);

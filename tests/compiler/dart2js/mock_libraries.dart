@@ -42,6 +42,7 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
   'Function': 'class Function {}',
   'identical': 'bool identical(Object a, Object b) { return true; }',
   'int': 'abstract class int extends num { }',
+  'Iterable': 'abstract class Iterable {}',
   'LinkedHashMap': r'''
       class LinkedHashMap {
         factory LinkedHashMap._empty() => null;
@@ -355,6 +356,11 @@ const Map<String, String> DEFAULT_ISOLATE_HELPER_LIBRARY =
   '_currentIsolate': 'var _currentIsolate;',
   '_callInIsolate': 'var _callInIsolate;',
   '_WorkerBase': 'class _WorkerBase {}',
+};
+
+const Map<String, String> DEFAULT_ASYNC_LIBRARY = const <String, String>{
+  'Future': 'class Future<T> {}',
+  'Stream': 'class Stream<T> {}',
 };
 
 const Map<String, String> DEFAULT_MIRRORS_LIBRARY = const <String, String>{

@@ -506,7 +506,7 @@ const Range* RangeAnalysis::GetSmiRange(Value* value) const {
     // range possible for this value.
     // We don't need to handle kMintCid here because all external mints
     // (e.g. results of loads or function call) can be used only after they
-    // pass through UnboxIntegerInstr which is considered as mint-definition
+    // pass through UnboxInt64Instr which is considered as mint-definition
     // and will have a range assigned to it.
     // Note: that we can't return NULL here because it is used as lattice's
     // bottom element to indicate that the range was not computed *yet*.
@@ -1647,8 +1647,8 @@ bool IntegerInstructionSelector::IsPotentialUint32Definition(Definition* def) {
   // TODO(johnmccutchan): Consider Smi operations, to avoid unnecessary tagging
   // & untagged of intermediate results.
   // TODO(johnmccutchan): Consider phis.
-  return def->IsBoxInteger()   ||   // BoxMint.
-         def->IsUnboxInteger() ||   // UnboxMint.
+  return def->IsBoxInt64() ||
+         def->IsUnboxInt64() ||
          def->IsBinaryMintOp() ||
          def->IsShiftMintOp()  ||
          def->IsUnaryMintOp();
@@ -1740,10 +1740,9 @@ bool IntegerInstructionSelector::AllUsesAreUint32Narrowing(Value* list_head) {
 
 bool IntegerInstructionSelector::CanBecomeUint32(Definition* def) {
   ASSERT(IsPotentialUint32Definition(def));
-  if (def->IsBoxInteger()) {
-    // If a BoxInteger's input is a candidate, the box is a candidate.
-    BoxIntegerInstr* box = def->AsBoxInteger();
-    Definition* box_input = box->value()->definition();
+  if (def->IsBoxInt64()) {
+    // If a BoxInt64's input is a candidate, the box is a candidate.
+    Definition* box_input = def->AsBoxInt64()->value()->definition();
     return selected_uint32_defs_->Contains(box_input->ssa_temp_index());
   }
   // A right shift with an input outside of Uint32 range cannot be converted
@@ -1818,14 +1817,13 @@ Definition* IntegerInstructionSelector::ConstructReplacementFor(
     Value* right = op->right()->CopyWithType();
     intptr_t deopt_id = op->DeoptimizationTarget();
     return new(I) BinaryUint32OpInstr(op_kind, left, right, deopt_id);
-  } else if (def->IsBoxInteger()) {
-    BoxIntegerInstr* box = def->AsBoxInteger();
-    Value* value = box->value()->CopyWithType();
+  } else if (def->IsBoxInt64()) {
+    Value* value = def->AsBoxInt64()->value()->CopyWithType();
     return new(I) BoxUint32Instr(value);
-  } else if (def->IsUnboxInteger()) {
-    UnboxIntegerInstr* unbox = def->AsUnboxInteger();
+  } else if (def->IsUnboxInt64()) {
+    UnboxInstr* unbox = def->AsUnboxInt64();
     Value* value = unbox->value()->CopyWithType();
-    intptr_t deopt_id = unbox->deopt_id();
+    intptr_t deopt_id = unbox->DeoptimizationTarget();
     return new(I) UnboxUint32Instr(value, deopt_id);
   } else if (def->IsUnaryMintOp()) {
     UnaryMintOpInstr* op = def->AsUnaryMintOp();
@@ -2908,7 +2906,7 @@ void ShiftMintOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 }
 
 
-void BoxInt32Instr::InferRange(RangeAnalysis* analysis, Range* range) {
+void BoxIntegerInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   const Range* value_range = value()->definition()->range();
   if (!Range::IsUnknown(value_range)) {
     *range = *value_range;
@@ -2936,6 +2934,17 @@ void UnboxInt32Instr::InferRange(RangeAnalysis* analysis, Range* range) {
 }
 
 
+void UnboxInt64Instr::InferRange(RangeAnalysis* analysis, Range* range) {
+  const Range* value_range = value()->definition()->range();
+  if (value_range != NULL) {
+    *range = *value_range;
+  } else if (!value()->definition()->IsMintDefinition() &&
+             (value()->definition()->Type()->ToCid() != kSmiCid)) {
+    *range = Range::Full(RangeBoundary::kRangeBoundaryInt64);
+  }
+}
+
+
 void UnboxedIntConverterInstr::InferRange(RangeAnalysis* analysis,
                                           Range* range) {
   ASSERT((from() == kUnboxedInt32) ||
@@ -2959,28 +2968,6 @@ void UnboxedIntConverterInstr::InferRange(RangeAnalysis* analysis,
     if (to() == kUnboxedInt32) {
       range->Clamp(RangeBoundary::kRangeBoundaryInt32);
     }
-  }
-}
-
-
-void BoxIntegerInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  const Range* input_range = value()->definition()->range();
-  if (input_range != NULL) {
-    bool is_smi = input_range->Fits(RangeBoundary::kRangeBoundarySmi);
-    set_is_smi(is_smi);
-    // The output range is the same as the input range.
-    *range = *input_range;
-  }
-}
-
-
-void UnboxIntegerInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  const Range* value_range = value()->definition()->range();
-  if (value_range != NULL) {
-    *range = *value_range;
-  } else if (!value()->definition()->IsMintDefinition() &&
-             (value()->definition()->Type()->ToCid() != kSmiCid)) {
-    *range = Range::Full(RangeBoundary::kRangeBoundaryInt64);
   }
 }
 

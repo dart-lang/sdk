@@ -167,8 +167,24 @@ class SsaSimplifyInterceptors extends HBaseVisitor
   bool visitInterceptor(HInterceptor node) {
     if (node.isConstant()) return false;
 
-    // If the interceptor is used by multiple instructions, specialize
-    // it with a set of classes it intercepts.
+    // Specialize the interceptor with set of classes it intercepts, considering
+    // all uses.  (The specialized interceptor has a shorter dispatch chain).
+    // This operation applies only where the interceptor is used to dispatch a
+    // method.  Other uses, e.g. as an ordinary argument or a HIs check use the
+    // most general interceptor.
+    //
+    // TODO(sra): Take into account the receiver type at each call.  e.g:
+    //
+    //     (a) => a.length + a.hashCode
+    //
+    // Currently we use the most general interceptor since all intercepted types
+    // implement `hashCode`. But in this example, `a.hashCode` is only reached
+    // if `a.length` succeeds, which is indicated by the hashCode receiver being
+    // a HTypeKnown instruction.
+
+    int useCount(HInstruction user, HInstruction used) =>
+        user.inputs.where((input) => input == used).length;
+
     Set<ClassElement> interceptedClasses;
     JavaScriptBackend backend = compiler.backend;
     HInstruction dominator = findDominator(node.usedBy);
@@ -176,7 +192,8 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     // selector of that instruction.
     if (dominator is HInvokeDynamic &&
         dominator.isCallOnInterceptor(compiler) &&
-        node == dominator.receiver) {
+        node == dominator.receiver &&
+        useCount(dominator, node) == 1) {
       interceptedClasses =
             backend.getInterceptedClassesOn(dominator.selector.name);
 
@@ -202,7 +219,14 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       for (HInstruction user in node.usedBy) {
         if (user is HInvokeDynamic &&
             user.isCallOnInterceptor(compiler) &&
-            node == user.receiver) {
+            node == user.receiver &&
+            useCount(user, node) == 1) {
+          interceptedClasses.addAll(
+              backend.getInterceptedClassesOn(user.selector.name));
+        } else if (user is HInvokeSuper &&
+                   user.isCallOnInterceptor(compiler) &&
+                   node == user.receiver &&
+                   useCount(user, node) == 1) {
           interceptedClasses.addAll(
               backend.getInterceptedClassesOn(user.selector.name));
         } else {
@@ -215,6 +239,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     }
 
     HInstruction receiver = node.receiver;
+
     if (canUseSelfForInterceptor(receiver, interceptedClasses)) {
       return rewriteToUseSelfAsInterceptor(node, receiver);
     }

@@ -276,9 +276,9 @@ class _CommandLineParser {
   /**
    * Generates a string displaying usage information for the defined options.
    *
-   * See [ArgParser.getUsage()].
+   * See [ArgParser.usage].
    */
-  String getUsage() => _parser.getUsage();
+  String getUsage() => _parser.usage;
 
   /**
    * Parses [args], a list of command-line arguments, matches them against the

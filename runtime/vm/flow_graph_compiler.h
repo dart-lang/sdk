@@ -473,6 +473,8 @@ class FlowGraphCompiler : public ValueObject {
   const Class& float64x2_class() const { return float64x2_class_; }
   const Class& int32x4_class() const { return int32x4_class_; }
 
+  const Class& BoxClassFor(Representation rep);
+
   void SaveLiveRegisters(LocationSummary* locs);
   void RestoreLiveRegisters(LocationSummary* locs);
 

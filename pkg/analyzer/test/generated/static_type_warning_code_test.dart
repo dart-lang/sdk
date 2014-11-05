@@ -220,6 +220,17 @@ f([String x = 0]) {
     verify([source]);
   }
 
+  void test_invalidAssignment_dynamic() {
+    Source source = addSource(r'''
+main() {
+  dynamic = 1;
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    verify([source]);
+  }
+
   void test_invalidAssignment_instanceVariable() {
     Source source = addSource(r'''
 class A {

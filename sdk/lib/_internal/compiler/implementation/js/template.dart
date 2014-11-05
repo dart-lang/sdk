@@ -10,11 +10,6 @@ class TemplateManager {
 
   TemplateManager();
 
-  // TODO(18886): Remove this function once the memory-leak in the VM is fixed.
-  void clear() {
-    expressionTemplates.clear();
-    statementTemplates.clear();
-  }
 
   Template lookupExpressionTemplate(String source) {
     return expressionTemplates[source];

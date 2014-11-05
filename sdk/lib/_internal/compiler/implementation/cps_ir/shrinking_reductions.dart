@@ -371,8 +371,10 @@ class _ParentVisitor extends RecursiveVisitor {
   }
 
   processLiteralMap(LiteralMap node) {
-    node.values.forEach((Reference ref) => ref.parent = node);
-    node.keys.forEach((Reference ref) => ref.parent = node);
+    node.entries.forEach((LiteralMapEntry entry) {
+      entry.key.parent = node;
+      entry.value.parent = node;
+    });
   }
 
   processCreateFunction(CreateFunction node) {

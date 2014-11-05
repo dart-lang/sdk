@@ -31,6 +31,8 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
 
   Source get currentSource => element.source;
 
+  analyzer.LibraryElement get currentLibrary => element.library;
+
   ir.Node visit(AstNode node) => node.accept(this);
 
   @override
@@ -304,6 +306,25 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   }
 
   @override
+  ir.Node visitListLiteral(ListLiteral node) {
+    dart2js.InterfaceType type = converter.convertType(node.staticType);
+    // TODO(johnniwinther): Use `build` instead of `(e) => build(e)` when issue
+    // 18630 has been resolved.
+    Iterable<ir.Primitive> values = node.elements.map((e) => build(e));
+    return irBuilder.buildListLiteral(type, values);
+  }
+
+  @override
+  ir.Node visitMapLiteral(MapLiteral node) {
+    dart2js.InterfaceType type = converter.convertType(node.staticType);
+    return irBuilder.buildMapLiteral(
+        type,
+        node.entries.map((e) => e.key),
+        node.entries.map((e) => e.value),
+        build);
+  }
+
+  @override
   visitForStatement(ForStatement node) {
     // TODO(johnniwinther): Support `for` as a jump target.
     SubbuildFunction buildInitializer;
@@ -316,5 +337,69 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
                        buildCondition: subbuild(node.condition),
                        buildBody: subbuild(node.body),
                        buildUpdate: subbuildSequence(node.updaters));
+  }
+
+  @override
+  visitWhileStatement(WhileStatement node) {
+    // TODO(johnniwinther): Support `while` as a jump target.
+    irBuilder.buildWhile(buildCondition: subbuild(node.condition),
+                         buildBody: subbuild(node.body));
+  }
+
+  @override
+  visitDeclaredIdentifier(DeclaredIdentifier node) {
+    giveUp(node, "Unexpected node: DeclaredIdentifier");
+  }
+
+  @override
+  visitForEachStatement(ForEachStatement node) {
+    SubbuildFunction buildVariableDeclaration;
+    dart2js.Element variableElement;
+    Selector variableSelector;
+    if (node.identifier != null) {
+       AccessSemantics accessSemantics =
+           node.identifier.accept(ACCESS_SEMANTICS_VISITOR);
+       if (accessSemantics.kind == AccessKind.DYNAMIC) {
+         variableSelector = new Selector.setter(
+             node.identifier.name, converter.convertElement(currentLibrary));
+       } else if (accessSemantics.element != null) {
+         variableElement = converter.convertElement(accessSemantics.element);
+         variableSelector = new Selector.setter(
+             variableElement.name,
+             converter.convertElement(accessSemantics.element.library));
+       } else {
+         giveUp(node, 'For-in of unresolved variable: $accessSemantics');
+       }
+    } else {
+      assert(invariant(
+          node, node.loopVariable != null, "Loop variable expected"));
+      variableElement = converter.convertElement(node.loopVariable.element);
+      buildVariableDeclaration = (IrBuilder builder) {
+        builder.declareLocalVariable(variableElement);
+      };
+    }
+    // TODO(johnniwinther): Support `for-in` as a jump target.
+    irBuilder.buildForIn(
+        buildExpression: subbuild(node.iterable),
+        buildVariableDeclaration: buildVariableDeclaration,
+        variableElement: variableElement,
+        variableSelector: variableSelector,
+        buildBody: subbuild(node.body));
+  }
+  @override
+  ir.Primitive visitIsExpression(IsExpression node) {
+    return irBuilder.buildTypeOperator(
+        visit(node.expression),
+        converter.convertType(node.type.type),
+        isTypeTest: true,
+        isNotCheck: node.notOperator != null);
+  }
+
+  @override
+  ir.Primitive visitAsExpression(AsExpression node) {
+    return irBuilder.buildTypeOperator(
+        visit(node.expression),
+        converter.convertType(node.type.type),
+        isTypeTest: false);
   }
 }

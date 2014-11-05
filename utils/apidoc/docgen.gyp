@@ -57,7 +57,8 @@
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '<(SHARED_INTERMEDIATE_DIR)/utils_wrapper.dart.snapshot',
             '<!@(["python", "../../tools/list_files.py", "\\.(css|ico|js|json|png|sh|txt|yaml|py)$", ".", "../../sdk/lib/_internal/dartdoc"])',
-            '<!@(["python", "../../tools/list_files.py", "\\.dart$", ".", "../../sdk/lib", "../../runtime/lib", "../../runtime/bin"])',
+	    # We implicitly depend on the sdk/lib and vm runtime files by depending on the dart binary above.
+            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "."])',
             '../../sdk/bin/dart',
             '../../sdk/bin/dart.bat',
             '../../sdk/bin/dart2js',

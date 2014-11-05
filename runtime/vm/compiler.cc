@@ -761,9 +761,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
     RawLocalVarDescriptors::VarInfo var_info;
     var_descriptors.GetInfo(i, &var_info);
     const int8_t kind = var_info.kind();
-    if (kind == RawLocalVarDescriptors::kSavedEntryContext) {
-      OS::Print("  saved caller's CTX reg offset %d\n", var_info.index());
-    } else if (kind == RawLocalVarDescriptors::kSavedCurrentContext) {
+    if (kind == RawLocalVarDescriptors::kSavedCurrentContext) {
       OS::Print("  saved current CTX reg offset %d\n", var_info.index());
     } else {
       if (kind == RawLocalVarDescriptors::kContextLevel) {
@@ -1049,8 +1047,9 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     ParsedFunction* parsed_function = new ParsedFunction(isolate, func);
     parsed_function->SetNodeSequence(fragment);
     parsed_function->set_default_parameter_values(Object::null_array());
-    parsed_function->EnsureExpressionTemp();
-    fragment->scope()->AddVariable(parsed_function->expression_temp_var());
+    fragment->scope()->AddVariable(parsed_function->EnsureExpressionTemp());
+    fragment->scope()->AddVariable(
+        parsed_function->current_context_var());
     parsed_function->AllocateVariables();
 
     // Non-optimized code generator.

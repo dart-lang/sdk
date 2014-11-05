@@ -163,6 +163,16 @@ String padRight(String source, int length) {
   return result.toString();
 }
 
+/// Pads [source] to [length] by adding [char]s at the beginning.
+///
+/// If [char] is `null`, it defaults to a space.
+String padLeft(String source, int length, [String char]) {
+  if (char == null) char = ' ';
+  if (source.length >= length) return source;
+
+  return char * (length - source.length) + source;
+}
+
 /// Returns a labelled sentence fragment starting with [name] listing the
 /// elements [iter].
 ///
@@ -708,8 +718,17 @@ String niceDuration(Duration duration) {
   var result = duration.inMinutes > 0 ? "${duration.inMinutes}:" : "";
 
   var s = duration.inSeconds % 59;
-  var ms = (duration.inMilliseconds % 1000) ~/ 100;
-  return result + "$s.${ms}s";
+  var ms = duration.inMilliseconds % 1000;
+
+  // If we're using verbose logging, be more verbose but more accurate when
+  // reporting timing information.
+  if (log.verbosity.isLevelVisible(log.Level.FINE)) {
+    ms = padLeft(ms.toString(), 3, '0');
+  } else {
+    ms ~/= 100;
+  }
+
+  return "$result$s.${ms}s";
 }
 
 /// Decodes a URL-encoded string.

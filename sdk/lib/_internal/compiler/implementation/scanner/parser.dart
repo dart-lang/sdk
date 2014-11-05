@@ -41,6 +41,8 @@ class FormalParameterType {
 class Parser {
   final Listener listener;
   bool mayParseFunctionExpressions = true;
+  bool yieldIsKeyword = false;
+  bool awaitIsKeyword = false;
 
   Parser(this.listener);
 
@@ -864,7 +866,12 @@ class Parser {
     Token token = parseIdentifier(name);
 
     token = parseFormalParametersOpt(token);
+    bool previousYieldIsKeyword = yieldIsKeyword;
+    bool previousAwaitIsKeyword = awaitIsKeyword;
+    token = parseAsyncModifier(token);
     token = parseFunctionBody(token, false, externalModifier != null);
+    yieldIsKeyword = previousYieldIsKeyword;
+    awaitIsKeyword = previousAwaitIsKeyword;
     listener.endTopLevelMethod(start, getOrSet, token);
     return token.next;
   }
@@ -1206,12 +1213,17 @@ class Parser {
     token = parseQualifiedRestOpt(token);
     token = parseFormalParametersOpt(token);
     token = parseInitializersOpt(token);
+    bool previousYieldIsKeyword = yieldIsKeyword;
+    bool previousAwaitIsKeyword = awaitIsKeyword;
+    token = parseAsyncModifier(token);
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
     } else {
       token = parseFunctionBody(
           token, false, staticModifier == null || externalModifier != null);
     }
+    yieldIsKeyword = previousYieldIsKeyword;
+    awaitIsKeyword = previousAwaitIsKeyword;
     listener.endMethod(getOrSet, start, token);
     return token.next;
   }
@@ -1234,6 +1246,9 @@ class Parser {
     token = token.next; // Skip 'factory'.
     token = parseConstructorReference(token);
     token = parseFormalParameters(token);
+    bool previousYieldIsKeyword = yieldIsKeyword;
+    bool previousAwaitIsKeyword = awaitIsKeyword;
+    token = parseAsyncModifier(token);
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
     } else {
@@ -1277,21 +1292,31 @@ class Parser {
     listener.endFunctionName(token);
     token = parseFormalParametersOpt(token);
     token = parseInitializersOpt(token);
+    bool previousYieldIsKeyword = yieldIsKeyword;
+    bool previousAwaitIsKeyword = awaitIsKeyword;
+    token = parseAsyncModifier(token);
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
     } else {
       token = parseFunctionBody(token, false, true);
     }
+    yieldIsKeyword = previousYieldIsKeyword;
+    awaitIsKeyword = previousAwaitIsKeyword;
     listener.endFunction(getOrSet, token);
     return token.next;
   }
 
-  Token parseUnamedFunction(Token token) {
-    listener.beginUnamedFunction(token);
+  Token parseUnnamedFunction(Token token) {
+    listener.beginUnnamedFunction(token);
     token = parseFormalParameters(token);
+    bool previousYieldIsKeyword = yieldIsKeyword;
+    bool previousAwaitIsKeyword = awaitIsKeyword;
+    token = parseAsyncModifier(token);
     bool isBlock = optional('{', token);
     token = parseFunctionBody(token, true, false);
-    listener.endUnamedFunction(token);
+    yieldIsKeyword = previousYieldIsKeyword;
+    awaitIsKeyword = previousAwaitIsKeyword;
+    listener.endUnnamedFunction(token);
     return isBlock ? token.next : token;
   }
 
@@ -1311,8 +1336,13 @@ class Parser {
     listener.endFunctionName(token);
     token = parseFormalParameters(token);
     listener.handleNoInitializers();
+    bool previousYieldIsKeyword = yieldIsKeyword;
+    bool previousAwaitIsKeyword = awaitIsKeyword;
+    token = parseAsyncModifier(token);
     bool isBlock = optional('{', token);
     token = parseFunctionBody(token, true, false);
+    yieldIsKeyword = previousYieldIsKeyword;
+    awaitIsKeyword = previousAwaitIsKeyword;
     listener.endFunction(null, token);
     return isBlock ? token.next : token;
   }
@@ -1378,6 +1408,48 @@ class Parser {
     return token;
   }
 
+  /// `async*` and `sync*` are parsed a two tokens, [token] and [star]. This
+  /// method checks that there is no whitespace between [token] and [star].
+  void checkStarredModifier(Token token, Token star, String name) {
+    if (star.charOffset > token.charOffset + token.charCount) {
+      listener.reportError(new TokenPair(token, star),
+          MessageKind.INVALID_STARRED_KEYWORD, {'keyword': name});
+    }
+  }
+
+  Token parseAsyncModifier(Token token) {
+    Token async;
+    Token star;
+    awaitIsKeyword = false;
+    yieldIsKeyword = false;
+    if (optional('async', token)) {
+      awaitIsKeyword = true;
+      async = token;
+      token = token.next;
+      if (optional('*', token)) {
+        yieldIsKeyword = true;
+        star = token;
+        token = token.next;
+        checkStarredModifier(async, star, 'async*');
+      }
+    } else if (optional('sync', token)) {
+      async = token;
+      token = token.next;
+      if (optional('*', token)) {
+        yieldIsKeyword = true;
+        star = token;
+        token = token.next;
+
+        checkStarredModifier(async, star, 'sync*');
+      } else {
+        listener.reportError(async,
+            MessageKind.INVALID_SYNC_MODIFIER);
+      }
+    }
+    listener.handleAsyncModifier(async, star);
+    return token;
+  }
+
   Token parseStatement(Token token) {
     final value = token.stringValue;
     if (identical(token.kind, IDENTIFIER_TOKEN)) {
@@ -1390,8 +1462,14 @@ class Parser {
       return parseVariablesDeclaration(token);
     } else if (identical(value, 'if')) {
       return parseIfStatement(token);
+    } else if (awaitIsKeyword && identical(value, 'await')) {
+      if (identical(token.next.stringValue, 'for')) {
+        return parseForStatement(token, token.next);
+      } else {
+        return parseExpressionStatement(token);
+      }
     } else if (identical(value, 'for')) {
-      return parseForStatement(token);
+      return parseForStatement(null, token);
     } else if (identical(value, 'rethrow')) {
       return parseRethrowStatement(token);
     } else if (identical(value, 'throw') && optional(';', token.next)) {
@@ -1415,6 +1493,8 @@ class Parser {
       return parseAssertStatement(token);
     } else if (identical(value, ';')) {
       return parseEmptyStatement(token);
+    } else if (yieldIsKeyword && identical(value, 'yield')) {
+      return parseYieldStatement(token);
     } else if (identical(value, 'const')) {
       return parseExpressionStatementOrConstDeclaration(token);
     } else if (token.isIdentifier()) {
@@ -1423,6 +1503,23 @@ class Parser {
       return parseExpressionStatement(token);
     }
   }
+
+  Token parseYieldStatement(Token token) {
+    Token begin = token;
+    listener.beginYieldStatement(begin);
+    assert(identical('yield', token.stringValue));
+    token = token.next;
+    Token starToken;
+    if (optional('*', token)) {
+      starToken = token;
+      token = token.next;
+      checkStarredModifier(begin, starToken, 'yield*');
+    }
+    token = parseExpression(token);
+    listener.endYieldStatement(begin, starToken, token);
+    return expectSemicolon(token);
+  }
+
 
   Token parseReturnStatement(Token token) {
     Token begin = token;
@@ -1478,7 +1575,10 @@ class Parser {
         BeginGroupToken beginParen = afterId;
         Token endParen = beginParen.endGroup;
         Token afterParens = endParen.next;
-        if (optional('{', afterParens) || optional('=>', afterParens)) {
+        if (optional('{', afterParens) ||
+            optional('=>', afterParens) ||
+            optional('async', afterParens) ||
+            optional('sync', afterParens)) {
           // We are looking at "type identifier '(' ... ')'" followed
           // by '=>' or '{'.
           return parseFunctionDeclaration(token);
@@ -1491,7 +1591,10 @@ class Parser {
       } else if (optional('(', token.next)) {
         BeginGroupToken begin = token.next;
         String afterParens = begin.endGroup.next.stringValue;
-        if (identical(afterParens, '{') || identical(afterParens, '=>')) {
+        if (identical(afterParens, '{') ||
+            identical(afterParens, '=>') ||
+            identical(afterParens, 'async') ||
+            identical(afterParens, 'sync')) {
           return parseFunctionDeclaration(token);
         }
       }
@@ -1672,7 +1775,9 @@ class Parser {
   Token parseUnaryExpression(Token token, bool allowCascades) {
     String value = token.stringValue;
     // Prefix:
-    if (identical(value, '+')) {
+    if (awaitIsKeyword && optional('await', token)) {
+      return parseAwaitExpression(token, allowCascades);
+    } else if (identical(value, '+')) {
       // Dart no longer allows prefix-plus.
       listener.reportError(token, MessageKind.UNSUPPORTED_PREFIX_PLUS);
       return parseUnaryExpression(token.next, allowCascades);
@@ -1767,11 +1872,14 @@ class Parser {
 
   Token parseParenthesizedExpressionOrFunctionLiteral(Token token) {
     BeginGroupToken beginGroup = token;
-    int kind = beginGroup.endGroup.next.kind;
+    Token nextToken = beginGroup.endGroup.next;
+    int kind = nextToken.kind;
     if (mayParseFunctionExpressions &&
-        (identical(kind, FUNCTION_TOKEN)
-            || identical(kind, OPEN_CURLY_BRACKET_TOKEN))) {
-      return parseUnamedFunction(token);
+        (identical(kind, FUNCTION_TOKEN) ||
+         identical(kind, OPEN_CURLY_BRACKET_TOKEN) ||
+         (identical(kind, KEYWORD_TOKEN) &&
+             (nextToken.value == 'async' || nextToken.value == 'sync')))) {
+      return parseUnnamedFunction(token);
     } else {
       bool old = mayParseFunctionExpressions;
       mayParseFunctionExpressions = true;
@@ -1893,7 +2001,10 @@ class Parser {
     if (optional('(', token)) {
       BeginGroupToken begin = token;
       String afterParens = begin.endGroup.next.stringValue;
-      if (identical(afterParens, '{') || identical(afterParens, '=>')) {
+      if (identical(afterParens, '{') ||
+          identical(afterParens, '=>') ||
+          identical(afterParens, 'async') ||
+          identical(afterParens, 'sync')) {
         return true;
       }
     }
@@ -2151,15 +2262,18 @@ class Parser {
     return token;
   }
 
-  Token parseForStatement(Token token) {
+  Token parseForStatement(Token awaitToken, Token token) {
     Token forToken = token;
     listener.beginForStatement(forToken);
     token = expect('for', token);
     token = expect('(', token);
     token = parseVariablesDeclarationOrExpressionOpt(token);
     if (optional('in', token)) {
-      return parseForInRest(forToken, token);
+      return parseForInRest(awaitToken, forToken, token);
     } else {
+      if (awaitToken != null) {
+        listener.reportError(awaitToken, MessageKind.INVALID_AWAIT_FOR);
+      }
       return parseForRest(forToken, token);
     }
   }
@@ -2206,13 +2320,13 @@ class Parser {
     return token;
   }
 
-  Token parseForInRest(Token forToken, Token token) {
+  Token parseForInRest(Token awaitToken, Token forToken, Token token) {
     assert(optional('in', token));
     Token inKeyword = token;
     token = parseExpression(token.next);
     token = expect(')', token);
     token = parseStatement(token);
-    listener.endForIn(forToken, inKeyword, token);
+    listener.endForIn(awaitToken, forToken, inKeyword, token);
     return token;
   }
 
@@ -2249,6 +2363,15 @@ class Parser {
     }
     listener.endBlock(statementCount, begin, token);
     return expect('}', token);
+  }
+
+  Token parseAwaitExpression(Token token, bool allowCascades) {
+    Token awaitToken = token;
+    listener.beginAwaitExpression(awaitToken);
+    token = expect('await', token);
+    token = parseUnaryExpression(token, allowCascades);
+    listener.endAwaitExpression(awaitToken, token);
+    return token;
   }
 
   Token parseThrowExpression(Token token, bool allowCascades) {

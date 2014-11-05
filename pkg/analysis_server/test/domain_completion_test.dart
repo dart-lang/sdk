@@ -139,8 +139,8 @@ class CompletionTest extends AbstractAnalysisTest {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.CLASS, 'Object');
-      assertHasResult(CompletionSuggestionKind.CLASS, 'HtmlElement');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement');
       assertNoResult('test');
     });
   }
@@ -153,8 +153,8 @@ class CompletionTest extends AbstractAnalysisTest {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.CLASS, 'Object');
-      assertHasResult(CompletionSuggestionKind.LIBRARY_PREFIX, 'foo');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo');
       assertNoResult('HtmlElement');
       assertNoResult('test');
     });
@@ -181,10 +181,10 @@ class CompletionTest extends AbstractAnalysisTest {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.CLASS, 'A');
-      assertHasResult(CompletionSuggestionKind.GETTER, 'a');
-      assertHasResult(CompletionSuggestionKind.LOCAL_VARIABLE, 'b');
-      assertHasResult(CompletionSuggestionKind.METHOD, 'x');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'A');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'a');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'x');
     });
   }
 
@@ -193,7 +193,7 @@ class CompletionTest extends AbstractAnalysisTest {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.METHOD, 'b');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
     });
   }
 
@@ -206,8 +206,8 @@ class CompletionTest extends AbstractAnalysisTest {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset - 3));
       expect(replacementLength, equals(4));
-      assertHasResult(CompletionSuggestionKind.CLASS, 'Object');
-      assertHasResult(CompletionSuggestionKind.TOP_LEVEL_VARIABLE, 'test');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'test');
       assertNoResult('HtmlElement');
     });
   }

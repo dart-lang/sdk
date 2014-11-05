@@ -331,7 +331,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     // Synthesize an element for the variable
     if (variable.element == null || name != variable.element.name) {
       // TODO(johnniwinther): Replace by synthetic [Entity].
-      variable.element = new modelx.LocalVariableElementX.synthetic(
+      variable.element = new _SyntheticLocalVariableElement(
           name,
           functionElement,
           variableList);
@@ -514,12 +514,13 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
 
   Expression visitLiteralMap(tree.LiteralMap exp) {
     List<LiteralMapEntry> entries = new List<LiteralMapEntry>.generate(
-        exp.values.length,
-        (i) => new LiteralMapEntry(visitExpression(exp.keys[i]),
-                                   visitExpression(exp.values[i])));
+        exp.entries.length,
+        (i) => new LiteralMapEntry(visitExpression(exp.entries[i].key),
+                                   visitExpression(exp.entries[i].value)));
     List<TypeAnnotation> typeArguments = exp.type.treatAsRaw
         ? null
-        : exp.type.typeArguments.map(createTypeAnnotation).toList(growable: false);
+        : exp.type.typeArguments.map(createTypeAnnotation)
+             .toList(growable: false);
     return new LiteralMap(entries, typeArguments: typeArguments);
   }
 
@@ -896,4 +897,23 @@ class UnshadowParameters extends tree.RecursiveVisitor {
     }
   }
 
+}
+
+// TODO(johnniwinther): Remove this when the dart `backend_ast` does not need
+// [Element] for entities.
+class _SyntheticLocalVariableElement extends modelx.VariableElementX
+    implements LocalVariableElement {
+
+  _SyntheticLocalVariableElement(String name,
+                                 ExecutableElement enclosingElement,
+                                 modelx.VariableList variables)
+      : super(name, ElementKind.VARIABLE, enclosingElement, variables, null);
+
+  ExecutableElement get executableContext => enclosingElement;
+
+  ExecutableElement get memberContext => executableContext.memberContext;
+
+  bool get isLocal => true;
+
+  LibraryElement get implementationLibrary => enclosingElement.library;
 }

@@ -26,10 +26,10 @@ export 'src/data/dates/locale_list.dart';
  *   "http://localhost:8000/dates/"
  */
 Future initializeDateFormatting(String locale, String url) {
-  var reader = new HTTPRequestDataReader('${url}symbols/');
+  var reader = new HttpRequestDataReader('${url}symbols/');
   initializeDateSymbols(() => new LazyLocaleData(
       reader, _createDateSymbol, availableLocalesForDateFormatting));
-  var reader2 = new HTTPRequestDataReader('${url}patterns/');
+  var reader2 = new HttpRequestDataReader('${url}patterns/');
   initializeDatePatterns(() => new LazyLocaleData(
       reader2, (x) => x, availableLocalesForDateFormatting));
   var actualLocale = Intl.verifiedLocale(locale,

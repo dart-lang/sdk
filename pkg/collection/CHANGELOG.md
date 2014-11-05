@@ -1,3 +1,7 @@
+## 1.1.0
+
+* Add a `QueueList` class that implements both `Queue` and `List`.
+
 ## 0.9.4
 
 * Add a `CanonicalizedMap` class that canonicalizes its keys to provide a custom

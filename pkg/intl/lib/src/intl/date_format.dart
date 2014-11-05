@@ -291,8 +291,22 @@ class DateFormat {
   /**
    * Given user input, attempt to parse the [inputString] into the anticipated
    * format, treating it as being in UTC.
+   *
+   * The canonical Dart style name
+   * is [parseUtc], but [parseUTC] is retained
+   * for backward-compatibility.
    */
   DateTime parseUTC(String inputString) => parse(inputString, true);
+
+  /**
+   * Given user input, attempt to parse the [inputString] into the anticipated
+   * format, treating it as being in UTC.
+   *
+   * The canonical Dart style name
+   * is [parseUtc], but [parseUTC] is retained
+   * for backward-compatibility.
+   */
+  DateTime parseUtc(String inputString) => parse(inputString, true);
 
   /**
    * Return the locale code in which we operate, e.g. 'en_US' or 'pt'.

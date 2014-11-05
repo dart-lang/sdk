@@ -14,7 +14,9 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -25,6 +27,7 @@ import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import '../reflective_tests.dart';
+import 'parser_test.dart';
 
 
 /**
@@ -977,7 +980,7 @@ class C {
 const int ZERO = 0;
 class C {
   int m(int p) {
-    return (p * p) + (p * p) + ZERO;
+    return p + p;
   }
 }''');
   }
@@ -1063,9 +1066,7 @@ class C {
     Source source = addSource(oldContent);
     LibraryElement library = resolve(source);
     CompilationUnit oldUnit = resolveCompilationUnit(source, library);
-    AnalysisContext context = analysisContext;
-    context.setContents(source, newContent);
-    CompilationUnit newUnit = context.parseCompilationUnit(source);
+    CompilationUnit newUnit = ParserTestCase.parseCompilationUnit(newContent, []);
     DeclarationMatcher matcher = new DeclarationMatcher();
     expect(matcher.matches(newUnit, oldUnit.element), expectMatch);
   }
@@ -8412,6 +8413,16 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     PropertyAccess node = AstFactory.propertyAccess2(AstFactory.identifier3("a"), "b");
     node.propertyName.staticElement = setter;
     expect(_analyze(node), same(boolType));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitSimpleIdentifier_dynamic() {
+    // "dynamic"
+    SimpleIdentifier identifier = AstFactory.identifier3('dynamic');
+    DynamicElementImpl element = DynamicElementImpl.instance;
+    identifier.staticElement = element;
+    identifier.staticType = _typeProvider.typeType;
+    expect(_analyze(identifier), same(_typeProvider.typeType));
     _listener.assertNoErrors();
   }
 

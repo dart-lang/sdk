@@ -33,7 +33,7 @@ import '../hash/sha1.dart' show hashOfString;
 
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show
-    js, templateManager;
+    js;
 
 import '../js_backend/js_backend.dart' show
     CheckedModeHelper,

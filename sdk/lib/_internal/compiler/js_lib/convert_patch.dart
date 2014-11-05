@@ -369,3 +369,10 @@ class _JsonDecoderSink extends _StringSinkConversionSink {
     _sink.close();
   }
 }
+
+@patch class Utf8Decoder {
+  @patch
+  Converter<List<int>,dynamic> fuse(Converter<String, dynamic> next) {
+    return super.fuse(next);
+  }
+}

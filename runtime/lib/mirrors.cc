@@ -1360,7 +1360,7 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_function, 1) {
   ASSERT(!closure.IsNull());
 
   Function& function = Function::Handle();
-  bool callable = closure.IsCallable(&function, NULL);
+  bool callable = closure.IsCallable(&function);
   if (callable) {
     return CreateMethodMirror(function, Instance::null_instance());
   }

@@ -193,30 +193,6 @@ void ParsedFunction::AllocateVariables() {
                                &context_owner,
                                &found_captured_variables);
 
-  // We save the entry context for a function when...
-  //
-  //   - some variable in the function is captured by nested functions, and
-  //   - the function does not capture any variables from parent functions.
-  //
-  // We used to link to the parent context in these cases, but this
-  // had the effect of unintentionally retaining parent contexts which
-  // would never be accessed.  By breaking the context chain at this
-  // point, we allow these outer contexts to be collected.
-  if (found_captured_variables) {
-    const ContextScope& context_scope =
-        ContextScope::Handle(function().context_scope());
-    if (context_scope.IsNull() || (context_scope.num_variables() == 0)) {
-      // Allocate a local variable for saving the entry context.
-      LocalVariable* context_var =
-          new LocalVariable(function().token_pos(),
-                            Symbols::SavedEntryContextVar(),
-                            Type::ZoneHandle(Type::DynamicType()));
-      context_var->set_index(next_free_frame_index--);
-      scope->AddVariable(context_var);
-      set_saved_entry_context_var(context_var);
-    }
-  }
-
   // Frame indices are relative to the frame pointer and are decreasing.
   ASSERT(next_free_frame_index <= first_stack_local_index_);
   num_stack_locals_ = first_stack_local_index_ - next_free_frame_index;
@@ -864,10 +840,8 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   if (parsed_function->has_expression_temp_var()) {
     node_sequence->scope()->AddVariable(parsed_function->expression_temp_var());
   }
-  if (parsed_function->has_saved_current_context_var()) {
-    node_sequence->scope()->AddVariable(
-        parsed_function->saved_current_context_var());
-  }
+  node_sequence->scope()->AddVariable(
+      parsed_function->current_context_var());
   if (parsed_function->has_finally_return_temp_var()) {
     node_sequence->scope()->AddVariable(
         parsed_function->finally_return_temp_var());
@@ -1068,9 +1042,7 @@ ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
   if (parsed_function->has_expression_temp_var()) {
     body->scope()->AddVariable(parsed_function->expression_temp_var());
   }
-  if (parsed_function->has_saved_current_context_var()) {
-    body->scope()->AddVariable(parsed_function->saved_current_context_var());
-  }
+  body->scope()->AddVariable(parsed_function->current_context_var());
   if (parsed_function->has_finally_return_temp_var()) {
     body->scope()->AddVariable(parsed_function->finally_return_temp_var());
   }
@@ -1387,7 +1359,6 @@ SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func,
   ASSERT(!owner.IsNull());
   AstNode* result = NULL;
   if (owner.IsSignatureClass() && name.Equals(Symbols::Call())) {
-    EnsureSavedCurrentContext();
     result = new ClosureCallNode(token_pos, getter_call, args);
   } else {
     result = BuildClosureCall(token_pos, getter_call, args);
@@ -8692,19 +8663,6 @@ AstNode* Parser::ParseAwaitableExprList() {
 void Parser::EnsureExpressionTemp() {
   // Temporary used later by the flow_graph_builder.
   parsed_function()->EnsureExpressionTemp();
-}
-
-
-void Parser::EnsureSavedCurrentContext() {
-  // Used later by the flow_graph_builder to save current context.
-  if (!parsed_function()->has_saved_current_context_var()) {
-    LocalVariable* temp = new(I) LocalVariable(
-        current_function().token_pos(),
-        Symbols::SavedCurrentContextVar(),
-        Type::ZoneHandle(I, Type::DynamicType()));
-    ASSERT(temp != NULL);
-    parsed_function()->set_saved_current_context_var(temp);
-  }
 }
 
 

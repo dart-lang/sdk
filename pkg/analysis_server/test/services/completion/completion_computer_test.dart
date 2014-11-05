@@ -8,16 +8,17 @@ import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
-import '../../abstract_single_unit.dart';
-import '../../reflective_tests.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
+
+import '../../abstract_single_unit.dart';
+import '../../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
@@ -63,7 +64,7 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     source = addSource('/does/not/exist.dart', '');
     manager = new DartCompletionManager(context, searchEngine, source, 0);
     suggestion1 = new CompletionSuggestion(
-        CompletionSuggestionKind.CLASS,
+        CompletionSuggestionKind.INVOCATION,
         CompletionRelevance.DEFAULT,
         "suggestion1",
         1,
@@ -71,7 +72,7 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
         false,
         false);
     suggestion2 = new CompletionSuggestion(
-        CompletionSuggestionKind.CLASS,
+        CompletionSuggestionKind.IDENTIFIER,
         CompletionRelevance.DEFAULT,
         "suggestion2",
         2,

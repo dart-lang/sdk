@@ -39,7 +39,7 @@ class ImportedComputer extends DartCompletionComputer {
 }
 
 /**
- * A visitor for determining which imported class and top level variable
+ * A visitor for determining which imported classes and top level variables
  * should be suggested and building those suggestions.
  */
 class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
@@ -79,11 +79,6 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   }
 
   @override
-  Future<bool> visitCombinator(Combinator node) {
-    return _addCombinatorSuggestions(node);
-  }
-
-  @override
   Future<bool> visitExpression(Expression node) {
     return _addImportedElementSuggestions(node, excludeVoidReturn: true);
   }
@@ -100,9 +95,21 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   }
 
   @override
+  Future<bool> visitFormalParameterList(FormalParameterList node) {
+    Token leftParen = node.leftParenthesis;
+    if (leftParen != null && request.offset > leftParen.offset) {
+      Token rightParen = node.rightParenthesis;
+      if (rightParen == null || request.offset <= rightParen.offset) {
+        return _addImportedElementSuggestions(node);
+      }
+    }
+    return new Future.value(false);
+  }
+
+  @override
   Future<bool> visitForStatement(ForStatement node) {
-    Token leftParenthesis = node.leftParenthesis;
-    if (leftParenthesis != null && request.offset >= leftParenthesis.end) {
+    Token leftParen = node.leftParenthesis;
+    if (leftParen != null && request.offset >= leftParen.end) {
       return _addImportedElementSuggestions(node);
     }
     return new Future.value(false);
@@ -190,17 +197,6 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     return new Future.value(false);
   }
 
-  Future _addCombinatorSuggestions(Combinator node) {
-    var directive = node.getAncestor((parent) => parent is NamespaceDirective);
-    if (directive is NamespaceDirective) {
-      LibraryElement library = directive.uriElement;
-      LibraryElementSuggestionBuilder.suggestionsFor(request, library);
-      return new Future.value(true);
-    }
-
-    return new Future.value(false);
-  }
-
   void _addElementSuggestion(Element element, bool typesOnly,
       bool excludeVoidReturn, CompletionRelevance relevance) {
 
@@ -219,13 +215,10 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
       return;
     }
 
-    CompletionSuggestionKind kind =
-        newCompletionSuggestionKind_fromElementKind(element.kind);
-
     String completion = element.displayName;
     CompletionSuggestion suggestion = new CompletionSuggestion(
-        kind,
-        relevance,
+        CompletionSuggestionKind.INVOCATION,
+        element.isDeprecated ? CompletionRelevance.LOW : relevance,
         completion,
         completion.length,
         0,
@@ -381,7 +374,7 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     String completion = importElem.prefix.displayName;
     if (completion != null && completion.length > 0) {
       CompletionSuggestion suggestion = new CompletionSuggestion(
-          CompletionSuggestionKind.LIBRARY_PREFIX,
+          CompletionSuggestionKind.INVOCATION,
           CompletionRelevance.DEFAULT,
           completion,
           completion.length,

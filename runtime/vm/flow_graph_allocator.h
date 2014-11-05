@@ -129,6 +129,9 @@ class FlowGraphAllocator : public ValueObject {
   void ProcessOneInstruction(BlockEntryInstr* block,
                              Instruction* instr,
                              BitVector* interference_set);
+
+  static const intptr_t kNormalEntryPos = 2;
+
   void ProcessInitialDefinition(Definition* defn,
                                 LiveRange* range,
                                 BlockEntryInstr* block);

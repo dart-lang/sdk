@@ -1137,6 +1137,39 @@ abstract class FunctionElement extends Element
 
   /// The type of this function.
   FunctionType get type;
+
+  /// The synchronous/asynchronous marker on this function.
+  AsyncMarker get asyncMarker;
+}
+
+/// Enum for the synchronous/asynchronous function body modifiers.
+class AsyncMarker {
+  /// The default function body marker.
+  static AsyncMarker SYNC = const AsyncMarker._();
+
+  /// The `sync*` function body marker.
+  static AsyncMarker SYNC_STAR = const AsyncMarker._(isYielding: true);
+
+  /// The `async` function body marker.
+  static AsyncMarker ASYNC = const AsyncMarker._(isAsync: true);
+
+  /// The `async*` function body marker.
+  static AsyncMarker ASYNC_STAR =
+      const AsyncMarker._(isAsync: true, isYielding: true);
+
+  /// Is `true` if this marker defines the function body to have an
+  /// asynchronous result, that is, either a [Future] or a [Stream].
+  final bool isAsync;
+
+  /// Is `true` if this marker defines the function body to have a plural
+  /// result, that is, either an [Iterable] or a [Stream].
+  final bool isYielding;
+
+  const AsyncMarker._({this.isAsync: false, this.isYielding: false});
+
+  String toString() {
+    return '${isAsync ? 'async' : 'sync'}${isYielding ? '*' : ''}';
+  }
 }
 
 /// A top level, static or instance function.

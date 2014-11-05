@@ -6,6 +6,7 @@ library test.services.completion;
 
 import 'package:unittest/unittest.dart';
 
+import 'combinator_computer_test.dart' as combinator_test;
 import 'completion_computer_test.dart' as completion_computer_test;
 import 'completion_manager_test.dart' as completion_manager_test;
 import 'imported_computer_test.dart' as imported_test;
@@ -17,6 +18,7 @@ import 'local_computer_test.dart' as local_test;
 main() {
   groupSep = ' | ';
   group('completion', () {
+    combinator_test.main();
     completion_computer_test.main();
     completion_manager_test.main();
     imported_test.main();

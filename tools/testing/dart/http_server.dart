@@ -126,17 +126,7 @@ class TestingServers {
     "/foo",
     "/bar",
     "/NonExistingFile",
-    "/NonExistingFile.js",
-    "/hahaURL",
-    "/IntentionallyMissingFile",
-    "/IntentionallyMissingFile.dart",
-    "/IntentionallyMissingFile.html",
-    "/IntentionallyMissingFile.png",
-    "/IntentionallyMissingFile.css",
-    "/IntentionallyMissingFile.jpg",
-    "/IntentionallyMissingFile.ttf",
-    "/IntentionallyMissingFile.otf",
-    "/IntentionallyMissingFile.jpeg"
+    "IntentionallyMissingFile",
   ];
 
   List _serverList = [];
@@ -419,8 +409,8 @@ class TestingServers {
 
   void _sendNotFound(HttpRequest request) {
     bool isHarmlessPath(String path) {
-      return _HARMLESS_REQUEST_PATH_ENDINGS.any((ending) {
-        return path.endsWith(ending);
+      return _HARMLESS_REQUEST_PATH_ENDINGS.any((pattern) {
+        return path.contains(pattern);
       });
     }
     if (!isHarmlessPath(request.uri.path)) {

@@ -20,6 +20,16 @@ class Listener {
   void endArguments(int count, Token beginToken, Token endToken) {
   }
 
+  /// Handle async modifiers `async`, `async*`, `sync`.
+  void handleAsyncModifier(Token asyncToken, Token startToken) {
+  }
+
+  void beginAwaitExpression(Token token) {
+  }
+
+  void endAwaitExpression(Token beginToken, Token endToken) {
+  }
+
   void beginBlock(Token token) {
   }
 
@@ -115,7 +125,8 @@ class Listener {
                        Token beginToken, Token endToken) {
   }
 
-  void endForIn(Token beginToken, Token inKeyword, Token endToken) {
+  void endForIn(Token awaitToken, Token forToken,
+                Token inKeyword, Token endToken) {
   }
 
   void beginFunction(Token token) {
@@ -393,10 +404,10 @@ class Listener {
   void endTypeVariables(int count, Token beginToken, Token endToken) {
   }
 
-  void beginUnamedFunction(Token token) {
+  void beginUnnamedFunction(Token token) {
   }
 
-  void endUnamedFunction(Token token) {
+  void endUnnamedFunction(Token token) {
   }
 
   void beginVariablesDeclaration(Token token) {
@@ -544,6 +555,12 @@ class Listener {
   }
 
   void handleVoidKeyword(Token token) {
+  }
+
+  void beginYieldStatement(Token token) {
+  }
+
+  void endYieldStatement(Token yieldToken, Token starToken, Token endToken) {
   }
 
   Token expected(String string, Token token) {
@@ -1623,6 +1640,11 @@ class NodeListener extends ElementListener {
     pushNode(new Return(beginToken, endToken, expression));
   }
 
+  void endYieldStatement(Token yieldToken, Token starToken, Token endToken) {
+    Expression expression = popNode();
+    pushNode(new Yield(yieldToken, starToken, expression, endToken));
+  }
+
   void endExpressionStatement(Token token) {
     pushNode(new ExpressionStatement(popNode(), token));
   }
@@ -1770,6 +1792,14 @@ class NodeListener extends ElementListener {
     }
   }
 
+  void handleAsyncModifier(Token asyncToken, Token starToken) {
+    if (asyncToken != null) {
+      pushNode(new AsyncModifier(asyncToken, starToken));
+    } else {
+      pushNode(null);
+    }
+  }
+
   void skippedFunctionBody(Token token) {
     pushNode(new Block(new NodeList.empty()));
   }
@@ -1780,6 +1810,7 @@ class NodeListener extends ElementListener {
 
   void endFunction(Token getOrSet, Token endToken) {
     Statement body = popNode();
+    AsyncModifier asyncModifier = popNode();
     NodeList initializers = popNode();
     NodeList formals = popNode();
     // The name can be an identifier or a send in case of named constructors.
@@ -1787,7 +1818,8 @@ class NodeListener extends ElementListener {
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
     pushNode(new FunctionExpression(name, formals, body, type,
-                                    modifiers, initializers, getOrSet));
+                                    modifiers, initializers, getOrSet,
+                                    asyncModifier));
   }
 
   void endFunctionDeclaration(Token endToken) {
@@ -1852,6 +1884,11 @@ class NodeListener extends ElementListener {
   void endThrowExpression(Token throwToken, Token endToken) {
     Expression expression = popNode();
     pushNode(new Throw(expression, throwToken, endToken));
+  }
+
+  void endAwaitExpression(Token awaitToken, Token endToken) {
+    Expression expression = popNode();
+    pushNode(new Await(awaitToken, expression));
   }
 
   void endRethrowStatement(Token throwToken, Token endToken) {
@@ -1920,13 +1957,15 @@ class NodeListener extends ElementListener {
 
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
     Statement body = popNode();
+    AsyncModifier asyncModifier = popNode();
     NodeList initializers = popNode();
     NodeList formalParameters = popNode();
     Expression name = popNode();
     TypeAnnotation returnType = popNode();
     Modifiers modifiers = popNode();
     pushNode(new FunctionExpression(name, formalParameters, body, returnType,
-                                    modifiers, initializers, getOrSet));
+                                    modifiers, initializers, getOrSet,
+                                    asyncModifier));
   }
 
   void handleLiteralMap(int count, Token beginToken, Token constKeyword,
@@ -1996,7 +2035,7 @@ class NodeListener extends ElementListener {
     TypeAnnotation returnType = popNode();
     pushNode(null); // Signal "no type" to endFormalParameter.
     pushNode(new FunctionExpression(name, formals, null, returnType,
-                                    Modifiers.EMPTY, null, null));
+                                    Modifiers.EMPTY, null, null, null));
   }
 
   void handleValuedFormalParameter(Token equals, Token token) {
@@ -2079,6 +2118,7 @@ class NodeListener extends ElementListener {
   void endFactoryMethod(Token beginToken, Token endToken) {
     super.endFactoryMethod(beginToken, endToken);
     Statement body = popNode();
+    AsyncModifier asyncModifier = popNode();
     NodeList formals = popNode();
     Node name = popNode();
 
@@ -2102,15 +2142,16 @@ class NodeListener extends ElementListener {
     Modifiers modifiers = popNode();
 
     pushNode(new FunctionExpression(name, formals, body, null,
-                                    modifiers, null, null));
+                                    modifiers, null, null, asyncModifier));
   }
 
-  void endForIn(Token beginToken, Token inKeyword, Token endToken) {
+  void endForIn(Token awaitToken, Token forToken,
+                Token inKeyword, Token endToken) {
     Statement body = popNode();
     Expression expression = popNode();
     Node declaredIdentifier = popNode();
     pushNode(new ForIn(declaredIdentifier, expression, body,
-                                beginToken, inKeyword));
+                       awaitToken, forToken, inKeyword));
   }
 
   void endMetadataStar(int count, bool forParameter) {
@@ -2169,11 +2210,13 @@ class NodeListener extends ElementListener {
     pushNode(new ExpressionStatement(send, semicolonToken));
   }
 
-  void endUnamedFunction(Token token) {
+  void endUnnamedFunction(Token token) {
     Statement body = popNode();
+    AsyncModifier asyncModifier = popNode();
     NodeList formals = popNode();
     pushNode(new FunctionExpression(null, formals, body, null,
-                                    Modifiers.EMPTY, null, null));
+                                    Modifiers.EMPTY, null, null,
+                                    asyncModifier));
   }
 
   void handleIsOperator(Token operathor, Token not, Token endToken) {

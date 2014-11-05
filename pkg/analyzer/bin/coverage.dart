@@ -78,7 +78,7 @@ final ArgParser _argParser = new ArgParser()
 
 
 printUsage([var description = 'Code coverage tool for Dart.']) {
-  var usage = _argParser.getUsage();
+  var usage = _argParser.usage;
   print('$description\n');
   print('Usage: coverage [options] <script>\n');
   print('$usage\n');

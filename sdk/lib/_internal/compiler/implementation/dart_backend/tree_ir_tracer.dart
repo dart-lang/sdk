@@ -330,11 +330,11 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
 
   String visitLiteralMap(LiteralMap node) {
     List<String> entries = new List<String>();
-    for (int i = 0; i < node.values.length; ++i) {
-      String key = visitExpression(node.keys[i]);
-      String value = visitExpression(node.values[i]);
+    node.entries.forEach((LiteralMapEntry entry) {
+      String key = visitExpression(entry.key);
+      String value = visitExpression(entry.value);
       entries.add("$key: $value");
-    }
+    });
     return "map [${entries.join(', ')}]";
   }
 

@@ -346,19 +346,23 @@ class Expect {
   static void throws(void f(),
                      [_CheckExceptionFn check = null,
                       String reason = null]) {
+    String msg = reason == null ? "" : "($reason)";
+    if (f is! _Nullary) {
+      // Only throws from executing the funtion body should count as throwing.
+      // The failure to even call `f` should throw outside the try/catch.
+      _fail("Expect.throws$msg: Funciton f not callable with zero arguments");
+    }
     try {
       f();
     } catch (e, s) {
       if (check != null) {
         if (!check(e)) {
-          String msg = reason == null ? "" : reason;
-          _fail("Expect.throws($msg): Unexpected '$e'\n$s");
+          _fail("Expect.throws$msg: Unexpected '$e'\n$s");
         }
       }
       return;
     }
-    String msg = reason == null ? "" : reason;
-    _fail('Expect.throws($msg) fails');
+    _fail('Expect.throws$msg fails: Did not throw');
   }
 
   static String _getMessage(String reason)
@@ -372,6 +376,7 @@ class Expect {
 bool _identical(a, b) => identical(a, b);
 
 typedef bool _CheckExceptionFn(exception);
+typedef _Nullary();  // Expect.throws argument must be this type.
 
 class ExpectException implements Exception {
   ExpectException(this.message);

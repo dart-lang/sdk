@@ -747,6 +747,10 @@ class _HeaderValue implements HeaderValue {
         expect("=");
         skipWS();
         String value = parseParameterValue();
+        if (name == 'charset' && this is _ContentType) {
+          // Charset parameter of ContentTypes are always lower-case.
+          value = value.toLowerCase();
+        }
         parameters[name] = value;
         skipWS();
         if (done()) return;
@@ -779,7 +783,11 @@ class _ContentType extends _HeaderValue implements ContentType {
     if (parameters != null) {
       _ensureParameters();
       parameters.forEach((String key, String value) {
-        this._parameters[key.toLowerCase()] = value.toLowerCase();
+        String lowerCaseKey = key.toLowerCase();
+        if (lowerCaseKey == "charset") {
+          value = value.toLowerCase();
+        }
+        this._parameters[lowerCaseKey] = value;
       });
     }
     if (charset != null) {

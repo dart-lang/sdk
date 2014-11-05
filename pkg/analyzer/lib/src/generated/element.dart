@@ -8166,7 +8166,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       InterfaceType futureType = futureElement.type;
       return futureType.substitute4(<DartType> [DynamicTypeImpl.instance]);
     } on AnalysisException catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logError2("Could not build the element model for dart:async", new CaughtException(exception, stackTrace));
+      AnalysisEngine.instance.logger.logError(
+          "Could not build the element model for dart:async",
+          new CaughtException(exception, stackTrace));
       return VoidTypeImpl.instance;
     }
   }
@@ -10034,6 +10036,11 @@ class PropertyAccessorMember extends ExecutableMember implements PropertyAccesso
     List<DartType> argumentTypes = definingType.typeArguments;
     if (baseAccessor != null && argumentTypes.length != 0) {
       FunctionType baseType = baseAccessor.type;
+      if (baseType == null) {
+        AnalysisEngine.instance.logger.logInformation(
+            'Type of $baseAccessor is null in PropertyAccessorMember._isChangedByTypeSubstitution');
+        return false;
+      }
       List<DartType> parameterTypes = definingType.element.type.typeArguments;
       FunctionType substitutedType = baseType.substitute2(argumentTypes, parameterTypes);
       if (baseType != substitutedType) {
@@ -10677,16 +10684,31 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl implements
 }
 
 /**
- * The abstract class `TypeImpl` implements the behavior common to objects representing the
- * declared type of elements in the element model.
+ * The abstract class `TypeImpl` implements the behavior common to objects
+ * representing the declared type of elements in the element model.
  */
 abstract class TypeImpl implements DartType {
-  static bool equalArrays(List<DartType> typeArgs1, List<DartType> typeArgs2, Set<ElementPair> visitedElementPairs) {
-    if (typeArgs1.length != typeArgs2.length) {
+  /**
+   * Return `true` if corresponding elements of the [first] and [second] lists
+   * of type arguments are all equal. Use the set of [visitedElementPairs] to
+   * prevent infinite loops when the types are recursively defined.
+   */
+  static bool equalArrays(List<DartType> first, List<DartType> second,
+      Set<ElementPair> visitedElementPairs) {
+    if (first.length != second.length) {
       return false;
     }
-    for (int i = 0; i < typeArgs1.length; i++) {
-      if (!(typeArgs1[i] as TypeImpl).internalEquals(typeArgs2[i], visitedElementPairs)) {
+    for (int i = 0; i < first.length; i++) {
+      if (first[i] == null) {
+        AnalysisEngine.instance.logger.logInformation(
+            'Found null type argument in TypeImpl.equalArrays');
+        return second[i] == null;
+      } else if (second[i] == null) {
+        AnalysisEngine.instance.logger.logInformation(
+            'Found null type argument in TypeImpl.equalArrays');
+        return false;
+      }
+      if (!(first[i] as TypeImpl).internalEquals(second[i], visitedElementPairs)) {
         return false;
       }
     }

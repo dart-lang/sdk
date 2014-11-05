@@ -318,8 +318,35 @@ main() {
 }
 ''');
     return prepareNavigation().then((_) {
-      findRegion(findOffset('new A'), 'new A'.length, true);
-      assertHasTarget('A {');
+      {
+        findRegion(findOffset('new A'), 'new'.length, true);
+        assertHasTarget('A {');
+      }
+      {
+        findRegion(findOffset('A()'), 'A'.length, true);
+        assertHasTarget('A {');
+      }
+    });
+  }
+
+  test_instanceCreation_implicit_withTypeArgument() {
+    addTestFile('''
+class A {}
+class B<T> {
+}
+main() {
+  new B<A>();
+}
+''');
+    return prepareNavigation().then((_) {
+      {
+        findRegion(findOffset('new B'), 'new'.length, true);
+        assertHasTarget('B<T> {');
+      }
+      {
+        findRegion(findOffset('A>();'), 'A'.length, true);
+        assertHasTarget('A {');
+      }
     });
   }
 
@@ -348,6 +375,36 @@ main() {
     });
   }
 
+  test_instanceCreation_named_withTypeArgument() {
+    addTestFile('''
+class A {}
+class B<T> {
+  A.named() {}
+}
+main() {
+  new B<A>.named();
+}
+''');
+    return prepareNavigation().then((_) {
+      {
+        findRegion(findOffset('new '), 'new'.length, true);
+        assertHasTarget('named() {}');
+      }
+      {
+        findRegion(findOffset('B<A>.named();'), 'B'.length, true);
+        assertHasTarget('B<T> {');
+      }
+      {
+        findRegion(findOffset('.named();'), '.named'.length, true);
+        assertHasTarget('named() {}');
+      }
+      {
+        findRegion(findOffset('A>.named();'), 'A'.length, true);
+        assertHasTarget('A {');
+      }
+    });
+  }
+
   test_instanceCreation_unnamed() {
     addTestFile('''
 class A {
@@ -364,6 +421,32 @@ main() {
       }
       {
         findRegion(findOffset('A();'), 'A'.length, true);
+        assertHasTarget('A {');
+      }
+    });
+  }
+
+  test_instanceCreation_unnamed_withTypeArgument() {
+    addTestFile('''
+class A {}
+class B<T> {
+  B() {}
+}
+main() {
+  new B<A>();
+}
+''');
+    return prepareNavigation().then((_) {
+      {
+        findRegion(findOffset('new '), 'new'.length, true);
+        assertHasTarget('B() {}', 0);
+      }
+      {
+        findRegion(findOffset('B<A>();'), 'B'.length, true);
+        assertHasTarget('B<T> {');
+      }
+      {
+        findRegion(findOffset('A>();'), 'A'.length, true);
         assertHasTarget('A {');
       }
     });

@@ -137,6 +137,12 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
     return inputType;
   }
 
+  TypeMask allocateLoopPhi(ast.Node node,
+                           Local variable,
+                           TypeMask inputType) {
+    return inputType;
+  }
+
   TypeMask simplifyPhi(ast.Node node,
                        Local variable,
                        TypeMask phiType) {

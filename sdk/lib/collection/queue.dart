@@ -587,7 +587,7 @@ class ListQueue<E> extends IterableBase<E> implements Queue<E> {
    */
   static int _nextPowerOf2(int number) {
     assert(number > 0);
-    number = (number << 2) - 1;
+    number = (number << 1) - 1;
     for(;;) {
       int nextNumber = number & (number - 1);
       if (nextNumber == 0) return number;
@@ -678,6 +678,10 @@ class ListQueue<E> extends IterableBase<E> implements Queue<E> {
   /** Grows the table even if it is not full. */
   void _preGrow(int newElementCount) {
     assert(newElementCount >= length);
+
+    // Add some extra room to ensure that there's room for more elements after
+    // expansion.
+    newElementCount += newElementCount >> 1;
     int newCapacity = _nextPowerOf2(newElementCount);
     List<E> newTable = new List<E>(newCapacity);
     _tail = _writeToList(newTable);

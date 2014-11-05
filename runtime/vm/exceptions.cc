@@ -280,13 +280,6 @@ static void JumpToExceptionHandler(Isolate* isolate,
   RawObject* raw_exception = exception_object.raw();
   RawObject* raw_stacktrace = stacktrace_object.raw();
 
-  // The following operation is part of the 'epilogue' of the CallToRuntime,
-  // CallBootstrapCFunction, and CallNativeCFunction stubs. In the case of an
-  // exception, we skip the epilogues and must set the correct state here.
-  // The other operations performed as part of the 'epilogue' are handled
-  // by the simulator's Longjmp or the JumpToExceptionHandler stub.
-  isolate->set_top_context(Context::null());
-
 #if defined(USING_SIMULATOR)
   // Unwinding of the C++ frames and destroying of their stack resources is done
   // by the simulator, because the target stack_pointer is a simulated stack

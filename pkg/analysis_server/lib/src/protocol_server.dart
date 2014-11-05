@@ -89,61 +89,6 @@ AnalysisError newAnalysisError_fromEngine(engine.LineInfo lineInfo,
 
 
 /**
- * Construct from an analyzer engine element kind.
- */
-CompletionSuggestionKind
-    newCompletionSuggestionKind_fromElementKind(engine.ElementKind kind) {
-  //    ElementKind.ANGULAR_FORMATTER,
-  //    ElementKind.ANGULAR_COMPONENT,
-  //    ElementKind.ANGULAR_CONTROLLER,
-  //    ElementKind.ANGULAR_DIRECTIVE,
-  //    ElementKind.ANGULAR_PROPERTY,
-  //    ElementKind.ANGULAR_SCOPE_PROPERTY,
-  //    ElementKind.ANGULAR_SELECTOR,
-  //    ElementKind.ANGULAR_VIEW,
-  if (kind == engine.ElementKind.CLASS) return CompletionSuggestionKind.CLASS;
-  //    ElementKind.COMPILATION_UNIT,
-  if (kind ==
-      engine.ElementKind.CONSTRUCTOR) return CompletionSuggestionKind.CONSTRUCTOR;
-  //    ElementKind.DYNAMIC,
-  //    ElementKind.EMBEDDED_HTML_SCRIPT,
-  //    ElementKind.ERROR,
-  //    ElementKind.EXPORT,
-  //    ElementKind.EXTERNAL_HTML_SCRIPT,
-  if (kind == engine.ElementKind.FIELD) return CompletionSuggestionKind.FIELD;
-  if (kind ==
-      engine.ElementKind.FUNCTION) return CompletionSuggestionKind.FUNCTION;
-  if (kind ==
-      engine.ElementKind.FUNCTION_TYPE_ALIAS) return
-          CompletionSuggestionKind.FUNCTION_TYPE_ALIAS;
-  if (kind == engine.ElementKind.GETTER) return CompletionSuggestionKind.GETTER;
-  //    ElementKind.HTML,
-  if (kind == engine.ElementKind.IMPORT) return CompletionSuggestionKind.IMPORT;
-  //    ElementKind.LABEL,
-  //    ElementKind.LIBRARY,
-  if (kind ==
-      engine.ElementKind.LOCAL_VARIABLE) return
-          CompletionSuggestionKind.LOCAL_VARIABLE;
-  if (kind == engine.ElementKind.METHOD) return CompletionSuggestionKind.METHOD;
-  //    ElementKind.NAME,
-  if (kind ==
-      engine.ElementKind.PARAMETER) return CompletionSuggestionKind.PARAMETER;
-  //    ElementKind.POLYMER_ATTRIBUTE,
-  //    ElementKind.POLYMER_TAG_DART,
-  //    ElementKind.POLYMER_TAG_HTML,
-  //    ElementKind.PREFIX,
-  if (kind == engine.ElementKind.SETTER) return CompletionSuggestionKind.SETTER;
-  if (kind ==
-      engine.ElementKind.TOP_LEVEL_VARIABLE) return
-          CompletionSuggestionKind.TOP_LEVEL_VARIABLE;
-  //    ElementKind.TYPE_PARAMETER,
-  //    ElementKind.UNIVERSE
-  throw new ArgumentError('Unknown CompletionSuggestionKind for: $kind');
-}
-
-
-
-/**
  * Construct based on a value from the analyzer engine.
  */
 ElementKind newElementKind_fromEngine(engine.ElementKind kind) {

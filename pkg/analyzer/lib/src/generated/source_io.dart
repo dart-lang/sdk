@@ -399,20 +399,18 @@ class PackageUriResolver extends UriResolver {
 
   @override
   Uri restoreAbsolute(Source source) {
-    if (source is FileBasedSource) {
-      String sourcePath = source.file.getPath();
-      for (JavaFile packagesDirectory in _packagesDirectories) {
-        List<JavaFile> pkgFolders = packagesDirectory.listFiles();
-        if (pkgFolders != null) {
-          for (JavaFile pkgFolder in pkgFolders) {
-            try {
-              String pkgCanonicalPath = pkgFolder.getCanonicalPath();
-              if (sourcePath.startsWith(pkgCanonicalPath)) {
-                String relPath = sourcePath.substring(pkgCanonicalPath.length);
-                return parseUriWithException("$PACKAGE_SCHEME:${pkgFolder.getName()}$relPath");
-              }
-            } catch (e) {
+    String sourcePath = source.fullName;
+    for (JavaFile packagesDirectory in _packagesDirectories) {
+      List<JavaFile> pkgFolders = packagesDirectory.listFiles();
+      if (pkgFolders != null) {
+        for (JavaFile pkgFolder in pkgFolders) {
+          try {
+            String pkgCanonicalPath = pkgFolder.getCanonicalPath();
+            if (sourcePath.startsWith(pkgCanonicalPath)) {
+              String relPath = sourcePath.substring(pkgCanonicalPath.length);
+              return parseUriWithException("$PACKAGE_SCHEME:${pkgFolder.getName()}$relPath");
             }
+          } catch (e) {
           }
         }
       }
@@ -433,12 +431,16 @@ class PackageUriResolver extends UriResolver {
     JavaFile pkgDir = new JavaFile.relative(packagesDirectory, pkgName);
     try {
       pkgDir = pkgDir.getCanonicalFile();
-    } on JavaIOException catch (e) {
-      if (!e.toString().contains("Required key not available")) {
-        AnalysisEngine.instance.logger.logError2("Canonical failed: $pkgDir", e);
+    } on JavaIOException catch (exception, stackTrace) {
+      if (!exception.toString().contains("Required key not available")) {
+        AnalysisEngine.instance.logger.logError(
+            "Canonical failed: $pkgDir",
+            new CaughtException(exception, stackTrace));
       } else if (_CanLogRequiredKeyIoException) {
         _CanLogRequiredKeyIoException = false;
-        AnalysisEngine.instance.logger.logError2("Canonical failed: $pkgDir", e);
+        AnalysisEngine.instance.logger.logError(
+            "Canonical failed: $pkgDir",
+            new CaughtException(exception, stackTrace));
       }
     }
     return new JavaFile.relative(pkgDir, relPath.replaceAll('/', new String.fromCharCode(JavaFile.separatorChar)));

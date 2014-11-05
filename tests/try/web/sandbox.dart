@@ -83,6 +83,10 @@ class Listener {
 
   String expectedMessage;
 
+  Stopwatch wallclock;
+
+  int get elapsed => wallclock.elapsedMilliseconds ~/ 1000;
+
   void onMessage(MessageEvent e) {
     String message = e.data;
     if (expectedMessage == message) {
@@ -117,6 +121,7 @@ class Listener {
   }
 
   void start() {
+    wallclock = new Stopwatch()..start();
     window.onMessage.listen(onMessage);
   }
 }

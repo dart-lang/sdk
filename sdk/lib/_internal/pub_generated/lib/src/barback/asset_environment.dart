@@ -70,19 +70,38 @@ class AssetEnvironment {
     if (hostname == null) hostname = "localhost";
     if (basePort == null) basePort = 0;
 
-    return entrypoint.loadPackageGraph().then((graph) {
-      log.fine("Loaded package graph.");
-      graph = _adjustPackageGraph(graph, mode, packages);
-      var barback = new Barback(new PubPackageProvider(graph));
-      barback.log.listen(_log);
-
-      var environment =
-          new AssetEnvironment._(graph, barback, mode, watcherType, hostname, basePort);
-
-      return environment._load(
-          entrypoints: entrypoints,
-          useDart2JS: useDart2JS).then((_) => environment);
-    });
+    return log.progress("Loading asset environment", () {
+      final completer0 = new Completer();
+      scheduleMicrotask(() {
+        try {
+          entrypoint.loadPackageGraph().then((x0) {
+            try {
+              var graph = x0;
+              graph = _adjustPackageGraph(graph, mode, packages);
+              var barback = new Barback(new PubPackageProvider(graph));
+              barback.log.listen(_log);
+              var environment =
+                  new AssetEnvironment._(graph, barback, mode, watcherType, hostname, basePort);
+              environment._load(
+                  entrypoints: entrypoints,
+                  useDart2JS: useDart2JS).then((x1) {
+                try {
+                  x1;
+                  completer0.complete(environment);
+                } catch (e0, s0) {
+                  completer0.completeError(e0, s0);
+                }
+              }, onError: completer0.completeError);
+            } catch (e1, s1) {
+              completer0.completeError(e1, s1);
+            }
+          }, onError: completer0.completeError);
+        } catch (e, s) {
+          completer0.completeError(e, s);
+        }
+      });
+      return completer0.future;
+    }, fine: true);
   }
 
   /// Return a version of [graph] that's restricted to [packages] (if passed)

@@ -73,6 +73,7 @@ polymer/test/bind_properties_test: Skip # Sometimes times out. Issue 19326
 analysis_server/test/analysis_server_test: Skip  # Times out
 analysis_server/test/domain_context_test: Skip  # Times out
 analysis_server/test/domain_server_test: Skip  # Times out
+analysis_server/test/integration/analysis/reanalyze_concurrent_test: Skip # Times out
 analysis_server/test/integration/analysis/update_content_test: Skip # Times out
 analysis_server/tool/spec/check_all_test: Skip # Times out
 analyzer/test/generated/element_test: Skip  # Times out
@@ -252,7 +253,6 @@ analyzer/test/generated/java_core_test: Pass, Timeout # Issue 19747
 polymer/e2e_test/*: Pass, RuntimeError # Issue 19265
 polymer/test/event_handlers_test: Pass, Timeout # Issue 19327
 polymer_expressions/*: Pass, RuntimeError # Issue 19265
-template_binding/test/custom_element_bindings_test: Pass, RuntimeError # Issue 20714
 template_binding/test/template_binding_test: Pass, RuntimeError # Issue 19265
 typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here explicitly, since this is not the same as on ie9)
 
@@ -298,7 +298,6 @@ polymer/e2e_test/experimental_boot: Skip
 # This test uses third_party/pkg/perf_api/lib/perf_api.dart, which
 # contains illegal constant constructors.
 third_party/angular_tests/browser_test: CompileTimeError
-custom_element/test/analyzer_test: StaticWarning # Issue 20939
 
 [ $compiler == dart2js && $runtime == none]
 polymer/e2e_test/canonicalization: Skip
@@ -446,7 +445,6 @@ unittest/test/testcases_immutable_test: RuntimeError # 13921
 
 [ $runtime == vm ]
 # Skip tests on the VM if the package depends on dart:html
-custom_element: Skip
 template_binding: Skip
 mutation_observer: Skip
 polymer_expressions/test/syntax_test: Skip
@@ -495,10 +493,3 @@ http/test/html/client_test: Skip # Issue 18566
 
 [ $system == windows ]
 analysis_server/test/integration/search/get_type_hierarchy_test: Pass, Fail # Issue 20436
-
-[ $runtime == safari && $builder_tag == mac10_8 ]
-polymer/e2e_test/good_import/test/import_test: RuntimeError # Issue 21424
-polymer/test/custom_event_test: RuntimeError # Issue 21425
-polymer/test/instance_attrs_test: RuntimeError # Issue 21425
-polymer/test/property_observe_test: RuntimeError # Issue 21425
-intl/test/date_time_format_http_request_test: RuntimeError # Issue 21428

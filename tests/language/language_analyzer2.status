@@ -209,7 +209,6 @@ field4_negative_test: CompileTimeError
 field5_negative_test: CompileTimeError
 field6a_negative_test: CompileTimeError
 field6_negative_test: CompileTimeError
-first_class_types_literals_test: StaticWarning # Issue 18731
 function_malformed_result_type_test: StaticWarning
 function_subtype_bound_closure7_test: StaticWarning
 function_subtype_checked0_test: StaticWarning
@@ -455,5 +454,3 @@ regress_12561_test: StaticWarning
 main_not_a_function_test/01: Fail # http://dartbug.com/20030
 main_test/03: Fail # http://dartbug.com/20030
 no_main_test/01: Fail # http://dartbug.com/20030
-
-compile_time_constant10_test/none: CompileTimeError # Issue 21177

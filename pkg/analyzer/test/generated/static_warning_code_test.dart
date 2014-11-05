@@ -9,7 +9,6 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:unittest/unittest.dart';
 import 'resolver_test.dart';
-import 'test_support.dart';
 import '../reflective_tests.dart';
 
 

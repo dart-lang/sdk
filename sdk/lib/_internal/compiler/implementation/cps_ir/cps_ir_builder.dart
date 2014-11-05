@@ -127,6 +127,9 @@ class JumpCollector {
   }
 }
 
+/// Function for building a node in the context of the current builder.
+typedef ir.Node BuildFunction(node);
+
 /// Function for building nodes in the context of the provided [builder].
 typedef ir.Node SubbuildFunction(IrBuilder builder);
 
@@ -340,13 +343,37 @@ class IrBuilder {
     }
   }
 
-  ir.Primitive continueWithExpression(ir.Expression build(ir.Continuation k)) {
+  ir.Primitive _continueWithExpression(ir.Expression build(ir.Continuation k)) {
     ir.Parameter v = new ir.Parameter(null);
     ir.Continuation k = new ir.Continuation([v]);
     ir.Expression expression = build(k);
     add(new ir.LetCont(k, expression));
     return v;
   }
+
+  ir.Primitive _buildInvokeStatic(Element element,
+                                  Selector selector,
+                                  List<ir.Definition> arguments) {
+    assert(isOpen);
+    return _continueWithExpression(
+        (k) => new ir.InvokeStatic(element, selector, k, arguments));
+  }
+
+  ir.Primitive _buildInvokeSuper(Selector selector,
+                                 List<ir.Definition> arguments) {
+    assert(isOpen);
+    return _continueWithExpression(
+        (k) => new ir.InvokeSuperMethod(selector, k, arguments));
+  }
+
+  ir.Primitive _buildInvokeDynamic(ir.Primitive receiver,
+                                   Selector selector,
+                                   List<ir.Definition> arguments) {
+    assert(isOpen);
+    return _continueWithExpression(
+        (k) => new ir.InvokeMethod(receiver, selector, k, arguments));
+  }
+
 
   /// Create a constant literal from [constant].
   ir.Constant buildConstantLiteral(ConstantExpression constant) {
@@ -385,6 +412,36 @@ class IrBuilder {
   ir.Constant buildStringLiteral(String value) {
     return _buildPrimitiveConstant(
         state.constantSystem.createString(new ast.DartString.literal(value)));
+  }
+
+  /// Creates a non-constant list literal of the provided [type] and with the
+  /// provided [values].
+  ir.Primitive buildListLiteral(InterfaceType type,
+                                Iterable<ir.Primitive> values) {
+    assert(isOpen);
+    ir.Primitive result = new ir.LiteralList(type, values);
+    add(new ir.LetPrim(result));
+    return result;
+  }
+
+  /// Creates a non-constant map literal of the provided [type] and with the
+  /// entries build from the [keys] and [values] using [build].
+  ir.Primitive buildMapLiteral(InterfaceType type,
+                               Iterable keys,
+                               Iterable values,
+                               BuildFunction build) {
+    assert(isOpen);
+    List<ir.LiteralMapEntry> entries = <ir.LiteralMapEntry>[];
+    Iterator key = keys.iterator;
+    Iterator value = values.iterator;
+    while (key.moveNext() && value.moveNext()) {
+      entries.add(new ir.LiteralMapEntry(
+          build(key.current), build(value.current)));
+    }
+    assert(!key.moveNext() && !value.moveNext());
+    ir.Primitive result = new ir.LiteralMap(type, entries);
+    add(new ir.LetPrim(result));
+    return result;
   }
 
   /// Creates a conditional expression with the provided [condition] where the
@@ -437,55 +494,12 @@ class IrBuilder {
 
   }
 
-  /// Create a read access of [local].
-  ir.Primitive buildLocalGet(LocalElement local) {
-    assert(isOpen);
-    if (isClosureVariable(local)) {
-      ir.Primitive result = new ir.GetClosureVariable(local);
-      add(new ir.LetPrim(result));
-      return result;
-    } else {
-      return environment.lookup(local);
-    }
-  }
-
-  /// Create a write access to [local].
-  ir.Primitive buildLocalSet(LocalElement local, ir.Primitive valueToStore) {
-    assert(isOpen);
-    if (isClosureVariable(local)) {
-      add(new ir.SetClosureVariable(local, valueToStore));
-    } else {
-      valueToStore.useElementAsHint(local);
-      environment.update(local, valueToStore);
-    }
-    return valueToStore;
-  }
-
-  /// Create a get access of the static [element].
-  ir.Primitive buildStaticGet(Element element, Selector selector) {
-    assert(isOpen);
-    assert(selector.isGetter);
-    return continueWithExpression(
-        (k) => new ir.InvokeStatic(
-            element, selector, k, const <ir.Definition>[]));
-  }
-
-  /// Create a dynamic get access on [receiver] where the property is defined
-  /// by the getter [selector].
-  ir.Primitive buildDynamicGet(ir.Primitive receiver, Selector selector) {
-    assert(isOpen);
-    assert(selector.isGetter);
-    return continueWithExpression(
-        (k) => new ir.InvokeMethod(
-            receiver, selector, k, const <ir.Definition>[]));
-  }
-
   /**
    * Add an explicit `return null` for functions that don't have a return
    * statement on each branch. This includes functions with an empty body,
    * such as `foo(){ }`.
    */
-  void ensureReturn() {
+  void _ensureReturn() {
     if (!isOpen) return;
     ir.Constant constant = buildNullLiteral();
     add(new ir.InvokeContinuation(state.returnContinuation, [constant]));
@@ -500,7 +514,7 @@ class IrBuilder {
       FunctionElement element,
       List<ConstantExpression> defaults) {
     if (!element.isAbstract) {
-      ensureReturn();
+      _ensureReturn();
       return new ir.FunctionDefinition(
           element, state.returnContinuation, _parameters, _root,
           state.localConstants, defaults);
@@ -516,46 +530,139 @@ class IrBuilder {
   }
 
 
-  /// Create a super invocation with method name and arguments structure defined
-  /// by [selector] and argument values defined by [arguments].
+  /// Create a super invocation where the method name and the argument structure
+  /// are defined by [selector] and the argument values are defined by
+  /// [arguments].
   ir.Primitive buildSuperInvocation(Selector selector,
                                     List<ir.Definition> arguments) {
-    assert(isOpen);
-    return continueWithExpression(
-        (k) => new ir.InvokeSuperMethod(selector, k, arguments));
-
+    return _buildInvokeSuper(selector, arguments);
   }
 
-  /// Create a dynamic invocation on [receiver] with method name and argument
-  /// structure defined by [selector] and argument values defined by
-  /// [arguments].
+  /// Create a getter invocation on the super class where the getter name is
+  /// defined by [selector].
+  ir.Primitive buildSuperGet(Selector selector) {
+    assert(selector.isGetter);
+    return _buildInvokeSuper(selector, const <ir.Definition>[]);
+  }
+
+  /// Create a setter invocation on the super class where the setter name and
+  /// argument are defined by [selector] and [value], respectively.
+  ir.Primitive buildSuperSet(Selector selector, ir.Primitive value) {
+    assert(selector.isSetter);
+    _buildInvokeSuper(selector, <ir.Definition>[value]);
+    return value;
+  }
+
+  /// Create an index set invocation on the super class with the provided
+  /// [index] and [value].
+  ir.Primitive buildSuperIndexSet(ir.Primitive index,
+                                  ir.Primitive value) {
+    _buildInvokeSuper(new Selector.indexSet(), <ir.Definition>[index, value]);
+    return value;
+  }
+
+  /// Create a dynamic invocation on [receiver] where the method name and
+  /// argument structure are defined by [selector] and the argument values are
+  /// defined by [arguments].
   ir.Primitive buildDynamicInvocation(ir.Definition receiver,
                                       Selector selector,
                                       List<ir.Definition> arguments) {
-    assert(isOpen);
-    return continueWithExpression(
-        (k) => new ir.InvokeMethod(receiver, selector, k, arguments));
+    return _buildInvokeDynamic(receiver, selector, arguments);
   }
 
-  /// Create a static invocation of [element] with argument structure defined
-  /// by [selector] and argument values defined by [arguments].
+  /// Create a dynamic getter invocation on [receiver] where the getter name is
+  /// defined by [selector].
+  ir.Primitive buildDynamicGet(ir.Primitive receiver, Selector selector) {
+    assert(selector.isGetter);
+    return _buildInvokeDynamic(receiver, selector, const <ir.Definition>[]);
+  }
+
+  /// Create a dynamic setter invocation on [receiver] where the setter name and
+  /// argument are defined by [selector] and [value], respectively.
+  ir.Primitive buildDynamicSet(ir.Primitive receiver,
+                               Selector selector,
+                               ir.Primitive value) {
+    assert(selector.isSetter);
+    _buildInvokeDynamic(receiver, selector, <ir.Definition>[value]);
+    return value;
+  }
+
+  /// Create a dynamic index set invocation on [receiver] with the provided
+  /// [index] and [value].
+  ir.Primitive  buildDynamicIndexSet(ir.Primitive receiver,
+                                     ir.Primitive index,
+                                     ir.Primitive value) {
+    _buildInvokeDynamic(
+        receiver, new Selector.indexSet(), <ir.Definition>[index, value]);
+    return value;
+  }
+
+  /// Create a static invocation of [element] where argument structure is
+  /// defined by [selector] and the argument values are defined by [arguments].
   ir.Primitive buildStaticInvocation(Element element,
                                      Selector selector,
                                      List<ir.Definition> arguments) {
-    return continueWithExpression(
-        (k) => new ir.InvokeStatic(element, selector, k, arguments));
+    return _buildInvokeStatic(element, selector, arguments);
   }
 
-  /// Create a constructor invocation of [element] on [type] with argument
-  /// structure defined by [selector] and argument values defined by
-  /// [arguments].
+  /// Create a static getter invocation of [element] where the getter name is
+  /// defined by [selector].
+  ir.Primitive buildStaticGet(Element element, Selector selector) {
+    assert(selector.isGetter);
+    return _buildInvokeStatic(element, selector, const <ir.Definition>[]);
+  }
+
+  /// Create a static setter invocation of [element] where the setter name and
+  /// argument are defined by [selector] and [value], respectively.
+  ir.Primitive buildStaticSet(Element element,
+                              Selector selector,
+                              ir.Primitive value) {
+    assert(selector.isSetter);
+    _buildInvokeStatic(element, selector, <ir.Definition>[value]);
+    return value;
+  }
+
+  /// Create a constructor invocation of [element] on [type] where the
+  /// constructor name and argument structure are defined by [selector] and the
+  /// argument values are defined by [arguments].
   ir.Primitive buildConstructorInvocation(FunctionElement element,
-                                         Selector selector,
-                                         DartType type,
-                                         List<ir.Definition> arguments) {
+                                          Selector selector,
+                                          DartType type,
+                                          List<ir.Definition> arguments) {
     assert(isOpen);
-    return continueWithExpression(
+    return _continueWithExpression(
         (k) => new ir.InvokeConstructor(type, element, selector, k, arguments));
+  }
+
+  /// Create a string concatenation of the [arguments].
+  ir.Primitive buildStringConcatenation(List<ir.Definition> arguments) {
+    assert(isOpen);
+    return _continueWithExpression(
+        (k) => new ir.ConcatenateStrings(k, arguments));
+  }
+
+  /// Create a read access of [local].
+  ir.Primitive buildLocalGet(LocalElement local) {
+    assert(isOpen);
+    if (isClosureVariable(local)) {
+      ir.Primitive result = new ir.GetClosureVariable(local);
+      add(new ir.LetPrim(result));
+      return result;
+    } else {
+      return environment.lookup(local);
+    }
+  }
+
+  /// Create a write access to [local] with the provided [value].
+  ir.Primitive buildLocalSet(LocalElement local, ir.Primitive value) {
+    assert(isOpen);
+    if (isClosureVariable(local)) {
+      add(new ir.SetClosureVariable(local, value));
+    } else {
+      value.useElementAsHint(local);
+      environment.update(local, value);
+    }
+    return value;
   }
 
   /// Creates an if-then-else statement with the provided [condition] where the
@@ -777,6 +884,217 @@ class IrBuilder {
     }
   }
 
+  /// Creates a for-in loop, `for (v in e) b`.
+  ///
+  /// [buildExpression] creates the expression, `e`. The variable, `v`, can
+  /// take one of three forms:
+  ///     1) `v` can be declared within the for-in statement, like in
+  ///        `for (var v in e)`, in which case, [buildVariableDeclaration]
+  ///        creates its declaration and [variableElement] is the element for
+  ///        the declared variable,
+  ///     2) `v` is predeclared statically known variable, that is top-level,
+  ///        static, or local variable, in which case [variableElement] is the
+  ///        variable element, and [variableSelector] defines its write access,
+  ///     3) `v` is an instance variable in which case [variableSelector]
+  ///        defines its write access.
+  /// [buildBody] creates the body, `b`, of the loop. The jump [target] is used
+  /// to identify which `break` and `continue` statements that have this for-in
+  /// statement as their target.
+  void buildForIn({SubbuildFunction buildExpression,
+                   SubbuildFunction buildVariableDeclaration,
+                   Element variableElement,
+                   Selector variableSelector,
+                   SubbuildFunction buildBody,
+                   JumpTarget target}) {
+    // The for-in loop
+    //
+    // for (a in e) s;
+    //
+    // Is compiled analogously to:
+    //
+    // a = e.iterator;
+    // while (a.moveNext()) {
+    //   var n0 = a.current;
+    //   s;
+    // }
+
+    // The condition and body are delimited.
+    IrBuilder condBuilder = new IrBuilder.recursive(this);
+
+    ir.Primitive expressionReceiver = buildExpression(this);
+    List<ir.Primitive> emptyArguments = new List<ir.Primitive>();
+
+    ir.Parameter iterator = new ir.Parameter(null);
+    ir.Continuation iteratorInvoked = new ir.Continuation([iterator]);
+    add(new ir.LetCont(iteratorInvoked,
+        new ir.InvokeMethod(expressionReceiver,
+            new Selector.getter("iterator", null), iteratorInvoked,
+            emptyArguments)));
+
+    ir.Parameter condition = new ir.Parameter(null);
+    ir.Continuation moveNextInvoked = new ir.Continuation([condition]);
+    condBuilder.add(new ir.LetCont(moveNextInvoked,
+        new ir.InvokeMethod(iterator,
+            new Selector.call("moveNext", null, 0),
+            moveNextInvoked, emptyArguments)));
+
+    JumpCollector breakCollector = new JumpCollector(target);
+    JumpCollector continueCollector = new JumpCollector(target);
+    state.breakCollectors.add(breakCollector);
+    state.continueCollectors.add(continueCollector);
+
+    IrBuilder bodyBuilder = new IrBuilder.delimited(condBuilder);
+    if (buildVariableDeclaration != null) {
+      buildVariableDeclaration(bodyBuilder);
+    }
+
+    ir.Parameter currentValue = new ir.Parameter(null);
+    ir.Continuation currentInvoked = new ir.Continuation([currentValue]);
+    bodyBuilder.add(new ir.LetCont(currentInvoked,
+        new ir.InvokeMethod(iterator, new Selector.getter("current", null),
+            currentInvoked, emptyArguments)));
+    if (Elements.isLocal(variableElement)) {
+      bodyBuilder.buildLocalSet(variableElement, currentValue);
+    } else if (Elements.isStaticOrTopLevel(variableElement)) {
+      bodyBuilder.buildStaticSet(
+          variableElement, variableSelector, currentValue);
+    } else {
+      ir.Primitive receiver = bodyBuilder.buildThis();
+      bodyBuilder.buildDynamicSet(receiver, variableSelector, currentValue);
+    }
+
+    buildBody(bodyBuilder);
+    assert(state.breakCollectors.last == breakCollector);
+    assert(state.continueCollectors.last == continueCollector);
+    state.breakCollectors.removeLast();
+    state.continueCollectors.removeLast();
+
+    // Create body entry and loop exit continuations and a branch to them.
+    ir.Continuation bodyContinuation = new ir.Continuation([]);
+    ir.Continuation exitContinuation = new ir.Continuation([]);
+    ir.LetCont branch =
+        new ir.LetCont(exitContinuation,
+            new ir.LetCont(bodyContinuation,
+                new ir.Branch(new ir.IsTrue(condition),
+                              bodyContinuation,
+                              exitContinuation)));
+    // If there are breaks in the body, then there must be a join-point
+    // continuation for the normal exit and the breaks.
+    bool hasBreaks = !breakCollector.isEmpty;
+    ir.LetCont letJoin;
+    if (hasBreaks) {
+      letJoin = new ir.LetCont(null, branch);
+      condBuilder.add(letJoin);
+      condBuilder._current = branch;
+    } else {
+      condBuilder.add(branch);
+    }
+    ir.Continuation loopContinuation =
+        new ir.Continuation(condBuilder._parameters);
+    if (bodyBuilder.isOpen) continueCollector.addJump(bodyBuilder);
+    invokeFullJoin(
+        loopContinuation, continueCollector, recursive: true);
+    bodyContinuation.body = bodyBuilder._root;
+
+    loopContinuation.body = condBuilder._root;
+    add(new ir.LetCont(loopContinuation,
+            new ir.InvokeContinuation(loopContinuation,
+                                      environment.index2value)));
+    if (hasBreaks) {
+      _current = branch;
+      environment = condBuilder.environment;
+      breakCollector.addJump(this);
+      letJoin.continuation = createJoin(environment.length, breakCollector);
+      _current = letJoin;
+    } else {
+      _current = condBuilder._current;
+      environment = condBuilder.environment;
+    }
+  }
+
+  /// Creates a while loop in which the condition and body are created by
+  /// [buildCondition] and [buildBody], respectively.
+  ///
+  /// The jump [target] is used to identify which `break` and `continue`
+  /// statements that have this `while` statement as their target.
+  void buildWhile({SubbuildFunction buildCondition,
+                   SubbuildFunction buildBody,
+                   JumpTarget target}) {
+    assert(isOpen);
+    // While loops use four named continuations: the entry to the body, the
+    // loop exit, the loop back edge (continue), and the loop exit (break).
+    // The CPS translation of [[while (condition) body; successor]] is:
+    //
+    // let cont continue(x, ...) =
+    //     let prim cond = [[condition]] in
+    //     let cont break() = [[successor]] in
+    //     let cont exit() = break(v, ...) in
+    //     let cont body() = [[body]]; continue(v, ...) in
+    //     branch cond (body, exit) in
+    // continue(v, ...)
+    //
+    // If there are no breaks in the body, the break continuation is inlined
+    // in the exit continuation (i.e., the translation of the successor
+    // statement occurs in the exit continuation).
+
+    // The condition and body are delimited.
+    IrBuilder condBuilder = new IrBuilder.recursive(this);
+    ir.Primitive condition = buildCondition(condBuilder);
+
+    JumpCollector breakCollector = new JumpCollector(target);
+    JumpCollector continueCollector = new JumpCollector(target);
+    state.breakCollectors.add(breakCollector);
+    state.continueCollectors.add(continueCollector);
+
+    IrBuilder bodyBuilder = new IrBuilder.delimited(condBuilder);
+    buildBody(bodyBuilder);
+    assert(state.breakCollectors.last == breakCollector);
+    assert(state.continueCollectors.last == continueCollector);
+    state.breakCollectors.removeLast();
+    state.continueCollectors.removeLast();
+
+    // Create body entry and loop exit continuations and a branch to them.
+    ir.Continuation bodyContinuation = new ir.Continuation([]);
+    ir.Continuation exitContinuation = new ir.Continuation([]);
+    ir.LetCont branch =
+        new ir.LetCont(exitContinuation,
+            new ir.LetCont(bodyContinuation,
+                new ir.Branch(new ir.IsTrue(condition),
+                              bodyContinuation,
+                              exitContinuation)));
+    // If there are breaks in the body, then there must be a join-point
+    // continuation for the normal exit and the breaks.
+    bool hasBreaks = !breakCollector.isEmpty;
+    ir.LetCont letJoin;
+    if (hasBreaks) {
+      letJoin = new ir.LetCont(null, branch);
+      condBuilder.add(letJoin);
+      condBuilder._current = branch;
+    } else {
+      condBuilder.add(branch);
+    }
+    ir.Continuation loopContinuation =
+        new ir.Continuation(condBuilder._parameters);
+    if (bodyBuilder.isOpen) continueCollector.addJump(bodyBuilder);
+    invokeFullJoin(loopContinuation, continueCollector, recursive: true);
+    bodyContinuation.body = bodyBuilder._root;
+
+    loopContinuation.body = condBuilder._root;
+    add(new ir.LetCont(loopContinuation,
+            new ir.InvokeContinuation(loopContinuation,
+                                      environment.index2value)));
+    if (hasBreaks) {
+      _current = branch;
+      environment = condBuilder.environment;
+      breakCollector.addJump(this);
+      letJoin.continuation = createJoin(environment.length, breakCollector);
+      _current = letJoin;
+    } else {
+      _current = condBuilder._current;
+      environment = condBuilder.environment;
+    }
+  }
+
   /// Create a return statement `return value;` or `return;` if [value] is
   /// null.
   void buildReturn([ir.Primitive value]) {
@@ -796,7 +1114,7 @@ class IrBuilder {
   /// statements. The first statement is assumed to be reachable.
   // TODO(johnniwinther): Type [statements] as `Iterable` when `NodeList` uses
   // `List` instead of `Link`.
-  void buildBlock(var statements, build(statement)) {
+  void buildBlock(var statements, BuildFunction build) {
     // Build(Block(stamements), C) = C'
     //   where C' = statements.fold(Build, C)
     assert(isOpen);
@@ -808,7 +1126,7 @@ class IrBuilder {
   /// The first node in the sequence does not need to be reachable.
   // TODO(johnniwinther): Type [nodes] as `Iterable` when `NodeList` uses
   // `List` instead of `Link`.
-  void buildSequence(var nodes, build(node)) {
+  void buildSequence(var nodes, BuildFunction build) {
     for (var node in nodes) {
       if (!isOpen) return;
       build(node);
@@ -875,6 +1193,23 @@ class IrBuilder {
                             thenContinuation,
                             elseContinuation)))));
     return resultParameter;
+  }
+
+  /// Creates a type test or type cast of [receiver] against [type].
+  ///
+  /// Set [isTypeTest] to `true` to create a type test and furthermore set
+  /// [isNotCheck] to `true` to create a negated type test.
+  ir.Primitive buildTypeOperator(ir.Primitive receiver,
+                                 DartType type,
+                                 {bool isTypeTest: false,
+                                  bool isNotCheck: false}) {
+    assert(isOpen);
+    assert(isTypeTest != null);
+    assert(!isNotCheck || isTypeTest);
+    ir.Primitive check = _continueWithExpression(
+        (k) => new ir.TypeOperator(receiver, type, k, isTypeTest: isTypeTest));
+    return isNotCheck ? buildNegation(check) : check;
+
   }
 
   /// Create a lazy and/or expression. [leftValue] is the value of the left
@@ -960,6 +1295,14 @@ class IrBuilder {
     // There is always a join parameter for the result value, because it
     // is different on at least two paths.
     return joinContinuation.parameters.last;
+  }
+
+  /// Creates an access to `this`.
+  ir.Primitive buildThis() {
+    assert(isOpen);
+    ir.Primitive result = new ir.This();
+    add(new ir.LetPrim(result));
+    return result;
   }
 
   /// Create a non-recursive join-point continuation.

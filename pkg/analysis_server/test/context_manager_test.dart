@@ -323,6 +323,24 @@ class ContextManagerTest {
     manager.assertContextFiles(project, [file1, file2]);
   }
 
+  void test_setRoots_exclude_sameRoot_removeExcludedFile_inFolder() {
+    // prepare paths
+    String project = '/project';
+    String file1 = '$project/bin/file1.dart';
+    String file2 = '$project/bin/file2.dart';
+    // create files
+    resourceProvider.newFile(file1, '// 1');
+    resourceProvider.newFile(file2, '// 2');
+    // set roots
+    manager.setRoots(<String>[project], <String>[file2], <String, String>{});
+    manager.assertContextPaths([project]);
+    manager.assertContextFiles(project, [file1]);
+    // stop excluding "2"
+    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    manager.assertContextPaths([project]);
+    manager.assertContextFiles(project, [file1, file2]);
+  }
+
   void test_setRoots_exclude_sameRoot_removeExcludedFolder() {
     // prepare paths
     String project = '/project';

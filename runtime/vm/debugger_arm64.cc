@@ -13,26 +13,6 @@
 
 namespace dart {
 
-RawInstance* ActivationFrame::GetInstanceCallReceiver(
-                 intptr_t num_actual_args) {
-  ASSERT(num_actual_args > 0);  // At minimum we have a receiver on the stack.
-  // Stack pointer points to last argument that was pushed on the stack.
-  const uword receiver_addr = sp() + ((num_actual_args - 1) * kWordSize);
-  const uword receiver = *reinterpret_cast<uword*>(receiver_addr);
-  return reinterpret_cast<RawInstance*>(receiver);
-}
-
-
-RawObject* ActivationFrame::GetClosureObject(intptr_t num_actual_args) {
-  // At a minimum we have the closure object on the stack.
-  ASSERT(num_actual_args > 0);
-  // Stack pointer points to last argument that was pushed on the stack.
-  const uword closure_addr = sp() + ((num_actual_args - 1) * kWordSize);
-  const uword closure = *reinterpret_cast<uword*>(closure_addr);
-  return reinterpret_cast<RawObject*>(closure);
-}
-
-
 uword CodeBreakpoint::OrigStubAddress() const {
   const Code& code = Code::Handle(code_);
   const Array& object_pool = Array::Handle(code.ObjectPool());

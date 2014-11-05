@@ -60,8 +60,13 @@ class VirtualMemory {
 
   static bool InSamePage(uword address0, uword address1);
 
-  // Truncate this virtual memory segment.
+  // Truncate this virtual memory segment. If try_unmap is false, the
+  // memory beyond the new end is still accessible, but will be returned
+  // upon destruction.
   void Truncate(intptr_t new_size, bool try_unmap = true);
+
+  // Commit a reserved memory area, so that the memory can be accessed.
+  bool Commit(uword addr, intptr_t size, bool is_executable);
 
  private:
   static VirtualMemory* ReserveInternal(intptr_t size);
@@ -75,9 +80,6 @@ class VirtualMemory {
   explicit VirtualMemory(const MemoryRegion& region) :
       region_(region.pointer(), region.size()),
       reserved_size_(region.size()) { }
-
-  // Commit a reserved memory area, so that the memory can be accessed.
-  bool Commit(uword addr, intptr_t size, bool is_executable);
 
   MemoryRegion region_;
 

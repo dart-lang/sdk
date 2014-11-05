@@ -22,4 +22,5 @@ export "equality.dart";
 export "iterable_zip.dart";
 export "priority_queue.dart";
 export "src/canonicalized_map.dart";
+export "src/queue_list.dart";
 export "wrappers.dart";

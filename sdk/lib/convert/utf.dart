@@ -342,6 +342,8 @@ class Utf8Decoder extends Converter<List<int>, String> {
 
   // Override the base-classes bind, to provide a better type.
   Stream<String> bind(Stream<List<int>> stream) => super.bind(stream);
+
+  external Converter<List<int>,dynamic> fuse(Converter<String, dynamic> next);
 }
 
 // UTF-8 constants.

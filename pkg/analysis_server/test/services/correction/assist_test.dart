@@ -133,6 +133,76 @@ class A {
 ''');
   }
 
+  void test_addTypeAnnotation_declaredIdentifier_BAD_hasTypeAnnotation() {
+    _indexTestUnit('''
+main(List<String> items) {
+  for (String item in items) {
+  }
+}
+''');
+    assertNoAssistAt('item in', AssistKind.ADD_TYPE_ANNOTATION);
+  }
+
+  void test_addTypeAnnotation_declaredIdentifier_BAD_inForEachBody() {
+    _indexTestUnit('''
+main(List<String> items) {
+  for (var item in items) {
+    42;
+  }
+}
+''');
+    assertNoAssistAt('42;', AssistKind.ADD_TYPE_ANNOTATION);
+  }
+
+  void test_addTypeAnnotation_declaredIdentifier_BAD_unknownType() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+main() {
+  for (var item in unknownList) {
+  }
+}
+''');
+    assertNoAssistAt('item in', AssistKind.ADD_TYPE_ANNOTATION);
+  }
+
+  void test_addTypeAnnotation_declaredIdentifier_OK() {
+    _indexTestUnit('''
+main(List<String> items) {
+  for (var item in items) {
+  }
+}
+''');
+    // on identifier
+    assertHasAssistAt('item in', AssistKind.ADD_TYPE_ANNOTATION, '''
+main(List<String> items) {
+  for (String item in items) {
+  }
+}
+''');
+    // on "for"
+    assertHasAssistAt('for (', AssistKind.ADD_TYPE_ANNOTATION, '''
+main(List<String> items) {
+  for (String item in items) {
+  }
+}
+''');
+  }
+
+  void test_addTypeAnnotation_declaredIdentifier_OK_final() {
+    _indexTestUnit('''
+main(List<String> items) {
+  for (final item in items) {
+  }
+}
+''');
+    assertHasAssistAt('item in', AssistKind.ADD_TYPE_ANNOTATION, '''
+main(List<String> items) {
+  for (final String item in items) {
+  }
+}
+''');
+  }
+
   void test_addTypeAnnotation_local_OK_Function() {
     _indexTestUnit('''
 main() {
@@ -207,6 +277,19 @@ main() {
     assertHasAssistAt('var ', AssistKind.ADD_TYPE_ANNOTATION, '''
 main() {
   int v = 0;
+}
+''');
+  }
+
+  void test_addTypeAnnotation_local_OK_onVariableDeclarationStatement() {
+    _indexTestUnit('''
+main() {
+  var v = 123; // marker
+}
+''');
+    assertHasAssistAt(' // marker', AssistKind.ADD_TYPE_ANNOTATION, '''
+main() {
+  int v = 123; // marker
 }
 ''');
   }
@@ -1895,6 +1978,19 @@ main() {
   return true ? 111 : 222;
 }
 ''');
+  }
+
+  void test_replaceIfElseWithConditional_wrong_expressionVsReturn() {
+    _indexTestUnit('''
+main() {
+  if (true) {
+    print(42);
+  } else {
+    return;
+  }
+}
+''');
+    assertNoAssistAt('else', AssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL);
   }
 
   void test_replaceIfElseWithConditional_wrong_notIfStatement() {

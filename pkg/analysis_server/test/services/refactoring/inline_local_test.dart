@@ -24,6 +24,102 @@ main() {
 class InlineLocalTest extends RefactoringTest {
   InlineLocalRefactoringImpl refactoring;
 
+  test_access() {
+    indexTestUnit('''
+main() {
+  int test = 1 + 2;
+  print(test);
+  print(test);
+}
+''');
+    _createRefactoring('test =');
+    expect(refactoring.refactoringName, 'Inline Local Variable');
+    // check initial conditions and access
+    return refactoring.checkInitialConditions().then((_) {
+      expect(refactoring.variableName, 'test');
+      expect(refactoring.referenceCount, 2);
+    });
+  }
+
+  test_bad_selectionMethod() {
+    indexTestUnit(r'''
+main() {
+}
+''');
+    _createRefactoring('main() {');
+    return refactoring.checkInitialConditions().then((status) {
+      _assert_fatalError_selection(status);
+    });
+  }
+
+  test_bad_selectionParameter() {
+    indexTestUnit(r'''
+main(int test) {
+}
+''');
+    _createRefactoring('test) {');
+    return refactoring.checkInitialConditions().then((status) {
+      _assert_fatalError_selection(status);
+    });
+  }
+
+  test_bad_selectionVariable_hasAssignments_1() {
+    indexTestUnit(r'''
+main() {
+  int test = 0;
+  test = 1;
+}
+''');
+    _createRefactoring('test = 0');
+    return refactoring.checkInitialConditions().then((status) {
+      assertRefactoringStatus(
+          status,
+          RefactoringProblemSeverity.FATAL,
+          expectedContextSearch: 'test = 1');
+    });
+  }
+
+  test_bad_selectionVariable_hasAssignments_2() {
+    indexTestUnit(r'''
+main() {
+  int test = 0;
+  test += 1;
+}
+''');
+    _createRefactoring('test = 0');
+    return refactoring.checkInitialConditions().then((status) {
+      assertRefactoringStatus(
+          status,
+          RefactoringProblemSeverity.FATAL,
+          expectedContextSearch: 'test += 1');
+    });
+  }
+
+  test_bad_selectionVariable_notInBlock() {
+    indexTestUnit(r'''
+main() {
+  if (true)
+    int test = 0;
+}
+''');
+    _createRefactoring('test = 0');
+    return refactoring.checkInitialConditions().then((status) {
+      assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
+    });
+  }
+
+  test_bad_selectionVariable_notInitialized() {
+    indexTestUnit(r'''
+main() {
+  int test;
+}
+''');
+    _createRefactoring('test;');
+    return refactoring.checkInitialConditions().then((status) {
+      assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
+    });
+  }
+
   test_OK_cascade_intoCascade() {
     indexTestUnit(r'''
 class A {
@@ -115,24 +211,6 @@ main() {
   print('test = ${process(foo)}');
 }
 process(x) {}
-''');
-  }
-
-  test_OK_intoStringInterpolation_stringInterpolation() {
-    indexTestUnit(r'''
-main() {
-  String a = 'aaa';
-  String b = '$a bbb';
-  String c = '$b ccc';
-}
-''');
-    _createRefactoring('b =');
-    // validate change
-    return assertSuccessfulRefactoring(r'''
-main() {
-  String a = 'aaa';
-  String c = '$a bbb ccc';
-}
 ''');
   }
 
@@ -298,6 +376,24 @@ main() {
 ''');
   }
 
+  test_OK_intoStringInterpolation_stringInterpolation() {
+    indexTestUnit(r'''
+main() {
+  String a = 'aaa';
+  String b = '$a bbb';
+  String c = '$b ccc';
+}
+''');
+    _createRefactoring('b =');
+    // validate change
+    return assertSuccessfulRefactoring(r'''
+main() {
+  String a = 'aaa';
+  String c = '$a bbb ccc';
+}
+''');
+  }
+
   /**
    * <p>
    * https://code.google.com/p/dart/issues/detail?id=18587
@@ -368,6 +464,24 @@ main() {
 ''');
   }
 
+  test_OK_parenthesis_decrement_intoNegate() {
+    indexTestUnit('''
+main() {
+  var a = 1;
+  var test = --a;
+  var b = -test;
+}
+''');
+    _createRefactoring('test =');
+    // validate change
+    return assertSuccessfulRefactoring('''
+main() {
+  var a = 1;
+  var b = -(--a);
+}
+''');
+  }
+
   test_OK_parenthesis_instanceCreation_intoList() {
     indexTestUnit('''
 class A {}
@@ -382,6 +496,24 @@ main() {
 class A {}
 main() {
   var list = [new A()];
+}
+''');
+  }
+
+  test_OK_parenthesis_negate_intoNegate() {
+    indexTestUnit('''
+main() {
+  var a = 1;
+  var test = -a;
+  var b = -test;
+}
+''');
+    _createRefactoring('test =');
+    // validate change
+    return assertSuccessfulRefactoring('''
+main() {
+  var a = 1;
+  var b = -(-a);
 }
 ''');
   }
@@ -418,102 +550,6 @@ main() {
   print(1 + 2);
 }
 ''');
-  }
-
-  test_access() {
-    indexTestUnit('''
-main() {
-  int test = 1 + 2;
-  print(test);
-  print(test);
-}
-''');
-    _createRefactoring('test =');
-    expect(refactoring.refactoringName, 'Inline Local Variable');
-    // check initial conditions and access
-    return refactoring.checkInitialConditions().then((_) {
-      expect(refactoring.variableName, 'test');
-      expect(refactoring.referenceCount, 2);
-    });
-  }
-
-  test_bad_selectionMethod() {
-    indexTestUnit(r'''
-main() {
-}
-''');
-    _createRefactoring('main() {');
-    return refactoring.checkInitialConditions().then((status) {
-      _assert_fatalError_selection(status);
-    });
-  }
-
-  test_bad_selectionParameter() {
-    indexTestUnit(r'''
-main(int test) {
-}
-''');
-    _createRefactoring('test) {');
-    return refactoring.checkInitialConditions().then((status) {
-      _assert_fatalError_selection(status);
-    });
-  }
-
-  test_bad_selectionVariable_hasAssignments_1() {
-    indexTestUnit(r'''
-main() {
-  int test = 0;
-  test = 1;
-}
-''');
-    _createRefactoring('test = 0');
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.FATAL,
-          expectedContextSearch: 'test = 1');
-    });
-  }
-
-  test_bad_selectionVariable_hasAssignments_2() {
-    indexTestUnit(r'''
-main() {
-  int test = 0;
-  test += 1;
-}
-''');
-    _createRefactoring('test = 0');
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.FATAL,
-          expectedContextSearch: 'test += 1');
-    });
-  }
-
-  test_bad_selectionVariable_notInBlock() {
-    indexTestUnit(r'''
-main() {
-  if (true)
-    int test = 0;
-}
-''');
-    _createRefactoring('test = 0');
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
-    });
-  }
-
-  test_bad_selectionVariable_notInitialized() {
-    indexTestUnit(r'''
-main() {
-  int test;
-}
-''');
-    _createRefactoring('test;');
-    return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
-    });
   }
 
   void _assert_fatalError_selection(RefactoringStatus status) {

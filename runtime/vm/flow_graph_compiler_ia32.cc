@@ -1074,17 +1074,52 @@ void FlowGraphCompiler::CompileGraph() {
     CopyParameters();
   }
 
+  if (function.IsClosureFunction() && !flow_graph().IsCompiledForOsr()) {
+    // Load context from the closure object (first argument).
+    LocalScope* scope = parsed_function().node_sequence()->scope();
+    LocalVariable* closure_parameter = scope->VariableAt(0);
+    // TODO(fschneider): Don't load context for optimized functions that
+    // don't use it.
+    __ movl(CTX, Address(EBP, closure_parameter->index() * kWordSize));
+    __ movl(CTX, FieldAddress(CTX, Closure::context_offset()));
+#ifdef dEBUG
+    Label ok;
+    __ LoadClassId(EBX, CTX);
+    __ cmpl(EBX, Immediate(kContextCid));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Incorrect context at entry");
+    __ Bind(&ok);
+#endif
+  }
+
   // In unoptimized code, initialize (non-argument) stack allocated slots to
   // null.
-  if (!is_optimizing() && (num_locals > 0)) {
+  if (!is_optimizing()) {
+    ASSERT(num_locals > 0);  // There is always at least context_var.
     __ Comment("Initialize spill slots");
     const intptr_t slot_base = parsed_function().first_stack_local_index();
-    const Immediate& raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    __ movl(EAX, raw_null);
+    const intptr_t context_index =
+        parsed_function().current_context_var()->index();
+    if (num_locals > 1) {
+      const Immediate& raw_null =
+          Immediate(reinterpret_cast<intptr_t>(Object::null()));
+      __ movl(EAX, raw_null);
+    }
     for (intptr_t i = 0; i < num_locals; ++i) {
       // Subtract index i (locals lie at lower addresses than EBP).
-      __ movl(Address(EBP, (slot_base - i) * kWordSize), EAX);
+      if (((slot_base - i) == context_index)) {
+        if (function.IsClosureFunction()) {
+          __ movl(Address(EBP, (slot_base - i) * kWordSize), CTX);
+        } else {
+          const Immediate& raw_empty_context =
+              Immediate(reinterpret_cast<intptr_t>(
+                  isolate()->object_store()->empty_context()));
+          __ movl(Address(EBP, (slot_base - i) * kWordSize), raw_empty_context);
+        }
+      } else {
+        ASSERT(num_locals > 1);
+        __ movl(Address(EBP, (slot_base - i) * kWordSize), EAX);
+      }
     }
   }
 

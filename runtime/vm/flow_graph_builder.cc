@@ -759,7 +759,7 @@ Definition* EffectGraphVisitor::BuildStoreLocal(const LocalVariable& local,
     intptr_t delta =
         owner()->context_level() - local.owner()->context_level();
     ASSERT(delta >= 0);
-    Value* context = Bind(new(I) CurrentContextInstr());
+    Value* context = Bind(BuildCurrentContext());
     while (delta-- > 0) {
       context = Bind(new(I) LoadFieldInstr(
           context, Context::parent_offset(), Type::ZoneHandle(I, Type::null()),
@@ -787,7 +787,7 @@ Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
     intptr_t delta =
         owner()->context_level() - local.owner()->context_level();
     ASSERT(delta >= 0);
-    Value* context = Bind(new(I) CurrentContextInstr());
+    Value* context = Bind(BuildCurrentContext());
     while (delta-- > 0) {
       context = Bind(new(I) LoadFieldInstr(
           context, Context::parent_offset(), Type::ZoneHandle(I, Type::null()),
@@ -805,7 +805,7 @@ Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
 
 // Stores current context into the 'variable'
 void EffectGraphVisitor::BuildSaveContext(const LocalVariable& variable) {
-  Value* context = Bind(new(I) CurrentContextInstr());
+  Value* context = Bind(BuildCurrentContext());
   Do(BuildStoreLocal(variable, context));
 }
 
@@ -813,7 +813,19 @@ void EffectGraphVisitor::BuildSaveContext(const LocalVariable& variable) {
 // Loads context saved in 'context_variable' into the current context.
 void EffectGraphVisitor::BuildRestoreContext(const LocalVariable& variable) {
   Value* load_saved_context = Bind(BuildLoadLocal(variable));
-  AddInstruction(new(I) StoreContextInstr(load_saved_context));
+  Do(BuildStoreContext(load_saved_context));
+}
+
+
+Definition* EffectGraphVisitor::BuildStoreContext(Value* value) {
+  return new(I) StoreLocalInstr(
+      *owner()->parsed_function()->current_context_var(), value);
+}
+
+
+Definition* EffectGraphVisitor::BuildCurrentContext() {
+  return new(I) LoadLocalInstr(
+      *owner()->parsed_function()->current_context_var());
 }
 
 
@@ -1086,10 +1098,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
 
   intptr_t current_context_level = owner()->context_level();
   ASSERT(current_context_level >= 0);
-  if (owner()->parsed_function()->saved_entry_context_var() != NULL) {
-    // CTX on entry was saved, but not linked as context parent.
-    BuildRestoreContext(*owner()->parsed_function()->saved_entry_context_var());
-  } else {
+  if (HasContextScope()) {
     UnchainContexts(current_context_level);
   }
 
@@ -1268,12 +1277,12 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
   const String& name = String::ZoneHandle(I, Symbols::New(node->TokenName()));
   const intptr_t kNumArgsChecked = 2;
   InstanceCallInstr* call = new(I) InstanceCallInstr(node->token_pos(),
-                                                  name,
-                                                  node->kind(),
-                                                  arguments,
-                                                  Object::null_array(),
-                                                  kNumArgsChecked,
-                                                  owner()->ic_data_array());
+                                                     name,
+                                                     node->kind(),
+                                                     arguments,
+                                                     Object::null_array(),
+                                                     kNumArgsChecked,
+                                                     owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -1366,12 +1375,12 @@ void EffectGraphVisitor::VisitBinaryOpWithMask32Node(
   arguments->Add(push_mask);
   const intptr_t kNumArgsChecked = 2;
   InstanceCallInstr* call = new(I) InstanceCallInstr(node->token_pos(),
-                                                  BinaryOpAndMaskName(node),
-                                                  Token::kILLEGAL,
-                                                  arguments,
-                                                  Object::null_array(),
-                                                  kNumArgsChecked,
-                                                  owner()->ic_data_array());
+                                                     BinaryOpAndMaskName(node),
+                                                     Token::kILLEGAL,
+                                                     arguments,
+                                                     Object::null_array(),
+                                                     kNumArgsChecked,
+                                                     owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -1496,7 +1505,7 @@ void EffectGraphVisitor::BuildAwaitJump(LocalVariable* old_context,
   intptr_t delta = old_ctx_level -
                    continuation_result->owner()->context_level();
   ASSERT(delta >= 0);
-  Value* context = Bind(new(I) CurrentContextInstr());
+  Value* context = Bind(BuildCurrentContext());
   while (delta-- > 0) {
     context = Bind(new(I) LoadFieldInstr(
         context, Context::parent_offset(), Type::ZoneHandle(I, Type::null()),
@@ -1744,14 +1753,14 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
     PushArgumentInstr* push_right = PushArgument(for_right_value.value());
     arguments->Add(push_right);
 
-    Definition* result =
-        new(I) InstanceCallInstr(node->token_pos(),
-                                 Symbols::EqualOperator(),
-                              Token::kEQ,  // Result is negated later for kNE.
-                              arguments,
-                              Object::null_array(),
-                              2,
-                              owner()->ic_data_array());
+    Definition* result = new(I) InstanceCallInstr(
+        node->token_pos(),
+        Symbols::EqualOperator(),
+        Token::kEQ,  // Result is negated later for kNE.
+        arguments,
+        Object::null_array(),
+        2,
+        owner()->ic_data_array());
     if (node->kind() == Token::kNE) {
       if (FLAG_enable_type_checks) {
         Value* value = Bind(result);
@@ -1780,15 +1789,14 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
   arguments->Add(push_right);
 
   ASSERT(Token::IsRelationalOperator(node->kind()));
-  InstanceCallInstr* comp =
-      new(I) InstanceCallInstr(node->token_pos(),
-                            String::ZoneHandle(
-                                I, Symbols::New(node->TokenName())),
-                            node->kind(),
-                            arguments,
-                            Object::null_array(),
-                            2,
-                            owner()->ic_data_array());
+  InstanceCallInstr* comp = new(I) InstanceCallInstr(
+      node->token_pos(),
+      String::ZoneHandle(I, Symbols::New(node->TokenName())),
+      node->kind(),
+      arguments,
+      Object::null_array(),
+      2,
+      owner()->ic_data_array());
   ReturnDefinition(comp);
 }
 
@@ -1816,15 +1824,14 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new(I) ZoneGrowableArray<PushArgumentInstr*>(1);
   arguments->Add(push_value);
-  InstanceCallInstr* call =
-      new(I) InstanceCallInstr(node->token_pos(),
-                            String::ZoneHandle(
-                                I, Symbols::New(node->TokenName())),
-                            node->kind(),
-                            arguments,
-                            Object::null_array(),
-                            1,
-                            owner()->ic_data_array());
+  InstanceCallInstr* call = new(I) InstanceCallInstr(
+      node->token_pos(),
+      String::ZoneHandle(I, Symbols::New(node->TokenName())),
+      node->kind(),
+      arguments,
+      Object::null_array(),
+      1,
+      owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -2444,7 +2451,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
     // same closure, do not add a second one. We compare the origin
     // class, token position, and parent function to detect duplicates.
     // Note that we can have two different closure object for the same
-    // source text represntation of the closure: one with a non-closurized
+    // source text representation of the closure: one with a non-closurized
     // parent, and one with a closurized parent function.
 
     const Function& found_func = Function::Handle(
@@ -2525,7 +2532,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
     } else {
       // Store current context in closure.
       closure_tmp_val = Bind(new(I) LoadLocalInstr(*closure_tmp_var));
-      Value* context = Bind(new(I) CurrentContextInstr());
+      Value* context = Bind(BuildCurrentContext());
       Do(new(I) StoreInstanceFieldInstr(Closure::context_offset(),
                                         closure_tmp_val,
                                         context,
@@ -2611,10 +2618,10 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
   BuildPushArguments(*node->arguments(), arguments);
   StaticCallInstr* call =
       new(I) StaticCallInstr(node->token_pos(),
-                          node->function(),
-                          node->arguments()->names(),
-                          arguments,
-                          owner()->ic_data_array());
+                             node->function(),
+                             node->arguments()->names(),
+                             arguments,
+                             owner()->ic_data_array());
   if (node->function().is_native()) {
     const intptr_t result_cid = GetResultCidOfNativeFactory(node->function());
     if (result_cid != kDynamicCid) {
@@ -2641,18 +2648,6 @@ void EffectGraphVisitor::BuildClosureCall(
   arguments->Add(push_closure);
   BuildPushArguments(*node->arguments(), arguments);
 
-  // Save context around the call.
-  ASSERT(owner()->parsed_function()->saved_current_context_var() != NULL);
-  BuildSaveContext(*owner()->parsed_function()->saved_current_context_var());
-  closure_val = Bind(new(I) LoadLocalInstr(*tmp_var));
-  LoadFieldInstr* context_load = new(I) LoadFieldInstr(
-      closure_val,
-      Closure::context_offset(),
-      AbstractType::ZoneHandle(I, AbstractType::null()),
-      node->token_pos());
-  context_load->set_is_immutable(true);
-  Value* context_val = Bind(context_load);
-  AddInstruction(new(I) StoreContextInstr(context_val));
   closure_val = Bind(new(I) LoadLocalInstr(*tmp_var));
   LoadFieldInstr* function_load = new(I) LoadFieldInstr(
       closure_val,
@@ -2661,22 +2656,16 @@ void EffectGraphVisitor::BuildClosureCall(
       node->token_pos());
   function_load->set_is_immutable(true);
   Value* function_val = Bind(function_load);
+
   Definition* closure_call =
       new(I) ClosureCallInstr(function_val, node, arguments);
   if (result_needed) {
     Value* result = Bind(closure_call);
     Do(new(I) StoreLocalInstr(*tmp_var, result));
-    // Restore context from temp.
-    BuildRestoreContext(
-        *owner()->parsed_function()->saved_current_context_var());
-    ReturnDefinition(ExitTempLocalScope(tmp_var));
   } else {
     Do(closure_call);
-    // Restore context from saved location.
-    BuildRestoreContext(
-        *owner()->parsed_function()->saved_current_context_var());
-    Do(ExitTempLocalScope(tmp_var));
   }
+  ReturnDefinition(ExitTempLocalScope(tmp_var));
 }
 
 
@@ -2697,9 +2686,9 @@ void EffectGraphVisitor::VisitInitStaticFieldNode(InitStaticFieldNode* node) {
 
 
 void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
-  Value* context = Bind(new(I) CurrentContextInstr());
+  Value* context = Bind(BuildCurrentContext());
   Value* clone = Bind(new(I) CloneContextInstr(node->token_pos(), context));
-  AddInstruction(new(I) StoreContextInstr(clone));
+  Do(BuildStoreContext(clone));
 }
 
 
@@ -2739,10 +2728,10 @@ void EffectGraphVisitor::BuildConstructorCall(
 
   BuildPushArguments(*node->arguments(), arguments);
   Do(new(I) StaticCallInstr(node->token_pos(),
-                         node->constructor(),
-                         node->arguments()->names(),
-                         arguments,
-                         owner()->ic_data_array()));
+                            node->constructor(),
+                            node->arguments()->names(),
+                            arguments,
+                            owner()->ic_data_array()));
 }
 
 
@@ -2782,10 +2771,10 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
     BuildPushArguments(*node->arguments(), arguments);
     StaticCallInstr* call =
         new(I) StaticCallInstr(node->token_pos(),
-                            node->constructor(),
-                            node->arguments()->names(),
-                            arguments,
-                            owner()->ic_data_array());
+                               node->constructor(),
+                               node->arguments()->names(),
+                               arguments,
+                               owner()->ic_data_array());
     const intptr_t result_cid = GetResultCidOfListFactory(node);
     if (result_cid != kDynamicCid) {
       call->set_result_cid(result_cid);
@@ -3536,21 +3525,22 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
   if (super_function != NULL) {
     // Generate static call to super operator.
     StaticCallInstr* load = new(I) StaticCallInstr(node->token_pos(),
-                                                *super_function,
-                                                Object::null_array(),
-                                                arguments,
-                                                owner()->ic_data_array());
+                                                   *super_function,
+                                                   Object::null_array(),
+                                                   arguments,
+                                                   owner()->ic_data_array());
     ReturnDefinition(load);
   } else {
     // Generate dynamic call to index operator.
     const intptr_t checked_argument_count = 1;
-    InstanceCallInstr* load = new(I) InstanceCallInstr(node->token_pos(),
-                                                    Symbols::IndexToken(),
-                                                    Token::kINDEX,
-                                                    arguments,
-                                                    Object::null_array(),
-                                                    checked_argument_count,
-                                                    owner()->ic_data_array());
+    InstanceCallInstr* load = new(I) InstanceCallInstr(
+        node->token_pos(),
+        Symbols::IndexToken(),
+        Token::kINDEX,
+        arguments,
+        Object::null_array(),
+        checked_argument_count,
+        owner()->ic_data_array());
     ReturnDefinition(load);
   }
 }
@@ -3617,10 +3607,10 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
 
     StaticCallInstr* store =
         new(I) StaticCallInstr(node->token_pos(),
-                            *super_function,
-                            Object::null_array(),
-                            arguments,
-                            owner()->ic_data_array());
+                               *super_function,
+                               Object::null_array(),
+                               arguments,
+                               owner()->ic_data_array());
     if (result_is_needed) {
       Do(store);
       return BuildLoadExprTemp();
@@ -3634,12 +3624,12 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
         String::ZoneHandle(I, Symbols::New(Token::Str(Token::kASSIGN_INDEX)));
     InstanceCallInstr* store =
         new(I) InstanceCallInstr(node->token_pos(),
-                              name,
-                              Token::kASSIGN_INDEX,
-                              arguments,
-                              Object::null_array(),
-                              checked_argument_count,
-                              owner()->ic_data_array());
+                                 name,
+                                 Token::kASSIGN_INDEX,
+                                 arguments,
+                                 Object::null_array(),
+                                 checked_argument_count,
+                                 owner()->ic_data_array());
     if (result_is_needed) {
       Do(store);
       return BuildLoadExprTemp();
@@ -3660,15 +3650,16 @@ void ValueGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
 }
 
 
-bool EffectGraphVisitor::MustSaveRestoreContext(SequenceNode* node) const {
-  return (node == owner()->parsed_function()->node_sequence()) &&
-         (owner()->parsed_function()->saved_entry_context_var() != NULL);
+bool EffectGraphVisitor::HasContextScope() const {
+  const ContextScope& context_scope = ContextScope::Handle(
+      owner()->parsed_function()->function().context_scope());
+  return !context_scope.IsNull() && (context_scope.num_variables() > 0);
 }
 
 
 void EffectGraphVisitor::UnchainContexts(intptr_t n) {
   if (n > 0) {
-    Value* context = Bind(new(I) CurrentContextInstr());
+    Value* context = Bind(BuildCurrentContext());
     while (n-- > 0) {
       context = Bind(
           new(I) LoadFieldInstr(context,
@@ -3677,7 +3668,7 @@ void EffectGraphVisitor::UnchainContexts(intptr_t n) {
                                 Type::ZoneHandle(I, Type::null()),
                                 Scanner::kNoSourcePos));
     }
-    AddInstruction(new(I) StoreContextInstr(context));
+    Do(BuildStoreContext(context));
   }
 }
 
@@ -3689,47 +3680,35 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   LocalScope* scope = node->scope();
   const intptr_t num_context_variables =
       (scope != NULL) ? scope->num_context_variables() : 0;
+  const bool is_top_level_sequence =
+      node == owner()->parsed_function()->node_sequence();
   // The outermost function sequence cannot contain a label.
-  ASSERT((node->label() == NULL) ||
-         (node != owner()->parsed_function()->node_sequence()));
+  ASSERT((node->label() == NULL) || !is_top_level_sequence);
   NestedBlock nested_block(owner(), node);
 
   if (num_context_variables > 0) {
-    // The loop local scope declares variables that are captured.
-    // Allocate and chain a new context.
-    // Allocate context computation (uses current CTX)
+    // The local scope declares variables that are captured.
+    // Allocate and chain a new context (Except don't chain when at the function
+    // entry if the function does not capture any variables from outer scopes).
     Value* allocated_context =
         Bind(new(I) AllocateContextInstr(node->token_pos(),
                                          num_context_variables));
     { LocalVariable* tmp_var = EnterTempLocalScope(allocated_context);
-      // If this node_sequence is the body of the function being compiled, and
-      // if this function allocates context variables, but none of its enclosing
-      // functions do, the context on entry is not linked as parent of the
-      // allocated context but saved on entry and restored on exit as to prevent
-      // memory leaks.
-      // In this case, the parser pre-allocates a variable to save the context.
-      Value* tmp_val = Bind(new(I) LoadLocalInstr(*tmp_var));
-      Value* parent_context = NULL;
-      if (MustSaveRestoreContext(node)) {
-        BuildSaveContext(
-            *owner()->parsed_function()->saved_entry_context_var());
-        parent_context = Bind(
-            new(I) ConstantInstr(Object::ZoneHandle(I, Object::null())));
-      } else {
-        parent_context = Bind(new(I) CurrentContextInstr());
+      if (HasContextScope() || !is_top_level_sequence) {
+        Value* tmp_val = Bind(new(I) LoadLocalInstr(*tmp_var));
+        Value* parent_context = Bind(BuildCurrentContext());
+        Do(new(I) StoreInstanceFieldInstr(Context::parent_offset(),
+                                          tmp_val,
+                                          parent_context,
+                                          kEmitStoreBarrier,
+                                          Scanner::kNoSourcePos));
       }
-      Do(new(I) StoreInstanceFieldInstr(Context::parent_offset(),
-                                        tmp_val,
-                                        parent_context,
-                                        kEmitStoreBarrier,
-                                        Scanner::kNoSourcePos));
-      AddInstruction(
-          new(I) StoreContextInstr(Bind(ExitTempLocalScope(tmp_var))));
+      Do(BuildStoreContext(Bind(ExitTempLocalScope(tmp_var))));
     }
 
     // If this node_sequence is the body of the function being compiled, copy
     // the captured parameters from the frame into the context.
-    if (node == owner()->parsed_function()->node_sequence()) {
+    if (is_top_level_sequence) {
       ASSERT(scope->context_level() == 1);
       const Function& function = owner()->parsed_function()->function();
       const int num_params = function.NumParameters();
@@ -3765,23 +3744,12 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         }
       }
     }
-  } else if (MustSaveRestoreContext(node)) {
-    // Even when the current scope has no context variables, we may
-    // still need to save the current context if, for example, there
-    // are loop scopes below this which will allocate a context
-    // object.
-    BuildSaveContext(
-        *owner()->parsed_function()->saved_entry_context_var());
-    AddInstruction(
-        new(I) StoreContextInstr(Bind(new(I) ConstantInstr(Object::ZoneHandle(
-            I, I->object_store()->empty_context())))));
   }
 
   // This check may be deleted if the generated code is leaf.
   // Native functions don't need a stack check at entry.
   const Function& function = owner()->parsed_function()->function();
-  if ((node == owner()->parsed_function()->node_sequence()) &&
-      !function.is_native()) {
+  if (is_top_level_sequence && !function.is_native()) {
     // Always allocate CheckOverflowInstr so that deopt-ids match regardless
     // if we inline or not.
     if (!function.IsImplicitGetterFunction() &&
@@ -3796,8 +3764,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     }
   }
 
-  if (FLAG_enable_type_checks &&
-      (node == owner()->parsed_function()->node_sequence())) {
+  if (FLAG_enable_type_checks && is_top_level_sequence) {
     const Function& function = owner()->parsed_function()->function();
     const int num_params = function.NumParameters();
     int pos = 0;
@@ -3836,7 +3803,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   // If this node sequence is the body of an async closure leave room for a
   // preamble. The preamble is generated after visiting the body.
   GotoInstr* preamble_start = NULL;
-  if ((node == owner()->parsed_function()->node_sequence()) &&
+  if (is_top_level_sequence &&
       (owner()->parsed_function()->function().is_async_closure())) {
     JoinEntryInstr* preamble_end = new(I) JoinEntryInstr(
         owner()->AllocateBlockId(), owner()->try_index());
@@ -3862,7 +3829,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   // Continuation part:
   // After generating the CFG for the body we can create the preamble because we
   // know exactly how many continuation states we need.
-  if ((node == owner()->parsed_function()->node_sequence()) &&
+  if (is_top_level_sequence &&
       (owner()->parsed_function()->function().is_async_closure())) {
     ASSERT(preamble_start != NULL);
     // We are at the top level. Fetch the corresponding scope.
@@ -3923,13 +3890,10 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     exit_ = saved_exit;
   }
 
-  if (is_open()) {
-    if (MustSaveRestoreContext(node)) {
-      BuildRestoreContext(
-          *owner()->parsed_function()->saved_entry_context_var());
-    } else if (num_context_variables > 0) {
-      UnchainContexts(1);
-    }
+  if (is_open() &&
+      (num_context_variables > 0) &&
+      (HasContextScope() || !is_top_level_sequence)) {
+    UnchainContexts(1);
   }
 
   // If this node sequence is labeled, a break out of the sequence will have
@@ -3943,7 +3907,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
 
 void EffectGraphVisitor::VisitCatchClauseNode(CatchClauseNode* node) {
   InlineBailout("EffectGraphVisitor::VisitCatchClauseNode (exception)");
-  // Restores CTX from local variable ':saved_context'.
+  // Restores current context from local variable ':saved_context'.
   BuildRestoreContext(node->context_var());
 
   EffectGraphVisitor for_catch(owner());
@@ -3959,7 +3923,7 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
   ASSERT(try_handler_index != original_handler_index);
   owner()->set_try_index(try_handler_index);
 
-  // Preserve CTX into local variable '%saved_context'.
+  // Preserve current context into local variable '%saved_context'.
   BuildSaveContext(node->context_var());
 
   EffectGraphVisitor for_try(owner());

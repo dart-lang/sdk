@@ -187,12 +187,6 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, object_store_);
   }
 
-  RawContext* top_context() const { return top_context_; }
-  void set_top_context(RawContext* value) { top_context_ = value; }
-  static intptr_t top_context_offset() {
-    return OFFSET_OF(Isolate, top_context_);
-  }
-
   uword top_exit_frame_info() const { return top_exit_frame_info_; }
   void set_top_exit_frame_info(uword value) { top_exit_frame_info_ = value; }
   static intptr_t top_exit_frame_info_offset() {
@@ -640,7 +634,6 @@ class Isolate : public BaseIsolate {
   uint64_t terminate_capability_;
   Heap* heap_;
   ObjectStore* object_store_;
-  RawContext* top_context_;
   uword top_exit_frame_info_;
   void* init_callback_data_;
   Dart_EnvironmentCallback environment_callback_;

@@ -18,6 +18,7 @@ import 'utilities_collection.dart';
 import 'utilities_general.dart';
 import 'instrumentation.dart';
 import 'error.dart';
+import 'error_verifier.dart';
 import 'source.dart';
 import 'scanner.dart';
 import 'ast.dart';
@@ -111,11 +112,13 @@ class AnalysisCache {
       }
     }
     //
-    // We should never get to this point because the last partition should always be a universal
-    // partition, except in the case of the SDK context, in which case the source should always be
-    // part of the SDK.
+    // We should never get to this point because the last partition should
+    // always be a universal partition, except in the case of the SDK context,
+    // in which case the source should always be part of the SDK.
     //
-    AnalysisEngine.instance.logger.logInformation2("Could not find context for ${source.fullName}", new JavaException());
+    AnalysisEngine.instance.logger.logInformation(
+        "Could not find context for ${source.fullName}",
+        new CaughtException(new AnalysisException(), null));
     return null;
   }
 
@@ -1158,8 +1161,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             }
           }
         }
-      } on ObsoleteSourceAnalysisException catch (exception) {
-        AnalysisEngine.instance.logger.logInformation2("Could not compute errors", exception);
+      } on ObsoleteSourceAnalysisException catch (exception, stackTrace) {
+        AnalysisEngine.instance.logger.logInformation(
+            "Could not compute errors",
+            new CaughtException(exception, stackTrace));
       }
       if (errors.isEmpty) {
         return AnalysisError.NO_ERRORS;
@@ -1169,8 +1174,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       HtmlEntry htmlEntry = sourceEntry;
       try {
         return _getHtmlResolutionData2(source, htmlEntry, HtmlEntry.RESOLUTION_ERRORS);
-      } on ObsoleteSourceAnalysisException catch (exception) {
-        AnalysisEngine.instance.logger.logInformation2("Could not compute errors", exception);
+      } on ObsoleteSourceAnalysisException catch (exception, stackTrace) {
+        AnalysisEngine.instance.logger.logInformation(
+            "Could not compute errors",
+            new CaughtException(exception, stackTrace));
       }
     }
     return AnalysisError.NO_ERRORS;
@@ -1212,8 +1219,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       } else if (sourceEntry is DartEntry) {
         return _getDartScanData2(source, SourceEntry.LINE_INFO, null);
       }
-    } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not compute ${SourceEntry.LINE_INFO}", exception);
+    } on ObsoleteSourceAnalysisException catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logInformation(
+          "Could not compute ${SourceEntry.LINE_INFO}",
+          new CaughtException(exception, stackTrace));
     }
     return null;
   }
@@ -1529,7 +1538,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       NamespaceBuilder builder = new NamespaceBuilder();
       namespace = builder.createPublicNamespaceForLibrary(library);
       if (dartEntry == null) {
-        AnalysisEngine.instance.logger.logError2("Could not compute the public namespace for ${library.source.fullName}", new CaughtException(new AnalysisException("A Dart file became a non-Dart file: ${source.fullName}"), null));
+        AnalysisEngine.instance.logger.logError(
+            "Could not compute the public namespace for ${library.source.fullName}",
+            new CaughtException(
+                new AnalysisException("A Dart file became a non-Dart file: ${source.fullName}"),
+                null));
         return null;
       }
       if (identical(dartEntry.getValue(DartEntry.ELEMENT), library)) {
@@ -1613,55 +1626,95 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  AnalysisContextStatistics get statistics {
+  void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
+                                     DataDescriptor rowDesc,
+                                     CacheState state)) {
+    void handleCacheItem(Source source, SourceEntry dartEntry,
+                         DataDescriptor descriptor) {
+      callback(source, dartEntry, descriptor, dartEntry.getState(descriptor));
+    }
+    void handleCacheItemInLibrary(DartEntry dartEntry, Source librarySource,
+                                  DataDescriptor descriptor) {
+      callback(librarySource, dartEntry, descriptor,
+          dartEntry.getStateInLibrary(descriptor, librarySource));
+    }
+
     bool hintsEnabled = _options.hint;
-    AnalysisContextStatisticsImpl statistics = new AnalysisContextStatisticsImpl();
     MapIterator<Source, SourceEntry> iterator = _cache.iterator();
     while (iterator.moveNext()) {
+      Source source = iterator.key;
       SourceEntry sourceEntry = iterator.value;
       if (sourceEntry is DartEntry) {
-        Source source = iterator.key;
         DartEntry dartEntry = sourceEntry;
         SourceKind kind = dartEntry.getValue(DartEntry.SOURCE_KIND);
         // get library independent values
-        statistics.putCacheItem(dartEntry, SourceEntry.LINE_INFO);
-        statistics.putCacheItem(dartEntry, DartEntry.PARSE_ERRORS);
-        statistics.putCacheItem(dartEntry, DartEntry.PARSED_UNIT);
-        statistics.putCacheItem(dartEntry, DartEntry.SOURCE_KIND);
+        handleCacheItem(source, dartEntry, SourceEntry.CONTENT);
+        handleCacheItem(source, dartEntry, SourceEntry.LINE_INFO);
+        // The list of containing libraries is always valid, so the state isn't
+        // interesting.
+//        handleCacheItem(source, dartEntry, DartEntry.CONTAINING_LIBRARIES);
+        handleCacheItem(source, dartEntry, DartEntry.PARSE_ERRORS);
+        handleCacheItem(source, dartEntry, DartEntry.PARSED_UNIT);
+        handleCacheItem(source, dartEntry, DartEntry.SCAN_ERRORS);
+        handleCacheItem(source, dartEntry, DartEntry.SOURCE_KIND);
+        handleCacheItem(source, dartEntry, DartEntry.TOKEN_STREAM);
         if (kind == SourceKind.LIBRARY) {
-          statistics.putCacheItem(dartEntry, DartEntry.ELEMENT);
-          statistics.putCacheItem(dartEntry, DartEntry.EXPORTED_LIBRARIES);
-          statistics.putCacheItem(dartEntry, DartEntry.IMPORTED_LIBRARIES);
-          statistics.putCacheItem(dartEntry, DartEntry.INCLUDED_PARTS);
-          statistics.putCacheItem(dartEntry, DartEntry.IS_CLIENT);
-          statistics.putCacheItem(dartEntry, DartEntry.IS_LAUNCHABLE);
-          // The public namespace isn't computed by performAnalysisTask() and therefore isn't
-          // interesting.
-          //statistics.putCacheItem(dartEntry, DartEntry.PUBLIC_NAMESPACE);
+          handleCacheItem(source, dartEntry, DartEntry.ELEMENT);
+          handleCacheItem(source, dartEntry, DartEntry.EXPORTED_LIBRARIES);
+          handleCacheItem(source, dartEntry, DartEntry.IMPORTED_LIBRARIES);
+          handleCacheItem(source, dartEntry, DartEntry.INCLUDED_PARTS);
+          handleCacheItem(source, dartEntry, DartEntry.IS_CLIENT);
+          handleCacheItem(source, dartEntry, DartEntry.IS_LAUNCHABLE);
+          // The public namespace isn't computed by performAnalysisTask()
+          // and therefore isn't interesting.
+          //handleCacheItem(key, dartEntry, DartEntry.PUBLIC_NAMESPACE);
         }
         // get library-specific values
         List<Source> librarySources = getLibrariesContaining(source);
         for (Source librarySource in librarySources) {
-          statistics.putCacheItemInLibrary(dartEntry, librarySource, DartEntry.RESOLUTION_ERRORS);
-          statistics.putCacheItemInLibrary(dartEntry, librarySource, DartEntry.RESOLVED_UNIT);
+          // These values are not currently being computed, so their state is
+          // not interesting.
+//          handleCacheItemInLibrary(dartEntry, librarySource, DartEntry.ANGULAR_ERRORS);
+//          handleCacheItemInLibrary(dartEntry, librarySource, DartEntry.BUILT_ELEMENT);
+//          handleCacheItemInLibrary(dartEntry, librarySource, DartEntry.BUILT_UNIT);
+          handleCacheItemInLibrary(dartEntry, librarySource, DartEntry.RESOLUTION_ERRORS);
+          handleCacheItemInLibrary(dartEntry, librarySource, DartEntry.RESOLVED_UNIT);
           if (_generateSdkErrors || !source.isInSystemLibrary) {
-            statistics.putCacheItemInLibrary(dartEntry, librarySource, DartEntry.VERIFICATION_ERRORS);
+            handleCacheItemInLibrary(dartEntry, librarySource, DartEntry.VERIFICATION_ERRORS);
             if (hintsEnabled) {
-              statistics.putCacheItemInLibrary(dartEntry, librarySource, DartEntry.HINTS);
+              handleCacheItemInLibrary(dartEntry, librarySource, DartEntry.HINTS);
             }
           }
         }
       } else if (sourceEntry is HtmlEntry) {
         HtmlEntry htmlEntry = sourceEntry;
-        statistics.putCacheItem(htmlEntry, SourceEntry.LINE_INFO);
-        statistics.putCacheItem(htmlEntry, HtmlEntry.PARSE_ERRORS);
-        statistics.putCacheItem(htmlEntry, HtmlEntry.PARSED_UNIT);
-        statistics.putCacheItem(htmlEntry, HtmlEntry.RESOLUTION_ERRORS);
-        statistics.putCacheItem(htmlEntry, HtmlEntry.RESOLVED_UNIT);
+        handleCacheItem(source, htmlEntry, SourceEntry.CONTENT);
+        handleCacheItem(source, htmlEntry, SourceEntry.LINE_INFO);
+        // These values are not currently being computed, so their state is
+        // not interesting.
+//        handleCacheItem(source, htmlEntry, HtmlEntry.ANGULAR_APPLICATION);
+//        handleCacheItem(source, htmlEntry, HtmlEntry.ANGULAR_COMPONENT);
+//        handleCacheItem(source, htmlEntry, HtmlEntry.ANGULAR_ENTRY);
+//        handleCacheItem(source, htmlEntry, HtmlEntry.ANGULAR_ERRORS);
+        handleCacheItem(source, htmlEntry, HtmlEntry.ELEMENT);
+        handleCacheItem(source, htmlEntry, HtmlEntry.PARSE_ERRORS);
+        handleCacheItem(source, htmlEntry, HtmlEntry.PARSED_UNIT);
+        // These values are not currently being computed, so their state is
+        // not interesting.
+//        handleCacheItem(source, htmlEntry, HtmlEntry.POLYMER_BUILD_ERRORS);
+//        handleCacheItem(source, htmlEntry, HtmlEntry.POLYMER_RESOLUTION_ERRORS);
+        handleCacheItem(source, htmlEntry, HtmlEntry.RESOLUTION_ERRORS);
+        handleCacheItem(source, htmlEntry, HtmlEntry.RESOLVED_UNIT);
         // We are not currently recording any hints related to HTML.
-        // statistics.putCacheItem(htmlEntry, HtmlEntry.HINTS);
+//        handleCacheItem(key, htmlEntry, HtmlEntry.HINTS);
       }
     }
+  }
+
+  @override
+  AnalysisContextStatistics get statistics {
+    AnalysisContextStatisticsImpl statistics = new AnalysisContextStatisticsImpl();
+    visitCacheItems(statistics._internalPutCacheItem);
     statistics.partitionData = _cache.partitionData;
     return statistics;
   }
@@ -1730,11 +1783,15 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     int performStart = JavaSystem.currentTimeMillis();
     try {
       task.perform(_resultRecorder);
-    } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not perform analysis task: $taskDescription", exception);
-    } on AnalysisException catch (exception) {
+    } on ObsoleteSourceAnalysisException catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logInformation(
+          "Could not perform analysis task: $taskDescription",
+          new CaughtException(exception, stackTrace));
+    } on AnalysisException catch (exception, stackTrace) {
       if (exception.cause is! JavaIOException) {
-        AnalysisEngine.instance.logger.logError2("Internal error while performing the task: $task", exception);
+        AnalysisEngine.instance.logger.logError(
+            "Internal error while performing the task: $task",
+            new CaughtException(exception, stackTrace));
       }
     }
     int performEnd = JavaSystem.currentTimeMillis();
@@ -2511,8 +2568,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     CompilationUnit unit = unitEntry.getValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource);
     if (unit == null) {
-      CaughtException exception = new CaughtException(new AnalysisException("Entry has VALID state for RESOLVED_UNIT but null value for ${unitSource.fullName} in ${librarySource.fullName}"), null);
-      AnalysisEngine.instance.logger.logInformation2(exception.toString(), exception);
+      CaughtException exception = new CaughtException(
+          new AnalysisException("Entry has VALID state for RESOLVED_UNIT but null value for ${unitSource.fullName} in ${librarySource.fullName}"),
+          null);
+      AnalysisEngine.instance.logger.logInformation(exception.toString(), exception);
       unitEntry.recordResolutionError(exception);
       return new AnalysisContextImpl_TaskData(null, false);
     }
@@ -2679,7 +2738,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return new AnalysisContextImpl_TaskData(new ResolveDartLibraryCycleTask(this, source, source, builder.librariesInCycle), false);
     } on AnalysisException catch (exception, stackTrace) {
       dartEntry.recordResolutionError(new CaughtException(exception, stackTrace));
-      AnalysisEngine.instance.logger.logError2("Internal error trying to create a ResolveDartLibraryTask", new CaughtException(exception, stackTrace));
+      AnalysisEngine.instance.logger.logError(
+          "Internal error trying to create a ResolveDartLibraryTask",
+          new CaughtException(exception, stackTrace));
     }
     return new AnalysisContextImpl_TaskData(null, false);
   }
@@ -2837,8 +2898,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     try {
       return _getDartParseData(source, dartEntry, descriptor);
-    } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not compute $descriptor", exception);
+    } on ObsoleteSourceAnalysisException catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logInformation(
+          "Could not compute $descriptor",
+          new CaughtException(exception, stackTrace));
       return defaultValue;
     }
   }
@@ -2891,8 +2954,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     try {
       return _getDartResolutionData(unitSource, librarySource, dartEntry, descriptor);
-    } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not compute $descriptor", exception);
+    } on ObsoleteSourceAnalysisException catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logInformation(
+          "Could not compute $descriptor",
+          new CaughtException(exception, stackTrace));
       return defaultValue;
     }
   }
@@ -2936,8 +3001,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     try {
       return _getDartScanData(source, dartEntry, descriptor);
-    } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not compute $descriptor", exception);
+    } on ObsoleteSourceAnalysisException catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logInformation(
+          "Could not compute $descriptor",
+          new CaughtException(exception, stackTrace));
       return defaultValue;
     }
   }
@@ -3010,8 +3077,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     try {
       return _getHtmlResolutionData2(source, htmlEntry, descriptor);
-    } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not compute $descriptor", exception);
+    } on ObsoleteSourceAnalysisException catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logInformation(
+          "Could not compute $descriptor",
+          new CaughtException(exception, stackTrace));
       return defaultValue;
     }
   }
@@ -3654,20 +3723,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   void _logInformation(String message) {
     AnalysisEngine.instance.logger.logInformation(message);
-  }
-
-  /**
-   * Log the given debugging information.
-   *
-   * @param message the message to be added to the log
-   * @param exception the exception to be included in the log entry
-   */
-  void _logInformation2(String message, Exception exception) {
-    if (exception == null) {
-      AnalysisEngine.instance.logger.logInformation(message);
-    } else {
-      AnalysisEngine.instance.logger.logInformation2(message, exception);
-    }
   }
 
   /**
@@ -5113,14 +5168,6 @@ class AnalysisContextStatisticsImpl implements AnalysisContextStatistics {
   @override
   List<Source> get sources => _sources;
 
-  void putCacheItem(SourceEntry dartEntry, DataDescriptor descriptor) {
-    _internalPutCacheItem(dartEntry, descriptor, dartEntry.getState(descriptor));
-  }
-
-  void putCacheItemInLibrary(DartEntry dartEntry, Source librarySource, DataDescriptor descriptor) {
-    _internalPutCacheItem(dartEntry, descriptor, dartEntry.getStateInLibrary(descriptor, librarySource));
-  }
-
   /**
    * Set the partition data returned by this object to the given data.
    */
@@ -5128,7 +5175,8 @@ class AnalysisContextStatisticsImpl implements AnalysisContextStatistics {
     _partitionData = data;
   }
 
-  void _internalPutCacheItem(SourceEntry dartEntry, DataDescriptor rowDesc, CacheState state) {
+  void _internalPutCacheItem(Source source, SourceEntry dartEntry,
+                             DataDescriptor rowDesc, CacheState state) {
     String rowName = rowDesc.toString();
     AnalysisContextStatisticsImpl_CacheRowImpl row = _dataMap[rowName] as AnalysisContextStatisticsImpl_CacheRowImpl;
     if (row == null) {
@@ -5148,15 +5196,7 @@ class AnalysisContextStatisticsImpl implements AnalysisContextStatistics {
 class AnalysisContextStatisticsImpl_CacheRowImpl implements AnalysisContextStatistics_CacheRow {
   final String name;
 
-  int _errorCount = 0;
-
-  int _flushedCount = 0;
-
-  int _inProcessCount = 0;
-
-  int _invalidCount = 0;
-
-  int _validCount = 0;
+  Map<CacheState, int> _counts = <CacheState, int>{};
 
   AnalysisContextStatisticsImpl_CacheRowImpl(this.name);
 
@@ -5164,38 +5204,38 @@ class AnalysisContextStatisticsImpl_CacheRowImpl implements AnalysisContextStati
   bool operator ==(Object obj) => obj is AnalysisContextStatisticsImpl_CacheRowImpl && obj.name == name;
 
   @override
-  int get errorCount => _errorCount;
+  int get errorCount => getCount(CacheState.ERROR);
 
   @override
-  int get flushedCount => _flushedCount;
+  int get flushedCount => getCount(CacheState.FLUSHED);
 
   @override
-  int get inProcessCount => _inProcessCount;
+  int get inProcessCount => getCount(CacheState.IN_PROCESS);
 
   @override
-  int get invalidCount => _invalidCount;
+  int get invalidCount => getCount(CacheState.INVALID);
 
   @override
-  int get validCount => _validCount;
+  int get validCount => getCount(CacheState.VALID);
 
   @override
   int get hashCode => name.hashCode;
 
+  @override
+  int getCount(CacheState state) {
+    int count = _counts[state];
+    if (count != null) {
+      return count;
+    } else {
+      return 0;
+    }
+  }
+
   void _incState(CacheState state) {
-    if (state == CacheState.ERROR) {
-      _errorCount++;
-    }
-    if (state == CacheState.FLUSHED) {
-      _flushedCount++;
-    }
-    if (state == CacheState.IN_PROCESS) {
-      _inProcessCount++;
-    }
-    if (state == CacheState.INVALID) {
-      _invalidCount++;
-    }
-    if (state == CacheState.VALID) {
-      _validCount++;
+    if (_counts[state] == null) {
+      _counts[state] = 1;
+    } else {
+      _counts[state]++;
     }
   }
 }
@@ -5212,6 +5252,18 @@ class AnalysisContextStatisticsImpl_PartitionDataImpl implements AnalysisContext
  * Information about single piece of data in the cache.
  */
 abstract class AnalysisContextStatistics_CacheRow {
+  /**
+   * List of possible states which can be queried.
+   */
+  static const List<CacheState> STATES = const <CacheState>[
+      CacheState.ERROR, CacheState.FLUSHED, CacheState.IN_PROCESS,
+      CacheState.INVALID, CacheState.VALID];
+
+  /**
+   * Return the number of entries whose state is [state].
+   */
+  int getCount(CacheState state);
+
   /**
    * Return the number of entries whose state is [CacheState.ERROR].
    */
@@ -5936,7 +5988,9 @@ abstract class AnalysisTask {
       _safelyPerform();
     } on AnalysisException catch (exception, stackTrace) {
       _thrownException = new CaughtException(exception, stackTrace);
-      AnalysisEngine.instance.logger.logInformation2("Task failed: $taskDescription", new CaughtException(exception, stackTrace));
+      AnalysisEngine.instance.logger.logInformation(
+          "Task failed: $taskDescription",
+          new CaughtException(exception, stackTrace));
     }
     return accept(visitor);
   }
@@ -7425,7 +7479,9 @@ class ChangeNoticeImpl implements ChangeNotice {
     this._errors = errors;
     this._lineInfo = lineInfo;
     if (lineInfo == null) {
-      AnalysisEngine.instance.logger.logInformation2("No line info: $source", new JavaException());
+      AnalysisEngine.instance.logger.logInformation(
+          "No line info: $source",
+          new CaughtException(new AnalysisException(), null));
     }
   }
 
@@ -8023,10 +8079,10 @@ class DartEntry extends SourceEntry {
       if (state.getState(BUILT_UNIT) == CacheState.VALID) {
         // TODO(brianwilkerson) We're cloning the structure to remove any
         // previous resolution data, but I'm not sure that's necessary.
-        return state.getValue(BUILT_UNIT).accept(new AstCloner()) as CompilationUnit;
+        return state.getValue(BUILT_UNIT).accept(new AstCloner());
       }
       if (state.getState(RESOLVED_UNIT) == CacheState.VALID) {
-        return state.getValue(RESOLVED_UNIT).accept(new AstCloner()) as CompilationUnit;
+        return state.getValue(RESOLVED_UNIT).accept(new AstCloner());
       }
       state = state._nextState;
     }
@@ -8133,10 +8189,12 @@ class DartEntry extends SourceEntry {
       ResolutionState state = _resolutionState;
       while (state != null) {
         if (state.getState(BUILT_UNIT) == CacheState.VALID) {
-          setValue(PARSED_UNIT, state.getValue(BUILT_UNIT));
+          CompilationUnit unit = state.getValue(BUILT_UNIT);
+          setValue(PARSED_UNIT, unit.accept(new AstCloner()));
           break;
         } else if (state.getState(RESOLVED_UNIT) == CacheState.VALID) {
-          setValue(PARSED_UNIT, state.getValue(RESOLVED_UNIT));
+          CompilationUnit unit = state.getValue(RESOLVED_UNIT);
+          setValue(PARSED_UNIT, unit.accept(new AstCloner()));
           break;
         }
         state = state._nextState;
@@ -8519,7 +8577,8 @@ class DartEntry extends SourceEntry {
    * relative to a library.
    */
   bool _isValidLibraryDescriptor(DataDescriptor descriptor) {
-    return descriptor == BUILT_ELEMENT
+    return descriptor == ANGULAR_ERRORS
+        || descriptor == BUILT_ELEMENT
         || descriptor == BUILT_UNIT
         || descriptor == HINTS
         || descriptor == RESOLUTION_ERRORS
@@ -10209,6 +10268,13 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
       instrumentation.log();
     }
   }
+
+  @override
+  void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
+                                     DataDescriptor rowDesc,
+                                     CacheState state)) {
+    _basis.visitCacheItems(callback);
+  }
 }
 
 /**
@@ -10306,23 +10372,34 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    *          the elements representing the libraries
    */
   void recordLibraryElements(Map<Source, LibraryElement> elementMap);
+
+  /**
+   * Call the given callback function for eache cache item in the context.
+   */
+  void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
+                                     DataDescriptor rowDesc,
+                                     CacheState state));
 }
 
 /**
- * The interface `Logger` defines the behavior of objects that can be used to receive
- * information about errors within the analysis engine. Implementations usually write this
- * information to a file, but can also record the information for later use (such as during testing)
- * or even ignore the information.
+ * A `Logger` is an object that can be used to receive information about errors
+ * within the analysis engine. Implementations usually write this information to
+ * a file, but can also record the information for later use (such as during
+ * testing) or even ignore the information.
  */
 abstract class Logger {
-  static final Logger NULL = new Logger_NullLogger();
+  /**
+   * A logger that ignores all logging.
+   */
+  static final Logger NULL = new NullLogger();
 
   /**
-   * Log the given message as an error.
-   *
-   * @param message an explanation of why the error occurred or what it means
+   * Log the given message as an error. The [message] is expected to be an
+   * explanation of why the error occurred or what it means. The [exception] is
+   * expected to be the reason for the error. At least one argument must be
+   * provided.
    */
-  void logError(String message);
+  void logError(String message, [CaughtException exception]);
 
   /**
    * Log the given exception as one representing an error.
@@ -10330,15 +10407,15 @@ abstract class Logger {
    * @param message an explanation of why the error occurred or what it means
    * @param exception the exception being logged
    */
-  void logError2(String message, Exception exception);
+  @deprecated
+  void logError2(String message, Object exception);
 
   /**
-   * Log the given informational message.
-   *
-   * @param message an explanation of why the error occurred or what it means
-   * @param exception the exception being logged
+   * Log the given informational message. The [message] is expected to be an
+   * explanation of why the error occurred or what it means. The [exception] is
+   * expected to be the reason for the error.
    */
-  void logInformation(String message);
+  void logInformation(String message, [CaughtException exception]);
 
   /**
    * Log the given exception as one representing an informational message.
@@ -10346,27 +10423,28 @@ abstract class Logger {
    * @param message an explanation of why the error occurred or what it means
    * @param exception the exception being logged
    */
-  void logInformation2(String message, Exception exception);
+  @deprecated
+  void logInformation2(String message, Object exception);
 }
 
 /**
- * Implementation of [Logger] that does nothing.
+ * An implementation of [Logger] that does nothing.
  */
-class Logger_NullLogger implements Logger {
+class NullLogger implements Logger {
   @override
-  void logError(String message) {
+  void logError(String message, [CaughtException exception]) {
   }
 
   @override
-  void logError2(String message, Exception exception) {
+  void logError2(String message, Object exception) {
   }
 
   @override
-  void logInformation(String message) {
+  void logInformation(String message, [CaughtException exception]) {
   }
 
   @override
-  void logInformation2(String message, Exception exception) {
+  void logInformation2(String message, Object exception) {
   }
 }
 
@@ -11769,10 +11847,17 @@ class RecursiveXmlVisitor_ResolveHtmlTask_internalPerform extends ht.RecursiveXm
 }
 
 /**
- * Instances of the class `ResolutionEraser` remove any resolution information from an AST
+ * A `ResolutionEraser` removes any resolution information from an AST
  * structure when used to visit that structure.
  */
 class ResolutionEraser extends GeneralizingAstVisitor<Object> {
+  /**
+   * Remove any resolution information from the given AST structure.
+   */
+  static void erase(AstNode node) {
+    node.accept(new ResolutionEraser());
+  }
+
   @override
   Object visitAssignmentExpression(AssignmentExpression node) {
     node.staticElement = null;
@@ -11955,10 +12040,12 @@ class ResolutionState {
   void invalidateAllResolutionInformation() {
     _nextState = null;
     _librarySource = null;
+    setState(DartEntry.BUILT_UNIT, CacheState.INVALID);
+    setState(DartEntry.BUILT_ELEMENT, CacheState.INVALID);
+    setState(DartEntry.HINTS, CacheState.INVALID);
     setState(DartEntry.RESOLVED_UNIT, CacheState.INVALID);
     setState(DartEntry.RESOLUTION_ERRORS, CacheState.INVALID);
     setState(DartEntry.VERIFICATION_ERRORS, CacheState.INVALID);
-    setState(DartEntry.HINTS, CacheState.INVALID);
   }
 
   /**
@@ -11988,6 +12075,7 @@ class ResolutionState {
     setState(DartEntry.RESOLVED_UNIT, CacheState.ERROR);
     setState(DartEntry.RESOLUTION_ERRORS, CacheState.ERROR);
     recordVerificationError();
+    setState(DartEntry.ANGULAR_ERRORS, CacheState.ERROR);
   }
 
   /**
@@ -13010,8 +13098,8 @@ abstract class SourceEntry {
       result.state = state;
       if (state != CacheState.IN_PROCESS) {
         //
-        // If the state is in-process, we can leave the current value in the cache
-        // for any 'get' methods to access.
+        // If the state is in-process, we can leave the current value in the
+        // cache for any 'get' methods to access.
         //
         result.value = descriptor.defaultValue;
       }

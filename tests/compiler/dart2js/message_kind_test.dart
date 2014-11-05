@@ -13,7 +13,7 @@ import 'message_kind_helper.dart';
 
 import 'dart:mirrors';
 
-main() {
+main(List<String> arguments) {
   ClassMirror cls = reflectClass(MessageKind);
   Map<String, MessageKind> kinds = <String, MessageKind>{};
   cls.declarations.forEach((Symbol name, DeclarationMirror declaration) {
@@ -31,6 +31,7 @@ main() {
   List<String> names = kinds.keys.toList()..sort();
   List<String> examples = <String>[];
   for (String name in names) {
+    if (!arguments.isEmpty && !arguments.contains(name)) continue;
     MessageKind kind = kinds[name];
     if (name == 'GENERIC' // Shouldn't be used.
         // We can't provoke a crash.

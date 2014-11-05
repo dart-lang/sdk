@@ -501,6 +501,38 @@ main(a) {
 '''),
   ]),
 
+  const Group('List literal', const <TestSpec>[
+    const TestSpec('''
+main() {
+  return [];
+}
+'''),
+
+    const TestSpec('''
+main() {
+  return <int>[];
+}
+'''),
+
+    const TestSpec('''
+main() {
+  return <int>[0];
+}
+'''),
+
+    const TestSpec('''
+main(a) {
+  return <int>[0, 1, a];
+}
+'''),
+
+    const TestSpec('''
+main(a) {
+  return [0, [1], [a, <int>[3]]];
+}
+'''),
+  ]),
+
   const Group('Constructor invocation', const <TestSpec>[
     const TestSpec('''
 main(a) {
@@ -515,6 +547,37 @@ main(a) {
 '''),
   ]),
 
+  const Group('Map literal', const <TestSpec>[
+    const TestSpec('''
+main() {
+  return {};
+}
+'''),
+
+    const TestSpec('''
+main() {
+  return <int, String>{};
+}
+'''),
+
+    const TestSpec('''
+main() {
+  return <String, int>{"a": 0};
+}
+'''),
+
+    const TestSpec('''
+main(a) {
+  return <String, int>{"a": 0, "b": 1, "c": a};
+}
+'''),
+
+    const TestSpec('''
+main(a) {
+  return {0: "a", 1: {2: "b"}, a: {3: "c"}};
+}
+'''),
+  ]),
   const Group('For loop', const <TestSpec>[
     const TestSpec('''
 main() {
@@ -528,7 +591,7 @@ main() {
 
 const TestSpec('''
 main() {
-  for (int i = 0; i < 10; i = i + 1) {
+  for (var i = 0; i < 10; i = i + 1) {
     print(i);
   }
 }
@@ -554,6 +617,121 @@ main(i) {
   while (i < 10) {
     print(i);
     ++i;
+  }
+}
+'''),
+  ]),
+
+  const Group('While loop', const <TestSpec>[
+    const TestSpec('''
+main() {
+  while (true) {}
+}
+'''),
+
+const TestSpec('''
+main() {
+  var i = 0;
+  while (i < 10) {
+    print(i);
+    i = i + 1;
+  }
+}''', '''
+main() {
+  var i = 0;
+  while (i < 10) {
+    print(i);
+    ++i;
+  }
+}'''),
+  ]),
+
+  const Group('Type operators', const <TestSpec>[
+    const TestSpec('''
+main(a) {
+  return a is String;
+}
+'''),
+
+    const TestSpec('''
+main(a) {
+  return a is List<String>;
+}
+'''),
+
+    const TestSpec('''
+main(a) {
+  return a is Comparator<String>;
+}
+'''),
+
+  const TestSpec('''
+main(a) {
+  return a is! String;
+}
+''', '''
+main(a) {
+  return !(a is String);
+}
+'''),
+
+const TestSpec('''
+main(a) {
+  return a as String;
+}
+'''),
+  ]),
+
+  const Group('For in loop', const <TestSpec>[
+// TODO(johnniwinther): Add tests for `i` as top-level, static and instance
+// fields.
+    const TestSpec('''
+main(a) {
+  for (var i in a) {
+    print(i);
+  }
+}
+''', '''
+main(a) {
+  var v0 = a.iterator;
+  while (v0.moveNext()) {
+    print(v0.current);
+  }
+}'''),
+
+    const TestSpec('''
+main(a) {
+  for (var i in a) {
+    print(i);
+    i = 0;
+    print(i);
+  }
+}
+''', '''
+main(a) {
+  var v0 = a.iterator, i;
+  while (v0.moveNext()) {
+    i = v0.current;
+    print(i);
+    i = 0;
+    print(i);
+  }
+}
+'''),
+
+    const TestSpec('''
+main(a) {
+  var i;
+  for (i in a) {
+    print(i);
+  }
+}
+''', '''
+main(a) {
+  var i, v0 = a.iterator;
+  while (v0.moveNext()) {
+    i = v0.current;
+    print(i);
   }
 }
 '''),

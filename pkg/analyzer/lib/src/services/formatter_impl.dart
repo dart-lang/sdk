@@ -828,7 +828,7 @@ class SourceVisitor implements AstVisitor {
     space();
     token(node.inKeyword);
     space();
-    visit(node.iterator);
+    visit(node.iterable);
     token(node.rightParenthesis);
     space();
     visit(node.body);

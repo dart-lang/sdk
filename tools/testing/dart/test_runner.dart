@@ -2581,6 +2581,13 @@ class ReplayingCommandExecutor implements CommandExecutor {
 
 bool shouldRetryCommand(CommandOutput output) {
   var command = output.command;
+  // We rerun tests on Safari because 6.2 and 7.1 are flaky. Issue 21434.
+  if (command is BrowserTestCommand && command.browser == 'safari' &&
+      output is BrowserControllerTestOutcome &&
+      output._rawOutcome != Expectation.PASS) {
+    // TODO(whesse): This retries tests that fail intentionally. Fix this
+    return true;
+  }
 
   if (!output.successful) {
     List<String> stdout, stderr;
@@ -2605,8 +2612,8 @@ bool shouldRetryCommand(CommandOutput output) {
       }
     }
 
-    // We currently rerun dartium tests, see issue 14074
-    if (command is BrowserTestCommand && command.displayName == 'dartium') {
+    // We currently rerun dartium tests, see issue 14074.
+    if (command is BrowserTestCommand && command.browser == 'dartium') {
       return true;
     }
   }

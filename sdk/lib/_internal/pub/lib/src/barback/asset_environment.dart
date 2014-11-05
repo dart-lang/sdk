@@ -70,8 +70,8 @@ class AssetEnvironment {
     if (hostname == null) hostname = "localhost";
     if (basePort == null) basePort = 0;
 
-    return entrypoint.loadPackageGraph().then((graph) {
-      log.fine("Loaded package graph.");
+    return log.progress("Loading asset environment", () async {
+      var graph = await entrypoint.loadPackageGraph();
       graph = _adjustPackageGraph(graph, mode, packages);
       var barback = new Barback(new PubPackageProvider(graph));
       barback.log.listen(_log);
@@ -79,9 +79,9 @@ class AssetEnvironment {
       var environment = new AssetEnvironment._(graph, barback, mode,
           watcherType, hostname, basePort);
 
-      return environment._load(entrypoints: entrypoints, useDart2JS: useDart2JS)
-          .then((_) => environment);
-    });
+      await environment._load(entrypoints: entrypoints, useDart2JS: useDart2JS);
+      return environment;
+    }, fine: true);
   }
 
   /// Return a version of [graph] that's restricted to [packages] (if passed)

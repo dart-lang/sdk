@@ -7,6 +7,8 @@
 
 library engine.sdk.io;
 
+import 'package:analyzer/src/generated/java_engine.dart';
+
 import 'java_core.dart';
 import 'java_io.dart';
 import 'java_engine_io.dart';
@@ -253,8 +255,10 @@ class DirectoryBasedDartSdk implements DartSdk {
         String path = library.shortName;
         try {
           return new FileBasedSource.con2(parseUriWithException(path), file);
-        } on URISyntaxException catch (exception) {
-          AnalysisEngine.instance.logger.logInformation2("Failed to create URI: $path", exception);
+        } on URISyntaxException catch (exception, stackTrace) {
+          AnalysisEngine.instance.logger.logInformation(
+              "Failed to create URI: $path",
+              new CaughtException(exception, stackTrace));
           return null;
         }
       }
@@ -263,8 +267,10 @@ class DirectoryBasedDartSdk implements DartSdk {
         String path = "${library.shortName}/${filePath.substring(libraryPath.length + 1)}";
         try {
           return new FileBasedSource.con2(parseUriWithException(path), file);
-        } on URISyntaxException catch (exception) {
-          AnalysisEngine.instance.logger.logInformation2("Failed to create URI: $path", exception);
+        } on URISyntaxException catch (exception, stackTrace) {
+          AnalysisEngine.instance.logger.logInformation(
+              "Failed to create URI: $path",
+              new CaughtException(exception, stackTrace));
           return null;
         }
       }
@@ -497,8 +503,10 @@ class DirectoryBasedDartSdk implements DartSdk {
     try {
       String contents = librariesFile.readAsStringSync();
       return new SdkLibrariesReader(useDart2jsPaths).readFromFile(librariesFile, contents);
-    } catch (exception) {
-      AnalysisEngine.instance.logger.logError2("Could not initialize the library map from ${librariesFile.getAbsolutePath()}", exception);
+    } catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logError(
+          "Could not initialize the library map from ${librariesFile.getAbsolutePath()}",
+          new CaughtException(exception, stackTrace));
       return new LibraryMap();
     }
   }

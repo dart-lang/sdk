@@ -227,7 +227,7 @@ _printUsage() {
         ..write('\n\n')
         ..write('Usage: $BINARY_NAME [flags] [path...]\n\n')
         ..write('Supported flags are:\n')
-        ..write('${argParser.getUsage()}\n\n');
+        ..write('${argParser.usage}\n\n');
   _log(buffer.toString());
 }
 

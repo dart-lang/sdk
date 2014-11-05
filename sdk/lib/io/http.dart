@@ -750,8 +750,9 @@ abstract class ContentType implements HeaderValue {
    * sub type. The charset and additional parameters can also be set
    * using [charset] and [parameters]. If charset is passed and
    * [parameters] contains charset as well the passed [charset] will
-   * override the value in parameters. Keys and values passed in
-   * parameters will be converted to lower case.
+   * override the value in parameters. Keys passed in parameters will be
+   * converted to lower case. The `charset` entry, whether passed as `charset`
+   * or in `parameters`, will have its value converted to lower-case.
    */
   factory ContentType(String primaryType,
                       String subType,

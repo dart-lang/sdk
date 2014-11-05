@@ -249,13 +249,19 @@ class _ScriptCompactor extends PolymerTransformer {
     // Process all classes and top-level functions to include initializers,
     // register custom elements, and include special fields and methods in
     // custom element classes.
+    var functionsSeen = new Set<FunctionElement>();
+    var classesSeen = new Set<ClassElement>();
     for (var id in entryLibraries) {
       var lib = resolver.getLibrary(id);
       for (var fun in _visibleTopLevelMethodsOf(lib)) {
+        if (functionsSeen.contains(fun)) continue;
+        functionsSeen.add(fun);
         _processFunction(fun, id);
       }
 
       for (var cls in _visibleClassesOf(lib)) {
+        if (classesSeen.contains(cls)) continue;
+        classesSeen.add(cls);
         _processClass(cls, id, recorder);
       }
     }
@@ -824,8 +830,7 @@ List<FunctionElement> _visibleTopLevelMethodsOf(LibraryElement lib) {
   var result = [];
   result.addAll(lib.units.expand((u) => u.functions));
   for (var e in lib.exports) {
-    var exported = e.exportedLibrary.units
-        .expand((u) => u.functions).toList();
+    var exported = e.exportedLibrary.units.expand((u) => u.functions).toList();
     _filter(exported, e.combinators);
     result.addAll(exported);
   }

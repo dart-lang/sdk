@@ -10,7 +10,6 @@ library engine.utilities_test;
 import 'dart:collection';
 
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -2795,13 +2794,13 @@ class Getter_NodeReplacerTest_test_forEachStatement_withIdentifier_2 implements
 class Getter_NodeReplacerTest_test_forEachStatement_withIdentifier_3 implements
     NodeReplacerTest_Getter {
   @override
-  Expression get(ForEachStatement node) => node.iterator;
+  Expression get(ForEachStatement node) => node.iterable;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withLoopVariable implements
     NodeReplacerTest_Getter {
   @override
-  Expression get(ForEachStatement node) => node.iterator;
+  Expression get(ForEachStatement node) => node.iterable;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withLoopVariable_2
@@ -5235,55 +5234,6 @@ class StringUtilitiesTest {
     expect(StringUtilities.substringBeforeChar("abcba", 0x62), "a");
     expect(StringUtilities.substringBeforeChar("abc", 0x63), "ab");
     expect(StringUtilities.substringBeforeChar("abc", 0x64), "abc");
-  }
-}
-
-/**
- * Instances of the class `TestLogger` implement a logger that can be used by tests.
- */
-class TestLogger implements Logger {
-  /**
-   * The number of error messages that were logged.
-   */
-  int _errorCount = 0;
-
-  /**
-   * The number of informational messages that were logged.
-   */
-  int _infoCount = 0;
-
-  /**
-   * Return the number of error messages that were logged.
-   *
-   * @return the number of error messages that were logged
-   */
-  int get errorCount => _errorCount;
-
-  /**
-   * Return the number of informational messages that were logged.
-   *
-   * @return the number of informational messages that were logged
-   */
-  int get infoCount => _infoCount;
-
-  @override
-  void logError(String message) {
-    _errorCount++;
-  }
-
-  @override
-  void logError2(String message, Exception exception) {
-    _errorCount++;
-  }
-
-  @override
-  void logInformation(String message) {
-    _infoCount++;
-  }
-
-  @override
-  void logInformation2(String message, Exception exception) {
-    _infoCount++;
   }
 }
 

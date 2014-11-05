@@ -1103,6 +1103,17 @@ f() {
     helper.checkStaticField('x', null, 'x', isWrite: true);
   });
 
+  test('Set variable defined at top level in foreach loop', () {
+    Helper helper = new Helper('''
+var x;
+
+f() {
+  for (x in []) {}
+}
+''');
+    helper.checkStaticField('x', null, 'x', isWrite: true);
+  });
+
   test('Set variable defined at top level via prefix', () {
     Helper helper = new Helper('''
 import 'lib.dart' as l;
@@ -1126,6 +1137,20 @@ class A {
 
   f() {
     x = 1;
+  }
+}
+''');
+    helper.checkStaticField('x', 'A', 'x', isWrite: true);
+  });
+
+  test('Set field defined statically in class from inside class in foreach' +
+      ' loop', () {
+    Helper helper = new Helper('''
+class A {
+  static var x;
+
+  f() {
+    for (x in []) {}
   }
 }
 ''');
@@ -1178,6 +1203,20 @@ class A {
     helper.checkDynamic('x', null, 'x', isWrite: true);
   });
 
+  test('Set field defined dynamically in class from inside class in foreach' +
+      ' loop', () {
+    Helper helper = new Helper('''
+class A {
+  var x;
+
+  f() {
+    for (x in []) {}
+  }
+}
+''');
+    helper.checkDynamic('x', null, 'x', isWrite: true);
+  });
+
   test(
       'Set field defined dynamically in class from outside class via typed var',
       () {
@@ -1220,10 +1259,29 @@ f() {
     helper.checkLocalVariable('x', 'x', isWrite: true);
   });
 
+  test('Set variable defined locally in foreach loop', () {
+    Helper helper = new Helper('''
+f() {
+  var x;
+  for (x in []) {}
+}
+''');
+    helper.checkLocalVariable('x', 'x', isWrite: true);
+  });
+
   test('Set variable defined in parameter', () {
     Helper helper = new Helper('''
 f(x) {
   x = 1;
+}
+''');
+    helper.checkParameter('x', 'x', isWrite: true);
+  });
+
+  test('Set variable defined in parameter in foreach loop', () {
+    Helper helper = new Helper('''
+f(x) {
+  for (x in []) {}
 }
 ''');
     helper.checkParameter('x', 'x', isWrite: true);
@@ -1235,6 +1293,17 @@ set x(value) {};
 
 f() {
   x = 1;
+}
+''');
+    helper.checkStaticProperty('x', null, 'x', true, isWrite: true);
+  });
+
+  test('Set accessor defined at top level in foreach loop', () {
+    Helper helper = new Helper('''
+set x(value) {};
+
+f() {
+  for (x in []) {}
 }
 ''');
     helper.checkStaticProperty('x', null, 'x', true, isWrite: true);
@@ -1263,6 +1332,20 @@ class A {
 
   f() {
     x = 1;
+  }
+}
+''');
+    helper.checkStaticProperty('x', 'A', 'x', true, isWrite: true);
+  });
+
+  test('Set accessor defined statically in class from inside class in' +
+      ' foreach loop', () {
+    Helper helper = new Helper('''
+class A {
+  static set x(value) {}
+
+  f() {
+    for (x in []) {}
   }
 }
 ''');
@@ -1309,6 +1392,20 @@ class A {
 
   f() {
     x = 1;
+  }
+}
+''');
+    helper.checkDynamic('x', null, 'x', isWrite: true);
+  });
+
+  test('Set accessor defined dynamically in class from inside class in' +
+      ' foreach loop', () {
+    Helper helper = new Helper('''
+class A {
+  set x(value) {}
+
+  f() {
+    for (x in []) {}
   }
 }
 ''');
@@ -1380,6 +1477,15 @@ f() {
     helper.checkDynamic('x', null, 'x', isWrite: true);
   });
 
+  test('Set accessor undefined at top level in foreach loop', () {
+    Helper helper = new Helper('''
+f() {
+  for (x in []) {}
+}
+''');
+    helper.checkDynamic('x', null, 'x', isWrite: true);
+  });
+
   test('Set accessor undefined at top level via prefix', () {
     Helper helper = new Helper('''
 import 'lib.dart' as l;
@@ -1428,6 +1534,18 @@ class A {}
 class A {
   f() {
     x = 1;
+  }
+}
+''');
+    helper.checkDynamic('x', null, 'x', isWrite: true);
+  });
+
+  test('Set accessor undefined dynamically in class from inside class in' +
+      ' foreach loop', () {
+    Helper helper = new Helper('''
+class A {
+  f() {
+    for (x in []) {}
   }
 }
 ''');

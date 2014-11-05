@@ -5898,7 +5898,7 @@ void''', []);
     expect(statement.loopVariable, isNull);
     expect(statement.identifier, isNotNull);
     expect(statement.inKeyword, isNotNull);
-    expect(statement.iterator, isNotNull);
+    expect(statement.iterable, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.body, isNotNull);
   }
@@ -5911,7 +5911,7 @@ void''', []);
     expect(statement.loopVariable, isNull);
     expect(statement.identifier, isNotNull);
     expect(statement.inKeyword, isNotNull);
-    expect(statement.iterator, isNotNull);
+    expect(statement.iterable, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.body, isNotNull);
   }
@@ -5925,7 +5925,7 @@ void''', []);
     expect(statement.loopVariable.metadata, hasLength(1));
     expect(statement.identifier, isNull);
     expect(statement.inKeyword, isNotNull);
-    expect(statement.iterator, isNotNull);
+    expect(statement.iterable, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.body, isNotNull);
   }
@@ -5938,7 +5938,7 @@ void''', []);
     expect(statement.loopVariable, isNotNull);
     expect(statement.identifier, isNull);
     expect(statement.inKeyword, isNotNull);
-    expect(statement.iterator, isNotNull);
+    expect(statement.iterable, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.body, isNotNull);
   }
@@ -5951,7 +5951,7 @@ void''', []);
     expect(statement.loopVariable, isNotNull);
     expect(statement.identifier, isNull);
     expect(statement.inKeyword, isNotNull);
-    expect(statement.iterator, isNotNull);
+    expect(statement.iterable, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.body, isNotNull);
   }

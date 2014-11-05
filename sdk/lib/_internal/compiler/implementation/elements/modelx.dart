@@ -287,6 +287,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
     throw 'unsupported operation on erroneous element';
   }
 
+  get asyncMarker => AsyncMarker.SYNC;
   Link<MetadataAnnotation> get metadata => unsupported();
   bool get hasNode => false;
   get node => unsupported();
@@ -1231,13 +1232,6 @@ class LocalVariableElementX extends VariableElementX
     createDefinitions(variables.definitions);
   }
 
-  // TODO(johnniwinther): Remove this when the dart `backend_ast` does not need
-  // [Element] for entities.
-  LocalVariableElementX.synthetic(String name,
-                                  ExecutableElement enclosingElement,
-                                  VariableList variables)
-      : super(name, ElementKind.VARIABLE, enclosingElement, variables, null);
-
   ExecutableElement get executableContext => enclosingElement;
 
   ExecutableElement get memberContext => executableContext.memberContext;
@@ -1546,6 +1540,8 @@ abstract class BaseFunctionElementX
   final bool _hasNoBody;
 
   AbstractFieldElement abstractField;
+
+  AsyncMarker asyncMarker = AsyncMarker.SYNC;
 
   BaseFunctionElementX(String name,
                        ElementKind kind,

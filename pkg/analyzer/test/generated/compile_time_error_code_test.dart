@@ -2721,6 +2721,43 @@ class A<E> {
     assertErrors(source, [CompileTimeErrorCode.INVALID_URI]);
   }
 
+  void test_isInConstInstanceCreation_restored() {
+    // If ErrorVerifier._isInConstInstanceCreation is not properly restored on
+    // exit from visitInstanceCreationExpression, the error at (1) will be
+    // treated as a warning rather than an error.
+    Source source = addSource(r'''
+class Foo<T extends num> {
+  const Foo(x, y);
+}
+const x = const Foo<int>(const Foo<int>(0, 1),
+    const <Foo<String>>[]); // (1)
+''');
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    verify([source]);
+  }
+
+  void test_isInInstanceVariableInitializer_restored() {
+    // If ErrorVerifier._isInInstanceVariableInitializer is not properly
+    // restored on exit from visitVariableDeclaration, the error at (1)
+    // won't be detected.
+    Source source = addSource(r'''
+class Foo {
+  var bar;
+  Map foo = {
+    'bar': () {
+        var _bar;
+    },
+    'bop': _foo // (1)
+  };
+  _foo() {
+  }
+}''');
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
+    verify([source]);
+  }
+
   void test_labelInOuterScope() {
     Source source = addSource(r'''
 class A {

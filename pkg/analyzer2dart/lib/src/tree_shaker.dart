@@ -44,6 +44,9 @@ class MethodAnalysis {
   /**
    * The classes that are instantiated by the method.
    */
+  // TODO(johnniwinther,paulberry): Register instantiated types.
+  // TODO(johnniwinther,paulberry): Register checked types from is/as checks,
+  // catch clauses and (checked) type annotations.
   final List<ClassElement> instantiates = <ClassElement>[];
 
   MethodAnalysis(this.declaration);

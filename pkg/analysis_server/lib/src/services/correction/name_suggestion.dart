@@ -52,41 +52,6 @@ List<String> getCamelWords(String str) {
 }
 
 /**
- * Returns possible names for a [String] variable with [text] value.
- */
-List<String> getVariableNameSuggestionsForText(String text,
-    Set<String> excluded) {
-  // filter out everything except of letters and white spaces
-  {
-    StringBuffer sb = new StringBuffer();
-    for (int i = 0; i < text.length; i++) {
-      int c = text.codeUnitAt(i);
-      if (isLetter(c) || isWhitespace(c)) {
-        sb.writeCharCode(c);
-      }
-    }
-    text = sb.toString();
-  }
-  // make single camel-case text
-  {
-    List<String> words = text.split(' ');
-    StringBuffer sb = new StringBuffer();
-    for (int i = 0; i < words.length; i++) {
-      String word = words[i];
-      if (i > 0) {
-        word = capitalize(word);
-      }
-      sb.write(word);
-    }
-    text = sb.toString();
-  }
-  // split camel-case into separate suggested names
-  Set<String> res = new Set();
-  _addAll(excluded, res, _getCamelWordCombinations(text));
-  return new List.from(res);
-}
-
-/**
  * Returns possible names for a variable with the given expected type and
  * expression assigned.
  */
@@ -121,6 +86,41 @@ List<String> getVariableNameSuggestionsForExpression(DartType expectedType,
     res.remove(typeName);
   }
   // done
+  return new List.from(res);
+}
+
+/**
+ * Returns possible names for a [String] variable with [text] value.
+ */
+List<String> getVariableNameSuggestionsForText(String text,
+    Set<String> excluded) {
+  // filter out everything except of letters and white spaces
+  {
+    StringBuffer sb = new StringBuffer();
+    for (int i = 0; i < text.length; i++) {
+      int c = text.codeUnitAt(i);
+      if (isLetter(c) || isWhitespace(c)) {
+        sb.writeCharCode(c);
+      }
+    }
+    text = sb.toString();
+  }
+  // make single camel-case text
+  {
+    List<String> words = text.split(' ');
+    StringBuffer sb = new StringBuffer();
+    for (int i = 0; i < words.length; i++) {
+      String word = words[i];
+      if (i > 0) {
+        word = capitalize(word);
+      }
+      sb.write(word);
+    }
+    text = sb.toString();
+  }
+  // split camel-case into separate suggested names
+  Set<String> res = new Set();
+  _addAll(excluded, res, _getCamelWordCombinations(text));
   return new List.from(res);
 }
 
@@ -175,6 +175,9 @@ String _getBaseNameFromExpression(Expression expression) {
   } else if (expression is PrefixedIdentifier) {
     PrefixedIdentifier node = expression;
     return node.identifier.name;
+  } else if (expression is PropertyAccess) {
+    PropertyAccess node = expression;
+    return node.propertyName.name;
   } else if (expression is MethodInvocation) {
     name = expression.methodName.name;
   } else if (expression is InstanceCreationExpression) {

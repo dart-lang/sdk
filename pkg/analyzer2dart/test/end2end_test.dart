@@ -27,7 +27,7 @@ main() {
 
 checkResult(TestSpec result) {
   String input = result.input;
-  String expectedOutput = result.output;
+  String expectedOutput = result.output.trim();
 
   CollectingOutputProvider outputProvider = new CollectingOutputProvider();
   MemoryResourceProvider provider = new MemoryResourceProvider();
@@ -40,6 +40,6 @@ checkResult(TestSpec result) {
   ClosedWorld world = driver.computeWorld(entryPoint);
   ConvertedWorld convertedWorld = convertWorld(world);
   compileToDart(driver, convertedWorld);
-  String output = outputProvider.output.text;
+  String output = outputProvider.output.text.trim();
   expect(output, equals(expectedOutput));
 }
