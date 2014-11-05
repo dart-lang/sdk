@@ -1,3 +1,7 @@
+## 1.0.0
+
+* Add a `Client` class for communicating with external JSON-RPC 2.0 servers.
+
 ## 0.1.0
 
 * Remove `Server.handleRequest()` and `Server.parseRequest()`. Instead, `new
