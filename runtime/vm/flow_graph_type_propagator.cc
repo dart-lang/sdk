@@ -548,14 +548,12 @@ const AbstractType* CompileType::ToAbstractType() {
   if (type_ == NULL) {
     ASSERT(cid_ != kIllegalCid);
 
-    // VM internal Function and Context objects don't have a compile-type.
-    // Return dynamic-type in this case.
-    if (cid_ == kFunctionCid || cid_ == kContextCid) {
+    // VM-internal objects don't have a compile-type. Return dynamic-type
+    // in this case.
+    if (cid_ < kInstanceCid) {
       type_ = &Type::ZoneHandle(Type::DynamicType());
       return type_;
     }
-    // Except the special cases above, only instances are expected.
-    ASSERT(cid_ >= kInstanceCid);
 
     const Class& type_class =
         Class::Handle(Isolate::Current()->class_table()->At(cid_));
