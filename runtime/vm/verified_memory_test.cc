@@ -15,6 +15,25 @@ void Init() {
 }
 
 
+UNIT_TEST_CASE(VerifiedMemoryReserve) {
+  Init();
+  const intptr_t kReservationSize = 64 * KB;
+  VirtualMemory* vm = VerifiedMemory::Reserve(kReservationSize);
+  EXPECT_EQ(kReservationSize, vm->size());
+  delete vm;
+}
+
+
+UNIT_TEST_CASE(VerifiedMemoryCommit) {
+  Init();
+  const intptr_t kReservationSize = 64 * KB;
+  VirtualMemory* vm = VerifiedMemory::Reserve(kReservationSize);
+  EXPECT_EQ(kReservationSize, vm->size());
+  vm->Commit(false);
+  delete vm;
+}
+
+
 UNIT_TEST_CASE(VerifiedMemoryBasic) {
   Init();
   const intptr_t kReservationSize = 64 * KB;
@@ -33,6 +52,7 @@ UNIT_TEST_CASE(VerifiedMemoryBasic) {
   int64_t* unverified = reinterpret_cast<int64_t*>(&addr[3]);
   *unverified = 123;
   VerifiedMemory::Verify(reinterpret_cast<uword>(addr), 3 * sizeof(double));
+  delete vm;
 }
 
 
@@ -51,6 +71,7 @@ UNIT_TEST_CASE(VerifiedMemoryAccept) {
   memset(addr, 0xf3, 2 * sizeof(double));
   VerifiedMemory::Accept(reinterpret_cast<uword>(addr), 2 * sizeof(double));
   VerifiedMemory::Verify(reinterpret_cast<uword>(addr), 3 * sizeof(double));
+  delete vm;
 }
 
 
