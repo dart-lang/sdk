@@ -1964,6 +1964,8 @@ class BatchRunnerProcess {
         });
       };
       _process.kill();
+      _stdoutSubscription.cancel();
+      _stderrSubscription.cancel();
     } else {
       doStartTest(command, timeout);
     }
@@ -1973,12 +1975,12 @@ class BatchRunnerProcess {
   Future terminate() {
     if (_process == null) return new Future.value(true);
     Completer terminateCompleter = new Completer();
-    Timer killTimer;
     _processExitHandler = (_) {
-      if (killTimer != null) killTimer.cancel();
       terminateCompleter.complete(true);
     };
     _process.kill();
+    _stdoutSubscription.cancel();
+    _stderrSubscription.cancel();
 
     return terminateCompleter.future;
   }
