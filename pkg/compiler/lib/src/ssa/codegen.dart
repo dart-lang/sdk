@@ -471,28 +471,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   /**
     * Only visits the arguments starting at inputs[HInvoke.ARGUMENTS_OFFSET].
-    * Also, skip all trailing constant `null` arguments. JavaScript will fill
-    * missing arguments with `undefined` anyway. For functions that rely on
-    * 'arguments.length' in JavaScript, [allArgsRequired] should be set to
-    * `true`.
     */
   List<js.Expression> visitArguments(List<HInstruction> inputs,
-                                     {int start: HInvoke.ARGUMENTS_OFFSET,
-                                      bool allArgsRequired: false}) {
+                                     {int start: HInvoke.ARGUMENTS_OFFSET}) {
     assert(inputs.length >= start);
-    int max;
-    if (allArgsRequired) {
-      max = inputs.length;
-    } else {
-      for (max = inputs.length; max > start; --max) {
-        HInstruction input = inputs[max-1];
-        if (input is! HConstant) break;
-        HConstant constant = input;
-        if (!constant.constant.isNull) break;
-      }
-    }
-    List<js.Expression> result = new List<js.Expression>(max - start);
-    for (int i = start; i < max; i++) {
+    List<js.Expression> result = new List<js.Expression>(inputs.length - start);
+    for (int i = start; i < inputs.length; i++) {
       use(inputs[i]);
       result[i - start] = pop();
     }
@@ -1529,13 +1513,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Expression object = pop();
     String name = node.selector.name;
     String methodName;
-    bool allArgsRequired = false;
+    List<js.Expression> arguments = visitArguments(node.inputs);
     Element target = node.element;
 
     if (target != null && !node.isInterceptedCall) {
       if (target == backend.jsArrayAdd) {
         methodName = 'push';
-        allArgsRequired = true;
       } else if (target == backend.jsArrayRemoveLast) {
         methodName = 'pop';
       } else if (target == backend.jsStringSplit) {
@@ -1543,19 +1526,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // Split returns a List, so we make sure the backend knows the
         // list class is instantiated.
         registry.registerInstantiatedClass(compiler.listClass);
-      } else if (target.isNative && target.isFunction) {
+      } else if (target.isNative && target.isFunction
+                 && !node.isInterceptedCall) {
         // A direct (i.e. non-interceptor) native call is the result of
         // optimization.  The optimization ensures any type checks or
         // conversions have been satisified.
         methodName = target.fixedBackendName;
-        // TODO(herhut): Add notion of allArgsRequired to native annotations.
-        allArgsRequired = true;
       }
     }
-    // TODO(herhut): Add proper calling conventions to encode when arguments
-    //               may be dropped.
-    List<js.Expression> arguments = visitArguments(node.inputs,
-        allArgsRequired: allArgsRequired);
 
     if (methodName == null) {
       methodName = backend.namer.invocationName(node.selector);
