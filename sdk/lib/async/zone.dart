@@ -448,6 +448,7 @@ abstract class Zone {
    */
   static Zone _enter(Zone zone) {
     assert(zone != null);
+    assert(!identical(zone, _current));
     Zone previous = _current;
     _current = zone;
     return previous;
@@ -1077,18 +1078,10 @@ class _RootZone extends _Zone {
 
   dynamic runGuarded(f()) {
     try {
-      Zone current = Zone._current;
-      if (identical(current, _ROOT_ZONE) ||
-          identical(current, this)) {
+      if (identical(_ROOT_ZONE, Zone._current)) {
         return f();
       }
-
-      Zone old = Zone._enter(this);
-      try {
-        return f();
-      } finally {
-        Zone._leave(old);
-      }
+      return _rootRun(null, null, this, f);
     } catch (e, s) {
       return handleUncaughtError(e, s);
     }
@@ -1154,18 +1147,8 @@ class _RootZone extends _Zone {
   }
 
   dynamic run(f()) {
-    Zone current = Zone._current;
-    if (identical(current, _ROOT_ZONE) ||
-        identical(current, this)) {
-      return f();
-    }
-
-    Zone old = Zone._enter(this);
-    try {
-      return f();
-    } finally {
-      Zone._leave(old);
-    }
+    if (identical(Zone._current, _ROOT_ZONE)) return f();
+    return _rootRun(null, null, this, f);
   }
 
   dynamic runUnary(f(arg), arg) {
