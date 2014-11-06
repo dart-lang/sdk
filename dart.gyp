@@ -128,7 +128,7 @@
       'target_name': 'api_docs',
       'type': 'none',
       'dependencies': [
-        'utils/apidoc/docgen.gyp:docgen',
+        'utils/apidoc/docgen.gyp:dartdocgen',
       ],
     },
     {

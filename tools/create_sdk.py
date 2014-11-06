@@ -113,7 +113,7 @@ def CopyShellScript(src_file, dest_dir):
 
 def CopyDartScripts(home, sdk_root):
   for executable in ['dart2js_sdk', 'dartanalyzer_sdk', 'dartfmt', 'docgen',
-                     'pub_sdk']:
+                     'dartdocgen', 'pub_sdk']:
     CopyShellScript(os.path.join(home, 'sdk', 'bin', executable),
                     os.path.join(sdk_root, 'bin'))
 
