@@ -96,7 +96,8 @@ class DependencyComputer {
   Set<TransformerId> transformersNeededByLibrary(AssetId id) {
     var library = _graph.packages[id.package].path(p.fromUri(id.path));
     _loadPackageComputer(id.package);
-    return _packageComputers[id.package].transformersNeededByLibrary(library);
+    return _packageComputers[id.package].transformersNeededByLibrary(
+        library).where((id) => !id.isBuiltInTransformer).toSet();
   }
 
   /// Returns the set of all transformers that need to be loaded before [id] is
