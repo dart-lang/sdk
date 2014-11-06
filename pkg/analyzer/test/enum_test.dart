@@ -37,12 +37,6 @@ class EnumTest {
         ..check_explicit_values();
   }
 
-  void test_AngularCode() {
-    new EnumTester<AngularCode>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
   void test_AngularPropertyKind() {
     new EnumTester<AngularPropertyKind>()
         ..check_getters()
@@ -61,20 +55,8 @@ class EnumTest {
         ..check_explicit_values();
   }
 
-  void test_CheckedModeCompileTimeErrorCode() {
-    new EnumTester<CheckedModeCompileTimeErrorCode>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
   void test_CommentType() {
     new EnumTester<CommentType>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
-  void test_CompileTimeErrorCode() {
-    new EnumTester<CompileTimeErrorCode>()
         ..check_getters()
         ..check_explicit_values();
   }
@@ -103,20 +85,8 @@ class EnumTest {
         ..check_explicit_values();
   }
 
-  void test_HintCode() {
-    new EnumTester<HintCode>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
   void test_html_TokenType() {
     new EnumTester<html.TokenType>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
-  void test_HtmlWarningCode() {
-    new EnumTester<HtmlWarningCode>()
         ..check_getters()
         ..check_explicit_values();
   }
@@ -153,12 +123,6 @@ class EnumTest {
 
   void test_ParserErrorCode() {
     new EnumTester<ParserErrorCode>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
-  void test_PolymerCode() {
-    new EnumTester<PolymerCode>()
         ..check_getters()
         ..check_explicit_values();
   }
@@ -201,24 +165,6 @@ class EnumTest {
 
   void test_SourcePriority() {
     new EnumTester<SourcePriority>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
-  void test_StaticTypeWarningCode() {
-    new EnumTester<StaticTypeWarningCode>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
-  void test_StaticWarningCode() {
-    new EnumTester<StaticWarningCode>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
-  void test_TodoCode() {
-    new EnumTester<TodoCode>(ignoreGetters: ['TODO_REGEX'])
         ..check_getters()
         ..check_explicit_values();
   }
