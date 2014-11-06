@@ -2291,9 +2291,10 @@ class Parser {
       return new FormalParameterList(leftParenthesis, null, null, null, andAdvance);
     }
     //
-    // Even though it is invalid to have default parameters outside of brackets, required parameters
-    // inside of brackets, or multiple groups of default and named parameters, we allow all of these
-    // cases so that we can recover better.
+    // Even though it is invalid to have default parameters outside of brackets,
+    // required parameters inside of brackets, or multiple groups of default and
+    // named parameters, we allow all of these cases so that we can recover
+    // better.
     //
     List<FormalParameter> parameters = new List<FormalParameter>();
     List<FormalParameter> normalParameters = new List<FormalParameter>();
@@ -2527,7 +2528,8 @@ class Parser {
   }
 
   /**
-   * Parse a normal formal parameter.
+   * Parse a normal formal parameter and return the normal formal parameter that
+   * was parsed.
    *
    * <pre>
    * normalFormalParameter ::=
@@ -2545,8 +2547,6 @@ class Parser {
    *     declaredIdentifier
    *   | metadata identifier
    * </pre>
-   *
-   * @return the normal formal parameter that was parsed
    */
   NormalFormalParameter parseNormalFormalParameter() {
     CommentAndMetadata commentAndMetadata = _parseCommentAndMetadata();
@@ -3400,11 +3400,8 @@ class Parser {
   }
 
   /**
-   * Return `true` if the given token appears to be the first token of a type name that is
-   * followed by a variable or field formal parameter.
-   *
-   * @param startToken the first token of the sequence being checked
-   * @return `true` if there is a type name and variable starting at the given token
+   * Return `true` if the [startToken] appears to be the first token of a type
+   * name that is followed by a variable or field formal parameter.
    */
   bool _isTypedIdentifier(Token startToken) {
     Token token = _skipReturnType(startToken);
@@ -3412,7 +3409,17 @@ class Parser {
       return false;
     } else if (_tokenMatchesIdentifier(token)) {
       return true;
-    } else if (_tokenMatchesKeyword(token, Keyword.THIS) && _tokenMatches(token.next, TokenType.PERIOD) && _tokenMatchesIdentifier(token.next.next)) {
+    } else if (_tokenMatchesKeyword(token, Keyword.THIS)
+        && _tokenMatches(token.next, TokenType.PERIOD)
+        && _tokenMatchesIdentifier(token.next.next)) {
+      return true;
+    } else if (_tokenMatchesKeyword(startToken, Keyword.VOID)) {
+      // The keyword 'void' isn't a valid identifier, so it should be assumed to
+      // be a type name.
+      return true;
+    } else if (startToken.next != token) {
+      // The type is more than a simple identifier, so it should be assumed to
+      // be a type name.
       return true;
     }
     return false;

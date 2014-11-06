@@ -5683,6 +5683,12 @@ void''', []);
     expect(result.type, isNotNull);
   }
 
+  void test_parseFinalConstVarOrType_type_prefixed_noIdentifier() {
+    FinalConstVarOrType result = ParserTestCase.parse("parseFinalConstVarOrType", <Object> [false], "p.A,");
+    expect(result.keyword, isNull);
+    expect(result.type, isNotNull);
+  }
+
   void test_parseFinalConstVarOrType_type_prefixedAndParameterized() {
     FinalConstVarOrType result = ParserTestCase.parse("parseFinalConstVarOrType", <Object> [false], "p.A<B> a");
     expect(result.keyword, isNull);
@@ -5702,6 +5708,18 @@ void''', []);
     expect(keyword.type, TokenType.KEYWORD);
     expect((keyword as KeywordToken).keyword, Keyword.VAR);
     expect(result.type, isNull);
+  }
+
+  void test_parseFinalConstVarOrType_void() {
+    FinalConstVarOrType result = ParserTestCase.parse("parseFinalConstVarOrType", <Object> [false], "void f()");
+    expect(result.keyword, isNull);
+    expect(result.type, isNotNull);
+  }
+
+  void test_parseFinalConstVarOrType_void_noIdentifier() {
+    FinalConstVarOrType result = ParserTestCase.parse("parseFinalConstVarOrType", <Object> [false], "void,");
+    expect(result.keyword, isNull);
+    expect(result.type, isNotNull);
   }
 
   void test_parseFormalParameter_final_withType_named() {
