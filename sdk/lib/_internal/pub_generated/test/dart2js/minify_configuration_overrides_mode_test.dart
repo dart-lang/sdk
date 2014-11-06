@@ -16,7 +16,10 @@ main() {
               "minify": true
             }
           }]
-      })]).create();
+      }),
+          d.dir(
+              "web",
+              [d.file("main.dart", "void main() => print('Hello!');")])]).create();
 
     pubServe();
     requestShouldSucceed("main.dart.js", isMinifiedDart2JSOutput);

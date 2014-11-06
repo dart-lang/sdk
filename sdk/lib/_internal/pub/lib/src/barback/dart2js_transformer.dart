@@ -24,7 +24,7 @@ import 'asset_environment.dart';
 /// The set of all valid configuration options for this transformer.
 final _validOptions = new Set<String>.from([
   'commandLineOptions', 'checked', 'csp', 'minify', 'verbose', 'environment',
-  'analyzeAll', 'preserveUris', 'suppressWarnings', 'suppressHints',
+  'preserveUris', 'suppressWarnings', 'suppressHints',
   'suppressPackageWarnings', 'terse'
 ]);
 

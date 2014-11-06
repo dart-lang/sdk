@@ -15,7 +15,10 @@ main() {
         "transformers": [{
           "\$dart2js": {"minify": true}
         }]
-      })
+      }),
+      d.dir("web", [
+        d.file("main.dart", "void main() => print('Hello!');")
+      ])
     ]).create();
 
     pubServe();

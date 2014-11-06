@@ -260,6 +260,7 @@ Future<http.Response> scheduleRequest(String urlPath, {String root}) {
 /// [headers] may be either a [Matcher] or a map to match an exact headers map.
 void requestShouldSucceed(String urlPath, expectation, {String root, headers}) {
   scheduleRequest(urlPath, root: root).then((response) {
+    expect(response.statusCode, equals(200));
     if (expectation != null) expect(response.body, expectation);
     if (headers != null) expect(response.headers, headers);
   });

@@ -22,14 +22,16 @@ main() {
             "minify": true,
             "verbose": true,
             "environment": {"name": "value"},
-            "analyzeAll": true,
             "suppressWarnings": true,
             "suppressHints": true,
             "suppressPackageWarnings": false,
             "terse": true
           }
         }]
-      })
+      }),
+      d.dir("web", [
+        d.file("main.dart", "void main() => print('Hello!');")
+      ])
     ]).create();
 
     // None of these options should be rejected, either by pub or by dart2js.

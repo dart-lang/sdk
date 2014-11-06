@@ -29,7 +29,6 @@ final _validOptions = new Set<String>.from(
         'minify',
         'verbose',
         'environment',
-        'analyzeAll',
         'preserveUris',
         'suppressWarnings',
         'suppressHints',
