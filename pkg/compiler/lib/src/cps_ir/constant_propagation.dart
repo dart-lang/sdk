@@ -83,7 +83,7 @@ class _TransformingVisitor extends RecursiveVisitor {
     Constant constant = new Constant(constExp);
     LetPrim letPrim = new LetPrim(constant);
     InvokeContinuation invoke =
-        new InvokeContinuation(continuation, <Primitive>[constant]);
+        new InvokeContinuation(continuation, <Definition>[constant]);
 
     invoke.parent = constant.parent = letPrim;
     letPrim.body = invoke;
@@ -124,7 +124,7 @@ class _TransformingVisitor extends RecursiveVisitor {
 
     assert(successor.parameters.isEmpty);
     InvokeContinuation invoke =
-        new InvokeContinuation(successor, <Primitive>[]);
+        new InvokeContinuation(successor, <Definition>[]);
 
     InteriorNode parent = node.parent;
     invoke.parent = parent;
