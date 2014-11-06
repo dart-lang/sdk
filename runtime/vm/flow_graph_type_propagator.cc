@@ -590,17 +590,14 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
 
   // Consider the compile type of the value.
   const AbstractType& compile_type = *ToAbstractType();
+
+  // The compile-type of a value should never be void. The result of a void
+  // function must always be null, which wass checked to be null at the return
+  // statement inside the function.
+  ASSERT(!compile_type.IsVoidType());
+
   if (compile_type.IsMalformedOrMalbounded()) {
     return false;
-  }
-
-  // If the compile type of the value is void, we are type checking the result
-  // of a void function, which was checked to be null at the return statement
-  // inside the function.
-  if (compile_type.IsVoidType()) {
-    ASSERT(FLAG_enable_type_checks);
-    *is_instance = true;
-    return true;
   }
 
   // The Null type is only a subtype of Object and of dynamic.
@@ -767,30 +764,24 @@ CompileType ConstantInstr::ComputeType() const {
 }
 
 
-CompileType* AssertAssignableInstr::ComputeInitialType() const {
+CompileType AssertAssignableInstr::ComputeType() const {
   CompileType* value_type = value()->Type();
 
   if (value_type->IsMoreSpecificThan(dst_type())) {
-    return ZoneCompileType::Wrap(*value_type);
+    return *value_type;
   }
 
   if (dst_type().IsVoidType()) {
     // The only value assignable to void is null.
-    return ZoneCompileType::Wrap(CompileType::Null());
+    return CompileType::Null();
   }
 
-  return ZoneCompileType::Wrap(
-      CompileType::FromAbstractType(dst_type(), value_type->is_nullable()));
+  return CompileType::FromAbstractType(dst_type(), value_type->is_nullable());
 }
 
 
 bool AssertAssignableInstr::RecomputeType() {
-  CompileType* value_type = value()->Type();
-  return UpdateType(
-      value_type->IsMoreSpecificThan(dst_type())
-          ? *value_type
-          : CompileType::FromAbstractType(dst_type(),
-                                          value_type->is_nullable()));
+  return UpdateType(ComputeType());
 }
 
 
@@ -870,8 +861,13 @@ CompileType StaticCallInstr::ComputeType() const {
   }
 
   if (FLAG_enable_type_checks) {
-    return CompileType::FromAbstractType(
-        AbstractType::ZoneHandle(function().result_type()));
+    // Void functions are known to return null, which is checked at the return
+    // from the function.
+    const AbstractType& result_type =
+        AbstractType::ZoneHandle(function().result_type());
+    return CompileType::FromAbstractType(result_type.IsVoidType()
+        ? AbstractType::ZoneHandle(Type::NullType())
+        : result_type);
   }
 
   return CompileType::Dynamic();
