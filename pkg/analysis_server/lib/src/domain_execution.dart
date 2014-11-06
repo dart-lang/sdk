@@ -177,8 +177,6 @@ class ExecutionDomainHandler implements RequestHandler {
       => server.contextDirectoryManager.isInAnalysisRoot(filePath);
 
   void _reportCurrentFileStatus() {
-    Map<String, List<String>> dartToHtml = new HashMap<String, List<String>>();
-    Map<String, List<String>> htmlToDart = new HashMap<String, List<String>>();
     for (AnalysisContext context in server.getAnalysisContexts()) {
       List<Source> librarySources = context.librarySources;
       List<Source> clientSources = context.launchableClientLibrarySources;

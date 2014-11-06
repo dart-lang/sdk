@@ -161,8 +161,6 @@ class EditTest {
 
   void test_eqEq() {
     SourceEdit a = new SourceEdit(1, 2, 'aaa');
-    SourceEdit a2 = new SourceEdit(1, 2, 'aaa');
-    SourceEdit b = new SourceEdit(1, 2, 'aaa');
     expect(a == a, isTrue);
     expect(a == new SourceEdit(1, 2, 'aaa'), isTrue);
     expect(a == this, isFalse);

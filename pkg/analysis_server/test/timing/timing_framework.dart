@@ -205,7 +205,6 @@ abstract class TimingTest extends IntegrationTestMixin {
     }
     // Give the server a short time to comply with the shutdown request; if it
     // doesn't exit, then forcibly terminate it.
-    Completer processExited = new Completer();
     sendServerShutdown();
     return server.exitCode.timeout(SHUTDOWN_TIMEOUT, onTimeout: () {
       return server.kill();

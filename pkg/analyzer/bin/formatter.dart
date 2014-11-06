@@ -154,7 +154,6 @@ _formatFile(file) {
       return;
     }
     try {
-      var buffer = new StringBuffer();
       var rawSource = file.readAsStringSync();
       var formatted = _format(rawSource, CodeKind.COMPILATION_UNIT);
       if (overwriteFileContents) {

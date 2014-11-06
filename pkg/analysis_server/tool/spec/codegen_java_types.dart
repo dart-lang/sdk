@@ -664,7 +664,6 @@ final GeneratedDirectory targetDir = new GeneratedDirectory(pathToGenTypes, () {
   Map<String, FileContentsComputer> map =
       new Map<String, FileContentsComputer>();
   for (ImpliedType impliedType in impliedTypes.values) {
-    TypeDecl type = impliedType.type;
     String typeNameInSpec = capitalize(impliedType.camelName);
     bool isRefactoringFeedback = impliedType.kind == 'refactoringFeedback';
     bool isRefactoringOption = impliedType.kind == 'refactoringOptions';

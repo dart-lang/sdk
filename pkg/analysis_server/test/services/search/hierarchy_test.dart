@@ -100,7 +100,6 @@ class D {
     ClassElement classB = findElement("B");
     ClassElement classC = findElement("C");
     ClassElement classD = findElement("D");
-    ClassElement classE = findElement("E");
     ClassMemberElement memberA = classA.fields[0];
     ClassMemberElement memberB = classB.fields[0];
     ClassMemberElement memberC = classC.fields[0];
@@ -185,9 +184,7 @@ class E {
 ''');
     ClassElement classA = findElement("A");
     ClassElement classB = findElement("B");
-    ClassElement classC = findElement("C");
     ClassElement classD = findElement("D");
-    ClassElement classE = findElement("E");
     ClassMemberElement memberA = classA.methods[0];
     ClassMemberElement memberB = classB.methods[0];
     ClassMemberElement memberD = classD.methods[0];

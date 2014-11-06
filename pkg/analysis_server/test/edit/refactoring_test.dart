@@ -1208,8 +1208,6 @@ main() {
   new A.test();
 }
 ''');
-    String search = 'test();';
-    String newName = 'newName';
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('test();', 'newName');
     }, '''

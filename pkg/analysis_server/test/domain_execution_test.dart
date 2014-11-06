@@ -219,7 +219,7 @@ main() {
       ExecutionDomainHandler handler = new ExecutionDomainHandler(server);
       Request request = new ExecutionSetSubscriptionsParams(
           [ExecutionService.LAUNCH_DATA]).toRequest('0');
-      Response response = handler.handleRequest(request);
+      handler.handleRequest(request);
 
 //      controller.add(null);
       expect(unsentNotifications, isEmpty);
@@ -267,7 +267,6 @@ class IsExecutableFile extends Matcher {
     if (item is! ExecutableFile) {
       return false;
     }
-    ExecutableFile file = item;
     return item.file == expectedFile && item.kind == expectedKind;
   }
 }

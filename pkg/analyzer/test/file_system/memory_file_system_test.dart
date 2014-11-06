@@ -151,7 +151,7 @@ main() {
         });
 
         test('as file', () {
-          File file = provider.newFile('/my/file', 'qwerty');
+          provider.newFile('/my/file', 'qwerty');
           expect(() {
             provider.newFolder('/my/file');
           }, throwsA(new isInstanceOf<ArgumentError>()));

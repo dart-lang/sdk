@@ -132,7 +132,6 @@ class A {
 }
 ''');
     // prepare elements
-    Element mainElement = findElement('main');
     LocalVariableElement testElement = findElement('test');
     Element nameElement = new NameElement('test');
     // verify

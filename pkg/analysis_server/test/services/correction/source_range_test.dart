@@ -68,9 +68,6 @@ class SourceRangesTest extends AbstractSingleUnitTest {
 
   void test_rangeNodes_empty() {
     resolveTestUnit('main() {}');
-    FunctionDeclaration mainFunction = testUnit.declarations[0];
-    SimpleIdentifier mainName = mainFunction.name;
-    FunctionBody mainBody = mainFunction.functionExpression.body;
     expect(rangeNodes([]), new SourceRange(0, 0));
   }
 

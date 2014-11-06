@@ -79,7 +79,6 @@ bool test() {
 
   Position expectedPosition(String search) {
     int offset = resultCode.indexOf(search);
-    int length = getLeadingIdentifierLength(search);
     return new Position(testFile, offset);
   }
 
@@ -2317,7 +2316,6 @@ main() {
     List<Position> positions = <Position>[];
     for (String search in searchStrings) {
       int offset = resultCode.indexOf(search);
-      int length = getLeadingIdentifierLength(search);
       positions.add(new Position(testFile, offset));
     }
     return positions;

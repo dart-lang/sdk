@@ -1659,7 +1659,6 @@ class FixProcessor {
     String name = (node as SimpleIdentifier).name;
     // prepare environment
     Source targetSource = targetClassElement.source;
-    String targetFile = targetSource.fullName;
     // prepare insert offset
     ClassDeclaration targetClassNode = targetClassElement.node;
     int insertOffset = targetClassNode.end - 1;

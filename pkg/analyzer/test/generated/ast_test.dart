@@ -957,8 +957,7 @@ class SimpleIdentifierTest extends ParserTestCase {
     SimpleIdentifier identifier = AstFactory.identifier3("a");
     Expression iterator = AstFactory.listLiteral([]);
     Statement body = AstFactory.block([]);
-    ForEachStatement forEachStatement =
-        AstFactory.forEachStatement2(identifier, iterator, body);
+    AstFactory.forEachStatement2(identifier, iterator, body);
     expect(identifier.inGetterContext(), isFalse);
   }
 
@@ -990,8 +989,7 @@ class SimpleIdentifierTest extends ParserTestCase {
     SimpleIdentifier identifier = AstFactory.identifier3("a");
     Expression iterator = AstFactory.listLiteral([]);
     Statement body = AstFactory.block([]);
-    ForEachStatement forEachStatement =
-        AstFactory.forEachStatement2(identifier, iterator, body);
+    AstFactory.forEachStatement2(identifier, iterator, body);
     expect(identifier.inSetterContext(), isTrue);
   }
 
@@ -1207,7 +1205,7 @@ class SimpleStringLiteralTest extends ParserTestCase {
 
 class StringInterpolationTest extends ParserTestCase {
   void test_contentsOffsetEnd() {
-    var be = AstFactory.interpolationExpression(AstFactory.identifier3('bb'));
+    AstFactory.interpolationExpression(AstFactory.identifier3('bb'));
     // 'a${bb}ccc'
     {
       var ae = AstFactory.interpolationString("'a", "a");

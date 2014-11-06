@@ -294,7 +294,6 @@ class _RefactoringManager {
    */
   Future<RefactoringStatus> _init(RefactoringKind kind, String file, int offset,
       int length) {
-    List<RefactoringProblem> problems = <RefactoringProblem>[];
     // check if we can continue with the existing Refactoring instance
     if (this.kind == kind &&
         this.file == file &&

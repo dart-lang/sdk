@@ -376,9 +376,9 @@ class _LocationDataTest {
     // getLocation()
     {
       Location newLocation = locationData.getLocation(context, elementCodec);
-      expect(location.element, element);
-      expect(location.offset, 1);
-      expect(location.length, 2);
+      expect(newLocation.element, element);
+      expect(newLocation.offset, 1);
+      expect(newLocation.length, 2);
     }
     // no Element - no Location
     {
