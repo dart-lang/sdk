@@ -122,3 +122,5 @@ large_class_declaration_test: Skip # Times out. Issue 20352
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 gc_test: Skip # Times out flakily. Issue 20956
 
+[ $runtime == vm && $mode == debug && $checked ]
+function_subtype_local6_test: Crash  # Issue 21523
