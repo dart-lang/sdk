@@ -641,7 +641,7 @@ class _Future<T> implements Future<T> {
         } else {
           if (!source._zone.inSameErrorZone(zone)) {
             // Don't cross zone boundaries with errors.
-            zone = Zone._leave(oldZone);
+            Zone._leave(oldZone);
             _throwUncaughtError(source, guarded);
             return;
           }
