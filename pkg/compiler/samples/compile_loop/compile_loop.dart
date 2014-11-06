@@ -8,7 +8,7 @@ library sample.compile_loop;
 
 import 'dart:async';
 
-import '../../compiler.dart' as compiler;
+import '../../lib/compiler.dart' as compiler;
 
 // If this file is missing, generate it using ../jsonify/jsonify.dart.
 import 'sdk.dart';
