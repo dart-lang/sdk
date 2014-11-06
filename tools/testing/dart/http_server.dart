@@ -56,7 +56,7 @@ class DispatchingServer {
 /// /root_build/X: This will serve the corresponding file from the build
 ///                directory (i.e. '$BuildDirectory/X').
 /// /FOO/packages/BAR: This will serve the corresponding file from the packages
-///                    directory (i.e. '$BuildDirectory/packages/BAR') or the
+///                    directory (i.e. '$BuildDirectory/packages/BAR') or the 
 ///                    passed-in package root
 /// /ws: This will upgrade the connection to a WebSocket connection and echo
 ///      all data back to the client.
@@ -144,7 +144,7 @@ class TestingServers {
     _buildDirectory = TestUtils.absolutePath(buildDirectory);
     _dartDirectory = dartDirectory == null ? TestUtils.dartDir
         : new Path(dartDirectory);
-    _packageRoot = packageRoot == null ?
+    _packageRoot = packageRoot == null ? 
       _buildDirectory.append('packages') :
       new Path(packageRoot);
   }
@@ -399,8 +399,6 @@ class TestingServers {
       response.headers.set('Content-Type', 'application/javascript');
     } else if (path.filename.endsWith('.dart')) {
       response.headers.set('Content-Type', 'application/dart');
-    } else if (path.filename.endsWith('.css')) {
-      response.headers.set('Content-Type', 'text/css');
     }
     response.headers.removeAll("X-Frame-Options");
     file.openRead().pipe(response).catchError((e) {

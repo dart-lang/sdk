@@ -248,11 +248,10 @@ main() {
     test('xhr responseHeaders', () {
       return HttpRequest.request(url).then(
         (xhr) {
-          var contentTypeHeader = xhr.responseHeaders['content-type'];
-          expect(contentTypeHeader, isNotNull);
-          // Should be like: 'text/plain; charset=utf-8'
-          expect(contentTypeHeader.contains('text/plain'), isTrue);
-          expect(contentTypeHeader.contains('charset=utf-8'), isTrue);
+          var serverHeader = xhr.responseHeaders['server'];
+          expect(serverHeader, isNotNull);
+          // Should be like: 'Dart/0.1 (dart:io)'
+          expect(serverHeader.startsWith('Dart/'), isTrue);
         });
     });
   });
