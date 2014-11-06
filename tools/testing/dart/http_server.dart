@@ -401,6 +401,8 @@ class TestingServers {
       response.headers.set('Content-Type', 'application/dart');
     } else if (path.filename.endsWith('.css')) {
       response.headers.set('Content-Type', 'text/css');
+    } else if (path.filename.endsWith('.xml')) {
+      response.headers.set('Content-Type', 'text/xml');
     }
     response.headers.removeAll("X-Frame-Options");
     file.openRead().pipe(response).catchError((e) {

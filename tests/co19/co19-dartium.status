@@ -16,10 +16,6 @@ LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: Skip # Issue 20540
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
-LayoutTests/fast/events/event-on-xhr-document_t01: RuntimeError # Issue 21525
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-document_t01 # Issue 21525
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-responseXML-xml-document-responsetype_t01 # Issue 21525
-LayoutTests/fast/xpath/4XPath/Borrowed/od_20000608_t01 # Issue 21525
 LayoutTests/fast/borders/border-radius-child_t01: Skip # co19 issue 732.
 LayoutTests/fast/css-generated-content/hit-test-generated-content_t01: Skip # co19 issue 732.
 LayoutTests/fast/css/collapsed-whitespace-reattach-in-style-recalc_t01: Skip # co19 issue 732.
