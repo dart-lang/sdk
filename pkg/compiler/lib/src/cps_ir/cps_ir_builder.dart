@@ -353,14 +353,14 @@ class IrBuilder {
 
   ir.Primitive _buildInvokeStatic(Element element,
                                   Selector selector,
-                                  List<ir.Definition> arguments) {
+                                  List<ir.Primitive> arguments) {
     assert(isOpen);
     return _continueWithExpression(
         (k) => new ir.InvokeStatic(element, selector, k, arguments));
   }
 
   ir.Primitive _buildInvokeSuper(Selector selector,
-                                 List<ir.Definition> arguments) {
+                                 List<ir.Primitive> arguments) {
     assert(isOpen);
     return _continueWithExpression(
         (k) => new ir.InvokeSuperMethod(selector, k, arguments));
@@ -368,7 +368,7 @@ class IrBuilder {
 
   ir.Primitive _buildInvokeDynamic(ir.Primitive receiver,
                                    Selector selector,
-                                   List<ir.Definition> arguments) {
+                                   List<ir.Primitive> arguments) {
     assert(isOpen);
     return _continueWithExpression(
         (k) => new ir.InvokeMethod(receiver, selector, k, arguments));
@@ -534,7 +534,7 @@ class IrBuilder {
   /// are defined by [selector] and the argument values are defined by
   /// [arguments].
   ir.Primitive buildSuperInvocation(Selector selector,
-                                    List<ir.Definition> arguments) {
+                                    List<ir.Primitive> arguments) {
     return _buildInvokeSuper(selector, arguments);
   }
 
@@ -542,14 +542,14 @@ class IrBuilder {
   /// defined by [selector].
   ir.Primitive buildSuperGet(Selector selector) {
     assert(selector.isGetter);
-    return _buildInvokeSuper(selector, const <ir.Definition>[]);
+    return _buildInvokeSuper(selector, const <ir.Primitive>[]);
   }
 
   /// Create a setter invocation on the super class where the setter name and
   /// argument are defined by [selector] and [value], respectively.
   ir.Primitive buildSuperSet(Selector selector, ir.Primitive value) {
     assert(selector.isSetter);
-    _buildInvokeSuper(selector, <ir.Definition>[value]);
+    _buildInvokeSuper(selector, <ir.Primitive>[value]);
     return value;
   }
 
@@ -557,16 +557,16 @@ class IrBuilder {
   /// [index] and [value].
   ir.Primitive buildSuperIndexSet(ir.Primitive index,
                                   ir.Primitive value) {
-    _buildInvokeSuper(new Selector.indexSet(), <ir.Definition>[index, value]);
+    _buildInvokeSuper(new Selector.indexSet(), <ir.Primitive>[index, value]);
     return value;
   }
 
   /// Create a dynamic invocation on [receiver] where the method name and
   /// argument structure are defined by [selector] and the argument values are
   /// defined by [arguments].
-  ir.Primitive buildDynamicInvocation(ir.Definition receiver,
+  ir.Primitive buildDynamicInvocation(ir.Primitive receiver,
                                       Selector selector,
-                                      List<ir.Definition> arguments) {
+                                      List<ir.Primitive> arguments) {
     return _buildInvokeDynamic(receiver, selector, arguments);
   }
 
@@ -574,7 +574,7 @@ class IrBuilder {
   /// defined by [selector].
   ir.Primitive buildDynamicGet(ir.Primitive receiver, Selector selector) {
     assert(selector.isGetter);
-    return _buildInvokeDynamic(receiver, selector, const <ir.Definition>[]);
+    return _buildInvokeDynamic(receiver, selector, const <ir.Primitive>[]);
   }
 
   /// Create a dynamic setter invocation on [receiver] where the setter name and
@@ -583,7 +583,7 @@ class IrBuilder {
                                Selector selector,
                                ir.Primitive value) {
     assert(selector.isSetter);
-    _buildInvokeDynamic(receiver, selector, <ir.Definition>[value]);
+    _buildInvokeDynamic(receiver, selector, <ir.Primitive>[value]);
     return value;
   }
 
@@ -593,7 +593,7 @@ class IrBuilder {
                                      ir.Primitive index,
                                      ir.Primitive value) {
     _buildInvokeDynamic(
-        receiver, new Selector.indexSet(), <ir.Definition>[index, value]);
+        receiver, new Selector.indexSet(), <ir.Primitive>[index, value]);
     return value;
   }
 
@@ -601,7 +601,7 @@ class IrBuilder {
   /// defined by [selector] and the argument values are defined by [arguments].
   ir.Primitive buildStaticInvocation(Element element,
                                      Selector selector,
-                                     List<ir.Definition> arguments) {
+                                     List<ir.Primitive> arguments) {
     return _buildInvokeStatic(element, selector, arguments);
   }
 
@@ -609,7 +609,7 @@ class IrBuilder {
   /// defined by [selector].
   ir.Primitive buildStaticGet(Element element, Selector selector) {
     assert(selector.isGetter);
-    return _buildInvokeStatic(element, selector, const <ir.Definition>[]);
+    return _buildInvokeStatic(element, selector, const <ir.Primitive>[]);
   }
 
   /// Create a static setter invocation of [element] where the setter name and
@@ -618,7 +618,7 @@ class IrBuilder {
                               Selector selector,
                               ir.Primitive value) {
     assert(selector.isSetter);
-    _buildInvokeStatic(element, selector, <ir.Definition>[value]);
+    _buildInvokeStatic(element, selector, <ir.Primitive>[value]);
     return value;
   }
 
@@ -628,14 +628,14 @@ class IrBuilder {
   ir.Primitive buildConstructorInvocation(FunctionElement element,
                                           Selector selector,
                                           DartType type,
-                                          List<ir.Definition> arguments) {
+                                          List<ir.Primitive> arguments) {
     assert(isOpen);
     return _continueWithExpression(
         (k) => new ir.InvokeConstructor(type, element, selector, k, arguments));
   }
 
   /// Create a string concatenation of the [arguments].
-  ir.Primitive buildStringConcatenation(List<ir.Definition> arguments) {
+  ir.Primitive buildStringConcatenation(List<ir.Primitive> arguments) {
     assert(isOpen);
     return _continueWithExpression(
         (k) => new ir.ConcatenateStrings(k, arguments));

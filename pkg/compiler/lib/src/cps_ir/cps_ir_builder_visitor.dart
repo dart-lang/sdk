@@ -611,8 +611,8 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     Selector selector = elements.getSelector(node);
 
     // TODO(lry): support default arguments, need support for locals.
-    List<ir.Definition> arguments = node.arguments.mapToList(visit,
-                                                             growable:false);
+    List<ir.Primitive> arguments =
+        node.arguments.mapToList(visit, growable:false);
     return irBuilder.buildStaticInvocation(element, selector, arguments);
   }
 
