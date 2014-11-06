@@ -303,8 +303,8 @@ class OldEmitter implements Emitter {
   }
 
   /** Needs defineClass to be defined. */
-  List buildInheritFrom() {
-    return [js(r'''
+  jsAst.Expression buildInheritFrom() {
+    return js(r'''
         var inheritFrom = function() {
           function tmp() {}
           var hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -322,7 +322,32 @@ class OldEmitter implements Emitter {
             return object;
           };
         }()
-      ''')];
+      ''');
+  }
+
+  /// Code that needs to be run before first invocation of
+  /// [finishClassesFunction], but should only be run once.
+  jsAst.Expression get initFinishClasses {
+    jsAst.Expression allClassesAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
+    jsAst.Expression interceptorsByTagAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.INTERCEPTORS_BY_TAG);
+    jsAst.Expression leafTagsAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.LEAF_TAGS);
+    jsAst.Expression finishedClassesAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.FINISHED_CLASSES);
+
+    return js('''
+        (function(){
+         # = Object.create(null);  // embedded allClasses.
+         # = Object.create(null);  // embedded interceptorsByTag.
+         # = Object.create(null);  // embedded leafTags.
+         # = Object.create(null);  // embedded finishedClasses
+        })()
+      ''', [allClassesAccess,
+            interceptorsByTagAccess,
+            leafTagsAccess,
+            finishedClassesAccess]);
   }
 
   List buildSplitOffAliases() {
@@ -362,16 +387,14 @@ class OldEmitter implements Emitter {
         generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
     jsAst.Expression metadataAccess =
         generateEmbeddedGlobalAccess(embeddedNames.METADATA);
-    jsAst.Expression interceptorsByTagAccess =
-        generateEmbeddedGlobalAccess(embeddedNames.INTERCEPTORS_BY_TAG);
-    jsAst.Expression leafTagsAccess =
-        generateEmbeddedGlobalAccess(embeddedNames.LEAF_TAGS);
+    jsAst.Expression finishedClassesAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.FINISHED_CLASSES);
 
     return js('''
       function(collectedClasses, isolateProperties, existingIsolateProperties) {
         var pendingClasses = Object.create(null);
-        if (!#) # = Object.create(null);  // embedded allClasses.
         var allClasses = #;  // embedded allClasses;
+        var constructors;
 
         if (#)  // DEBUG_FAST_OBJECTS
           print("Number of classes: " +
@@ -380,7 +403,7 @@ class OldEmitter implements Emitter {
         var hasOwnProperty = Object.prototype.hasOwnProperty;
 
         if (typeof dart_precompiled == "function") {
-          var constructors = dart_precompiled(collectedClasses);
+          constructors = dart_precompiled(collectedClasses);
         } else {
           var combinedConstructorFunction =
              "function \$reflectable(fn){fn.$reflectableField=1;return fn};\\n"+
@@ -475,9 +498,7 @@ class OldEmitter implements Emitter {
 
         constructors = null;
 
-        var finishedClasses = Object.create(null);
-        # = Object.create(null);  // embedded interceptorsByTag.
-        # = Object.create(null);  // embedded leafTags.
+        var finishedClasses = #; // embedded finishedClasses
 
         #;  // buildFinishClass(),
 
@@ -485,15 +506,13 @@ class OldEmitter implements Emitter {
 
         for (var cls in pendingClasses) finishClass(cls);
       }''', [
-          allClassesAccess, allClassesAccess,
           allClassesAccess,
           DEBUG_FAST_OBJECTS,
           backend.hasRetainedMetadata,
           metadataAccess,
           needsMixinSupport,
           backend.isTreeShakingDisabled,
-          interceptorsByTagAccess,
-          leafTagsAccess,
+          finishedClassesAccess,
           buildFinishClass(),
           nsmEmitter.buildTrivialNsmHandlers()]);
   }
@@ -695,11 +714,10 @@ class OldEmitter implements Emitter {
   List buildDefineClassAndFinishClassFunctionsIfNecessary() {
     if (!needsDefineClass) return [];
     return defineClassFunction
-    ..addAll(buildInheritFrom())
+    ..add(buildInheritFrom())
     ..addAll(buildSplitOffAliases())
-    ..addAll([
-      js('$finishClassesName = #', finishClassesFunction)
-    ]);
+    ..add(js('$finishClassesName = #', finishClassesFunction))
+    ..add(initFinishClasses);
   }
 
   List buildLazyInitializerFunctionIfNecessary() {
