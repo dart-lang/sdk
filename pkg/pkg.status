@@ -30,6 +30,7 @@ intl/test/date_time_format_local_odd_test: Skip # Times out flakily. Issue 19544
 mutation_observer: Skip # Issue 21149
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
+polymer/example/component/news/test/news_index_test: Pass, RuntimeError # Issue 18931. Issue 19196.
 polymer/test/attr_deserialize_test: Pass, RuntimeError # Issue 18931
 polymer/test/attr_mustache_test: Pass, RuntimeError # Issue 18931
 polymer/test/bind_test: Pass, RuntimeError # Issue 18931

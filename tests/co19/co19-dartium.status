@@ -896,7 +896,7 @@ LayoutTests/fast/text/international/listbox-width-rtl_t01: RuntimeError # co19-r
 LayoutTests/fast/text-autosizing/text-removal_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/transforms/scrollIntoView-transformed_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/dom/partial-layout-overlay-scrollbars_t01: Pass, RuntimeError # Reenable fast/dom tests: Please triage this failure.
-LayoutTests/fast/dom/partial-layout-non-overlay-scrollbars_t01: RuntimeError # Reenable fast/dom tests: Please triage this failure.
+LayoutTests/fast/dom/partial-layout-non-overlay-scrollbars_t01: Pass, RuntimeError # Reenable fast/dom tests: Please triage this failure.
 LayoutTests/fast/dom/shadow/shadowdom-for-input-type-change_t01: RuntimeError # Reenable fast/dom tests: Please triage this failure.
 LayoutTests/fast/dom/jsDevicePixelRatio_t01: RuntimeError # Reenable fast/dom tests: Please triage this failure.
 LayoutTests/fast/dom/HTMLLinkElement/prefetch-beforeload_t01: Pass, RuntimeError # Reenable fast/dom tests: Please triage this failure.
