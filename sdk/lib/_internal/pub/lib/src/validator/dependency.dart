@@ -155,7 +155,7 @@ class DependencyValidator extends Validator {
   void _warnAboutNoConstraintUpperBound(PackageDep dep) {
     var constraint;
     if ((dep.constraint as VersionRange).includeMin) {
-      constraint = _constraintForVersion(dep.constraint.min);
+      constraint = _constraintForVersion((dep.constraint as VersionRange).min);
     } else {
       constraint = '"${dep.constraint} '
           '<${(dep.constraint as VersionRange).min.nextBreaking}"';
@@ -174,7 +174,7 @@ class DependencyValidator extends Validator {
 
   /// Emits an error for any version constraints that use `^` without an
   /// appropriate SDK constraint.
-  void _errorAboutCaretConstraints(List<PackageDeps> caretDeps) {
+  void _errorAboutCaretConstraints(List<PackageDep> caretDeps) {
     var newSdkConstraint = entrypoint.root.pubspec.environment.sdkVersion
         .intersect(_postCaretPubVersions);
 
