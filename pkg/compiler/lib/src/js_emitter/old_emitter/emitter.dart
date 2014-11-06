@@ -312,14 +312,34 @@ class OldEmitter implements Emitter {
             tmp.prototype = superConstructor.prototype;
             var object = new tmp();
             var properties = constructor.prototype;
-            for (var member in properties)
-              if (hasOwnProperty.call(properties, member))
+            for (var member in properties) {
+              if (hasOwnProperty.call(properties, member)) {
                 object[member] = properties[member];
+              }
+            }
             object.constructor = constructor;
             constructor.prototype = object;
             return object;
           };
         }()
+      ''')];
+  }
+
+  List buildSplitOffAliases() {
+    return [js(r'''
+        var splitOffAliases = function(constructor) {
+          var hasOwnProperty = Object.prototype.hasOwnProperty;
+          var properties = constructor.prototype;
+          for (var member in properties) {
+            if (hasOwnProperty.call(properties, member)) {
+              var s = member.split(':');
+              if (s.length > 1) {
+                properties[s[0]] = properties[s[1]] = properties[member];
+                delete properties[member];
+              }
+            }
+          }
+        }
       ''')];
   }
 
@@ -373,8 +393,8 @@ class OldEmitter implements Emitter {
           if (desc instanceof Array) desc = desc[1];
 
           /* The 'fields' are either a constructor function or a
-           * string encoding fields, constructor and superclass.  Get
-           * the superclass and the fields in the format
+           * string encoding fields, constructor and superclass. Gets the
+           * superclass and fields in the format
            *   '[name/]Super;field1,field2'
            * from the CLASS_DESCRIPTOR_PROPERTY property on the descriptor.
            * The 'name/' is optional and contains the name that should be used
@@ -497,6 +517,11 @@ class OldEmitter implements Emitter {
         finishedClasses[cls] = true;
 
         var superclass = pendingClasses[cls];
+        var constructor = allClasses[cls];
+
+        // Process aliased members due to super calls. We have to do this early
+        // to ensure that we also hit the object class.
+        splitOffAliases(constructor);
 
         // The superclass is only false (empty string) for the Dart Object
         // class.  The minifier together with noSuchMethod can put methods on
@@ -504,7 +529,6 @@ class OldEmitter implements Emitter {
         // that we have a string.
         if (!superclass || typeof superclass != "string") return;
         finishClass(superclass);
-        var constructor = allClasses[cls];
         var superConstructor = allClasses[superclass];
 
         if (!superConstructor)
@@ -672,6 +696,7 @@ class OldEmitter implements Emitter {
     if (!needsDefineClass) return [];
     return defineClassFunction
     ..addAll(buildInheritFrom())
+    ..addAll(buildSplitOffAliases())
     ..addAll([
       js('$finishClassesName = #', finishClassesFunction)
     ]);

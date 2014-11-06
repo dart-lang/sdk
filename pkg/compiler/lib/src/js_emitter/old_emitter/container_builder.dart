@@ -414,7 +414,7 @@ class ContainerBuilder extends CodeEmitterHelper {
 
   void addMemberMethodFromInfo(MemberInfo info, ClassBuilder builder) {
     final FunctionElement member = info.member;
-    final String name = info.name;
+    String name = info.name;
     final FunctionSignature parameters = info.parameters;
     jsAst.Expression code = info.code;
     final bool needsStubs = info.needsStubs;
@@ -426,6 +426,13 @@ class ContainerBuilder extends CodeEmitterHelper {
     final bool needStructuredInfo = info.needStructuredInfo;
 
     emitter.interceptorEmitter.recordMangledNameOfMemberMethod(member, name);
+
+    // If this member is called from a subclass via super, we have to add a
+    // renaming. This is encoded by using two names separated with a : as
+    // the property name.
+    if (backend.isAliasedSuperMember(member)) {
+      name = "$name:${namer.getNameOfAliasedSuperMember(member)}";
+    }
 
     if (!needStructuredInfo) {
       compiler.dumpInfoTask.registerElementAst(member,
