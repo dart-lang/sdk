@@ -22,8 +22,16 @@ import 'method.dart';
 import 'parameter.dart';
 import 'variable.dart';
 
-String getLibraryDocName(LibraryMirror mirror) =>
-    dart2js_util.qualifiedNameOf(mirror).replaceAll('.', '-');
+String getLibraryDocName(LibraryMirror mirror) {
+  var dotsFixed = dart2js_util.qualifiedNameOf(mirror).replaceAll('.', '-');
+  if (dotsFixed.startsWith('dart-dom-')) {
+    return dotsFixed.replaceFirst("dart-dom-", "dart:");
+  } else if (dotsFixed.startsWith("dart-")) {
+    return dotsFixed.replaceFirst("dart-", "dart:");
+  } else {
+    return dotsFixed;
+  }
+}
 
 /// Expand the method map [mapToExpand] into a more detailed map that
 /// separates out setters, getters, constructors, operators, and methods.
