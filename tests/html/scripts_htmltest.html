@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<!--
+START_HTML_DART_TEST
+{
+  "scripts": ["scripts_test_dart.dart", "scripts_test_js.js"],
+  "expectedMessages": ["crab", "fish", "squid", "sea urchin"]
+}
+END_HTML_DART_TEST
+-->
+<html>
+<head>
+  <script>window.parent.dispatchEvent(new Event('detect_errors'));</script>
+  <title>Scripts HTML test</title>
+</head><body>
+  <h1>Scripts HTML test</h1>
+  <script src="scripts_test_dart.dart" type="application/dart"></script>
+  <script src="scripts_test_js.js"></script>
+</body>
+</html>

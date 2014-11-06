@@ -1165,21 +1165,51 @@ class StandardTestSuite extends TestSuite {
     final String runtime = configuration['runtime'];
 
     if (info is HtmlTestInformation) {
-      if (compiler != 'none' || runtime != 'dartium') {
-        // TODO(whesse): Enable compilation of scripts to dart2js, and
-        // rewriting of script links in html file.  Currently unimplemented.
-        return;
+      final String tempDir = createOutputDirectory(info.filePath, '');
+      final Uri tempUri = new Uri.file('$tempDir/');
+      final Uri htmlFile = tempUri.resolve(filePath.filename);
+      new File.fromUri(htmlFile).writeAsStringSync(htmlTest.getContents(info));
+
+      void createFailingTest(String message) {
+        var msg = "$message: ${info.filePath}";
+        DebugLogger.warning(msg);
+        new File.fromUri(htmlFile).writeAsStringSync(
+            htmlTest.makeFailingHtmlFile(msg));
       }
       if (info.scripts.length > 0) {
-        // TODO(whesse): Copy scripts into output directory.
-        return;
+        Uri testUri = new Uri.file(filePath.toNativePath());
+        for (String scriptPath in info.scripts) {
+          if (!scriptPath.endsWith('.dart') && !scriptPath.endsWith('.js')) {
+            createFailingTest(
+                'HTML test scripts must be dart or javascript: $scriptPath');
+            break;
+          }
+          Uri uri = Uri.parse(scriptPath);
+          if (uri.isAbsolute) {
+            createFailingTest(
+                'HTML test scripts must have relative paths: $scriptPath');
+            break;
+          }
+          if (uri.pathSegments.length > 1) {
+            createFailingTest(
+                'HTML test scripts must be in test directory: $scriptPath');
+            break;
+          }
+          Uri script = testUri.resolveUri(uri);
+          if (compiler == 'none' || scriptPath.endsWith('.js')) {
+            Uri copiedScript = tempUri.resolveUri(uri);
+            new File.fromUri(copiedScript).writeAsStringSync(
+                new File.fromUri(script).readAsStringSync());
+          } else {
+            // TODO(21514): Compile scripts into output directory.
+            createFailingTest('HTML test scripts don\'t support dart2js yet');
+            break;
+          }
+        }
       }
-      final String tempDir = createOutputDirectory(info.filePath, '');
-      final String htmlFile = '$tempDir/${filePath.filename}';
-      new File(htmlFile).writeAsStringSync(htmlTest.getContents(info));
 
       String testDisplayName = '$suiteName/$testName';
-      var htmlPath = _createUrlPathFromFile(new Path(htmlFile));
+      var htmlPath = _createUrlPathFromFile(new Path(htmlFile.toFilePath()));
       var fullHtmlPath = _getUriForBrowserTest(info, htmlPath,
                                                null, null);
       var commands = [CommandBuilder.instance.getBrowserHtmlTestCommand(

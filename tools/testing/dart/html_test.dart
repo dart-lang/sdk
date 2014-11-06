@@ -45,3 +45,21 @@ String getContents(HtmlTestInformation info) {
   String contents = new File(info.filePath.toNativePath()).readAsStringSync();
   return contents.replaceFirst(htmlAnnotation, '');
 }
+
+String makeFailingHtmlFile(String message) {
+  return '''
+<!DOCTYPE html>
+<html>
+<head>
+  <script>window.parent.dispatchEvent(new Event('detect_errors'));</script>
+  <title>Failing HTML test</title>
+</head><body>
+  <h1>Failing HTML test</h1>
+  $message
+  <script>
+    throw "HTML test failed: $message";
+  </script>
+</body>
+</html>
+''';
+}
