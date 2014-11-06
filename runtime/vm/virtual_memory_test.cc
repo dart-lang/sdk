@@ -76,4 +76,22 @@ UNIT_TEST_CASE(FreeVirtualMemory) {
   }
 }
 
+
+UNIT_TEST_CASE(VirtualMemoryCommitPartial) {
+  const intptr_t kVirtualMemoryBlockSize = 3 * MB;
+  VirtualMemory* vm = VirtualMemory::Reserve(kVirtualMemoryBlockSize);
+  EXPECT(vm != NULL);
+  // Commit only the middle MB and write to it.
+  const uword commit_start = vm->start() + (1 * MB);
+  const intptr_t kCommitSize = 1 * MB;
+  vm->Commit(commit_start, kCommitSize, false);
+  char* buf = reinterpret_cast<char*>(commit_start);
+  buf[0] = 'f';
+  buf[1] = 'o';
+  buf[2] = 'o';
+  buf[3] = 0;
+  EXPECT_STREQ("foo", buf);
+  delete vm;
+}
+
 }  // namespace dart
