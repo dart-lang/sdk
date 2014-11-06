@@ -43,19 +43,13 @@ check(t) {
 
 // Return "$args -> $ret".
 ft(args, ret) {
-  return '$args -> $ret'
-      // TODO(ahe): dart2js doesn't fully qualify type names.
-      .replaceAll('dart.core.', '') /// 01: ok
-      ;
+  return '$args -> $ret';
 }
 
 void main() {
   String x = 'x';
   String y = 'y';
   String z = 'z';
-  x = 'argument0'; /// 01: ok
-  y = 'argument1'; /// 01: ok
-  z = 'argument2'; /// 01: ok
 
   Expect.stringEquals(
       """

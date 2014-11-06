@@ -118,7 +118,6 @@ testMixinApplication() {
   ]);
 
   String owner = 'Mixin';
-  owner = 'MixinApplication'; /// 01: ok
   expect(
       '{i: Variable(s(i) in s($owner)),'
       ' m: Method(s(m) in s($owner))}',
@@ -132,9 +131,7 @@ testMixinApplication() {
 }
 
 testMixinApplicationA() {
-  // TODO(ahe): I don't think an anonymous mixin has an owner.
   String owner = ' in s(test.mixin_application_test)';
-  owner = ''; /// 01: ok
   checkClass(MixinApplicationA, [
       'Class(s(MixinApplicationA)'
       ' in s(test.mixin_application_test), top-level)',
@@ -147,7 +144,6 @@ testMixinApplicationA() {
   ]);
 
   owner = 'Mixin2';
-  owner = 'MixinApplicationA'; /// 01: ok
   expect(
       '{i2: Variable(s(i2) in s($owner)),'
       ' m2: Method(s(m2) in s($owner))}',
@@ -164,7 +160,6 @@ testMixinApplicationA() {
       membersOf(reflectClass(MixinApplicationA).superclass));
 
   String name = 'test.model.C with test.mixin_application_test.Mixin';
-  name = 'Mixin'; /// 01: ok
   expect(
       '{$name:'
       ' Method(s($name)'
@@ -187,7 +182,6 @@ testUnusedMixinApplication() {
   ]);
 
   String owner = 'Mixin';
-  owner = 'UnusedMixinApplication'; /// 01: ok
   expect(
       '{i: Variable(s(i) in s($owner)),'
       ' m: Method(s(m) in s($owner))}',
@@ -203,7 +197,6 @@ testUnusedMixinApplication() {
 
 testSubclass() {
   String owner = ' in s(test.mixin_application_test)';
-  owner = ''; /// 01: ok
   checkClass(Subclass, [
       'Class(s(Subclass) in s(test.mixin_application_test), top-level)',
       'Class(s(test.model.C with test.mixin_application_test.Mixin)'
@@ -228,7 +221,6 @@ testSubclass() {
       membersOf(reflectClass(Subclass).superclass));
 
   String name = 'test.model.C with test.mixin_application_test.Mixin';
-  name = 'Mixin'; /// 01: ok
   expect(
       '{$name:'
       ' Method(s($name)'
@@ -264,9 +256,7 @@ testSubclass2() {
 }
 
 testSubclassA() {
-  // TODO(ahe): I don't think an anonymous mixin has an owner.
   String owner = ' in s(test.mixin_application_test)';
-  owner = ''; /// 01: ok
   checkClass(SubclassA, [
       'Class(s(SubclassA) in s(test.mixin_application_test), top-level)',
       'Class(s(test.model.C with test.mixin_application_test.Mixin,'
@@ -295,7 +285,6 @@ testSubclassA() {
   String name =
       'test.model.C with test.mixin_application_test.Mixin,'
       ' test.mixin_application_test.Mixin2';
-  name = 'Mixin2'; /// 01: ok
   expect(
       '{$name: Method(s($name) in s($name), constructor)}',
       constructorsOf(reflectClass(SubclassA).superclass));
@@ -306,7 +295,6 @@ testSubclassA() {
       membersOf(reflectClass(SubclassA).superclass.superclass));
 
   name = 'test.model.C with test.mixin_application_test.Mixin';
-  name = 'Mixin'; /// 01: ok
   expect(
       '{$name:'
       ' Method(s($name)'
@@ -319,9 +307,7 @@ testSubclassA() {
 }
 
 testSubclass2A() {
-  // TODO(ahe): I don't think an anonymous mixin has an owner.
   String owner = ' in s(test.mixin_application_test)';
-  owner = ''; /// 01: ok
   checkClass(Subclass2A, [
       'Class(s(Subclass2A) in s(test.mixin_application_test), top-level)',
       'Class(s(MixinApplicationA) in s(test.mixin_application_test),'
