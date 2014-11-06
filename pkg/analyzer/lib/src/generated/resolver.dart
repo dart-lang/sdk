@@ -1910,6 +1910,32 @@ class Dart2JSVerifier extends RecursiveAstVisitor<Object> {
 }
 
 /**
+ * Instances of the class [UnusedLocalVariableVerifier] traverse an element
+ * structure looking for cases of [HintCode.UNUSED_LOCAL_VARIABLE].
+ */
+class UnusedLocalVariableVerifier extends RecursiveElementVisitor {
+  /**
+   * The error reporter by which errors will be reported.
+   */
+  final ErrorReporter _errorReporter;
+
+  /**
+   * Create a new instance of the [UnusedLocalVariableVerifier].
+   */
+  UnusedLocalVariableVerifier(this._errorReporter);
+
+  @override
+  visitLocalVariableElement(LocalVariableElement element) {
+    if (element is LocalVariableElementImpl && !element.isUsed) {
+      _errorReporter.reportErrorForElement(
+          HintCode.UNUSED_LOCAL_VARIABLE,
+          element,
+          [element.displayName]);
+    }
+  }
+}
+
+/**
  * Instances of the class `DeadCodeVerifier` traverse an AST structure looking for cases of
  * [HintCode#DEAD_CODE].
  */
@@ -3474,9 +3500,14 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   Object visitCatchClause(CatchClause node) {
     SimpleIdentifier exceptionParameter = node.exceptionParameter;
     if (exceptionParameter != null) {
+      // exception
       LocalVariableElementImpl exception = new LocalVariableElementImpl.forNode(exceptionParameter);
       _currentHolder.addLocalVariable(exception);
       exceptionParameter.staticElement = exception;
+      // we cannot catch an exception without declaring a variable,
+      // so the exception variable is always used
+      exception.markUsed();
+      // stack trace
       SimpleIdentifier stackTraceParameter = node.stackTraceParameter;
       if (stackTraceParameter != null) {
         LocalVariableElementImpl stackTrace = new LocalVariableElementImpl.forNode(stackTraceParameter);
@@ -5394,6 +5425,7 @@ class HintGenerator {
     unit.accept(_importsVerifier);
     // dead code analysis
     unit.accept(new DeadCodeVerifier(errorReporter));
+    unit.element.accept(new UnusedLocalVariableVerifier(errorReporter));
     // dart2js analysis
     if (_enableDart2JSHints) {
       unit.accept(new Dart2JSVerifier(errorReporter));
@@ -15280,7 +15312,9 @@ class VariableResolverVisitor extends ScopedVisitor {
     if (parent is PropertyAccess && identical(parent.propertyName, node)) {
       return null;
     }
-    if (parent is MethodInvocation && identical(parent.methodName, node)) {
+    if (parent is MethodInvocation &&
+        identical(parent.methodName, node) &&
+        parent.target != null) {
       return null;
     }
     if (parent is ConstructorName) {
@@ -15298,12 +15332,27 @@ class VariableResolverVisitor extends ScopedVisitor {
     ElementKind kind = element.kind;
     if (kind == ElementKind.LOCAL_VARIABLE) {
       node.staticElement = element;
+      LocalVariableElementImpl variableImpl = element as LocalVariableElementImpl;
       if (node.inSetterContext()) {
-        LocalVariableElementImpl variableImpl = element as LocalVariableElementImpl;
         variableImpl.markPotentiallyMutatedInScope();
         if (element.enclosingElement != _enclosingFunction) {
           variableImpl.markPotentiallyMutatedInClosure();
         }
+      }
+      if (node.inGetterContext()) {
+        if (parent.parent is ExpressionStatement &&
+            (parent is PrefixExpression ||
+             parent is PostfixExpression ||
+             parent is AssignmentExpression && parent.leftHandSide == node)) {
+          // v++;
+          // ++v;
+          // v += 2;
+        } else {
+          variableImpl.markUsed();
+        }
+      }
+      if (parent is MethodInvocation && parent.methodName == node) {
+        variableImpl.markUsed();
       }
     } else if (kind == ElementKind.PARAMETER) {
       node.staticElement = element;

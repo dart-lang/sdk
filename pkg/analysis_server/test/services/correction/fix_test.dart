@@ -2304,6 +2304,9 @@ main() {
 
   AnalysisError _findErrorToFix() {
     List<AnalysisError> errors = context.computeErrors(testSource);
+    errors.removeWhere((error) {
+      return error.errorCode == HintCode.UNUSED_LOCAL_VARIABLE;
+    });
     if (checkHasSingleError) {
       expect(errors, hasLength(1));
     }

@@ -3206,6 +3206,137 @@ class B {}''');
     verify([source, source2]);
   }
 
+  void test_unusedLocalVariable() {
+    enableUnusedLocalVariable = true;
+    Source source = addSource(r'''
+main() {
+  var v = 1;
+  v = 2;
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
+    verify([source]);
+  }
+
+  void test_unusedLocalVariable_isRead_notUsed_compoundAssign() {
+    enableUnusedLocalVariable = true;
+    Source source = addSource(r'''
+main() {
+  var v = 1;
+  v += 2;
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
+    verify([source]);
+  }
+
+  void test_unusedLocalVariable_isRead_notUsed_postfixExpr() {
+    enableUnusedLocalVariable = true;
+    Source source = addSource(r'''
+main() {
+  var v = 1;
+  v++;
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
+    verify([source]);
+  }
+
+  void test_unusedLocalVariable_isRead_notUsed_prefixExpr() {
+    enableUnusedLocalVariable = true;
+    Source source = addSource(r'''
+main() {
+  var v = 1;
+  ++v;
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
+    verify([source]);
+  }
+
+  void test_unusedLocalVariable_isRead_usedArgument() {
+    enableUnusedLocalVariable = true;
+    Source source = addSource(r'''
+main() {
+  var v = 1;
+  print(++v);
+}
+print(x) {}''');
+    resolve(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_unusedLocalVariable_isRead_usedInvocationTarget() {
+    enableUnusedLocalVariable = true;
+    Source source = addSource(r'''
+class A {
+  foo() {}
+}
+main() {
+  var a = new A();
+  a.foo();
+}
+''');
+    resolve(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_unusedLocalVariable_isInvoked() {
+    enableUnusedLocalVariable = true;
+    Source source = addSource(r'''
+typedef Foo();
+main() {
+  Foo foo;
+  foo();
+}''');
+    resolve(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_unusedLocalVariable_inCatch_exception() {
+    enableUnusedLocalVariable = true;
+    Source source = addSource(r'''
+main() {
+  try {
+  } catch (exception) {
+  }
+}''');
+    resolve(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_unusedLocalVariable_inCatch_stackTrace() {
+    enableUnusedLocalVariable = true;
+    Source source = addSource(r'''
+main() {
+  try {
+  } catch (exception, stackTrace) {
+  }
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
+    verify([source]);
+  }
+
+  void test_unusedLocalVariable_inCatch_stackTrace_used() {
+    enableUnusedLocalVariable = true;
+    Source source = addSource(r'''
+main() {
+  try {
+  } catch (exception, stackTrace) {
+    print('exception at $stackTrace');
+  }
+}
+print(x) {}''');
+    resolve(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
   void test_useOfVoidResult_assignmentExpression_function() {
     Source source = addSource(r'''
 void f() {}
@@ -6200,6 +6331,11 @@ class ResolverTestCase extends EngineTestCase {
    */
   AnalysisContextImpl analysisContext2;
 
+  /**
+   * Specifies if [assertErrors] should check for [HintCode.UNUSED_LOCAL_VARIABLE].
+   */
+  bool enableUnusedLocalVariable = false;
+
   @override
   void setUp() {
     reset();
@@ -6242,6 +6378,10 @@ class ResolverTestCase extends EngineTestCase {
   void assertErrors(Source source, List<ErrorCode> expectedErrorCodes) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     for (AnalysisError error in analysisContext2.computeErrors(source)) {
+      if (error.errorCode == HintCode.UNUSED_LOCAL_VARIABLE &&
+          !enableUnusedLocalVariable) {
+        continue;
+      }
       errorListener.onError(error);
     }
     errorListener.assertErrorsWithCodes(expectedErrorCodes);

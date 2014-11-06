@@ -2667,9 +2667,14 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
   static const HintCode UNNECESSARY_TYPE_CHECK_TRUE = const HintCode.con1('UNNECESSARY_TYPE_CHECK_TRUE', 26, "Unnecessary type check, the result is always true");
 
   /**
-   * Unused imports are imports which are never not used.
+   * Unused imports are imports which are never used.
    */
   static const HintCode UNUSED_IMPORT = const HintCode.con1('UNUSED_IMPORT', 27, "Unused import");
+
+  /**
+   * Unused local variables are local varaibles which are never read.
+   */
+  static const HintCode UNUSED_LOCAL_VARIABLE = const HintCode.con1('UNUSED_LOCAL_VARIABLE', 28, "The value of the local variable '{0}' is not used");
 
   /**
    * Hint for cases where the source expects a method or function to return a non-void result, but
@@ -2677,7 +2682,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    *
    * @param name the name of the method or function that returns void
    */
-  static const HintCode USE_OF_VOID_RESULT = const HintCode.con1('USE_OF_VOID_RESULT', 28, "The result of '{0}' is being used, even though it is declared to be 'void'");
+  static const HintCode USE_OF_VOID_RESULT = const HintCode.con1('USE_OF_VOID_RESULT', 29, "The result of '{0}' is being used, even though it is declared to be 'void'");
 
   /**
    * It is a bad practice for a source file in a package "lib" directory hierarchy to traverse
@@ -2685,7 +2690,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * contain a directive such as `import '../web/some.dart'` which references a file outside
    * the lib directory.
    */
-  static const HintCode FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE = const HintCode.con1('FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE', 29, "A file in the 'lib' directory hierarchy should not reference a file outside that hierarchy");
+  static const HintCode FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE = const HintCode.con1('FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE', 30, "A file in the 'lib' directory hierarchy should not reference a file outside that hierarchy");
 
   /**
    * It is a bad practice for a source file ouside a package "lib" directory hierarchy to traverse
@@ -2693,14 +2698,14 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * contain a directive such as `import '../lib/some.dart'` which references a file inside
    * the lib directory.
    */
-  static const HintCode FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE = const HintCode.con1('FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE', 30, "A file outside the 'lib' directory hierarchy should not reference a file inside that hierarchy. Use a package: reference instead.");
+  static const HintCode FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE = const HintCode.con1('FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE', 31, "A file outside the 'lib' directory hierarchy should not reference a file inside that hierarchy. Use a package: reference instead.");
 
   /**
    * It is a bad practice for a package import to reference anything outside the given package, or
    * more generally, it is bad practice for a package import to contain a "..". For example, a
    * source file should not contain a directive such as `import 'package:foo/../some.dart'`.
    */
-  static const HintCode PACKAGE_IMPORT_CONTAINS_DOT_DOT = const HintCode.con1('PACKAGE_IMPORT_CONTAINS_DOT_DOT', 31, "A package import should not contain '..'");
+  static const HintCode PACKAGE_IMPORT_CONTAINS_DOT_DOT = const HintCode.con1('PACKAGE_IMPORT_CONTAINS_DOT_DOT', 32, "A package import should not contain '..'");
 
   static const List<HintCode> values = const [
       ARGUMENT_TYPE_NOT_ASSIGNABLE,
@@ -2731,6 +2736,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
       UNNECESSARY_TYPE_CHECK_FALSE,
       UNNECESSARY_TYPE_CHECK_TRUE,
       UNUSED_IMPORT,
+      UNUSED_LOCAL_VARIABLE,
       USE_OF_VOID_RESULT,
       FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE,
       FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE,
