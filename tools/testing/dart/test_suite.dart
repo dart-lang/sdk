@@ -797,9 +797,6 @@ class StandardTestSuite extends TestSuite {
     if (!isTestFile(filename)) return;
     Path filePath = new Path(filename);
 
-    // Only run the tests that match the pattern.
-    if (filePath.filename.endsWith('test_config.dart')) return;
-
     var optionsFromFile = readOptionsFromFile(filePath);
     CreateTest createTestCase = makeTestCaseCreator(optionsFromFile);
 

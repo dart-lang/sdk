@@ -4,7 +4,7 @@
 
 library vm_test_config;
 
-import '../../../tools/testing/dart/test_suite.dart';
+import 'test_suite.dart';
 
 class VMTestSuite extends CCTestSuite {
   VMTestSuite(Map configuration)
