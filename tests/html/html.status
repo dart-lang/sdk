@@ -308,6 +308,7 @@ xhr_test/xhr: Pass, Fail # Issue 11602
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 webgl_1_test: Pass, Fail   # Issue 8219
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Firefox does not like dataUrl videos for drawImage
+canvasrenderingcontext2d_test/drawImage_video_element: RuntimeError # Issue 21526
 
 # Firefox Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
@@ -352,6 +353,9 @@ wheelevent_test: Fail # http://dartbug.com/12958
 [ $runtime == dartium && ($system == macos || $system == windows || $system == linux)]
 # Desktop operation systems do not support touch events on chrome 34 dartium.
 touchevent_test/supported: Fail
+
+[ ($runtime == dartium || $runtime == ie10) && ($system == macos || $system == windows)]
+xhr_test/xhr: Skip # Times out.  Issue 21527
 
 [ $compiler == none && $runtime == dartium ]
 async_test: Timeout # Issue 13719: Please triage this failure.
