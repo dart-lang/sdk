@@ -7842,7 +7842,6 @@ class ForStatement extends Statement {
  * formalParameter ::=
  *     [NormalFormalParameter]
  *   | [DefaultFormalParameter]
- *   | [DefaultFormalParameter]
  * </pre>
  */
 abstract class FormalParameter extends AstNode {
