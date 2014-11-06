@@ -378,6 +378,14 @@ namespace dart {
   V(_Bigint, get:_digits, Bigint_getDigits, 1408062672)                        \
   V(_Bigint, set:_digits, Bigint_setDigits, 1135754410)                        \
 
+// A list of core function that should never be inlined.
+#define INLINE_BLACK_LIST(V)                                                   \
+  V(_Bigint, _absAdd, Bigint_absAdd, 233965936)                                \
+  V(_Bigint, _absSub, Bigint_absSub, 1401148862)                               \
+  V(_Bigint, _mulAdd, Bigint_mulAdd, 1283124653)                               \
+  V(_Bigint, _sqrAdd, Bigint_sqrAdd, 1665155090)                               \
+  V(_Bigint, _estQuotientDigit, Bigint_estQuotientDigit, 643982609)            \
+
 // A list of core functions that internally dispatch based on received id.
 #define POLYMORPHIC_TARGET_LIST(V)                                             \
   V(_StringBase, [], StringBaseCharAt, 1512210677)                             \

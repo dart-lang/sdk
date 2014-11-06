@@ -54,23 +54,27 @@ void MethodRecognizer::InitializeState() {
 
   RECOGNIZED_LIST(SET_RECOGNIZED_KIND);
 
-#define SET_FUNCTION_BIT(class_name, function_name, dest, fp, setter_name)     \
+#define SET_FUNCTION_BIT(class_name, function_name, dest, fp, setter, value)   \
   func = Library::GetFunction(libs, #class_name, #function_name);              \
   if (func.IsNull()) {                                                         \
     OS::PrintErr("Missing %s::%s\n", #class_name, #function_name);             \
     UNREACHABLE();                                                             \
   }                                                                            \
   ASSERT(func.CheckSourceFingerprint(fp));                                     \
-  func.setter_name(true);
+  func.setter(value);
 
 #define SET_IS_ALWAYS_INLINE(class_name, function_name, dest, fp)              \
-  SET_FUNCTION_BIT(class_name, function_name, dest, fp, set_always_inline)
+  SET_FUNCTION_BIT(class_name, function_name, dest, fp, set_always_inline, true)
+
+#define SET_IS_NEVER_INLINE(class_name, function_name, dest, fp)              \
+  SET_FUNCTION_BIT(class_name, function_name, dest, fp, set_is_inlinable, false)
 
 #define SET_IS_POLYMORPHIC_TARGET(class_name, function_name, dest, fp)         \
   SET_FUNCTION_BIT(class_name, function_name, dest, fp,                        \
-                   set_is_polymorphic_target)
+                   set_is_polymorphic_target, true)
 
   INLINE_WHITE_LIST(SET_IS_ALWAYS_INLINE);
+  INLINE_BLACK_LIST(SET_IS_NEVER_INLINE);
   POLYMORPHIC_TARGET_LIST(SET_IS_POLYMORPHIC_TARGET);
 
 #undef SET_RECOGNIZED_KIND
