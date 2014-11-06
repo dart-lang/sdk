@@ -381,19 +381,22 @@ abstract class TestSuite {
    * Helper function for discovering the packages in the dart repository.
    */
   Future<List> listDir(Path path, Function isValid) {
-    return new Directory(path.toNativePath())
-    .list(recursive: false)
-    .where((fse) => fse is Directory)
-    .map((Directory directory) {
-      var fullPath = directory.absolute.path;
-      var packageName = new Path(fullPath).filename;
-      if (isValid(packageName)) {
-        return [packageName, path.append(packageName).toNativePath()];
-      }
-      return null;
-    })
-    .where((name) => name != null)
-    .toList();
+    var dir = new Directory(path.toNativePath());
+    return dir.exists().then((var exist) {
+      if (!exist) return [];
+      return dir.list(recursive: false)
+      .where((fse) => fse is Directory)
+      .map((Directory directory) {
+        var fullPath = directory.absolute.path;
+        var packageName = new Path(fullPath).filename;
+        if (isValid(packageName)) {
+          return [packageName, path.append(packageName).toNativePath()];
+        }
+        return null;
+      })
+      .where((name) => name != null)
+      .toList();
+      });
   }
 
   Future<Map> discoverPackagesInRepository() {
