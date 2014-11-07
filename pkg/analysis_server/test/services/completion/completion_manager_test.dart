@@ -18,28 +18,29 @@ main() {
 
 @ReflectiveTestCase()
 class CompletionManagerTest extends AbstractContextTest {
+  var perf = new CompletionPerformance();
 
   test_dart() {
     Source source = addSource('/does/not/exist.dart', '');
-    var manager = CompletionManager.create(context, source, 0, null);
+    var manager = CompletionManager.create(context, source, 0, null, perf);
     expect(manager.runtimeType, DartCompletionManager);
   }
 
   test_html() {
     Source source = addSource('/does/not/exist.html', '');
-    var manager = CompletionManager.create(context, source, 0, null);
+    var manager = CompletionManager.create(context, source, 0, null, perf);
     expect(manager.runtimeType, NoOpCompletionManager);
   }
 
   test_null_context() {
     Source source = addSource('/does/not/exist.dart', '');
-    var manager = CompletionManager.create(null, source, 0, null);
+    var manager = CompletionManager.create(null, source, 0, null, perf);
     expect(manager.runtimeType, NoOpCompletionManager);
   }
 
   test_other() {
     Source source = addSource('/does/not/exist.foo', '');
-    var manager = CompletionManager.create(context, source, 0, null);
+    var manager = CompletionManager.create(context, source, 0, null, perf);
     expect(manager.runtimeType, NoOpCompletionManager);
   }
 }

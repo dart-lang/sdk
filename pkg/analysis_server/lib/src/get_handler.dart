@@ -9,11 +9,14 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/domain_completion.dart';
+import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/source.dart';
+
 import 'analysis_server.dart';
 
 /**
@@ -24,6 +27,11 @@ class GetHandler {
    * The path used to request the status of the analysis server as a whole.
    */
   static const String STATUS_PATH = '/status';
+
+  /**
+   * The path used to request code completion information.
+   */
+  static const String COMPLETION_PATH = '/completion';
 
   /**
    * The path used to request the list of source files in a certain cache
@@ -73,6 +81,8 @@ class GetHandler {
       _returnServerStatus(request);
     } else if (path == CACHE_STATE_PATH) {
       _returnCacheState(request);
+    } else if (path == COMPLETION_PATH) {
+      _returnCompletionInfo(request);
     } else {
       _returnUnknownRequest(request);
     }
@@ -95,7 +105,8 @@ class GetHandler {
     // Figure out what CacheState is being searched for.
     String stateQueryParam = request.uri.queryParameters[STATE_QUERY_PARAM];
     if (stateQueryParam == null) {
-      return _returnFailure(request,
+      return _returnFailure(
+          request,
           'Query parameter $STATE_QUERY_PARAM required');
     }
     CacheState stateFilter = null;
@@ -105,14 +116,16 @@ class GetHandler {
       }
     }
     if (stateFilter == null) {
-      return _returnFailure(request,
+      return _returnFailure(
+          request,
           'Query parameter $STATE_QUERY_PARAM is invalid');
     }
 
     // Figure out which context is being searched for.
     String contextFilter = request.uri.queryParameters[CONTEXT_QUERY_PARAM];
     if (contextFilter == null) {
-      return _returnFailure(request,
+      return _returnFailure(
+          request,
           'Query parameter $CONTEXT_QUERY_PARAM required');
     }
 
@@ -120,7 +133,8 @@ class GetHandler {
     String descriptorFilter =
         request.uri.queryParameters[DESCRIPTOR_QUERY_PARAM];
     if (descriptorFilter == null) {
-      return _returnFailure(request,
+      return _returnFailure(
+          request,
           'Query parameter $DESCRIPTOR_QUERY_PARAM required');
     }
 
@@ -143,13 +157,14 @@ class GetHandler {
     response.write('</h1>');
     response.write('<ul>');
     int count = 0;
-    analysisServer.folderMap.forEach((Folder folder,
-                                      AnalysisContextImpl context) {
+    analysisServer.folderMap.forEach(
+        (Folder folder, AnalysisContextImpl context) {
       if (folder.path != contextFilter) {
         return;
       }
-      context.visitCacheItems((Source source, SourceEntry dartEntry,
-                               DataDescriptor rowDesc, CacheState state) {
+      context.visitCacheItems(
+          (Source source, SourceEntry dartEntry, DataDescriptor rowDesc, CacheState state)
+              {
         if (state != stateFilter || rowDesc.toString() != descriptorFilter) {
           return;
         }
@@ -159,6 +174,52 @@ class GetHandler {
     });
     response.write('</ul>');
     response.write('<p>$count files found</p>');
+    response.write('</body>');
+    response.write('</html>');
+    response.close();
+  }
+
+  /**
+   * Return a response displaying code completion information.
+   */
+  void _returnCompletionInfo(HttpRequest request) {
+    var refresh = request.requestedUri.queryParameters['refresh'];
+    HttpResponse response = request.response;
+    response.statusCode = HttpStatus.OK;
+    response.headers.add(HttpHeaders.CONTENT_TYPE, "text/html");
+    response.write('<html>');
+    response.write('<head>');
+    response.write('<title>Dart Analysis Server - Completion Stats</title>');
+    response.write('<style>');
+    response.write('td.right {text-align: right;}');
+    response.write('</style>');
+    if (refresh is String) {
+      int seconds = int.parse(refresh, onError: (_) => 5);
+      response.write('<meta http-equiv="refresh" content="$seconds">');
+    }
+    response.write('</head>');
+    response.write('<body>');
+    _writeCompletionInfo(response);
+    response.write('<form>');
+    response.write(
+        '<input type="button" onClick="history.go(0)" value="Refresh">');
+    response.write('</form>');
+    response.write('<p>Append "?refresh=5" to refresh every 5 seconds</p>');
+    response.write('</body>');
+    response.write('</html>');
+    response.close();
+  }
+
+  void _returnFailure(HttpRequest request, String message) {
+    HttpResponse response = request.response;
+    response.statusCode = HttpStatus.OK;
+    response.headers.add(HttpHeaders.CONTENT_TYPE, "text/html");
+    response.write('<html>');
+    response.write('<head>');
+    response.write('<title>Dart Analysis Server - Failure</title>');
+    response.write('</head>');
+    response.write('<body>');
+    response.write(HTML_ESCAPE.convert(message));
     response.write('</body>');
     response.write('</html>');
     response.close();
@@ -197,8 +258,8 @@ class GetHandler {
       _writeRow(response, headerRowText, header: true);
       Map<Folder, AnalysisContext> folderMap = analysisServer.folderMap;
       List<Folder> folders = folderMap.keys.toList();
-      folders.sort((Folder first, Folder second)
-          => first.shortName.compareTo(second.shortName));
+      folders.sort(
+          (Folder first, Folder second) => first.shortName.compareTo(second.shortName));
       folders.forEach((Folder folder) {
         AnalysisContextImpl context = folderMap[folder];
         String key = folder.shortName;
@@ -212,7 +273,8 @@ class GetHandler {
             totals[state] += row.getCount(state);
           }
         });
-        List rowText = ['<a href="#context_${HTML_ESCAPE.convert(key)}">$key</a>'];
+        List rowText = [
+            '<a href="#context_${HTML_ESCAPE.convert(key)}">$key</a>'];
         for (CacheState state in CacheState.values) {
           rowText.add(totals[state]);
         }
@@ -222,7 +284,8 @@ class GetHandler {
       folders.forEach((Folder folder) {
         AnalysisContextImpl context = folderMap[folder];
         String key = folder.shortName;
-        response.write('<h2><a name="context_${HTML_ESCAPE.convert(key)}">Analysis Context: $key</a></h2>');
+        response.write(
+            '<h2><a name="context_${HTML_ESCAPE.convert(key)}">Analysis Context: $key</a></h2>');
         AnalysisContextStatistics statistics = context.statistics;
         response.write('<table>');
         _writeRow(response, headerRowText, header: true);
@@ -265,24 +328,53 @@ class GetHandler {
   void _returnUnknownRequest(HttpRequest request) {
     HttpResponse response = request.response;
     response.statusCode = HttpStatus.NOT_FOUND;
-    response.headers.add(HttpHeaders.CONTENT_TYPE, "text/plain");
-    response.write('Not found');
-    response.close();
-  }
-
-  void _returnFailure(HttpRequest request, String message) {
-    HttpResponse response = request.response;
-    response.statusCode = HttpStatus.OK;
     response.headers.add(HttpHeaders.CONTENT_TYPE, "text/html");
     response.write('<html>');
     response.write('<head>');
-    response.write('<title>Dart Analysis Server - Failure</title>');
+    response.write('<title>Dart Analysis Server - Page Not Found</title>');
     response.write('</head>');
     response.write('<body>');
-    response.write(HTML_ESCAPE.convert(message));
+    response.write('<h1>Page Not Found</h1>');
+    response.write('<p>Try one of these links instead:</p>');
+    response.write('<ul>');
+    response.write('<li><a href="$STATUS_PATH">Server Status</a></li>');
+    response.write('<li><a href="$COMPLETION_PATH">Completion Stats</a></li>');
+    response.write('<ul>');
     response.write('</body>');
     response.write('</html>');
     response.close();
+  }
+
+  /**
+   * Append code completion information.
+   */
+  void _writeCompletionInfo(HttpResponse response) {
+    response.write('<h1>Code Completion</h1>');
+    AnalysisServer analysisServer = _server.analysisServer;
+    if (analysisServer == null) {
+      response.write('<p>Not running</p>');
+      return;
+    }
+    CompletionDomainHandler handler = analysisServer.handlers.firstWhere(
+        (h) => h is CompletionDomainHandler,
+        orElse: () => null);
+    if (handler == null) {
+      response.write('<p>No code completion</p>');
+      return;
+    }
+    CompletionPerformance performance = handler.performance;
+    if (performance == null) {
+      response.write('<p>No performance stats yet</p>');
+      return;
+    }
+    response.write('<h2>Performance</h2>');
+    response.write('<table>');
+    _writeRow(response, ['Elapsed', '', 'Operation'], header: true);
+    performance.operations.forEach((OperationPerformance op) {
+      String elapsed = op.elapsed != null ? op.elapsed.toString() : '???';
+      _writeRow(response, [elapsed, '&nbsp;&nbsp;', op.name]);
+    });
+    response.write('</table>');
   }
 
   /**
@@ -290,8 +382,8 @@ class GetHandler {
    * will have one cell for each of the [columns], and will be a header row if
    * [header] is `true`.
    */
-  void _writeRow(HttpResponse response, List<Object> columns,
-        {bool header : false, List<String> classes}) {
+  void _writeRow(HttpResponse response, List<Object> columns, {bool header:
+      false, List<String> classes}) {
     response.write('<tr>');
     int count = columns.length;
     int maxClassIndex = classes == null ? 0 : classes.length - 1;
@@ -314,7 +406,8 @@ class GetHandler {
       } else {
         response.write('</td>');
       }
-    };
+    }
+    ;
     response.write('</tr>');
   }
 }

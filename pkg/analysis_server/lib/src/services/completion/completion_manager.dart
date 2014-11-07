@@ -7,8 +7,8 @@ library services.completion.computer;
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -42,10 +42,15 @@ abstract class CompletionManager {
    * Create a manager for the given request.
    */
   static CompletionManager create(AnalysisContext context, Source source,
-      int offset, SearchEngine searchEngine) {
+      int offset, SearchEngine searchEngine, CompletionPerformance performance) {
     if (context != null) {
       if (AnalysisEngine.isDartFileName(source.shortName)) {
-        return new DartCompletionManager(context, searchEngine, source, offset);
+        return new DartCompletionManager(
+            context,
+            searchEngine,
+            source,
+            offset,
+            performance);
       }
       if (AnalysisEngine.isHtmlFileName(source.shortName)) {
         //TODO (danrubel) implement
@@ -53,6 +58,51 @@ abstract class CompletionManager {
       }
     }
     return new NoOpCompletionManager(source, offset);
+  }
+}
+
+/**
+ * Overall performance of a code completion operation.
+ */
+class CompletionPerformance {
+  final Map<String, Duration> _startTimes = new Map<String, Duration>();
+  final Stopwatch _stopwatch = new Stopwatch();
+  final List<OperationPerformance> operations = [];
+
+  CompletionPerformance() {
+    _stopwatch.start();
+  }
+
+  void complete() {
+    _stopwatch.stop();
+    _logDuration('total time', _stopwatch.elapsed);
+  }
+
+  logElapseTime(String tag, [f() = null]) {
+    Duration start;
+    Duration end = _stopwatch.elapsed;
+    var result;
+    if (f == null) {
+      start = _startTimes[tag];
+      if (start == null) {
+        _logDuration(tag, null);
+        return null;
+      }
+    } else {
+      result = f();
+      start = end;
+      end = _stopwatch.elapsed;
+    }
+    _logDuration(tag, end - start);
+    return result;
+  }
+
+  void logStartTime(String tag) {
+    _startTimes[tag] = _stopwatch.elapsed;
+  }
+
+  void _logDuration(String tag, Duration elapsed) {
+    operations.add(new OperationPerformance(tag, elapsed));
   }
 }
 
@@ -101,4 +151,22 @@ class NoOpCompletionManager extends CompletionManager {
   void compute() {
     controller.add(new CompletionResult(offset, 0, [], true));
   }
+}
+
+/**
+ * The performance of an operation when computing code completion.
+ */
+class OperationPerformance {
+
+  /**
+   * The name of the operation
+   */
+  final String name;
+
+  /**
+   * The elapse time or `null` if undefined.
+   */
+  final Duration elapsed;
+
+  OperationPerformance(this.name, this.elapsed);
 }
