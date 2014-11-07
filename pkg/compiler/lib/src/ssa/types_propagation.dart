@@ -183,13 +183,21 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
         }
       }
     }
+    if (inputType != outputType) {
+      input.replaceAllUsersDominatedBy(instruction.next, instruction);
+    }
     return outputType;
   }
 
   TypeMask visitTypeKnown(HTypeKnown instruction) {
     HInstruction input = instruction.checkedInput;
-    return instruction.knownType.intersection(
-        input.instructionType, classWorld);
+    TypeMask inputType = input.instructionType;
+    TypeMask outputType =
+        instruction.knownType.intersection(inputType, classWorld);
+    if (inputType != outputType) {
+      input.replaceAllUsersDominatedBy(instruction.next, instruction);
+    }
+    return outputType;
   }
 
   void convertInput(HInvokeDynamic instruction,
