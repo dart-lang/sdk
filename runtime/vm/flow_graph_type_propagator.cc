@@ -327,15 +327,6 @@ Definition* FlowGraphTypePropagator::RemoveLastFromWorklist() {
 }
 
 
-// Unwrap all assert assignable and get a real definition of the value.
-static Definition* UnwrapAsserts(Definition* defn) {
-  while (defn->IsAssertAssignable()) {
-    defn = defn->AsAssertAssignable()->value()->definition();
-  }
-  return defn;
-}
-
-
 // In the given block strengthen type assertions by hoisting first class or smi
 // check over the same value up to the point before the assertion. This allows
 // to eliminate type assertions that are postdominated by class or smi checks as
@@ -351,7 +342,7 @@ void FlowGraphTypePropagator::StrengthenAsserts(BlockEntryInstr* block) {
     // If this is the first type assertion checking given value record it.
     AssertAssignableInstr* assert = instr->AsAssertAssignable();
     if (assert != NULL) {
-      Definition* defn = UnwrapAsserts(assert->value()->definition());
+      Definition* defn = assert->value()->definition()->OriginalDefinition();
       if ((*asserts_)[defn->ssa_temp_index()] == NULL) {
         (*asserts_)[defn->ssa_temp_index()] = assert;
         collected_asserts_->Add(defn->ssa_temp_index());
@@ -373,7 +364,7 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
   AssertAssignableInstr* kStrengthenedAssertMarker =
       reinterpret_cast<AssertAssignableInstr*>(-1);
 
-  Definition* defn = UnwrapAsserts(check->InputAt(0)->definition());
+  Definition* defn = check->InputAt(0)->definition()->OriginalDefinition();
 
   AssertAssignableInstr* assert = (*asserts_)[defn->ssa_temp_index()];
   if ((assert == NULL) || (assert == kStrengthenedAssertMarker)) {
@@ -679,12 +670,12 @@ bool PhiInstr::RecomputeType() {
 
 
 CompileType RedefinitionInstr::ComputeType() const {
-  return CompileType::None();
+  return *value()->Type();
 }
 
 
 bool RedefinitionInstr::RecomputeType() {
-  return UpdateType(*value()->Type());
+  return UpdateType(ComputeType());
 }
 
 
@@ -776,7 +767,7 @@ CompileType AssertAssignableInstr::ComputeType() const {
     return CompileType::Null();
   }
 
-  return CompileType::FromAbstractType(dst_type(), value_type->is_nullable());
+  return CompileType::Create(value_type->ToCid(), dst_type());
 }
 
 
@@ -887,14 +878,14 @@ CompileType PushTempInstr::ComputeType() const {
 }
 
 
-CompileType* DropTempsInstr::ComputeInitialType() const {
-  return value()->Type();
+CompileType DropTempsInstr::ComputeType() const {
+  return *value()->Type();
 }
 
 
-CompileType* StoreLocalInstr::ComputeInitialType() const {
+CompileType StoreLocalInstr::ComputeType() const {
   // Returns stored value.
-  return value()->Type();
+  return *value()->Type();
 }
 
 
@@ -911,11 +902,6 @@ CompileType StringToCharCodeInstr::ComputeType() const {
 CompileType StringInterpolateInstr::ComputeType() const {
   // TODO(srdjan): Do better and determine if it is a one or two byte string.
   return CompileType::String();
-}
-
-
-CompileType* StoreInstanceFieldInstr::ComputeInitialType() const {
-  return value()->Type();
 }
 
 
@@ -939,11 +925,6 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
     }
   }
   return CompileType(is_nullable, cid, abstract_type);
-}
-
-
-CompileType* StoreStaticFieldInstr::ComputeInitialType() const {
-  return value()->Type();
 }
 
 
