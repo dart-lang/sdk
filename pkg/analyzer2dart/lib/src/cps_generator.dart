@@ -36,8 +36,13 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   ir.Node visit(AstNode node) => node.accept(this);
 
   @override
-  ir.FunctionDefinition visitFunctionDeclaration(FunctionDeclaration node) {
-    analyzer.FunctionElement function = node.element;
+  ir.Primitive visitFunctionExpression(FunctionExpression node) {
+    return irBuilder.buildFunctionExpression(
+        handleFunctionDeclaration(node.element, node));
+  }
+
+  ir.FunctionDefinition handleFunctionDeclaration(
+      analyzer.FunctionElement function, FunctionExpression node) {
     dart2js.FunctionElement element = converter.convertElement(function);
     return withBuilder(
         new IrBuilder(DART_CONSTANT_SYSTEM,
@@ -52,9 +57,24 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
       });
       // Visit the body directly to avoid processing the signature as
       // expressions.
-      visit(node.functionExpression.body);
+      visit(node.body);
       return irBuilder.buildFunctionDefinition(element, const []);
     });
+  }
+
+  @override
+  ir.FunctionDefinition visitFunctionDeclaration(FunctionDeclaration node) {
+    return handleFunctionDeclaration(node.element, node.functionExpression);
+  }
+
+  @override
+  visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+    FunctionDeclaration functionDeclaration = node.functionDeclaration;
+    analyzer.FunctionElement function = functionDeclaration.element;
+    dart2js.FunctionElement element = converter.convertElement(function);
+    ir.FunctionDefinition definition = handleFunctionDeclaration(
+        function, functionDeclaration.functionExpression);
+    irBuilder.declareLocalFunction(element, definition);
   }
 
   List<ir.Definition> visitArguments(ArgumentList argumentList) {
@@ -99,6 +119,46 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
         element,
         createSelectorFromMethodInvocation(
             node.argumentList, node.methodName.name),
+        arguments);
+  }
+
+  @override
+  ir.Node visitLocalFunctionAccess(AstNode node, AccessSemantics semantics) {
+    return handleLocalAccess(node, semantics);
+  }
+
+  ir.Primitive handleLocalInvocation(MethodInvocation node,
+                                     AccessSemantics semantics) {
+    analyzer.Element staticElement = semantics.element;
+    dart2js.Element element = converter.convertElement(staticElement);
+    List<ir.Definition> arguments = visitArguments(node.argumentList);
+    return irBuilder.buildLocalInvocation(
+      element,
+      createSelectorFromMethodInvocation(
+          node.argumentList, node.methodName.name),
+      arguments);
+  }
+
+  @override
+  ir.Node visitLocalVariableInvocation(MethodInvocation node,
+                                       AccessSemantics semantics) {
+    return handleLocalInvocation(node, semantics);
+  }
+
+  @override
+  ir.Primitive visitLocalFunctionInvocation(MethodInvocation node,
+                                            AccessSemantics semantics) {
+    return handleLocalInvocation(node, semantics);
+  }
+
+  @override
+  ir.Primitive visitFunctionExpressionInvocation(
+      FunctionExpressionInvocation node) {
+    ir.Primitive target = build(node.function);
+    List<ir.Definition> arguments = visitArguments(node.argumentList);
+    return irBuilder.buildFunctionExpressionInvocation(
+        target,
+        createSelectorFromMethodInvocation(node.argumentList, 'call'),
         arguments);
   }
 

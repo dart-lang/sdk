@@ -431,35 +431,22 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     return visit(node.expression);
   }
 
-  ir.Primitive translateClosureCall(ir.Primitive receiver,
-                                    Selector closureSelector,
-                                    ast.NodeList arguments) {
-    Selector namedCallSelector = new Selector(closureSelector.kind,
-                     "call",
-                     closureSelector.library,
-                     closureSelector.argumentCount,
-                     closureSelector.namedArguments);
-    List<ir.Primitive> args = arguments.nodes.mapToList(visit, growable:false);
-    return irBuilder.buildDynamicInvocation(receiver, namedCallSelector, args);
-  }
-
   ir.Primitive visitClosureSend(ast.Send node) {
     assert(irBuilder.isOpen);
     Element element = elements[node];
-    ir.Primitive closureTarget;
-    if (element == null) {
-      closureTarget = visit(node.selector);
-    } else if (irBuilder.isClosureVariable(element)) {
-      LocalElement local = element;
-      closureTarget = new ir.GetClosureVariable(local);
-      irBuilder.add(new ir.LetPrim(closureTarget));
-    } else {
-      assert(Elements.isLocal(element));
-      closureTarget = irBuilder.environment.lookup(element);
-    }
     Selector closureSelector = elements.getSelector(node);
-    return translateClosureCall(closureTarget, closureSelector,
-        node.argumentsNode);
+    if (element == null) {
+      ir.Primitive closureTarget = visit(node.selector);
+      List<ir.Primitive> args =
+          node.arguments.mapToList(visit, growable:false);
+      return irBuilder.buildFunctionExpressionInvocation(
+          closureTarget, elements.getSelector(node), args);
+    } else {
+      List<ir.Primitive> args =
+          node.arguments.mapToList(visit, growable:false);
+      return irBuilder.buildLocalInvocation(
+          element, elements.getSelector(node), args);
+    }
   }
 
   /// If [node] is null, returns this.
@@ -793,31 +780,17 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   }
 
   ir.FunctionDefinition makeSubFunction(ast.FunctionExpression node) {
-    // TODO(johnniwinther): Share the visitor.
-    return new IrBuilderVisitor(elements, compiler, sourceFile)
-           .buildFunctionInternal(elements[node]);
+    return buildFunctionInternal(elements[node]);
   }
 
   ir.Primitive visitFunctionExpression(ast.FunctionExpression node) {
-    FunctionElement element = elements[node];
-    ir.FunctionDefinition inner = makeSubFunction(node);
-    ir.CreateFunction prim = new ir.CreateFunction(inner);
-    irBuilder.add(new ir.LetPrim(prim));
-    return prim;
+    return irBuilder.buildFunctionExpression(makeSubFunction(node));
   }
 
-  ir.Primitive visitFunctionDeclaration(ast.FunctionDeclaration node) {
+  visitFunctionDeclaration(ast.FunctionDeclaration node) {
     LocalFunctionElement element = elements[node.function];
     ir.FunctionDefinition inner = makeSubFunction(node.function);
-    if (irBuilder.isClosureVariable(element)) {
-      irBuilder.add(new ir.DeclareFunction(element, inner));
-    } else {
-      ir.CreateFunction prim = new ir.CreateFunction(inner);
-      irBuilder.add(new ir.LetPrim(prim));
-      irBuilder.environment.extend(element, prim);
-      prim.useElementAsHint(element);
-    }
-    return null;
+    irBuilder.declareLocalFunction(element, inner);
   }
 
   static final String ABORT_IRNODE_BUILDER = "IrNode builder aborted";

@@ -113,7 +113,11 @@ class ElementConverterVisitor
 
   @override
   dart2js.FunctionElement visitFunctionElement(analyzer.FunctionElement input) {
-    return new TopLevelFunctionElementY(converter, input);
+    if (input.isStatic) {
+      return new TopLevelFunctionElementY(converter, input);
+    } else {
+      return new LocalFunctionElementY(converter, input);
+    }
   }
 
   @override

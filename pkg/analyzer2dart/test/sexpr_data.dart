@@ -1201,4 +1201,80 @@ main(a) {
   (InvokeMethod a iterator  k0))
 '''),
   ]),
+
+  const Group('Local functions', const <TestSpec>[
+    const TestSpec('''
+main(a) {
+  local() {}
+  return local();
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetPrim v0 (CreateFunction
+    (FunctionDefinition local ( return)
+      (LetPrim v1 (Constant NullConstant))
+      (InvokeContinuation return v1))))
+  (LetCont (k0 v2)
+    (InvokeContinuation return v2))
+  (InvokeMethod v0 call  k0))
+'''),
+
+  const TestSpec('''
+main(a) {
+  local() {}
+  var l = local;
+  return l();
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetPrim v0 (CreateFunction
+    (FunctionDefinition local ( return)
+      (LetPrim v1 (Constant NullConstant))
+      (InvokeContinuation return v1))))
+  (LetCont (k0 v2)
+    (InvokeContinuation return v2))
+  (InvokeMethod v0 call  k0))
+'''),
+
+  const TestSpec('''
+main(a) {
+  return () {}();
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetPrim v0 (CreateFunction
+    (FunctionDefinition  ( return)
+      (LetPrim v1 (Constant NullConstant))
+      (InvokeContinuation return v1))))
+  (LetCont (k0 v2)
+    (InvokeContinuation return v2))
+  (InvokeMethod v0 call  k0))
+'''),
+
+  const TestSpec('''
+main(a) {
+  var c = a ? () { return 0; } : () { return 1; }
+  return c();
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetCont (k0 v0)
+    (LetCont (k1 v1)
+      (InvokeContinuation return v1))
+    (InvokeMethod v0 call  k1))
+  (LetCont (k2)
+    (LetPrim v2 (CreateFunction
+      (FunctionDefinition  ( return)
+        (LetPrim v3 (Constant IntConstant(0)))
+        (InvokeContinuation return v3))))
+    (InvokeContinuation k0 v2))
+  (LetCont (k3)
+    (LetPrim v4 (CreateFunction
+      (FunctionDefinition  ( return)
+        (LetPrim v5 (Constant IntConstant(1)))
+        (InvokeContinuation return v5))))
+    (InvokeContinuation k0 v4))
+  (Branch (IsTrue a) k2 k3))
+'''),
+  ]),
 ];

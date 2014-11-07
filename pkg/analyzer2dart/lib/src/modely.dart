@@ -385,6 +385,31 @@ class TopLevelFunctionElementY extends ElementY
       : super(converter, element);
 }
 
+class LocalFunctionElementY extends ElementY
+    with AnalyzableElementY,
+         AstElementY,
+         LocalElementMixin,
+         FunctionElementMixin
+    implements dart2js.LocalFunctionElement {
+  analyzer.FunctionElement get element => super.element;
+
+  @override
+  dart2js.ElementKind get kind => dart2js.ElementKind.FUNCTION;
+
+  @override
+  dart2js.FunctionType get type => converter.convertType(element.type);
+
+  @override
+  bool get isAbstract => false;
+
+  @override
+  bool get isConst => false;
+
+  LocalFunctionElementY(ElementConverter converter,
+                        analyzer.FunctionElement element)
+      : super(converter, element);
+}
+
 class ParameterElementY extends ElementY
     with AnalyzableElementY, AstElementY
     implements dart2js.ParameterElement {
@@ -675,8 +700,27 @@ class TopLevelVariableElementY extends ElementY
   get nestedClosures => unsupported('nestedClosures');
 }
 
+abstract class LocalElementMixin implements ElementY, dart2js.LocalElement {
+
+  @override
+  bool get isLocal => true;
+
+  @override
+  bool get isStatic => false;
+
+  @override
+  get executableContext => unsupported('executableContext');
+
+  // TODO(johnniwinther): Ensure the correct semantics of this.
+  @override
+  bool get isFactoryConstructor => false;
+}
+
 class LocalVariableElementY extends ElementY
-    with AnalyzableElementY, AstElementY, VariableElementMixin
+    with AnalyzableElementY,
+         AstElementY,
+         LocalElementMixin,
+         VariableElementMixin
     implements dart2js.LocalVariableElement {
 
   analyzer.LocalVariableElement get element => super.element;
@@ -684,20 +728,11 @@ class LocalVariableElementY extends ElementY
   dart2js.ElementKind get kind => dart2js.ElementKind.VARIABLE;
 
   @override
-  bool get isLocal => true;
-
-  @override
   bool get isConst => element.isConst;
-
-  @override
-  bool get isStatic => false;
 
   LocalVariableElementY(ElementConverter converter,
                         analyzer.LocalVariableElement element)
       : super(converter, element);
-
-  @override
-  get executableContext => unsupported('executableContext');
 
   @override
   dart2js.DartType get type => unsupported('type');

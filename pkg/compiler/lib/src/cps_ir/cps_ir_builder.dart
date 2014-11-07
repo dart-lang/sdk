@@ -306,9 +306,6 @@ class IrBuilder {
 
   /// Add [variableElement] to the environment with [initialValue] as its
   /// initial value.
-  ///
-  /// [isClosureVariable] marks whether [variableElement] is accessed from an
-  /// inner function.
   void declareLocalVariable(LocalVariableElement variableElement,
                             {ir.Primitive initialValue}) {
     assert(isOpen);
@@ -326,6 +323,20 @@ class IrBuilder {
       // use this variable element to help derive a good name for it.
       initialValue.useElementAsHint(variableElement);
       environment.extend(variableElement, initialValue);
+    }
+  }
+
+  /// Add [functionElement] to the environment with provided [definition].
+  void declareLocalFunction(LocalFunctionElement functionElement,
+                            ir.FunctionDefinition definition) {
+    assert(isOpen);
+    if (isClosureVariable(functionElement)) {
+      add(new ir.DeclareFunction(functionElement, definition));
+    } else {
+      ir.CreateFunction prim = new ir.CreateFunction(definition);
+      add(new ir.LetPrim(prim));
+      environment.extend(functionElement, prim);
+      prim.useElementAsHint(functionElement);
     }
   }
 
@@ -372,6 +383,15 @@ class IrBuilder {
     assert(isOpen);
     return _continueWithExpression(
         (k) => new ir.InvokeMethod(receiver, selector, k, arguments));
+  }
+
+  ir.Primitive _buildInvokeCall(ir.Primitive target,
+                                 Selector selector,
+                                 List<ir.Definition> arguments) {
+    Selector callSelector = new Selector.callClosure(
+        selector.argumentCount,
+        selector.namedArguments);
+    return _buildInvokeDynamic(target, callSelector, arguments);
   }
 
 
@@ -494,6 +514,13 @@ class IrBuilder {
 
   }
 
+  /// Create a function expression from [definition].
+  ir.Primitive buildFunctionExpression(ir.FunctionDefinition definition) {
+    ir.CreateFunction prim = new ir.CreateFunction(definition);
+    add(new ir.LetPrim(prim));
+    return prim;
+  }
+
   /**
    * Add an explicit `return null` for functions that don't have a return
    * statement on each branch. This includes functions with an empty body,
@@ -528,7 +555,6 @@ class IrBuilder {
                 element, _parameters, defaults);
     }
   }
-
 
   /// Create a super invocation where the method name and the argument structure
   /// are defined by [selector] and the argument values are defined by
@@ -663,6 +689,31 @@ class IrBuilder {
       environment.update(local, value);
     }
     return value;
+  }
+
+  /// Create an invocation of [local] where the argument structure is defined
+  /// by [selector] and the argument values are defined by [arguments].
+  ir.Primitive buildLocalInvocation(LocalElement local,
+                                    Selector selector,
+                                    List<ir.Definition> arguments) {
+    ir.Primitive receiver;
+    if (isClosureVariable(local)) {
+      receiver = new ir.GetClosureVariable(local);
+      add(new ir.LetPrim(receiver));
+    } else {
+      receiver = environment.lookup(local);
+    }
+    return _buildInvokeCall(receiver, selector, arguments);
+  }
+
+  /// Create an invocation of the [functionExpression] where the argument
+  /// structure are defined by [selector] and the argument values are defined by
+  /// [arguments].
+  ir.Primitive buildFunctionExpressionInvocation(
+      ir.Primitive functionExpression,
+      Selector selector,
+      List<ir.Definition> arguments) {
+    return _buildInvokeCall(functionExpression, selector, arguments);
   }
 
   /// Creates an if-then-else statement with the provided [condition] where the
