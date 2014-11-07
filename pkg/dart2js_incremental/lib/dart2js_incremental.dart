@@ -32,7 +32,7 @@ import 'library_updater.dart' show
     LibraryUpdater,
     Logger;
 
-import 'package:compiler/implementation/js/js.dart' as jsAst;
+import 'package:compiler/src/js/js.dart' as jsAst;
 
 part 'caching_compiler.dart';
 
