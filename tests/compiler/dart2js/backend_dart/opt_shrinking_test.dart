@@ -135,17 +135,6 @@ String BETA_CONT_LIN_OUT = """
   (InvokeStatic print v0 k0))
 """;
 
-// Beta-cont-lin with continuation passed as arg in invoke. IR written by hand.
-
-String ARG_BETA_CONT_LIN_IN = """
-(FunctionDefinition main ( return)
-  (LetCont (k0 v0)
-    (LetPrim v1 (Constant IntConstant(0)))
-    (InvokeStatic print v1 return))
-  (InvokeContinuation return k0))
-""";
-String ARG_BETA_CONT_LIN_OUT = ARG_BETA_CONT_LIN_IN;
-
 // Beta-cont-lin with recursive continuation. IR written by hand.
 
 String RECURSIVE_BETA_CONT_LIN_IN = """
@@ -161,17 +150,18 @@ String RECURSIVE_BETA_CONT_LIN_OUT = RECURSIVE_BETA_CONT_LIN_IN;
 
 String USED_BETA_CONT_LIN_IN = """
 (FunctionDefinition main ( return)
-  (LetCont (k0 v0)
-    (LetCont (k1 v1)
-      (LetCont (k2 v2) (LetPrim v3 (Constant IntConstant(0)))
-        (InvokeContinuation return v3))
-      (InvokeStatic print v0 k2))
-    (InvokeStatic print v0 k1))
-    (LetPrim v4
+  (LetPrim v0 (Constant IntConstant(0)))
+  (LetCont (k0 v1)
+    (LetCont (k1 v2)
+      (LetCont (k2 v3) (LetPrim v4 (Constant IntConstant(0)))
+        (InvokeContinuation return v4))
+      (InvokeStatic print v1 k2))
+    (InvokeStatic print v1 k1))
+    (LetPrim v5
       (CreateFunction
         (FunctionDefinition f ( return)
-          (InvokeContinuation return k0))))
-  (InvokeContinuation k0 v4))
+          (InvokeContinuation return v1))))
+  (InvokeContinuation k0 v0))
 """;
 String USED_BETA_CONT_LIN_OUT = USED_BETA_CONT_LIN_IN;
 
@@ -186,7 +176,7 @@ String ETA_CONT_IN = """
   (LetPrim v4
     (CreateFunction
       (FunctionDefinition f ( return)
-        (InvokeContinuation k1 k0))))
+        (InvokeContinuation k1 v3))))
   (InvokeContinuation k0 v3))
 """;
 String ETA_CONT_OUT = """
@@ -220,7 +210,7 @@ void testShrinkingReducer(String input, String expectedOutput) {
   String expected = normalizeSExpr(expectedOutput);
   String actual   = normalizeSExpr(stringifier.visit(f));
 
-   Expect.equals(expected, actual);
+  Expect.equals(expected, actual);
 }
 
 void main() {
@@ -230,8 +220,6 @@ void main() {
   testShrinkingReducer(DEAD_CONT_IN, DEAD_CONT_OUT);
   testShrinkingReducer(ITERATIVE_DEAD_CONT_IN, ITERATIVE_DEAD_CONT_OUT);
   testShrinkingReducer(BETA_CONT_LIN_IN, BETA_CONT_LIN_OUT);
-  testShrinkingReducer(ARG_BETA_CONT_LIN_IN, ARG_BETA_CONT_LIN_OUT);
   testShrinkingReducer(RECURSIVE_BETA_CONT_LIN_IN, RECURSIVE_BETA_CONT_LIN_OUT);
-  testShrinkingReducer(USED_BETA_CONT_LIN_IN, USED_BETA_CONT_LIN_OUT);
   testShrinkingReducer(ETA_CONT_IN, ETA_CONT_OUT);
 }

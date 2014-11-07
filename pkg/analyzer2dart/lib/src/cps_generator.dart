@@ -77,10 +77,10 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     irBuilder.declareLocalFunction(element, definition);
   }
 
-  List<ir.Definition> visitArguments(ArgumentList argumentList) {
-    List<ir.Definition> arguments = <ir.Definition>[];
+  List<ir.Primitive> visitArguments(ArgumentList argumentList) {
+    List<ir.Primitive> arguments = <ir.Primitive>[];
     for (Expression argument in argumentList.arguments) {
-      ir.Definition value = build(argument);
+      ir.Primitive value = build(argument);
       if (value == null) {
         giveUp(argument,
             'Unsupported argument: $argument (${argument.runtimeType}).');
@@ -101,7 +101,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
                                       AccessSemantics semantics) {
     // TODO(johnniwinther): Handle implicit `this`.
     ir.Primitive receiver = build(semantics.target);
-    List<ir.Definition> arguments = visitArguments(node.argumentList);
+    List<ir.Primitive> arguments = visitArguments(node.argumentList);
     return irBuilder.buildDynamicInvocation(
         receiver,
         createSelectorFromMethodInvocation(
@@ -114,7 +114,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
                                            AccessSemantics semantics) {
     analyzer.Element staticElement = semantics.element;
     dart2js.Element element = converter.convertElement(staticElement);
-    List<ir.Definition> arguments = visitArguments(node.argumentList);
+    List<ir.Primitive> arguments = visitArguments(node.argumentList);
     return irBuilder.buildStaticInvocation(
         element,
         createSelectorFromMethodInvocation(
@@ -169,7 +169,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     if (staticElement != null) {
       dart2js.Element element = converter.convertElement(staticElement);
       dart2js.DartType type = converter.convertType(node.staticType);
-      List<ir.Definition> arguments = visitArguments(node.argumentList);
+      List<ir.Primitive> arguments = visitArguments(node.argumentList);
       String name = '';
       if (node.constructorName.name != null) {
         name = node.constructorName.name.name;
@@ -318,7 +318,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     ir.Primitive right = build(node.rightOperand);
     Selector selector = new Selector.binaryOperator(op);
     return irBuilder.buildDynamicInvocation(
-        left, selector, <ir.Definition>[right]);
+        left, selector, <ir.Primitive>[right]);
   }
 
   ir.Node handleLazyOperator(BinaryExpression node, {bool isLazyOr: false}) {

@@ -29,18 +29,18 @@ abstract class Expression extends Node {
 
 /// The base class of things that variables can refer to: primitives,
 /// continuations, function and continuation parameters, etc.
-abstract class Definition extends Node {
+abstract class Definition<T extends Definition<T>> extends Node {
   // The head of a linked-list of occurrences, in no particular order.
-  Reference firstRef = null;
+  Reference<T> firstRef;
 
   bool get hasAtMostOneUse  => firstRef == null || firstRef.next == null;
   bool get hasExactlyOneUse => firstRef != null && firstRef.next == null;
   bool get hasAtLeastOneUse => firstRef != null;
   bool get hasMultipleUses  => !hasAtMostOneUse;
 
-  void substituteFor(Definition other) {
+  void substituteFor(Definition<T> other) {
     if (other.firstRef == null) return;
-    Reference previous, current = other.firstRef;
+    Reference<T> previous, current = other.firstRef;
     do {
       current.definition = this;
       previous = current;
@@ -58,7 +58,7 @@ abstract class Definition extends Node {
 /// Primitives may allocate objects, this is not considered side-effect here.
 ///
 /// Although primitives may not mutate state, they may depend on state.
-abstract class Primitive extends Definition {
+abstract class Primitive extends Definition<Primitive> {
   /// The [VariableElement] or [ParameterElement] from which the primitive
   /// binding originated.
   Element hint;
@@ -80,10 +80,10 @@ abstract class Primitive extends Definition {
 
 /// Operands to invocations and primitives are always variables.  They point to
 /// their definition and are doubly-linked into a list of occurrences.
-class Reference {
-  Definition definition;
-  Reference previous = null;
-  Reference next = null;
+class Reference<T extends Definition<T>> {
+  T definition;
+  Reference<T> previous;
+  Reference<T> next;
 
   /// A pointer to the parent node. Is null until set by optimization passes.
   Node parent;
@@ -146,7 +146,7 @@ class LetCont extends Expression implements InteriorNode {
 
 abstract class Invoke {
   Selector get selector;
-  List<Reference> get arguments;
+  List<Reference<Primitive>> get arguments;
 }
 
 /// Represents a node with a child node, which can be accessed through the
@@ -173,12 +173,12 @@ class InvokeStatic extends Expression implements Invoke {
    */
   final Selector selector;
 
-  final Reference continuation;
-  final List<Reference> arguments;
+  final Reference<Continuation> continuation;
+  final List<Reference<Primitive>> arguments;
 
   InvokeStatic(this.target, this.selector, Continuation cont,
-               List<Definition> args)
-      : continuation = new Reference(cont),
+               List<Primitive> args)
+      : continuation = new Reference<Continuation>(cont),
         arguments = _referenceList(args) {
     assert(target is ErroneousElement || selector.name == target.name);
   }
@@ -189,17 +189,17 @@ class InvokeStatic extends Expression implements Invoke {
 /// Invoke a method, operator, getter, setter, or index getter/setter.
 /// Converting a method to a function object is treated as a getter invocation.
 class InvokeMethod extends Expression implements Invoke {
-  final Reference receiver;
+  final Reference<Primitive> receiver;
   final Selector selector;
-  final Reference continuation;
-  final List<Reference> arguments;
+  final Reference<Continuation> continuation;
+  final List<Reference<Primitive>> arguments;
 
-  InvokeMethod(Definition receiver,
+  InvokeMethod(Primitive receiver,
                this.selector,
                Continuation cont,
-               List<Definition> args)
-      : receiver = new Reference(receiver),
-        continuation = new Reference(cont),
+               List<Primitive> args)
+      : receiver = new Reference<Primitive>(receiver),
+        continuation = new Reference<Continuation>(cont),
         arguments = _referenceList(args) {
     assert(selector != null);
     assert(selector.kind == SelectorKind.CALL ||
@@ -217,13 +217,13 @@ class InvokeMethod extends Expression implements Invoke {
 /// super class in tail position.
 class InvokeSuperMethod extends Expression implements Invoke {
   final Selector selector;
-  final Reference continuation;
-  final List<Reference> arguments;
+  final Reference<Continuation> continuation;
+  final List<Reference<Primitive>> arguments;
 
   InvokeSuperMethod(this.selector,
                     Continuation cont,
-                    List<Definition> args)
-      : continuation = new Reference(cont),
+                    List<Primitive> args)
+      : continuation = new Reference<Continuation>(cont),
         arguments = _referenceList(args) {
     assert(selector != null);
     assert(selector.kind == SelectorKind.CALL ||
@@ -242,8 +242,8 @@ class InvokeSuperMethod extends Expression implements Invoke {
 class InvokeConstructor extends Expression implements Invoke {
   final DartType type;
   final FunctionElement target;
-  final Reference continuation;
-  final List<Reference> arguments;
+  final Reference<Continuation> continuation;
+  final List<Reference<Primitive>> arguments;
   final Selector selector;
 
   /// The class being instantiated. This is the same as `target.enclosingClass`
@@ -257,8 +257,8 @@ class InvokeConstructor extends Expression implements Invoke {
                     this.target,
                     this.selector,
                     Continuation cont,
-                    List<Definition> args)
-      : continuation = new Reference(cont),
+                    List<Primitive> args)
+      : continuation = new Reference<Continuation>(cont),
         arguments = _referenceList(args) {
     assert(dart2js.invariant(target,
         target.isErroneous || target.isConstructor,
@@ -280,9 +280,9 @@ class InvokeConstructor extends Expression implements Invoke {
 // But then we need to special-case for is-checks with an erroneous .type as
 // these will throw.
 class TypeOperator extends Expression {
-  final Reference receiver;
+  final Reference<Primitive> receiver;
   final DartType type;
-  final Reference continuation;
+  final Reference<Continuation> continuation;
   // TODO(johnniwinther): Use `Operator` class to encapsule the operator type.
   final bool isTypeTest;
 
@@ -290,8 +290,8 @@ class TypeOperator extends Expression {
                this.type,
                Continuation cont,
                {bool this.isTypeTest})
-      : this.receiver = new Reference(receiver),
-        this.continuation = new Reference(cont) {
+      : this.receiver = new Reference<Primitive>(receiver),
+        this.continuation = new Reference<Continuation>(cont) {
     assert(isTypeTest != null);
   }
 
@@ -302,11 +302,11 @@ class TypeOperator extends Expression {
 
 /// Invoke [toString] on each argument and concatenate the results.
 class ConcatenateStrings extends Expression {
-  final Reference continuation;
-  final List<Reference> arguments;
+  final Reference<Continuation> continuation;
+  final List<Reference<Primitive>> arguments;
 
-  ConcatenateStrings(Continuation cont, List<Definition> args)
-      : continuation = new Reference(cont),
+  ConcatenateStrings(Continuation cont, List<Primitive> args)
+      : continuation = new Reference<Continuation>(cont),
         arguments = _referenceList(args);
 
   accept(Visitor visitor) => visitor.visitConcatenateStrings(this);
@@ -346,7 +346,7 @@ class GetClosureVariable extends Primitive {
 /// declared at the entry to the [variable]'s enclosing function.
 class SetClosureVariable extends Expression implements InteriorNode {
   final Local variable;
-  final Reference value;
+  final Reference<Primitive> value;
   Expression body;
 
   /// If true, this declares a new copy of the closure variable. If so, all
@@ -359,7 +359,7 @@ class SetClosureVariable extends Expression implements InteriorNode {
 
   SetClosureVariable(this.variable, Primitive value,
                      {this.isDeclaration : false })
-      : this.value = new Reference(value) {
+      : this.value = new Reference<Primitive>(value) {
     assert(variable != null);
   }
 
@@ -396,16 +396,16 @@ class DeclareFunction extends Expression implements InteriorNode {
 
 /// Invoke a continuation in tail position.
 class InvokeContinuation extends Expression {
-  Reference continuation;
-  List<Reference> arguments;
+  Reference<Continuation> continuation;
+  List<Reference<Primitive>> arguments;
 
   // An invocation of a continuation is recursive if it occurs in the body of
   // the continuation itself.
   bool isRecursive;
 
-  InvokeContinuation(Continuation cont, List<Definition> args,
+  InvokeContinuation(Continuation cont, List<Primitive> args,
                      {recursive: false})
-      : continuation = new Reference(cont),
+      : continuation = new Reference<Continuation>(cont),
         arguments = _referenceList(args),
         isRecursive = recursive {
     assert(cont.parameters == null ||
@@ -431,9 +431,9 @@ abstract class Condition extends Node {
 }
 
 class IsTrue extends Condition {
-  final Reference value;
+  final Reference<Primitive> value;
 
-  IsTrue(Definition val) : value = new Reference(val);
+  IsTrue(Primitive val) : value = new Reference<Primitive>(val);
 
   accept(Visitor visitor) => visitor.visitIsTrue(this);
 }
@@ -441,12 +441,12 @@ class IsTrue extends Condition {
 /// Choose between a pair of continuations based on a condition value.
 class Branch extends Expression {
   final Condition condition;
-  final Reference trueContinuation;
-  final Reference falseContinuation;
+  final Reference<Continuation> trueContinuation;
+  final Reference<Continuation> falseContinuation;
 
   Branch(this.condition, Continuation trueCont, Continuation falseCont)
-      : trueContinuation = new Reference(trueCont),
-        falseContinuation = new Reference(falseCont);
+      : trueContinuation = new Reference<Continuation>(trueCont),
+        falseContinuation = new Reference<Continuation>(falseCont);
 
   accept(Visitor visitor) => visitor.visitBranch(this);
 }
@@ -482,7 +482,7 @@ class ReifyTypeVar extends Primitive {
 class LiteralList extends Primitive {
   /// The List type being created; this is not the type argument.
   final GenericType type;
-  final List<Reference> values;
+  final List<Reference<Primitive>> values;
 
   LiteralList(this.type, Iterable<Primitive> values)
       : this.values = _referenceList(values);
@@ -491,12 +491,12 @@ class LiteralList extends Primitive {
 }
 
 class LiteralMapEntry {
-  final Reference key;
-  final Reference value;
+  final Reference<Primitive> key;
+  final Reference<Primitive> value;
 
   LiteralMapEntry(Primitive key, Primitive value)
-      : this.key = new Reference(key),
-        this.value = new Reference(value);
+      : this.key = new Reference<Primitive>(key),
+        this.value = new Reference<Primitive>(value);
 }
 
 class LiteralMap extends Primitive {
@@ -528,7 +528,7 @@ class Parameter extends Primitive {
 /// Continuations are normally bound by 'let cont'.  A continuation with one
 /// parameter and no body is used to represent a function's return continuation.
 /// The return continuation is bound by the Function, not by 'let cont'.
-class Continuation extends Definition implements InteriorNode {
+class Continuation extends Definition<Continuation> implements InteriorNode {
   final List<Parameter> parameters;
   Expression body = null;
 
@@ -575,8 +575,8 @@ class FunctionDefinition extends Node implements InteriorNode {
   bool get isAbstract => body == null;
 }
 
-List<Reference> _referenceList(Iterable<Definition> definitions) {
-  return definitions.map((e) => new Reference(e)).toList();
+List<Reference<Primitive>> _referenceList(Iterable<Primitive> definitions) {
+  return definitions.map((e) => new Reference<Primitive>(e)).toList();
 }
 
 abstract class Visitor<T> {
