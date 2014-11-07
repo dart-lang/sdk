@@ -84,7 +84,7 @@ _generateMessage(MessageTemplate template, bool forSite, StringBuffer sb) {
   var id = template.id;
   var hashTag = '${id.package}_${id.id}';
   var title = '### ${template.description} [#${id.id}](#$hashTag)';
-  var body = '\n$details\n\n----\n\n';
+  var body = '\n{% raw %}$details{% endraw %}\n\n----\n\n';
   // We add the anchor inside the <h3> title, otherwise the link doesn't work.
   if (forSite) {
     sb..write(title)
