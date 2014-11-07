@@ -32,6 +32,8 @@ import 'library_updater.dart' show
     LibraryUpdater,
     Logger;
 
+import 'package:compiler/implementation/js/js.dart' as jsAst;
+
 part 'caching_compiler.dart';
 
 const List<String> INCREMENTAL_OPTIONS = const <String>[
@@ -48,6 +50,7 @@ class IncrementalCompiler {
   final List<String> options;
   final CompilerOutputProvider outputProvider;
   final Map<String, dynamic> environment;
+  final List<String> _updates = <String>[];
 
   Compiler _compiler;
 
@@ -122,8 +125,25 @@ class IncrementalCompiler {
       if (compiler.compilationFailed) {
         return null;
       } else {
-        return updater.computeUpdateJs();
+        String update = updater.computeUpdateJs();
+        _updates.add(update);
+        return update;
       }
     });
+  }
+
+  String allUpdates() {
+    jsAst.Node updates = jsAst.js.escapedString(_updates.join(""));
+
+    jsAst.FunctionDeclaration mainRunner = jsAst.js.statement(r"""
+function dartMainRunner(main, args) {
+  $dart_unsafe_eval.patch(#);
+  return main(args);
+}""", updates);
+
+
+    jsAst.Printer printer = new jsAst.Printer(_compiler, null);
+    printer.blockOutWithoutBraces(mainRunner);
+    return printer.outBuffer.getText();
   }
 }
