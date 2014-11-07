@@ -10,7 +10,7 @@ import 'package:compiler/src/js/js.dart' as jsAst;
 import 'package:compiler/src/js/js.dart' show js;
 
 
-Future testStatement(String statement, List arguments, String expect) {
+Future testStatement(String statement, arguments, String expect) {
   jsAst.Node node = js.statement(statement, arguments);
   return MockCompiler.create((MockCompiler compiler) {
     String jsText =
@@ -21,7 +21,7 @@ Future testStatement(String statement, List arguments, String expect) {
   });
 }
 
-Future testError(String statement, List arguments, [String expect = ""]) {
+Future testError(String statement, arguments, [String expect = ""]) {
   return new Future.sync(() {
     bool doCheck(exception) {
       String message = '$exception';
