@@ -906,14 +906,17 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
 
   // R2 = used, R3 = digits
   __ ldrd(R2, Address(SP, 3 * kWordSize));
+  // R3 = &digits[0]
   __ add(R3, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
 
   // R4 = a_used, R5 = a_digits
   __ ldrd(R4, Address(SP, 1 * kWordSize));
+  // R5 = &a_digits[0]
   __ add(R5, R5, Operand(TypedData::data_offset() - kHeapObjectTag));
 
   // R6 = r_digits
   __ ldr(R6, Address(SP, 0 * kWordSize));
+  // R6 = &r_digits[0]
   __ add(R6, R6, Operand(TypedData::data_offset() - kHeapObjectTag));
 
   // R7 = &digits[a_used >> 1], a_used is Smi.
@@ -963,14 +966,17 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
 
   // R2 = used, R3 = digits
   __ ldrd(R2, Address(SP, 3 * kWordSize));
+  // R3 = &digits[0]
   __ add(R3, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
 
   // R4 = a_used, R5 = a_digits
   __ ldrd(R4, Address(SP, 1 * kWordSize));
+  // R5 = &a_digits[0]
   __ add(R5, R5, Operand(TypedData::data_offset() - kHeapObjectTag));
 
   // R6 = r_digits
   __ ldr(R6, Address(SP, 0 * kWordSize));
+  // R6 = &r_digits[0]
   __ add(R6, R6, Operand(TypedData::data_offset() - kHeapObjectTag));
 
   // R7 = &digits[a_used >> 1], a_used is Smi.
@@ -1193,7 +1199,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   // uint32_t aj = *ajp
   __ ldr(R1, Address(R5, 0));
 
-  // uint96_t t = R2:R1:R0 = 2*x*xi + aj + c
+  // uint96_t t = R7:R6:R0 = 2*x*xi + aj + c
   __ mov(R0, Operand(0));
   __ umaal(R0, R1, R2, R3);  // R1:R0 = R3*R2 + R1 + R0 = x*xi + aj + 0.
   __ umlal(R6, R7, R2, R3);  // R7:R6 += R3*R2; c += x*xi.
@@ -1228,7 +1234,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
 
 
 void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // No unsigned 64-bit / 32-bit divide instruction.
 }
 
 

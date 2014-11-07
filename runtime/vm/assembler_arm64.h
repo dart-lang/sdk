@@ -675,6 +675,9 @@ class Assembler : public ValueObject {
   void smulh(Register rd, Register rn, Register rm) {
     EmitMiscDP3Source(SMULH, rd, rn, rm, R0, kDoubleWord);
   }
+  void umaddl(Register rd, Register rn, Register rm, Register ra) {
+    EmitMiscDP3Source(UMADDL, rd, rn, rm, ra, kDoubleWord);
+  }
 
   // Move wide immediate.
   void movk(Register rd, const Immediate& imm, int hw_idx) {
@@ -782,7 +785,7 @@ class Assembler : public ValueObject {
 
   // Conditional branch.
   void b(Label* label, Condition cond = AL) {
-    EmitBranch(BCOND, cond, label);
+    EmitConditionalBranch(BCOND, cond, label);
   }
 
   void b(int32_t offset) {
@@ -792,7 +795,13 @@ class Assembler : public ValueObject {
     EmitUnconditionalBranchOp(BL, offset);
   }
 
-  // TODO(zra): cbz, cbnz.
+  void cbz(Label* label, Register rt, OperandSize sz = kDoubleWord) {
+    EmitCompareAndBranch(CBZ, rt, label, sz);
+  }
+
+  void cbnz(Label* label, Register rt, OperandSize sz = kDoubleWord) {
+    EmitCompareAndBranch(CBNZ, rt, label, sz);
+  }
 
   // Branch, link, return.
   void br(Register rn) {
@@ -1580,13 +1589,31 @@ class Assembler : public ValueObject {
     return static_cast<int64_t>(off);
   }
 
+  bool IsConditionalBranch(int32_t instr) {
+    return (instr & ConditionalBranchMask) ==
+           (ConditionalBranchFixed & ConditionalBranchMask);
+  }
+
+  bool IsCompareAndBranch(int32_t instr) {
+    return (instr & CompareAndBranchMask) ==
+           (CompareAndBranchFixed & CompareAndBranchMask);
+  }
+
   Condition DecodeImm19BranchCondition(int32_t instr) {
-    return static_cast<Condition>((instr & kCondMask) >> kCondShift);
+    if (IsConditionalBranch(instr)) {
+      return static_cast<Condition>((instr & kCondMask) >> kCondShift);
+    }
+    ASSERT(IsCompareAndBranch(instr));
+    return (instr & B24) ? EQ : NE;  // cbz : cbnz
   }
 
   int32_t EncodeImm19BranchCondition(Condition cond, int32_t instr) {
-    const int32_t c_imm = static_cast<int32_t>(cond);
-    return (instr & ~kCondMask) | (c_imm << kCondShift);
+    if (IsConditionalBranch(instr)) {
+      const int32_t c_imm = static_cast<int32_t>(cond);
+      return (instr & ~kCondMask) | (c_imm << kCondShift);
+    }
+    ASSERT(IsCompareAndBranch(instr));
+    return (instr & ~B24) | (cond == EQ ? B24 : 0);  // cbz : cbnz
   }
 
   int32_t EncodeImm26BranchOffset(int64_t imm, int32_t instr) {
@@ -1600,8 +1627,8 @@ class Assembler : public ValueObject {
     return static_cast<int64_t>(off);
   }
 
-  void EmitCompareAndBranch(CompareAndBranchOp op, Register rt, int64_t imm,
-                            OperandSize sz) {
+  void EmitCompareAndBranchOp(CompareAndBranchOp op, Register rt, int64_t imm,
+                              OperandSize sz) {
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     ASSERT(Utils::IsInt(21, imm) && ((imm & 0x3) == 0));
     ASSERT((rt != CSP) && (rt != R31));
@@ -1615,8 +1642,8 @@ class Assembler : public ValueObject {
     Emit(encoding);
   }
 
-  void EmitConditionalBranch(ConditionalBranchOp op, Condition cond,
-                             int64_t imm) {
+  void EmitConditionalBranchOp(ConditionalBranchOp op, Condition cond,
+                               int64_t imm) {
     const int32_t off = EncodeImm19BranchOffset(imm, 0);
     const int32_t encoding =
         op |
@@ -1630,7 +1657,8 @@ class Assembler : public ValueObject {
     return Utils::IsInt(21, offset);
   }
 
-  void EmitBranch(ConditionalBranchOp op, Condition cond, Label* label) {
+  void EmitConditionalBranch(ConditionalBranchOp op, Condition cond,
+                             Label* label) {
     if (label->IsBound()) {
       const int64_t dest = label->Position() - buffer_.Size();
       if (use_far_branches() && !CanEncodeImm19BranchOffset(dest)) {
@@ -1639,12 +1667,12 @@ class Assembler : public ValueObject {
           // no need for a guard branch.
           b(dest);
         } else {
-          EmitConditionalBranch(
+          EmitConditionalBranchOp(
               op, InvertCondition(cond), 2 * Instr::kInstrSize);
           b(dest);
         }
       } else {
-        EmitConditionalBranch(op, cond, dest);
+        EmitConditionalBranchOp(op, cond, dest);
       }
     } else {
       const int64_t position = buffer_.Size();
@@ -1652,10 +1680,35 @@ class Assembler : public ValueObject {
         // When cond is AL, this guard branch will be rewritten as a nop when
         // the label is bound. We don't write it as a nop initially because it
         // makes the decoding code in Bind simpler.
-        EmitConditionalBranch(op, InvertCondition(cond), 2 * Instr::kInstrSize);
+        EmitConditionalBranchOp(
+            op, InvertCondition(cond), 2 * Instr::kInstrSize);
         b(label->position_);
       } else {
-        EmitConditionalBranch(op, cond, label->position_);
+        EmitConditionalBranchOp(op, cond, label->position_);
+      }
+      label->LinkTo(position);
+    }
+  }
+
+  void EmitCompareAndBranch(CompareAndBranchOp op, Register rt,
+                            Label* label, OperandSize sz) {
+    if (label->IsBound()) {
+      const int64_t dest = label->Position() - buffer_.Size();
+      if (use_far_branches() && !CanEncodeImm19BranchOffset(dest)) {
+          EmitCompareAndBranchOp(
+              op == CBZ ? CBNZ : CBZ, rt, 2 * Instr::kInstrSize, sz);
+          b(dest);
+      } else {
+        EmitCompareAndBranchOp(op, rt, dest, sz);
+      }
+    } else {
+      const int64_t position = buffer_.Size();
+      if (use_far_branches()) {
+        EmitCompareAndBranchOp(
+            op == CBZ ? CBNZ : CBZ, rt, 2 * Instr::kInstrSize, sz);
+        b(label->position_);
+      } else {
+        EmitCompareAndBranchOp(op, rt, label->position_, sz);
       }
       label->LinkTo(position);
     }

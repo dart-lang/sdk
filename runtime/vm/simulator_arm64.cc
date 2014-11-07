@@ -2303,6 +2303,14 @@ void Simulator::DecodeMiscDP3Source(Instr* instr) {
         static_cast<__int128>(rn_val) * static_cast<__int128>(rm_val);
     const int64_t alu_out = static_cast<int64_t>(res >> 64);
     set_register(instr, rd, alu_out, R31IsZR);
+  } else if ((instr->Bits(29, 3) == 4) && (instr->Bits(21, 3) == 5) &&
+             (instr->Bit(15) == 0)) {
+    // Format(instr, "umaddl 'rd, 'rn, 'rm, 'ra");
+    const uint64_t rn_val = static_cast<uint32_t>(get_wregister(rn, R31IsZR));
+    const uint64_t rm_val = static_cast<uint32_t>(get_wregister(rm, R31IsZR));
+    const uint64_t ra_val = get_register(ra, R31IsZR);
+    const uint64_t alu_out = ra_val + (rn_val * rm_val);
+    set_register(instr, rd, alu_out, R31IsZR);
   } else {
     UnimplementedInstruction(instr);
   }

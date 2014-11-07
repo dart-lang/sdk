@@ -385,6 +385,7 @@ namespace dart {
   V(_Bigint, _mulAdd, Bigint_mulAdd, 1283124653)                               \
   V(_Bigint, _sqrAdd, Bigint_sqrAdd, 1665155090)                               \
   V(_Bigint, _estQuotientDigit, Bigint_estQuotientDigit, 643982609)            \
+  V(_Montgomery, _mulMod, Montgomery_mulMod, 149127024)                        \
 
 // A list of core functions that internally dispatch based on received id.
 #define POLYMORPHIC_TARGET_LIST(V)                                             \

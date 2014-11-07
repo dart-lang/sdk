@@ -1069,6 +1069,9 @@ void ARM64Decoder::DecodeMiscDP3Source(Instr* instr) {
   } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 2) &&
              (instr->Bit(15) == 0)) {
     Format(instr, "smulh 'rd, 'rn, 'rm");
+  } else if ((instr->Bits(29, 3) == 4) && (instr->Bits(21, 3) == 5) &&
+             (instr->Bit(15) == 0)) {
+    Format(instr, "umaddl 'rd, 'rn, 'rm, 'ra");
   } else {
     Unknown(instr);
   }

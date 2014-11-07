@@ -887,6 +887,82 @@ ASSEMBLER_TEST_RUN(CmpLtBranchNotTaken, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(CmpBranchIfZero, assembler) {
+  Label l;
+
+  __ movz(R0, Immediate(42), 0);
+  __ movz(R1, Immediate(0), 0);
+
+  __ cbz(&l, R1);
+  __ movz(R0, Immediate(0), 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CmpBranchIfZero, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CmpBranchIfZeroNotTaken, assembler) {
+  Label l;
+
+  __ movz(R0, Immediate(0), 0);
+  __ movz(R1, Immediate(1), 0);
+
+  __ cbz(&l, R1);
+  __ movz(R0, Immediate(42), 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CmpBranchIfZeroNotTaken, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CmpBranchIfNotZero, assembler) {
+  Label l;
+
+  __ movz(R0, Immediate(42), 0);
+  __ movz(R1, Immediate(1), 0);
+
+  __ cbnz(&l, R1);
+  __ movz(R0, Immediate(0), 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CmpBranchIfNotZero, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CmpBranchIfNotZeroNotTaken, assembler) {
+  Label l;
+
+  __ movz(R0, Immediate(0), 0);
+  __ movz(R1, Immediate(0), 0);
+
+  __ cbnz(&l, R1);
+  __ movz(R0, Immediate(42), 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CmpBranchIfNotZeroNotTaken, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(FcmpEqBranch, assembler) {
   Label l;
 
@@ -1370,6 +1446,21 @@ ASSEMBLER_TEST_GENERATE(Smulh_neg, assembler) {
 ASSEMBLER_TEST_RUN(Smulh_neg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Umaddl, assembler) {
+  __ movn(R1, Immediate(0), 0);  // W1 = 0xffffffff.
+  __ movz(R2, Immediate(7), 0);  // W2 = 7.
+  __ movz(R3, Immediate(8), 0);  // X3 = 8.
+  __ umaddl(R0, R1, R2, R3);  // X0 = W1*W2 + X3 = 0x700000001.
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Umaddl, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(0x700000001, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
 
