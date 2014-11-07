@@ -2259,6 +2259,24 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 }
 
 
+void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
+  movl(dest, value);
+#if defined(DEBUG)
+  Label done;
+  testl(value, Immediate(kHeapObjectTag));
+  j(ZERO, &done);
+  Stop("Smi expected");
+  Bind(&done);
+#endif  // defined(DEBUG)
+}
+
+
+void Assembler::IncrementSmiField(const Address& dest, int32_t increment) {
+  // TODO(koda): Implement testl for addresses and check that dest is a smi.
+  addl(dest, Immediate(Smi::RawValue(increment)));
+}
+
+
 void Assembler::LoadDoubleConstant(XmmRegister dst, double value) {
   // TODO(5410843): Need to have a code constants table.
   int64_t constant = bit_cast<int64_t, double>(value);

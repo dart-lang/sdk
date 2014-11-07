@@ -243,10 +243,8 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // Compare length with capacity.
   __ cmpl(EBX, FieldAddress(EDI, Array::length_offset()));
   __ j(EQUAL, &fall_through);  // Must grow data.
-  const Immediate& value_one =
-      Immediate(reinterpret_cast<int32_t>(Smi::New(1)));
-  // len = len + 1;
-  __ addl(FieldAddress(EAX, GrowableObjectArray::length_offset()), value_one);
+  __ IncrementSmiField(FieldAddress(EAX, GrowableObjectArray::length_offset()),
+                       1);
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Value
   ASSERT(kSmiTagShift == 1);
   __ StoreIntoObject(EDI,

@@ -274,7 +274,8 @@ intptr_t CodePatcher::InstanceCallSizeInBytes() {
 //  b8 imm32    mov EAX, immediate
 class EdgeCounter : public ValueObject {
  public:
-  EdgeCounter(uword pc, const Code& ignored) : end_(pc - kAdjust) {
+  EdgeCounter(uword pc, const Code& ignored)
+      : end_(pc - CodePatcher::EdgeCounterIncrementSizeInBytes()) {
     ASSERT(IsValid(end_));
   }
 
@@ -287,13 +288,16 @@ class EdgeCounter : public ValueObject {
   }
 
  private:
+  uword end_;
+};
+
+
+int32_t CodePatcher::EdgeCounterIncrementSizeInBytes() {
   // The edge counter load is followed by the fixed-size edge counter
   // incrementing code:
   //     83 40 0b 02               add [eax+0xb],0x2
-  static const intptr_t kAdjust = 4;
-
-  uword end_;
-};
+  return 4;
+}
 
 
 RawObject* CodePatcher::GetEdgeCounterAt(uword pc, const Code& code) {
