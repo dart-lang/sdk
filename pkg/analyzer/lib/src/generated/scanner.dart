@@ -1870,64 +1870,48 @@ class Scanner {
 }
 
 /**
- * The enumeration `ScannerErrorCode` defines the error codes used for errors detected by the
- * scanner.
+ * The enumeration `ScannerErrorCode` defines the error codes used for errors
+ * detected by the scanner.
  */
-class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
-  static const ScannerErrorCode ILLEGAL_CHARACTER = const ScannerErrorCode.con1('ILLEGAL_CHARACTER', 0, "Illegal character {0}");
+class ScannerErrorCode extends ErrorCode {
+  static const ScannerErrorCode ILLEGAL_CHARACTER
+      = const ScannerErrorCode('ILLEGAL_CHARACTER', "Illegal character {0}");
 
-  static const ScannerErrorCode MISSING_DIGIT = const ScannerErrorCode.con1('MISSING_DIGIT', 1, "Decimal digit expected");
+  static const ScannerErrorCode MISSING_DIGIT
+      = const ScannerErrorCode('MISSING_DIGIT', "Decimal digit expected");
 
-  static const ScannerErrorCode MISSING_HEX_DIGIT = const ScannerErrorCode.con1('MISSING_HEX_DIGIT', 2, "Hexidecimal digit expected");
+  static const ScannerErrorCode MISSING_HEX_DIGIT
+      = const ScannerErrorCode(
+          'MISSING_HEX_DIGIT',
+          "Hexidecimal digit expected");
 
-  static const ScannerErrorCode MISSING_QUOTE = const ScannerErrorCode.con1('MISSING_QUOTE', 3, "Expected quote (' or \")");
+  static const ScannerErrorCode MISSING_QUOTE
+      = const ScannerErrorCode('MISSING_QUOTE', "Expected quote (' or \")");
 
-  static const ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT = const ScannerErrorCode.con1('UNTERMINATED_MULTI_LINE_COMMENT', 4, "Unterminated multi-line comment");
+  static const ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT
+      = const ScannerErrorCode(
+          'UNTERMINATED_MULTI_LINE_COMMENT',
+          "Unterminated multi-line comment");
 
-  static const ScannerErrorCode UNTERMINATED_STRING_LITERAL = const ScannerErrorCode.con1('UNTERMINATED_STRING_LITERAL', 5, "Unterminated string literal");
-
-  static const List<ScannerErrorCode> values = const [
-      ILLEGAL_CHARACTER,
-      MISSING_DIGIT,
-      MISSING_HEX_DIGIT,
-      MISSING_QUOTE,
-      UNTERMINATED_MULTI_LINE_COMMENT,
-      UNTERMINATED_STRING_LITERAL];
-
-  /**
-   * The template used to create the message to be displayed for this error.
-   */
-  final String message;
-
-  /**
-   * The template used to create the correction to be displayed for this error, or `null` if
-   * there is no correction information for this error.
-   */
-  final String correction;
+  static const ScannerErrorCode UNTERMINATED_STRING_LITERAL
+      = const ScannerErrorCode(
+          'UNTERMINATED_STRING_LITERAL',
+          "Unterminated string literal");
 
   /**
-   * Initialize a newly created error code to have the given message.
-   *
-   * @param message the message template used to create the message to be displayed for this error
+   * Initialize a newly created error code to have the given [name]. The message
+   * associated with the error will be created from the given [message]
+   * template. The correction associated with the error will be created from the
+   * given [correction] template.
    */
-  const ScannerErrorCode.con1(String name, int ordinal, String message) : this.con2(name, ordinal, message, null);
-
-  /**
-   * Initialize a newly created error code to have the given message and correction.
-   *
-   * @param message the template used to create the message to be displayed for the error
-   * @param correction the template used to create the correction to be displayed for the error
-   */
-  const ScannerErrorCode.con2(String name, int ordinal, this.message, this.correction) : super(name, ordinal);
+  const ScannerErrorCode(String name, String message, [String correction])
+      : super(name, message, correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
 
   @override
   ErrorType get type => ErrorType.SYNTACTIC_ERROR;
-
-  @override
-  String get uniqueName => "$runtimeType.$name";
 }
 
 /**

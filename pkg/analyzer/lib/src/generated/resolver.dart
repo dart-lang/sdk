@@ -10766,61 +10766,42 @@ class ResolvableLibrary {
 }
 
 /**
- * The enumeration `ResolverErrorCode` defines the error codes used for errors detected by the
- * resolver. The convention for this class is for the name of the error code to indicate the problem
- * that caused the error to be generated and for the error message to explain what is wrong and,
- * when appropriate, how the problem can be corrected.
+ * The enumeration `ResolverErrorCode` defines the error codes used for errors
+ * detected by the resolver. The convention for this class is for the name of
+ * the error code to indicate the problem that caused the error to be generated
+ * and for the error message to explain what is wrong and, when appropriate, how
+ * the problem can be corrected.
  */
-class ResolverErrorCode extends Enum<ResolverErrorCode> implements ErrorCode {
-  static const ResolverErrorCode BREAK_LABEL_ON_SWITCH_MEMBER = const ResolverErrorCode.con1('BREAK_LABEL_ON_SWITCH_MEMBER', 0, ErrorType.COMPILE_TIME_ERROR, "Break label resolves to case or default statement");
+class ResolverErrorCode extends ErrorCode {
+  static const ResolverErrorCode BREAK_LABEL_ON_SWITCH_MEMBER
+      = const ResolverErrorCode(
+          'BREAK_LABEL_ON_SWITCH_MEMBER',
+          "Break label resolves to case or default statement");
 
-  static const ResolverErrorCode CONTINUE_LABEL_ON_SWITCH = const ResolverErrorCode.con1('CONTINUE_LABEL_ON_SWITCH', 1, ErrorType.COMPILE_TIME_ERROR, "A continue label resolves to switch, must be loop or switch member");
+  static const ResolverErrorCode CONTINUE_LABEL_ON_SWITCH
+      = const ResolverErrorCode(
+          'CONTINUE_LABEL_ON_SWITCH',
+          "A continue label resolves to switch, must be loop or switch member");
 
-  static const ResolverErrorCode MISSING_LIBRARY_DIRECTIVE_WITH_PART = const ResolverErrorCode.con1('MISSING_LIBRARY_DIRECTIVE_WITH_PART', 2, ErrorType.COMPILE_TIME_ERROR, "Libraries that have parts must have a library directive");
-
-  static const List<ResolverErrorCode> values = const [
-      BREAK_LABEL_ON_SWITCH_MEMBER,
-      CONTINUE_LABEL_ON_SWITCH,
-      MISSING_LIBRARY_DIRECTIVE_WITH_PART];
-
-  /**
-   * The type of this error.
-   */
-  final ErrorType type;
-
-  /**
-   * The template used to create the message to be displayed for this error.
-   */
-  final String message;
+  static const ResolverErrorCode MISSING_LIBRARY_DIRECTIVE_WITH_PART
+      = const ResolverErrorCode(
+          'MISSING_LIBRARY_DIRECTIVE_WITH_PART',
+          "Libraries that have parts must have a library directive");
 
   /**
-   * The template used to create the correction to be displayed for this error, or `null` if
-   * there is no correction information for this error.
+   * Initialize a newly created error code to have the given [name]. The message
+   * associated with the error will be created from the given [message]
+   * template. The correction associated with the error will be created from the
+   * given [correction] template.
    */
-  final String correction;
-
-  /**
-   * Initialize a newly created error code to have the given type and message.
-   *
-   * @param type the type of this error
-   * @param message the message template used to create the message to be displayed for the error
-   */
-  const ResolverErrorCode.con1(String name, int ordinal, ErrorType type, String message) : this.con2(name, ordinal, type, message, null);
-
-  /**
-   * Initialize a newly created error code to have the given type, message and correction.
-   *
-   * @param type the type of this error
-   * @param message the template used to create the message to be displayed for the error
-   * @param correction the template used to create the correction to be displayed for the error
-   */
-  const ResolverErrorCode.con2(String name, int ordinal, this.type, this.message, this.correction) : super(name, ordinal);
+  const ResolverErrorCode(String name, String message, [String correction])
+      : super(name, message, correction);
 
   @override
   ErrorSeverity get errorSeverity => type.severity;
 
   @override
-  String get uniqueName => "$runtimeType.$name";
+  ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
 }
 
 /**

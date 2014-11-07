@@ -13,7 +13,6 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/html.dart' as html;
 import 'package:analyzer/src/generated/instrumentation.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart' as scanner;
 import 'package:analyzer/src/generated/source.dart';
@@ -121,20 +120,8 @@ class EnumTest {
         ..check_explicit_values();
   }
 
-  void test_ParserErrorCode() {
-    new EnumTester<ParserErrorCode>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
   void test_RedirectingConstructorKind() {
     new EnumTester<RedirectingConstructorKind>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
-  void test_ResolverErrorCode() {
-    new EnumTester<ResolverErrorCode>()
         ..check_getters()
         ..check_explicit_values();
   }
@@ -147,12 +134,6 @@ class EnumTest {
 
   void test_scanner_TokenType() {
     new EnumTester<scanner.TokenType>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
-  void test_ScannerErrorCode() {
-    new EnumTester<scanner.ScannerErrorCode>()
         ..check_getters()
         ..check_explicit_values();
   }
