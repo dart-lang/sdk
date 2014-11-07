@@ -876,6 +876,14 @@ class ErrorParserTest extends ParserTestCase {
     ParserTestCase.parseCompilationUnit("factory typedef F();", [ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION]);
   }
 
+  void test_factoryWithInitializers() {
+    ParserTestCase.parse3(
+        "parseClassMember",
+        <Object> ["C"],
+        "factory C() : x = 3 {}",
+        [ParserErrorCode.FACTORY_WITH_INITIALIZERS]);
+  }
+
   void test_factoryWithoutBody() {
     ParserTestCase.parse3("parseClassMember", <Object> ["C"], "factory C();", [ParserErrorCode.FACTORY_WITHOUT_BODY]);
   }

@@ -4413,6 +4413,9 @@ class Parser {
           initializers.add(_parseConstructorFieldInitializer());
         }
       } while (_optional(TokenType.COMMA));
+      if (factoryKeyword != null) {
+        _reportErrorForToken(ParserErrorCode.FACTORY_WITH_INITIALIZERS, factoryKeyword, []);
+      }
     }
     ConstructorName redirectedConstructor = null;
     FunctionBody body;
@@ -7943,6 +7946,13 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode EXTERNAL_TYPEDEF = const ParserErrorCode('EXTERNAL_TYPEDEF', "Type aliases cannot be declared to be 'external'");
 
   static const ParserErrorCode FACTORY_TOP_LEVEL_DECLARATION = const ParserErrorCode('FACTORY_TOP_LEVEL_DECLARATION', "Top-level declarations cannot be declared to be 'factory'");
+
+  static const ParserErrorCode FACTORY_WITH_INITIALIZERS
+      = const ParserErrorCode(
+          'FACTORY_WITH_INITIALIZERS',
+          "A 'factory' constructor cannot have initializers",
+          "Either remove the 'factory' keyword to make this a generative "
+          "constructor or remove the initializers.");
 
   static const ParserErrorCode FACTORY_WITHOUT_BODY = const ParserErrorCode('FACTORY_WITHOUT_BODY', "A non-redirecting 'factory' constructor must have a body");
 
