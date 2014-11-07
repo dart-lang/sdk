@@ -208,7 +208,9 @@ class JsBuilder {
   Expression call(String source, [var arguments]) {
     Template template = _findExpressionTemplate(source);
     if (arguments == null) return template.instantiate([]);
-    return template.instantiate(arguments is List ? arguments : [arguments]);
+    // We allow a single argument to be given directly.
+    if (arguments is! List && arguments is! Map) arguments = [arguments];
+    return template.instantiate(arguments);
   }
 
   /**
@@ -217,7 +219,9 @@ class JsBuilder {
   Statement statement(String source, [var arguments]) {
     Template template = _findStatementTemplate(source);
     if (arguments == null) return template.instantiate([]);
-    return template.instantiate(arguments is List ? arguments : [arguments]);
+    // We allow a single argument to be given directly.
+    if (arguments is! List && arguments is! Map) arguments = [arguments];
+    return template.instantiate(arguments);
   }
 
   /**
@@ -402,7 +406,12 @@ class MiniJsParser {
   int position = 0;
   bool skippedNewline = false;  // skipped newline in last getToken?
   final String src;
+
   final List<InterpolatedNode> interpolatedValues = <InterpolatedNode>[];
+  bool get hasNamedHoles =>
+      interpolatedValues.isNotEmpty && interpolatedValues.first.isNamed;
+  bool get hasPositionalHoles =>
+      interpolatedValues.isNotEmpty && interpolatedValues.first.isPositional;
 
   static const NONE = -1;
   static const ALPHA = 0;
@@ -664,6 +673,24 @@ class MiniJsParser {
     throw new MiniJsParserError(this, message);
   }
 
+  /// Returns either the name for the hole, or its integer position.
+  parseHash() {
+    String holeName = lastToken;
+    if (acceptCategory(ALPHA)) {
+      // Named hole. Example: 'function #funName() { ... }'
+      if (hasPositionalHoles) {
+        error('Holes must all be positional or named. $holeName');
+      }
+      return holeName;
+    } else {
+      if (hasNamedHoles) {
+        error('Holes must all be positional or named. $holeName');
+      }
+      int position = interpolatedValues.length;
+      return position;
+    }
+  }
+
   Expression parsePrimary() {
     String last = lastToken;
     if (acceptCategory(ALPHA)) {
@@ -705,8 +732,9 @@ class MiniJsParser {
       Expression expression = new RegExpLiteral(regexp + flags);
       return expression;
     } else if (acceptCategory(HASH)) {
+      var nameOrPosition = parseHash();
       InterpolatedExpression expression =
-          new InterpolatedExpression(interpolatedValues.length);
+          new InterpolatedExpression(nameOrPosition);
       interpolatedValues.add(expression);
       return expression;
     } else {
@@ -732,8 +760,9 @@ class MiniJsParser {
     if (!acceptCategory(RPAREN)) {
       for (;;) {
         if (acceptCategory(HASH)) {
+          var nameOrPosition = parseHash();
           InterpolatedParameter parameter =
-              new InterpolatedParameter(interpolatedValues.length);
+              new InterpolatedParameter(nameOrPosition);
           interpolatedValues.add(parameter);
           params.add(parameter);
         } else {
@@ -766,8 +795,9 @@ class MiniJsParser {
       } else if (acceptCategory(SYMBOL)) {  // e.g. void
         propertyName = new LiteralString('"$identifier"');
       } else if (acceptCategory(HASH)) {
+        var nameOrPosition = parseHash();
         InterpolatedLiteral interpolatedLiteral =
-            new InterpolatedLiteral(interpolatedValues.length);
+            new InterpolatedLiteral(nameOrPosition);
         interpolatedValues.add(interpolatedLiteral);
         propertyName = interpolatedLiteral;
       } else {
@@ -833,8 +863,8 @@ class MiniJsParser {
 
   Expression getDotRhs(Expression receiver) {
     if (acceptCategory(HASH)) {
-      InterpolatedSelector property =
-          new InterpolatedSelector(interpolatedValues.length);
+      var nameOrPosition = parseHash();
+      InterpolatedSelector property = new InterpolatedSelector(nameOrPosition);
       interpolatedValues.add(property);
       return new PropertyAccess(receiver, property);
     }
@@ -1066,7 +1096,7 @@ class MiniJsParser {
       if (expression is InterpolatedExpression) {
         assert(identical(interpolatedValues.last, expression));
         InterpolatedStatement statement =
-            new InterpolatedStatement(expression.name);
+            new InterpolatedStatement(expression.nameOrPosition);
         interpolatedValues[interpolatedValues.length - 1] = statement;
         return statement;
       }

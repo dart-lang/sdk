@@ -47,8 +47,12 @@ class Template {
   final Node ast;
 
   Instantiator instantiator;
+
   int positionalArgumentCount = -1;
-  // TODO(sra): Named arguments.
+
+  // Null, unless there are named holes.
+  List<String> holeNames;
+  bool get isPositional => holeNames == null;
 
   Template(this.source, this.ast,
            {this.isExpression: true, this.forceCopy: false}) {
@@ -83,9 +87,15 @@ class Template {
         new InstantiatorGeneratorVisitor(forceCopy);
     instantiator = generator.compile(ast);
     positionalArgumentCount = generator.analysis.count;
+    Set<String> names = generator.analysis.holeNames;
+    holeNames = names.isEmpty ? null : names.toList(growable:false);
   }
 
-  Node instantiate(List arguments) {
+  /// Instantiates the template with the given [arguments].
+  ///
+  /// This method fills in the holes with the given arguments. The [arguments]
+  /// must be either a [List] or a [Map].
+  Node instantiate(var arguments) {
     if (arguments is List) {
       if (arguments.length != positionalArgumentCount) {
         throw 'Wrong number of template arguments, given ${arguments.length}, '
@@ -93,14 +103,26 @@ class Template {
       }
       return instantiator(arguments);
     }
-    // TODO(sra): Add named placeholders and a Map of arguments.
-    throw new UnimplementedError('Template arguments must be a list');
+    assert(arguments is Map);
+    if (holeNames.length < arguments.length) {
+      // This search is in O(n), but we only do it in case of an error, and the
+      // number of holes should be quite limited.
+      String unusedNames =
+          arguments.keys.where((name) => !holeNames.contains(name)).join(", ");
+      throw "Template arguments has unused mappings: $unusedNames";
+    }
+    if (!holeNames.every((String name) => arguments.containsKey(name))) {
+      String notFound =
+          holeNames.where((name) => !arguments.containsKey(name)).join(", ");
+      throw "Template arguments is missing mappings for: $notFound";
+    }
+    return instantiator(arguments);
   }
 }
 
 /**
  * An Instantiator is a Function that generates a JS AST tree or List of
- * trees. [arguments] is a List for positional templates, or (TODO) Map for
+ * trees. [arguments] is a List for positional templates, or Map for
  * named templates.
  */
 typedef Node Instantiator(var arguments);
@@ -164,24 +186,24 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   }
 
   Instantiator visitInterpolatedExpression(InterpolatedExpression node) {
-    int position = node.name;
+    var nameOrPosition = node.nameOrPosition;
     return (arguments) {
-      var value = arguments[position];
+      var value = arguments[nameOrPosition];
       if (value is Expression) return value;
-      if (value is String) return convertStringToVariableUse(value);;
-      error('Interpolated value #$position is not an Expression: $value');
+      if (value is String) return convertStringToVariableUse(value);
+      error('Interpolated value #$nameOrPosition is not an Expression: $value');
     };
   }
 
   Instantiator visitSplayableExpression(Node node) {
     if (node is InterpolatedExpression) {
-      int position = node.name;
+      var nameOrPosition = node.nameOrPosition;
       return (arguments) {
-        var value = arguments[position];
+        var value = arguments[nameOrPosition];
         Expression toExpression(item) {
           if (item is Expression) return item;
           if (item is String) return convertStringToVariableUse(item);
-          return error('Interpolated value #$position is not '
+          return error('Interpolated value #$nameOrPosition is not '
               'an Expression or List of Expressions: $value');
         }
         if (value is Iterable) return value.map(toExpression);
@@ -192,24 +214,24 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   }
 
   Instantiator visitInterpolatedLiteral(InterpolatedLiteral node) {
-    int position = node.name;
+    var nameOrPosition = node.nameOrPosition;
     return (arguments) {
-      var value = arguments[position];
+      var value = arguments[nameOrPosition];
       if (value is Literal) return value;
-      error('Interpolated value #$position is not a Literal: $value');
+      error('Interpolated value #$nameOrPosition is not a Literal: $value');
     };
   }
 
   Instantiator visitInterpolatedParameter(InterpolatedParameter node) {
-    int position = node.name;
+    var nameOrPosition = node.nameOrPosition;
     return (arguments) {
-      var value = arguments[position];
+      var value = arguments[nameOrPosition];
 
       Parameter toParameter(item) {
         if (item is Parameter) return item;
         if (item is String) return new Parameter(item);
-        return error('Interpolated value #$position is not a Parameter or '
-                     'List of Parameters: $value');
+        return error('Interpolated value #$nameOrPosition is not a Parameter or'
+                     ' List of Parameters: $value');
       }
       if (value is Iterable) return value.map(toParameter);
       return toParameter(value);
@@ -220,33 +242,33 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     // A selector is an expression, as in `a[selector]`.
     // A String argument converted into a LiteralString, so `a.#` with argument
     // 'foo' generates `a["foo"]` which prints as `a.foo`.
-    int position = node.name;
+    var nameOrPosition = node.nameOrPosition;
     return (arguments) {
-      var value = arguments[position];
+      var value = arguments[nameOrPosition];
       if (value is Expression) return value;
       if (value is String) return new LiteralString('"$value"');
-      error('Interpolated value #$position is not a selector: $value');
+      error('Interpolated value #$nameOrPosition is not a selector: $value');
     };
   }
 
   Instantiator visitInterpolatedStatement(InterpolatedStatement node) {
-    int position = node.name;
+    var nameOrPosition = node.nameOrPosition;
     return (arguments) {
-      var value = arguments[position];
+      var value = arguments[nameOrPosition];
       if (value is Node) return value.toStatement();
-      error('Interpolated value #$position is not a Statement: $value');
+      error('Interpolated value #$nameOrPosition is not a Statement: $value');
     };
   }
 
   Instantiator visitSplayableStatement(Node node) {
     if (node is InterpolatedStatement) {
-      int position = node.name;
+      var nameOrPosition = node.nameOrPosition;
       return (arguments) {
-        var value = arguments[position];
+        var value = arguments[nameOrPosition];
         Statement toStatement(item) {
           if (item is Statement) return item;
           if (item is Expression) return item.toStatement();;
-          return error('Interpolated value #$position is not '
+          return error('Interpolated value #$nameOrPosition is not '
                        'a Statement or List of Statements: $value');
         }
         if (value is Iterable) return value.map(toStatement);
@@ -317,13 +339,14 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   Instantiator visitIfConditionalCompilation(If node) {
     // Special version of visitInterpolatedExpression that permits bools.
     compileCondition(InterpolatedExpression node) {
-      int position = node.name;
+      var nameOrPosition = node.nameOrPosition;
       return (arguments) {
-        var value = arguments[position];
+        var value = arguments[nameOrPosition];
         if (value is bool) return value;
         if (value is Expression) return value;
         if (value is String) return convertStringToVariableUse(value);;
-        error('Interpolated value #$position is not an Expression: $value');
+        error('Interpolated value #$nameOrPosition '
+              'is not an Expression: $value');
       };
     }
     var makeCondition = compileCondition(node.condition);
@@ -647,8 +670,9 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
  * InterpolatedNodeAnalysis extract [InterpolatedNode]s from AST.
  */
 class InterpolatedNodeAnalysis extends BaseVisitor {
-  final Set<Node> containsInterpolatedNode = new Set<Node>();
+  final Setlet<Node> containsInterpolatedNode = new Setlet<Node>();
   final List<InterpolatedNode> interpolatedNodes = <InterpolatedNode>[];
+  final Setlet<String> holeNames = new Setlet<String>();
   int count = 0;
 
   InterpolatedNodeAnalysis();
@@ -670,6 +694,7 @@ class InterpolatedNodeAnalysis extends BaseVisitor {
   visitInterpolatedNode(InterpolatedNode node) {
     interpolatedNodes.add(node);
     containsInterpolatedNode.add(node);
+    if (node.isNamed) holeNames.add(node.nameOrPosition);
     ++count;
   }
 }

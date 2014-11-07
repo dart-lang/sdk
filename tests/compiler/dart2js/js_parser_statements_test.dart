@@ -41,6 +41,11 @@ function foo/*function declaration*/() {
   return function harry/*named function*/() { return #; }
 }''';
 
+const NAMED_FUNCTION_1_NAMED_HOLE = r'''
+function foo/*function declaration*/() {
+  return function harry/*named function*/() { return #hole; }
+}''';
+
 const NAMED_FUNCTION_1_ONE = r'''
 function foo() {
   return function harry() {
@@ -54,13 +59,18 @@ function foo() {
   #;
 }''';
 
+const MISC_1_NAMED_HOLE = r'''
+function foo() {
+  /a/;
+  #hole;
+}''';
+
 const MISC_1_1 = r'''
 function foo() {
   /a/;
   1;
   2;
 }''';
-
 
 
 void main() {
@@ -78,9 +88,12 @@ void main() {
   asyncTest(() => Future.wait([
     // Interpolated Expressions are upgraded to ExpressionStatements.
     testStatement('{ #; #; }', [eOne, eOne], '{\n  1;\n  1;\n}'),
+    testStatement('{ #a; #b; }', {'a': eOne, 'b': eOne}, '{\n  1;\n  1;\n}'),
 
     // Interpolated sub-blocks are spliced.
     testStatement('{ #; #; }', [block12, block12],
+        '{\n  1;\n  2;\n  1;\n  2;\n}\n'),
+    testStatement('{ #a; #b; }', {'a': block12, 'b': block12},
         '{\n  1;\n  2;\n  1;\n  2;\n}\n'),
 
     // If-condition.  Dart booleans are evaluated, JS Expression booleans are
@@ -93,37 +106,83 @@ void main() {
     testStatement('if (#) #;', [false, block12], ';'),
     testStatement('if (#) 3; else #;', [true, block12], '3;'),
     testStatement('if (#) 3; else #;', [false, block12], '{\n  1;\n  2;\n}'),
+    testStatement('if (#a) #b',
+                  {'a': eOne, 'b': block12},
+                  'if (1) {\n  1;\n  2;\n}'),
+    testStatement('if (#a) #b;',
+                  {'a': eTrue, 'b': block12},
+                  'if (true) {\n  1;\n  2;\n}'),
+    testStatement('if (#a) #b;',
+                  {'a': eVar, 'b': block12},
+                  'if (x) {\n  1;\n  2;\n}'),
+    testStatement('if (#a) #b;',
+                  {'a': 'a', 'b': block12},
+                  'if (a) {\n  1;\n  2;\n}'),
+    testStatement('if (#a) #b;',
+                  {'a': true, 'b': block12},
+                  '{\n  1;\n  2;\n}'),
+    testStatement('if (#a) #b;',
+                  {'a': false, 'b': block12},
+                  ';'),
+    testStatement('if (#a) 3; else #b;',
+                  {'a': true, 'b': block12},
+                  '3;'),
+    testStatement('if (#a) 3; else #b;',
+                  {'a': false, 'b': block12},
+                  '{\n  1;\n  2;\n}'),
 
 
     testStatement(NAMED_FUNCTION_1, [eOne], NAMED_FUNCTION_1_ONE),
+    testStatement(NAMED_FUNCTION_1_NAMED_HOLE,
+                  {'hole': eOne},
+                  NAMED_FUNCTION_1_ONE),
 
     testStatement(MISC_1, [block12], MISC_1_1),
+    testStatement(MISC_1_NAMED_HOLE, {'hole': block12}, MISC_1_1),
 
     // Argument list splicing.
     testStatement('foo(#)', [[]], 'foo();'),
     testStatement('foo(#)', [[eOne]], 'foo(1);'),
     testStatement('foo(#)', [eOne], 'foo(1);'),
     testStatement('foo(#)', [[eTrue,eOne]], 'foo(true, 1);'),
+    testStatement('foo(#a)', {'a': []}, 'foo();'),
+    testStatement('foo(#a)', {'a': [eOne]}, 'foo(1);'),
+    testStatement('foo(#a)', {'a': eOne}, 'foo(1);'),
+    testStatement('foo(#a)', {'a': [eTrue,eOne]}, 'foo(true, 1);'),
 
     testStatement('foo(2,#)', [[]], 'foo(2);'),
     testStatement('foo(2,#)', [[eOne]], 'foo(2, 1);'),
     testStatement('foo(2,#)', [eOne], 'foo(2, 1);'),
     testStatement('foo(2,#)', [[eTrue,eOne]], 'foo(2, true, 1);'),
+    testStatement('foo(2,#a)', {'a': []}, 'foo(2);'),
+    testStatement('foo(2,#a)', {'a': [eOne]}, 'foo(2, 1);'),
+    testStatement('foo(2,#a)', {'a': eOne}, 'foo(2, 1);'),
+    testStatement('foo(2,#a)', {'a': [eTrue,eOne]}, 'foo(2, true, 1);'),
 
     testStatement('foo(#,3)', [[]], 'foo(3);'),
     testStatement('foo(#,3)', [[eOne]], 'foo(1, 3);'),
     testStatement('foo(#,3)', [eOne], 'foo(1, 3);'),
     testStatement('foo(#,3)', [[eTrue,eOne]], 'foo(true, 1, 3);'),
+    testStatement('foo(#a,3)', {'a': []}, 'foo(3);'),
+    testStatement('foo(#a,3)', {'a': [eOne]}, 'foo(1, 3);'),
+    testStatement('foo(#a,3)', {'a': eOne}, 'foo(1, 3);'),
+    testStatement('foo(#a,3)', {'a': [eTrue,eOne]}, 'foo(true, 1, 3);'),
 
     testStatement('foo(2,#,3)', [[]], 'foo(2, 3);'),
     testStatement('foo(2,#,3)', [[eOne]], 'foo(2, 1, 3);'),
     testStatement('foo(2,#,3)', [eOne], 'foo(2, 1, 3);'),
     testStatement('foo(2,#,3)', [[eTrue,eOne]], 'foo(2, true, 1, 3);'),
+    testStatement('foo(2,#a,3)', {'a': []}, 'foo(2, 3);'),
+    testStatement('foo(2,#a,3)', {'a': [eOne]}, 'foo(2, 1, 3);'),
+    testStatement('foo(2,#a,3)', {'a': eOne}, 'foo(2, 1, 3);'),
+    testStatement('foo(2,#a,3)', {'a': [eTrue,eOne]}, 'foo(2, true, 1, 3);'),
 
     // Interpolated Literals
     testStatement('a = {#: 1}', [eOne], 'a = {1: 1};'),
+    testStatement('a = {#a: 1}', {'a': eOne}, 'a = {1: 1};'),
     // Maybe we should make this work?
     testError('a = {#: 1}', [1], 'is not a Literal: 1'),
+    testError('a = {#a: 1}', {'a': 1}, 'is not a Literal: 1'),
 
     // Interpolated parameter splicing.
     testStatement('function foo(#){}', [new jsAst.Parameter('x')],
@@ -132,22 +191,47 @@ void main() {
     testStatement('function foo(#){}', [[]], 'function foo() {\n}'),
     testStatement('function foo(#){}', [['x']], 'function foo(x) {\n}'),
     testStatement('function foo(#){}', [['x', 'y']], 'function foo(x, y) {\n}'),
+    testStatement('function foo(#a){}', {'a': new jsAst.Parameter('x')},
+        'function foo(x) {\n}'),
+    testStatement('function foo(#a){}', {'a': 'x'}, 'function foo(x) {\n}'),
+    testStatement('function foo(#a){}', {'a': []}, 'function foo() {\n}'),
+    testStatement('function foo(#a){}', {'a': ['x']}, 'function foo(x) {\n}'),
+    testStatement('function foo(#a){}',
+                  {'a': ['x', 'y']},
+                  'function foo(x, y) {\n}'),
 
 
     testStatement('a = #.#', [eVar,eOne], 'a = x[1];'),
     testStatement('a = #.#', [eVar,'foo'], 'a = x.foo;'),
+    testStatement('a = #a.#b', {'a': eVar, 'b': eOne}, 'a = x[1];'),
+    testStatement('a = #a.#b', {'a': eVar, 'b': 'foo'}, 'a = x.foo;'),
 
     testStatement('function f(#) { return #.#; }', ['x', eVar,'foo'],
         'function f(x) {\n  return x.foo;\n}'),
+    testStatement('function f(#a) { return #b.#c; }',
+                  {'a': 'x', 'b': eVar, 'c': 'foo'},
+                  'function f(x) {\n  return x.foo;\n}'),
 
     testStatement('#.prototype.# = function(#) { return #.# };',
         ['className', 'getterName', ['r', 'y'], 'r', 'fieldName'],
         'className.prototype.getterName = function(r, y) {\n'
         '  return r.fieldName;\n'
         '};'),
+    testStatement('#a.prototype.#b = function(#c) { return #d.#e };',
+                  {'a': 'className',
+                  'b': 'getterName',
+                  'c': ['r', 'y'],
+                  'd': 'r',
+                  'e': 'fieldName'},
+                  'className.prototype.getterName = function(r, y) {\n'
+                  '  return r.fieldName;\n'
+                  '};'),
 
     testStatement('function foo(r, #) { return #[r](#) }',
         [['a', 'b'], 'g', ['b', 'a']],
+        'function foo(r, a, b) {\n  return g[r](b, a);\n}'),
+    testStatement('function foo(r, #a) { return #b[r](#c) }',
+        {'a': ['a', 'b'], 'b': 'g', 'c': ['b', 'a']},
         'function foo(r, a, b) {\n  return g[r](b, a);\n}'),
 
     // Sequence is printed flattened
@@ -157,5 +241,25 @@ void main() {
     testStatement(
         'for (i = 0, j = #, k = 0; ; ++i, ++j, ++k){}', [seq1],
         'for (i = 0, j = (1, 2, 3), k = 0;; ++i, ++j, ++k) {\n}'),
+    testStatement('x = #a', {'a': seq1}, 'x = (1, 2, 3);'),
+    testStatement('x = (#a, #b)',
+                  {'a': seq1, 'b': seq1},
+                  'x = (1, 2, 3, 1, 2, 3);'),
+    testStatement('x = #a, #b',
+                  {'a': seq1, 'b': seq1},
+                  'x = (1, 2, 3), 1, 2, 3;'),
+    testStatement(
+        'for (i = 0, j = #a, k = 0; ; ++i, ++j, ++k){}', {'a': seq1},
+        'for (i = 0, j = (1, 2, 3), k = 0;; ++i, ++j, ++k) {\n}'),
+
+    // Use the same name several times.
+    testStatement('#a.prototype.#a = function(#b) { return #c.#c };',
+                  {'a': 'name1_2',
+                   'b': ['r', 'y'],
+                   'c': 'name4_5'},
+                  'name1_2.prototype.name1_2 = function(r, y) {\n'
+                  '  return name4_5.name4_5;\n'
+                  '};'),
+
   ]));
 }

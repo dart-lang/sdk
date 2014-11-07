@@ -387,16 +387,14 @@ class OldEmitter implements Emitter {
         generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
     jsAst.Expression metadataAccess =
         generateEmbeddedGlobalAccess(embeddedNames.METADATA);
-    jsAst.Expression finishedClassesAccess =
-        generateEmbeddedGlobalAccess(embeddedNames.FINISHED_CLASSES);
 
     return js('''
       function(collectedClasses, isolateProperties, existingIsolateProperties) {
         var pendingClasses = Object.create(null);
-        var allClasses = #;  // embedded allClasses;
+        var allClasses = #allClasses;
         var constructors;
 
-        if (#)  // DEBUG_FAST_OBJECTS
+        if (#debugFastObjects)
           print("Number of classes: " +
               Object.getOwnPropertyNames(\$\$).length);
 
@@ -426,7 +424,7 @@ class OldEmitter implements Emitter {
            */
           var classData = desc["${namer.classDescriptorProperty}"],
               supr, name = cls, fields = classData;
-          if (#)  // backend.hasRetainedMetadata
+          if (#hasRetainedMetadata)
             if (typeof classData == "object" &&
                 classData instanceof Array) {
               classData = fields = classData[0];
@@ -448,11 +446,11 @@ class OldEmitter implements Emitter {
             var functionSignature = split[1];
             if (functionSignature)
               desc.\$signature = (function(s) {
-                  return function(){ return #[s]; };  // embedded metadata.
+                  return function(){ return #metadata[s]; };
                 })(functionSignature);
           }
 
-          if (#)  // needsMixinSupport
+          if (#needsMixinSupport)
             if (supr && supr.indexOf("+") > 0) {
               s = supr.split("+");
               supr = s[0];
@@ -490,7 +488,7 @@ class OldEmitter implements Emitter {
             globalObject = desc[0] || isolateProperties;
             desc = desc[1];
           }
-          if (#) //backend.isTreeShakingDisabled,
+          if (#isTreeShakingDisabled)
             constructor["${namer.metadataField}"] = desc;
           allClasses[cls] = constructor;
           globalObject[cls] = constructor;
@@ -498,38 +496,39 @@ class OldEmitter implements Emitter {
 
         constructors = null;
 
-        var finishedClasses = #; // embedded finishedClasses
+        #finishClassFunction;
 
-        #;  // buildFinishClass(),
-
-        #;  // buildTrivialNsmHandlers()
+        #trivialNsmHandlers;
 
         for (var cls in pendingClasses) finishClass(cls);
-      }''', [
-          allClassesAccess,
-          DEBUG_FAST_OBJECTS,
-          backend.hasRetainedMetadata,
-          metadataAccess,
-          needsMixinSupport,
-          backend.isTreeShakingDisabled,
-          finishedClassesAccess,
-          buildFinishClass(),
-          nsmEmitter.buildTrivialNsmHandlers()]);
+      }''', { 'allClasses': allClassesAccess,
+              'debugFastObjects': DEBUG_FAST_OBJECTS,
+              'hasRetainedMetadata': backend.hasRetainedMetadata,
+              'metadata': metadataAccess,
+              'needsMixinSupport': needsMixinSupport,
+              'isTreeShakingDisabled': backend.isTreeShakingDisabled,
+              'finishClassFunction': buildFinishClass(),
+              'trivialNsmHandlers': nsmEmitter.buildTrivialNsmHandlers()});
   }
 
   jsAst.Node optional(bool condition, jsAst.Node node) {
     return condition ? node : new jsAst.EmptyStatement();
   }
 
-  jsAst.FunctionDeclaration buildFinishClass() {
+  jsAst.Statement buildFinishClass() {
     String specProperty = '"${namer.nativeSpecProperty}"';  // "%"
 
+    jsAst.Expression finishedClassesAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.FINISHED_CLASSES);
     jsAst.Expression interceptorsByTagAccess =
         generateEmbeddedGlobalAccess(embeddedNames.INTERCEPTORS_BY_TAG);
     jsAst.Expression leafTagsAccess =
         generateEmbeddedGlobalAccess(embeddedNames.LEAF_TAGS);
 
     return js.statement('''
+    {
+      var finishedClasses = #;  // finishedClassesAccess.
+
       function finishClass(cls) {
 
         if (finishedClasses[cls]) return;
@@ -604,12 +603,14 @@ class OldEmitter implements Emitter {
             }
           }
         }
-      }''', [!nativeClasses.isEmpty,
-             interceptorsByTagAccess,
-             leafTagsAccess,
-             true,
-             interceptorsByTagAccess,
-             leafTagsAccess]);
+      }
+    }''', [finishedClassesAccess,
+           !nativeClasses.isEmpty,
+           interceptorsByTagAccess,
+           leafTagsAccess,
+           true,
+           interceptorsByTagAccess,
+           leafTagsAccess]);
   }
 
   jsAst.Fun get finishIsolateConstructorFunction {

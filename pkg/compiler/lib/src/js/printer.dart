@@ -874,7 +874,7 @@ class Printer extends Indentation implements NodeVisitor {
   }
 
   visitInterpolatedNode(InterpolatedNode node) {
-    out('#${node.name}');
+    out('#${node.nameOrPosition}');
   }
 
   visitInterpolatedExpression(InterpolatedExpression node) =>
@@ -890,7 +890,7 @@ class Printer extends Indentation implements NodeVisitor {
       visitInterpolatedNode(node);
 
   visitInterpolatedStatement(InterpolatedStatement node) {
-    outLn('#${node.name}');
+    outLn('#${node.nameOrPosition}');
   }
 
   void visitComment(Comment node) {

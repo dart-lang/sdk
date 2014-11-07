@@ -1026,65 +1026,71 @@ class Property extends Node {
 
 /// Tag class for all interpolated positions.
 abstract class InterpolatedNode implements Node {
-  get name; // 'int' for positional interpolated nodes, 'String' for named.
+  get nameOrPosition;
+
+  bool get isNamed => nameOrPosition is String;
+  bool get isPositional => nameOrPosition is int;
 }
 
-class InterpolatedExpression extends Expression implements InterpolatedNode {
-  final name;
+class InterpolatedExpression extends Expression with InterpolatedNode {
+  final nameOrPosition;
 
-  InterpolatedExpression(this.name);
+  InterpolatedExpression(this.nameOrPosition);
 
   accept(NodeVisitor visitor) => visitor.visitInterpolatedExpression(this);
   void visitChildren(NodeVisitor visitor) {}
-  InterpolatedExpression _clone() => new InterpolatedExpression(name);
+  InterpolatedExpression _clone() =>
+      new InterpolatedExpression(nameOrPosition);
 
   int get precedenceLevel => PRIMARY;
 }
 
-class InterpolatedLiteral extends Literal implements InterpolatedNode {
-  final name;
+class InterpolatedLiteral extends Literal with InterpolatedNode {
+  final nameOrPosition;
 
-  InterpolatedLiteral(this.name);
+  InterpolatedLiteral(this.nameOrPosition);
 
   accept(NodeVisitor visitor) => visitor.visitInterpolatedLiteral(this);
   void visitChildren(NodeVisitor visitor) {}
-  InterpolatedLiteral _clone() => new InterpolatedLiteral(name);
+  InterpolatedLiteral _clone() => new InterpolatedLiteral(nameOrPosition);
 }
 
-class InterpolatedParameter extends Expression
-    implements Parameter, InterpolatedNode {
-  final name;
+class InterpolatedParameter extends Expression with InterpolatedNode
+    implements Parameter {
+  final nameOrPosition;
+
+  String get name { throw "InterpolatedParameter.name must not be invoked"; }
   bool get allowRename => false;
 
-  InterpolatedParameter(this.name);
+  InterpolatedParameter(this.nameOrPosition);
 
   accept(NodeVisitor visitor) => visitor.visitInterpolatedParameter(this);
   void visitChildren(NodeVisitor visitor) {}
-  InterpolatedParameter _clone() => new InterpolatedParameter(name);
+  InterpolatedParameter _clone() => new InterpolatedParameter(nameOrPosition);
 
   int get precedenceLevel => PRIMARY;
 }
 
-class InterpolatedSelector extends Expression implements InterpolatedNode {
-  final name;
+class InterpolatedSelector extends Expression with InterpolatedNode {
+  final nameOrPosition;
 
-  InterpolatedSelector(this.name);
+  InterpolatedSelector(this.nameOrPosition);
 
   accept(NodeVisitor visitor) => visitor.visitInterpolatedSelector(this);
   void visitChildren(NodeVisitor visitor) {}
-  InterpolatedSelector _clone() => new InterpolatedSelector(name);
+  InterpolatedSelector _clone() => new InterpolatedSelector(nameOrPosition);
 
   int get precedenceLevel => PRIMARY;
 }
 
-class InterpolatedStatement extends Statement implements InterpolatedNode {
-  final name;
+class InterpolatedStatement extends Statement with InterpolatedNode {
+  final nameOrPosition;
 
-  InterpolatedStatement(this.name);
+  InterpolatedStatement(this.nameOrPosition);
 
   accept(NodeVisitor visitor) => visitor.visitInterpolatedStatement(this);
   void visitChildren(NodeVisitor visitor) {}
-  InterpolatedStatement _clone() => new InterpolatedStatement(name);
+  InterpolatedStatement _clone() => new InterpolatedStatement(nameOrPosition);
 }
 
 /**
