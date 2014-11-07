@@ -293,7 +293,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
         }
         buffer.write(expectedCount);
         buffer.write(" errors of type ");
-        buffer.write("${code.runtimeType}.$code");
+        buffer.write(code.uniqueName);
         buffer.write(", found ");
         buffer.write(actualCount);
       }
