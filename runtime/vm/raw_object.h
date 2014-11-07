@@ -1210,13 +1210,20 @@ class RawContextScope : public RawObject {
   int32_t num_variables_;
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->data()[0]);
+    VariableDesc* begin = const_cast<VariableDesc*>(ptr()->VariableDescAddr(0));
+    return reinterpret_cast<RawObject**>(begin);
   }
   // Variable length data follows here.
-  RawObject** data() { OPEN_ARRAY_START(RawObject*, RawObject*); }
+  RawObject* const* data() const { OPEN_ARRAY_START(RawObject*, RawObject*); }
+  const VariableDesc* VariableDescAddr(intptr_t index) const {
+    ASSERT((index >= 0) && (index < num_variables_ + 1));
+    // data() points to the first component of the first descriptor.
+    return &(reinterpret_cast<const VariableDesc*>(data())[index]);
+  }
   RawObject** to(intptr_t num_vars) {
-    const intptr_t data_length = num_vars * (sizeof(VariableDesc)/kWordSize);
-    return reinterpret_cast<RawObject**>(&ptr()->data()[data_length - 1]);
+    uword end = reinterpret_cast<uword>(ptr()->VariableDescAddr(num_vars));
+    // 'end' is the address just beyond the last descriptor, so step back.
+    return reinterpret_cast<RawObject**>(end - kWordSize);
   }
 };
 

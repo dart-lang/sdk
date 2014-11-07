@@ -4184,12 +4184,9 @@ class ContextScope : public Object {
     StoreNonPointer(&raw_ptr()->num_variables_, num_variables);
   }
 
-  RawContextScope::VariableDesc* VariableDescAddr(intptr_t index) const {
+  const RawContextScope::VariableDesc* VariableDescAddr(intptr_t index) const {
     ASSERT((index >= 0) && (index < num_variables()));
-    uword raw_addr = reinterpret_cast<uword>(raw_ptr());
-    raw_addr += sizeof(RawContextScope) +
-        (index * sizeof(RawContextScope::VariableDesc));
-    return reinterpret_cast<RawContextScope::VariableDesc*>(raw_addr);
+    return raw_ptr()->VariableDescAddr(index);
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ContextScope, Object);

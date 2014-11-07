@@ -12599,7 +12599,8 @@ intptr_t ContextScope::TokenIndexAt(intptr_t scope_index) const {
 
 void ContextScope::SetTokenIndexAt(intptr_t scope_index,
                                    intptr_t token_pos) const {
-  VariableDescAddr(scope_index)->token_pos = Smi::New(token_pos);
+  StoreSmi(&VariableDescAddr(scope_index)->token_pos,
+           Smi::New(token_pos));
 }
 
 
@@ -12619,7 +12620,8 @@ bool ContextScope::IsFinalAt(intptr_t scope_index) const {
 
 
 void ContextScope::SetIsFinalAt(intptr_t scope_index, bool is_final) const {
-  VariableDescAddr(scope_index)->is_final = Bool::Get(is_final).raw();
+  StorePointer(&(VariableDescAddr(scope_index)->is_final),
+               Bool::Get(is_final).raw());
 }
 
 
@@ -12629,7 +12631,8 @@ bool ContextScope::IsConstAt(intptr_t scope_index) const {
 
 
 void ContextScope::SetIsConstAt(intptr_t scope_index, bool is_const) const {
-  VariableDescAddr(scope_index)->is_const = Bool::Get(is_const).raw();
+  StorePointer(&(VariableDescAddr(scope_index)->is_const),
+               Bool::Get(is_const).raw());
 }
 
 
@@ -12665,7 +12668,8 @@ intptr_t ContextScope::ContextIndexAt(intptr_t scope_index) const {
 
 void ContextScope::SetContextIndexAt(intptr_t scope_index,
                                      intptr_t context_index) const {
-  VariableDescAddr(scope_index)->context_index = Smi::New(context_index);
+  StoreSmi(&(VariableDescAddr(scope_index)->context_index),
+           Smi::New(context_index));
 }
 
 
@@ -12676,7 +12680,8 @@ intptr_t ContextScope::ContextLevelAt(intptr_t scope_index) const {
 
 void ContextScope::SetContextLevelAt(intptr_t scope_index,
                                      intptr_t context_level) const {
-  VariableDescAddr(scope_index)->context_level = Smi::New(context_level);
+  StoreSmi(&(VariableDescAddr(scope_index)->context_level),
+           Smi::New(context_level));
 }
 
 
