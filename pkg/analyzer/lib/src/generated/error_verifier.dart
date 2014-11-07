@@ -2783,10 +2783,20 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     LibraryElement prevLibrary = _nameToExportElement[name];
     if (prevLibrary != null) {
       if (prevLibrary != exportedLibrary) {
-        _errorReporter.reportErrorForNode(StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAME, node, [
-            prevLibrary.definingCompilationUnit.displayName,
-            exportedLibrary.definingCompilationUnit.displayName,
-            name]);
+        if (name.isEmpty) {
+          _errorReporter.reportErrorForNode(
+              StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_UNNAMED,
+              node,
+              [prevLibrary.definingCompilationUnit.displayName,
+                  exportedLibrary.definingCompilationUnit.displayName]);
+        } else {
+          _errorReporter.reportErrorForNode(
+              StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAMED,
+              node,
+              [prevLibrary.definingCompilationUnit.displayName,
+                  exportedLibrary.definingCompilationUnit.displayName,
+                  name]);
+        }
         return true;
       }
     } else {
@@ -3228,14 +3238,24 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     String name = nodeLibrary.name;
-    // check if there is other imported library with the same name
+    // check if there is another imported library with the same name
     LibraryElement prevLibrary = _nameToImportElement[name];
     if (prevLibrary != null) {
       if (prevLibrary != nodeLibrary) {
-        _errorReporter.reportErrorForNode(StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAME, node, [
-            prevLibrary.definingCompilationUnit.displayName,
-            nodeLibrary.definingCompilationUnit.displayName,
-            name]);
+        if (name.isEmpty) {
+          _errorReporter.reportErrorForNode(
+              StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_UNNAMED,
+              node,
+              [prevLibrary.definingCompilationUnit.displayName,
+                  nodeLibrary.definingCompilationUnit.displayName]);
+        } else {
+          _errorReporter.reportErrorForNode(
+              StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAMED,
+              node,
+              [prevLibrary.definingCompilationUnit.displayName,
+                  nodeLibrary.definingCompilationUnit.displayName,
+                  name]);
+        }
         return true;
       }
     } else {

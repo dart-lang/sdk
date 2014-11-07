@@ -3280,7 +3280,22 @@ class StaticWarningCode extends ErrorCode {
    * @param uri2 the uri pointing to a second library
    * @param name the shared name of the exported libraries
    */
-  static const StaticWarningCode EXPORT_DUPLICATED_LIBRARY_NAME = const StaticWarningCode('EXPORT_DUPLICATED_LIBRARY_NAME', "The exported libraries '{0}' and '{1}' should not have the same name '{2}'");
+  static const StaticWarningCode EXPORT_DUPLICATED_LIBRARY_NAMED
+      = const StaticWarningCode(
+          'EXPORT_DUPLICATED_LIBRARY_NAMED',
+          "The exported libraries '{0}' and '{1}' cannot have the same name '{2}'");
+
+  /**
+   * 14.2 Exports: It is a static warning to export two different libraries with
+   * the same name.
+   *
+   * @param uri1 the uri pointing to a first library
+   * @param uri2 the uri pointing to a second library
+   */
+  static const StaticWarningCode EXPORT_DUPLICATED_LIBRARY_UNNAMED
+      = const StaticWarningCode(
+          'EXPORT_DUPLICATED_LIBRARY_UNNAMED',
+          "The exported libraries '{0}' and '{1}' cannot both be unnamed");
 
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
@@ -3367,7 +3382,22 @@ class StaticWarningCode extends ErrorCode {
    * @param uri2 the uri pointing to a second library
    * @param name the shared name of the imported libraries
    */
-  static const StaticWarningCode IMPORT_DUPLICATED_LIBRARY_NAME = const StaticWarningCode('IMPORT_DUPLICATED_LIBRARY_NAME', "The imported libraries '{0}' and '{1}' should not have the same name '{2}'");
+  static const StaticWarningCode IMPORT_DUPLICATED_LIBRARY_NAMED
+      = const StaticWarningCode(
+          'IMPORT_DUPLICATED_LIBRARY_NAMED',
+          "The imported libraries '{0}' and '{1}' cannot have the same name '{2}'");
+
+  /**
+   * 14.1 Imports: It is a static warning to import two different libraries with
+   * the same name.
+   *
+   * @param uri1 the uri pointing to a first library
+   * @param uri2 the uri pointing to a second library
+   */
+  static const StaticWarningCode IMPORT_DUPLICATED_LIBRARY_UNNAMED
+      = const StaticWarningCode(
+          'IMPORT_DUPLICATED_LIBRARY_UNNAMED',
+          "The imported libraries '{0}' and '{1}' cannot both be unnamed");
 
   /**
    * 14.1 Imports: It is a static warning if the specified URI of a deferred
