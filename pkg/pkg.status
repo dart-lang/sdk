@@ -492,3 +492,6 @@ analyzer/test/*: PubGetError
 
 [ $runtime == drt ]
 http/test/html/client_test: Skip # Issue 18566
+
+[ $runtime != none ]
+source_span/test/file_test: Fail # Issue 21533
