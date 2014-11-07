@@ -25,6 +25,11 @@ main() {
   testClass1Field1Method();
   testClass1Field2Method();
   testClassDefTypeParam();
+  testEnumDef();
+  testEnum1Value();
+  testEnum2Value();
+  testEnum3Value();
+  testEnum3CommaValue();
 }
 
 testClassDef() {
@@ -51,9 +56,33 @@ testClassDefTypeParam() {
   compareCode('class T<X>{}');
 }
 
-void compareCode(String code) {
-  Expect.equals(code, doUnparse(code));
+testEnumDef() {
+  compareCode('enum T {}');
 }
+
+testEnum1Value() {
+  compareCode('enum T {A}');
+}
+
+testEnum2Value() {
+  compareCode('enum T {A,B}');
+}
+
+testEnum3Value() {
+  compareCode('enum T {A,B,C}');
+}
+
+testEnum3CommaValue() {
+  compareCode('enum T {A,B,C,}', expectedResult: 'enum T {A,B,C}');
+}
+
+void compareCode(String code, {String expectedResult}) {
+  if (expectedResult == null) {
+    expectedResult = code;
+  }
+  Expect.equals(expectedResult, doUnparse(code));
+}
+
 
 String doUnparse(String source) {
   MessageCollector diagnosticListener = new MessageCollector();

@@ -64,6 +64,8 @@ class Parser {
     if ((identical(value, 'abstract') && optional('class', token.next))
         || identical(value, 'class')) {
       return parseClassOrNamedMixinApplication(token);
+    } else if (identical(value, 'enum')) {
+      return parseEnum(token);
     } else if (identical(value, 'typedef')) {
       return parseTypedef(token);
     } else if (identical(value, 'library')) {
@@ -454,6 +456,28 @@ class Parser {
       return listener.unmatched(beginGroupToken);
     }
     return beginGroupToken.endGroup;
+  }
+
+  Token parseEnum(Token token) {
+    listener.beginEnum(token);
+    Token enumKeyword = token;
+    token = parseIdentifier(token.next);
+    token = expect('{', token);
+    int count = 0;
+    if (!optional('}', token)) {
+      token = parseIdentifier(token);
+      count++;
+      while (optional(',', token)) {
+        token = token.next;
+        if (optional('}', token)) break;
+        token = parseIdentifier(token);
+        count++;
+      }
+    }
+    Token endBrace = token;
+    token = expect('}', token);
+    listener.endEnum(enumKeyword, endBrace, count);
+    return token;
   }
 
   Token parseClassOrNamedMixinApplication(Token token) {

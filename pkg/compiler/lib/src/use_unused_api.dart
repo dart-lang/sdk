@@ -81,6 +81,7 @@ void useNode(tree.Node node) {
     ..asCombinator()
     ..asConditional()
     ..asContinueStatement()
+    ..asEnum()
     ..asErrorExpression()
     ..asExport()
     ..asFor()

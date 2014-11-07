@@ -82,6 +82,12 @@ class Listener {
                            Token endToken) {
   }
 
+  void beginEnum(Token enumKeyword) {
+  }
+
+  void endEnum(Token enumKeyword, Token endBrace, int count) {
+  }
+
   void beginExport(Token token) {
   }
 
@@ -857,6 +863,12 @@ class ElementListener extends Listener {
     addLibraryTag(new Import(importKeyword, uri, prefix, combinators,
                              popMetadata(compilationUnitElement),
                              isDeferred: isDeferred));
+  }
+
+  void endEnum(Token enumKeyword, Token endBrace, int count) {
+    NodeList names = makeNodeList(count, enumKeyword.next.next, endBrace, ",");
+    Identifier name = popNode();
+    pushNode(new Enum(enumKeyword, name, names));
   }
 
   void endExport(Token exportKeyword, Token semicolon) {

@@ -48,6 +48,7 @@ class Keyword {
       const Keyword("abstract", isBuiltIn: true),
       const Keyword("as", info: AS_INFO, isBuiltIn: true),
       const Keyword("dynamic", isBuiltIn: true),
+      const Keyword("enum", isBuiltIn: true),
       const Keyword("export", isBuiltIn: true),
       const Keyword("external", isBuiltIn: true),
       const Keyword("factory", isBuiltIn: true),

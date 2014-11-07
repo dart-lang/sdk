@@ -124,6 +124,13 @@ class Unparser extends Indentation implements Visitor {
     write('}');
   }
 
+  visitEnum(Enum node) {
+    sb.write('enum ');
+    visit(node.name);
+    sb.write(' ');
+    visit(node.names);
+  }
+
   visitClassNode(ClassNode node) {
     unparseClassWithBody(node, node.body.nodes);
   }

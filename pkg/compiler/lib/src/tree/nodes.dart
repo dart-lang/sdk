@@ -23,6 +23,7 @@ abstract class Visitor<R> {
   R visitContinueStatement(ContinueStatement node) => visitGotoStatement(node);
   R visitDoWhile(DoWhile node) => visitLoop(node);
   R visitEmptyStatement(EmptyStatement node) => visitStatement(node);
+  R visitEnum(Enum node) => visitNode(node);
   R visitExport(Export node) => visitLibraryDependency(node);
   R visitExpression(Expression node) => visitNode(node);
   R visitExpressionStatement(ExpressionStatement node) => visitStatement(node);
@@ -158,6 +159,7 @@ abstract class Node extends NullTreeElementMixin implements Spannable {
   ContinueStatement asContinueStatement() => null;
   DoWhile asDoWhile() => null;
   EmptyStatement asEmptyStatement() => null;
+  Enum asEnum() => null;
   ErrorExpression asErrorExpression() => null;
   Export asExport() => null;
   Expression asExpression() => null;
@@ -1932,6 +1934,33 @@ class Import extends LibraryDependency {
     if (prefix != null) return prefix.getEndToken().next;
     return uri.getEndToken().next;
   }
+}
+
+/**
+ * An `enum` declaration.
+ *
+ * An `enum` defines a number of named constants inside a non-extensible class
+ */
+class Enum extends Node {
+  /** The name of the enum class. */
+  final Identifier name;
+  /** The names of the enum constants. */
+  final NodeList names;
+  final Token enumToken;
+
+  Enum(this.enumToken, this.name, this.names);
+
+  Enum asEnum() => this;
+
+  accept(Visitor visitor) => visitor.visitEnum(this);
+
+  visitChildren(Visitor visitor) {
+    name.accept(visitor);
+    if (names != null) names.accept(visitor);
+  }
+
+  Token getBeginToken() => enumToken;
+  Token getEndToken() => names.getEndToken();
 }
 
 /**

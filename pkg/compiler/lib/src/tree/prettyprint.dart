@@ -178,6 +178,10 @@ class PrettyPrinter extends Indentation implements Visitor {
     visitNodeWithChildren(node, "EmptyStatement");
   }
 
+  visitEnum(Enum node) {
+    visitNodeWithChildren(node, "Enum");
+  }
+
   visitExpressionStatement(ExpressionStatement node) {
     visitNodeWithChildren(node, "ExpressionStatement");
   }
