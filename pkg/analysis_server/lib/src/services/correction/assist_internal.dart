@@ -6,7 +6,7 @@ library services.src.correction.assist;
 
 import 'dart:collection';
 
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/source_buffer.dart';
@@ -17,6 +17,7 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -38,24 +39,27 @@ class AssistProcessor {
   final CompilationUnit unit;
   final int selectionOffset;
   final int selectionLength;
+  AnalysisContext context;
   CompilationUnitElement unitElement;
   LibraryElement unitLibraryElement;
   String unitLibraryFile;
   String unitLibraryFolder;
 
-  final List<SourceEdit> edits = <SourceEdit>[];
+  final List<Assist> assists = <Assist>[];
   final Map<String, LinkedEditGroup> linkedPositionGroups = <String,
       LinkedEditGroup>{};
   Position exitPosition = null;
-  final List<Assist> assists = <Assist>[];
 
   int selectionEnd;
   CorrectionUtils utils;
   AstNode node;
 
+  SourceChange change = new SourceChange('<message>');
+
   AssistProcessor(this.searchEngine, this.source, this.file, this.unit,
       this.selectionOffset, this.selectionLength) {
     unitElement = unit.element;
+    context = unitElement.context;
     unitLibraryElement = unitElement.library;
     unitLibraryFile = unitLibraryElement.source.fullName;
     unitLibraryFolder = dirname(unitLibraryFile);
@@ -136,17 +140,12 @@ class AssistProcessor {
       assistFile = file;
     }
     // check is there are any edits
-    if (edits.isEmpty) {
+    if (change.edits.isEmpty) {
       _coverageMarker();
       return;
     }
-    // prepare file edit
-    SourceFileEdit fileEdit = new SourceFileEdit(file, fileStamp);
-    fileEdit.addAll(edits);
     // prepare Change
-    String message = formatList(kind.message, args);
-    SourceChange change = new SourceChange(message);
-    change.addFileEdit(fileEdit);
+    change.message = formatList(kind.message, args);
     linkedPositionGroups.values.forEach(
         (group) => change.addLinkedEditGroup(group));
     change.selection = exitPosition;
@@ -154,9 +153,14 @@ class AssistProcessor {
     Assist assist = new Assist(kind, change);
     assists.add(assist);
     // clear
-    edits.clear();
+    change = new SourceChange('<message>');
     linkedPositionGroups.clear();
     exitPosition = null;
+  }
+
+  void _addIndentEdit(SourceRange range, String oldIndent, String newIndent) {
+    SourceEdit edit = utils.createIndentEdit(range, oldIndent, newIndent);
+    doSourceChange_addElementEdit(change, unitElement, edit);
   }
 
   /**
@@ -164,7 +168,47 @@ class AssistProcessor {
    */
   void _addInsertEdit(int offset, String text) {
     SourceEdit edit = new SourceEdit(offset, 0, text);
-    edits.add(edit);
+    doSourceChange_addElementEdit(change, unitElement, edit);
+  }
+
+  void _addLibraryImports(Set<LibraryElement> libraries) {
+    LibraryElement libElement = unitLibraryElement;
+    CompilationUnitElement libUnitElement = libElement.definingCompilationUnit;
+    CompilationUnit libUnit = libUnitElement.node;
+    // prepare new import location
+    int offset = 0;
+    String prefix;
+    String suffix;
+    {
+      // if no directives
+      prefix = '';
+      suffix = eol;
+      CorrectionUtils libraryUtils = new CorrectionUtils(libUnit);
+      // after last directive in library
+      for (Directive directive in libUnit.directives) {
+        if (directive is LibraryDirective || directive is ImportDirective) {
+          offset = directive.end;
+          prefix = eol;
+          suffix = '';
+        }
+      }
+      // if still at the beginning of the file, skip shebang and line comments
+      if (offset == 0) {
+        CorrectionUtils_InsertDesc desc = libraryUtils.getInsertDescTop();
+        offset = desc.offset;
+        prefix = desc.prefix;
+        suffix = desc.suffix + eol;
+      }
+    }
+    // insert imports
+    for (LibraryElement library in libraries) {
+      String importPath = getLibrarySourceUri(libElement, library.source);
+      String importCode = "${prefix}import '$importPath';$suffix";
+      doSourceChange_addElementEdit(
+          change,
+          unitLibraryElement,
+          new SourceEdit(offset, 0, importCode));
+    }
   }
 
   void _addProposal_addTypeAnnotation_DeclaredIdentifier() {
@@ -192,7 +236,9 @@ class AssistProcessor {
     String typeSource;
     DartType type = declaredIdentifier.identifier.bestType;
     if (type is InterfaceType || type is FunctionType) {
-      typeSource = utils.getTypeSource(type);
+      Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+      typeSource = utils.getTypeSource(type, librariesToImport);
+      _addLibraryImports(librariesToImport);
     } else {
       _coverageMarker();
       return;
@@ -244,7 +290,9 @@ class AssistProcessor {
     // prepare type source
     String typeSource;
     if (type is InterfaceType || type is FunctionType) {
-      typeSource = utils.getTypeSource(type);
+      Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+      typeSource = utils.getTypeSource(type, librariesToImport);
+      _addLibraryImports(librariesToImport);
     } else {
       _coverageMarker();
       return;
@@ -1264,8 +1312,7 @@ class AssistProcessor {
         SourceRange elseLinesRange = utils.getLinesRange(elseRange);
         String elseIndentOld = prefix;
         String elseIndentNew = "${elseIndentOld}${indent}";
-        edits.add(
-            utils.createIndentEdit(elseLinesRange, elseIndentOld, elseIndentNew));
+        _addIndentEdit(elseLinesRange, elseIndentOld, elseIndentNew);
       }
     }
     // indent "then" statements to correspond inner "if"
@@ -1274,8 +1321,7 @@ class AssistProcessor {
       SourceRange linesRange = utils.getLinesRangeStatements(thenStatements);
       String thenIndentOld = "${prefix}${indent}";
       String thenIndentNew = "${thenIndentOld}${indent}";
-      edits.add(
-          utils.createIndentEdit(linesRange, thenIndentOld, thenIndentNew));
+      _addIndentEdit(linesRange, thenIndentOld, thenIndentNew);
     }
     // add proposal
     _addAssist(AssistKind.SPLIT_AND_CONDITION, []);
@@ -1349,11 +1395,7 @@ class AssistProcessor {
     // "block"
     {
       _addInsertEdit(statementsRange.offset, "${indentOld}{${eol}");
-      {
-        SourceEdit edit =
-            utils.createIndentEdit(statementsRange, indentOld, indentNew);
-        edits.add(edit);
-      }
+      _addIndentEdit(statementsRange, indentOld, indentNew);
       _addInsertEdit(statementsRange.end, "${indentOld}}${eol}");
       exitPosition = _newPosition(lastStatement.end);
       // add proposal
@@ -1375,11 +1417,7 @@ class AssistProcessor {
         sb.append(eol);
         _insertBuilder(sb);
       }
-      {
-        SourceEdit edit =
-            utils.createIndentEdit(statementsRange, indentOld, indentNew);
-        edits.add(edit);
-      }
+      _addIndentEdit(statementsRange, indentOld, indentNew);
       _addInsertEdit(statementsRange.end, "${indentOld}}${eol}");
       exitPosition = _newPosition(lastStatement.end);
       // add proposal
@@ -1401,11 +1439,7 @@ class AssistProcessor {
         sb.append(eol);
         _insertBuilder(sb);
       }
-      {
-        SourceEdit edit =
-            utils.createIndentEdit(statementsRange, indentOld, indentNew);
-        edits.add(edit);
-      }
+      _addIndentEdit(statementsRange, indentOld, indentNew);
       _addInsertEdit(statementsRange.end, "${indentOld}}${eol}");
       exitPosition = _newPosition(lastStatement.end);
       // add proposal
@@ -1433,11 +1467,7 @@ class AssistProcessor {
         sb.append(eol);
         _insertBuilder(sb);
       }
-      {
-        SourceEdit edit =
-            utils.createIndentEdit(statementsRange, indentOld, indentNew);
-        edits.add(edit);
-      }
+      _addIndentEdit(statementsRange, indentOld, indentNew);
       _addInsertEdit(statementsRange.end, "${indentOld}}${eol}");
       exitPosition = _newPosition(lastStatement.end);
       // add proposal
@@ -1477,11 +1507,7 @@ class AssistProcessor {
         sb.append(eol);
         _insertBuilder(sb);
       }
-      {
-        SourceEdit edit =
-            utils.createIndentEdit(statementsRange, indentOld, indentNew);
-        edits.add(edit);
-      }
+      _addIndentEdit(statementsRange, indentOld, indentNew);
       _addInsertEdit(statementsRange.end, "${indentOld}}${eol}");
       exitPosition = _newPosition(lastStatement.end);
       // add proposal
@@ -1490,11 +1516,7 @@ class AssistProcessor {
     // "do-while"
     {
       _addInsertEdit(statementsRange.offset, "${indentOld}do {${eol}");
-      {
-        SourceEdit edit =
-            utils.createIndentEdit(statementsRange, indentOld, indentNew);
-        edits.add(edit);
-      }
+      _addIndentEdit(statementsRange, indentOld, indentNew);
       {
         int offset = statementsRange.end;
         SourceBuilder sb = new SourceBuilder(file, offset);
@@ -1516,11 +1538,7 @@ class AssistProcessor {
     // "try-catch"
     {
       _addInsertEdit(statementsRange.offset, "${indentOld}try {${eol}");
-      {
-        SourceEdit edit =
-            utils.createIndentEdit(statementsRange, indentOld, indentNew);
-        edits.add(edit);
-      }
+      _addIndentEdit(statementsRange, indentOld, indentNew);
       {
         int offset = statementsRange.end;
         SourceBuilder sb = new SourceBuilder(file, offset);
@@ -1562,11 +1580,7 @@ class AssistProcessor {
     // "try-finally"
     {
       _addInsertEdit(statementsRange.offset, "${indentOld}try {${eol}");
-      {
-        SourceEdit edit =
-            utils.createIndentEdit(statementsRange, indentOld, indentNew);
-        edits.add(edit);
-      }
+      _addIndentEdit(statementsRange, indentOld, indentNew);
       {
         int offset = statementsRange.end;
         SourceBuilder sb = new SourceBuilder(file, offset);
@@ -1608,7 +1622,7 @@ class AssistProcessor {
    */
   void _addReplaceEdit(SourceRange range, String text) {
     SourceEdit edit = new SourceEdit(range.offset, range.length, text);
-    edits.add(edit);
+    doSourceChange_addElementEdit(change, unitElement, edit);
   }
 
   /**

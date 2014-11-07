@@ -1057,7 +1057,7 @@ class FixProcessor {
         String libraryFile = librarySource.fullName;
         // may be "package:" URI
         {
-          String libraryPackageUri = _findPackageUri(context, libraryFile);
+          String libraryPackageUri = findAbsoluteUri(context, libraryFile);
           if (libraryPackageUri != null) {
             _addFix_importLibrary(
                 FixKind.IMPORT_LIBRARY_PROJECT,
@@ -1191,7 +1191,7 @@ class FixProcessor {
         if (substringAfterLast(libFile, '/') == uriName) {
           String fixedUri;
           // may be "package:" URI
-          String libPackageUri = _findPackageUri(context, libFile);
+          String libPackageUri = findAbsoluteUri(context, libFile);
           if (libPackageUri != null) {
             fixedUri = libPackageUri;
           } else {
@@ -1420,7 +1420,9 @@ class FixProcessor {
       }
       // append type name
       DartType type = argument.bestType;
-      String typeSource = utils.getTypeSource(type);
+      Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+      // TODO(scheglov) use librariesToImport
+      String typeSource = utils.getTypeSource(type, librariesToImport);
       {
         sb.startPosition("TYPE${i}");
         sb.append(typeSource);
@@ -1504,7 +1506,10 @@ class FixProcessor {
       MethodInvocation invocation = node.parent as MethodInvocation;
       if (invocation.methodName == node) {
         Expression target = invocation.target;
-        String targetType = utils.getExpressionTypeSource(target);
+        Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+        // TODO(scheglov) use librariesToImport
+        String targetType =
+            utils.getExpressionTypeSource(target, librariesToImport);
         // replace "target" with class name
         SourceRange range = rf.rangeNode(target);
         _addReplaceEdit(range, targetType);
@@ -1520,7 +1525,10 @@ class FixProcessor {
         PrefixedIdentifier prefixed = node.parent as PrefixedIdentifier;
         if (prefixed.identifier == node) {
           Expression target = prefixed.prefix;
-          String targetType = utils.getExpressionTypeSource(target);
+          Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+          // TODO(scheglov) use librariesToImport
+          String targetType =
+              utils.getExpressionTypeSource(target, librariesToImport);
           // replace "target" with class name
           SourceRange range = rf.rangeNode(target);
           _addReplaceEdit(range, targetType);
@@ -1596,7 +1604,9 @@ class FixProcessor {
         // append type name
         DartType type = parameter.type;
         if (!type.isDynamic) {
-          String typeSource = utils.getTypeSource(type);
+          Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+          // TODO(scheglov) use librariesToImport
+          String typeSource = utils.getTypeSource(type, librariesToImport);
           {
             sb.startPosition("TYPE${i}");
             sb.append(typeSource);
@@ -1700,7 +1710,10 @@ class FixProcessor {
   }
 
   void _appendParameterSource(SourceBuilder sb, DartType type, String name) {
-    String parameterSource = utils.getParameterSource(type, name);
+    Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+    // TODO(scheglov) use librariesToImport
+    String parameterSource =
+        utils.getParameterSource(type, name, librariesToImport);
     sb.append(parameterSource);
   }
 
@@ -1754,7 +1767,9 @@ class FixProcessor {
 
   void _appendType(SourceBuilder sb, DartType type, [String groupId]) {
     if (type != null && !type.isDynamic) {
-      String typeSource = utils.getTypeSource(type);
+      Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+      // TODO(scheglov) use librariesToImport
+      String typeSource = utils.getTypeSource(type, librariesToImport);
       if (groupId != null) {
         sb.startPosition(groupId);
         sb.append(typeSource);
@@ -2069,23 +2084,6 @@ class FixProcessor {
         _addSuperTypeProposals(sb, alreadyAdded, interfaceType);
       }
     }
-  }
-
-  /**
-   * Attempts to convert the given absolute path into a "package" URI.
-   *
-   * [context] - the [AnalysisContext] to work in.
-   * [path] - the absolute path, not `null`.
-   *
-   * Returns the "package" URI, may be `null`.
-   */
-  static String _findPackageUri(AnalysisContext context, String path) {
-    Source fileSource = new NonExistingSource(path, UriKind.FILE_URI);
-    Uri uri = context.sourceFactory.restoreUri(fileSource);
-    if (uri == null) {
-      return null;
-    }
-    return uri.toString();
   }
 
   /**

@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
@@ -188,6 +189,28 @@ main(List<String> items) {
 ''');
   }
 
+  void test_addTypeAnnotation_declaredIdentifier_OK_addImport_dartUri() {
+    addSource('/my_lib.dart', r'''
+import 'dart:async';
+List<Future<int>> getFutures() => null;
+''');
+    _indexTestUnit('''
+import 'my_lib.dart';
+main() {
+  for (var future in getFutures()) {
+  }
+}
+''');
+    assertHasAssistAt('future in', AssistKind.ADD_TYPE_ANNOTATION, '''
+import 'my_lib.dart';
+import 'dart:async';
+main() {
+  for (Future<int> future in getFutures()) {
+  }
+}
+''');
+  }
+
   void test_addTypeAnnotation_declaredIdentifier_OK_final() {
     _indexTestUnit('''
 main(List<String> items) {
@@ -199,6 +222,103 @@ main(List<String> items) {
 main(List<String> items) {
   for (final String item in items) {
   }
+}
+''');
+  }
+
+  void test_addTypeAnnotation_local_OK_addImport_dartUri() {
+    addSource('/my_lib.dart', r'''
+import 'dart:async';
+Future<int> getFutureInt() => null;
+''');
+    _indexTestUnit('''
+import 'my_lib.dart';
+main() {
+  var v = getFutureInt();
+}
+''');
+    assertHasAssistAt('v =', AssistKind.ADD_TYPE_ANNOTATION, '''
+import 'my_lib.dart';
+import 'dart:async';
+main() {
+  Future<int> v = getFutureInt();
+}
+''');
+  }
+
+  void test_addTypeAnnotation_local_OK_addImport_notLibraryUnit() {
+    // prepare library
+    addSource('/my_lib.dart', r'''
+import 'dart:async';
+Future<int> getFutureInt() => null;
+''');
+    // prepare code
+    String appCode = r'''
+library my_app;
+import 'my_lib.dart';
+part 'test.dart';
+''';
+    testCode = r'''
+part of my_app;
+main() {
+  var v = getFutureInt();
+}
+''';
+    // add sources
+    Source appSource = addSource('/app.dart', appCode);
+    testSource = addSource('/test.dart', testCode);
+    // resolve
+    context.resolveCompilationUnit2(appSource, appSource);
+    testUnit = context.resolveCompilationUnit2(testSource, appSource);
+    assertNoErrorsInSource(testSource);
+    testUnitElement = testUnit.element;
+    testLibraryElement = testUnitElement.library;
+    // prepare the assist
+    offset = findOffset('v = ');
+    assist = _assertHasAssist(AssistKind.ADD_TYPE_ANNOTATION);
+    change = assist.change;
+    // verify
+    {
+      var testFileEdit = change.getFileEdit('/app.dart');
+      var resultCode = SourceEdit.applySequence(appCode, testFileEdit.edits);
+      expect(resultCode, '''
+library my_app;
+import 'my_lib.dart';
+import 'dart:async';
+part 'test.dart';
+''');
+    }
+    {
+      var testFileEdit = change.getFileEdit('/test.dart');
+      var resultCode = SourceEdit.applySequence(testCode, testFileEdit.edits);
+      expect(resultCode, '''
+part of my_app;
+main() {
+  Future<int> v = getFutureInt();
+}
+''');
+    }
+  }
+
+  void test_addTypeAnnotation_local_OK_addImport_relUri() {
+    addSource('/aa/bbb/lib_a.dart', r'''
+class MyClass {}
+''');
+    addSource('/ccc/lib_b.dart', r'''
+import '../aa/bbb/lib_a.dart';
+MyClass newMyClass() => null;
+''');
+    _indexTestUnit('''
+import 'ccc/lib_b.dart';
+main() {
+  var v = newMyClass();
+}
+''');
+    assertHasAssistAt('v =', AssistKind.ADD_TYPE_ANNOTATION, '''
+import 'ccc/lib_b.dart';
+import 'aa/bbb/lib_a.dart';
+main() {
+  MyClass v = newMyClass();
 }
 ''');
   }

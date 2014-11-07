@@ -89,7 +89,7 @@ library dart.async;
 
 import 'dart:math';
 
-class Future {
+class Future<T> {
   static Future wait(List<Future> futures) => null;
 }
 

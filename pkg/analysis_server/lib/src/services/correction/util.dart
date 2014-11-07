@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:path/path.dart';
 
 
 /**
@@ -48,6 +49,25 @@ Expression climbPropertyAccess(AstNode node) {
     }
     return node;
   }
+}
+
+
+/**
+ * Attempts to convert the given absolute path into an absolute URI, such as
+ * "dart" or "package" URI.
+ *
+ * [context] - the [AnalysisContext] to work in.
+ * [path] - the absolute path, not `null`.
+ *
+ * Returns the absolute (non-file) URI or `null`.
+ */
+String findAbsoluteUri(AnalysisContext context, String path) {
+  Source fileSource = new NonExistingSource(path, UriKind.FILE_URI);
+  Uri uri = context.sourceFactory.restoreUri(fileSource);
+  if (uri == null) {
+    return null;
+  }
+  return uri.toString();
 }
 
 
@@ -222,6 +242,23 @@ Map<String, Element> getImportNamespace(ImportElement imp) {
 }
 
 /**
+ * Computes the best URI to import [what] into [from].
+ */
+String getLibrarySourceUri(LibraryElement from, Source what) {
+  String whatFile = what.fullName;
+  // check if an absolute URI (such as 'dart:' or 'package:')
+  Uri whatUri = what.uri;
+  String whatUriScheme = whatUri.scheme;
+  if (whatUriScheme != '' && whatUriScheme != 'file') {
+    return whatUri.toString();
+  }
+  // compute a relative URI
+  String fromFolder = dirname(from.source.fullName);
+  String relativeFile = relative(whatFile, from: fromFolder);
+  return split(relativeFile).join('/');
+}
+
+/**
  * Returns the line prefix from the given source, i.e. basically just a
  * whitespace prefix of the given [String].
  */
@@ -236,6 +273,7 @@ String getLinePrefix(String line) {
   }
   return line.substring(0, index);
 }
+
 
 /**
  * @return the [LocalVariableElement] or [ParameterElement] if given
@@ -390,7 +428,6 @@ Expression getQualifiedPropertyTarget(AstNode node) {
   return null;
 }
 
-
 /**
  * Returns the given [Statement] if not a [Block], or the first child
  * [Statement] if a [Block], or `null` if more than one child.
@@ -405,6 +442,7 @@ Statement getSingleStatement(Statement statement) {
   }
   return statement;
 }
+
 
 /**
  * Returns the [String] content of the given [Source].
@@ -541,7 +579,8 @@ class CorrectionUtils {
    * Returns the actual type source of the given [Expression], may be `null`
    * if can not be resolved, should be treated as the `dynamic` type.
    */
-  String getExpressionTypeSource(Expression expression) {
+  String getExpressionTypeSource(Expression expression,
+      Set<LibraryElement> librariesToImport) {
     if (expression == null) {
       return null;
     }
@@ -549,7 +588,7 @@ class CorrectionUtils {
     if (type.isDynamic) {
       return null;
     }
-    return getTypeSource(type);
+    return getTypeSource(type, librariesToImport);
   }
 
   /**
@@ -825,7 +864,8 @@ class CorrectionUtils {
   /**
    * @return the source for the parameter with the given type and name.
    */
-  String getParameterSource(DartType type, String name) {
+  String getParameterSource(DartType type, String name,
+      Set<LibraryElement> librariesToImport) {
     // no type
     if (type == null || type.isDynamic) {
       return name;
@@ -837,7 +877,7 @@ class CorrectionUtils {
       // return type
       DartType returnType = functionType.returnType;
       if (returnType != null && !returnType.isDynamic) {
-        sb.write(getTypeSource(returnType));
+        sb.write(getTypeSource(returnType, librariesToImport));
         sb.write(' ');
       }
       // parameter name
@@ -850,14 +890,16 @@ class CorrectionUtils {
         if (i != 0) {
           sb.write(", ");
         }
-        sb.write(getParameterSource(fParameter.type, fParameter.name));
+        sb.write(
+            getParameterSource(fParameter.type, fParameter.name, librariesToImport));
       }
       sb.write(')');
       // done
       return sb.toString();
     }
     // simple type
-    return "${getTypeSource(type)} ${name}";
+    String typeSource = getTypeSource(type, librariesToImport);
+    return '$typeSource $name';
   }
 
   /**
@@ -885,8 +927,11 @@ class CorrectionUtils {
 
   /**
    * Returns the source to reference [type] in this [CompilationUnit].
+   *
+   * Fills [librariesToImport] with [LibraryElement]s whose elements are
+   * used by the generated source, but not imported.
    */
-  String getTypeSource(DartType type) {
+  String getTypeSource(DartType type, Set<LibraryElement> librariesToImport) {
     StringBuffer sb = new StringBuffer();
     // just a Function, not FunctionTypeAliasElement
     if (type is FunctionType && type.element is! FunctionTypeAliasElement) {
@@ -900,12 +945,16 @@ class CorrectionUtils {
       source = source.replaceAll('<dynamic, dynamic>', '');
       return source;
     }
-    // append prefix
+    // check if imported
     {
-      ImportElement imp = _getImportElement(element);
-      if (imp != null && imp.prefix != null) {
-        sb.write(imp.prefix.displayName);
-        sb.write(".");
+      ImportElement importElement = _getImportElement(element);
+      if (importElement != null) {
+        if (importElement.prefix != null) {
+          sb.write(importElement.prefix.displayName);
+          sb.write(".");
+        }
+      } else {
+        librariesToImport.add(element.library);
       }
     }
     // append simple name
@@ -930,7 +979,8 @@ class CorrectionUtils {
           if (i != 0) {
             sb.write(", ");
           }
-          sb.write(getTypeSource(argument));
+          String argumentSrc = getTypeSource(argument, librariesToImport);
+          sb.write(argumentSrc);
         }
         sb.write(">");
       }
