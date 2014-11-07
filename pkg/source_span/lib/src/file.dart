@@ -73,7 +73,7 @@ class SourceFile {
   /// If [end] isn't passed, it defaults to the end of the file.
   FileSpan span(int start, [int end]) {
     if (end == null) end = length - 1;
-    return new FileSpan._(this, location(start), location(end));
+    return new FileSpan._(this, start, end);
   }
 
   /// Returns a location in [this] at [offset].
@@ -172,7 +172,7 @@ class FileLocation extends SourceLocation {
     }
   }
 
-  FileSpan pointSpan() => new FileSpan._(file, this, this);
+  FileSpan pointSpan() => new FileSpan._(file, offset, offset);
 }
 
 /// A [SourceSpan] within a [SourceFile].
@@ -187,14 +187,26 @@ class FileSpan extends SourceSpanMixin {
   /// The [file] that [this] belongs to.
   final SourceFile file;
 
-  final FileLocation start;
-  final FileLocation end;
+  /// The offset of the beginning of the span.
+  ///
+  /// [start] is lazily generated from this to avoid allocating unnecessary
+  /// objects.
+  final int _start;
+
+  /// The offset of the end of the span.
+  ///
+  /// [end] is lazily generated from this to avoid allocating unnecessary
+  /// objects.
+  final int _end;
+
+  FileLocation get start => new FileLocation._(file, _start);
+  FileLocation get end => new FileLocation._(file, _end);
 
   String get text => file.getText(start.offset, end.offset);
 
-  FileSpan._(this.file, this.start, this.end) {
-    if (end.offset < start.offset) {
-      throw new ArgumentError('End $end must come after start $start.');
+  FileSpan._(this.file, this._start, this._end) {
+    if (_end < _start) {
+      throw new ArgumentError('End $_end must come after start $_start.');
     }
   }
 
@@ -222,8 +234,8 @@ class FileSpan extends SourceSpanMixin {
           " \"${other.sourceUrl}\" don't match.");
     }
 
-    var start = min(this.start, other.start);
-    var end = max(this.end, other.end);
+    var start = math.min(this._start, other._start);
+    var end = math.max(this._end, other._end);
     return new FileSpan._(file, start, end);    
   }
 

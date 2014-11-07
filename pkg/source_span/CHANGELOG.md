@@ -1,3 +1,7 @@
+# 1.0.1
+
+* Use a more compact internal representation for `FileSpan`.
+
 # 1.0.0
 
 This package was extracted from the
