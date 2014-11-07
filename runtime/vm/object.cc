@@ -942,7 +942,7 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
 
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
       ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
-      raw->ptr()->length_ = Smi::New(leftover_len);
+      raw->StoreSmi(&(raw->ptr()->length_), Smi::New(leftover_len));
     } else {
       // Update the leftover space as a basic object.
       ASSERT(leftover_size == Object::InstanceSize());
@@ -12185,8 +12185,10 @@ RawCode* Code::FinalizeCode(const char* name,
     for (intptr_t i = 0; i < pointer_offsets.length(); i++) {
       intptr_t offset_in_instrs = pointer_offsets[i];
       code.SetPointerOffsetAt(i, offset_in_instrs);
-      const Object* object = region.Load<const Object*>(offset_in_instrs);
-      region.Store<RawObject*>(offset_in_instrs, object->raw());
+      uword addr = region.start() + offset_in_instrs;
+      const Object* object = *reinterpret_cast<Object**>(addr);
+      instrs.raw()->StorePointer(reinterpret_cast<RawObject**>(addr),
+                                 object->raw());
     }
 
     // Hook up Code and Instructions objects.
@@ -18263,8 +18265,8 @@ RawOneByteString* OneByteString::New(intptr_t len,
                                       space);
     NoGCScope no_gc;
     RawOneByteString* result = reinterpret_cast<RawOneByteString*>(raw);
-    result->ptr()->length_ = Smi::New(len);
-    result->ptr()->hash_ = 0;
+    result->StoreSmi(&(result->ptr()->length_), Smi::New(len));
+    result->StoreSmi(&(result->ptr()->hash_), Smi::New(0));
     return result;
   }
 }
@@ -18801,7 +18803,7 @@ RawArray* Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
                          Array::InstanceSize(len),
                          space));
     NoGCScope no_gc;
-    raw->ptr()->length_ = Smi::New(len);
+    raw->StoreSmi(&(raw->ptr()->length_), Smi::New(len));
     return raw;
   }
 }
