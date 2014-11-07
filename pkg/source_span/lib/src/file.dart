@@ -207,6 +207,11 @@ class FileSpan extends SourceSpanMixin {
   FileSpan._(this.file, this._start, this._end) {
     if (_end < _start) {
       throw new ArgumentError('End $_end must come after start $_start.');
+    } else if (_end > file.length) {
+      throw new RangeError("End $_end must not be greater than the number "
+          "of characters in the file, ${file.length}.");
+    } else if (_start < 0) {
+      throw new RangeError("Start may not be negative, was $_start.");
     }
   }
 
