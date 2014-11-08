@@ -163,9 +163,6 @@ override_inheritance_no_such_method_test/03: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/04: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/05: StaticWarning # Issue 16132
 
-# test issue 20074
-regress_20074_test: CompileTimeError # Issue 20074
-
 # The following tests are currently assumed to be failing because the test is wrong.
 #
 application_negative_test: CompileTimeError # Test Issue 14528

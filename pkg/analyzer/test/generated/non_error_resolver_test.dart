@@ -3385,6 +3385,52 @@ class A {
     verify([source]);
   }
 
+  void test_parameterScope_local() {
+    // Parameter names shouldn't conflict with the name of the function they
+    // are enclosed in.
+    Source source = addSource(r'''
+f() {
+  g(g) {
+    h(g);
+  }
+}
+h(x) {}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_parameterScope_method() {
+    // Parameter names shouldn't conflict with the name of the function they
+    // are enclosed in.
+    Source source = addSource(r'''
+class C {
+  g(g) {
+    h(g);
+  }
+}
+h(x) {}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_parameterScope_toplevel() {
+    // Parameter names shouldn't conflict with the name of the function they
+    // are enclosed in.
+    Source source = addSource(r'''
+g(g) {
+  h(g);
+}
+h(x) {}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_prefixCollidesWithTopLevelMembers() {
     addNamedSource("/lib.dart", r'''
 library lib;

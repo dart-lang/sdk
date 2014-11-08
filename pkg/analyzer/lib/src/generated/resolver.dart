@@ -5294,12 +5294,6 @@ class FunctionScope extends EnclosedScope {
     }
     _parametersDefined = true;
     Scope parameterScope = enclosingScope;
-    if (_functionElement.enclosingElement is ExecutableElement) {
-      String name = _functionElement.name;
-      if (name != null && !name.isEmpty) {
-        parameterScope.define(_functionElement);
-      }
-    }
     for (ParameterElement parameter in _functionElement.parameters) {
       if (!parameter.isInitializingFormal) {
         parameterScope.define(parameter);
@@ -12748,6 +12742,10 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement functionElement = node.element;
+    if (functionElement != null &&
+        functionElement.enclosingElement is! CompilationUnitElement) {
+      _nameScope.define(functionElement);
+    }
     Scope outerScope = _nameScope;
     try {
       if (functionElement == null) {
@@ -12760,9 +12758,6 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       super.visitFunctionDeclaration(node);
     } finally {
       _nameScope = outerScope;
-    }
-    if (functionElement != null && functionElement.enclosingElement is! CompilationUnitElement) {
-      _nameScope.define(functionElement);
     }
     return null;
   }

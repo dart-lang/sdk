@@ -1191,26 +1191,6 @@ class A {
     verify([source]);
   }
 
-  void test_duplicateDefinition_parameterWithFunctionName_local() {
-    Source source = addSource(r'''
-main() {
-  f(f) {}
-}''');
-    resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
-    verify([source]);
-  }
-
-  void test_duplicateDefinition_parameterWithFunctionName_topLevel() {
-    Source source = addSource(r'''
-main() {
-  f(f) {}
-}''');
-    resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
-    verify([source]);
-  }
-
   void test_duplicateDefinitionInheritance_instanceGetter_staticGetter() {
     Source source = addSource(r'''
 class A {
