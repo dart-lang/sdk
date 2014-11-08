@@ -15,7 +15,7 @@ import 'element.dart';
  * Instances of the class `AnalysisError` represent an error discovered during the analysis of
  * some Dart code.
  *
- * @see AnalysisErrorListener
+ * See [AnalysisErrorListener].
  */
 class AnalysisError {
   /**
@@ -803,8 +803,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * @param typeName the name of the type being referenced (<i>S</i>)
    * @param parameterCount the number of type parameters that were declared
    * @param argumentCount the number of type arguments provided
-   * @see CompileTimeErrorCode#NEW_WITH_INVALID_TYPE_PARAMETERS
-   * @see StaticTypeWarningCode#WRONG_NUMBER_OF_TYPE_ARGUMENTS
+   * See [CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS], and
+   * [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS].
    */
   static const CompileTimeErrorCode CONST_WITH_INVALID_TYPE_PARAMETERS = const CompileTimeErrorCode('CONST_WITH_INVALID_TYPE_PARAMETERS', "The type '{0}' is declared with {1} type parameters, but {2} type arguments were given");
 
@@ -919,7 +919,7 @@ class CompileTimeErrorCode extends ErrorCode {
    * @param className the name of the class that has conflicting instance/static
    *        members
    * @param name the name of the conflicting members
-   * @see [DUPLICATE_DEFINITION]
+   * See [DUPLICATE_DEFINITION].
    */
   static const CompileTimeErrorCode DUPLICATE_DEFINITION_INHERITANCE = const CompileTimeErrorCode('DUPLICATE_DEFINITION_INHERITANCE', "The name '{0}' is already defined in '{1}'");
 
@@ -981,7 +981,7 @@ class CompileTimeErrorCode extends ErrorCode {
    * or implement String.
    *
    * @param typeName the name of the type that cannot be extended
-   * @see [IMPLEMENTS_DISALLOWED_CLASS]
+   * See [IMPLEMENTS_DISALLOWED_CLASS].
    */
   static const CompileTimeErrorCode EXTENDS_DISALLOWED_CLASS = const CompileTimeErrorCode('EXTENDS_DISALLOWED_CLASS', "Classes cannot extend '{0}'");
 
@@ -990,8 +990,7 @@ class CompileTimeErrorCode extends ErrorCode {
    * class <i>C</i> includes a deferred type expression.
    *
    * @param typeName the name of the type that cannot be extended
-   * @see [IMPLEMENTS_DEFERRED_CLASS]
-   * @see [MIXIN_DEFERRED_CLASS]
+   * See [IMPLEMENTS_DEFERRED_CLASS], and [MIXIN_DEFERRED_CLASS].
    */
   static const CompileTimeErrorCode EXTENDS_DEFERRED_CLASS = const CompileTimeErrorCode('EXTENDS_DEFERRED_CLASS', "This class cannot extend the deferred class '{0}'");
 
@@ -1069,8 +1068,7 @@ class CompileTimeErrorCode extends ErrorCode {
    * superinterface.
    *
    * @param typeName the name of the type that cannot be extended
-   * @see [EXTENDS_DEFERRED_CLASS]
-   * @see [MIXIN_DEFERRED_CLASS]
+   * See [EXTENDS_DEFERRED_CLASS], and [MIXIN_DEFERRED_CLASS].
    */
   static const CompileTimeErrorCode IMPLEMENTS_DEFERRED_CLASS = const CompileTimeErrorCode('IMPLEMENTS_DEFERRED_CLASS', "This class cannot implement the deferred class '{0}'");
 
@@ -1095,7 +1093,7 @@ class CompileTimeErrorCode extends ErrorCode {
    * or implement String.
    *
    * @param typeName the name of the type that cannot be implemented
-   * @see [EXTENDS_DISALLOWED_CLASS]
+   * See [EXTENDS_DISALLOWED_CLASS].
    */
   static const CompileTimeErrorCode IMPLEMENTS_DISALLOWED_CLASS = const CompileTimeErrorCode('IMPLEMENTS_DISALLOWED_CLASS', "Classes cannot implement '{0}'");
 
@@ -1162,7 +1160,7 @@ class CompileTimeErrorCode extends ErrorCode {
    * immediate import does not refer to a library declaration.
    *
    * @param uri the uri pointing to a non-library declaration
-   * @see [StaticWarningCode.IMPORT_OF_NON_LIBRARY]
+   * See [StaticWarningCode.IMPORT_OF_NON_LIBRARY].
    */
   static const CompileTimeErrorCode IMPORT_OF_NON_LIBRARY = const CompileTimeErrorCode('IMPORT_OF_NON_LIBRARY', "The imported library '{0}' must not have a part-of directive");
 
@@ -1185,7 +1183,7 @@ class CompileTimeErrorCode extends ErrorCode {
    *
    * @param id the name of the initializing formal that is not an instance
    *        variable in the immediately enclosing class
-   * @see [INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]
+   * See [INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD].
    */
   static const CompileTimeErrorCode INITIALIZER_FOR_NON_EXISTENT_FIELD = const CompileTimeErrorCode('INITIALIZER_FOR_NON_EXISTENT_FIELD', "'{0}' is not a variable in the enclosing class");
 
@@ -1197,7 +1195,7 @@ class CompileTimeErrorCode extends ErrorCode {
    *
    * @param id the name of the initializing formal that is a static variable in
    *        the immediately enclosing class
-   * @see #INITIALIZING_FORMAL_FOR_STATIC_FIELD
+   * See [INITIALIZING_FORMAL_FOR_STATIC_FIELD].
    */
   static const CompileTimeErrorCode INITIALIZER_FOR_STATIC_FIELD = const CompileTimeErrorCode('INITIALIZER_FOR_STATIC_FIELD', "'{0}' is a static variable in the enclosing class, variables initialized in a constructor cannot be static");
 
@@ -1208,8 +1206,8 @@ class CompileTimeErrorCode extends ErrorCode {
    *
    * @param id the name of the initializing formal that is not an instance
    *        variable in the immediately enclosing class
-   * @see [INITIALIZING_FORMAL_FOR_STATIC_FIELD]
-   * @see [INITIALIZER_FOR_NON_EXISTENT_FIELD]
+   * See [INITIALIZING_FORMAL_FOR_STATIC_FIELD], and
+   * [INITIALIZER_FOR_NON_EXISTENT_FIELD].
    */
   static const CompileTimeErrorCode INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD = const CompileTimeErrorCode('INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD', "'{0}' is not a variable in the enclosing class");
 
@@ -1220,7 +1218,7 @@ class CompileTimeErrorCode extends ErrorCode {
    *
    * @param id the name of the initializing formal that is a static variable in
    *        the immediately enclosing class
-   * @see [INITIALIZER_FOR_STATIC_FIELD]
+   * See [INITIALIZER_FOR_STATIC_FIELD].
    */
   static const CompileTimeErrorCode INITIALIZING_FORMAL_FOR_STATIC_FIELD = const CompileTimeErrorCode('INITIALIZING_FORMAL_FOR_STATIC_FIELD', "'{0}' is a static field in the enclosing class, fields initialized in a constructor cannot be static");
 
@@ -1336,7 +1334,7 @@ class CompileTimeErrorCode extends ErrorCode {
    * valid part declaration.
    *
    * @param uri the URI that is invalid
-   * @see [URI_DOES_NOT_EXIST]
+   * See [URI_DOES_NOT_EXIST].
    */
   static const CompileTimeErrorCode INVALID_URI = const CompileTimeErrorCode('INVALID_URI', "Invalid URI syntax: '{0}'");
 
@@ -1416,8 +1414,7 @@ class CompileTimeErrorCode extends ErrorCode {
    * mixin application <i>C</i> includes a deferred type expression.
    *
    * @param typeName the name of the type that cannot be extended
-   * @see #EXTENDS_DEFERRED_CLASS
-   * @see #IMPLEMENTS_DEFERRED_CLASS
+   * See [EXTENDS_DEFERRED_CLASS], and [IMPLEMENTS_DEFERRED_CLASS].
    */
   static const CompileTimeErrorCode MIXIN_DEFERRED_CLASS = const CompileTimeErrorCode('MIXIN_DEFERRED_CLASS', "This class cannot mixin the deferred class '{0}'");
 
@@ -1449,7 +1446,7 @@ class CompileTimeErrorCode extends ErrorCode {
    * or implement String.
    *
    * @param typeName the name of the type that cannot be extended
-   * @see [IMPLEMENTS_DISALLOWED_CLASS]
+   * See [IMPLEMENTS_DISALLOWED_CLASS].
    */
   static const CompileTimeErrorCode MIXIN_OF_DISALLOWED_CLASS = const CompileTimeErrorCode('MIXIN_OF_DISALLOWED_CLASS', "Classes cannot mixin '{0}'");
 
@@ -1624,7 +1621,7 @@ class CompileTimeErrorCode extends ErrorCode {
    * constant constructor.
    *
    * "From deferred library" case is covered by
-   * [CompileTimeErrorCode#INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY].
+   * [CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY].
    */
   static const CompileTimeErrorCode NON_CONSTANT_ANNOTATION_CONSTRUCTOR = const CompileTimeErrorCode('NON_CONSTANT_ANNOTATION_CONSTRUCTOR', "Annotation creation can use only 'const' constructor");
 
@@ -1883,7 +1880,7 @@ class CompileTimeErrorCode extends ErrorCode {
    *        that should be limited by the bound as specified in the class
    *        declaration
    * @param boundingTypeName the name of the bounding type
-   * @see [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]
+   * See [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
    */
   static const CompileTimeErrorCode TYPE_ARGUMENT_NOT_MATCHING_BOUNDS = const CompileTimeErrorCode('TYPE_ARGUMENT_NOT_MATCHING_BOUNDS', "'{0}' does not extend '{1}'");
 
@@ -1941,7 +1938,7 @@ class CompileTimeErrorCode extends ErrorCode {
    * valid part declaration.
    *
    * @param uri the URI pointing to a non-existent file
-   * @see [INVALID_URI]
+   * See [INVALID_URI].
    */
   static const CompileTimeErrorCode URI_DOES_NOT_EXIST = const CompileTimeErrorCode('URI_DOES_NOT_EXIST', "Target of URI does not exist: '{0}'");
 
@@ -2493,7 +2490,7 @@ class HintCode extends ErrorCode {
    *
    * @param rhsTypeName the name of the right hand side type
    * @param lhsTypeName the name of the left hand side type
-   * @see [StaticTypeWarningCode.INVALID_ASSIGNMENT]
+   * See [StaticTypeWarningCode.INVALID_ASSIGNMENT].
    */
   static const HintCode INVALID_ASSIGNMENT = const HintCode('INVALID_ASSIGNMENT', "A value of type '{0}' cannot be assigned to a variable of type '{1}'");
 
@@ -2548,8 +2545,8 @@ class HintCode extends ErrorCode {
    * @param getterName the name of the getter
    * @param enclosingType the name of the enclosing type where the getter is
    *        being looked for
-   * @see [StaticTypeWarningCode.UNDEFINED_GETTER]
-   * @see [StaticWarningCode.UNDEFINED_GETTER]
+   * See [StaticTypeWarningCode.UNDEFINED_GETTER], and
+   * [StaticWarningCode.UNDEFINED_GETTER].
    */
   static const HintCode UNDEFINED_GETTER = const HintCode('UNDEFINED_GETTER', "There is no such getter '{0}' in '{1}'");
 
@@ -2561,7 +2558,7 @@ class HintCode extends ErrorCode {
    * @param methodName the name of the method that is undefined
    * @param typeName the resolved type name that the method lookup is happening
    *        on
-   * @see [StaticTypeWarningCode.UNDEFINED_METHOD]
+   * See [StaticTypeWarningCode.UNDEFINED_METHOD].
    */
   static const HintCode UNDEFINED_METHOD = const HintCode('UNDEFINED_METHOD', "The method '{0}' is not defined for the class '{1}'");
 
@@ -2573,7 +2570,7 @@ class HintCode extends ErrorCode {
    * @param operator the name of the operator
    * @param enclosingType the name of the enclosing type where the operator is
    *        being looked for
-   * @see [StaticTypeWarningCode.UNDEFINED_OPERATOR]
+   * See [StaticTypeWarningCode.UNDEFINED_OPERATOR].
    */
   static const HintCode UNDEFINED_OPERATOR = const HintCode('UNDEFINED_OPERATOR', "There is no such operator '{0}' in '{1}'");
 
@@ -2586,8 +2583,8 @@ class HintCode extends ErrorCode {
    * @param setterName the name of the setter
    * @param enclosingType the name of the enclosing type where the setter is
    *        being looked for
-   * @see [StaticTypeWarningCode.UNDEFINED_SETTER]
-   * @see [StaticWarningCode.UNDEFINED_SETTER]
+   * See [StaticTypeWarningCode.UNDEFINED_SETTER], and
+   * [StaticWarningCode.UNDEFINED_SETTER].
    */
   static const HintCode UNDEFINED_SETTER = const HintCode('UNDEFINED_SETTER', "There is no such setter '{0}' in '{1}'");
 
@@ -2766,7 +2763,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * It is a static type warning if <i>T</i> does not have an accessible
    * instance setter named <i>v=</i>.
    *
-   * @see [UNDEFINED_SETTER]
+   * See [UNDEFINED_SETTER].
    */
   static const StaticTypeWarningCode INACCESSIBLE_SETTER = const StaticTypeWarningCode('INACCESSIBLE_SETTER', "");
 
@@ -2805,7 +2802,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * not have an accessible (3.2) instance member named <i>m</i>.
    *
    * @param memberName the name of the static member
-   * @see [UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER]
+   * See [UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER].
    */
   static const StaticTypeWarningCode INSTANCE_ACCESS_TO_STATIC_MEMBER = const StaticTypeWarningCode('INSTANCE_ACCESS_TO_STATIC_MEMBER', "Static member '{0}' cannot be accessed using instance access");
 
@@ -2945,7 +2942,7 @@ class StaticTypeWarningCode extends ErrorCode {
    *        that should be limited by the bound as specified in the class
    *        declaration
    * @param boundingTypeName the name of the bounding type
-   * @see [TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND]
+   * See [TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
    */
   static const StaticTypeWarningCode TYPE_ARGUMENT_NOT_MATCHING_BOUNDS = const StaticTypeWarningCode('TYPE_ARGUMENT_NOT_MATCHING_BOUNDS', "'{0}' does not extend '{1}'");
 
@@ -2954,7 +2951,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * of its upper bound.
    *
    * @param typeParameterName the name of the type parameter
-   * @see [TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]
+   * See [TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
    */
   static const StaticTypeWarningCode TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND = const StaticTypeWarningCode('TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND', "'{0}' cannot be a supertype of its upper bound");
 
@@ -3033,7 +3030,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * @param setterName the name of the setter
    * @param enclosingType the name of the enclosing type where the setter is
    *        being looked for
-   * @see [INACCESSIBLE_SETTER]
+   * See [INACCESSIBLE_SETTER].
    */
   static const StaticTypeWarningCode UNDEFINED_SETTER = const StaticTypeWarningCode('UNDEFINED_SETTER', "There is no such setter '{0}' in '{1}'");
 
@@ -3067,8 +3064,8 @@ class StaticTypeWarningCode extends ErrorCode {
    * @param typeName the name of the type being referenced (<i>G</i>)
    * @param parameterCount the number of type parameters that were declared
    * @param argumentCount the number of type arguments provided
-   * @see [CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS]
-   * @see [CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS]
+   * See [CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS], and
+   * [CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS].
    */
   static const StaticTypeWarningCode WRONG_NUMBER_OF_TYPE_ARGUMENTS = const StaticTypeWarningCode('WRONG_NUMBER_OF_TYPE_ARGUMENTS', "The type '{0}' is declared with {1} type parameters, but {2} type arguments were given");
 
@@ -3303,7 +3300,7 @@ class StaticWarningCode extends ErrorCode {
    *
    * @param requiredCount the maximum number of positional arguments
    * @param argumentCount the actual number of positional arguments given
-   * @see [NOT_ENOUGH_REQUIRED_ARGUMENTS]
+   * See [NOT_ENOUGH_REQUIRED_ARGUMENTS].
    */
   static const StaticWarningCode EXTRA_POSITIONAL_ARGUMENTS = const StaticWarningCode('EXTRA_POSITIONAL_ARGUMENTS', "{0} positional arguments expected, but {1} found");
 
@@ -3404,7 +3401,7 @@ class StaticWarningCode extends ErrorCode {
    * import does not refer to a library declaration.
    *
    * @param uri the uri pointing to a non-library declaration
-   * @see [CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY]
+   * See [CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY].
    */
   static const StaticWarningCode IMPORT_OF_NON_LIBRARY = const StaticWarningCode('IMPORT_OF_NON_LIBRARY', "The imported library '{0}' must not have a part-of directive");
 
@@ -3442,7 +3439,7 @@ class StaticWarningCode extends ErrorCode {
    *        assignable to the actualReturnTypeName
    * @param className the name of the class where the overridden getter is
    *        declared
-   * @see [INVALID_METHOD_OVERRIDE_RETURN_TYPE]
+   * See [INVALID_METHOD_OVERRIDE_RETURN_TYPE].
    */
   static const StaticWarningCode INVALID_GETTER_OVERRIDE_RETURN_TYPE = const StaticWarningCode('INVALID_GETTER_OVERRIDE_RETURN_TYPE', "The return type '{0}' is not assignable to '{1}' as required by the getter it is overriding from '{2}'");
 
@@ -3469,7 +3466,7 @@ class StaticWarningCode extends ErrorCode {
    *        assignable to the actualParamTypeName
    * @param className the name of the class where the overridden method is
    *        declared
-   * @see [INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]
+   * See [INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE].
    */
   static const StaticWarningCode INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE = const StaticWarningCode('INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE', "The parameter type '{0}' is not assignable to '{1}' as required by the method it is overriding from '{2}'");
 
@@ -3496,7 +3493,7 @@ class StaticWarningCode extends ErrorCode {
    *        assignable to the actualReturnTypeName
    * @param className the name of the class where the overridden method is
    *        declared
-   * @see [INVALID_GETTER_OVERRIDE_RETURN_TYPE]
+   * See [INVALID_GETTER_OVERRIDE_RETURN_TYPE].
    */
   static const StaticWarningCode INVALID_METHOD_OVERRIDE_RETURN_TYPE = const StaticWarningCode('INVALID_METHOD_OVERRIDE_RETURN_TYPE', "The return type '{0}' is not assignable to '{1}' as required by the method it is overriding from '{2}'");
 
@@ -3560,7 +3557,7 @@ class StaticWarningCode extends ErrorCode {
    *        assignable to the actualParamTypeName
    * @param className the name of the class where the overridden setter is
    *        declared
-   * @see [INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]
+   * See [INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE].
    */
   static const StaticWarningCode INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE = const StaticWarningCode('INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE', "The parameter type '{0}' is not assignable to '{1}' as required by the setter it is overriding from '{2}'");
 
@@ -3647,8 +3644,8 @@ class StaticWarningCode extends ErrorCode {
    * @param typeName the name of the type being referenced (<i>S</i>)
    * @param parameterCount the number of type parameters that were declared
    * @param argumentCount the number of type arguments provided
-   * @see [CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS]
-   * @see [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]
+   * See [CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS], and
+   * [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS].
    */
   static const StaticWarningCode NEW_WITH_INVALID_TYPE_PARAMETERS = const StaticWarningCode('NEW_WITH_INVALID_TYPE_PARAMETERS', "The type '{0}' is declared with {1} type parameters, but {2} type arguments were given");
 
@@ -3835,7 +3832,7 @@ class StaticWarningCode extends ErrorCode {
    *
    * @param requiredCount the expected number of required arguments
    * @param argumentCount the actual number of positional arguments given
-   * @see [EXTRA_POSITIONAL_ARGUMENTS]
+   * See [EXTRA_POSITIONAL_ARGUMENTS].
    */
   static const StaticWarningCode NOT_ENOUGH_REQUIRED_ARGUMENTS = const StaticWarningCode('NOT_ENOUGH_REQUIRED_ARGUMENTS', "{0} required argument(s) expected, but {1} found");
 

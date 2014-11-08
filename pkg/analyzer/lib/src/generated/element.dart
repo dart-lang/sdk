@@ -3876,8 +3876,8 @@ class ElementLocationImpl implements ElementLocation {
 }
 
 /**
- * The class `ElementPair` is a pair of [Element]s. [Object#equals] and
- * [Object#hashCode] so this class can be used in hashed data structures.
+ * The class `ElementPair` is a pair of [Element]s. [Object.==] and
+ * [Object.hashCode] so this class can be used in hashed data structures.
  */
 class ElementPair {
   /**
@@ -6241,8 +6241,7 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
  * The interface `HtmlScriptElement` defines the behavior of elements representing a script
  * tag in an HTML file.
  *
- * @see EmbeddedHtmlScriptElement
- * @see ExternalHtmlScriptElement
+ * See [EmbeddedHtmlScriptElement], and [ExternalHtmlScriptElement],
  */
 abstract class HtmlScriptElement implements Element {
 }
@@ -6688,7 +6687,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @param type the [Type] to compute the longest inheritance path of from the passed
    *          [Type] to Object
    * @return the computed longest inheritance path to Object
-   * @see InterfaceType#getLeastUpperBound(Type)
+   * See [InterfaceType.getLeastUpperBound].
    */
   static int computeLongestInheritancePathToObject(InterfaceType type) => _computeLongestInheritancePathToObject(type, 0, new HashSet<ClassElement>());
 
@@ -6697,7 +6696,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    *
    * @param type the [Type] to compute the set of superinterfaces of
    * @return the [Set] of superinterfaces of the passed [Type]
-   * @see #getLeastUpperBound(Type)
+   * See [getLeastUpperBound].
    */
   static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type) => _computeSuperinterfaceSet(type, new HashSet<InterfaceType>());
 
@@ -6711,8 +6710,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @param depth a field used recursively
    * @param visitedClasses the classes that have already been visited
    * @return the computed longest inheritance path to Object
-   * @see #computeLongestInheritancePathToObject(Type)
-   * @see #getLeastUpperBound(Type)
+   * See [computeLongestInheritancePathToObject], and [getLeastUpperBound].
    */
   static int _computeLongestInheritancePathToObject(InterfaceType type, int depth, HashSet<ClassElement> visitedClasses) {
     ClassElement classElement = type.element;
@@ -6755,8 +6753,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @param type the [Type] to compute the set of superinterfaces of
    * @param set a [HashSet] used recursively by this method
    * @return the [Set] of superinterfaces of the passed [Type]
-   * @see #computeSuperinterfaceSet(Type)
-   * @see #getLeastUpperBound(Type)
+   * See [computeSuperinterfaceSet], and [getLeastUpperBound].
    */
   static Set<InterfaceType> _computeSuperinterfaceSet(InterfaceType type, HashSet<InterfaceType> set) {
     Element element = type.element;

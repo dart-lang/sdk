@@ -289,8 +289,9 @@ class CorrectionUtils {
   }
 
   /**
-   * @return the precedence of the given node - result of [Expression#getPrecedence] if an
-   *         [Expression], negative otherwise.
+   * Return the precedence of the given [node]: the result of invoking
+   * [Expression.precedence] if the node is an [Expression], or a negative value
+   * otherwise.
    */
   static int getExpressionPrecedence(AstNode node) {
     if (node is Expression) {
@@ -425,8 +426,10 @@ class CorrectionUtils {
   }
 
   /**
-   * @return the precedence of the given [Expression] parent. May be `-1` no operator.
-   * @see #getPrecedence(Expression)
+   * Return the precedence of the given [expression]'s parent. May be `-1` no
+   * operator.
+   *
+   * See [getPrecedence].
    */
   static int getParentPrecedence(Expression expression) {
     AstNode parent = expression.parent;
@@ -665,7 +668,8 @@ class CorrectionUtils {
   }
 
   /**
-   * @return `true` if the given [Element#getDisplayName] equals to the given name.
+   * Return `true` if the given [element]'s display name ([Element.displayName])
+   * is equal to the given [name].
    */
   static bool hasDisplayName(Element element, String name) {
     if (element == null) {
@@ -676,7 +680,8 @@ class CorrectionUtils {
   }
 
   /**
-   * @return `true` if the given [Element#getName] equals to the given name.
+   * Return `true` if the given [element]'s name ([Element.name]) is equal to
+   * the given [name].
    */
   static bool hasName(Element element, String name) {
     if (element == null) {
@@ -909,7 +914,7 @@ class CorrectionUtils {
   AstNode findNode(int offset) => new NodeLocator.con1(offset).searchWithin(unit);
 
   /**
-   * TODO(scheglov) replace with nodes once there will be [CompilationUnit#getComments].
+   * TODO(scheglov) replace with nodes once there will be [CompilationUnit.comments].
    *
    * @return the [SourceRange]s of all comments in [CompilationUnit].
    */

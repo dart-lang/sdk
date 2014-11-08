@@ -42,9 +42,8 @@ class DirectoryBasedSourceContainer implements SourceContainer {
 
   /**
    * Construct a container representing the specified directory and containing any sources whose
-   * [Source#getFullName] starts with the directory's path. This is a convenience method,
-   * fully equivalent to [DirectoryBasedSourceContainer#DirectoryBasedSourceContainer]
-   * .
+   * [Source.fullName] starts with the directory's path. This is a convenience method,
+   * fully equivalent to [DirectoryBasedSourceContainer.con2].
    *
    * @param directory the directory (not `null`)
    */
@@ -52,7 +51,7 @@ class DirectoryBasedSourceContainer implements SourceContainer {
 
   /**
    * Construct a container representing the specified path and containing any sources whose
-   * [Source#getFullName] starts with the specified path.
+   * [Source.fullName] starts with the specified path.
    *
    * @param path the path (not `null` and not empty)
    */
@@ -200,13 +199,13 @@ class FileBasedSource implements Source {
   /**
    * Get the contents and timestamp of the underlying file.
    *
-   * Clients should consider using the the method [AnalysisContext#getContents]
+   * Clients should consider using the the method [AnalysisContext.getContents]
    * because contexts can have local overrides of the content of a source that the source is not
    * aware of.
    *
    * @return the contents of the source paired with the modification stamp of the source
    * @throws Exception if the contents of this source could not be accessed
-   * @see #getContents()
+   * See [contents].
    */
   TimestampedData<String> get contentsFromFile {
     return new TimestampedData<String>(file.lastModified(), file.readAsStringSync());

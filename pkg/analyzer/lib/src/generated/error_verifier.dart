@@ -90,7 +90,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * This is set to `true` iff the visitor is currently visiting children nodes of a
    * [ConstructorDeclaration] and the constructor is 'const'.
    *
-   * @see #visitConstructorDeclaration(ConstructorDeclaration)
+   * See [visitConstructorDeclaration].
    */
   bool _isEnclosingConstructorConst = false;
 
@@ -108,7 +108,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * This is set to `true` iff the visitor is currently visiting children nodes of a
    * [CatchClause].
    *
-   * @see #visitCatchClause(CatchClause)
+   * See [visitCatchClause].
    */
   bool _isInCatchClause = false;
 
@@ -187,7 +187,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * This is set to `false` on the entry of every [BlockFunctionBody], and is restored
    * to the enclosing value on exit. The value is used in
    * [checkForMixedReturns] to prevent both
-   * [StaticWarningCode#MIXED_RETURN_TYPES] and [StaticWarningCode#RETURN_WITHOUT_VALUE]
+   * [StaticWarningCode.MIXED_RETURN_TYPES] and [StaticWarningCode.RETURN_WITHOUT_VALUE]
    * from being generated in the same function body.
    */
   bool _hasReturnWithoutValue = false;
@@ -221,14 +221,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * not in an enclosing class declaration, then the map is set to `null`.
    *
    * When set the map maps the set of [FieldElement]s in the class to an
-   * [INIT_STATE#NOT_INIT] or [INIT_STATE#INIT_IN_DECLARATION]. <code>checkFor*</code>
+   * [INIT_STATE.NOT_INIT] or [INIT_STATE.INIT_IN_DECLARATION]. <code>checkFor*</code>
    * methods, specifically [checkForAllFinalInitializedErrorCodes],
    * can make a copy of the map to compute error code states. <code>checkFor*</code> methods should
    * only ever make a copy, or read from this map after it has been set in
    * [visitClassDeclaration].
    *
-   * @see #visitClassDeclaration(ClassDeclaration)
-   * @see #checkForAllFinalInitializedErrorCodes(ConstructorDeclaration)
+   * See [visitClassDeclaration], and [_checkForAllFinalInitializedErrorCodes].
    */
   HashMap<FieldElement, INIT_STATE> _initialFieldElementsMap;
 
@@ -253,26 +252,26 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   HashSet<String> _namesForReferenceToDeclaredVariableInInitializer = new HashSet<String>();
 
   /**
-   * A list of types used by the [CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS] and
-   * [CompileTimeErrorCode#IMPLEMENTS_DISALLOWED_CLASS] error codes.
+   * A list of types used by the [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS] and
+   * [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS] error codes.
    */
   List<InterfaceType> _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT;
 
   /**
    * Static final string with value `"getter "` used in the construction of the
-   * [StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE], and similar, error
+   * [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE], and similar, error
    * code messages.
    *
-   * @see #checkForNonAbstractClassInheritsAbstractMember(ClassDeclaration)
+   * See [_checkForNonAbstractClassInheritsAbstractMember].
    */
   static String _GETTER_SPACE = "getter ";
 
   /**
    * Static final string with value `"setter "` used in the construction of the
-   * [StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE], and similar, error
+   * [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE], and similar, error
    * code messages.
    *
-   * @see #checkForNonAbstractClassInheritsAbstractMember(ClassDeclaration)
+   * See [_checkForNonAbstractClassInheritsAbstractMember].
    */
   static String _SETTER_SPACE = "setter ";
 
@@ -1069,7 +1068,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param typeArguments the type arguments, always non-`null`
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticTypeWarningCode#EXPECTED_TWO_MAP_TYPE_ARGUMENTS
+   * See [StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS].
    */
   bool _checkExpectedTwoMapTypeArguments(TypeArgumentList typeArguments) {
     // check number of type arguments
@@ -1088,9 +1087,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the [ConstructorDeclaration] to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see #initialFieldElementsMap
-   * @see CompileTimeErrorCode#FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR
-   * @see CompileTimeErrorCode#FINAL_INITIALIZED_MULTIPLE_TIMES
+   * See [_initialFieldElementsMap],
+   * [StaticWarningCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR],
+   * and [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES].
    */
   bool _checkForAllFinalInitializedErrorCodes(ConstructorDeclaration node) {
     if (node.factoryKeyword != null || node.redirectedConstructor != null || node.externalKeyword != null) {
@@ -1187,17 +1186,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param parameters the parameters of the executable element
    * @param errorNameTarget the node to report problems on
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
-   * @see CompileTimeErrorCode#INVALID_OVERRIDE_REQUIRED
-   * @see CompileTimeErrorCode#INVALID_OVERRIDE_POSITIONAL
-   * @see CompileTimeErrorCode#INVALID_OVERRIDE_NAMED
-   * @see StaticWarningCode#INVALID_GETTER_OVERRIDE_RETURN_TYPE
-   * @see StaticWarningCode#INVALID_METHOD_OVERRIDE_RETURN_TYPE
-   * @see StaticWarningCode#INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE
-   * @see StaticWarningCode#INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE
-   * @see StaticWarningCode#INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE
-   * @see StaticWarningCode#INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE
-   * @see StaticWarningCode#INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES
+   * See [StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC],
+   * [CompileTimeErrorCode.INVALID_OVERRIDE_REQUIRED],
+   * [CompileTimeErrorCode.INVALID_OVERRIDE_POSITIONAL],
+   * [CompileTimeErrorCode.INVALID_OVERRIDE_NAMED],
+   * [StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE],
+   * [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE],
+   * [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE],
+   * [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE],
+   * [StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE],
+   * [StaticWarningCode.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE], and
+   * [StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES].
    */
   bool _checkForAllInvalidOverrideErrorCodes(ExecutableElement executableElement, ExecutableElement overriddenExecutable, List<ParameterElement> parameters, List<AstNode> parameterLocations, SimpleIdentifier errorNameTarget) {
     bool isGetter = false;
@@ -1445,7 +1444,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the [MethodDeclaration] to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see #checkForAllInvalidOverrideErrorCodes(ExecutableElement)
+   * See [_checkForAllInvalidOverrideErrorCodes].
    */
   bool _checkForAllInvalidOverrideErrorCodesForField(FieldDeclaration node) {
     if (_enclosingClass == null || node.isStatic) {
@@ -1488,7 +1487,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the [MethodDeclaration] to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see #checkForAllInvalidOverrideErrorCodes(ExecutableElement)
+   * See [_checkForAllInvalidOverrideErrorCodes].
    */
   bool _checkForAllInvalidOverrideErrorCodesForMethod(MethodDeclaration node) {
     if (_enclosingClass == null || node.isStatic || node.body is NativeFunctionBody) {
@@ -1513,9 +1512,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the 'with' clause to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#MIXIN_DECLARES_CONSTRUCTOR
-   * @see CompileTimeErrorCode#MIXIN_INHERITS_FROM_NOT_OBJECT
-   * @see CompileTimeErrorCode#MIXIN_REFERENCES_SUPER
+   * See [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR],
+   * [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT], and
+   * [CompileTimeErrorCode.MIXIN_REFERENCES_SUPER].
    */
   bool _checkForAllMixinErrorCodes(WithClause withClause) {
     if (withClause == null) {
@@ -1557,9 +1556,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the constructor declaration to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#REDIRECT_TO_INVALID_RETURN_TYPE
-   * @see StaticWarningCode#REDIRECT_TO_INVALID_FUNCTION_TYPE
-   * @see StaticWarningCode#REDIRECT_TO_MISSING_CONSTRUCTOR
+   * See [StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE],
+   * [StaticWarningCode.REDIRECT_TO_INVALID_FUNCTION_TYPE], and
+   * [StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR].
    */
   bool _checkForAllRedirectConstructorErrorCodes(ConstructorDeclaration node) {
     //
@@ -1627,9 +1626,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the return statement to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#RETURN_IN_GENERATIVE_CONSTRUCTOR
-   * @see StaticWarningCode#RETURN_WITHOUT_VALUE
-   * @see StaticTypeWarningCode#RETURN_OF_INVALID_TYPE
+   * See [CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR],
+   * [StaticWarningCode.RETURN_WITHOUT_VALUE], and
+   * [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE].
    */
   bool _checkForAllReturnStatementErrorCodes(ReturnStatement node) {
     FunctionType functionType = _enclosingFunction == null ? null : _enclosingFunction.type;
@@ -1669,7 +1668,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *          node was `null`, then this method is not called
    * @param exportedLibrary the library element containing the exported element
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#AMBIGUOUS_EXPORT
+   * See [CompileTimeErrorCode.AMBIGUOUS_EXPORT].
    */
   bool _checkForAmbiguousExport(ExportDirective node, ExportElement exportElement, LibraryElement exportedLibrary) {
     if (exportedLibrary == null) {
@@ -1706,13 +1705,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *          `null`
    * @param actualPropagatedType the expected propagated type of the parameter, may be `null`
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
-   * @see CompileTimeErrorCode#LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-   * @see StaticWarningCode#LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-   * @see CompileTimeErrorCode#MAP_KEY_TYPE_NOT_ASSIGNABLE
-   * @see CompileTimeErrorCode#MAP_VALUE_TYPE_NOT_ASSIGNABLE
-   * @see StaticWarningCode#MAP_KEY_TYPE_NOT_ASSIGNABLE
-   * @see StaticWarningCode#MAP_VALUE_TYPE_NOT_ASSIGNABLE
+   * See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE],
+   * [CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE],
+   * [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE],
+   * [CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE],
+   * [CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE],
+   * [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE], and
+   * [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE].
    */
   bool _checkForArgumentTypeNotAssignable(Expression expression, DartType expectedStaticType, DartType actualStaticType, ErrorCode errorCode) {
     //
@@ -1734,7 +1733,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param argument the argument to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   * See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
    */
   bool _checkForArgumentTypeNotAssignableForArgument(Expression argument) {
     if (argument == null) {
@@ -1755,13 +1754,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param expectedStaticType the expected static type
    * @param expectedPropagatedType the expected propagated type, may be `null`
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
-   * @see CompileTimeErrorCode#LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-   * @see StaticWarningCode#LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-   * @see CompileTimeErrorCode#MAP_KEY_TYPE_NOT_ASSIGNABLE
-   * @see CompileTimeErrorCode#MAP_VALUE_TYPE_NOT_ASSIGNABLE
-   * @see StaticWarningCode#MAP_KEY_TYPE_NOT_ASSIGNABLE
-   * @see StaticWarningCode#MAP_VALUE_TYPE_NOT_ASSIGNABLE
+   * See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE],
+   * [CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE],
+   * [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE],
+   * [CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE],
+   * [CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE],
+   * [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE], and
+   * [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE].
    */
   bool _checkForArgumentTypeNotAssignableWithExpectedTypes(Expression expression, DartType expectedStaticType, ErrorCode errorCode) => _checkForArgumentTypeNotAssignable(expression, expectedStaticType, getStaticType(expression), errorCode);
 
@@ -1772,7 +1771,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the arguments to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   * See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
    */
   bool _checkForArgumentTypesNotAssignableInList(ArgumentList argumentList) {
     if (argumentList == null) {
@@ -1817,9 +1816,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the expression to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#ASSIGNMENT_TO_CONST
-   * @see StaticWarningCode#ASSIGNMENT_TO_FINAL
-   * @see StaticWarningCode#ASSIGNMENT_TO_METHOD
+   * See [StaticWarningCode.ASSIGNMENT_TO_CONST],
+   * [StaticWarningCode.ASSIGNMENT_TO_FINAL], and
+   * [StaticWarningCode.ASSIGNMENT_TO_METHOD].
    */
   bool _checkForAssignmentToFinal(Expression expression) {
     // prepare element
@@ -1874,13 +1873,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param identifier the identifier to check to ensure that it is not a keyword
    * @param errorCode if the passed identifier is a keyword then this error code is created on the
    *          identifier, the error code will be one of
-   *          [CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_NAME],
-   *          [CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME] or
-   *          [CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME]
+   *          [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME],
+   *          [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME] or
+   *          [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME]
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_NAME
-   * @see CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME
-   * @see CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME
+   * See [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME],
+   * [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME], and
+   * [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME].
    */
   bool _checkForBuiltInIdentifierAsName(SimpleIdentifier identifier, ErrorCode errorCode) {
     sc.Token token = identifier.token;
@@ -1897,7 +1896,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the switch case to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#CASE_BLOCK_NOT_TERMINATED
+   * see [StaticWarningCode.CASE_BLOCK_NOT_TERMINATED].
    */
   bool _checkForCaseBlockNotTerminated(SwitchCase node) {
     NodeList<Statement> statements = node.statements;
@@ -1938,7 +1937,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the switch statement containing the cases to be checked
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#CASE_BLOCK_NOT_TERMINATED
+   * See [StaticWarningCode.CASE_BLOCK_NOT_TERMINATED].
    */
   bool _checkForCaseBlocksNotTerminated(SwitchStatement node) {
     bool foundError = false;
@@ -1959,7 +1958,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the method declaration to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+   * See [StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER].
    */
   bool _checkForConcreteClassWithAbstractMember(MethodDeclaration node) {
     if (node.isAbstract && _enclosingClass != null && !_enclosingClass.isAbstract) {
@@ -1988,10 +1987,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param node the constructor declaration to evaluate
    * @param constructorElement the constructor element
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#DUPLICATE_CONSTRUCTOR_DEFAULT
-   * @see CompileTimeErrorCode#DUPLICATE_CONSTRUCTOR_NAME
-   * @see CompileTimeErrorCode#CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD
-   * @see CompileTimeErrorCode#CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD
+   * See [CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT],
+   * [CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME],
+   * [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD], and
+   * [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD].
    */
   bool _checkForConflictingConstructorNameAndMember(ConstructorDeclaration node, ConstructorElement constructorElement) {
     SimpleIdentifier constructorName = node.name;
@@ -2035,8 +2034,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * same name on, via inheritance.
    *
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CONFLICTING_GETTER_AND_METHOD
-   * @see CompileTimeErrorCode#CONFLICTING_METHOD_AND_GETTER
+   * See [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD], and
+   * [CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER].
    */
   bool _checkForConflictingGetterAndMethod() {
     if (_enclosingClass == null) {
@@ -2087,8 +2086,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the method declaration to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER
-   * @see StaticWarningCode#CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER
+   * See [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER], and
+   * [StaticWarningCode.CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER].
    */
   bool _checkForConflictingInstanceGetterAndSuperclassMember() {
     if (_enclosingClass == null) {
@@ -2148,7 +2147,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the method declaration to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#CONFLICTING_INSTANCE_METHOD_SETTER
+   * See [StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER].
    */
   bool _checkForConflictingInstanceMethodSetter(ClassDeclaration node) {
     // Reference all of the class members in this class.
@@ -2229,7 +2228,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the method declaration to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER
+   * See [StaticWarningCode.CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER].
    */
   bool _checkForConflictingStaticGetterAndInstanceSetter(MethodDeclaration node) {
     if (!node.isStatic) {
@@ -2269,7 +2268,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the method declaration to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER
+   * See [StaticWarningCode.CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER].
    */
   bool _checkForConflictingStaticSetterAndInstanceMember(MethodDeclaration node) {
     if (!node.isStatic) {
@@ -2315,8 +2314,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the class declaration to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CONFLICTING_TYPE_VARIABLE_AND_CLASS
-   * @see CompileTimeErrorCode#CONFLICTING_TYPE_VARIABLE_AND_MEMBER
+   * See [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS], and
+   * [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER].
    */
   bool _checkForConflictingTypeVariableErrorCodes(ClassDeclaration node) {
     bool problemReported = false;
@@ -2342,7 +2341,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the constructor declaration to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER
+   * See [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER].
    */
   bool _checkForConstConstructorWithNonConstSuper(ConstructorDeclaration node) {
     if (!_isEnclosingConstructorConst) {
@@ -2396,7 +2395,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param node the constructor declaration to evaluate
    * @param constructorElement the constructor element
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
+   * See [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD].
    */
   bool _checkForConstConstructorWithNonFinalField(ConstructorDeclaration node, ConstructorElement constructorElement) {
     if (!_isEnclosingConstructorConst) {
@@ -2420,7 +2419,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param constructorName the constructor name, always non-`null`
    * @param typeName the name of the type defining the constructor, always non-`null`
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CONST_DEFERRED_CLASS
+   * See [CompileTimeErrorCode.CONST_DEFERRED_CLASS].
    */
   bool _checkForConstDeferredClass(InstanceCreationExpression node, ConstructorName constructorName, TypeName typeName) {
     if (typeName.isDeferred) {
@@ -2436,7 +2435,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the throw expression expression to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CONST_CONSTRUCTOR_THROWS_EXCEPTION
+   * See [CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION].
    */
   bool _checkForConstEvalThrowsException(ThrowExpression node) {
     if (_isEnclosingConstructorConst) {
@@ -2451,7 +2450,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the normal formal parameter to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CONST_FORMAL_PARAMETER
+   * See [CompileTimeErrorCode.CONST_FORMAL_PARAMETER].
    */
   bool _checkForConstFormalParameter(NormalFormalParameter node) {
     if (node.isConst) {
@@ -2470,8 +2469,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *          [InstanceCreationExpression], this is the AST node that the error is attached to
    * @param type the type being constructed with this [InstanceCreationExpression]
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#CONST_WITH_ABSTRACT_CLASS
-   * @see StaticWarningCode#NEW_WITH_ABSTRACT_CLASS
+   * See [StaticWarningCode.CONST_WITH_ABSTRACT_CLASS], and
+   * [StaticWarningCode.NEW_WITH_ABSTRACT_CLASS].
    */
   bool _checkForConstOrNewWithAbstractClass(InstanceCreationExpression node, TypeName typeName, InterfaceType type) {
     if (type.element.isAbstract) {
@@ -2496,7 +2495,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *          [InstanceCreationExpression], this is the AST node that the error is attached to
    * @param type the type being constructed with this [InstanceCreationExpression]
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#INSTANTIATE_ENUM
+   * See [CompileTimeErrorCode.INSTANTIATE_ENUM].
    */
   bool _checkForConstOrNewWithEnum(InstanceCreationExpression node, TypeName typeName, InterfaceType type) {
     if (type.element.isEnum) {
@@ -2514,7 +2513,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the instance creation expression to verify
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CONST_WITH_NON_CONST
+   * See [CompileTimeErrorCode.CONST_WITH_NON_CONST].
    */
   bool _checkForConstWithNonConst(InstanceCreationExpression node) {
     ConstructorElement constructorElement = node.staticElement;
@@ -2530,7 +2529,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param typeName the type name to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CONST_WITH_TYPE_PARAMETERS
+   * See [CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS].
    */
   bool _checkForConstWithTypeParameters(TypeName typeName) {
     // something wrong with AST
@@ -2570,8 +2569,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param constructorName the constructor name, always non-`null`
    * @param typeName the name of the type defining the constructor, always non-`null`
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CONST_WITH_UNDEFINED_CONSTRUCTOR
-   * @see CompileTimeErrorCode#CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT
+   * See [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR], and
+   * [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT].
    */
   bool _checkForConstWithUndefinedConstructor(InstanceCreationExpression node, ConstructorName constructorName, TypeName typeName) {
     // OK if resolved
@@ -2602,7 +2601,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the function type alias to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS
+   * See [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS].
    */
   bool _checkForDefaultValueInFunctionTypeAlias(FunctionTypeAlias node) {
     bool result = false;
@@ -2626,7 +2625,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the default formal parameter to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER
+   * See [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER].
    */
   bool _checkForDefaultValueInFunctionTypedParameter(DefaultFormalParameter node) {
     // OK, not in a function typed parameter.
@@ -2647,7 +2646,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the compilation unit containing the imports to be checked
    * @return `true` if an error was generated
-   * @see CompileTimeErrorCode#SHARED_DEFERRED_PREFIX
+   * See [CompileTimeErrorCode.SHARED_DEFERRED_PREFIX].
    */
   bool _checkForDeferredPrefixCollisions(CompilationUnit node) {
     bool foundError = false;
@@ -2688,7 +2687,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * the static member.
    *
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#DUPLICATE_DEFINITION_INHERITANCE
+   * See [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE].
    */
   bool _checkForDuplicateDefinitionInheritance() {
     if (_enclosingClass == null) {
@@ -2714,7 +2713,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param staticMember the static member to check conflict for
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#DUPLICATE_DEFINITION_INHERITANCE
+   * See [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE].
    */
   bool _checkForDuplicateDefinitionOfMember(ExecutableElement staticMember) {
     // prepare name
@@ -2751,7 +2750,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param node the list literal to evaluate
    * @param typeArguments the type arguments, always non-`null`
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticTypeWarningCode#EXPECTED_ONE_LIST_TYPE_ARGUMENTS
+   * See [StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS].
    */
   bool _checkForExpectedOneListTypeArgument(ListLiteral node, TypeArgumentList typeArguments) {
     // check number of type arguments
@@ -2772,7 +2771,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *          node was `null`, then this method is not called
    * @param exportedLibrary the library element containing the exported element
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#EXPORT_DUPLICATED_LIBRARY_NAME
+   * See [CompileTimeErrorCode.EXPORT_DUPLICATED_LIBRARY_NAME].
    */
   bool _checkForExportDuplicateLibraryName(ExportDirective node, ExportElement exportElement, LibraryElement exportedLibrary) {
     if (exportedLibrary == null) {
@@ -2814,7 +2813,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param exportElement the [ExportElement] retrieved from the node, if the element in the
    *          node was `null`, then this method is not called
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#EXPORT_INTERNAL_LIBRARY
+   * See [CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY].
    */
   bool _checkForExportInternalLibrary(ExportDirective node, ExportElement exportElement) {
     if (_isInSystemLibrary) {
@@ -2840,7 +2839,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the extends clause to test
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#EXTENDS_DEFERRED_CLASS
+   * See [CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS].
    */
   bool _checkForExtendsDeferredClass(ExtendsClause node) {
     if (node == null) {
@@ -2854,7 +2853,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the extends clause to test
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS
+   * See [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS].
    */
   bool _checkForExtendsDeferredClassInTypeAlias(ClassTypeAlias node) {
     if (node == null) {
@@ -2868,7 +2867,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the extends clause to test
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS
+   * See [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS].
    */
   bool _checkForExtendsDisallowedClass(ExtendsClause node) {
     if (node == null) {
@@ -2882,7 +2881,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the extends clause to test
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS
+   * See [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS].
    */
   bool _checkForExtendsDisallowedClassInTypeAlias(ClassTypeAlias node) {
     if (node == null) {
@@ -2897,13 +2896,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the type name to test
    * @return `true` if and only if an error code is generated on the passed node
-   * @see #checkForExtendsDeferredClass(ExtendsClause)
-   * @see #checkForExtendsDeferredClassInTypeAlias(ClassTypeAlias)
-   * @see #checkForImplementsDeferredClass(ImplementsClause)
-   * @see #checkForAllMixinErrorCodes(WithClause)
-   * @see CompileTimeErrorCode#EXTENDS_DEFERRED_CLASS
-   * @see CompileTimeErrorCode#IMPLEMENTS_DEFERRED_CLASS
-   * @see CompileTimeErrorCode#MIXIN_DEFERRED_CLASS
+   * See [_checkForExtendsDeferredClass],
+   * [_checkForExtendsDeferredClassInTypeAlias],
+   * [_checkForImplementsDeferredClass],
+   * [_checkForAllMixinErrorCodes],
+   * [CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS],
+   * [CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS], and
+   * [CompileTimeErrorCode.MIXIN_DEFERRED_CLASS].
    */
   bool _checkForExtendsOrImplementsDeferredClass(TypeName typeName, ErrorCode errorCode) {
     if (typeName.isSynthetic) {
@@ -2922,13 +2921,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the type name to test
    * @return `true` if and only if an error code is generated on the passed node
-   * @see #checkForExtendsDisallowedClass(ExtendsClause)
-   * @see #checkForExtendsDisallowedClassInTypeAlias(ClassTypeAlias)
-   * @see #checkForImplementsDisallowedClass(ImplementsClause)
-   * @see #checkForAllMixinErrorCodes(WithClause)
-   * @see CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS
-   * @see CompileTimeErrorCode#IMPLEMENTS_DISALLOWED_CLASS
-   * @see CompileTimeErrorCode#MIXIN_OF_DISALLOWED_CLASS
+   * See [_checkForExtendsDisallowedClass],
+   * [_checkForExtendsDisallowedClassInTypeAlias],
+   * [_checkForImplementsDisallowedClass],
+   * [_checkForAllMixinErrorCodes],
+   * [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS],
+   * [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS], and
+   * [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS].
    */
   bool _checkForExtendsOrImplementsDisallowedClass(TypeName typeName, ErrorCode errorCode) {
     if (typeName.isSynthetic) {
@@ -2969,8 +2968,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param staticElement the static element from the name in the
    *          [ConstructorFieldInitializer]
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE
-   * @see StaticWarningCode#FIELD_INITIALIZER_NOT_ASSIGNABLE
+   * See [CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE], and
+   * [StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE].
    */
   bool _checkForFieldInitializerNotAssignable(ConstructorFieldInitializer node, Element staticElement) {
     // prepare field element
@@ -3029,7 +3028,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the field formal parameter to test
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
+   * See [CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR].
    */
   bool _checkForFieldInitializingFormalRedirectingConstructor(FieldFormalParameter node) {
     ConstructorDeclaration constructor = node.getAncestor((node) => node is ConstructorDeclaration);
@@ -3062,8 +3061,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the class declaration to test
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CONST_NOT_INITIALIZED
-   * @see StaticWarningCode#FINAL_NOT_INITIALIZED
+   * See [CompileTimeErrorCode.CONST_NOT_INITIALIZED], and
+   * [StaticWarningCode.FINAL_NOT_INITIALIZED].
    */
   bool _checkForFinalNotInitialized(VariableDeclarationList node) {
     if (_isInNativeClass) {
@@ -3093,8 +3092,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the class declaration to test
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CONST_NOT_INITIALIZED
-   * @see StaticWarningCode#FINAL_NOT_INITIALIZED
+   * See [CompileTimeErrorCode.CONST_NOT_INITIALIZED], and
+   * [StaticWarningCode.FINAL_NOT_INITIALIZED].
    */
   bool _checkForFinalNotInitializedInClass(ClassDeclaration node) {
     NodeList<ClassMember> classMembers = node.members;
@@ -3118,7 +3117,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the implements clause to test
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#IMPLEMENTS_DEFERRED_CLASS
+   * See [CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS].
    */
   bool _checkForImplementsDeferredClass(ImplementsClause node) {
     if (node == null) {
@@ -3141,7 +3140,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the implements clause to test
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#IMPLEMENTS_DISALLOWED_CLASS
+   * See [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS].
    */
   bool _checkForImplementsDisallowedClass(ImplementsClause node) {
     if (node == null) {
@@ -3164,8 +3163,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the simple identifier to test
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
-   * @see CompileTimeErrorCode#INSTANCE_MEMBER_ACCESS_FROM_STATIC TODO(scheglov) rename thid method
+   * See [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER], and
+   * [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC].
+   * TODO(scheglov) rename thid method
    */
   bool _checkForImplicitThisReferenceInInitializer(SimpleIdentifier node) {
     if (!_isInConstructorInitializer && !_isInStaticMethod && !_isInFactory && !_isInInstanceVariableInitializer && !_isInStaticVariableDeclaration) {
@@ -3229,7 +3229,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param importElement the [ImportElement] retrieved from the node, if the element in the
    *          node was `null`, then this method is not called
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#IMPORT_DUPLICATED_LIBRARY_NAME
+   * See [CompileTimeErrorCode.IMPORT_DUPLICATED_LIBRARY_NAME].
    */
   bool _checkForImportDuplicateLibraryName(ImportDirective node, ImportElement importElement) {
     // prepare imported library
@@ -3273,7 +3273,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param importElement the [ImportElement] retrieved from the node, if the element in the
    *          node was `null`, then this method is not called
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#IMPORT_INTERNAL_LIBRARY
+   * See [CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY].
    */
   bool _checkForImportInternalLibrary(ImportDirective node, ImportElement importElement) {
     if (_isInSystemLibrary) {
@@ -3299,7 +3299,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * inherited consistently.
    *
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticTypeWarningCode#INCONSISTENT_METHOD_INHERITANCE
+   * See [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE].
    */
   bool _checkForInconsistentMethodInheritance() {
     // Ensure that the inheritance manager has a chance to generate all errors we may care about,
@@ -3324,7 +3324,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *          [getTypeReference]
    * @param name the accessed name to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticTypeWarningCode#INSTANCE_ACCESS_TO_STATIC_MEMBER
+   * See [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER].
    */
   bool _checkForInstanceAccessToStaticMember(ClassElement typeReference, SimpleIdentifier name) {
     // OK, in comment
@@ -3361,7 +3361,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param executableElement the method to check.
    * @param errorNameTarget the node to report problems on.
    * @return `true` if and only if a warning was generated.
-   * @see StaticTypeWarningCode#INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
+   * See [StaticTypeWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC].
    */
   bool _checkForInstanceMethodNameCollidesWithSuperclassStatic(ExecutableElement executableElement, SimpleIdentifier errorNameTarget) {
     String executableElementName = executableElement.name;
@@ -3425,7 +3425,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param argument the expression to which the operator is being applied
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   * See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
    */
   bool _checkForIntNotAssignable(Expression argument) {
     if (argument == null) {
@@ -3441,7 +3441,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the [Annotation]
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY
+   * See [CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY].
    */
   bool _checkForInvalidAnnotationFromDeferredLibrary(Annotation node) {
     Identifier nameIdentifier = node.name;
@@ -3460,7 +3460,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param lhs the left hand side expression
    * @param rhs the right hand side expression
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticTypeWarningCode#INVALID_ASSIGNMENT
+   * See [StaticTypeWarningCode.INVALID_ASSIGNMENT].
    */
   bool _checkForInvalidAssignment(Expression lhs, Expression rhs) {
     if (lhs == null || rhs == null) {
@@ -3484,7 +3484,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param lhs the left hand side expression
    * @param rhs the right hand side expression
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticTypeWarningCode#INVALID_ASSIGNMENT
+   * See [StaticTypeWarningCode.INVALID_ASSIGNMENT].
    */
   bool _checkForInvalidCompoundAssignment(AssignmentExpression node, Expression lhs, Expression rhs) {
     if (lhs == null) {
@@ -3551,7 +3551,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the 'this' expression to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#INVALID_REFERENCE_TO_THIS
+   * See [CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS].
    */
   bool _checkForInvalidReferenceToThis(ThisExpression node) {
     if (!_isThisInValidContext(node)) {
@@ -3567,8 +3567,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param arguments a non-`null`, non-empty [TypeName] node list from the respective
    *          [ListLiteral] or [MapLiteral]
-   * @param errorCode either [CompileTimeErrorCode#INVALID_TYPE_ARGUMENT_IN_CONST_LIST] or
-   *          [CompileTimeErrorCode#INVALID_TYPE_ARGUMENT_IN_CONST_MAP]
+   * @param errorCode either [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST] or
+   *          [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP]
    * @return `true` if and only if an error code is generated on the passed node
    */
   bool _checkForInvalidTypeArgumentInConstTypedLiteral(NodeList<TypeName> arguments, ErrorCode errorCode) {
@@ -3589,8 +3589,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param node the list literal to evaluate
    * @param typeArguments the type arguments, always non-`null`
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-   * @see StaticWarningCode#LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+   * See [CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE], and
+   * [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE].
    */
   bool _checkForListElementTypeNotAssignable(ListLiteral node, TypeArgumentList typeArguments) {
     NodeList<TypeName> typeNames = typeArguments.arguments;
@@ -3628,10 +3628,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param node the map literal to evaluate
    * @param typeArguments the type arguments, always non-`null`
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#MAP_KEY_TYPE_NOT_ASSIGNABLE
-   * @see CompileTimeErrorCode#MAP_VALUE_TYPE_NOT_ASSIGNABLE
-   * @see StaticWarningCode#MAP_KEY_TYPE_NOT_ASSIGNABLE
-   * @see StaticWarningCode#MAP_VALUE_TYPE_NOT_ASSIGNABLE
+   * See [CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE],
+   * [CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE],
+   * [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE], and
+   * [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE].
    */
   bool _checkForMapTypeNotAssignable(MapLiteral node, TypeArgumentList typeArguments) {
     // Prepare maps key/value types.
@@ -3684,7 +3684,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * the enclosing class.
    *
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#MEMBER_WITH_CLASS_NAME
+   * See [CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME].
    */
   bool _checkForMemberWithClassName() {
     if (_enclosingClass == null) {
@@ -3713,8 +3713,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the accessor currently being visited
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES
-   * @see StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE
+   * See [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES], and
+   * [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE].
    */
   bool _checkForMismatchedAccessorTypes(Declaration accessorDeclaration, String accessorTextName) {
     ExecutableElement accessorElement = accessorDeclaration.element as ExecutableElement;
@@ -3844,7 +3844,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the function body being tested
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#MIXED_RETURN_TYPES
+   * See [StaticWarningCode.MIXED_RETURN_TYPES].
    */
   bool _checkForMixedReturns(BlockFunctionBody node) {
     if (_hasReturnWithoutValue) {
@@ -3870,7 +3870,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param mixinName the node to report problem on
    * @param mixinElement the mixing to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#MIXIN_DECLARES_CONSTRUCTOR
+   * See [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR].
    */
   bool _checkForMixinDeclaresConstructor(TypeName mixinName, ClassElement mixinElement) {
     for (ConstructorElement constructor in mixinElement.constructors) {
@@ -3888,7 +3888,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param mixinName the node to report problem on
    * @param mixinElement the mixing to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#MIXIN_INHERITS_FROM_NOT_OBJECT
+   * See [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT].
    */
   bool _checkForMixinInheritsNotFromObject(TypeName mixinName, ClassElement mixinElement) {
     InterfaceType mixinSupertype = mixinElement.supertype;
@@ -3907,7 +3907,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param mixinName the node to report problem on
    * @param mixinElement the mixing to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#MIXIN_REFERENCES_SUPER
+   * See [CompileTimeErrorCode.MIXIN_REFERENCES_SUPER].
    */
   bool _checkForMixinReferencesSuper(TypeName mixinName, ClassElement mixinElement) {
     if (mixinElement.hasReferenceToSuper) {
@@ -3921,7 +3921,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the constructor declaration to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#MULTIPLE_SUPER_INITIALIZERS
+   * See [CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS].
    */
   bool _checkForMultipleSuperInitializers(ConstructorDeclaration node) {
     int numSuperInitializers = 0;
@@ -3941,7 +3941,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the native function body to test
    * @return `true` if and only if an error code is generated on the passed node
-   * @see ParserErrorCode#NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
+   * See [ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE].
    */
   bool _checkForNativeFunctionBodyInNonSDKCode(NativeFunctionBody node) {
     if (!_isInSystemLibrary && !_hasExtUri) {
@@ -3960,7 +3960,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param constructorName the constructor name, always non-`null`
    * @param typeName the name of the type defining the constructor, always non-`null`
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#NEW_WITH_UNDEFINED_CONSTRUCTOR
+   * See [StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR].
    */
   bool _checkForNewWithUndefinedConstructor(InstanceCreationExpression node, ConstructorName constructorName, TypeName typeName) {
     // OK if resolved
@@ -3993,7 +3993,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the [ClassDeclaration] to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+   * See [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT].
    */
   bool _checkForNoDefaultSuperConstructorImplicit(ClassDeclaration node) {
     // do nothing if there is explicit constructor
@@ -4030,11 +4030,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param classNameNode the [SimpleIdentifier] to be used if there is a violation, this is
    *          either the named from the [ClassDeclaration] or from the [ClassTypeAlias].
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
-   * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO
-   * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE
-   * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR
-   * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS
+   * See [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE],
+   * [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO],
+   * [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE],
+   * [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR], and
+   * [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS].
    */
   bool _checkForNonAbstractClassInheritsAbstractMember(SimpleIdentifier classNameNode) {
     if (_enclosingClass.isAbstract) {
@@ -4172,7 +4172,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param condition the conditional expression to test
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticTypeWarningCode#NON_BOOL_CONDITION
+   * See [StaticTypeWarningCode.NON_BOOL_CONDITION].
    */
   bool _checkForNonBoolCondition(Expression condition) {
     DartType conditionType = getStaticType(condition);
@@ -4188,7 +4188,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the assert statement to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticTypeWarningCode#NON_BOOL_EXPRESSION
+   * See [StaticTypeWarningCode.NON_BOOL_EXPRESSION].
    */
   bool _checkForNonBoolExpression(AssertStatement node) {
     Expression expression = node.condition;
@@ -4213,7 +4213,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param expression the expression expression to test
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticTypeWarningCode#NON_BOOL_NEGATION_EXPRESSION
+   * See [StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION].
    */
   bool _checkForNonBoolNegationExpression(Expression expression) {
     DartType conditionType = getStaticType(expression);
@@ -4232,7 +4232,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the map literal to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#NON_CONST_MAP_AS_EXPRESSION_STATEMENT
+   * See [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT].
    */
   bool _checkForNonConstMapAsExpressionStatement(MapLiteral node) {
     // "const"
@@ -4263,7 +4263,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the method declaration to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#NON_VOID_RETURN_FOR_OPERATOR
+   * See [StaticWarningCode.NON_VOID_RETURN_FOR_OPERATOR].
    */
   bool _checkForNonVoidReturnTypeForOperator(MethodDeclaration node) {
     // check that []= operator
@@ -4288,7 +4288,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param typeName the type name to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#NON_VOID_RETURN_FOR_SETTER
+   * See [StaticWarningCode.NON_VOID_RETURN_FOR_SETTER].
    */
   bool _checkForNonVoidReturnTypeForSetter(TypeName typeName) {
     if (typeName != null) {
@@ -4308,7 +4308,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the method declaration to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#OPTIONAL_PARAMETER_IN_OPERATOR
+   * See [CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR].
    */
   bool _checkForOptionalParameterInOperator(MethodDeclaration node) {
     FormalParameterList parameterList = node.parameters;
@@ -4331,7 +4331,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the default formal parameter to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#PRIVATE_OPTIONAL_PARAMETER
+   * See [CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER].
    */
   bool _checkForPrivateOptionalParameter(FormalParameter node) {
     // should be named parameter
@@ -4355,7 +4355,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param node the constructor declaration to evaluate
    * @param constructorElement the constructor element
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#RECURSIVE_CONSTRUCTOR_REDIRECT
+   * See [CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT].
    */
   bool _checkForRecursiveConstructorRedirect(ConstructorDeclaration node, ConstructorElement constructorElement) {
     // we check generative constructor here
@@ -4385,7 +4385,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param node the constructor declaration to evaluate
    * @param constructorElement the constructor element
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#RECURSIVE_FACTORY_REDIRECT
+   * See [CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT].
    */
   bool _checkForRecursiveFactoryRedirect(ConstructorDeclaration node, ConstructorElement constructorElement) {
     // prepare redirected constructor
@@ -4407,9 +4407,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param classElt the class element to test
    * @return `true` if and only if an error code is generated on the passed element
-   * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE
-   * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS
-   * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS
+   * See [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE],
+   * [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS], and
+   * [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS].
    */
   bool _checkForRecursiveInterfaceInheritance(ClassElement classElt) {
     if (classElt == null) {
@@ -4424,11 +4424,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the constructor declaration to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR
-   * @see CompileTimeErrorCode#FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR
-   * @see CompileTimeErrorCode#MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS
-   * @see CompileTimeErrorCode#SUPER_IN_REDIRECTING_CONSTRUCTOR
-   * @see CompileTimeErrorCode#REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR
+   * See [CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR],
+   * [CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR],
+   * [CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS],
+   * [CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR], and
+   * [CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR].
    */
   bool _checkForRedirectingConstructorErrorCodes(ConstructorDeclaration node) {
     bool errorReported = false;
@@ -4495,7 +4495,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param node the constructor declaration to evaluate
    * @param constructorElement the constructor element
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#REDIRECT_TO_NON_CONST_CONSTRUCTOR
+   * See [CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR].
    */
   bool _checkForRedirectToNonConstConstructor(ConstructorDeclaration node, ConstructorElement constructorElement) {
     // prepare redirected constructor
@@ -4530,7 +4530,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the rethrow expression to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#RETHROW_OUTSIDE_CATCH
+   * See [CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH].
    */
   bool _checkForRethrowOutsideCatch(RethrowExpression node) {
     if (!_isInCatchClause) {
@@ -4546,7 +4546,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the constructor to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#RETURN_IN_GENERATIVE_CONSTRUCTOR
+   * See [CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR].
    */
   bool _checkForReturnInGenerativeConstructor(ConstructorDeclaration node) {
     // ignore factory
@@ -4573,7 +4573,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param returnExpression the returned expression to evaluate
    * @param expectedReturnType the expressed return type by the enclosing method or function
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticTypeWarningCode#RETURN_OF_INVALID_TYPE
+   * See [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE].
    */
   bool _checkForReturnOfInvalidType(Expression returnExpression, DartType expectedReturnType) {
     if (_enclosingFunction == null) {
@@ -4638,7 +4638,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *          [getTypeReference]
    * @param name the accessed name to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#STATIC_ACCESS_TO_INSTANCE_MEMBER
+   * See [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER].
    */
   bool _checkForStaticAccessToInstanceMember(ClassElement typeReference, SimpleIdentifier name) {
     // OK, target is not a type
@@ -4666,7 +4666,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the 'switch' statement to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#SWITCH_EXPRESSION_NOT_ASSIGNABLE
+   * See [StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE].
    */
   bool _checkForSwitchExpressionNotAssignable(SwitchStatement node) {
     // prepare 'switch' expression type
@@ -4701,7 +4701,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the function type alias to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
+   * See [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF].
    */
   bool _checkForTypeAliasCannotReferenceItself_function(FunctionTypeAlias node) {
     FunctionTypeAliasElement element = node.element;
@@ -4717,7 +4717,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param expression the expression to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#TYPE_ANNOTATION_DEFERRED_CLASS
+   * See [StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS].
    */
   bool _checkForTypeAnnotationDeferredClass(TypeName node) {
     if (node != null && node.isDeferred) {
@@ -4731,7 +4731,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the [TypeName] to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticTypeWarningCode#TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+   * See [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
    */
   bool _checkForTypeArgumentNotMatchingBounds(TypeName node) {
     if (node.typeArguments == null) {
@@ -4785,7 +4785,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the type name to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#TYPE_PARAMETER_REFERENCED_BY_STATIC
+   * See [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC].
    */
   bool _checkForTypeParameterReferencedByStatic(TypeName node) {
     if (_isInStaticMethod || _isInStaticVariableDeclaration) {
@@ -4803,7 +4803,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the type parameter to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticTypeWarningCode#TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND
+   * See [StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
    */
   bool _checkForTypeParameterSupertypeOfItsBound(TypeParameter node) {
     TypeParameterElement element = node.element;
@@ -4828,9 +4828,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the constructor declaration to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
-   * @see CompileTimeErrorCode#NON_GENERATIVE_CONSTRUCTOR
-   * @see StaticWarningCode#NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT
+   * See [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT],
+   * [CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR], and
+   * [StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT].
    */
   bool _checkForUndefinedConstructorInInitializerImplicit(ConstructorDeclaration node) {
     //
@@ -4888,7 +4888,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param name the name to be evaluated
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticTypeWarningCode#UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER
+   * See [StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER].
    */
   bool _checkForUnqualifiedReferenceToNonLocalStaticMember(SimpleIdentifier name) {
     Element element = name.staticElement;
@@ -4939,7 +4939,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     //    else {
     //    // TODO(jwren) Report error, constructor initializer variable is a top level element
-    //    // (Either here or in ErrorVerifier#checkForAllFinalInitializedErrorCodes)
+    //    // (Either here or in ErrorVerifier.checkForAllFinalInitializedErrorCodes)
     //    }
   }
 
@@ -4948,7 +4948,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the method declaration to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#VOID_RETURN_FOR_GETTER
+   * See [StaticWarningCode.VOID_RETURN_FOR_GETTER].
    */
   bool _checkForVoidReturnType(MethodDeclaration node) {
     TypeName returnType = node.returnType;
@@ -4967,7 +4967,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the method declaration to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
+   * See [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR].
    */
   bool _checkForWrongNumberOfParametersForOperator(MethodDeclaration node) {
     // prepare number of parameters
@@ -5012,7 +5012,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param setterName the name of the setter to report problems on
    * @param parameterList the parameter list to evaluate
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
+   * See [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER].
    */
   bool _checkForWrongNumberOfParametersForSetter(SimpleIdentifier setterName, FormalParameterList parameterList) {
     if (setterName == null) {
@@ -5034,7 +5034,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * concrete implementation of the call method.
    *
    * @return `true` if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#FUNCTION_WITHOUT_CALL
+   * See [StaticWarningCode.FUNCTION_WITHOUT_CALL].
    */
   bool _checkImplementsFunctionWithoutCall(ClassDeclaration node) {
     if (node.isAbstract) {
@@ -5064,7 +5064,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * and 'implements' clauses.
    *
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#IMPLEMENTS_SUPER_CLASS
+   * See [CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS].
    */
   bool _checkImplementsSuperClass(ClassDeclaration node) {
     // prepare super type
@@ -5165,7 +5165,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param directives the list of directives that have the same prefix
    * @return `true` if an error was generated
-   * @see CompileTimeErrorCode#SHARED_DEFERRED_PREFIX
+   * See [CompileTimeErrorCode.SHARED_DEFERRED_PREFIX].
    */
   bool _hasDeferredPrefixCollision(List<ImportDirective> directives) {
     bool foundError = false;
@@ -5392,10 +5392,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @param classElt the class element to test
    * @param path a list containing the potentially cyclic implements path
    * @return `true` if and only if an error code is generated on the passed element
-   * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE
-   * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS
-   * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS
-   * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH
+   * See [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE],
+   * [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS],
+   * [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS], and
+   * [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH].
    */
   bool _safeCheckForRecursiveInterfaceInheritance(ClassElement classElt, List<ClassElement> path) {
     // Detect error condition.

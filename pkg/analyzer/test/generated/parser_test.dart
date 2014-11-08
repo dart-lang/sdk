@@ -8167,7 +8167,7 @@ void''', []);
   }
 
   /**
-   * Invoke the method [Parser#computeStringValue] with the given argument.
+   * Invoke the method [Parser.computeStringValue] with the given argument.
    *
    * @param lexeme the argument to the method
    * @param first `true` if this is the first token in a string literal
@@ -8182,7 +8182,7 @@ void''', []);
   }
 
   /**
-   * Invoke the method [Parser#createSyntheticIdentifier] with the parser set to the token
+   * Invoke the method [Parser.createSyntheticIdentifier] with the parser set to the token
    * stream produced by scanning the given source.
    *
    * @param source the source to be scanned to produce the token stream being tested
@@ -8195,7 +8195,7 @@ void''', []);
   }
 
   /**
-   * Invoke the method [Parser#createSyntheticIdentifier] with the parser set to the token
+   * Invoke the method [Parser.createSyntheticIdentifier] with the parser set to the token
    * stream produced by scanning the given source.
    *
    * @param source the source to be scanned to produce the token stream being tested
@@ -8208,7 +8208,7 @@ void''', []);
   }
 
   /**
-   * Invoke the method [Parser#isFunctionDeclaration] with the parser set to the token
+   * Invoke the method [Parser.isFunctionDeclaration] with the parser set to the token
    * stream produced by scanning the given source.
    *
    * @param source the source to be scanned to produce the token stream being tested
@@ -8221,7 +8221,7 @@ void''', []);
   }
 
   /**
-   * Invoke the method [Parser#isFunctionExpression] with the parser set to the token stream
+   * Invoke the method [Parser.isFunctionExpression] with the parser set to the token stream
    * produced by scanning the given source.
    *
    * @param source the source to be scanned to produce the token stream being tested
@@ -8243,7 +8243,7 @@ void''', []);
   }
 
   /**
-   * Invoke the method [Parser#isInitializedVariableDeclaration] with the parser set to the
+   * Invoke the method [Parser.isInitializedVariableDeclaration] with the parser set to the
    * token stream produced by scanning the given source.
    *
    * @param source the source to be scanned to produce the token stream being tested
@@ -8256,7 +8256,7 @@ void''', []);
   }
 
   /**
-   * Invoke the method [Parser#isSwitchMember] with the parser set to the token stream
+   * Invoke the method [Parser.isSwitchMember] with the parser set to the token stream
    * produced by scanning the given source.
    *
    * @param source the source to be scanned to produce the token stream being tested

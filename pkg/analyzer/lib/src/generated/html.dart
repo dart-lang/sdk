@@ -1659,7 +1659,7 @@ class XmlParser {
 
   /**
    * Parse the token stream for an attribute. This method advances the current token over the
-   * attribute, but should not be called if the [currentToken] is not [TokenType#TAG].
+   * attribute, but should not be called if the [currentToken] is not [TokenType.TAG].
    *
    * @return the attribute (not `null`)
    */
@@ -1690,7 +1690,7 @@ class XmlParser {
 
   /**
    * Parse the stream for a sequence of attributes. This method advances the current token to the
-   * next [TokenType#GT], [TokenType#SLASH_GT], or [TokenType#EOF].
+   * next [TokenType.GT], [TokenType.SLASH_GT], or [TokenType.EOF].
    *
    * @return a collection of zero or more attributes (not `null`, contains no `null`s)
    */
@@ -1714,7 +1714,7 @@ class XmlParser {
 
   /**
    * Parse the stream for a sequence of tag nodes existing within a parent tag node. This method
-   * advances the current token to the next [TokenType#LT_SLASH] or [TokenType#EOF].
+   * advances the current token to the next [TokenType.LT_SLASH] or [TokenType.EOF].
    *
    * @return a list of nodes (not `null`, contains no `null`s)
    */
@@ -1741,12 +1741,12 @@ class XmlParser {
 
   /**
    * Parse the token stream for the next tag node. This method advances current token over the
-   * parsed tag node, but should only be called if the current token is [TokenType#LT]
+   * parsed tag node, but should only be called if the current token is [TokenType.LT]
    *
    * @return the tag node or `null` if none found
    */
   XmlTagNode _parseTagNode() {
-    // Assume that the current node is a tag node start TokenType#LT
+    // Assume that the current node is a tag node start TokenType.LT
     Token nodeStart = _currentToken;
     _currentToken = _currentToken.next;
     // Get the tag or create a synthetic tag and report an error
@@ -1831,12 +1831,12 @@ class XmlTagNode extends XmlNode {
   static List<XmlTagNode> NO_TAG_NODES = new UnmodifiableListView(new List<XmlTagNode>());
 
   /**
-   * The starting [TokenType#LT] token (not `null`).
+   * The starting [TokenType.LT] token (not `null`).
    */
   final Token nodeStart;
 
   /**
-   * The [TokenType#TAG] token after the starting '&lt;' (not `null`).
+   * The [TokenType.TAG] token after the starting '&lt;' (not `null`).
    */
   final Token _tag;
 
@@ -1846,7 +1846,7 @@ class XmlTagNode extends XmlNode {
   List<XmlAttributeNode> _attributes;
 
   /**
-   * The [TokenType#GT] or [TokenType#SLASH_GT] token after the attributes (not
+   * The [TokenType.GT] or [TokenType.SLASH_GT] token after the attributes (not
    * `null`). The token may be the same token as [nodeEnd] if there are no child
    * [tagNodes].
    */
@@ -1859,23 +1859,23 @@ class XmlTagNode extends XmlNode {
 
   /**
    * The token (not `null`) after the content, which may be
-   * * (1) [TokenType#LT_SLASH] for nodes with open and close tags, or
-   * * (2) the [TokenType#LT] nodeStart of the next sibling node if this node is self
-   * closing or the attributeEnd is [TokenType#SLASH_GT], or
-   * * (3) [TokenType#EOF] if the node does not have a closing tag and is the last node in
-   * the stream [TokenType#LT_SLASH] token after the content, or `null` if there is no
-   * content and the attributes ended with [TokenType#SLASH_GT].
+   * * (1) [TokenType.LT_SLASH] for nodes with open and close tags, or
+   * * (2) the [TokenType.LT] nodeStart of the next sibling node if this node is self
+   * closing or the attributeEnd is [TokenType.SLASH_GT], or
+   * * (3) [TokenType.EOF] if the node does not have a closing tag and is the last node in
+   * the stream [TokenType.LT_SLASH] token after the content, or `null` if there is no
+   * content and the attributes ended with [TokenType.SLASH_GT].
    */
   final Token contentEnd;
 
   /**
-   * The closing [TokenType#TAG] after the child elements or `null` if there is no
-   * content and the attributes ended with [TokenType#SLASH_GT]
+   * The closing [TokenType.TAG] after the child elements or `null` if there is no
+   * content and the attributes ended with [TokenType.SLASH_GT]
    */
   final Token closingTag;
 
   /**
-   * The ending [TokenType#GT] or [TokenType#SLASH_GT] token (not `null`).
+   * The ending [TokenType.GT] or [TokenType.SLASH_GT] token (not `null`).
    */
   final Token nodeEnd;
 
@@ -1887,25 +1887,25 @@ class XmlTagNode extends XmlNode {
   /**
    * Construct a new instance representing an XML or HTML element
    *
-   * @param nodeStart the starting [TokenType#LT] token (not `null`)
-   * @param tag the [TokenType#TAG] token after the starting '&lt;' (not `null`).
+   * @param nodeStart the starting [TokenType.LT] token (not `null`)
+   * @param tag the [TokenType.TAG] token after the starting '&lt;' (not `null`).
    * @param attributes the attributes associated with this element or [NO_ATTRIBUTES] (not
    *          `null`, contains no `null`s)
-   * @param attributeEnd The [TokenType#GT] or [TokenType#SLASH_GT] token after the
+   * @param attributeEnd The [TokenType.GT] or [TokenType.SLASH_GT] token after the
    *          attributes (not `null`). The token may be the same token as [nodeEnd] if
    *          there are no child [tagNodes].
    * @param tagNodes child tag nodes of the receiver or [NO_TAG_NODES] (not `null`,
    *          contains no `null`s)
    * @param contentEnd the token (not `null`) after the content, which may be
-   *          * (1) [TokenType#LT_SLASH] for nodes with open and close tags, or
-   *          * (2) the [TokenType#LT] nodeStart of the next sibling node if this node is
-   *          self closing or the attributeEnd is [TokenType#SLASH_GT], or
-   *          * (3) [TokenType#EOF] if the node does not have a closing tag and is the last
-   *          node in the stream [TokenType#LT_SLASH] token after the content, or `null`
-   *          if there is no content and the attributes ended with [TokenType#SLASH_GT].
-   * @param closingTag the closing [TokenType#TAG] after the child elements or `null` if
-   *          there is no content and the attributes ended with [TokenType#SLASH_GT]
-   * @param nodeEnd the ending [TokenType#GT] or [TokenType#SLASH_GT] token (not
+   *          * (1) [TokenType.LT_SLASH] for nodes with open and close tags, or
+   *          * (2) the [TokenType.LT] nodeStart of the next sibling node if this node is
+   *          self closing or the attributeEnd is [TokenType.SLASH_GT], or
+   *          * (3) [TokenType.EOF] if the node does not have a closing tag and is the last
+   *          node in the stream [TokenType.LT_SLASH] token after the content, or `null`
+   *          if there is no content and the attributes ended with [TokenType.SLASH_GT].
+   * @param closingTag the closing [TokenType.TAG] after the child elements or `null` if
+   *          there is no content and the attributes ended with [TokenType.SLASH_GT]
+   * @param nodeEnd the ending [TokenType.GT] or [TokenType.SLASH_GT] token (not
    *          `null`)
    */
   XmlTagNode(this.nodeStart, this._tag, List<XmlAttributeNode> attributes, this.attributeEnd, List<XmlTagNode> tagNodes, this.contentEnd, this.closingTag, this.nodeEnd) {
@@ -1942,7 +1942,7 @@ class XmlTagNode extends XmlNode {
   /**
    * Find the attribute with the given name (see [getAttribute] and answer the lexeme
    * for the attribute's value token without the leading and trailing quotes (see
-   * [XmlAttributeNode#getText]).
+   * [XmlAttributeNode.getText]).
    *
    * @param name the attribute name
    * @return the attribute text or `null` if no matching attribute is found
@@ -2021,7 +2021,7 @@ class XmlTagNode extends XmlNode {
   List<XmlTagNode> get tagNodes => _tagNodes;
 
   /**
-   * Answer the [TokenType#TAG] token after the starting '&lt;'.
+   * Answer the [TokenType.TAG] token after the starting '&lt;'.
    *
    * @return the token (not `null`)
    */

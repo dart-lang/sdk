@@ -72,7 +72,7 @@ String findAbsoluteUri(AnalysisContext context, String path) {
 
 
 /**
- * TODO(scheglov) replace with nodes once there will be [CompilationUnit#getComments].
+ * TODO(scheglov) replace with nodes once there will be [CompilationUnit.getComments].
  *
  * Returns [SourceRange]s of all comments in [unit].
  */

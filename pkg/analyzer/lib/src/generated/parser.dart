@@ -2998,8 +2998,7 @@ class Parser {
   /**
    * If the current token has the expected type, return it after advancing to the next token.
    * Otherwise report an error and return the current token without advancing. Note that the method
-   * [expectGt] should be used if the argument to this method would be [TokenType#GT]
-   * .
+   * [_expectGt] should be used if the argument to this method would be [TokenType.GT].
    *
    * @param type the type of token that is expected
    * @return the token that matched the given type
@@ -3019,7 +3018,7 @@ class Parser {
   }
 
   /**
-   * If the current token has the type [TokenType#GT], return it after advancing to the next
+   * If the current token has the type [TokenType.GT], return it after advancing to the next
    * token. Otherwise report an error and return the current token without advancing.
    *
    * @return the token that matched the given type
@@ -3459,8 +3458,8 @@ class Parser {
 
   /**
    * Return `true` if the current token has the given type. Note that the method
-   * [matchesGt] should be used if the argument to this method would be
-   * [TokenType#GT].
+   * [_matchesGt] should be used if the argument to this method would be
+   * [TokenType.GT].
    *
    * @param type the type of token that can optionally appear in the current location
    * @return `true` if the current token has the given type
@@ -3468,12 +3467,12 @@ class Parser {
   bool _matches(TokenType type) => _currentToken.type == type;
 
   /**
-   * Return `true` if the current token has a type of [TokenType#GT]. Note that this
+   * Return `true` if the current token has a type of [TokenType.GT]. Note that this
    * method, unlike other variants, will modify the token stream if possible to match desired type.
    * In particular, if the next token is either a '>>' or '>>>', the token stream will be re-written
    * and `true` will be returned.
    *
-   * @return `true` if the current token has a type of [TokenType#GT]
+   * @return `true` if the current token has a type of [TokenType.GT]
    */
   bool _matchesGt() {
     TokenType currentType = _currentToken.type;
@@ -3539,7 +3538,7 @@ class Parser {
   /**
    * If the current token has the given type, then advance to the next token and return `true`
    * . Otherwise, return `false` without advancing. This method should not be invoked with an
-   * argument value of [TokenType#GT].
+   * argument value of [TokenType.GT].
    *
    * @param type the type of token that can optionally appear in the current location
    * @return `true` if the current token has the given type

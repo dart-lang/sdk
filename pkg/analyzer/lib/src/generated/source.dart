@@ -37,7 +37,7 @@ class ContentCache {
    * contents of the source.
    *
    * <b>Note:</b> This method is not intended to be used except by
-   * [AnalysisContext#getContents].
+   * [AnalysisContext.getContents].
    *
    * @param source the source whose content is to be returned
    * @return the contents of the given source
@@ -49,7 +49,7 @@ class ContentCache {
    * override the contents of the source.
    *
    * <b>Note:</b> This method is not intended to be used except by
-   * [AnalysisContext#getModificationStamp].
+   * [AnalysisContext.getModificationStamp].
    *
    * @param source the source whose modification stamp is to be returned
    * @return the modification stamp of the given source
@@ -375,7 +375,7 @@ abstract class Source {
    * @param object the object to be compared with this object
    * @return `true` if the given object is a source that represents the same source code as
    *         this source
-   * @see Object#equals(Object)
+   * See [Object.==].
    */
   @override
   bool operator ==(Object object);
@@ -383,7 +383,7 @@ abstract class Source {
   /**
    * Return `true` if this source exists.
    *
-   * Clients should consider using the the method [AnalysisContext#exists] because
+   * Clients should consider using the the method [AnalysisContext.exists] because
    * contexts can have local overrides of the content of a source that the source is not aware of
    * and a source with local content is considered to exist even if there is no file on disk.
    *
@@ -394,7 +394,7 @@ abstract class Source {
   /**
    * Get the contents and timestamp of this source.
    *
-   * Clients should consider using the the method [AnalysisContext#getContents]
+   * Clients should consider using the the method [AnalysisContext.getContents]
    * because contexts can have local overrides of the content of a source that the source is not
    * aware of.
    *
@@ -408,7 +408,7 @@ abstract class Source {
    * equal to this source.
    *
    * @return an encoded representation of this source
-   * @see SourceFactory#fromEncoding(String)
+   * See [SourceFactory.fromEncoding].
    */
   String get encoding;
 
@@ -429,7 +429,7 @@ abstract class Source {
    * will be different.
    *
    * Clients should consider using the the method
-   * [AnalysisContext#getModificationStamp] because contexts can have local overrides
+   * [AnalysisContext.getModificationStamp] because contexts can have local overrides
    * of the content of a source that the source is not aware of.
    *
    * @return the modification stamp for this source
@@ -465,7 +465,7 @@ abstract class Source {
    * Return a hash code for this source.
    *
    * @return a hash code for this source
-   * @see Object#hashCode()
+   * See [Object.hashCode].
    */
   @override
   int get hashCode;
@@ -585,7 +585,7 @@ class SourceFactory {
    * @param encoding the encoding of a source object
    * @return a source object that is described by the given encoding
    * @throws IllegalArgumentException if the argument is not a valid encoding
-   * @see Source#getEncoding()
+   * See [Source.encoding].
    */
   Source fromEncoding(String encoding) {
     Source source = forUri(encoding);

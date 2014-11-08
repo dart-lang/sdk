@@ -292,7 +292,7 @@ class AnalysisContextHelper {
   AnalysisContext context;
 
   /**
-   * Creates new [AnalysisContext] using [AnalysisContextFactory#contextWithCore].
+   * Creates new [AnalysisContext] using [AnalysisContextFactory.contextWithCore].
    */
   AnalysisContextHelper() {
     context = AnalysisContextFactory.contextWithCore();
@@ -8788,7 +8788,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   /**
    * Create a function expression that has an element associated with it, where the element has an
    * incomplete type associated with it (just like the one
-   * [ElementBuilder#visitFunctionExpression] would have built if we had
+   * [ElementBuilder.visitFunctionExpression] would have built if we had
    * run it).
    *
    * @param parameters the parameters to the function

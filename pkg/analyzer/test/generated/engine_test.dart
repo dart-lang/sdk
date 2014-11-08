@@ -1806,7 +1806,7 @@ library test2;''');
   }
 
   /**
-   * Returns `true` if there is an [AnalysisError] with [ErrorSeverity#ERROR] in
+   * Returns `true` if there is an [AnalysisError] with [ErrorSeverity.ERROR] in
    * the given [AnalysisErrorInfo].
    */
   static bool _hasAnalysisErrorWithErrorSeverity(AnalysisErrorInfo errorInfo) {

@@ -31,9 +31,9 @@ import 'java_core.dart';
  * // save the file
  * instrumentation.metric("chars", fileLength).log();
  * </pre>
- * The `Instrumentation.builder` method creates a new [InstrumentationBuilder
- ] and records the time at which it was created. The
- * [InstrumentationBuilder#metric] appends the information specified by the
+ * The `Instrumentation.builder` method creates a new [InstrumentationBuilder]
+ * and records the time at which it was created. The
+ * [InstrumentationBuilder.metric] appends the information specified by the
  * arguments and records the time at which the method is called so that the time to complete the
  * save operation can be calculated. The `log` method tells the builder that all of the data
  * has been collected and that the resulting information should be logged.
@@ -155,8 +155,8 @@ abstract class InstrumentationBuilder {
   /**
    * Answer the [InstrumentationLevel] of this `InstrumentationBuilder`.
    *
-   * @return one of [InstrumentationLevel#EVERYTHING], [InstrumentationLevel#METRICS],
-   *         [InstrumentationLevel#OFF]
+   * @return one of [InstrumentationLevel.EVERYTHING], [InstrumentationLevel.METRICS],
+   *         [InstrumentationLevel.OFF]
    */
   InstrumentationLevel get instrumentationLevel;
 

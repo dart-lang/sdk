@@ -1214,7 +1214,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   /**
    * Check that the for some index expression that the method element was resolved, otherwise a
-   * [StaticWarningCode#UNDEFINED_OPERATOR] is generated.
+   * [StaticTypeWarningCode.UNDEFINED_OPERATOR] is generated.
    *
    * @param node the index expression to resolve
    * @param target the target of the expression
@@ -1314,7 +1314,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * @param element the enclosing element. If null, `true` will be returned.
    * @return `false` iff the passed [Element] is a [ClassElement] that is a proxy
    *         or inherits proxy
-   * @see ClassElement#isOrInheritsProxy()
+   * See [ClassElement.isOrInheritsProxy].
    */
   bool _doesntHaveProxy(Element element) => !(element is ClassElement && element.isOrInheritsProxy);
 

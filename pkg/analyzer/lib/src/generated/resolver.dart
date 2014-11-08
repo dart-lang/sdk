@@ -834,10 +834,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the is expression to check
    * @return `true` if and only if a hint code is generated on the passed node
-   * @see HintCode#TYPE_CHECK_IS_NOT_NULL
-   * @see HintCode#TYPE_CHECK_IS_NULL
-   * @see HintCode#UNNECESSARY_TYPE_CHECK_TRUE
-   * @see HintCode#UNNECESSARY_TYPE_CHECK_FALSE
+   * See [HintCode.TYPE_CHECK_IS_NOT_NULL], [HintCode.TYPE_CHECK_IS_NULL],
+   * [HintCode.UNNECESSARY_TYPE_CHECK_TRUE], and
+   * [HintCode.UNNECESSARY_TYPE_CHECK_FALSE].
    */
   bool _checkAllTypeChecks(IsExpression node) {
     Expression expression = node.expression;
@@ -901,7 +900,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    *          `null`
    * @param actualPropagatedType the expected propagated type of the parameter, may be `null`
    * @return `true` if and only if an hint code is generated on the passed node
-   * @see HintCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   * See [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
    */
   bool _checkForArgumentTypeNotAssignable(Expression expression, DartType expectedStaticType, DartType actualStaticType, DartType expectedPropagatedType, DartType actualPropagatedType, ErrorCode hintCode) {
     //
@@ -936,7 +935,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param argument the argument to evaluate
    * @return `true` if and only if an hint code is generated on the passed node
-   * @see HintCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   * See [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
    */
   bool _checkForArgumentTypeNotAssignableForArgument(Expression argument) {
     if (argument == null) {
@@ -958,7 +957,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * @param expectedStaticType the expected static type
    * @param expectedPropagatedType the expected propagated type, may be `null`
    * @return `true` if and only if an hint code is generated on the passed node
-   * @see HintCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   * See [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
    */
   bool _checkForArgumentTypeNotAssignableWithExpectedTypes(Expression expression, DartType expectedStaticType, DartType expectedPropagatedType, ErrorCode errorCode) => _checkForArgumentTypeNotAssignable(expression, expectedStaticType, expression.staticType, expectedPropagatedType, expression.propagatedType, errorCode);
 
@@ -969,7 +968,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the arguments to evaluate
    * @return `true` if and only if an hint code is generated on the passed node
-   * @see HintCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   * See [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
    */
   bool _checkForArgumentTypesNotAssignableInList(ArgumentList argumentList) {
     if (argumentList == null) {
@@ -991,7 +990,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * @param element some element to check for deprecated use of
    * @param node the node use for the location of the error
    * @return `true` if and only if a hint code is generated on the passed node
-   * @see HintCode#DEPRECATED_MEMBER_USE
+   * See [HintCode.DEPRECATED_MEMBER_USE].
    */
   bool _checkForDeprecatedMemberUse(Element element, AstNode node) {
     if (element != null && element.isDeprecated) {
@@ -1023,7 +1022,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param identifier some simple identifier to check for deprecated use of
    * @return `true` if and only if a hint code is generated on the passed node
-   * @see HintCode#DEPRECATED_MEMBER_USE
+   * See [HintCode.DEPRECATED_MEMBER_USE].
    */
   bool _checkForDeprecatedMemberUseAtIdentifier(SimpleIdentifier identifier) {
     if (identifier.inDeclarationContext()) {
@@ -1037,11 +1036,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Check for the passed binary expression for the [HintCode#DIVISION_OPTIMIZATION].
+   * Check for the passed binary expression for the [HintCode.DIVISION_OPTIMIZATION].
    *
    * @param node the binary expression to check
    * @return `true` if and only if a hint code is generated on the passed node
-   * @see HintCode#DIVISION_OPTIMIZATION
+   * See [HintCode.DIVISION_OPTIMIZATION].
    */
   bool _checkForDivisionOptimizationHint(BinaryExpression node) {
     // Return if the operator is not '/'
@@ -1079,7 +1078,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * @param lhs the left hand side expression
    * @param rhs the right hand side expression
    * @return `true` if and only if an error code is generated on the passed node
-   * @see HintCode#INVALID_ASSIGNMENT
+   * See [HintCode.INVALID_ASSIGNMENT].
    */
   bool _checkForInvalidAssignment(Expression lhs, Expression rhs) {
     if (lhs == null || rhs == null) {
@@ -1110,7 +1109,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * @param node the import directive to evaluate
    * @param importElement the [ImportElement] retrieved from the node
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION
+   * See [CompileTimeErrorCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION].
    */
   bool _checkForLoadLibraryFunction(ImportDirective node, ImportElement importElement) {
     LibraryElement importedLibrary = importElement.importedLibrary;
@@ -1132,7 +1131,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * @param node the binary expression to check
    * @param body the function body
    * @return `true` if and only if a hint code is generated on the passed node
-   * @see HintCode#MISSING_RETURN
+   * See [HintCode.MISSING_RETURN].
    */
   bool _checkForMissingReturn(TypeName returnType, FunctionBody body) {
     // Check that the method or function has a return type, and a function body
@@ -1159,11 +1158,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   /**
    * Check for the passed class declaration for the
-   * [HintCode#OVERRIDE_EQUALS_BUT_NOT_HASH_CODE] hint code.
+   * [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE] hint code.
    *
    * @param node the class declaration to check
    * @return `true` if and only if a hint code is generated on the passed node
-   * @see HintCode#OVERRIDE_EQUALS_BUT_NOT_HASH_CODE
+   * See [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE].
    */
   bool _checkForOverrideEqualsButNotHashCode(ClassDeclaration node) {
     ClassElement classElement = node.element;
@@ -1182,11 +1181,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Check for the passed as expression for the [HintCode#UNNECESSARY_CAST] hint code.
+   * Check for the passed as expression for the [HintCode.UNNECESSARY_CAST] hint code.
    *
    * @param node the as expression to check
    * @return `true` if and only if a hint code is generated on the passed node
-   * @see HintCode#UNNECESSARY_CAST
+   * See [HintCode.UNNECESSARY_CAST].
    */
   bool _checkForUnnecessaryCast(AsExpression node) {
     Expression expression = node.expression;
@@ -1211,7 +1210,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node expression on the RHS of some assignment
    * @return `true` if and only if a hint code is generated on the passed node
-   * @see HintCode#USE_OF_VOID_RESULT
+   * See [HintCode.USE_OF_VOID_RESULT].
    */
   bool _checkForUseOfVoidResult(Expression expression) {
     if (expression == null || expression is! MethodInvocation) {
@@ -1552,7 +1551,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
    * @param node the switch statement to evaluate
    * @param type the common type of all 'case' expressions
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+   * See [CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS].
    */
   bool _checkForCaseExpressionTypeImplementsEquals(SwitchStatement node, DartType type) {
     if (!_implementsEqualsWhenNotAllowed(type)) {
@@ -1843,7 +1842,7 @@ class ConstantVisitor_ConstantVerifier_validateInitializerExpression extends Con
 
 /**
  * Instances of the class `Dart2JSVerifier` traverse an AST structure looking for hints for
- * code that will be compiled to JS, such as [HintCode#IS_DOUBLE].
+ * code that will be compiled to JS, such as [HintCode.IS_DOUBLE].
  */
 class Dart2JSVerifier extends RecursiveAstVisitor<Object> {
   /**
@@ -1875,10 +1874,10 @@ class Dart2JSVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the is expression to check
    * @return `true` if and only if a hint code is generated on the passed node
-   * @see HintCode#IS_DOUBLE
-   * @see HintCode#IS_INT
-   * @see HintCode#IS_NOT_DOUBLE
-   * @see HintCode#IS_NOT_INT
+   * See [HintCode.IS_DOUBLE],
+   * [HintCode.IS_INT],
+   * [HintCode.IS_NOT_DOUBLE], and
+   * [HintCode.IS_NOT_INT].
    */
   bool _checkForIsDoubleHints(IsExpression node) {
     TypeName typeName = node.type;
@@ -1937,7 +1936,7 @@ class UnusedLocalVariableVerifier extends RecursiveElementVisitor {
 
 /**
  * Instances of the class `DeadCodeVerifier` traverse an AST structure looking for cases of
- * [HintCode#DEAD_CODE].
+ * [HintCode.DEAD_CODE].
  */
 class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   /**
@@ -2176,12 +2175,12 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Given some [Expression], this method returns [ValidResult#RESULT_TRUE] if it is
-   * `true`, [ValidResult#RESULT_FALSE] if it is `false`, or `null` if the
+   * Given some [Expression], this method returns [ValidResult.RESULT_TRUE] if it is
+   * `true`, [ValidResult.RESULT_FALSE] if it is `false`, or `null` if the
    * expression is not a constant boolean value.
    *
    * @param expression the expression to evaluate
-   * @return [ValidResult#RESULT_TRUE] if it is `true`, [ValidResult#RESULT_FALSE]
+   * @return [ValidResult.RESULT_TRUE] if it is `true`, [ValidResult.RESULT_FALSE]
    *         if it is `false`, or `null` if the expression is not a constant boolean
    *         value
    */
@@ -5366,7 +5365,7 @@ class GeneralizingElementVisitor_DeclarationMatcher_gatherElements extends Gener
  * Instances of the class `HintGenerator` traverse a library's worth of dart code at a time to
  * generate hints over the set of sources.
  *
- * @see HintCode
+ * See [HintCode].
  */
 class HintGenerator {
   final List<CompilationUnit> _compilationUnits;
@@ -5841,7 +5840,7 @@ class ImplicitConstructorBuilder extends ScopedVisitor {
 /**
  * Instances of the class `ImportsVerifier` visit all of the referenced libraries in the
  * source code verifying that all of the imports are used, otherwise a
- * [HintCode#UNUSED_IMPORT] is generated with
+ * [HintCode.UNUSED_IMPORT] is generated with
  * [generateUnusedImportHints].
  *
  * While this class does not yet have support for an "Organize Imports" action, this logic built up
@@ -5866,7 +5865,7 @@ class ImportsVerifier extends RecursiveAstVisitor<Object> {
    * [ImportDirective] is removed from this list. After all the sources in the library have
    * been evaluated, this list represents the set of unused imports.
    *
-   * @see ImportsVerifier#generateUnusedImportErrors(ErrorReporter)
+   * See [ImportsVerifier.generateUnusedImportErrors].
    */
   List<ImportDirective> _unusedImports;
 
@@ -5925,10 +5924,10 @@ class ImportsVerifier extends RecursiveAstVisitor<Object> {
 
   /**
    * Any time after the defining compilation unit has been visited by this visitor, this method can
-   * be called to report an [HintCode#DUPLICATE_IMPORT] hint for each of the import directives
+   * be called to report an [HintCode.DUPLICATE_IMPORT] hint for each of the import directives
    * in the [duplicateImports] list.
    *
-   * @param errorReporter the error reporter to report the set of [HintCode#DUPLICATE_IMPORT]
+   * @param errorReporter the error reporter to report the set of [HintCode.DUPLICATE_IMPORT]
    *          hints to
    */
   void generateDuplicateImportHints(ErrorReporter errorReporter) {
@@ -5939,10 +5938,10 @@ class ImportsVerifier extends RecursiveAstVisitor<Object> {
 
   /**
    * After all of the compilation units have been visited by this visitor, this method can be called
-   * to report an [HintCode#UNUSED_IMPORT] hint for each of the import directives in the
+   * to report an [HintCode.UNUSED_IMPORT] hint for each of the import directives in the
    * [unusedImports] list.
    *
-   * @param errorReporter the error reporter to report the set of [HintCode#UNUSED_IMPORT]
+   * @param errorReporter the error reporter to report the set of [HintCode.UNUSED_IMPORT]
    *          hints to
    */
   void generateUnusedImportHints(ErrorReporter errorReporter) {
@@ -6261,7 +6260,7 @@ class IncrementalResolver {
   /**
    * Return `true` if the given node can be resolved independently of any other nodes.
    *
-   * <b>Note:</b> This method needs to be kept in sync with [ScopeBuilder#scopeForAstNode].
+   * <b>Note:</b> This method needs to be kept in sync with [ScopeBuilder.scopeForAstNode].
    *
    * @param node the node being tested
    * @return `true` if the given node can be resolved independently of any other nodes
@@ -6463,7 +6462,7 @@ class InheritanceManager {
   /**
    * Given some [ExecutableElement] return the number of positional parameters.
    *
-   * Note: by positional we mean [ParameterKind#REQUIRED] or [ParameterKind#POSITIONAL].
+   * Note: by positional we mean [ParameterKind.REQUIRED] or [ParameterKind.POSITIONAL].
    */
   static int _getNumOfPositionalParameters(ExecutableElement executableElement) => _getNumOfParameters(executableElement, ParameterKind.REQUIRED) + _getNumOfParameters(executableElement, ParameterKind.POSITIONAL);
 
@@ -7039,7 +7038,7 @@ class InheritanceManager {
 
   /**
    * This method is used to report errors on when they are found computing inheritance information.
-   * See [ErrorVerifier#checkForInconsistentMethodInheritance] to see where these generated
+   * See [ErrorVerifier.checkForInconsistentMethodInheritance] to see where these generated
    * error codes are reported back into the analysis engine.
    *
    * @param classElt the location of the source for which the exception occurred
@@ -10194,7 +10193,7 @@ class PubVerifier extends RecursiveAstVisitor<Object> {
    * @param uriLiteral the import URL (not `null`)
    * @param path the file path being verified (not `null`)
    * @return `true` if and only if an error code is generated on the passed node
-   * @see PubSuggestionCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE
+   * See [PubSuggestionCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE].
    */
   bool _checkForFileImportInsideLibReferencesFileOutside(StringLiteral uriLiteral, String path) {
     Source source = _getSource(uriLiteral);
@@ -10231,7 +10230,7 @@ class PubVerifier extends RecursiveAstVisitor<Object> {
    * @param uriLiteral the import URL (not `null`)
    * @param path the file path being verified (not `null`)
    * @return `true` if and only if an error code is generated on the passed node
-   * @see PubSuggestionCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE
+   * See [PubSuggestionCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE].
    */
   bool _checkForFileImportOutsideLibReferencesFileInside(StringLiteral uriLiteral, String path) {
     if (StringUtilities.startsWith4(path, 0, 0x6C, 0x69, 0x62, 0x2F)) {
@@ -10274,7 +10273,7 @@ class PubVerifier extends RecursiveAstVisitor<Object> {
    * @param uriLiteral the import URL (not `null`)
    * @param path the path to be validated (not `null`)
    * @return `true` if and only if an error code is generated on the passed node
-   * @see PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT
+   * See [PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT].
    */
   bool _checkForPackageImportContainsDotDot(StringLiteral uriLiteral, String path) {
     if (StringUtilities.startsWith3(path, 0, 0x2E, 0x2E, 0x2F) || StringUtilities.indexOf4(path, 0, 0x2F, 0x2E, 0x2E, 0x2F) >= 0) {
@@ -10305,7 +10304,7 @@ class PubVerifier extends RecursiveAstVisitor<Object> {
 
   /**
    * Answer the full name of the given source. The returned value will have all
-   * [File#separatorChar] replace by '/'.
+   * [File.separatorChar] replace by '/'.
    *
    * @param source the source
    * @return the full name or `null` if it could not be determined
@@ -12378,7 +12377,7 @@ class ScopeBuilder {
    * Return the scope in which the given AST structure should be resolved.
    *
    * <b>Note:</b> This method needs to be kept in sync with
-   * [IncrementalResolver#canBeResolved].
+   * [IncrementalResolver.canBeResolved].
    *
    * @param node the root of the AST structure to be resolved
    * @return the scope in which the given AST structure should be resolved

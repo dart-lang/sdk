@@ -336,7 +336,7 @@ abstract class AnalysisContext {
    * @return all of the errors associated with the given source
    * @throws AnalysisException if the errors could not be determined because the analysis could not
    *           be performed
-   * @see #getErrors(Source)
+   * See [getErrors].
    */
   List<AnalysisError> computeErrors(Source source);
 
@@ -353,7 +353,7 @@ abstract class AnalysisContext {
    * @return the element model corresponding to the HTML file defined by the given source
    * @throws AnalysisException if the element model could not be determined because the analysis
    *           could not be performed
-   * @see #getHtmlElement(Source)
+   * See [getHtmlElement].
    */
   HtmlElement computeHtmlElement(Source source);
 
@@ -365,7 +365,7 @@ abstract class AnalysisContext {
    *
    * @param source the source whose kind is to be returned
    * @return the kind of the given source
-   * @see #getKindOf(Source)
+   * See [getKindOf].
    */
   SourceKind computeKindOf(Source source);
 
@@ -381,7 +381,7 @@ abstract class AnalysisContext {
    * @return the element model corresponding to the library defined by the given source
    * @throws AnalysisException if the element model could not be determined because the analysis
    *           could not be performed
-   * @see #getLibraryElement(Source)
+   * See [getLibraryElement].
    */
   LibraryElement computeLibraryElement(Source source);
 
@@ -397,7 +397,7 @@ abstract class AnalysisContext {
    * @return the line information for the given source
    * @throws AnalysisException if the line information could not be determined because the analysis
    *           could not be performed
-   * @see #getLineInfo(Source)
+   * See [getLineInfo].
    */
   LineInfo computeLineInfo(Source source);
 
@@ -488,7 +488,7 @@ abstract class AnalysisContext {
    *
    * @param source the source whose errors are to be returned
    * @return all of the errors associated with the given source and the line info
-   * @see #computeErrors(Source)
+   * See [computeErrors].
    */
   AnalysisErrorInfo getErrors(Source source);
 
@@ -499,7 +499,7 @@ abstract class AnalysisContext {
    *
    * @param source the source defining the HTML file whose element model is to be returned
    * @return the element model corresponding to the HTML file defined by the given source
-   * @see #computeHtmlElement(Source)
+   * See [computeHtmlElement].
    */
   HtmlElement getHtmlElement(Source source);
 
@@ -526,7 +526,7 @@ abstract class AnalysisContext {
    *
    * @param source the source whose kind is to be returned
    * @return the kind of the given source
-   * @see #computeKindOf(Source)
+   * See [computeKindOf].
    */
   SourceKind getKindOf(Source source);
 
@@ -611,7 +611,7 @@ abstract class AnalysisContext {
    *
    * @param source the source whose line information is to be returned
    * @return the line information for the given source
-   * @see #computeLineInfo(Source)
+   * See [computeLineInfo].
    */
   LineInfo getLineInfo(Source source);
 
@@ -646,7 +646,7 @@ abstract class AnalysisContext {
    * @param unitSource the source of the compilation unit
    * @param library the library containing the compilation unit
    * @return a fully resolved AST for the compilation unit
-   * @see #resolveCompilationUnit(Source, LibraryElement)
+   * See [resolveCompilationUnit].
    */
   CompilationUnit getResolvedCompilationUnit(Source unitSource, LibraryElement library);
 
@@ -658,7 +658,7 @@ abstract class AnalysisContext {
    * @param librarySource the source of the defining compilation unit of the library containing the
    *          compilation unit
    * @return a fully resolved AST for the compilation unit
-   * @see #resolveCompilationUnit(Source, Source)
+   * See [resolveCompilationUnit].
    */
   CompilationUnit getResolvedCompilationUnit2(Source unitSource, Source librarySource);
 
@@ -668,7 +668,7 @@ abstract class AnalysisContext {
    *
    * @param htmlSource the source of the HTML unit
    * @return a fully resolved HTML unit
-   * @see #resolveHtmlUnit(Source)
+   * See [resolveHtmlUnit].
    */
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource);
 
@@ -766,7 +766,7 @@ abstract class AnalysisContext {
    * @return the result of resolving the AST structure representing the content of the source in the
    *         context of the given library
    * @throws AnalysisException if the analysis could not be performed
-   * @see #getResolvedCompilationUnit(Source, LibraryElement)
+   * See [getResolvedCompilationUnit].
    */
   CompilationUnit resolveCompilationUnit(Source unitSource, LibraryElement library);
 
@@ -783,7 +783,7 @@ abstract class AnalysisContext {
    * @return the result of resolving the AST structure representing the content of the source in the
    *         context of the given library
    * @throws AnalysisException if the analysis could not be performed
-   * @see #getResolvedCompilationUnit(Source, Source)
+   * See [getResolvedCompilationUnit].
    */
   CompilationUnit resolveCompilationUnit2(Source unitSource, Source librarySource);
 
@@ -2199,7 +2199,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * Given a source for a Dart file and the library that contains it, return a cache entry in which
    * the state of the data represented by the given descriptor is either [CacheState.VALID] or
-   * [CacheState#ERROR]. This method assumes that the data can be produced by generating hints
+   * [CacheStateERROR]. This method assumes that the data can be produced by generating hints
    * for the library if the data is not already cached.
    *
    * <b>Note:</b> This method cannot be used in an async environment.
@@ -9254,7 +9254,7 @@ class HtmlEntry extends SourceEntry {
  * Instances of the class `IncrementalAnalysisCache` hold information used to perform
  * incremental analysis.
  *
- * @see AnalysisContextImpl.setChangedContents(Source, String, int, int, int)
+ * See [AnalysisContextImpl.setChangedContents].
  */
 class IncrementalAnalysisCache {
   /**
