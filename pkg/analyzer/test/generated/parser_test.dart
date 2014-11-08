@@ -2473,6 +2473,22 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
     expect(vars[0].name.name, "v");
   }
 
+  void test_incomplete_constructorInitializers_empty() {
+    ParserTestCase.parse3(
+        "parseClassMember",
+        ["C"],
+        "C() : {}",
+        [ParserErrorCode.MISSING_INITIALIZER]);
+  }
+
+  void test_incomplete_constructorInitializers_variable() {
+    ParserTestCase.parse3(
+        "parseClassMember",
+        ["C"],
+        "C() : x {}",
+        [ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER]);
+  }
+
   void test_incomplete_topLevelVariable() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("String", [ParserErrorCode.EXPECTED_EXECUTABLE]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;

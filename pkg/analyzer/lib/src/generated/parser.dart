@@ -4409,6 +4409,9 @@ class Parser {
           }
         } else if (_matchesKeyword(Keyword.SUPER)) {
           initializers.add(_parseSuperConstructorInvocation());
+        } else if (_matches(TokenType.OPEN_CURLY_BRACKET)
+            || _matches(TokenType.FUNCTION)) {
+          _reportErrorForCurrentToken(ParserErrorCode.MISSING_INITIALIZER, []);
         } else {
           initializers.add(_parseConstructorFieldInitializer());
         }
@@ -4463,6 +4466,15 @@ class Parser {
       period = _expect(TokenType.PERIOD);
     }
     SimpleIdentifier fieldName = parseSimpleIdentifier();
+    if (!_matches(TokenType.EQ)) {
+      _reportErrorForCurrentToken(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, []);
+      return new ConstructorFieldInitializer(
+          keyword,
+          period,
+          fieldName,
+          _createSyntheticToken(TokenType.EQ),
+          _createSyntheticIdentifier());
+    }
     Token equals = _expect(TokenType.EQ);
     bool wasInInitializer = _inInitializer;
     _inInitializer = true;
@@ -8010,6 +8022,11 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode MISSING_ASSIGNABLE_SELECTOR = const ParserErrorCode('MISSING_ASSIGNABLE_SELECTOR', "Missing selector such as \".<identifier>\" or \"[0]\"");
 
+  static const ParserErrorCode MISSING_ASSIGNMENT_IN_INITIALIZER
+      = const ParserErrorCode(
+          'MISSING_ASSIGNMENT_IN_INITIALIZER',
+          "Expected an assignment after the field name");
+
   static const ParserErrorCode MISSING_CATCH_OR_FINALLY = const ParserErrorCode('MISSING_CATCH_OR_FINALLY', "A try statement must have either a catch or finally clause");
 
   static const ParserErrorCode MISSING_CLASS_BODY = const ParserErrorCode('MISSING_CLASS_BODY', "A class definition must have a body, even if it is empty");
@@ -8020,6 +8037,11 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode MISSING_ENUM_BODY = const ParserErrorCode('MISSING_ENUM_BODY', "An enum definition must have a body with at least one constant name");
 
+  static const ParserErrorCode MISSING_EXPRESSION_IN_INITIALIZER
+      = const ParserErrorCode(
+          'MISSING_EXPRESSION_IN_INITIALIZER',
+          "Expected an expression after the assignment operator");
+
   static const ParserErrorCode MISSING_EXPRESSION_IN_THROW = const ParserErrorCode('MISSING_EXPRESSION_IN_THROW', "Throw expressions must compute the object to be thrown");
 
   static const ParserErrorCode MISSING_FUNCTION_BODY = const ParserErrorCode('MISSING_FUNCTION_BODY', "A function body must be provided");
@@ -8029,6 +8051,9 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode MISSING_GET = const ParserErrorCode('MISSING_GET', "Getters must have the keyword 'get' before the getter name");
 
   static const ParserErrorCode MISSING_IDENTIFIER = const ParserErrorCode('MISSING_IDENTIFIER', "Expected an identifier");
+
+  static const ParserErrorCode MISSING_INITIALIZER
+      = const ParserErrorCode('MISSING_INITIALIZER', "Expected an initializer");
 
   static const ParserErrorCode MISSING_KEYWORD_OPERATOR = const ParserErrorCode('MISSING_KEYWORD_OPERATOR', "Operator declarations must be preceeded by the keyword 'operator'");
 

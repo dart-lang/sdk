@@ -154,12 +154,12 @@ String _printf(String fmt, List args) {
       markFound = false;
       // %d
       if (c == 0x64) {
-        sb.writeCharCode(args[argIndex++]);
+        sb.write(args[argIndex++]);
         continue;
       }
       // %s
       if (c == 0x73) {
-        sb.writeCharCode(args[argIndex++]);
+        sb.write(args[argIndex++]);
         continue;
       }
       // unknown
