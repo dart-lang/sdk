@@ -111,6 +111,7 @@ MockCompiler compilerFor(String code, Uri uri,
 Future<String> compileAll(String code,
                           {Map<String, String> coreSource,
                           bool disableInlining: true,
+                          bool trustTypeAnnotations: false,
                           bool minify: false,
                           int expectedErrors,
                           int expectedWarnings}) {
@@ -118,6 +119,7 @@ Future<String> compileAll(String code,
   MockCompiler compiler = compilerFor(
       code, uri, coreSource: coreSource, disableInlining: disableInlining,
       minify: minify, expectedErrors: expectedErrors,
+      trustTypeAnnotations: trustTypeAnnotations,
       expectedWarnings: expectedWarnings);
   return compiler.runCompiler(uri).then((_) {
     Expect.isFalse(compiler.compilationFailed,
