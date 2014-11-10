@@ -124,9 +124,14 @@ void typedTest() {
   assert((isCheckedMode = true));
   if (!isCheckedMode) return;
 
+  // Assign functions to untyped function variables.
+  Function key = (int v) => "$v";
+  Function value = (int v) => v.isOdd;
+  Function id = (int i) => i;
+
   Expect.throws(() {
     new SplayTreeMap<String,bool>.fromIterable(<int>[1, 2, 3],
-      key: (int v) => "$v"
+      key: key
       // No "value" map, defaults to identity, which returns int, not bool.
     );
   });
@@ -134,29 +139,29 @@ void typedTest() {
   Expect.throws(() {
     new SplayTreeMap<String,bool>.fromIterable(<int>[1, 2, 3],
       // No "key" map, defaults to identity, which returns int, not String.
-      value: (int v) => v.isOdd
+      value: value
     );
   });
 
   Expect.throws(() {
     new SplayTreeMap<String,bool>.fromIterable(<int>[1, 2, 3],
-      key: (int v) => v,     // wrong type.
-      value: (int v) => v.isOdd
+      key: id,     // wrong type.
+      value: value
     );
   });
 
   Expect.throws(() {
     new SplayTreeMap<String,bool>.fromIterable(<int>[1, 2, 3],
-      key: (int v) => "$v",
-      value: (int v) => v    // wrong type.
+      key: key,
+      value: id    // wrong type.
     );
   });
 
   // But it works with explicit types when used correctly.
-  Map<String, bool> map =
+  SplayTreeMap<String, bool> map =
       new SplayTreeMap<String, bool>.fromIterable(<int>[1, 2, 3],
-                                                  key: (int v) => "$v",
-                                                  value: (int v) => v.isOdd);
+                                                  key: key,
+                                                  value: value);
   Iterable<String> keys = map.keys;
   Iterable<bool> values = map.values;
   List<String> keyList = keys.toList();
