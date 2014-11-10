@@ -1006,6 +1006,9 @@ class SsaBuilder extends ResolvedVisitor {
   // implementation/declaration distinction.
   Element get sourceElement => sourceElementStack.last;
 
+  bool get _checkOrTrustTypes =>
+      compiler.enableTypeAssertions || compiler.trustTypeAnnotations;
+
   HBasicBlock addNewBlock() {
     HBasicBlock block = graph.addNewBlock();
     // If adding a new block during building of an expression, it is due to
@@ -1483,8 +1486,7 @@ class SsaBuilder extends ResolvedVisitor {
     // If the method is intercepted, we want the actual receiver
     // to be the first parameter.
     graph.entry.addBefore(graph.entry.last, parameter);
-    HInstruction value =
-        potentiallyCheckType(parameter, field.type);
+    HInstruction value = potentiallyCheckOrTrustType(parameter, field.type);
     add(new HFieldSet(field, thisInstruction, value));
     return closeFunction();
   }
@@ -1495,7 +1497,7 @@ class SsaBuilder extends ResolvedVisitor {
     assert(variable.initializer != null);
     visit(variable.initializer);
     HInstruction value = pop();
-    value = potentiallyCheckType(value, variable.type);
+    value = potentiallyCheckOrTrustType(value, variable.type);
     closeAndGotoExit(new HReturn(value));
     return closeFunction();
   }
@@ -1658,12 +1660,12 @@ class SsaBuilder extends ResolvedVisitor {
    * function.
    */
   void potentiallyCheckInlinedParameterTypes(FunctionElement function) {
-    if (!compiler.enableTypeAssertions) return;
+    if (!_checkOrTrustTypes) return;
 
     FunctionSignature signature = function.functionSignature;
     signature.orderedForEachParameter((ParameterElement parameter) {
       HInstruction argument = localsHandler.readLocal(parameter);
-      potentiallyCheckType(argument, parameter.type);
+      potentiallyCheckOrTrustType(argument, parameter.type);
     });
   }
 
@@ -1974,7 +1976,7 @@ class SsaBuilder extends ResolvedVisitor {
           } else {
             fields.add(member);
             DartType type = localsHandler.substInContext(member.type);
-            constructorArguments.add(potentiallyCheckType(value, type));
+            constructorArguments.add(potentiallyCheckOrTrustType(value, type));
           }
         },
         includeSuperAndInjectedMembers: true);
@@ -2219,7 +2221,7 @@ class SsaBuilder extends ResolvedVisitor {
           //
           // Only the final target is allowed to check for the argument types.
           newParameter =
-              potentiallyCheckType(newParameter, parameterElement.type);
+              potentiallyCheckOrTrustType(newParameter, parameterElement.type);
         }
         localsHandler.directLocals[parameterElement] = newParameter;
       });
@@ -2296,23 +2298,41 @@ class SsaBuilder extends ResolvedVisitor {
     }
   }
 
-  HInstruction potentiallyBuildTypeHint(HInstruction original, DartType type) {
-    if (!compiler.trustTypeAnnotations || type == null) return original;
+  HInstruction _trustType(HInstruction original, DartType type) {
+    assert(compiler.trustTypeAnnotations);
+    assert(type != null);
     type = localsHandler.substInContext(type);
+    type = type.unalias(compiler);
+    if (type.isDynamic) return original;
     if (!type.isInterfaceType) return original;
-    TypeMask mask = new TypeMask.subtype(type.element, compiler.world);
-    var result = new HTypeKnown.pinned(mask, original);
-    return result;
+    // The type element is either a class or the void element.
+    Element element = type.element;
+    if (element == compiler.objectClass) return original;
+    TypeMask mask = new TypeMask.subtype(element, compiler.world);
+    return new HTypeKnown.pinned(mask, original);
   }
 
-  HInstruction potentiallyCheckType(HInstruction original, DartType type,
-      { int kind: HTypeConversion.CHECKED_MODE_CHECK }) {
-    if (!compiler.enableTypeAssertions) return original;
+  HInstruction _checkType(HInstruction original, DartType type, int kind) {
+    assert(compiler.enableTypeAssertions);
+    assert(type != null);
     type = localsHandler.substInContext(type);
     HInstruction other = buildTypeConversion(original, type, kind);
-    if (other != original) add(other);
     registry.registerIsCheck(type);
     return other;
+  }
+
+  HInstruction potentiallyCheckOrTrustType(HInstruction original, DartType type,
+      { int kind: HTypeConversion.CHECKED_MODE_CHECK }) {
+    if (type == null) return original;
+    HInstruction checkedOrTrusted = original;
+    if (compiler.trustTypeAnnotations) {
+      checkedOrTrusted = _trustType(original, type);
+    } else if (compiler.enableTypeAssertions) {
+      checkedOrTrusted = _checkType(original, type, kind);
+    }
+    if (checkedOrTrusted == original) return original;
+    add(checkedOrTrusted);
+    return checkedOrTrusted;
   }
 
   void assertIsSubtype(ast.Node node, DartType subtype, DartType supertype,
@@ -2358,8 +2378,8 @@ class SsaBuilder extends ResolvedVisitor {
 
   HInstruction popBoolified() {
     HInstruction value = pop();
-    if (compiler.enableTypeAssertions) {
-      return potentiallyCheckType(
+    if (_checkOrTrustTypes) {
+      return potentiallyCheckOrTrustType(
           value,
           compiler.boolClass.rawType,
           kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
@@ -3186,8 +3206,7 @@ class SsaBuilder extends ResolvedVisitor {
         pop();
       } else {
         VariableElement field = element;
-        value =
-            potentiallyCheckType(value, field.type);
+        value = potentiallyCheckOrTrustType(value, field.type);
         addWithPosition(new HStaticStore(element, value), location);
       }
       stack.add(value);
@@ -3205,20 +3224,14 @@ class SsaBuilder extends ResolvedVisitor {
       if (value.sourceElement == null) {
         value.sourceElement = local;
       }
-      HInstruction checked =
-          potentiallyCheckType(value, local.type);
-      if (!identical(checked, value)) {
+      HInstruction checkedOrTrusted =
+          potentiallyCheckOrTrustType(value, local.type);
+      if (!identical(checkedOrTrusted, value)) {
         pop();
-        stack.add(checked);
-      }
-      HInstruction trusted =
-          potentiallyBuildTypeHint(checked, local.type);
-      if (!identical(trusted, checked)) {
-        pop();
-        push(trusted);
+        stack.add(checkedOrTrusted);
       }
 
-      localsHandler.updateLocal(local, trusted);
+      localsHandler.updateLocal(local, checkedOrTrusted);
     }
   }
 
@@ -4304,7 +4317,7 @@ class SsaBuilder extends ResolvedVisitor {
 
     // Finally, if we called a redirecting factory constructor, check the type.
     if (isRedirected) {
-      HInstruction checked = potentiallyCheckType(newInstance, type);
+      HInstruction checked = potentiallyCheckOrTrustType(newInstance, type);
       if (checked != newInstance) {
         pop();
         stack.add(checked);
@@ -5042,7 +5055,7 @@ class SsaBuilder extends ResolvedVisitor {
     } else {
       visit(node.expression);
       value = pop();
-      value = potentiallyCheckType(value, returnType);
+      value = potentiallyCheckOrTrustType(value, returnType);
     }
 
     handleInTryStatement();
