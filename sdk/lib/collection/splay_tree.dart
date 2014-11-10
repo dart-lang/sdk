@@ -289,7 +289,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
    * If no values are specified for [key] and [value] the default is the
    * identity function.
    */
-  factory SplayTreeMap.fromIterable(Iterable<K> iterable,
+  factory SplayTreeMap.fromIterable(Iterable iterable,
       {K key(element), V value(element), int compare(K key1, K key2),
        bool isValidKey(potentialKey) }) {
     SplayTreeMap<K, V> map = new SplayTreeMap<K, V>(compare, isValidKey);

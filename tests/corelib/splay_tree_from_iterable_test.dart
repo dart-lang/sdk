@@ -13,6 +13,7 @@ main() {
   emptyIterableTest();
   equalElementsTest();
   genericTypeTest();
+  typedTest();
 }
 
 void defaultFunctionValuesTest() {
@@ -117,3 +118,51 @@ void genericTypeTest() {
   Expect.isFalse(map is SplayTreeMap<dynamic, int>);
 }
 
+// Test in checked mode with explicitly given types.
+void typedTest() {
+  bool isCheckedMode = false;
+  assert((isCheckedMode = true));
+  if (!isCheckedMode) return;
+
+  Expect.throws(() {
+    new SplayTreeMap<String,bool>.fromIterable(<int>[1, 2, 3],
+      key: (int v) => "$v"
+      // No "value" map, defaults to identity, which returns int, not bool.
+    );
+  });
+
+  Expect.throws(() {
+    new SplayTreeMap<String,bool>.fromIterable(<int>[1, 2, 3],
+      // No "key" map, defaults to identity, which returns int, not String.
+      value: (int v) => v.isOdd
+    );
+  });
+
+  Expect.throws(() {
+    new SplayTreeMap<String,bool>.fromIterable(<int>[1, 2, 3],
+      key: (int v) => v,     // wrong type.
+      value: (int v) => v.isOdd
+    );
+  });
+
+  Expect.throws(() {
+    new SplayTreeMap<String,bool>.fromIterable(<int>[1, 2, 3],
+      key: (int v) => "$v",
+      value: (int v) => v    // wrong type.
+    );
+  });
+
+  // But it works with explicit types when used correctly.
+  Map<String, bool> map =
+      new SplayTreeMap<String, bool>.fromIterable(<int>[1, 2, 3],
+                                                  key: (int v) => "$v",
+                                                  value: (int v) => v.isOdd);
+  Iterable<String> keys = map.keys;
+  Iterable<bool> values = map.values;
+  List<String> keyList = keys.toList();
+  List<bool> valueList = values.toList();
+  Expect.equals(3, keyList.length);
+  Expect.equals(3, valueList.length);
+  Expect.equals(keys.first, map.firstKey());
+  Expect.equals(keys.last, map.lastKey());
+}
