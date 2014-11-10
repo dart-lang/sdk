@@ -30,7 +30,7 @@ class ModelEmitter {
   static const String deferredInitializersGlobal =
       r"$__dart_deferred_initializers__";
 
-  static const String deferredExtension = ".part.js";
+  static const String deferredExtension = "part.js";
 
   ModelEmitter(Compiler compiler, Namer namer)
       : this.compiler = compiler,
