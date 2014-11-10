@@ -1364,6 +1364,7 @@ abstract class _SecureFilter {
                Uint8List protocols);
   void destroy();
   void handshake();
+  String selectedProtocol();
   void rehandshake();
   void renegotiate(bool useSessionCache,
                    bool requestClientCertificate,
