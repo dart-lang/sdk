@@ -5740,9 +5740,14 @@ class ImplicitConstructorBuilder extends ScopedVisitor {
           List<ConstructorElement> implicitConstructors = new List<ConstructorElement>();
           for (int i = 0; i < count; i++) {
             ConstructorElement explicitConstructor = constructors[i];
-            if (!explicitConstructor.isFactory) {
+            if (!explicitConstructor.isFactory &&
+                classElement.isSuperConstructorAccessible(explicitConstructor)) {
               implicitConstructors.add(_createImplicitContructor(classType, explicitConstructor, parameterTypes, argumentTypes));
             }
+          }
+          if (implicitConstructors.isEmpty) {
+            reportErrorForNode(CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
+                node, [superclassElement.name]);
           }
           classElement.constructors = implicitConstructors;
         }

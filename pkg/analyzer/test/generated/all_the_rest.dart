@@ -7377,6 +7377,83 @@ class ElementBuilderTest extends EngineTestCase {
     expect(method.name, methodName);
   }
 
+  void test_visitClassTypeAlias() {
+    // class B {}
+    // class M {}
+    // class C = B with M
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    ClassElementImpl classB = ElementFactory.classElement2('B', []);
+    ConstructorElementImpl constructorB =
+        ElementFactory.constructorElement2(classB, '', []);
+    constructorB.setModifier(Modifier.SYNTHETIC, true);
+    classB.constructors = [constructorB];
+    ClassElement classM = ElementFactory.classElement2('M', []);
+    WithClause withClause =
+        AstFactory.withClause([AstFactory.typeName(classM, [])]);
+    ClassTypeAlias alias = AstFactory.classTypeAlias('C', null, null,
+        AstFactory.typeName(classB, []), withClause, null);
+    alias.accept(builder);
+    List<ClassElement> types = holder.types;
+    expect(types, hasLength(1));
+    ClassElement type = types[0];
+    expect(alias.element, same(type));
+    expect(type.name, equals('C'));
+    expect(type.isAbstract, isFalse);
+    expect(type.isSynthetic, isFalse);
+    expect(type.typeParameters, isEmpty);
+    expect(type.fields, isEmpty);
+    expect(type.methods, isEmpty);
+  }
+
+  void test_visitClassTypeAlias_abstract() {
+    // class B {}
+    // class M {}
+    // abstract class C = B with M
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    ClassElementImpl classB = ElementFactory.classElement2('B', []);
+    ConstructorElementImpl constructorB =
+        ElementFactory.constructorElement2(classB, '', []);
+    constructorB.setModifier(Modifier.SYNTHETIC, true);
+    classB.constructors = [constructorB];
+    ClassElement classM = ElementFactory.classElement2('M', []);
+    WithClause withClause =
+        AstFactory.withClause([AstFactory.typeName(classM, [])]);
+    ClassTypeAlias classCAst = AstFactory.classTypeAlias('C', null,
+        Keyword.ABSTRACT, AstFactory.typeName(classB, []), withClause, null);
+    classCAst.accept(builder);
+    List<ClassElement> types = holder.types;
+    expect(types, hasLength(1));
+    ClassElement type = types[0];
+    expect(type.isAbstract, isTrue);
+  }
+
+  void test_visitClassTypeAlias_typeParams() {
+    // class B {}
+    // class M {}
+    // class C<T> = B with M
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    ClassElementImpl classB = ElementFactory.classElement2('B', []);
+    ConstructorElementImpl constructorB =
+        ElementFactory.constructorElement2(classB, '', []);
+    constructorB.setModifier(Modifier.SYNTHETIC, true);
+    classB.constructors = [constructorB];
+    ClassElementImpl classM = ElementFactory.classElement2('M', []);
+    WithClause withClause =
+        AstFactory.withClause([AstFactory.typeName(classM, [])]);
+    ClassTypeAlias classCAst = AstFactory.classTypeAlias('C',
+        AstFactory.typeParameterList(['T']), null,
+        AstFactory.typeName(classB, []), withClause, null);
+    classCAst.accept(builder);
+    List<ClassElement> types = holder.types;
+    expect(types, hasLength(1));
+    ClassElement type = types[0];
+    expect(type.typeParameters, hasLength(1));
+    expect(type.typeParameters[0].name, equals('T'));
+  }
+
   void test_visitConstructorDeclaration_factory() {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);

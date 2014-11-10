@@ -19,6 +19,11 @@ external_test/25: Fail
 constructor_duplicate_final_test/03: Fail
 identical_const_test: Fail # Issue 21177
 super_bound_closure_test/01: MissingStaticWarning # Issue 18914
+mixin_forwarding_constructor4_test/01: MissingCompileTimeError # Issue 19576
+mixin_forwarding_constructor4_test/02: MissingCompileTimeError # Issue 19576
+mixin_forwarding_constructor4_test/03: MissingCompileTimeError # Issue 19576
+mixin_super_constructor_named_test/01: MissingCompileTimeError # Issue 19576
+mixin_super_constructor_positionals_test/01: MissingCompileTimeError # Issue 19576
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.

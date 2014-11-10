@@ -26,6 +26,11 @@ type_variable_conflict_test/03: Fail # Issue 13702
 type_variable_conflict_test/04: Fail # Issue 13702
 type_variable_conflict_test/05: Fail # Issue 13702
 type_variable_conflict_test/06: Fail # Issue 13702
+mixin_forwarding_constructor4_test/01: MissingCompileTimeError # Issue 15101
+mixin_forwarding_constructor4_test/02: MissingCompileTimeError # Issue 15101
+mixin_forwarding_constructor4_test/03: MissingCompileTimeError # Issue 15101
+mixin_super_constructor_named_test/01: Fail # Issue 15101
+mixin_super_constructor_positionals_test/01: Fail # Issue 15101
 
 ref_before_declaration_test/00: MissingCompileTimeError
 ref_before_declaration_test/01: MissingCompileTimeError
@@ -186,15 +191,11 @@ type_variable_conflict2_test/06: MissingCompileTimeError # Issue 16180
 type_variable_conflict2_test/08: MissingCompileTimeError # Issue 16180
 type_variable_conflict2_test/10: MissingCompileTimeError # Issue 16180
 regress_13494_test: Fail # Issue 13494
-mixin_super_constructor_named_test: Fail # Issue 12631
-mixin_super_constructor_positionals_test: Fail # Issue 12631
 
 built_in_identifier_prefix_test: Fail # Issue 6972
 constructor_initializer_test/none: Fail # Issue 12633
 
 # Mixins fail on the VM.
-mixin_forwarding_constructor2_test: Fail # Issue 13641
-
 mixin_with_two_implicit_constructors_test: Fail # Issue 11889
 
 # Calling unresolved class constructor:

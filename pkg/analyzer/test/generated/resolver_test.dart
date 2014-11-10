@@ -11471,6 +11471,109 @@ class TypeResolverVisitorTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
+  void test_visitClassTypeAlias_constructorWithOptionalParams_ignored() {
+    // class T {}
+    // class B {
+    //   B.c1();
+    //   B.c2([T a0]);
+    //   B.c3({T a0});
+    // }
+    // class M {}
+    // class C = B with M
+    ClassElement classT = ElementFactory.classElement2('T', []);
+    ClassElementImpl classB = ElementFactory.classElement2('B', []);
+    ConstructorElementImpl constructorBc1 =
+        ElementFactory.constructorElement2(classB, 'c1', []);
+    ConstructorElementImpl constructorBc2 =
+        ElementFactory.constructorElement2(classB, 'c2', [classT.type]);
+    (constructorBc2.parameters[0] as ParameterElementImpl).parameterKind =
+        ParameterKind.POSITIONAL;
+    ConstructorElementImpl constructorBc3 =
+        ElementFactory.constructorElement2(classB, 'c3', [classT.type]);
+    (constructorBc3.parameters[0] as ParameterElementImpl).parameterKind =
+        ParameterKind.NAMED;
+    classB.constructors = [constructorBc1, constructorBc2, constructorBc3];
+    ClassElement classM = ElementFactory.classElement2('M', []);
+    WithClause withClause =
+        AstFactory.withClause([AstFactory.typeName(classM, [])]);
+    ClassElement classC = ElementFactory.classElement2('C', []);
+    ClassTypeAlias alias = AstFactory.classTypeAlias('C', null, null,
+        AstFactory.typeName(classB, []), withClause, null);
+    alias.name.staticElement = classC;
+    _resolveNode(alias, [classT, classB, classM, classC]);
+    expect(classC.constructors, hasLength(1));
+    ConstructorElement constructor = classC.constructors[0];
+    expect(constructor.isFactory, isFalse);
+    expect(constructor.isSynthetic, isTrue);
+    expect(constructor.name, 'c1');
+    expect(constructor.functions, hasLength(0));
+    expect(constructor.labels, hasLength(0));
+    expect(constructor.localVariables, hasLength(0));
+    expect(constructor.parameters, isEmpty);
+  }
+
+  void test_visitClassTypeAlias_constructorWithParams() {
+    // class T {}
+    // class B {
+    //   B(T a0);
+    // }
+    // class M {}
+    // class C = B with M
+    ClassElement classT = ElementFactory.classElement2('T', []);
+    ClassElementImpl classB = ElementFactory.classElement2('B', []);
+    ConstructorElementImpl constructorB =
+        ElementFactory.constructorElement2(classB, '', [classT.type]);
+    classB.constructors = [constructorB];
+    ClassElement classM = ElementFactory.classElement2('M', []);
+    WithClause withClause =
+        AstFactory.withClause([AstFactory.typeName(classM, [])]);
+    ClassElement classC = ElementFactory.classElement2('C', []);
+    ClassTypeAlias alias = AstFactory.classTypeAlias('C', null, null,
+        AstFactory.typeName(classB, []), withClause, null);
+    alias.name.staticElement = classC;
+    _resolveNode(alias, [classT, classB, classM, classC]);
+    expect(classC.constructors, hasLength(1));
+    ConstructorElement constructor = classC.constructors[0];
+    expect(constructor.isFactory, isFalse);
+    expect(constructor.isSynthetic, isTrue);
+    expect(constructor.name, '');
+    expect(constructor.functions, hasLength(0));
+    expect(constructor.labels, hasLength(0));
+    expect(constructor.localVariables, hasLength(0));
+    expect(constructor.parameters, hasLength(1));
+    expect(constructor.parameters[0].type, equals(classT.type));
+    expect(constructor.parameters[0].name,
+        equals(constructorB.parameters[0].name));
+  }
+
+  void test_visitClassTypeAlias_defaultConstructor() {
+    // class B {}
+    // class M {}
+    // class C = B with M
+    ClassElementImpl classB = ElementFactory.classElement2('B', []);
+    ConstructorElementImpl constructorB =
+        ElementFactory.constructorElement2(classB, '', []);
+    constructorB.setModifier(Modifier.SYNTHETIC, true);
+    classB.constructors = [constructorB];
+    ClassElement classM = ElementFactory.classElement2('M', []);
+    WithClause withClause =
+        AstFactory.withClause([AstFactory.typeName(classM, [])]);
+    ClassElement classC = ElementFactory.classElement2('C', []);
+    ClassTypeAlias alias = AstFactory.classTypeAlias('C', null, null,
+        AstFactory.typeName(classB, []), withClause, null);
+    alias.name.staticElement = classC;
+    _resolveNode(alias, [classB, classM, classC]);
+    expect(classC.constructors, hasLength(1));
+    ConstructorElement constructor = classC.constructors[0];
+    expect(constructor.isFactory, isFalse);
+    expect(constructor.isSynthetic, isTrue);
+    expect(constructor.name, '');
+    expect(constructor.functions, hasLength(0));
+    expect(constructor.labels, hasLength(0));
+    expect(constructor.localVariables, hasLength(0));
+    expect(constructor.parameters, isEmpty);
+  }
+
   void test_visitFieldFormalParameter_functionType() {
     InterfaceType intType = _typeProvider.intType;
     TypeName intTypeName = AstFactory.typeName4("int");

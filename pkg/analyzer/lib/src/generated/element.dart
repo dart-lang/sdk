@@ -1031,6 +1031,12 @@ abstract class ClassElement implements Element {
   bool get isProxy;
 
   /**
+   * Determine whether the given [constructor], which exists in the superclass
+   * of this class, is accessible to constructors in this class.
+   */
+  bool isSuperConstructorAccessible(ConstructorElement constructor);
+
+  /**
    * Return `true` if this class is defined by a typedef construct.
    *
    * @return `true` if this class is defined by a typedef construct
@@ -1498,6 +1504,23 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       }
     }
     return false;
+  }
+
+  @override
+  bool isSuperConstructorAccessible(ConstructorElement constructor) {
+    // If this class has no mixins, then all superclass constructors are
+    // accessible.
+    if (mixins.isEmpty) {
+      return true;
+    }
+    // Otherwise only constructors that lack optional parameters are
+    // accessible (see dartbug.com/19576).
+    for (ParameterElement parameter in constructor.parameters) {
+      if (parameter.parameterKind != ParameterKind.REQUIRED) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @override

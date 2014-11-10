@@ -1419,6 +1419,18 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode MIXIN_DEFERRED_CLASS = const CompileTimeErrorCode('MIXIN_DEFERRED_CLASS', "This class cannot mixin the deferred class '{0}'");
 
   /**
+   * Not yet in the spec, but consistent with VM behavior.  It is a
+   * compile-time error if all of the constructors of a mixin's base class have
+   * at least one optional parameter (since only constructors that lack
+   * optional parameters can be forwarded to the mixin).  See
+   * https://code.google.com/p/dart/issues/detail?id=15101#c4
+   */
+  static const CompileTimeErrorCode MIXIN_HAS_NO_CONSTRUCTORS =
+      const CompileTimeErrorCode('MIXIN_HAS_NO_CONSTRUCTORS',
+          "This mixin application is invalid because all of the constructors "
+          "in the base class '{0}' have optional parameters.");
+
+  /**
    * 9 Mixins: It is a compile-time error if a mixin is derived from a class
    * whose superclass is not Object.
    *

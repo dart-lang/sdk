@@ -4014,7 +4014,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _errorReporter.reportErrorForNode(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, node.name, [superUnnamedConstructor]);
         return true;
       }
-      if (superUnnamedConstructor.isDefaultConstructor) {
+      if (superUnnamedConstructor.isDefaultConstructor &&
+          _enclosingClass.isSuperConstructorAccessible(
+              superUnnamedConstructor)) {
         return true;
       }
     }
@@ -4865,7 +4867,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _errorReporter.reportErrorForNode(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, node.returnType, [superUnnamedConstructor]);
         return true;
       }
-      if (!superUnnamedConstructor.isDefaultConstructor) {
+      if (!superUnnamedConstructor.isDefaultConstructor ||
+          !_enclosingClass.isSuperConstructorAccessible(
+              superUnnamedConstructor)) {
         int offset;
         int length;
         {

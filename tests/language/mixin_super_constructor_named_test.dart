@@ -6,7 +6,13 @@ import "package:expect/expect.dart";
 
 class Base {
   int i, j;
-  Base.ctor(int this.i, {int this.j: 10});
+  Base.ctor(int this.i
+            , {int this.j: 10}    /// 01: compile-time error
+           ) {
+    if (j == null) {
+      j = 10;
+    }
+  }
 }
 
 abstract class M {
@@ -18,17 +24,12 @@ abstract class M {
 
 class C extends Base with M {
   int l = 131;
-  C.foo() : super.ctor(1, j: 13);
+  C.foo() : super.ctor(1, j: 13); /// 01: compile-time error
   C.bar() : super.ctor(1);
 }
 
 main() {
-  C c1 = new C.foo();
-  Expect.equals(1, c1.i);
-  Expect.equals(13, c1.j);
-  Expect.equals(14, c1.foo());
-  Expect.equals(42, c1.k);
-  Expect.equals(131, c1.l);
+  C c1 = new C.foo();             /// 01: compile-time error
   C c2 = new C.bar();
   Expect.equals(1, c2.i);
   Expect.equals(10, c2.j);
