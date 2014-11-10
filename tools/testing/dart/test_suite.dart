@@ -1101,27 +1101,24 @@ class StandardTestSuite extends TestSuite {
     exit(1);
   }
 
-  String _getUriForBrowserTest(TestInformation info,
-                            String pathComponent,
-                            subtestNames,
-                            subtestIndex) {
+  Uri _getUriForBrowserTest(String pathComponent, String subtestName) {
     // Note: If we run test.py with the "--list" option, no http servers
-    // will be started. So we use PORT/CROSS_ORIGIN_PORT instead of real ports.
-    var serverPort = "PORT";
-    var crossOriginPort = "CROSS_ORIGIN_PORT";
-    if (!configuration['list']) {
-      assert(configuration.containsKey('_servers_'));
-      serverPort = configuration['_servers_'].port;
-      crossOriginPort = configuration['_servers_'].crossOriginPort;
+    // will be started. So we return a dummy url instead.
+    if (configuration['list']) {
+      return Uri.parse('http://listing_the_tests_only');
     }
-
-    var localIp = configuration['local_ip'];
-    var url= 'http://$localIp:$serverPort$pathComponent'
-        '?crossOriginPort=$crossOriginPort';
-    if (info.optionsFromFile['isMultiHtmlTest'] && subtestNames.length > 0) {
-      url= '${url}&group=${subtestNames[subtestIndex]}';
+    assert(configuration.containsKey('_servers_'));
+    int serverPort = configuration['_servers_'].port;
+    int crossOriginPort = configuration['_servers_'].crossOriginPort;
+    Map parameters = {'crossOriginPort': crossOriginPort.toString()};
+    if (subtestName != null) {
+      parameters['group'] = subtestName;
     }
-    return url;
+    return new Uri(scheme: 'http',
+                   host: configuration['local_ip'],
+                   port: serverPort,
+                   path: pathComponent,
+                   queryParameters: parameters);
   }
 
   void _createWrapperFile(String dartWrapperFilename,
@@ -1316,15 +1313,16 @@ class StandardTestSuite extends TestSuite {
 
 
     // Variables for browser multi-tests.
-    List<String> subtestNames = info.optionsFromFile['subtestNames'];
-    int subtestIndex = 0;
+    bool multitest = info.optionsFromFile['isMultiHtmlTest'];
+    List<String> subtestNames =
+        multitest ? info.optionsFromFile['subtestNames'] : [null];
+    for (String subtestName in subtestNames) {
     // Construct the command that executes the browser test
-    do {
       List<Command> commandSet = new List<Command>.from(commands);
 
       var htmlPath_subtest = _createUrlPathFromFile(new Path(htmlPath));
-      var fullHtmlPath = _getUriForBrowserTest(
-          info, htmlPath_subtest, subtestNames, subtestIndex);
+      var fullHtmlPath =
+          _getUriForBrowserTest(htmlPath_subtest, subtestName).toString();
 
       List<String> args = <String>[];
 
@@ -1360,32 +1358,19 @@ class StandardTestSuite extends TestSuite {
       }
 
       // Create BrowserTestCase and queue it.
-      String testDisplayName = '$suiteName/$testName';
-      var testCase;
-      if (info.optionsFromFile['isMultiHtmlTest']) {
-        testDisplayName = '$testDisplayName/${subtestNames[subtestIndex]}';
-        testCase = new BrowserTestCase(
-            testDisplayName,
+      var fullTestName = multitest ? '$testName/$subtestName' : testName;
+      var expectation = multitest ? expectations[fullTestName] : expectations;
+      var testCase = new BrowserTestCase(
+            '$suiteName/$fullTestName',
             commandSet,
             configuration,
-            expectations['$testName/${subtestNames[subtestIndex]}'],
+            expectation,
             info,
             isNegative(info),
             fullHtmlPath);
-      } else {
-        testCase = new BrowserTestCase(
-            testDisplayName,
-            commandSet,
-            configuration,
-            expectations,
-            info,
-            isNegative(info),
-            fullHtmlPath);
-      }
 
       enqueueNewTestCase(testCase);
-      subtestIndex++;
-    } while (subtestIndex < subtestNames.length);
+    }
   }
 
   void enqueueHtmlTest(
@@ -1442,7 +1427,7 @@ class StandardTestSuite extends TestSuite {
     new File.fromUri(htmlFile).writeAsStringSync(contents);
 
     var htmlPath = _createUrlPathFromFile(new Path(htmlFile.toFilePath()));
-    var fullHtmlPath = _getUriForBrowserTest(info, htmlPath, null, null);
+    var fullHtmlPath = _getUriForBrowserTest(htmlPath, null).toString();
     var commands = [
         CommandBuilder.instance.getBrowserHtmlTestCommand(
             runtime,
