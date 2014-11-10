@@ -58,6 +58,18 @@ class AccessKind {
   static const AccessKind STATIC_PROPERTY =
       const AccessKind._('STATIC_PROPERTY');
 
+  /**
+   * The destination of the access is a toplevel class.
+   */
+  static const AccessKind TOPLEVEL_CLASS =
+      const AccessKind._('TOPLEVEL_CLASS');
+
+  /**
+   * The destination of the access is a type parameter of the enclosing class.
+   */
+  static const AccessKind TYPE_PARAMETER =
+      const AccessKind._('TYPE_PARAMETER');
+
   final String name;
 
   String toString() => name;
@@ -91,8 +103,9 @@ class AccessSemantics {
   /**
    * The class containing the element being accessed, if this is a static
    * reference to an element in a class.  This will be null if [kind] is
-   * DYNAMIC, LOCAL_FUNCTION, LOCAL_VARIABLE, or PARAMETER, or if the element
-   * being accessed is defined at toplevel within a library.
+   * DYNAMIC, LOCAL_FUNCTION, LOCAL_VARIABLE, PARAMETER, TOPLEVEL_CLASS, or
+   * TYPE_PARAMETER, or if the element being accessed is defined at toplevel
+   * within a library.
    *
    * Note: it is possible for [classElement] to be non-null and for [element]
    * to be null; for example this occurs if the element being accessed is a
@@ -152,6 +165,18 @@ class AccessSemantics {
   AccessSemantics.staticProperty(this.identifier, this.element,
       this.classElement, {this.isInvoke: false})
       : kind = AccessKind.STATIC_PROPERTY,
+        target = null;
+
+  AccessSemantics.toplevelClass(this.identifier, this.element)
+      : kind = AccessKind.TOPLEVEL_CLASS,
+        classElement = null,
+        isInvoke = false,
+        target = null;
+
+  AccessSemantics.typeParameter(this.identifier, this.element)
+      : kind = AccessKind.TYPE_PARAMETER,
+        classElement = null,
+        isInvoke = false,
         target = null;
 
   /**
@@ -354,6 +379,8 @@ class AccessSemanticsVisitor extends RecursiveAstVisitor<AccessSemantics> {
         }
       } else if (rhsElement is FunctionElement) {
         return new AccessSemantics.staticMethod(rhs, rhsElement, null);
+      } else if (rhsElement is ClassElement) {
+        return new AccessSemantics.toplevelClass(rhs, rhsElement);
       } else {
         return new AccessSemantics.dynamic(rhs, null);
       }
@@ -402,13 +429,7 @@ class AccessSemanticsVisitor extends RecursiveAstVisitor<AccessSemantics> {
       return null;
     }
     if (parent is TypeName) {
-      // TODO(paulberry): handle this case.  Or, perhaps it would be better to
-      // require clients not to visit the children of a TypeName when visiting
-      // the AST structure.
-      //
-      // TODO(paulberry): be sure to consider type literals, e.g.:
-      //   class A {}
-      //   var a = A;
+      // TODO(paulberry): do we need to handle this case?
       return null;
     }
     if ((parent is PropertyAccess && parent.propertyName == node) ||
@@ -457,6 +478,10 @@ class AccessSemanticsVisitor extends RecursiveAstVisitor<AccessSemantics> {
           node,
           staticElement,
           staticElement.enclosingElement);
+    } else if (staticElement is TypeParameterElement) {
+      return new AccessSemantics.typeParameter(node, staticElement);
+    } else if (staticElement is ClassElement) {
+      return new AccessSemantics.toplevelClass(node, staticElement);
     }
     return new AccessSemantics.dynamic(node, null);
   }

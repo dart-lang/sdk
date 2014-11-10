@@ -164,6 +164,14 @@ abstract class SemanticVisitor<R> extends RecursiveAstVisitor<R> {
     return giveUp(node, 'visitStaticPropertyAccess of $semantics');
   }
 
+  R visitToplevelClassAccess(AstNode node, AccessSemantics semantics) {
+    return giveUp(node, 'visitToplevelClassAccess of $semantics');
+  }
+
+  R visitTypeParameterAccess(AstNode node, AccessSemantics semantics) {
+    return giveUp(node, 'visitTypeParameterAccess of $semantics');
+  }
+
   R _handlePropertyAccess(AstNode node, AccessSemantics semantics) {
     switch (semantics.kind) {
       case AccessKind.DYNAMIC:
@@ -180,6 +188,10 @@ abstract class SemanticVisitor<R> extends RecursiveAstVisitor<R> {
         return visitStaticMethodAccess(node, semantics);
       case AccessKind.STATIC_PROPERTY:
         return visitStaticPropertyAccess(node, semantics);
+      case AccessKind.TOPLEVEL_CLASS:
+        return visitToplevelClassAccess(node, semantics);
+      case AccessKind.TYPE_PARAMETER:
+        return visitTypeParameterAccess(node, semantics);
       default:
         // Unexpected access kind.
         return giveUp(node,

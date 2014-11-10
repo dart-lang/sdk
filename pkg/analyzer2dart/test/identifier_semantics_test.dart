@@ -1092,6 +1092,39 @@ f() {
     helper.checkDynamic('h().x', 'h()', 'x', isRead: true);
   });
 
+  test('Get class defined at top level', () {
+    Helper helper = new Helper('''
+class A {}
+var t = A;
+''');
+    helper.checkTypeReference('A', 'A', AccessKind.TOPLEVEL_CLASS);
+  });
+
+  test('Get class defined at top level via prefix', () {
+    Helper helper = new Helper('''
+import 'lib.dart' as l;
+
+var t = l.A;
+''');
+    helper.addFile('/lib.dart', '''
+library lib;
+
+class A;
+''');
+    helper.checkTypeReference('l.A', 'A', AccessKind.TOPLEVEL_CLASS);
+  });
+
+  test('Get type parameter of enclosing class', () {
+    Helper helper = new Helper('''
+class A<T, U> {
+  f() {
+    var t = U;
+  }
+}
+''');
+    helper.checkTypeReference('U', 'U', AccessKind.TYPE_PARAMETER);
+  });
+
   test('Set variable defined at top level', () {
     Helper helper = new Helper('''
 var x;
@@ -2221,6 +2254,29 @@ class Helper {
       expect(semantics.isRead, equals(isRead));
       expect(semantics.isWrite, equals(isWrite));
       expect(semantics.isInvoke, equals(isInvoke));
+    };
+    libraryElement.unit.accept(visitor);
+    expect(count, equals(1));
+  }
+
+  /**
+   * Verify that the node represented by [expectedSource] is classified as a
+   * reference to a toplevel class or a type parameter.
+   */
+  void checkTypeReference(
+      String expectedSource, String expectedName, AccessKind expectedKind) {
+    TestVisitor visitor = new TestVisitor();
+    int count = 0;
+    visitor.onAccess = (AstNode node, AccessSemantics semantics) {
+      count++;
+      expect(node.toSource(), equals(expectedSource));
+      expect(semantics.kind, equals(expectedKind));
+      expect(semantics.element.name, equals(expectedName));
+      expect(semantics.classElement, isNull);
+      expect(semantics.target, isNull);
+      expect(semantics.isRead, isTrue);
+      expect(semantics.isWrite, isFalse);
+      expect(semantics.isInvoke, isFalse);
     };
     libraryElement.unit.accept(visitor);
     expect(count, equals(1));
