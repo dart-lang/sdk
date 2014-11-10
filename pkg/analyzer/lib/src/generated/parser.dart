@@ -4465,7 +4465,16 @@ class Parser {
       period = _expect(TokenType.PERIOD);
     }
     SimpleIdentifier fieldName = parseSimpleIdentifier();
-    if (!_matches(TokenType.EQ)) {
+    Token equals = null;
+    if (_matches(TokenType.EQ)) {
+      equals = andAdvance;
+    } else if (!_matchesKeyword(Keyword.THIS)
+        && !_matchesKeyword(Keyword.SUPER)
+        && !_matches(TokenType.OPEN_CURLY_BRACKET)
+        && !_matches(TokenType.FUNCTION)) {
+      _reportErrorForCurrentToken(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER);
+      equals = _createSyntheticToken(TokenType.EQ);
+    } else {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER);
       return new ConstructorFieldInitializer(
           keyword,
@@ -4474,7 +4483,6 @@ class Parser {
           _createSyntheticToken(TokenType.EQ),
           _createSyntheticIdentifier());
     }
-    Token equals = _expect(TokenType.EQ);
     bool wasInInitializer = _inInitializer;
     _inInitializer = true;
     try {

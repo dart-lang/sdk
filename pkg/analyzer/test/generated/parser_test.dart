@@ -2479,6 +2479,22 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
         [ParserErrorCode.MISSING_INITIALIZER]);
   }
 
+  void test_incomplete_constructorInitializers_missingEquals() {
+    ClassMember member = ParserTestCase.parse3(
+        "parseClassMember",
+        ["C"],
+        "C() : x(3) {}",
+        [ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER]);
+    expect(member, new isInstanceOf<ConstructorDeclaration>());
+    NodeList<ConstructorInitializer> initializers = (member as ConstructorDeclaration).initializers;
+    expect(initializers, hasLength(1));
+    ConstructorInitializer initializer = initializers[0];
+    expect(initializer, new isInstanceOf<ConstructorFieldInitializer>());
+    Expression expression = (initializer as ConstructorFieldInitializer).expression;
+    expect(expression, isNotNull);
+    expect(expression, new isInstanceOf<ParenthesizedExpression>());
+  }
+
   void test_incomplete_constructorInitializers_variable() {
     ParserTestCase.parse3(
         "parseClassMember",
