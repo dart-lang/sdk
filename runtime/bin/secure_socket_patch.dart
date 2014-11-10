@@ -42,6 +42,13 @@ class _SecureSocket extends _Socket implements SecureSocket {
     }
     return _raw.peerCertificate;
   }
+
+  String get selectedProtocol {
+    if (_raw == null) {
+     throw new StateError("selectedProtocol called on destroyed SecureSocket");
+    }
+    return _raw.selectedProtocol;
+  }
 }
 
 
@@ -78,7 +85,8 @@ class _SecureFilterImpl
                String certificateName,
                bool requestClientCertificate,
                bool requireClientCertificate,
-               bool sendClientCertificate) native "SecureSocket_Connect";
+               bool sendClientCertificate,
+               Uint8List protocols) native "SecureSocket_Connect";
 
   void destroy() {
     buffers = null;
@@ -89,10 +97,13 @@ class _SecureFilterImpl
 
   void handshake() native "SecureSocket_Handshake";
 
+  String selectedProtocol() native "SecureSocket_GetSelectedProtocol";
+
   void renegotiate(bool useSessionCache,
                    bool requestClientCertificate,
                    bool requireClientCertificate)
       native "SecureSocket_Renegotiate";
+
   void init() native "SecureSocket_Init";
 
   X509Certificate get peerCertificate native "SecureSocket_PeerCertificate";

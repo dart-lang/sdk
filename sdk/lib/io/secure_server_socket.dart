@@ -66,7 +66,8 @@ class SecureServerSocket extends Stream<SecureSocket> {
       {int backlog: 0,
        bool v6Only: false,
        bool requestClientCertificate: false,
-       bool requireClientCertificate: false}) {
+       bool requireClientCertificate: false,
+       List<String> supportedProtocols}) {
     return RawSecureServerSocket.bind(
         address,
         port,
@@ -74,7 +75,8 @@ class SecureServerSocket extends Stream<SecureSocket> {
         backlog: backlog,
         v6Only: v6Only,
         requestClientCertificate: requestClientCertificate,
-        requireClientCertificate: requireClientCertificate).then(
+        requireClientCertificate: requireClientCertificate,
+        supportedProtocols: supportedProtocols).then(
             (serverSocket) => new SecureServerSocket._(serverSocket));
   }
 
@@ -122,12 +124,14 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
   final String certificateName;
   final bool requestClientCertificate;
   final bool requireClientCertificate;
+  final List<String> supportedProtocols;
   bool _closed = false;
 
   RawSecureServerSocket._(RawServerSocket serverSocket,
                           this.certificateName,
                           this.requestClientCertificate,
-                          this.requireClientCertificate) {
+                          this.requireClientCertificate,
+                          this.supportedProtocols) {
     _socket = serverSocket;
     _controller = new StreamController<RawSecureSocket>(
         sync: true,
@@ -187,13 +191,15 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
       {int backlog: 0,
        bool v6Only: false,
        bool requestClientCertificate: false,
-       bool requireClientCertificate: false}) {
+       bool requireClientCertificate: false,
+       List<String> supportedProtocols}) {
     return RawServerSocket.bind(address, port, backlog: backlog, v6Only: v6Only)
         .then((serverSocket) => new RawSecureServerSocket._(
             serverSocket,
             certificateName,
             requestClientCertificate,
-            requireClientCertificate));
+            requireClientCertificate,
+            supportedProtocols));
   }
 
   StreamSubscription<RawSecureSocket> listen(void onData(RawSecureSocket s),
@@ -241,7 +247,8 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
         is_server: true,
         socket: connection,
         requestClientCertificate: requestClientCertificate,
-        requireClientCertificate: requireClientCertificate)
+        requireClientCertificate: requireClientCertificate,
+        supportedProtocols: supportedProtocols)
     .then((RawSecureSocket secureConnection) {
       if (_closed) {
         secureConnection.close();
