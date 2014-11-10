@@ -4027,7 +4027,7 @@ class A {
     CompilationUnit compilationUnit = resolveSource(r'''
 const foo = const B(4);
 class A {
-  const A() : x(3);
+  const A() : x = 3;
   final int x;
 }
 class B extends A {
