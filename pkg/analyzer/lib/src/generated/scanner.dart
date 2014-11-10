@@ -1267,7 +1267,7 @@ class Scanner {
    * @param errorCode the error code indicating the nature of the error
    * @param arguments any arguments needed to complete the error message
    */
-  void _reportError(ScannerErrorCode errorCode, List<Object> arguments) {
+  void _reportError(ScannerErrorCode errorCode, [List<Object> arguments]) {
     _errorListener.onError(new AnalysisError.con2(source, _reader.offset, 1, errorCode, arguments));
   }
 
@@ -1373,7 +1373,7 @@ class Scanner {
         hasDigits = true;
       } else {
         if (!hasDigits) {
-          _reportError(ScannerErrorCode.MISSING_DIGIT, []);
+          _reportError(ScannerErrorCode.MISSING_DIGIT);
         }
         return next;
       }
@@ -1440,7 +1440,7 @@ class Scanner {
         hasDigits = true;
       } else {
         if (!hasDigits) {
-          _reportError(ScannerErrorCode.MISSING_HEX_DIGIT, []);
+          _reportError(ScannerErrorCode.MISSING_HEX_DIGIT);
         }
         _appendStringToken(TokenType.HEXADECIMAL, _reader.getString(start, next < 0 ? 0 : -1));
         return next;
@@ -1560,7 +1560,7 @@ class Scanner {
     next = _reader.advance();
     while (true) {
       if (-1 == next) {
-        _reportError(ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT, []);
+        _reportError(ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT);
         _appendCommentToken(TokenType.MULTI_LINE_COMMENT, _reader.getString(_tokenStart, 0));
         return next;
       } else if (0x2A == next) {
@@ -1622,7 +1622,7 @@ class Scanner {
         }
       }
     }
-    _reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
+    _reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
     _appendStringToken(TokenType.STRING, _reader.getString(start, 0));
     return _reader.advance();
   }
@@ -1681,7 +1681,7 @@ class Scanner {
         next = _reader.advance();
       }
     }
-    _reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
+    _reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
     if (start == _reader.offset) {
       _appendStringTokenWithOffset(TokenType.STRING, "", 1);
     } else {
@@ -1757,13 +1757,13 @@ class Scanner {
         _appendStringToken(TokenType.STRING, _reader.getString(start, 0));
         return _reader.advance();
       } else if (next == 0xD || next == 0xA) {
-        _reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
+        _reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
         _appendStringToken(TokenType.STRING, _reader.getString(start, -1));
         return _reader.advance();
       }
       next = _reader.advance();
     }
-    _reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
+    _reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
     _appendStringToken(TokenType.STRING, _reader.getString(start, 0));
     return _reader.advance();
   }
@@ -1780,7 +1780,7 @@ class Scanner {
         continue;
       }
       if (next <= 0xD && (next == 0xA || next == 0xD || next == -1)) {
-        _reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
+        _reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
         if (start == _reader.offset) {
           _appendStringTokenWithOffset(TokenType.STRING, "", 1);
         } else if (next == -1) {

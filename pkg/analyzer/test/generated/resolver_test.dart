@@ -88,7 +88,7 @@ class AnalysisContextFactory {
     Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
     coreContext.setContents(coreSource, "");
     coreUnit.source = coreSource;
-    ClassElementImpl proxyClassElement = ElementFactory.classElement2("_Proxy", []);
+    ClassElementImpl proxyClassElement = ElementFactory.classElement2("_Proxy");
     coreUnit.types = <ClassElement> [
         provider.boolType.element,
         provider.deprecatedType.element,
@@ -127,7 +127,7 @@ class AnalysisContextFactory {
     ClassElementImpl futureElement = ElementFactory.classElement2("Future", ["T"]);
     InterfaceType futureType = futureElement.type;
     //   factory Future.value([value])
-    ConstructorElementImpl futureConstructor = ElementFactory.constructorElement2(futureElement, "value", []);
+    ConstructorElementImpl futureConstructor = ElementFactory.constructorElement2(futureElement, "value");
     futureConstructor.parameters = <ParameterElement> [ElementFactory.positionalParameter2("value", provider.dynamicType)];
     futureConstructor.factory = true;
     (futureConstructor.type as FunctionTypeImpl).typeArguments = futureElement.type.typeArguments;
@@ -147,7 +147,7 @@ class AnalysisContextFactory {
     futureElement.methods = <MethodElement> [thenMethod];
     // Completer
     ClassElementImpl completerElement = ElementFactory.classElement2("Completer", ["T"]);
-    ConstructorElementImpl completerConstructor = ElementFactory.constructorElement2(completerElement, null, []);
+    ConstructorElementImpl completerConstructor = ElementFactory.constructorElement2(completerElement, null);
     (completerConstructor.type as FunctionTypeImpl).typeArguments = completerElement.type.typeArguments;
     completerElement.constructors = <ConstructorElement> [completerConstructor];
     asyncUnit.types = <ClassElement> [
@@ -163,30 +163,30 @@ class AnalysisContextFactory {
     Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
     coreContext.setContents(htmlSource, "");
     htmlUnit.source = htmlSource;
-    ClassElementImpl elementElement = ElementFactory.classElement2("Element", []);
+    ClassElementImpl elementElement = ElementFactory.classElement2("Element");
     InterfaceType elementType = elementElement.type;
-    ClassElementImpl canvasElement = ElementFactory.classElement("CanvasElement", elementType, []);
-    ClassElementImpl contextElement = ElementFactory.classElement2("CanvasRenderingContext", []);
+    ClassElementImpl canvasElement = ElementFactory.classElement("CanvasElement", elementType);
+    ClassElementImpl contextElement = ElementFactory.classElement2("CanvasRenderingContext");
     InterfaceType contextElementType = contextElement.type;
-    ClassElementImpl context2dElement = ElementFactory.classElement("CanvasRenderingContext2D", contextElementType, []);
+    ClassElementImpl context2dElement = ElementFactory.classElement("CanvasRenderingContext2D", contextElementType);
     canvasElement.methods = <MethodElement> [ElementFactory.methodElement("getContext", contextElementType, [provider.stringType])];
     canvasElement.accessors = <PropertyAccessorElement> [ElementFactory.getterElement("context2D", false, context2dElement.type)];
-    ClassElementImpl documentElement = ElementFactory.classElement("Document", elementType, []);
-    ClassElementImpl htmlDocumentElement = ElementFactory.classElement("HtmlDocument", documentElement.type, []);
+    ClassElementImpl documentElement = ElementFactory.classElement("Document", elementType);
+    ClassElementImpl htmlDocumentElement = ElementFactory.classElement("HtmlDocument", documentElement.type);
     htmlDocumentElement.methods = <MethodElement> [ElementFactory.methodElement("query", elementType, <DartType> [provider.stringType])];
     htmlUnit.types = <ClassElement> [
-        ElementFactory.classElement("AnchorElement", elementType, []),
-        ElementFactory.classElement("BodyElement", elementType, []),
-        ElementFactory.classElement("ButtonElement", elementType, []),
+        ElementFactory.classElement("AnchorElement", elementType),
+        ElementFactory.classElement("BodyElement", elementType),
+        ElementFactory.classElement("ButtonElement", elementType),
         canvasElement,
         contextElement,
         context2dElement,
-        ElementFactory.classElement("DivElement", elementType, []),
+        ElementFactory.classElement("DivElement", elementType),
         documentElement,
         elementElement,
         htmlDocumentElement,
-        ElementFactory.classElement("InputElement", elementType, []),
-        ElementFactory.classElement("SelectElement", elementType, [])];
+        ElementFactory.classElement("InputElement", elementType),
+        ElementFactory.classElement("SelectElement", elementType)];
     htmlUnit.functions = <FunctionElement> [ElementFactory.functionElement3("query", elementElement, <ClassElement> [provider.stringType.element], ClassElementImpl.EMPTY_ARRAY)];
     TopLevelVariableElementImpl document = ElementFactory.topLevelVariableElement3("document", false, true, htmlDocumentElement.type);
     htmlUnit.topLevelVariables = <TopLevelVariableElement> [document];
@@ -200,20 +200,20 @@ class AnalysisContextFactory {
     Source mathSource = sourceFactory.forUri(_DART_MATH);
     coreContext.setContents(mathSource, "");
     mathUnit.source = mathSource;
-    FunctionElement cosElement = ElementFactory.functionElement3("cos", provider.doubleType.element, <ClassElement> [provider.numType.element], <ClassElement> []);
+    FunctionElement cosElement = ElementFactory.functionElement3("cos", provider.doubleType.element, <ClassElement>[provider.numType.element], ClassElementImpl.EMPTY_ARRAY);
     TopLevelVariableElement ln10Element = ElementFactory.topLevelVariableElement3("LN10", true, false, provider.doubleType);
     TopLevelVariableElement piElement = ElementFactory.topLevelVariableElement3("PI", true, false, provider.doubleType);
-    ClassElementImpl randomElement = ElementFactory.classElement2("Random", []);
+    ClassElementImpl randomElement = ElementFactory.classElement2("Random");
     randomElement.abstract = true;
-    ConstructorElementImpl randomConstructor = ElementFactory.constructorElement2(randomElement, null, []);
+    ConstructorElementImpl randomConstructor = ElementFactory.constructorElement2(randomElement, null);
     randomConstructor.factory = true;
     ParameterElementImpl seedParam = new ParameterElementImpl("seed", 0);
     seedParam.parameterKind = ParameterKind.POSITIONAL;
     seedParam.type = provider.intType;
     randomConstructor.parameters = <ParameterElement> [seedParam];
     randomElement.constructors = <ConstructorElement> [randomConstructor];
-    FunctionElement sinElement = ElementFactory.functionElement3("sin", provider.doubleType.element, <ClassElement> [provider.numType.element], <ClassElement> []);
-    FunctionElement sqrtElement = ElementFactory.functionElement3("sqrt", provider.doubleType.element, <ClassElement> [provider.numType.element], <ClassElement> []);
+    FunctionElement sinElement = ElementFactory.functionElement3("sin", provider.doubleType.element, <ClassElement> [provider.numType.element], ClassElementImpl.EMPTY_ARRAY);
+    FunctionElement sqrtElement = ElementFactory.functionElement3("sqrt", provider.doubleType.element, <ClassElement> [provider.numType.element], ClassElementImpl.EMPTY_ARRAY);
     mathUnit.accessors = <PropertyAccessorElement> [ln10Element.getter, piElement.getter];
     mathUnit.functions = <FunctionElement> [cosElement, sinElement, sqrtElement];
     mathUnit.topLevelVariables = <TopLevelVariableElement> [ln10Element, piElement];
@@ -1066,7 +1066,7 @@ class C {
     Source source = addSource(oldContent);
     LibraryElement library = resolve(source);
     CompilationUnit oldUnit = resolveCompilationUnit(source, library);
-    CompilationUnit newUnit = ParserTestCase.parseCompilationUnit(newContent, []);
+    CompilationUnit newUnit = ParserTestCase.parseCompilationUnit(newContent);
     DeclarationMatcher matcher = new DeclarationMatcher();
     expect(matcher.matches(newUnit, oldUnit.element), expectMatch);
   }
@@ -1145,7 +1145,7 @@ class ElementResolverTest extends EngineTestCase {
     fail("Not yet tested");
     // Need to set up the exported library so that the identifier can be resolved
     ExportDirective directive = AstFactory.exportDirective2(null, [AstFactory.hideCombinator2(["A"])]);
-    _resolveNode(directive, []);
+    _resolveNode(directive);
     _listener.assertNoErrors();
   }
 
@@ -1158,7 +1158,7 @@ class ElementResolverTest extends EngineTestCase {
     fail("Not yet tested");
     // Need to set up the imported library so that the identifier can be resolved
     ImportDirective directive = AstFactory.importDirective3(null, null, [AstFactory.showCombinator2(["A"])]);
-    _resolveNode(directive, []);
+    _resolveNode(directive);
     _listener.assertNoErrors();
   }
 
@@ -1166,11 +1166,11 @@ class ElementResolverTest extends EngineTestCase {
     fail("Not yet tested");
     // Need to set up the imported library so that the identifiers can be resolved
     String prefixName = "p";
-    _definingLibrary.imports = <ImportElement> [ElementFactory.importFor(null, ElementFactory.prefix(prefixName), [])];
+    _definingLibrary.imports = <ImportElement> [ElementFactory.importFor(null, ElementFactory.prefix(prefixName))];
     ImportDirective directive = AstFactory.importDirective3(null, prefixName, [
         AstFactory.showCombinator2(["A"]),
         AstFactory.hideCombinator2(["B"])]);
-    _resolveNode(directive, []);
+    _resolveNode(directive);
     _listener.assertNoErrors();
   }
 
@@ -1191,23 +1191,23 @@ class ElementResolverTest extends EngineTestCase {
     //
     // abstract class A { int operator[](int index); }
     //
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     MethodElement operator = ElementFactory.methodElement("[]", intType, [intType]);
     classA.methods = <MethodElement> [operator];
     //
     // class B implements A {}
     //
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType> [classA.type];
     //
     // class C extends Object with B {}
     //
-    ClassElementImpl classC = ElementFactory.classElement2("C", []);
+    ClassElementImpl classC = ElementFactory.classElement2("C");
     classC.mixins = <InterfaceType> [classB.type];
     //
     // class D extends C {}
     //
-    ClassElementImpl classD = ElementFactory.classElement("D", classC.type, []);
+    ClassElementImpl classD = ElementFactory.classElement("D", classC.type);
     //
     // D a;
     // a[i];
@@ -1215,7 +1215,7 @@ class ElementResolverTest extends EngineTestCase {
     SimpleIdentifier array = AstFactory.identifier3("a");
     array.staticType = classD.type;
     IndexExpression expression = AstFactory.indexExpression(array, AstFactory.identifier3("i"));
-    expect(_resolveIndexExpression(expression, []), same(operator));
+    expect(_resolveIndexExpression(expression), same(operator));
     _listener.assertNoErrors();
   }
 
@@ -1224,14 +1224,14 @@ class ElementResolverTest extends EngineTestCase {
     SimpleIdentifier leftHandSide = AstFactory.identifier3("a");
     leftHandSide.staticType = intType;
     AssignmentExpression assignment = AstFactory.assignmentExpression(leftHandSide, TokenType.PLUS_EQ, AstFactory.integer(1));
-    _resolveNode(assignment, []);
+    _resolveNode(assignment);
     expect(assignment.staticElement, same(getMethod(_typeProvider.numType, "+")));
     _listener.assertNoErrors();
   }
 
   void test_visitAssignmentExpression_simple() {
     AssignmentExpression expression = AstFactory.assignmentExpression(AstFactory.identifier3("x"), TokenType.EQ, AstFactory.integer(0));
-    _resolveNode(expression, []);
+    _resolveNode(expression);
     expect(expression.staticElement, isNull);
     _listener.assertNoErrors();
   }
@@ -1244,7 +1244,7 @@ class ElementResolverTest extends EngineTestCase {
     SimpleIdentifier left = AstFactory.identifier3("i");
     left.staticType = numType;
     BinaryExpression expression = AstFactory.binaryExpression(left, TokenType.PLUS, AstFactory.identifier3("j"));
-    _resolveNode(expression, []);
+    _resolveNode(expression);
     expect(expression.staticElement, getMethod(numType, "+"));
     expect(expression.propagatedElement, isNull);
     _listener.assertNoErrors();
@@ -1258,7 +1258,7 @@ class ElementResolverTest extends EngineTestCase {
     SimpleIdentifier left = AstFactory.identifier3("i");
     left.propagatedType = numType;
     BinaryExpression expression = AstFactory.binaryExpression(left, TokenType.PLUS, AstFactory.identifier3("j"));
-    _resolveNode(expression, []);
+    _resolveNode(expression);
     expect(expression.staticElement, isNull);
     expect(expression.propagatedElement, getMethod(numType, "+"));
     _listener.assertNoErrors();
@@ -1279,23 +1279,23 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   void test_visitConstructorName_named() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String constructorName = "a";
-    ConstructorElement constructor = ElementFactory.constructorElement2(classA, constructorName, []);
+    ConstructorElement constructor = ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement> [constructor];
-    ConstructorName name = AstFactory.constructorName(AstFactory.typeName(classA, []), constructorName);
-    _resolveNode(name, []);
+    ConstructorName name = AstFactory.constructorName(AstFactory.typeName(classA), constructorName);
+    _resolveNode(name);
     expect(name.staticElement, same(constructor));
     _listener.assertNoErrors();
   }
 
   void test_visitConstructorName_unnamed() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String constructorName = null;
-    ConstructorElement constructor = ElementFactory.constructorElement2(classA, constructorName, []);
+    ConstructorElement constructor = ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement> [constructor];
-    ConstructorName name = AstFactory.constructorName(AstFactory.typeName(classA, []), constructorName);
-    _resolveNode(name, []);
+    ConstructorName name = AstFactory.constructorName(AstFactory.typeName(classA), constructorName);
+    _resolveNode(name);
     expect(name.staticElement, same(constructor));
     _listener.assertNoErrors();
   }
@@ -1315,9 +1315,9 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   void test_visitExportDirective_noCombinators() {
-    ExportDirective directive = AstFactory.exportDirective2(null, []);
-    directive.element = ElementFactory.exportFor(ElementFactory.library(_definingLibrary.context, "lib"), []);
-    _resolveNode(directive, []);
+    ExportDirective directive = AstFactory.exportDirective2(null);
+    directive.element = ElementFactory.exportFor(ElementFactory.library(_definingLibrary.context, "lib"));
+    _resolveNode(directive);
     _listener.assertNoErrors();
   }
 
@@ -1325,7 +1325,7 @@ class ElementResolverTest extends EngineTestCase {
     String fieldName = "f";
     InterfaceType intType = _typeProvider.intType;
     FieldElementImpl fieldElement = ElementFactory.fieldElement(fieldName, false, false, false, intType);
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.fields = <FieldElement> [fieldElement];
     FieldFormalParameter parameter = AstFactory.fieldFormalParameter2(fieldName);
     FieldFormalParameterElementImpl parameterElement = ElementFactory.fieldFormalParameter(parameter.identifier);
@@ -1337,19 +1337,19 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   void test_visitImportDirective_noCombinators_noPrefix() {
-    ImportDirective directive = AstFactory.importDirective3(null, null, []);
-    directive.element = ElementFactory.importFor(ElementFactory.library(_definingLibrary.context, "lib"), null, []);
-    _resolveNode(directive, []);
+    ImportDirective directive = AstFactory.importDirective3(null, null);
+    directive.element = ElementFactory.importFor(ElementFactory.library(_definingLibrary.context, "lib"), null);
+    _resolveNode(directive);
     _listener.assertNoErrors();
   }
 
   void test_visitImportDirective_noCombinators_prefix() {
     String prefixName = "p";
-    ImportElement importElement = ElementFactory.importFor(ElementFactory.library(_definingLibrary.context, "lib"), ElementFactory.prefix(prefixName), []);
+    ImportElement importElement = ElementFactory.importFor(ElementFactory.library(_definingLibrary.context, "lib"), ElementFactory.prefix(prefixName));
     _definingLibrary.imports = <ImportElement> [importElement];
-    ImportDirective directive = AstFactory.importDirective3(null, prefixName, []);
+    ImportDirective directive = AstFactory.importDirective3(null, prefixName);
     directive.element = importElement;
-    _resolveNode(directive, []);
+    _resolveNode(directive);
     _listener.assertNoErrors();
   }
 
@@ -1363,8 +1363,8 @@ class ElementResolverTest extends EngineTestCase {
     CompilationUnitElementImpl unit = library.definingCompilationUnit as CompilationUnitElementImpl;
     unit.accessors = <PropertyAccessorElement> [varA.getter, varA.setter, varB.getter, varC.setter];
     unit.topLevelVariables = <TopLevelVariableElement> [varA, varB, varC];
-    directive.element = ElementFactory.importFor(library, null, []);
-    _resolveNode(directive, []);
+    directive.element = ElementFactory.importFor(library, null);
+    _resolveNode(directive);
     expect(combinator.shownNames[0].staticElement, same(varA));
     expect(combinator.shownNames[1].staticElement, same(varB));
     expect(combinator.shownNames[2].staticElement, same(varC));
@@ -1372,19 +1372,19 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   void test_visitIndexExpression_get() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     InterfaceType intType = _typeProvider.intType;
     MethodElement getter = ElementFactory.methodElement("[]", intType, [intType]);
     classA.methods = <MethodElement> [getter];
     SimpleIdentifier array = AstFactory.identifier3("a");
     array.staticType = classA.type;
     IndexExpression expression = AstFactory.indexExpression(array, AstFactory.identifier3("i"));
-    expect(_resolveIndexExpression(expression, []), same(getter));
+    expect(_resolveIndexExpression(expression), same(getter));
     _listener.assertNoErrors();
   }
 
   void test_visitIndexExpression_set() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     InterfaceType intType = _typeProvider.intType;
     MethodElement setter = ElementFactory.methodElement("[]=", intType, [intType]);
     classA.methods = <MethodElement> [setter];
@@ -1392,48 +1392,48 @@ class ElementResolverTest extends EngineTestCase {
     array.staticType = classA.type;
     IndexExpression expression = AstFactory.indexExpression(array, AstFactory.identifier3("i"));
     AstFactory.assignmentExpression(expression, TokenType.EQ, AstFactory.integer(0));
-    expect(_resolveIndexExpression(expression, []), same(setter));
+    expect(_resolveIndexExpression(expression), same(setter));
     _listener.assertNoErrors();
   }
 
   void test_visitInstanceCreationExpression_named() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String constructorName = "a";
-    ConstructorElement constructor = ElementFactory.constructorElement2(classA, constructorName, []);
+    ConstructorElement constructor = ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement> [constructor];
-    ConstructorName name = AstFactory.constructorName(AstFactory.typeName(classA, []), constructorName);
+    ConstructorName name = AstFactory.constructorName(AstFactory.typeName(classA), constructorName);
     name.staticElement = constructor;
-    InstanceCreationExpression creation = AstFactory.instanceCreationExpression(Keyword.NEW, name, []);
-    _resolveNode(creation, []);
+    InstanceCreationExpression creation = AstFactory.instanceCreationExpression(Keyword.NEW, name);
+    _resolveNode(creation);
     expect(creation.staticElement, same(constructor));
     _listener.assertNoErrors();
   }
 
   void test_visitInstanceCreationExpression_unnamed() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String constructorName = null;
-    ConstructorElement constructor = ElementFactory.constructorElement2(classA, constructorName, []);
+    ConstructorElement constructor = ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement> [constructor];
-    ConstructorName name = AstFactory.constructorName(AstFactory.typeName(classA, []), constructorName);
+    ConstructorName name = AstFactory.constructorName(AstFactory.typeName(classA), constructorName);
     name.staticElement = constructor;
-    InstanceCreationExpression creation = AstFactory.instanceCreationExpression(Keyword.NEW, name, []);
-    _resolveNode(creation, []);
+    InstanceCreationExpression creation = AstFactory.instanceCreationExpression(Keyword.NEW, name);
+    _resolveNode(creation);
     expect(creation.staticElement, same(constructor));
     _listener.assertNoErrors();
   }
 
   void test_visitInstanceCreationExpression_unnamed_namedParameter() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String constructorName = null;
-    ConstructorElementImpl constructor = ElementFactory.constructorElement2(classA, constructorName, []);
+    ConstructorElementImpl constructor = ElementFactory.constructorElement2(classA, constructorName);
     String parameterName = "a";
     ParameterElement parameter = ElementFactory.namedParameter(parameterName);
     constructor.parameters = <ParameterElement> [parameter];
     classA.constructors = <ConstructorElement> [constructor];
-    ConstructorName name = AstFactory.constructorName(AstFactory.typeName(classA, []), constructorName);
+    ConstructorName name = AstFactory.constructorName(AstFactory.typeName(classA), constructorName);
     name.staticElement = constructor;
     InstanceCreationExpression creation = AstFactory.instanceCreationExpression(Keyword.NEW, name, [AstFactory.namedExpression2(parameterName, AstFactory.integer(0))]);
-    _resolveNode(creation, []);
+    _resolveNode(creation);
     expect(creation.staticElement, same(constructor));
     expect((creation.argumentList.arguments[0] as NamedExpression).name.label.staticElement, same(parameter));
     _listener.assertNoErrors();
@@ -1444,24 +1444,24 @@ class ElementResolverTest extends EngineTestCase {
     SimpleIdentifier left = AstFactory.identifier3("i");
     left.staticType = numType;
     String methodName = "abs";
-    MethodInvocation invocation = AstFactory.methodInvocation(left, methodName, []);
-    _resolveNode(invocation, []);
+    MethodInvocation invocation = AstFactory.methodInvocation(left, methodName);
+    _resolveNode(invocation);
     expect(invocation.methodName.staticElement, same(getMethod(numType, methodName)));
     _listener.assertNoErrors();
   }
 
   void test_visitMethodInvocation_namedParameter() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     String parameterName = "p";
-    MethodElementImpl method = ElementFactory.methodElement(methodName, null, []);
+    MethodElementImpl method = ElementFactory.methodElement(methodName, null);
     ParameterElement parameter = ElementFactory.namedParameter(parameterName);
     method.parameters = <ParameterElement> [parameter];
     classA.methods = <MethodElement> [method];
     SimpleIdentifier left = AstFactory.identifier3("i");
     left.staticType = classA.type;
     MethodInvocation invocation = AstFactory.methodInvocation(left, methodName, [AstFactory.namedExpression2(parameterName, AstFactory.integer(0))]);
-    _resolveNode(invocation, []);
+    _resolveNode(invocation);
     expect(invocation.methodName.staticElement, same(method));
     expect((invocation.argumentList.arguments[0] as NamedExpression).name.label.staticElement, same(parameter));
     _listener.assertNoErrors();
@@ -1472,7 +1472,7 @@ class ElementResolverTest extends EngineTestCase {
     SimpleIdentifier operand = AstFactory.identifier3("i");
     operand.staticType = numType;
     PostfixExpression expression = AstFactory.postfixExpression(operand, TokenType.PLUS_PLUS);
-    _resolveNode(expression, []);
+    _resolveNode(expression);
     expect(expression.staticElement, getMethod(numType, "+"));
     _listener.assertNoErrors();
   }
@@ -1485,14 +1485,14 @@ class ElementResolverTest extends EngineTestCase {
     target.staticElement = variable;
     target.staticType = dynamicType;
     PrefixedIdentifier identifier = AstFactory.identifier(target, AstFactory.identifier3("b"));
-    _resolveNode(identifier, []);
+    _resolveNode(identifier);
     expect(identifier.staticElement, isNull);
     expect(identifier.identifier.staticElement, isNull);
     _listener.assertNoErrors();
   }
 
   void test_visitPrefixedIdentifier_nonDynamic() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "b";
     PropertyAccessorElement getter = ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [getter];
@@ -1502,14 +1502,14 @@ class ElementResolverTest extends EngineTestCase {
     target.staticElement = variable;
     target.staticType = classA.type;
     PrefixedIdentifier identifier = AstFactory.identifier(target, AstFactory.identifier3(getterName));
-    _resolveNode(identifier, []);
+    _resolveNode(identifier);
     expect(identifier.staticElement, same(getter));
     expect(identifier.identifier.staticElement, same(getter));
     _listener.assertNoErrors();
   }
 
   void test_visitPrefixedIdentifier_staticClassMember_getter() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     // set accessors
     String propName = "b";
     PropertyAccessorElement getter = ElementFactory.getterElement(propName, false, _typeProvider.intType);
@@ -1521,20 +1521,20 @@ class ElementResolverTest extends EngineTestCase {
     target.staticType = classA.type;
     PrefixedIdentifier identifier = AstFactory.identifier(target, AstFactory.identifier3(propName));
     // resolve
-    _resolveNode(identifier, []);
+    _resolveNode(identifier);
     expect(identifier.staticElement, same(getter));
     expect(identifier.identifier.staticElement, same(getter));
     _listener.assertNoErrors();
   }
 
   void test_visitPrefixedIdentifier_staticClassMember_method() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     // set accessors
     String propName = "m";
     PropertyAccessorElement setter = ElementFactory.setterElement(propName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [setter];
     // set methods
-    MethodElement method = ElementFactory.methodElement("m", _typeProvider.intType, []);
+    MethodElement method = ElementFactory.methodElement("m", _typeProvider.intType);
     classA.methods = <MethodElement> [method];
     // prepare "A.m"
     SimpleIdentifier target = AstFactory.identifier3("A");
@@ -1543,14 +1543,14 @@ class ElementResolverTest extends EngineTestCase {
     PrefixedIdentifier identifier = AstFactory.identifier(target, AstFactory.identifier3(propName));
     AstFactory.assignmentExpression(identifier, TokenType.EQ, AstFactory.nullLiteral());
     // resolve
-    _resolveNode(identifier, []);
+    _resolveNode(identifier);
     expect(identifier.staticElement, same(method));
     expect(identifier.identifier.staticElement, same(method));
     _listener.assertNoErrors();
   }
 
   void test_visitPrefixedIdentifier_staticClassMember_setter() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     // set accessors
     String propName = "b";
     PropertyAccessorElement getter = ElementFactory.getterElement(propName, false, _typeProvider.intType);
@@ -1563,7 +1563,7 @@ class ElementResolverTest extends EngineTestCase {
     PrefixedIdentifier identifier = AstFactory.identifier(target, AstFactory.identifier3(propName));
     AstFactory.assignmentExpression(identifier, TokenType.EQ, AstFactory.nullLiteral());
     // resolve
-    _resolveNode(identifier, []);
+    _resolveNode(identifier);
     expect(identifier.staticElement, same(setter));
     expect(identifier.identifier.staticElement, same(setter));
     _listener.assertNoErrors();
@@ -1574,20 +1574,20 @@ class ElementResolverTest extends EngineTestCase {
     SimpleIdentifier operand = AstFactory.identifier3("i");
     operand.staticType = numType;
     PrefixExpression expression = AstFactory.prefixExpression(TokenType.PLUS_PLUS, operand);
-    _resolveNode(expression, []);
+    _resolveNode(expression);
     expect(expression.staticElement, getMethod(numType, "+"));
     _listener.assertNoErrors();
   }
 
   void test_visitPropertyAccess_getter_identifier() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "b";
     PropertyAccessorElement getter = ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [getter];
     SimpleIdentifier target = AstFactory.identifier3("a");
     target.staticType = classA.type;
     PropertyAccess access = AstFactory.propertyAccess2(target, getterName);
-    _resolveNode(access, []);
+    _resolveNode(access);
     expect(access.propertyName.staticElement, same(getter));
     _listener.assertNoErrors();
   }
@@ -1601,21 +1601,21 @@ class ElementResolverTest extends EngineTestCase {
     //   ... super.m ...
     // }
     //
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "b";
     PropertyAccessorElement getter = ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [getter];
     SuperExpression target = AstFactory.superExpression();
-    target.staticType = ElementFactory.classElement("B", classA.type, []).type;
+    target.staticType = ElementFactory.classElement("B", classA.type).type;
     PropertyAccess access = AstFactory.propertyAccess2(target, getterName);
-    AstFactory.methodDeclaration2(null, null, null, null, AstFactory.identifier3("m"), AstFactory.formalParameterList([]), AstFactory.expressionFunctionBody(access));
-    _resolveNode(access, []);
+    AstFactory.methodDeclaration2(null, null, null, null, AstFactory.identifier3("m"), AstFactory.formalParameterList(), AstFactory.expressionFunctionBody(access));
+    _resolveNode(access);
     expect(access.propertyName.staticElement, same(getter));
     _listener.assertNoErrors();
   }
 
   void test_visitPropertyAccess_setter_this() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String setterName = "b";
     PropertyAccessorElement setter = ElementFactory.setterElement(setterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [setter];
@@ -1623,7 +1623,7 @@ class ElementResolverTest extends EngineTestCase {
     target.staticType = classA.type;
     PropertyAccess access = AstFactory.propertyAccess2(target, setterName);
     AstFactory.assignmentExpression(access, TokenType.EQ, AstFactory.integer(0));
-    _resolveNode(access, []);
+    _resolveNode(access);
     expect(access.propertyName.staticElement, same(setter));
     _listener.assertNoErrors();
   }
@@ -1639,7 +1639,7 @@ class ElementResolverTest extends EngineTestCase {
 
   void test_visitSimpleIdentifier_dynamic() {
     SimpleIdentifier node = AstFactory.identifier3("dynamic");
-    _resolveIdentifier(node, []);
+    _resolveIdentifier(node);
     expect(node.staticElement, same(_typeProvider.dynamicType.element));
     expect(node.staticType, same(_typeProvider.typeType));
     _listener.assertNoErrors();
@@ -1654,7 +1654,7 @@ class ElementResolverTest extends EngineTestCase {
 
   void test_visitSimpleIdentifier_lexicalScope_field_setter() {
     InterfaceType intType = _typeProvider.intType;
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String fieldName = "a";
     FieldElement field = ElementFactory.fieldElement(fieldName, false, false, false, intType);
     classA.fields = <FieldElement> [field];
@@ -1669,27 +1669,27 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   void test_visitSuperConstructorInvocation() {
-    ClassElementImpl superclass = ElementFactory.classElement2("A", []);
-    ConstructorElementImpl superConstructor = ElementFactory.constructorElement2(superclass, null, []);
+    ClassElementImpl superclass = ElementFactory.classElement2("A");
+    ConstructorElementImpl superConstructor = ElementFactory.constructorElement2(superclass, null);
     superclass.constructors = <ConstructorElement> [superConstructor];
-    ClassElementImpl subclass = ElementFactory.classElement("B", superclass.type, []);
-    ConstructorElementImpl subConstructor = ElementFactory.constructorElement2(subclass, null, []);
+    ClassElementImpl subclass = ElementFactory.classElement("B", superclass.type);
+    ConstructorElementImpl subConstructor = ElementFactory.constructorElement2(subclass, null);
     subclass.constructors = <ConstructorElement> [subConstructor];
-    SuperConstructorInvocation invocation = AstFactory.superConstructorInvocation([]);
+    SuperConstructorInvocation invocation = AstFactory.superConstructorInvocation();
     _resolveInClass(invocation, subclass);
     expect(invocation.staticElement, superConstructor);
     _listener.assertNoErrors();
   }
 
   void test_visitSuperConstructorInvocation_namedParameter() {
-    ClassElementImpl superclass = ElementFactory.classElement2("A", []);
-    ConstructorElementImpl superConstructor = ElementFactory.constructorElement2(superclass, null, []);
+    ClassElementImpl superclass = ElementFactory.classElement2("A");
+    ConstructorElementImpl superConstructor = ElementFactory.constructorElement2(superclass, null);
     String parameterName = "p";
     ParameterElement parameter = ElementFactory.namedParameter(parameterName);
     superConstructor.parameters = <ParameterElement> [parameter];
     superclass.constructors = <ConstructorElement> [superConstructor];
-    ClassElementImpl subclass = ElementFactory.classElement("B", superclass.type, []);
-    ConstructorElementImpl subConstructor = ElementFactory.constructorElement2(subclass, null, []);
+    ClassElementImpl subclass = ElementFactory.classElement("B", superclass.type);
+    ConstructorElementImpl subConstructor = ElementFactory.constructorElement2(subclass, null);
     subclass.constructors = <ConstructorElement> [subConstructor];
     SuperConstructorInvocation invocation = AstFactory.superConstructorInvocation([AstFactory.namedExpression2(parameterName, AstFactory.integer(0))]);
     _resolveInClass(invocation, subclass);
@@ -1757,7 +1757,7 @@ class ElementResolverTest extends EngineTestCase {
    *          being resolved
    * @return the element to which the expression was resolved
    */
-  Element _resolveIdentifier(Identifier node, List<Element> definedElements) {
+  Element _resolveIdentifier(Identifier node, [List<Element> definedElements]) {
     _resolveNode(node, definedElements);
     return node.staticElement;
   }
@@ -1796,7 +1796,7 @@ class ElementResolverTest extends EngineTestCase {
    *          being resolved
    * @return the element to which the expression was resolved
    */
-  Element _resolveIndexExpression(IndexExpression node, List<Element> definedElements) {
+  Element _resolveIndexExpression(IndexExpression node, [List<Element> definedElements]) {
     _resolveNode(node, definedElements);
     return node.staticElement;
   }
@@ -1810,13 +1810,15 @@ class ElementResolverTest extends EngineTestCase {
    *          being resolved
    * @return the element to which the expression was resolved
    */
-  void _resolveNode(AstNode node, List<Element> definedElements) {
+  void _resolveNode(AstNode node, [List<Element> definedElements]) {
     try {
       Scope outerScope = _visitor.nameScope_J2DAccessor as Scope;
       try {
         EnclosedScope innerScope = new EnclosedScope(outerScope);
-        for (Element element in definedElements) {
-          innerScope.define(element);
+        if (definedElements != null) {
+          for (Element element in definedElements) {
+            innerScope.define(element);
+          }
         }
         _visitor.nameScope_J2DAccessor = innerScope;
         node.accept(_resolver);
@@ -3263,7 +3265,7 @@ main() {
 }
 print(x) {}''');
     resolve(source);
-    assertErrors(source, []);
+    assertErrors(source);
     verify([source]);
   }
 
@@ -3279,7 +3281,7 @@ main() {
 }
 ''');
     resolve(source);
-    assertErrors(source, []);
+    assertErrors(source);
     verify([source]);
   }
 
@@ -3292,7 +3294,7 @@ main() {
   foo();
 }''');
     resolve(source);
-    assertErrors(source, []);
+    assertErrors(source);
     verify([source]);
   }
 
@@ -3305,7 +3307,7 @@ main() {
   }
 }''');
     resolve(source);
-    assertErrors(source, []);
+    assertErrors(source);
     verify([source]);
   }
 
@@ -3333,7 +3335,7 @@ main() {
 }
 print(x) {}''');
     resolve(source);
-    assertErrors(source, []);
+    assertErrors(source);
     verify([source]);
   }
 
@@ -3483,11 +3485,11 @@ class InheritanceManagerTest extends EngineTestCase {
   void test_getMapOfMembersInheritedFromClasses_accessor_extends() {
     // class A { int get g; }
     // class B extends A {}
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG = ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [getterG];
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
     expect(mapA.size, _numOfMembersInObject);
@@ -3500,11 +3502,11 @@ class InheritanceManagerTest extends EngineTestCase {
   void test_getMapOfMembersInheritedFromClasses_accessor_implements() {
     // class A { int get g; }
     // class B implements A {}
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG = ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [getterG];
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType> [classA.type];
     MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
@@ -3518,11 +3520,11 @@ class InheritanceManagerTest extends EngineTestCase {
   void test_getMapOfMembersInheritedFromClasses_accessor_with() {
     // class A { int get g; }
     // class B extends Object with A {}
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG = ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [getterG];
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType> [classA.type];
     MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
@@ -3535,7 +3537,7 @@ class InheritanceManagerTest extends EngineTestCase {
 
   void test_getMapOfMembersInheritedFromClasses_implicitExtends() {
     // class A {}
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
     expect(mapA.size, _numOfMembersInObject);
     _assertNoErrors(classA);
@@ -3544,11 +3546,11 @@ class InheritanceManagerTest extends EngineTestCase {
   void test_getMapOfMembersInheritedFromClasses_method_extends() {
     // class A { int g(); }
     // class B extends A {}
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
-    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement> [methodM];
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.supertype = classA.type;
     MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
@@ -3562,11 +3564,11 @@ class InheritanceManagerTest extends EngineTestCase {
   void test_getMapOfMembersInheritedFromClasses_method_implements() {
     // class A { int g(); }
     // class B implements A {}
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
-    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement> [methodM];
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType> [classA.type];
     MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
@@ -3580,11 +3582,11 @@ class InheritanceManagerTest extends EngineTestCase {
   void test_getMapOfMembersInheritedFromClasses_method_with() {
     // class A { int g(); }
     // class B extends Object with A {}
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
-    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement> [methodM];
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType> [classA.type];
     MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
@@ -3598,11 +3600,11 @@ class InheritanceManagerTest extends EngineTestCase {
   void test_getMapOfMembersInheritedFromInterfaces_accessor_extends() {
     // class A { int get g; }
     // class B extends A {}
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG = ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [getterG];
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject);
@@ -3615,11 +3617,11 @@ class InheritanceManagerTest extends EngineTestCase {
   void test_getMapOfMembersInheritedFromInterfaces_accessor_implements() {
     // class A { int get g; }
     // class B implements A {}
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG = ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [getterG];
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType> [classA.type];
     MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
@@ -3633,11 +3635,11 @@ class InheritanceManagerTest extends EngineTestCase {
   void test_getMapOfMembersInheritedFromInterfaces_accessor_with() {
     // class A { int get g; }
     // class B extends Object with A {}
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG = ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [getterG];
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType> [classA.type];
     MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
@@ -3650,7 +3652,7 @@ class InheritanceManagerTest extends EngineTestCase {
 
   void test_getMapOfMembersInheritedFromInterfaces_implicitExtends() {
     // class A {}
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject);
     _assertNoErrors(classA);
@@ -3660,14 +3662,14 @@ class InheritanceManagerTest extends EngineTestCase {
     // class I1 { int m(); }
     // class I2 { int get m; }
     // class A implements I2, I1 {}
-    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
-    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classI1.methods = <MethodElement> [methodM];
-    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     PropertyAccessorElement getter = ElementFactory.getterElement(methodName, false, _typeProvider.intType);
     classI2.accessors = <PropertyAccessorElement> [getter];
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType> [classI2.type, classI1.type];
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject);
@@ -3679,14 +3681,14 @@ class InheritanceManagerTest extends EngineTestCase {
     // class I1 { int m(); }
     // class I2 { String m(); }
     // class A implements I1, I2 {}
-    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
     MethodElement methodM1 = ElementFactory.methodElement(methodName, null, [_typeProvider.intType]);
     classI1.methods = <MethodElement> [methodM1];
-    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     MethodElement methodM2 = ElementFactory.methodElement(methodName, null, [_typeProvider.stringType]);
     classI2.methods = <MethodElement> [methodM2];
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType> [classI1.type, classI2.type];
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject);
@@ -3698,14 +3700,14 @@ class InheritanceManagerTest extends EngineTestCase {
     // class I1 { int m(); }
     // class I2 { int get m; }
     // class A implements I1, I2 {}
-    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
-    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classI1.methods = <MethodElement> [methodM];
-    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     PropertyAccessorElement getter = ElementFactory.getterElement(methodName, false, _typeProvider.intType);
     classI2.accessors = <PropertyAccessorElement> [getter];
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType> [classI1.type, classI2.type];
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject);
@@ -3717,9 +3719,9 @@ class InheritanceManagerTest extends EngineTestCase {
     // class I1 { dynamic m(int, [int]); }
     // class I2 { dynamic m(int, int, int); }
     // class A implements I1, I2 {}
-    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
-    MethodElementImpl methodM1 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, []);
+    MethodElementImpl methodM1 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter1 = new ParameterElementImpl.forNode(AstFactory.identifier3("a1"));
     parameter1.type = _typeProvider.intType;
     parameter1.parameterKind = ParameterKind.REQUIRED;
@@ -3728,8 +3730,8 @@ class InheritanceManagerTest extends EngineTestCase {
     parameter2.parameterKind = ParameterKind.POSITIONAL;
     methodM1.parameters = <ParameterElement> [parameter1, parameter2];
     classI1.methods = <MethodElement> [methodM1];
-    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
-    MethodElementImpl methodM2 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, []);
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2");
+    MethodElementImpl methodM2 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter3 = new ParameterElementImpl.forNode(AstFactory.identifier3("a3"));
     parameter3.type = _typeProvider.intType;
     parameter3.parameterKind = ParameterKind.REQUIRED;
@@ -3741,7 +3743,7 @@ class InheritanceManagerTest extends EngineTestCase {
     parameter5.parameterKind = ParameterKind.REQUIRED;
     methodM2.parameters = <ParameterElement> [parameter3, parameter4, parameter5];
     classI2.methods = <MethodElement> [methodM2];
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType> [classI1.type, classI2.type];
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject);
@@ -3753,14 +3755,14 @@ class InheritanceManagerTest extends EngineTestCase {
     // class I1 { int m(); }
     // class I2 { String m(); }
     // class A implements I2, I1 {}
-    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
     MethodElement methodM1 = ElementFactory.methodElement(methodName, null, [_typeProvider.stringType]);
     classI1.methods = <MethodElement> [methodM1];
-    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     MethodElement methodM2 = ElementFactory.methodElement(methodName, null, [_typeProvider.intType]);
     classI2.methods = <MethodElement> [methodM2];
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType> [classI2.type, classI1.type];
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject);
@@ -3771,11 +3773,11 @@ class InheritanceManagerTest extends EngineTestCase {
   void test_getMapOfMembersInheritedFromInterfaces_method_extends() {
     // class A { int g(); }
     // class B extends A {}
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
-    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement> [methodM];
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject);
@@ -3788,11 +3790,11 @@ class InheritanceManagerTest extends EngineTestCase {
   void test_getMapOfMembersInheritedFromInterfaces_method_implements() {
     // class A { int g(); }
     // class B implements A {}
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
-    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement> [methodM];
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType> [classA.type];
     MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
@@ -3806,11 +3808,11 @@ class InheritanceManagerTest extends EngineTestCase {
   void test_getMapOfMembersInheritedFromInterfaces_method_with() {
     // class A { int g(); }
     // class B extends Object with A {}
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
-    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement> [methodM];
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType> [classA.type];
     MemberMap mapB = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
@@ -3825,15 +3827,15 @@ class InheritanceManagerTest extends EngineTestCase {
     // class I1 { int m1(); }
     // class I2 { int m2(); }
     // class A implements I1, I2 {}
-    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName1 = "m1";
-    MethodElement methodM1 = ElementFactory.methodElement(methodName1, _typeProvider.intType, []);
+    MethodElement methodM1 = ElementFactory.methodElement(methodName1, _typeProvider.intType);
     classI1.methods = <MethodElement> [methodM1];
-    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     String methodName2 = "m2";
-    MethodElement methodM2 = ElementFactory.methodElement(methodName2, _typeProvider.intType, []);
+    MethodElement methodM2 = ElementFactory.methodElement(methodName2, _typeProvider.intType);
     classI2.methods = <MethodElement> [methodM2];
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType> [classI1.type, classI2.type];
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject + 2);
@@ -3846,14 +3848,14 @@ class InheritanceManagerTest extends EngineTestCase {
     // class I1 { int get g; }
     // class I2 { num get g; }
     // class A implements I1, I2 {}
-    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String accessorName = "g";
     PropertyAccessorElement getter1 = ElementFactory.getterElement(accessorName, false, _typeProvider.intType);
     classI1.accessors = <PropertyAccessorElement> [getter1];
-    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     PropertyAccessorElement getter2 = ElementFactory.getterElement(accessorName, false, _typeProvider.numType);
     classI2.accessors = <PropertyAccessorElement> [getter2];
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType> [classI1.type, classI2.type];
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject + 1);
@@ -3866,22 +3868,22 @@ class InheritanceManagerTest extends EngineTestCase {
     // class I1 { dynamic m(int); }
     // class I2 { dynamic m(num); }
     // class A implements I1, I2 {}
-    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
-    MethodElementImpl methodM1 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, []);
+    MethodElementImpl methodM1 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter1 = new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
     parameter1.type = _typeProvider.intType;
     parameter1.parameterKind = ParameterKind.REQUIRED;
     methodM1.parameters = <ParameterElement> [parameter1];
     classI1.methods = <MethodElement> [methodM1];
-    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
-    MethodElementImpl methodM2 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, []);
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2");
+    MethodElementImpl methodM2 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter2 = new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
     parameter2.type = _typeProvider.numType;
     parameter2.parameterKind = ParameterKind.REQUIRED;
     methodM2.parameters = <ParameterElement> [parameter2];
     classI2.methods = <MethodElement> [methodM2];
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType> [classI1.type, classI2.type];
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject + 1);
@@ -3894,14 +3896,14 @@ class InheritanceManagerTest extends EngineTestCase {
     // class I1 { set s(int); }
     // class I2 { set s(num); }
     // class A implements I1, I2 {}
-    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String accessorName = "s";
     PropertyAccessorElement setter1 = ElementFactory.setterElement(accessorName, false, _typeProvider.intType);
     classI1.accessors = <PropertyAccessorElement> [setter1];
-    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     PropertyAccessorElement setter2 = ElementFactory.setterElement(accessorName, false, _typeProvider.numType);
     classI2.accessors = <PropertyAccessorElement> [setter2];
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType> [classI1.type, classI2.type];
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject + 1);
@@ -3919,20 +3921,20 @@ class InheritanceManagerTest extends EngineTestCase {
     // class I2 { B get g; }
     // class I3 { C get g; }
     // class D implements I1, I2, I3 {}
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
-    ClassElementImpl classC = ElementFactory.classElement("C", classB.type, []);
-    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
+    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String accessorName = "g";
     PropertyAccessorElement getter1 = ElementFactory.getterElement(accessorName, false, classA.type);
     classI1.accessors = <PropertyAccessorElement> [getter1];
-    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     PropertyAccessorElement getter2 = ElementFactory.getterElement(accessorName, false, classB.type);
     classI2.accessors = <PropertyAccessorElement> [getter2];
-    ClassElementImpl classI3 = ElementFactory.classElement2("I3", []);
+    ClassElementImpl classI3 = ElementFactory.classElement2("I3");
     PropertyAccessorElement getter3 = ElementFactory.getterElement(accessorName, false, classC.type);
     classI3.accessors = <PropertyAccessorElement> [getter3];
-    ClassElementImpl classD = ElementFactory.classElement2("D", []);
+    ClassElementImpl classD = ElementFactory.classElement2("D");
     classD.interfaces = <InterfaceType> [classI1.type, classI2.type, classI3.type];
     MemberMap mapD = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classD);
     expect(mapD.size, _numOfMembersInObject + 1);
@@ -3949,32 +3951,32 @@ class InheritanceManagerTest extends EngineTestCase {
     // class I2 { dynamic m(B b); }
     // class I3 { dynamic m(C c); }
     // class D implements I1, I2, I3 {}
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
-    ClassElementImpl classC = ElementFactory.classElement("C", classB.type, []);
-    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
+    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
-    MethodElementImpl methodM1 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, []);
+    MethodElementImpl methodM1 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter1 = new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
     parameter1.type = classA.type;
     parameter1.parameterKind = ParameterKind.REQUIRED;
     methodM1.parameters = <ParameterElement> [parameter1];
     classI1.methods = <MethodElement> [methodM1];
-    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
-    MethodElementImpl methodM2 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, []);
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2");
+    MethodElementImpl methodM2 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter2 = new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
     parameter2.type = classB.type;
     parameter2.parameterKind = ParameterKind.REQUIRED;
     methodM2.parameters = <ParameterElement> [parameter2];
     classI2.methods = <MethodElement> [methodM2];
-    ClassElementImpl classI3 = ElementFactory.classElement2("I3", []);
-    MethodElementImpl methodM3 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, []);
+    ClassElementImpl classI3 = ElementFactory.classElement2("I3");
+    MethodElementImpl methodM3 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter3 = new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
     parameter3.type = classC.type;
     parameter3.parameterKind = ParameterKind.REQUIRED;
     methodM3.parameters = <ParameterElement> [parameter3];
     classI3.methods = <MethodElement> [methodM3];
-    ClassElementImpl classD = ElementFactory.classElement2("D", []);
+    ClassElementImpl classD = ElementFactory.classElement2("D");
     classD.interfaces = <InterfaceType> [classI1.type, classI2.type, classI3.type];
     MemberMap mapD = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classD);
     expect(mapD.size, _numOfMembersInObject + 1);
@@ -3991,20 +3993,20 @@ class InheritanceManagerTest extends EngineTestCase {
     // class I2 { set s(B); }
     // class I3 { set s(C); }
     // class D implements I1, I2, I3 {}
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
-    ClassElementImpl classC = ElementFactory.classElement("C", classB.type, []);
-    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
+    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String accessorName = "s";
     PropertyAccessorElement setter1 = ElementFactory.setterElement(accessorName, false, classA.type);
     classI1.accessors = <PropertyAccessorElement> [setter1];
-    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     PropertyAccessorElement setter2 = ElementFactory.setterElement(accessorName, false, classB.type);
     classI2.accessors = <PropertyAccessorElement> [setter2];
-    ClassElementImpl classI3 = ElementFactory.classElement2("I3", []);
+    ClassElementImpl classI3 = ElementFactory.classElement2("I3");
     PropertyAccessorElement setter3 = ElementFactory.setterElement(accessorName, false, classC.type);
     classI3.accessors = <PropertyAccessorElement> [setter3];
-    ClassElementImpl classD = ElementFactory.classElement2("D", []);
+    ClassElementImpl classD = ElementFactory.classElement2("D");
     classD.interfaces = <InterfaceType> [classI1.type, classI2.type, classI3.type];
     MemberMap mapD = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classD);
     expect(mapD.size, _numOfMembersInObject + 1);
@@ -4018,18 +4020,18 @@ class InheritanceManagerTest extends EngineTestCase {
     // class I1 { int m(); }
     // class I2 { int m([int]); }
     // class A implements I1, I2 {}
-    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
-    MethodElement methodM1 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElement methodM1 = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classI1.methods = <MethodElement> [methodM1];
-    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
-    MethodElementImpl methodM2 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2");
+    MethodElementImpl methodM2 = ElementFactory.methodElement(methodName, _typeProvider.intType);
     ParameterElementImpl parameter1 = new ParameterElementImpl.forNode(AstFactory.identifier3("a1"));
     parameter1.type = _typeProvider.intType;
     parameter1.parameterKind = ParameterKind.POSITIONAL;
     methodM2.parameters = <ParameterElement> [parameter1];
     classI2.methods = <MethodElement> [methodM2];
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType> [classI1.type, classI2.type];
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject + 1);
@@ -4042,19 +4044,19 @@ class InheritanceManagerTest extends EngineTestCase {
     // class I2 { int m([int]); }
     // class I3 { int m([int, int]); }
     // class A implements I1, I2, I3 {}
-    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
-    MethodElementImpl methodM1 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElementImpl methodM1 = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classI1.methods = <MethodElement> [methodM1];
-    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
-    MethodElementImpl methodM2 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2");
+    MethodElementImpl methodM2 = ElementFactory.methodElement(methodName, _typeProvider.intType);
     ParameterElementImpl parameter1 = new ParameterElementImpl.forNode(AstFactory.identifier3("a1"));
     parameter1.type = _typeProvider.intType;
     parameter1.parameterKind = ParameterKind.POSITIONAL;
     methodM1.parameters = <ParameterElement> [parameter1];
     classI2.methods = <MethodElement> [methodM2];
-    ClassElementImpl classI3 = ElementFactory.classElement2("I3", []);
-    MethodElementImpl methodM3 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    ClassElementImpl classI3 = ElementFactory.classElement2("I3");
+    MethodElementImpl methodM3 = ElementFactory.methodElement(methodName, _typeProvider.intType);
     ParameterElementImpl parameter2 = new ParameterElementImpl.forNode(AstFactory.identifier3("a2"));
     parameter2.type = _typeProvider.intType;
     parameter2.parameterKind = ParameterKind.POSITIONAL;
@@ -4063,7 +4065,7 @@ class InheritanceManagerTest extends EngineTestCase {
     parameter3.parameterKind = ParameterKind.POSITIONAL;
     methodM3.parameters = <ParameterElement> [parameter2, parameter3];
     classI3.methods = <MethodElement> [methodM3];
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType> [classI1.type, classI2.type, classI3.type];
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject + 1);
@@ -4077,22 +4079,22 @@ class InheritanceManagerTest extends EngineTestCase {
     // class I3 { int m([int]); }
     // class I4 { int m([int, int]); }
     // class A implements I1, I2, I3, I4 {}
-    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
-    MethodElement methodM1 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElement methodM1 = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classI1.methods = <MethodElement> [methodM1];
-    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
-    MethodElement methodM2 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2");
+    MethodElement methodM2 = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classI2.methods = <MethodElement> [methodM2];
-    ClassElementImpl classI3 = ElementFactory.classElement2("I3", []);
-    MethodElementImpl methodM3 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    ClassElementImpl classI3 = ElementFactory.classElement2("I3");
+    MethodElementImpl methodM3 = ElementFactory.methodElement(methodName, _typeProvider.intType);
     ParameterElementImpl parameter1 = new ParameterElementImpl.forNode(AstFactory.identifier3("a1"));
     parameter1.type = _typeProvider.intType;
     parameter1.parameterKind = ParameterKind.POSITIONAL;
     methodM3.parameters = <ParameterElement> [parameter1];
     classI3.methods = <MethodElement> [methodM3];
-    ClassElementImpl classI4 = ElementFactory.classElement2("I4", []);
-    MethodElementImpl methodM4 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    ClassElementImpl classI4 = ElementFactory.classElement2("I4");
+    MethodElementImpl methodM4 = ElementFactory.methodElement(methodName, _typeProvider.intType);
     ParameterElementImpl parameter2 = new ParameterElementImpl.forNode(AstFactory.identifier3("a2"));
     parameter2.type = _typeProvider.intType;
     parameter2.parameterKind = ParameterKind.POSITIONAL;
@@ -4101,7 +4103,7 @@ class InheritanceManagerTest extends EngineTestCase {
     parameter3.parameterKind = ParameterKind.POSITIONAL;
     methodM4.parameters = <ParameterElement> [parameter2, parameter3];
     classI4.methods = <MethodElement> [methodM4];
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType> [classI1.type, classI2.type, classI3.type, classI4.type];
     MemberMap mapA = _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     expect(mapA.size, _numOfMembersInObject + 1);
@@ -4110,11 +4112,11 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_lookupInheritance_interface_getter() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG = ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [getterG];
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType> [classA.type];
     expect(_inheritanceManager.lookupInheritance(classB, getterName), same(getterG));
     _assertNoErrors(classA);
@@ -4122,11 +4124,11 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_lookupInheritance_interface_method() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
-    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement> [methodM];
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType> [classA.type];
     expect(_inheritanceManager.lookupInheritance(classB, methodName), same(methodM));
     _assertNoErrors(classA);
@@ -4134,11 +4136,11 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_lookupInheritance_interface_setter() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String setterName = "s";
     PropertyAccessorElement setterS = ElementFactory.setterElement(setterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [setterS];
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType> [classA.type];
     expect(_inheritanceManager.lookupInheritance(classB, "$setterName="), same(setterS));
     _assertNoErrors(classA);
@@ -4146,12 +4148,12 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_lookupInheritance_interface_staticMember() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
-    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType);
     (methodM as MethodElementImpl).static = true;
     classA.methods = <MethodElement> [methodM];
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType> [classA.type];
     expect(_inheritanceManager.lookupInheritance(classB, methodName), isNull);
     _assertNoErrors(classA);
@@ -4159,15 +4161,15 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_lookupInheritance_interfaces_infiniteLoop() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType> [classA.type];
     expect(_inheritanceManager.lookupInheritance(classA, "name"), isNull);
     _assertNoErrors(classA);
   }
 
   void test_lookupInheritance_interfaces_infiniteLoop2() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement2("B");
     classA.interfaces = <InterfaceType> [classB.type];
     classB.interfaces = <InterfaceType> [classA.type];
     expect(_inheritanceManager.lookupInheritance(classA, "name"), isNull);
@@ -4176,16 +4178,16 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_lookupInheritance_interfaces_union2() {
-    ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
+    ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName1 = "m1";
-    MethodElement methodM1 = ElementFactory.methodElement(methodName1, _typeProvider.intType, []);
+    MethodElement methodM1 = ElementFactory.methodElement(methodName1, _typeProvider.intType);
     classI1.methods = <MethodElement> [methodM1];
-    ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
+    ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     String methodName2 = "m2";
-    MethodElement methodM2 = ElementFactory.methodElement(methodName2, _typeProvider.intType, []);
+    MethodElement methodM2 = ElementFactory.methodElement(methodName2, _typeProvider.intType);
     classI2.methods = <MethodElement> [methodM2];
     classI2.interfaces = <InterfaceType> [classI1.type];
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType> [classI2.type];
     expect(_inheritanceManager.lookupInheritance(classA, methodName1), same(methodM1));
     expect(_inheritanceManager.lookupInheritance(classA, methodName2), same(methodM2));
@@ -4195,11 +4197,11 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_lookupInheritance_mixin_getter() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG = ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [getterG];
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType> [classA.type];
     expect(_inheritanceManager.lookupInheritance(classB, getterName), same(getterG));
     _assertNoErrors(classA);
@@ -4207,11 +4209,11 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_lookupInheritance_mixin_method() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
-    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement> [methodM];
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType> [classA.type];
     expect(_inheritanceManager.lookupInheritance(classB, methodName), same(methodM));
     _assertNoErrors(classA);
@@ -4219,11 +4221,11 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_lookupInheritance_mixin_setter() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String setterName = "s";
     PropertyAccessorElement setterS = ElementFactory.setterElement(setterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [setterS];
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType> [classA.type];
     expect(_inheritanceManager.lookupInheritance(classB, "$setterName="), same(setterS));
     _assertNoErrors(classA);
@@ -4231,12 +4233,12 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_lookupInheritance_mixin_staticMember() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
-    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType);
     (methodM as MethodElementImpl).static = true;
     classA.methods = <MethodElement> [methodM];
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType> [classA.type];
     expect(_inheritanceManager.lookupInheritance(classB, methodName), isNull);
     _assertNoErrors(classA);
@@ -4244,32 +4246,32 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_lookupInheritance_noMember() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     expect(_inheritanceManager.lookupInheritance(classA, "a"), isNull);
     _assertNoErrors(classA);
   }
 
   void test_lookupInheritance_superclass_getter() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG = ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [getterG];
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     expect(_inheritanceManager.lookupInheritance(classB, getterName), same(getterG));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
 
   void test_lookupInheritance_superclass_infiniteLoop() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.supertype = classA.type;
     expect(_inheritanceManager.lookupInheritance(classA, "name"), isNull);
     _assertNoErrors(classA);
   }
 
   void test_lookupInheritance_superclass_infiniteLoop2() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement2("B");
     classA.supertype = classB.type;
     classB.supertype = classA.type;
     expect(_inheritanceManager.lookupInheritance(classA, "name"), isNull);
@@ -4278,41 +4280,41 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_lookupInheritance_superclass_method() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
-    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement> [methodM];
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     expect(_inheritanceManager.lookupInheritance(classB, methodName), same(methodM));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
 
   void test_lookupInheritance_superclass_setter() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String setterName = "s";
     PropertyAccessorElement setterS = ElementFactory.setterElement(setterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [setterS];
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     expect(_inheritanceManager.lookupInheritance(classB, "$setterName="), same(setterS));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
 
   void test_lookupInheritance_superclass_staticMember() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
-    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType);
     (methodM as MethodElementImpl).static = true;
     classA.methods = <MethodElement> [methodM];
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     expect(_inheritanceManager.lookupInheritance(classB, methodName), isNull);
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
 
   void test_lookupMember_getter() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG = ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [getterG];
@@ -4321,7 +4323,7 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_lookupMember_getter_static() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String getterName = "g";
     PropertyAccessorElement getterG = ElementFactory.getterElement(getterName, true, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [getterG];
@@ -4330,18 +4332,18 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_lookupMember_method() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
-    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement> [methodM];
     expect(_inheritanceManager.lookupMember(classA, methodName), same(methodM));
     _assertNoErrors(classA);
   }
 
   void test_lookupMember_method_static() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
-    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElement methodM = ElementFactory.methodElement(methodName, _typeProvider.intType);
     (methodM as MethodElementImpl).static = true;
     classA.methods = <MethodElement> [methodM];
     expect(_inheritanceManager.lookupMember(classA, methodName), isNull);
@@ -4349,13 +4351,13 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_lookupMember_noMember() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     expect(_inheritanceManager.lookupMember(classA, "a"), isNull);
     _assertNoErrors(classA);
   }
 
   void test_lookupMember_setter() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String setterName = "s";
     PropertyAccessorElement setterS = ElementFactory.setterElement(setterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [setterS];
@@ -4364,7 +4366,7 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_lookupMember_setter_static() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String setterName = "s";
     PropertyAccessorElement setterS = ElementFactory.setterElement(setterName, true, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [setterS];
@@ -4373,21 +4375,21 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_lookupOverrides_noParentClasses() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
-    MethodElementImpl methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElementImpl methodM = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement> [methodM];
     expect(_inheritanceManager.lookupOverrides(classA, methodName), hasLength(0));
     _assertNoErrors(classA);
   }
 
   void test_lookupOverrides_overrideBaseClass() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
-    MethodElementImpl methodMinA = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElementImpl methodMinA = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement> [methodMinA];
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
-    MethodElementImpl methodMinB = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
+    MethodElementImpl methodMinB = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classB.methods = <MethodElement> [methodMinB];
     List<ExecutableElement> overrides = _inheritanceManager.lookupOverrides(classB, methodName);
     expect(overrides, unorderedEquals([methodMinA]));
@@ -4396,13 +4398,13 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_lookupOverrides_overrideInterface() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
-    MethodElementImpl methodMinA = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElementImpl methodMinA = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement> [methodMinA];
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType> [classA.type];
-    MethodElementImpl methodMinB = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElementImpl methodMinB = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classB.methods = <MethodElement> [methodMinB];
     List<ExecutableElement> overrides = _inheritanceManager.lookupOverrides(classB, methodName);
     expect(overrides, unorderedEquals([methodMinA]));
@@ -4411,16 +4413,16 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void test_lookupOverrides_overrideTwoInterfaces() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
-    MethodElementImpl methodMinA = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    MethodElementImpl methodMinA = ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement> [methodMinA];
-    ClassElementImpl classB = ElementFactory.classElement2("B", []);
-    MethodElementImpl methodMinB = ElementFactory.methodElement(methodName, _typeProvider.doubleType, []);
+    ClassElementImpl classB = ElementFactory.classElement2("B");
+    MethodElementImpl methodMinB = ElementFactory.methodElement(methodName, _typeProvider.doubleType);
     classB.methods = <MethodElement> [methodMinB];
-    ClassElementImpl classC = ElementFactory.classElement2("C", []);
+    ClassElementImpl classC = ElementFactory.classElement2("C");
     classC.interfaces = <InterfaceType> [classA.type, classB.type];
-    MethodElementImpl methodMinC = ElementFactory.methodElement(methodName, _typeProvider.numType, []);
+    MethodElementImpl methodMinC = ElementFactory.methodElement(methodName, _typeProvider.numType);
     classC.methods = <MethodElement> [methodMinC];
     List<ExecutableElement> overrides = _inheritanceManager.lookupOverrides(classC, methodName);
     expect(overrides, unorderedEquals([methodMinA, methodMinB]));
@@ -4429,7 +4431,7 @@ class InheritanceManagerTest extends EngineTestCase {
     _assertNoErrors(classC);
   }
 
-  void _assertErrors(ClassElement classElt, List<ErrorCode> expectedErrorCodes) {
+  void _assertErrors(ClassElement classElt, [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     HashSet<AnalysisError> actualErrors = _inheritanceManager.getErrors(classElt);
     if (actualErrors != null) {
@@ -4441,7 +4443,7 @@ class InheritanceManagerTest extends EngineTestCase {
   }
 
   void _assertNoErrors(ClassElement classElt) {
-    _assertErrors(classElt, []);
+    _assertErrors(classElt);
   }
 
   /**
@@ -4486,7 +4488,7 @@ int get V => 0;''');
     addSource("/second.dart", r'''
 part of lib;
 void set V(int v) {}''');
-    LibraryElement element = _buildLibrary(librarySource, []);
+    LibraryElement element = _buildLibrary(librarySource);
     expect(element, isNotNull);
     List<CompilationUnitElement> sourcedUnits = element.parts;
     expect(sourcedUnits, hasLength(2));
@@ -4499,7 +4501,7 @@ void set V(int v) {}''');
 
   void test_empty() {
     Source librarySource = addSource("/lib.dart", "library lib;");
-    LibraryElement element = _buildLibrary(librarySource, []);
+    LibraryElement element = _buildLibrary(librarySource);
     expect(element, isNotNull);
     expect(element.name, "lib");
     expect(element.entryPoint, isNull);
@@ -4549,7 +4551,7 @@ class B {}''');
     addSource("/second.dart", r'''
 part of lib;
 class C {}''');
-    LibraryElement element = _buildLibrary(librarySource, []);
+    LibraryElement element = _buildLibrary(librarySource);
     expect(element, isNotNull);
     List<CompilationUnitElement> sourcedUnits = element.parts;
     expect(sourcedUnits, hasLength(2));
@@ -4568,7 +4570,7 @@ class C {}''');
 library lib;
 
 class A {}''');
-    LibraryElement element = _buildLibrary(librarySource, []);
+    LibraryElement element = _buildLibrary(librarySource);
     expect(element, isNotNull);
     _assertTypes(element.definingCompilationUnit, ["A"]);
   }
@@ -4626,7 +4628,7 @@ class A {}''');
    * @return the element model that was built for the library
    * @throws Exception if the element model could not be built
    */
-  LibraryElement _buildLibrary(Source librarySource, List<ErrorCode> expectedErrorCodes) {
+  LibraryElement _buildLibrary(Source librarySource, [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
     LibraryResolver resolver = new LibraryResolver(_context);
     LibraryElementBuilder builder = new LibraryElementBuilder(resolver.analysisContext, resolver.errorListener);
     Library library = resolver.createLibrary(librarySource);
@@ -4645,17 +4647,17 @@ class LibraryImportScopeTest extends ResolverTestCase {
     String typeNameA = "A";
     String typeNameB = "B";
     String typeNameC = "C";
-    ClassElement typeA = ElementFactory.classElement2(typeNameA, []);
-    ClassElement typeB1 = ElementFactory.classElement2(typeNameB, []);
-    ClassElement typeB2 = ElementFactory.classElement2(typeNameB, []);
-    ClassElement typeC = ElementFactory.classElement2(typeNameC, []);
-    LibraryElement importedLibrary1 = createTestLibrary(context, "imported1", []);
+    ClassElement typeA = ElementFactory.classElement2(typeNameA);
+    ClassElement typeB1 = ElementFactory.classElement2(typeNameB);
+    ClassElement typeB2 = ElementFactory.classElement2(typeNameB);
+    ClassElement typeC = ElementFactory.classElement2(typeNameC);
+    LibraryElement importedLibrary1 = createTestLibrary(context, "imported1");
     (importedLibrary1.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [typeA, typeB1];
-    ImportElementImpl import1 = ElementFactory.importFor(importedLibrary1, null, []);
-    LibraryElement importedLibrary2 = createTestLibrary(context, "imported2", []);
+    ImportElementImpl import1 = ElementFactory.importFor(importedLibrary1, null);
+    LibraryElement importedLibrary2 = createTestLibrary(context, "imported2");
     (importedLibrary2.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [typeB2, typeC];
-    ImportElementImpl import2 = ElementFactory.importFor(importedLibrary2, null, []);
-    LibraryElementImpl importingLibrary = createTestLibrary(context, "importing", []);
+    ImportElementImpl import2 = ElementFactory.importFor(importedLibrary2, null);
+    LibraryElementImpl importingLibrary = createTestLibrary(context, "importing");
     importingLibrary.imports = <ImportElement> [import1, import2];
     {
       GatheringErrorListener errorListener = new GatheringErrorListener();
@@ -4681,7 +4683,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
       GatheringErrorListener errorListener = new GatheringErrorListener();
       Scope scope = new LibraryImportScope(importingLibrary, errorListener);
       Identifier identifier = AstFactory.identifier3(typeNameB);
-      AstFactory.methodDeclaration(null, AstFactory.typeName3(identifier, []), null, null, AstFactory.identifier3("foo"), null);
+      AstFactory.methodDeclaration(null, AstFactory.typeName3(identifier), null, null, AstFactory.identifier3("foo"), null);
       Element element = scope.lookup(identifier, importingLibrary);
       errorListener.assertErrorsWithCodes([StaticWarningCode.AMBIGUOUS_IMPORT]);
       EngineTestCase.assertInstanceOf((obj) => obj is MultiplyDefinedElement, MultiplyDefinedElement, element);
@@ -4699,9 +4701,9 @@ class LibraryImportScopeTest extends ResolverTestCase {
     context.sourceFactory = new SourceFactory([]);
     String importedTypeName = "A";
     ClassElement importedType = new ClassElementImpl.forNode(AstFactory.identifier3(importedTypeName));
-    LibraryElement importedLibrary = createTestLibrary(context, "imported", []);
+    LibraryElement importedLibrary = createTestLibrary(context, "imported");
     (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [importedType];
-    LibraryElementImpl definingLibrary = createTestLibrary(context, "importing", []);
+    LibraryElementImpl definingLibrary = createTestLibrary(context, "importing");
     ImportElementImpl importElement = new ImportElementImpl(0);
     importElement.importedLibrary = importedLibrary;
     definingLibrary.imports = <ImportElement> [importElement];
@@ -4720,12 +4722,12 @@ class LibraryImportScopeTest extends ResolverTestCase {
   void test_nonConflictingImports_fromSdk() {
     AnalysisContext context = AnalysisContextFactory.contextWithCore();
     String typeName = "List";
-    ClassElement type = ElementFactory.classElement2(typeName, []);
-    LibraryElement importedLibrary = createTestLibrary(context, "lib", []);
+    ClassElement type = ElementFactory.classElement2(typeName);
+    LibraryElement importedLibrary = createTestLibrary(context, "lib");
     (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [type];
-    ImportElementImpl importCore = ElementFactory.importFor(context.getLibraryElement(context.sourceFactory.forUri("dart:core")), null, []);
-    ImportElementImpl importLib = ElementFactory.importFor(importedLibrary, null, []);
-    LibraryElementImpl importingLibrary = createTestLibrary(context, "importing", []);
+    ImportElementImpl importCore = ElementFactory.importFor(context.getLibraryElement(context.sourceFactory.forUri("dart:core")), null);
+    ImportElementImpl importLib = ElementFactory.importFor(importedLibrary, null);
+    LibraryElementImpl importingLibrary = createTestLibrary(context, "importing");
     importingLibrary.imports = <ImportElement> [importCore, importLib];
     GatheringErrorListener errorListener = new GatheringErrorListener();
     Scope scope = new LibraryImportScope(importingLibrary, errorListener);
@@ -4738,13 +4740,13 @@ class LibraryImportScopeTest extends ResolverTestCase {
     context.sourceFactory = new SourceFactory([]);
     String typeNameA = "A";
     String typeNameB = "B";
-    ClassElement typeA = ElementFactory.classElement2(typeNameA, []);
-    ClassElement typeB = ElementFactory.classElement2(typeNameB, []);
-    LibraryElement importedLibrary = createTestLibrary(context, "imported", []);
+    ClassElement typeA = ElementFactory.classElement2(typeNameA);
+    ClassElement typeB = ElementFactory.classElement2(typeNameB);
+    LibraryElement importedLibrary = createTestLibrary(context, "imported");
     (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [typeA, typeB];
-    ImportElementImpl import1 = ElementFactory.importFor(importedLibrary, null, []);
-    ImportElementImpl import2 = ElementFactory.importFor(importedLibrary, null, []);
-    LibraryElementImpl importingLibrary = createTestLibrary(context, "importing", []);
+    ImportElementImpl import1 = ElementFactory.importFor(importedLibrary, null);
+    ImportElementImpl import2 = ElementFactory.importFor(importedLibrary, null);
+    LibraryElementImpl importingLibrary = createTestLibrary(context, "importing");
     importingLibrary.imports = <ImportElement> [import1, import2];
     GatheringErrorListener errorListener = new GatheringErrorListener();
     Scope scope = new LibraryImportScope(importingLibrary, errorListener);
@@ -4759,15 +4761,15 @@ class LibraryImportScopeTest extends ResolverTestCase {
     context.sourceFactory = new SourceFactory([]);
     String typeName = "C";
     String prefixName = "p";
-    ClassElement prefixedType = ElementFactory.classElement2(typeName, []);
-    ClassElement nonPrefixedType = ElementFactory.classElement2(typeName, []);
-    LibraryElement prefixedLibrary = createTestLibrary(context, "import.prefixed", []);
+    ClassElement prefixedType = ElementFactory.classElement2(typeName);
+    ClassElement nonPrefixedType = ElementFactory.classElement2(typeName);
+    LibraryElement prefixedLibrary = createTestLibrary(context, "import.prefixed");
     (prefixedLibrary.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [prefixedType];
-    ImportElementImpl prefixedImport = ElementFactory.importFor(prefixedLibrary, ElementFactory.prefix(prefixName), []);
-    LibraryElement nonPrefixedLibrary = createTestLibrary(context, "import.nonPrefixed", []);
+    ImportElementImpl prefixedImport = ElementFactory.importFor(prefixedLibrary, ElementFactory.prefix(prefixName));
+    LibraryElement nonPrefixedLibrary = createTestLibrary(context, "import.nonPrefixed");
     (nonPrefixedLibrary.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [nonPrefixedType];
-    ImportElementImpl nonPrefixedImport = ElementFactory.importFor(nonPrefixedLibrary, null, []);
-    LibraryElementImpl importingLibrary = createTestLibrary(context, "importing", []);
+    ImportElementImpl nonPrefixedImport = ElementFactory.importFor(nonPrefixedLibrary, null);
+    LibraryElementImpl importingLibrary = createTestLibrary(context, "importing");
     importingLibrary.imports = <ImportElement> [prefixedImport, nonPrefixedImport];
     GatheringErrorListener errorListener = new GatheringErrorListener();
     Scope scope = new LibraryImportScope(importingLibrary, errorListener);
@@ -4877,9 +4879,9 @@ class LibraryScopeTest extends ResolverTestCase {
     context.sourceFactory = new SourceFactory([]);
     String importedTypeName = "A";
     ClassElement importedType = new ClassElementImpl.forNode(AstFactory.identifier3(importedTypeName));
-    LibraryElement importedLibrary = createTestLibrary(context, "imported", []);
+    LibraryElement importedLibrary = createTestLibrary(context, "imported");
     (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [importedType];
-    LibraryElementImpl definingLibrary = createTestLibrary(context, "importing", []);
+    LibraryElementImpl definingLibrary = createTestLibrary(context, "importing");
     ImportElementImpl importElement = new ImportElementImpl(0);
     importElement.importedLibrary = importedLibrary;
     definingLibrary.imports = <ImportElement> [importElement];
@@ -5013,9 +5015,9 @@ class MemberMapTest {
   }
 
   void test_MemberMap_copyConstructor() {
-    MethodElement m1 = ElementFactory.methodElement("m1", _nullType, []);
-    MethodElement m2 = ElementFactory.methodElement("m2", _nullType, []);
-    MethodElement m3 = ElementFactory.methodElement("m3", _nullType, []);
+    MethodElement m1 = ElementFactory.methodElement("m1", _nullType);
+    MethodElement m2 = ElementFactory.methodElement("m2", _nullType);
+    MethodElement m3 = ElementFactory.methodElement("m3", _nullType);
     MemberMap map = new MemberMap();
     map.put(m1.name, m1);
     map.put(m2.name, m2);
@@ -5028,8 +5030,8 @@ class MemberMapTest {
   }
 
   void test_MemberMap_override() {
-    MethodElement m1 = ElementFactory.methodElement("m", _nullType, []);
-    MethodElement m2 = ElementFactory.methodElement("m", _nullType, []);
+    MethodElement m1 = ElementFactory.methodElement("m", _nullType);
+    MethodElement m2 = ElementFactory.methodElement("m", _nullType);
     MemberMap map = new MemberMap();
     map.put(m1.name, m1);
     map.put(m2.name, m2);
@@ -5038,7 +5040,7 @@ class MemberMapTest {
   }
 
   void test_MemberMap_put() {
-    MethodElement m1 = ElementFactory.methodElement("m1", _nullType, []);
+    MethodElement m1 = ElementFactory.methodElement("m1", _nullType);
     MemberMap map = new MemberMap();
     expect(map.size, 0);
     map.put(m1.name, m1);
@@ -5272,7 +5274,7 @@ f() {}''',
         r'''
 library root;
 import 'lib1.dart' deferred as lib1;
-main() { lib1.f(); }'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> []);
+main() { lib1.f(); }'''], <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], ErrorCode.EMPTY_LIST);
   }
 
   void test_issue20904BuggyTypePromotionAtIfJoin_1() {
@@ -5801,7 +5803,7 @@ class A {
   const A() {}
 }''');
     resolve(source);
-    assertErrors(source, []);
+    assertErrors(source);
     verify([source, source2]);
   }
 
@@ -5820,7 +5822,7 @@ class A {}''');
 library lib2;
 class B {}''');
     resolve(source);
-    assertErrors(source, []);
+    assertErrors(source);
     assertNoErrors(source2);
     assertNoErrors(source3);
     verify([source, source2, source3]);
@@ -6375,7 +6377,7 @@ class ResolverTestCase extends EngineTestCase {
    * @throws AssertionFailedError if a different number of errors have been reported than were
    *           expected
    */
-  void assertErrors(Source source, List<ErrorCode> expectedErrorCodes) {
+  void assertErrors(Source source, [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     for (AnalysisError error in analysisContext2.computeErrors(source)) {
       if (error.errorCode == HintCode.UNUSED_LOCAL_VARIABLE &&
@@ -6395,7 +6397,7 @@ class ResolverTestCase extends EngineTestCase {
    * @throws AssertionFailedError if any errors have been reported
    */
   void assertNoErrors(Source source) {
-    assertErrors(source, []);
+    assertErrors(source);
   }
 
   /**
@@ -6418,7 +6420,7 @@ class ResolverTestCase extends EngineTestCase {
    *
    * @return the library element that was created
    */
-  LibraryElementImpl createDefaultTestLibrary() => createTestLibrary(new AnalysisContextImpl(), "test", []);
+  LibraryElementImpl createDefaultTestLibrary() => createTestLibrary(new AnalysisContextImpl(), "test");
 
   /**
    * Create a library element that represents a library with the given name containing a single
@@ -6427,17 +6429,22 @@ class ResolverTestCase extends EngineTestCase {
    * @param libraryName the name of the library to be created
    * @return the library element that was created
    */
-  LibraryElementImpl createTestLibrary(AnalysisContext context, String libraryName, List<String> typeNames) {
-    int count = typeNames.length;
-    List<CompilationUnitElementImpl> sourcedCompilationUnits = new List<CompilationUnitElementImpl>(count);
-    for (int i = 0; i < count; i++) {
-      String typeName = typeNames[i];
-      ClassElementImpl type = new ClassElementImpl.forNode(AstFactory.identifier3(typeName));
-      String fileName = "$typeName.dart";
-      CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
-      compilationUnit.source = _createNamedSource(fileName);
-      compilationUnit.types = <ClassElement> [type];
-      sourcedCompilationUnits[i] = compilationUnit;
+  LibraryElementImpl createTestLibrary(AnalysisContext context, String libraryName, [List<String> typeNames]) {
+    List<CompilationUnitElement> sourcedCompilationUnits;
+    if (typeNames == null) {
+      sourcedCompilationUnits = CompilationUnitElementImpl.EMPTY_ARRAY;
+    } else {
+      int count = typeNames.length;
+      sourcedCompilationUnits = new List<CompilationUnitElement>(count);
+      for (int i = 0; i < count; i++) {
+        String typeName = typeNames[i];
+        ClassElementImpl type = new ClassElementImpl.forNode(AstFactory.identifier3(typeName));
+        String fileName = "$typeName.dart";
+        CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
+        compilationUnit.source = _createNamedSource(fileName);
+        compilationUnit.types = <ClassElement> [type];
+        sourcedCompilationUnits[i] = compilationUnit;
+      }
     }
     String fileName = "$libraryName.dart";
     CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
@@ -6707,9 +6714,9 @@ class ScopeBuilderTest extends EngineTestCase {
   ClassDeclaration _createResolvedClassDeclaration() {
     CompilationUnit unit = _createResolvedCompilationUnit();
     String className = "C";
-    ClassDeclaration classNode = AstFactory.classDeclaration(null, className, AstFactory.typeParameterList([]), null, null, null, []);
+    ClassDeclaration classNode = AstFactory.classDeclaration(null, className, AstFactory.typeParameterList(), null, null, null);
     unit.declarations.add(classNode);
-    ClassElement classElement = ElementFactory.classElement2(className, []);
+    ClassElement classElement = ElementFactory.classElement2(className);
     classNode.name.staticElement = classElement;
     (unit.element as CompilationUnitElementImpl).types = <ClassElement> [classElement];
     return classNode;
@@ -6718,9 +6725,9 @@ class ScopeBuilderTest extends EngineTestCase {
   ClassTypeAlias _createResolvedClassTypeAlias() {
     CompilationUnit unit = _createResolvedCompilationUnit();
     String className = "C";
-    ClassTypeAlias classNode = AstFactory.classTypeAlias(className, AstFactory.typeParameterList([]), null, null, null, null);
+    ClassTypeAlias classNode = AstFactory.classTypeAlias(className, AstFactory.typeParameterList(), null, null, null, null);
     unit.declarations.add(classNode);
-    ClassElement classElement = ElementFactory.classElement2(className, []);
+    ClassElement classElement = ElementFactory.classElement2(className);
     classNode.name.staticElement = classElement;
     (unit.element as CompilationUnitElementImpl).types = <ClassElement> [classElement];
     return classNode;
@@ -6736,9 +6743,9 @@ class ScopeBuilderTest extends EngineTestCase {
   ConstructorDeclaration _createResolvedConstructorDeclaration() {
     ClassDeclaration classNode = _createResolvedClassDeclaration();
     String constructorName = "f";
-    ConstructorDeclaration constructorNode = AstFactory.constructorDeclaration(AstFactory.identifier3(constructorName), null, AstFactory.formalParameterList([]), null);
+    ConstructorDeclaration constructorNode = AstFactory.constructorDeclaration(AstFactory.identifier3(constructorName), null, AstFactory.formalParameterList(), null);
     classNode.members.add(constructorNode);
-    ConstructorElement constructorElement = ElementFactory.constructorElement2(classNode.element, null, []);
+    ConstructorElement constructorElement = ElementFactory.constructorElement2(classNode.element, null);
     constructorNode.element = constructorElement;
     (classNode.element as ClassElementImpl).constructors = <ConstructorElement> [constructorElement];
     return constructorNode;
@@ -6757,7 +6764,7 @@ class ScopeBuilderTest extends EngineTestCase {
 
   FunctionTypeAlias _createResolvedFunctionTypeAlias() {
     CompilationUnit unit = _createResolvedCompilationUnit();
-    FunctionTypeAlias aliasNode = AstFactory.typeAlias(AstFactory.typeName4("A", []), "F", AstFactory.typeParameterList([]), AstFactory.formalParameterList([]));
+    FunctionTypeAlias aliasNode = AstFactory.typeAlias(AstFactory.typeName4("A"), "F", AstFactory.typeParameterList(), AstFactory.formalParameterList());
     unit.declarations.add(aliasNode);
     SimpleIdentifier aliasName = aliasNode.name;
     FunctionTypeAliasElement aliasElement = new FunctionTypeAliasElementImpl.forNode(aliasName);
@@ -6769,9 +6776,9 @@ class ScopeBuilderTest extends EngineTestCase {
   MethodDeclaration _createResolvedMethodDeclaration() {
     ClassDeclaration classNode = _createResolvedClassDeclaration();
     String methodName = "f";
-    MethodDeclaration methodNode = AstFactory.methodDeclaration(null, null, null, null, AstFactory.identifier3(methodName), AstFactory.formalParameterList([]));
+    MethodDeclaration methodNode = AstFactory.methodDeclaration(null, null, null, null, AstFactory.identifier3(methodName), AstFactory.formalParameterList());
     classNode.members.add(methodNode);
-    MethodElement methodElement = ElementFactory.methodElement(methodName, null, []);
+    MethodElement methodElement = ElementFactory.methodElement(methodName, null);
     methodNode.name.staticElement = methodElement;
     (classNode.element as ClassElementImpl).methods = <MethodElement> [methodElement];
     return methodNode;
@@ -7937,10 +7944,10 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void test_visitAsExpression() {
     // class A { ... this as B ... }
     // class B extends A {}
-    ClassElement superclass = ElementFactory.classElement2("A", []);
+    ClassElement superclass = ElementFactory.classElement2("A");
     InterfaceType superclassType = superclass.type;
-    ClassElement subclass = ElementFactory.classElement("B", superclassType, []);
-    Expression node = AstFactory.asExpression(AstFactory.thisExpression(), AstFactory.typeName(subclass, []));
+    ClassElement subclass = ElementFactory.classElement("B", superclassType);
+    Expression node = AstFactory.asExpression(AstFactory.thisExpression(), AstFactory.typeName(subclass));
     expect(_analyze3(node, superclassType), same(subclass.type));
     _listener.assertNoErrors();
   }
@@ -8021,11 +8028,11 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     //   A operator *(double value);
     // }
     // (a as A) * 2.0
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     InterfaceType typeA = classA.type;
     MethodElement operator = ElementFactory.methodElement("*", typeA, [_typeProvider.doubleType]);
     classA.methods = <MethodElement> [operator];
-    BinaryExpression node = AstFactory.binaryExpression(AstFactory.asExpression(AstFactory.identifier3("a"), AstFactory.typeName(classA, [])), TokenType.PLUS, _resolvedDouble(2.0));
+    BinaryExpression node = AstFactory.binaryExpression(AstFactory.asExpression(AstFactory.identifier3("a"), AstFactory.typeName(classA)), TokenType.PLUS, _resolvedDouble(2.0));
     node.staticElement = operator;
     expect(_analyze(node), same(typeA));
     _listener.assertNoErrors();
@@ -8088,7 +8095,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _setType(p1, dynamicType);
     FormalParameter p2 = AstFactory.namedFormalParameter(AstFactory.simpleFormalParameter3("p2"), _resolvedInteger(0));
     _setType(p2, dynamicType);
-    FunctionExpression node = _resolvedFunctionExpression(AstFactory.formalParameterList([p1, p2]), AstFactory.blockFunctionBody2([]));
+    FunctionExpression node = _resolvedFunctionExpression(AstFactory.formalParameterList([p1, p2]), AstFactory.blockFunctionBody2());
     _analyze5(p1);
     _analyze5(p2);
     DartType resultType = _analyze(node);
@@ -8120,7 +8127,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _setType(p1, dynamicType);
     FormalParameter p2 = AstFactory.simpleFormalParameter3("p2");
     _setType(p2, dynamicType);
-    FunctionExpression node = _resolvedFunctionExpression(AstFactory.formalParameterList([p1, p2]), AstFactory.blockFunctionBody2([]));
+    FunctionExpression node = _resolvedFunctionExpression(AstFactory.formalParameterList([p1, p2]), AstFactory.blockFunctionBody2());
     _analyze5(p1);
     _analyze5(p2);
     DartType resultType = _analyze(node);
@@ -8147,7 +8154,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _setType(p1, dynamicType);
     FormalParameter p2 = AstFactory.namedFormalParameter(AstFactory.simpleFormalParameter3("p2"), _resolvedInteger(0));
     _setType(p2, dynamicType);
-    FunctionExpression node = _resolvedFunctionExpression(AstFactory.formalParameterList([p1, p2]), AstFactory.blockFunctionBody2([]));
+    FunctionExpression node = _resolvedFunctionExpression(AstFactory.formalParameterList([p1, p2]), AstFactory.blockFunctionBody2());
     _analyze5(p2);
     DartType resultType = _analyze(node);
     Map<String, DartType> expectedNamedTypes = new HashMap<String, DartType>();
@@ -8179,7 +8186,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _setType(p1, dynamicType);
     FormalParameter p2 = AstFactory.positionalFormalParameter(AstFactory.simpleFormalParameter3("p2"), _resolvedInteger(0));
     _setType(p2, dynamicType);
-    FunctionExpression node = _resolvedFunctionExpression(AstFactory.formalParameterList([p1, p2]), AstFactory.blockFunctionBody2([]));
+    FunctionExpression node = _resolvedFunctionExpression(AstFactory.formalParameterList([p1, p2]), AstFactory.blockFunctionBody2());
     _analyze5(p1);
     _analyze5(p2);
     DartType resultType = _analyze(node);
@@ -8209,7 +8216,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _setType(p1, dynamicType);
     FormalParameter p2 = AstFactory.positionalFormalParameter(AstFactory.simpleFormalParameter3("p2"), _resolvedInteger(0));
     _setType(p2, dynamicType);
-    FunctionExpression node = _resolvedFunctionExpression(AstFactory.formalParameterList([p1, p2]), AstFactory.blockFunctionBody2([]));
+    FunctionExpression node = _resolvedFunctionExpression(AstFactory.formalParameterList([p1, p2]), AstFactory.blockFunctionBody2());
     _analyze5(p1);
     _analyze5(p2);
     DartType resultType = _analyze(node);
@@ -8298,14 +8305,14 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   void test_visitInstanceCreationExpression_named() {
     // new C.m()
-    ClassElementImpl classElement = ElementFactory.classElement2("C", []);
+    ClassElementImpl classElement = ElementFactory.classElement2("C");
     String constructorName = "m";
-    ConstructorElementImpl constructor = ElementFactory.constructorElement2(classElement, constructorName, []);
+    ConstructorElementImpl constructor = ElementFactory.constructorElement2(classElement, constructorName);
     constructor.returnType = classElement.type;
     FunctionTypeImpl constructorType = new FunctionTypeImpl.con1(constructor);
     constructor.type = constructorType;
     classElement.constructors = <ConstructorElement> [constructor];
-    InstanceCreationExpression node = AstFactory.instanceCreationExpression2(null, AstFactory.typeName(classElement, []), [AstFactory.identifier3(constructorName)]);
+    InstanceCreationExpression node = AstFactory.instanceCreationExpression2(null, AstFactory.typeName(classElement), [AstFactory.identifier3(constructorName)]);
     node.staticElement = constructor;
     expect(_analyze(node), same(classElement.type));
     _listener.assertNoErrors();
@@ -8314,15 +8321,15 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void test_visitInstanceCreationExpression_typeParameters() {
     // new C<I>()
     ClassElementImpl elementC = ElementFactory.classElement2("C", ["E"]);
-    ClassElementImpl elementI = ElementFactory.classElement2("I", []);
-    ConstructorElementImpl constructor = ElementFactory.constructorElement2(elementC, null, []);
+    ClassElementImpl elementI = ElementFactory.classElement2("I");
+    ConstructorElementImpl constructor = ElementFactory.constructorElement2(elementC, null);
     elementC.constructors = <ConstructorElement> [constructor];
     constructor.returnType = elementC.type;
     FunctionTypeImpl constructorType = new FunctionTypeImpl.con1(constructor);
     constructor.type = constructorType;
-    TypeName typeName = AstFactory.typeName(elementC, [AstFactory.typeName(elementI, [])]);
+    TypeName typeName = AstFactory.typeName(elementC, [AstFactory.typeName(elementI)]);
     typeName.type = elementC.type.substitute4(<DartType> [elementI.type]);
-    InstanceCreationExpression node = AstFactory.instanceCreationExpression2(null, typeName, []);
+    InstanceCreationExpression node = AstFactory.instanceCreationExpression2(null, typeName);
     node.staticElement = constructor;
     InterfaceType interfaceType = _analyze(node) as InterfaceType;
     List<DartType> typeArgs = interfaceType.typeArguments;
@@ -8333,13 +8340,13 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   void test_visitInstanceCreationExpression_unnamed() {
     // new C()
-    ClassElementImpl classElement = ElementFactory.classElement2("C", []);
-    ConstructorElementImpl constructor = ElementFactory.constructorElement2(classElement, null, []);
+    ClassElementImpl classElement = ElementFactory.classElement2("C");
+    ConstructorElementImpl constructor = ElementFactory.constructorElement2(classElement, null);
     constructor.returnType = classElement.type;
     FunctionTypeImpl constructorType = new FunctionTypeImpl.con1(constructor);
     constructor.type = constructorType;
     classElement.constructors = <ConstructorElement> [constructor];
-    InstanceCreationExpression node = AstFactory.instanceCreationExpression2(null, AstFactory.typeName(classElement, []), []);
+    InstanceCreationExpression node = AstFactory.instanceCreationExpression2(null, AstFactory.typeName(classElement));
     node.staticElement = constructor;
     expect(_analyze(node), same(classElement.type));
     _listener.assertNoErrors();
@@ -8354,21 +8361,21 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   void test_visitIsExpression_negated() {
     // a is! String
-    Expression node = AstFactory.isExpression(_resolvedString("a"), true, AstFactory.typeName4("String", []));
+    Expression node = AstFactory.isExpression(_resolvedString("a"), true, AstFactory.typeName4("String"));
     expect(_analyze(node), same(_typeProvider.boolType));
     _listener.assertNoErrors();
   }
 
   void test_visitIsExpression_notNegated() {
     // a is String
-    Expression node = AstFactory.isExpression(_resolvedString("a"), false, AstFactory.typeName4("String", []));
+    Expression node = AstFactory.isExpression(_resolvedString("a"), false, AstFactory.typeName4("String"));
     expect(_analyze(node), same(_typeProvider.boolType));
     _listener.assertNoErrors();
   }
 
   void test_visitListLiteral_empty() {
     // []
-    Expression node = AstFactory.listLiteral([]);
+    Expression node = AstFactory.listLiteral();
     DartType resultType = _analyze(node);
     _assertType2(_typeProvider.listType.substitute4(<DartType> [_typeProvider.dynamicType]), resultType);
     _listener.assertNoErrors();
@@ -8384,7 +8391,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   void test_visitMapLiteral_empty() {
     // {}
-    Expression node = AstFactory.mapLiteral2([]);
+    Expression node = AstFactory.mapLiteral2();
     DartType resultType = _analyze(node);
     _assertType2(_typeProvider.mapType.substitute4(<DartType> [_typeProvider.dynamicType, _typeProvider.dynamicType]), resultType);
     _listener.assertNoErrors();
@@ -8400,7 +8407,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   void test_visitMethodInvocation_then() {
     // then()
-    Expression node = AstFactory.methodInvocation(null, "then", []);
+    Expression node = AstFactory.methodInvocation(null, "then");
     _analyze(node);
     _listener.assertNoErrors();
   }
@@ -8585,8 +8592,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   void test_visitSuperExpression() {
     // super
-    InterfaceType superType = ElementFactory.classElement2("A", []).type;
-    InterfaceType thisType = ElementFactory.classElement("B", superType, []).type;
+    InterfaceType superType = ElementFactory.classElement2("A").type;
+    InterfaceType thisType = ElementFactory.classElement("B", superType).type;
     Expression node = AstFactory.superExpression();
     expect(_analyze3(node, thisType), same(thisType));
     _listener.assertNoErrors();
@@ -8598,7 +8605,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   void test_visitThisExpression() {
     // this
-    InterfaceType thisType = ElementFactory.classElement("B", ElementFactory.classElement2("A", []).type, []).type;
+    InterfaceType thisType = ElementFactory.classElement("B", ElementFactory.classElement2("A").type).type;
     Expression node = AstFactory.thisExpression();
     expect(_analyze3(node, thisType), same(thisType));
     _listener.assertNoErrors();
@@ -9322,8 +9329,8 @@ class SubtypeManagerTest extends EngineTestCase {
     // class A extends B
     // class B extends A
     //
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     classA.supertype = classB.type;
     _definingCompilationUnit.types = <ClassElement> [classA, classB];
     HashSet<ClassElement> subtypesOfA = _subtypeManager.computeAllSubtypes(classA);
@@ -9340,11 +9347,11 @@ class SubtypeManagerTest extends EngineTestCase {
     // class D extends B
     // class E extends B
     //
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
-    ClassElementImpl classC = ElementFactory.classElement("C", classB.type, []);
-    ClassElementImpl classD = ElementFactory.classElement("D", classB.type, []);
-    ClassElementImpl classE = ElementFactory.classElement("E", classB.type, []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
+    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
+    ClassElementImpl classD = ElementFactory.classElement("D", classB.type);
+    ClassElementImpl classE = ElementFactory.classElement("E", classB.type);
     _definingCompilationUnit.types = <ClassElement> [classA, classB, classC, classD, classE];
     HashSet<ClassElement> subtypesOfA = _subtypeManager.computeAllSubtypes(classA);
     List<ClassElement> arraySubtypesOfA = new List.from(subtypesOfA);
@@ -9360,7 +9367,7 @@ class SubtypeManagerTest extends EngineTestCase {
     //
     // class A
     //
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
     _definingCompilationUnit.types = <ClassElement> [classA];
     HashSet<ClassElement> subtypesOfA = _subtypeManager.computeAllSubtypes(classA);
     expect(subtypesOfA, hasLength(0));
@@ -9371,8 +9378,8 @@ class SubtypeManagerTest extends EngineTestCase {
     // class A
     // class B extends A
     //
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     _definingCompilationUnit.types = <ClassElement> [classA, classB];
     HashSet<ClassElement> subtypesOfA = _subtypeManager.computeAllSubtypes(classA);
     List<ClassElement> arraySubtypesOfA = new List.from(subtypesOfA);
@@ -9496,9 +9503,9 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get boolType {
     if (_boolType == null) {
-      ClassElementImpl boolElement = ElementFactory.classElement2("bool", []);
+      ClassElementImpl boolElement = ElementFactory.classElement2("bool");
       _boolType = boolElement.type;
-      ConstructorElementImpl fromEnvironment = ElementFactory.constructorElement(boolElement, "fromEnvironment", true, []);
+      ConstructorElementImpl fromEnvironment = ElementFactory.constructorElement(boolElement, "fromEnvironment", true);
       fromEnvironment.parameters = <ParameterElement> [
           ElementFactory.requiredParameter2("name", stringType),
           ElementFactory.namedParameter2("defaultValue", _boolType)];
@@ -9519,7 +9526,7 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get deprecatedType {
     if (_deprecatedType == null) {
-      ClassElementImpl deprecatedElement = ElementFactory.classElement2("Deprecated", []);
+      ClassElementImpl deprecatedElement = ElementFactory.classElement2("Deprecated");
       deprecatedElement.constructors = <ConstructorElement> [ElementFactory.constructorElement(deprecatedElement, null, true, [stringType])];
       _deprecatedType = deprecatedElement.type;
     }
@@ -9545,7 +9552,7 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get functionType {
     if (_functionType == null) {
-      _functionType = ElementFactory.classElement2("Function", []).type;
+      _functionType = ElementFactory.classElement2("Function").type;
     }
     return _functionType;
   }
@@ -9586,7 +9593,7 @@ class TestTypeProvider implements TypeProvider {
   InterfaceType get listType {
     if (_listType == null) {
       ClassElementImpl listElement = ElementFactory.classElement2("List", ["E"]);
-      listElement.constructors = <ConstructorElement> [ElementFactory.constructorElement2(listElement, null, [])];
+      listElement.constructors = <ConstructorElement> [ElementFactory.constructorElement2(listElement, null)];
       _listType = listElement.type;
       DartType eType = listElement.typeParameters[0].type;
       InterfaceType iterableType = this.iterableType.substitute4(<DartType> [eType]);
@@ -9620,7 +9627,7 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get nullType {
     if (_nullType == null) {
-      _nullType = ElementFactory.classElement2("Null", []).type;
+      _nullType = ElementFactory.classElement2("Null").type;
     }
     return _nullType;
   }
@@ -9638,9 +9645,9 @@ class TestTypeProvider implements TypeProvider {
     if (_objectType == null) {
       ClassElementImpl objectElement = ElementFactory.object;
       _objectType = objectElement.type;
-      objectElement.constructors = <ConstructorElement> [ElementFactory.constructorElement2(objectElement, null, [])];
+      objectElement.constructors = <ConstructorElement> [ElementFactory.constructorElement2(objectElement, null)];
       objectElement.methods = <MethodElement> [
-          ElementFactory.methodElement("toString", stringType, []),
+          ElementFactory.methodElement("toString", stringType),
           ElementFactory.methodElement("==", boolType, [_objectType]),
           ElementFactory.methodElement("noSuchMethod", dynamicType, [dynamicType])];
       objectElement.accessors = <PropertyAccessorElement> [
@@ -9653,7 +9660,7 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get stackTraceType {
     if (_stackTraceType == null) {
-      _stackTraceType = ElementFactory.classElement2("StackTrace", []).type;
+      _stackTraceType = ElementFactory.classElement2("StackTrace").type;
     }
     return _stackTraceType;
   }
@@ -9661,7 +9668,7 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get stringType {
     if (_stringType == null) {
-      _stringType = ElementFactory.classElement2("String", []).type;
+      _stringType = ElementFactory.classElement2("String").type;
       ClassElementImpl stringElement = _stringType.element as ClassElementImpl;
       stringElement.accessors = <PropertyAccessorElement> [
           ElementFactory.getterElement("isEmpty", false, boolType),
@@ -9669,9 +9676,9 @@ class TestTypeProvider implements TypeProvider {
           ElementFactory.getterElement("codeUnits", false, listType.substitute4(<DartType> [intType]))];
       stringElement.methods = <MethodElement> [
           ElementFactory.methodElement("+", _stringType, [_stringType]),
-          ElementFactory.methodElement("toLowerCase", _stringType, []),
-          ElementFactory.methodElement("toUpperCase", _stringType, [])];
-      ConstructorElementImpl fromEnvironment = ElementFactory.constructorElement(stringElement, "fromEnvironment", true, []);
+          ElementFactory.methodElement("toLowerCase", _stringType),
+          ElementFactory.methodElement("toUpperCase", _stringType)];
+      ConstructorElementImpl fromEnvironment = ElementFactory.constructorElement(stringElement, "fromEnvironment", true);
       fromEnvironment.parameters = <ParameterElement> [
           ElementFactory.requiredParameter2("name", stringType),
           ElementFactory.namedParameter2("defaultValue", _stringType)];
@@ -9684,7 +9691,7 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get symbolType {
     if (_symbolType == null) {
-      ClassElementImpl symbolClass = ElementFactory.classElement2("Symbol", []);
+      ClassElementImpl symbolClass = ElementFactory.classElement2("Symbol");
       ConstructorElementImpl constructor = ElementFactory.constructorElement(symbolClass, null, true, [stringType]);
       constructor.factory = true;
       symbolClass.constructors = <ConstructorElement> [constructor];
@@ -9696,7 +9703,7 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get typeType {
     if (_typeType == null) {
-      _typeType = ElementFactory.classElement2("Type", []).type;
+      _typeType = ElementFactory.classElement2("Type").type;
     }
     return _typeType;
   }
@@ -9717,11 +9724,11 @@ class TestTypeProvider implements TypeProvider {
     //
     // Create the type hierarchy.
     //
-    ClassElementImpl numElement = ElementFactory.classElement2("num", []);
+    ClassElementImpl numElement = ElementFactory.classElement2("num");
     _numType = numElement.type;
-    ClassElementImpl intElement = ElementFactory.classElement("int", _numType, []);
+    ClassElementImpl intElement = ElementFactory.classElement("int", _numType);
     _intType = intElement.type;
-    ClassElementImpl doubleElement = ElementFactory.classElement("double", _numType, []);
+    ClassElementImpl doubleElement = ElementFactory.classElement("double", _numType);
     _doubleType = doubleElement.type;
     //
     // Force the referenced types to be cached.
@@ -9739,23 +9746,23 @@ class TestTypeProvider implements TypeProvider {
         ElementFactory.methodElement("%", _numType, [_numType]),
         ElementFactory.methodElement("/", _doubleType, [_numType]),
         ElementFactory.methodElement("~/", _numType, [_numType]),
-        ElementFactory.methodElement("-", _numType, []),
+        ElementFactory.methodElement("-", _numType),
         ElementFactory.methodElement("remainder", _numType, [_numType]),
         ElementFactory.methodElement("<", _boolType, [_numType]),
         ElementFactory.methodElement("<=", _boolType, [_numType]),
         ElementFactory.methodElement(">", _boolType, [_numType]),
         ElementFactory.methodElement(">=", _boolType, [_numType]),
         ElementFactory.methodElement("==", _boolType, [_objectType]),
-        ElementFactory.methodElement("isNaN", _boolType, []),
-        ElementFactory.methodElement("isNegative", _boolType, []),
-        ElementFactory.methodElement("isInfinite", _boolType, []),
-        ElementFactory.methodElement("abs", _numType, []),
-        ElementFactory.methodElement("floor", _numType, []),
-        ElementFactory.methodElement("ceil", _numType, []),
-        ElementFactory.methodElement("round", _numType, []),
-        ElementFactory.methodElement("truncate", _numType, []),
-        ElementFactory.methodElement("toInt", _intType, []),
-        ElementFactory.methodElement("toDouble", _doubleType, []),
+        ElementFactory.methodElement("isNaN", _boolType),
+        ElementFactory.methodElement("isNegative", _boolType),
+        ElementFactory.methodElement("isInfinite", _boolType),
+        ElementFactory.methodElement("abs", _numType),
+        ElementFactory.methodElement("floor", _numType),
+        ElementFactory.methodElement("ceil", _numType),
+        ElementFactory.methodElement("round", _numType),
+        ElementFactory.methodElement("truncate", _numType),
+        ElementFactory.methodElement("toInt", _intType),
+        ElementFactory.methodElement("toDouble", _doubleType),
         ElementFactory.methodElement("toStringAsFixed", _stringType, [_intType]),
         ElementFactory.methodElement("toStringAsExponential", _stringType, [_intType]),
         ElementFactory.methodElement("toStringAsPrecision", _stringType, [_intType]),
@@ -9764,17 +9771,17 @@ class TestTypeProvider implements TypeProvider {
         ElementFactory.methodElement("&", _intType, [_intType]),
         ElementFactory.methodElement("|", _intType, [_intType]),
         ElementFactory.methodElement("^", _intType, [_intType]),
-        ElementFactory.methodElement("~", _intType, []),
+        ElementFactory.methodElement("~", _intType),
         ElementFactory.methodElement("<<", _intType, [_intType]),
         ElementFactory.methodElement(">>", _intType, [_intType]),
-        ElementFactory.methodElement("-", _intType, []),
-        ElementFactory.methodElement("abs", _intType, []),
-        ElementFactory.methodElement("round", _intType, []),
-        ElementFactory.methodElement("floor", _intType, []),
-        ElementFactory.methodElement("ceil", _intType, []),
-        ElementFactory.methodElement("truncate", _intType, []),
-        ElementFactory.methodElement("toString", _stringType, [])];
-    ConstructorElementImpl fromEnvironment = ElementFactory.constructorElement(intElement, "fromEnvironment", true, []);
+        ElementFactory.methodElement("-", _intType),
+        ElementFactory.methodElement("abs", _intType),
+        ElementFactory.methodElement("round", _intType),
+        ElementFactory.methodElement("floor", _intType),
+        ElementFactory.methodElement("ceil", _intType),
+        ElementFactory.methodElement("truncate", _intType),
+        ElementFactory.methodElement("toString", _stringType)];
+    ConstructorElementImpl fromEnvironment = ElementFactory.constructorElement(intElement, "fromEnvironment", true);
     fromEnvironment.parameters = <ParameterElement> [
         ElementFactory.requiredParameter2("name", stringType),
         ElementFactory.namedParameter2("defaultValue", _intType)];
@@ -9801,13 +9808,13 @@ class TestTypeProvider implements TypeProvider {
         ElementFactory.methodElement("%", _doubleType, [_numType]),
         ElementFactory.methodElement("/", _doubleType, [_numType]),
         ElementFactory.methodElement("~/", _doubleType, [_numType]),
-        ElementFactory.methodElement("-", _doubleType, []),
-        ElementFactory.methodElement("abs", _doubleType, []),
-        ElementFactory.methodElement("round", _doubleType, []),
-        ElementFactory.methodElement("floor", _doubleType, []),
-        ElementFactory.methodElement("ceil", _doubleType, []),
-        ElementFactory.methodElement("truncate", _doubleType, []),
-        ElementFactory.methodElement("toString", _stringType, [])];
+        ElementFactory.methodElement("-", _doubleType),
+        ElementFactory.methodElement("abs", _doubleType),
+        ElementFactory.methodElement("round", _doubleType),
+        ElementFactory.methodElement("floor", _doubleType),
+        ElementFactory.methodElement("ceil", _doubleType),
+        ElementFactory.methodElement("truncate", _doubleType),
+        ElementFactory.methodElement("toString", _stringType)];
   }
 
   /**
@@ -9873,7 +9880,7 @@ class TypeOverrideManagerTest extends EngineTestCase {
   void test_getType_enclosedOverride() {
     TypeOverrideManager manager = new TypeOverrideManager();
     LocalVariableElementImpl element = ElementFactory.localVariableElement2("v");
-    InterfaceType type = ElementFactory.classElement2("C", []).type;
+    InterfaceType type = ElementFactory.classElement2("C").type;
     manager.enterScope();
     manager.setType(element, type);
     manager.enterScope();
@@ -9883,7 +9890,7 @@ class TypeOverrideManagerTest extends EngineTestCase {
   void test_getType_immediateOverride() {
     TypeOverrideManager manager = new TypeOverrideManager();
     LocalVariableElementImpl element = ElementFactory.localVariableElement2("v");
-    InterfaceType type = ElementFactory.classElement2("C", []).type;
+    InterfaceType type = ElementFactory.classElement2("C").type;
     manager.enterScope();
     manager.setType(element, type);
     expect(manager.getType(element), same(type));
@@ -11209,18 +11216,18 @@ class TypeProviderImplTest extends EngineTestCase {
     // either ElementFactory or TestTypeProvider (which uses ElementFactory) because we side-effect
     // the elements in ways that would break other tests.
     //
-    InterfaceType objectType = _classElement("Object", null, []).type;
-    InterfaceType boolType = _classElement("bool", objectType, []).type;
-    InterfaceType numType = _classElement("num", objectType, []).type;
-    InterfaceType doubleType = _classElement("double", numType, []).type;
-    InterfaceType functionType = _classElement("Function", objectType, []).type;
-    InterfaceType intType = _classElement("int", numType, []).type;
+    InterfaceType objectType = _classElement("Object", null).type;
+    InterfaceType boolType = _classElement("bool", objectType).type;
+    InterfaceType numType = _classElement("num", objectType).type;
+    InterfaceType doubleType = _classElement("double", numType).type;
+    InterfaceType functionType = _classElement("Function", objectType).type;
+    InterfaceType intType = _classElement("int", numType).type;
     InterfaceType listType = _classElement("List", objectType, ["E"]).type;
     InterfaceType mapType = _classElement("Map", objectType, ["K", "V"]).type;
-    InterfaceType stackTraceType = _classElement("StackTrace", objectType, []).type;
-    InterfaceType stringType = _classElement("String", objectType, []).type;
-    InterfaceType symbolType = _classElement("Symbol", objectType, []).type;
-    InterfaceType typeType = _classElement("Type", objectType, []).type;
+    InterfaceType stackTraceType = _classElement("StackTrace", objectType).type;
+    InterfaceType stringType = _classElement("String", objectType).type;
+    InterfaceType symbolType = _classElement("Symbol", objectType).type;
+    InterfaceType typeType = _classElement("Type", objectType).type;
     CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl("core.dart");
     coreUnit.types = <ClassElement> [
         boolType.element,
@@ -11255,23 +11262,25 @@ class TypeProviderImplTest extends EngineTestCase {
     expect(provider.typeType, same(typeType));
   }
 
-  ClassElement _classElement(String typeName, InterfaceType superclassType, List<String> parameterNames) {
+  ClassElement _classElement(String typeName, InterfaceType superclassType, [List<String> parameterNames]) {
     ClassElementImpl element = new ClassElementImpl.forNode(AstFactory.identifier3(typeName));
     element.supertype = superclassType;
     InterfaceTypeImpl type = new InterfaceTypeImpl.con1(element);
     element.type = type;
-    int count = parameterNames.length;
-    if (count > 0) {
-      List<TypeParameterElementImpl> typeParameters = new List<TypeParameterElementImpl>(count);
-      List<TypeParameterTypeImpl> typeArguments = new List<TypeParameterTypeImpl>(count);
-      for (int i = 0; i < count; i++) {
-        TypeParameterElementImpl typeParameter = new TypeParameterElementImpl.forNode(AstFactory.identifier3(parameterNames[i]));
-        typeParameters[i] = typeParameter;
-        typeArguments[i] = new TypeParameterTypeImpl(typeParameter);
-        typeParameter.type = typeArguments[i];
+    if (parameterNames != null) {
+      int count = parameterNames.length;
+      if (count > 0) {
+        List<TypeParameterElementImpl> typeParameters = new List<TypeParameterElementImpl>(count);
+        List<TypeParameterTypeImpl> typeArguments = new List<TypeParameterTypeImpl>(count);
+        for (int i = 0; i < count; i++) {
+          TypeParameterElementImpl typeParameter = new TypeParameterElementImpl.forNode(AstFactory.identifier3(parameterNames[i]));
+          typeParameters[i] = typeParameter;
+          typeArguments[i] = new TypeParameterTypeImpl(typeParameter);
+          typeParameter.type = typeArguments[i];
+        }
+        element.typeParameters = typeParameters;
+        type.typeArguments = typeArguments;
       }
-      element.typeParameters = typeParameters;
-      type.typeArguments = typeArguments;
     }
     return element;
   }
@@ -11331,9 +11340,9 @@ class TypeResolverVisitorTest extends EngineTestCase {
 
   void fail_visitVariableDeclaration() {
     fail("Not yet tested");
-    ClassElement type = ElementFactory.classElement2("A", []);
+    ClassElement type = ElementFactory.classElement2("A");
     VariableDeclaration node = AstFactory.variableDeclaration("a");
-    AstFactory.variableDeclarationList(null, AstFactory.typeName(type, []), [node]);
+    AstFactory.variableDeclarationList(null, AstFactory.typeName(type), [node]);
     //resolve(node);
     expect(node.name.staticType, same(type.type));
     _listener.assertNoErrors();
@@ -11357,29 +11366,29 @@ class TypeResolverVisitorTest extends EngineTestCase {
 
   void test_visitCatchClause_exception() {
     // catch (e)
-    CatchClause clause = AstFactory.catchClause("e", []);
+    CatchClause clause = AstFactory.catchClause("e");
     SimpleIdentifier exceptionParameter = clause.exceptionParameter;
     exceptionParameter.staticElement = new LocalVariableElementImpl.forNode(exceptionParameter);
-    _resolveCatchClause(clause, _typeProvider.dynamicType, null, []);
+    _resolveCatchClause(clause, _typeProvider.dynamicType, null);
     _listener.assertNoErrors();
   }
 
   void test_visitCatchClause_exception_stackTrace() {
     // catch (e, s)
-    CatchClause clause = AstFactory.catchClause2("e", "s", []);
+    CatchClause clause = AstFactory.catchClause2("e", "s");
     SimpleIdentifier exceptionParameter = clause.exceptionParameter;
     exceptionParameter.staticElement = new LocalVariableElementImpl.forNode(exceptionParameter);
     SimpleIdentifier stackTraceParameter = clause.stackTraceParameter;
     stackTraceParameter.staticElement = new LocalVariableElementImpl.forNode(stackTraceParameter);
-    _resolveCatchClause(clause, _typeProvider.dynamicType, _typeProvider.stackTraceType, []);
+    _resolveCatchClause(clause, _typeProvider.dynamicType, _typeProvider.stackTraceType);
     _listener.assertNoErrors();
   }
 
   void test_visitCatchClause_on_exception() {
     // on E catch (e)
-    ClassElement exceptionElement = ElementFactory.classElement2("E", []);
-    TypeName exceptionType = AstFactory.typeName(exceptionElement, []);
-    CatchClause clause = AstFactory.catchClause4(exceptionType, "e", []);
+    ClassElement exceptionElement = ElementFactory.classElement2("E");
+    TypeName exceptionType = AstFactory.typeName(exceptionElement);
+    CatchClause clause = AstFactory.catchClause4(exceptionType, "e");
     SimpleIdentifier exceptionParameter = clause.exceptionParameter;
     exceptionParameter.staticElement = new LocalVariableElementImpl.forNode(exceptionParameter);
     _resolveCatchClause(clause, exceptionElement.type, null, [exceptionElement]);
@@ -11388,10 +11397,10 @@ class TypeResolverVisitorTest extends EngineTestCase {
 
   void test_visitCatchClause_on_exception_stackTrace() {
     // on E catch (e, s)
-    ClassElement exceptionElement = ElementFactory.classElement2("E", []);
-    TypeName exceptionType = AstFactory.typeName(exceptionElement, []);
+    ClassElement exceptionElement = ElementFactory.classElement2("E");
+    TypeName exceptionType = AstFactory.typeName(exceptionElement);
     (exceptionType.name as SimpleIdentifier).staticElement = exceptionElement;
-    CatchClause clause = AstFactory.catchClause5(exceptionType, "e", "s", []);
+    CatchClause clause = AstFactory.catchClause5(exceptionType, "e", "s");
     SimpleIdentifier exceptionParameter = clause.exceptionParameter;
     exceptionParameter.staticElement = new LocalVariableElementImpl.forNode(exceptionParameter);
     SimpleIdentifier stackTraceParameter = clause.stackTraceParameter;
@@ -11405,14 +11414,14 @@ class TypeResolverVisitorTest extends EngineTestCase {
     // class B {}
     // class C {}
     // class D {}
-    ClassElement elementA = ElementFactory.classElement2("A", []);
-    ClassElement elementB = ElementFactory.classElement2("B", []);
-    ClassElement elementC = ElementFactory.classElement2("C", []);
-    ClassElement elementD = ElementFactory.classElement2("D", []);
-    ExtendsClause extendsClause = AstFactory.extendsClause(AstFactory.typeName(elementB, []));
-    WithClause withClause = AstFactory.withClause([AstFactory.typeName(elementC, [])]);
-    ImplementsClause implementsClause = AstFactory.implementsClause([AstFactory.typeName(elementD, [])]);
-    ClassDeclaration declaration = AstFactory.classDeclaration(null, "A", null, extendsClause, withClause, implementsClause, []);
+    ClassElement elementA = ElementFactory.classElement2("A");
+    ClassElement elementB = ElementFactory.classElement2("B");
+    ClassElement elementC = ElementFactory.classElement2("C");
+    ClassElement elementD = ElementFactory.classElement2("D");
+    ExtendsClause extendsClause = AstFactory.extendsClause(AstFactory.typeName(elementB));
+    WithClause withClause = AstFactory.withClause([AstFactory.typeName(elementC)]);
+    ImplementsClause implementsClause = AstFactory.implementsClause([AstFactory.typeName(elementD)]);
+    ClassDeclaration declaration = AstFactory.classDeclaration(null, "A", null, extendsClause, withClause, implementsClause);
     declaration.name.staticElement = elementA;
     _resolveNode(declaration, [elementA, elementB, elementC, elementD]);
     expect(elementA.supertype, same(elementB.type));
@@ -11430,11 +11439,11 @@ class TypeResolverVisitorTest extends EngineTestCase {
     // class B extends A {
     //   void A() {}
     // }
-    ClassElementImpl elementA = ElementFactory.classElement2("A", []);
-    ClassElementImpl elementB = ElementFactory.classElement2("B", []);
-    elementB.methods = <MethodElement> [ElementFactory.methodElement("A", VoidTypeImpl.instance, [])];
-    ExtendsClause extendsClause = AstFactory.extendsClause(AstFactory.typeName(elementA, []));
-    ClassDeclaration declaration = AstFactory.classDeclaration(null, "B", null, extendsClause, null, null, []);
+    ClassElementImpl elementA = ElementFactory.classElement2("A");
+    ClassElementImpl elementB = ElementFactory.classElement2("B");
+    elementB.methods = <MethodElement> [ElementFactory.methodElement("A", VoidTypeImpl.instance)];
+    ExtendsClause extendsClause = AstFactory.extendsClause(AstFactory.typeName(elementA));
+    ClassDeclaration declaration = AstFactory.classDeclaration(null, "B", null, extendsClause, null, null);
     declaration.name.staticElement = elementB;
     _resolveNode(declaration, [elementA, elementB]);
     expect(elementB.supertype, same(elementA.type));
@@ -11443,13 +11452,13 @@ class TypeResolverVisitorTest extends EngineTestCase {
 
   void test_visitClassTypeAlias() {
     // class A = B with C implements D;
-    ClassElement elementA = ElementFactory.classElement2("A", []);
-    ClassElement elementB = ElementFactory.classElement2("B", []);
-    ClassElement elementC = ElementFactory.classElement2("C", []);
-    ClassElement elementD = ElementFactory.classElement2("D", []);
-    WithClause withClause = AstFactory.withClause([AstFactory.typeName(elementC, [])]);
-    ImplementsClause implementsClause = AstFactory.implementsClause([AstFactory.typeName(elementD, [])]);
-    ClassTypeAlias alias = AstFactory.classTypeAlias("A", null, null, AstFactory.typeName(elementB, []), withClause, implementsClause);
+    ClassElement elementA = ElementFactory.classElement2("A");
+    ClassElement elementB = ElementFactory.classElement2("B");
+    ClassElement elementC = ElementFactory.classElement2("C");
+    ClassElement elementD = ElementFactory.classElement2("D");
+    WithClause withClause = AstFactory.withClause([AstFactory.typeName(elementC)]);
+    ImplementsClause implementsClause = AstFactory.implementsClause([AstFactory.typeName(elementD)]);
+    ClassTypeAlias alias = AstFactory.classTypeAlias("A", null, null, AstFactory.typeName(elementB), withClause, implementsClause);
     alias.name.staticElement = elementA;
     _resolveNode(alias, [elementA, elementB, elementC, elementD]);
     expect(elementA.supertype, same(elementB.type));
@@ -11464,7 +11473,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
 
   void test_visitFieldFormalParameter_functionType() {
     InterfaceType intType = _typeProvider.intType;
-    TypeName intTypeName = AstFactory.typeName4("int", []);
+    TypeName intTypeName = AstFactory.typeName4("int");
     String innerParameterName = "a";
     SimpleFormalParameter parameter = AstFactory.simpleFormalParameter3(innerParameterName);
     parameter.identifier.staticElement = ElementFactory.requiredParameter(innerParameterName);
@@ -11483,13 +11492,13 @@ class TypeResolverVisitorTest extends EngineTestCase {
     String parameterName = "p";
     FormalParameter node = AstFactory.fieldFormalParameter(Keyword.VAR, null, parameterName);
     node.identifier.staticElement = ElementFactory.requiredParameter(parameterName);
-    expect(_resolveFormalParameter(node, []), same(_typeProvider.dynamicType));
+    expect(_resolveFormalParameter(node), same(_typeProvider.dynamicType));
     _listener.assertNoErrors();
   }
 
   void test_visitFieldFormalParameter_type() {
     InterfaceType intType = _typeProvider.intType;
-    TypeName intTypeName = AstFactory.typeName4("int", []);
+    TypeName intTypeName = AstFactory.typeName4("int");
     String parameterName = "p";
     FormalParameter node = AstFactory.fieldFormalParameter(null, intTypeName, parameterName);
     node.identifier.staticElement = ElementFactory.requiredParameter(parameterName);
@@ -11501,7 +11510,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     // p
     FormalParameter node = AstFactory.simpleFormalParameter3("p");
     node.identifier.staticElement = new ParameterElementImpl.forNode(AstFactory.identifier3("p"));
-    expect(_resolveFormalParameter(node, []), same(_typeProvider.dynamicType));
+    expect(_resolveFormalParameter(node), same(_typeProvider.dynamicType));
     _listener.assertNoErrors();
   }
 
@@ -11509,7 +11518,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     // int p
     InterfaceType intType = _typeProvider.intType;
     ClassElement intElement = intType.element;
-    FormalParameter node = AstFactory.simpleFormalParameter4(AstFactory.typeName(intElement, []), "p");
+    FormalParameter node = AstFactory.simpleFormalParameter4(AstFactory.typeName(intElement), "p");
     SimpleIdentifier identifier = node.identifier;
     ParameterElementImpl element = new ParameterElementImpl.forNode(identifier);
     identifier.staticElement = element;
@@ -11518,8 +11527,8 @@ class TypeResolverVisitorTest extends EngineTestCase {
   }
 
   void test_visitTypeName_noParameters_noArguments() {
-    ClassElement classA = ElementFactory.classElement2("A", []);
-    TypeName typeName = AstFactory.typeName(classA, []);
+    ClassElement classA = ElementFactory.classElement2("A");
+    TypeName typeName = AstFactory.typeName(classA);
     typeName.type = null;
     _resolveNode(typeName, [classA]);
     expect(typeName.type, same(classA.type));
@@ -11528,8 +11537,8 @@ class TypeResolverVisitorTest extends EngineTestCase {
 
   void test_visitTypeName_parameters_arguments() {
     ClassElement classA = ElementFactory.classElement2("A", ["E"]);
-    ClassElement classB = ElementFactory.classElement2("B", []);
-    TypeName typeName = AstFactory.typeName(classA, [AstFactory.typeName(classB, [])]);
+    ClassElement classB = ElementFactory.classElement2("B");
+    TypeName typeName = AstFactory.typeName(classA, [AstFactory.typeName(classB)]);
     typeName.type = null;
     _resolveNode(typeName, [classA, classB]);
     InterfaceType resultType = typeName.type as InterfaceType;
@@ -11542,7 +11551,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
 
   void test_visitTypeName_parameters_noArguments() {
     ClassElement classA = ElementFactory.classElement2("A", ["E"]);
-    TypeName typeName = AstFactory.typeName(classA, []);
+    TypeName typeName = AstFactory.typeName(classA);
     typeName.type = null;
     _resolveNode(typeName, [classA]);
     InterfaceType resultType = typeName.type as InterfaceType;
@@ -11554,8 +11563,8 @@ class TypeResolverVisitorTest extends EngineTestCase {
   }
 
   void test_visitTypeName_void() {
-    ClassElement classA = ElementFactory.classElement2("A", []);
-    TypeName typeName = AstFactory.typeName4("void", []);
+    ClassElement classA = ElementFactory.classElement2("A");
+    TypeName typeName = AstFactory.typeName4("void");
     _resolveNode(typeName, [classA]);
     expect(typeName.type, same(VoidTypeImpl.instance));
     _listener.assertNoErrors();
@@ -11572,7 +11581,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
    * @param definedElements the elements that are to be defined in the scope in which the element is
    *          being resolved
    */
-  void _resolveCatchClause(CatchClause node, DartType exceptionType, InterfaceType stackTraceType, List<Element> definedElements) {
+  void _resolveCatchClause(CatchClause node, DartType exceptionType, InterfaceType stackTraceType, [List<Element> definedElements]) {
     _resolveNode(node, definedElements);
     SimpleIdentifier exceptionParameter = node.exceptionParameter;
     if (exceptionParameter != null) {
@@ -11593,7 +11602,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
    *          being resolved
    * @return the type associated with the parameter
    */
-  DartType _resolveFormalParameter(FormalParameter node, List<Element> definedElements) {
+  DartType _resolveFormalParameter(FormalParameter node, [List<Element> definedElements]) {
     _resolveNode(node, definedElements);
     return (node.identifier.staticElement as ParameterElement).type;
   }
@@ -11607,9 +11616,11 @@ class TypeResolverVisitorTest extends EngineTestCase {
    *          being resolved
    * @return the element to which the expression was resolved
    */
-  void _resolveNode(AstNode node, List<Element> definedElements) {
-    for (Element element in definedElements) {
-      _library.libraryScope.define(element);
+  void _resolveNode(AstNode node, [List<Element> definedElements]) {
+    if (definedElements != null) {
+      for (Element element in definedElements) {
+        _library.libraryScope.define(element);
+      }
     }
     node.accept(_visitor);
     node.accept(_implicitConstructorBuilder);

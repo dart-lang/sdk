@@ -739,7 +739,7 @@ library root;
 import 'lib1.dart' deferred as a;
 main() {
   new a.A.b();
-}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> []);
+}'''], <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode>[]);
   }
 
   void test_constEval_functionTypeLiteral() {
@@ -1798,7 +1798,7 @@ class A {
   static _m() {}
 }''');
     resolve(source);
-    assertErrors(source, []);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2428,7 +2428,7 @@ main() {
   f();
 }''');
     resolve(source);
-    assertErrors(source, []);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2450,9 +2450,9 @@ foo() => 22;''',
 import 'lib1.dart' deferred as other;
 main() {
   other.loadLibrary().then((_) => other.foo());
-}'''], <ErrorCode> [
+}'''], <ErrorCode>[
         ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED,
-        StaticTypeWarningCode.UNDEFINED_FUNCTION], <ErrorCode> []);
+        StaticTypeWarningCode.UNDEFINED_FUNCTION], <ErrorCode>[]);
   }
 
   void test_mapKeyTypeNotAssignable() {
@@ -3855,7 +3855,7 @@ class Foo<T> {
   Type get t => T;
 }''');
     resolve(source);
-    assertErrors(source, []);
+    assertErrors(source);
     verify([source]);
   }
 
@@ -3917,7 +3917,7 @@ library root;
 import 'lib1.dart' deferred as lib1;
 import 'lib2.dart' as lib;
 import 'lib3.dart' as lib;
-main() { lib1.f1(); lib.f2(); lib.f3(); }'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> []);
+main() { lib1.f1(); lib.f2(); lib.f3(); }'''], <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode>[]);
   }
 
   void test_staticAccessToInstanceMember_annotation() {

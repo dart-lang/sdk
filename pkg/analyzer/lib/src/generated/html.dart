@@ -23,7 +23,7 @@ import 'engine.dart' show AnalysisEngine, AngularHtmlUnitResolver, ExpressionVis
  * required to implement the interface used to access the characters being scanned.
  */
 abstract class AbstractScanner {
-  static List<String> _NO_PASS_THROUGH_ELEMENTS = <String> [];
+  static List<String> _NO_PASS_THROUGH_ELEMENTS = <String>[];
 
   /**
    * The source being scanned.
@@ -1194,6 +1194,11 @@ class XmlAttributeNode extends XmlNode {
   final Token _value;
 
   List<XmlExpression> expressions = XmlExpression.EMPTY_ARRAY;
+
+  /**
+   * An empty list of XML attribute nodes.
+   */
+  static const List<XmlAttributeNode> EMPTY_LIST = const <XmlAttributeNode>[];
 
   /**
    * Construct a new instance representing an XML attribute.

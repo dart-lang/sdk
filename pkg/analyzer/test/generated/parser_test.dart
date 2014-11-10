@@ -112,38 +112,38 @@ class AstValidator extends UnifyingAstVisitor<Object> {
  */
 class ComplexParserTest extends ParserTestCase {
   void test_additiveExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x + y - z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x + y - z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_additiveExpression_noSpaces() {
-    BinaryExpression expression = ParserTestCase.parseExpression("i+1", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("i+1");
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftOperand);
     EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, expression.rightOperand);
   }
 
   void test_additiveExpression_precedence_multiplicative_left() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x * y + z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x * y + z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_additiveExpression_precedence_multiplicative_left_withSuper() {
-    BinaryExpression expression = ParserTestCase.parseExpression("super * y - z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("super * y - z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_additiveExpression_precedence_multiplicative_right() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x + y * z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x + y * z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
   }
 
   void test_additiveExpression_super() {
-    BinaryExpression expression = ParserTestCase.parseExpression("super + y - z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("super + y - z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_assignableExpression_arguments_normal_chain() {
-    PropertyAccess propertyAccess1 = ParserTestCase.parseExpression("a(b)(c).d(e).f", []);
+    PropertyAccess propertyAccess1 = ParserTestCase.parseExpression("a(b)(c).d(e).f");
     expect(propertyAccess1.propertyName.name, "f");
     //
     // a(b)(c).d(e)
@@ -171,91 +171,91 @@ class ComplexParserTest extends ParserTestCase {
   }
 
   void test_assignmentExpression_compound() {
-    AssignmentExpression expression = ParserTestCase.parseExpression("x = y = 0", []);
+    AssignmentExpression expression = ParserTestCase.parseExpression("x = y = 0");
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, expression.leftHandSide);
     EngineTestCase.assertInstanceOf((obj) => obj is AssignmentExpression, AssignmentExpression, expression.rightHandSide);
   }
 
   void test_assignmentExpression_indexExpression() {
-    AssignmentExpression expression = ParserTestCase.parseExpression("x[1] = 0", []);
+    AssignmentExpression expression = ParserTestCase.parseExpression("x[1] = 0");
     EngineTestCase.assertInstanceOf((obj) => obj is IndexExpression, IndexExpression, expression.leftHandSide);
     EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, expression.rightHandSide);
   }
 
   void test_assignmentExpression_prefixedIdentifier() {
-    AssignmentExpression expression = ParserTestCase.parseExpression("x.y = 0", []);
+    AssignmentExpression expression = ParserTestCase.parseExpression("x.y = 0");
     EngineTestCase.assertInstanceOf((obj) => obj is PrefixedIdentifier, PrefixedIdentifier, expression.leftHandSide);
     EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, expression.rightHandSide);
   }
 
   void test_assignmentExpression_propertyAccess() {
-    AssignmentExpression expression = ParserTestCase.parseExpression("super.y = 0", []);
+    AssignmentExpression expression = ParserTestCase.parseExpression("super.y = 0");
     EngineTestCase.assertInstanceOf((obj) => obj is PropertyAccess, PropertyAccess, expression.leftHandSide);
     EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, expression.rightHandSide);
   }
 
   void test_bitwiseAndExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x & y & z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x & y & z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_bitwiseAndExpression_precedence_equality_left() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x == y && z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x == y && z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_bitwiseAndExpression_precedence_equality_right() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x && y == z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x && y == z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
   }
 
   void test_bitwiseAndExpression_super() {
-    BinaryExpression expression = ParserTestCase.parseExpression("super & y & z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("super & y & z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_bitwiseOrExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x | y | z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x | y | z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_bitwiseOrExpression_precedence_xor_left() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x ^ y | z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x ^ y | z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_bitwiseOrExpression_precedence_xor_right() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x | y ^ z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x | y ^ z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
   }
 
   void test_bitwiseOrExpression_super() {
-    BinaryExpression expression = ParserTestCase.parseExpression("super | y | z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("super | y | z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_bitwiseXorExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x ^ y ^ z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x ^ y ^ z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_bitwiseXorExpression_precedence_and_left() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x & y ^ z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x & y ^ z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_bitwiseXorExpression_precedence_and_right() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x ^ y & z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x ^ y & z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
   }
 
   void test_bitwiseXorExpression_super() {
-    BinaryExpression expression = ParserTestCase.parseExpression("super ^ y ^ z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("super ^ y ^ z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_cascade_withAssignment() {
-    CascadeExpression cascade = ParserTestCase.parseExpression("new Map()..[3] = 4 ..[0] = 11;", []);
+    CascadeExpression cascade = ParserTestCase.parseExpression("new Map()..[3] = 4 ..[0] = 11;");
     Expression target = cascade.target;
     for (Expression section in cascade.cascadeSections) {
       EngineTestCase.assertInstanceOf((obj) => obj is AssignmentExpression, AssignmentExpression, section);
@@ -268,7 +268,7 @@ class ComplexParserTest extends ParserTestCase {
   }
 
   void test_conditionalExpression_precedence_logicalOrExpression() {
-    ConditionalExpression expression = ParserTestCase.parseExpression("a | b ? y : z", []);
+    ConditionalExpression expression = ParserTestCase.parseExpression("a | b ? y : z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.condition);
   }
 
@@ -278,7 +278,7 @@ class C {
   C() :
     this.a = (b == null ? c : d) {
   }
-}''', []);
+}''');
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
   }
@@ -289,12 +289,12 @@ class C {
   }
 
   void test_equalityExpression_precedence_relational_left() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x is y == z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x is y == z");
     EngineTestCase.assertInstanceOf((obj) => obj is IsExpression, IsExpression, expression.leftOperand);
   }
 
   void test_equalityExpression_precedence_relational_right() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x == y is z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x == y is z");
     EngineTestCase.assertInstanceOf((obj) => obj is IsExpression, IsExpression, expression.rightOperand);
   }
 
@@ -304,88 +304,88 @@ class C {
   }
 
   void test_logicalAndExpression() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x && y && z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x && y && z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_logicalAndExpression_precedence_bitwiseOr_left() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x | y < z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x | y < z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_logicalAndExpression_precedence_bitwiseOr_right() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x < y | z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x < y | z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
   }
 
   void test_logicalOrExpression() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x || y || z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x || y || z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_logicalOrExpression_precedence_logicalAnd_left() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x && y || z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x && y || z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_logicalOrExpression_precedence_logicalAnd_right() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x || y && z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x || y && z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
   }
 
   void test_multipleLabels_statement() {
-    LabeledStatement statement = ParserTestCase.parseStatement("a: b: c: return x;", []);
+    LabeledStatement statement = ParserTestCase.parseStatement("a: b: c: return x;");
     expect(statement.labels, hasLength(3));
     EngineTestCase.assertInstanceOf((obj) => obj is ReturnStatement, ReturnStatement, statement.statement);
   }
 
   void test_multiplicativeExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x * y / z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x * y / z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_multiplicativeExpression_precedence_unary_left() {
-    BinaryExpression expression = ParserTestCase.parseExpression("-x * y", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("-x * y");
     EngineTestCase.assertInstanceOf((obj) => obj is PrefixExpression, PrefixExpression, expression.leftOperand);
   }
 
   void test_multiplicativeExpression_precedence_unary_right() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x * -y", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x * -y");
     EngineTestCase.assertInstanceOf((obj) => obj is PrefixExpression, PrefixExpression, expression.rightOperand);
   }
 
   void test_multiplicativeExpression_super() {
-    BinaryExpression expression = ParserTestCase.parseExpression("super * y / z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("super * y / z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_relationalExpression_precedence_shift_right() {
-    IsExpression expression = ParserTestCase.parseExpression("x << y is z", []);
+    IsExpression expression = ParserTestCase.parseExpression("x << y is z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.expression);
   }
 
   void test_shiftExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x >> 4 << 3", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x >> 4 << 3");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_shiftExpression_precedence_additive_left() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x + y << z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x + y << z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_shiftExpression_precedence_additive_right() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x << y + z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x << y + z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
   }
 
   void test_shiftExpression_super() {
-    BinaryExpression expression = ParserTestCase.parseExpression("super >> 4 << 3", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("super >> 4 << 3");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.leftOperand);
   }
 
   void test_topLevelVariable_withMetadata() {
-    ParserTestCase.parseCompilationUnit("String @A string;", []);
+    ParserTestCase.parseCompilationUnit("String @A string;");
   }
 }
 
@@ -528,11 +528,11 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_breakOutsideOfLoop_breakInDoStatement() {
-    ParserTestCase.parse4("parseDoStatement", "do {break;} while (x);", []);
+    ParserTestCase.parse4("parseDoStatement", "do {break;} while (x);");
   }
 
   void test_breakOutsideOfLoop_breakInForStatement() {
-    ParserTestCase.parse4("parseForStatement", "for (; x;) {break;}", []);
+    ParserTestCase.parse4("parseForStatement", "for (; x;) {break;}");
   }
 
   void test_breakOutsideOfLoop_breakInIfStatement() {
@@ -540,11 +540,11 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_breakOutsideOfLoop_breakInSwitchStatement() {
-    ParserTestCase.parse4("parseSwitchStatement", "switch (x) {case 1: break;}", []);
+    ParserTestCase.parse4("parseSwitchStatement", "switch (x) {case 1: break;}");
   }
 
   void test_breakOutsideOfLoop_breakInWhileStatement() {
-    ParserTestCase.parse4("parseWhileStatement", "while (x) {break;}", []);
+    ParserTestCase.parse4("parseWhileStatement", "while (x) {break;}");
   }
 
   void test_breakOutsideOfLoop_functionExpression_inALoop() {
@@ -552,7 +552,7 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_breakOutsideOfLoop_functionExpression_withALoop() {
-    ParserTestCase.parseStatement("() {for (; x;) {break;}};", []);
+    ParserTestCase.parseStatement("() {for (; x;) {break;}};");
   }
 
   void test_classTypeAlias_abstractAfterEq() {
@@ -604,11 +604,11 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_continueOutsideOfLoop_continueInDoStatement() {
-    ParserTestCase.parse4("parseDoStatement", "do {continue;} while (x);", []);
+    ParserTestCase.parse4("parseDoStatement", "do {continue;} while (x);");
   }
 
   void test_continueOutsideOfLoop_continueInForStatement() {
-    ParserTestCase.parse4("parseForStatement", "for (; x;) {continue;}", []);
+    ParserTestCase.parse4("parseForStatement", "for (; x;) {continue;}");
   }
 
   void test_continueOutsideOfLoop_continueInIfStatement() {
@@ -616,11 +616,11 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_continueOutsideOfLoop_continueInSwitchStatement() {
-    ParserTestCase.parse4("parseSwitchStatement", "switch (x) {case 1: continue a;}", []);
+    ParserTestCase.parse4("parseSwitchStatement", "switch (x) {case 1: continue a;}");
   }
 
   void test_continueOutsideOfLoop_continueInWhileStatement() {
-    ParserTestCase.parse4("parseWhileStatement", "while (x) {continue;}", []);
+    ParserTestCase.parse4("parseWhileStatement", "while (x) {continue;}");
   }
 
   void test_continueOutsideOfLoop_functionExpression_inALoop() {
@@ -628,7 +628,7 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_continueOutsideOfLoop_functionExpression_withALoop() {
-    ParserTestCase.parseStatement("() {for (; x;) {continue;}};", []);
+    ParserTestCase.parseStatement("() {for (; x;) {continue;}};");
   }
 
   void test_continueWithoutLabelInCase_error() {
@@ -636,11 +636,11 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_continueWithoutLabelInCase_noError() {
-    ParserTestCase.parse4("parseSwitchStatement", "switch (x) {case 1: continue a;}", []);
+    ParserTestCase.parse4("parseSwitchStatement", "switch (x) {case 1: continue a;}");
   }
 
   void test_continueWithoutLabelInCase_noError_switchInLoop() {
-    ParserTestCase.parse4("parseWhileStatement", "while (a) { switch (b) {default: continue;}}", []);
+    ParserTestCase.parse4("parseWhileStatement", "while (a) { switch (b) {default: continue;}}");
   }
 
   void test_deprecatedClassTypeAlias() {
@@ -734,7 +734,7 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_expectedExecutable_topLevel_eof() {
-    ParserTestCase.parse2("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "x", [new AnalysisError.con2(null, 0, 1, ParserErrorCode.EXPECTED_EXECUTABLE, [])]);
+    ParserTestCase.parse2("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "x", [new AnalysisError.con2(null, 0, 1, ParserErrorCode.EXPECTED_EXECUTABLE)]);
   }
 
   void test_expectedInterpolationIdentifier() {
@@ -745,7 +745,7 @@ class ErrorParserTest extends ParserTestCase {
     // The scanner inserts an empty string token between the two $'s; we need to make sure that the
     // MISSING_IDENTIFIER error that is generated has a nonzero width so that it will show up in
     // the editor UI.
-    ParserTestCase.parse2("parseStringLiteral", <Object> [], "'\$\$foo'", [new AnalysisError.con2(null, 2, 1, ParserErrorCode.MISSING_IDENTIFIER, [])]);
+    ParserTestCase.parse2("parseStringLiteral", <Object>[], "'\$\$foo'", [new AnalysisError.con2(null, 2, 1, ParserErrorCode.MISSING_IDENTIFIER)]);
   }
 
   void test_expectedStringLiteral() {
@@ -1077,7 +1077,7 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_missingAssignableSelector_identifiersAssigned() {
-    ParserTestCase.parseExpression("x.y = y;", []);
+    ParserTestCase.parseExpression("x.y = y;");
   }
 
   void test_missingAssignableSelector_prefix_minusMinus_literal() {
@@ -1089,7 +1089,7 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_missingAssignableSelector_selector() {
-    ParserTestCase.parseExpression("x(y)(z).a++", []);
+    ParserTestCase.parseExpression("x(y)(z).a++");
   }
 
   void test_missingAssignableSelector_superPrimaryExpression() {
@@ -1098,7 +1098,7 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_missingAssignableSelector_superPropertyAccessAssigned() {
-    ParserTestCase.parseExpression("super.x = x;", []);
+    ParserTestCase.parseExpression("super.x = x;");
   }
 
   void test_missingCatchOrFinally() {
@@ -1876,7 +1876,8 @@ class ParserTestCase extends EngineTestCase {
    * @throws Exception if the method could not be invoked or throws an exception
    * @throws AssertionFailedError if the result is `null` or if any errors are produced
    */
-  static Object parse(String methodName, List<Object> objects, String source) => parse2(methodName, objects, source, new List<AnalysisError>(0));
+  static Object parse(String methodName, List<Object> objects, String source)
+      => parse2(methodName, objects, source);
 
   /**
    * Invoke a parse method in [Parser]. The method is assumed to have the given number and
@@ -1894,7 +1895,7 @@ class ParserTestCase extends EngineTestCase {
    * @throws AssertionFailedError if the result is `null` or the errors produced while
    *           scanning and parsing the source do not match the expected errors
    */
-  static Object parse2(String methodName, List<Object> objects, String source, List<AnalysisError> errors) {
+  static Object parse2(String methodName, List<Object> objects, String source, [List<AnalysisError> errors = AnalysisError.NO_ERRORS]) {
     GatheringErrorListener listener = new GatheringErrorListener();
     Object result = invokeParserMethod(methodName, objects, source, listener);
     listener.assertErrors(errors);
@@ -1917,7 +1918,7 @@ class ParserTestCase extends EngineTestCase {
    * @throws AssertionFailedError if the result is `null` or the errors produced while
    *           scanning and parsing the source do not match the expected errors
    */
-  static Object parse3(String methodName, List<Object> objects, String source, List<ErrorCode> errorCodes) {
+  static Object parse3(String methodName, List<Object> objects, String source, [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST]) {
     GatheringErrorListener listener = new GatheringErrorListener();
     Object result = invokeParserMethod(methodName, objects, source, listener);
     listener.assertErrorsWithCodes(errorCodes);
@@ -1938,7 +1939,8 @@ class ParserTestCase extends EngineTestCase {
    * @throws AssertionFailedError if the result is `null` or the errors produced while
    *           scanning and parsing the source do not match the expected errors
    */
-  static Object parse4(String methodName, String source, List<ErrorCode> errorCodes) => parse3(methodName, _EMPTY_ARGUMENTS, source, errorCodes);
+  static Object parse4(String methodName, String source, [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST])
+      => parse3(methodName, _EMPTY_ARGUMENTS, source, errorCodes);
 
   /**
    * Parse the given source as a compilation unit.
@@ -1949,7 +1951,7 @@ class ParserTestCase extends EngineTestCase {
    * @throws Exception if the source could not be parsed, if the compilation errors in the source do
    *           not match those that are expected, or if the result would have been `null`
    */
-  static CompilationUnit parseCompilationUnit(String source, List<ErrorCode> errorCodes) {
+  static CompilationUnit parseCompilationUnit(String source, [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST]) {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
@@ -1970,7 +1972,7 @@ class ParserTestCase extends EngineTestCase {
    * @throws Exception if the source could not be parsed, if the compilation errors in the source do
    *           not match those that are expected, or if the result would have been `null`
    */
-  static Expression parseExpression(String source, List<ErrorCode> errorCodes) {
+  static Expression parseExpression(String source, [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST]) {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
@@ -1991,7 +1993,7 @@ class ParserTestCase extends EngineTestCase {
    * @throws Exception if the source could not be parsed, if the compilation errors in the source do
    *           not match those that are expected, or if the result would have been `null`
    */
-  static Statement parseStatement(String source, List<ErrorCode> errorCodes) {
+  static Statement parseStatement(String source, [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST]) {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
@@ -2014,7 +2016,7 @@ class ParserTestCase extends EngineTestCase {
    *           the expected count, if the compilation errors in the source do not match those that
    *           are expected, or if the result would have been `null`
    */
-  static List<Statement> parseStatements(String source, int expectedCount, List<ErrorCode> errorCodes) {
+  static List<Statement> parseStatements(String source, int expectedCount, [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST]) {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
@@ -2089,12 +2091,8 @@ class ParserTestCase extends EngineTestCase {
    * @param annotations the annotations to be wrapped in the object
    * @return a CommentAndMetadata object that can be used for testing
    */
-  CommentAndMetadata commentAndMetadata(Comment comment, List<Annotation> annotations) {
-    List<Annotation> metadata = new List<Annotation>();
-    for (Annotation annotation in annotations) {
-      metadata.add(annotation);
-    }
-    return new CommentAndMetadata(comment, metadata);
+  CommentAndMetadata commentAndMetadata(Comment comment, [List<Annotation> annotations]) {
+    return new CommentAndMetadata(comment, annotations);
   }
 
   /**
@@ -2102,7 +2100,7 @@ class ParserTestCase extends EngineTestCase {
    *
    * @return an empty CommentAndMetadata object that can be used for testing
    */
-  CommentAndMetadata emptyCommentAndMetadata() => new CommentAndMetadata(null, new List<Annotation>());
+  CommentAndMetadata emptyCommentAndMetadata() => new CommentAndMetadata(null, null);
 
   @override
   void setUp() {
@@ -2125,7 +2123,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
     result[new Symbol(name)] = value;
   });
   return result;
-}''', []);
+}''');
   }
 
   void test_additiveExpression_missing_LHS() {
@@ -2893,12 +2891,12 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitAsExpression() {
-    AsExpression fromNode = AstFactory.asExpression(AstFactory.identifier3("x"), AstFactory.typeName4("A", []));
-    DartType propagatedType = ElementFactory.classElement2("A", []).type;
+    AsExpression fromNode = AstFactory.asExpression(AstFactory.identifier3("x"), AstFactory.typeName4("A"));
+    DartType propagatedType = ElementFactory.classElement2("A").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("B", []).type;
+    DartType staticType = ElementFactory.classElement2("B").type;
     fromNode.staticType = staticType;
-    AsExpression toNode = AstFactory.asExpression(AstFactory.identifier3("x"), AstFactory.typeName4("A", []));
+    AsExpression toNode = AstFactory.asExpression(AstFactory.identifier3("x"), AstFactory.typeName4("A"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
@@ -2906,12 +2904,12 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitAssignmentExpression() {
     AssignmentExpression fromNode = AstFactory.assignmentExpression(AstFactory.identifier3("a"), TokenType.PLUS_EQ, AstFactory.identifier3("b"));
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    MethodElement propagatedElement = ElementFactory.methodElement("+", propagatedType, []);
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    MethodElement propagatedElement = ElementFactory.methodElement("+", propagatedType);
     fromNode.propagatedElement = propagatedElement;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    MethodElement staticElement = ElementFactory.methodElement("+", staticType, []);
+    DartType staticType = ElementFactory.classElement2("C").type;
+    MethodElement staticElement = ElementFactory.methodElement("+", staticType);
     fromNode.staticElement = staticElement;
     fromNode.staticType = staticType;
     AssignmentExpression toNode = AstFactory.assignmentExpression(AstFactory.identifier3("a"), TokenType.PLUS_EQ, AstFactory.identifier3("b"));
@@ -2924,12 +2922,12 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitBinaryExpression() {
     BinaryExpression fromNode = AstFactory.binaryExpression(AstFactory.identifier3("a"), TokenType.PLUS, AstFactory.identifier3("b"));
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
-    MethodElement propagatedElement = ElementFactory.methodElement("+", propagatedType, []);
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    MethodElement propagatedElement = ElementFactory.methodElement("+", propagatedType);
     fromNode.propagatedElement = propagatedElement;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    MethodElement staticElement = ElementFactory.methodElement("+", staticType, []);
+    DartType staticType = ElementFactory.classElement2("C").type;
+    MethodElement staticElement = ElementFactory.methodElement("+", staticType);
     fromNode.staticElement = staticElement;
     fromNode.staticType = staticType;
     BinaryExpression toNode = AstFactory.binaryExpression(AstFactory.identifier3("a"), TokenType.PLUS, AstFactory.identifier3("b"));
@@ -2942,9 +2940,9 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitBooleanLiteral() {
     BooleanLiteral fromNode = AstFactory.booleanLiteral(true);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     BooleanLiteral toNode = AstFactory.booleanLiteral(true);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -2954,9 +2952,9 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitCascadeExpression() {
     CascadeExpression fromNode = AstFactory.cascadeExpression(AstFactory.identifier3("a"), [AstFactory.identifier3("b")]);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     CascadeExpression toNode = AstFactory.cascadeExpression(AstFactory.identifier3("a"), [AstFactory.identifier3("b")]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -2975,9 +2973,9 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitConditionalExpression() {
     ConditionalExpression fromNode = AstFactory.conditionalExpression(AstFactory.identifier3("c"), AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     ConditionalExpression toNode = AstFactory.conditionalExpression(AstFactory.identifier3("c"), AstFactory.identifier3("a"), AstFactory.identifier3("b"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -2988,28 +2986,28 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitConstructorDeclaration() {
     String className = "A";
     String constructorName = "c";
-    ConstructorDeclaration fromNode = AstFactory.constructorDeclaration(AstFactory.identifier3(className), constructorName, AstFactory.formalParameterList([]), null);
-    ConstructorElement element = ElementFactory.constructorElement2(ElementFactory.classElement2(className, []), constructorName, []);
+    ConstructorDeclaration fromNode = AstFactory.constructorDeclaration(AstFactory.identifier3(className), constructorName, AstFactory.formalParameterList(), null);
+    ConstructorElement element = ElementFactory.constructorElement2(ElementFactory.classElement2(className), constructorName);
     fromNode.element = element;
-    ConstructorDeclaration toNode = AstFactory.constructorDeclaration(AstFactory.identifier3(className), constructorName, AstFactory.formalParameterList([]), null);
+    ConstructorDeclaration toNode = AstFactory.constructorDeclaration(AstFactory.identifier3(className), constructorName, AstFactory.formalParameterList(), null);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.element, same(element));
   }
 
   void test_visitConstructorName() {
-    ConstructorName fromNode = AstFactory.constructorName(AstFactory.typeName4("A", []), "c");
-    ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("A", []), "c", []);
+    ConstructorName fromNode = AstFactory.constructorName(AstFactory.typeName4("A"), "c");
+    ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("A"), "c");
     fromNode.staticElement = staticElement;
-    ConstructorName toNode = AstFactory.constructorName(AstFactory.typeName4("A", []), "c");
+    ConstructorName toNode = AstFactory.constructorName(AstFactory.typeName4("A"), "c");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.staticElement, same(staticElement));
   }
 
   void test_visitDoubleLiteral() {
     DoubleLiteral fromNode = AstFactory.doubleLiteral(1.0);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     DoubleLiteral toNode = AstFactory.doubleLiteral(1.0);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -3018,23 +3016,23 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitExportDirective() {
-    ExportDirective fromNode = AstFactory.exportDirective2("dart:uri", []);
+    ExportDirective fromNode = AstFactory.exportDirective2("dart:uri");
     ExportElement element = new ExportElementImpl();
     fromNode.element = element;
-    ExportDirective toNode = AstFactory.exportDirective2("dart:uri", []);
+    ExportDirective toNode = AstFactory.exportDirective2("dart:uri");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.element, same(element));
   }
 
   void test_visitFunctionExpression() {
-    FunctionExpression fromNode = AstFactory.functionExpression2(AstFactory.formalParameterList([]), AstFactory.emptyFunctionBody());
-    MethodElement element = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
+    FunctionExpression fromNode = AstFactory.functionExpression2(AstFactory.formalParameterList(), AstFactory.emptyFunctionBody());
+    MethodElement element = ElementFactory.methodElement("m", ElementFactory.classElement2("C").type);
     fromNode.element = element;
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
-    FunctionExpression toNode = AstFactory.functionExpression2(AstFactory.formalParameterList([]), AstFactory.emptyFunctionBody());
+    FunctionExpression toNode = AstFactory.functionExpression2(AstFactory.formalParameterList(), AstFactory.emptyFunctionBody());
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.element, same(element));
     expect(toNode.propagatedType, same(propagatedType));
@@ -3042,16 +3040,16 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitFunctionExpressionInvocation() {
-    FunctionExpressionInvocation fromNode = AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"), []);
-    MethodElement propagatedElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
+    FunctionExpressionInvocation fromNode = AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"));
+    MethodElement propagatedElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C").type);
     fromNode.propagatedElement = propagatedElement;
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    MethodElement staticElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
+    MethodElement staticElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C").type);
     fromNode.staticElement = staticElement;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
-    FunctionExpressionInvocation toNode = AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"), []);
+    FunctionExpressionInvocation toNode = AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.propagatedElement, same(propagatedElement));
     expect(toNode.propagatedType, same(propagatedType));
@@ -3060,25 +3058,25 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitImportDirective() {
-    ImportDirective fromNode = AstFactory.importDirective3("dart:uri", null, []);
+    ImportDirective fromNode = AstFactory.importDirective3("dart:uri", null);
     ImportElement element = new ImportElementImpl(0);
     fromNode.element = element;
-    ImportDirective toNode = AstFactory.importDirective3("dart:uri", null, []);
+    ImportDirective toNode = AstFactory.importDirective3("dart:uri", null);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.element, same(element));
   }
 
   void test_visitIndexExpression() {
     IndexExpression fromNode = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.integer(0));
-    MethodElement propagatedElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
-    MethodElement staticElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
+    MethodElement propagatedElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C").type);
+    MethodElement staticElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C").type);
     AuxiliaryElements auxiliaryElements = new AuxiliaryElements(staticElement, propagatedElement);
     fromNode.auxiliaryElements = auxiliaryElements;
     fromNode.propagatedElement = propagatedElement;
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
     fromNode.staticElement = staticElement;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     IndexExpression toNode = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.integer(0));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -3090,14 +3088,14 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitInstanceCreationExpression() {
-    InstanceCreationExpression fromNode = AstFactory.instanceCreationExpression2(Keyword.NEW, AstFactory.typeName4("C", []), []);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    InstanceCreationExpression fromNode = AstFactory.instanceCreationExpression2(Keyword.NEW, AstFactory.typeName4("C"));
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("C", []), null, []);
+    ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("C"), null);
     fromNode.staticElement = staticElement;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
-    InstanceCreationExpression toNode = AstFactory.instanceCreationExpression2(Keyword.NEW, AstFactory.typeName4("C", []), []);
+    InstanceCreationExpression toNode = AstFactory.instanceCreationExpression2(Keyword.NEW, AstFactory.typeName4("C"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticElement, same(staticElement));
@@ -3106,9 +3104,9 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitIntegerLiteral() {
     IntegerLiteral fromNode = AstFactory.integer(2);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     IntegerLiteral toNode = AstFactory.integer(2);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -3117,12 +3115,12 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitIsExpression() {
-    IsExpression fromNode = AstFactory.isExpression(AstFactory.identifier3("x"), false, AstFactory.typeName4("A", []));
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    IsExpression fromNode = AstFactory.isExpression(AstFactory.identifier3("x"), false, AstFactory.typeName4("A"));
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
-    IsExpression toNode = AstFactory.isExpression(AstFactory.identifier3("x"), false, AstFactory.typeName4("A", []));
+    IsExpression toNode = AstFactory.isExpression(AstFactory.identifier3("x"), false, AstFactory.typeName4("A"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
@@ -3130,9 +3128,9 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitLibraryIdentifier() {
     LibraryIdentifier fromNode = AstFactory.libraryIdentifier([AstFactory.identifier3("lib")]);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     LibraryIdentifier toNode = AstFactory.libraryIdentifier([AstFactory.identifier3("lib")]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -3141,36 +3139,36 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitListLiteral() {
-    ListLiteral fromNode = AstFactory.listLiteral([]);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    ListLiteral fromNode = AstFactory.listLiteral();
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
-    ListLiteral toNode = AstFactory.listLiteral([]);
+    ListLiteral toNode = AstFactory.listLiteral();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
   void test_visitMapLiteral() {
-    MapLiteral fromNode = AstFactory.mapLiteral2([]);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    MapLiteral fromNode = AstFactory.mapLiteral2();
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
-    MapLiteral toNode = AstFactory.mapLiteral2([]);
+    MapLiteral toNode = AstFactory.mapLiteral2();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
   void test_visitMethodInvocation() {
-    MethodInvocation fromNode = AstFactory.methodInvocation2("m", []);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    MethodInvocation fromNode = AstFactory.methodInvocation2("m");
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
-    MethodInvocation toNode = AstFactory.methodInvocation2("m", []);
+    MethodInvocation toNode = AstFactory.methodInvocation2("m");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
@@ -3178,9 +3176,9 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitNamedExpression() {
     NamedExpression fromNode = AstFactory.namedExpression2("n", AstFactory.integer(0));
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     NamedExpression toNode = AstFactory.namedExpression2("n", AstFactory.integer(0));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -3190,9 +3188,9 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitNullLiteral() {
     NullLiteral fromNode = AstFactory.nullLiteral();
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     NullLiteral toNode = AstFactory.nullLiteral();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -3202,9 +3200,9 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitParenthesizedExpression() {
     ParenthesizedExpression fromNode = AstFactory.parenthesizedExpression(AstFactory.integer(0));
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     ParenthesizedExpression toNode = AstFactory.parenthesizedExpression(AstFactory.integer(0));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -3233,13 +3231,13 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitPostfixExpression() {
     String variableName = "x";
     PostfixExpression fromNode = AstFactory.postfixExpression(AstFactory.identifier3(variableName), TokenType.PLUS_PLUS);
-    MethodElement propagatedElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
+    MethodElement propagatedElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C").type);
     fromNode.propagatedElement = propagatedElement;
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    MethodElement staticElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
+    MethodElement staticElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C").type);
     fromNode.staticElement = staticElement;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     PostfixExpression toNode = AstFactory.postfixExpression(AstFactory.identifier3(variableName), TokenType.PLUS_PLUS);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -3251,9 +3249,9 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitPrefixedIdentifier() {
     PrefixedIdentifier fromNode = AstFactory.identifier5("p", "f");
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     PrefixedIdentifier toNode = AstFactory.identifier5("p", "f");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -3263,12 +3261,12 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitPrefixExpression() {
     PrefixExpression fromNode = AstFactory.prefixExpression(TokenType.PLUS_PLUS, AstFactory.identifier3("x"));
-    MethodElement propagatedElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    MethodElement propagatedElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C").type);
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedElement = propagatedElement;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
-    MethodElement staticElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
+    DartType staticType = ElementFactory.classElement2("C").type;
+    MethodElement staticElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C").type);
     fromNode.staticElement = staticElement;
     fromNode.staticType = staticType;
     PrefixExpression toNode = AstFactory.prefixExpression(TokenType.PLUS_PLUS, AstFactory.identifier3("x"));
@@ -3281,9 +3279,9 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitPropertyAccess() {
     PropertyAccess fromNode = AstFactory.propertyAccess2(AstFactory.identifier3("x"), "y");
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     PropertyAccess toNode = AstFactory.propertyAccess2(AstFactory.identifier3("x"), "y");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -3292,19 +3290,19 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitRedirectingConstructorInvocation() {
-    RedirectingConstructorInvocation fromNode = AstFactory.redirectingConstructorInvocation([]);
-    ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("C", []), null, []);
+    RedirectingConstructorInvocation fromNode = AstFactory.redirectingConstructorInvocation();
+    ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("C"), null);
     fromNode.staticElement = staticElement;
-    RedirectingConstructorInvocation toNode = AstFactory.redirectingConstructorInvocation([]);
+    RedirectingConstructorInvocation toNode = AstFactory.redirectingConstructorInvocation();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.staticElement, same(staticElement));
   }
 
   void test_visitRethrowExpression() {
     RethrowExpression fromNode = AstFactory.rethrowExpression();
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     RethrowExpression toNode = AstFactory.rethrowExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -3314,15 +3312,15 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitSimpleIdentifier() {
     SimpleIdentifier fromNode = AstFactory.identifier3("x");
-    MethodElement propagatedElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
-    MethodElement staticElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
+    MethodElement propagatedElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C").type);
+    MethodElement staticElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C").type);
     AuxiliaryElements auxiliaryElements = new AuxiliaryElements(staticElement, propagatedElement);
     fromNode.auxiliaryElements = auxiliaryElements;
     fromNode.propagatedElement = propagatedElement;
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
     fromNode.staticElement = staticElement;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     SimpleIdentifier toNode = AstFactory.identifier3("x");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -3335,9 +3333,9 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitSimpleStringLiteral() {
     SimpleStringLiteral fromNode = AstFactory.string2("abc");
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     SimpleStringLiteral toNode = AstFactory.string2("abc");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -3347,9 +3345,9 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitStringInterpolation() {
     StringInterpolation fromNode = AstFactory.string([AstFactory.interpolationString("a", "'a'")]);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     StringInterpolation toNode = AstFactory.string([AstFactory.interpolationString("a", "'a'")]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -3358,19 +3356,19 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitSuperConstructorInvocation() {
-    SuperConstructorInvocation fromNode = AstFactory.superConstructorInvocation([]);
-    ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("C", []), null, []);
+    SuperConstructorInvocation fromNode = AstFactory.superConstructorInvocation();
+    ConstructorElement staticElement = ElementFactory.constructorElement2(ElementFactory.classElement2("C"), null);
     fromNode.staticElement = staticElement;
-    SuperConstructorInvocation toNode = AstFactory.superConstructorInvocation([]);
+    SuperConstructorInvocation toNode = AstFactory.superConstructorInvocation();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.staticElement, same(staticElement));
   }
 
   void test_visitSuperExpression() {
     SuperExpression fromNode = AstFactory.superExpression();
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     SuperExpression toNode = AstFactory.superExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -3380,9 +3378,9 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitSymbolLiteral() {
     SymbolLiteral fromNode = AstFactory.symbolLiteral(["s"]);
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     SymbolLiteral toNode = AstFactory.symbolLiteral(["s"]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -3392,9 +3390,9 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitThisExpression() {
     ThisExpression fromNode = AstFactory.thisExpression();
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     ThisExpression toNode = AstFactory.thisExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -3404,9 +3402,9 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitThrowExpression() {
     ThrowExpression fromNode = AstFactory.throwExpression();
-    DartType propagatedType = ElementFactory.classElement2("C", []).type;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
     fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C", []).type;
+    DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     ThrowExpression toNode = AstFactory.throwExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -3415,10 +3413,10 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitTypeName() {
-    TypeName fromNode = AstFactory.typeName4("C", []);
-    DartType type = ElementFactory.classElement2("C", []).type;
+    TypeName fromNode = AstFactory.typeName4("C");
+    DartType type = ElementFactory.classElement2("C").type;
     fromNode.type = type;
-    TypeName toNode = AstFactory.typeName4("C", []);
+    TypeName toNode = AstFactory.typeName4("C");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.type, same(type));
   }
@@ -3537,31 +3535,31 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_function_literal_allowed_at_toplevel() {
-    ParserTestCase.parseCompilationUnit("var x = () {};", []);
+    ParserTestCase.parseCompilationUnit("var x = () {};");
   }
 
   void test_function_literal_allowed_in_ArgumentList_in_ConstructorFieldInitializer() {
-    ParserTestCase.parseCompilationUnit("class C { C() : a = f(() {}); }", []);
+    ParserTestCase.parseCompilationUnit("class C { C() : a = f(() {}); }");
   }
 
   void test_function_literal_allowed_in_IndexExpression_in_ConstructorFieldInitializer() {
-    ParserTestCase.parseCompilationUnit("class C { C() : a = x[() {}]; }", []);
+    ParserTestCase.parseCompilationUnit("class C { C() : a = x[() {}]; }");
   }
 
   void test_function_literal_allowed_in_ListLiteral_in_ConstructorFieldInitializer() {
-    ParserTestCase.parseCompilationUnit("class C { C() : a = [() {}]; }", []);
+    ParserTestCase.parseCompilationUnit("class C { C() : a = [() {}]; }");
   }
 
   void test_function_literal_allowed_in_MapLiteral_in_ConstructorFieldInitializer() {
-    ParserTestCase.parseCompilationUnit("class C { C() : a = {'key': () {}}; }", []);
+    ParserTestCase.parseCompilationUnit("class C { C() : a = {'key': () {}}; }");
   }
 
   void test_function_literal_allowed_in_ParenthesizedExpression_in_ConstructorFieldInitializer() {
-    ParserTestCase.parseCompilationUnit("class C { C() : a = (() {}); }", []);
+    ParserTestCase.parseCompilationUnit("class C { C() : a = (() {}); }");
   }
 
   void test_function_literal_allowed_in_StringInterpolation_in_ConstructorFieldInitializer() {
-    ParserTestCase.parseCompilationUnit("class C { C() : a = \"\${(){}}\"; }", []);
+    ParserTestCase.parseCompilationUnit("class C { C() : a = \"\${(){}}\"; }");
   }
 
   void test_isFunctionDeclaration_nameButNoReturn_block() {
@@ -3726,7 +3724,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAdditiveExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parse4("parseAdditiveExpression", "x + y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseAdditiveExpression", "x + y");
     expect(expression.leftOperand, isNotNull);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.PLUS);
@@ -3734,7 +3732,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAdditiveExpression_super() {
-    BinaryExpression expression = ParserTestCase.parse4("parseAdditiveExpression", "super + y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseAdditiveExpression", "super + y");
     EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, expression.leftOperand);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.PLUS);
@@ -3742,7 +3740,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAnnotation_n1() {
-    Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A", []);
+    Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A");
     expect(annotation.atSign, isNotNull);
     expect(annotation.name, isNotNull);
     expect(annotation.period, isNull);
@@ -3751,7 +3749,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAnnotation_n1_a() {
-    Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A(x,y)", []);
+    Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A(x,y)");
     expect(annotation.atSign, isNotNull);
     expect(annotation.name, isNotNull);
     expect(annotation.period, isNull);
@@ -3760,7 +3758,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAnnotation_n2() {
-    Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A.B", []);
+    Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A.B");
     expect(annotation.atSign, isNotNull);
     expect(annotation.name, isNotNull);
     expect(annotation.period, isNull);
@@ -3769,7 +3767,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAnnotation_n2_a() {
-    Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A.B(x,y)", []);
+    Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A.B(x,y)");
     expect(annotation.atSign, isNotNull);
     expect(annotation.name, isNotNull);
     expect(annotation.period, isNull);
@@ -3778,7 +3776,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAnnotation_n3() {
-    Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A.B.C", []);
+    Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A.B.C");
     expect(annotation.atSign, isNotNull);
     expect(annotation.name, isNotNull);
     expect(annotation.period, isNotNull);
@@ -3787,7 +3785,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAnnotation_n3_a() {
-    Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A.B.C(x,y)", []);
+    Annotation annotation = ParserTestCase.parse4("parseAnnotation", "@A.B.C(x,y)");
     expect(annotation.atSign, isNotNull);
     expect(annotation.name, isNotNull);
     expect(annotation.period, isNotNull);
@@ -3796,7 +3794,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseArgument_named() {
-    NamedExpression expression = ParserTestCase.parse4("parseArgument", "n: x", []);
+    NamedExpression expression = ParserTestCase.parse4("parseArgument", "n: x");
     Label name = expression.name;
     expect(name, isNotNull);
     expect(name.label, isNotNull);
@@ -3806,36 +3804,36 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseArgument_unnamed() {
     String lexeme = "x";
-    SimpleIdentifier identifier = ParserTestCase.parse4("parseArgument", lexeme, []);
+    SimpleIdentifier identifier = ParserTestCase.parse4("parseArgument", lexeme);
     expect(identifier.name, lexeme);
   }
 
   void test_parseArgumentList_empty() {
-    ArgumentList argumentList = ParserTestCase.parse4("parseArgumentList", "()", []);
+    ArgumentList argumentList = ParserTestCase.parse4("parseArgumentList", "()");
     NodeList<Expression> arguments = argumentList.arguments;
     expect(arguments, hasLength(0));
   }
 
   void test_parseArgumentList_mixed() {
-    ArgumentList argumentList = ParserTestCase.parse4("parseArgumentList", "(w, x, y: y, z: z)", []);
+    ArgumentList argumentList = ParserTestCase.parse4("parseArgumentList", "(w, x, y: y, z: z)");
     NodeList<Expression> arguments = argumentList.arguments;
     expect(arguments, hasLength(4));
   }
 
   void test_parseArgumentList_noNamed() {
-    ArgumentList argumentList = ParserTestCase.parse4("parseArgumentList", "(x, y, z)", []);
+    ArgumentList argumentList = ParserTestCase.parse4("parseArgumentList", "(x, y, z)");
     NodeList<Expression> arguments = argumentList.arguments;
     expect(arguments, hasLength(3));
   }
 
   void test_parseArgumentList_onlyNamed() {
-    ArgumentList argumentList = ParserTestCase.parse4("parseArgumentList", "(x: x, y: y)", []);
+    ArgumentList argumentList = ParserTestCase.parse4("parseArgumentList", "(x: x, y: y)");
     NodeList<Expression> arguments = argumentList.arguments;
     expect(arguments, hasLength(2));
   }
 
   void test_parseAssertStatement() {
-    AssertStatement statement = ParserTestCase.parse4("parseAssertStatement", "assert (x);", []);
+    AssertStatement statement = ParserTestCase.parse4("parseAssertStatement", "assert (x);");
     expect(statement.keyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     expect(statement.condition, isNotNull);
@@ -3934,7 +3932,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAwaitExpression() {
-    AwaitExpression expression = ParserTestCase.parse4("parseAwaitExpression", "await x;", []);
+    AwaitExpression expression = ParserTestCase.parse4("parseAwaitExpression", "await x;");
     expect(expression.awaitKeyword, isNotNull);
     expect(expression.expression, isNotNull);
   }
@@ -3972,7 +3970,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseBitwiseAndExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parse4("parseBitwiseAndExpression", "x & y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseBitwiseAndExpression", "x & y");
     expect(expression.leftOperand, isNotNull);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.AMPERSAND);
@@ -3980,7 +3978,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseBitwiseAndExpression_super() {
-    BinaryExpression expression = ParserTestCase.parse4("parseBitwiseAndExpression", "super & y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseBitwiseAndExpression", "super & y");
     EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, expression.leftOperand);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.AMPERSAND);
@@ -3988,7 +3986,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseBitwiseOrExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parse4("parseBitwiseOrExpression", "x | y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseBitwiseOrExpression", "x | y");
     expect(expression.leftOperand, isNotNull);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.BAR);
@@ -3996,7 +3994,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseBitwiseOrExpression_super() {
-    BinaryExpression expression = ParserTestCase.parse4("parseBitwiseOrExpression", "super | y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseBitwiseOrExpression", "super | y");
     EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, expression.leftOperand);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.BAR);
@@ -4004,7 +4002,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseBitwiseXorExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parse4("parseBitwiseXorExpression", "x ^ y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseBitwiseXorExpression", "x ^ y");
     expect(expression.leftOperand, isNotNull);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.CARET);
@@ -4012,7 +4010,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseBitwiseXorExpression_super() {
-    BinaryExpression expression = ParserTestCase.parse4("parseBitwiseXorExpression", "super ^ y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseBitwiseXorExpression", "super ^ y");
     EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, expression.leftOperand);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.CARET);
@@ -4020,21 +4018,21 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseBlock_empty() {
-    Block block = ParserTestCase.parse4("parseBlock", "{}", []);
+    Block block = ParserTestCase.parse4("parseBlock", "{}");
     expect(block.leftBracket, isNotNull);
     expect(block.statements, hasLength(0));
     expect(block.rightBracket, isNotNull);
   }
 
   void test_parseBlock_nonEmpty() {
-    Block block = ParserTestCase.parse4("parseBlock", "{;}", []);
+    Block block = ParserTestCase.parse4("parseBlock", "{;}");
     expect(block.leftBracket, isNotNull);
     expect(block.statements, hasLength(1));
     expect(block.rightBracket, isNotNull);
   }
 
   void test_parseBreakStatement_label() {
-    BreakStatement statement = ParserTestCase.parse4("parseBreakStatement", "break foo;", []);
+    BreakStatement statement = ParserTestCase.parse4("parseBreakStatement", "break foo;");
     expect(statement.keyword, isNotNull);
     expect(statement.label, isNotNull);
     expect(statement.semicolon, isNotNull);
@@ -4048,7 +4046,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCascadeSection_i() {
-    IndexExpression section = ParserTestCase.parse4("parseCascadeSection", "..[i]", []);
+    IndexExpression section = ParserTestCase.parse4("parseCascadeSection", "..[i]");
     expect(section.target, isNull);
     expect(section.leftBracket, isNotNull);
     expect(section.index, isNotNull);
@@ -4056,13 +4054,13 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCascadeSection_ia() {
-    FunctionExpressionInvocation section = ParserTestCase.parse4("parseCascadeSection", "..[i](b)", []);
+    FunctionExpressionInvocation section = ParserTestCase.parse4("parseCascadeSection", "..[i](b)");
     EngineTestCase.assertInstanceOf((obj) => obj is IndexExpression, IndexExpression, section.function);
     expect(section.argumentList, isNotNull);
   }
 
   void test_parseCascadeSection_ii() {
-    MethodInvocation section = ParserTestCase.parse4("parseCascadeSection", "..a(b).c(d)", []);
+    MethodInvocation section = ParserTestCase.parse4("parseCascadeSection", "..a(b).c(d)");
     EngineTestCase.assertInstanceOf((obj) => obj is MethodInvocation, MethodInvocation, section.target);
     expect(section.period, isNotNull);
     expect(section.methodName, isNotNull);
@@ -4071,14 +4069,14 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCascadeSection_p() {
-    PropertyAccess section = ParserTestCase.parse4("parseCascadeSection", "..a", []);
+    PropertyAccess section = ParserTestCase.parse4("parseCascadeSection", "..a");
     expect(section.target, isNull);
     expect(section.operator, isNotNull);
     expect(section.propertyName, isNotNull);
   }
 
   void test_parseCascadeSection_p_assign() {
-    AssignmentExpression section = ParserTestCase.parse4("parseCascadeSection", "..a = 3", []);
+    AssignmentExpression section = ParserTestCase.parse4("parseCascadeSection", "..a = 3");
     expect(section.leftHandSide, isNotNull);
     expect(section.operator, isNotNull);
     Expression rhs = section.rightHandSide;
@@ -4086,7 +4084,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCascadeSection_p_assign_withCascade() {
-    AssignmentExpression section = ParserTestCase.parse4("parseCascadeSection", "..a = 3..m()", []);
+    AssignmentExpression section = ParserTestCase.parse4("parseCascadeSection", "..a = 3..m()");
     expect(section.leftHandSide, isNotNull);
     expect(section.operator, isNotNull);
     Expression rhs = section.rightHandSide;
@@ -4094,14 +4092,14 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCascadeSection_p_builtIn() {
-    PropertyAccess section = ParserTestCase.parse4("parseCascadeSection", "..as", []);
+    PropertyAccess section = ParserTestCase.parse4("parseCascadeSection", "..as");
     expect(section.target, isNull);
     expect(section.operator, isNotNull);
     expect(section.propertyName, isNotNull);
   }
 
   void test_parseCascadeSection_pa() {
-    MethodInvocation section = ParserTestCase.parse4("parseCascadeSection", "..a(b)", []);
+    MethodInvocation section = ParserTestCase.parse4("parseCascadeSection", "..a(b)");
     expect(section.target, isNull);
     expect(section.period, isNotNull);
     expect(section.methodName, isNotNull);
@@ -4110,21 +4108,21 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCascadeSection_paa() {
-    FunctionExpressionInvocation section = ParserTestCase.parse4("parseCascadeSection", "..a(b)(c)", []);
+    FunctionExpressionInvocation section = ParserTestCase.parse4("parseCascadeSection", "..a(b)(c)");
     EngineTestCase.assertInstanceOf((obj) => obj is MethodInvocation, MethodInvocation, section.function);
     expect(section.argumentList, isNotNull);
     expect(section.argumentList.arguments, hasLength(1));
   }
 
   void test_parseCascadeSection_paapaa() {
-    FunctionExpressionInvocation section = ParserTestCase.parse4("parseCascadeSection", "..a(b)(c).d(e)(f)", []);
+    FunctionExpressionInvocation section = ParserTestCase.parse4("parseCascadeSection", "..a(b)(c).d(e)(f)");
     EngineTestCase.assertInstanceOf((obj) => obj is MethodInvocation, MethodInvocation, section.function);
     expect(section.argumentList, isNotNull);
     expect(section.argumentList.arguments, hasLength(1));
   }
 
   void test_parseCascadeSection_pap() {
-    PropertyAccess section = ParserTestCase.parse4("parseCascadeSection", "..a(b).c", []);
+    PropertyAccess section = ParserTestCase.parse4("parseCascadeSection", "..a(b).c");
     expect(section.target, isNotNull);
     expect(section.operator, isNotNull);
     expect(section.propertyName, isNotNull);
@@ -4654,7 +4652,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCombinators_h() {
-    List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "hide a;", []);
+    List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "hide a;");
     expect(combinators, hasLength(1));
     HideCombinator combinator = combinators[0] as HideCombinator;
     expect(combinator, isNotNull);
@@ -4663,7 +4661,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCombinators_hs() {
-    List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "hide a show b;", []);
+    List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "hide a show b;");
     expect(combinators, hasLength(2));
     HideCombinator hideCombinator = combinators[0] as HideCombinator;
     expect(hideCombinator, isNotNull);
@@ -4676,12 +4674,12 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCombinators_hshs() {
-    List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "hide a show b hide c show d;", []);
+    List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "hide a show b hide c show d;");
     expect(combinators, hasLength(4));
   }
 
   void test_parseCombinators_s() {
-    List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "show a;", []);
+    List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "show a;");
     expect(combinators, hasLength(1));
     ShowCombinator combinator = combinators[0] as ShowCombinator;
     expect(combinator, isNotNull);
@@ -4690,55 +4688,55 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCommentAndMetadata_c() {
-    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ void", []);
+    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ void");
     expect(commentAndMetadata.comment, isNotNull);
     expect(commentAndMetadata.metadata, hasLength(0));
   }
 
   void test_parseCommentAndMetadata_cmc() {
-    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ @A /** 2 */ void", []);
+    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ @A /** 2 */ void");
     expect(commentAndMetadata.comment, isNotNull);
     expect(commentAndMetadata.metadata, hasLength(1));
   }
 
   void test_parseCommentAndMetadata_cmcm() {
-    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ @A /** 2 */ @B void", []);
+    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ @A /** 2 */ @B void");
     expect(commentAndMetadata.comment, isNotNull);
     expect(commentAndMetadata.metadata, hasLength(2));
   }
 
   void test_parseCommentAndMetadata_cmm() {
-    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ @A @B void", []);
+    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ @A @B void");
     expect(commentAndMetadata.comment, isNotNull);
     expect(commentAndMetadata.metadata, hasLength(2));
   }
 
   void test_parseCommentAndMetadata_m() {
-    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A void", []);
+    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A void");
     expect(commentAndMetadata.comment, isNull);
     expect(commentAndMetadata.metadata, hasLength(1));
   }
 
   void test_parseCommentAndMetadata_mcm() {
-    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A /** 1 */ @B void", []);
+    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A /** 1 */ @B void");
     expect(commentAndMetadata.comment, isNotNull);
     expect(commentAndMetadata.metadata, hasLength(2));
   }
 
   void test_parseCommentAndMetadata_mcmc() {
-    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A /** 1 */ @B /** 2 */ void", []);
+    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A /** 1 */ @B /** 2 */ void");
     expect(commentAndMetadata.comment, isNotNull);
     expect(commentAndMetadata.metadata, hasLength(2));
   }
 
   void test_parseCommentAndMetadata_mm() {
-    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A @B(x) void", []);
+    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A @B(x) void");
     expect(commentAndMetadata.comment, isNull);
     expect(commentAndMetadata.metadata, hasLength(2));
   }
 
   void test_parseCommentAndMetadata_none() {
-    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "void", []);
+    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "void");
     expect(commentAndMetadata.comment, isNull);
     expect(commentAndMetadata.metadata, hasLength(0));
   }
@@ -4747,7 +4745,7 @@ class SimpleParserTest extends ParserTestCase {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", r'''
 /// 1
 /// 2
-void''', []);
+void''');
     expect(commentAndMetadata.comment, isNotNull);
     expect(commentAndMetadata.metadata, hasLength(0));
   }
@@ -4913,74 +4911,74 @@ void''', []);
   }
 
   void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
-    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "abstract<dynamic> _abstract = new abstract.A();", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "abstract<dynamic> _abstract = new abstract.A();");
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
   }
 
   void test_parseCompilationUnit_builtIn_asFunctionName() {
-    ParserTestCase.parse4("parseCompilationUnit", "abstract(x) => 0;", []);
-    ParserTestCase.parse4("parseCompilationUnit", "as(x) => 0;", []);
-    ParserTestCase.parse4("parseCompilationUnit", "dynamic(x) => 0;", []);
-    ParserTestCase.parse4("parseCompilationUnit", "export(x) => 0;", []);
-    ParserTestCase.parse4("parseCompilationUnit", "external(x) => 0;", []);
-    ParserTestCase.parse4("parseCompilationUnit", "factory(x) => 0;", []);
-    ParserTestCase.parse4("parseCompilationUnit", "get(x) => 0;", []);
-    ParserTestCase.parse4("parseCompilationUnit", "implements(x) => 0;", []);
-    ParserTestCase.parse4("parseCompilationUnit", "import(x) => 0;", []);
-    ParserTestCase.parse4("parseCompilationUnit", "library(x) => 0;", []);
-    ParserTestCase.parse4("parseCompilationUnit", "operator(x) => 0;", []);
-    ParserTestCase.parse4("parseCompilationUnit", "part(x) => 0;", []);
-    ParserTestCase.parse4("parseCompilationUnit", "set(x) => 0;", []);
-    ParserTestCase.parse4("parseCompilationUnit", "static(x) => 0;", []);
-    ParserTestCase.parse4("parseCompilationUnit", "typedef(x) => 0;", []);
+    ParserTestCase.parse4("parseCompilationUnit", "abstract(x) => 0;");
+    ParserTestCase.parse4("parseCompilationUnit", "as(x) => 0;");
+    ParserTestCase.parse4("parseCompilationUnit", "dynamic(x) => 0;");
+    ParserTestCase.parse4("parseCompilationUnit", "export(x) => 0;");
+    ParserTestCase.parse4("parseCompilationUnit", "external(x) => 0;");
+    ParserTestCase.parse4("parseCompilationUnit", "factory(x) => 0;");
+    ParserTestCase.parse4("parseCompilationUnit", "get(x) => 0;");
+    ParserTestCase.parse4("parseCompilationUnit", "implements(x) => 0;");
+    ParserTestCase.parse4("parseCompilationUnit", "import(x) => 0;");
+    ParserTestCase.parse4("parseCompilationUnit", "library(x) => 0;");
+    ParserTestCase.parse4("parseCompilationUnit", "operator(x) => 0;");
+    ParserTestCase.parse4("parseCompilationUnit", "part(x) => 0;");
+    ParserTestCase.parse4("parseCompilationUnit", "set(x) => 0;");
+    ParserTestCase.parse4("parseCompilationUnit", "static(x) => 0;");
+    ParserTestCase.parse4("parseCompilationUnit", "typedef(x) => 0;");
   }
 
   void test_parseCompilationUnit_directives_multiple() {
-    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "library l;\npart 'a.dart';", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "library l;\npart 'a.dart';");
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(2));
     expect(unit.declarations, hasLength(0));
   }
 
   void test_parseCompilationUnit_directives_single() {
-    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "library l;", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "library l;");
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(1));
     expect(unit.declarations, hasLength(0));
   }
 
   void test_parseCompilationUnit_empty() {
-    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "");
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(0));
   }
 
   void test_parseCompilationUnit_exportAsPrefix() {
-    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "export.A _export = new export.A();", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "export.A _export = new export.A();");
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
   }
 
   void test_parseCompilationUnit_exportAsPrefix_parameterized() {
-    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "export<dynamic> _export = new export.A();", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "export<dynamic> _export = new export.A();");
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
   }
 
   void test_parseCompilationUnit_operatorAsPrefix_parameterized() {
-    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "operator<dynamic> _operator = new operator.A();", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "operator<dynamic> _operator = new operator.A();");
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
   }
 
   void test_parseCompilationUnit_script() {
-    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "#! /bin/dart", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "#! /bin/dart");
     expect(unit.scriptTag, isNotNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(0));
@@ -4988,20 +4986,20 @@ void''', []);
 
   void test_parseCompilationUnit_skipFunctionBody_withInterpolation() {
     ParserTestCase.parseFunctionBodies = false;
-    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "f() { '\${n}'; }", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "f() { '\${n}'; }");
     expect(unit.scriptTag, isNull);
     expect(unit.declarations, hasLength(1));
   }
 
   void test_parseCompilationUnit_topLevelDeclaration() {
-    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "class A {}", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "class A {}");
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
   }
 
   void test_parseCompilationUnit_typedefAsPrefix() {
-    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "typedef.A _typedef = new typedef.A();", []);
+    CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "typedef.A _typedef = new typedef.A();");
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
@@ -5198,7 +5196,7 @@ void''', []);
   }
 
   void test_parseConditionalExpression() {
-    ConditionalExpression expression = ParserTestCase.parse4("parseConditionalExpression", "x ? y : z", []);
+    ConditionalExpression expression = ParserTestCase.parse4("parseConditionalExpression", "x ? y : z");
     expect(expression.condition, isNotNull);
     expect(expression.question, isNotNull);
     expect(expression.thenExpression, isNotNull);
@@ -5207,7 +5205,7 @@ void''', []);
   }
 
   void test_parseConstExpression_instanceCreation() {
-    InstanceCreationExpression expression = ParserTestCase.parse4("parseConstExpression", "const A()", []);
+    InstanceCreationExpression expression = ParserTestCase.parse4("parseConstExpression", "const A()");
     expect(expression.keyword, isNotNull);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
@@ -5218,7 +5216,7 @@ void''', []);
   }
 
   void test_parseConstExpression_listLiteral_typed() {
-    ListLiteral literal = ParserTestCase.parse4("parseConstExpression", "const <A> []", []);
+    ListLiteral literal = ParserTestCase.parse4("parseConstExpression", "const <A> []");
     expect(literal.constKeyword, isNotNull);
     expect(literal.typeArguments, isNotNull);
     expect(literal.leftBracket, isNotNull);
@@ -5227,7 +5225,7 @@ void''', []);
   }
 
   void test_parseConstExpression_listLiteral_untyped() {
-    ListLiteral literal = ParserTestCase.parse4("parseConstExpression", "const []", []);
+    ListLiteral literal = ParserTestCase.parse4("parseConstExpression", "const []");
     expect(literal.constKeyword, isNotNull);
     expect(literal.typeArguments, isNull);
     expect(literal.leftBracket, isNotNull);
@@ -5236,7 +5234,7 @@ void''', []);
   }
 
   void test_parseConstExpression_mapLiteral_typed() {
-    MapLiteral literal = ParserTestCase.parse4("parseConstExpression", "const <A, B> {}", []);
+    MapLiteral literal = ParserTestCase.parse4("parseConstExpression", "const <A, B> {}");
     expect(literal.leftBracket, isNotNull);
     expect(literal.entries, hasLength(0));
     expect(literal.rightBracket, isNotNull);
@@ -5244,7 +5242,7 @@ void''', []);
   }
 
   void test_parseConstExpression_mapLiteral_untyped() {
-    MapLiteral literal = ParserTestCase.parse4("parseConstExpression", "const {}", []);
+    MapLiteral literal = ParserTestCase.parse4("parseConstExpression", "const {}");
     expect(literal.leftBracket, isNotNull);
     expect(literal.entries, hasLength(0));
     expect(literal.rightBracket, isNotNull);
@@ -5273,7 +5271,7 @@ void''', []);
   }
 
   void test_parseConstructorFieldInitializer_qualified() {
-    ConstructorFieldInitializer invocation = ParserTestCase.parse4("parseConstructorFieldInitializer", "this.a = b", []);
+    ConstructorFieldInitializer invocation = ParserTestCase.parse4("parseConstructorFieldInitializer", "this.a = b");
     expect(invocation.equals, isNotNull);
     expect(invocation.expression, isNotNull);
     expect(invocation.fieldName, isNotNull);
@@ -5282,7 +5280,7 @@ void''', []);
   }
 
   void test_parseConstructorFieldInitializer_unqualified() {
-    ConstructorFieldInitializer invocation = ParserTestCase.parse4("parseConstructorFieldInitializer", "a = b", []);
+    ConstructorFieldInitializer invocation = ParserTestCase.parse4("parseConstructorFieldInitializer", "a = b");
     expect(invocation.equals, isNotNull);
     expect(invocation.expression, isNotNull);
     expect(invocation.fieldName, isNotNull);
@@ -5291,28 +5289,28 @@ void''', []);
   }
 
   void test_parseConstructorName_named_noPrefix() {
-    ConstructorName name = ParserTestCase.parse4("parseConstructorName", "A.n;", []);
+    ConstructorName name = ParserTestCase.parse4("parseConstructorName", "A.n;");
     expect(name.type, isNotNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
   }
 
   void test_parseConstructorName_named_prefixed() {
-    ConstructorName name = ParserTestCase.parse4("parseConstructorName", "p.A.n;", []);
+    ConstructorName name = ParserTestCase.parse4("parseConstructorName", "p.A.n;");
     expect(name.type, isNotNull);
     expect(name.period, isNotNull);
     expect(name.name, isNotNull);
   }
 
   void test_parseConstructorName_unnamed_noPrefix() {
-    ConstructorName name = ParserTestCase.parse4("parseConstructorName", "A;", []);
+    ConstructorName name = ParserTestCase.parse4("parseConstructorName", "A;");
     expect(name.type, isNotNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
   }
 
   void test_parseConstructorName_unnamed_prefixed() {
-    ConstructorName name = ParserTestCase.parse4("parseConstructorName", "p.A;", []);
+    ConstructorName name = ParserTestCase.parse4("parseConstructorName", "p.A;");
     expect(name.type, isNotNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
@@ -5373,56 +5371,56 @@ void''', []);
   }
 
   void test_parseDirectives_complete() {
-    CompilationUnit unit = _parseDirectives("#! /bin/dart\nlibrary l;\nclass A {}", []);
+    CompilationUnit unit = _parseDirectives("#! /bin/dart\nlibrary l;\nclass A {}");
     expect(unit.scriptTag, isNotNull);
     expect(unit.directives, hasLength(1));
   }
 
   void test_parseDirectives_empty() {
-    CompilationUnit unit = _parseDirectives("", []);
+    CompilationUnit unit = _parseDirectives("");
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
   }
 
   void test_parseDirectives_mixed() {
-    CompilationUnit unit = _parseDirectives("library l; class A {} part 'foo.dart';", []);
+    CompilationUnit unit = _parseDirectives("library l; class A {} part 'foo.dart';");
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(1));
   }
 
   void test_parseDirectives_multiple() {
-    CompilationUnit unit = _parseDirectives("library l;\npart 'a.dart';", []);
+    CompilationUnit unit = _parseDirectives("library l;\npart 'a.dart';");
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(2));
   }
 
   void test_parseDirectives_script() {
-    CompilationUnit unit = _parseDirectives("#! /bin/dart", []);
+    CompilationUnit unit = _parseDirectives("#! /bin/dart");
     expect(unit.scriptTag, isNotNull);
     expect(unit.directives, hasLength(0));
   }
 
   void test_parseDirectives_single() {
-    CompilationUnit unit = _parseDirectives("library l;", []);
+    CompilationUnit unit = _parseDirectives("library l;");
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(1));
   }
 
   void test_parseDirectives_topLevelDeclaration() {
-    CompilationUnit unit = _parseDirectives("class A {}", []);
+    CompilationUnit unit = _parseDirectives("class A {}");
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
   }
 
   void test_parseDocumentationComment_block() {
-    Comment comment = ParserTestCase.parse4("parseDocumentationComment", "/** */ class", []);
+    Comment comment = ParserTestCase.parse4("parseDocumentationComment", "/** */ class");
     expect(comment.isBlock, isFalse);
     expect(comment.isDocumentation, isTrue);
     expect(comment.isEndOfLine, isFalse);
   }
 
   void test_parseDocumentationComment_block_withReference() {
-    Comment comment = ParserTestCase.parse4("parseDocumentationComment", "/** [a] */ class", []);
+    Comment comment = ParserTestCase.parse4("parseDocumentationComment", "/** [a] */ class");
     expect(comment.isBlock, isFalse);
     expect(comment.isDocumentation, isTrue);
     expect(comment.isEndOfLine, isFalse);
@@ -5434,14 +5432,14 @@ void''', []);
   }
 
   void test_parseDocumentationComment_endOfLine() {
-    Comment comment = ParserTestCase.parse4("parseDocumentationComment", "/// \n/// \n class", []);
+    Comment comment = ParserTestCase.parse4("parseDocumentationComment", "/// \n/// \n class");
     expect(comment.isBlock, isFalse);
     expect(comment.isDocumentation, isTrue);
     expect(comment.isEndOfLine, isFalse);
   }
 
   void test_parseDoStatement() {
-    DoStatement statement = ParserTestCase.parse4("parseDoStatement", "do {} while (x);", []);
+    DoStatement statement = ParserTestCase.parse4("parseDoStatement", "do {} while (x);");
     expect(statement.doKeyword, isNotNull);
     expect(statement.body, isNotNull);
     expect(statement.whileKeyword, isNotNull);
@@ -5452,7 +5450,7 @@ void''', []);
   }
 
   void test_parseEmptyStatement() {
-    EmptyStatement statement = ParserTestCase.parse4("parseEmptyStatement", ";", []);
+    EmptyStatement statement = ParserTestCase.parse4("parseEmptyStatement", ";");
     expect(statement.semicolon, isNotNull);
   }
 
@@ -5487,7 +5485,7 @@ void''', []);
   }
 
   void test_parseEqualityExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parse4("parseEqualityExpression", "x == y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseEqualityExpression", "x == y");
     expect(expression.leftOperand, isNotNull);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.EQ_EQ);
@@ -5495,7 +5493,7 @@ void''', []);
   }
 
   void test_parseEqualityExpression_super() {
-    BinaryExpression expression = ParserTestCase.parse4("parseEqualityExpression", "super == y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseEqualityExpression", "super == y");
     EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, expression.leftOperand);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.EQ_EQ);
@@ -5544,7 +5542,7 @@ void''', []);
 
   void test_parseExpression_assign() {
     // TODO(brianwilkerson) Implement more tests for this method.
-    AssignmentExpression expression = ParserTestCase.parse4("parseExpression", "x = y", []);
+    AssignmentExpression expression = ParserTestCase.parse4("parseExpression", "x = y");
     expect(expression.leftHandSide, isNotNull);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.EQ);
@@ -5552,7 +5550,7 @@ void''', []);
   }
 
   void test_parseExpression_comparison() {
-    BinaryExpression expression = ParserTestCase.parse4("parseExpression", "--a.b == c", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseExpression", "--a.b == c");
     expect(expression.leftOperand, isNotNull);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.EQ_EQ);
@@ -5560,7 +5558,7 @@ void''', []);
   }
 
   void test_parseExpression_function_async() {
-    FunctionExpression expression = ParserTestCase.parseExpression("() async {}", []);
+    FunctionExpression expression = ParserTestCase.parseExpression("() async {}");
     expect(expression.body, isNotNull);
     expect(expression.body.isAsynchronous, isTrue);
     expect(expression.body.isGenerator, isFalse);
@@ -5568,7 +5566,7 @@ void''', []);
   }
 
   void test_parseExpression_function_asyncStar() {
-    FunctionExpression expression = ParserTestCase.parseExpression("() async* {}", []);
+    FunctionExpression expression = ParserTestCase.parseExpression("() async* {}");
     expect(expression.body, isNotNull);
     expect(expression.body.isAsynchronous, isTrue);
     expect(expression.body.isGenerator, isTrue);
@@ -5576,7 +5574,7 @@ void''', []);
   }
 
   void test_parseExpression_function_sync() {
-    FunctionExpression expression = ParserTestCase.parseExpression("() {}", []);
+    FunctionExpression expression = ParserTestCase.parseExpression("() {}");
     expect(expression.body, isNotNull);
     expect(expression.body.isAsynchronous, isFalse);
     expect(expression.body.isGenerator, isFalse);
@@ -5584,7 +5582,7 @@ void''', []);
   }
 
   void test_parseExpression_function_syncStar() {
-    FunctionExpression expression = ParserTestCase.parseExpression("() sync* {}", []);
+    FunctionExpression expression = ParserTestCase.parseExpression("() sync* {}");
     expect(expression.body, isNotNull);
     expect(expression.body.isAsynchronous, isFalse);
     expect(expression.body.isGenerator, isTrue);
@@ -5592,7 +5590,7 @@ void''', []);
   }
 
   void test_parseExpression_invokeFunctionExpression() {
-    FunctionExpressionInvocation invocation = ParserTestCase.parse4("parseExpression", "(a) {return a + a;} (3)", []);
+    FunctionExpressionInvocation invocation = ParserTestCase.parse4("parseExpression", "(a) {return a + a;} (3)");
     EngineTestCase.assertInstanceOf((obj) => obj is FunctionExpression, FunctionExpression, invocation.function);
     FunctionExpression expression = invocation.function as FunctionExpression;
     expect(expression.parameters, isNotNull);
@@ -5603,25 +5601,25 @@ void''', []);
   }
 
   void test_parseExpression_superMethodInvocation() {
-    MethodInvocation invocation = ParserTestCase.parse4("parseExpression", "super.m()", []);
+    MethodInvocation invocation = ParserTestCase.parse4("parseExpression", "super.m()");
     expect(invocation.target, isNotNull);
     expect(invocation.methodName, isNotNull);
     expect(invocation.argumentList, isNotNull);
   }
 
   void test_parseExpressionList_multiple() {
-    List<Expression> result = ParserTestCase.parse4("parseExpressionList", "1, 2, 3", []);
+    List<Expression> result = ParserTestCase.parse4("parseExpressionList", "1, 2, 3");
     expect(result, hasLength(3));
   }
 
   void test_parseExpressionList_single() {
-    List<Expression> result = ParserTestCase.parse4("parseExpressionList", "1", []);
+    List<Expression> result = ParserTestCase.parse4("parseExpressionList", "1");
     expect(result, hasLength(1));
   }
 
   void test_parseExpressionWithoutCascade_assign() {
     // TODO(brianwilkerson) Implement more tests for this method.
-    AssignmentExpression expression = ParserTestCase.parse4("parseExpressionWithoutCascade", "x = y", []);
+    AssignmentExpression expression = ParserTestCase.parse4("parseExpressionWithoutCascade", "x = y");
     expect(expression.leftHandSide, isNotNull);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.EQ);
@@ -5629,7 +5627,7 @@ void''', []);
   }
 
   void test_parseExpressionWithoutCascade_comparison() {
-    BinaryExpression expression = ParserTestCase.parse4("parseExpressionWithoutCascade", "--a.b == c", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseExpressionWithoutCascade", "--a.b == c");
     expect(expression.leftOperand, isNotNull);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.EQ_EQ);
@@ -5637,14 +5635,14 @@ void''', []);
   }
 
   void test_parseExpressionWithoutCascade_superMethodInvocation() {
-    MethodInvocation invocation = ParserTestCase.parse4("parseExpressionWithoutCascade", "super.m()", []);
+    MethodInvocation invocation = ParserTestCase.parse4("parseExpressionWithoutCascade", "super.m()");
     expect(invocation.target, isNotNull);
     expect(invocation.methodName, isNotNull);
     expect(invocation.argumentList, isNotNull);
   }
 
   void test_parseExtendsClause() {
-    ExtendsClause clause = ParserTestCase.parse4("parseExtendsClause", "extends B", []);
+    ExtendsClause clause = ParserTestCase.parse4("parseExtendsClause", "extends B");
     expect(clause.keyword, isNotNull);
     expect(clause.superclass, isNotNull);
     EngineTestCase.assertInstanceOf((obj) => obj is TypeName, TypeName, clause.superclass);
@@ -5852,7 +5850,7 @@ void''', []);
   }
 
   void test_parseFormalParameterList_empty() {
-    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "()", []);
+    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "()");
     expect(parameterList.leftParenthesis, isNotNull);
     expect(parameterList.leftDelimiter, isNull);
     expect(parameterList.parameters, hasLength(0));
@@ -5861,7 +5859,7 @@ void''', []);
   }
 
   void test_parseFormalParameterList_named_multiple() {
-    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "({A a : 1, B b, C c : 3})", []);
+    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "({A a : 1, B b, C c : 3})");
     expect(parameterList.leftParenthesis, isNotNull);
     expect(parameterList.leftDelimiter, isNotNull);
     expect(parameterList.parameters, hasLength(3));
@@ -5870,7 +5868,7 @@ void''', []);
   }
 
   void test_parseFormalParameterList_named_single() {
-    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "({A a})", []);
+    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "({A a})");
     expect(parameterList.leftParenthesis, isNotNull);
     expect(parameterList.leftDelimiter, isNotNull);
     expect(parameterList.parameters, hasLength(1));
@@ -5879,7 +5877,7 @@ void''', []);
   }
 
   void test_parseFormalParameterList_normal_multiple() {
-    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a, B b, C c)", []);
+    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a, B b, C c)");
     expect(parameterList.leftParenthesis, isNotNull);
     expect(parameterList.leftDelimiter, isNull);
     expect(parameterList.parameters, hasLength(3));
@@ -5888,7 +5886,7 @@ void''', []);
   }
 
   void test_parseFormalParameterList_normal_named() {
-    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a, {B b})", []);
+    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a, {B b})");
     expect(parameterList.leftParenthesis, isNotNull);
     expect(parameterList.leftDelimiter, isNotNull);
     expect(parameterList.parameters, hasLength(2));
@@ -5897,7 +5895,7 @@ void''', []);
   }
 
   void test_parseFormalParameterList_normal_positional() {
-    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a, [B b])", []);
+    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a, [B b])");
     expect(parameterList.leftParenthesis, isNotNull);
     expect(parameterList.leftDelimiter, isNotNull);
     expect(parameterList.parameters, hasLength(2));
@@ -5906,7 +5904,7 @@ void''', []);
   }
 
   void test_parseFormalParameterList_normal_single() {
-    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a)", []);
+    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a)");
     expect(parameterList.leftParenthesis, isNotNull);
     expect(parameterList.leftDelimiter, isNull);
     expect(parameterList.parameters, hasLength(1));
@@ -5915,7 +5913,7 @@ void''', []);
   }
 
   void test_parseFormalParameterList_positional_multiple() {
-    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "([A a = null, B b, C c = null])", []);
+    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "([A a = null, B b, C c = null])");
     expect(parameterList.leftParenthesis, isNotNull);
     expect(parameterList.leftDelimiter, isNotNull);
     expect(parameterList.parameters, hasLength(3));
@@ -5924,7 +5922,7 @@ void''', []);
   }
 
   void test_parseFormalParameterList_positional_single() {
-    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "([A a = null])", []);
+    FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "([A a = null])");
     expect(parameterList.leftParenthesis, isNotNull);
     expect(parameterList.leftDelimiter, isNotNull);
     expect(parameterList.parameters, hasLength(1));
@@ -5933,7 +5931,7 @@ void''', []);
   }
 
   void test_parseForStatement_each_await() {
-    ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "await for (element in list) {}", []);
+    ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "await for (element in list) {}");
     expect(statement.awaitKeyword, isNotNull);
     expect(statement.forKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
@@ -5946,7 +5944,7 @@ void''', []);
   }
 
   void test_parseForStatement_each_identifier() {
-    ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "for (element in list) {}", []);
+    ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "for (element in list) {}");
     expect(statement.awaitKeyword, isNull);
     expect(statement.forKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
@@ -5959,7 +5957,7 @@ void''', []);
   }
 
   void test_parseForStatement_each_noType_metadata() {
-    ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "for (@A var element in list) {}", []);
+    ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "for (@A var element in list) {}");
     expect(statement.awaitKeyword, isNull);
     expect(statement.forKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
@@ -5973,7 +5971,7 @@ void''', []);
   }
 
   void test_parseForStatement_each_type() {
-    ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "for (A element in list) {}", []);
+    ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "for (A element in list) {}");
     expect(statement.awaitKeyword, isNull);
     expect(statement.forKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
@@ -5986,7 +5984,7 @@ void''', []);
   }
 
   void test_parseForStatement_each_var() {
-    ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "for (var element in list) {}", []);
+    ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "for (var element in list) {}");
     expect(statement.awaitKeyword, isNull);
     expect(statement.forKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
@@ -5999,7 +5997,7 @@ void''', []);
   }
 
   void test_parseForStatement_loop_c() {
-    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (; i < count;) {}", []);
+    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (; i < count;) {}");
     expect(statement.forKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     expect(statement.variables, isNull);
@@ -6013,7 +6011,7 @@ void''', []);
   }
 
   void test_parseForStatement_loop_cu() {
-    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (; i < count; i++) {}", []);
+    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (; i < count; i++) {}");
     expect(statement.forKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     expect(statement.variables, isNull);
@@ -6027,7 +6025,7 @@ void''', []);
   }
 
   void test_parseForStatement_loop_ecu() {
-    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (i--; i < count; i++) {}", []);
+    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (i--; i < count; i++) {}");
     expect(statement.forKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     expect(statement.variables, isNull);
@@ -6041,7 +6039,7 @@ void''', []);
   }
 
   void test_parseForStatement_loop_i() {
-    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (var i = 0;;) {}", []);
+    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (var i = 0;;) {}");
     expect(statement.forKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     VariableDeclarationList variables = statement.variables;
@@ -6058,7 +6056,7 @@ void''', []);
   }
 
   void test_parseForStatement_loop_i_withMetadata() {
-    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (@A var i = 0;;) {}", []);
+    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (@A var i = 0;;) {}");
     expect(statement.forKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     VariableDeclarationList variables = statement.variables;
@@ -6075,7 +6073,7 @@ void''', []);
   }
 
   void test_parseForStatement_loop_ic() {
-    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (var i = 0; i < count;) {}", []);
+    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (var i = 0; i < count;) {}");
     expect(statement.forKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     VariableDeclarationList variables = statement.variables;
@@ -6091,7 +6089,7 @@ void''', []);
   }
 
   void test_parseForStatement_loop_icu() {
-    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (var i = 0; i < count; i++) {}", []);
+    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (var i = 0; i < count; i++) {}");
     expect(statement.forKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     VariableDeclarationList variables = statement.variables;
@@ -6107,7 +6105,7 @@ void''', []);
   }
 
   void test_parseForStatement_loop_iicuu() {
-    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (int i = 0, j = count; i < j; i++, j--) {}", []);
+    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (int i = 0, j = count; i < j; i++, j--) {}");
     expect(statement.forKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     VariableDeclarationList variables = statement.variables;
@@ -6123,7 +6121,7 @@ void''', []);
   }
 
   void test_parseForStatement_loop_iu() {
-    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (var i = 0;; i++) {}", []);
+    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (var i = 0;; i++) {}");
     expect(statement.forKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     VariableDeclarationList variables = statement.variables;
@@ -6139,7 +6137,7 @@ void''', []);
   }
 
   void test_parseForStatement_loop_u() {
-    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (;; i++) {}", []);
+    ForStatement statement = ParserTestCase.parse4("parseForStatement", "for (;; i++) {}");
     expect(statement.forKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     expect(statement.variables, isNull);
@@ -6257,7 +6255,7 @@ void''', []);
   void test_parseFunctionDeclaration_function() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
-    FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment, []), null, returnType], "f() {}");
+    FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment), null, returnType], "f() {}");
     expect(declaration.documentationComment, comment);
     expect(declaration.returnType, returnType);
     expect(declaration.name, isNotNull);
@@ -6271,7 +6269,7 @@ void''', []);
   void test_parseFunctionDeclaration_getter() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
-    FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment, []), null, returnType], "get p => 0;");
+    FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment), null, returnType], "get p => 0;");
     expect(declaration.documentationComment, comment);
     expect(declaration.returnType, returnType);
     expect(declaration.name, isNotNull);
@@ -6285,7 +6283,7 @@ void''', []);
   void test_parseFunctionDeclaration_setter() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
-    FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment, []), null, returnType], "set p(v) {}");
+    FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment), null, returnType], "set p(v) {}");
     expect(declaration.documentationComment, comment);
     expect(declaration.returnType, returnType);
     expect(declaration.name, isNotNull);
@@ -6297,12 +6295,12 @@ void''', []);
   }
 
   void test_parseFunctionDeclarationStatement() {
-    FunctionDeclarationStatement statement = ParserTestCase.parse4("parseFunctionDeclarationStatement", "void f(int p) => p * 2;", []);
+    FunctionDeclarationStatement statement = ParserTestCase.parse4("parseFunctionDeclarationStatement", "void f(int p) => p * 2;");
     expect(statement.functionDeclaration, isNotNull);
   }
 
   void test_parseFunctionExpression_body_inExpression() {
-    FunctionExpression expression = ParserTestCase.parse4("parseFunctionExpression", "(int i) => i++", []);
+    FunctionExpression expression = ParserTestCase.parse4("parseFunctionExpression", "(int i) => i++");
     expect(expression.body, isNotNull);
     expect(expression.parameters, isNotNull);
     expect((expression.body as ExpressionFunctionBody).semicolon, isNull);
@@ -6311,7 +6309,7 @@ void''', []);
   void test_parseGetter_nonStatic() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
-    MethodDeclaration method = ParserTestCase.parse("parseGetter", <Object> [commentAndMetadata(comment, []), null, null, returnType], "get a;");
+    MethodDeclaration method = ParserTestCase.parse("parseGetter", <Object> [commentAndMetadata(comment), null, null, returnType], "get a;");
     expect(method.body, isNotNull);
     expect(method.documentationComment, comment);
     expect(method.externalKeyword, isNull);
@@ -6328,7 +6326,7 @@ void''', []);
     Token staticKeyword = TokenFactory.tokenFromKeyword(Keyword.STATIC);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     MethodDeclaration method = ParserTestCase.parse("parseGetter", <Object> [
-        commentAndMetadata(comment, []),
+        commentAndMetadata(comment),
         null,
         staticKeyword,
         returnType], "get a => 42;");
@@ -6344,17 +6342,17 @@ void''', []);
   }
 
   void test_parseIdentifierList_multiple() {
-    List<SimpleIdentifier> list = ParserTestCase.parse4("parseIdentifierList", "a, b, c", []);
+    List<SimpleIdentifier> list = ParserTestCase.parse4("parseIdentifierList", "a, b, c");
     expect(list, hasLength(3));
   }
 
   void test_parseIdentifierList_single() {
-    List<SimpleIdentifier> list = ParserTestCase.parse4("parseIdentifierList", "a", []);
+    List<SimpleIdentifier> list = ParserTestCase.parse4("parseIdentifierList", "a");
     expect(list, hasLength(1));
   }
 
   void test_parseIfStatement_else_block() {
-    IfStatement statement = ParserTestCase.parse4("parseIfStatement", "if (x) {} else {}", []);
+    IfStatement statement = ParserTestCase.parse4("parseIfStatement", "if (x) {} else {}");
     expect(statement.ifKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     expect(statement.condition, isNotNull);
@@ -6365,7 +6363,7 @@ void''', []);
   }
 
   void test_parseIfStatement_else_statement() {
-    IfStatement statement = ParserTestCase.parse4("parseIfStatement", "if (x) f(x); else f(y);", []);
+    IfStatement statement = ParserTestCase.parse4("parseIfStatement", "if (x) f(x); else f(y);");
     expect(statement.ifKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     expect(statement.condition, isNotNull);
@@ -6376,7 +6374,7 @@ void''', []);
   }
 
   void test_parseIfStatement_noElse_block() {
-    IfStatement statement = ParserTestCase.parse4("parseIfStatement", "if (x) {}", []);
+    IfStatement statement = ParserTestCase.parse4("parseIfStatement", "if (x) {}");
     expect(statement.ifKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     expect(statement.condition, isNotNull);
@@ -6387,7 +6385,7 @@ void''', []);
   }
 
   void test_parseIfStatement_noElse_statement() {
-    IfStatement statement = ParserTestCase.parse4("parseIfStatement", "if (x) f(x);", []);
+    IfStatement statement = ParserTestCase.parse4("parseIfStatement", "if (x) f(x);");
     expect(statement.ifKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     expect(statement.condition, isNotNull);
@@ -6398,13 +6396,13 @@ void''', []);
   }
 
   void test_parseImplementsClause_multiple() {
-    ImplementsClause clause = ParserTestCase.parse4("parseImplementsClause", "implements A, B, C", []);
+    ImplementsClause clause = ParserTestCase.parse4("parseImplementsClause", "implements A, B, C");
     expect(clause.interfaces, hasLength(3));
     expect(clause.keyword, isNotNull);
   }
 
   void test_parseImplementsClause_single() {
-    ImplementsClause clause = ParserTestCase.parse4("parseImplementsClause", "implements A", []);
+    ImplementsClause clause = ParserTestCase.parse4("parseImplementsClause", "implements A");
     expect(clause.interfaces, hasLength(1));
     expect(clause.keyword, isNotNull);
   }
@@ -6491,7 +6489,7 @@ void''', []);
     Token staticKeyword = TokenFactory.tokenFromKeyword(Keyword.STATIC);
     TypeName type = new TypeName(new SimpleIdentifier(null), null);
     FieldDeclaration declaration = ParserTestCase.parse("parseInitializedIdentifierList", <Object> [
-        commentAndMetadata(comment, []),
+        commentAndMetadata(comment),
         staticKeyword,
         null,
         type], "a = 1, b, c = 3;");
@@ -6510,7 +6508,7 @@ void''', []);
     Token staticKeyword = TokenFactory.tokenFromKeyword(Keyword.STATIC);
     Token varKeyword = TokenFactory.tokenFromKeyword(Keyword.VAR);
     FieldDeclaration declaration = ParserTestCase.parse("parseInitializedIdentifierList", <Object> [
-        commentAndMetadata(comment, []),
+        commentAndMetadata(comment),
         staticKeyword,
         varKeyword,
         null], "a = 1, b, c = 3;");
@@ -6581,13 +6579,13 @@ void''', []);
 
   void test_parseLibraryIdentifier_multiple() {
     String name = "a.b.c";
-    LibraryIdentifier identifier = ParserTestCase.parse4("parseLibraryIdentifier", name, []);
+    LibraryIdentifier identifier = ParserTestCase.parse4("parseLibraryIdentifier", name);
     expect(identifier.name, name);
   }
 
   void test_parseLibraryIdentifier_single() {
     String name = "a";
-    LibraryIdentifier identifier = ParserTestCase.parse4("parseLibraryIdentifier", name, []);
+    LibraryIdentifier identifier = ParserTestCase.parse4("parseLibraryIdentifier", name);
     expect(identifier.name, name);
   }
 
@@ -6668,7 +6666,7 @@ void''', []);
   }
 
   void test_parseLogicalAndExpression() {
-    BinaryExpression expression = ParserTestCase.parse4("parseLogicalAndExpression", "x && y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseLogicalAndExpression", "x && y");
     expect(expression.leftOperand, isNotNull);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.AMPERSAND_AMPERSAND);
@@ -6676,7 +6674,7 @@ void''', []);
   }
 
   void test_parseLogicalOrExpression() {
-    BinaryExpression expression = ParserTestCase.parse4("parseLogicalOrExpression", "x || y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseLogicalOrExpression", "x || y");
     expect(expression.leftOperand, isNotNull);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.BAR_BAR);
@@ -6686,8 +6684,8 @@ void''', []);
   void test_parseMapLiteral_empty() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.CONST);
     TypeArgumentList typeArguments = AstFactory.typeArgumentList([
-        AstFactory.typeName4("String", []),
-        AstFactory.typeName4("int", [])]);
+        AstFactory.typeName4("String"),
+        AstFactory.typeName4("int")]);
     MapLiteral literal = ParserTestCase.parse("parseMapLiteral", <Object> [token, typeArguments], "{}");
     expect(literal.constKeyword, token);
     expect(literal.typeArguments, typeArguments);
@@ -6711,63 +6709,63 @@ void''', []);
   }
 
   void test_parseMapLiteralEntry_complex() {
-    MapLiteralEntry entry = ParserTestCase.parse4("parseMapLiteralEntry", "2 + 2 : y", []);
+    MapLiteralEntry entry = ParserTestCase.parse4("parseMapLiteralEntry", "2 + 2 : y");
     expect(entry.key, isNotNull);
     expect(entry.separator, isNotNull);
     expect(entry.value, isNotNull);
   }
 
   void test_parseMapLiteralEntry_int() {
-    MapLiteralEntry entry = ParserTestCase.parse4("parseMapLiteralEntry", "0 : y", []);
+    MapLiteralEntry entry = ParserTestCase.parse4("parseMapLiteralEntry", "0 : y");
     expect(entry.key, isNotNull);
     expect(entry.separator, isNotNull);
     expect(entry.value, isNotNull);
   }
 
   void test_parseMapLiteralEntry_string() {
-    MapLiteralEntry entry = ParserTestCase.parse4("parseMapLiteralEntry", "'x' : y", []);
+    MapLiteralEntry entry = ParserTestCase.parse4("parseMapLiteralEntry", "'x' : y");
     expect(entry.key, isNotNull);
     expect(entry.separator, isNotNull);
     expect(entry.value, isNotNull);
   }
 
   void test_parseModifiers_abstract() {
-    Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "abstract A", []);
+    Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "abstract A");
     expect(modifiers.abstractKeyword, isNotNull);
   }
 
   void test_parseModifiers_const() {
-    Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "const A", []);
+    Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "const A");
     expect(modifiers.constKeyword, isNotNull);
   }
 
   void test_parseModifiers_external() {
-    Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "external A", []);
+    Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "external A");
     expect(modifiers.externalKeyword, isNotNull);
   }
 
   void test_parseModifiers_factory() {
-    Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "factory A", []);
+    Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "factory A");
     expect(modifiers.factoryKeyword, isNotNull);
   }
 
   void test_parseModifiers_final() {
-    Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "final A", []);
+    Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "final A");
     expect(modifiers.finalKeyword, isNotNull);
   }
 
   void test_parseModifiers_static() {
-    Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "static A", []);
+    Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "static A");
     expect(modifiers.staticKeyword, isNotNull);
   }
 
   void test_parseModifiers_var() {
-    Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "var A", []);
+    Modifiers modifiers = ParserTestCase.parse4("parseModifiers", "var A");
     expect(modifiers.varKeyword, isNotNull);
   }
 
   void test_parseMultiplicativeExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parse4("parseMultiplicativeExpression", "x * y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseMultiplicativeExpression", "x * y");
     expect(expression.leftOperand, isNotNull);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.STAR);
@@ -6775,7 +6773,7 @@ void''', []);
   }
 
   void test_parseMultiplicativeExpression_super() {
-    BinaryExpression expression = ParserTestCase.parse4("parseMultiplicativeExpression", "super * y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseMultiplicativeExpression", "super * y");
     EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression, SuperExpression, expression.leftOperand);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.STAR);
@@ -6783,7 +6781,7 @@ void''', []);
   }
 
   void test_parseNewExpression() {
-    InstanceCreationExpression expression = ParserTestCase.parse4("parseNewExpression", "new A()", []);
+    InstanceCreationExpression expression = ParserTestCase.parse4("parseNewExpression", "new A()");
     expect(expression.keyword, isNotNull);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
@@ -6794,65 +6792,65 @@ void''', []);
   }
 
   void test_parseNonLabeledStatement_const_list_empty() {
-    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const [];", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const [];");
     expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_const_list_nonEmpty() {
-    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const [1, 2];", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const [1, 2];");
     expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_const_map_empty() {
-    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const {};", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const {};");
     expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_const_map_nonEmpty() {
     // TODO(brianwilkerson) Implement more tests for this method.
-    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const {'a' : 1};", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const {'a' : 1};");
     expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_const_object() {
-    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const A();", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const A();");
     expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_const_object_named_typeParameters() {
-    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const A<B>.c();", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "const A<B>.c();");
     expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_constructorInvocation() {
-    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "new C().m();", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "new C().m();");
     expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_false() {
-    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "false;", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "false;");
     expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_functionDeclaration() {
-    ParserTestCase.parse4("parseNonLabeledStatement", "f() {};", []);
+    ParserTestCase.parse4("parseNonLabeledStatement", "f() {};");
   }
 
   void test_parseNonLabeledStatement_functionDeclaration_arguments() {
-    ParserTestCase.parse4("parseNonLabeledStatement", "f(void g()) {};", []);
+    ParserTestCase.parse4("parseNonLabeledStatement", "f(void g()) {};");
   }
 
   void test_parseNonLabeledStatement_functionExpressionIndex() {
-    ParserTestCase.parse4("parseNonLabeledStatement", "() {}[0] = null;", []);
+    ParserTestCase.parse4("parseNonLabeledStatement", "() {}[0] = null;");
   }
 
   void test_parseNonLabeledStatement_functionInvocation() {
-    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "f();", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "f();");
     expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_invokeFunctionExpression() {
-    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "(a) {return a + a;} (3);", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "(a) {return a + a;} (3);");
     EngineTestCase.assertInstanceOf((obj) => obj is FunctionExpressionInvocation, FunctionExpressionInvocation, statement.expression);
     FunctionExpressionInvocation invocation = statement.expression as FunctionExpressionInvocation;
     EngineTestCase.assertInstanceOf((obj) => obj is FunctionExpression, FunctionExpression, invocation.function);
@@ -6865,27 +6863,27 @@ void''', []);
   }
 
   void test_parseNonLabeledStatement_null() {
-    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "null;", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "null;");
     expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_startingWithBuiltInIdentifier() {
-    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "library.getName();", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "library.getName();");
     expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_true() {
-    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "true;", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "true;");
     expect(statement.expression, isNotNull);
   }
 
   void test_parseNonLabeledStatement_typeCast() {
-    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "double.NAN as num;", []);
+    ExpressionStatement statement = ParserTestCase.parse4("parseNonLabeledStatement", "double.NAN as num;");
     expect(statement.expression, isNotNull);
   }
 
   void test_parseNormalFormalParameter_field_const_noType() {
-    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "const this.a)", []);
+    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "const this.a)");
     expect(parameter.keyword, isNotNull);
     expect(parameter.type, isNull);
     expect(parameter.identifier, isNotNull);
@@ -6893,7 +6891,7 @@ void''', []);
   }
 
   void test_parseNormalFormalParameter_field_const_type() {
-    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "const A this.a)", []);
+    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "const A this.a)");
     expect(parameter.keyword, isNotNull);
     expect(parameter.type, isNotNull);
     expect(parameter.identifier, isNotNull);
@@ -6901,7 +6899,7 @@ void''', []);
   }
 
   void test_parseNormalFormalParameter_field_final_noType() {
-    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "final this.a)", []);
+    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "final this.a)");
     expect(parameter.keyword, isNotNull);
     expect(parameter.type, isNull);
     expect(parameter.identifier, isNotNull);
@@ -6909,7 +6907,7 @@ void''', []);
   }
 
   void test_parseNormalFormalParameter_field_final_type() {
-    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "final A this.a)", []);
+    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "final A this.a)");
     expect(parameter.keyword, isNotNull);
     expect(parameter.type, isNotNull);
     expect(parameter.identifier, isNotNull);
@@ -6917,7 +6915,7 @@ void''', []);
   }
 
   void test_parseNormalFormalParameter_field_function_nested() {
-    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "this.a(B b))", []);
+    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "this.a(B b))");
     expect(parameter.keyword, isNull);
     expect(parameter.type, isNull);
     expect(parameter.identifier, isNotNull);
@@ -6927,7 +6925,7 @@ void''', []);
   }
 
   void test_parseNormalFormalParameter_field_function_noNested() {
-    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "this.a())", []);
+    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "this.a())");
     expect(parameter.keyword, isNull);
     expect(parameter.type, isNull);
     expect(parameter.identifier, isNotNull);
@@ -6937,7 +6935,7 @@ void''', []);
   }
 
   void test_parseNormalFormalParameter_field_noType() {
-    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "this.a)", []);
+    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "this.a)");
     expect(parameter.keyword, isNull);
     expect(parameter.type, isNull);
     expect(parameter.identifier, isNotNull);
@@ -6945,7 +6943,7 @@ void''', []);
   }
 
   void test_parseNormalFormalParameter_field_type() {
-    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "A this.a)", []);
+    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "A this.a)");
     expect(parameter.keyword, isNull);
     expect(parameter.type, isNotNull);
     expect(parameter.identifier, isNotNull);
@@ -6953,7 +6951,7 @@ void''', []);
   }
 
   void test_parseNormalFormalParameter_field_var() {
-    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "var this.a)", []);
+    FieldFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "var this.a)");
     expect(parameter.keyword, isNotNull);
     expect(parameter.type, isNull);
     expect(parameter.identifier, isNotNull);
@@ -6961,63 +6959,63 @@ void''', []);
   }
 
   void test_parseNormalFormalParameter_function_noType() {
-    FunctionTypedFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "a())", []);
+    FunctionTypedFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "a())");
     expect(parameter.returnType, isNull);
     expect(parameter.identifier, isNotNull);
     expect(parameter.parameters, isNotNull);
   }
 
   void test_parseNormalFormalParameter_function_type() {
-    FunctionTypedFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "A a())", []);
+    FunctionTypedFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "A a())");
     expect(parameter.returnType, isNotNull);
     expect(parameter.identifier, isNotNull);
     expect(parameter.parameters, isNotNull);
   }
 
   void test_parseNormalFormalParameter_function_void() {
-    FunctionTypedFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "void a())", []);
+    FunctionTypedFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "void a())");
     expect(parameter.returnType, isNotNull);
     expect(parameter.identifier, isNotNull);
     expect(parameter.parameters, isNotNull);
   }
 
   void test_parseNormalFormalParameter_simple_const_noType() {
-    SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "const a)", []);
+    SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "const a)");
     expect(parameter.keyword, isNotNull);
     expect(parameter.type, isNull);
     expect(parameter.identifier, isNotNull);
   }
 
   void test_parseNormalFormalParameter_simple_const_type() {
-    SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "const A a)", []);
+    SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "const A a)");
     expect(parameter.keyword, isNotNull);
     expect(parameter.type, isNotNull);
     expect(parameter.identifier, isNotNull);
   }
 
   void test_parseNormalFormalParameter_simple_final_noType() {
-    SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "final a)", []);
+    SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "final a)");
     expect(parameter.keyword, isNotNull);
     expect(parameter.type, isNull);
     expect(parameter.identifier, isNotNull);
   }
 
   void test_parseNormalFormalParameter_simple_final_type() {
-    SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "final A a)", []);
+    SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "final A a)");
     expect(parameter.keyword, isNotNull);
     expect(parameter.type, isNotNull);
     expect(parameter.identifier, isNotNull);
   }
 
   void test_parseNormalFormalParameter_simple_noType() {
-    SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "a)", []);
+    SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "a)");
     expect(parameter.keyword, isNull);
     expect(parameter.type, isNull);
     expect(parameter.identifier, isNotNull);
   }
 
   void test_parseNormalFormalParameter_simple_type() {
-    SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "A a)", []);
+    SimpleFormalParameter parameter = ParserTestCase.parse4("parseNormalFormalParameter", "A a)");
     expect(parameter.keyword, isNull);
     expect(parameter.type, isNotNull);
     expect(parameter.identifier, isNotNull);
@@ -7026,7 +7024,7 @@ void''', []);
   void test_parseOperator() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
-    MethodDeclaration method = ParserTestCase.parse("parseOperator", <Object> [commentAndMetadata(comment, []), null, returnType], "operator +(A a);");
+    MethodDeclaration method = ParserTestCase.parse("parseOperator", <Object> [commentAndMetadata(comment), null, returnType], "operator +(A a);");
     expect(method.body, isNotNull);
     expect(method.documentationComment, comment);
     expect(method.externalKeyword, isNull);
@@ -7058,167 +7056,167 @@ void''', []);
   }
 
   void test_parsePostfixExpression_decrement() {
-    PostfixExpression expression = ParserTestCase.parse4("parsePostfixExpression", "i--", []);
+    PostfixExpression expression = ParserTestCase.parse4("parsePostfixExpression", "i--");
     expect(expression.operand, isNotNull);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.MINUS_MINUS);
   }
 
   void test_parsePostfixExpression_increment() {
-    PostfixExpression expression = ParserTestCase.parse4("parsePostfixExpression", "i++", []);
+    PostfixExpression expression = ParserTestCase.parse4("parsePostfixExpression", "i++");
     expect(expression.operand, isNotNull);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.PLUS_PLUS);
   }
 
   void test_parsePostfixExpression_none_indexExpression() {
-    IndexExpression expression = ParserTestCase.parse4("parsePostfixExpression", "a[0]", []);
+    IndexExpression expression = ParserTestCase.parse4("parsePostfixExpression", "a[0]");
     expect(expression.target, isNotNull);
     expect(expression.index, isNotNull);
   }
 
   void test_parsePostfixExpression_none_methodInvocation() {
-    MethodInvocation expression = ParserTestCase.parse4("parsePostfixExpression", "a.m()", []);
+    MethodInvocation expression = ParserTestCase.parse4("parsePostfixExpression", "a.m()");
     expect(expression.target, isNotNull);
     expect(expression.methodName, isNotNull);
     expect(expression.argumentList, isNotNull);
   }
 
   void test_parsePostfixExpression_none_propertyAccess() {
-    PrefixedIdentifier expression = ParserTestCase.parse4("parsePostfixExpression", "a.b", []);
+    PrefixedIdentifier expression = ParserTestCase.parse4("parsePostfixExpression", "a.b");
     expect(expression.prefix, isNotNull);
     expect(expression.identifier, isNotNull);
   }
 
   void test_parsePrefixedIdentifier_noPrefix() {
     String lexeme = "bar";
-    SimpleIdentifier identifier = ParserTestCase.parse4("parsePrefixedIdentifier", lexeme, []);
+    SimpleIdentifier identifier = ParserTestCase.parse4("parsePrefixedIdentifier", lexeme);
     expect(identifier.token, isNotNull);
     expect(identifier.name, lexeme);
   }
 
   void test_parsePrefixedIdentifier_prefix() {
     String lexeme = "foo.bar";
-    PrefixedIdentifier identifier = ParserTestCase.parse4("parsePrefixedIdentifier", lexeme, []);
+    PrefixedIdentifier identifier = ParserTestCase.parse4("parsePrefixedIdentifier", lexeme);
     expect(identifier.prefix.name, "foo");
     expect(identifier.period, isNotNull);
     expect(identifier.identifier.name, "bar");
   }
 
   void test_parsePrimaryExpression_const() {
-    InstanceCreationExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "const A()", []);
+    InstanceCreationExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "const A()");
     expect(expression, isNotNull);
   }
 
   void test_parsePrimaryExpression_double() {
     String doubleLiteral = "3.2e4";
-    DoubleLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", doubleLiteral, []);
+    DoubleLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", doubleLiteral);
     expect(literal.literal, isNotNull);
     expect(literal.value, double.parse(doubleLiteral));
   }
 
   void test_parsePrimaryExpression_false() {
-    BooleanLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "false", []);
+    BooleanLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "false");
     expect(literal.literal, isNotNull);
     expect(literal.value, isFalse);
   }
 
   void test_parsePrimaryExpression_function_arguments() {
-    FunctionExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "(int i) => i + 1", []);
+    FunctionExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "(int i) => i + 1");
     expect(expression.parameters, isNotNull);
     expect(expression.body, isNotNull);
   }
 
   void test_parsePrimaryExpression_function_noArguments() {
-    FunctionExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "() => 42", []);
+    FunctionExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "() => 42");
     expect(expression.parameters, isNotNull);
     expect(expression.body, isNotNull);
   }
 
   void test_parsePrimaryExpression_hex() {
     String hexLiteral = "3F";
-    IntegerLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "0x$hexLiteral", []);
+    IntegerLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "0x$hexLiteral");
     expect(literal.literal, isNotNull);
     expect(literal.value, int.parse(hexLiteral, radix: 16));
   }
 
   void test_parsePrimaryExpression_identifier() {
-    SimpleIdentifier identifier = ParserTestCase.parse4("parsePrimaryExpression", "a", []);
+    SimpleIdentifier identifier = ParserTestCase.parse4("parsePrimaryExpression", "a");
     expect(identifier, isNotNull);
   }
 
   void test_parsePrimaryExpression_int() {
     String intLiteral = "472";
-    IntegerLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", intLiteral, []);
+    IntegerLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", intLiteral);
     expect(literal.literal, isNotNull);
     expect(literal.value, int.parse(intLiteral));
   }
 
   void test_parsePrimaryExpression_listLiteral() {
-    ListLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "[ ]", []);
+    ListLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "[ ]");
     expect(literal, isNotNull);
   }
 
   void test_parsePrimaryExpression_listLiteral_index() {
-    ListLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "[]", []);
+    ListLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "[]");
     expect(literal, isNotNull);
   }
 
   void test_parsePrimaryExpression_listLiteral_typed() {
-    ListLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "<A>[ ]", []);
+    ListLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "<A>[ ]");
     expect(literal.typeArguments, isNotNull);
     expect(literal.typeArguments.arguments, hasLength(1));
   }
 
   void test_parsePrimaryExpression_mapLiteral() {
-    MapLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "{}", []);
+    MapLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "{}");
     expect(literal, isNotNull);
   }
 
   void test_parsePrimaryExpression_mapLiteral_typed() {
-    MapLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "<A, B>{}", []);
+    MapLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "<A, B>{}");
     expect(literal.typeArguments, isNotNull);
     expect(literal.typeArguments.arguments, hasLength(2));
   }
 
   void test_parsePrimaryExpression_new() {
-    InstanceCreationExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "new A()", []);
+    InstanceCreationExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "new A()");
     expect(expression, isNotNull);
   }
 
   void test_parsePrimaryExpression_null() {
-    NullLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "null", []);
+    NullLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "null");
     expect(literal.literal, isNotNull);
   }
 
   void test_parsePrimaryExpression_parenthesized() {
-    ParenthesizedExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "(x)", []);
+    ParenthesizedExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "(x)");
     expect(expression, isNotNull);
   }
 
   void test_parsePrimaryExpression_string() {
-    SimpleStringLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "\"string\"", []);
+    SimpleStringLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "\"string\"");
     expect(literal.isMultiline, isFalse);
     expect(literal.isRaw, isFalse);
     expect(literal.value, "string");
   }
 
   void test_parsePrimaryExpression_string_multiline() {
-    SimpleStringLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "'''string'''", []);
+    SimpleStringLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "'''string'''");
     expect(literal.isMultiline, isTrue);
     expect(literal.isRaw, isFalse);
     expect(literal.value, "string");
   }
 
   void test_parsePrimaryExpression_string_raw() {
-    SimpleStringLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "r'string'", []);
+    SimpleStringLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "r'string'");
     expect(literal.isMultiline, isFalse);
     expect(literal.isRaw, isTrue);
     expect(literal.value, "string");
   }
 
   void test_parsePrimaryExpression_super() {
-    PropertyAccess propertyAccess = ParserTestCase.parse4("parsePrimaryExpression", "super.x", []);
+    PropertyAccess propertyAccess = ParserTestCase.parse4("parsePrimaryExpression", "super.x");
     expect(propertyAccess.target is SuperExpression, isTrue);
     expect(propertyAccess.operator, isNotNull);
     expect(propertyAccess.operator.type, TokenType.PERIOD);
@@ -7226,12 +7224,12 @@ void''', []);
   }
 
   void test_parsePrimaryExpression_this() {
-    ThisExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "this", []);
+    ThisExpression expression = ParserTestCase.parse4("parsePrimaryExpression", "this");
     expect(expression.keyword, isNotNull);
   }
 
   void test_parsePrimaryExpression_true() {
-    BooleanLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "true", []);
+    BooleanLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "true");
     expect(literal.literal, isNotNull);
     expect(literal.value, isTrue);
   }
@@ -7241,7 +7239,7 @@ void''', []);
   }
 
   void test_parseRedirectingConstructorInvocation_named() {
-    RedirectingConstructorInvocation invocation = ParserTestCase.parse4("parseRedirectingConstructorInvocation", "this.a()", []);
+    RedirectingConstructorInvocation invocation = ParserTestCase.parse4("parseRedirectingConstructorInvocation", "this.a()");
     expect(invocation.argumentList, isNotNull);
     expect(invocation.constructorName, isNotNull);
     expect(invocation.keyword, isNotNull);
@@ -7249,7 +7247,7 @@ void''', []);
   }
 
   void test_parseRedirectingConstructorInvocation_unnamed() {
-    RedirectingConstructorInvocation invocation = ParserTestCase.parse4("parseRedirectingConstructorInvocation", "this()", []);
+    RedirectingConstructorInvocation invocation = ParserTestCase.parse4("parseRedirectingConstructorInvocation", "this()");
     expect(invocation.argumentList, isNotNull);
     expect(invocation.constructorName, isNull);
     expect(invocation.keyword, isNotNull);
@@ -7257,14 +7255,14 @@ void''', []);
   }
 
   void test_parseRelationalExpression_as() {
-    AsExpression expression = ParserTestCase.parse4("parseRelationalExpression", "x as Y", []);
+    AsExpression expression = ParserTestCase.parse4("parseRelationalExpression", "x as Y");
     expect(expression.expression, isNotNull);
     expect(expression.asOperator, isNotNull);
     expect(expression.type, isNotNull);
   }
 
   void test_parseRelationalExpression_is() {
-    IsExpression expression = ParserTestCase.parse4("parseRelationalExpression", "x is y", []);
+    IsExpression expression = ParserTestCase.parse4("parseRelationalExpression", "x is y");
     expect(expression.expression, isNotNull);
     expect(expression.isOperator, isNotNull);
     expect(expression.notOperator, isNull);
@@ -7272,7 +7270,7 @@ void''', []);
   }
 
   void test_parseRelationalExpression_isNot() {
-    IsExpression expression = ParserTestCase.parse4("parseRelationalExpression", "x is! y", []);
+    IsExpression expression = ParserTestCase.parse4("parseRelationalExpression", "x is! y");
     expect(expression.expression, isNotNull);
     expect(expression.isOperator, isNotNull);
     expect(expression.notOperator, isNotNull);
@@ -7280,7 +7278,7 @@ void''', []);
   }
 
   void test_parseRelationalExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parse4("parseRelationalExpression", "x < y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseRelationalExpression", "x < y");
     expect(expression.leftOperand, isNotNull);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.LT);
@@ -7288,7 +7286,7 @@ void''', []);
   }
 
   void test_parseRelationalExpression_super() {
-    BinaryExpression expression = ParserTestCase.parse4("parseRelationalExpression", "super < y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseRelationalExpression", "super < y");
     expect(expression.leftOperand, isNotNull);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.LT);
@@ -7296,32 +7294,32 @@ void''', []);
   }
 
   void test_parseRethrowExpression() {
-    RethrowExpression expression = ParserTestCase.parse4("parseRethrowExpression", "rethrow;", []);
+    RethrowExpression expression = ParserTestCase.parse4("parseRethrowExpression", "rethrow;");
     expect(expression.keyword, isNotNull);
   }
 
   void test_parseReturnStatement_noValue() {
-    ReturnStatement statement = ParserTestCase.parse4("parseReturnStatement", "return;", []);
+    ReturnStatement statement = ParserTestCase.parse4("parseReturnStatement", "return;");
     expect(statement.keyword, isNotNull);
     expect(statement.expression, isNull);
     expect(statement.semicolon, isNotNull);
   }
 
   void test_parseReturnStatement_value() {
-    ReturnStatement statement = ParserTestCase.parse4("parseReturnStatement", "return x;", []);
+    ReturnStatement statement = ParserTestCase.parse4("parseReturnStatement", "return x;");
     expect(statement.keyword, isNotNull);
     expect(statement.expression, isNotNull);
     expect(statement.semicolon, isNotNull);
   }
 
   void test_parseReturnType_nonVoid() {
-    TypeName typeName = ParserTestCase.parse4("parseReturnType", "A<B>", []);
+    TypeName typeName = ParserTestCase.parse4("parseReturnType", "A<B>");
     expect(typeName.name, isNotNull);
     expect(typeName.typeArguments, isNotNull);
   }
 
   void test_parseReturnType_void() {
-    TypeName typeName = ParserTestCase.parse4("parseReturnType", "void", []);
+    TypeName typeName = ParserTestCase.parse4("parseReturnType", "void");
     expect(typeName.name, isNotNull);
     expect(typeName.typeArguments, isNull);
   }
@@ -7329,7 +7327,7 @@ void''', []);
   void test_parseSetter_nonStatic() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
-    MethodDeclaration method = ParserTestCase.parse("parseSetter", <Object> [commentAndMetadata(comment, []), null, null, returnType], "set a(var x);");
+    MethodDeclaration method = ParserTestCase.parse("parseSetter", <Object> [commentAndMetadata(comment), null, null, returnType], "set a(var x);");
     expect(method.body, isNotNull);
     expect(method.documentationComment, comment);
     expect(method.externalKeyword, isNull);
@@ -7346,7 +7344,7 @@ void''', []);
     Token staticKeyword = TokenFactory.tokenFromKeyword(Keyword.STATIC);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     MethodDeclaration method = ParserTestCase.parse("parseSetter", <Object> [
-        commentAndMetadata(comment, []),
+        commentAndMetadata(comment),
         null,
         staticKeyword,
         returnType], "set a(var x) {}");
@@ -7362,7 +7360,7 @@ void''', []);
   }
 
   void test_parseShiftExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parse4("parseShiftExpression", "x << y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseShiftExpression", "x << y");
     expect(expression.leftOperand, isNotNull);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.LT_LT);
@@ -7370,7 +7368,7 @@ void''', []);
   }
 
   void test_parseShiftExpression_super() {
-    BinaryExpression expression = ParserTestCase.parse4("parseShiftExpression", "super << y", []);
+    BinaryExpression expression = ParserTestCase.parse4("parseShiftExpression", "super << y");
     expect(expression.leftOperand, isNotNull);
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.LT_LT);
@@ -7379,14 +7377,14 @@ void''', []);
 
   void test_parseSimpleIdentifier_builtInIdentifier() {
     String lexeme = "as";
-    SimpleIdentifier identifier = ParserTestCase.parse4("parseSimpleIdentifier", lexeme, []);
+    SimpleIdentifier identifier = ParserTestCase.parse4("parseSimpleIdentifier", lexeme);
     expect(identifier.token, isNotNull);
     expect(identifier.name, lexeme);
   }
 
   void test_parseSimpleIdentifier_normalIdentifier() {
     String lexeme = "foo";
-    SimpleIdentifier identifier = ParserTestCase.parse4("parseSimpleIdentifier", lexeme, []);
+    SimpleIdentifier identifier = ParserTestCase.parse4("parseSimpleIdentifier", lexeme);
     expect(identifier.token, isNotNull);
     expect(identifier.name, lexeme);
   }
@@ -7397,38 +7395,38 @@ void''', []);
 
   void test_parseStatement_functionDeclaration() {
     // TODO(brianwilkerson) Implement more tests for this method.
-    FunctionDeclarationStatement statement = ParserTestCase.parse4("parseStatement", "int f(a, b) {};", []);
+    FunctionDeclarationStatement statement = ParserTestCase.parse4("parseStatement", "int f(a, b) {};");
     expect(statement.functionDeclaration, isNotNull);
   }
 
   void test_parseStatement_mulipleLabels() {
-    LabeledStatement statement = ParserTestCase.parse4("parseStatement", "l: m: return x;", []);
+    LabeledStatement statement = ParserTestCase.parse4("parseStatement", "l: m: return x;");
     expect(statement.labels, hasLength(2));
     expect(statement.statement, isNotNull);
   }
 
   void test_parseStatement_noLabels() {
-    ParserTestCase.parse4("parseStatement", "return x;", []);
+    ParserTestCase.parse4("parseStatement", "return x;");
   }
 
   void test_parseStatement_singleLabel() {
-    LabeledStatement statement = ParserTestCase.parse4("parseStatement", "l: return x;", []);
+    LabeledStatement statement = ParserTestCase.parse4("parseStatement", "l: return x;");
     expect(statement.labels, hasLength(1));
     expect(statement.statement, isNotNull);
   }
 
   void test_parseStatements_multiple() {
-    List<Statement> statements = ParserTestCase.parseStatements("return; return;", 2, []);
+    List<Statement> statements = ParserTestCase.parseStatements("return; return;", 2);
     expect(statements, hasLength(2));
   }
 
   void test_parseStatements_single() {
-    List<Statement> statements = ParserTestCase.parseStatements("return;", 1, []);
+    List<Statement> statements = ParserTestCase.parseStatements("return;", 1);
     expect(statements, hasLength(1));
   }
 
   void test_parseStringLiteral_adjacent() {
-    AdjacentStrings literal = ParserTestCase.parse4("parseStringLiteral", "'a' 'b'", []);
+    AdjacentStrings literal = ParserTestCase.parse4("parseStringLiteral", "'a' 'b'");
     NodeList<StringLiteral> strings = literal.strings;
     expect(strings, hasLength(2));
     StringLiteral firstString = strings[0];
@@ -7438,7 +7436,7 @@ void''', []);
   }
 
   void test_parseStringLiteral_interpolated() {
-    StringInterpolation literal = ParserTestCase.parse4("parseStringLiteral", "'a \${b} c \$this d'", []);
+    StringInterpolation literal = ParserTestCase.parse4("parseStringLiteral", "'a \${b} c \$this d'");
     NodeList<InterpolationElement> elements = literal.elements;
     expect(elements, hasLength(5));
     expect(elements[0] is InterpolationString, isTrue);
@@ -7449,13 +7447,13 @@ void''', []);
   }
 
   void test_parseStringLiteral_single() {
-    SimpleStringLiteral literal = ParserTestCase.parse4("parseStringLiteral", "'a'", []);
+    SimpleStringLiteral literal = ParserTestCase.parse4("parseStringLiteral", "'a'");
     expect(literal.literal, isNotNull);
     expect(literal.value, "a");
   }
 
   void test_parseSuperConstructorInvocation_named() {
-    SuperConstructorInvocation invocation = ParserTestCase.parse4("parseSuperConstructorInvocation", "super.a()", []);
+    SuperConstructorInvocation invocation = ParserTestCase.parse4("parseSuperConstructorInvocation", "super.a()");
     expect(invocation.argumentList, isNotNull);
     expect(invocation.constructorName, isNotNull);
     expect(invocation.keyword, isNotNull);
@@ -7463,7 +7461,7 @@ void''', []);
   }
 
   void test_parseSuperConstructorInvocation_unnamed() {
-    SuperConstructorInvocation invocation = ParserTestCase.parse4("parseSuperConstructorInvocation", "super()", []);
+    SuperConstructorInvocation invocation = ParserTestCase.parse4("parseSuperConstructorInvocation", "super()");
     expect(invocation.argumentList, isNotNull);
     expect(invocation.constructorName, isNull);
     expect(invocation.keyword, isNotNull);
@@ -7471,7 +7469,7 @@ void''', []);
   }
 
   void test_parseSwitchStatement_case() {
-    SwitchStatement statement = ParserTestCase.parse4("parseSwitchStatement", "switch (a) {case 1: return 'I';}", []);
+    SwitchStatement statement = ParserTestCase.parse4("parseSwitchStatement", "switch (a) {case 1: return 'I';}");
     expect(statement.keyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     expect(statement.expression, isNotNull);
@@ -7482,7 +7480,7 @@ void''', []);
   }
 
   void test_parseSwitchStatement_empty() {
-    SwitchStatement statement = ParserTestCase.parse4("parseSwitchStatement", "switch (a) {}", []);
+    SwitchStatement statement = ParserTestCase.parse4("parseSwitchStatement", "switch (a) {}");
     expect(statement.keyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     expect(statement.expression, isNotNull);
@@ -7493,7 +7491,7 @@ void''', []);
   }
 
   void test_parseSwitchStatement_labeledCase() {
-    SwitchStatement statement = ParserTestCase.parse4("parseSwitchStatement", "switch (a) {l1: l2: l3: case(1):}", []);
+    SwitchStatement statement = ParserTestCase.parse4("parseSwitchStatement", "switch (a) {l1: l2: l3: case(1):}");
     expect(statement.keyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     expect(statement.expression, isNotNull);
@@ -7505,7 +7503,7 @@ void''', []);
   }
 
   void test_parseSwitchStatement_labeledStatementInCase() {
-    SwitchStatement statement = ParserTestCase.parse4("parseSwitchStatement", "switch (a) {case 0: f(); l1: g(); break;}", []);
+    SwitchStatement statement = ParserTestCase.parse4("parseSwitchStatement", "switch (a) {case 0: f(); l1: g(); break;}");
     expect(statement.keyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     expect(statement.expression, isNotNull);
@@ -7517,7 +7515,7 @@ void''', []);
   }
 
   void test_parseSymbolLiteral_builtInIdentifier() {
-    SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#dynamic.static.abstract", []);
+    SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#dynamic.static.abstract");
     expect(literal.poundSign, isNotNull);
     List<Token> components = literal.components;
     expect(components, hasLength(3));
@@ -7527,7 +7525,7 @@ void''', []);
   }
 
   void test_parseSymbolLiteral_multiple() {
-    SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#a.b.c", []);
+    SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#a.b.c");
     expect(literal.poundSign, isNotNull);
     List<Token> components = literal.components;
     expect(components, hasLength(3));
@@ -7537,7 +7535,7 @@ void''', []);
   }
 
   void test_parseSymbolLiteral_operator() {
-    SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#==", []);
+    SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#==");
     expect(literal.poundSign, isNotNull);
     List<Token> components = literal.components;
     expect(components, hasLength(1));
@@ -7545,7 +7543,7 @@ void''', []);
   }
 
   void test_parseSymbolLiteral_single() {
-    SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#a", []);
+    SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#a");
     expect(literal.poundSign, isNotNull);
     List<Token> components = literal.components;
     expect(components, hasLength(1));
@@ -7553,7 +7551,7 @@ void''', []);
   }
 
   void test_parseSymbolLiteral_void() {
-    SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#void", []);
+    SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#void");
     expect(literal.poundSign, isNotNull);
     List<Token> components = literal.components;
     expect(components, hasLength(1));
@@ -7561,19 +7559,19 @@ void''', []);
   }
 
   void test_parseThrowExpression() {
-    ThrowExpression expression = ParserTestCase.parse4("parseThrowExpression", "throw x;", []);
+    ThrowExpression expression = ParserTestCase.parse4("parseThrowExpression", "throw x;");
     expect(expression.keyword, isNotNull);
     expect(expression.expression, isNotNull);
   }
 
   void test_parseThrowExpressionWithoutCascade() {
-    ThrowExpression expression = ParserTestCase.parse4("parseThrowExpressionWithoutCascade", "throw x;", []);
+    ThrowExpression expression = ParserTestCase.parse4("parseThrowExpressionWithoutCascade", "throw x;");
     expect(expression.keyword, isNotNull);
     expect(expression.expression, isNotNull);
   }
 
   void test_parseTryStatement_catch() {
-    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} catch (e) {}", []);
+    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} catch (e) {}");
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
@@ -7591,7 +7589,7 @@ void''', []);
   }
 
   void test_parseTryStatement_catch_finally() {
-    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} catch (e, s) {} finally {}", []);
+    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} catch (e, s) {} finally {}");
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
@@ -7609,7 +7607,7 @@ void''', []);
   }
 
   void test_parseTryStatement_finally() {
-    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} finally {}", []);
+    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} finally {}");
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
     expect(statement.catchClauses, hasLength(0));
@@ -7618,7 +7616,7 @@ void''', []);
   }
 
   void test_parseTryStatement_multiple() {
-    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} on NPE catch (e) {} on Error {} catch (e) {}", []);
+    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} on NPE catch (e) {} on Error {} catch (e) {}");
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
     expect(statement.catchClauses, hasLength(3));
@@ -7627,7 +7625,7 @@ void''', []);
   }
 
   void test_parseTryStatement_on() {
-    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} on Error {}", []);
+    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} on Error {}");
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
@@ -7645,7 +7643,7 @@ void''', []);
   }
 
   void test_parseTryStatement_on_catch() {
-    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} on Error catch (e, s) {}", []);
+    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} on Error catch (e, s) {}");
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
@@ -7663,7 +7661,7 @@ void''', []);
   }
 
   void test_parseTryStatement_on_catch_finally() {
-    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} on Error catch (e, s) {} finally {}", []);
+    TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} on Error catch (e, s) {} finally {}");
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
@@ -7741,14 +7739,14 @@ void''', []);
   }
 
   void test_parseTypeArgumentList_multiple() {
-    TypeArgumentList argumentList = ParserTestCase.parse4("parseTypeArgumentList", "<int, int, int>", []);
+    TypeArgumentList argumentList = ParserTestCase.parse4("parseTypeArgumentList", "<int, int, int>");
     expect(argumentList.leftBracket, isNotNull);
     expect(argumentList.arguments, hasLength(3));
     expect(argumentList.rightBracket, isNotNull);
   }
 
   void test_parseTypeArgumentList_nested() {
-    TypeArgumentList argumentList = ParserTestCase.parse4("parseTypeArgumentList", "<A<B>>", []);
+    TypeArgumentList argumentList = ParserTestCase.parse4("parseTypeArgumentList", "<A<B>>");
     expect(argumentList.leftBracket, isNotNull);
     expect(argumentList.arguments, hasLength(1));
     TypeName argument = argumentList.arguments[0];
@@ -7760,75 +7758,75 @@ void''', []);
   }
 
   void test_parseTypeArgumentList_single() {
-    TypeArgumentList argumentList = ParserTestCase.parse4("parseTypeArgumentList", "<int>", []);
+    TypeArgumentList argumentList = ParserTestCase.parse4("parseTypeArgumentList", "<int>");
     expect(argumentList.leftBracket, isNotNull);
     expect(argumentList.arguments, hasLength(1));
     expect(argumentList.rightBracket, isNotNull);
   }
 
   void test_parseTypeName_parameterized() {
-    TypeName typeName = ParserTestCase.parse4("parseTypeName", "List<int>", []);
+    TypeName typeName = ParserTestCase.parse4("parseTypeName", "List<int>");
     expect(typeName.name, isNotNull);
     expect(typeName.typeArguments, isNotNull);
   }
 
   void test_parseTypeName_simple() {
-    TypeName typeName = ParserTestCase.parse4("parseTypeName", "int", []);
+    TypeName typeName = ParserTestCase.parse4("parseTypeName", "int");
     expect(typeName.name, isNotNull);
     expect(typeName.typeArguments, isNull);
   }
 
   void test_parseTypeParameter_bounded() {
-    TypeParameter parameter = ParserTestCase.parse4("parseTypeParameter", "A extends B", []);
+    TypeParameter parameter = ParserTestCase.parse4("parseTypeParameter", "A extends B");
     expect(parameter.bound, isNotNull);
     expect(parameter.keyword, isNotNull);
     expect(parameter.name, isNotNull);
   }
 
   void test_parseTypeParameter_simple() {
-    TypeParameter parameter = ParserTestCase.parse4("parseTypeParameter", "A", []);
+    TypeParameter parameter = ParserTestCase.parse4("parseTypeParameter", "A");
     expect(parameter.bound, isNull);
     expect(parameter.keyword, isNull);
     expect(parameter.name, isNotNull);
   }
 
   void test_parseTypeParameterList_multiple() {
-    TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A, B extends C, D>", []);
+    TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A, B extends C, D>");
     expect(parameterList.leftBracket, isNotNull);
     expect(parameterList.rightBracket, isNotNull);
     expect(parameterList.typeParameters, hasLength(3));
   }
 
   void test_parseTypeParameterList_parameterizedWithTrailingEquals() {
-    TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A extends B<E>>=", []);
+    TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A extends B<E>>=");
     expect(parameterList.leftBracket, isNotNull);
     expect(parameterList.rightBracket, isNotNull);
     expect(parameterList.typeParameters, hasLength(1));
   }
 
   void test_parseTypeParameterList_single() {
-    TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A>", []);
+    TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A>");
     expect(parameterList.leftBracket, isNotNull);
     expect(parameterList.rightBracket, isNotNull);
     expect(parameterList.typeParameters, hasLength(1));
   }
 
   void test_parseTypeParameterList_withTrailingEquals() {
-    TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A>=", []);
+    TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A>=");
     expect(parameterList.leftBracket, isNotNull);
     expect(parameterList.rightBracket, isNotNull);
     expect(parameterList.typeParameters, hasLength(1));
   }
 
   void test_parseUnaryExpression_decrement_normal() {
-    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "--x", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "--x");
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.MINUS_MINUS);
     expect(expression.operand, isNotNull);
   }
 
   void test_parseUnaryExpression_decrement_super() {
-    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "--super", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "--super");
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.MINUS);
     Expression innerExpression = expression.operand;
@@ -7841,7 +7839,7 @@ void''', []);
   }
 
   void test_parseUnaryExpression_decrement_super_propertyAccess() {
-    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "--super.x", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "--super.x");
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.MINUS_MINUS);
     expect(expression.operand, isNotNull);
@@ -7851,14 +7849,14 @@ void''', []);
   }
 
   void test_parseUnaryExpression_increment_normal() {
-    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "++x", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "++x");
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.PLUS_PLUS);
     expect(expression.operand, isNotNull);
   }
 
   void test_parseUnaryExpression_increment_super_index() {
-    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "++super[0]", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "++super[0]");
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.PLUS_PLUS);
     expect(expression.operand, isNotNull);
@@ -7868,7 +7866,7 @@ void''', []);
   }
 
   void test_parseUnaryExpression_increment_super_propertyAccess() {
-    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "++super.x", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "++super.x");
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.PLUS_PLUS);
     expect(expression.operand, isNotNull);
@@ -7878,56 +7876,56 @@ void''', []);
   }
 
   void test_parseUnaryExpression_minus_normal() {
-    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "-x", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "-x");
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.MINUS);
     expect(expression.operand, isNotNull);
   }
 
   void test_parseUnaryExpression_minus_super() {
-    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "-super", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "-super");
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.MINUS);
     expect(expression.operand, isNotNull);
   }
 
   void test_parseUnaryExpression_not_normal() {
-    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "!x", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "!x");
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.BANG);
     expect(expression.operand, isNotNull);
   }
 
   void test_parseUnaryExpression_not_super() {
-    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "!super", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "!super");
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.BANG);
     expect(expression.operand, isNotNull);
   }
 
   void test_parseUnaryExpression_tilda_normal() {
-    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "~x", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "~x");
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.TILDE);
     expect(expression.operand, isNotNull);
   }
 
   void test_parseUnaryExpression_tilda_super() {
-    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "~super", []);
+    PrefixExpression expression = ParserTestCase.parse4("parseUnaryExpression", "~super");
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.TILDE);
     expect(expression.operand, isNotNull);
   }
 
   void test_parseVariableDeclaration_equals() {
-    VariableDeclaration declaration = ParserTestCase.parse4("parseVariableDeclaration", "a = b", []);
+    VariableDeclaration declaration = ParserTestCase.parse4("parseVariableDeclaration", "a = b");
     expect(declaration.name, isNotNull);
     expect(declaration.equals, isNotNull);
     expect(declaration.initializer, isNotNull);
   }
 
   void test_parseVariableDeclaration_noEquals() {
-    VariableDeclaration declaration = ParserTestCase.parse4("parseVariableDeclaration", "a", []);
+    VariableDeclaration declaration = ParserTestCase.parse4("parseVariableDeclaration", "a");
     expect(declaration.name, isNotNull);
     expect(declaration.equals, isNull);
     expect(declaration.initializer, isNull);
@@ -8022,7 +8020,7 @@ void''', []);
   }
 
   void test_parseWhileStatement() {
-    WhileStatement statement = ParserTestCase.parse4("parseWhileStatement", "while (x) {}", []);
+    WhileStatement statement = ParserTestCase.parse4("parseWhileStatement", "while (x) {}");
     expect(statement.keyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     expect(statement.condition, isNotNull);
@@ -8031,19 +8029,19 @@ void''', []);
   }
 
   void test_parseWithClause_multiple() {
-    WithClause clause = ParserTestCase.parse4("parseWithClause", "with A, B, C", []);
+    WithClause clause = ParserTestCase.parse4("parseWithClause", "with A, B, C");
     expect(clause.withKeyword, isNotNull);
     expect(clause.mixinTypes, hasLength(3));
   }
 
   void test_parseWithClause_single() {
-    WithClause clause = ParserTestCase.parse4("parseWithClause", "with M", []);
+    WithClause clause = ParserTestCase.parse4("parseWithClause", "with M");
     expect(clause.withKeyword, isNotNull);
     expect(clause.mixinTypes, hasLength(1));
   }
 
   void test_parseYieldStatement_each() {
-    YieldStatement statement = ParserTestCase.parse4("parseYieldStatement", "yield* x;", []);
+    YieldStatement statement = ParserTestCase.parse4("parseYieldStatement", "yield* x;");
     expect(statement.yieldKeyword, isNotNull);
     expect(statement.star, isNotNull);
     expect(statement.expression, isNotNull);
@@ -8051,7 +8049,7 @@ void''', []);
   }
 
   void test_parseYieldStatement_normal() {
-    YieldStatement statement = ParserTestCase.parse4("parseYieldStatement", "yield x;", []);
+    YieldStatement statement = ParserTestCase.parse4("parseYieldStatement", "yield x;");
     expect(statement.yieldKeyword, isNotNull);
     expect(statement.star, isNull);
     expect(statement.expression, isNotNull);
@@ -8277,7 +8275,7 @@ void''', []);
    * @throws Exception if the source could not be parsed, if the compilation errors in the source do
    *           not match those that are expected, or if the result would have been `null`
    */
-  CompilationUnit _parseDirectives(String source, List<ErrorCode> errorCodes) {
+  CompilationUnit _parseDirectives(String source, [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST]) {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     listener.setLineInfo(new TestSource(), scanner.lineStarts);

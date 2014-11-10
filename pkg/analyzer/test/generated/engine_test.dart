@@ -2008,36 +2008,33 @@ class DartEntryTest extends EngineTestCase {
         <AnalysisError>[
             new AnalysisError.con1(
                 source,
-                ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-                [])]);
+                ScannerErrorCode.UNTERMINATED_STRING_LITERAL)]);
     entry.setValue(
         DartEntry.PARSE_ERRORS,
         <AnalysisError>[
-            new AnalysisError.con1(source, ParserErrorCode.ABSTRACT_CLASS_MEMBER, [])]);
+            new AnalysisError.con1(source, ParserErrorCode.ABSTRACT_CLASS_MEMBER)]);
     entry.setValueInLibrary(
         DartEntry.RESOLUTION_ERRORS,
         source,
         <AnalysisError>[
             new AnalysisError.con1(
                 source,
-                CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION,
-                [])]);
+                CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION)]);
     entry.setValueInLibrary(
         DartEntry.VERIFICATION_ERRORS,
         source,
         <AnalysisError>[
             new AnalysisError.con1(
                 source,
-                StaticWarningCode.CASE_BLOCK_NOT_TERMINATED,
-                [])]);
+                StaticWarningCode.CASE_BLOCK_NOT_TERMINATED)]);
     entry.setValueInLibrary(
         DartEntry.ANGULAR_ERRORS,
         source,
-        <AnalysisError>[new AnalysisError.con1(source, AngularCode.MISSING_NAME, [])]);
+        <AnalysisError>[new AnalysisError.con1(source, AngularCode.MISSING_NAME)]);
     entry.setValueInLibrary(
         DartEntry.HINTS,
         source,
-        <AnalysisError>[new AnalysisError.con1(source, HintCode.DEAD_CODE, [])]);
+        <AnalysisError>[new AnalysisError.con1(source, HintCode.DEAD_CODE)]);
     expect(entry.allErrors, hasLength(5));
   }
 
@@ -2079,13 +2076,13 @@ class DartEntryTest extends EngineTestCase {
     String importUri = "/f1.dart";
     Source importSource = new TestSource(importUri);
     ImportDirective importDirective =
-        AstFactory.importDirective3(importUri, null, []);
+        AstFactory.importDirective3(importUri, null);
     importDirective.source = importSource;
     importDirective.uriContent = importUri;
     String exportUri = "/f2.dart";
     Source exportSource = new TestSource(exportUri);
     ExportDirective exportDirective =
-        AstFactory.exportDirective2(exportUri, []);
+        AstFactory.exportDirective2(exportUri);
     exportDirective.source = exportSource;
     exportDirective.uriContent = exportUri;
     String partUri = "/f3.dart";
@@ -2126,13 +2123,13 @@ class DartEntryTest extends EngineTestCase {
     String importUri = "f1.dart";
     Source importSource = new TestSource(importUri);
     ImportDirective importDirective =
-        AstFactory.importDirective3(importUri, null, []);
+        AstFactory.importDirective3(importUri, null);
     importDirective.source = importSource;
     importDirective.uriContent = importUri;
     String exportUri = "f2.dart";
     Source exportSource = new TestSource(exportUri);
     ExportDirective exportDirective =
-        AstFactory.exportDirective2(exportUri, []);
+        AstFactory.exportDirective2(exportUri);
     exportDirective.source = exportSource;
     exportDirective.uriContent = exportUri;
     String partUri = "f3.dart";
@@ -2974,7 +2971,7 @@ class DartEntryTest extends EngineTestCase {
   void test_setValue_hints() {
     _setValueInLibrary(
         DartEntry.HINTS,
-        <AnalysisError>[new AnalysisError.con1(null, HintCode.DEAD_CODE, [])]);
+        <AnalysisError>[new AnalysisError.con1(null, HintCode.DEAD_CODE)]);
   }
 
   void test_setValue_importedLibraries() {
@@ -3001,7 +2998,7 @@ class DartEntryTest extends EngineTestCase {
     _setValue(
         DartEntry.PARSE_ERRORS,
         <AnalysisError>[
-            new AnalysisError.con1(null, ParserErrorCode.ABSTRACT_CLASS_MEMBER, [])]);
+            new AnalysisError.con1(null, ParserErrorCode.ABSTRACT_CLASS_MEMBER)]);
   }
 
   void test_setValue_parsedUnit() {
@@ -3020,8 +3017,7 @@ class DartEntryTest extends EngineTestCase {
         <AnalysisError>[
             new AnalysisError.con1(
                 null,
-                CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION,
-                [])]);
+                CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION)]);
   }
 
   void test_setValue_resolvedUnit() {
@@ -3034,8 +3030,7 @@ class DartEntryTest extends EngineTestCase {
         <AnalysisError>[
             new AnalysisError.con1(
                 null,
-                ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT,
-                [])]);
+                ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT)]);
   }
 
   void test_setValue_sourceKind() {
@@ -3050,7 +3045,7 @@ class DartEntryTest extends EngineTestCase {
     _setValueInLibrary(
         DartEntry.VERIFICATION_ERRORS,
         <AnalysisError>[
-            new AnalysisError.con1(null, StaticWarningCode.CASE_BLOCK_NOT_TERMINATED, [])]);
+            new AnalysisError.con1(null, StaticWarningCode.CASE_BLOCK_NOT_TERMINATED)]);
   }
 
   DartEntry _entryWithValidState([Source firstLibrary, Source secondLibrary]) {
@@ -3503,7 +3498,7 @@ class HtmlEntryTest extends EngineTestCase {
             new AnalysisError.con1(source, PolymerCode.INVALID_ATTRIBUTE_NAME, ["-"])]);
     entry.setValue(
         HtmlEntry.HINTS,
-        <AnalysisError>[new AnalysisError.con1(source, HintCode.DEAD_CODE, [])]);
+        <AnalysisError>[new AnalysisError.con1(source, HintCode.DEAD_CODE)]);
     expect(entry.allErrors, hasLength(6));
   }
 
@@ -3597,7 +3592,7 @@ class HtmlEntryTest extends EngineTestCase {
   void test_setValue_hints() {
     _setValue(
         HtmlEntry.HINTS,
-        <AnalysisError>[new AnalysisError.con1(null, HintCode.DEAD_CODE, [])]);
+        <AnalysisError>[new AnalysisError.con1(null, HintCode.DEAD_CODE)]);
   }
 
   void test_setValue_illegal() {
@@ -4931,10 +4926,9 @@ class ParseDartTaskTestTV_perform_validateDirectives extends
     expect(task.compilationUnit, isNotNull);
     GatheringErrorListener errorListener = new GatheringErrorListener();
     errorListener.addAll(task.errors);
-    errorListener.assertErrorsWithCodes(
-        [
-            CompileTimeErrorCode.URI_WITH_INTERPOLATION,
-            CompileTimeErrorCode.INVALID_URI]);
+    errorListener.assertErrorsWithCodes([
+        CompileTimeErrorCode.URI_WITH_INTERPOLATION,
+        CompileTimeErrorCode.INVALID_URI]);
     expect(task.source, same(source));
     expect(task.hasNonPartOfDirective, isTrue);
     expect(task.hasPartOfDirective, isFalse);
@@ -5287,10 +5281,10 @@ class ResolveDartUnitTaskTest extends EngineTestCase {
     LibraryElementImpl libraryElement = ElementFactory.library(context, "lib");
     CompilationUnitElementImpl unitElement =
         libraryElement.definingCompilationUnit as CompilationUnitElementImpl;
-    ClassElementImpl classElement = ElementFactory.classElement2("A", []);
+    ClassElementImpl classElement = ElementFactory.classElement2("A");
     classElement.nameOffset = 19;
     ConstructorElementImpl constructorElement =
-        ElementFactory.constructorElement2(classElement, null, []);
+        ElementFactory.constructorElement2(classElement, null);
     constructorElement.synthetic = true;
     classElement.constructors = <ConstructorElement>[constructorElement];
     unitElement.types = <ClassElement>[classElement];

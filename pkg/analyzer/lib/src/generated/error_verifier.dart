@@ -341,7 +341,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitAwaitExpression(AwaitExpression node) {
     if (!_inAsync) {
-      _errorReporter.reportErrorForToken(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, node.awaitKeyword, []);
+      _errorReporter.reportErrorForToken(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, node.awaitKeyword);
     }
     return super.visitAwaitExpression(node);
   }
@@ -391,7 +391,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (labelNode != null) {
       Element labelElement = labelNode.staticElement;
       if (labelElement is LabelElementImpl && labelElement.isOnSwitchMember) {
-        _errorReporter.reportErrorForNode(ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, labelNode, []);
+        _errorReporter.reportErrorForNode(ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, labelNode);
       }
     }
     return null;
@@ -552,7 +552,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (labelNode != null) {
       Element labelElement = labelNode.staticElement;
       if (labelElement is LabelElementImpl && labelElement.isOnSwitchStatement) {
-        _errorReporter.reportErrorForNode(ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH, labelNode, []);
+        _errorReporter.reportErrorForNode(ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH, labelNode);
       }
     }
     return null;
@@ -607,7 +607,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (_isInInstanceVariableDeclaration) {
       VariableDeclarationList variables = node.fields;
       if (variables.isConst) {
-        _errorReporter.reportErrorForToken(CompileTimeErrorCode.CONST_INSTANCE_FIELD, variables.keyword, []);
+        _errorReporter.reportErrorForToken(CompileTimeErrorCode.CONST_INSTANCE_FIELD, variables.keyword);
       }
     }
     try {
@@ -682,7 +682,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     Expression functionExpression = node.function;
     DartType expressionType = functionExpression.staticType;
     if (!_isFunctionType(expressionType)) {
-      _errorReporter.reportErrorForNode(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, functionExpression, []);
+      _errorReporter.reportErrorForNode(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, functionExpression);
     }
     return super.visitFunctionExpressionInvocation(node);
   }
@@ -851,7 +851,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   Object visitNativeClause(NativeClause node) {
     // TODO(brianwilkerson) Figure out the right rule for when 'native' is allowed.
     if (!_isInSystemLibrary) {
-      _errorReporter.reportErrorForNode(ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE, node, []);
+      _errorReporter.reportErrorForNode(ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE, node);
     }
     return super.visitNativeClause(node);
   }
@@ -1058,7 +1058,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       } else {
         errorCode = CompileTimeErrorCode.YIELD_IN_NON_GENERATOR;
       }
-      _errorReporter.reportErrorForNode(errorCode, node, []);
+      _errorReporter.reportErrorForNode(errorCode, node);
     }
     return super.visitYieldStatement(node);
   }
@@ -1143,11 +1143,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             fieldElementsMap[fieldElement] = INIT_STATE.INIT_IN_INITIALIZERS;
           } else if (state == INIT_STATE.INIT_IN_DECLARATION) {
             if (fieldElement.isFinal || fieldElement.isConst) {
-              _errorReporter.reportErrorForNode(StaticWarningCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION, fieldName, []);
+              _errorReporter.reportErrorForNode(StaticWarningCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION, fieldName);
               foundError = true;
             }
           } else if (state == INIT_STATE.INIT_IN_FIELD_FORMAL) {
-            _errorReporter.reportErrorForNode(CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER, fieldName, []);
+            _errorReporter.reportErrorForNode(CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER, fieldName);
             foundError = true;
           } else if (state == INIT_STATE.INIT_IN_INITIALIZERS) {
             _errorReporter.reportErrorForNode(CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS, fieldName, [fieldElement.displayName]);
@@ -1640,7 +1640,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (returnExpression == null) {
         return false;
       }
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, returnExpression, []);
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, returnExpression);
       return true;
     }
     // RETURN_WITHOUT_VALUE
@@ -1649,11 +1649,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         return false;
       }
       _hasReturnWithoutValue = true;
-      _errorReporter.reportErrorForNode(StaticWarningCode.RETURN_WITHOUT_VALUE, node, []);
+      _errorReporter.reportErrorForNode(StaticWarningCode.RETURN_WITHOUT_VALUE, node);
       return true;
     } else if (_inGenerator) {
       // RETURN_IN_GENERATOR
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.RETURN_IN_GENERATOR, node, []);
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.RETURN_IN_GENERATOR, node);
     }
     // RETURN_OF_INVALID_TYPE
     return _checkForReturnOfInvalidType(returnExpression, expectedReturnType);
@@ -1842,7 +1842,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (element is VariableElement) {
       VariableElement variable = element as VariableElement;
       if (variable.isConst) {
-        _errorReporter.reportErrorForNode(StaticWarningCode.ASSIGNMENT_TO_CONST, expression, []);
+        _errorReporter.reportErrorForNode(StaticWarningCode.ASSIGNMENT_TO_CONST, expression);
         return true;
       }
       if (variable.isFinal) {
@@ -1856,11 +1856,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     if (element is FunctionElement) {
-      _errorReporter.reportErrorForNode(StaticWarningCode.ASSIGNMENT_TO_FUNCTION, expression, []);
+      _errorReporter.reportErrorForNode(StaticWarningCode.ASSIGNMENT_TO_FUNCTION, expression);
       return true;
     }
     if (element is MethodElement) {
-      _errorReporter.reportErrorForNode(StaticWarningCode.ASSIGNMENT_TO_METHOD, expression, []);
+      _errorReporter.reportErrorForNode(StaticWarningCode.ASSIGNMENT_TO_METHOD, expression);
       return true;
     }
     return false;
@@ -1927,7 +1927,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     // report error
-    _errorReporter.reportErrorForToken(StaticWarningCode.CASE_BLOCK_NOT_TERMINATED, node.keyword, []);
+    _errorReporter.reportErrorForToken(StaticWarningCode.CASE_BLOCK_NOT_TERMINATED, node.keyword);
     return true;
   }
 
@@ -2004,7 +2004,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
       if (name == otherConstructor.name) {
         if (name == null || name.length == 0) {
-          _errorReporter.reportErrorForNode(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, node, []);
+          _errorReporter.reportErrorForNode(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, node);
         } else {
           _errorReporter.reportErrorForNode(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, node, [name]);
         }
@@ -2353,7 +2353,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // check for mixins
     if (_enclosingClass.mixins.length != 0) {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN, node.returnType, []);
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN, node.returnType);
       return true;
     }
     // try to find and check super constructor invocation
@@ -2407,7 +2407,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     // report problem
-    _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, node, []);
+    _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, node);
     return true;
   }
 
@@ -2439,7 +2439,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   bool _checkForConstEvalThrowsException(ThrowExpression node) {
     if (_isEnclosingConstructorConst) {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION, node, []);
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION, node);
       return true;
     }
     return false;
@@ -2454,7 +2454,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   bool _checkForConstFormalParameter(NormalFormalParameter node) {
     if (node.isConst) {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_FORMAL_PARAMETER, node, []);
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_FORMAL_PARAMETER, node);
       return true;
     }
     return false;
@@ -2477,9 +2477,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       ConstructorElement element = node.staticElement;
       if (element != null && !element.isFactory) {
         if ((node.keyword as sc.KeywordToken).keyword == sc.Keyword.CONST) {
-          _errorReporter.reportErrorForNode(StaticWarningCode.CONST_WITH_ABSTRACT_CLASS, typeName, []);
+          _errorReporter.reportErrorForNode(StaticWarningCode.CONST_WITH_ABSTRACT_CLASS, typeName);
         } else {
-          _errorReporter.reportErrorForNode(StaticWarningCode.NEW_WITH_ABSTRACT_CLASS, typeName, []);
+          _errorReporter.reportErrorForNode(StaticWarningCode.NEW_WITH_ABSTRACT_CLASS, typeName);
         }
         return true;
       }
@@ -2499,7 +2499,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   bool _checkForConstOrNewWithEnum(InstanceCreationExpression node, TypeName typeName, InterfaceType type) {
     if (type.element.isEnum) {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.INSTANTIATE_ENUM, typeName, []);
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.INSTANTIATE_ENUM, typeName);
       return true;
     }
     return false;
@@ -2518,7 +2518,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   bool _checkForConstWithNonConst(InstanceCreationExpression node) {
     ConstructorElement constructorElement = node.staticElement;
     if (constructorElement != null && !constructorElement.isConst) {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_WITH_NON_CONST, node, []);
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_WITH_NON_CONST, node);
       return true;
     }
     return false;
@@ -2542,7 +2542,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // should not be a type parameter
     if (name.staticElement is TypeParameterElement) {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, name, []);
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, name);
     }
     // check type arguments
     TypeArgumentList typeArguments = typeName.typeArguments;
@@ -2611,7 +2611,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (formalParameter is DefaultFormalParameter) {
         DefaultFormalParameter defaultFormalParameter = formalParameter;
         if (defaultFormalParameter.defaultValue != null) {
-          _errorReporter.reportErrorForNode(CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS, node, []);
+          _errorReporter.reportErrorForNode(CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS, node);
           result = true;
         }
       }
@@ -2637,7 +2637,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     // Report problem.
-    _errorReporter.reportErrorForNode(CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER, node, []);
+    _errorReporter.reportErrorForNode(CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER, node);
     return true;
   }
 
@@ -3033,18 +3033,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   bool _checkForFieldInitializingFormalRedirectingConstructor(FieldFormalParameter node) {
     ConstructorDeclaration constructor = node.getAncestor((node) => node is ConstructorDeclaration);
     if (constructor == null) {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, node, []);
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, node);
       return true;
     }
     // constructor cannot be a factory
     if (constructor.factoryKeyword != null) {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR, node, []);
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR, node);
       return true;
     }
     // constructor cannot have a redirection
     for (ConstructorInitializer initializer in constructor.initializers) {
       if (initializer is RedirectingConstructorInvocation) {
-        _errorReporter.reportErrorForNode(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, node, []);
+        _errorReporter.reportErrorForNode(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, node);
         return true;
       }
     }
@@ -3213,11 +3213,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // report problem
     if (_isInStaticMethod) {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, node, []);
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, node);
     } else if (_isInFactory) {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, node, []);
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, node);
     } else {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, node, []);
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, node);
     }
     return true;
   }
@@ -3447,7 +3447,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     Identifier nameIdentifier = node.name;
     if (nameIdentifier is PrefixedIdentifier) {
       if (nameIdentifier.isDeferred) {
-        _errorReporter.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY, node.name, []);
+        _errorReporter.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY, node.name);
         return true;
       }
     }
@@ -3555,7 +3555,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   bool _checkForInvalidReferenceToThis(ThisExpression node) {
     if (!_isThisInValidContext(node)) {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, node, []);
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, node);
       return true;
     }
     return false;
@@ -3698,7 +3698,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // check accessors
     for (PropertyAccessorElement accessor in _enclosingClass.accessors) {
       if (className == accessor.name) {
-        _errorReporter.reportErrorForOffset(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, accessor.nameOffset, className.length, []);
+        _errorReporter.reportErrorForOffset(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, accessor.nameOffset, className.length);
         problemReported = true;
       }
     }
@@ -3854,10 +3854,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     int withoutCount = _returnsWithout.length;
     if (withCount > 0 && withoutCount > 0) {
       for (int i = 0; i < withCount; i++) {
-        _errorReporter.reportErrorForToken(StaticWarningCode.MIXED_RETURN_TYPES, _returnsWith[i].keyword, []);
+        _errorReporter.reportErrorForToken(StaticWarningCode.MIXED_RETURN_TYPES, _returnsWith[i].keyword);
       }
       for (int i = 0; i < withoutCount; i++) {
-        _errorReporter.reportErrorForToken(StaticWarningCode.MIXED_RETURN_TYPES, _returnsWithout[i].keyword, []);
+        _errorReporter.reportErrorForToken(StaticWarningCode.MIXED_RETURN_TYPES, _returnsWithout[i].keyword);
       }
       return true;
     }
@@ -3929,7 +3929,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (initializer is SuperConstructorInvocation) {
         numSuperInitializers++;
         if (numSuperInitializers > 1) {
-          _errorReporter.reportErrorForNode(CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS, initializer, []);
+          _errorReporter.reportErrorForNode(CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS, initializer);
         }
       }
     }
@@ -3945,7 +3945,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   bool _checkForNativeFunctionBodyInNonSDKCode(NativeFunctionBody node) {
     if (!_isInSystemLibrary && !_hasExtUri) {
-      _errorReporter.reportErrorForNode(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, node, []);
+      _errorReporter.reportErrorForNode(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, node);
       return true;
     }
     return false;
@@ -4177,7 +4177,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   bool _checkForNonBoolCondition(Expression condition) {
     DartType conditionType = getStaticType(condition);
     if (conditionType != null && !conditionType.isAssignableTo(_boolType)) {
-      _errorReporter.reportErrorForNode(StaticTypeWarningCode.NON_BOOL_CONDITION, condition, []);
+      _errorReporter.reportErrorForNode(StaticTypeWarningCode.NON_BOOL_CONDITION, condition);
       return true;
     }
     return false;
@@ -4195,13 +4195,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     DartType type = getStaticType(expression);
     if (type is InterfaceType) {
       if (!type.isAssignableTo(_boolType)) {
-        _errorReporter.reportErrorForNode(StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression, []);
+        _errorReporter.reportErrorForNode(StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
         return true;
       }
     } else if (type is FunctionType) {
       FunctionType functionType = type;
       if (functionType.typeArguments.length == 0 && !functionType.returnType.isAssignableTo(_boolType)) {
-        _errorReporter.reportErrorForNode(StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression, []);
+        _errorReporter.reportErrorForNode(StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
         return true;
       }
     }
@@ -4218,7 +4218,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   bool _checkForNonBoolNegationExpression(Expression expression) {
     DartType conditionType = getStaticType(expression);
     if (conditionType != null && !conditionType.isAssignableTo(_boolType)) {
-      _errorReporter.reportErrorForNode(StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION, expression, []);
+      _errorReporter.reportErrorForNode(StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION, expression);
       return true;
     }
     return false;
@@ -4253,7 +4253,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     // report problem
-    _errorReporter.reportErrorForNode(CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT, node, []);
+    _errorReporter.reportErrorForNode(CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT, node);
     return true;
   }
 
@@ -4276,7 +4276,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (typeName != null) {
       DartType type = typeName.type;
       if (type != null && !type.isVoid) {
-        _errorReporter.reportErrorForNode(StaticWarningCode.NON_VOID_RETURN_FOR_OPERATOR, typeName, []);
+        _errorReporter.reportErrorForNode(StaticWarningCode.NON_VOID_RETURN_FOR_OPERATOR, typeName);
       }
     }
     // no warning
@@ -4294,7 +4294,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (typeName != null) {
       DartType type = typeName.type;
       if (type != null && !type.isVoid) {
-        _errorReporter.reportErrorForNode(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, typeName, []);
+        _errorReporter.reportErrorForNode(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, typeName);
       }
     }
     return false;
@@ -4319,7 +4319,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     NodeList<FormalParameter> formalParameters = parameterList.parameters;
     for (FormalParameter formalParameter in formalParameters) {
       if (formalParameter.kind.isOptional) {
-        _errorReporter.reportErrorForNode(CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR, formalParameter, []);
+        _errorReporter.reportErrorForNode(CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR, formalParameter);
         foundError = true;
       }
     }
@@ -4344,7 +4344,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     // report problem
-    _errorReporter.reportErrorForNode(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, node, []);
+    _errorReporter.reportErrorForNode(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, node);
     return true;
   }
 
@@ -4370,7 +4370,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           return false;
         }
         // report error
-        _errorReporter.reportErrorForNode(CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT, initializer, []);
+        _errorReporter.reportErrorForNode(CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT, initializer);
         return true;
       }
     }
@@ -4398,7 +4398,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     // report error
-    _errorReporter.reportErrorForNode(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, redirectedConstructorNode, []);
+    _errorReporter.reportErrorForNode(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, redirectedConstructorNode);
     return true;
   }
 
@@ -4439,7 +4439,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (redirectedConstructor != null) {
       for (FormalParameter parameter in node.parameters.parameters) {
         if (parameter is DefaultFormalParameter && parameter.defaultValue != null) {
-          _errorReporter.reportErrorForNode(CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR, parameter.identifier, []);
+          _errorReporter.reportErrorForNode(CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR, parameter.identifier);
           errorReported = true;
         }
       }
@@ -4449,7 +4449,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     for (ConstructorInitializer initializer in node.initializers) {
       if (initializer is RedirectingConstructorInvocation) {
         if (numRedirections > 0) {
-          _errorReporter.reportErrorForNode(CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS, initializer, []);
+          _errorReporter.reportErrorForNode(CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS, initializer);
           errorReported = true;
         }
         if (node.factoryKeyword == null) {
@@ -4464,7 +4464,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             _errorReporter.reportErrorForNode(CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR, invocation, [constructorStrName, enclosingTypeName]);
           } else {
             if (redirectingElement.isFactory) {
-              _errorReporter.reportErrorForNode(CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR, initializer, []);
+              _errorReporter.reportErrorForNode(CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR, initializer);
             }
           }
         }
@@ -4475,11 +4475,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (numRedirections > 0) {
       for (ConstructorInitializer initializer in node.initializers) {
         if (initializer is SuperConstructorInvocation) {
-          _errorReporter.reportErrorForNode(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR, initializer, []);
+          _errorReporter.reportErrorForNode(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR, initializer);
           errorReported = true;
         }
         if (initializer is ConstructorFieldInitializer) {
-          _errorReporter.reportErrorForNode(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, initializer, []);
+          _errorReporter.reportErrorForNode(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, initializer);
           errorReported = true;
         }
       }
@@ -4521,7 +4521,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     // report error
-    _errorReporter.reportErrorForNode(CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR, redirectedConstructorNode, []);
+    _errorReporter.reportErrorForNode(CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR, redirectedConstructorNode);
     return true;
   }
 
@@ -4534,7 +4534,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   bool _checkForRethrowOutsideCatch(RethrowExpression node) {
     if (!_isInCatchClause) {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH, node, []);
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH, node);
       return true;
     }
     return false;
@@ -4559,7 +4559,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     // report error
-    _errorReporter.reportErrorForNode(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, body, []);
+    _errorReporter.reportErrorForNode(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, body);
     return true;
   }
 
@@ -4708,7 +4708,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (!_hasTypedefSelfReference(element)) {
       return false;
     }
-    _errorReporter.reportErrorForNode(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, node, []);
+    _errorReporter.reportErrorForNode(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, node);
     return true;
   }
 
@@ -4791,7 +4791,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (_isInStaticMethod || _isInStaticVariableDeclaration) {
       DartType type = node.type;
       if (type is TypeParameterType) {
-        _errorReporter.reportErrorForNode(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, node, []);
+        _errorReporter.reportErrorForNode(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, node);
         return true;
       }
     }
@@ -4955,7 +4955,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (returnType == null || returnType.name.name != "void") {
       return false;
     }
-    _errorReporter.reportErrorForNode(StaticWarningCode.VOID_RETURN_FOR_GETTER, returnType, []);
+    _errorReporter.reportErrorForNode(StaticWarningCode.VOID_RETURN_FOR_GETTER, returnType);
     return true;
   }
 
@@ -5023,7 +5023,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     NodeList<FormalParameter> parameters = parameterList.parameters;
     if (parameters.length != 1 || parameters[0].kind != ParameterKind.REQUIRED) {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, setterName, []);
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, setterName);
       return true;
     }
     return false;
@@ -5053,7 +5053,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     ExecutableElement callMethod = _inheritanceManager.lookupMember(classElement, "call");
     if (callMethod == null || callMethod is! MethodElement || (callMethod as MethodElement).isAbstract) {
-      _errorReporter.reportErrorForNode(StaticWarningCode.FUNCTION_WITHOUT_CALL, node.name, []);
+      _errorReporter.reportErrorForNode(StaticWarningCode.FUNCTION_WITHOUT_CALL, node.name);
       return true;
     }
     return false;
@@ -5174,7 +5174,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       for (int i = 0; i < count; i++) {
         sc.Token deferredToken = directives[i].deferredToken;
         if (deferredToken != null) {
-          _errorReporter.reportErrorForToken(CompileTimeErrorCode.SHARED_DEFERRED_PREFIX, deferredToken, []);
+          _errorReporter.reportErrorForToken(CompileTimeErrorCode.SHARED_DEFERRED_PREFIX, deferredToken);
           foundError = true;
         }
       }

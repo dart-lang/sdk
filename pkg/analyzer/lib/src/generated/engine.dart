@@ -6597,7 +6597,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
       // parse name
       Expression nameExpression = _parseDartExpressionInToken(formatterToken);
       if (nameExpression is! SimpleIdentifier) {
-        _reportErrorForNode(AngularCode.INVALID_FORMATTER_NAME, nameExpression, []);
+        _reportErrorForNode(AngularCode.INVALID_FORMATTER_NAME, nameExpression);
         continue;
       }
       SimpleIdentifier name = nameExpression as SimpleIdentifier;
@@ -6610,7 +6610,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
         if (colonToken.type == TokenType.COLON) {
           formatterToken = formatterToken.next;
         } else {
-          _reportErrorForToken(AngularCode.MISSING_FORMATTER_COLON, colonToken, []);
+          _reportErrorForToken(AngularCode.MISSING_FORMATTER_COLON, colonToken);
         }
         // parse argument
         Expression argument = _parseDartExpressionInToken(formatterToken);
@@ -6648,21 +6648,21 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
   /**
    * Reports given [ErrorCode] at the given [AstNode].
    */
-  void _reportErrorForNode(ErrorCode errorCode, AstNode node, List<Object> arguments) {
+  void _reportErrorForNode(ErrorCode errorCode, AstNode node, [List<Object> arguments]) {
     _reportErrorForOffset(errorCode, node.offset, node.length, arguments);
   }
 
   /**
    * Reports given [ErrorCode] at the given position.
    */
-  void _reportErrorForOffset(ErrorCode errorCode, int offset, int length, List<Object> arguments) {
+  void _reportErrorForOffset(ErrorCode errorCode, int offset, int length, [List<Object> arguments]) {
     _errorListener.onError(new AnalysisError.con2(_source, offset, length, errorCode, arguments));
   }
 
   /**
    * Reports given [ErrorCode] at the given [Token].
    */
-  void _reportErrorForToken(ErrorCode errorCode, Token token, List<Object> arguments) {
+  void _reportErrorForToken(ErrorCode errorCode, Token token, [List<Object> arguments]) {
     _reportErrorForOffset(errorCode, token.offset, token.length, arguments);
   }
 
@@ -10753,7 +10753,7 @@ class ParseDartTask extends AnalysisTask {
       return null;
     }
     if (code == UriValidationCode.URI_WITH_INTERPOLATION) {
-      errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION, []));
+      errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION));
       return null;
     }
     if (code == UriValidationCode.INVALID_URI) {
@@ -11377,7 +11377,7 @@ class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
     // prepare value of the "attributes" attribute
     String attributesText = attributesAttribute.text;
     if (attributesText.trim().isEmpty) {
-      _reportErrorForAttribute(attributesAttribute, PolymerCode.EMPTY_ATTRIBUTES, []);
+      _reportErrorForAttribute(attributesAttribute, PolymerCode.EMPTY_ATTRIBUTES);
       return;
     }
     // prepare attribute name tokens
@@ -11448,7 +11448,7 @@ class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
     // prepare 'name' attribute
     ht.XmlAttributeNode nameAttribute = node.getAttribute("name");
     if (nameAttribute == null) {
-      _reportErrorForToken(node.tagToken, PolymerCode.MISSING_TAG_NAME, []);
+      _reportErrorForToken(node.tagToken, PolymerCode.MISSING_TAG_NAME);
       return;
     }
     // prepare name
@@ -11540,14 +11540,14 @@ class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
   /**
    * Reports an error on the attribute's value, or (if absent) on the attribute's name.
    */
-  void _reportErrorForAttribute(ht.XmlAttributeNode node, ErrorCode errorCode, List<Object> arguments) {
+  void _reportErrorForAttribute(ht.XmlAttributeNode node, ErrorCode errorCode, [List<Object> arguments]) {
     _reportErrorForOffset(node.offset, node.length, errorCode, arguments);
   }
 
   /**
    * Reports an error on the attribute's value, or (if absent) on the attribute's name.
    */
-  void _reportErrorForAttributeValue(ht.XmlAttributeNode node, ErrorCode errorCode, List<Object> arguments) {
+  void _reportErrorForAttributeValue(ht.XmlAttributeNode node, ErrorCode errorCode, [List<Object> arguments]) {
     ht.Token valueToken = node.valueToken;
     if (valueToken == null || valueToken.isSynthetic) {
       _reportErrorForAttribute(node, errorCode, arguments);
@@ -11556,17 +11556,17 @@ class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
     }
   }
 
-  void _reportErrorForNameToken(PolymerHtmlUnitBuilder_NameToken token, ErrorCode errorCode, List<Object> arguments) {
+  void _reportErrorForNameToken(PolymerHtmlUnitBuilder_NameToken token, ErrorCode errorCode, [List<Object> arguments]) {
     int offset = token._offset;
     int length = token._value.length;
     _reportErrorForOffset(offset, length, errorCode, arguments);
   }
 
-  void _reportErrorForOffset(int offset, int length, ErrorCode errorCode, List<Object> arguments) {
+  void _reportErrorForOffset(int offset, int length, ErrorCode errorCode, [List<Object> arguments]) {
     _errorListener.onError(new AnalysisError.con2(_source, offset, length, errorCode, arguments));
   }
 
-  void _reportErrorForToken(ht.Token token, ErrorCode errorCode, List<Object> arguments) {
+  void _reportErrorForToken(ht.Token token, ErrorCode errorCode, [List<Object> arguments]) {
     int offset = token.offset;
     int length = token.length;
     _reportErrorForOffset(offset, length, errorCode, arguments);

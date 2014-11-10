@@ -877,7 +877,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           _resolver.reportErrorForNode(StaticWarningCode.UNDEFINED_SETTER, identifier, [identifier.name, prefixElement.name]);
         } else if (node.parent is Annotation) {
           Annotation annotation = node.parent as Annotation;
-          _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation, []);
+          _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
           return null;
         } else {
           _resolver.reportErrorForNode(StaticWarningCode.UNDEFINED_GETTER, identifier, [identifier.name, prefixElement.name]);
@@ -1015,17 +1015,17 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     Element element = _resolveSimpleIdentifier(node);
     ClassElement enclosingClass = _resolver.enclosingClass;
     if (_isFactoryConstructorReturnType(node) && !identical(element, enclosingClass)) {
-      _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, node, []);
+      _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, node);
     } else if (_isConstructorReturnType(node) && !identical(element, enclosingClass)) {
-      _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node, []);
+      _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
       element = null;
     } else if (element == null || (element is PrefixElement && !_isValidAsPrefix(node))) {
       // TODO(brianwilkerson) Recover from this error.
       if (_isConstructorReturnType(node)) {
-        _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node, []);
+        _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
       } else if (node.parent is Annotation) {
         Annotation annotation = node.parent as Annotation;
-        _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation, []);
+        _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       } else {
         _recordUndefinedNode(_resolver.enclosingClass, StaticWarningCode.UNDEFINED_IDENTIFIER, node, [node.name]);
       }
@@ -1088,7 +1088,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   @override
   Object visitSuperExpression(SuperExpression node) {
     if (!_isSuperInValidContext(node)) {
-      _resolver.reportErrorForNode(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, node, []);
+      _resolver.reportErrorForNode(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, node);
     }
     return super.visitSuperExpression(node);
   }
@@ -2118,7 +2118,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     }
     // we need constructor
     if (constructor == null) {
-      _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation, []);
+      _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       return;
     }
     // record element
@@ -2130,13 +2130,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   void _resolveAnnotationElementGetter(Annotation annotation, PropertyAccessorElement accessorElement) {
     // accessor should be synthetic
     if (!accessorElement.isSynthetic) {
-      _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation, []);
+      _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       return;
     }
     // variable should be constant
     VariableElement variableElement = accessorElement.variable;
     if (!variableElement.isConst) {
-      _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation, []);
+      _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
     }
     // OK
     return;

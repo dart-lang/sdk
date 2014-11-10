@@ -381,7 +381,7 @@ class AngularCompilationUnitBuilder {
     // selector
     AngularSelectorElement selector = null;
     if (!_hasStringArgument(_SELECTOR)) {
-      _reportErrorForAnnotation(AngularCode.MISSING_SELECTOR, []);
+      _reportErrorForAnnotation(AngularCode.MISSING_SELECTOR);
       isValid = false;
     } else {
       SimpleStringLiteral selectorLiteral = _getStringLiteral(_SELECTOR);
@@ -478,7 +478,7 @@ class AngularCompilationUnitBuilder {
     }
     // prepare map literal
     if (mapExpression is! MapLiteral) {
-      _reportErrorForNode(AngularCode.INVALID_PROPERTY_MAP, mapExpression, []);
+      _reportErrorForNode(AngularCode.INVALID_PROPERTY_MAP, mapExpression);
       return;
     }
     MapLiteral mapLiteral = mapExpression as MapLiteral;
@@ -487,7 +487,7 @@ class AngularCompilationUnitBuilder {
       // prepare property name
       Expression nameExpression = entry.key;
       if (nameExpression is! SimpleStringLiteral) {
-        _reportErrorForNode(AngularCode.INVALID_PROPERTY_NAME, nameExpression, []);
+        _reportErrorForNode(AngularCode.INVALID_PROPERTY_NAME, nameExpression);
         continue;
       }
       SimpleStringLiteral nameLiteral = nameExpression as SimpleStringLiteral;
@@ -496,7 +496,7 @@ class AngularCompilationUnitBuilder {
       // prepare field specification
       Expression specExpression = entry.value;
       if (specExpression is! SimpleStringLiteral) {
-        _reportErrorForNode(AngularCode.INVALID_PROPERTY_SPEC, specExpression, []);
+        _reportErrorForNode(AngularCode.INVALID_PROPERTY_SPEC, specExpression);
         continue;
       }
       SimpleStringLiteral specLiteral = specExpression as SimpleStringLiteral;
@@ -545,13 +545,13 @@ class AngularCompilationUnitBuilder {
     bool isValid = true;
     // publishAs
     if (!_hasStringArgument(_PUBLISH_AS)) {
-      _reportErrorForAnnotation(AngularCode.MISSING_PUBLISH_AS, []);
+      _reportErrorForAnnotation(AngularCode.MISSING_PUBLISH_AS);
       isValid = false;
     }
     // selector
     AngularSelectorElement selector = null;
     if (!_hasStringArgument(_SELECTOR)) {
-      _reportErrorForAnnotation(AngularCode.MISSING_SELECTOR, []);
+      _reportErrorForAnnotation(AngularCode.MISSING_SELECTOR);
       isValid = false;
     } else {
       SimpleStringLiteral selectorLiteral = _getStringLiteral(_SELECTOR);
@@ -576,7 +576,7 @@ class AngularCompilationUnitBuilder {
     // selector
     AngularSelectorElement selector = null;
     if (!_hasStringArgument(_SELECTOR)) {
-      _reportErrorForAnnotation(AngularCode.MISSING_SELECTOR, []);
+      _reportErrorForAnnotation(AngularCode.MISSING_SELECTOR);
       isValid = false;
     } else {
       SimpleStringLiteral selectorLiteral = _getStringLiteral(_SELECTOR);
@@ -600,7 +600,7 @@ class AngularCompilationUnitBuilder {
     bool isValid = true;
     // name
     if (!_hasStringArgument(_NAME)) {
-      _reportErrorForAnnotation(AngularCode.MISSING_NAME, []);
+      _reportErrorForAnnotation(AngularCode.MISSING_NAME);
       isValid = false;
     }
     // create
@@ -630,22 +630,22 @@ class AngularCompilationUnitBuilder {
     }
   }
 
-  void _reportErrorForAnnotation(ErrorCode errorCode, List<Object> arguments) {
+  void _reportErrorForAnnotation(ErrorCode errorCode, [List<Object> arguments]) {
     _reportErrorForNode(errorCode, _annotation, arguments);
   }
 
-  void _reportErrorForArgument(String argumentName, ErrorCode errorCode, List<Object> arguments) {
+  void _reportErrorForArgument(String argumentName, ErrorCode errorCode, [List<Object> arguments]) {
     Expression argument = _getArgument(argumentName);
     _reportErrorForNode(errorCode, argument, arguments);
   }
 
-  void _reportErrorForNode(ErrorCode errorCode, AstNode node, List<Object> arguments) {
+  void _reportErrorForNode(ErrorCode errorCode, AstNode node, [List<Object> arguments]) {
     int offset = node.offset;
     int length = node.length;
     _reportErrorForOffset(errorCode, offset, length, arguments);
   }
 
-  void _reportErrorForOffset(ErrorCode errorCode, int offset, int length, List<Object> arguments) {
+  void _reportErrorForOffset(ErrorCode errorCode, int offset, int length, [List<Object> arguments]) {
     _errorListener.onError(new AnalysisError.con2(_source, offset, length, errorCode, arguments));
   }
 }
@@ -851,10 +851,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     if (rhsType.isDynamic && rhsNameStr == sc.Keyword.DYNAMIC.syntax) {
       if (node.notOperator == null) {
         // the is case
-        _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, node, []);
+        _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, node);
       } else {
         // the is not case
-        _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, node, []);
+        _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, node);
       }
       return true;
     }
@@ -865,19 +865,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       if (rhsType.isObject || (expression is NullLiteral && rhsNameStr == _NULL_TYPE_NAME)) {
         if (node.notOperator == null) {
           // the is case
-          _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, node, []);
+          _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, node);
         } else {
           // the is not case
-          _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, node, []);
+          _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, node);
         }
         return true;
       } else if (rhsNameStr == _NULL_TYPE_NAME) {
         if (node.notOperator == null) {
           // the is case
-          _errorReporter.reportErrorForNode(HintCode.TYPE_CHECK_IS_NULL, node, []);
+          _errorReporter.reportErrorForNode(HintCode.TYPE_CHECK_IS_NULL, node);
         } else {
           // the is not case
-          _errorReporter.reportErrorForNode(HintCode.TYPE_CHECK_IS_NOT_NULL, node, []);
+          _errorReporter.reportErrorForNode(HintCode.TYPE_CHECK_IS_NOT_NULL, node);
         }
         return true;
       }
@@ -1062,7 +1062,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       if (parenthesizedExpression.parent is MethodInvocation) {
         MethodInvocation methodInvocation = parenthesizedExpression.parent as MethodInvocation;
         if (_TO_INT_METHOD_NAME == methodInvocation.methodName.name && methodInvocation.argumentList.arguments.isEmpty) {
-          _errorReporter.reportErrorForNode(HintCode.DIVISION_OPTIMIZATION, methodInvocation, []);
+          _errorReporter.reportErrorForNode(HintCode.DIVISION_OPTIMIZATION, methodInvocation);
           return true;
         }
       }
@@ -1195,7 +1195,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     // TODO(jwren) After dartbug.com/13732, revisit this, we should be able to remove the
     // !(x instanceof TypeParameterType) checks.
     if (lhsType != null && rhsType != null && !lhsType.isDynamic && !rhsType.isDynamic && lhsType is! TypeParameterType && rhsType is! TypeParameterType && lhsType.isMoreSpecificThan(rhsType)) {
-      _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_CAST, node, []);
+      _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_CAST, node);
       return true;
     }
     return false;
@@ -1368,13 +1368,13 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
       ConstructorElement constructorElement = element;
       // should 'const' constructor
       if (!constructorElement.isConst) {
-        _errorReporter.reportErrorForNode(CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR, node, []);
+        _errorReporter.reportErrorForNode(CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR, node);
         return null;
       }
       // should have arguments
       ArgumentList argumentList = node.arguments;
       if (argumentList == null) {
-        _errorReporter.reportErrorForNode(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, node, []);
+        _errorReporter.reportErrorForNode(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, node);
         return null;
       }
       // arguments should be constants
@@ -1474,7 +1474,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     }
     if (reportEqualKeys) {
       for (Expression key in invalidKeys) {
-        _errorReporter.reportErrorForNode(StaticWarningCode.EQUAL_KEYS_IN_MAP, key, []);
+        _errorReporter.reportErrorForNode(StaticWarningCode.EQUAL_KEYS_IN_MAP, key);
       }
     }
     return null;
@@ -1600,7 +1600,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     DeferredLibraryReferenceDetector referenceDetector = new DeferredLibraryReferenceDetector();
     expression.accept(referenceDetector);
     if (referenceDetector.result) {
-      _errorReporter.reportErrorForNode(errorCode, expression, []);
+      _errorReporter.reportErrorForNode(errorCode, expression);
     }
   }
 
@@ -1625,7 +1625,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
           identical(dataErrorCode, CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH)) {
         _errorReporter.reportError(data);
       } else if (errorCode != null) {
-        _errorReporter.reportError(new AnalysisError.con2(data.source, data.offset, data.length, errorCode, []));
+        _errorReporter.reportError(new AnalysisError.con2(data.source, data.offset, data.length, errorCode));
       }
     }
   }
@@ -1897,9 +1897,9 @@ class Dart2JSVerifier extends RecursiveAstVisitor<Object> {
       //      } else
       if (typeNameStr == _DOUBLE_TYPE_NAME && libraryElement != null && libraryElement.isDartCore) {
         if (node.notOperator == null) {
-          _errorReporter.reportErrorForNode(HintCode.IS_DOUBLE, node, []);
+          _errorReporter.reportErrorForNode(HintCode.IS_DOUBLE, node);
         } else {
-          _errorReporter.reportErrorForNode(HintCode.IS_NOT_DOUBLE, node, []);
+          _errorReporter.reportErrorForNode(HintCode.IS_NOT_DOUBLE, node);
         }
         return true;
       }
@@ -1963,13 +1963,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
         if (lhsResult != null) {
           if (lhsResult.value.isTrue && isBarBar) {
             // report error on else block: true || !e!
-            _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.rightOperand, []);
+            _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.rightOperand);
             // only visit the LHS:
             _safelyVisit(lhsCondition);
             return null;
           } else if (lhsResult.value.isFalse && isAmpAmp) {
             // report error on if block: false && !e!
-            _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.rightOperand, []);
+            _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.rightOperand);
             // only visit the LHS:
             _safelyVisit(lhsCondition);
             return null;
@@ -2020,12 +2020,12 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
       if (result != null) {
         if (result.value.isTrue) {
           // report error on else block: true ? 1 : !2!
-          _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.elseExpression, []);
+          _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.elseExpression);
           _safelyVisit(node.thenExpression);
           return null;
         } else {
           // report error on if block: false ? !1! : 2
-          _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.thenExpression, []);
+          _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.thenExpression);
           _safelyVisit(node.elseExpression);
           return null;
         }
@@ -2045,13 +2045,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
           // report error on else block: if(true) {} else {!}
           Statement elseStatement = node.elseStatement;
           if (elseStatement != null) {
-            _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, elseStatement, []);
+            _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, elseStatement);
             _safelyVisit(node.thenStatement);
             return null;
           }
         } else {
           // report error on if block: if (false) {!} else {}
-          _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.thenStatement, []);
+          _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.thenStatement);
           _safelyVisit(node.elseStatement);
           return null;
         }
@@ -2098,7 +2098,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
               CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
               int offset = nextCatchClause.offset;
               int length = lastCatchClause.end - offset;
-              _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length, []);
+              _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
               return null;
             }
           }
@@ -2124,7 +2124,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
           CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
           int offset = nextCatchClause.offset;
           int length = lastCatchClause.end - offset;
-          _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length, []);
+          _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
           return null;
         }
       }
@@ -2141,7 +2141,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
       if (result != null) {
         if (result.value.isFalse) {
           // report error on if block: while (false) {!}
-          _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.body, []);
+          _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.body);
           return null;
         }
       }
@@ -2168,7 +2168,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
         Statement lastStatement = statements[size - 1];
         int offset = nextStatement.offset;
         int length = lastStatement.end - offset;
-        _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE, offset, length, []);
+        _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE, offset, length);
         return;
       }
     }
@@ -2192,25 +2192,16 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
         return new EvaluationResultImpl.con1(new DartObjectImpl(null, BoolState.from(false)));
       }
     }
-    // Don't consider situations where we could evaluate to a constant boolean expression with the
-    // ConstantVisitor
-//
+    // Don't consider situations where we could evaluate to a constant boolean
+    // expression with the ConstantVisitor
        // else {
-//
          // EvaluationResultImpl result = expression.accept(new ConstantVisitor());
-//
          // if (result == ValidResult.RESULT_TRUE) {
-//
            // return ValidResult.RESULT_TRUE;
-//
          // } else if (result == ValidResult.RESULT_FALSE) {
-//
            // return ValidResult.RESULT_FALSE;
-//
          // }
-//
          // return null;
-//
        // }
     return null;
   }
@@ -5932,7 +5923,7 @@ class ImportsVerifier extends RecursiveAstVisitor<Object> {
    */
   void generateDuplicateImportHints(ErrorReporter errorReporter) {
     for (ImportDirective duplicateImport in _duplicateImports) {
-      errorReporter.reportErrorForNode(HintCode.DUPLICATE_IMPORT, duplicateImport.uri, []);
+      errorReporter.reportErrorForNode(HintCode.DUPLICATE_IMPORT, duplicateImport.uri);
     }
   }
 
@@ -5954,7 +5945,7 @@ class ImportsVerifier extends RecursiveAstVisitor<Object> {
           continue;
         }
       }
-      errorReporter.reportErrorForNode(HintCode.UNUSED_IMPORT, unusedImport.uri, []);
+      errorReporter.reportErrorForNode(HintCode.UNUSED_IMPORT, unusedImport.uri);
     }
   }
 
@@ -7554,7 +7545,7 @@ class Library {
   Source getSource(UriBasedDirective directive) {
     StringLiteral uriLiteral = directive.uri;
     if (uriLiteral is StringInterpolation) {
-      _errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION, []));
+      _errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION));
       return null;
     }
     String uriContent = uriLiteral.stringValue.trim();
@@ -7717,7 +7708,7 @@ class LibraryElementBuilder {
       }
     }
     if (hasPartDirective && libraryNameNode == null) {
-      _errorListener.onError(new AnalysisError.con1(librarySource, ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART, []));
+      _errorListener.onError(new AnalysisError.con1(librarySource, ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART));
     }
     //
     // Create and populate the library element.
@@ -7805,7 +7796,7 @@ class LibraryElementBuilder {
       }
     }
     if (hasPartDirective && libraryNameNode == null) {
-      _errorListener.onError(new AnalysisError.con1(librarySource, ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART, []));
+      _errorListener.onError(new AnalysisError.con1(librarySource, ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART));
     }
     //
     // Create and populate the library element.
@@ -10015,12 +10006,12 @@ class OverrideVerifier extends RecursiveAstVisitor<Object> {
     if (_isOverride(element)) {
       if (_getOverriddenMember(element) == null) {
         if (element is MethodElement) {
-          _errorReporter.reportErrorForNode(HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD, node.name, []);
+          _errorReporter.reportErrorForNode(HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD, node.name);
         } else if (element is PropertyAccessorElement) {
           if (element.isGetter) {
-            _errorReporter.reportErrorForNode(HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, node.name, []);
+            _errorReporter.reportErrorForNode(HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, node.name);
           } else {
-            _errorReporter.reportErrorForNode(HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER, node.name, []);
+            _errorReporter.reportErrorForNode(HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER, node.name);
           }
         }
       }
@@ -10212,7 +10203,7 @@ class PubVerifier extends RecursiveAstVisitor<Object> {
           Source pubspecSource = _context.sourceFactory.resolveUri(source, relativePubspecPath);
           if (_context.exists(pubspecSource)) {
             // Files inside the lib directory hierarchy should not reference files outside
-            _errorReporter.reportErrorForNode(HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE, uriLiteral, []);
+            _errorReporter.reportErrorForNode(HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE, uriLiteral);
           }
           return true;
         }
@@ -10260,7 +10251,7 @@ class PubVerifier extends RecursiveAstVisitor<Object> {
       if (StringUtilities.indexOf5(fullName, 0, 0x2F, 0x6C, 0x69, 0x62, 0x2F) < 0) {
         // Files outside the lib directory hierarchy should not reference files inside
         // ... use package: url instead
-        _errorReporter.reportErrorForNode(HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE, uriLiteral, []);
+        _errorReporter.reportErrorForNode(HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE, uriLiteral);
         return true;
       }
     }
@@ -10278,7 +10269,7 @@ class PubVerifier extends RecursiveAstVisitor<Object> {
   bool _checkForPackageImportContainsDotDot(StringLiteral uriLiteral, String path) {
     if (StringUtilities.startsWith3(path, 0, 0x2E, 0x2E, 0x2F) || StringUtilities.indexOf4(path, 0, 0x2F, 0x2E, 0x2E, 0x2F) >= 0) {
       // Package import should not to contain ".."
-      _errorReporter.reportErrorForNode(HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT, uriLiteral, []);
+      _errorReporter.reportErrorForNode(HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT, uriLiteral);
       return true;
     }
     return false;
@@ -12937,7 +12928,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportErrorForNode(ErrorCode errorCode, AstNode node, List<Object> arguments) {
+  void reportErrorForNode(ErrorCode errorCode, AstNode node, [List<Object> arguments]) {
     _errorListener.onError(new AnalysisError.con2(source, node.offset, node.length, errorCode, arguments));
   }
 
@@ -12949,7 +12940,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * @param length the length of the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportErrorForOffset(ErrorCode errorCode, int offset, int length, List<Object> arguments) {
+  void reportErrorForOffset(ErrorCode errorCode, int offset, int length, [List<Object> arguments]) {
     _errorListener.onError(new AnalysisError.con2(source, offset, length, errorCode, arguments));
   }
 
@@ -12960,7 +12951,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * @param token the token specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportErrorForToken(ErrorCode errorCode, sc.Token token, List<Object> arguments) {
+  void reportErrorForToken(ErrorCode errorCode, sc.Token token, [List<Object> arguments]) {
     _errorListener.onError(new AnalysisError.con2(source, token.offset, token.length, errorCode, arguments));
   }
 
@@ -15054,7 +15045,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (type is InterfaceType) {
       ClassElement element = type.element;
       if (element != null && element.isEnum) {
-        reportErrorForNode(enumTypeError, typeName, []);
+        reportErrorForNode(enumTypeError, typeName);
         return null;
       }
       return type;

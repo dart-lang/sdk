@@ -21,7 +21,7 @@ class AnalysisError {
   /**
    * An empty array of errors used when no errors are expected.
    */
-  static List<AnalysisError> NO_ERRORS = new List<AnalysisError>(0);
+  static const List<AnalysisError> NO_ERRORS = const <AnalysisError>[];
 
   /**
    * A [Comparator] that sorts by the name of the file that the [AnalysisError] was
@@ -93,7 +93,7 @@ class AnalysisError {
    * @param errorCode the error code to be associated with this error
    * @param arguments the arguments used to build the error message
    */
-  AnalysisError.con1(this.source, this.errorCode, List<Object> arguments) {
+  AnalysisError.con1(this.source, this.errorCode, [List<Object> arguments]) {
     this._message = formatList(errorCode.message, arguments);
   }
 
@@ -106,7 +106,7 @@ class AnalysisError {
    * @param errorCode the error code to be associated with this error
    * @param arguments the arguments used to build the error message
    */
-  AnalysisError.con2(this.source, int offset, int length, this.errorCode, List<Object> arguments) {
+  AnalysisError.con2(this.source, int offset, int length, this.errorCode, [List<Object> arguments]) {
     this._offset = offset;
     this._length = length;
     this._message = formatList(errorCode.message, arguments);
@@ -2044,6 +2044,11 @@ abstract class ErrorCode {
   final String correction;
 
   /**
+   * An empty list of error codes.
+   */
+  static const List<ErrorCode> EMPTY_LIST = const <ErrorCode>[];
+
+  /**
    * Initialize a newly created error code to have the given [name]. The message
    * associated with the error will be created from the given [message]
    * template. The correction associated with the error will be created from the
@@ -2160,7 +2165,7 @@ class ErrorReporter {
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportErrorForNode(ErrorCode errorCode, AstNode node, List<Object> arguments) {
+  void reportErrorForNode(ErrorCode errorCode, AstNode node, [List<Object> arguments]) {
     reportErrorForOffset(errorCode, node.offset, node.length, arguments);
   }
 
@@ -2172,7 +2177,7 @@ class ErrorReporter {
    * @param length the length of the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportErrorForOffset(ErrorCode errorCode, int offset, int length, List<Object> arguments) {
+  void reportErrorForOffset(ErrorCode errorCode, int offset, int length, [List<Object> arguments]) {
     _errorListener.onError(new AnalysisError.con2(_source, offset, length, errorCode, arguments));
   }
 
@@ -2183,7 +2188,7 @@ class ErrorReporter {
    * @param token the token specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportErrorForToken(ErrorCode errorCode, Token token, List<Object> arguments) {
+  void reportErrorForToken(ErrorCode errorCode, Token token, [List<Object> arguments]) {
     reportErrorForOffset(errorCode, token.offset, token.length, arguments);
   }
 

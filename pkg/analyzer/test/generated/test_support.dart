@@ -239,7 +239,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * @throws AssertionFailedError if a different number of errors have been gathered than were
    *           expected
    */
-  void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
+  void assertErrorsWithCodes([List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
     StringBuffer buffer = new StringBuffer();
     //
     // Verify that the expected error codes have a non-empty message.

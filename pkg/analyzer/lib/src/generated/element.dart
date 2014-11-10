@@ -472,7 +472,7 @@ abstract class AngularPropertyElement implements AngularElement {
   /**
    * An empty array of property elements.
    */
-  static final List<AngularPropertyElement> EMPTY_ARRAY = [];
+  static final List<AngularPropertyElement> EMPTY_ARRAY = <AngularPropertyElement>[];
 
   /**
    * Returns the field this property is mapped to.
@@ -596,7 +596,7 @@ abstract class AngularScopePropertyElement implements AngularElement {
   /**
    * An empty array of scope property elements.
    */
-  static final List<AngularScopePropertyElement> EMPTY_ARRAY = [];
+  static final List<AngularScopePropertyElement> EMPTY_ARRAY = <AngularScopePropertyElement>[];
 
   /**
    * Returns the type of this property, not `null`, maybe <code>dynamic</code>.
@@ -9107,7 +9107,7 @@ abstract class NamespaceCombinator {
   /**
    * An empty array of namespace combinators.
    */
-  static final List<NamespaceCombinator> EMPTY_ARRAY = new List<NamespaceCombinator>(0);
+  static const List<NamespaceCombinator> EMPTY_ARRAY = const <NamespaceCombinator>[];
 }
 
 /**

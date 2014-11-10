@@ -6908,9 +6908,9 @@ class ExportDirective extends NamespaceDirective {
  */
 abstract class Expression extends AstNode {
   /**
-   * An empty array of expressions.
+   * An empty list of expressions.
    */
-  static List<Expression> EMPTY_ARRAY = new List<Expression>(0);
+  static const List<Expression> EMPTY_ARRAY = const <Expression>[];
 
   /**
    * The static type of this expression, or `null` if the AST structure has not been resolved.
@@ -20161,7 +20161,7 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
   /**
    * The elements contained in the list.
    */
-  List<E> _elements = <E> [];
+  List<E> _elements = <E>[];
 
   /**
    * Initialize a newly created list of nodes to be empty.
@@ -20257,7 +20257,7 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
     _elements[index] = node;
   }
   void clear() {
-    _elements = <E> [];
+    _elements = <E>[];
   }
   int get length => _elements.length;
   void set length(int value) {
