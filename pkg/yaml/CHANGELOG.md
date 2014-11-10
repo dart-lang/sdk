@@ -1,3 +1,21 @@
+## 2.1.0
+
+* Rewrite the parser for a 10x speed improvement.
+
+* Support anchors and aliases (`&foo` and `*foo`).
+
+* Support explicit tags (e.g. `!!str`). Note that user-defined tags are still
+  not fully supported.
+
+* `%YAML` and `%TAG` directives are now parsed, although again user-defined tags
+  are not fully supported.
+
+* `YamlScalar`, `YamlList`, and `YamlMap` now expose the styles in which they
+  were written (for example plain vs folded, block vs flow).
+
+* A `yamlWarningCallback` field is exposed. This field can be used to customize
+  how YAML warnings are displayed.
+
 ## 2.0.1+1
 
 * Fix an import in a test.

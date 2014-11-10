@@ -4,16 +4,17 @@
 
 library yaml;
 
-import 'package:string_scanner/string_scanner.dart';
-
-import 'src/composer.dart';
-import 'src/constructor.dart';
-import 'src/parser.dart';
+import 'src/loader.dart';
+import 'src/style.dart';
+import 'src/yaml_document.dart';
 import 'src/yaml_exception.dart';
 import 'src/yaml_node.dart';
 
+export 'src/style.dart';
+export 'src/utils.dart' show YamlWarningCallback, yamlWarningCallback;
+export 'src/yaml_document.dart';
 export 'src/yaml_exception.dart';
-export 'src/yaml_node.dart';
+export 'src/yaml_node.dart' hide setSpan;
 
 /// Loads a single document from a YAML string.
 ///
@@ -39,13 +40,29 @@ loadYaml(String yaml, {sourceUrl}) =>
 /// This is just like [loadYaml], except that where [loadYaml] would return a
 /// normal Dart value this returns a [YamlNode] instead. This allows the caller
 /// to be confident that the return value will always be a [YamlNode].
-YamlNode loadYamlNode(String yaml, {sourceUrl}) {
-  var stream = loadYamlStream(yaml, sourceUrl: sourceUrl);
-  if (stream.length != 1) {
-    throw new YamlException("Expected 1 document, were ${stream.length}.",
-        stream.span);
+YamlNode loadYamlNode(String yaml, {sourceUrl}) =>
+    loadYamlDocument(yaml, sourceUrl: sourceUrl).contents;
+
+/// Loads a single document from a YAML string as a [YamlDocument].
+///
+/// This is just like [loadYaml], except that where [loadYaml] would return a
+/// normal Dart value this returns a [YamlDocument] instead. This allows the
+/// caller to access document metadata.
+YamlDocument loadYamlDocument(String yaml, {sourceUrl}) {
+  var loader = new Loader(yaml, sourceUrl: sourceUrl);
+  var document = loader.load();
+  if (document == null) {
+    return new YamlDocument.internal(
+        new YamlScalar.internal(null, loader.span, ScalarStyle.ANY),
+        loader.span, null, const []);
   }
-  return stream.nodes[0];
+
+  var nextDocument = loader.load();
+  if (nextDocument != null) {
+    throw new YamlException("Only expected one document.", nextDocument.span);
+  }
+
+  return document;
 }
 
 /// Loads a stream of documents from a YAML string.
@@ -62,15 +79,34 @@ YamlNode loadYamlNode(String yaml, {sourceUrl}) {
 /// If [sourceUrl] is passed, it's used as the URL from which the YAML
 /// originated for error reporting. It can be a [String], a [Uri], or `null`.
 YamlList loadYamlStream(String yaml, {sourceUrl}) {
-  var pair;
-  try {
-    pair = new Parser(yaml, sourceUrl).l_yamlStream();
-  } on StringScannerException catch (error) {
-    throw new YamlException(error.message, error.span);
+  var loader = new Loader(yaml, sourceUrl: sourceUrl);
+
+  var documents = [];
+  var document = loader.load();
+  while (document != null) {
+    documents.add(document);
+    document = loader.load();
   }
 
-  var nodes = pair.first
-      .map((doc) => new Constructor(new Composer(doc).compose()).construct())
-      .toList();
-  return new YamlList.internal(nodes, pair.last);
+  return new YamlList.internal(
+      documents.map((document) => document.contents).toList(),
+      loader.span,
+      CollectionStyle.ANY);
+}
+
+/// Loads a stream of documents from a YAML string.
+///
+/// This is like [loadYamlStream], except that it returns [YamlDocument]s with
+/// metadata wrapping the document contents.
+List<YamlDocument> loadYamlDocuments(String yaml, {sourceUrl}) {
+  var loader = new Loader(yaml, sourceUrl: sourceUrl);
+
+  var documents = [];
+  var document = loader.load();
+  while (document != null) {
+    documents.add(document);
+    document = loader.load();
+  }
+
+  return documents;
 }

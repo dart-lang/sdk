@@ -10,12 +10,15 @@ import 'package:collection/collection.dart' as pkg_collection;
 import 'package:source_span/source_span.dart';
 
 import 'null_span.dart';
+import 'style.dart';
 import 'yaml_node.dart';
 
 /// A wrapper that makes a normal Dart map behave like a [YamlMap].
 class YamlMapWrapper extends MapBase
     with pkg_collection.UnmodifiableMapMixin
     implements YamlMap {
+  final CollectionStyle style = CollectionStyle.ANY;
+
   final Map _dartMap;
 
   final SourceSpan span;
@@ -55,8 +58,8 @@ class _YamlMapNodes extends MapBase<dynamic, YamlNode>
 
   final SourceSpan _span;
 
-  Iterable get keys =>
-      _dartMap.keys.map((key) => new YamlScalar.internal(key, _span));
+  Iterable get keys => _dartMap.keys.map((key) =>
+      new YamlScalar.internal(key, _span, ScalarStyle.ANY));
 
   _YamlMapNodes(this._dartMap, this._span);
 
@@ -76,6 +79,8 @@ class _YamlMapNodes extends MapBase<dynamic, YamlNode>
 // TODO(nweiz): Use UnmodifiableListMixin when issue 18970 is fixed.
 /// A wrapper that makes a normal Dart list behave like a [YamlList].
 class YamlListWrapper extends ListBase implements YamlList {
+  final CollectionStyle style = CollectionStyle.ANY;
+
   final List _dartList;
 
   final SourceSpan span;
@@ -146,5 +151,5 @@ class _YamlListNodes extends ListBase<YamlNode> {
 YamlNode _nodeForValue(value, SourceSpan span) {
   if (value is Map) return new YamlMapWrapper._(value, span);
   if (value is List) return new YamlListWrapper._(value, span);
-  return new YamlScalar.internal(value, span);
+  return new YamlScalar.internal(value, span, ScalarStyle.ANY);
 }
