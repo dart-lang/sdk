@@ -100,8 +100,6 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'boolConversionCheck': 'boolConversionCheck(x) {}',
   'boolTypeCast': 'boolTypeCast(value) {}',
   'boolTypeCheck': 'boolTypeCheck(value) {}',
-  'checkSubtype': 'checkSubtype(object, isField, checks, asField) {}',
-  'checkSubtypeOfRuntimeType': 'checkSubtypeOfRuntimeType(o, t) {}',
   'BoundClosure': r'''abstract class BoundClosure extends Closure {
     var self;
     var target;
@@ -207,7 +205,7 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'subtypeOfRuntimeTypeCast': 'subtypeOfRuntimeTypeCast(object, type) {}',
   'throwAbstractClassInstantiationError':
       'throwAbstractClassInstantiationError(className) {}',
-  'throwCyclicInit': 'throwCyclicInit(staticName) {}',
+  'throwCyclicInit': 'throwCyclicInit() {}',
   'throwExpression': 'throwExpression(e) {}',
   'throwNoSuchMethod':
       'throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {}',
