@@ -158,6 +158,13 @@ class CompileType : public ValueObject {
     return (cid_ == kIllegalCid) && (type_ == NULL);
   }
 
+  bool IsInt() {
+    return !is_nullable() &&
+      ((ToCid() == kSmiCid) ||
+       (ToCid() == kMintCid) ||
+       ((type_ != NULL) && (type_->Equals(Type::Handle(Type::IntType())))));
+  }
+
   void PrintTo(BufferFormatter* f) const;
   const char* ToCString() const;
 
@@ -3569,10 +3576,6 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
     return GetDeoptId() != Isolate::kNoDeoptId;
   }
 
-  bool Typed32BitIsSmi() const {
-    return kSmiBits >= 32;
-  }
-
   virtual Representation representation() const;
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
@@ -4650,6 +4653,8 @@ class UnboxUint32Instr : public UnboxInteger32Instr {
     return (value()->Type()->ToCid() != kSmiCid)
         && (value()->Type()->ToCid() != kMintCid);
   }
+
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   DECLARE_INSTRUCTION_NO_BACKEND(UnboxUint32)
 
@@ -7485,6 +7490,11 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual CompileType ComputeType() const {
+    // TODO(vegorov) use range information to improve type.
+    return CompileType::Int();
+  }
 
   DECLARE_INSTRUCTION(UnboxedIntConverter);
 

@@ -4862,6 +4862,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
           smi_op->ReplaceWith(int32_op, NULL);
         } else if (defn->IsPhi()) {
           defn->AsPhi()->set_representation(kUnboxedInt32);
+          ASSERT(defn->Type()->IsInt());
         }
       }
     }

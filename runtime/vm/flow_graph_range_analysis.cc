@@ -245,8 +245,7 @@ void RangeAnalysis::CollectValues() {
     if (join != NULL) {
       for (PhiIterator phi_it(join); !phi_it.Done(); phi_it.Advance()) {
         PhiInstr* current = phi_it.Current();
-        if ((current->Type()->ToCid() == kSmiCid) ||
-            (current->representation() == kUnboxedInt32)) {
+        if (current->Type()->IsInt()) {
           values_.Add(current);
         }
       }
@@ -517,6 +516,28 @@ const Range* RangeAnalysis::GetSmiRange(Value* value) const {
 }
 
 
+const Range* RangeAnalysis::GetIntRange(Value* value) const {
+  Definition* defn = value->definition();
+  const Range* range = defn->range();
+
+  if ((range == NULL) && !defn->Type()->IsInt()) {
+    // Type propagator determined that reaching type for this use is int.
+    // However the definition itself is not a int-definition and
+    // thus it will never have range assigned to it. Just return the widest
+    // range possible for this value.
+    // It is safe to return Int64 range as this is the widest possible range
+    // supported by our unboxing operations - if this definition produces
+    // Bigint outside of Int64 we will deoptimize whenever we actually try
+    // to unbox it.
+    // Note: that we can't return NULL here because it is used as lattice's
+    // bottom element to indicate that the range was not computed *yet*.
+    return &int64_range_;
+  }
+
+  return range;
+}
+
+
 static bool AreEqualDefinitions(Definition* a, Definition* b) {
   a = UnwrapConstraint(a);
   b = UnwrapConstraint(b);
@@ -639,6 +660,21 @@ char RangeAnalysis::OpPrefix(JoinOperator op) {
 }
 
 
+static RangeBoundary::RangeSize RangeSizeForPhi(Definition* phi) {
+  ASSERT(phi->IsPhi());
+  if (phi->Type()->ToCid() == kSmiCid) {
+    return RangeBoundary::kRangeBoundarySmi;
+  } else if (phi->representation() == kUnboxedInt32) {
+    return RangeBoundary::kRangeBoundaryInt32;
+  } else if (phi->Type()->IsInt()) {
+    return RangeBoundary::kRangeBoundaryInt64;
+  } else {
+    UNREACHABLE();
+    return RangeBoundary::kRangeBoundaryInt64;
+  }
+}
+
+
 bool RangeAnalysis::InferRange(JoinOperator op,
                                Definition* defn,
                                intptr_t iteration) {
@@ -647,11 +683,7 @@ bool RangeAnalysis::InferRange(JoinOperator op,
 
   if (!Range::IsUnknown(&range)) {
     if (!Range::IsUnknown(defn->range()) && defn->IsPhi()) {
-      // TODO(vegorov): we are currently supporting only smi/int32 phis.
-      ASSERT((defn->Type()->ToCid() == kSmiCid) ||
-             (defn->representation() == kUnboxedInt32));
-      const RangeBoundary::RangeSize size = (defn->Type()->ToCid() == kSmiCid) ?
-          RangeBoundary::kRangeBoundarySmi : RangeBoundary::kRangeBoundaryInt32;
+      const RangeBoundary::RangeSize size = RangeSizeForPhi(defn);
       if (op == WIDEN) {
         range = Range(WidenMin(defn->range(), &range, size),
                       WidenMax(defn->range(), &range, size));
@@ -755,7 +787,10 @@ void RangeAnalysis::InferRanges() {
   // Perform an iteration of range inference just propagating ranges
   // through the graph as-is without applying widening or narrowing.
   // This helps to improve precision of initial bounds.
-  Iterate(NONE, 1);
+  // We are doing 2 iterations to hit common cases where phi range
+  // stabilizes quickly and yields a better precision than after
+  // widening and narrowing.
+  Iterate(NONE, 2);
 
   // Perform fix-point iteration of range inference applying widening
   // operator to phis to ensure fast convergence.
@@ -2592,6 +2627,8 @@ void Definition::InferRange(RangeAnalysis* analysis, Range* range) {
     *range = Range::Full(RangeBoundary::kRangeBoundaryInt64);
   } else if (IsInt32Definition()) {
     *range = Range::Full(RangeBoundary::kRangeBoundaryInt32);
+  } else if (Type()->IsInt()) {
+    *range = Range::Full(RangeBoundary::kRangeBoundaryInt64);
   } else {
     // Only Smi and Mint supported.
     UNREACHABLE();
@@ -2692,16 +2729,31 @@ static RangeBoundary EnsureAcyclicSymbol(BlockEntryInstr* phi_block,
 }
 
 
+static const Range* GetInputRange(RangeAnalysis* analysis,
+                                  RangeBoundary::RangeSize size,
+                                  Value* input) {
+  switch (size) {
+    case RangeBoundary::kRangeBoundarySmi:
+      return analysis->GetSmiRange(input);
+    case RangeBoundary::kRangeBoundaryInt32:
+      return input->definition()->range();
+    case RangeBoundary::kRangeBoundaryInt64:
+      return analysis->GetIntRange(input);
+    default:
+      UNREACHABLE();
+      return NULL;
+  }
+}
+
+
 void PhiInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  ASSERT((Type()->ToCid() == kSmiCid) || (representation() == kUnboxedInt32));
-  const RangeBoundary::RangeSize size = (Type()->ToCid() == kSmiCid) ?
-      RangeBoundary::kRangeBoundarySmi : RangeBoundary::kRangeBoundaryInt32;
+  const RangeBoundary::RangeSize size = RangeSizeForPhi(this);
   for (intptr_t i = 0; i < InputCount(); i++) {
     Value* input = InputAt(i);
-    const Range* input_range = (size == RangeBoundary::kRangeBoundarySmi) ?
-        analysis->GetSmiRange(input) : input->definition()->range();
     Join(range,
-         input->definition(), input_range, size);
+         input->definition(),
+         GetInputRange(analysis, size, input),
+         size);
   }
 
   BlockEntryInstr* phi_block = GetBlock();
@@ -2795,20 +2847,12 @@ void LoadIndexedInstr::InferRange(RangeAnalysis* analysis, Range* range) {
                      RangeBoundary::FromConstant(65535));
       break;
     case kTypedDataInt32ArrayCid:
-      if (Typed32BitIsSmi()) {
-        *range = Range::Full(RangeBoundary::kRangeBoundarySmi);
-      } else {
-        *range = Range(RangeBoundary::FromConstant(kMinInt32),
-                       RangeBoundary::FromConstant(kMaxInt32));
-      }
+      *range = Range(RangeBoundary::FromConstant(kMinInt32),
+                     RangeBoundary::FromConstant(kMaxInt32));
       break;
     case kTypedDataUint32ArrayCid:
-      if (Typed32BitIsSmi()) {
-        *range = Range::Full(RangeBoundary::kRangeBoundarySmi);
-      } else {
-        *range = Range(RangeBoundary::FromConstant(0),
-                       RangeBoundary::FromConstant(kMaxUint32));
-      }
+      *range = Range(RangeBoundary::FromConstant(0),
+                     RangeBoundary::FromConstant(kMaxUint32));
       break;
     case kOneByteStringCid:
       *range = Range(RangeBoundary::FromConstant(0),
@@ -2915,14 +2959,13 @@ void BoxIntegerInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 
 
 void UnboxInt32Instr::InferRange(RangeAnalysis* analysis, Range* range) {
-  if (value()->definition()->Type()->ToCid() == kSmiCid) {
+  if (value()->Type()->ToCid() == kSmiCid) {
     const Range* value_range = analysis->GetSmiRange(value());
     if (!Range::IsUnknown(value_range)) {
       *range = *value_range;
     }
-  } else if (value()->definition()->IsMintDefinition() ||
-             value()->definition()->IsInt32Definition()) {
-    const Range* value_range = value()->definition()->range();
+  } else if (RangeAnalysis::IsIntegerDefinition(value()->definition())) {
+    const Range* value_range = analysis->GetIntRange(value());
     if (!Range::IsUnknown(value_range)) {
       *range = *value_range;
     }
@@ -2930,6 +2973,30 @@ void UnboxInt32Instr::InferRange(RangeAnalysis* analysis, Range* range) {
     *range = Range::Full(RangeBoundary::kRangeBoundarySmi);
   } else {
     *range = Range::Full(RangeBoundary::kRangeBoundaryInt32);
+  }
+}
+
+
+void UnboxUint32Instr::InferRange(RangeAnalysis* analysis, Range* range) {
+  const Range* value_range = NULL;
+
+  if (value()->Type()->ToCid() == kSmiCid) {
+    value_range = analysis->GetSmiRange(value());
+  } else if (RangeAnalysis::IsIntegerDefinition(value()->definition())) {
+    value_range = analysis->GetIntRange(value());
+  } else {
+    *range = Range(RangeBoundary::FromConstant(0),
+                   RangeBoundary::FromConstant(kMaxUint32));
+    return;
+  }
+
+  if (!Range::IsUnknown(value_range)) {
+    if (value_range->IsPositive()) {
+      *range = *value_range;
+    } else {
+      *range = Range(RangeBoundary::FromConstant(0),
+                     RangeBoundary::FromConstant(kMaxUint32));
+    }
   }
 }
 

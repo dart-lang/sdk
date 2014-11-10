@@ -502,7 +502,8 @@ class RangeAnalysis : public ValueObject {
  public:
   explicit RangeAnalysis(FlowGraph* flow_graph)
       : flow_graph_(flow_graph),
-        smi_range_(Range::Full(RangeBoundary::kRangeBoundarySmi)) { }
+        smi_range_(Range::Full(RangeBoundary::kRangeBoundarySmi)),
+        int64_range_(Range::Full(RangeBoundary::kRangeBoundaryInt64)) { }
 
   // Infer ranges for all values and remove overflow checks from binary smi
   // operations when proven redundant.
@@ -510,14 +511,17 @@ class RangeAnalysis : public ValueObject {
 
   // Helper that should be used to access ranges of inputs during range
   // inference.
-  // Returns meaningful results for uses of non-smi definitions that have smi
-  // as a reaching type.
+  // Returns meaningful results for uses of non-smi/non-int definitions that
+  // have smi/int as a reaching type.
+  // For Int typed definitions we use full Int64 range as a safe approximation
+  // even though they might contain Bigint values because we only support
+  // 64-bit operations in the optimized code - which means that Bigint will
+  // cause deoptimization.
   const Range* GetSmiRange(Value* value) const;
+  const Range* GetIntRange(Value* value) const;
 
   static bool IsIntegerDefinition(Definition* defn) {
-    return (defn->Type()->ToCid() == kSmiCid) ||
-        defn->IsMintDefinition() ||
-        defn->IsInt32Definition();
+    return defn->Type()->IsInt();
   }
 
   void AssignRangesRecursively(Definition* defn);
@@ -596,6 +600,8 @@ class RangeAnalysis : public ValueObject {
 
   // Range object representing full Smi range.
   Range smi_range_;
+
+  Range int64_range_;
 
   // Value that are known to be smi or mint.
   GrowableArray<Definition*> values_;
