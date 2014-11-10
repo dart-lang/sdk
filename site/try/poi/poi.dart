@@ -397,22 +397,35 @@ Future<Element> runPoi(
     options.add('--minify');
   }
 
-  LibraryUpdater updater =
-      new LibraryUpdater(
-          cachedCompiler, inputProvider, script, printWallClock, printVerbose);
+  LibraryUpdater updater;
+
   Future<bool> reuseLibrary(LibraryElement library) {
     return poiTask.measure(() => updater.reuseLibrary(library));
   }
 
-  return reuseCompiler(
-      diagnosticHandler: handler,
-      inputProvider: inputProvider,
-      options: options,
-      cachedCompiler: cachedCompiler,
-      libraryRoot: libraryRoot,
-      packageRoot: packageRoot,
-      packagesAreImmutable: true,
-      reuseLibrary: reuseLibrary).then((Compiler newCompiler) {
+  Future<Compiler> invokeReuseCompiler() {
+    updater = new LibraryUpdater(
+        cachedCompiler, inputProvider, script, printWallClock, printVerbose);
+    return reuseCompiler(
+        diagnosticHandler: handler,
+        inputProvider: inputProvider,
+        options: options,
+        cachedCompiler: cachedCompiler,
+        libraryRoot: libraryRoot,
+        packageRoot: packageRoot,
+        packagesAreImmutable: true,
+        reuseLibrary: reuseLibrary);
+  }
+
+  return invokeReuseCompiler().then((Compiler newCompiler) {
+    // TODO(ahe): Move this "then" block to [reuseCompiler].
+    if (updater.failed) {
+      cachedCompiler = null;
+      return invokeReuseCompiler();
+    } else {
+      return newCompiler;
+    }
+  }).then((Compiler newCompiler) {
     if (!isCompiler) {
       newCompiler.enqueuerFilter = new ScriptOnlyFilter(script);
     }

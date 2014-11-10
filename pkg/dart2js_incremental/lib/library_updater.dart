@@ -64,6 +64,19 @@ typedef bool Reuser(
     PartialElement before,
     PartialElement after);
 
+class FailedUpdate {
+  /// Either an [Element] or a [Difference].
+  final context;
+  final String message;
+
+  FailedUpdate(this.context, this.message);
+
+  String toString() {
+    if (context == null) return '$message';
+    return 'In $context:\n  $message';
+  }
+}
+
 // TODO(ahe): Generalize this class. For now only works for Compiler.mainApp,
 // and only if that library has exactly one compilation unit.
 class LibraryUpdater {
@@ -79,13 +92,9 @@ class LibraryUpdater {
   // changed.
   final Uri uri;
 
-  // When [true], updates must be applied (using [applyUpdates]) before the
-  // [compiler]'s state correctly reflects the updated program.
-  bool hasPendingUpdates = false;
-
-  bool onlySimpleUpdates = true;
-
   final List<Update> updates = <Update>[];
+
+  final List<FailedUpdate> _failedUpdates = <FailedUpdate>[];
 
   LibraryUpdater(
       this.compiler,
@@ -93,6 +102,12 @@ class LibraryUpdater {
       this.uri,
       this.logTime,
       this.logVerbose);
+
+  /// When [true], updates must be applied (using [applyUpdates]) before the
+  /// [compiler]'s state correctly reflects the updated program.
+  bool get hasPendingUpdates => !updates.isEmpty;
+
+  bool get failed => !_failedUpdates.isEmpty;
 
   JavaScriptBackend get backend => compiler.backend;
 
@@ -141,6 +156,12 @@ class LibraryUpdater {
     return canReuseScopeContainerElement(library, newLibrary);
   }
 
+  bool cannotReuse(context, String message) {
+    _failedUpdates.add(new FailedUpdate(context, message));
+    logVerbose(message);
+    return false;
+  }
+
   bool canReuseScopeContainerElement(
       ScopeContainerElement element,
       ScopeContainerElement newElement) {
@@ -149,23 +170,18 @@ class LibraryUpdater {
     for (Difference difference in differences) {
       logTime('Looking at difference: $difference');
       if (difference.before == null || difference.after == null) {
-        logVerbose('Scope changed in $difference');
-        // Scope changed, don't reuse library.
-        onlySimpleUpdates = false;
-        return false;
+        cannotReuse(difference, "Can't reuse; Scope changed.");
+        continue;
       }
       Token diffToken = difference.token;
       if (diffToken == null) {
-        logVerbose('No token stored in difference.');
-        onlySimpleUpdates = false;
-        return false;
+        cannotReuse(difference, "No difference token.");
+        continue;
       }
       if (difference.after is! PartialElement &&
           difference.before is! PartialElement) {
-        logVerbose('Not a PartialElement: $difference');
-        // Don't know how to recompile element.
-        onlySimpleUpdates = false;
-        return false;
+        cannotReuse(difference, "Don't know how to recompile.");
+        continue;
       }
       PartialElement before = difference.before;
       PartialElement after = difference.after;
@@ -178,16 +194,15 @@ class LibraryUpdater {
                  after is PartialClassElement) {
         reuser = canReuseClass;
       } else {
-        reuser = cannotReuse;
+        reuser = unableToReuse;
       }
       if (!reuser(diffToken, before, after)) {
-        onlySimpleUpdates = false;
-        return false;
+        assert(!_failedUpdates.isEmpty);
+        continue;
       }
     }
-    hasPendingUpdates = true;
 
-    return true;
+    return _failedUpdates.isEmpty;
   }
 
   /// Returns true if function [before] can be reused to reflect the changes in
@@ -201,16 +216,14 @@ class LibraryUpdater {
     FunctionExpression node =
         after.parseNode(compiler).asFunctionExpression();
     if (node == null) {
-      logVerbose('Not a function expression.');
-      return false;
+      return cannotReuse(after, "Not a function expression: '$node'");
     }
     Token last = after.endToken;
     if (node.body != null) {
       last = node.body.getBeginToken();
     }
     if (isTokenBetween(diffToken, after.beginToken, last)) {
-      logVerbose('Signature changed.');
-      return false;
+      return cannotReuse(after, 'Signature changed.');
     }
     logVerbose('Simple modification of ${after} detected');
     updates.add(new FunctionUpdate(compiler, before, after));
@@ -223,17 +236,14 @@ class LibraryUpdater {
       PartialClassElement after) {
     ClassNode node = after.parseNode(compiler).asClassNode();
     if (node == null) {
-      logVerbose('Not a ClassNode.');
-      return false;
+      return cannotReuse(after, "Not a ClassNode: '$node'");
     }
     NodeList body = node.body;
     if (body == null) {
-      logVerbose('Class has no body.');
-      return false;
+      return cannotReuse(after, "Class has no body.");
     }
     if (isTokenBetween(diffToken, node.beginToken, body.beginToken)) {
-      logVerbose('Class header changed.');
-      return false;
+      return cannotReuse(after, "Class header changed.");
     }
     logVerbose('Simple modification of ${after} detected');
     return canReuseScopeContainerElement(before, after);
@@ -250,19 +260,20 @@ class LibraryUpdater {
     return false;
   }
 
-  bool cannotReuse(
+  bool unableToReuse(
       Token diffToken,
       PartialElement before,
       PartialElement after) {
-    logVerbose(
+    return cannotReuse(
+        after,
         'Unhandled change:'
         ' ${before} (${before.runtimeType} -> ${after.runtimeType}).');
-    return false;
   }
 
   List<Element> applyUpdates() {
-    if (!onlySimpleUpdates) {
-      throw new StateError("Can't compute update.");
+    if (!_failedUpdates.isEmpty) {
+      throw new StateError(
+          "Can't compute update.\n\n${_failedUpdates.join('\n\n')}");
     }
     return updates.map((Update update) => update.apply()).toList();
   }
