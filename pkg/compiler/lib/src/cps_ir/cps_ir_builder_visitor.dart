@@ -240,9 +240,45 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
 
   ir.Primitive visitLabeledStatement(ast.LabeledStatement node) {
     ast.Statement body = node.statement;
-    return body is ast.Loop
-        ? visit(body)
-        : giveup(node, 'labeled statement');
+    if (body is ast.Loop) return visit(body);
+    JumpTarget target = elements.getTargetDefinition(body);
+    JumpCollector jumps = new JumpCollector(target);
+    irBuilder.state.breakCollectors.add(jumps);
+    IrBuilder innerBuilder = new IrBuilder.delimited(irBuilder);
+    withBuilder(innerBuilder, () {
+      visit(body);
+    });
+    irBuilder.state.breakCollectors.removeLast();
+    bool hasBreaks = !jumps.isEmpty;
+    ir.Continuation joinContinuation;
+    if (hasBreaks) {
+      if (innerBuilder.isOpen) {
+        jumps.addJump(innerBuilder);
+      }
+
+      // All jumps to the break continuation must be in the scope of the
+      // continuation's binding.  The continuation is bound just outside the
+      // body to satisfy this property without extra analysis.
+      // As a consequence, the break continuation needs parameters for all
+      // local variables in scope at the exit from the body.
+      List<ir.Parameter> parameters =
+          new List<ir.Parameter>.generate(irBuilder.environment.length, (i) {
+        return new ir.Parameter(irBuilder.environment.index2variable[i]);
+      });
+      joinContinuation = new ir.Continuation(parameters);
+      irBuilder.invokeFullJoin(joinContinuation, jumps, recursive: false);
+      irBuilder.add(new ir.LetCont(joinContinuation, innerBuilder._root));
+      for (int i = 0; i < irBuilder.environment.length; ++i) {
+        irBuilder.environment.index2value[i] = parameters[i];
+      }
+    } else {
+      if (innerBuilder._root != null) {
+        irBuilder.add(innerBuilder._root);
+        irBuilder._current = innerBuilder._current;
+        irBuilder.environment = innerBuilder.environment;
+      }
+    }
+    return null;
   }
 
   visitWhile(ast.While node) {

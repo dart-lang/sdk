@@ -214,7 +214,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   String formatPrimitive(cps_ir.Primitive p) => visit(p);
 
   visitConstant(cps_ir.Constant node) {
-    return "Constant ${node.expression.value}";
+    return "Constant ${node.expression.value.toStructuredString()}";
   }
 
   visitParameter(cps_ir.Parameter node) {

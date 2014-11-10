@@ -9,6 +9,7 @@ LibTest/core/List/List_class_A01_t02: Crash # issue 19953
 
 [ $compiler == dart2dart && $builder_tag != new_backend ]
 Language/12_Expressions/18_Assignment_A04_t09: RuntimeError # co19-roll r667: Please triage this failure
+Language/13_Statements/12_Labels_A01_t03: fail # co19-roll r546: Please triage this failure
 
 [ $compiler == dart2dart ]
 Language/07_Classes/07_Classes_A13_t02: Fail # Missing CT error on member with same name a type parameter
@@ -101,7 +102,6 @@ Language/12_Expressions/22_Equality_A05_t01: fail # co19-roll r546: Please triag
 Language/12_Expressions/30_Identifier_Reference_A02_t01: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/02_Expression_Statements_A01_t08: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/09_Switch_A01_t02: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/12_Labels_A01_t03: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t08: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t09: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t10: fail # co19-roll r546: Please triage this failure
