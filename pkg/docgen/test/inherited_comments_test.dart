@@ -28,7 +28,7 @@ void main() {
     });
 
     schedule(() {
-      var path = p.join(d.defaultRoot, 'docs', 'dart:core.Set.json');
+      var path = p.join(d.defaultRoot, 'docs', 'dart-core.Set.json');
       var dartCoreSetJson = new File(path).readAsStringSync();
 
       var dartCoreSet = JSON.decode(dartCoreSetJson) as Map<String, dynamic>;

@@ -247,7 +247,7 @@ void _writeOutputFiles(Map<String, dynamic> libraryMap, Iterable<Indexable>
 
 /// Helper method to serialize the given Indexable out to a file.
 void _writeIndexableToFile(Indexable result, JsonEncoder encoder) {
-  var outputFile = result.qualifiedName + '.json';
+  var outputFile = result.fileName + '.json';
   var output = encoder.convert(result.toMap());
   _writeToFile(output, outputFile);
 }
