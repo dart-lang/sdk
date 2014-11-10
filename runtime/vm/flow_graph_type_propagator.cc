@@ -306,6 +306,13 @@ void FlowGraphTypePropagator::VisitGuardFieldClass(
 }
 
 
+void FlowGraphTypePropagator::VisitAssertAssignable(
+    AssertAssignableInstr* instr) {
+  SetTypeOf(instr->value()->definition(),
+            ZoneCompileType::Wrap(instr->ComputeType()));
+}
+
+
 void FlowGraphTypePropagator::AddToWorklist(Definition* defn) {
   if (defn->ssa_temp_index() == -1) {
     return;
