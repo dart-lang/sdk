@@ -23,8 +23,9 @@ List<int> bar() {
 
 
 doTest() {
- var i = 0;
-  foo(1);  // Initial call to compile.
+  var i = 0;
+  var ret = foo(1);  // Initial call to compile.
+  print("foo=$ret");
   // Time passes, GC runs, foo's code is dropped.
   var ms = const Duration(milliseconds: 100);
   var t = new Timer.periodic(ms, (timer) {
@@ -34,7 +35,8 @@ doTest() {
       timer.cancel();
       // foo is called again to make sure we can still run it even after
       // its code has been detached.
-      foo(2);
+      var ret = foo(2);
+      print("foo=$ret");
     }
   });
 }
@@ -47,7 +49,7 @@ main(List<String> arguments) {
     // Run the test and capture stdout.
     var pr = Process.runSync(Platform.executable,
         ["--collect-code",
-         "--code-collection-interval-in-us=100000",
+         "--code-collection-interval-in-us=0",
          "--old_gen_growth_rate=10",
          "--log-code-drop",
          "--optimization-counter-threshold=-1",
@@ -55,14 +57,25 @@ main(List<String> arguments) {
          Platform.script.toFilePath(),
          "--run"]);
 
+    Expect.equals(0, pr.exitCode);
+
     // Code drops are logged with --log-code-drop. Look through stdout for the
     // message that foo's code was dropped.
-    var found = false;
+    var count = 0;
     pr.stdout.split("\n").forEach((line) {
+      if (line.contains("foo=2")) {
+        Expect.equals(0, count);
+        count++;
+      }
       if (line.contains("Detaching code") && line.contains("foo")) {
-        found = true;
+        Expect.equals(1, count);
+        count++;
+      }
+      if (line.contains("foo=3")) {
+        Expect.equals(2, count);
+        count++;
       }
     });
-    Expect.isTrue(found);
+    Expect.equals(3, count);
   }
 }
