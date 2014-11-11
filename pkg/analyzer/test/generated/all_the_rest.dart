@@ -2235,7 +2235,7 @@ class MyController {
     assertResolvedIdentifier2("ctrl", "MyController");
   }
 
-  void test_resolveExpression_withFilter() {
+  void test_resolveExpression_withFormatter() {
     addMyController();
     _resolveIndexNoErrors(
         AngularTest.createHtmlWithMyController("{{ctrl.field | uppercase}}"));
@@ -2243,7 +2243,14 @@ class MyController {
     assertResolvedIdentifier("uppercase");
   }
 
-  void test_resolveExpression_withFilter_notSimpleIdentifier() {
+  void test_resolveExpression_withFormatter_missingColon() {
+    addMyController();
+    resolveIndex2(
+        AngularTest.createHtmlWithMyController("{{ctrl.field | uppercase, lowercase}}"));
+    assertErrors(indexSource, [AngularCode.MISSING_FORMATTER_COLON]);
+  }
+
+  void test_resolveExpression_withFormatter_notSimpleIdentifier() {
     addMyController();
     resolveIndex2(
         AngularTest.createHtmlWithMyController("{{ctrl.field | not.supported}}"));
