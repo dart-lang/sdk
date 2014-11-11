@@ -2471,6 +2471,17 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
     expect(vars[0].name.name, "v");
   }
 
+  void test_functionExpression_named() {
+    ParserTestCase.parseExpression("m(f() => 0);", [
+        ParserErrorCode.EXPECTED_TOKEN]);
+  }
+
+  void test_incomplete_conditionalExpression() {
+    ParserTestCase.parseExpression("x ? 0", [
+        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.MISSING_IDENTIFIER]);
+  }
+
   void test_incomplete_constructorInitializers_empty() {
     ParserTestCase.parse3(
         "parseClassMember",
@@ -2501,6 +2512,11 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
         ["C"],
         "C() : x {}",
         [ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER]);
+  }
+
+  void test_incomplete_topLevelFunction() {
+    ParserTestCase.parseCompilationUnit("foo();", [
+        ParserErrorCode.MISSING_FUNCTION_BODY]);
   }
 
   void test_incomplete_topLevelVariable() {
@@ -2626,6 +2642,11 @@ class C {
     expect(field.name.isSynthetic, isTrue);
   }
 
+  void test_invalidFunctionBodyModifier() {
+    ParserTestCase.parseCompilationUnit("f() sync {}", [
+        ParserErrorCode.MISSING_STAR_AFTER_SYNC]);
+  }
+
   void test_isExpression_noType() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("class Bar<T extends Foo> {m(x){if (x is ) return;if (x is !)}}", [
         ParserErrorCode.EXPECTED_TYPE_NAME,
@@ -2643,6 +2664,13 @@ class C {
     expect(type, isNotNull);
     expect(type.name.isSynthetic, isTrue);
     EngineTestCase.assertInstanceOf((obj) => obj is EmptyStatement, EmptyStatement, ifStatement.thenStatement);
+  }
+
+  void test_keywordInPlaceOfIdentifier() {
+    // TODO(brianwilkerson) We could do better with this.
+    ParserTestCase.parseCompilationUnit("do() {}", [
+        ParserErrorCode.EXPECTED_EXECUTABLE,
+        ParserErrorCode.UNEXPECTED_TOKEN]);
   }
 
   void test_logicalAndExpression_missing_LHS() {
@@ -2719,6 +2747,11 @@ class C {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER]);
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression.rightOperand);
+  }
+
+  void test_missing_commaInArgumentList() {
+    ParserTestCase.parseExpression("f(x: 1 y: 2)", [
+        ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_missingGet() {
@@ -2892,6 +2925,11 @@ class C {
     expect(declarations, hasLength(1));
     CompilationUnitMember member = declarations[0];
     EngineTestCase.assertInstanceOf((obj) => obj is FunctionTypeAlias, FunctionTypeAlias, member);
+  }
+
+  void test_unaryPlus() {
+    ParserTestCase.parseExpression("+2", [
+        ParserErrorCode.MISSING_IDENTIFIER]);
   }
 }
 
