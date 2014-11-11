@@ -1118,6 +1118,11 @@ class ResolverTask extends CompilerTask {
       return;
     }
 
+    if (mixin.isEnumClass) {
+      // Mixing in an enum has already caused a compile-time error.
+      return;
+    }
+
     // Check that the mixed in class has Object as its superclass.
     if (!mixin.superclass.isObject) {
       compiler.reportError(mixin, MessageKind.ILLEGAL_MIXIN_SUPERCLASS);
@@ -3370,6 +3375,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     // and only declaration elements may be registered.
     registry.registerStaticUse(constructor.declaration);
     ClassElement cls = constructor.enclosingClass;
+    if (cls.isEnumClass && currentClass != cls) {
+      compiler.reportError(node,
+                           MessageKind.CANNOT_INSTANTIATE_ENUM,
+                           {'enumName': cls.name});
+    }
+
     InterfaceType type = registry.getType(node);
     if (node.isConst && type.containsTypeVariables) {
       compiler.reportError(node.send.selector,
@@ -4367,6 +4378,9 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     } else if (mixinType.isMalformed) {
       compiler.reportError(mixinNode, MessageKind.CANNOT_MIXIN_MALFORMED,
           {'className': element.name, 'malformedType': mixinType});
+    } else if (mixinType.isEnumType) {
+      compiler.reportError(mixinNode, MessageKind.CANNOT_MIXIN_ENUM,
+          {'className': element.name, 'enumType': mixinType});
     }
     return mixinType;
   }
@@ -4551,11 +4565,15 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   DartType resolveSupertype(ClassElement cls, TypeAnnotation superclass) {
     DartType supertype = resolveType(superclass);
     if (supertype != null) {
-      if (identical(supertype.kind, TypeKind.MALFORMED_TYPE)) {
+      if (supertype.isMalformed) {
         compiler.reportError(superclass, MessageKind.CANNOT_EXTEND_MALFORMED,
             {'className': element.name, 'malformedType': supertype});
         return objectType;
-      } else if (!identical(supertype.kind, TypeKind.INTERFACE)) {
+      } else if (supertype.isEnumType) {
+        compiler.reportError(superclass, MessageKind.CANNOT_EXTEND_ENUM,
+            {'className': element.name, 'enumType': supertype});
+        return objectType;
+      } else if (!supertype.isInterfaceType) {
         compiler.reportError(superclass.typeName,
             MessageKind.CLASS_NAME_EXPECTED);
         return objectType;
@@ -4574,11 +4592,15 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     for (Link<Node> link = interfaces.nodes; !link.isEmpty; link = link.tail) {
       DartType interfaceType = resolveType(link.head);
       if (interfaceType != null) {
-        if (identical(interfaceType.kind, TypeKind.MALFORMED_TYPE)) {
+        if (interfaceType.isMalformed) {
           compiler.reportError(superclass,
               MessageKind.CANNOT_IMPLEMENT_MALFORMED,
               {'className': element.name, 'malformedType': interfaceType});
-        } else if (!identical(interfaceType.kind, TypeKind.INTERFACE)) {
+        } else if (interfaceType.isEnumType) {
+          compiler.reportError(superclass,
+              MessageKind.CANNOT_IMPLEMENT_ENUM,
+              {'className': element.name, 'enumType': interfaceType});
+        } else if (!interfaceType.isInterfaceType) {
           // TODO(johnniwinther): Handle dynamic.
           TypeAnnotation typeAnnotation = link.head;
           error(typeAnnotation.typeName, MessageKind.CLASS_NAME_EXPECTED);

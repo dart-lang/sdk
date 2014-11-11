@@ -797,6 +797,50 @@ typedef C = Object with String;
 main() => new C();
 """]);
 
+  static const MessageKind CANNOT_EXTEND_ENUM = const MessageKind(
+      "Class '#{className}' can't extend the type '#{enumType}' because "
+      "it is declared by an enum.",
+      options: const ['--enable-enum'],
+      howToFix: "Try making '#{enumType}' a normal class or removing the "
+        "'extends' clause.",
+      examples: const ["""
+enum Enum {}
+class A extends Enum {}
+main() => new A();"""]);
+
+  static const MessageKind CANNOT_IMPLEMENT_ENUM = const MessageKind(
+      "Class '#{className}' can't implement the type '#{enumType}' "
+      "because it is declared by an enum.",
+      options: const ['--enable-enum'],
+      howToFix: "Try making '#{enumType}' a normal class or removing the "
+        "type from the 'implements' clause.",
+      examples: const ["""
+enum Enum {}
+class A implements Enum {}
+main() => new A();"""]);
+
+  static const MessageKind CANNOT_MIXIN_ENUM = const MessageKind(
+      "Class '#{className}' can't mixin the type '#{enumType}' because it "
+      "is declared by an enum.",
+      options: const ['--enable-enum'],
+      howToFix: "Try making '#{enumType}' a normal class or removing the "
+        "type from the 'with' clause.",
+      examples: const ["""
+enum Enum {}
+class A extends Object with Enum {}
+main() => new A();"""]);
+
+  static const MessageKind CANNOT_INSTANTIATE_ENUM = const MessageKind(
+      "Enum type '#{enumName}' cannot be instantiated.",
+      options: const ['--enable-enum'],
+      howToFix: "Try making '#{enumType}' a normal class or use an enum "
+                "constant.",
+      examples: const ["""
+enum Enum {}
+main() => new Enum(0, '');""", """
+enum Enum {}
+main() => const Enum(0, '');"""]);
+
   static const MessageKind DUPLICATE_EXTENDS_IMPLEMENTS = const MessageKind(
       "'#{type}' can not be both extended and implemented.");
 

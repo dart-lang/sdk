@@ -127,6 +127,9 @@ abstract class DartType {
   /// Is [: true :] if this type is a malformed type.
   bool get isMalformed => kind == TypeKind.MALFORMED_TYPE;
 
+  /// Is `true` if this type is declared by an enum.
+  bool get isEnumType => false;
+
   /// Returns an occurrence of a type variable within this type, if any.
   TypeVariableType get typeVariableOccurrence => null;
 
@@ -460,6 +463,8 @@ class InterfaceType extends GenericType {
   String get name => element.name;
 
   bool get isObject => element.isObject;
+
+  bool get isEnumType => element.isEnumClass;
 
   InterfaceType createInstantiation(List<DartType> newTypeArguments) {
     return new InterfaceType(element, newTypeArguments);
