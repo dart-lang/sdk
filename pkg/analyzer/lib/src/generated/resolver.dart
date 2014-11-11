@@ -8857,6 +8857,25 @@ class LibraryResolver {
         }
       }
       computer.computeValues();
+      // As a temporary workaround for issue 21572, run ConstantVerifier now.
+      // TODO(paulberry): remove this workaround once issue 21572 is fixed.
+      for (Library library in _librariesInCycles) {
+        for (Source source in library.compilationUnitSources) {
+          try {
+            CompilationUnit unit = library.getAST(source);
+            ErrorReporter errorReporter = new ErrorReporter(
+                _errorListener, source);
+            ConstantVerifier constantVerifier = new ConstantVerifier(
+                errorReporter, library.libraryElement, _typeProvider);
+            unit.accept(constantVerifier);
+          } on AnalysisException catch (exception, stackTrace) {
+            AnalysisEngine.instance.logger.logError(
+                "Internal Error: Could not access AST for ${source.fullName} "
+                "during constant verification",
+                new CaughtException(exception, stackTrace));
+          }
+        }
+      }
     } finally {
       timeCounter.stop();
     }
@@ -9382,6 +9401,19 @@ class LibraryResolver2 {
         }
       }
       computer.computeValues();
+      // As a temporary workaround for issue 21572, run ConstantVerifier now.
+      // TODO(paulberry): remove this workaround once issue 21572 is fixed.
+      for (ResolvableLibrary library in _librariesInCycle) {
+        for (ResolvableCompilationUnit unit in
+            library.resolvableCompilationUnits) {
+          CompilationUnit ast = unit.compilationUnit;
+          ErrorReporter errorReporter = new ErrorReporter(
+              _errorListener, unit.source);
+          ConstantVerifier constantVerifier = new ConstantVerifier(
+              errorReporter, library.libraryElement, _typeProvider);
+          ast.accept(constantVerifier);
+        }
+      }
     } finally {
       timeCounter.stop();
     }

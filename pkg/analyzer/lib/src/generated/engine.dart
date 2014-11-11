@@ -8812,8 +8812,12 @@ class GenerateDartErrorsTask extends AnalysisTask {
       // Use the ConstantVerifier to verify the use of constants. This needs to happen before using
       // the ErrorVerifier because some error codes need the computed constant values.
       //
-      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, libraryElement, typeProvider);
-      _unit.accept(constantVerifier);
+      // TODO(paulberry): as a temporary workaround for issue 21572,
+      // ConstantVerifier is being run right after ConstantValueComputer, so we
+      // don't need to run it here.  Once issue 21572 is fixed, re-enable the
+      // call to ConstantVerifier.
+      // ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, libraryElement, typeProvider);
+      // _unit.accept(constantVerifier);
       //
       // Use the ErrorVerifier to compute the rest of the errors.
       //
@@ -12632,8 +12636,12 @@ class ResolveDartUnitTask extends AnalysisTask {
       ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
       ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter, _libraryElement, typeProvider, inheritanceManager);
       unit.accept(errorVerifier);
-      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, _libraryElement, typeProvider);
-      unit.accept(constantVerifier);
+      // TODO(paulberry): as a temporary workaround for issue 21572,
+      // ConstantVerifier is being run right after ConstantValueComputer, so we
+      // don't need to run it here.  Once issue 21572 is fixed, re-enable the
+      // call to ConstantVerifier.
+      // ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, _libraryElement, typeProvider);
+      // unit.accept(constantVerifier);
     } finally {
       counterHandleErrors.stop();
     }
