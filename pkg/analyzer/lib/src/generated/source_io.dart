@@ -94,6 +94,11 @@ class FileBasedSource implements Source {
   final JavaFile file;
 
   /**
+   * The cached absolute path of this source.
+   */
+  String _absolutePath;
+
+  /**
    * The cached encoding for this source.
    */
   String _encoding;
@@ -138,7 +143,12 @@ class FileBasedSource implements Source {
   }
 
   @override
-  String get fullName => file.getAbsolutePath();
+  String get fullName {
+    if (_absolutePath == null) {
+      _absolutePath = file.getAbsolutePath();
+    }
+    return _absolutePath;
+  }
 
   @override
   int get modificationStamp => file.lastModified();
