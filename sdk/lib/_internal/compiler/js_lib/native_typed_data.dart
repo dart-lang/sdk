@@ -447,8 +447,11 @@ class NativeTypedData implements TypedData {
 
   void _invalidIndex(int index, int length) {
     if (index < 0 || index >= length) {
-      if (length == this.length) {
-        throw new RangeError.index(index, this);
+      if (this is List) {
+        var list = this;  // Typed as dynamic to avoid warning.
+        if (length == list.length) {
+          throw new RangeError.index(index, this);
+        }
       }
       throw new RangeError.range(index, 0, length - 1);
     } else {
