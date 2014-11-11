@@ -317,7 +317,7 @@ class IndexError extends ArgumentError implements RangeError {
    *
    * The message is used as part of the string representation of the error.
    */
-  IndexError(indexable, this.invalidValue,
+  IndexError(this.invalidValue, indexable,
              [String message = "Index out of range", int length])
       : this.indexable = indexable,
         this.length = (length != null) ? length : indexable.length,

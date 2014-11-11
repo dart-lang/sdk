@@ -149,7 +149,10 @@ class NativeFloat32x4List
 
   void _invalidIndex(int index, int length) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this);
+      if (length == this.length) {
+        throw new RangeError.index(index, this);
+      }
+      throw new RangeError.range(index, 0, length - 1);
     } else {
       throw new ArgumentError('Invalid list index $index');
     }
@@ -255,7 +258,10 @@ class NativeInt32x4List
 
   void _invalidIndex(int index, int length) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this);
+      if (length == this.length) {
+        throw new RangeError.index(index, this);
+      }
+      throw new RangeError.range(index, 0, length - 1);
     } else {
       throw new ArgumentError('Invalid list index $index');
     }
@@ -361,7 +367,10 @@ class NativeFloat64x2List
 
   void _invalidIndex(int index, int length) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this);
+      if (length == this.length) {
+        throw new RangeError.index(index, this);
+      }
+      throw new RangeError.range(index, 0, length - 1);
     } else {
       throw new ArgumentError('Invalid list index $index');
     }
@@ -438,7 +447,10 @@ class NativeTypedData implements TypedData {
 
   void _invalidIndex(int index, int length) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this);
+      if (length == this.length) {
+        throw new RangeError.index(index, this);
+      }
+      throw new RangeError.range(index, 0, length - 1);
     } else {
       throw new ArgumentError('Invalid list index $index');
     }
