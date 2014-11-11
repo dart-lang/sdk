@@ -1097,7 +1097,7 @@ f() {
 class A {}
 var t = A;
 ''');
-    helper.checkTypeReference('A', 'A', AccessKind.TOPLEVEL_CLASS);
+    helper.checkTypeReference('A', 'A', AccessKind.TOPLEVEL_TYPE);
   });
 
   test('Get class defined at top level via prefix', () {
@@ -1111,7 +1111,62 @@ library lib;
 
 class A;
 ''');
-    helper.checkTypeReference('l.A', 'A', AccessKind.TOPLEVEL_CLASS);
+    helper.checkTypeReference('l.A', 'A', AccessKind.TOPLEVEL_TYPE);
+  });
+
+  test('Get dynamic type', () {
+    Helper helper = new Helper('''
+var t = dynamic;
+''');
+    helper.checkTypeReference('dynamic', 'dynamic', AccessKind.TOPLEVEL_TYPE);
+  });
+
+  test('Get function typedef defined at top level', () {
+    Helper helper = new Helper('''
+typedef F();
+var t = F;
+''');
+    helper.checkTypeReference('F', 'F', AccessKind.TOPLEVEL_TYPE);
+  });
+
+  test('Get function typedef defined at top level via prefix', () {
+    Helper helper = new Helper('''
+import 'lib.dart' as l;
+
+var t = l.F;
+''');
+    helper.addFile('/lib.dart', '''
+library lib;
+
+typedef F();
+''');
+    helper.checkTypeReference('l.F', 'F', AccessKind.TOPLEVEL_TYPE);
+  });
+
+  test('Get mixin application defined at top level', () {
+    Helper helper = new Helper('''
+class A {}
+class B {}
+class C = A with B;
+var t = C;
+''');
+    helper.checkTypeReference('C', 'C', AccessKind.TOPLEVEL_TYPE);
+  });
+
+  test('Get mixin application defined at top level via prefix', () {
+    Helper helper = new Helper('''
+import 'lib.dart' as l;
+
+var t = l.C;
+''');
+    helper.addFile('/lib.dart', '''
+library lib;
+
+class A;
+class B;
+class C = A with B;
+''');
+    helper.checkTypeReference('l.C', 'C', AccessKind.TOPLEVEL_TYPE);
   });
 
   test('Get type parameter of enclosing class', () {

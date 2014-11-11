@@ -188,7 +188,7 @@ abstract class SemanticVisitor<R> extends RecursiveAstVisitor<R> {
         return visitStaticMethodAccess(node, semantics);
       case AccessKind.STATIC_PROPERTY:
         return visitStaticPropertyAccess(node, semantics);
-      case AccessKind.TOPLEVEL_CLASS:
+      case AccessKind.TOPLEVEL_TYPE:
         return visitToplevelClassAccess(node, semantics);
       case AccessKind.TYPE_PARAMETER:
         return visitTypeParameterAccess(node, semantics);
