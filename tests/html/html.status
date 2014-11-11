@@ -27,7 +27,6 @@ custom/element_upgrade_test: Fail # Issue 17298
 custom/created_callback_test: Fail # Support for created constructor.
 fontface_loaded_test: Fail # Support for promises.
 storage_quota_test: Fail # Support for promises.
-scripts_htmltest: Fail # Issue 21514
 
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie) ]
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this

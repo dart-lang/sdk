@@ -39,6 +39,7 @@ RegExp multiHtmlTestRegExp = new RegExp(r"useHtmlIndividualConfiguration()");
 // Require at least one non-space character before '///'
 RegExp multiTestRegExp = new RegExp(r"\S *"
                                     r"/// \w+:(.*)");
+RegExp dartExtension = new RegExp(r'\.dart$');
 
 /**
  * A simple function that tests [arg] and returns `true` or `false`.
@@ -1281,7 +1282,6 @@ class StandardTestSuite extends TestSuite {
               compiledDartWrapperFilename,
               compiler,
               tempDir,
-              vmOptions,
               optionsFromFile));
     }
 
@@ -1299,7 +1299,6 @@ class StandardTestSuite extends TestSuite {
                 '$tempDir/$fileName.js',
                 compiler,
                 tempDir,
-                vmOptions,
                 optionsFromFile));
       }
       if (compiler == 'none') {
@@ -1383,11 +1382,13 @@ class StandardTestSuite extends TestSuite {
     if (!TestUtils.isBrowserRuntime(runtime) || runtime == 'drt') {
       return;
     }
+    bool compileToJS = (compiler == 'dart2js');
 
     final Path filePath = info.filePath;
     final String tempDir = createOutputDirectory(filePath, '');
     final Uri tempUri = new Uri.file('$tempDir/');
-    String contents = htmlTest.getContents(info);
+    String contents = htmlTest.getContents(info, compileToJS);
+    final commands = [];
 
     void Fail(String message) {
       var msg = "$message: ${info.filePath}";
@@ -1412,14 +1413,17 @@ class StandardTestSuite extends TestSuite {
           break;
         }
         Uri script = testUri.resolveUri(uri);
+        Uri copiedScript = tempUri.resolveUri(uri);
         if (compiler == 'none' || scriptPath.endsWith('.js')) {
-          Uri copiedScript = tempUri.resolveUri(uri);
           new File.fromUri(copiedScript).writeAsStringSync(
               new File.fromUri(script).readAsStringSync());
         } else {
-          // TODO(21514): Compile scripts into output directory.
-          Fail('HTML test scripts don\'t support dart2js yet');
-          break;
+          commands.add(_compileCommand(
+              script.toFilePath(),
+              copiedScript.toFilePath().replaceFirst(dartExtension, '.js'),
+              compiler,
+              tempDir,
+              info.optionsFromFile));
         }
       }
     }
@@ -1428,12 +1432,11 @@ class StandardTestSuite extends TestSuite {
 
     var htmlPath = _createUrlPathFromFile(new Path(htmlFile.toFilePath()));
     var fullHtmlPath = _getUriForBrowserTest(htmlPath, null).toString();
-    var commands = [
-        CommandBuilder.instance.getBrowserHtmlTestCommand(
-            runtime,
-            fullHtmlPath,
-            configuration,
-            info.expectedMessages)];
+    commands.add(CommandBuilder.instance.getBrowserHtmlTestCommand(
+        runtime,
+        fullHtmlPath,
+        configuration,
+        info.expectedMessages));
     String testDisplayName = '$suiteName/$testName';
     var testCase = new BrowserTestCase(
         testDisplayName,
@@ -1449,24 +1452,27 @@ class StandardTestSuite extends TestSuite {
 
   /** Helper to create a compilation command for a single input file. */
   Command _compileCommand(String inputFile, String outputFile,
-      String compiler, String dir, vmOptions, optionsFromFile) {
+      String compiler, String dir, optionsFromFile) {
     assert (['dart2js', 'dart2dart'].contains(compiler));
-    String executable = compilerPath;
-    List<String> args = TestUtils.standardOptions(configuration);
+    String executable;
+    List<String> args;
+    if (compilerPath.endsWith('.dart')) {
+      // Run the compiler script via the Dart VM.
+      executable = dartVmBinaryFileName;
+      args = [compilerPath];
+    } else {
+      executable = compilerPath;
+      args = [];
+    }
+    args.addAll(TestUtils.standardOptions(configuration));
     String packageRoot =
       packageRootArgument(optionsFromFile['packageRoot']);
-    if (packageRoot != null) {
-      args.add(packageRoot);
-    }
+    if (packageRoot != null) args.add(packageRoot);
     args.add('--out=$outputFile');
     if (configuration['csp']) args.add('--csp');
     args.add(inputFile);
-    args.addAll(optionsFromFile['sharedOptions']);
-    if (executable.endsWith('.dart')) {
-      // Run the compiler script via the Dart VM.
-      args.insert(0, executable);
-      executable = dartVmBinaryFileName;
-    }
+    List<String> options = optionsFromFile['sharedOptions'];
+    if (options != null) args.addAll(options);
     return CommandBuilder.instance.getCompilationCommand(
         compiler, outputFile, !useSdk,
         dart2JsBootstrapDependencies, compilerPath, args, environmentOverrides);

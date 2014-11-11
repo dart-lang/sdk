@@ -41,9 +41,20 @@ HtmlTestInformation getInformation(String filename) {
                                  annotation['scripts']);
 }
 
-String getContents(HtmlTestInformation info) {
+String getContents(HtmlTestInformation info, bool compileToJS) {
   String contents = new File(info.filePath.toNativePath()).readAsStringSync();
-  return contents.replaceFirst(htmlAnnotation, '');
+  contents = contents.replaceFirst(htmlAnnotation, '');
+  if (compileToJS) {
+    for (String script in info.scripts) {
+      if (dartExtension.hasMatch(script)) {
+        String jsScript = script.replaceFirst(dartExtension, '.js');
+        String tag = '<script src="$script" type="application/dart">';
+        String jsTag = '<script src="$jsScript">';
+        contents = contents.replaceAll(tag, jsTag);
+      }
+    }
+  }
+  return contents;
 }
 
 String makeFailingHtmlFile(String message) {
