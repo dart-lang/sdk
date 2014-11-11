@@ -897,32 +897,429 @@ void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
 
 
 void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // static void _absAdd(Uint32List digits, int used,
+  //                     Uint32List a_digits, int a_used,
+  //                     Uint32List r_digits)
+
+  // T2 = used, T3 = digits
+  __ lw(T2, Address(SP, 3 * kWordSize));
+  __ lw(T3, Address(SP, 4 * kWordSize));
+  // T3 = &digits[0]
+  __ addiu(T3, T3, Immediate(TypedData::data_offset() - kHeapObjectTag));
+
+  // T4 = a_used, T5 = a_digits
+  __ lw(T4, Address(SP, 1 * kWordSize));
+  __ lw(T5, Address(SP, 2 * kWordSize));
+  // T5 = &a_digits[0]
+  __ addiu(T5, T5, Immediate(TypedData::data_offset() - kHeapObjectTag));
+
+  // T6 = r_digits
+  __ lw(T6, Address(SP, 0 * kWordSize));
+  // T6 = &r_digits[0]
+  __ addiu(T6, T6, Immediate(TypedData::data_offset() - kHeapObjectTag));
+
+  // V0 = &digits[a_used >> 1], a_used is Smi.
+  __ sll(V0, T4, 1);
+  __ addu(V0, V0, T3);
+
+  // V1 = &digits[used >> 1], used is Smi.
+  __ sll(V1, T2, 1);
+  __ addu(V1, V1, T3);
+
+  // T2 = carry in = 0.
+  __ mov(T2, ZR);
+  Label add_loop;
+  __ Bind(&add_loop);
+  // Loop a_used times, a_used > 0.
+  __ lw(T0, Address(T3, 0));  // T0 = x.
+  __ addiu(T3, T3, Immediate(Bigint::kBytesPerDigit));
+  __ lw(T1, Address(T5, 0));  // T1 = y.
+  __ addiu(T5, T5, Immediate(Bigint::kBytesPerDigit));
+  __ addu(T1, T0, T1);  // T1 = x + y.
+  __ sltu(T4, T1, T0);  // T4 = carry out of x + y.
+  __ addu(T0, T1, T2);  // T0 = x + y + carry in.
+  __ sltu(T2, T0, T1);  // T2 = carry out of (x + y) + carry in.
+  __ or_(T2, T2, T4);   // T2 = carry out of x + y + carry in.
+  __ sw(T0, Address(T6, 0));
+  __ bne(T3, V0, &add_loop);
+  __ delay_slot()->addiu(T6, T6, Immediate(Bigint::kBytesPerDigit));
+
+  Label last_carry;
+  __ beq(T3, V1, &last_carry);
+
+  Label carry_loop;
+  __ Bind(&carry_loop);
+  // Loop used - a_used times, used - a_used > 0.
+  __ lw(T0, Address(T3, 0));  // T0 = x.
+  __ addiu(T3, T3, Immediate(Bigint::kBytesPerDigit));
+  __ addu(T1, T0, T2);  // T1 = x + carry in.
+  __ sltu(T2, T1, T0);  // T2 = carry out of x + carry in.
+  __ sw(T1, Address(T6, 0));
+  __ bne(T3, V1, &carry_loop);
+  __ delay_slot()->addiu(T6, T6, Immediate(Bigint::kBytesPerDigit));
+
+  __ Bind(&last_carry);
+  __ sw(T2, Address(T6, 0));
+
+  // Returning Object::null() is not required, since this method is private.
+  __ Ret();
 }
 
 
 void Intrinsifier::Bigint_absSub(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // static void _absSub(Uint32List digits, int used,
+  //                     Uint32List a_digits, int a_used,
+  //                     Uint32List r_digits)
+
+  // T2 = used, T3 = digits
+  __ lw(T2, Address(SP, 3 * kWordSize));
+  __ lw(T3, Address(SP, 4 * kWordSize));
+  // T3 = &digits[0]
+  __ addiu(T3, T3, Immediate(TypedData::data_offset() - kHeapObjectTag));
+
+  // T4 = a_used, T5 = a_digits
+  __ lw(T4, Address(SP, 1 * kWordSize));
+  __ lw(T5, Address(SP, 2 * kWordSize));
+  // T5 = &a_digits[0]
+  __ addiu(T5, T5, Immediate(TypedData::data_offset() - kHeapObjectTag));
+
+  // T6 = r_digits
+  __ lw(T6, Address(SP, 0 * kWordSize));
+  // T6 = &r_digits[0]
+  __ addiu(T6, T6, Immediate(TypedData::data_offset() - kHeapObjectTag));
+
+  // V0 = &digits[a_used >> 1], a_used is Smi.
+  __ sll(V0, T4, 1);
+  __ addu(V0, V0, T3);
+
+  // V1 = &digits[used >> 1], used is Smi.
+  __ sll(V1, T2, 1);
+  __ addu(V1, V1, T3);
+
+  // T2 = borrow in = 0.
+  __ mov(T2, ZR);
+  Label sub_loop;
+  __ Bind(&sub_loop);
+  // Loop a_used times, a_used > 0.
+  __ lw(T0, Address(T3, 0));  // T0 = x.
+  __ addiu(T3, T3, Immediate(Bigint::kBytesPerDigit));
+  __ lw(T1, Address(T5, 0));  // T1 = y.
+  __ addiu(T5, T5, Immediate(Bigint::kBytesPerDigit));
+  __ subu(T1, T0, T1);  // T1 = x - y.
+  __ sltu(T4, T0, T1);  // T4 = borrow out of x - y.
+  __ subu(T0, T1, T2);  // T0 = x - y - borrow in.
+  __ sltu(T2, T1, T0);  // T2 = borrow out of (x - y) - borrow in.
+  __ or_(T2, T2, T4);   // T2 = borrow out of x - y - borrow in.
+  __ sw(T0, Address(T6, 0));
+  __ bne(T3, V0, &sub_loop);
+  __ delay_slot()->addiu(T6, T6, Immediate(Bigint::kBytesPerDigit));
+
+  Label done;
+  __ beq(T3, V1, &done);
+
+  Label borrow_loop;
+  __ Bind(&borrow_loop);
+  // Loop used - a_used times, used - a_used > 0.
+  __ lw(T0, Address(T3, 0));  // T0 = x.
+  __ addiu(T3, T3, Immediate(Bigint::kBytesPerDigit));
+  __ subu(T1, T0, T2);  // T1 = x - borrow in.
+  __ sltu(T2, T0, T1);  // T2 = borrow out of x - borrow in.
+  __ sw(T1, Address(T6, 0));
+  __ bne(T3, V1, &borrow_loop);
+  __ delay_slot()->addiu(T6, T6, Immediate(Bigint::kBytesPerDigit));
+
+  __ Bind(&done);
+  // Returning Object::null() is not required, since this method is private.
+  __ Ret();
 }
 
 
 void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // Pseudo code:
+  // static void _mulAdd(Uint32List x_digits, int xi,
+  //                     Uint32List m_digits, int i,
+  //                     Uint32List a_digits, int j, int n) {
+  //   uint32_t x = x_digits[xi >> 1];  // xi is Smi.
+  //   if (x == 0 || n == 0) {
+  //     return;
+  //   }
+  //   uint32_t* mip = &m_digits[i >> 1];  // i is Smi.
+  //   uint32_t* ajp = &a_digits[j >> 1];  // j is Smi.
+  //   uint32_t c = 0;
+  //   SmiUntag(n);
+  //   do {
+  //     uint32_t mi = *mip++;
+  //     uint32_t aj = *ajp;
+  //     uint64_t t = x*mi + aj + c;  // 32-bit * 32-bit -> 64-bit.
+  //     *ajp++ = low32(t);
+  //     c = high32(t);
+  //   } while (--n > 0);
+  //   while (c != 0) {
+  //     uint64_t t = *ajp + c;
+  //     *ajp++ = low32(t);
+  //     c = high32(t);  // c == 0 or 1.
+  //   }
+  // }
+
+  Label done;
+  // T3 = x, no_op if x == 0
+  __ lw(T0, Address(SP, 5 * kWordSize));  // T0 = xi as Smi.
+  __ lw(T1, Address(SP, 6 * kWordSize));  // T1 = x_digits.
+  __ sll(T0, T0, 1);
+  __ addu(T1, T0, T1);
+  __ lw(T3, FieldAddress(T1, TypedData::data_offset()));
+  __ beq(T3, ZR, &done);
+
+  // T6 = SmiUntag(n), no_op if n == 0
+  __ lw(T6, Address(SP, 0 * kWordSize));
+  __ SmiUntag(T6);
+  __ beq(T6, ZR, &done);
+  __ delay_slot()->addiu(T6, T6, Immediate(-1));  // ... while (n-- > 0).
+
+  // T4 = mip = &m_digits[i >> 1]
+  __ lw(T0, Address(SP, 3 * kWordSize));  // T0 = i as Smi.
+  __ lw(T1, Address(SP, 4 * kWordSize));  // T1 = m_digits.
+  __ sll(T0, T0, 1);
+  __ addu(T1, T0, T1);
+  __ addiu(T4, T1, Immediate(TypedData::data_offset() - kHeapObjectTag));
+
+  // T5 = ajp = &a_digits[j >> 1]
+  __ lw(T0, Address(SP, 1 * kWordSize));  // T0 = j as Smi.
+  __ lw(T1, Address(SP, 2 * kWordSize));  // T1 = a_digits.
+  __ sll(T0, T0, 1);
+  __ addu(T1, T0, T1);
+  __ addiu(T5, T1, Immediate(TypedData::data_offset() - kHeapObjectTag));
+
+  // T1 = c = 0
+  __ mov(T1, ZR);
+
+  Label muladd_loop;
+  __ Bind(&muladd_loop);
+  // x:   T3
+  // mip: T4
+  // ajp: T5
+  // c:   T1
+  // n-1: T6
+
+  // uint32_t mi = *mip++
+  __ lw(T2, Address(T4, 0));
+
+  // uint32_t aj = *ajp
+  __ lw(T0, Address(T5, 0));
+
+  // uint64_t t = x*mi + aj + c
+  __ multu(T2, T3);  // HI:LO = x*mi.
+  __ addiu(T4, T4, Immediate(Bigint::kBytesPerDigit));
+  __ mflo(V0);
+  __ mfhi(V1);
+  __ addu(V0, V0, T0);  // V0 = low32(x*mi) + aj.
+  __ sltu(T7, V0, T0);  // T7 = carry out of low32(x*mi) + aj.
+  __ addu(V1, V1, T7);  // V1:V0 = x*mi + aj.
+  __ addu(T0, V0, T1);  // T0 = low32(x*mi + aj) + c.
+  __ sltu(T7, T0, T1);  // T7 = carry out of low32(x*mi + aj) + c.
+  __ addu(T1, V1, T7);  // T1 = c = high32(x*mi + aj + c).
+
+  // *ajp++ = low32(t) = T0
+  __ sw(T0, Address(T5, 0));
+  __ addiu(T5, T5, Immediate(Bigint::kBytesPerDigit));
+
+  // while (n-- > 0)
+  __ bgtz(T6, &muladd_loop);
+  __ delay_slot()->addiu(T6, T6, Immediate(-1));  // --n
+
+  __ beq(T1, ZR, &done);
+
+  // *ajp++ += c
+  __ lw(T0, Address(T5, 0));
+  __ addu(T0, T0, T1);
+  __ sltu(T1, T0, T1);
+  __ sw(T0, Address(T5, 0));
+  __ beq(T1, ZR, &done);
+  __ delay_slot()->addiu(T5, T5, Immediate(Bigint::kBytesPerDigit));
+
+  Label propagate_carry_loop;
+  __ Bind(&propagate_carry_loop);
+  __ lw(T0, Address(T5, 0));
+  __ addiu(T0, T0, Immediate(1));
+  __ sw(T0, Address(T5, 0));
+  __ beq(T0, ZR, &propagate_carry_loop);
+  __ delay_slot()->addiu(T5, T5, Immediate(Bigint::kBytesPerDigit));
+
+  __ Bind(&done);
+  // Returning Object::null() is not required, since this method is private.
+  __ Ret();
 }
 
 
 void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // Pseudo code:
+  // static void _sqrAdd(Uint32List x_digits, int i,
+  //                     Uint32List a_digits, int used) {
+  //   uint32_t* xip = &x_digits[i >> 1];  // i is Smi.
+  //   uint32_t x = *xip++;
+  //   if (x == 0) return;
+  //   uint32_t* ajp = &a_digits[i];  // j == 2*i, i is Smi.
+  //   uint32_t aj = *ajp;
+  //   uint64_t t = x*x + aj;
+  //   *ajp++ = low32(t);
+  //   uint64_t c = high32(t);
+  //   int n = ((used - i) >> 1) - 1;  // used and i are Smi.
+  //   while (--n >= 0) {
+  //     uint32_t xi = *xip++;
+  //     uint32_t aj = *ajp;
+  //     uint96_t t = 2*x*xi + aj + c;  // 2-bit * 32-bit * 32-bit -> 65-bit.
+  //     *ajp++ = low32(t);
+  //     c = high64(t);  // 33-bit.
+  //   }
+  //   uint32_t aj = *ajp;
+  //   uint64_t t = aj + c;  // 32-bit + 33-bit -> 34-bit.
+  //   *ajp++ = low32(t);
+  //   *ajp = high32(t);
+  // }
+
+  // T4 = xip = &x_digits[i >> 1]
+  __ lw(T2, Address(SP, 2 * kWordSize));  // T2 = i as Smi.
+  __ lw(T3, Address(SP, 3 * kWordSize));  // T3 = x_digits.
+  __ sll(T0, T2, 1);
+  __ addu(T3, T0, T3);
+  __ addiu(T4, T3, Immediate(TypedData::data_offset() - kHeapObjectTag));
+
+  // T3 = x = *xip++, return if x == 0
+  Label x_zero;
+  __ lw(T3, Address(T4, 0));
+  __ beq(T3, ZR, &x_zero);
+  __ delay_slot()->addiu(T4, T4, Immediate(Bigint::kBytesPerDigit));
+
+  // T5 = ajp = &a_digits[i]
+  __ lw(T1, Address(SP, 1 * kWordSize));  // a_digits
+  __ sll(T0, T2, 2);  // j == 2*i, i is Smi.
+  __ addu(T1, T0, T1);
+  __ addiu(T5, T1, Immediate(TypedData::data_offset() - kHeapObjectTag));
+
+  // T6:T0 = t = x*x + *ajp
+  __ lw(T0, Address(T5, 0));  // *ajp.
+  __ mthi(ZR);
+  __ mtlo(T0);
+  __ maddu(T3, T3);  // HI:LO = T3*T3 + *ajp.
+  __ mfhi(T6);
+  __ mflo(T0);
+
+  // *ajp++ = low32(t) = R0
+  __ sw(T0, Address(T5, 0));
+  __ addiu(T5, T5, Immediate(Bigint::kBytesPerDigit));
+
+  // T6 = low32(c) = high32(t)
+  // T7 = high32(c) = 0
+  __ mov(T7, ZR);
+
+  // int n = used - i - 1; while (--n >= 0) ...
+  __ lw(T0, Address(SP, 0 * kWordSize));  // used is Smi
+  __ subu(V0, T0, T2);
+  __ SmiUntag(V0);  // V0 = used - i
+  // int n = used - i - 2; if (n >= 0) ... while (n-- > 0)
+  __ addiu(V0, V0, Immediate(-2));
+
+  Label loop, done;
+  __ bltz(V0, &done);
+
+  __ Bind(&loop);
+  // x:   T3
+  // xip: T4
+  // ajp: T5
+  // c:   T7:T6
+  // t:   A2:A1:A0 (not live at loop entry)
+  // n:   V0
+
+  // uint32_t xi = *xip++
+  __ lw(T2, Address(T4, 0));
+  __ addiu(T4, T4, Immediate(Bigint::kBytesPerDigit));
+
+  // uint32_t aj = *ajp
+  __ lw(T0, Address(T5, 0));
+
+  // uint96_t t = T7:T6:T0 = 2*x*xi + aj + c
+  __ multu(T2, T3);
+  __ mfhi(A1);
+  __ mflo(A0);  // A1:A0 = x*xi.
+  __ srl(A2, A1, 31);
+  __ sll(A1, A1, 1);
+  __ srl(T1, A0, 31);
+  __ or_(A1, A1, T1);
+  __ sll(A0, A0, 1);  // A2:A1:A0 = 2*x*xi.
+  __ addu(A0, A0, T0);
+  __ sltu(T1, A0, T0);
+  __ addu(A1, A1, T1);  // No carry out possible; A2:A1:A0 = 2*x*xi + aj.
+  __ addu(T0, A0, T6);
+  __ sltu(T1, T0, T6);
+  __ addu(T6, A1, T1);  // No carry out; A2:T6:T0 = 2*x*xi + aj + low32(c).
+  __ addu(T6, T6, T7);  // No carry out; A2:T6:T0 = 2*x*xi + aj + c.
+  __ mov(T7, A2);  // T7:T6:T0 = 2*x*xi + aj + c.
+
+  // *ajp++ = low32(t) = T0
+  __ sw(T0, Address(T5, 0));
+  __ addiu(T5, T5, Immediate(Bigint::kBytesPerDigit));
+
+  // while (n-- > 0)
+  __ bgtz(V0, &loop);
+  __ delay_slot()->addiu(V0, V0, Immediate(-1));  // --n
+
+  __ Bind(&done);
+  // uint32_t aj = *ajp
+  __ lw(T0, Address(T5, 0));
+
+  // uint64_t t = aj + c
+  __ addu(T6, T6, T0);
+  __ sltu(T1, T6, T0);
+  __ addu(T7, T7, T1);
+
+  // *ajp = low32(t) = T6
+  // *(ajp + 1) = high32(t) = T7
+  __ sw(T6, Address(T5, 0));
+  __ sw(T7, Address(T5, Bigint::kBytesPerDigit));
+
+  __ Bind(&x_zero);
+  // Returning Object::null() is not required, since this method is private.
+  __ Ret();
 }
 
 
 void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // No unsigned 64-bit / 32-bit divide instruction.
 }
 
 
 void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // Pseudo code:
+  // static void _mulMod(Uint32List args, Uint32List digits, int i) {
+  //   uint32_t rho = args[_RHO];  // _RHO == 0.
+  //   uint32_t d = digits[i >> 1];  // i is Smi.
+  //   uint64_t t = rho*d;
+  //   args[_MU] = t mod DIGIT_BASE;  // _MU == 1.
+  // }
+
+  // T4 = args
+  __ lw(T4, Address(SP, 2 * kWordSize));  // args
+
+  // T3 = rho = args[0]
+  __ lw(T3, FieldAddress(T4, TypedData::data_offset()));
+
+  // T2 = d = digits[i >> 1]
+  __ lw(T0, Address(SP, 0 * kWordSize));  // T0 = i as Smi.
+  __ lw(T1, Address(SP, 1 * kWordSize));  // T1 = digits.
+  __ sll(T0, T0, 1);
+  __ addu(T1, T0, T1);
+  __ lw(T2, FieldAddress(T1, TypedData::data_offset()));
+
+  // HI:LO = t = rho*d
+  __ multu(T2, T3);
+
+  // args[1] = t mod DIGIT_BASE = low32(t)
+  __ mflo(T0);
+  __ sw(T0,
+        FieldAddress(T4, TypedData::data_offset() + Bigint::kBytesPerDigit));
+
+  // Returning Object::null() is not required, since this method is private.
+  __ Ret();
 }
 
 
