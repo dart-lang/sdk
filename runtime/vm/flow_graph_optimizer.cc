@@ -750,6 +750,57 @@ static void UnboxPhi(PhiInstr* phi) {
       break;
   }
 
+  if ((kSmiBits < 32) &&
+      (unboxed == kTagged) &&
+      phi->Type()->IsInt() &&
+      RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)) {
+    // On 32-bit platforms conservatively unbox phis that:
+    //   - are proven to be of type Int;
+    //   - fit into 32bits range;
+    //   - have either constants or Box() operations as inputs;
+    //   - have at least one Box() operation as an input;
+    //   - are used in at least 1 Unbox() operation.
+    bool should_unbox = false;
+    for (intptr_t i = 0; i < phi->InputCount(); i++) {
+      Definition* input = phi->InputAt(i)->definition();
+      if (input->IsBox() &&
+          RangeUtils::Fits(input->range(),
+                           RangeBoundary::kRangeBoundaryInt32)) {
+        should_unbox = true;
+      } else if (!input->IsConstant()) {
+        should_unbox = false;
+        break;
+      }
+    }
+
+    if (should_unbox) {
+      // We checked inputs. Check if phi is used in at least one unbox
+      // operation.
+      bool has_unboxed_use = false;
+      for (Value* use = phi->input_use_list();
+           use != NULL;
+           use = use->next_use()) {
+        Instruction* instr = use->instruction();
+        if (instr->IsUnbox()) {
+          has_unboxed_use = true;
+          break;
+        } else if (IsUnboxedInteger(
+            instr->RequiredInputRepresentation(use->use_index()))) {
+          has_unboxed_use = true;
+          break;
+        }
+      }
+
+      if (!has_unboxed_use) {
+        should_unbox = false;
+      }
+    }
+
+    if (should_unbox) {
+      unboxed = kUnboxedInt32;
+    }
+  }
+
   phi->set_representation(unboxed);
 }
 

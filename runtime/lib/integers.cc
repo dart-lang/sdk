@@ -36,13 +36,6 @@ static bool CheckInteger(const Integer& i) {
 }
 
 
-static int BitLengthInt64(int64_t value) {
-  value ^= value >> (8 * sizeof(value) - 1);  // flip bits if negative.
-  // TODO(regis): Utils::HighestBit handles negative values. Why the above?
-  return value == 0 ? 0 : Utils::HighestBit(value) + 1;
-}
-
-
 DEFINE_NATIVE_ENTRY(Integer_bitAndFromInteger, 2) {
   const Integer& right = Integer::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left, arguments->NativeArgAt(1));
@@ -365,7 +358,7 @@ DEFINE_NATIVE_ENTRY(Smi_bitLength, 1) {
     OS::Print("Smi_bitLength: %s\n", operand.ToCString());
   }
   int64_t value = operand.AsInt64Value();
-  intptr_t result = BitLengthInt64(value);
+  intptr_t result = Utils::BitLength(value);
   ASSERT(Smi::IsValid(result));
   return Smi::New(result);
 }
@@ -391,7 +384,7 @@ DEFINE_NATIVE_ENTRY(Mint_bitLength, 1) {
     OS::Print("Mint_bitLength: %s\n", operand.ToCString());
   }
   int64_t value = operand.AsInt64Value();
-  intptr_t result = BitLengthInt64(value);
+  intptr_t result = Utils::BitLength(value);
   ASSERT(Smi::IsValid(result));
   return Smi::New(result);
 }

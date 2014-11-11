@@ -2427,6 +2427,32 @@ bool Range::And(const Range* left_range,
 }
 
 
+static int BitSize(const Range* range) {
+  const int64_t min = Range::ConstantMin(range).ConstantValue();
+  const int64_t max = Range::ConstantMax(range).ConstantValue();
+  return Utils::Maximum(Utils::BitLength(min), Utils::BitLength(max));
+}
+
+
+void Range::Xor(const Range* left_range,
+                const Range* right_range,
+                RangeBoundary* result_min,
+                RangeBoundary* result_max) {
+  const int bitsize =
+      Utils::Maximum(BitSize(left_range), BitSize(right_range));
+
+  if (left_range->IsPositive() && right_range->IsPositive()) {
+    *result_min = RangeBoundary::FromConstant(0);
+  } else {
+    *result_min = RangeBoundary::FromConstant(
+        static_cast<int64_t>(-1) << bitsize);
+  }
+
+  *result_max = RangeBoundary::FromConstant(
+      (static_cast<uint64_t>(1) << bitsize) - 1);
+}
+
+
 static bool IsArrayLength(Definition* defn) {
   if (defn == NULL) {
     return false;
@@ -2595,12 +2621,18 @@ void Range::BinaryOp(const Token::Kind op,
       Range::Shr(left_range, right_range, &min, &max);
       break;
     }
+
     case Token::kBIT_AND:
       if (!Range::And(left_range, right_range, &min, &max)) {
         *result = Range::Full(RangeBoundary::kRangeBoundaryInt64);
         return;
       }
       break;
+
+    case Token::kBIT_XOR:
+      Range::Xor(left_range, right_range, &min, &max);
+      break;
+
     default:
       *result = Range::Full(RangeBoundary::kRangeBoundaryInt64);
       return;
