@@ -88,7 +88,7 @@ builtin_impl_sources_gypi =
                 ["builtin_impl_sources.gypi"])
 
 static_library("libdart_builtin") {
-  configs += ["../..:dart_config"]
+  configs += ["..:dart_config"]
   public_configs = [":libdart_builtin_config"]
   deps = [
     ":generate_builtin_cc_file",
@@ -109,7 +109,7 @@ static_library("libdart_builtin") {
 
 
 static_library("libdart_withcore") {
-  configs += ["../..:dart_config"]
+  configs += ["..:dart_config"]
   deps = [
     "../vm:libdart_lib_withcore",
     "../vm:libdart_vm",
@@ -142,7 +142,7 @@ static_library("libdart_withcore") {
 
 
 executable("gen_snapshot") {
-  configs += ["../..:dart_config"]
+  configs += ["..:dart_config"]
   deps = [
     ":libdart_withcore",
     ":libdart_builtin",
@@ -167,7 +167,7 @@ executable("gen_snapshot") {
 
 
 static_library("libdart_embedder_noio") {
-  configs += ["../..:dart_config",]
+  configs += ["..:dart_config",]
   deps = [
     "..:libdart",
     "../vm:libdart_platform",

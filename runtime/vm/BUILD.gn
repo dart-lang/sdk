@@ -12,7 +12,7 @@ config("libdart_vm_config") {
 
 
 static_library("libdart_platform") {
-  configs += ["../..:dart_config"]
+  configs += ["..:dart_config"]
   public_configs = [":libdart_vm_config"]
 
   platform_headers_gypi =
@@ -39,7 +39,7 @@ static_library("libdart_platform") {
 
 
 static_library("libdart_vm") {
-  configs += ["../..:dart_config"]
+  configs += ["..:dart_config"]
   public_configs = [":libdart_vm_config"]
   deps = [ ":generate_service_cc_file", ]
 
@@ -143,7 +143,7 @@ template("generate_core_libraries") {
   }
 
   static_library("libdart_lib_withcore") {
-    configs += ["../..:dart_config"]
+    configs += ["..:dart_config"]
     deps = libdeps
     sources = libsources + ["bootstrap.cc"] + liboutputs
     include_dirs = [
@@ -151,7 +151,7 @@ template("generate_core_libraries") {
     ]
   }
   static_library("libdart_lib") {
-    configs += ["../..:dart_config"]
+    configs += ["..:dart_config"]
     sources = libsources + [ "bootstrap_nocore.cc", ]
     include_dirs = [
       "..",

@@ -4,7 +4,7 @@
 
 
 static_library("libdouble_conversion") {
-  configs += [ "../../../..:dart_config", ]
+  configs += [ "../../..:dart_config", ]
   sources = [
     "bignum.cc",
     "bignum.h",
