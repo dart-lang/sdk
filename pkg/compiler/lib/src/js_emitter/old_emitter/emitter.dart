@@ -1672,6 +1672,34 @@ class OldEmitter implements Emitter {
         ..add(assembledCode)
         ..close();
     compiler.assembledCode = assembledCode;
+
+    if (!compiler.useContentSecurityPolicy) {
+      CodeBuffer cspBuffer = new CodeBuffer();
+      cspBuffer.add(mainBuffer);
+      cspBuffer.write("""
+{
+  var message =
+      'Deprecation: Automatic generation of output for Content Security\\n' +
+      'Policy is deprecated and will be removed with the next development\\n' +
+      'release. Use the --csp option to generate CSP restricted output.';
+  if (typeof dartPrint == "function") {
+    dartPrint(message);
+  } else if (typeof console == "object" && typeof console.log == "function") {
+    console.log(message);
+  } else if (typeof print == "function") {
+    print(message);
+  }
+}\n""");
+
+      cspBuffer.write(
+          jsAst.prettyPrint(
+              precompiledFunctionAst, compiler,
+              allowVariableMinification: false).getText());
+
+      compiler.outputProvider('', 'precompiled.js')
+          ..add(cspBuffer.getText())
+          ..close();
+    }
   }
 
   /// Returns a map from OutputUnit to a hash of its content. The hash uniquely
