@@ -266,11 +266,12 @@ scheduled_test/test/scheduled_test/timeout_test: Timeout # Issue 21007
 scheduled_test/test/scheduled_test/wrap_async_test: Timeout # Issue 21007
 scheduled_test/test/scheduled_test/wrap_future_test: Timeout # Issue 21007
 
-[ ($runtime == safari && $builder_tag == mac10_7) || $runtime == safarimobilesim ]
-# Unexplained errors only occuring on Safari.
+[ $runtime == safarimobilesim ]
+# Unexplained errors only occuring on Safari 6.1 and earlier.
 typed_data/test/typed_buffers_test: RuntimeError
 
 [ $runtime == safari ]
+polymer/test/*: Skip # Issue 21434
 polymer/test/js_interop_test: Pass, RuntimeError # Issue 20075
 
 [ $runtime == safari || $ie ]
