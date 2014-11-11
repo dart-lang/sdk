@@ -515,7 +515,7 @@ ASSEMBLER_TEST_GENERATE(Multu_hi, assembler) {
 
 ASSEMBLER_TEST_RUN(Multu_hi, test) {
   typedef int (*SimpleCode)() DART_UNUSED;
-  EXPECT_EQ(0xfffffffe, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+  EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
 
