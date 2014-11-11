@@ -59,9 +59,6 @@ class Client {
       : _streams = new TwoWayStream.withoutJson(
             "Client", responses, "responses", requests, "requests");
 
-  /// Users of the library should not use this constructor.
-  Client.internal(this._streams);
-
   /// Starts listening to the underlying stream.
   ///
   /// Returns a [Future] that will complete when the stream is closed or when it

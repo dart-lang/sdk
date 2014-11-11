@@ -7,4 +7,5 @@ library json_rpc_2;
 export 'src/client.dart';
 export 'src/exception.dart';
 export 'src/parameters.dart';
+export 'src/peer.dart';
 export 'src/server.dart';
