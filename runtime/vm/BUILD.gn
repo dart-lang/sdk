@@ -1,0 +1,201 @@
+# Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+config("libdart_vm_config") {
+  libs = [
+    "pthread",
+    "rt",
+    "dl",
+  ]
+}
+
+
+static_library("libdart_platform") {
+  configs += ["../..:dart_config"]
+  public_configs = [":libdart_vm_config"]
+
+  platform_headers_gypi =
+      exec_script("../../tools/gypi_to_gn.py",
+                  [rebase_path("../platform/platform_headers.gypi")],
+                  "scope",
+                  ["../platform/platform_headers.gypi"])
+  platform_headers =
+      rebase_path(platform_headers_gypi.sources, ".", "../platform")
+
+  platform_sources_gypi =
+      exec_script("../../tools/gypi_to_gn.py",
+                  [rebase_path("../platform/platform_sources.gypi")],
+                  "scope",
+                  ["../platform/platform_sources.gypi"])
+  platform_sources =
+      rebase_path(platform_sources_gypi.sources, ".", "../platform")
+
+  sources = platform_headers + platform_sources
+  include_dirs = [
+    "..",
+  ]
+}
+
+
+static_library("libdart_vm") {
+  configs += ["../..:dart_config"]
+  public_configs = [":libdart_vm_config"]
+  deps = [ ":generate_service_cc_file", ]
+
+  vm_sources_list = exec_script("../../tools/gypi_to_gn.py",
+                                [rebase_path("vm_sources.gypi")],
+                                "scope",
+                                ["vm_sources.gypi"])
+
+  set_sources_assignment_filter(["*_test.cc", "*_test.h"])
+  sources = vm_sources_list.sources
+            + ["$target_gen_dir/service_gen.cc",]
+            - ["vtune.cc", "vtune.h"]
+  include_dirs = [
+    "..",
+  ]
+}
+
+
+template("generate_library_source") {
+  assert(defined(invoker.libname), "Need libname in $target_name")
+  assert(defined(invoker.filename), "Need a filename in $target_name")
+  assert(defined(invoker.kind), "Need kind in $target_name")
+  assert(defined(invoker.output), "Need output in $target_name")
+  action(target_name) {
+    visibility = [ ":*" ]  # Only targets in this file can see this.
+    libname = invoker.libname
+    filename = invoker.filename
+    kind = invoker.kind
+
+    if (kind == "source") {
+      path = "../../sdk/lib/${filename}"
+    } else {
+      path = "../lib"
+    }
+
+    lib_sources_gypi =
+        exec_script("../../tools/gypi_to_gn.py",
+                    [rebase_path("${path}/${filename}_sources.gypi")],
+                    "scope",
+                    ["${path}/${filename}_sources.gypi"])
+    lib_sources =
+        rebase_path(lib_sources_gypi.sources, ".", path)
+
+    script = "../tools/gen_library_src_paths.py"
+    inputs = [
+      "../tools/gen_library_src_paths.py",
+      "../lib/libgen_in.cc",
+    ]
+    outputs = [ invoker.output, ]
+    args = [
+      "--output", rebase_path(invoker.output, root_build_dir),
+      "--input_cc", rebase_path("../lib/libgen_in.cc", root_build_dir),
+      "--include", "vm/bootstrap.h",
+      "--var_name", "dart::Bootstrap::${libname}_${kind}_paths_",
+      "--library_name", "dart:${libname}",] +
+      rebase_path(lib_sources, root_build_dir)
+  }
+}
+
+
+# This templates expects invoker.sources to be a list of pairs of strings.
+# The pairs of strings mean the following.
+# library name, file name
+# e.g. for the "internal" library named "dart:_internal",
+# with sources listed at sdk/lib/internal/internal_sources.gypi and
+# lib/internal_sources.gypi, we have: ["_internal", "internal"]
+#
+# The template iterates over the list, and generates generate_library_source
+# actions for each. After that, it generates targets to compile the generated
+# sources to make libdart_lib_withcore and libdart_lib.
+template("generate_core_libraries") {
+  assert(defined(invoker.sources), "Need sources in $target_name")
+  liboutputs = []
+  libsources = []
+  libdeps = []
+  foreach(lib, invoker.sources) {
+    libname = lib[0]
+    filename = lib[1]
+    generate_library_source("generate_${filename}_cc_file") {
+      libname = libname
+      filename = filename
+      kind = "source"
+      output = "$target_gen_dir/${filename}_gen.cc"
+    }
+    generate_library_source("generate_${filename}_patch_cc_file") {
+      libname = libname
+      filename = filename
+      kind = "patch"
+      output = "$target_gen_dir/${filename}_patch_gen.cc"
+    }
+    lib_sources_gypi =
+        exec_script("../../tools/gypi_to_gn.py",
+                    [rebase_path("../lib/${filename}_sources.gypi")],
+                    "scope",
+                    ["../lib/${filename}_sources.gypi"])
+    libsources += rebase_path(lib_sources_gypi.sources, ".", "../lib")
+    liboutputs += ["$target_gen_dir/${filename}_gen.cc",
+                   "$target_gen_dir/${filename}_patch_gen.cc"]
+    libdeps += [":generate_${filename}_cc_file",
+                ":generate_${filename}_patch_cc_file"]
+  }
+
+  static_library("libdart_lib_withcore") {
+    configs += ["../..:dart_config"]
+    deps = libdeps
+    sources = libsources + ["bootstrap.cc"] + liboutputs
+    include_dirs = [
+      "..",
+    ]
+  }
+  static_library("libdart_lib") {
+    configs += ["../..:dart_config"]
+    sources = libsources + [ "bootstrap_nocore.cc", ]
+    include_dirs = [
+      "..",
+    ]
+  }
+}
+
+
+generate_core_libraries("core_libraries") {
+  sources = [
+    ["async", "async"],
+    ["core", "core"],
+    ["collection", "collection"],
+    ["convert", "convert"],
+    ["_internal", "internal"],
+    ["isolate", "isolate"],
+    ["math", "math"],
+    ["mirrors", "mirrors"],
+    ["typed_data", "typed_data"],
+    ["profiler", "profiler"],
+  ]
+}
+
+
+action("generate_service_cc_file") {
+  visibility = [ ":*" ]  # Only targets in this file can see this.
+  script = "../tools/create_resources.py"
+  sources = [
+    "service/client.dart",
+    "service/constants.dart",
+    "service/message.dart",
+    "service/message_router.dart",
+    "service/running_isolate.dart",
+    "service/running_isolates.dart",
+    "service/vmservice.dart",
+  ]
+
+  output = "$target_gen_dir/service_gen.cc"
+  outputs = [ output, ]
+
+  args = [
+    "--output", rebase_path(output, root_build_dir),
+    "--outer_namespace", "dart",
+    "--table_name", "service",
+    "--root_prefix", rebase_path("service/", root_build_dir)] +
+    rebase_path(sources, root_build_dir)
+}

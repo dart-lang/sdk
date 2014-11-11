@@ -1,0 +1,69 @@
+# Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+static_library("libdart") {
+  configs += ["..:dart_config"]
+  deps = [
+    "vm:libdart_lib",
+    "vm:libdart_vm",
+    "third_party/jscre:libjscre",
+    "third_party/double-conversion/src:libdouble_conversion",
+    ":generate_version_cc_file",
+  ]
+  include_dirs = [
+    ".",
+  ]
+  sources = [
+    "include/dart_api.h",
+    "include/dart_debugger_api.h",
+    "include/dart_mirrors_api.h",
+    "include/dart_native_api.h",
+    "vm/dart_api_impl.cc",
+    "vm/debugger_api_impl.cc",
+    "vm/mirrors_api_impl.cc",
+    "vm/native_api_impl.cc",
+    "vm/version.h",
+    "$target_gen_dir/version.cc",
+  ]
+  defines = [
+    # Using DART_SHARED_LIB to export the Dart API entries.
+    "DART_SHARED_LIB",
+  ]
+}
+
+
+action("generate_version_cc_file") {
+  deps = [
+    ":libdart_dependency_helper",
+  ]
+  inputs = [
+    "../tools/utils.py",
+    "../tools/print_version.py",
+    "../tools/VERSION",
+    "vm/version_in.cc",
+  ]
+  output = "$target_gen_dir/version.cc"
+  outputs = [ output, ]
+
+  script = "../tools/make_version.py"
+  args = [
+    "--output", rebase_path(output, root_build_dir),
+    "--input", rebase_path("vm/version_in.cc", root_build_dir),
+  ]
+}
+
+
+executable("libdart_dependency_helper") {
+  deps = [
+    "vm:libdart_lib_withcore",
+    "vm:libdart_lib",
+    "vm:libdart_vm",
+    "vm:libdart_platform",
+    "third_party/jscre:libjscre",
+    "third_party/double-conversion/src:libdouble_conversion",
+  ]
+  sources = [
+    "vm/libdart_dependency_helper.cc",
+  ]
+}

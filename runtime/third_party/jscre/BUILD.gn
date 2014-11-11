@@ -1,0 +1,27 @@
+# Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+static_library("libjscre") {
+  configs += [ "../../..:dart_config", ]
+  defines = [
+    "SUPPORT_UTF8",
+    "SUPPORT_UCP",
+    "NO_RECURSE",
+  ]
+  sources = [
+    "ASCIICType.h",
+    "config.h",
+    "pcre.h",
+    "pcre_internal.h",
+    "ucpinternal.h",
+    "pcre_compile.cpp",
+    "pcre_exec.cpp",
+    "pcre_tables.cpp",
+    "pcre_ucp_searchfuncs.cpp",
+    "pcre_xclass.cpp",
+  ]
+  include_dirs = [
+    ".",
+  ]
+}

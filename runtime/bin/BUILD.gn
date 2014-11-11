@@ -1,0 +1,175 @@
+# Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+
+declare_args() {
+  dart_io_support = false
+}
+
+
+template("gen_library_src_path") {
+  assert(defined(invoker.sources), "Need sources in $target_name")
+  assert(defined(invoker.output), "Need output in $target_name")
+  action(target_name) {
+    visibility = [ ":*" ]  # Only targets in this file can see this.
+    script = "../tools/gen_library_src_paths.py"
+    inputs = [
+      "../tools/gen_library_src_paths.py",
+      "builtin_in.cc",
+    ]
+    outputs = [ invoker.output, ]
+    name = invoker.name
+    kind = invoker.kind
+    args = [
+      "--output", rebase_path(invoker.output, root_build_dir),
+      "--input_cc", rebase_path("builtin_in.cc", root_build_dir),
+      "--include", "bin/builtin.h",
+      "--var_name", "dart::bin::Builtin::${name}_${kind}_paths_",
+      "--library_name", "dart:${name}",] +
+      rebase_path(invoker.sources, root_build_dir)
+  }
+}
+
+
+builtin_sources_gypi =
+    exec_script("../../tools/gypi_to_gn.py",
+                [rebase_path("builtin_sources.gypi")],
+                "scope",
+                ["builtin_sources.gypi"])
+
+gen_library_src_path("generate_builtin_cc_file") {
+  name = "_builtin"
+  kind = "source"
+  sources = builtin_sources_gypi.sources
+  output = "$target_gen_dir/builtin_gen.cc"
+}
+
+
+iolib_sources_gypi =
+    exec_script("../../tools/gypi_to_gn.py",
+                [rebase_path("../../sdk/lib/io/iolib_sources.gypi")],
+                "scope",
+                ["../../sdk/lib/io/iolib_sources.gypi"])
+iolib_sources = rebase_path(iolib_sources_gypi.sources, ".", "../../sdk/lib/io")
+
+gen_library_src_path("generate_io_cc_file") {
+  name = "io"
+  kind = "source"
+  sources = ["../../sdk/lib/io/io.dart"] + iolib_sources
+  output = "$target_gen_dir/io_gen.cc"
+}
+
+io_sources_gypi =
+    exec_script("../../tools/gypi_to_gn.py",
+                [rebase_path("io_sources.gypi")],
+                "scope",
+                ["io_sources.gypi"])
+
+gen_library_src_path("generate_io_patch_cc_file") {
+  name = "io"
+  kind = "patch"
+  sources = io_sources_gypi.sources
+  output = "$target_gen_dir/io_patch_gen.cc"
+}
+
+
+config("libdart_builtin_config") {
+  libs = [
+    "dl",
+  ]
+}
+
+
+builtin_impl_sources_gypi =
+    exec_script("../../tools/gypi_to_gn.py",
+                [rebase_path("builtin_impl_sources.gypi")],
+                "scope",
+                ["builtin_impl_sources.gypi"])
+
+static_library("libdart_builtin") {
+  configs += ["../..:dart_config"]
+  public_configs = [":libdart_builtin_config"]
+  deps = [
+    ":generate_builtin_cc_file",
+    ":generate_io_cc_file",
+    ":generate_io_patch_cc_file",
+  ]
+  include_dirs = [
+    "..",
+  ]
+  set_sources_assignment_filter(["*_test.cc", "*_test.h"])
+  sources = [
+    "log_android.cc",
+    "log_linux.cc",
+    "log_macos.cc",
+    "log_win.cc",
+  ] + builtin_impl_sources_gypi.sources
+}
+
+
+static_library("libdart_withcore") {
+  configs += ["../..:dart_config"]
+  deps = [
+    "../vm:libdart_lib_withcore",
+    "../vm:libdart_vm",
+    "../vm:libdart_platform",
+    "../third_party/jscre:libjscre",
+    "../third_party/double-conversion/src:libdouble_conversion",
+    "..:generate_version_cc_file",
+  ]
+
+  sources = [
+    "../include/dart_api.h",
+    "../include/dart_debugger_api.h",
+    "../include/dart_mirrors_api.h",
+    "../include/dart_native_api.h",
+    "../vm/dart_api_impl.cc",
+    "../vm/debugger_api_impl.cc",
+    "../vm/mirrors_api_impl.cc",
+    "../vm/native_api_impl.cc",
+    "$target_gen_dir/../version.cc",
+  ]
+
+  include_dirs = [
+    "..",
+  ]
+
+  defines = [
+    "DART_SHARED_LIB",
+  ]
+}
+
+
+executable("gen_snapshot") {
+  configs += ["../..:dart_config"]
+  deps = [
+    ":libdart_withcore",
+    ":libdart_builtin",
+  ]
+
+  sources = [
+    "gen_snapshot.cc",
+    # Very limited native resolver provided.
+    "builtin_gen_snapshot.cc",
+    "builtin.cc",
+    "builtin.h",
+    # Include generated source files.
+    "$target_gen_dir/builtin_gen.cc",
+    "$target_gen_dir/io_gen.cc",
+    "$target_gen_dir/io_patch_gen.cc",
+  ]
+
+  include_dirs = [
+    "..",
+  ]
+}
+
+
+static_library("libdart_embedder_noio") {
+  configs += ["../..:dart_config",]
+  deps = [
+    "..:libdart",
+    "../vm:libdart_platform",
+  ]
+}
