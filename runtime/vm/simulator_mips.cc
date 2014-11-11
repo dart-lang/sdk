@@ -94,6 +94,10 @@ class SimulatorDebugger {
   bool GetFValue(char* desc, double* value);
   bool GetDValue(char* desc, double* value);
 
+  static const int32_t kSimulatorBreakpointInstruction =
+      Instr::kBreakPointInstruction |
+      (Instr::kSimulatorBreakCode << kBreakCodeShift);
+
   // Set or delete a breakpoint. Returns true if successful.
   bool SetBreakpoint(Instr* breakpc);
   bool DeleteBreakpoint(Instr* breakpc);
@@ -282,7 +286,7 @@ void SimulatorDebugger::UndoBreakpoints() {
 
 void SimulatorDebugger::RedoBreakpoints() {
   if (sim_->break_pc_ != NULL) {
-    sim_->break_pc_->SetInstructionBits(Instr::kBreakPointInstruction);
+    sim_->break_pc_->SetInstructionBits(kSimulatorBreakpointInstruction);
   }
 }
 
@@ -1202,9 +1206,17 @@ void Simulator::DoBreak(Instr *instr) {
       // Adjust for extra pc increment.
       set_pc(get_pc() - Instr::kInstrSize);
     }
-  } else {
+  } else if (instr->BreakCodeField() == Instr::kSimulatorBreakCode) {
     SimulatorDebugger dbg(this);
     dbg.Stop(instr, "breakpoint");
+    // Adjust for extra pc increment.
+    set_pc(get_pc() - Instr::kInstrSize);
+  } else {
+    SimulatorDebugger dbg(this);
+    set_pc(get_pc() + Instr::kInstrSize);
+    char buffer[32];
+    snprintf(buffer, sizeof(buffer), "break #0x%x", instr->BreakCodeField());
+    dbg.Stop(instr, buffer);
     // Adjust for extra pc increment.
     set_pc(get_pc() - Instr::kInstrSize);
   }
@@ -1365,8 +1377,8 @@ void Simulator::DecodeSpecial(Instr* instr) {
       ASSERT(instr->RdField() == 0);
       ASSERT(instr->SaField() == 0);
       // Format(instr, "mult 'rs, 'rt");
-      int64_t rs = static_cast<int64_t>(get_register(instr->RsField()));
-      int64_t rt = static_cast<int64_t>(get_register(instr->RtField()));
+      int64_t rs = get_register(instr->RsField());
+      int64_t rt = get_register(instr->RtField());
       int64_t res = rs * rt;
       set_hi_register(Utils::High32Bits(res));
       set_lo_register(Utils::Low32Bits(res));
@@ -1376,8 +1388,8 @@ void Simulator::DecodeSpecial(Instr* instr) {
       ASSERT(instr->RdField() == 0);
       ASSERT(instr->SaField() == 0);
       // Format(instr, "multu 'rs, 'rt");
-      uint64_t rs = static_cast<uint64_t>(get_register(instr->RsField()));
-      uint64_t rt = static_cast<uint64_t>(get_register(instr->RtField()));
+      uint64_t rs = static_cast<uint32_t>(get_register(instr->RsField()));
+      uint64_t rt = static_cast<uint32_t>(get_register(instr->RtField()));
       uint64_t res = rs * rt;
       set_hi_register(Utils::High32Bits(res));
       set_lo_register(Utils::Low32Bits(res));

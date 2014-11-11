@@ -1176,10 +1176,10 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   // R7 = high32(c) = 0
   __ mov(R7, Operand(0));
 
-  // int n = used - i - 1
+  // int n = used - i - 1; while (--n >= 0) ...
   __ ldr(R0, Address(SP, 0 * kWordSize));  // used is Smi
   __ sub(R8, R0, Operand(R2));
-  __ mov(R0, Operand(2));  // while (--n >= 0)
+  __ mov(R0, Operand(2));  // n = used - i - 2; if (n >= 0) ... while (--n >= 0)
   __ rsbs(R8, R0, Operand(R8, ASR, kSmiTagSize));
 
   Label loop, done;
@@ -1196,17 +1196,19 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   // uint32_t xi = *xip++
   __ ldr(R2, Address(R4, Bigint::kBytesPerDigit, Address::PostIndex));
 
-  // uint32_t aj = *ajp
-  __ ldr(R1, Address(R5, 0));
-
   // uint96_t t = R7:R6:R0 = 2*x*xi + aj + c
-  __ mov(R0, Operand(0));
-  __ umaal(R0, R1, R2, R3);  // R1:R0 = R3*R2 + R1 + R0 = x*xi + aj + 0.
-  __ umlal(R6, R7, R2, R3);  // R7:R6 += R3*R2; c += x*xi.
+  __ umull(R0, R1, R2, R3);  // R1:R0 = R2*R3.
+  __ adds(R0, R0, Operand(R0));
+  __ adcs(R1, R1, Operand(R1));
+  __ mov(R2, Operand(0));
+  __ adc(R2, R2, Operand(0));  // R2:R1:R0 = 2*x*xi.
   __ adds(R0, R0, Operand(R6));
-  __ adcs(R6, R1, Operand(R7));
-  __ mov(R7, Operand(0));
-  __ adc(R7, R7, Operand(0));  // R7:R6:R0 = R1:R0 + R7:R6 = 2*x*xi + aj + c.
+  __ adcs(R1, R1, Operand(R7));
+  __ adc(R2, R2, Operand(0));  // R2:R1:R0 = 2*x*xi + c.
+  __ ldr(R6, Address(R5, 0));  // R6 = aj = *ajp.
+  __ adds(R0, R0, Operand(R6));
+  __ adcs(R6, R1, Operand(0));
+  __ adc(R7, R2, Operand(0));  // R7:R6:R0 = 2*x*xi + c + aj.
 
   // *ajp++ = low32(t) = R0
   __ str(R0, Address(R5, Bigint::kBytesPerDigit, Address::PostIndex));

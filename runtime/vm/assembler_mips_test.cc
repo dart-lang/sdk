@@ -505,8 +505,8 @@ ASSEMBLER_TEST_RUN(Multu_lo, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Multu_hi, assembler) {
-  __ LoadImmediate(T1, 65536);
-  __ LoadImmediate(T2, 65536);
+  __ LoadImmediate(T1, -1);
+  __ LoadImmediate(T2, -1);
   __ multu(T1, T2);
   __ mfhi(V0);
   __ jr(RA);
@@ -515,7 +515,7 @@ ASSEMBLER_TEST_GENERATE(Multu_hi, assembler) {
 
 ASSEMBLER_TEST_RUN(Multu_hi, test) {
   typedef int (*SimpleCode)() DART_UNUSED;
-  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+  EXPECT_EQ(0xfffffffe, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
 
