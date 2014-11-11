@@ -15,6 +15,7 @@ import '../elements/modelx.dart' show
     ConstructorElementX,
     DeclarationSite,
     ElementX,
+    EnumClassElementX,
     FieldElementX,
     FunctionElementX,
     MetadataAnnotationX,

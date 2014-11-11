@@ -1327,6 +1327,8 @@ abstract class ClassElement extends TypeDeclarationElement
   int get supertypeLoadState;
   String get nativeTagInfo;
 
+  /// `true` if this class is an enum declaration.
+  bool get isEnumClass;
   bool get isMixinApplication;
   bool get isUnnamedMixinApplication;
   bool get hasBackendMembers;
@@ -1352,8 +1354,6 @@ abstract class ClassElement extends TypeDeclarationElement
 
   void addMember(Element element, DiagnosticListener listener);
   void addToScope(Element element, DiagnosticListener listener);
-
-  void setDefaultConstructor(FunctionElement constructor, Compiler compiler);
 
   void addBackendMember(Element element);
   void reverseBackendMembers();

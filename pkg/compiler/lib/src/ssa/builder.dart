@@ -1494,7 +1494,8 @@ class SsaBuilder extends ResolvedVisitor {
   HGraph buildLazyInitializer(VariableElement variable) {
     ast.Node node = variable.node;
     openFunction(variable, node);
-    assert(variable.initializer != null);
+    assert(invariant(variable, variable.initializer != null,
+        message: "Non-constant variable $variable has no initializer."));
     visit(variable.initializer);
     HInstruction value = pop();
     value = potentiallyCheckOrTrustType(value, variable.type);

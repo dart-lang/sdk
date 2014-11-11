@@ -4335,6 +4335,26 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return element.computeType(compiler);
   }
 
+  @override
+  DartType visitEnum(Enum node) {
+    if (!compiler.enableEnums) {
+      compiler.reportError(node, MessageKind.EXPERIMENTAL_ENUMS);
+    }
+
+    invariant(node, element != null);
+    invariant(element, element.resolutionState == STATE_STARTED,
+        message: () => 'cyclic resolution of class $element');
+
+    InterfaceType enumType = element.computeType(compiler);
+    element.supertype = compiler.objectClass.computeType(compiler);
+    element.interfaces = const Link<DartType>();
+    calculateAllSupertypes(element);
+
+    EnumCreator creator = new EnumCreator(compiler, element);
+    creator.createMembers();
+    return enumType;
+  }
+
   /// Resolves the mixed type for [mixinNode] and checks that the the mixin type
   /// is a valid, non-blacklisted interface type. The mixin type is returned.
   DartType checkMixinType(TypeAnnotation mixinNode) {
@@ -4699,6 +4719,10 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
       node.superclass.accept(this);
     }
     visitNodeList(node.interfaces);
+  }
+
+  void visitEnum(Enum node) {
+    loadSupertype(compiler.objectClass, node);
   }
 
   void visitMixinApplication(MixinApplication node) {

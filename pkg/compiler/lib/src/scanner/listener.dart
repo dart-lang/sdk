@@ -868,7 +868,12 @@ class ElementListener extends Listener {
   void endEnum(Token enumKeyword, Token endBrace, int count) {
     NodeList names = makeNodeList(count, enumKeyword.next.next, endBrace, ",");
     Identifier name = popNode();
-    pushNode(new Enum(enumKeyword, name, names));
+
+    int id = idGenerator();
+    Element enclosing = compilationUnitElement;
+    pushElement(new EnumClassElementX(name.source, enclosing, id,
+        new Enum(enumKeyword, name, names)));
+    rejectBuiltInIdentifier(name);
   }
 
   void endExport(Token exportKeyword, Token semicolon) {
@@ -1545,6 +1550,12 @@ class NodeListener extends ElementListener {
                                        modifiers, mixinApplication,
                                        interfaces,
                                        classKeyword, endToken));
+  }
+
+  void endEnum(Token enumKeyword, Token endBrace, int count) {
+    NodeList names = makeNodeList(count, enumKeyword.next.next, endBrace, ",");
+    Identifier name = popNode();
+    pushNode(new Enum(enumKeyword, name, names));
   }
 
   void endClassBody(int memberCount, Token beginToken, Token endToken) {

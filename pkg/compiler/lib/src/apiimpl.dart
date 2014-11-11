@@ -78,7 +78,8 @@ class Compiler extends leg.Compiler {
                 forceIncrementalSupport ||
                 hasOption(options, '--incremental-support'),
             suppressWarnings: hasOption(options, '--suppress-warnings'),
-            enableAsyncAwait: hasOption(options, '--enable-async')) {
+            enableAsyncAwait: hasOption(options, '--enable-async'),
+            enableEnums: hasOption(options, '--enable-enum')) {
     tasks.addAll([
         userHandlerTask = new leg.GenericTask('Diagnostic handler', this),
         userProviderTask = new leg.GenericTask('Input provider', this),

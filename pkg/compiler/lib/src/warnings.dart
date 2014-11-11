@@ -1983,6 +1983,14 @@ Please include the following information:
     "  <sdk>/lib/_internal/compiler/js_lib/preambles.");
 
 
+  static const MessageKind EXPERIMENTAL_ENUMS = const MessageKind(
+      "Experimental language feature 'enums' is not supported.",
+      howToFix: "Use option '--enable-enum' to use enum declarations.",
+      examples: const ["""
+enum Enum { A, B, C }
+main() => print(Enum.A);
+"""]);
+
   static const MessageKind EXPERIMENTAL_ASYNC_AWAIT = const MessageKind(
       "Experimental language feature 'async/await' is not supported.");
 

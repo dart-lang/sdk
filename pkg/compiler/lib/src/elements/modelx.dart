@@ -1450,13 +1450,13 @@ class FunctionSignatureX implements FunctionSignature {
   final FunctionType type;
   final bool hasOptionalParameters;
 
-  FunctionSignatureX(this.requiredParameters,
-                     Link<Element> optionalParameters,
-                     this.requiredParameterCount,
-                     this.optionalParameterCount,
-                     this.optionalParametersAreNamed,
-                     this.orderedOptionalParameters,
-                     this.type)
+  FunctionSignatureX({this.requiredParameters: const Link<Element>(),
+                      this.requiredParameterCount: 0,
+                      Link<Element> optionalParameters: const Link<Element>(),
+                      this.optionalParameterCount: 0,
+                      this.optionalParametersAreNamed: false,
+                      this.orderedOptionalParameters: const <Element>[],
+                      this.type})
       : optionalParameters = optionalParameters,
         hasOptionalParameters = !optionalParameters.isEmpty;
 
@@ -1718,8 +1718,7 @@ class DeferredLoaderGetterElementX extends FunctionElementX {
     if (functionSignatureCache != null) return functionSignature;
     compiler.withCurrentElement(this, () {
       DartType inner = new FunctionType(this);
-      functionSignatureCache = new FunctionSignatureX(const Link(),
-          const Link(), 0, 0, false, [], inner);
+      functionSignatureCache = new FunctionSignatureX(type: inner);
     });
     return functionSignatureCache;
   }
@@ -1820,9 +1819,7 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
     if (functionSignatureCache != null) return functionSignatureCache;
     if (isDefaultConstructor) {
       return functionSignatureCache = new FunctionSignatureX(
-          const Link<Element>(), const Link<Element>(), 0, 0, false,
-          const <Element>[],
-          new FunctionType(this, enclosingClass.thisType));
+          type: new FunctionType(this, enclosingClass.thisType));
     }
     if (definingConstructor.isErroneous) {
       return functionSignatureCache =
@@ -1972,6 +1969,9 @@ abstract class BaseClassElementX extends ElementX
   bool get hasBackendMembers => !backendMembers.isEmpty;
 
   bool get isUnnamedMixinApplication => false;
+
+  @override
+  bool get isEnumClass => false;
 
   InterfaceType computeType(Compiler compiler) {
     if (thisTypeCache == null) {
@@ -2355,8 +2355,6 @@ abstract class ClassElementX extends BaseClassElementX {
   ClassElementX(String name, Element enclosing, int id, int initialState)
       : super(name, enclosing, id, initialState);
 
-  ClassNode parseNode(Compiler compiler);
-
   bool get isMixinApplication => false;
   bool get hasLocalScopeMembers => !localScope.isEmpty;
 
@@ -2413,6 +2411,92 @@ abstract class ClassElementX extends BaseClassElementX {
     } else {
       return super.toString();
     }
+  }
+}
+
+class EnumClassElementX extends ClassElementX {
+  final Enum node;
+
+  EnumClassElementX(String name, Element enclosing, int id, this.node)
+      : super(name, enclosing, id, STATE_NOT_STARTED);
+
+  @override
+  bool get hasNode => true;
+
+  @override
+  Token get position => node.name.token;
+
+  @override
+  bool get isEnumClass => true;
+
+  @override
+  Node parseNode(Compiler compiler) => node;
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitClassElement(this);
+
+  List<DartType> computeTypeParameters(Compiler compiler) => const <DartType>[];
+}
+
+class EnumConstructorElementX extends ConstructorElementX {
+  final FunctionExpression node;
+
+  EnumConstructorElementX(EnumClassElementX enumClass,
+                          Modifiers modifiers,
+                          this.node)
+      : super('', // Name.
+              ElementKind.GENERATIVE_CONSTRUCTOR,
+              modifiers,
+              enumClass);
+
+  @override
+  bool get hasNode => true;
+
+  @override
+  FunctionExpression parseNode(Compiler compiler) => node;
+}
+
+class EnumMethodElementX extends FunctionElementX {
+  final FunctionExpression node;
+
+  EnumMethodElementX(String name,
+                     EnumClassElementX enumClass,
+                     Modifiers modifiers,
+                     this.node)
+      : super(name,
+              ElementKind.FUNCTION,
+              modifiers,
+              enumClass,
+              false);
+
+  @override
+  bool get hasNode => true;
+
+  @override
+  FunctionExpression parseNode(Compiler compiler) => node;
+}
+
+class EnumFormalElementX extends InitializingFormalElementX {
+  EnumFormalElementX(ConstructorElement constructor,
+                     VariableDefinitions variables,
+                     Identifier identifier,
+                     EnumFieldElementX fieldElement)
+      : super(constructor, variables, identifier, null, fieldElement) {
+    typeCache = fieldElement.type;
+  }
+}
+
+class EnumFieldElementX extends FieldElementX {
+
+  EnumFieldElementX(Identifier name,
+                    EnumClassElementX enumClass,
+                    VariableList variableList,
+                    Node definition,
+                    [Expression initializer])
+      : super(name, enumClass, variableList) {
+    definitionsCache = new VariableDefinitions(null,
+        variableList.modifiers, new NodeList.singleton(definition));
+    initializerCache = initializer;
   }
 }
 

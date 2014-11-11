@@ -76,6 +76,7 @@ main() {
     testNewExpression,
     testTopLevelFields,
     testClassHierarchy,
+    testEnumDeclaration,
     testInitializers,
     testThis,
     testSuperCalls,
@@ -803,6 +804,66 @@ Future testClassHierarchy() {
                     compiler.errors[0].message.kind);
       Expect.equals(0, compiler.crashes.length);
     }),
+  ]);
+}
+
+Future testEnumDeclaration() {
+  final MAIN = "main";
+  return Future.wait([
+    MockCompiler.create((MockCompiler compiler) {
+      compiler.parseScript("""enum Enum {}
+                              main() { Enum e; }""");
+      FunctionElement mainElement = compiler.mainApp.find(MAIN);
+      compiler.resolver.resolve(mainElement);
+      Expect.equals(0, compiler.warnings.length,
+                    'Unexpected warnings: ${compiler.warnings}');
+      Expect.equals(0, compiler.errors.length,
+                    'Unexpected errors: ${compiler.errors}');
+    }, enableEnums: true),
+    MockCompiler.create((MockCompiler compiler) {
+      compiler.parseScript("""enum Enum {}
+                              main() { Enum e = Enum.A; }""");
+      FunctionElement mainElement = compiler.mainApp.find(MAIN);
+      compiler.resolver.resolve(mainElement);
+      Expect.equals(1, compiler.warnings.length,
+                    'Unexpected warnings: ${compiler.warnings}');
+      Expect.equals(MessageKind.MEMBER_NOT_FOUND,
+                    compiler.warnings[0].message.kind);
+      Expect.equals(0, compiler.errors.length,
+                    'Unexpected errors: ${compiler.errors}');
+    }, enableEnums: true),
+    MockCompiler.create((MockCompiler compiler) {
+      compiler.parseScript("""enum Enum { A }
+                              main() { Enum e = Enum.A; }""");
+      FunctionElement mainElement = compiler.mainApp.find(MAIN);
+      compiler.resolver.resolve(mainElement);
+      Expect.equals(0, compiler.warnings.length,
+                    'Unexpected warnings: ${compiler.warnings}');
+      Expect.equals(0, compiler.errors.length,
+                    'Unexpected errors: ${compiler.errors}');
+    }, enableEnums: true),
+    MockCompiler.create((MockCompiler compiler) {
+      compiler.parseScript("""enum Enum { A }
+                              main() { Enum e = Enum.B; }""");
+      FunctionElement mainElement = compiler.mainApp.find(MAIN);
+      compiler.resolver.resolve(mainElement);
+      Expect.equals(1, compiler.warnings.length,
+                    'Unexpected warnings: ${compiler.warnings}');
+      Expect.equals(MessageKind.MEMBER_NOT_FOUND,
+                    compiler.warnings[0].message.kind);
+      Expect.equals(0, compiler.errors.length,
+                    'Unexpected errors: ${compiler.errors}');
+    }, enableEnums: true),
+    MockCompiler.create((MockCompiler compiler) {
+      compiler.parseScript("""enum Enum { A }
+                              main() { List values = Enum.values; }""");
+      FunctionElement mainElement = compiler.mainApp.find(MAIN);
+      compiler.resolver.resolve(mainElement);
+      Expect.equals(0, compiler.warnings.length,
+                    'Unexpected warnings: ${compiler.warnings}');
+      Expect.equals(0, compiler.errors.length,
+                    'Unexpected errors: ${compiler.errors}');
+    }, enableEnums: true),
   ]);
 }
 

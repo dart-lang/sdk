@@ -646,6 +646,9 @@ class ClassElementY extends TypeDeclarationElementY
   validateConstructorLookupResults(selector,  result, noMatch) {
     unsupported('validateConstructorLookupResults');
   }
+
+  @override
+  bool get isEnumClass => unsupported('isEnum');
 }
 
 class TypedefElementY extends TypeDeclarationElementY

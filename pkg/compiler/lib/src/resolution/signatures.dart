@@ -350,13 +350,14 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
         optionalParameterTypes,
         namedParameters,
         namedParameterTypes);
-    return new FunctionSignatureX(parameters,
-                                  visitor.optionalParameters,
-                                  requiredParameterCount,
-                                  visitor.optionalParameterCount,
-                                  visitor.optionalParametersAreNamed,
-                                  orderedOptionalParameters,
-                                  type);
+    return new FunctionSignatureX(
+        requiredParameters: parameters,
+        optionalParameters: visitor.optionalParameters,
+        requiredParameterCount: requiredParameterCount,
+        optionalParameterCount: visitor.optionalParameterCount,
+        optionalParametersAreNamed: visitor.optionalParametersAreNamed,
+        orderedOptionalParameters: orderedOptionalParameters,
+        type: type);
   }
 
   DartType resolveTypeAnnotation(TypeAnnotation annotation) {

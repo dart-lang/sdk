@@ -12,6 +12,7 @@ import '../dart_backend/dart_backend.dart' show DartBackend;
 import '../dart_types.dart';
 import '../dart2jslib.dart';
 import '../tree/tree.dart';
+import '../scanner/scannerlib.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
     show BaseClassElementX,
@@ -41,6 +42,7 @@ import '../ordered_typeset.dart' show OrderedTypeSet, OrderedTypeSetBuilder;
 import '../util/util.dart';
 
 import 'class_members.dart' show MembersCreator;
+import 'enum_creator.dart';
 import 'secret_tree_element.dart' show getTreeElement, setTreeElement;
 
 part 'members.dart';

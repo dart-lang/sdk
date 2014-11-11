@@ -73,6 +73,7 @@ class MockCompiler extends Compiler {
        // affected by inlining support.
        bool disableInlining: true,
        bool trustTypeAnnotations: false,
+       bool enableEnums: false,
        int this.expectedWarnings,
        int this.expectedErrors})
       : sourceFiles = new Map<String, SourceFile>(),
@@ -86,7 +87,8 @@ class MockCompiler extends Compiler {
               emitJavaScript: emitJavaScript,
               preserveComments: preserveComments,
               trustTypeAnnotations: trustTypeAnnotations,
-              showPackageWarnings: true) {
+              showPackageWarnings: true,
+              enableEnums: enableEnums) {
     this.disableInlining = disableInlining;
 
     deferredLoadTask = new MockDeferredLoadTask(this);
@@ -269,8 +271,10 @@ class MockCompiler extends Compiler {
   }
 
   /// Create a new [MockCompiler] and apply it asynchronously to [f].
-  static Future create(f(MockCompiler compiler)) {
-    MockCompiler compiler = new MockCompiler.internal();
+  static Future create(f(MockCompiler compiler),
+                       {bool enableEnums: false}) {
+    MockCompiler compiler = new MockCompiler.internal(
+        enableEnums: enableEnums);
     return compiler.init().then((_) => f(compiler));
   }
 }

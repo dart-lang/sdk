@@ -324,6 +324,7 @@ Future compile(List<String> argv) {
     new OptionHandler('--show-package-warnings', passThrough),
     new OptionHandler('--csp', passThrough),
     new OptionHandler('--enable-async', setEnableAsync),
+    new OptionHandler('--enable-enum', passThrough),
     new OptionHandler('-D.+=.*', addInEnvironment),
 
     // The following two options must come last.
