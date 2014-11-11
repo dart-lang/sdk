@@ -292,10 +292,10 @@ class _SimpleAsciiDecoderSink extends ByteConversionSinkBase {
   void addSlice(List<int> source, int start, int end, bool isLast) {
     final int length = source.length;
     if (start < 0 || start > length) {
-      throw new RangeError.range(start, 0, length - 1);
+      throw new RangeError.range(start, 0, length);
     }
     if (end < start || end > length) {
-      throw new RangeError.range(end, start, length - 1);
+      throw new RangeError.range(end, start, length);
     }
     if (start < end) {
       if (start != 0 || end != length) {

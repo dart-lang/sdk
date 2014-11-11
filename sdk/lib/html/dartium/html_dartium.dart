@@ -10207,7 +10207,7 @@ class DomStringList extends NativeFieldWrapperClass2 with ListMixin<String>, Imm
 
   String operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return _blink.BlinkDOMStringList.instance.item_Callback_1_(this, index);
   }
 
@@ -15085,7 +15085,7 @@ class FileList extends NativeFieldWrapperClass2 with ListMixin<File>, ImmutableL
 
   File operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return _blink.BlinkFileList.instance.item_Callback_1_(this, index);
   }
 
@@ -16993,7 +16993,7 @@ class HtmlCollection extends NativeFieldWrapperClass2 with ListMixin<Node>, Immu
 
   Node operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return _blink.BlinkHTMLCollection.instance.item_Callback_1_(this, index);
   }
 
@@ -22836,7 +22836,7 @@ class MimeTypeArray extends NativeFieldWrapperClass2 with ListMixin<MimeType>, I
 
   MimeType operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return _blink.BlinkMimeTypeArray.instance.item_Callback_1_(this, index);
   }
 
@@ -24422,7 +24422,7 @@ class NodeList extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableL
 
   Node operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return _blink.BlinkNodeList.instance.item_Callback_1_(this, index);
   }
 
@@ -25722,7 +25722,7 @@ class PluginArray extends NativeFieldWrapperClass2 with ListMixin<Plugin>, Immut
 
   Plugin operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return _blink.BlinkPluginArray.instance.item_Callback_1_(this, index);
   }
 
@@ -28178,7 +28178,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
 
   SourceBuffer operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return _blink.BlinkSourceBufferList.instance.item_Callback_1_(this, index);
   }
 
@@ -28429,7 +28429,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass2 with ListMixin<SpeechGr
 
   SpeechGrammar operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return _blink.BlinkSpeechGrammarList.instance.item_Callback_1_(this, index);
   }
 
@@ -30474,7 +30474,7 @@ class TextTrackCueList extends NativeFieldWrapperClass2 with ListMixin<TextTrack
 
   TextTrackCue operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return _blink.BlinkTextTrackCueList.instance.item_Callback_1_(this, index);
   }
 
@@ -30563,7 +30563,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
 
   TextTrack operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return _blink.BlinkTextTrackList.instance.item_Callback_1_(this, index);
   }
 
@@ -30994,7 +30994,7 @@ class TouchList extends NativeFieldWrapperClass2 with ListMixin<Touch>, Immutabl
 
   Touch operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return _blink.BlinkTouchList.instance.item_Callback_1_(this, index);
   }
 
@@ -31406,10 +31406,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -35096,7 +35096,7 @@ class _ClientRectList extends NativeFieldWrapperClass2 with ListMixin<Rectangle>
 
   Rectangle operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return _blink.BlinkClientRectList.instance.item_Callback_1_(this, index);
   }
 
@@ -35180,7 +35180,7 @@ class _CssRuleList extends NativeFieldWrapperClass2 with ListMixin<CssRule>, Imm
 
   CssRule operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return _blink.BlinkCSSRuleList.instance.item_Callback_1_(this, index);
   }
 
@@ -35250,7 +35250,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
 
   _CSSValue operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return _blink.BlinkCSSValueList.instance.item_Callback_1_(this, index);
   }
 
@@ -35592,7 +35592,7 @@ class _GamepadList extends NativeFieldWrapperClass2 with ListMixin<Gamepad>, Imm
 
   Gamepad operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return _blink.BlinkGamepadList.instance.item_Callback_1_(this, index);
   }
 
@@ -35836,7 +35836,7 @@ class _NamedNodeMap extends NativeFieldWrapperClass2 with ListMixin<Node>, Immut
 
   Node operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return _blink.BlinkNamedNodeMap.instance.item_Callback_1_(this, index);
   }
 
@@ -36114,7 +36114,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass2 with ListMix
 
   SpeechRecognitionResult operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return _blink.BlinkSpeechRecognitionResultList.instance.item_Callback_1_(this, index);
   }
 
@@ -36182,7 +36182,7 @@ class _StyleSheetList extends NativeFieldWrapperClass2 with ListMixin<StyleSheet
 
   StyleSheet operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return _blink.BlinkStyleSheetList.instance.item_Callback_1_(this, index);
   }
 

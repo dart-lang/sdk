@@ -32,12 +32,12 @@ abstract class _TypedDataBuffer<E> extends ListBase<E> {
 
   int get length => _length;
   E operator[](int index) {
-    if (index >= length) throw new RangeError.range(index, 0, length - 1);
+    if (index >= length) throw new RangeError.index(index, this);
     return _buffer[index];
   }
 
   void operator[]=(int index, E value) {
-    if (index >= length) throw new RangeError.range(index, 0, length - 1);
+    if (index >= length) throw new RangeError.index(index, this);
     _buffer[index] = value;
   }
 

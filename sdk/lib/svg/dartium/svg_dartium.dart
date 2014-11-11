@@ -2955,7 +2955,7 @@ class LengthList extends NativeFieldWrapperClass2 with ListMixin<Length>, Immuta
 
   Length operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return getItem(index);
   }
 
@@ -3447,7 +3447,7 @@ class NumberList extends NativeFieldWrapperClass2 with ListMixin<Number>, Immuta
 
   Number operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return getItem(index);
   }
 
@@ -4471,7 +4471,7 @@ class PathSegList extends NativeFieldWrapperClass2 with ListMixin<PathSeg>, Immu
 
   PathSeg operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return getItem(index);
   }
 
@@ -5241,7 +5241,7 @@ class StringList extends NativeFieldWrapperClass2 with ListMixin<String>, Immuta
 
   String operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return getItem(index);
   }
 
@@ -6753,7 +6753,7 @@ class TransformList extends NativeFieldWrapperClass2 with ListMixin<Transform>, 
 
   Transform operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return getItem(index);
   }
 

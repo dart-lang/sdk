@@ -427,8 +427,8 @@ class ListQueue<E> extends IterableBase<E> implements Queue<E> {
   }
 
   E elementAt(int index) {
-    if (index < 0 || index > length) {
-      throw new RangeError.range(index, 0, length);
+    if (index < 0 || index >= length) {
+      throw new RangeError.index(index, this);
     }
     return _table[(_head + index) & (_table.length - 1)];
   }

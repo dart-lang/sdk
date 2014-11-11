@@ -159,16 +159,67 @@ class NullThrownError extends Error {
  * Error thrown when a function is passed an unacceptable argument.
  */
 class ArgumentError extends Error {
+  /** Whether value was provided. */
+  final bool _hasValue;
+  /** The invalid value. */
+  final invalidValue;
+  /** Name of the invalid argument, if available. */
+  final String name;
+  /** Message describing the problem. */
   final message;
 
-  /** The [message] describes the erroneous argument. */
-  ArgumentError([this.message]);
+  /**
+   * The [message] describes the erroneous argument.
+   *
+   * Existing code may be using `message` to hold the invalid value.
+   * If the `message` is not a [String], it is assumed to be a value instead
+   * of a message.
+   */
+  ArgumentError([this.message])
+     : invalidValue = null,
+       _hasValue = false,
+       name = null;
+
+  /**
+   * Creates error containing the invalid [value].
+   *
+   * A message is built by suffixing the [message] argument with
+   * the [name] argument (if provided) and the value. Example
+   *
+   *    "Invalid argument (foo): null"
+   *
+   * The `name` should match the argument name of the function, but if
+   * the function is a method implementing an interface, and its argument
+   * names differ from the interface, it might be more useful to use the
+   * interface method's argument name (or just rename arguments to match).
+   */
+  ArgumentError.value(value,
+                      [String this.name,
+                       String this.message = "Invalid argument"])
+      : invalidValue = value,
+        _hasValue = true;
+
+  /**
+   * Create an argument error for a `null` argument that must not be `null`.
+   *
+   * Shorthand for calling [ArgumentError.value] with a `null` value and a
+   * message of `"Must not be null"`.
+   */
+  ArgumentError.notNull([String name])
+      : this.value(null, name, "Must not be null");
 
   String toString() {
-    if (message != null) {
-      return "Illegal argument(s): $message";
+    if (!_hasValue) {
+      if (message != null) {
+        return "Invalid argument(s): $message";
+      }
+      return "Invalid argument(s)";
     }
-    return "Illegal argument(s)";
+    String nameString = "";
+    if (name != null) {
+      nameString = " ($name)";
+    }
+    return "$message$nameString: ${Error.safeToString(invalidValue)}";
   }
 }
 
@@ -176,25 +227,115 @@ class ArgumentError extends Error {
  * Error thrown due to an index being outside a valid range.
  */
 class RangeError extends ArgumentError {
+  /** The value that is outside its valid range. */
+  final num invalidValue;
+  /** The minimum value that [value] is allowed to assume. */
+  final num start;
+  /** The maximum value that [value] is allowed to assume. */
+  final num end;
+
   // TODO(lrn): This constructor should be called only with string values.
   // It currently isn't in all cases.
   /**
    * Create a new [RangeError] with the given [message].
    */
-  RangeError(var message) : super(message);
+  RangeError(var message)
+      : invalidValue = null, start = null, end = null, super(message);
 
   /** Create a new [RangeError] with a message for the given [value]. */
-  RangeError.value(num value) : super("value $value");
+  RangeError.value(num value, [String message = "Value not in range"])
+      : invalidValue = value, start = null, end = null,
+        super(message);
 
   /**
-   * Create a new [RangeError] with a message for a value and a range.
+   * Create a new [RangeError] with for an invalid value being outside a range.
    *
    * The allowed range is from [start] to [end], inclusive.
+   * If `start` or `end` are `null`, the range is infinite in that direction.
+   *
+   * For a range from 0 to the length of something, end exclusive, use
+   * [RangeError.index].
    */
-  RangeError.range(num value, num start, num end)
-      : super("value $value not in range $start..$end");
+  RangeError.range(this.invalidValue, this.start, this.end,
+                   [String message = "Invalid value"]) : super(message);
 
-  String toString() => "RangeError: $message";
+  /**
+   * Creates a new [RangeError] stating that [index] is not a valid index
+   * into [indexable].
+   *
+   * The [length] is the length of [indexable] at the time of the error.
+   * If `length` is omitted, it defaults to `indexable.length`.
+   *
+   * The message is used as part of the string representation of the error.
+   */
+  factory RangeError.index(int index, indexable,
+                           [String message,
+                            int length]) = IndexError;
+
+  String toString() {
+    if (invalidValue == null) return "$message";
+    String value = Error.safeToString(invalidValue);
+    if (start == null) {
+      if (end == null) {
+        return "$message ($value)";
+      }
+      return "$message ($value): Value must be less than or equal to $end";
+    }
+    if (end == null) {
+      return "$message ($value): Value must be greater than or equal to $start";
+    }
+    if (end > start) {
+      return "$message ($value): Value must be in range $start..$end, "
+             "inclusive.";
+    }
+    if (end < start) return "$message ($value): Valid range is empty";
+    return "$message ($value): Only valid value is $start";
+  }
+}
+
+/**
+ * A specialized [RangeError] used when an index is not in the range
+ * `0..indexable.length-1`.
+ *
+ * Also contains the indexable object, its length at the time of the error,
+ * and the invalid index itself.
+ */
+class IndexError extends ArgumentError implements RangeError {
+  /** The indexable object that [index] was not a valid index into. */
+  final indexable;
+  /** The invalid index. */
+  final int invalidValue;
+  /** The length of [indexable] at the time of the error. */
+  final int length;
+
+  /**
+   * Creates a new [IndexError] stating that [invalidValue] is not a valid index
+   * into [indexable].
+   *
+   * The [length] is the length of [indexable] at the time of the error.
+   * If `length` is omitted, it defaults to `indexable.length`.
+   *
+   * The message is used as part of the string representation of the error.
+   */
+  IndexError(indexable, this.invalidValue,
+             [String message = "Index out of range", int length])
+      : this.indexable = indexable,
+        this.length = (length != null) ? length : indexable.length,
+        super(message);
+
+  // Getters inherited from RangeError.
+  int get start => 0;
+  int get end => length - 1;
+
+  String toString() {
+    String target = Error.safeToString(indexable);
+    if (invalidValue < 0) {
+      return "RangeError: $message ($target[$invalidValue]): "
+             "index must not be negative.";
+    }
+    return "RangeError: $message: ($target[$invalidValue]): "
+           "index should be less than $length.";
+  }
 }
 
 
