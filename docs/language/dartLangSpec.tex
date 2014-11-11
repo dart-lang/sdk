@@ -249,6 +249,7 @@ Thus, if the name of a library begins with an underscore, it has no effect on th
 Privacy is indicated by the name of a declaration - hence privacy and naming are not orthogonal. This has the advantage that both humans and machines can recognize access to private declarations at the point of use without knowledge of the context from which the declaration is derived.}
 
 \subsection{Concurrency}
+\LMLabel{concurrency}
 
 Dart code is always single threaded. There is no shared-state concurrency in Dart. Concurrency is supported via actor-like entities called {\em isolates}.
 
@@ -636,6 +637,7 @@ A {\em required formal parameter} may be specified in one of three ways:
 \end{grammar}
 
 %\subsubsection{Rest Formals}
+%\LMLabel{restFormals}
 
 %A rest formal $R$ must be the last parameter in a formal parameter list.  If a  type $T$ is specified for $R$, it signifies that the type of $R$ is $T[]$. 
 
@@ -1127,6 +1129,7 @@ A generative constructor may be {\em redirecting}, in which case its only action
 %\Q{We now have generative constructors with no bodies as well.}
 
 \paragraph{Initializer Lists}
+\LMLabel{initializerLists}
 
 An initializer list begins with a colon, and consists of a comma-separated list of individual {\em initializers}. There are two kinds of initializers.
 \begin{itemize}
@@ -3275,6 +3278,7 @@ the static type of $i$ is the declared return type of  $F$.
 %\end{itemize}
 
 \subsection{ Lookup}
+\LMLabel{lookup}
 
 \subsubsection{Method Lookup}
 \label{methodLookup}
@@ -6374,6 +6378,7 @@ The scope of a documentation comment immediately preceding the declaration of a 
 
 
 %\subsection{Grammar}
+%\LMLabel{grammar}
 \subsection{Operator Precedence}
 \label{operatorPrecedence}
 
@@ -6419,10 +6424,12 @@ Assignment &  =, *=, /=, +=, -= ,\&=, \^{}= etc.  &  Right &  1\\
 \end{tabular}
 }
 %\subsection{Glossary}
+%\LMLabel{glossary}
 
 %\bibliographystyle{alpha}
 %\bibliography{/users/gilad/research/bibs/master}
 \section*{Appendix: Naming Conventions}
+\LMLabel{namingConventions}
 
 \commentary{
 The following naming conventions are customary in Dart programs. 
