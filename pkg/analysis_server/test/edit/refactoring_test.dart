@@ -300,6 +300,25 @@ main() {
 ''');
   }
 
+  test_names() {
+    addTestFile('''
+class TreeItem {}
+TreeItem getSelectedItem() => null;
+main() {
+  var a = getSelectedItem();
+}
+''');
+    return getRefactoringResult(() {
+      return sendStringSuffixRequest('getSelectedItem()', ';', null, true);
+    }).then((result) {
+      ExtractLocalVariableFeedback feedback = result.feedback;
+      expect(
+          feedback.names,
+          unorderedEquals(['treeItem', 'item', 'selectedItem']));
+      expect(result.change, isNull);
+    });
+  }
+
   test_nameWarning() {
     addTestFile('''
 main() {
@@ -319,25 +338,6 @@ main() {
   print(Name);
 }
 ''');
-    });
-  }
-
-  test_names() {
-    addTestFile('''
-class TreeItem {}
-TreeItem getSelectedItem() => null;
-main() {
-  var a = getSelectedItem();
-}
-''');
-    return getRefactoringResult(() {
-      return sendStringSuffixRequest('getSelectedItem()', ';', null, true);
-    }).then((result) {
-      ExtractLocalVariableFeedback feedback = result.feedback;
-      expect(
-          feedback.names,
-          unorderedEquals(['treeItem', 'item', 'selectedItem']));
-      expect(result.change, isNull);
     });
   }
 
@@ -733,24 +733,6 @@ main() {
 
 @ReflectiveTestCase()
 class InlineLocalTest extends _AbstractGetRefactoring_Test {
-  test_OK() {
-    addTestFile('''
-main() {
-  int test = 42;
-  int a = test + 2;
-  print(test);
-}
-''');
-    return assertSuccessfulRefactoring(() {
-      return _sendInlineRequest('test + 2');
-    }, '''
-main() {
-  int a = 42 + 2;
-  print(42);
-}
-''');
-  }
-
   test_feedback() {
     addTestFile('''
 main() {
@@ -779,6 +761,24 @@ main() {
       // ...there is no any change
       expect(result.change, isNull);
     });
+  }
+
+  test_OK() {
+    addTestFile('''
+main() {
+  int test = 42;
+  int a = test + 2;
+  print(test);
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return _sendInlineRequest('test + 2');
+    }, '''
+main() {
+  int a = 42 + 2;
+  print(42);
+}
+''');
   }
 
   Future<Response> _sendInlineRequest(String search) {
@@ -969,19 +969,102 @@ class RenameTest extends _AbstractGetRefactoring_Test {
 
   test_class() {
     addTestFile('''
+class Test {
+  Test() {}
+  Test.named() {}
+}
+main() {
+  Test v;
+  new Test();
+  new Test.named();
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('Test {', 'NewName');
+    }, '''
+class NewName {
+  NewName() {}
+  NewName.named() {}
+}
+main() {
+  NewName v;
+  new NewName();
+  new NewName.named();
+}
+''');
+  }
+
+  test_class_options_fatalError() {
+    addTestFile('''
 class Test {}
 main() {
   Test v;
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('Test {}', 'NewName');
-    }, '''
+    return getRefactoringResult(() {
+      return sendRenameRequest('Test {}', '');
+    }).then((result) {
+      assertResultProblemsFatal(
+          result.optionsProblems,
+          'Class name must not be empty.');
+      // ...there is no any change
+      expect(result.change, isNull);
+    });
+  }
+
+  test_class_validateOnly() {
+    addTestFile('''
+class Test {}
+main() {
+  Test v;
+}
+''');
+    return getRefactoringResult(() {
+      return sendRenameRequest('Test {}', 'NewName', true);
+    }).then((result) {
+      RenameFeedback feedback = result.feedback;
+      assertResultProblemsOK(result);
+      expect(feedback.elementKindName, 'class');
+      expect(feedback.oldName, 'Test');
+      expect(result.change, isNull);
+    });
+  }
+
+  test_class_warning() {
+    addTestFile('''
+class Test {}
+main() {
+  Test v;
+}
+''');
+    return getRefactoringResult(() {
+      return sendRenameRequest('Test {}', 'newName');
+    }).then((result) {
+      assertResultProblemsWarning(
+          result.optionsProblems,
+          'Class name should start with an uppercase letter.');
+      // ...but there is still a change
+      assertTestRefactoringResult(result, '''
+class newName {}
+main() {
+  newName v;
+}
+''');
+    }).then((_) {
+      // "NewName" is a perfectly valid name
+      return getRefactoringResult(() {
+        return sendRenameRequest('Test {}', 'NewName');
+      }).then((result) {
+        assertResultProblemsOK(result);
+        // ...and there is a new change
+        assertTestRefactoringResult(result, '''
 class NewName {}
 main() {
   NewName v;
 }
 ''');
+      });
+    });
   }
 
   test_classMember_field() {
@@ -1101,104 +1184,6 @@ class A {
 ''');
   }
 
-  test_class_fromInstanceCreation() {
-    addTestFile('''
-class Test {
-  Test() {}
-  Test.named() {}
-}
-main() {
-  new Test();
-  new Test.named();
-}
-''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('Test();', 'NewName');
-    }, '''
-class NewName {
-  NewName() {}
-  NewName.named() {}
-}
-main() {
-  new NewName();
-  new NewName.named();
-}
-''');
-  }
-
-  test_class_options_fatalError() {
-    addTestFile('''
-class Test {}
-main() {
-  Test v;
-}
-''');
-    return getRefactoringResult(() {
-      return sendRenameRequest('Test {}', '');
-    }).then((result) {
-      assertResultProblemsFatal(
-          result.optionsProblems,
-          'Class name must not be empty.');
-      // ...there is no any change
-      expect(result.change, isNull);
-    });
-  }
-
-  test_class_validateOnly() {
-    addTestFile('''
-class Test {}
-main() {
-  Test v;
-}
-''');
-    return getRefactoringResult(() {
-      return sendRenameRequest('Test {}', 'NewName', true);
-    }).then((result) {
-      RenameFeedback feedback = result.feedback;
-      assertResultProblemsOK(result);
-      expect(feedback.elementKindName, 'class');
-      expect(feedback.oldName, 'Test');
-      expect(result.change, isNull);
-    });
-  }
-
-  test_class_warning() {
-    addTestFile('''
-class Test {}
-main() {
-  Test v;
-}
-''');
-    return getRefactoringResult(() {
-      return sendRenameRequest('Test {}', 'newName');
-    }).then((result) {
-      assertResultProblemsWarning(
-          result.optionsProblems,
-          'Class name should start with an uppercase letter.');
-      // ...but there is still a change
-      assertTestRefactoringResult(result, '''
-class newName {}
-main() {
-  newName v;
-}
-''');
-    }).then((_) {
-      // "NewName" is a perfectly valid name
-      return getRefactoringResult(() {
-        return sendRenameRequest('Test {}', 'NewName');
-      }).then((result) {
-        assertResultProblemsOK(result);
-        // ...and there is a new change
-        assertTestRefactoringResult(result, '''
-class NewName {}
-main() {
-  NewName v;
-}
-''');
-      });
-    });
-  }
-
   test_constructor_fromInstanceCreation() {
     addTestFile('''
 class A {
@@ -1210,6 +1195,48 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('test();', 'newName');
+    }, '''
+class A {
+  A.newName() {}
+}
+main() {
+  new A.newName();
+}
+''');
+  }
+
+  test_constructor_fromInstanceCreation_default_onClassName() {
+    addTestFile('''
+class A {
+  A() {}
+}
+main() {
+  new A();
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('A();', 'newName');
+    }, '''
+class A {
+  A.newName() {}
+}
+main() {
+  new A.newName();
+}
+''');
+  }
+
+  test_constructor_fromInstanceCreation_default_onNew() {
+    addTestFile('''
+class A {
+  A() {}
+}
+main() {
+  new A();
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('new A();', 'newName');
     }, '''
 class A {
   A.newName() {}

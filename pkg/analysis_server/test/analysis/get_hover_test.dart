@@ -138,7 +138,7 @@ class A {
     });
   }
 
-  test_expression_method_nvocation() {
+  test_expression_method_invocation() {
     addTestFile('''
 library my.library;
 class A {
@@ -210,6 +210,92 @@ main() {
       expect(hover.staticType, 'dynamic');
       expect(hover.propagatedType, 'int');
     });
+  }
+
+  test_instanceCreation_implicit() {
+    addTestFile('''
+library my.library;
+class A {
+}
+main() {
+  new A();
+}
+''');
+    return prepareHover('new A').then((HoverInformation hover) {
+      // range
+      expect(hover.offset, findOffset('new A'));
+      expect(hover.length, 'new A()'.length);
+      // element
+      expect(hover.containingLibraryName, 'my.library');
+      expect(hover.containingLibraryPath, testFile);
+      expect(hover.dartdoc, isNull);
+      expect(hover.elementDescription, 'A() → A');
+      expect(hover.elementKind, 'constructor');
+      // types
+      expect(hover.staticType, 'A');
+      expect(hover.propagatedType, isNull);
+      // no parameter
+      expect(hover.parameter, isNull);
+    });
+  }
+
+  test_instanceCreation_implicit_withTypeArgument() {
+    addTestFile('''
+library my.library;
+class A<T> {}
+main() {
+  new A<String>();
+}
+''');
+    Function onConstructor = (HoverInformation hover) {
+      // range
+      expect(hover.offset, findOffset('new A<String>'));
+      expect(hover.length, 'new A<String>()'.length);
+      // element
+      expect(hover.containingLibraryName, 'my.library');
+      expect(hover.containingLibraryPath, testFile);
+      expect(hover.dartdoc, isNull);
+      expect(hover.elementDescription, 'A() → A<String>');
+      expect(hover.elementKind, 'constructor');
+      // types
+      expect(hover.staticType, 'A<String>');
+      expect(hover.propagatedType, isNull);
+      // no parameter
+      expect(hover.parameter, isNull);
+    };
+    var futureNewA = prepareHover('new A').then(onConstructor);
+    var futureA = prepareHover('A<String>()').then(onConstructor);
+    var futureString = prepareHover('String>').then((HoverInformation hover) {
+      expect(hover.offset, findOffset('String>'));
+      expect(hover.length, 'String'.length);
+      expect(hover.elementKind, 'class');
+    });
+    return Future.wait([futureNewA, futureA, futureString]);
+  }
+
+  test_instanceCreation_named() {
+    addTestFile('''
+library my.library;
+class A {
+  /// my doc
+  A.named() {}
+}
+main() {
+  new A.named();
+}
+''');
+    var onConstructor = (HoverInformation hover) {
+      // range
+      expect(hover.offset, findOffset('new A'));
+      expect(hover.length, 'new A.named()'.length);
+      // element
+      expect(hover.dartdoc, 'my doc');
+      expect(hover.elementDescription, 'A.named() → A');
+      expect(hover.elementKind, 'constructor');
+    };
+    var futureCreation = prepareHover('new A').then(onConstructor);
+    var futureName = prepareHover('named();').then(onConstructor);
+    return Future.wait([futureCreation, futureName]);
   }
 
   test_noHoverInfo() {
