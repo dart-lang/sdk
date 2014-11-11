@@ -101,6 +101,8 @@ mixin_mixin_bound2_test: RuntimeError # Issue 12605
 malformed_test/none: Fail # Expect failure in lib/_internal/compiler/js_lib/preambles/d8.js
 generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
+reify_typevar_static_test/00: Crash # Issue 21566
+reify_typevar_static_test/01: MissingCompileTimeError # Issue 21566
 
 type_variable_conflict2_test/01: RuntimeError # Issue 16180
 type_variable_conflict2_test/02: Crash # Issue 16180
@@ -191,6 +193,8 @@ type_variable_conflict2_test/06: MissingCompileTimeError # Issue 16180
 type_variable_conflict2_test/08: MissingCompileTimeError # Issue 16180
 type_variable_conflict2_test/10: MissingCompileTimeError # Issue 16180
 regress_13494_test: Fail # Issue 13494
+reify_typevar_static_test/00: MissingCompileTimeError # Issue 21566
+reify_typevar_static_test/01: MissingCompileTimeError # Issue 21566
 
 built_in_identifier_prefix_test: Fail # Issue 6972
 constructor_initializer_test/none: Fail # Issue 12633

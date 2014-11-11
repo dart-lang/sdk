@@ -24,6 +24,8 @@ mixin_forwarding_constructor4_test/02: MissingCompileTimeError # Issue 19576
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError # Issue 19576
 mixin_super_constructor_named_test/01: MissingCompileTimeError # Issue 19576
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError # Issue 19576
+reify_typevar_static_test/00: MissingCompileTimeError # Issue 21565
+reify_typevar_static_test/01: MissingCompileTimeError # Issue 21565
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
