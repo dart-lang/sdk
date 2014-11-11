@@ -398,6 +398,10 @@ final coreImports = [
     "kind": "class"
   },
   {
+    "name": "IndexError",
+    "kind": "class"
+  },
+  {
     "name": "FallThroughError",
     "kind": "class"
   },
