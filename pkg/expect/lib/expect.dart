@@ -65,7 +65,7 @@ class Expect {
    *
    * For small strings (length less than 20) nothing is done, and null is
    * returned. Small strings can be compared visually, but for longer strings
-   * only a slice  containing the first difference will be shown.
+   * only a slice containing the first difference will be shown.
    */
   static String _stringDifference(String expected, String actual) {
     if (expected.length < 20 && actual.length < 20) return null;
@@ -238,65 +238,78 @@ class Expect {
   static void stringEquals(String expected,
                            String actual,
                            [String reason = null]) {
+    if (expected == actual) return;
+
     String msg = _getMessage(reason);
     String defaultMessage =
         'Expect.stringEquals(expected: <$expected>", <$actual>$msg) fails';
 
-    if (expected == actual) return;
     if ((expected == null) || (actual == null)) {
       _fail('$defaultMessage');
     }
-    // scan from the left until we find a mismatch
+
+    // Scan from the left until we find the mismatch.
     int left = 0;
+    int right = 0;
     int eLen = expected.length;
     int aLen = actual.length;
+
     while (true) {
-      if (left == eLen) {
-        assert (left < aLen);
-        String snippet = actual.substring(left, aLen);
-        _fail('$defaultMessage\nDiff:\n...[  ]\n...[ $snippet ]');
-        return;
-      }
-      if (left == aLen) {
-        assert (left < eLen);
-        String snippet = expected.substring(left, eLen);
-        _fail('$defaultMessage\nDiff:\n...[  ]\n...[ $snippet ]');
-        return;
-      }
-      if (expected[left] != actual[left]) {
+      if (left == eLen || left == aLen || expected[left] != actual[left]) {
         break;
       }
       left++;
     }
 
-    // scan from the right until we find a mismatch
-    int right = 0;
+    // Scan from the right until we find the mismatch.
+    int eRem = eLen - left;  // Remaining length ignoring left match.
+    int aRem = aLen - left;
     while (true) {
-      if (right == eLen) {
-        assert (right < aLen);
-        String snippet = actual.substring(0, aLen - right);
-        _fail('$defaultMessage\nDiff:\n[  ]...\n[ $snippet ]...');
-        return;
-      }
-      if (right == aLen) {
-        assert (right < eLen);
-        String snippet = expected.substring(0, eLen - right);
-        _fail('$defaultMessage\nDiff:\n[  ]...\n[ $snippet ]...');
-        return;
-      }
-      // stop scanning if we've reached the end of the left-to-right match
-      if (eLen - right <= left || aLen - right <= left) {
-        break;
-      }
-      if (expected[eLen - right - 1] != actual[aLen - right - 1]) {
+      if (right == eRem || right == aRem ||
+          expected[eLen - right - 1] != actual[aLen - right - 1]) {
         break;
       }
       right++;
     }
+
+    // First difference is at index `left`, last at `length - right - 1`
+    // Make useful difference message.
+    // Example:
+    // Diff (1209..1209/1246):
+    // ...,{"name":"[  ]FallThroug...
+    // ...,{"name":"[ IndexError","kind":"class"},{"name":" ]FallThroug...
+    // (colors would be great!)
+
+    // Make snippets of up to ten characters before and after differences.
+
+    String leftSnippet = expected.substring(left < 10 ? 0 : left - 10, left);
+    int rightSnippetLength = right < 10 ? right : 10;
+    String rightSnippet =
+        expected.substring(eLen - right, eLen - right + rightSnippetLength);
+
+    // Make snippets of the differences.
     String eSnippet = expected.substring(left, eLen - right);
     String aSnippet = actual.substring(left, aLen - right);
-    String diff = '\nDiff:\n...[ $eSnippet ]...\n...[ $aSnippet ]...';
-    _fail('$defaultMessage$diff');
+
+    // If snippets are long, elide the middle.
+    if (eSnippet.length > 43) {
+      eSnippet = eSnippet.substring(0, 20) + "..." +
+                 eSnippet.substring(eSnippet.length - 20);
+    }
+    if (aSnippet.length > 43) {
+      aSnippet = aSnippet.substring(0, 20) + "..." +
+                 aSnippet.substring(aSnippet.length - 20);
+    }
+    // Add "..." before and after, unless the snippets reach the end.
+    String leftLead = "...";
+    String rightTail = "...";
+    if (left <= 10) leftLead = "";
+    if (right <= 10) rightTail = "";
+
+    String diff = '\nDiff ($left..${eLen - right}/${aLen - right}):\n'
+                  '$leftLead$leftSnippet[ $eSnippet ]$rightSnippet$rightTail\n'
+                  '$leftLead$leftSnippet[ $aSnippet ]$rightSnippet$rightTail';
+    _fail("$defaultMessage$diff");
   }
 
   /**
