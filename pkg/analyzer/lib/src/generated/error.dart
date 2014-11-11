@@ -2621,6 +2621,11 @@ class HintCode extends ErrorCode {
   static const HintCode UNNECESSARY_TYPE_CHECK_TRUE = const HintCode('UNNECESSARY_TYPE_CHECK_TRUE', "Unnecessary type check, the result is always true");
 
   /**
+   * See [Modifier.IS_USED_IN_LIBRARY].
+   */
+  static const HintCode UNUSED_ELEMENT = const HintCode('UNUSED_ELEMENT', "The {0} '{1}' is not used");
+
+  /**
    * Unused imports are imports which are never used.
    */
   static const HintCode UNUSED_IMPORT = const HintCode('UNUSED_IMPORT', "Unused import");

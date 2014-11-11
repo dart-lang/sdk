@@ -1909,19 +1909,31 @@ class Dart2JSVerifier extends RecursiveAstVisitor<Object> {
 }
 
 /**
- * Instances of the class [UnusedLocalVariableVerifier] traverse an element
- * structure looking for cases of [HintCode.UNUSED_LOCAL_VARIABLE].
+ * Instances of the class [UnusedElementVerifier] traverse an element
+ * structure looking for cases of [HintCode.UNUSED_ELEMENT] and
+ * [HintCode.UNUSED_LOCAL_VARIABLE].
  */
-class UnusedLocalVariableVerifier extends RecursiveElementVisitor {
+class UnusedElementVerifier extends RecursiveElementVisitor {
   /**
    * The error reporter by which errors will be reported.
    */
   final ErrorReporter _errorReporter;
 
   /**
-   * Create a new instance of the [UnusedLocalVariableVerifier].
+   * Create a new instance of the [UnusedElementVerifier].
    */
-  UnusedLocalVariableVerifier(this._errorReporter);
+  UnusedElementVerifier(this._errorReporter);
+
+  @override
+  visitClassElement(ClassElement element) {
+    if (element is ClassElementImpl && !element.isUsed) {
+      _errorReporter.reportErrorForElement(
+          HintCode.UNUSED_ELEMENT,
+          element,
+          [element.kind.displayName, element.displayName]);
+    }
+    element.visitChildren(this);
+  }
 
   @override
   visitLocalVariableElement(LocalVariableElement element) {
@@ -5409,7 +5421,7 @@ class HintGenerator {
     unit.accept(_importsVerifier);
     // dead code analysis
     unit.accept(new DeadCodeVerifier(errorReporter));
-    unit.element.accept(new UnusedLocalVariableVerifier(errorReporter));
+    unit.element.accept(new UnusedElementVerifier(errorReporter));
     // dart2js analysis
     if (_enableDart2JSHints) {
       unit.accept(new Dart2JSVerifier(errorReporter));
@@ -12481,6 +12493,12 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   LabelScope _labelScope;
 
   /**
+   * The class containing the AST nodes being visited,
+   * or `null` if we are not in the scope of a class.
+   */
+  ClassElement _enclosingClass;
+
+  /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
    *
    * @param library the library containing the compilation unit being resolved
@@ -12616,10 +12634,16 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
             new CaughtException(new AnalysisException(), null));
         super.visitClassDeclaration(node);
       } else {
-        _nameScope = new TypeParameterScope(_nameScope, classElement);
-        visitClassDeclarationInScope(node);
-        _nameScope = new ClassScope(_nameScope, classElement);
-        visitClassMembersInScope(node);
+        ClassElement outerClass = _enclosingClass;
+        try {
+          _enclosingClass = node.element;
+          _nameScope = new TypeParameterScope(_nameScope, classElement);
+          visitClassDeclarationInScope(node);
+          _nameScope = new ClassScope(_nameScope, classElement);
+          visitClassMembersInScope(node);
+        } finally {
+          _enclosingClass = outerClass;
+        }
       }
     } finally {
       _nameScope = outerScope;
@@ -15090,6 +15114,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (element != null) {
       if (typeName is SimpleIdentifier) {
         typeName.staticElement = element;
+        _markTypeNameElementUsed(typeName, element);
       } else if (typeName is PrefixedIdentifier) {
         PrefixedIdentifier identifier = typeName;
         identifier.identifier.staticElement = element;
@@ -15099,6 +15124,31 @@ class TypeResolverVisitor extends ScopedVisitor {
           prefix.staticElement = prefixElement;
         }
       }
+    }
+  }
+
+  /**
+   * Marks [element] as used in its defining library.
+   */
+  void _markTypeNameElementUsed(Identifier typeName, Element element) {
+    if (identical(element, _enclosingClass)) {
+      return;
+    }
+    // ignore places where the element is not actually used
+    if (typeName.parent is TypeName) {
+      AstNode parent2 = typeName.parent.parent;
+      if (parent2 is IsExpression) {
+        return;
+      }
+      if (parent2 is VariableDeclarationList) {
+        return;
+      }
+    }
+    // check if the element is a local top-level element
+    if (element is ElementImpl &&
+        element.enclosingElement is CompilationUnitElement &&
+        identical(element.library, definingLibrary)) {
+      element.markUsed();
     }
   }
 

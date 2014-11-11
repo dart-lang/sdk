@@ -3384,6 +3384,26 @@ abstract class ElementImpl implements Element {
     return shortName;
   }
 
+  /**
+   * Return `true` if this element is used or potentially can be used.
+   *
+   * For a top-level element: it is public, or it is private and used in the
+   * defining library.
+   *
+   * For a local variable: its value is used (i.e. purely read or invoked)
+   * somewhere in its scope.
+   *
+   * This information is only available for local variables (including
+   * parameters) and only after the compilation unit containing the element
+   * has been resolved.
+   */
+  bool get isUsed {
+    if (isPublic) {
+      return true;
+    }
+    return hasModifier(Modifier.IS_USED_IN_LIBRARY);
+  }
+
   @override
   LibraryElement get library => getAncestor((element) => element is LibraryElement);
 
@@ -3549,6 +3569,13 @@ abstract class ElementImpl implements Element {
    * @return `true` if this element has the given modifier associated with it
    */
   bool hasModifier(Modifier modifier) => BooleanArray.getEnum(_modifiers, modifier);
+
+  /**
+   * Specifies that the element is used.
+   */
+  void markUsed() {
+    setModifier(Modifier.IS_USED_IN_LIBRARY, true);
+  }
 
   /**
    * If the given child is not `null`, use the given visitor to visit it.
@@ -8270,6 +8297,11 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
   accept(ElementVisitor visitor) => visitor.visitLocalVariableElement(this);
 
   @override
+  bool get isUsed {
+    return hasModifier(Modifier.IS_USED_IN_LIBRARY);
+  }
+
+  @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
 
   @override
@@ -8295,9 +8327,6 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
   @override
   bool get isPotentiallyMutatedInScope => hasModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE);
 
-  @override
-  bool get isUsed => hasModifier(Modifier.IS_USED_VARIABLE);
-
   /**
    * Specifies that this variable is potentially mutated somewhere in closure.
    */
@@ -8310,13 +8339,6 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
    */
   void markPotentiallyMutatedInScope() {
     setModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE, true);
-  }
-
-  /**
-   * Specifies that the value of this variable is used.
-   */
-  void markUsed() {
-    setModifier(Modifier.IS_USED_VARIABLE, true);
   }
 
   /**
@@ -8780,9 +8802,16 @@ class Modifier extends Enum<Modifier> {
   static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 9);
 
   /**
-   * Indicates that the value of a variable is used - read or invoked.
+   * Indicates that the element is used in the declaring library.
+   *
+   *
+   * For a top-level element: it is public, or it is private and used in the
+   * defining library.
+   *
+   * For a local variable: its value is used (i.e. purely read or invoked)
+   * somewhere in its scope.
    */
-  static const Modifier IS_USED_VARIABLE = const Modifier('IS_USED_VARIABLE', 10);
+  static const Modifier IS_USED_IN_LIBRARY = const Modifier('IS_USED_IN_LIBRARY', 10);
 
   /**
    * Indicates that a class can validly be used as a mixin.
@@ -8838,7 +8867,7 @@ class Modifier extends Enum<Modifier> {
       GENERATOR,
       GETTER,
       HAS_EXT_URI,
-      IS_USED_VARIABLE,
+      IS_USED_IN_LIBRARY,
       MIXIN,
       POTENTIALLY_MUTATED_IN_CONTEXT,
       POTENTIALLY_MUTATED_IN_SCOPE,
@@ -11619,14 +11648,6 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
 
   @override
   bool get isFinal => hasModifier(Modifier.FINAL);
-
-  /**
-   * Return `true` if this variable is used (i.e. purely read or invoked)
-   * somewhere in its scope. This information is only available for local
-   * variables (including parameters) and only after the compilation unit
-   * containing the variable has been resolved.
-   */
-  bool get isUsed => false;
 
   /**
    * Return `true` if this variable is potentially mutated somewhere in a closure. This

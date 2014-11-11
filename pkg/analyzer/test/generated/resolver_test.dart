@@ -3208,6 +3208,138 @@ class B {}''');
     verify([source, source2]);
   }
 
+  void test_unusedElement_class_noReference() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class _A {}
+main() {
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_class_inConstructorName() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class _A {
+  _A() {}
+  _A.named() {}
+}
+''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_class_inClassMember() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class _A {
+  static staticMethod() {
+    new _A();
+  }
+  instanceMethod() {
+    new _A();
+  }
+}
+''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_class_isExpression() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class _A {}
+main(p) {
+  if (p is _A) {
+  }
+}
+''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_class_variableDeclaration() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class _A {}
+main() {
+  _A v;
+  print(v);
+}
+print(x) {}
+''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_class_isUsed_extends() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class _A {}
+class B extends _A {}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_class_isUsed_implements() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class _A {}
+class B implements _A {}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_class_isUsed_instanceCreation() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class _A {}
+main() {
+  new _A();
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_class_isUsed_staticFieldAccess() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class _A {
+  static const F = 42;
+}
+main() {
+  _A.F;
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_class_isUsed_staticMethodInvocation() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class _A {
+  static m() {}
+}
+main() {
+  _A.m();
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_unusedLocalVariable() {
     enableUnusedLocalVariable = true;
     Source source = addSource(r'''
@@ -6334,6 +6466,11 @@ class ResolverTestCase extends EngineTestCase {
   AnalysisContextImpl analysisContext2;
 
   /**
+   * Specifies if [assertErrors] should check for [HintCode.UNUSED_ELEMENT].
+   */
+  bool enableUnusedElement = false;
+
+  /**
    * Specifies if [assertErrors] should check for [HintCode.UNUSED_LOCAL_VARIABLE].
    */
   bool enableUnusedLocalVariable = false;
@@ -6380,6 +6517,10 @@ class ResolverTestCase extends EngineTestCase {
   void assertErrors(Source source, [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     for (AnalysisError error in analysisContext2.computeErrors(source)) {
+      if (error.errorCode == HintCode.UNUSED_ELEMENT &&
+          !enableUnusedElement) {
+        continue;
+      }
       if (error.errorCode == HintCode.UNUSED_LOCAL_VARIABLE &&
           !enableUnusedLocalVariable) {
         continue;
