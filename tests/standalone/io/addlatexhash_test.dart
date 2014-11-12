@@ -1,3 +1,4 @@
+#!/usr/bin/env dart
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -54,11 +55,72 @@ testSisp() {
   oneTestSisp(sispIsDartEnd, "End", "whatever else ..", false);
 }
 
+// Check that the hash values of paragraphs in the specially prepared
+// LaTeX source 'addlatexhash_test_src.tex' are identical in groups
+// of eight (so we get 8 identical hash values, then another hash
+// value 8 times, etc.)
+testSameHash() {
+  // set up temporary directory to hold output
+  final tmpDir = Directory.systemTemp.createTempSync("addlatexhash_test");
+  final tmpDirPath = tmpDir.path;
+
+  // file names/paths for file containing groups of 8 variants of a paragraph
+  const par8timesName = "addlatexhash_test_src";
+  const par8timesFileName = "$par8timesName.tex";
+  final par8timesDirPath = path.join(dartRootDir, "tests", "standalone", "io");
+  final par8timesPath = path.join(par8timesDirPath, par8timesFileName);
+  final tmpPar8timesPath = path.join(tmpDirPath, par8timesFileName);
+
+  // file names paths for output
+  final hashName = par8timesName + "-hash";
+  final hashFileName = "$hashName.tex";
+  final hashPath = path.join(tmpDirPath, hashFileName);
+  final listName = par8timesName + "-list";
+  final listFileName = "$listName.txt";
+  final listPath = path.join(tmpDirPath, listFileName);
+
+  // dart executable
+  final dartExecutable = Platform.executable;
+  if (dartExecutable == "") throw "dart executable not available";
+
+  // actions to take
+  runAddHash() =>
+      Process.runSync(dartExecutable,
+                      [path.join(dartRootPath, "tools", "addlatexhash.dart"),
+                       tmpPar8timesPath,
+                       hashPath,
+                       listPath]);
+
+  // perform test
+  new File(par8timesPath).copySync(tmpPar8timesPath);
+  checkAction(runAddHash(), "addlatexhash.dart failed");
+  var listFile = new File(listPath);
+  var listLines = listFile.readAsLinesSync();
+  var latestLine = null;
+  var sameCount = 0;
+  for (var line in listLines) {
+    if (!line.startsWith("  ")) continue; // section marker
+    if (line.startsWith("  %")) continue; // transformed text "comment"
+    if (line != latestLine) {
+      // new hash, check for number of equal hashes, then reset
+      if (sameCount % 8 == 0) {
+        // saw zero or more blocks of 8 identical hash values: OK
+        latestLine = line;
+        sameCount = 1;
+      } else {
+        throw "normalization failed to produce same result";
+      }
+    } else {
+      sameCount++;
+    }
+  }
+}
+
 // Check that the LaTeX source transformation done by addlatexhash.dart
 // does not affect the generated output, as seen via dvi2tty and diff.
 // NB: Not part of normal testing (only local): latex and dvi2tty are
 // not installed in the standard test environment.
-testNoChange() {
+testSameDVI() {
   // set up /tmp directory to hold output
   final tmpDir = Directory.systemTemp.createTempSync("addlatexhash_test");
   final tmpDirPath = tmpDir.path;
@@ -83,15 +145,24 @@ testNoChange() {
   final hashPath = path.join(tmpDirPath, hashFileName);
   final hashDviPath = path.join(tmpDirPath, "$hashName.dvi");
 
-  // actions to take
+  final listName = "$specName-list";
+  final listFileName = "$listName.txt";
+  final listPath = path.join(tmpDirPath, listFileName);
+
+  // dart executable
+  final dartExecutable = Platform.executable;
+  if (dartExecutable == "") throw "dart executable not available";
+
+  // actions to take; rely on having latex and dvi2tty in PATH
   runLatex(fileName,workingDirectory) =>
       Process.runSync("latex", [fileName], workingDirectory: workingDirectory);
 
   runAddHash() =>
-      Process.runSync("dart",
+      Process.runSync(dartExecutable,
                       [path.join(dartRootPath, "tools", "addlatexhash.dart"),
                        tmpSpecPath,
-                       hashPath]);
+                       hashPath,
+                       listPath]);
 
   runDvi2tty(dviFile) =>
       Process.runSync("dvi2tty", [dviFile], workingDirectory: tmpDir.path);
@@ -100,12 +171,16 @@ testNoChange() {
       checkAction(runDvi2tty(file), "dvitty on $subject failed");
 
   // perform test
-  new File(styPath).copySync(tmpStyPath);
+  var renewLMHashCmd = r"\renewcommand{\LMHash}[1]{\OriginalLMHash{xxxx}}";
+  new File(styPath)
+      .copySync(tmpStyPath)
+      .writeAsStringSync(renewLMHashCmd, mode: FileMode.APPEND);
   new File(specPath).copySync(tmpSpecPath);
+
+  checkAction(runAddHash(),"addlatexhash.dart failed");
   for (var i = 0; i < 5; i++) {
     checkAction(runLatex(specName, tmpDirPath), "LaTeX on spec failed");
   }
-  checkAction(runAddHash(),"addlatexhash.dart failed");
   for (var i = 0; i < 5; i++) {
     checkAction(runLatex(hashFileName, tmpDirPath), "LaTeX on output failed");
   }
@@ -117,6 +192,7 @@ testNoChange() {
 main([args]) {
   testCutMatch();
   testSisp();
+  testSameHash();
   // latex and dvi2tty are not installed in the standard test environment
-  if (args.length > 0 && args[0] == "local") testNoChange();
+  if (args.length > 0 && args[0] == "local") testSameDVI();
 }
