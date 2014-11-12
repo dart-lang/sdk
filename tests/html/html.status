@@ -356,7 +356,7 @@ wheelevent_test: Fail # http://dartbug.com/12958
 # Desktop operation systems do not support touch events on chrome 34 dartium.
 touchevent_test/supported: Fail
 
-[ ($runtime == dartium && $system == macos) || $system == windows ]
+[ (($runtime == dartium || $runtime == drt) && $system == macos) || $system == windows ]
 xhr_test/xhr: Skip # Times out.  Issue 21527
 
 [ $compiler == none && $runtime == dartium ]
