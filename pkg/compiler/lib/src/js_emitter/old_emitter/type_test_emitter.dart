@@ -168,10 +168,14 @@ class TypeTestEmitter extends CodeEmitterHelper {
         call = cls.lookupBackendMember(Compiler.CALL_OPERATOR_NAME);
       }
       if (call != null && call.isFunction) {
-        generateInterfacesIsTests(compiler.functionClass,
-                                  emitIsTest,
-                                  emitSubstitution,
-                                  generated);
+        // A superclass might already implement the Function interface. In such
+        // a case, we can avoid emiting the is test here.
+        if (!cls.superclass.implementsFunction(compiler)) {
+          generateInterfacesIsTests(compiler.functionClass,
+                                    emitIsTest,
+                                    emitSubstitution,
+                                    generated);
+        }
         FunctionType callType = call.computeType(compiler);
         Map<FunctionType, bool> functionTypeChecks =
             getFunctionTypeChecksOn(callType);
