@@ -736,4 +736,54 @@ main(a) {
 }
 '''),
   ]),
+
+  const Group('Local functions', const <TestSpec>[
+    const TestSpec('''
+main(a) {
+  local() {}
+  return local();
+}
+''', '''
+main(a) {
+  return (() {})();
+}
+'''),
+
+  const TestSpec('''
+main(a) {
+  local() {}
+  var l = local;
+  return l();
+}
+''', '''
+main(a) {
+  return (() {})();
+}
+'''),
+
+  const TestSpec('''
+main(a) {
+  return () {}();
+}
+''', '''
+main(a) {
+  return (() {})();
+}
+'''),
+
+  const TestSpec('''
+main(a) {
+  var c = a ? () { return 0; } : () { return 1; }
+  return c();
+}
+''', '''
+main(a) {
+  return (a ? () {
+    return 0;
+  } : () {
+    return 1;
+  })();
+}
+'''),
+  ]),
 ];

@@ -589,29 +589,17 @@ class Object {
     return Utils::RoundUp(size, kObjectAlignment);
   }
 
-  bool Contains(uword addr) const {
-    intptr_t this_size = raw()->Size();
-    uword this_addr = RawObject::ToAddr(raw());
-    return (addr >= this_addr) && (addr < (this_addr + this_size));
-  }
+  bool Contains(uword addr) const { return raw()->Contains(addr); }
 
   // Start of field mutator guards.
   //
   // All writes to heap objects should ultimately pass through one of the
-  // methods below, to ensure that the write barrier is correctly applied.
+  // methods below or their counterparts in RawObject, to ensure that the
+  // write barrier is correctly applied.
 
   template<typename type>
   void StorePointer(type const* addr, type value) const {
-    // Ensure that this object contains the addr.
-    ASSERT(Contains(reinterpret_cast<uword>(addr)));
-    *const_cast<type*>(addr) = value;
-    // Filter stores based on source and target.
-    if (!value->IsHeapObject()) return;
-    if (value->IsNewObject() && raw()->IsOldObject() &&
-        !raw()->IsRemembered()) {
-      raw()->SetRememberedBit();
-      Isolate::Current()->store_buffer()->AddObject(raw());
-    }
+    raw()->StorePointer(addr, value);
   }
 
   // Store a range of pointers [from, from + count) into [to, to + count).
@@ -632,9 +620,7 @@ class Object {
   // Use for storing into an explicitly Smi-typed field of an object
   // (i.e., both the previous and new value are Smis).
   void StoreSmi(RawSmi* const* addr, RawSmi* value) const {
-    // Can't use Contains, as array length is initialized through this method.
-    ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(raw()));
-    *const_cast<RawSmi**>(addr) = value;
+    raw()->StoreSmi(addr, value);
   }
 
   template<typename FieldType>
@@ -4184,12 +4170,9 @@ class ContextScope : public Object {
     StoreNonPointer(&raw_ptr()->num_variables_, num_variables);
   }
 
-  RawContextScope::VariableDesc* VariableDescAddr(intptr_t index) const {
+  const RawContextScope::VariableDesc* VariableDescAddr(intptr_t index) const {
     ASSERT((index >= 0) && (index < num_variables()));
-    uword raw_addr = reinterpret_cast<uword>(raw_ptr());
-    raw_addr += sizeof(RawContextScope) +
-        (index * sizeof(RawContextScope::VariableDesc));
-    return reinterpret_cast<RawContextScope::VariableDesc*>(raw_addr);
+    return raw_ptr()->VariableDescAddr(index);
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ContextScope, Object);
@@ -6499,22 +6482,8 @@ class GrowableObjectArray : public Instance {
     ASSERT((index >= 0) && (index < Length()));
     return &(DataArray()->data()[index]);
   }
-  bool DataContains(uword addr) const {
-    intptr_t data_size = data()->Size();
-    uword data_addr = RawObject::ToAddr(data());
-    return (addr >= data_addr) && (addr < (data_addr + data_size));
-  }
   void DataStorePointer(RawObject** addr, RawObject* value) const {
-    // Ensure that the backing array object contains the addr.
-    ASSERT(DataContains(reinterpret_cast<uword>(addr)));
-    *addr = value;
-    // Filter stores based on source and target.
-    if (!value->IsHeapObject()) return;
-    if (value->IsNewObject() && data()->IsOldObject() &&
-        !data()->IsRemembered()) {
-      data()->SetRememberedBit();
-      Isolate::Current()->store_buffer()->AddObject(data());
-    }
+    data()->StorePointer(addr, value);
   }
 
   static const int kDefaultInitialCapacity = 4;
@@ -7339,8 +7308,8 @@ class WeakProperty : public Instance {
   }
 
   static void Clear(RawWeakProperty* raw_weak) {
-    raw_weak->ptr()->key_ = Object::null();
-    raw_weak->ptr()->value_ = Object::null();
+    raw_weak->StorePointer(&(raw_weak->ptr()->key_), Object::null());
+    raw_weak->StorePointer(&(raw_weak->ptr()->value_), Object::null());
   }
 
  private:

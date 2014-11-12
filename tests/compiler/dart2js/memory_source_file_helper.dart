@@ -7,19 +7,19 @@ library dart2js.test.memory_source_file_helper;
 import 'dart:async' show Future;
 export 'dart:io' show Platform;
 
-export 'package:compiler/implementation/apiimpl.dart'
+export 'package:compiler/src/apiimpl.dart'
        show Compiler;
 
-export 'package:compiler/implementation/filenames.dart'
+export 'package:compiler/src/filenames.dart'
        show currentDirectory;
 
-import 'package:compiler/implementation/source_file.dart'
+import 'package:compiler/src/source_file.dart'
        show StringSourceFile;
 
-import 'package:compiler/implementation/source_file_provider.dart'
+import 'package:compiler/src/source_file_provider.dart'
        show SourceFileProvider;
 
-export 'package:compiler/implementation/source_file_provider.dart'
+export 'package:compiler/src/source_file_provider.dart'
        show SourceFileProvider, FormattingDiagnosticHandler;
 
 class MemorySourceFileProvider extends SourceFileProvider {

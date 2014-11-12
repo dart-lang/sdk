@@ -169,8 +169,6 @@ main(A a, p) {
   print(p.test); // p-read-ur-q
 }
 ''');
-    ClassElement elementA = findElement('A');
-    ClassElement elementB = findElement('B');
     Element mainA = findElement('mainA');
     Element main = findElement('main');
     var expected = [
@@ -372,8 +370,8 @@ main() {
   Future test_searchReferences_LibraryElement() {
     var codeA = 'part of lib; // A';
     var codeB = 'part of lib; // B';
-    var sourceA = addSource('/unitA.dart', codeA);
-    var sourceB = addSource('/unitB.dart', codeB);
+    addSource('/unitA.dart', codeA);
+    addSource('/unitB.dart', codeB);
     _indexTestUnit('''
 library lib;
 part 'unitA.dart';
@@ -384,7 +382,6 @@ part 'unitB.dart';
     CompilationUnitElement elementB = element.parts[1];
     index.indexUnit(context, elementA.node);
     index.indexUnit(context, elementB.node);
-    Element mainElement = findElement('main');
     var expected = [
         new ExpectedMatch(
             elementA,
@@ -631,13 +628,11 @@ D() {}
 var E = null;
 class NoMatchABCDE {}
 ''');
-    NameElement element = new NameElement('test');
     Element topA = findElement('A');
     Element topB = findElement('B');
     Element topC = findElement('C');
     Element topD = findElement('D');
     Element topE = findElement('E');
-    Element topNoMatch = new MockElement('NoMatchABCDE');
     var expected = [
         _expectId(topA, MatchKind.DECLARATION, 'A {} // A'),
         _expectId(topB, MatchKind.DECLARATION, 'B ='),

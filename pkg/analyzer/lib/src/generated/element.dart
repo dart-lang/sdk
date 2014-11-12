@@ -472,7 +472,7 @@ abstract class AngularPropertyElement implements AngularElement {
   /**
    * An empty array of property elements.
    */
-  static final List<AngularPropertyElement> EMPTY_ARRAY = [];
+  static final List<AngularPropertyElement> EMPTY_ARRAY = <AngularPropertyElement>[];
 
   /**
    * Returns the field this property is mapped to.
@@ -596,7 +596,7 @@ abstract class AngularScopePropertyElement implements AngularElement {
   /**
    * An empty array of scope property elements.
    */
-  static final List<AngularScopePropertyElement> EMPTY_ARRAY = [];
+  static final List<AngularScopePropertyElement> EMPTY_ARRAY = <AngularScopePropertyElement>[];
 
   /**
    * Returns the type of this property, not `null`, maybe <code>dynamic</code>.
@@ -1029,6 +1029,12 @@ abstract class ClassElement implements Element {
    * @return `true` if this element defines a proxy
    */
   bool get isProxy;
+
+  /**
+   * Determine whether the given [constructor], which exists in the superclass
+   * of this class, is accessible to constructors in this class.
+   */
+  bool isSuperConstructorAccessible(ConstructorElement constructor);
 
   /**
    * Return `true` if this class is defined by a typedef construct.
@@ -1498,6 +1504,23 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       }
     }
     return false;
+  }
+
+  @override
+  bool isSuperConstructorAccessible(ConstructorElement constructor) {
+    // If this class has no mixins, then all superclass constructors are
+    // accessible.
+    if (mixins.isEmpty) {
+      return true;
+    }
+    // Otherwise only constructors that lack optional parameters are
+    // accessible (see dartbug.com/19576).
+    for (ParameterElement parameter in constructor.parameters) {
+      if (parameter.parameterKind != ParameterKind.REQUIRED) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @override
@@ -2625,134 +2648,107 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
 }
 
 /**
- * The interface `Type` defines the behavior of objects representing the declared type of
- * elements in the element model.
+ * The interface `DartType` defines the behavior of objects representing the
+ * declared type of elements in the element model.
  */
 abstract class DartType {
   /**
-   * Return the name of this type as it should appear when presented to users in contexts such as
-   * error messages.
-   *
-   * @return the name of this type
+   * Return the name of this type as it should appear when presented to users in
+   * contexts such as error messages.
    */
   String get displayName;
 
   /**
-   * Return the element representing the declaration of this type, or `null` if the type has
-   * not, or cannot, be associated with an element. The former case will occur if the element model
-   * is not yet complete; the latter case will occur if this object represents an undefined type.
-   *
-   * @return the element representing the declaration of this type
+   * Return the element representing the declaration of this type, or `null` if
+   * the type has not, or cannot, be associated with an element. The former case
+   * will occur if the element model is not yet complete; the latter case will
+   * occur if this object represents an undefined type.
    */
   Element get element;
 
   /**
-   * Return the least upper bound of this type and the given type, or `null` if there is no
-   * least upper bound.
-   *
-   * @param type the other type used to compute the least upper bound
-   * @return the least upper bound of this type and the given type
+   * Return the least upper bound of this type and the given [type], or `null`
+   * if there is no least upper bound.
    */
   DartType getLeastUpperBound(DartType type);
 
   /**
-   * Return the name of this type, or `null` if the type does not have a name, such as when
-   * the type represents the type of an unnamed function.
-   *
-   * @return the name of this type
+   * Return the name of this type, or `null` if the type does not have a name,
+   * such as when the type represents the type of an unnamed function.
    */
   String get name;
 
   /**
-   * Return `true` if this type is assignable to the given type. A type <i>T</i> may be
-   * assigned to a type <i>S</i>, written <i>T</i> &hArr; <i>S</i>, iff either <i>T</i> <: <i>S</i>
-   * or <i>S</i> <: <i>T</i>.
-   *
-   * @param type the type being compared with this type
-   * @return `true` if this type is assignable to the given type
+   * Return `true` if this type is assignable to the given [type]. A type
+   * <i>T</i> may be assigned to a type <i>S</i>, written <i>T</i> &hArr;
+   * <i>S</i>, iff either <i>T</i> <: <i>S</i> or <i>S</i> <: <i>T</i>.
    */
   bool isAssignableTo(DartType type);
 
   /**
    * Return `true` if this type represents the bottom type.
-   *
-   * @return `true` if this type represents the bottom type
    */
   bool get isBottom;
 
   /**
-   * Return `true` if this type represents the type 'Function' defined in the dart:core
-   * library.
-   *
-   * @return `true` if this type represents the type 'Function' defined in the dart:core
-   *         library
+   * Return `true` if this type represents the type 'Function' defined in the
+   * dart:core library.
    */
   bool get isDartCoreFunction;
 
   /**
    * Return `true` if this type represents the type 'dynamic'.
-   *
-   * @return `true` if this type represents the type 'dynamic'
    */
   bool get isDynamic;
 
   /**
-   * Return `true` if this type is more specific than the given type.
-   *
-   * @param type the type being compared with this type
-   * @return `true` if this type is more specific than the given type
+   * Return `true` if this type is more specific than the given [type].
    */
   bool isMoreSpecificThan(DartType type);
 
   /**
    * Return `true` if this type represents the type 'Object'.
-   *
-   * @return `true` if this type represents the type 'Object'
    */
   bool get isObject;
 
   /**
-   * Return `true` if this type is a subtype of the given type.
-   *
-   * @param type the type being compared with this type
-   * @return `true` if this type is a subtype of the given type
+   * Return `true` if this type is a subtype of the given [type].
    */
   bool isSubtypeOf(DartType type);
 
   /**
-   * Return `true` if this type is a supertype of the given type. A type <i>S</i> is a
-   * supertype of <i>T</i>, written <i>S</i> :> <i>T</i>, iff <i>T</i> is a subtype of <i>S</i>.
-   *
-   * @param type the type being compared with this type
-   * @return `true` if this type is a supertype of the given type
+   * Return `true` if this type is a supertype of the given [type]. A type
+   * <i>S</i> is a supertype of <i>T</i>, written <i>S</i> :> <i>T</i>, iff
+   * <i>T</i> is a subtype of <i>S</i>.
    */
   bool isSupertypeOf(DartType type);
 
   /**
-   * Return `true` if this type represents a typename that couldn't be
-   * resolved.
+   * Return `true` if this type represents a typename that couldn't be resolved.
    */
   bool get isUndefined;
 
   /**
    * Return `true` if this type represents the type 'void'.
-   *
-   * @return `true` if this type represents the type 'void'
    */
   bool get isVoid;
 
   /**
-   * Return the type resulting from substituting the given arguments for the given parameters in
-   * this type. The specification defines this operation in section 2: <blockquote> The notation
-   * <i>[x<sub>1</sub>, ..., x<sub>n</sub>/y<sub>1</sub>, ..., y<sub>n</sub>]E</i> denotes a copy of
-   * <i>E</i> in which all occurrences of <i>y<sub>i</sub>, 1 <= i <= n</i> have been replaced with
-   * <i>x<sub>i</sub></i>.</blockquote> Note that, contrary to the specification, this method will
-   * not create a copy of this type if no substitutions were required, but will return this type
-   * directly.
+   * Return the type resulting from substituting the given [argumentTypes] for
+   * the given [parameterTypes] in this type. The specification defines this
+   * operation in section 2:
+   * <blockquote>
+   * The notation <i>[x<sub>1</sub>, ..., x<sub>n</sub>/y<sub>1</sub>, ...,
+   * y<sub>n</sub>]E</i> denotes a copy of <i>E</i> in which all occurrences of
+   * <i>y<sub>i</sub>, 1 <= i <= n</i> have been replaced with
+   * <i>x<sub>i</sub></i>.
+   * </blockquote>
+   * Note that, contrary to the specification, this method will not create a
+   * copy of this type if no substitutions were required, but will return this
+   * type directly.
    *
-   * @param argumentTypes the actual type arguments being substituted for the parameters
-   * @param parameterTypes the parameters to be replaced
-   * @return the result of performing the substitution
+   * Note too that the current implementation of this method is only guaranteed
+   * to work when the argument types are type variables.
    */
   DartType substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes);
 }
@@ -3388,6 +3384,26 @@ abstract class ElementImpl implements Element {
     return shortName;
   }
 
+  /**
+   * Return `true` if this element is used or potentially can be used.
+   *
+   * For a top-level element: it is public, or it is private and used in the
+   * defining library.
+   *
+   * For a local variable: its value is used (i.e. purely read or invoked)
+   * somewhere in its scope.
+   *
+   * This information is only available for local variables (including
+   * parameters) and only after the compilation unit containing the element
+   * has been resolved.
+   */
+  bool get isUsed {
+    if (isPublic) {
+      return true;
+    }
+    return hasModifier(Modifier.IS_USED_IN_LIBRARY);
+  }
+
   @override
   LibraryElement get library => getAncestor((element) => element is LibraryElement);
 
@@ -3553,6 +3569,13 @@ abstract class ElementImpl implements Element {
    * @return `true` if this element has the given modifier associated with it
    */
   bool hasModifier(Modifier modifier) => BooleanArray.getEnum(_modifiers, modifier);
+
+  /**
+   * Specifies that the element is used.
+   */
+  void markUsed() {
+    setModifier(Modifier.IS_USED_IN_LIBRARY, true);
+  }
 
   /**
    * If the given child is not `null`, use the given visitor to visit it.
@@ -3903,8 +3926,8 @@ class ElementLocationImpl implements ElementLocation {
 }
 
 /**
- * The class `ElementPair` is a pair of [Element]s. [Object#equals] and
- * [Object#hashCode] so this class can be used in hashed data structures.
+ * The class `ElementPair` is a pair of [Element]s. [Object.==] and
+ * [Object.hashCode] so this class can be used in hashed data structures.
  */
 class ElementPair {
   /**
@@ -6268,8 +6291,7 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
  * The interface `HtmlScriptElement` defines the behavior of elements representing a script
  * tag in an HTML file.
  *
- * @see EmbeddedHtmlScriptElement
- * @see ExternalHtmlScriptElement
+ * See [EmbeddedHtmlScriptElement], and [ExternalHtmlScriptElement],
  */
 abstract class HtmlScriptElement implements Element {
 }
@@ -6693,11 +6715,9 @@ abstract class InterfaceType implements ParameterizedType {
   PropertyAccessorElement lookUpSetterInSuperclass(String setterName, LibraryElement library);
 
   /**
-   * Return the type resulting from substituting the given arguments for this type's parameters.
-   * This is fully equivalent to `substitute(argumentTypes, getTypeArguments())`.
-   *
-   * @param argumentTypes the actual type arguments being substituted for the type parameters
-   * @return the result of performing the substitution
+   * Return the type resulting from substituting the given arguments for this
+   * type's parameters. This is fully equivalent to `substitute2(argumentTypes,
+   * getTypeArguments())`.
    */
   InterfaceType substitute4(List<DartType> argumentTypes);
 
@@ -6717,7 +6737,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @param type the [Type] to compute the longest inheritance path of from the passed
    *          [Type] to Object
    * @return the computed longest inheritance path to Object
-   * @see InterfaceType#getLeastUpperBound(Type)
+   * See [InterfaceType.getLeastUpperBound].
    */
   static int computeLongestInheritancePathToObject(InterfaceType type) => _computeLongestInheritancePathToObject(type, 0, new HashSet<ClassElement>());
 
@@ -6726,7 +6746,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    *
    * @param type the [Type] to compute the set of superinterfaces of
    * @return the [Set] of superinterfaces of the passed [Type]
-   * @see #getLeastUpperBound(Type)
+   * See [getLeastUpperBound].
    */
   static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type) => _computeSuperinterfaceSet(type, new HashSet<InterfaceType>());
 
@@ -6740,8 +6760,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @param depth a field used recursively
    * @param visitedClasses the classes that have already been visited
    * @return the computed longest inheritance path to Object
-   * @see #computeLongestInheritancePathToObject(Type)
-   * @see #getLeastUpperBound(Type)
+   * See [computeLongestInheritancePathToObject], and [getLeastUpperBound].
    */
   static int _computeLongestInheritancePathToObject(InterfaceType type, int depth, HashSet<ClassElement> visitedClasses) {
     ClassElement classElement = type.element;
@@ -6784,8 +6803,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @param type the [Type] to compute the set of superinterfaces of
    * @param set a [HashSet] used recursively by this method
    * @return the [Set] of superinterfaces of the passed [Type]
-   * @see #computeSuperinterfaceSet(Type)
-   * @see #getLeastUpperBound(Type)
+   * See [computeSuperinterfaceSet], and [getLeastUpperBound].
    */
   static Set<InterfaceType> _computeSuperinterfaceSet(InterfaceType type, HashSet<InterfaceType> set) {
     Element element = type.element;
@@ -8279,6 +8297,11 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
   accept(ElementVisitor visitor) => visitor.visitLocalVariableElement(this);
 
   @override
+  bool get isUsed {
+    return hasModifier(Modifier.IS_USED_IN_LIBRARY);
+  }
+
+  @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
 
   @override
@@ -8779,47 +8802,59 @@ class Modifier extends Enum<Modifier> {
   static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 9);
 
   /**
+   * Indicates that the element is used in the declaring library.
+   *
+   *
+   * For a top-level element: it is public, or it is private and used in the
+   * defining library.
+   *
+   * For a local variable: its value is used (i.e. purely read or invoked)
+   * somewhere in its scope.
+   */
+  static const Modifier IS_USED_IN_LIBRARY = const Modifier('IS_USED_IN_LIBRARY', 10);
+
+  /**
    * Indicates that a class can validly be used as a mixin.
    */
-  static const Modifier MIXIN = const Modifier('MIXIN', 10);
+  static const Modifier MIXIN = const Modifier('MIXIN', 11);
 
   /**
    * Indicates that the value of a parameter or local variable might be mutated within the context.
    */
-  static const Modifier POTENTIALLY_MUTATED_IN_CONTEXT = const Modifier('POTENTIALLY_MUTATED_IN_CONTEXT', 11);
+  static const Modifier POTENTIALLY_MUTATED_IN_CONTEXT = const Modifier('POTENTIALLY_MUTATED_IN_CONTEXT', 12);
 
   /**
    * Indicates that the value of a parameter or local variable might be mutated within the scope.
    */
-  static const Modifier POTENTIALLY_MUTATED_IN_SCOPE = const Modifier('POTENTIALLY_MUTATED_IN_SCOPE', 12);
+  static const Modifier POTENTIALLY_MUTATED_IN_SCOPE = const Modifier('POTENTIALLY_MUTATED_IN_SCOPE', 13);
 
   /**
    * Indicates that a class contains an explicit reference to 'super'.
    */
-  static const Modifier REFERENCES_SUPER = const Modifier('REFERENCES_SUPER', 13);
+  static const Modifier REFERENCES_SUPER = const Modifier('REFERENCES_SUPER', 14);
 
   /**
    * Indicates that the pseudo-modifier 'set' was applied to the element.
    */
-  static const Modifier SETTER = const Modifier('SETTER', 14);
+  static const Modifier SETTER = const Modifier('SETTER', 15);
 
   /**
    * Indicates that the modifier 'static' was applied to the element.
    */
-  static const Modifier STATIC = const Modifier('STATIC', 15);
+  static const Modifier STATIC = const Modifier('STATIC', 16);
 
   /**
    * Indicates that the element does not appear in the source code but was implicitly created. For
    * example, if a class does not define any constructors, an implicit zero-argument constructor
    * will be created and it will be marked as being synthetic.
    */
-  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 16);
+  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 17);
 
   /**
    * Indicates that a class was defined using an alias. TODO(brianwilkerson) This should be renamed
    * to 'ALIAS'.
    */
-  static const Modifier TYPEDEF = const Modifier('TYPEDEF', 17);
+  static const Modifier TYPEDEF = const Modifier('TYPEDEF', 18);
 
   static const List<Modifier> values = const [
       ABSTRACT,
@@ -8832,6 +8867,7 @@ class Modifier extends Enum<Modifier> {
       GENERATOR,
       GETTER,
       HAS_EXT_URI,
+      IS_USED_IN_LIBRARY,
       MIXIN,
       POTENTIALLY_MUTATED_IN_CONTEXT,
       POTENTIALLY_MUTATED_IN_SCOPE,
@@ -9123,7 +9159,7 @@ abstract class NamespaceCombinator {
   /**
    * An empty array of namespace combinators.
    */
-  static final List<NamespaceCombinator> EMPTY_ARRAY = new List<NamespaceCombinator>(0);
+  static const List<NamespaceCombinator> EMPTY_ARRAY = const <NamespaceCombinator>[];
 }
 
 /**

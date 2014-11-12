@@ -25,6 +25,11 @@ class CompletionDomainHandler implements RequestHandler {
   int _nextCompletionId = 0;
 
   /**
+   * Code completion peformance for the last completion operation.
+   */
+  CompletionPerformance performance;
+
+  /**
    * Initialize a new request handler for the given [server].
    */
   CompletionDomainHandler(this.server);
@@ -46,25 +51,31 @@ class CompletionDomainHandler implements RequestHandler {
    * Process a `completion.getSuggestions` request.
    */
   Response processRequest(Request request) {
+    performance = new CompletionPerformance();
     // extract params
-    var params = new CompletionGetSuggestionsParams.fromRequest(request);
+    CompletionGetSuggestionsParams params =
+        new CompletionGetSuggestionsParams.fromRequest(request);
     // schedule completion analysis
     String completionId = (_nextCompletionId++).toString();
     CompletionManager.create(
         server.getAnalysisContext(params.file),
         server.getSource(params.file),
         params.offset,
-        server.searchEngine).results().listen((CompletionResult result) {
+        server.searchEngine,
+        performance).results().listen((CompletionResult result) {
       sendCompletionNotification(
           completionId,
           result.replacementOffset,
           result.replacementLength,
           result.suggestions,
           result.last);
+      if (result.last) {
+        performance.complete();
+      }
     });
     // initial response without results
-    return new CompletionGetSuggestionsResult(completionId).toResponse(
-        request.id);
+    return new CompletionGetSuggestionsResult(
+        completionId).toResponse(request.id);
   }
 
   /**
@@ -72,7 +83,12 @@ class CompletionDomainHandler implements RequestHandler {
    */
   void sendCompletionNotification(String completionId, int replacementOffset,
       int replacementLength, Iterable<CompletionSuggestion> results, bool isLast) {
-    server.sendNotification(new CompletionResultsParams(completionId,
-        replacementOffset, replacementLength, results, isLast).toNotification());
+    server.sendNotification(
+        new CompletionResultsParams(
+            completionId,
+            replacementOffset,
+            replacementLength,
+            results,
+            isLast).toNotification());
   }
 }

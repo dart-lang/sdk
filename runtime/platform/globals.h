@@ -98,8 +98,8 @@
 
 struct simd128_value_t {
   union {
-    float float_storage[4];
     int32_t int_storage[4];
+    float float_storage[4];
     double double_storage[2];
   };
   simd128_value_t& readFrom(const float* v) {

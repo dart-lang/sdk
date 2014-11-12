@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import 'package:compiler/implementation/util/util.dart' show Indentation;
+import 'package:compiler/src/util/util.dart' show Indentation;
 
 main() {
   Indentation ind = new Indentation();

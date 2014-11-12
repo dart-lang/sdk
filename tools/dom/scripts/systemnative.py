@@ -364,7 +364,7 @@ def EncodeType(t):
 class DartiumBackend(HtmlDartGenerator):
   """Generates Dart implementation for one DOM IDL interface."""
 
-  def __init__(self, interface, 
+  def __init__(self, interface,
                cpp_library_emitter, options):
     super(DartiumBackend, self).__init__(interface, options, True)
 
@@ -672,7 +672,7 @@ class DartiumBackend(HtmlDartGenerator):
 
     constructor_callback_cpp_name = 'constructorCallback'
     self._EmitConstructorInfrastructure(
-        constructor_info, "", constructor_callback_cpp_name, '_create', 
+        constructor_info, "", constructor_callback_cpp_name, '_create',
         is_custom=True)
 
     self._cpp_declarations_emitter.Emit(
@@ -686,10 +686,10 @@ class DartiumBackend(HtmlDartGenerator):
     return IsOptional(argument)
 
   def EmitStaticFactoryOverload(self, constructor_info, name, arguments):
-    constructor_callback_cpp_name = name + 'constructorCallback'  
+    constructor_callback_cpp_name = name + 'constructorCallback'
     self._EmitConstructorInfrastructure(
-        constructor_info, name, 'constructorCallback', name, arguments, 
-        emit_to_native=True, 
+        constructor_info, name, 'constructorCallback', name, arguments,
+        emit_to_native=True,
         is_custom=False)
 
     ext_attrs = self._interface.ext_attrs
@@ -1048,7 +1048,7 @@ class DartiumBackend(HtmlDartGenerator):
           '\n'
           '  $TYPE operator[](int index) {\n'
           '    if (index < 0 || index >= length)\n'
-          '      throw new RangeError.range(index, 0, length);\n'
+          '      throw new RangeError.index(index, this);\n'
           '    return $(DART_NATIVE_NAME)(this, index);\n'
           '  }\n\n'
           '  $TYPE _nativeIndexedGetter(int index) =>'
@@ -1106,7 +1106,7 @@ class DartiumBackend(HtmlDartGenerator):
         '\n'
         '  $TYPE operator[](int index) {\n'
         '    if (index < 0 || index >= length)\n'
-        '      throw new RangeError.range(index, 0, length);\n'
+        '      throw new RangeError.index(index, this);\n'
         '    return $INDEXED_GETTER(index);\n'
         '  }\n',
         TYPE=dart_element_type,
@@ -1120,7 +1120,7 @@ class DartiumBackend(HtmlDartGenerator):
     formals = ', '.join(['int index', '%s value' % element_type])
     parameters = ['index', 'value']
     dart_declaration = 'void operator[]=(%s)' % formals
-    self._GenerateNativeBinding('numericIndexSetter', 3, 
+    self._GenerateNativeBinding('numericIndexSetter', 3,
       dart_declaration, False, return_type, parameters,
       'Callback', True, False)
 

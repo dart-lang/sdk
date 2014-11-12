@@ -3784,16 +3784,10 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
                             parameter.type(),
                             parameter.name())) {
         Value* parameter_value = Bind(BuildLoadLocal(parameter));
-        AssertAssignableInstr* assert_assignable =
-            BuildAssertAssignable(parameter.token_pos(),
-                                  parameter_value,
-                                  parameter.type(),
-                                  parameter.name());
-        parameter_value = Bind(assert_assignable);
-        // Store the type checked argument back to its corresponding local
-        // variable so that ssa renaming detects the dependency and makes use
-        // of the checked type in type propagation.
-        Do(BuildStoreLocal(parameter, parameter_value));
+        Do(BuildAssertAssignable(parameter.token_pos(),
+                                 parameter_value,
+                                 parameter.type(),
+                                 parameter.name()));
       }
       pos++;
     }

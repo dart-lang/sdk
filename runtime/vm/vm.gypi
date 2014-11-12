@@ -9,8 +9,8 @@
     'builtin_in_cc_file': '../bin/builtin_in.cc',
     'async_cc_file': '<(gen_source_dir)/async_gen.cc',
     'async_patch_cc_file': '<(gen_source_dir)/async_patch_gen.cc',
-    'corelib_cc_file': '<(gen_source_dir)/corelib_gen.cc',
-    'corelib_patch_cc_file': '<(gen_source_dir)/corelib_patch_gen.cc',
+    'core_cc_file': '<(gen_source_dir)/core_gen.cc',
+    'core_patch_cc_file': '<(gen_source_dir)/core_patch_gen.cc',
     'collection_cc_file': '<(gen_source_dir)/collection_gen.cc',
     'collection_patch_cc_file': '<(gen_source_dir)/collection_patch_gen.cc',
     'convert_cc_file': '<(gen_source_dir)/convert_gen.cc',
@@ -107,8 +107,8 @@
       'dependencies': [
         'generate_async_cc_file#host',
         'generate_async_patch_cc_file#host',
-        'generate_corelib_cc_file#host',
-        'generate_corelib_patch_cc_file#host',
+        'generate_core_cc_file#host',
+        'generate_core_patch_cc_file#host',
         'generate_collection_cc_file#host',
         'generate_collection_patch_cc_file#host',
         'generate_convert_cc_file#host',
@@ -129,7 +129,7 @@
       'includes': [
         '../lib/async_sources.gypi',
         '../lib/collection_sources.gypi',
-        '../lib/corelib_sources.gypi',
+        '../lib/core_sources.gypi',
         '../lib/isolate_sources.gypi',
         '../lib/math_sources.gypi',
         '../lib/mirrors_sources.gypi',
@@ -142,8 +142,8 @@
         # Include generated source files.
         '<(async_cc_file)',
         '<(async_patch_cc_file)',
-        '<(corelib_cc_file)',
-        '<(corelib_patch_cc_file)',
+        '<(core_cc_file)',
+        '<(core_patch_cc_file)',
         '<(collection_cc_file)',
         '<(collection_patch_cc_file)',
         '<(convert_cc_file)',
@@ -172,7 +172,7 @@
       'includes': [
         '../lib/async_sources.gypi',
         '../lib/collection_sources.gypi',
-        '../lib/corelib_sources.gypi',
+        '../lib/core_sources.gypi',
         '../lib/isolate_sources.gypi',
         '../lib/math_sources.gypi',
         '../lib/mirrors_sources.gypi',
@@ -181,7 +181,7 @@
         '../lib/internal_sources.gypi',
       ],
       'sources': [
-        'bootstrap_nocorelib.cc',
+        'bootstrap_nocore.cc',
       ],
       'include_dirs': [
         '..',
@@ -427,12 +427,12 @@
       ]
     },
     {
-      'target_name': 'generate_corelib_cc_file',
+      'target_name': 'generate_core_cc_file',
       'type': 'none',
       'toolsets':['host'],
       'includes': [
         # Load the shared core library sources.
-        '../../sdk/lib/core/corelib_sources.gypi',
+        '../../sdk/lib/core/core_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.
@@ -443,36 +443,36 @@
       ],
       'actions': [
         {
-          'action_name': 'generate_corelib_cc',
+          'action_name': 'generate_core_cc',
           'inputs': [
             '../tools/gen_library_src_paths.py',
             '<(libgen_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
-            '<(corelib_cc_file)',
+            '<(core_cc_file)',
           ],
           'action': [
             'python',
             'tools/gen_library_src_paths.py',
-            '--output', '<(corelib_cc_file)',
+            '--output', '<(core_cc_file)',
             '--input_cc', '<(libgen_in_cc_file)',
             '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::corelib_source_paths_',
+            '--var_name', 'dart::Bootstrap::core_source_paths_',
             '--library_name', 'dart:core',
             '<@(_sources)',
           ],
-          'message': 'Generating ''<(corelib_cc_file)'' file.'
+          'message': 'Generating ''<(core_cc_file)'' file.'
         },
       ]
     },
     {
-      'target_name': 'generate_corelib_patch_cc_file',
+      'target_name': 'generate_core_patch_cc_file',
       'type': 'none',
       'toolsets':['host'],
       'includes': [
         # Load the runtime implementation sources.
-        '../lib/corelib_sources.gypi',
+        '../lib/core_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.
@@ -483,26 +483,26 @@
       ],
       'actions': [
         {
-          'action_name': 'generate_corelib_patch_cc',
+          'action_name': 'generate_core_patch_cc',
           'inputs': [
             '../tools/gen_library_src_paths.py',
             '<(libgen_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
-            '<(corelib_patch_cc_file)',
+            '<(core_patch_cc_file)',
           ],
           'action': [
             'python',
             'tools/gen_library_src_paths.py',
-            '--output', '<(corelib_patch_cc_file)',
+            '--output', '<(core_patch_cc_file)',
             '--input_cc', '<(libgen_in_cc_file)',
             '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::corelib_patch_paths_',
-            '--library_name', 'dart:corelib',
+            '--var_name', 'dart::Bootstrap::core_patch_paths_',
+            '--library_name', 'dart:core',
             '<@(_sources)',
           ],
-          'message': 'Generating ''<(corelib_patch_cc_file)'' file.'
+          'message': 'Generating ''<(core_patch_cc_file)'' file.'
         },
       ]
     },
@@ -538,7 +538,7 @@
             '--output', '<(internal_patch_cc_file)',
             '--input_cc', '<(libgen_in_cc_file)',
             '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::internal_patch_paths_',
+            '--var_name', 'dart::Bootstrap::_internal_patch_paths_',
             '--library_name', 'dart:_internal',
             '<@(_sources)',
           ],
@@ -578,7 +578,7 @@
             '--output', '<(internal_cc_file)',
             '--input_cc', '<(libgen_in_cc_file)',
             '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::internal_source_paths_',
+            '--var_name', 'dart::Bootstrap::_internal_source_paths_',
             '--library_name', 'dart:_internal',
             '<@(_sources)',
           ],

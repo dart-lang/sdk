@@ -5,19 +5,19 @@
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:compiler/implementation/elements/elements.dart';
-import 'package:compiler/implementation/tree/tree.dart';
-import 'package:compiler/implementation/util/util.dart';
-import 'package:compiler/implementation/source_file.dart';
+import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/tree/tree.dart';
+import 'package:compiler/src/util/util.dart';
+import 'package:compiler/src/source_file.dart';
 import 'mock_compiler.dart';
 import 'parser_helper.dart';
 
-import 'package:compiler/implementation/elements/modelx.dart'
+import 'package:compiler/src/elements/modelx.dart'
   show ClassElementX, CompilationUnitElementX, ElementX, FunctionElementX;
 
-import 'package:compiler/implementation/dart2jslib.dart';
+import 'package:compiler/src/dart2jslib.dart';
 
-import 'package:compiler/implementation/dart_types.dart';
+import 'package:compiler/src/dart_types.dart';
 
 final MessageKind NOT_ASSIGNABLE = MessageKind.NOT_ASSIGNABLE;
 final MessageKind MEMBER_NOT_FOUND = MessageKind.MEMBER_NOT_FOUND;

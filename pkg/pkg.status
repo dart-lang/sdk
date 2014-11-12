@@ -19,7 +19,6 @@ scheduled_test/test/scheduled_server_test: Pass, Fail # 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 scheduled_test/test/scheduled_stream/stream_matcher_test: Pass, Slow
 polymer/test/build/script_compactor_test: Pass, Slow
-analysis_server/test/integration/asynchrony_test: Skip # Issue 21252
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 third_party/angular_tests/browser_test/*: Skip # github perf_api.dart issue 5
@@ -30,6 +29,7 @@ intl/test/date_time_format_local_odd_test: Skip # Times out flakily. Issue 19544
 mutation_observer: Skip # Issue 21149
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
+polymer/example/component/news/test/news_index_test: Pass, RuntimeError # Issue 18931. Issue 19196.
 polymer/test/attr_deserialize_test: Pass, RuntimeError # Issue 18931
 polymer/test/attr_mustache_test: Pass, RuntimeError # Issue 18931
 polymer/test/bind_test: Pass, RuntimeError # Issue 18931
@@ -266,11 +266,12 @@ scheduled_test/test/scheduled_test/timeout_test: Timeout # Issue 21007
 scheduled_test/test/scheduled_test/wrap_async_test: Timeout # Issue 21007
 scheduled_test/test/scheduled_test/wrap_future_test: Timeout # Issue 21007
 
-[ ($runtime == safari && $builder_tag == mac10_7) || $runtime == safarimobilesim ]
-# Unexplained errors only occuring on Safari.
+[ $runtime == safarimobilesim ]
+# Unexplained errors only occuring on Safari 6.1 and earlier.
 typed_data/test/typed_buffers_test: RuntimeError
 
 [ $runtime == safari ]
+polymer/test/*: Skip # Issue 21434
 polymer/test/js_interop_test: Pass, RuntimeError # Issue 20075
 
 [ $runtime == safari || $ie ]
@@ -293,6 +294,8 @@ mock/test/mock_regexp_negative_test: Skip
 mock/test/mock_stepwise_negative_test: Skip
 polymer/e2e_test/canonicalization: Skip
 polymer/e2e_test/experimental_boot: Skip
+
+compiler/samples/compile_loop/compile_loop: CompileTimeError  # Issue 16524
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 # This test uses third_party/pkg/perf_api/lib/perf_api.dart, which
@@ -490,6 +493,3 @@ analyzer/test/*: PubGetError
 
 [ $runtime == drt ]
 http/test/html/client_test: Skip # Issue 18566
-
-[ $system == windows ]
-analysis_server/test/integration/search/get_type_hierarchy_test: Pass, Fail # Issue 20436

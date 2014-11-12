@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import 'package:compiler/implementation/util/command_line.dart';
+import 'package:compiler/src/util/command_line.dart';
 
 main() {
   Expect.listEquals(["foo", "bar"], splitLine("foo bar"));

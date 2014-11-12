@@ -12,10 +12,10 @@ import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 import 'package:pool/pool.dart';
 
-import '../../../../compiler/compiler.dart' as compiler;
-import '../../../../compiler/implementation/dart2js.dart'
+import '../../../../../../../pkg/compiler/lib/compiler.dart' as compiler;
+import '../../../../../../../pkg/compiler/lib/src/dart2js.dart'
     show AbortLeg;
-import '../../../../compiler/implementation/source_file.dart';
+import '../../../../../../../pkg/compiler/lib/src/source_file.dart';
 import '../barback.dart';
 import '../dart.dart' as dart;
 import '../utils.dart';
@@ -24,7 +24,7 @@ import 'asset_environment.dart';
 /// The set of all valid configuration options for this transformer.
 final _validOptions = new Set<String>.from([
   'commandLineOptions', 'checked', 'csp', 'minify', 'verbose', 'environment',
-  'analyzeAll', 'preserveUris', 'suppressWarnings', 'suppressHints',
+  'preserveUris', 'suppressWarnings', 'suppressHints',
   'suppressPackageWarnings', 'terse'
 ]);
 
@@ -89,7 +89,6 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
   void declareOutputs(DeclaringTransform transform) {
     var primaryId = transform.primaryId;
     transform.declareOutput(primaryId.addExtension(".js"));
-    transform.declareOutput(primaryId.addExtension(".precompiled.js"));
     if (_generateSourceMaps) {
       transform.declareOutput(primaryId.addExtension(".js.map"));
     }
@@ -283,6 +282,10 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     if (!generateSourceMaps && extension.endsWith(".map")) {
       return new NullSink<String>();
     }
+
+    // TODO(nweiz): remove this special case when dart2js stops generating these
+    // files.
+    if (extension.endsWith(".precompiled.js")) return new NullSink<String>();
 
     var primaryId = _transform.primaryInput.id;
 

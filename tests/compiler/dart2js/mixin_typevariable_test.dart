@@ -7,8 +7,8 @@ library mixin_typevariable_test;
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'type_test_helper.dart';
-import 'package:compiler/implementation/dart_types.dart';
-import "package:compiler/implementation/elements/elements.dart"
+import 'package:compiler/src/dart_types.dart';
+import "package:compiler/src/elements/elements.dart"
        show Element, ClassElement;
 
 void main() {
@@ -22,7 +22,7 @@ void testMixinSupertypes() {
       class M1<M1_T> {}
       class M2<M2_T> {}
       class M3<M3_T> {}
-      
+
       class C1<C1_T> extends S<C1_T> with M1<C1_T>, M2<C1_T>, M3<C1_T> {}
       class C2<C2_T> = S<C2_T> with M1<C2_T>, M2<C2_T>, M3<C2_T>;
       """, expectNoWarningsOrErrors: true).then((env) {
@@ -77,16 +77,16 @@ void testNonTrivialSubstitutions() {
       class _ {}
       class A<A_T> {}
       class B<B_T, B_S> {}
-      
+
       class C1<C1_T> extends A with B {}
       class C2<C2_T> = A with B;
-      
+
       class D1<D1_T> extends A<D1_T> with B<D1_T, A<D1_T>> {}
       class D2<D2_T> = A<D2_T> with B<D2_T, A<D2_T>>;
-      
+
       class E1<E1_T> extends A<_> with B<_, A<_>> {}
       class E2<E2_T> = A<_> with B<_, A<_>>;
-      
+
       class F1<F1_T> extends A<_> with B<_, B<F1_T, _>> {}
       class F2<F2_T> = A<_> with B<_, B<F2_T, _>>;
       """, expectNoWarningsOrErrors: true).then((env) {

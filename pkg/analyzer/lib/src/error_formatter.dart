@@ -135,7 +135,7 @@ class ErrorFormatter {
       out.write('|');
       out.write(error.errorCode.type);
       out.write('|');
-      out.write(error.errorCode);
+      out.write(error.errorCode.name);
       out.write('|');
       out.write(escapePipe(source.fullName));
       out.write('|');

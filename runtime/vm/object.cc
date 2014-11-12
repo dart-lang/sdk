@@ -942,7 +942,7 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
 
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
       ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
-      raw->ptr()->length_ = Smi::New(leftover_len);
+      raw->StoreSmi(&(raw->ptr()->length_), Smi::New(leftover_len));
     } else {
       // Update the leftover space as a basic object.
       ASSERT(leftover_size == Object::InstanceSize());
@@ -10428,6 +10428,7 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS);
   INLINE_WHITE_LIST(CHECK_FINGERPRINTS);
+  INLINE_BLACK_LIST(CHECK_FINGERPRINTS);
   POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS);
 
   all_libs.Clear();
@@ -12184,8 +12185,10 @@ RawCode* Code::FinalizeCode(const char* name,
     for (intptr_t i = 0; i < pointer_offsets.length(); i++) {
       intptr_t offset_in_instrs = pointer_offsets[i];
       code.SetPointerOffsetAt(i, offset_in_instrs);
-      const Object* object = region.Load<const Object*>(offset_in_instrs);
-      region.Store<RawObject*>(offset_in_instrs, object->raw());
+      uword addr = region.start() + offset_in_instrs;
+      const Object* object = *reinterpret_cast<Object**>(addr);
+      instrs.raw()->StorePointer(reinterpret_cast<RawObject**>(addr),
+                                 object->raw());
     }
 
     // Hook up Code and Instructions objects.
@@ -12598,7 +12601,8 @@ intptr_t ContextScope::TokenIndexAt(intptr_t scope_index) const {
 
 void ContextScope::SetTokenIndexAt(intptr_t scope_index,
                                    intptr_t token_pos) const {
-  VariableDescAddr(scope_index)->token_pos = Smi::New(token_pos);
+  StoreSmi(&VariableDescAddr(scope_index)->token_pos,
+           Smi::New(token_pos));
 }
 
 
@@ -12618,7 +12622,8 @@ bool ContextScope::IsFinalAt(intptr_t scope_index) const {
 
 
 void ContextScope::SetIsFinalAt(intptr_t scope_index, bool is_final) const {
-  VariableDescAddr(scope_index)->is_final = Bool::Get(is_final).raw();
+  StorePointer(&(VariableDescAddr(scope_index)->is_final),
+               Bool::Get(is_final).raw());
 }
 
 
@@ -12628,7 +12633,8 @@ bool ContextScope::IsConstAt(intptr_t scope_index) const {
 
 
 void ContextScope::SetIsConstAt(intptr_t scope_index, bool is_const) const {
-  VariableDescAddr(scope_index)->is_const = Bool::Get(is_const).raw();
+  StorePointer(&(VariableDescAddr(scope_index)->is_const),
+               Bool::Get(is_const).raw());
 }
 
 
@@ -12664,7 +12670,8 @@ intptr_t ContextScope::ContextIndexAt(intptr_t scope_index) const {
 
 void ContextScope::SetContextIndexAt(intptr_t scope_index,
                                      intptr_t context_index) const {
-  VariableDescAddr(scope_index)->context_index = Smi::New(context_index);
+  StoreSmi(&(VariableDescAddr(scope_index)->context_index),
+           Smi::New(context_index));
 }
 
 
@@ -12675,7 +12682,8 @@ intptr_t ContextScope::ContextLevelAt(intptr_t scope_index) const {
 
 void ContextScope::SetContextLevelAt(intptr_t scope_index,
                                      intptr_t context_level) const {
-  VariableDescAddr(scope_index)->context_level = Smi::New(context_level);
+  StoreSmi(&(VariableDescAddr(scope_index)->context_level),
+           Smi::New(context_level));
 }
 
 
@@ -18257,8 +18265,8 @@ RawOneByteString* OneByteString::New(intptr_t len,
                                       space);
     NoGCScope no_gc;
     RawOneByteString* result = reinterpret_cast<RawOneByteString*>(raw);
-    result->ptr()->length_ = Smi::New(len);
-    result->ptr()->hash_ = 0;
+    result->StoreSmi(&(result->ptr()->length_), Smi::New(len));
+    result->StoreSmi(&(result->ptr()->hash_), Smi::New(0));
     return result;
   }
 }
@@ -18795,7 +18803,7 @@ RawArray* Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
                          Array::InstanceSize(len),
                          space));
     NoGCScope no_gc;
-    raw->ptr()->length_ = Smi::New(len);
+    raw->StoreSmi(&(raw->ptr()->length_), Smi::New(len));
     return raw;
   }
 }

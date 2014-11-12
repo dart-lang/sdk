@@ -218,7 +218,7 @@ class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableList
   Map operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return this.item(index);
   }
   void operator[]=(int index, Map value) {

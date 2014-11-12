@@ -4,12 +4,12 @@
 
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import 'package:compiler/implementation/mirrors/source_mirrors.dart';
-import 'package:compiler/implementation/mirrors/mirrors_util.dart';
-import 'package:compiler/implementation/mirrors/analyze.dart';
-import 'package:compiler/implementation/filenames.dart'
+import 'package:compiler/src/mirrors/source_mirrors.dart';
+import 'package:compiler/src/mirrors/mirrors_util.dart';
+import 'package:compiler/src/mirrors/analyze.dart';
+import 'package:compiler/src/filenames.dart'
        show currentDirectory;
-import 'package:compiler/implementation/source_file_provider.dart';
+import 'package:compiler/src/source_file_provider.dart';
 
 import 'dart:io';
 

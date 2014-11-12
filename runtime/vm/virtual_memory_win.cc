@@ -54,7 +54,8 @@ bool VirtualMemory::Commit(uword addr, intptr_t size, bool executable) {
   ASSERT(Contains(addr));
   ASSERT(Contains(addr + size) || (addr + size == end()));
   int prot = executable ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE;
-  if (VirtualAlloc(address(), size, MEM_COMMIT, prot) == NULL) {
+  if (VirtualAlloc(reinterpret_cast<void*>(addr), size, MEM_COMMIT, prot) ==
+      NULL) {
     return false;
   }
   return true;

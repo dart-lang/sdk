@@ -2683,7 +2683,7 @@ class LengthList extends Interceptor with ListMixin<Length>, ImmutableListMixin<
   Length operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return this.getItem(index);
   }
   void operator[]=(int index, Length value) {
@@ -3135,7 +3135,7 @@ class NumberList extends Interceptor with ListMixin<Number>, ImmutableListMixin<
   Number operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return this.getItem(index);
   }
   void operator[]=(int index, Number value) {
@@ -3922,7 +3922,7 @@ class PathSegList extends Interceptor with ListMixin<PathSeg>, ImmutableListMixi
   PathSeg operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return this.getItem(index);
   }
   void operator[]=(int index, PathSeg value) {
@@ -4617,7 +4617,7 @@ class StringList extends Interceptor with ListMixin<String>, ImmutableListMixin<
   String operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return this.getItem(index);
   }
   void operator[]=(int index, String value) {
@@ -6077,7 +6077,7 @@ class TransformList extends Interceptor with ListMixin<Transform>, ImmutableList
   Transform operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return this.getItem(index);
   }
   void operator[]=(int index, Transform value) {

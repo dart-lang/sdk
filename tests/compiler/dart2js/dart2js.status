@@ -27,6 +27,8 @@ mirrors/library_imports_prefixed_test: Fail
 mirrors/library_imports_prefixed_show_hide_test: Fail
 mirrors/library_imports_shown_test: Fail
 
+patch_test/bug: RuntimeError # Issue 21132
+
 [ $unchecked ]
 exit_code_test: Skip # This tests requires checked mode.
 

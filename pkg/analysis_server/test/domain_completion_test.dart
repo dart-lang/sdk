@@ -87,7 +87,6 @@ class CompletionTest extends AbstractAnalysisTest {
       Request request =
           new CompletionGetSuggestionsParams(testFile, completionOffset).toRequest('0');
       Response response = handleSuccessfulRequest(request);
-      var result = new CompletionGetSuggestionsResult.fromResponse(response);
       completionId = response.id;
       assertValidId(completionId);
       return pumpEventQueue().then((_) {

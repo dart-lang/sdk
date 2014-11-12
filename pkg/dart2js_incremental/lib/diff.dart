@@ -4,7 +4,7 @@
 
 library trydart.poi.diff;
 
-import 'package:compiler/implementation/elements/elements.dart' show
+import 'package:compiler/src/elements/elements.dart' show
     AbstractFieldElement,
     ClassElement,
     CompilationUnitElement,
@@ -14,12 +14,12 @@ import 'package:compiler/implementation/elements/elements.dart' show
     LibraryElement,
     ScopeContainerElement;
 
-import 'package:compiler/implementation/elements/modelx.dart' as modelx;
+import 'package:compiler/src/elements/modelx.dart' as modelx;
 
-import 'package:compiler/implementation/elements/modelx.dart' show
+import 'package:compiler/src/elements/modelx.dart' show
     DeclarationSite;
 
-import 'package:compiler/implementation/scanner/scannerlib.dart' show
+import 'package:compiler/src/scanner/scannerlib.dart' show
     EOF_TOKEN,
     ErrorToken,
     IDENTIFIER_TOKEN,

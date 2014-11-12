@@ -6,16 +6,16 @@ library analyzer2dart.cps_generator;
 
 import 'package:analyzer/analyzer.dart';
 
-import 'package:compiler/implementation/dart_types.dart' as dart2js;
-import 'package:compiler/implementation/elements/elements.dart' as dart2js;
+import 'package:compiler/src/dart_types.dart' as dart2js;
+import 'package:compiler/src/elements/elements.dart' as dart2js;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/element.dart' as analyzer;
 
-import 'package:compiler/implementation/dart2jslib.dart'
+import 'package:compiler/src/dart2jslib.dart'
     show DART_CONSTANT_SYSTEM;
-import 'package:compiler/implementation/cps_ir/cps_ir_nodes.dart' as ir;
-import 'package:compiler/implementation/cps_ir/cps_ir_builder.dart';
-import 'package:compiler/implementation/universe/universe.dart';
+import 'package:compiler/src/cps_ir/cps_ir_nodes.dart' as ir;
+import 'package:compiler/src/cps_ir/cps_ir_builder.dart';
+import 'package:compiler/src/universe/universe.dart';
 
 import 'semantic_visitor.dart';
 import 'element_converter.dart';
@@ -36,8 +36,13 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   ir.Node visit(AstNode node) => node.accept(this);
 
   @override
-  ir.FunctionDefinition visitFunctionDeclaration(FunctionDeclaration node) {
-    analyzer.FunctionElement function = node.element;
+  ir.Primitive visitFunctionExpression(FunctionExpression node) {
+    return irBuilder.buildFunctionExpression(
+        handleFunctionDeclaration(node.element, node));
+  }
+
+  ir.FunctionDefinition handleFunctionDeclaration(
+      analyzer.FunctionElement function, FunctionExpression node) {
     dart2js.FunctionElement element = converter.convertElement(function);
     return withBuilder(
         new IrBuilder(DART_CONSTANT_SYSTEM,
@@ -52,15 +57,30 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
       });
       // Visit the body directly to avoid processing the signature as
       // expressions.
-      visit(node.functionExpression.body);
+      visit(node.body);
       return irBuilder.buildFunctionDefinition(element, const []);
     });
   }
 
-  List<ir.Definition> visitArguments(ArgumentList argumentList) {
-    List<ir.Definition> arguments = <ir.Definition>[];
+  @override
+  ir.FunctionDefinition visitFunctionDeclaration(FunctionDeclaration node) {
+    return handleFunctionDeclaration(node.element, node.functionExpression);
+  }
+
+  @override
+  visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+    FunctionDeclaration functionDeclaration = node.functionDeclaration;
+    analyzer.FunctionElement function = functionDeclaration.element;
+    dart2js.FunctionElement element = converter.convertElement(function);
+    ir.FunctionDefinition definition = handleFunctionDeclaration(
+        function, functionDeclaration.functionExpression);
+    irBuilder.declareLocalFunction(element, definition);
+  }
+
+  List<ir.Primitive> visitArguments(ArgumentList argumentList) {
+    List<ir.Primitive> arguments = <ir.Primitive>[];
     for (Expression argument in argumentList.arguments) {
-      ir.Definition value = build(argument);
+      ir.Primitive value = build(argument);
       if (value == null) {
         giveUp(argument,
             'Unsupported argument: $argument (${argument.runtimeType}).');
@@ -81,7 +101,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
                                       AccessSemantics semantics) {
     // TODO(johnniwinther): Handle implicit `this`.
     ir.Primitive receiver = build(semantics.target);
-    List<ir.Definition> arguments = visitArguments(node.argumentList);
+    List<ir.Primitive> arguments = visitArguments(node.argumentList);
     return irBuilder.buildDynamicInvocation(
         receiver,
         createSelectorFromMethodInvocation(
@@ -94,11 +114,51 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
                                            AccessSemantics semantics) {
     analyzer.Element staticElement = semantics.element;
     dart2js.Element element = converter.convertElement(staticElement);
-    List<ir.Definition> arguments = visitArguments(node.argumentList);
+    List<ir.Primitive> arguments = visitArguments(node.argumentList);
     return irBuilder.buildStaticInvocation(
         element,
         createSelectorFromMethodInvocation(
             node.argumentList, node.methodName.name),
+        arguments);
+  }
+
+  @override
+  ir.Node visitLocalFunctionAccess(AstNode node, AccessSemantics semantics) {
+    return handleLocalAccess(node, semantics);
+  }
+
+  ir.Primitive handleLocalInvocation(MethodInvocation node,
+                                     AccessSemantics semantics) {
+    analyzer.Element staticElement = semantics.element;
+    dart2js.Element element = converter.convertElement(staticElement);
+    List<ir.Definition> arguments = visitArguments(node.argumentList);
+    return irBuilder.buildLocalInvocation(
+      element,
+      createSelectorFromMethodInvocation(
+          node.argumentList, node.methodName.name),
+      arguments);
+  }
+
+  @override
+  ir.Node visitLocalVariableInvocation(MethodInvocation node,
+                                       AccessSemantics semantics) {
+    return handleLocalInvocation(node, semantics);
+  }
+
+  @override
+  ir.Primitive visitLocalFunctionInvocation(MethodInvocation node,
+                                            AccessSemantics semantics) {
+    return handleLocalInvocation(node, semantics);
+  }
+
+  @override
+  ir.Primitive visitFunctionExpressionInvocation(
+      FunctionExpressionInvocation node) {
+    ir.Primitive target = build(node.function);
+    List<ir.Definition> arguments = visitArguments(node.argumentList);
+    return irBuilder.buildFunctionExpressionInvocation(
+        target,
+        createSelectorFromMethodInvocation(node.argumentList, 'call'),
         arguments);
   }
 
@@ -109,7 +169,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     if (staticElement != null) {
       dart2js.Element element = converter.convertElement(staticElement);
       dart2js.DartType type = converter.convertType(node.staticType);
-      List<ir.Definition> arguments = visitArguments(node.argumentList);
+      List<ir.Primitive> arguments = visitArguments(node.argumentList);
       String name = '';
       if (node.constructorName.name != null) {
         name = node.constructorName.name.name;
@@ -258,7 +318,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     ir.Primitive right = build(node.rightOperand);
     Selector selector = new Selector.binaryOperator(op);
     return irBuilder.buildDynamicInvocation(
-        left, selector, <ir.Definition>[right]);
+        left, selector, <ir.Primitive>[right]);
   }
 
   ir.Node handleLazyOperator(BinaryExpression node, {bool isLazyOr: false}) {

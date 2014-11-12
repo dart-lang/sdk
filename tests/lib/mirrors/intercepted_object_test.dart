@@ -25,6 +25,12 @@ checkImplements(object, String name) {
       return;
     }
   }
+ 
+  // A class implements itself, even if not explicitly declared.
+  if (symName == stringify(cls.simpleName)) {
+    checkClassMirrorMethods(cls);
+    return;
+  }
 
   // TODO(floitsch): use correct fail
   expect(name, "super interface not found");

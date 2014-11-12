@@ -1260,11 +1260,50 @@ bool BinaryIntegerOpInstr::RightIsPowerOfTwoConstant() const {
 }
 
 
+static intptr_t RepresentationBits(Representation r) {
+  switch (r) {
+    case kTagged:
+      return kBitsPerWord - 1;
+    case kUnboxedInt32:
+    case kUnboxedUint32:
+      return 32;
+    case kUnboxedMint:
+      return 64;
+    default:
+      UNREACHABLE();
+      return 0;
+  }
+}
+
+
+static int64_t RepresentationMask(Representation r) {
+  return static_cast<int64_t>(
+      static_cast<uint64_t>(-1) >> (64 - RepresentationBits(r)));
+}
+
+
 static bool ToIntegerConstant(Value* value, int64_t* result) {
   if (!value->BindsToConstant()) {
     UnboxInstr* unbox = value->definition()->AsUnbox();
-    if ((unbox != NULL) && (unbox->representation() == kUnboxedDouble)) {
-      return ToIntegerConstant(unbox->value(), result);
+    if (unbox != NULL) {
+      switch (unbox->representation()) {
+        case kUnboxedDouble:
+        case kUnboxedMint:
+          return ToIntegerConstant(unbox->value(), result);
+
+        case kUnboxedUint32:
+          if (ToIntegerConstant(unbox->value(), result)) {
+            *result &= RepresentationMask(kUnboxedUint32);
+            return true;
+          }
+          break;
+
+        // No need to handle Unbox<Int32>(Constant(C)) because it gets
+        // canonicalized to UnboxedConstant<Int32>(C).
+        case kUnboxedInt32:
+        default:
+          break;
+      }
     }
     return false;
   }
@@ -1389,28 +1428,6 @@ static bool IsCommutative(Token::Kind op) {
     default:
       return false;
   }
-}
-
-
-static intptr_t RepresentationBits(Representation r) {
-  switch (r) {
-    case kTagged:
-      return kBitsPerWord - 1;
-    case kUnboxedInt32:
-    case kUnboxedUint32:
-      return 32;
-    case kUnboxedMint:
-      return 64;
-    default:
-      UNREACHABLE();
-      return 0;
-  }
-}
-
-
-static int64_t RepresentationMask(Representation r) {
-  return static_cast<int64_t>(
-      static_cast<uint64_t>(-1) >> (64 - RepresentationBits(r)));
 }
 
 

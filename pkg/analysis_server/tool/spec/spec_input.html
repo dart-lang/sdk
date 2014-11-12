@@ -1878,7 +1878,15 @@
           in a completion suggestion.
         </p>
         <enum>
-          <value><code>ARGUMENT_LIST</code></value>
+          <value>
+          <code>ARGUMENT_LIST</code>
+            <p>
+              A list of arguments for the method or function that is being invoked.
+              For this suggestion kind, the completion field is a textual representation
+              of the invocation and the parameterNames, parameterTypes, and requiredParameterCount
+              attributes are defined.
+            </p>
+          </value>
           <value><code>IMPORT</code></value>
           <value>
             <code>IDENTIFIER</code>

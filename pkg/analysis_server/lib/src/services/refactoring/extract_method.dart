@@ -305,8 +305,10 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
         // expression
         if (_selectionExpression != null) {
           // add return type
+          Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+          // TODO(scheglov) use librariesToImport
           String returnTypeName =
-              utils.getExpressionTypeSource(_selectionExpression);
+              utils.getExpressionTypeSource(_selectionExpression, librariesToImport);
           if (returnTypeName != null && returnTypeName != 'dynamic') {
             annotations += '${returnTypeName} ';
           }
@@ -618,7 +620,9 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     if (_returnType == null) {
       returnType = 'void';
     } else {
-      returnType = utils.getTypeSource(_returnType);
+      Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+      // TODO(scheglov) use librariesToImport
+      returnType = utils.getTypeSource(_returnType, librariesToImport);
     }
     if (returnType == 'dynamic') {
       returnType = '';
@@ -939,7 +943,8 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<Object> {
           new _Occurrence(nodeRange, ref.selectionRange.intersects(nodeRange));
       ref._occurrences.add(occurrence);
       // prepare mapping of parameter names to the occurrence variables
-      nodePattern.originalToPatternNames.forEach((String originalName, String patternName) {
+      nodePattern.originalToPatternNames.forEach(
+          (String originalName, String patternName) {
         String selectionName = patternToSelectionName[patternName];
         occurrence._parameterOldToOccurrenceName[selectionName] = originalName;
       });
@@ -999,7 +1004,10 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<Object> {
               ref._parametersMap[variableName];
           if (parameter == null) {
             DartType parameterType = node.bestType;
-            String parameterTypeName = ref.utils.getTypeSource(parameterType);
+            Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+            // TODO(scheglov) use librariesToImport
+            String parameterTypeName =
+                ref.utils.getTypeSource(parameterType, librariesToImport);
             parameter = new RefactoringMethodParameter(
                 RefactoringMethodParameterKind.REQUIRED,
                 parameterTypeName,

@@ -403,6 +403,12 @@ class RawObject {
     return result;
   }
 
+  bool Contains(uword addr) const {
+    intptr_t this_size = Size();
+    uword this_addr = RawObject::ToAddr(this);
+    return (addr >= this_addr) && (addr < (this_addr + this_size));
+  }
+
   void Validate(Isolate* isolate) const;
   intptr_t VisitPointers(ObjectPointerVisitor* visitor);
   bool FindObject(FindObjectVisitor* visitor);
@@ -459,7 +465,7 @@ class RawObject {
   class ReservedBits : public
       BitField<intptr_t, kReservedTagPos, kReservedTagSize> {};  // NOLINT
 
-  // TODO(koda): Return const*, like Object::raw_ptr().
+  // TODO(koda): After handling tags_, return const*, like Object::raw_ptr().
   RawObject* ptr() const {
     ASSERT(IsHeapObject());
     return reinterpret_cast<RawObject*>(
@@ -473,6 +479,32 @@ class RawObject {
     return ClassIdTag::decode(tags);
   }
 
+  // All writes to heap objects should ultimately pass through one of the
+  // methods below or their counterparts in Object, to ensure that the
+  // write barrier is correctly applied.
+
+  template<typename type>
+  void StorePointer(type const* addr, type value) {
+    // Ensure that this object contains the addr.
+    ASSERT(Contains(reinterpret_cast<uword>(addr)));
+    *const_cast<type*>(addr) = value;
+    // Filter stores based on source and target.
+    if (!value->IsHeapObject()) return;
+    if (value->IsNewObject() && this->IsOldObject() &&
+        !this->IsRemembered()) {
+      this->SetRememberedBit();
+      Isolate::Current()->store_buffer()->AddObject(this);
+    }
+  }
+
+  // Use for storing into an explicitly Smi-typed field of an object
+  // (i.e., both the previous and new value are Smis).
+  void StoreSmi(RawSmi* const* addr, RawSmi* value) {
+    // Can't use Contains, as array length is initialized through this method.
+    ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(this));
+    *const_cast<RawSmi**>(addr) = value;
+  }
+
   friend class Api;
   friend class Array;
   friend class ByteBuffer;
@@ -481,11 +513,13 @@ class RawObject {
   friend class GCMarker;
   friend class ExternalTypedData;
   friend class ForwardList;
+  friend class GrowableObjectArray;  // StorePointer
   friend class Heap;
   friend class HeapMapAsJSONVisitor;
   friend class ClassStatsVisitor;
   friend class MarkingVisitor;
   friend class Object;
+  friend class OneByteString;  // StoreSmi
   friend class RawExternalTypedData;
   friend class RawInstructions;
   friend class RawInstance;
@@ -498,6 +532,7 @@ class RawObject {
   friend class String;
   friend class TypedData;
   friend class TypedDataView;
+  friend class WeakProperty;  // StorePointer
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
@@ -1210,13 +1245,20 @@ class RawContextScope : public RawObject {
   int32_t num_variables_;
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->data()[0]);
+    VariableDesc* begin = const_cast<VariableDesc*>(ptr()->VariableDescAddr(0));
+    return reinterpret_cast<RawObject**>(begin);
   }
   // Variable length data follows here.
-  RawObject** data() { OPEN_ARRAY_START(RawObject*, RawObject*); }
+  RawObject* const* data() const { OPEN_ARRAY_START(RawObject*, RawObject*); }
+  const VariableDesc* VariableDescAddr(intptr_t index) const {
+    ASSERT((index >= 0) && (index < num_variables_ + 1));
+    // data() points to the first component of the first descriptor.
+    return &(reinterpret_cast<const VariableDesc*>(data())[index]);
+  }
   RawObject** to(intptr_t num_vars) {
-    const intptr_t data_length = num_vars * (sizeof(VariableDesc)/kWordSize);
-    return reinterpret_cast<RawObject**>(&ptr()->data()[data_length - 1]);
+    uword end = reinterpret_cast<uword>(ptr()->VariableDescAddr(num_vars));
+    // 'end' is the address just beyond the last descriptor, so step back.
+    return reinterpret_cast<RawObject**>(end - kWordSize);
   }
 };
 

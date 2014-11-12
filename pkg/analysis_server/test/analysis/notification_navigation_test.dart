@@ -67,11 +67,13 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
 
   /**
    * Validates that there is a region at the offset of [search] in [testFile]
-   * with the length of [search].
+   * with the given [length] or the length of [search].
    */
-  void assertHasRegionString(String search) {
+  void assertHasRegionString(String search, [int length = -1]) {
     int offset = findOffset(search);
-    int length = search.length;
+    if (length == -1) {
+      length = search.length;
+    }
     findRegion(offset, length, true);
   }
 
@@ -144,7 +146,7 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
    *
    * If [exists] is `false`, then fails if such region exists.
    */
-  void findRegion(int offset, int length, [bool exists]) {
+  void findRegion(int offset, int length, bool exists) {
     for (NavigationRegion region in regions) {
       if (region.offset == offset &&
           (length == -1 || region.length == length)) {
@@ -318,33 +320,26 @@ main() {
 }
 ''');
     return prepareNavigation().then((_) {
-      {
-        findRegion(findOffset('new A'), 'new'.length, true);
-        assertHasTarget('A {');
-      }
-      {
-        findRegion(findOffset('A()'), 'A'.length, true);
-        assertHasTarget('A {');
-      }
+      assertHasRegionString('new A');
+      assertHasTarget('A {');
     });
   }
 
   test_instanceCreation_implicit_withTypeArgument() {
     addTestFile('''
 class A {}
-class B<T> {
-}
+class B<T> {}
 main() {
   new B<A>();
 }
 ''');
     return prepareNavigation().then((_) {
       {
-        findRegion(findOffset('new B'), 'new'.length, true);
+        assertHasRegion('new B<A>', 'new B'.length);
         assertHasTarget('B<T> {');
       }
       {
-        findRegion(findOffset('A>();'), 'A'.length, true);
+        assertHasRegion('A>();', 'A'.length);
         assertHasTarget('A {');
       }
     });
@@ -360,18 +355,8 @@ main() {
 }
 ''');
     return prepareNavigation().then((_) {
-      {
-        findRegion(findOffset('new '), 'new'.length, true);
-        assertHasTarget('named() {}');
-      }
-      {
-        findRegion(findOffset('A.named();'), 'A'.length, true);
-        assertHasTarget('A {');
-      }
-      {
-        findRegion(findOffset('.named();'), '.named'.length, true);
-        assertHasTarget('named() {}');
-      }
+      assertHasRegionString('new A.named');
+      assertHasTarget('named() {}');
     });
   }
 
@@ -387,20 +372,16 @@ main() {
 ''');
     return prepareNavigation().then((_) {
       {
-        findRegion(findOffset('new '), 'new'.length, true);
+        assertHasRegionString('new B');
         assertHasTarget('named() {}');
       }
       {
-        findRegion(findOffset('B<A>.named();'), 'B'.length, true);
-        assertHasTarget('B<T> {');
-      }
-      {
-        findRegion(findOffset('.named();'), '.named'.length, true);
-        assertHasTarget('named() {}');
-      }
-      {
-        findRegion(findOffset('A>.named();'), 'A'.length, true);
+        assertHasRegion('A>.named');
         assertHasTarget('A {');
+      }
+      {
+        assertHasRegion('.named();', '.named'.length);
+        assertHasTarget('named() {}');
       }
     });
   }
@@ -415,14 +396,8 @@ main() {
 }
 ''');
     return prepareNavigation().then((_) {
-      {
-        findRegion(findOffset('new '), 'new'.length, true);
-        assertHasTarget('A() {}', 0);
-      }
-      {
-        findRegion(findOffset('A();'), 'A'.length, true);
-        assertHasTarget('A {');
-      }
+      assertHasRegionString('new A');
+      assertHasTarget('A() {}', 0);
     });
   }
 
@@ -438,15 +413,11 @@ main() {
 ''');
     return prepareNavigation().then((_) {
       {
-        findRegion(findOffset('new '), 'new'.length, true);
+        assertHasRegionString('new B');
         assertHasTarget('B() {}', 0);
       }
       {
-        findRegion(findOffset('B<A>();'), 'B'.length, true);
-        assertHasTarget('B<T> {');
-      }
-      {
-        findRegion(findOffset('A>();'), 'A'.length, true);
+        assertHasRegion('A>();');
         assertHasTarget('A {');
       }
     });

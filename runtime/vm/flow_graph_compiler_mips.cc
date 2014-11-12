@@ -1650,7 +1650,12 @@ void ParallelMoveResolver::EmitMove(int index) {
     ASSERT(source.IsConstant());
     const Object& constant = source.constant();
     if (destination.IsRegister()) {
-      __ LoadObject(destination.reg(), constant);
+      if (constant.IsSmi() &&
+          (source.constant_instruction()->representation() == kUnboxedInt32)) {
+        __ LoadImmediate(destination.reg(), Smi::Cast(constant).Value());
+      } else {
+        __ LoadObject(destination.reg(), constant);
+      }
     } else if (destination.IsFpuRegister()) {
       __ LoadObject(TMP, constant);
       __ LoadDFromOffset(destination.fpu_reg(), TMP,
@@ -1664,7 +1669,12 @@ void ParallelMoveResolver::EmitMove(int index) {
       ASSERT(destination.IsStackSlot());
       const intptr_t dest_offset = destination.ToStackSlotOffset();
       ScratchRegisterScope tmp(this, kNoRegister);
-      __ LoadObject(tmp.reg(), constant);
+      if (constant.IsSmi() &&
+          (source.constant_instruction()->representation() == kUnboxedInt32)) {
+        __ LoadImmediate(tmp.reg(), Smi::Cast(constant).Value());
+      } else {
+        __ LoadObject(tmp.reg(), constant);
+      }
       __ StoreToOffset(tmp.reg(), destination.base_reg(), dest_offset);
     }
   }

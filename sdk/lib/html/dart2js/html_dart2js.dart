@@ -9222,7 +9222,7 @@ class DomStringList extends Interceptor with ListMixin<String>, ImmutableListMix
   String operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return JS("String", "#[#]", this, index);
   }
   void operator[]=(int index, String value) {
@@ -14250,7 +14250,7 @@ class FileList extends Interceptor with ListMixin<File>, ImmutableListMixin<File
   File operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return JS("File", "#[#]", this, index);
   }
   void operator[]=(int index, File value) {
@@ -16108,7 +16108,7 @@ class HtmlCollection extends Interceptor with ListMixin<Node>, ImmutableListMixi
   Node operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return JS("Node", "#[#]", this, index);
   }
   void operator[]=(int index, Node value) {
@@ -20802,7 +20802,7 @@ class MimeTypeArray extends Interceptor with ListMixin<MimeType>, ImmutableListM
   MimeType operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return JS("MimeType", "#[#]", this, index);
   }
   void operator[]=(int index, MimeType value) {
@@ -22354,7 +22354,7 @@ class NodeList extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node
   Node operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return JS("Node", "#[#]", this, index);
   }
   void operator[]=(int index, Node value) {
@@ -23533,7 +23533,7 @@ class PluginArray extends Interceptor with ListMixin<Plugin>, ImmutableListMixin
   Plugin operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return JS("Plugin", "#[#]", this, index);
   }
   void operator[]=(int index, Plugin value) {
@@ -25917,7 +25917,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   SourceBuffer operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return JS("SourceBuffer", "#[#]", this, index);
   }
   void operator[]=(int index, SourceBuffer value) {
@@ -26123,7 +26123,7 @@ class SpeechGrammarList extends Interceptor with ListMixin<SpeechGrammar>, Immut
   SpeechGrammar operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return JS("SpeechGrammar", "#[#]", this, index);
   }
   void operator[]=(int index, SpeechGrammar value) {
@@ -27988,7 +27988,7 @@ class TextTrackCueList extends Interceptor with ListMixin<TextTrackCue>, Immutab
   TextTrackCue operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return JS("TextTrackCue", "#[#]", this, index);
   }
   void operator[]=(int index, TextTrackCue value) {
@@ -28073,7 +28073,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   TextTrack operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return JS("TextTrack", "#[#]", this, index);
   }
   void operator[]=(int index, TextTrack value) {
@@ -28474,7 +28474,7 @@ class TouchList extends Interceptor with ListMixin<Touch>, ImmutableListMixin<To
   Touch operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return JS("Touch", "#[#]", this, index);
   }
   void operator[]=(int index, Touch value) {
@@ -32729,7 +32729,7 @@ class _ClientRectList extends Interceptor with ListMixin<Rectangle>, ImmutableLi
   Rectangle operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return JS("Rectangle", "#[#]", this, index);
   }
   void operator[]=(int index, Rectangle value) {
@@ -32807,7 +32807,7 @@ class _CssRuleList extends Interceptor with ListMixin<CssRule>, ImmutableListMix
   CssRule operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return JS("CssRule", "#[#]", this, index);
   }
   void operator[]=(int index, CssRule value) {
@@ -32873,7 +32873,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
   _CSSValue operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return JS("_CSSValue", "#[#]", this, index);
   }
   void operator[]=(int index, _CSSValue value) {
@@ -33177,7 +33177,7 @@ class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMix
   Gamepad operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return JS("Gamepad", "#[#]", this, index);
   }
   void operator[]=(int index, Gamepad value) {
@@ -33405,7 +33405,7 @@ class _NamedNodeMap extends Interceptor with ListMixin<Node>, ImmutableListMixin
   Node operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return JS("Node", "#[#]", this, index);
   }
   void operator[]=(int index, Node value) {
@@ -33671,7 +33671,7 @@ class _SpeechRecognitionResultList extends Interceptor with ListMixin<SpeechReco
   SpeechRecognitionResult operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return JS("SpeechRecognitionResult", "#[#]", this, index);
   }
   void operator[]=(int index, SpeechRecognitionResult value) {
@@ -33735,7 +33735,7 @@ class _StyleSheetList extends Interceptor with ListMixin<StyleSheet>, ImmutableL
   StyleSheet operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return JS("StyleSheet", "#[#]", this, index);
   }
   void operator[]=(int index, StyleSheet value) {

@@ -158,6 +158,13 @@ class CompileType : public ValueObject {
     return (cid_ == kIllegalCid) && (type_ == NULL);
   }
 
+  bool IsInt() {
+    return !is_nullable() &&
+      ((ToCid() == kSmiCid) ||
+       (ToCid() == kMintCid) ||
+       ((type_ != NULL) && (type_->Equals(Type::Handle(Type::IntType())))));
+  }
+
   void PrintTo(BufferFormatter* f) const;
   const char* ToCString() const;
 
@@ -631,7 +638,7 @@ class Instruction : public ZoneAllocated {
 
   // Call instructions override this function and return the number of
   // pushed arguments.
-  virtual intptr_t ArgumentCount() const = 0;
+  virtual intptr_t ArgumentCount() const { return 0; }
   virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
     UNREACHABLE();
     return NULL;
@@ -1568,9 +1575,6 @@ class Definition : public Instruction {
  public:
   explicit Definition(intptr_t deopt_id = Isolate::kNoDeoptId);
 
-  // Overridden by definitions that have pushed arguments.
-  virtual intptr_t ArgumentCount() const { return 0; }
-
   // Overridden by definitions that have call counts.
   virtual intptr_t CallCount() const {
     UNREACHABLE();
@@ -1604,13 +1608,9 @@ class Definition : public Instruction {
   // propagation during graph building.
   CompileType* Type() {
     if (type_ == NULL) {
-      type_ = ComputeInitialType();
+      type_ = ZoneCompileType::Wrap(ComputeType());
     }
     return type_;
-  }
-
-  virtual CompileType* ComputeInitialType() const {
-    return ZoneCompileType::Wrap(ComputeType());
   }
 
   // Does this define a mint?
@@ -1837,8 +1837,6 @@ class PhiInstr : public Definition {
   virtual CompileType ComputeType() const;
   virtual bool RecomputeType();
 
-  virtual intptr_t ArgumentCount() const { return 0; }
-
   intptr_t InputCount() const { return inputs_.length(); }
 
   Value* InputAt(intptr_t i) const { return inputs_[i]; }
@@ -1930,8 +1928,6 @@ class ParameterInstr : public Definition {
   // Get the block entry for that instruction.
   virtual BlockEntryInstr* GetBlock() const { return block_; }
 
-  virtual intptr_t ArgumentCount() const { return 0; }
-
   intptr_t InputCount() const { return 0; }
   Value* InputAt(intptr_t i) const {
     UNREACHABLE();
@@ -1973,8 +1969,6 @@ class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
 
   DECLARE_INSTRUCTION(PushArgument)
 
-  virtual intptr_t ArgumentCount() const { return 0; }
-
   virtual CompileType ComputeType() const;
 
   Value* value() const { return InputAt(0); }
@@ -2004,8 +1998,6 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
   }
 
   DECLARE_INSTRUCTION(Return)
-
-  virtual intptr_t ArgumentCount() const { return 0; }
 
   virtual intptr_t token_pos() const { return token_pos_; }
   Value* value() const { return inputs_[0]; }
@@ -2090,8 +2082,6 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
   }
 
   DECLARE_INSTRUCTION(Goto)
-
-  virtual intptr_t ArgumentCount() const { return 0; }
 
   JoinEntryInstr* successor() const { return successor_; }
   void set_successor(JoinEntryInstr* successor) { successor_ = successor; }
@@ -2323,8 +2313,6 @@ class DeoptimizeInstr : public TemplateInstruction<0, NoThrow, Pure> {
         deopt_reason_(deopt_reason) {
   }
 
-  virtual intptr_t ArgumentCount() const { return 0; }
-
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool AttributesEqual(Instruction* other) const {
@@ -2480,7 +2468,7 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
   }
 
   DECLARE_INSTRUCTION(AssertAssignable)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
   virtual bool RecomputeType();
 
   Value* value() const { return inputs_[0]; }
@@ -3192,7 +3180,7 @@ class DropTempsInstr : public Definition {
 
   intptr_t num_temps() const { return num_temps_; }
 
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -3228,7 +3216,7 @@ class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
   }
 
   DECLARE_INSTRUCTION(StoreLocal)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   const LocalVariable& local() const { return local_; }
   Value* value() const { return inputs_[0]; }
@@ -3306,7 +3294,6 @@ class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
   virtual intptr_t token_pos() const { return token_pos_; }
   virtual bool CanDeoptimize() const { return false; }
   virtual EffectSet Effects() const { return EffectSet::All(); }
-  virtual intptr_t ArgumentCount() const { return 0; }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
  private:
@@ -3366,8 +3353,6 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
   Value* value() const { return inputs_[kValuePos]; }
   bool is_initialization() const { return is_initialization_; }
   virtual intptr_t token_pos() const { return token_pos_; }
-
-  virtual CompileType* ComputeInitialType() const;
 
   const Field& field() const { return field_; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
@@ -3430,8 +3415,6 @@ class GuardFieldInstr : public TemplateInstruction<1, NoThrow, Pure> {
   Value* value() const { return inputs_[0]; }
 
   const Field& field() const { return field_; }
-
-  virtual intptr_t ArgumentCount() const { return 0; }
 
   virtual bool CanDeoptimize() const { return true; }
   virtual bool CanBecomeDeoptimizationTarget() const {
@@ -3525,7 +3508,6 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   };
 
   DECLARE_INSTRUCTION(StoreStaticField)
-  virtual CompileType* ComputeInitialType() const;
 
   const Field& field() const { return field_; }
   Value* value() const { return inputs_[kValuePos]; }
@@ -3592,10 +3574,6 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
 
   virtual bool CanDeoptimize() const {
     return GetDeoptId() != Isolate::kNoDeoptId;
-  }
-
-  bool Typed32BitIsSmi() const {
-    return kSmiBits >= 32;
   }
 
   virtual Representation representation() const;
@@ -4285,7 +4263,6 @@ class InitStaticFieldInstr : public TemplateInstruction<1, Throws> {
 
   DECLARE_INSTRUCTION(InitStaticField)
 
-  virtual intptr_t ArgumentCount() const { return 0; }
   virtual bool CanDeoptimize() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::All(); }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
@@ -4362,8 +4339,6 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2, NoThrow, Pure> {
   Value* right() const { return inputs_[1]; }
 
   DECLARE_INSTRUCTION(CheckEitherNonSmi)
-
-  virtual intptr_t ArgumentCount() const { return 0; }
 
   virtual bool CanDeoptimize() const { return true; }
 
@@ -4678,6 +4653,8 @@ class UnboxUint32Instr : public UnboxInteger32Instr {
     return (value()->Type()->ToCid() != kSmiCid)
         && (value()->Type()->ToCid() != kMintCid);
   }
+
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   DECLARE_INSTRUCTION_NO_BACKEND(UnboxUint32)
 
@@ -6811,8 +6788,6 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
 
   DECLARE_INSTRUCTION(CheckStackOverflow)
 
-  virtual intptr_t ArgumentCount() const { return 0; }
-
   virtual bool CanDeoptimize() const { return true; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -7315,8 +7290,6 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
 
   DECLARE_INSTRUCTION(CheckClass)
 
-  virtual intptr_t ArgumentCount() const { return 0; }
-
   virtual bool CanDeoptimize() const { return true; }
 
   virtual intptr_t token_pos() const { return token_pos_; }
@@ -7368,8 +7341,6 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
 
   DECLARE_INSTRUCTION(CheckSmi)
 
-  virtual intptr_t ArgumentCount() const { return 0; }
-
   virtual bool CanDeoptimize() const { return true; }
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
@@ -7397,8 +7368,6 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
   intptr_t cid() const { return cid_; }
 
   DECLARE_INSTRUCTION(CheckClassId)
-
-  virtual intptr_t ArgumentCount() const { return 0; }
 
   virtual bool CanDeoptimize() const { return true; }
 
@@ -7432,8 +7401,6 @@ class CheckArrayBoundInstr : public TemplateInstruction<2, NoThrow, Pure> {
   Value* index() const { return inputs_[kIndexPos]; }
 
   DECLARE_INSTRUCTION(CheckArrayBound)
-
-  virtual intptr_t ArgumentCount() const { return 0; }
 
   virtual bool CanDeoptimize() const { return true; }
 
@@ -7485,8 +7452,8 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
     ASSERT((to == kUnboxedMint) ||
            (to == kUnboxedUint32) ||
            (to == kUnboxedInt32));
-    ASSERT((to != kUnboxedInt32) || (deopt_id != Isolate::kNoDeoptId));
     SetInputAt(0, value);
+    ASSERT(!CanDeoptimize() || (deopt_id != Isolate::kNoDeoptId));
   }
 
   Value* value() const { return inputs_[0]; }
@@ -7523,6 +7490,11 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual CompileType ComputeType() const {
+    // TODO(vegorov) use range information to improve type.
+    return CompileType::Int();
+  }
 
   DECLARE_INSTRUCTION(UnboxedIntConverter);
 

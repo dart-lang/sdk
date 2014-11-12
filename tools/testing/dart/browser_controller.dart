@@ -786,7 +786,7 @@ class BrowserTest {
 
   String toJSON() => JSON.encode({'url': url,
                                   'id': id,
-                                  'isSimpleHtmlTest': false});
+                                  'isHtmlTest': false});
 }
 
 
@@ -801,7 +801,7 @@ class HtmlTest extends BrowserTest {
 
   String toJSON() => JSON.encode({'url': url,
                                   'id': id,
-                                  'isSimpleHtmlTest': true,
+                                  'isHtmlTest': true,
                                   'expectedMessages': expectedMessages});
 }
 
@@ -1415,9 +1415,8 @@ class BrowserTestingServer {
       // Browsers will be killed shortly, send them a terminate signal so
       // that they stop pulling.
       return terminateSignal;
-    } else {
-      return nextTest == null ? waitSignal : nextTest.toJSON();
     }
+    return nextTest == null ? waitSignal : nextTest.toJSON();
   }
 
   String getDriverUrl(String browserId) {

@@ -530,7 +530,7 @@ class ArgumentList extends AstNode {
    * element representing the parameter to which the value of the given expression will be bound.
    * Otherwise, return `null`.
    *
-   * This method is only intended to be used by [Expression#getPropagatedParameterElement].
+   * This method is only intended to be used by [Expression.propagatedParameterElement].
    *
    * @param expression the expression corresponding to the parameter to be returned
    * @return the parameter element representing the parameter to which the value of the expression
@@ -557,7 +557,7 @@ class ArgumentList extends AstNode {
    * element representing the parameter to which the value of the given expression will be bound.
    * Otherwise, return `null`.
    *
-   * This method is only intended to be used by [Expression#getStaticParameterElement].
+   * This method is only intended to be used by [Expression.staticParameterElement].
    *
    * @param expression the expression corresponding to the parameter to be returned
    * @return the parameter element representing the parameter to which the value of the expression
@@ -920,7 +920,7 @@ class AssignmentExpression extends Expression {
    * propagated type information, then return the parameter element representing the parameter to
    * which the value of the right operand will be bound. Otherwise, return `null`.
    *
-   * This method is only intended to be used by [Expression#getPropagatedParameterElement].
+   * This method is only intended to be used by [Expression.propagatedParameterElement].
    *
    * @return the parameter element representing the parameter to which the value of the right
    *         operand will be bound
@@ -960,7 +960,7 @@ class AssignmentExpression extends Expression {
    * type information, then return the parameter element representing the parameter to which the
    * value of the right operand will be bound. Otherwise, return `null`.
    *
-   * This method is only intended to be used by [Expression#getStaticParameterElement].
+   * This method is only intended to be used by [Expression.staticParameterElement].
    *
    * @return the parameter element representing the parameter to which the value of the right
    *         operand will be bound
@@ -3330,7 +3330,7 @@ class BinaryExpression extends Expression {
    * propagated type information, then return the parameter element representing the parameter to
    * which the value of the right operand will be bound. Otherwise, return `null`.
    *
-   * This method is only intended to be used by [Expression#getPropagatedParameterElement].
+   * This method is only intended to be used by [Expression.propagatedParameterElement].
    *
    * @return the parameter element representing the parameter to which the value of the right
    *         operand will be bound
@@ -3351,7 +3351,7 @@ class BinaryExpression extends Expression {
    * type information, then return the parameter element representing the parameter to which the
    * value of the right operand will be bound. Otherwise, return `null`.
    *
-   * This method is only intended to be used by [Expression#getStaticParameterElement].
+   * This method is only intended to be used by [Expression.staticParameterElement].
    *
    * @return the parameter element representing the parameter to which the value of the right
    *         operand will be bound
@@ -6198,17 +6198,14 @@ class DefaultFormalParameter extends FormalParameter {
  * This recursive Ast visitor is used to run over [Expression]s to determine if the expression
  * is composed by at least one deferred [PrefixedIdentifier].
  *
- * @see PrefixedIdentifier#isDeferred()
+ * See [PrefixedIdentifier.isDeferred].
  */
 class DeferredLibraryReferenceDetector extends RecursiveAstVisitor<Object> {
   bool _result = false;
 
   /**
-   * Return the result, `true` if the visitor found a [PrefixedIdentifier] that returned
-   * `true` to the [PrefixedIdentifier#isDeferred] query.
-   *
-   * @return `true` if the visitor found a [PrefixedIdentifier] that returned
-   *         `true` to the [PrefixedIdentifier#isDeferred] query
+   * Return `true` if the visitor found a [PrefixedIdentifier] that returned
+   * `true` to the [PrefixedIdentifier.isDeferred] query.
    */
   bool get result => _result;
 
@@ -6911,9 +6908,9 @@ class ExportDirective extends NamespaceDirective {
  */
 abstract class Expression extends AstNode {
   /**
-   * An empty array of expressions.
+   * An empty list of expressions.
    */
-  static List<Expression> EMPTY_ARRAY = new List<Expression>(0);
+  static const List<Expression> EMPTY_ARRAY = const <Expression>[];
 
   /**
    * The static type of this expression, or `null` if the AST structure has not been resolved.
@@ -7841,7 +7838,6 @@ class ForStatement extends Statement {
  * <pre>
  * formalParameter ::=
  *     [NormalFormalParameter]
- *   | [DefaultFormalParameter]
  *   | [DefaultFormalParameter]
  * </pre>
  */
@@ -10444,7 +10440,7 @@ class IndexExpression extends Expression {
    * expression is returned.
    *
    * @return the expression used to compute the object being indexed
-   * @see #getTarget()
+   * See [target].
    */
   Expression get realTarget {
     if (isCascaded) {
@@ -10482,7 +10478,7 @@ class IndexExpression extends Expression {
    * expression is part of a cascade expression.
    *
    * @return the expression used to compute the object being indexed
-   * @see #getRealTarget()
+   * See [realTarget].
    */
   Expression get target => _target;
 
@@ -10607,7 +10603,7 @@ class IndexExpression extends Expression {
    * propagated type information, then return the parameter element representing the parameter to
    * which the value of the index expression will be bound. Otherwise, return `null`.
    *
-   * This method is only intended to be used by [Expression#getPropagatedParameterElement].
+   * This method is only intended to be used by [Expression.propagatedParameterElement].
    *
    * @return the parameter element representing the parameter to which the value of the index
    *         expression will be bound
@@ -10628,7 +10624,7 @@ class IndexExpression extends Expression {
    * type information, then return the parameter element representing the parameter to which the
    * value of the index expression will be bound. Otherwise, return `null`.
    *
-   * This method is only intended to be used by [Expression#getStaticParameterElement].
+   * This method is only intended to be used by [Expression.staticParameterElement].
    *
    * @return the parameter element representing the parameter to which the value of the index
    *         expression will be bound
@@ -12024,7 +12020,7 @@ class MethodInvocation extends Expression {
    * returned.
    *
    * @return the expression used to compute the receiver of the invocation
-   * @see #getTarget()
+   * See [target].
    */
   Expression get realTarget {
     if (isCascaded) {
@@ -12046,7 +12042,7 @@ class MethodInvocation extends Expression {
    * invocation is part of a cascade expression.
    *
    * @return the expression producing the object on which the method is defined
-   * @see #getRealTarget()
+   * See [realTarget].
    */
   Expression get target => _target;
 
@@ -14184,7 +14180,7 @@ class PostfixExpression extends Expression {
    * propagated type information, then return the parameter element representing the parameter to
    * which the value of the operand will be bound. Otherwise, return `null`.
    *
-   * This method is only intended to be used by [Expression#getPropagatedParameterElement].
+   * This method is only intended to be used by [Expression.propagatedParameterElement].
    *
    * @return the parameter element representing the parameter to which the value of the right
    *         operand will be bound
@@ -14205,7 +14201,7 @@ class PostfixExpression extends Expression {
    * type information, then return the parameter element representing the parameter to which the
    * value of the operand will be bound. Otherwise, return `null`.
    *
-   * This method is only intended to be used by [Expression#getStaticParameterElement].
+   * This method is only intended to be used by [Expression.staticParameterElement].
    *
    * @return the parameter element representing the parameter to which the value of the right
    *         operand will be bound
@@ -14359,7 +14355,7 @@ class PrefixExpression extends Expression {
    * propagated type information, then return the parameter element representing the parameter to
    * which the value of the operand will be bound. Otherwise, return `null`.
    *
-   * This method is only intended to be used by [Expression#getPropagatedParameterElement].
+   * This method is only intended to be used by [Expression.propagatedParameterElement].
    *
    * @return the parameter element representing the parameter to which the value of the right
    *         operand will be bound
@@ -14380,7 +14376,7 @@ class PrefixExpression extends Expression {
    * type information, then return the parameter element representing the parameter to which the
    * value of the operand will be bound. Otherwise, return `null`.
    *
-   * This method is only intended to be used by [Expression#getStaticParameterElement].
+   * This method is only intended to be used by [Expression.staticParameterElement].
    *
    * @return the parameter element representing the parameter to which the value of the right
    *         operand will be bound
@@ -14606,7 +14602,7 @@ class PropertyAccess extends Expression {
    * returned.
    *
    * @return the expression used to compute the receiver of the invocation
-   * @see #getTarget()
+   * See [target].
    */
   Expression get realTarget {
     if (isCascaded) {
@@ -14627,7 +14623,7 @@ class PropertyAccess extends Expression {
    * `null` if this property access is part of a cascade expression.
    *
    * @return the expression computing the object defining the property being accessed
-   * @see #getRealTarget()
+   * See [realTarget].
    */
   Expression get target => _target;
 
@@ -19573,7 +19569,7 @@ abstract class UriBasedDirective extends Directive {
 }
 
 /**
- * Validation codes returned by [UriBasedDirective#validate].
+ * Validation codes returned by [UriBasedDirective.validate].
  */
 class UriValidationCode extends Enum<UriValidationCode> {
   static const UriValidationCode INVALID_URI = const UriValidationCode('INVALID_URI', 0);
@@ -20165,7 +20161,7 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
   /**
    * The elements contained in the list.
    */
-  List<E> _elements = <E> [];
+  List<E> _elements = <E>[];
 
   /**
    * Initialize a newly created list of nodes to be empty.
@@ -20261,7 +20257,7 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
     _elements[index] = node;
   }
   void clear() {
-    _elements = <E> [];
+    _elements = <E>[];
   }
   int get length => _elements.length;
   void set length(int value) {

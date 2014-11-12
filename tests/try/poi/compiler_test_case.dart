@@ -21,10 +21,10 @@ import '../../compiler/dart2js/compiler_helper.dart' show
 export 'package:expect/expect.dart' show
     Expect;
 
-import 'package:compiler/implementation/elements/elements.dart' show
+import 'package:compiler/src/elements/elements.dart' show
     LibraryElement;
 
-export 'package:compiler/implementation/elements/elements.dart' show
+export 'package:compiler/src/elements/elements.dart' show
     LibraryElement;
 
 const String CONSTANT_CLASS = 'class Constant { const Constant(); }';

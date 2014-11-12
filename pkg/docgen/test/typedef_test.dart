@@ -74,7 +74,7 @@ const _TEST_METHOD_COMMENT = '<p>Processes an '
     '<a>root_lib.testMethod.input</a> of type <a>root_lib.C</a> '
     'instance for testing.</p>\n<p>To eliminate import warnings for '
     '<a>root_lib.A</a> and to test typedefs.</p>\n<p>It\'s important that the'
-    ' <a>dart-core</a>&lt;A> for param <a>root_lib.testMethod.listOfA</a> '
+    ' <a>dart:core</a>&lt;A> for param <a>root_lib.testMethod.listOfA</a> '
     'is not empty.</p>';
 
 // TODO: [input] is not turned into a param refenece
@@ -87,6 +87,6 @@ const _TEST_TYPEDEF_PREVIEW = '<p>Processes an input of type '
 // TODO(kevmoo): <a>test_lib.C</a> should be <a>root_lib.C</a> - Issues 18352
 final _TEST_TYPEDEF_COMMENT = _TEST_TYPEDEF_PREVIEW + '\n<p>To eliminate import'
     ' warnings for <a>test_lib.A</a> and to test typedefs.</p>\n<p>It\'s '
-    'important that the <a>dart-core</a>&lt;A> for param listOfA is not '
+    'important that the <a>dart:core</a>&lt;A> for param listOfA is not '
     'empty.</p>';
 

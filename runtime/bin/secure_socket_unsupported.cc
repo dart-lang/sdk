@@ -41,6 +41,13 @@ void FUNCTION_NAME(SecureSocket_Handshake)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(SecureSocket_GetSelectedProtocol)(
+    Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Secure Sockets unsupported on this platform"));
+}
+
+
 void FUNCTION_NAME(SecureSocket_RegisterHandshakeCompleteCallback)(
     Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewDartArgumentError(

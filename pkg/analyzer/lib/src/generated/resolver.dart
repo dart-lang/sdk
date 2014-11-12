@@ -381,7 +381,7 @@ class AngularCompilationUnitBuilder {
     // selector
     AngularSelectorElement selector = null;
     if (!_hasStringArgument(_SELECTOR)) {
-      _reportErrorForAnnotation(AngularCode.MISSING_SELECTOR, []);
+      _reportErrorForAnnotation(AngularCode.MISSING_SELECTOR);
       isValid = false;
     } else {
       SimpleStringLiteral selectorLiteral = _getStringLiteral(_SELECTOR);
@@ -478,7 +478,7 @@ class AngularCompilationUnitBuilder {
     }
     // prepare map literal
     if (mapExpression is! MapLiteral) {
-      _reportErrorForNode(AngularCode.INVALID_PROPERTY_MAP, mapExpression, []);
+      _reportErrorForNode(AngularCode.INVALID_PROPERTY_MAP, mapExpression);
       return;
     }
     MapLiteral mapLiteral = mapExpression as MapLiteral;
@@ -487,7 +487,7 @@ class AngularCompilationUnitBuilder {
       // prepare property name
       Expression nameExpression = entry.key;
       if (nameExpression is! SimpleStringLiteral) {
-        _reportErrorForNode(AngularCode.INVALID_PROPERTY_NAME, nameExpression, []);
+        _reportErrorForNode(AngularCode.INVALID_PROPERTY_NAME, nameExpression);
         continue;
       }
       SimpleStringLiteral nameLiteral = nameExpression as SimpleStringLiteral;
@@ -496,7 +496,7 @@ class AngularCompilationUnitBuilder {
       // prepare field specification
       Expression specExpression = entry.value;
       if (specExpression is! SimpleStringLiteral) {
-        _reportErrorForNode(AngularCode.INVALID_PROPERTY_SPEC, specExpression, []);
+        _reportErrorForNode(AngularCode.INVALID_PROPERTY_SPEC, specExpression);
         continue;
       }
       SimpleStringLiteral specLiteral = specExpression as SimpleStringLiteral;
@@ -545,13 +545,13 @@ class AngularCompilationUnitBuilder {
     bool isValid = true;
     // publishAs
     if (!_hasStringArgument(_PUBLISH_AS)) {
-      _reportErrorForAnnotation(AngularCode.MISSING_PUBLISH_AS, []);
+      _reportErrorForAnnotation(AngularCode.MISSING_PUBLISH_AS);
       isValid = false;
     }
     // selector
     AngularSelectorElement selector = null;
     if (!_hasStringArgument(_SELECTOR)) {
-      _reportErrorForAnnotation(AngularCode.MISSING_SELECTOR, []);
+      _reportErrorForAnnotation(AngularCode.MISSING_SELECTOR);
       isValid = false;
     } else {
       SimpleStringLiteral selectorLiteral = _getStringLiteral(_SELECTOR);
@@ -576,7 +576,7 @@ class AngularCompilationUnitBuilder {
     // selector
     AngularSelectorElement selector = null;
     if (!_hasStringArgument(_SELECTOR)) {
-      _reportErrorForAnnotation(AngularCode.MISSING_SELECTOR, []);
+      _reportErrorForAnnotation(AngularCode.MISSING_SELECTOR);
       isValid = false;
     } else {
       SimpleStringLiteral selectorLiteral = _getStringLiteral(_SELECTOR);
@@ -600,7 +600,7 @@ class AngularCompilationUnitBuilder {
     bool isValid = true;
     // name
     if (!_hasStringArgument(_NAME)) {
-      _reportErrorForAnnotation(AngularCode.MISSING_NAME, []);
+      _reportErrorForAnnotation(AngularCode.MISSING_NAME);
       isValid = false;
     }
     // create
@@ -630,22 +630,22 @@ class AngularCompilationUnitBuilder {
     }
   }
 
-  void _reportErrorForAnnotation(ErrorCode errorCode, List<Object> arguments) {
+  void _reportErrorForAnnotation(ErrorCode errorCode, [List<Object> arguments]) {
     _reportErrorForNode(errorCode, _annotation, arguments);
   }
 
-  void _reportErrorForArgument(String argumentName, ErrorCode errorCode, List<Object> arguments) {
+  void _reportErrorForArgument(String argumentName, ErrorCode errorCode, [List<Object> arguments]) {
     Expression argument = _getArgument(argumentName);
     _reportErrorForNode(errorCode, argument, arguments);
   }
 
-  void _reportErrorForNode(ErrorCode errorCode, AstNode node, List<Object> arguments) {
+  void _reportErrorForNode(ErrorCode errorCode, AstNode node, [List<Object> arguments]) {
     int offset = node.offset;
     int length = node.length;
     _reportErrorForOffset(errorCode, offset, length, arguments);
   }
 
-  void _reportErrorForOffset(ErrorCode errorCode, int offset, int length, List<Object> arguments) {
+  void _reportErrorForOffset(ErrorCode errorCode, int offset, int length, [List<Object> arguments]) {
     _errorListener.onError(new AnalysisError.con2(_source, offset, length, errorCode, arguments));
   }
 }
@@ -834,10 +834,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the is expression to check
    * @return `true` if and only if a hint code is generated on the passed node
-   * @see HintCode#TYPE_CHECK_IS_NOT_NULL
-   * @see HintCode#TYPE_CHECK_IS_NULL
-   * @see HintCode#UNNECESSARY_TYPE_CHECK_TRUE
-   * @see HintCode#UNNECESSARY_TYPE_CHECK_FALSE
+   * See [HintCode.TYPE_CHECK_IS_NOT_NULL], [HintCode.TYPE_CHECK_IS_NULL],
+   * [HintCode.UNNECESSARY_TYPE_CHECK_TRUE], and
+   * [HintCode.UNNECESSARY_TYPE_CHECK_FALSE].
    */
   bool _checkAllTypeChecks(IsExpression node) {
     Expression expression = node.expression;
@@ -852,10 +851,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     if (rhsType.isDynamic && rhsNameStr == sc.Keyword.DYNAMIC.syntax) {
       if (node.notOperator == null) {
         // the is case
-        _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, node, []);
+        _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, node);
       } else {
         // the is not case
-        _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, node, []);
+        _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, node);
       }
       return true;
     }
@@ -866,19 +865,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       if (rhsType.isObject || (expression is NullLiteral && rhsNameStr == _NULL_TYPE_NAME)) {
         if (node.notOperator == null) {
           // the is case
-          _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, node, []);
+          _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, node);
         } else {
           // the is not case
-          _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, node, []);
+          _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, node);
         }
         return true;
       } else if (rhsNameStr == _NULL_TYPE_NAME) {
         if (node.notOperator == null) {
           // the is case
-          _errorReporter.reportErrorForNode(HintCode.TYPE_CHECK_IS_NULL, node, []);
+          _errorReporter.reportErrorForNode(HintCode.TYPE_CHECK_IS_NULL, node);
         } else {
           // the is not case
-          _errorReporter.reportErrorForNode(HintCode.TYPE_CHECK_IS_NOT_NULL, node, []);
+          _errorReporter.reportErrorForNode(HintCode.TYPE_CHECK_IS_NOT_NULL, node);
         }
         return true;
       }
@@ -901,7 +900,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    *          `null`
    * @param actualPropagatedType the expected propagated type of the parameter, may be `null`
    * @return `true` if and only if an hint code is generated on the passed node
-   * @see HintCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   * See [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
    */
   bool _checkForArgumentTypeNotAssignable(Expression expression, DartType expectedStaticType, DartType actualStaticType, DartType expectedPropagatedType, DartType actualPropagatedType, ErrorCode hintCode) {
     //
@@ -936,7 +935,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param argument the argument to evaluate
    * @return `true` if and only if an hint code is generated on the passed node
-   * @see HintCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   * See [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
    */
   bool _checkForArgumentTypeNotAssignableForArgument(Expression argument) {
     if (argument == null) {
@@ -958,7 +957,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * @param expectedStaticType the expected static type
    * @param expectedPropagatedType the expected propagated type, may be `null`
    * @return `true` if and only if an hint code is generated on the passed node
-   * @see HintCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   * See [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
    */
   bool _checkForArgumentTypeNotAssignableWithExpectedTypes(Expression expression, DartType expectedStaticType, DartType expectedPropagatedType, ErrorCode errorCode) => _checkForArgumentTypeNotAssignable(expression, expectedStaticType, expression.staticType, expectedPropagatedType, expression.propagatedType, errorCode);
 
@@ -969,7 +968,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the arguments to evaluate
    * @return `true` if and only if an hint code is generated on the passed node
-   * @see HintCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   * See [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
    */
   bool _checkForArgumentTypesNotAssignableInList(ArgumentList argumentList) {
     if (argumentList == null) {
@@ -991,7 +990,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * @param element some element to check for deprecated use of
    * @param node the node use for the location of the error
    * @return `true` if and only if a hint code is generated on the passed node
-   * @see HintCode#DEPRECATED_MEMBER_USE
+   * See [HintCode.DEPRECATED_MEMBER_USE].
    */
   bool _checkForDeprecatedMemberUse(Element element, AstNode node) {
     if (element != null && element.isDeprecated) {
@@ -1023,7 +1022,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param identifier some simple identifier to check for deprecated use of
    * @return `true` if and only if a hint code is generated on the passed node
-   * @see HintCode#DEPRECATED_MEMBER_USE
+   * See [HintCode.DEPRECATED_MEMBER_USE].
    */
   bool _checkForDeprecatedMemberUseAtIdentifier(SimpleIdentifier identifier) {
     if (identifier.inDeclarationContext()) {
@@ -1037,11 +1036,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Check for the passed binary expression for the [HintCode#DIVISION_OPTIMIZATION].
+   * Check for the passed binary expression for the [HintCode.DIVISION_OPTIMIZATION].
    *
    * @param node the binary expression to check
    * @return `true` if and only if a hint code is generated on the passed node
-   * @see HintCode#DIVISION_OPTIMIZATION
+   * See [HintCode.DIVISION_OPTIMIZATION].
    */
   bool _checkForDivisionOptimizationHint(BinaryExpression node) {
     // Return if the operator is not '/'
@@ -1063,7 +1062,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       if (parenthesizedExpression.parent is MethodInvocation) {
         MethodInvocation methodInvocation = parenthesizedExpression.parent as MethodInvocation;
         if (_TO_INT_METHOD_NAME == methodInvocation.methodName.name && methodInvocation.argumentList.arguments.isEmpty) {
-          _errorReporter.reportErrorForNode(HintCode.DIVISION_OPTIMIZATION, methodInvocation, []);
+          _errorReporter.reportErrorForNode(HintCode.DIVISION_OPTIMIZATION, methodInvocation);
           return true;
         }
       }
@@ -1079,7 +1078,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * @param lhs the left hand side expression
    * @param rhs the right hand side expression
    * @return `true` if and only if an error code is generated on the passed node
-   * @see HintCode#INVALID_ASSIGNMENT
+   * See [HintCode.INVALID_ASSIGNMENT].
    */
   bool _checkForInvalidAssignment(Expression lhs, Expression rhs) {
     if (lhs == null || rhs == null) {
@@ -1110,7 +1109,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * @param node the import directive to evaluate
    * @param importElement the [ImportElement] retrieved from the node
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION
+   * See [CompileTimeErrorCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION].
    */
   bool _checkForLoadLibraryFunction(ImportDirective node, ImportElement importElement) {
     LibraryElement importedLibrary = importElement.importedLibrary;
@@ -1132,7 +1131,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * @param node the binary expression to check
    * @param body the function body
    * @return `true` if and only if a hint code is generated on the passed node
-   * @see HintCode#MISSING_RETURN
+   * See [HintCode.MISSING_RETURN].
    */
   bool _checkForMissingReturn(TypeName returnType, FunctionBody body) {
     // Check that the method or function has a return type, and a function body
@@ -1159,11 +1158,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   /**
    * Check for the passed class declaration for the
-   * [HintCode#OVERRIDE_EQUALS_BUT_NOT_HASH_CODE] hint code.
+   * [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE] hint code.
    *
    * @param node the class declaration to check
    * @return `true` if and only if a hint code is generated on the passed node
-   * @see HintCode#OVERRIDE_EQUALS_BUT_NOT_HASH_CODE
+   * See [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE].
    */
   bool _checkForOverrideEqualsButNotHashCode(ClassDeclaration node) {
     ClassElement classElement = node.element;
@@ -1182,11 +1181,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Check for the passed as expression for the [HintCode#UNNECESSARY_CAST] hint code.
+   * Check for the passed as expression for the [HintCode.UNNECESSARY_CAST] hint code.
    *
    * @param node the as expression to check
    * @return `true` if and only if a hint code is generated on the passed node
-   * @see HintCode#UNNECESSARY_CAST
+   * See [HintCode.UNNECESSARY_CAST].
    */
   bool _checkForUnnecessaryCast(AsExpression node) {
     Expression expression = node.expression;
@@ -1196,7 +1195,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     // TODO(jwren) After dartbug.com/13732, revisit this, we should be able to remove the
     // !(x instanceof TypeParameterType) checks.
     if (lhsType != null && rhsType != null && !lhsType.isDynamic && !rhsType.isDynamic && lhsType is! TypeParameterType && rhsType is! TypeParameterType && lhsType.isMoreSpecificThan(rhsType)) {
-      _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_CAST, node, []);
+      _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_CAST, node);
       return true;
     }
     return false;
@@ -1211,7 +1210,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node expression on the RHS of some assignment
    * @return `true` if and only if a hint code is generated on the passed node
-   * @see HintCode#USE_OF_VOID_RESULT
+   * See [HintCode.USE_OF_VOID_RESULT].
    */
   bool _checkForUseOfVoidResult(Expression expression) {
     if (expression == null || expression is! MethodInvocation) {
@@ -1369,13 +1368,13 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
       ConstructorElement constructorElement = element;
       // should 'const' constructor
       if (!constructorElement.isConst) {
-        _errorReporter.reportErrorForNode(CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR, node, []);
+        _errorReporter.reportErrorForNode(CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR, node);
         return null;
       }
       // should have arguments
       ArgumentList argumentList = node.arguments;
       if (argumentList == null) {
-        _errorReporter.reportErrorForNode(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, node, []);
+        _errorReporter.reportErrorForNode(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, node);
         return null;
       }
       // arguments should be constants
@@ -1475,7 +1474,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     }
     if (reportEqualKeys) {
       for (Expression key in invalidKeys) {
-        _errorReporter.reportErrorForNode(StaticWarningCode.EQUAL_KEYS_IN_MAP, key, []);
+        _errorReporter.reportErrorForNode(StaticWarningCode.EQUAL_KEYS_IN_MAP, key);
       }
     }
     return null;
@@ -1552,7 +1551,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
    * @param node the switch statement to evaluate
    * @param type the common type of all 'case' expressions
    * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+   * See [CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS].
    */
   bool _checkForCaseExpressionTypeImplementsEquals(SwitchStatement node, DartType type) {
     if (!_implementsEqualsWhenNotAllowed(type)) {
@@ -1601,7 +1600,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     DeferredLibraryReferenceDetector referenceDetector = new DeferredLibraryReferenceDetector();
     expression.accept(referenceDetector);
     if (referenceDetector.result) {
-      _errorReporter.reportErrorForNode(errorCode, expression, []);
+      _errorReporter.reportErrorForNode(errorCode, expression);
     }
   }
 
@@ -1626,7 +1625,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
           identical(dataErrorCode, CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH)) {
         _errorReporter.reportError(data);
       } else if (errorCode != null) {
-        _errorReporter.reportError(new AnalysisError.con2(data.source, data.offset, data.length, errorCode, []));
+        _errorReporter.reportError(new AnalysisError.con2(data.source, data.offset, data.length, errorCode));
       }
     }
   }
@@ -1700,14 +1699,19 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
       if (parameter is DefaultFormalParameter) {
         DefaultFormalParameter defaultParameter = parameter;
         Expression defaultValue = defaultParameter.defaultValue;
-        if (defaultValue != null) {
-          DartObjectImpl result = _validate(defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
-          VariableElementImpl element = parameter.element as VariableElementImpl;
-          element.evaluationResult = new EvaluationResultImpl.con1(result);
+        DartObjectImpl result;
+        if (defaultValue == null) {
+          result = new DartObjectImpl(_typeProvider.nullType,
+              NullState.NULL_STATE);
+        } else {
+          result = _validate(defaultValue,
+              CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
           if (result != null) {
             _reportErrorIfFromDeferredLibrary(defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY);
           }
         }
+        VariableElementImpl element = parameter.element as VariableElementImpl;
+        element.evaluationResult = new EvaluationResultImpl.con1(result);
       }
     }
   }
@@ -1838,7 +1842,7 @@ class ConstantVisitor_ConstantVerifier_validateInitializerExpression extends Con
 
 /**
  * Instances of the class `Dart2JSVerifier` traverse an AST structure looking for hints for
- * code that will be compiled to JS, such as [HintCode#IS_DOUBLE].
+ * code that will be compiled to JS, such as [HintCode.IS_DOUBLE].
  */
 class Dart2JSVerifier extends RecursiveAstVisitor<Object> {
   /**
@@ -1870,10 +1874,10 @@ class Dart2JSVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param node the is expression to check
    * @return `true` if and only if a hint code is generated on the passed node
-   * @see HintCode#IS_DOUBLE
-   * @see HintCode#IS_INT
-   * @see HintCode#IS_NOT_DOUBLE
-   * @see HintCode#IS_NOT_INT
+   * See [HintCode.IS_DOUBLE],
+   * [HintCode.IS_INT],
+   * [HintCode.IS_NOT_DOUBLE], and
+   * [HintCode.IS_NOT_INT].
    */
   bool _checkForIsDoubleHints(IsExpression node) {
     TypeName typeName = node.type;
@@ -1893,9 +1897,9 @@ class Dart2JSVerifier extends RecursiveAstVisitor<Object> {
       //      } else
       if (typeNameStr == _DOUBLE_TYPE_NAME && libraryElement != null && libraryElement.isDartCore) {
         if (node.notOperator == null) {
-          _errorReporter.reportErrorForNode(HintCode.IS_DOUBLE, node, []);
+          _errorReporter.reportErrorForNode(HintCode.IS_DOUBLE, node);
         } else {
-          _errorReporter.reportErrorForNode(HintCode.IS_NOT_DOUBLE, node, []);
+          _errorReporter.reportErrorForNode(HintCode.IS_NOT_DOUBLE, node);
         }
         return true;
       }
@@ -1905,8 +1909,46 @@ class Dart2JSVerifier extends RecursiveAstVisitor<Object> {
 }
 
 /**
+ * Instances of the class [UnusedElementVerifier] traverse an element
+ * structure looking for cases of [HintCode.UNUSED_ELEMENT] and
+ * [HintCode.UNUSED_LOCAL_VARIABLE].
+ */
+class UnusedElementVerifier extends RecursiveElementVisitor {
+  /**
+   * The error reporter by which errors will be reported.
+   */
+  final ErrorReporter _errorReporter;
+
+  /**
+   * Create a new instance of the [UnusedElementVerifier].
+   */
+  UnusedElementVerifier(this._errorReporter);
+
+  @override
+  visitClassElement(ClassElement element) {
+    if (element is ClassElementImpl && !element.isUsed) {
+      _errorReporter.reportErrorForElement(
+          HintCode.UNUSED_ELEMENT,
+          element,
+          [element.kind.displayName, element.displayName]);
+    }
+    element.visitChildren(this);
+  }
+
+  @override
+  visitLocalVariableElement(LocalVariableElement element) {
+    if (element is LocalVariableElementImpl && !element.isUsed) {
+      _errorReporter.reportErrorForElement(
+          HintCode.UNUSED_LOCAL_VARIABLE,
+          element,
+          [element.displayName]);
+    }
+  }
+}
+
+/**
  * Instances of the class `DeadCodeVerifier` traverse an AST structure looking for cases of
- * [HintCode#DEAD_CODE].
+ * [HintCode.DEAD_CODE].
  */
 class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   /**
@@ -1933,13 +1975,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
         if (lhsResult != null) {
           if (lhsResult.value.isTrue && isBarBar) {
             // report error on else block: true || !e!
-            _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.rightOperand, []);
+            _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.rightOperand);
             // only visit the LHS:
             _safelyVisit(lhsCondition);
             return null;
           } else if (lhsResult.value.isFalse && isAmpAmp) {
             // report error on if block: false && !e!
-            _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.rightOperand, []);
+            _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.rightOperand);
             // only visit the LHS:
             _safelyVisit(lhsCondition);
             return null;
@@ -1990,12 +2032,12 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
       if (result != null) {
         if (result.value.isTrue) {
           // report error on else block: true ? 1 : !2!
-          _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.elseExpression, []);
+          _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.elseExpression);
           _safelyVisit(node.thenExpression);
           return null;
         } else {
           // report error on if block: false ? !1! : 2
-          _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.thenExpression, []);
+          _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.thenExpression);
           _safelyVisit(node.elseExpression);
           return null;
         }
@@ -2015,13 +2057,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
           // report error on else block: if(true) {} else {!}
           Statement elseStatement = node.elseStatement;
           if (elseStatement != null) {
-            _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, elseStatement, []);
+            _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, elseStatement);
             _safelyVisit(node.thenStatement);
             return null;
           }
         } else {
           // report error on if block: if (false) {!} else {}
-          _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.thenStatement, []);
+          _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.thenStatement);
           _safelyVisit(node.elseStatement);
           return null;
         }
@@ -2068,7 +2110,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
               CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
               int offset = nextCatchClause.offset;
               int length = lastCatchClause.end - offset;
-              _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length, []);
+              _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
               return null;
             }
           }
@@ -2094,7 +2136,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
           CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
           int offset = nextCatchClause.offset;
           int length = lastCatchClause.end - offset;
-          _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length, []);
+          _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
           return null;
         }
       }
@@ -2111,7 +2153,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
       if (result != null) {
         if (result.value.isFalse) {
           // report error on if block: while (false) {!}
-          _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.body, []);
+          _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.body);
           return null;
         }
       }
@@ -2138,19 +2180,19 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
         Statement lastStatement = statements[size - 1];
         int offset = nextStatement.offset;
         int length = lastStatement.end - offset;
-        _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE, offset, length, []);
+        _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE, offset, length);
         return;
       }
     }
   }
 
   /**
-   * Given some [Expression], this method returns [ValidResult#RESULT_TRUE] if it is
-   * `true`, [ValidResult#RESULT_FALSE] if it is `false`, or `null` if the
+   * Given some [Expression], this method returns [ValidResult.RESULT_TRUE] if it is
+   * `true`, [ValidResult.RESULT_FALSE] if it is `false`, or `null` if the
    * expression is not a constant boolean value.
    *
    * @param expression the expression to evaluate
-   * @return [ValidResult#RESULT_TRUE] if it is `true`, [ValidResult#RESULT_FALSE]
+   * @return [ValidResult.RESULT_TRUE] if it is `true`, [ValidResult.RESULT_FALSE]
    *         if it is `false`, or `null` if the expression is not a constant boolean
    *         value
    */
@@ -2162,25 +2204,16 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
         return new EvaluationResultImpl.con1(new DartObjectImpl(null, BoolState.from(false)));
       }
     }
-    // Don't consider situations where we could evaluate to a constant boolean expression with the
-    // ConstantVisitor
-//
+    // Don't consider situations where we could evaluate to a constant boolean
+    // expression with the ConstantVisitor
        // else {
-//
          // EvaluationResultImpl result = expression.accept(new ConstantVisitor());
-//
          // if (result == ValidResult.RESULT_TRUE) {
-//
            // return ValidResult.RESULT_TRUE;
-//
          // } else if (result == ValidResult.RESULT_FALSE) {
-//
            // return ValidResult.RESULT_FALSE;
-//
          // }
-//
          // return null;
-//
        // }
     return null;
   }
@@ -3469,9 +3502,14 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   Object visitCatchClause(CatchClause node) {
     SimpleIdentifier exceptionParameter = node.exceptionParameter;
     if (exceptionParameter != null) {
+      // exception
       LocalVariableElementImpl exception = new LocalVariableElementImpl.forNode(exceptionParameter);
       _currentHolder.addLocalVariable(exception);
       exceptionParameter.staticElement = exception;
+      // we cannot catch an exception without declaring a variable,
+      // so the exception variable is always used
+      exception.markUsed();
+      // stack trace
       SimpleIdentifier stackTraceParameter = node.stackTraceParameter;
       if (stackTraceParameter != null) {
         LocalVariableElementImpl stackTrace = new LocalVariableElementImpl.forNode(stackTraceParameter);
@@ -5258,12 +5296,6 @@ class FunctionScope extends EnclosedScope {
     }
     _parametersDefined = true;
     Scope parameterScope = enclosingScope;
-    if (_functionElement.enclosingElement is ExecutableElement) {
-      String name = _functionElement.name;
-      if (name != null && !name.isEmpty) {
-        parameterScope.define(_functionElement);
-      }
-    }
     for (ParameterElement parameter in _functionElement.parameters) {
       if (!parameter.isInitializingFormal) {
         parameterScope.define(parameter);
@@ -5336,7 +5368,7 @@ class GeneralizingElementVisitor_DeclarationMatcher_gatherElements extends Gener
  * Instances of the class `HintGenerator` traverse a library's worth of dart code at a time to
  * generate hints over the set of sources.
  *
- * @see HintCode
+ * See [HintCode].
  */
 class HintGenerator {
   final List<CompilationUnit> _compilationUnits;
@@ -5389,6 +5421,7 @@ class HintGenerator {
     unit.accept(_importsVerifier);
     // dead code analysis
     unit.accept(new DeadCodeVerifier(errorReporter));
+    unit.element.accept(new UnusedElementVerifier(errorReporter));
     // dart2js analysis
     if (_enableDart2JSHints) {
       unit.accept(new Dart2JSVerifier(errorReporter));
@@ -5719,9 +5752,14 @@ class ImplicitConstructorBuilder extends ScopedVisitor {
           List<ConstructorElement> implicitConstructors = new List<ConstructorElement>();
           for (int i = 0; i < count; i++) {
             ConstructorElement explicitConstructor = constructors[i];
-            if (!explicitConstructor.isFactory) {
+            if (!explicitConstructor.isFactory &&
+                classElement.isSuperConstructorAccessible(explicitConstructor)) {
               implicitConstructors.add(_createImplicitContructor(classType, explicitConstructor, parameterTypes, argumentTypes));
             }
+          }
+          if (implicitConstructors.isEmpty) {
+            reportErrorForNode(CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
+                node, [superclassElement.name]);
           }
           classElement.constructors = implicitConstructors;
         }
@@ -5810,7 +5848,7 @@ class ImplicitConstructorBuilder extends ScopedVisitor {
 /**
  * Instances of the class `ImportsVerifier` visit all of the referenced libraries in the
  * source code verifying that all of the imports are used, otherwise a
- * [HintCode#UNUSED_IMPORT] is generated with
+ * [HintCode.UNUSED_IMPORT] is generated with
  * [generateUnusedImportHints].
  *
  * While this class does not yet have support for an "Organize Imports" action, this logic built up
@@ -5835,7 +5873,7 @@ class ImportsVerifier extends RecursiveAstVisitor<Object> {
    * [ImportDirective] is removed from this list. After all the sources in the library have
    * been evaluated, this list represents the set of unused imports.
    *
-   * @see ImportsVerifier#generateUnusedImportErrors(ErrorReporter)
+   * See [ImportsVerifier.generateUnusedImportErrors].
    */
   List<ImportDirective> _unusedImports;
 
@@ -5894,24 +5932,24 @@ class ImportsVerifier extends RecursiveAstVisitor<Object> {
 
   /**
    * Any time after the defining compilation unit has been visited by this visitor, this method can
-   * be called to report an [HintCode#DUPLICATE_IMPORT] hint for each of the import directives
+   * be called to report an [HintCode.DUPLICATE_IMPORT] hint for each of the import directives
    * in the [duplicateImports] list.
    *
-   * @param errorReporter the error reporter to report the set of [HintCode#DUPLICATE_IMPORT]
+   * @param errorReporter the error reporter to report the set of [HintCode.DUPLICATE_IMPORT]
    *          hints to
    */
   void generateDuplicateImportHints(ErrorReporter errorReporter) {
     for (ImportDirective duplicateImport in _duplicateImports) {
-      errorReporter.reportErrorForNode(HintCode.DUPLICATE_IMPORT, duplicateImport.uri, []);
+      errorReporter.reportErrorForNode(HintCode.DUPLICATE_IMPORT, duplicateImport.uri);
     }
   }
 
   /**
    * After all of the compilation units have been visited by this visitor, this method can be called
-   * to report an [HintCode#UNUSED_IMPORT] hint for each of the import directives in the
+   * to report an [HintCode.UNUSED_IMPORT] hint for each of the import directives in the
    * [unusedImports] list.
    *
-   * @param errorReporter the error reporter to report the set of [HintCode#UNUSED_IMPORT]
+   * @param errorReporter the error reporter to report the set of [HintCode.UNUSED_IMPORT]
    *          hints to
    */
   void generateUnusedImportHints(ErrorReporter errorReporter) {
@@ -5924,7 +5962,7 @@ class ImportsVerifier extends RecursiveAstVisitor<Object> {
           continue;
         }
       }
-      errorReporter.reportErrorForNode(HintCode.UNUSED_IMPORT, unusedImport.uri, []);
+      errorReporter.reportErrorForNode(HintCode.UNUSED_IMPORT, unusedImport.uri);
     }
   }
 
@@ -6230,7 +6268,7 @@ class IncrementalResolver {
   /**
    * Return `true` if the given node can be resolved independently of any other nodes.
    *
-   * <b>Note:</b> This method needs to be kept in sync with [ScopeBuilder#scopeForAstNode].
+   * <b>Note:</b> This method needs to be kept in sync with [ScopeBuilder.scopeForAstNode].
    *
    * @param node the node being tested
    * @return `true` if the given node can be resolved independently of any other nodes
@@ -6432,7 +6470,7 @@ class InheritanceManager {
   /**
    * Given some [ExecutableElement] return the number of positional parameters.
    *
-   * Note: by positional we mean [ParameterKind#REQUIRED] or [ParameterKind#POSITIONAL].
+   * Note: by positional we mean [ParameterKind.REQUIRED] or [ParameterKind.POSITIONAL].
    */
   static int _getNumOfPositionalParameters(ExecutableElement executableElement) => _getNumOfParameters(executableElement, ParameterKind.REQUIRED) + _getNumOfParameters(executableElement, ParameterKind.POSITIONAL);
 
@@ -7008,7 +7046,7 @@ class InheritanceManager {
 
   /**
    * This method is used to report errors on when they are found computing inheritance information.
-   * See [ErrorVerifier#checkForInconsistentMethodInheritance] to see where these generated
+   * See [ErrorVerifier.checkForInconsistentMethodInheritance] to see where these generated
    * error codes are reported back into the analysis engine.
    *
    * @param classElt the location of the source for which the exception occurred
@@ -7524,7 +7562,7 @@ class Library {
   Source getSource(UriBasedDirective directive) {
     StringLiteral uriLiteral = directive.uri;
     if (uriLiteral is StringInterpolation) {
-      _errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION, []));
+      _errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION));
       return null;
     }
     String uriContent = uriLiteral.stringValue.trim();
@@ -7687,7 +7725,7 @@ class LibraryElementBuilder {
       }
     }
     if (hasPartDirective && libraryNameNode == null) {
-      _errorListener.onError(new AnalysisError.con1(librarySource, ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART, []));
+      _errorListener.onError(new AnalysisError.con1(librarySource, ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART));
     }
     //
     // Create and populate the library element.
@@ -7775,7 +7813,7 @@ class LibraryElementBuilder {
       }
     }
     if (hasPartDirective && libraryNameNode == null) {
-      _errorListener.onError(new AnalysisError.con1(librarySource, ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART, []));
+      _errorListener.onError(new AnalysisError.con1(librarySource, ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART));
     }
     //
     // Create and populate the library element.
@@ -7920,6 +7958,15 @@ class LibraryImportScope extends Scope {
     if (!Scope.isPrivateName(element.displayName)) {
       super.define(element);
     }
+  }
+
+  @override
+  Source getSource(AstNode node) {
+    Source source = super.getSource(node);
+    if (source == null) {
+      source = _definingLibrary.definingCompilationUnit.source;
+    }
+    return source;
   }
 
   @override
@@ -8810,6 +8857,25 @@ class LibraryResolver {
         }
       }
       computer.computeValues();
+      // As a temporary workaround for issue 21572, run ConstantVerifier now.
+      // TODO(paulberry): remove this workaround once issue 21572 is fixed.
+      for (Library library in _librariesInCycles) {
+        for (Source source in library.compilationUnitSources) {
+          try {
+            CompilationUnit unit = library.getAST(source);
+            ErrorReporter errorReporter = new ErrorReporter(
+                _errorListener, source);
+            ConstantVerifier constantVerifier = new ConstantVerifier(
+                errorReporter, library.libraryElement, _typeProvider);
+            unit.accept(constantVerifier);
+          } on AnalysisException catch (exception, stackTrace) {
+            AnalysisEngine.instance.logger.logError(
+                "Internal Error: Could not access AST for ${source.fullName} "
+                "during constant verification",
+                new CaughtException(exception, stackTrace));
+          }
+        }
+      }
     } finally {
       timeCounter.stop();
     }
@@ -9335,6 +9401,19 @@ class LibraryResolver2 {
         }
       }
       computer.computeValues();
+      // As a temporary workaround for issue 21572, run ConstantVerifier now.
+      // TODO(paulberry): remove this workaround once issue 21572 is fixed.
+      for (ResolvableLibrary library in _librariesInCycle) {
+        for (ResolvableCompilationUnit unit in
+            library.resolvableCompilationUnits) {
+          CompilationUnit ast = unit.compilationUnit;
+          ErrorReporter errorReporter = new ErrorReporter(
+              _errorListener, unit.source);
+          ConstantVerifier constantVerifier = new ConstantVerifier(
+              errorReporter, library.libraryElement, _typeProvider);
+          ast.accept(constantVerifier);
+        }
+      }
     } finally {
       timeCounter.stop();
     }
@@ -9976,12 +10055,12 @@ class OverrideVerifier extends RecursiveAstVisitor<Object> {
     if (_isOverride(element)) {
       if (_getOverriddenMember(element) == null) {
         if (element is MethodElement) {
-          _errorReporter.reportErrorForNode(HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD, node.name, []);
+          _errorReporter.reportErrorForNode(HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD, node.name);
         } else if (element is PropertyAccessorElement) {
           if (element.isGetter) {
-            _errorReporter.reportErrorForNode(HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, node.name, []);
+            _errorReporter.reportErrorForNode(HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, node.name);
           } else {
-            _errorReporter.reportErrorForNode(HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER, node.name, []);
+            _errorReporter.reportErrorForNode(HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER, node.name);
           }
         }
       }
@@ -10154,7 +10233,7 @@ class PubVerifier extends RecursiveAstVisitor<Object> {
    * @param uriLiteral the import URL (not `null`)
    * @param path the file path being verified (not `null`)
    * @return `true` if and only if an error code is generated on the passed node
-   * @see PubSuggestionCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE
+   * See [PubSuggestionCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE].
    */
   bool _checkForFileImportInsideLibReferencesFileOutside(StringLiteral uriLiteral, String path) {
     Source source = _getSource(uriLiteral);
@@ -10173,7 +10252,7 @@ class PubVerifier extends RecursiveAstVisitor<Object> {
           Source pubspecSource = _context.sourceFactory.resolveUri(source, relativePubspecPath);
           if (_context.exists(pubspecSource)) {
             // Files inside the lib directory hierarchy should not reference files outside
-            _errorReporter.reportErrorForNode(HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE, uriLiteral, []);
+            _errorReporter.reportErrorForNode(HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE, uriLiteral);
           }
           return true;
         }
@@ -10191,7 +10270,7 @@ class PubVerifier extends RecursiveAstVisitor<Object> {
    * @param uriLiteral the import URL (not `null`)
    * @param path the file path being verified (not `null`)
    * @return `true` if and only if an error code is generated on the passed node
-   * @see PubSuggestionCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE
+   * See [PubSuggestionCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE].
    */
   bool _checkForFileImportOutsideLibReferencesFileInside(StringLiteral uriLiteral, String path) {
     if (StringUtilities.startsWith4(path, 0, 0x6C, 0x69, 0x62, 0x2F)) {
@@ -10221,7 +10300,7 @@ class PubVerifier extends RecursiveAstVisitor<Object> {
       if (StringUtilities.indexOf5(fullName, 0, 0x2F, 0x6C, 0x69, 0x62, 0x2F) < 0) {
         // Files outside the lib directory hierarchy should not reference files inside
         // ... use package: url instead
-        _errorReporter.reportErrorForNode(HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE, uriLiteral, []);
+        _errorReporter.reportErrorForNode(HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE, uriLiteral);
         return true;
       }
     }
@@ -10234,12 +10313,12 @@ class PubVerifier extends RecursiveAstVisitor<Object> {
    * @param uriLiteral the import URL (not `null`)
    * @param path the path to be validated (not `null`)
    * @return `true` if and only if an error code is generated on the passed node
-   * @see PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT
+   * See [PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT].
    */
   bool _checkForPackageImportContainsDotDot(StringLiteral uriLiteral, String path) {
     if (StringUtilities.startsWith3(path, 0, 0x2E, 0x2E, 0x2F) || StringUtilities.indexOf4(path, 0, 0x2F, 0x2E, 0x2E, 0x2F) >= 0) {
       // Package import should not to contain ".."
-      _errorReporter.reportErrorForNode(HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT, uriLiteral, []);
+      _errorReporter.reportErrorForNode(HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT, uriLiteral);
       return true;
     }
     return false;
@@ -10265,7 +10344,7 @@ class PubVerifier extends RecursiveAstVisitor<Object> {
 
   /**
    * Answer the full name of the given source. The returned value will have all
-   * [File#separatorChar] replace by '/'.
+   * [File.separatorChar] replace by '/'.
    *
    * @param source the source
    * @return the full name or `null` if it could not be determined
@@ -10720,61 +10799,42 @@ class ResolvableLibrary {
 }
 
 /**
- * The enumeration `ResolverErrorCode` defines the error codes used for errors detected by the
- * resolver. The convention for this class is for the name of the error code to indicate the problem
- * that caused the error to be generated and for the error message to explain what is wrong and,
- * when appropriate, how the problem can be corrected.
+ * The enumeration `ResolverErrorCode` defines the error codes used for errors
+ * detected by the resolver. The convention for this class is for the name of
+ * the error code to indicate the problem that caused the error to be generated
+ * and for the error message to explain what is wrong and, when appropriate, how
+ * the problem can be corrected.
  */
-class ResolverErrorCode extends Enum<ResolverErrorCode> implements ErrorCode {
-  static const ResolverErrorCode BREAK_LABEL_ON_SWITCH_MEMBER = const ResolverErrorCode.con1('BREAK_LABEL_ON_SWITCH_MEMBER', 0, ErrorType.COMPILE_TIME_ERROR, "Break label resolves to case or default statement");
+class ResolverErrorCode extends ErrorCode {
+  static const ResolverErrorCode BREAK_LABEL_ON_SWITCH_MEMBER
+      = const ResolverErrorCode(
+          'BREAK_LABEL_ON_SWITCH_MEMBER',
+          "Break label resolves to case or default statement");
 
-  static const ResolverErrorCode CONTINUE_LABEL_ON_SWITCH = const ResolverErrorCode.con1('CONTINUE_LABEL_ON_SWITCH', 1, ErrorType.COMPILE_TIME_ERROR, "A continue label resolves to switch, must be loop or switch member");
+  static const ResolverErrorCode CONTINUE_LABEL_ON_SWITCH
+      = const ResolverErrorCode(
+          'CONTINUE_LABEL_ON_SWITCH',
+          "A continue label resolves to switch, must be loop or switch member");
 
-  static const ResolverErrorCode MISSING_LIBRARY_DIRECTIVE_WITH_PART = const ResolverErrorCode.con1('MISSING_LIBRARY_DIRECTIVE_WITH_PART', 2, ErrorType.COMPILE_TIME_ERROR, "Libraries that have parts must have a library directive");
-
-  static const List<ResolverErrorCode> values = const [
-      BREAK_LABEL_ON_SWITCH_MEMBER,
-      CONTINUE_LABEL_ON_SWITCH,
-      MISSING_LIBRARY_DIRECTIVE_WITH_PART];
-
-  /**
-   * The type of this error.
-   */
-  final ErrorType type;
-
-  /**
-   * The template used to create the message to be displayed for this error.
-   */
-  final String message;
+  static const ResolverErrorCode MISSING_LIBRARY_DIRECTIVE_WITH_PART
+      = const ResolverErrorCode(
+          'MISSING_LIBRARY_DIRECTIVE_WITH_PART',
+          "Libraries that have parts must have a library directive");
 
   /**
-   * The template used to create the correction to be displayed for this error, or `null` if
-   * there is no correction information for this error.
+   * Initialize a newly created error code to have the given [name]. The message
+   * associated with the error will be created from the given [message]
+   * template. The correction associated with the error will be created from the
+   * given [correction] template.
    */
-  final String correction;
-
-  /**
-   * Initialize a newly created error code to have the given type and message.
-   *
-   * @param type the type of this error
-   * @param message the message template used to create the message to be displayed for the error
-   */
-  const ResolverErrorCode.con1(String name, int ordinal, ErrorType type, String message) : this.con2(name, ordinal, type, message, null);
-
-  /**
-   * Initialize a newly created error code to have the given type, message and correction.
-   *
-   * @param type the type of this error
-   * @param message the template used to create the message to be displayed for the error
-   * @param correction the template used to create the correction to be displayed for the error
-   */
-  const ResolverErrorCode.con2(String name, int ordinal, this.type, this.message, this.correction) : super(name, ordinal);
+  const ResolverErrorCode(String name, String message, [String correction])
+      : super(name, message, correction);
 
   @override
   ErrorSeverity get errorSeverity => type.severity;
 
   @override
-  String get uniqueName => "$runtimeType.$name";
+  ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
 }
 
 /**
@@ -12357,7 +12417,7 @@ class ScopeBuilder {
    * Return the scope in which the given AST structure should be resolved.
    *
    * <b>Note:</b> This method needs to be kept in sync with
-   * [IncrementalResolver#canBeResolved].
+   * [IncrementalResolver.canBeResolved].
    *
    * @param node the root of the AST structure to be resolved
    * @return the scope in which the given AST structure should be resolved
@@ -12463,6 +12523,12 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * `null` if no labels have been defined in the current context.
    */
   LabelScope _labelScope;
+
+  /**
+   * The class containing the AST nodes being visited,
+   * or `null` if we are not in the scope of a class.
+   */
+  ClassElement _enclosingClass;
 
   /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
@@ -12600,10 +12666,16 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
             new CaughtException(new AnalysisException(), null));
         super.visitClassDeclaration(node);
       } else {
-        _nameScope = new TypeParameterScope(_nameScope, classElement);
-        visitClassDeclarationInScope(node);
-        _nameScope = new ClassScope(_nameScope, classElement);
-        visitClassMembersInScope(node);
+        ClassElement outerClass = _enclosingClass;
+        try {
+          _enclosingClass = node.element;
+          _nameScope = new TypeParameterScope(_nameScope, classElement);
+          visitClassDeclarationInScope(node);
+          _nameScope = new ClassScope(_nameScope, classElement);
+          visitClassMembersInScope(node);
+        } finally {
+          _enclosingClass = outerClass;
+        }
       }
     } finally {
       _nameScope = outerScope;
@@ -12721,6 +12793,10 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement functionElement = node.element;
+    if (functionElement != null &&
+        functionElement.enclosingElement is! CompilationUnitElement) {
+      _nameScope.define(functionElement);
+    }
     Scope outerScope = _nameScope;
     try {
       if (functionElement == null) {
@@ -12733,9 +12809,6 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       super.visitFunctionDeclaration(node);
     } finally {
       _nameScope = outerScope;
-    }
-    if (functionElement != null && functionElement.enclosingElement is! CompilationUnitElement) {
-      _nameScope.define(functionElement);
     }
     return null;
   }
@@ -12916,7 +12989,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportErrorForNode(ErrorCode errorCode, AstNode node, List<Object> arguments) {
+  void reportErrorForNode(ErrorCode errorCode, AstNode node, [List<Object> arguments]) {
     _errorListener.onError(new AnalysisError.con2(source, node.offset, node.length, errorCode, arguments));
   }
 
@@ -12928,7 +13001,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * @param length the length of the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportErrorForOffset(ErrorCode errorCode, int offset, int length, List<Object> arguments) {
+  void reportErrorForOffset(ErrorCode errorCode, int offset, int length, [List<Object> arguments]) {
     _errorListener.onError(new AnalysisError.con2(source, offset, length, errorCode, arguments));
   }
 
@@ -12939,7 +13012,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * @param token the token specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportErrorForToken(ErrorCode errorCode, sc.Token token, List<Object> arguments) {
+  void reportErrorForToken(ErrorCode errorCode, sc.Token token, [List<Object> arguments]) {
     _errorListener.onError(new AnalysisError.con2(source, token.offset, token.length, errorCode, arguments));
   }
 
@@ -15033,7 +15106,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (type is InterfaceType) {
       ClassElement element = type.element;
       if (element != null && element.isEnum) {
-        reportErrorForNode(enumTypeError, typeName, []);
+        reportErrorForNode(enumTypeError, typeName);
         return null;
       }
       return type;
@@ -15073,6 +15146,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (element != null) {
       if (typeName is SimpleIdentifier) {
         typeName.staticElement = element;
+        _markTypeNameElementUsed(typeName, element);
       } else if (typeName is PrefixedIdentifier) {
         PrefixedIdentifier identifier = typeName;
         identifier.identifier.staticElement = element;
@@ -15082,6 +15156,31 @@ class TypeResolverVisitor extends ScopedVisitor {
           prefix.staticElement = prefixElement;
         }
       }
+    }
+  }
+
+  /**
+   * Marks [element] as used in its defining library.
+   */
+  void _markTypeNameElementUsed(Identifier typeName, Element element) {
+    if (identical(element, _enclosingClass)) {
+      return;
+    }
+    // ignore places where the element is not actually used
+    if (typeName.parent is TypeName) {
+      AstNode parent2 = typeName.parent.parent;
+      if (parent2 is IsExpression) {
+        return;
+      }
+      if (parent2 is VariableDeclarationList) {
+        return;
+      }
+    }
+    // check if the element is a local top-level element
+    if (element is ElementImpl &&
+        element.enclosingElement is CompilationUnitElement &&
+        identical(element.library, definingLibrary)) {
+      element.markUsed();
     }
   }
 
@@ -15266,7 +15365,9 @@ class VariableResolverVisitor extends ScopedVisitor {
     if (parent is PropertyAccess && identical(parent.propertyName, node)) {
       return null;
     }
-    if (parent is MethodInvocation && identical(parent.methodName, node)) {
+    if (parent is MethodInvocation &&
+        identical(parent.methodName, node) &&
+        parent.target != null) {
       return null;
     }
     if (parent is ConstructorName) {
@@ -15284,12 +15385,27 @@ class VariableResolverVisitor extends ScopedVisitor {
     ElementKind kind = element.kind;
     if (kind == ElementKind.LOCAL_VARIABLE) {
       node.staticElement = element;
+      LocalVariableElementImpl variableImpl = element as LocalVariableElementImpl;
       if (node.inSetterContext()) {
-        LocalVariableElementImpl variableImpl = element as LocalVariableElementImpl;
         variableImpl.markPotentiallyMutatedInScope();
         if (element.enclosingElement != _enclosingFunction) {
           variableImpl.markPotentiallyMutatedInClosure();
         }
+      }
+      if (node.inGetterContext()) {
+        if (parent.parent is ExpressionStatement &&
+            (parent is PrefixExpression ||
+             parent is PostfixExpression ||
+             parent is AssignmentExpression && parent.leftHandSide == node)) {
+          // v++;
+          // ++v;
+          // v += 2;
+        } else {
+          variableImpl.markUsed();
+        }
+      }
+      if (parent is MethodInvocation && parent.methodName == node) {
+        variableImpl.markUsed();
       }
     } else if (kind == ElementKind.PARAMETER) {
       node.staticElement = element;

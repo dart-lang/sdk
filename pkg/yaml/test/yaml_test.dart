@@ -4,7 +4,6 @@
 
 library yaml.test;
 
-// TODO(rnystrom): rewrite tests so that they don't need "Expect".
 import 'package:unittest/unittest.dart';
 import 'package:yaml/yaml.dart';
 
@@ -16,7 +15,7 @@ main() {
 
   group('has a friendly error message for', () {
     var tabError = predicate((e) =>
-        e.toString().contains('tab characters are not allowed as indentation'));
+        e.toString().contains('Tab characters are not allowed as indentation'));
 
     test('using a tab as indentation', () {
       expect(() => loadYaml('foo:\n\tbar'),
@@ -29,6 +28,29 @@ main() {
           \tbar"
           error'''),
         throwsA(isNot(tabError)));
+    });
+  });
+
+  group("refuses documents that declare version", () {
+    test("1.0", () {
+      expectYamlFails("""
+         %YAML 1.0
+         --- text
+         """);
+    });
+
+    test("1.3", () {
+      expectYamlFails("""
+         %YAML 1.3
+         --- text
+         """);
+    });
+
+    test("2.0", () {
+      expectYamlFails("""
+         %YAML 2.0
+         --- text
+         """);
     });
   });
 
@@ -173,21 +195,21 @@ main() {
           - Ken Griffey""");
     });
 
-  //   test('[Example 2.10]', () {
-  //     expectYamlLoads({
-  //       "hr": ["Mark McGwire", "Sammy Sosa"],
-  //       "rbi": ["Sammy Sosa", "Ken Griffey"]
-  //     },
-  //       """
-  //       ---
-  //       hr:
-  //         - Mark McGwire
-  //         # Following node labeled SS
-  //         - &SS Sammy Sosa
-  //       rbi:
-  //         - *SS # Subsequent occurrence
-  //         - Ken Griffey""");
-  //   });
+    test('[Example 2.10]', () {
+      expectYamlLoads({
+        "hr": ["Mark McGwire", "Sammy Sosa"],
+        "rbi": ["Sammy Sosa", "Ken Griffey"]
+      },
+        """
+        ---
+        hr:
+          - Mark McGwire
+          # Following node labeled SS
+          - &SS Sammy Sosa
+        rbi:
+          - *SS # Subsequent occurrence
+          - Ken Griffey""");
+    });
 
     test('[Example 2.11]', () {
       var doc = deepEqualsMap();
@@ -536,12 +558,12 @@ main() {
         """);
     });
 
-    // test('[Example 5.9]', () {
-    //   expectYamlLoads("text",
-    //     """
-    //     %YAML 1.2
-    //     --- text""");
-    // });
+    test('[Example 5.9]', () {
+      expectYamlLoads("text",
+        """
+        %YAML 1.2
+        --- text""");
+    });
 
     test('[Example 5.10]', () {
       expectYamlFails("commercial-at: @text");
@@ -886,179 +908,179 @@ main() {
   });
 
   group('6.8: Directives', () {
-    // // TODO(nweiz): assert that this produces a warning
-    // test('[Example 6.13]', () {
-    //   expectYamlLoads("foo",
-    //     '''
-    //     %FOO  bar baz # Should be ignored
-    //                    # with a warning.
-    //     --- "foo"''');
-    // });
+    // TODO(nweiz): assert that this produces a warning
+    test('[Example 6.13]', () {
+      expectYamlLoads("foo",
+        '''
+        %FOO  bar baz # Should be ignored
+                      # with a warning.
+        --- "foo"''');
+    });
 
-    // // TODO(nweiz): assert that this produces a warning
-    // test('[Example 6.14]', () {
-    //   expectYamlLoads("foo",
-    //     '''
-    //     %YAML 1.3 # Attempt parsing
-    //                # with a warning
-    //     ---
-    //     "foo"''');
-    // });
+    // TODO(nweiz): assert that this produces a warning.
+    test('[Example 6.14]', () {
+      expectYamlLoads("foo",
+        '''
+        %YAML 1.3 # Attempt parsing
+                   # with a warning
+        ---
+        "foo"''');
+    });
 
-    // test('[Example 6.15]', () {
-    //   expectYamlFails(
-    //     """
-    //     %YAML 1.2
-    //     %YAML 1.1
-    //     foo""");
-    // });
+    test('[Example 6.15]', () {
+      expectYamlFails(
+        """
+        %YAML 1.2
+        %YAML 1.1
+        foo""");
+    });
 
-    // test('[Example 6.16]', () {
-    //   expectYamlLoads("foo",
-    //     '''
-    //     %TAG !yaml! tag:yaml.org,2002:
-    //     ---
-    //     !yaml!str "foo"''');
-    // });
+    test('[Example 6.16]', () {
+      expectYamlLoads("foo",
+        '''
+        %TAG !yaml! tag:yaml.org,2002:
+        ---
+        !yaml!str "foo"''');
+    });
 
-    // test('[Example 6.17]', () {
-    //   ExpectYamlFails(
-    //     """
-    //     %TAG ! !foo
-    //     %TAG ! !foo
-    //     bar""");
-    // });
+    test('[Example 6.17]', () {
+      expectYamlFails(
+        """
+        %TAG ! !foo
+        %TAG ! !foo
+        bar""");
+    });
 
     // Examples 6.18 through 6.22 test custom tag URIs, which this
     // implementation currently doesn't plan to support.
   });
 
   group('6.9: Node Properties', () {
-    // test('may be specified in any order', () {
-    //   expectYamlLoads(["foo", "bar"],
-    //     """
-    //     - !!str &a1 foo
-    //     - &a2 !!str bar""");
-    // });
+    test('may be specified in any order', () {
+      expectYamlLoads(["foo", "bar"],
+        """
+        - !!str &a1 foo
+        - &a2 !!str bar""");
+    });
 
-    // test('[Example 6.23]', () {
-    //   expectYamlLoads({
-    //     "foo": "bar",
-    //     "baz": "foo"
-    //   },
-    //     '''
-    //     !!str &a1 "foo":
-    //       !!str bar
-    //     &a2 baz : *a1''');
-    // });
+    test('[Example 6.23]', () {
+      expectYamlLoads({
+        "foo": "bar",
+        "baz": "foo"
+      },
+        '''
+        !!str &a1 "foo":
+          !!str bar
+        &a2 baz : *a1''');
+    });
 
-    // // Example 6.24 tests custom tag URIs, which this implementation currently
-    // // doesn't plan to support.
+    // Example 6.24 tests custom tag URIs, which this implementation currently
+    // doesn't plan to support.
 
-    // test('[Example 6.25]', () {
-    //   expectYamlFails("- !<!> foo");
-    //   expectYamlFails("- !<\$:?> foo");
-    // });
+    test('[Example 6.25]', () {
+      expectYamlFails("- !<!> foo");
+      expectYamlFails("- !<\$:?> foo");
+    });
 
-    // // Examples 6.26 and 6.27 test custom tag URIs, which this implementation
-    // // currently doesn't plan to support.
+    // Examples 6.26 and 6.27 test custom tag URIs, which this implementation
+    // currently doesn't plan to support.
 
-    // test('[Example 6.28]', () {
-    //   expectYamlLoads(["12", 12, "12"],
-    //     '''
-    //     # Assuming conventional resolution:
-    //     - "12"
-    //     - 12
-    //     - ! 12''');
-    // });
+    test('[Example 6.28]', () {
+      expectYamlLoads(["12", 12, "12"],
+        '''
+        # Assuming conventional resolution:
+        - "12"
+        - 12
+        - ! 12''');
+    });
 
-    // test('[Example 6.29]', () {
-    //   expectYamlLoads({
-    //     "First occurrence": "Value",
-    //     "Second occurrence": "anchor"
-    //   },
-    //     """
-    //     First occurrence: &anchor Value
-    //     Second occurrence: *anchor""");
-    // });
+    test('[Example 6.29]', () {
+      expectYamlLoads({
+        "First occurrence": "Value",
+        "Second occurrence": "Value"
+      },
+        """
+        First occurrence: &anchor Value
+        Second occurrence: *anchor""");
+    });
   });
 
   // Chapter 7: Flow Styles
   group('7.1: Alias Nodes', () {
-    // test("must not use an anchor that doesn't previously occur", () {
-    //   expectYamlFails(
-    //     """
-    //     - *anchor
-    //     - &anchor foo""");
-    // });
+    test("must not use an anchor that doesn't previously occur", () {
+      expectYamlFails(
+        """
+        - *anchor
+        - &anchor foo""");
+    });
 
-    // test("don't have to exist for a given anchor node", () {
-    //   expectYamlLoads(["foo"], "- &anchor foo");
-    // });
+    test("don't have to exist for a given anchor node", () {
+      expectYamlLoads(["foo"], "- &anchor foo");
+    });
 
-    // group('must not specify', () {
-    //   test('tag properties', () => expectYamlFails(
-    //     """
-    //     - &anchor foo
-    //     - !str *anchor""");
+    group('must not specify', () {
+      test('tag properties', () => expectYamlFails(
+        """
+        - &anchor foo
+        - !str *anchor"""));
 
-    //   test('anchor properties', () => expectYamlFails(
-    //     """
-    //     - &anchor foo
-    //     - &anchor2 *anchor""");
+      test('anchor properties', () => expectYamlFails(
+        """
+        - &anchor foo
+        - &anchor2 *anchor"""));
 
-    //   test('content', () => expectYamlFails(
-    //     """
-    //     - &anchor foo
-    //     - *anchor bar""")));
-    // });
+      test('content', () => expectYamlFails(
+        """
+        - &anchor foo
+        - *anchor bar"""));
+    });
 
-    // test('must preserve structural equality', () {
-    //   var doc = loadYaml(cleanUpLiteral(
-    //     """
-    //     anchor: &anchor [a, b, c]
-    //     alias: *anchor""");
-    //   var anchorList = doc['anchor'];
-    //   var aliasList = doc['alias'];
-    //   expect(anchorList, same(aliasList));
+    test('must preserve structural equality', () {
+      var doc = loadYaml(cleanUpLiteral(
+        """
+        anchor: &anchor [a, b, c]
+        alias: *anchor"""));
+      var anchorList = doc['anchor'];
+      var aliasList = doc['alias'];
+      expect(anchorList, same(aliasList));
 
-    //   doc = loadYaml(cleanUpLiteral(
-    //     """
-    //     ? &anchor [a, b, c]
-    //     : ? *anchor
-    //       : bar""");
-    //   anchorList = doc.keys[0];
-    //   aliasList = doc[['a', 'b', 'c']].keys[0];
-    //   expect(anchorList, same(aliasList));
-    // });
+      doc = loadYaml(cleanUpLiteral(
+        """
+        ? &anchor [a, b, c]
+        : ? *anchor
+          : bar"""));
+      anchorList = doc.keys.first;
+      aliasList = doc[['a', 'b', 'c']].keys.first;
+      expect(anchorList, same(aliasList));
+    });
 
-    // test('[Example 7.1]', () {
-    //   expectYamlLoads({
-    //     "First occurence": "Foo",
-    //     "Second occurence": "Foo",
-    //     "Override anchor": "Bar",
-    //     "Reuse anchor": "Bar",
-    //   },
-    //     """
-    //     First occurrence: &anchor Foo
-    //     Second occurrence: *anchor
-    //     Override anchor: &anchor Bar
-    //     Reuse anchor: *anchor""");
-    // });
+    test('[Example 7.1]', () {
+      expectYamlLoads({
+        "First occurrence": "Foo",
+        "Second occurrence": "Foo",
+        "Override anchor": "Bar",
+        "Reuse anchor": "Bar",
+      },
+        """
+        First occurrence: &anchor Foo
+        Second occurrence: *anchor
+        Override anchor: &anchor Bar
+        Reuse anchor: *anchor""");
+    });
   });
 
   group('7.2: Empty Nodes', () {
-    // test('[Example 7.2]', () {
-    //   expectYamlLoads({
-    //     "foo": "",
-    //     "": "bar"
-    //   },
-    //     """
-    //     {
-    //       foo : !!str,
-    //       !!str : bar,
-    //     }""");
-    // });
+    test('[Example 7.2]', () {
+      expectYamlLoads({
+        "foo": "",
+        "": "bar"
+      },
+        """
+        {
+          foo : !!str,
+          !!str : bar,
+        }""");
+    });
 
     test('[Example 7.3]', () {
       var doc = deepEqualsMap({"foo": null});
@@ -1284,17 +1306,18 @@ main() {
         - [ {JSON: like}:adjacent ]""");
     });
 
-    test('[Example 7.22]', () {
-      expectYamlFails(
-        """
-        [ foo
-         bar: invalid ]""");
-
-      // TODO(nweiz): enable this when we throw an error for long keys
-      // var dotList = new List.filled(1024, ' ');
-      // var dots = dotList.join();
-      // expectYamlFails('[ "foo...$dots...bar": invalid ]');
-    });
+    // TODO(nweiz): enable this when we throw an error for long or multiline
+    // keys.
+    // test('[Example 7.22]', () {
+    //   expectYamlFails(
+    //     """
+    //     [ foo
+    //      bar: invalid ]""");
+    //
+    //   var dotList = new List.filled(1024, ' ');
+    //   var dots = dotList.join();
+    //   expectYamlFails('[ "foo...$dots...bar": invalid ]');
+    // });
   });
 
   group('7.5: Flow Nodes', () {
@@ -1308,15 +1331,15 @@ main() {
         - c""");
     });
 
-    // test('[Example 7.24]', () {
-    //   expectYamlLoads(["a", "b", "c", "c", ""],
-    //     """
-    //     - !!str "a"
-    //     - 'b'
-    //     - &anchor "c"
-    //     - *anchor
-    //     - !!str""");
-    // });
+    test('[Example 7.24]', () {
+      expectYamlLoads(["a", "b", "c", "c", ""],
+        """
+        - !!str "a"
+        - 'b'
+        - &anchor "c"
+        - *anchor
+        - !!str""");
+    });
   });
 
   // Chapter 8: Block Styles
@@ -1569,41 +1592,43 @@ main() {
           : moon: white""");
     });
 
-    // test('[Example 8.20]', () {
-    //   expectYamlLoads(["flow in block", "Block scalar\n", {"foo": "bar"}],
-    //     '''
-    //     -
-    //       "flow in block"
-    //     - >
-    //      Block scalar
-    //     - !!map # Block collection
-    //       foo : bar''');
-    // });
+    test('[Example 8.20]', () {
+      expectYamlLoads(["flow in block", "Block scalar\n", {"foo": "bar"}],
+        '''
+        -
+          "flow in block"
+        - >
+         Block scalar
+        - !!map # Block collection
+          foo : bar''');
+    });
 
-    // test('[Example 8.21]', () {
-    //   expectYamlLoads({"literal": "value", "folded": "value"},
-    //     """
-    //     literal: |2
-    //       value
-    //     folded:
-    //        !!str
-    //       >1
-    //      value""");
-    // });
+    test('[Example 8.21]', () {
+      // The spec doesn't include a newline after "value" in the parsed map, but
+      // the block scalar is clipped so it should be retained.
+      expectYamlLoads({"literal": "value\n", "folded": "value"},
+        """
+        literal: |2
+          value
+        folded:
+           !!str
+          >1
+         value""");
+    });
 
-    // test('[Example 8.22]', () {
-    //   expectYamlLoads({
-    //     "sequence": ["entry", ["nested"]],
-    //     "mapping": {"foo": "bar"}
-    //   },
-    //     """
-    //     sequence: !!seq
-    //     - entry
-    //     - !!seq
-    //      - nested
-    //     mapping: !!map
-    //      foo: bar""");
-    // });
+    test('[Example 8.22]', () {
+      expectYamlLoads({
+        "sequence": ["entry", ["nested"]],
+        "mapping": {"foo": "bar"}
+      },
+        """
+        sequence: !!seq
+        - entry
+        - !!seq
+         - nested
+        mapping: !!map
+         foo: bar""");
+    });
   });
 
   // Chapter 9: YAML Character Stream
@@ -1611,14 +1636,14 @@ main() {
     // Example 9.1 tests the use of a BOM, which this implementation currently
     // doesn't plan to support.
 
-    // test('[Example 9.2]', () {
-    //   expectYamlLoads("Document",
-    //     """
-    //     %YAML 1.2
-    //     ---
-    //     Document
-    //     ... # Suffix""");
-    // });
+    test('[Example 9.2]', () {
+      expectYamlLoads("Document",
+        """
+        %YAML 1.2
+        ---
+        Document
+        ... # Suffix""");
+    });
 
     test('[Example 9.3]', () {
       // The spec example indicates that the comment after "%!PS-Adobe-2.0"
@@ -1653,81 +1678,83 @@ main() {
         ...""");
     });
 
-    // test('[Example 9.5]', () {
-    //   expectYamlStreamLoads(["%!PS-Adobe-2.0\n", null],
-    //     """
-    //     %YAML 1.2
-    //     --- |
-    //     %!PS-Adobe-2.0
-    //     ...
-    //     %YAML1.2
-    //     ---
-    //     # Empty
-    //     ...""");
-    // });
+    test('[Example 9.5]', () {
+      // The spec doesn't have a space between the second
+      // "YAML" and "1.2", but this seems to be a typo.
+      expectYamlStreamLoads(["%!PS-Adobe-2.0\n", null],
+        """
+        %YAML 1.2
+        --- |
+        %!PS-Adobe-2.0
+        ...
+        %YAML 1.2
+        ---
+        # Empty
+        ...""");
+    });
 
-    // test('[Example 9.6]', () {
-    //   expectYamlStreamLoads(["Document", null, {"matches %": 20}],
-    //     """
-    //     Document
-    //     ---
-    //     # Empty
-    //     ...
-    //     %YAML 1.2
-    //     ---
-    //     matches %: 20""");
-    // });
+    test('[Example 9.6]', () {
+      expectYamlStreamLoads(["Document", null, {"matches %": 20}],
+        """
+        Document
+        ---
+        # Empty
+        ...
+        %YAML 1.2
+        ---
+        matches %: 20""");
+    });
   });
 
   // Chapter 10: Recommended Schemas
   group('10.1: Failsafe Schema', () {
-    // test('[Example 10.1]', () {
-    //   expectYamlStreamLoads({
-    //     "Block style": {
-    //       "Clark": "Evans",
-    //       "Ingy": "döt Net",
-    //       "Oren": "Ben-Kiki"
-    //     },
-    //     "Flow style": {
-    //       "Clark": "Evans",
-    //       "Ingy": "döt Net",
-    //       "Oren": "Ben-Kiki"
-    //     }
-    //   },
-    //     """
-    //     Block style: !!map
-    //       Clark : Evans
-    //       Ingy  : döt Net
-    //       Oren  : Ben-Kiki
+    test('[Example 10.1]', () {
+      expectYamlLoads({
+        "Block style": {
+          "Clark": "Evans",
+          "Ingy": "döt Net",
+          "Oren": "Ben-Kiki"
+        },
+        "Flow style": {
+          "Clark": "Evans",
+          "Ingy": "döt Net",
+          "Oren": "Ben-Kiki"
+        }
+      },
+        """
+        Block style: !!map
+          Clark : Evans
+          Ingy  : döt Net
+          Oren  : Ben-Kiki
 
-    //     Flow style: !!map { Clark: Evans, Ingy: döt Net, Oren: Ben-Kiki }""");
-    // });
+        Flow style: !!map { Clark: Evans, Ingy: döt Net, Oren: Ben-Kiki }""");
+    });
 
-    // test('[Example 10.2]', () {
-    //   expectYamlStreamLoads({
-    //     "Block style": ["Clark Evans", "Ingy döt Net", "Oren Ben-Kiki"],
-    //     "Flow style": ["Clark Evans", "Ingy döt Net", "Oren Ben-Kiki"]
-    //   },
-    //     """
-    //     Block style: !!seq
-    //     - Clark Evans
-    //     - Ingy döt Net
-    //     - Oren Ben-Kiki
+    test('[Example 10.2]', () {
+      expectYamlLoads({
+        "Block style": ["Clark Evans", "Ingy döt Net", "Oren Ben-Kiki"],
+        "Flow style": ["Clark Evans", "Ingy döt Net", "Oren Ben-Kiki"]
+      },
+        """
+        Block style: !!seq
+        - Clark Evans
+        - Ingy döt Net
+        - Oren Ben-Kiki
 
-    //     Flow style: !!seq [ Clark Evans, Ingy döt Net, Oren Ben-Kiki ]""");
-    // });
+        Flow style: !!seq [ Clark Evans, Ingy döt Net, Oren Ben-Kiki ]""");
+    });
 
-    // test('[Example 10.3]', () {
-    //   expectYamlStreamLoads({
-    //     "Block style": "String: just a theory.",
-    //     "Flow style": "String: just a theory."
-    //   },
-    //     '''
-    //     Block style: !!str |-
-    //       String: just a theory.
+    test('[Example 10.3]', () {
+      expectYamlLoads({
+        "Block style": "String: just a theory.",
+        "Flow style": "String: just a theory."
+      },
+        '''
+        Block style: !!str |-
+          String: just a theory.
 
-    //     Flow style: !!str "String: just a theory."''');
-    // });
+        Flow style: !!str "String: just a theory."''');
+    });
   });
 
   group('10.2: JSON Schema', () {

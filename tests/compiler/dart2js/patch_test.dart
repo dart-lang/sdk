@@ -5,12 +5,12 @@
 import 'dart:async';
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import "package:compiler/implementation/dart2jslib.dart";
-import "package:compiler/implementation/elements/elements.dart";
-import "package:compiler/implementation/tree/tree.dart";
+import "package:compiler/src/dart2jslib.dart";
+import "package:compiler/src/elements/elements.dart";
+import "package:compiler/src/tree/tree.dart";
 import "mock_compiler.dart";
 import "mock_libraries.dart";
-import 'package:compiler/implementation/elements/modelx.dart';
+import 'package:compiler/src/elements/modelx.dart';
 
 Future<Compiler> applyPatch(String script, String patch,
                             {bool analyzeAll: false, bool analyzeOnly: false,
@@ -854,6 +854,49 @@ void testAnalyzeAllInjectedMembers() {
          MessageKind.NOT_ASSIGNABLE);
 }
 
+void testEffectiveTarget() {
+  String origin = """
+    class A {
+      A() : super();
+      factory A.forward() = B.patchTarget;
+      factory A.forwardTwo() = B.reflectBack;
+    }
+    class B extends A {
+      B() : super();
+      external B.patchTarget();
+      external factory B.reflectBack();
+      B.originTarget() : super();
+    }
+    """;
+  String patch = """
+    @patch class B {
+      B.patchTarget() : super();
+      factory B.reflectBack() : B.originTarget;
+    }
+    """;
+
+  asyncTest(() => applyPatch(origin, patch, analyzeAll: true,
+                 analyzeOnly: true, runCompiler: true).then((compiler) {
+    ClassElement clsA = compiler.coreLibrary.find("A");
+    ClassElement clsB = compiler.coreLibrary.find("B");
+
+    Selector forwardCall = new Selector.callConstructor("forward",
+        compiler.coreLibrary);
+    ConstructorElement forward = clsA.lookupConstructor(forwardCall);
+    ConstructorElement target = forward.effectiveTarget;
+    Expect.isTrue(target.isPatch);
+    Expect.equals("patchTarget", target.name);
+
+    Selector forwardTwoCall = new Selector.callConstructor("forwardTwo",
+        compiler.coreLibrary);
+    ConstructorElement forwardTwo = clsA.lookupConstructor(forwardTwoCall);
+    target = forwardTwo.effectiveTarget;
+    Expect.isFalse(forwardTwo.isErroneous);
+    Expect.isFalse(target.isPatch);
+    Expect.equals("originTarget", target.name);
+  }));
+}
+
 void testTypecheckPatchedMembers() {
   String originText = "external void method();";
   String patchText = """
@@ -901,6 +944,8 @@ main() {
   testPatchNonFunction();
 
   testPatchAndSelector();
+
+  testEffectiveTarget(); /// bug: ok
 
   testAnalyzeAllInjectedMembers();
   testTypecheckPatchedMembers();

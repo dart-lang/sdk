@@ -107,15 +107,15 @@ class A {
     PropertyAccessorElement getter = field.getter;
     PropertyAccessorElement setter = field.setter;
     {
-      int id = codec.encode(getter);
+      int id = codec.encode(getter, false);
       expect(codec.decode(context, id), getter);
     }
     {
-      int id = codec.encode(setter);
+      int id = codec.encode(setter, false);
       expect(codec.decode(context, id), setter);
     }
     {
-      int id = codec.encode(field);
+      int id = codec.encode(field, false);
       expect(codec.decode(context, id), field);
     }
   }
@@ -137,12 +137,12 @@ main() {
 ''');
     {
       LocalVariableElement element = findNodeElementAtString('bar; // A', null);
-      int id = codec.encode(element);
+      int id = codec.encode(element, false);
       expect(codec.decode(context, id), element);
     }
     {
       LocalVariableElement element = findNodeElementAtString('bar; // B', null);
-      int id = codec.encode(element);
+      int id = codec.encode(element, false);
       expect(codec.decode(context, id), element);
     }
     // check strings, "foo" as a single string, no "foo@17" or "bar@35"
@@ -166,12 +166,12 @@ main() {
 ''');
     {
       LocalVariableElement element = findNodeElementAtString('foo; // A', null);
-      int id = codec.encode(element);
+      int id = codec.encode(element, false);
       expect(codec.decode(context, id), element);
     }
     {
       LocalVariableElement element = findNodeElementAtString('foo; // B', null);
-      int id = codec.encode(element);
+      int id = codec.encode(element, false);
       expect(codec.decode(context, id), element);
     }
     // check strings, "foo" as a single string, no "foo@21" or "foo@47"
@@ -188,8 +188,8 @@ main() {
 }
 ''');
     LocalVariableElement element = findElement('foo');
-    int id = codec.encode(element);
-    expect(codec.encode(element), id);
+    int id = codec.encode(element, false);
+    expect(codec.encode(element, false), id);
     expect(codec.decode(context, id), element);
     // check strings
     expect(stringCodec.nameToIndex, hasLength(3));

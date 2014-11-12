@@ -65,7 +65,6 @@ main() {
                         'web',
                         [
                             d.matcherFile('main.dart.js', isNot(isEmpty)),
-                            d.matcherFile('main.dart.precompiled.js', isNot(isEmpty)),
                             d.matcherFile('main.dart.js_1.part.js', isNot(isEmpty)),
                             d.matcherFile('main.dart.js_2.part.js', isNot(isEmpty)),])])]).validate();
   });

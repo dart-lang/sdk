@@ -10,10 +10,10 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
-import '../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
+import '../reflective_tests.dart';
 
 
 main() {
@@ -100,6 +100,37 @@ class B extends A<int> {
         expect(itemA.classElement.name, 'A');
         expect(itemB.classElement.name, 'B');
         expect(itemA.displayName, 'A<int>');
+      });
+    });
+  }
+
+  test_class_extends_fileAndPackageUris() {
+    // prepare packages
+    String pkgFile = '/packages/pkgA/libA.dart';
+    resourceProvider.newFile(pkgFile, '''
+library lib_a;
+class A {}
+class B extends A {}
+''');
+    packageMapProvider.packageMap['pkgA'] =
+        [resourceProvider.getResource('/packages/pkgA')];
+    // reference the package from a project
+    addTestFile('''
+import 'package:pkgA/libA.dart';
+class C extends A {}
+''');
+    // configure roots
+    Request request = new AnalysisSetAnalysisRootsParams(
+        [projectPath, '/packages/pkgA'],
+        []).toRequest('0');
+    handleSuccessfulRequest(request);
+    // test A type hierarchy
+    return waitForTasksFinished().then((_) {
+      return _getTypeHierarchy('A {}').then((items) {
+        Set<String> names = _toClassNames(items);
+        expect(names, contains('A'));
+        expect(names, contains('B'));
+        expect(names, contains('C'));
       });
     });
   }
@@ -566,5 +597,11 @@ class D extends C {
 
   List _toJson(List<TypeHierarchyItem> items) {
     return items.map((item) => item.toJson()).toList();
+  }
+
+  static Set<String> _toClassNames(List<TypeHierarchyItem> items) {
+    return items.map((TypeHierarchyItem item) {
+      return item.classElement.name;
+    }).toSet();
   }
 }

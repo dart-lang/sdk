@@ -656,7 +656,7 @@ class ConstantValueComputer {
       // const factory constructor that we can emulate.
       if (constructor.name == "fromEnvironment") {
         if (!_checkFromEnvironmentArguments(arguments, argumentValues, namedArgumentValues, definingClass)) {
-          errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node, []);
+          errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
           return null;
         }
         String variableName = argumentCount < 1 ? null : argumentValues[0].stringValue;
@@ -675,7 +675,7 @@ class ConstantValueComputer {
         }
       } else if (constructor.name == "" && identical(definingClass, typeProvider.symbolType) && argumentCount == 1) {
         if (!_checkSymbolArguments(arguments, argumentValues, namedArgumentValues)) {
-          errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node, []);
+          errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
           return null;
         }
         String argumentValue = argumentValues[0].stringValue;
@@ -1120,7 +1120,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (conditionResult == null) {
       return conditionResult;
     } else if (!conditionResult.isBool) {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, condition, []);
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, condition);
       return null;
     } else if (thenResult == null) {
       return thenResult;
@@ -1180,7 +1180,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   @override
   DartObjectImpl visitListLiteral(ListLiteral node) {
     if (node.constKeyword == null) {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL, node, []);
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL, node);
       return null;
     }
     bool errorOccurred = false;
@@ -1210,7 +1210,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   @override
   DartObjectImpl visitMapLiteral(MapLiteral node) {
     if (node.constKeyword == null) {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL, node, []);
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL, node);
       return null;
     }
     bool errorOccurred = false;
@@ -1437,7 +1437,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    * @param code the error code indicating the nature of the error
    */
   void _error(AstNode node, ErrorCode code) {
-    _errorReporter.reportErrorForNode(code == null ? CompileTimeErrorCode.INVALID_CONSTANT : code, node, []);
+    _errorReporter.reportErrorForNode(code == null ? CompileTimeErrorCode.INVALID_CONSTANT : code, node);
   }
 
   /**
@@ -1599,7 +1599,7 @@ class DartObjectComputer {
       try {
         return leftOperand.add(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
         return null;
       }
     }
@@ -1617,7 +1617,7 @@ class DartObjectComputer {
       try {
         return evaluationResult.convertToBool(_typeProvider);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1628,7 +1628,7 @@ class DartObjectComputer {
       try {
         return leftOperand.bitAnd(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1639,7 +1639,7 @@ class DartObjectComputer {
       try {
         return evaluationResult.bitNot(_typeProvider);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1650,7 +1650,7 @@ class DartObjectComputer {
       try {
         return leftOperand.bitOr(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1661,7 +1661,7 @@ class DartObjectComputer {
       try {
         return leftOperand.bitXor(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1672,7 +1672,7 @@ class DartObjectComputer {
       try {
         return leftOperand.concatenate(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1683,7 +1683,7 @@ class DartObjectComputer {
       try {
         return leftOperand.divide(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1694,7 +1694,7 @@ class DartObjectComputer {
       try {
         return leftOperand.equalEqual(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1705,7 +1705,7 @@ class DartObjectComputer {
       try {
         return leftOperand.greaterThan(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1716,7 +1716,7 @@ class DartObjectComputer {
       try {
         return leftOperand.greaterThanOrEqual(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1727,7 +1727,7 @@ class DartObjectComputer {
       try {
         return leftOperand.integerDivide(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1739,7 +1739,7 @@ class DartObjectComputer {
       try {
         return leftOperand.isIdentical(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1750,7 +1750,7 @@ class DartObjectComputer {
       try {
         return leftOperand.lessThan(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1761,7 +1761,7 @@ class DartObjectComputer {
       try {
         return leftOperand.lessThanOrEqual(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1772,7 +1772,7 @@ class DartObjectComputer {
       try {
         return leftOperand.logicalAnd(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1783,7 +1783,7 @@ class DartObjectComputer {
       try {
         return evaluationResult.logicalNot(_typeProvider);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1794,7 +1794,7 @@ class DartObjectComputer {
       try {
         return leftOperand.logicalOr(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1805,7 +1805,7 @@ class DartObjectComputer {
       try {
         return leftOperand.minus(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1816,7 +1816,7 @@ class DartObjectComputer {
       try {
         return evaluationResult.negated(_typeProvider);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1827,7 +1827,7 @@ class DartObjectComputer {
       try {
         return leftOperand.notEqual(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1838,7 +1838,7 @@ class DartObjectComputer {
       try {
         return evaluationResult.performToString(_typeProvider);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1849,7 +1849,7 @@ class DartObjectComputer {
       try {
         return leftOperand.remainder(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1860,7 +1860,7 @@ class DartObjectComputer {
       try {
         return leftOperand.shiftLeft(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1871,7 +1871,7 @@ class DartObjectComputer {
       try {
         return leftOperand.shiftRight(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1888,7 +1888,7 @@ class DartObjectComputer {
       try {
         return new EvaluationResultImpl.con1(evaluationResult.value.stringLength(_typeProvider));
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return new EvaluationResultImpl.con1(null);
@@ -1899,7 +1899,7 @@ class DartObjectComputer {
       try {
         return leftOperand.times(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node, []);
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
     }
     return null;
@@ -1919,6 +1919,11 @@ class DartObjectImpl implements DartObject {
    * The state of the object.
    */
   final InstanceState _state;
+
+  /**
+   * An empty list of objects.
+   */
+  static const List<DartObjectImpl> EMPTY_LIST = const <DartObjectImpl>[];
 
   /**
    * Initialize a newly created object to have the given type and state.

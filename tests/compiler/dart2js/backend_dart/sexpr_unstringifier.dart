@@ -7,22 +7,22 @@
 
 library sexpr_unstringifier;
 
-import 'package:compiler/implementation/constants/expressions.dart'
+import 'package:compiler/src/constants/expressions.dart'
     show PrimitiveConstantExpression;
-import 'package:compiler/implementation/constants/values.dart';
-import 'package:compiler/implementation/dart2jslib.dart' as dart2js
+import 'package:compiler/src/constants/values.dart';
+import 'package:compiler/src/dart2jslib.dart' as dart2js
     show MessageKind;
-import 'package:compiler/implementation/dart_types.dart' as dart_types
+import 'package:compiler/src/dart_types.dart' as dart_types
     show DartType;
-import 'package:compiler/implementation/elements/elements.dart'
+import 'package:compiler/src/elements/elements.dart'
    show Entity, Element, Elements, Local, TypeVariableElement, ErroneousElement,
          TypeDeclarationElement, ExecutableElement;
-import 'package:compiler/implementation/elements/modelx.dart'
+import 'package:compiler/src/elements/modelx.dart'
     show ErroneousElementX, TypeVariableElementX;
-import 'package:compiler/implementation/tree/tree.dart' show LiteralDartString;
-import 'package:compiler/implementation/universe/universe.dart'
+import 'package:compiler/src/tree/tree.dart' show LiteralDartString;
+import 'package:compiler/src/universe/universe.dart'
     show Selector, SelectorKind;
-import 'package:compiler/implementation/cps_ir/cps_ir_nodes.dart';
+import 'package:compiler/src/cps_ir/cps_ir_nodes.dart';
 
 /// Used whenever a node constructed by [SExpressionUnstringifier] needs a
 /// named entity.
@@ -234,16 +234,16 @@ class SExpressionUnstringifier {
     return null;
   }
 
-  /// def1 def2 ... defn cont )
+  /// prim1 prim2 ... primn cont)
   /// Note that cont is *not* included in the returned list and not consumed.
-  List<Definition> parseDefinitionList() {
-    List<Definition> defs = <Definition>[];
+  List<Primitive> parseArgumentList() {
+    List<Primitive> args = <Primitive>[];
     while (tokens.next != ")") {
-      Definition def = name2variable[tokens.read()];
-      assert(def != null);
-      defs.add(def);
+      Primitive prim = name2variable[tokens.read()];
+      assert(prim != null);
+      args.add(prim);
     }
-    return defs;
+    return args;
   }
 
   /// (prim1 prim2 ... primn)
@@ -321,7 +321,7 @@ class SExpressionUnstringifier {
   ConcatenateStrings parseConcatenateStrings() {
     tokens.consumeStart(CONCATENATE_STRINGS);
 
-    List<Definition> args = parseDefinitionList();
+    List<Primitive> args = parseArgumentList();
 
     Continuation cont = name2variable[tokens.read()];
     assert(cont != null);
@@ -360,7 +360,7 @@ class SExpressionUnstringifier {
     dart_types.DartType type = new DummyNamedType(split[0]);
     Element element = new DummyElement((split.length == 1) ? "" : split[1]);
 
-    List<Definition> args = parseDefinitionList();
+    List<Primitive> args = parseArgumentList();
 
     Continuation cont = name2variable[tokens.read()];
     assert(cont != null);
@@ -378,11 +378,11 @@ class SExpressionUnstringifier {
     Continuation cont = name2variable[tokens.read()];
     assert(cont != null);
 
-    List<Definition> args = <Definition>[];
+    List<Primitive> args = <Primitive>[];
     while (tokens.current != ")") {
-      Definition def = name2variable[tokens.read()];
-      assert(def != null);
-      args.add(def);
+      Primitive arg = name2variable[tokens.read()];
+      assert(arg != null);
+      args.add(arg);
     }
 
     tokens.consumeEnd();
@@ -398,7 +398,7 @@ class SExpressionUnstringifier {
 
     String methodName = tokens.read();
 
-    List<Definition> args = parseDefinitionList();
+    List<Primitive> args = parseArgumentList();
 
     Continuation cont = name2variable[tokens.read()];
     assert(cont != null);
@@ -414,7 +414,7 @@ class SExpressionUnstringifier {
 
     String methodName = tokens.read();
 
-    List<Definition> args = parseDefinitionList();
+    List<Primitive> args = parseArgumentList();
 
     Continuation cont = name2variable[tokens.read()];
     assert(cont != null);
@@ -432,7 +432,7 @@ class SExpressionUnstringifier {
 
     String methodName = tokens.read();
 
-    List<Definition> args = parseDefinitionList();
+    List<Primitive> args = parseArgumentList();
 
     Continuation cont = name2variable[tokens.read()];
     assert(cont != null);

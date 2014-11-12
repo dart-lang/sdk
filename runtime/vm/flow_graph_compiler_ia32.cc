@@ -8,6 +8,7 @@
 #include "vm/flow_graph_compiler.h"
 
 #include "vm/ast_printer.h"
+#include "vm/code_patcher.h"
 #include "vm/compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
@@ -1228,8 +1229,12 @@ void FlowGraphCompiler::EmitEdgeCounter() {
   counter.SetAt(0, Smi::Handle(Smi::New(0)));
   __ Comment("Edge counter");
   __ LoadObject(EAX, counter);
-  __ addl(FieldAddress(EAX, Array::element_offset(0)),
-          Immediate(Smi::RawValue(1)));
+#if defined(DEBUG)
+  intptr_t increment_start = assembler_->CodeSize();
+#endif  // DEBUG
+  __ IncrementSmiField(FieldAddress(EAX, Array::element_offset(0)), 1);
+  DEBUG_ASSERT((assembler_->CodeSize() - increment_start) ==
+               CodePatcher::EdgeCounterIncrementSizeInBytes());
 }
 
 

@@ -1294,7 +1294,6 @@ class SourceVisitor implements AstVisitor {
   visitSymbolLiteral(SymbolLiteral node) {
     token(node.poundSign);
     var components = node.components;
-    var size = components.length;
     for (var component in components) {
       // The '.' separator
       if (component.previous.lexeme == '.') {

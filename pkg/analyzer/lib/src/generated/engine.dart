@@ -336,7 +336,7 @@ abstract class AnalysisContext {
    * @return all of the errors associated with the given source
    * @throws AnalysisException if the errors could not be determined because the analysis could not
    *           be performed
-   * @see #getErrors(Source)
+   * See [getErrors].
    */
   List<AnalysisError> computeErrors(Source source);
 
@@ -353,7 +353,7 @@ abstract class AnalysisContext {
    * @return the element model corresponding to the HTML file defined by the given source
    * @throws AnalysisException if the element model could not be determined because the analysis
    *           could not be performed
-   * @see #getHtmlElement(Source)
+   * See [getHtmlElement].
    */
   HtmlElement computeHtmlElement(Source source);
 
@@ -365,7 +365,7 @@ abstract class AnalysisContext {
    *
    * @param source the source whose kind is to be returned
    * @return the kind of the given source
-   * @see #getKindOf(Source)
+   * See [getKindOf].
    */
   SourceKind computeKindOf(Source source);
 
@@ -381,7 +381,7 @@ abstract class AnalysisContext {
    * @return the element model corresponding to the library defined by the given source
    * @throws AnalysisException if the element model could not be determined because the analysis
    *           could not be performed
-   * @see #getLibraryElement(Source)
+   * See [getLibraryElement].
    */
   LibraryElement computeLibraryElement(Source source);
 
@@ -397,7 +397,7 @@ abstract class AnalysisContext {
    * @return the line information for the given source
    * @throws AnalysisException if the line information could not be determined because the analysis
    *           could not be performed
-   * @see #getLineInfo(Source)
+   * See [getLineInfo].
    */
   LineInfo computeLineInfo(Source source);
 
@@ -488,7 +488,7 @@ abstract class AnalysisContext {
    *
    * @param source the source whose errors are to be returned
    * @return all of the errors associated with the given source and the line info
-   * @see #computeErrors(Source)
+   * See [computeErrors].
    */
   AnalysisErrorInfo getErrors(Source source);
 
@@ -499,7 +499,7 @@ abstract class AnalysisContext {
    *
    * @param source the source defining the HTML file whose element model is to be returned
    * @return the element model corresponding to the HTML file defined by the given source
-   * @see #computeHtmlElement(Source)
+   * See [computeHtmlElement].
    */
   HtmlElement getHtmlElement(Source source);
 
@@ -526,7 +526,7 @@ abstract class AnalysisContext {
    *
    * @param source the source whose kind is to be returned
    * @return the kind of the given source
-   * @see #computeKindOf(Source)
+   * See [computeKindOf].
    */
   SourceKind getKindOf(Source source);
 
@@ -611,7 +611,7 @@ abstract class AnalysisContext {
    *
    * @param source the source whose line information is to be returned
    * @return the line information for the given source
-   * @see #computeLineInfo(Source)
+   * See [computeLineInfo].
    */
   LineInfo getLineInfo(Source source);
 
@@ -646,7 +646,7 @@ abstract class AnalysisContext {
    * @param unitSource the source of the compilation unit
    * @param library the library containing the compilation unit
    * @return a fully resolved AST for the compilation unit
-   * @see #resolveCompilationUnit(Source, LibraryElement)
+   * See [resolveCompilationUnit].
    */
   CompilationUnit getResolvedCompilationUnit(Source unitSource, LibraryElement library);
 
@@ -658,7 +658,7 @@ abstract class AnalysisContext {
    * @param librarySource the source of the defining compilation unit of the library containing the
    *          compilation unit
    * @return a fully resolved AST for the compilation unit
-   * @see #resolveCompilationUnit(Source, Source)
+   * See [resolveCompilationUnit].
    */
   CompilationUnit getResolvedCompilationUnit2(Source unitSource, Source librarySource);
 
@@ -668,7 +668,7 @@ abstract class AnalysisContext {
    *
    * @param htmlSource the source of the HTML unit
    * @return a fully resolved HTML unit
-   * @see #resolveHtmlUnit(Source)
+   * See [resolveHtmlUnit].
    */
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource);
 
@@ -766,7 +766,7 @@ abstract class AnalysisContext {
    * @return the result of resolving the AST structure representing the content of the source in the
    *         context of the given library
    * @throws AnalysisException if the analysis could not be performed
-   * @see #getResolvedCompilationUnit(Source, LibraryElement)
+   * See [getResolvedCompilationUnit].
    */
   CompilationUnit resolveCompilationUnit(Source unitSource, LibraryElement library);
 
@@ -783,7 +783,7 @@ abstract class AnalysisContext {
    * @return the result of resolving the AST structure representing the content of the source in the
    *         context of the given library
    * @throws AnalysisException if the analysis could not be performed
-   * @see #getResolvedCompilationUnit(Source, Source)
+   * See [getResolvedCompilationUnit].
    */
   CompilationUnit resolveCompilationUnit2(Source unitSource, Source librarySource);
 
@@ -2199,7 +2199,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * Given a source for a Dart file and the library that contains it, return a cache entry in which
    * the state of the data represented by the given descriptor is either [CacheState.VALID] or
-   * [CacheState#ERROR]. This method assumes that the data can be produced by generating hints
+   * [CacheStateERROR]. This method assumes that the data can be produced by generating hints
    * for the library if the data is not already cached.
    *
    * <b>Note:</b> This method cannot be used in an async environment.
@@ -6597,7 +6597,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
       // parse name
       Expression nameExpression = _parseDartExpressionInToken(formatterToken);
       if (nameExpression is! SimpleIdentifier) {
-        _reportErrorForNode(AngularCode.INVALID_FORMATTER_NAME, nameExpression, []);
+        _reportErrorForNode(AngularCode.INVALID_FORMATTER_NAME, nameExpression);
         continue;
       }
       SimpleIdentifier name = nameExpression as SimpleIdentifier;
@@ -6610,7 +6610,8 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
         if (colonToken.type == TokenType.COLON) {
           formatterToken = formatterToken.next;
         } else {
-          _reportErrorForToken(AngularCode.MISSING_FORMATTER_COLON, colonToken, []);
+          _reportErrorForToken(AngularCode.MISSING_FORMATTER_COLON, colonToken);
+          break;
         }
         // parse argument
         Expression argument = _parseDartExpressionInToken(formatterToken);
@@ -6648,21 +6649,21 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
   /**
    * Reports given [ErrorCode] at the given [AstNode].
    */
-  void _reportErrorForNode(ErrorCode errorCode, AstNode node, List<Object> arguments) {
+  void _reportErrorForNode(ErrorCode errorCode, AstNode node, [List<Object> arguments]) {
     _reportErrorForOffset(errorCode, node.offset, node.length, arguments);
   }
 
   /**
    * Reports given [ErrorCode] at the given position.
    */
-  void _reportErrorForOffset(ErrorCode errorCode, int offset, int length, List<Object> arguments) {
+  void _reportErrorForOffset(ErrorCode errorCode, int offset, int length, [List<Object> arguments]) {
     _errorListener.onError(new AnalysisError.con2(_source, offset, length, errorCode, arguments));
   }
 
   /**
    * Reports given [ErrorCode] at the given [Token].
    */
-  void _reportErrorForToken(ErrorCode errorCode, Token token, List<Object> arguments) {
+  void _reportErrorForToken(ErrorCode errorCode, Token token, [List<Object> arguments]) {
     _reportErrorForOffset(errorCode, token.offset, token.length, arguments);
   }
 
@@ -8811,8 +8812,12 @@ class GenerateDartErrorsTask extends AnalysisTask {
       // Use the ConstantVerifier to verify the use of constants. This needs to happen before using
       // the ErrorVerifier because some error codes need the computed constant values.
       //
-      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, libraryElement, typeProvider);
-      _unit.accept(constantVerifier);
+      // TODO(paulberry): as a temporary workaround for issue 21572,
+      // ConstantVerifier is being run right after ConstantValueComputer, so we
+      // don't need to run it here.  Once issue 21572 is fixed, re-enable the
+      // call to ConstantVerifier.
+      // ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, libraryElement, typeProvider);
+      // _unit.accept(constantVerifier);
       //
       // Use the ErrorVerifier to compute the rest of the errors.
       //
@@ -9254,7 +9259,7 @@ class HtmlEntry extends SourceEntry {
  * Instances of the class `IncrementalAnalysisCache` hold information used to perform
  * incremental analysis.
  *
- * @see AnalysisContextImpl.setChangedContents(Source, String, int, int, int)
+ * See [AnalysisContextImpl.setChangedContents].
  */
 class IncrementalAnalysisCache {
   /**
@@ -10753,7 +10758,7 @@ class ParseDartTask extends AnalysisTask {
       return null;
     }
     if (code == UriValidationCode.URI_WITH_INTERPOLATION) {
-      errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION, []));
+      errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION));
       return null;
     }
     if (code == UriValidationCode.INVALID_URI) {
@@ -11377,7 +11382,7 @@ class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
     // prepare value of the "attributes" attribute
     String attributesText = attributesAttribute.text;
     if (attributesText.trim().isEmpty) {
-      _reportErrorForAttribute(attributesAttribute, PolymerCode.EMPTY_ATTRIBUTES, []);
+      _reportErrorForAttribute(attributesAttribute, PolymerCode.EMPTY_ATTRIBUTES);
       return;
     }
     // prepare attribute name tokens
@@ -11448,7 +11453,7 @@ class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
     // prepare 'name' attribute
     ht.XmlAttributeNode nameAttribute = node.getAttribute("name");
     if (nameAttribute == null) {
-      _reportErrorForToken(node.tagToken, PolymerCode.MISSING_TAG_NAME, []);
+      _reportErrorForToken(node.tagToken, PolymerCode.MISSING_TAG_NAME);
       return;
     }
     // prepare name
@@ -11540,14 +11545,14 @@ class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
   /**
    * Reports an error on the attribute's value, or (if absent) on the attribute's name.
    */
-  void _reportErrorForAttribute(ht.XmlAttributeNode node, ErrorCode errorCode, List<Object> arguments) {
+  void _reportErrorForAttribute(ht.XmlAttributeNode node, ErrorCode errorCode, [List<Object> arguments]) {
     _reportErrorForOffset(node.offset, node.length, errorCode, arguments);
   }
 
   /**
    * Reports an error on the attribute's value, or (if absent) on the attribute's name.
    */
-  void _reportErrorForAttributeValue(ht.XmlAttributeNode node, ErrorCode errorCode, List<Object> arguments) {
+  void _reportErrorForAttributeValue(ht.XmlAttributeNode node, ErrorCode errorCode, [List<Object> arguments]) {
     ht.Token valueToken = node.valueToken;
     if (valueToken == null || valueToken.isSynthetic) {
       _reportErrorForAttribute(node, errorCode, arguments);
@@ -11556,17 +11561,17 @@ class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
     }
   }
 
-  void _reportErrorForNameToken(PolymerHtmlUnitBuilder_NameToken token, ErrorCode errorCode, List<Object> arguments) {
+  void _reportErrorForNameToken(PolymerHtmlUnitBuilder_NameToken token, ErrorCode errorCode, [List<Object> arguments]) {
     int offset = token._offset;
     int length = token._value.length;
     _reportErrorForOffset(offset, length, errorCode, arguments);
   }
 
-  void _reportErrorForOffset(int offset, int length, ErrorCode errorCode, List<Object> arguments) {
+  void _reportErrorForOffset(int offset, int length, ErrorCode errorCode, [List<Object> arguments]) {
     _errorListener.onError(new AnalysisError.con2(_source, offset, length, errorCode, arguments));
   }
 
-  void _reportErrorForToken(ht.Token token, ErrorCode errorCode, List<Object> arguments) {
+  void _reportErrorForToken(ht.Token token, ErrorCode errorCode, [List<Object> arguments]) {
     int offset = token.offset;
     int length = token.length;
     _reportErrorForOffset(offset, length, errorCode, arguments);
@@ -12631,8 +12636,12 @@ class ResolveDartUnitTask extends AnalysisTask {
       ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
       ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter, _libraryElement, typeProvider, inheritanceManager);
       unit.accept(errorVerifier);
-      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, _libraryElement, typeProvider);
-      unit.accept(constantVerifier);
+      // TODO(paulberry): as a temporary workaround for issue 21572,
+      // ConstantVerifier is being run right after ConstantValueComputer, so we
+      // don't need to run it here.  Once issue 21572 is fixed, re-enable the
+      // call to ConstantVerifier.
+      // ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, _libraryElement, typeProvider);
+      // unit.accept(constantVerifier);
     } finally {
       counterHandleErrors.stop();
     }

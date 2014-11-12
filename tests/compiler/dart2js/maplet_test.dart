@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import "package:compiler/implementation/util/maplet.dart";
+import "package:compiler/src/util/maplet.dart";
 
 main() {
   for (int i = 1; i <= 32; i++) {

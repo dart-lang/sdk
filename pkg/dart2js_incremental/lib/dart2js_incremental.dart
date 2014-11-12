@@ -10,7 +10,7 @@ import 'dart:async' show
 import 'dart:profiler' show
     UserTag;
 
-import 'package:compiler/implementation/apiimpl.dart' show
+import 'package:compiler/src/apiimpl.dart' show
     Compiler;
 
 import 'package:compiler/compiler.dart' show
@@ -19,18 +19,20 @@ import 'package:compiler/compiler.dart' show
     Diagnostic,
     DiagnosticHandler;
 
-import 'package:compiler/implementation/dart2jslib.dart' show
+import 'package:compiler/src/dart2jslib.dart' show
     NullSink;
 
-import 'package:compiler/implementation/js_backend/js_backend.dart' show
+import 'package:compiler/src/js_backend/js_backend.dart' show
     JavaScriptBackend;
 
-import 'package:compiler/implementation/elements/elements.dart' show
+import 'package:compiler/src/elements/elements.dart' show
     LibraryElement;
 
 import 'library_updater.dart' show
     LibraryUpdater,
     Logger;
+
+import 'package:compiler/src/js/js.dart' as jsAst;
 
 part 'caching_compiler.dart';
 
@@ -48,6 +50,7 @@ class IncrementalCompiler {
   final List<String> options;
   final CompilerOutputProvider outputProvider;
   final Map<String, dynamic> environment;
+  final List<String> _updates = <String>[];
 
   Compiler _compiler;
 
@@ -122,8 +125,25 @@ class IncrementalCompiler {
       if (compiler.compilationFailed) {
         return null;
       } else {
-        return updater.computeUpdateJs();
+        String update = updater.computeUpdateJs();
+        _updates.add(update);
+        return update;
       }
     });
+  }
+
+  String allUpdates() {
+    jsAst.Node updates = jsAst.js.escapedString(_updates.join(""));
+
+    jsAst.FunctionDeclaration mainRunner = jsAst.js.statement(r"""
+function dartMainRunner(main, args) {
+  $dart_unsafe_eval.patch(#);
+  return main(args);
+}""", updates);
+
+
+    jsAst.Printer printer = new jsAst.Printer(_compiler, null);
+    printer.blockOutWithoutBraces(mainRunner);
+    return printer.outBuffer.getText();
   }
 }

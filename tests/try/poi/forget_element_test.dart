@@ -5,7 +5,7 @@
 // Test of Compiler.forgetElement.
 library trydart.forget_element_test;
 
-import 'package:compiler/implementation/elements/elements.dart' show
+import 'package:compiler/src/elements/elements.dart' show
     AstElement,
     ClassElement,
     Element,
@@ -15,24 +15,24 @@ import 'package:compiler/implementation/elements/elements.dart' show
     ScopeContainerElement,
     VariableElement;
 
-import 'package:compiler/implementation/js_backend/js_backend.dart' show
+import 'package:compiler/src/js_backend/js_backend.dart' show
     JavaScriptBackend;
 
-import 'package:compiler/implementation/tree/tree.dart' as tree;
+import 'package:compiler/src/tree/tree.dart' as tree;
 
-import 'package:compiler/implementation/scanner/scannerlib.dart' show
+import 'package:compiler/src/scanner/scannerlib.dart' show
     PartialMetadataAnnotation;
 
-import 'package:compiler/implementation/elements/visitor.dart' show
+import 'package:compiler/src/elements/visitor.dart' show
     ElementVisitor;
 
-import 'package:compiler/implementation/dart2jslib.dart' show
+import 'package:compiler/src/dart2jslib.dart' show
     DartConstantCompiler;
 
-import 'package:compiler/implementation/universe/universe.dart' show
+import 'package:compiler/src/universe/universe.dart' show
     Universe;
 
-import 'package:compiler/implementation/dart_types.dart' show
+import 'package:compiler/src/dart_types.dart' show
     DartType;
 
 import 'compiler_test_case.dart';

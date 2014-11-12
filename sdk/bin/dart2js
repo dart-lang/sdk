@@ -20,12 +20,7 @@ BIN_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
 
 SDK_DIR="$(cd "${BIN_DIR}/.." ; pwd -P)"
 
-DART2JS="$SDK_DIR/lib/_internal/compiler/implementation/dart2js.dart"
-
 DART="$BIN_DIR/dart"
-
-SNAPSHOT_DIR="$BIN_DIR/snapshots"
-SNAPSHOT="$SNAPSHOT_DIR/dart2js.dart.snapshot"
 
 unset EXTRA_OPTIONS
 declare -a EXTRA_OPTIONS
@@ -40,10 +35,6 @@ fi
 
 unset EXTRA_VM_OPTIONS
 declare -a EXTRA_VM_OPTIONS
-
-if test -f "$SNAPSHOT"; then
-  EXTRA_OPTIONS+=("--library-root=$SDK_DIR")
-fi
 
 # Tell the VM to grow the heap more aggressively. This should only
 # be necessary temporarily until the VM is better at detecting how
@@ -63,8 +54,21 @@ if [[ $DART_VM_OPTIONS ]]; then
   EXTRA_VM_OPTIONS+=("${OPTIONS[@]}")
 fi
 
-if test -f "$SNAPSHOT"; then
-  exec "$DART" "${EXTRA_VM_OPTIONS[@]}" "$SNAPSHOT" "${EXTRA_OPTIONS[@]}" "$@"
-else
-  exec "$DART" "${EXTRA_VM_OPTIONS[@]}" "$DART2JS" "${EXTRA_OPTIONS[@]}" "$@"
+DART_ROOT="$(cd "${SDK_DIR}/.." ; pwd -P)"
+
+DART2JS="$DART_ROOT/pkg/compiler/lib/src/dart2js.dart"
+
+if [ -z "$DART_CONFIGURATION" ];
+then
+  DART_CONFIGURATION="ReleaseIA32"
 fi
+
+if [[ `uname` == 'Darwin' ]]; then
+  BUILD_DIR="$DART_ROOT/xcodebuild/$DART_CONFIGURATION"
+else
+  BUILD_DIR="$DART_ROOT/out/$DART_CONFIGURATION"
+fi
+
+PACKAGE_ROOT="$BUILD_DIR/packages/"
+
+exec "$DART" "${EXTRA_VM_OPTIONS[@]}" "--package-root=$PACKAGE_ROOT" "$DART2JS" "${EXTRA_OPTIONS[@]}" "$@"

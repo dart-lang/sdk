@@ -61,9 +61,11 @@ class SSLFilter {
                const char* certificate_name,
                bool request_client_certificate,
                bool require_client_certificate,
-               bool send_client_certificate);
+               bool send_client_certificate,
+               Dart_Handle protocols_handle);
   void Destroy();
   void Handshake();
+  void GetSelectedProtocol(Dart_NativeArguments args);
   void Renegotiate(bool use_session_cache,
                    bool request_client_certificate,
                    bool require_client_certificate);

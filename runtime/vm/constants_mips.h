@@ -456,12 +456,18 @@ class Instr {
     kInstrSize = 4,
   };
 
+  static const int32_t kNopInstruction = 0;
+
+  // Reserved break instruction codes.
+  static const int32_t kStopMessageCode = 1 << 16;  // For Stop(message).
+  static const int32_t kRedirectCode = 2 << 16;  // For call redirection in sim.
+  static const int32_t kMsgMessageCode = 3 << 16;  // For trace message in sim.
+  static const int32_t kSimulatorBreakCode = 4 << 16;  // For breakpoint in sim.
+
+  // General breakpoint instruction: break(0), for user breakpoint and to fill
+  // assembler code buffers in debug mode.
   static const int32_t kBreakPointInstruction =
       (SPECIAL << kOpcodeShift) | (BREAK << kFunctionShift);
-  static const int32_t kNopInstruction = 0;
-  static const int32_t kStopMessageCode = 1;
-  static const int32_t kRedirectCode = 2;
-  static const int32_t kMsgMessageCode = 3;
 
   // Get the raw instruction bits.
   inline int32_t InstructionBits() const {

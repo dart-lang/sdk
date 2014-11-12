@@ -345,7 +345,7 @@ void StubCode::GenerateFixAllocateArrayStubTargetStub(Assembler* assembler) {
 // Input parameters:
 //   EDX: smi-tagged argument count, may be zero.
 //   EBP[kParamEndSlotFromFp + 1]: last argument.
-// Uses EAX, EBX, ECX, EDX.
+// Uses EAX, EBX, ECX, EDX, EDI.
 static void PushArgumentsArray(Assembler* assembler) {
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -367,8 +367,9 @@ static void PushArgumentsArray(Assembler* assembler) {
   Label loop, loop_condition;
   __ jmp(&loop_condition, Assembler::kNearJump);
   __ Bind(&loop);
-  __ movl(EAX, Address(EBX, 0));
-  __ movl(Address(ECX, 0), EAX);
+  __ movl(EDI, Address(EBX, 0));
+  // No generational barrier needed, since array is in new space.
+  __ StoreIntoObjectNoBarrier(EAX, Address(ECX, 0), EDI);
   __ AddImmediate(ECX, Immediate(kWordSize));
   __ AddImmediate(EBX, Immediate(-kWordSize));
   __ Bind(&loop_condition);
@@ -652,7 +653,8 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ Bind(&init_loop);
   __ cmpl(EDI, EBX);
   __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
-  __ movl(Address(EDI, 0), raw_null);
+  // No generational barrier needed, since we are storing null.
+  __ StoreIntoObjectNoBarrier(EAX, Address(EDI, 0), Object::null_object());
   __ addl(EDI, Immediate(kWordSize));
   __ jmp(&init_loop, Assembler::kNearJump);
   __ Bind(&done);
@@ -855,12 +857,13 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // EDX: number of context variables as integer value (not object).
     __ movl(FieldAddress(EAX, Context::num_variables_offset()), EDX);
 
-    const Immediate& raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
     // Setup the parent field.
     // EAX: new object.
     // EDX: number of context variables.
-    __ movl(FieldAddress(EAX, Context::parent_offset()), raw_null);
+    // No generational barrier needed, since we are storing null.
+    __ StoreIntoObjectNoBarrier(EAX,
+                                FieldAddress(EAX, Context::parent_offset()),
+                                Object::null_object());
 
     // Initialize the context variables.
     // EAX: new object.
@@ -872,7 +875,10 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
       __ jmp(&entry, Assembler::kNearJump);
       __ Bind(&loop);
       __ decl(EDX);
-      __ movl(Address(EBX, EDX, TIMES_4, 0), raw_null);
+      // No generational barrier needed, since we are storing null.
+      __ StoreIntoObjectNoBarrier(EAX,
+                                  Address(EBX, EDX, TIMES_4, 0),
+                                  Object::null_object());
       __ Bind(&entry);
       __ cmpl(EDX, Immediate(0));
       __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
@@ -1025,7 +1031,7 @@ void StubCode::GenerateAllocationStubForClass(
     __ movl(Address::Absolute(heap->TopAddress(space)), EBX);
     __ UpdateAllocationStats(cls.id(), ECX, space);
 
-    // EAX: new object start.
+    // EAX: new object start (untagged).
     // EBX: next object start.
     // EDX: new object type arguments (if is_cls_parameterized).
     // Set the tags.
@@ -1034,12 +1040,11 @@ void StubCode::GenerateAllocationStubForClass(
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
     __ movl(Address(EAX, Instance::tags_offset()), Immediate(tags));
+    __ addl(EAX, Immediate(kHeapObjectTag));
 
     // Initialize the remaining words of the object.
-    const Immediate& raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
 
-    // EAX: new object start.
+    // EAX: new object (tagged).
     // EBX: next object start.
     // EDX: new object type arguments (if is_cls_parameterized).
     // First try inlining the initialization without a loop.
@@ -1049,12 +1054,14 @@ void StubCode::GenerateAllocationStubForClass(
       for (intptr_t current_offset = Instance::NextFieldOffset();
            current_offset < instance_size;
            current_offset += kWordSize) {
-        __ movl(Address(EAX, current_offset), raw_null);
+        __ StoreIntoObjectNoBarrier(EAX,
+                                    FieldAddress(EAX, current_offset),
+                                    Object::null_object());
       }
     } else {
-      __ leal(ECX, Address(EAX, Instance::NextFieldOffset()));
+      __ leal(ECX, FieldAddress(EAX, Instance::NextFieldOffset()));
       // Loop until the whole object is initialized.
-      // EAX: new object.
+      // EAX: new object (tagged).
       // EBX: next object start.
       // ECX: next word to be initialized.
       // EDX: new object type arguments (if is_cls_parameterized).
@@ -1063,7 +1070,9 @@ void StubCode::GenerateAllocationStubForClass(
       __ Bind(&init_loop);
       __ cmpl(ECX, EBX);
       __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
-      __ movl(Address(ECX, 0), raw_null);
+      __ StoreIntoObjectNoBarrier(EAX,
+                                  Address(ECX, 0),
+                                  Object::null_object());
       __ addl(ECX, Immediate(kWordSize));
       __ jmp(&init_loop, Assembler::kNearJump);
       __ Bind(&done);
@@ -1071,11 +1080,11 @@ void StubCode::GenerateAllocationStubForClass(
     if (is_cls_parameterized) {
       // EDX: new object type arguments.
       // Set the type arguments in the new object.
-      __ movl(Address(EAX, cls.type_arguments_field_offset()), EDX);
+      intptr_t offset = cls.type_arguments_field_offset();
+      __ StoreIntoObjectNoBarrier(EAX, FieldAddress(EAX, offset), EDX);
     }
     // Done allocating and initializing the instance.
-    // EAX: new object.
-    __ addl(EAX, Immediate(kHeapObjectTag));
+    // EAX: new object (tagged).
     __ ret();
 
     __ Bind(&slow_case);
@@ -1236,7 +1245,7 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ addl(ECX, Immediate(Smi::RawValue(1)));
   __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
   __ cmovno(EDI, ECX);
-  __ movl(Address(EBX, count_offset), EDI);
+  __ StoreIntoSmiField(Address(EBX, count_offset), EDI);
 
   __ ret();
 }
@@ -1384,7 +1393,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ addl(EAX, Immediate(Smi::RawValue(1)));
   __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
   __ cmovno(EDI, EAX);
-  __ movl(Address(EBX, count_offset), EDI);
+  __ StoreIntoSmiField(Address(EBX, count_offset), EDI);
 
   __ movl(EAX, Address(EBX, target_offset));
   __ Bind(&call_target_function);

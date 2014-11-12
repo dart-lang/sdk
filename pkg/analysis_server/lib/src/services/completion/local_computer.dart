@@ -10,7 +10,7 @@ import 'package:analysis_server/src/protocol.dart' as protocol show Element,
     ElementKind;
 import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
-import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
+import 'package:analysis_server/src/services/completion/local_declaration_visitor.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
@@ -23,9 +23,9 @@ class LocalComputer extends DartCompletionComputer {
   @override
   bool computeFast(DartCompletionRequest request) {
 
-    // Find the specific child [AstNode] that contains the completion offset
-    // and collect suggestions starting with that node
-    request.node.accept(new _LocalVisitor(request));
+    // Collect suggestions from the specific child [AstNode] that contains
+    // the completion offset and all of its parents recursively.
+    request.node.accept(new _LocalVisitor(request, request.offset));
 
     // If the unit is not a part and does not reference any parts
     // then work is complete
@@ -46,265 +46,23 @@ class LocalComputer extends DartCompletionComputer {
  * A visitor for collecting suggestions from the most specific child [AstNode]
  * that contains the completion offset to the [CompilationUnit].
  */
-class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
+class _LocalVisitor extends LocalDeclarationVisitor {
   static const DYNAMIC = 'dynamic';
 
   static final TypeName NO_RETURN_TYPE = new TypeName(
       new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, '', 0)),
       null);
 
-  static final TypeName STACKTRACE_TYPE = new TypeName(
-      new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, 'StackTrace', 0)),
-      null);
-
   final DartCompletionRequest request;
   bool typesOnly = false;
   bool excludeVoidReturn;
 
-  _LocalVisitor(this.request) {
+  _LocalVisitor(this.request, int offset) : super(offset) {
     excludeVoidReturn = _computeExcludeVoidReturn(request.node);
   }
 
   @override
-  visitBlock(Block node) {
-    node.statements.forEach((Statement stmt) {
-      if (stmt.offset < request.offset) {
-        if (stmt is LabeledStatement) {
-          stmt.labels.forEach((Label label) {
-//            _addSuggestion(label.label, CompletionSuggestionKind.LABEL);
-          });
-        } else if (stmt is VariableDeclarationStatement) {
-          var varList = stmt.variables;
-          if (varList != null) {
-            varList.variables.forEach((VariableDeclaration varDecl) {
-              if (varDecl.end < request.offset) {
-                _addLocalVarSuggestion(varDecl.name, varList.type);
-              }
-            });
-          }
-        }
-      }
-    });
-    visitNode(node);
-  }
-
-  @override
-  visitCascadeExpression(CascadeExpression node) {
-    Expression target = node.target;
-    // This computer handles the expression
-    // while InvocationComputer handles the cascade selector
-    if (target != null && request.offset <= target.end) {
-      visitNode(node);
-    }
-  }
-
-  @override
-  visitCatchClause(CatchClause node) {
-    _addParamSuggestion(node.exceptionParameter, node.exceptionType);
-    _addParamSuggestion(node.stackTraceParameter, STACKTRACE_TYPE);
-    visitNode(node);
-  }
-
-  @override
-  visitClassDeclaration(ClassDeclaration node) {
-    _addClassDeclarationMembers(node);
-    visitInheritedTypes(node, (ClassDeclaration classNode) {
-      _addClassDeclarationMembers(classNode);
-    }, (String typeName) {
-      // ignored
-    });
-    visitNode(node);
-  }
-
-  @override
-  visitCombinator(Combinator node) {
-    // Handled by ImportedComputer
-  }
-
-  @override
-  visitCompilationUnit(CompilationUnit node) {
-    node.declarations.forEach((Declaration declaration) {
-      if (declaration is ClassDeclaration) {
-        _addClassSuggestion(declaration);
-      } else if (declaration is EnumDeclaration) {
-//        _addSuggestion(d.name, CompletionSuggestionKind.ENUM);
-      } else if (declaration is FunctionDeclaration) {
-        _addFunctionSuggestion(declaration);
-      } else if (declaration is TopLevelVariableDeclaration) {
-        _addTopLevelVarSuggestions(declaration.variables);
-      } else if (declaration is ClassTypeAlias) {
-        bool isDeprecated = _isDeprecated(declaration);
-        CompletionSuggestion suggestion =
-            _addSuggestion(declaration.name, null, null, isDeprecated);
-        if (suggestion != null) {
-          suggestion.element = _createElement(
-              protocol.ElementKind.CLASS_TYPE_ALIAS,
-              declaration.name,
-              null,
-              NO_RETURN_TYPE,
-              true,
-              isDeprecated);
-        }
-      } else if (declaration is FunctionTypeAlias) {
-        bool isDeprecated = _isDeprecated(declaration);
-        CompletionSuggestion suggestion =
-            _addSuggestion(declaration.name, declaration.returnType, null, isDeprecated);
-        if (suggestion != null) {
-          // TODO (danrubel) determine parameters and return type
-          suggestion.element = _createElement(
-              protocol.ElementKind.FUNCTION_TYPE_ALIAS,
-              declaration.name,
-              null,
-              NO_RETURN_TYPE,
-              true,
-              isDeprecated);
-        }
-      }
-    });
-  }
-
-  @override
-  visitExpressionStatement(ExpressionStatement node) {
-    Expression expression = node.expression;
-    if (expression is SimpleIdentifier) {
-      if (expression.end < request.offset) {
-        // TODO (danrubel) suggest possible names for variable declaration
-        // based upon variable type
-        return;
-      }
-    }
-    visitNode(node);
-  }
-
-  @override
-  visitForEachStatement(ForEachStatement node) {
-    SimpleIdentifier id;
-    TypeName type;
-    DeclaredIdentifier loopVar = node.loopVariable;
-    if (loopVar != null) {
-      id = loopVar.identifier;
-      type = loopVar.type;
-    } else {
-      id = node.identifier;
-      type = null;
-    }
-    _addLocalVarSuggestion(id, type);
-    visitNode(node);
-  }
-
-  @override
-  visitForStatement(ForStatement node) {
-    var varList = node.variables;
-    if (varList != null) {
-      varList.variables.forEach((VariableDeclaration varDecl) {
-        _addLocalVarSuggestion(varDecl.name, varList.type);
-      });
-    }
-    visitNode(node);
-  }
-
-  @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
-    // This is added by the compilation unit containing it
-    //_addSuggestion(node.name, CompletionSuggestionKind.FUNCTION);
-    visitNode(node);
-  }
-
-  @override
-  visitFunctionExpression(FunctionExpression node) {
-    _addParamListSuggestions(node.parameters);
-    visitNode(node);
-  }
-
-  @override
-  visitInterpolationExpression(InterpolationExpression node) {
-    visitNode(node);
-  }
-
-  @override
-  visitMethodDeclaration(MethodDeclaration node) {
-    _addParamListSuggestions(node.parameters);
-    visitNode(node);
-  }
-
-  @override
-  visitMethodInvocation(MethodInvocation node) {
-    // InvocationComputer adds suggestions for method selector
-    Token period = node.period;
-    if (period != null && period.offset < request.offset) {
-      ArgumentList argumentList = node.argumentList;
-      if (argumentList == null || request.offset <= argumentList.offset) {
-        return;
-      }
-    }
-    visitNode(node);
-  }
-
-  @override
-  visitNamespaceDirective(NamespaceDirective node) {
-    // No suggestions
-  }
-
-  @override
-  visitNode(AstNode node) {
-    node.parent.accept(this);
-  }
-
-  @override
-  visitPrefixedIdentifier(PrefixedIdentifier node) {
-    // InvocationComputer adds suggestions for prefixed elements
-    // but this computer adds suggestions for the prefix itself
-    SimpleIdentifier prefix = node.prefix;
-    if (prefix == null || request.offset <= prefix.end) {
-      visitNode(node);
-    }
-  }
-
-  @override
-  visitPropertyAccess(PropertyAccess node) {
-    // InvocationComputer adds suggestions for property access selector
-  }
-
-  @override
-  visitStringInterpolation(StringInterpolation node) {
-    visitNode(node);
-  }
-
-  @override
-  visitStringLiteral(StringLiteral node) {
-    // ignore
-  }
-
-  @override
-  visitTypeName(TypeName node) {
-    // If suggesting completions within a TypeName node
-    // then limit suggestions to only types
-    typesOnly = true;
-    return visitNode(node);
-  }
-
-  @override
-  visitVariableDeclaration(VariableDeclaration node) {
-    // Do not add suggestions if editing the name in a var declaration
-    SimpleIdentifier name = node.name;
-    if (name == null ||
-        name.offset < request.offset ||
-        request.offset > name.end) {
-      visitNode(node);
-    }
-  }
-
-  void _addClassDeclarationMembers(ClassDeclaration node) {
-    node.members.forEach((ClassMember classMbr) {
-      if (classMbr is FieldDeclaration) {
-        _addFieldSuggestions(node, classMbr);
-      } else if (classMbr is MethodDeclaration) {
-        _addMethodSuggestion(node, classMbr);
-      }
-    });
-  }
-
-  void _addClassSuggestion(ClassDeclaration declaration) {
+  void declaredClass(ClassDeclaration declaration) {
     bool isDeprecated = _isDeprecated(declaration);
     CompletionSuggestion suggestion =
         _addSuggestion(declaration.name, null, null, isDeprecated);
@@ -313,37 +71,87 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
           protocol.ElementKind.CLASS,
           declaration.name,
           null,
-          NO_RETURN_TYPE,
+          _LocalVisitor.NO_RETURN_TYPE,
           declaration.isAbstract,
           isDeprecated);
     }
   }
 
-  void _addFieldSuggestions(ClassDeclaration node, FieldDeclaration fieldDecl) {
+  @override
+  void declaredClassTypeAlias(ClassTypeAlias declaration) {
+    bool isDeprecated = _isDeprecated(declaration);
+    CompletionSuggestion suggestion =
+        _addSuggestion(declaration.name, null, null, isDeprecated);
+    if (suggestion != null) {
+      suggestion.element = _createElement(
+          protocol.ElementKind.CLASS_TYPE_ALIAS,
+          declaration.name,
+          null,
+          NO_RETURN_TYPE,
+          true,
+          isDeprecated);
+    }
+  }
+
+  @override
+  void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
     if (typesOnly) {
       return;
     }
-    bool isDeprecated = _isDeprecated(fieldDecl);
-    fieldDecl.fields.variables.forEach((VariableDeclaration varDecl) {
-      bool isSingleFieldDeprecated = isDeprecated || _isDeprecated(varDecl);
-      CompletionSuggestion suggestion = _addSuggestion(
+    bool isDeprecated = _isDeprecated(fieldDecl) || _isDeprecated(varDecl);
+    CompletionSuggestion suggestion = _addSuggestion(
+        varDecl.name,
+        fieldDecl.fields.type,
+        fieldDecl.parent,
+        isDeprecated);
+    if (suggestion != null) {
+      suggestion.element = _createElement(
+          protocol.ElementKind.GETTER,
           varDecl.name,
+          '()',
           fieldDecl.fields.type,
-          node,
-          isSingleFieldDeprecated);
-      if (suggestion != null) {
-        suggestion.element = _createElement(
-            protocol.ElementKind.GETTER,
-            varDecl.name,
-            '()',
-            fieldDecl.fields.type,
-            false,
-            isSingleFieldDeprecated);
-      }
-    });
+          false,
+          isDeprecated);
+    }
   }
 
-  void _addFunctionSuggestion(FunctionDeclaration declaration) {
+  @override
+  bool visitCascadeExpression(CascadeExpression node) {
+    Expression target = node.target;
+    // This computer handles the expression
+    // while InvocationComputer handles the cascade selector
+    if (target != null && offset <= target.end) {
+      return visitNode(node);
+    } else {
+      return finished;
+    }
+  }
+
+  @override
+  bool visitNamespaceDirective(NamespaceDirective node) {
+    // No suggestions
+    return finished;
+  }
+
+  @override
+  bool visitStringLiteral(StringLiteral node) {
+    // ignore
+    return finished;
+  }
+
+  @override
+  bool visitVariableDeclaration(VariableDeclaration node) {
+    // Do not add suggestions if editing the name in a var declaration
+    SimpleIdentifier name = node.name;
+    if (name == null || name.offset < offset || offset > name.end) {
+      return visitNode(node);
+    } else {
+      return finished;
+    }
+  }
+
+  @override
+  void declaredFunction(FunctionDeclaration declaration) {
     if (typesOnly) {
       return;
     }
@@ -364,99 +172,156 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
     }
   }
 
-  void _addLocalVarSuggestion(SimpleIdentifier id, TypeName returnType) {
-    if (typesOnly) {
-      return;
-    }
+  @override
+  void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
+    bool isDeprecated = _isDeprecated(declaration);
     CompletionSuggestion suggestion =
-        _addSuggestion(id, returnType, null, false);
+        _addSuggestion(declaration.name, declaration.returnType, null, isDeprecated);
     if (suggestion != null) {
+      // TODO (danrubel) determine parameters and return type
       suggestion.element = _createElement(
-          protocol.ElementKind.LOCAL_VARIABLE,
-          id,
+          protocol.ElementKind.FUNCTION_TYPE_ALIAS,
+          declaration.name,
           null,
-          returnType,
-          false,
-          false);
-    }
-  }
-
-  void _addMethodSuggestion(ClassDeclaration node, MethodDeclaration classMbr) {
-    if (typesOnly) {
-      return;
-    }
-    protocol.ElementKind kind;
-    String parameters;
-    if (classMbr.isGetter) {
-      kind = protocol.ElementKind.GETTER;
-      parameters = '()';
-    } else if (classMbr.isSetter) {
-      if (excludeVoidReturn) {
-        return;
-      }
-      kind = protocol.ElementKind.SETTER;
-      parameters = '(${classMbr.returnType.toSource()} value)';
-    } else {
-      if (excludeVoidReturn && _isVoid(classMbr.returnType)) {
-        return;
-      }
-      kind = protocol.ElementKind.METHOD;
-      parameters = classMbr.parameters.toSource();
-    }
-    bool isDeprecated = _isDeprecated(classMbr);
-    CompletionSuggestion suggestion =
-        _addSuggestion(classMbr.name, classMbr.returnType, node, isDeprecated);
-    if (suggestion != null) {
-      suggestion.element = _createElement(
-          kind,
-          classMbr.name,
-          parameters,
-          classMbr.returnType,
-          classMbr.isAbstract,
+          NO_RETURN_TYPE,
+          true,
           isDeprecated);
     }
   }
 
-  void _addParamListSuggestions(FormalParameterList paramList) {
-    if (typesOnly) {
-      return;
-    }
-    if (paramList != null) {
-      paramList.parameters.forEach((FormalParameter param) {
-        NormalFormalParameter normalParam;
-        if (param is DefaultFormalParameter) {
-          normalParam = param.parameter;
-        } else if (param is NormalFormalParameter) {
-          normalParam = param;
-        }
-        TypeName type = null;
-        if (normalParam is FieldFormalParameter) {
-          type = normalParam.type;
-        } else if (normalParam is FunctionTypedFormalParameter) {
-          type = normalParam.returnType;
-        } else if (normalParam is SimpleFormalParameter) {
-          type = normalParam.type;
-        }
-        _addParamSuggestion(param.identifier, type);
-      });
-    }
+  @override
+  void declaredLabel(Label label) {
+    // ignored
   }
 
-  void _addParamSuggestion(SimpleIdentifier identifier, TypeName type) {
+  @override
+  void declaredLocalVar(SimpleIdentifier name, TypeName type) {
     if (typesOnly) {
       return;
     }
-    CompletionSuggestion suggestion =
-        _addSuggestion(identifier, type, null, false);
+    CompletionSuggestion suggestion = _addSuggestion(name, type, null, false);
     if (suggestion != null) {
       suggestion.element = _createElement(
-          protocol.ElementKind.PARAMETER,
-          identifier,
+          protocol.ElementKind.LOCAL_VARIABLE,
+          name,
           null,
           type,
           false,
           false);
     }
+  }
+
+  @override
+  void declaredMethod(MethodDeclaration declaration) {
+    if (typesOnly) {
+      return;
+    }
+    protocol.ElementKind kind;
+    String parameters;
+    if (declaration.isGetter) {
+      kind = protocol.ElementKind.GETTER;
+      parameters = '()';
+    } else if (declaration.isSetter) {
+      if (excludeVoidReturn) {
+        return;
+      }
+      kind = protocol.ElementKind.SETTER;
+      parameters = '(${declaration.returnType.toSource()} value)';
+    } else {
+      if (excludeVoidReturn && _isVoid(declaration.returnType)) {
+        return;
+      }
+      kind = protocol.ElementKind.METHOD;
+      parameters = declaration.parameters.toSource();
+    }
+    bool isDeprecated = _isDeprecated(declaration);
+    CompletionSuggestion suggestion = _addSuggestion(
+        declaration.name,
+        declaration.returnType,
+        declaration.parent,
+        isDeprecated);
+    if (suggestion != null) {
+      suggestion.element = _createElement(
+          kind,
+          declaration.name,
+          parameters,
+          declaration.returnType,
+          declaration.isAbstract,
+          isDeprecated);
+    }
+  }
+
+  @override
+  void declaredParam(SimpleIdentifier name, TypeName type) {
+    if (typesOnly) {
+      return;
+    }
+    CompletionSuggestion suggestion = _addSuggestion(name, type, null, false);
+    if (suggestion != null) {
+      suggestion.element =
+          _createElement(protocol.ElementKind.PARAMETER, name, null, type, false, false);
+    }
+  }
+
+  @override
+  void declaredTopLevelVar(VariableDeclarationList varList,
+      VariableDeclaration varDecl) {
+    if (typesOnly) {
+      return;
+    }
+    bool isDeprecated = _isDeprecated(varList) || _isDeprecated(varDecl);
+    CompletionSuggestion suggestion =
+        _addSuggestion(varDecl.name, varList.type, null, isDeprecated);
+    if (suggestion != null) {
+      suggestion.element = _createElement(
+          protocol.ElementKind.TOP_LEVEL_VARIABLE,
+          varDecl.name,
+          null,
+          varList.type,
+          false,
+          isDeprecated);
+    }
+  }
+
+  @override
+  visitCombinator(Combinator node) {
+    // Handled by CombinatorComputer
+  }
+
+  @override
+  visitMethodInvocation(MethodInvocation node) {
+    // InvocationComputer adds suggestions for method selector
+    Token period = node.period;
+    if (period != null && period.offset < request.offset) {
+      ArgumentList argumentList = node.argumentList;
+      if (argumentList == null || request.offset <= argumentList.offset) {
+        return;
+      }
+    }
+    visitNode(node);
+  }
+
+  @override
+  visitPrefixedIdentifier(PrefixedIdentifier node) {
+    // InvocationComputer adds suggestions for prefixed elements
+    // but this computer adds suggestions for the prefix itself
+    SimpleIdentifier prefix = node.prefix;
+    if (prefix == null || request.offset <= prefix.end) {
+      visitNode(node);
+    }
+  }
+
+  @override
+  visitPropertyAccess(PropertyAccess node) {
+    // InvocationComputer adds suggestions for property access selector
+  }
+
+  @override
+  visitTypeName(TypeName node) {
+    // If suggesting completions within a TypeName node
+    // then limit suggestions to only types
+    typesOnly = true;
+    return visitNode(node);
   }
 
   CompletionSuggestion _addSuggestion(SimpleIdentifier id, TypeName typeName,
@@ -497,29 +362,6 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
     return null;
   }
 
-  void _addTopLevelVarSuggestions(VariableDeclarationList varList) {
-    if (typesOnly) {
-      return;
-    }
-    if (varList != null) {
-      bool isDeprecated = _isDeprecated(varList);
-      varList.variables.forEach((VariableDeclaration varDecl) {
-        bool isSingleVarDeprecated = isDeprecated || _isDeprecated(varDecl);
-        CompletionSuggestion suggestion =
-            _addSuggestion(varDecl.name, varList.type, null, isSingleVarDeprecated);
-        if (suggestion != null) {
-          suggestion.element = _createElement(
-              protocol.ElementKind.TOP_LEVEL_VARIABLE,
-              varDecl.name,
-              null,
-              varList.type,
-              false,
-              isSingleVarDeprecated);
-        }
-      });
-    }
-  }
-
   bool _computeExcludeVoidReturn(AstNode node) {
     if (node is Block) {
       return false;
@@ -529,6 +371,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       return true;
     }
   }
+
 
   /**
    * Create a new protocol Element for inclusion in a completion suggestion.
@@ -548,7 +391,6 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
         parameters: parameters,
         returnType: _nameForType(returnType));
   }
-
 
   /**
    * Return `true` if the @deprecated annotation is present

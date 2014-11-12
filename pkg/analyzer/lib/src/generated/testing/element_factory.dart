@@ -28,28 +28,34 @@ class ElementFactory {
    */
   static ClassElementImpl _objectElement;
 
-  static ClassElementImpl classElement(String typeName, InterfaceType superclassType, List<String> parameterNames) {
+  static ClassElementImpl classElement(String typeName, InterfaceType superclassType, [List<String> parameterNames]) {
     ClassElementImpl element = new ClassElementImpl(typeName, 0);
     element.supertype = superclassType;
     InterfaceTypeImpl type = new InterfaceTypeImpl.con1(element);
     element.type = type;
-    int count = parameterNames.length;
-    if (count > 0) {
-      List<TypeParameterElementImpl> typeParameters = new List<TypeParameterElementImpl>(count);
-      List<TypeParameterTypeImpl> typeParameterTypes = new List<TypeParameterTypeImpl>(count);
-      for (int i = 0; i < count; i++) {
-        TypeParameterElementImpl typeParameter = new TypeParameterElementImpl(parameterNames[i], 0);
-        typeParameters[i] = typeParameter;
-        typeParameterTypes[i] = new TypeParameterTypeImpl(typeParameter);
-        typeParameter.type = typeParameterTypes[i];
+    if (parameterNames != null) {
+      int count = parameterNames.length;
+      if (count > 0) {
+        List<TypeParameterElementImpl> typeParameters
+            = new List<TypeParameterElementImpl>(count);
+        List<TypeParameterTypeImpl> typeParameterTypes
+            = new List<TypeParameterTypeImpl>(count);
+        for (int i = 0; i < count; i++) {
+          TypeParameterElementImpl typeParameter
+              = new TypeParameterElementImpl(parameterNames[i], 0);
+          typeParameters[i] = typeParameter;
+          typeParameterTypes[i] = new TypeParameterTypeImpl(typeParameter);
+          typeParameter.type = typeParameterTypes[i];
+        }
+        element.typeParameters = typeParameters;
+        type.typeArguments = typeParameterTypes;
       }
-      element.typeParameters = typeParameters;
-      type.typeArguments = typeParameterTypes;
     }
     return element;
   }
 
-  static ClassElementImpl classElement2(String typeName, List<String> parameterNames) => classElement(typeName, objectType, parameterNames);
+  static ClassElementImpl classElement2(String typeName, [List<String> parameterNames])
+      => classElement(typeName, objectType, parameterNames);
 
   static CompilationUnitElementImpl compilationUnit(String fileName) {
     Source source = new NonExistingSource(fileName, UriKind.FILE_URI);
@@ -58,28 +64,33 @@ class ElementFactory {
     return unit;
   }
 
-  static ConstructorElementImpl constructorElement(ClassElement definingClass, String name, bool isConst, List<DartType> argumentTypes) {
+  static ConstructorElementImpl constructorElement(ClassElement definingClass, String name, bool isConst, [List<DartType> argumentTypes]) {
     DartType type = definingClass.type;
     ConstructorElementImpl constructor = name == null ? new ConstructorElementImpl("", -1) : new ConstructorElementImpl(name, 0);
     constructor.const2 = isConst;
-    int count = argumentTypes.length;
-    List<ParameterElement> parameters = new List<ParameterElement>(count);
-    for (int i = 0; i < count; i++) {
-      ParameterElementImpl parameter = new ParameterElementImpl("a$i", i);
-      parameter.type = argumentTypes[i];
-      parameter.parameterKind = ParameterKind.REQUIRED;
-      parameters[i] = parameter;
+    if (argumentTypes != null) {
+      int count = argumentTypes.length;
+      List<ParameterElement> parameters = new List<ParameterElement>(count);
+      for (int i = 0; i < count; i++) {
+        ParameterElementImpl parameter = new ParameterElementImpl("a$i", i);
+        parameter.type = argumentTypes[i];
+        parameter.parameterKind = ParameterKind.REQUIRED;
+        parameters[i] = parameter;
+      }
+      constructor.parameters = parameters;
+    } else {
+      constructor.parameters = <ParameterElement>[];
     }
-    constructor.parameters = parameters;
     constructor.returnType = type;
     FunctionTypeImpl constructorType = new FunctionTypeImpl.con1(constructor);
     constructor.type = constructorType;
     return constructor;
   }
 
-  static ConstructorElementImpl constructorElement2(ClassElement definingClass, String name, List<DartType> argumentTypes) => constructorElement(definingClass, name, false, argumentTypes);
+  static ConstructorElementImpl constructorElement2(ClassElement definingClass, String name, [List<DartType> argumentTypes])
+      => constructorElement(definingClass, name, false, argumentTypes);
 
-  static ClassElementImpl enumElement(TypeProvider typeProvider, String enumName, List<String> constantNames) {
+  static ClassElementImpl enumElement(TypeProvider typeProvider, String enumName, [List<String> constantNames]) {
     //
     // Build the enum.
     //
@@ -111,19 +122,21 @@ class ElementFactory {
     //
     // Build the enum constants.
     //
-    int constantCount = constantNames.length;
-    for (int i = 0; i < constantCount; i++) {
-      String constantName = constantNames[i];
-      FieldElementImpl constantElement = new ConstFieldElementImpl.con2(constantName, -1);
-      constantElement.static = true;
-      constantElement.const3 = true;
-      constantElement.type = enumType;
-      HashMap<String, DartObjectImpl> fieldMap = new HashMap<String, DartObjectImpl>();
-      fieldMap[indexFieldName] = new DartObjectImpl(intType, new IntState(i));
-      fieldMap[nameFieldName] = new DartObjectImpl(stringType, new StringState(constantName));
-      DartObjectImpl value = new DartObjectImpl(enumType, new GenericState(fieldMap));
-      constantElement.evaluationResult = new EvaluationResultImpl.con1(value);
-      fields.add(constantElement);
+    if (constantNames != null) {
+      int constantCount = constantNames.length;
+      for (int i = 0; i < constantCount; i++) {
+        String constantName = constantNames[i];
+        FieldElementImpl constantElement = new ConstFieldElementImpl.con2(constantName, -1);
+        constantElement.static = true;
+        constantElement.const3 = true;
+        constantElement.type = enumType;
+        HashMap<String, DartObjectImpl> fieldMap = new HashMap<String, DartObjectImpl>();
+        fieldMap[indexFieldName] = new DartObjectImpl(intType, new IntState(i));
+        fieldMap[nameFieldName] = new DartObjectImpl(stringType, new StringState(constantName));
+        DartObjectImpl value = new DartObjectImpl(enumType, new GenericState(fieldMap));
+        constantElement.evaluationResult = new EvaluationResultImpl.con1(value);
+        fields.add(constantElement);
+      }
     }
     //
     // Finish building the enum.
@@ -133,7 +146,7 @@ class ElementFactory {
     return enumElement;
   }
 
-  static ExportElementImpl exportFor(LibraryElement exportedLibrary, List<NamespaceCombinator> combinators) {
+  static ExportElementImpl exportFor(LibraryElement exportedLibrary, [List<NamespaceCombinator> combinators = NamespaceCombinator.EMPTY_ARRAY]) {
     ExportElementImpl spec = new ExportElementImpl();
     spec.exportedLibrary = exportedLibrary;
     spec.combinators = combinators;
@@ -258,7 +271,7 @@ class ElementFactory {
 
   static ClassElementImpl get object {
     if (_objectElement == null) {
-      _objectElement = classElement("Object", null, []);
+      _objectElement = classElement("Object", null);
     }
     return _objectElement;
   }
@@ -287,7 +300,7 @@ class ElementFactory {
     return unit;
   }
 
-  static ImportElementImpl importFor(LibraryElement importedLibrary, PrefixElement prefix, List<NamespaceCombinator> combinators) {
+  static ImportElementImpl importFor(LibraryElement importedLibrary, PrefixElement prefix, [List<NamespaceCombinator> combinators = NamespaceCombinator.EMPTY_ARRAY]) {
     ImportElementImpl spec = new ImportElementImpl(0);
     spec.importedLibrary = importedLibrary;
     spec.prefix = prefix;
@@ -307,17 +320,21 @@ class ElementFactory {
 
   static LocalVariableElementImpl localVariableElement2(String name) => new LocalVariableElementImpl(name, 0);
 
-  static MethodElementImpl methodElement(String methodName, DartType returnType, List<DartType> argumentTypes) {
+  static MethodElementImpl methodElement(String methodName, DartType returnType, [List<DartType> argumentTypes]) {
     MethodElementImpl method = new MethodElementImpl(methodName, 0);
-    int count = argumentTypes.length;
-    List<ParameterElement> parameters = new List<ParameterElement>(count);
-    for (int i = 0; i < count; i++) {
-      ParameterElementImpl parameter = new ParameterElementImpl("a$i", i);
-      parameter.type = argumentTypes[i];
-      parameter.parameterKind = ParameterKind.REQUIRED;
-      parameters[i] = parameter;
+    if (argumentTypes == null) {
+      method.parameters = ParameterElementImpl.EMPTY_ARRAY;
+    } else {
+      int count = argumentTypes.length;
+      List<ParameterElement> parameters = new List<ParameterElement>(count);
+      for (int i = 0; i < count; i++) {
+        ParameterElementImpl parameter = new ParameterElementImpl("a$i", i);
+        parameter.type = argumentTypes[i];
+        parameter.parameterKind = ParameterKind.REQUIRED;
+        parameters[i] = parameter;
+      }
+      method.parameters = parameters;
     }
-    method.parameters = parameters;
     method.returnType = returnType;
     FunctionTypeImpl methodType = new FunctionTypeImpl.con1(method);
     method.type = methodType;

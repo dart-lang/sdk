@@ -10,6 +10,7 @@ import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 
 import 'null_span.dart';
+import 'style.dart';
 import 'yaml_node_wrapper.dart';
 
 /// An interface for parsed nodes from a YAML source tree.
@@ -26,7 +27,9 @@ abstract class YamlNode {
   ///
   /// [SourceSpan.message] can be used to produce a human-friendly message about
   /// this node.
-  SourceSpan get span;
+  SourceSpan get span => _span;
+
+  SourceSpan _span;
 
   /// The inner value of this node.
   ///
@@ -38,8 +41,6 @@ abstract class YamlNode {
 
 /// A read-only [Map] parsed from YAML.
 class YamlMap extends YamlNode with collection.MapMixin, UnmodifiableMapMixin  {
-  final SourceSpan span;
-
   /// A view of [this] where the keys and values are guaranteed to be
   /// [YamlNode]s.
   ///
@@ -49,6 +50,9 @@ class YamlMap extends YamlNode with collection.MapMixin, UnmodifiableMapMixin  {
   /// a map from a [YamlScalar] to a [YamlList], but since the key type is
   /// `dynamic` `map.nodes["foo"]` will still work.
   final Map<dynamic, YamlNode> nodes;
+
+  /// The style used for the map in the original document.
+  final CollectionStyle style;
 
   Map get value => this;
 
@@ -77,8 +81,10 @@ class YamlMap extends YamlNode with collection.MapMixin, UnmodifiableMapMixin  {
       new YamlMapWrapper(dartMap, sourceUrl);
 
   /// Users of the library should not use this constructor.
-  YamlMap.internal(Map<dynamic, YamlNode> nodes, this.span)
-      : nodes = new UnmodifiableMapView<dynamic, YamlNode>(nodes);
+  YamlMap.internal(Map<dynamic, YamlNode> nodes, SourceSpan span, this.style)
+      : nodes = new UnmodifiableMapView<dynamic, YamlNode>(nodes) {
+    _span = span;
+  }
 
   operator [](key) {
     var node = nodes[key];
@@ -89,9 +95,10 @@ class YamlMap extends YamlNode with collection.MapMixin, UnmodifiableMapMixin  {
 // TODO(nweiz): Use UnmodifiableListMixin when issue 18970 is fixed.
 /// A read-only [List] parsed from YAML.
 class YamlList extends YamlNode with collection.ListMixin {
-  final SourceSpan span;
-
   final List<YamlNode> nodes;
+
+  /// The style used for the list in the original document.
+  final CollectionStyle style;
 
   List get value => this;
 
@@ -124,8 +131,10 @@ class YamlList extends YamlNode with collection.ListMixin {
       new YamlListWrapper(dartList, sourceUrl);
 
   /// Users of the library should not use this constructor.
-  YamlList.internal(List<YamlNode> nodes, this.span)
-      : nodes = new UnmodifiableListView<YamlNode>(nodes);
+  YamlList.internal(List<YamlNode> nodes, SourceSpan span, this.style)
+      : nodes = new UnmodifiableListView<YamlNode>(nodes) {
+    _span = span;
+  }
 
   operator [](int index) => nodes[index].value;
 
@@ -136,9 +145,10 @@ class YamlList extends YamlNode with collection.ListMixin {
 
 /// A wrapped scalar value parsed from YAML.
 class YamlScalar extends YamlNode {
-  final SourceSpan span;
-
   final value;
+
+  /// The style used for the scalar in the original document.
+  final ScalarStyle style;
 
   /// Wraps a Dart value in a [YamlScalar].
   ///
@@ -148,10 +158,21 @@ class YamlScalar extends YamlNode {
   ///
   /// [sourceUrl] may be either a [String], a [Uri], or `null`.
   YamlScalar.wrap(this.value, {sourceUrl})
-      : span = new NullSpan(sourceUrl);
+      : style = ScalarStyle.ANY {
+    _span = new NullSpan(sourceUrl);
+  }
 
   /// Users of the library should not use this constructor.
-  YamlScalar.internal(this.value, this.span);
+  YamlScalar.internal(this.value, SourceSpan span, this.style) {
+    _span = span;
+  }
 
   String toString() => value.toString();
+}
+
+/// Sets the source span of a [YamlNode].
+///
+/// This method is not exposed publicly.
+void setSpan(YamlNode node, SourceSpan span) {
+  node._span = span;
 }

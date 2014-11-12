@@ -6,8 +6,6 @@
 # current state of the language.
 
 [ $compiler == none ]
-mixin_super_constructor_named_test: Fail # Issue 12631
-mixin_super_constructor_positionals_test: Fail # Issue 12631
 built_in_identifier_prefix_test: Fail # Issue 6970
 
 # These bugs refer currently ongoing language discussions.
@@ -18,7 +16,6 @@ closure_in_initializer_test: Fail # Issue 6422
 
 # Regular bugs which should be fixed.
 duplicate_export_negative_test: Fail # Issue 6134
-mixin_forwarding_constructor2_test: Fail # Issue 13641
 
 
 [ $runtime != vm ]

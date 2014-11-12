@@ -18,7 +18,7 @@ class AnalysisErrorIntegrationTest extends AbstractAnalysisServerIntegrationTest
     writeFile(pathname,
         '''
 main() {
-  var x // parse error: missing ';'
+  print(null) // parse error: missing ';'
 }''');
     standardAnalysisSetup();
     return analysisFinished.then((_) {

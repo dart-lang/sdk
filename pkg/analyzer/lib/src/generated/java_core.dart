@@ -154,12 +154,12 @@ String _printf(String fmt, List args) {
       markFound = false;
       // %d
       if (c == 0x64) {
-        sb.writeCharCode(args[argIndex++]);
+        sb.write(args[argIndex++]);
         continue;
       }
       // %s
       if (c == 0x73) {
-        sb.writeCharCode(args[argIndex++]);
+        sb.write(args[argIndex++]);
         continue;
       }
       // unknown
@@ -420,11 +420,14 @@ String format(String pattern, [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7])
  *     format('{0} are you {1}ing?', ['How', 'do']) = 'How are you doing?'
  *     format('{0} are you {1}ing?', ['What', 'read']) = 'What are you reading?'
  */
-String formatList(String pattern, List args) {
+String formatList(String pattern, List<Object> arguments) {
+  if (arguments == null || arguments.isEmpty) {
+    return pattern;
+  }
   return pattern.replaceAllMapped(new RegExp(r'\{(\d+)\}'), (match) {
     String indexStr = match.group(1);
     int index = int.parse(indexStr);
-    var arg = args[index];
+    Object arg = arguments[index];
     return arg != null ? arg.toString() : null;
   });
 }

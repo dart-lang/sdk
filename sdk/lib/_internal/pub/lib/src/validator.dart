@@ -17,6 +17,7 @@ import 'validator/executable.dart';
 import 'validator/license.dart';
 import 'validator/name.dart';
 import 'validator/pubspec_field.dart';
+import 'validator/sdk_constraint.dart';
 import 'validator/size.dart';
 import 'validator/utf8_readme.dart';
 
@@ -65,7 +66,8 @@ abstract class Validator {
       new DirectoryValidator(entrypoint),
       new ExecutableValidator(entrypoint),
       new CompiledDartdocValidator(entrypoint),
-      new Utf8ReadmeValidator(entrypoint)
+      new Utf8ReadmeValidator(entrypoint),
+      new SdkConstraintValidator(entrypoint)
     ];
     if (packageSize != null) {
       validators.add(new SizeValidator(entrypoint, packageSize));

@@ -252,6 +252,24 @@ var v;''');
     assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
+  void test_ambiguousImport_withPrefix() {
+    Source source = addSource(r'''
+library test;
+import 'lib1.dart' as p;
+import 'lib2.dart' as p;
+main() {
+  p.f();
+}''');
+    addNamedSource("/lib1.dart", r'''
+library lib1;
+f() {}''');
+    addNamedSource("/lib2.dart", r'''
+library lib2;
+f() {}''');
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
+  }
+
   void test_argumentTypeNotAssignable_ambiguousClassName() {
     // See dartbug.com/19624
     Source source = addNamedSource("/lib1.dart", r'''
@@ -1098,7 +1116,7 @@ var m = {const A<int>(): 0, const A<num>(): 1};''');
     verify([source]);
   }
 
-  void test_exportDuplicatedLibraryName() {
+  void test_exportDuplicatedLibraryNamed() {
     Source source = addSource(r'''
 library test;
 export 'lib1.dart';
@@ -1106,7 +1124,19 @@ export 'lib2.dart';''');
     addNamedSource("/lib1.dart", "library lib;");
     addNamedSource("/lib2.dart", "library lib;");
     resolve(source);
-    assertErrors(source, [StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAME]);
+    assertErrors(source, [StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAMED]);
+    verify([source]);
+  }
+
+  void test_exportDuplicatedLibraryUnnamed() {
+    Source source = addSource(r'''
+library test;
+export 'lib1.dart';
+export 'lib2.dart';''');
+    addNamedSource("/lib1.dart", "");
+    addNamedSource("/lib2.dart", "");
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_UNNAMED]);
     verify([source]);
   }
 
@@ -1274,7 +1304,7 @@ class B implements A {
     verify([source]);
   }
 
-  void test_importDuplicatedLibraryName() {
+  void test_importDuplicatedLibraryNamed() {
     Source source = addSource(r'''
 library test;
 import 'lib1.dart';
@@ -1283,7 +1313,22 @@ import 'lib2.dart';''');
     addNamedSource("/lib2.dart", "library lib;");
     resolve(source);
     assertErrors(source, [
-        StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAME,
+        StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAMED,
+        HintCode.UNUSED_IMPORT,
+        HintCode.UNUSED_IMPORT]);
+    verify([source]);
+  }
+
+  void test_importDuplicatedLibraryUnnamed() {
+    Source source = addSource(r'''
+library test;
+import 'lib1.dart';
+import 'lib2.dart';''');
+    addNamedSource("/lib1.dart", "");
+    addNamedSource("/lib2.dart", "");
+    resolve(source);
+    assertErrors(source, [
+        StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_UNNAMED,
         HintCode.UNUSED_IMPORT,
         HintCode.UNUSED_IMPORT]);
     verify([source]);
@@ -1370,6 +1415,24 @@ class C extends B {
 }''');
     resolve(source);
     assertErrors(source, [StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC]);
+    verify([source]);
+  }
+
+  void test_instanceMethodNameCollidesWithSuperclassStatic_interface() {
+    Source source = addSource(r'''
+class Base {
+  static foo() {}
+}
+abstract class Ifc {
+  foo();
+}
+class C extends Base implements Ifc {
+  foo() {}
+}
+''');
+    resolve(source);
+    assertErrors(source, [
+        StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC]);
     verify([source]);
   }
 
@@ -1706,6 +1769,112 @@ class B extends A {
 }''');
     resolve(source);
     assertErrors(source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
+    verify([source]);
+  }
+
+  void test_invalidOverride_defaultOverridesNonDefault() {
+    // If the base class provided an explicit value for a default parameter,
+    // then it is a static warning for the derived class to provide a different
+    // value, even if implicitly.
+    Source source = addSource(r'''
+class A {
+  foo([x = 1]) {}
+}
+class B extends A {
+  foo([x]) {}
+}
+''');
+    resolve(source);
+    assertErrors(source, [
+        StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL]);
+    verify([source]);
+  }
+
+  void test_invalidOverride_defaultOverridesNonDefault_named() {
+    // If the base class provided an explicit value for a default parameter,
+    // then it is a static warning for the derived class to provide a different
+    // value, even if implicitly.
+    Source source = addSource(r'''
+class A {
+  foo({x: 1}) {}
+}
+class B extends A {
+  foo({x}) {}
+}
+''');
+    resolve(source);
+    assertErrors(source, [
+        StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED]);
+    verify([source]);
+  }
+
+  void test_invalidOverride_defaultOverridesNonDefaultNull() {
+    // If the base class provided an explicit null value for a default
+    // parameter, then it is ok for the derived class to let the default value
+    // be implicit, because the implicit default value of null matches the
+    // explicit default value of null.
+    Source source = addSource(r'''
+class A {
+  foo([x = null]) {}
+}
+class B extends A {
+  foo([x]) {}
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_invalidOverride_defaultOverridesNonDefaultNull_named() {
+    // If the base class provided an explicit null value for a default
+    // parameter, then it is ok for the derived class to let the default value
+    // be implicit, because the implicit default value of null matches the
+    // explicit default value of null.
+    Source source = addSource(r'''
+class A {
+  foo({x: null}) {}
+}
+class B extends A {
+  foo({x}) {}
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_invalidOverride_nonDefaultOverridesDefault() {
+    // If the base class lets the default parameter be implicit, then it is ok
+    // for the derived class to provide an explicit default value, even if it's
+    // not null.
+    Source source = addSource(r'''
+class A {
+  foo([x]) {}
+}
+class B extends A {
+  foo([x = 1]) {}
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_invalidOverride_nonDefaultOverridesDefault_named() {
+    // If the base class lets the default parameter be implicit, then it is ok
+    // for the derived class to provide an explicit default value, even if it's
+    // not null.
+    Source source = addSource(r'''
+class A {
+  foo({x}) {}
+}
+class B extends A {
+  foo({x: 1}) {}
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
     verify([source]);
   }
 

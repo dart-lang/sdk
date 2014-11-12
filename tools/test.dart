@@ -39,8 +39,8 @@ import "testing/dart/test_runner.dart";
 import "testing/dart/test_suite.dart";
 import "testing/dart/utils.dart";
 
-import "../runtime/tests/vm/test_config.dart";
-import "../tests/co19/test_config.dart";
+import "testing/dart/vm_test_config.dart";
+import "testing/dart/co19_test_config.dart";
 
 /**
  * The directories that contain test suites which follow the conventions

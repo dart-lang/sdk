@@ -788,7 +788,7 @@ class Dart2JSBackend(HtmlDartGenerator):
           '  $TYPE operator[](int index) {\n'
           '    if (JS("bool", "# >>> 0 !== # || # >= #", index,\n'
           '        index, index, length))\n'
-          '      throw new RangeError.range(index, 0, length);\n'
+          '      throw new RangeError.index(index, this);\n'
           '    return $INDEXED_GETTER;\n'
           '  }',
           INDEXED_GETTER=indexed_getter,
@@ -1241,7 +1241,7 @@ class DartLibrary():
       imports_emitter, map_emitter = emitters
     else:
       imports_emitter, map_emitter = emitters, None
-      
+
 
     for path in sorted(self._paths):
       relpath = os.path.relpath(path, library_file_dir)
@@ -1256,7 +1256,7 @@ class DartLibrary():
           "  '$IDL_NAME': () => $DART_NAME,\n",
           IDL_NAME=idl_name,
           DART_NAME=dart_name)
-      
+
 
 # ------------------------------------------------------------------------------
 

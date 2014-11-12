@@ -32,7 +32,7 @@ class HtmlFactory {
     return new Token.con1(TokenType.LT_SLASH, 0);
   }
 
-  static HtmlScriptTagNode scriptTag(List<XmlAttributeNode> attributes) {
+  static HtmlScriptTagNode scriptTag([List<XmlAttributeNode> attributes = XmlAttributeNode.EMPTY_LIST]) {
     return new HtmlScriptTagNode(
         ltToken(),
         stringToken("script"),
@@ -45,7 +45,7 @@ class HtmlFactory {
   }
 
   static HtmlScriptTagNode scriptTagWithContent(String contents,
-      List<XmlAttributeNode> attributes) {
+      [List<XmlAttributeNode> attributes = XmlAttributeNode.EMPTY_LIST]) {
     Token attributeEnd = gtToken();
     Token contentToken = stringToken(contents);
     attributeEnd.setNext(contentToken);
@@ -70,7 +70,7 @@ class HtmlFactory {
     return new Token.con2(TokenType.STRING, 0, value);
   }
 
-  static XmlTagNode tagNode(String name, List<XmlAttributeNode> attributes) {
+  static XmlTagNode tagNode(String name, [List<XmlAttributeNode> attributes = XmlAttributeNode.EMPTY_LIST]) {
     return new XmlTagNode(
         ltToken(),
         stringToken(name),

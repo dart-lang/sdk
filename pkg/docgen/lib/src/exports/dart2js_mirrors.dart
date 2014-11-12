@@ -4,4 +4,4 @@
 
 library docgen.exports.dart2js_mirrors;
 
-export 'package:compiler/implementation/mirrors/dart2js_mirrors.dart';
+export 'package:compiler/src/mirrors/dart2js_mirrors.dart';

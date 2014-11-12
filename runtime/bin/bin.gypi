@@ -40,7 +40,7 @@
             '--output', '<(builtin_cc_file)',
             '--input_cc', '<(builtin_in_cc_file)',
             '--include', 'bin/builtin.h',
-            '--var_name', 'dart::bin::Builtin::builtin_source_paths_',
+            '--var_name', 'dart::bin::Builtin::_builtin_source_paths_',
             '--library_name', 'dart:_builtin',
             '<@(_sources)',
           ],

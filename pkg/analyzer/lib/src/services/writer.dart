@@ -157,7 +157,6 @@ class SimpleLineBreaker extends LinePrinter {
                 newChunks.add(chunk.subChunk(newIndent, start));
               }
             } else {
-              List<LineToken> part = [];
               int start = 0;
               for (int i = 0; i < tokens.length; i++) {
                 LineToken token = tokens[i];

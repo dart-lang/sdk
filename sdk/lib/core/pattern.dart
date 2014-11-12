@@ -30,12 +30,13 @@ abstract class Pattern {
   Iterable<Match> allMatches(String string, [int start = 0]);
 
   /**
-   * Match this pattern against the start of string.
+   * Match this pattern against the start of `string`.
    *
    * If [start] is provided, it must be an integer in the range `0` ..
    * `string.length`. In that case, this patten is tested against the
-   * string at the [start] position. That is, a match is returned if the
+   * string at the [start] position. That is, a [Match] is returned if the
    * pattern can match a part of the string starting from position [start].
+   * Returns `null` if the pattern doesn't match.
    */
   Match matchAsPrefix(String string, [int start = 0]);
 }

@@ -678,7 +678,7 @@ class RuneIterator implements BidirectionalIterator<int> {
    */
   void set rawIndex(int rawIndex) {
     if (rawIndex >= string.length) {
-      throw new RangeError.range(rawIndex, 0, string.length - 1);
+      throw new RangeError.index(rawIndex, string);
     }
     reset(rawIndex);
     moveNext();

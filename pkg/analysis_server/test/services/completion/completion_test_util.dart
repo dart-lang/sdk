@@ -55,19 +55,27 @@ class AbstractCompletionTest extends AbstractContextTest {
         new DartCompletionRequest(context, searchEngine, testSource, completionOffset);
   }
 
-  void assertNoSuggestions() {
-    if (request.suggestions.length > 0) {
-      _failedCompletion('Expected no suggestions', request.suggestions);
+  void assertNoSuggestions({CompletionSuggestionKind kind: null}) {
+    if (kind == null) {
+      if (request.suggestions.length > 0) {
+        failedCompletion('Expected no suggestions', request.suggestions);
+      }
+      return;
+    }
+    CompletionSuggestion suggestion = request.suggestions.firstWhere(
+        (CompletionSuggestion cs) => cs.kind == kind,
+        orElse: () => null);
+    if (suggestion != null) {
+      failedCompletion('did not expect completion: $completion\n  $suggestion');
     }
   }
 
   CompletionSuggestion assertNotSuggested(String completion) {
     CompletionSuggestion suggestion = request.suggestions.firstWhere(
-        (cs) => cs.completion == completion,
+        (CompletionSuggestion cs) => cs.completion == completion,
         orElse: () => null);
     if (suggestion != null) {
-      _failedCompletion(
-          'did not expect completion: $completion\n  $suggestion');
+      failedCompletion('did not expect completion: $completion\n  $suggestion');
     }
     return null;
   }
@@ -77,23 +85,10 @@ class AbstractCompletionTest extends AbstractContextTest {
       CompletionRelevance relevance: CompletionRelevance.DEFAULT,
       protocol.ElementKind elemKind: null, bool isDeprecated: false, bool isPotential:
       false}) {
-    CompletionSuggestion cs;
-    request.suggestions.forEach((s) {
-      if (s.completion == completion && s.kind == csKind) {
-        protocol.Element element = s.element;
-        if (elemKind == null || (element != null && elemKind == element.kind)) {
-          if (cs == null) {
-            cs = s;
-          } else {
-            _failedCompletion(
-                'expected exactly one $completion',
-                request.suggestions.where((s) => s.completion == completion));
-          }
-        }
-      }
-    });
+    CompletionSuggestion cs =
+        getSuggest(completion: completion, csKind: csKind, elemKind: elemKind);
     if (cs == null) {
-      _failedCompletion('expected $completion $csKind', request.suggestions);
+      failedCompletion('expected $completion $csKind', request.suggestions);
     }
     expect(cs.kind, equals(csKind));
     if (isDeprecated) {
@@ -106,6 +101,48 @@ class AbstractCompletionTest extends AbstractContextTest {
     expect(cs.isDeprecated, equals(isDeprecated));
     expect(cs.isPotential, equals(isPotential));
     return cs;
+  }
+
+  void assertSuggestArgumentList(List<String> paramNames, List<String> paramTypes) {
+    CompletionSuggestionKind csKind = CompletionSuggestionKind.ARGUMENT_LIST;
+    CompletionSuggestion cs = getSuggest(csKind: csKind);
+    if (cs == null) {
+      failedCompletion('expected completion $csKind', request.suggestions);
+    }
+    assertSuggestArgumentList_params(
+        paramNames,
+        paramTypes,
+        cs.parameterNames,
+        cs.parameterTypes);
+    expect(cs.relevance, CompletionRelevance.HIGH);
+  }
+
+  void assertSuggestArgumentList_params(List<String> expectedNames,
+      List<String> expectedTypes, List<String> actualNames,
+      List<String> actualTypes) {
+    if (actualNames != null &&
+        actualNames.length == expectedNames.length &&
+        actualTypes != null &&
+        actualTypes.length == expectedTypes.length) {
+      int index = 0;
+      while (index < expectedNames.length) {
+        if (actualNames[index] != expectedNames[index] ||
+            actualTypes[index] != expectedTypes[index]) {
+          break;
+        }
+        ++index;
+      }
+      if (index == expectedNames.length) {
+        return;
+      }
+    }
+    StringBuffer msg = new StringBuffer();
+    msg.writeln('Argument list not the same');
+    msg.writeln('  Expected names: $expectedNames');
+    msg.writeln('           found: $actualNames');
+    msg.writeln('  Expected types: $expectedTypes');
+    msg.writeln('           found: $actualTypes');
+    fail(msg.toString());
   }
 
   CompletionSuggestion assertSuggestClass(String name,
@@ -421,14 +458,7 @@ class AbstractCompletionTest extends AbstractContextTest {
     return computer.computeFull(request);
   }
 
-  @override
-  void setUp() {
-    super.setUp();
-    index = createLocalMemoryIndex();
-    searchEngine = new SearchEngineImpl(index);
-  }
-
-  void _failedCompletion(String message,
+  void failedCompletion(String message,
       [Iterable<CompletionSuggestion> completions]) {
     StringBuffer sb = new StringBuffer(message);
     if (completions != null) {
@@ -452,6 +482,40 @@ class AbstractCompletionTest extends AbstractContextTest {
       }
     }
     fail(sb.toString());
+  }
+
+  CompletionSuggestion getSuggest({String completion: null,
+      CompletionSuggestionKind csKind: null, protocol.ElementKind elemKind: null}) {
+    CompletionSuggestion cs;
+    request.suggestions.forEach((CompletionSuggestion s) {
+      if (completion != null && completion != s.completion) {
+        return;
+      }
+      if (csKind != null && csKind != s.kind) {
+        return;
+      }
+      if (elemKind != null) {
+        protocol.Element element = s.element;
+        if (element == null || elemKind != element.kind) {
+          return;
+        }
+      }
+      if (cs == null) {
+        cs = s;
+      } else {
+        failedCompletion(
+            'expected exactly one $cs',
+            request.suggestions.where((s) => s.completion == completion));
+      }
+    });
+    return cs;
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    index = createLocalMemoryIndex();
+    searchEngine = new SearchEngineImpl(index);
   }
 }
 
@@ -679,6 +743,85 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       void main() {expect(^)}''');
     computeFast();
     return computeFull(true).then((_) {
+      assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
+      assertSuggestLocalFunction('bar', 'String');
+      assertSuggestImportedFunction('hasLength', 'bool');
+      assertSuggestImportedFunction('identical', 'bool');
+      assertSuggestLocalClass('B');
+      assertSuggestImportedClass('Object');
+      assertNotSuggested('main');
+      assertNotSuggested('baz');
+      assertNotSuggested('print');
+    });
+  }
+
+  test_ArgumentList_imported_function() {
+    // ArgumentList  MethodInvocation  ExpressionStatement  Block
+    addSource('/libA.dart', '''
+      library A;
+      bool hasLength(int expected) { }
+      expect(arg) { }
+      void baz() { }''');
+    addTestSource('''
+      import '/libA.dart'
+      class B { }
+      String bar() => true;
+      void main() {expect(^)}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
+      assertSuggestLocalFunction('bar', 'String');
+      assertSuggestImportedFunction('hasLength', 'bool');
+      assertSuggestImportedFunction('identical', 'bool');
+      assertSuggestLocalClass('B');
+      assertSuggestImportedClass('Object');
+      assertNotSuggested('main');
+      assertNotSuggested('baz');
+      assertNotSuggested('print');
+    });
+  }
+
+  test_ArgumentList_local_function() {
+    // ArgumentList  MethodInvocation  ExpressionStatement  Block
+    addSource('/libA.dart', '''
+      library A;
+      bool hasLength(int expected) { }
+      void baz() { }''');
+    addTestSource('''
+      import '/libA.dart'
+      expect(arg) { }
+      class B { }
+      String bar() => true;
+      void main() {expect(^)}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
+      assertSuggestLocalFunction('bar', 'String');
+      assertSuggestImportedFunction('hasLength', 'bool');
+      assertSuggestImportedFunction('identical', 'bool');
+      assertSuggestLocalClass('B');
+      assertSuggestImportedClass('Object');
+      assertNotSuggested('main');
+      assertNotSuggested('baz');
+      assertNotSuggested('print');
+    });
+  }
+
+  test_ArgumentList_local_method() {
+    // ArgumentList  MethodInvocation  ExpressionStatement  Block
+    addSource('/libA.dart', '''
+      library A;
+      bool hasLength(int expected) { }
+      void baz() { }''');
+    addTestSource('''
+      import '/libA.dart'
+      class B {
+        expect(arg) { }
+        void foo() {expect(^)}}
+      String bar() => true;''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
       assertSuggestLocalFunction('bar', 'String');
       assertSuggestImportedFunction('hasLength', 'bool');
       assertSuggestImportedFunction('identical', 'bool');

@@ -14,7 +14,7 @@ import 'library.dart';
 import 'mirror_based.dart';
 
 import 'dart:mirrors';
-import 'package:compiler/implementation/tree/tree.dart';
+import 'package:compiler/src/tree/tree.dart';
 
 /// Holds the name of the annotation, and its parameters.
 class Annotation extends MirrorBased<ClassMirror> {
@@ -83,7 +83,7 @@ class ResolvedNodeMirrorFinder extends Unparser {
     recursionLevel--;
   }
 
-  unparseNodeListFrom(NodeList node, var from, {spaces}) {
+  unparseNodeListFrom(NodeList node, var from, {bool spaces: true}) {
     if (from.isEmpty) return;
 
     visit(from.head);

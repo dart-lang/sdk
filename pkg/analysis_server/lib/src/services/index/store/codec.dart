@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/store/collection.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 
 /**
@@ -98,9 +99,12 @@ class ElementCodec {
 
   /**
    * Returns a unique integer that corresponds to the given [Element].
+   *
+   * If [forKey] is `true` then [element] is a part of a key, so it should use
+   * file paths instead of [Element] location URIs.
    */
-  int encode(Element element) {
-    List<int> path = _getLocationPath(element);
+  int encode(Element element, bool forKey) {
+    List<int> path = _getLocationPath(element, forKey);
     int index = _pathToIndex[path];
     if (index == null) {
       index = _indexToPath.length;
@@ -111,7 +115,7 @@ class ElementCodec {
   }
 
   /**
-   * Returns an integer that corresponds to an approximated location of the given {@link Element}.
+   * Returns an integer that corresponds to an approximated location of [element].
    */
   int encodeHash(Element element) {
     List<int> path = _getLocationPathLimited(element);
@@ -139,8 +143,22 @@ class ElementCodec {
     return components;
   }
 
-  List<int> _getLocationPath(Element element) {
+  /**
+   * If [usePath] is `true` then [Source] path should be used instead of URI.
+   */
+  List<int> _getLocationPath(Element element, bool usePath) {
+    // prepare the location components
     List<String> components = element.location.components;
+    if (usePath) {
+      LibraryElement library = element.library;
+      if (library != null) {
+        components[0] = library.source.fullName;
+        if (element.enclosingElement is CompilationUnitElement) {
+          components[1] = library.definingCompilationUnit.source.fullName;
+        }
+      }
+    }
+    // encode the location
     int length = components.length;
     if (_hasLocalOffset(components)) {
       List<int> path = new List<int>();
@@ -167,20 +185,33 @@ class ElementCodec {
   }
 
   /**
-   * Returns an approximation of the given {@link Element}'s location.
+   * Returns an approximation of the [element]'s location.
    */
   List<int> _getLocationPathLimited(Element element) {
-    List<String> components = element.location.components;
-    int length = components.length;
-    String firstComponent = components[0];
-    String lastComponent = components[length - 1];
-    lastComponent = _substringBeforeAt(lastComponent);
+    String firstComponent;
+    {
+      LibraryElement libraryElement = element.library;
+      if (libraryElement != null) {
+        firstComponent = libraryElement.source.fullName;
+      } else {
+        firstComponent = 'null';
+      }
+    }
+    String lastComponent = element.displayName;
     int firstId = _stringCodec.encode(firstComponent);
     int lastId = _stringCodec.encode(lastComponent);
     return <int>[firstId, lastId];
   }
 
-  bool _hasLocalOffset(List<String> components) {
+  static String _getComponentUnit(Element element) {
+    LibraryElement libraryElement = element.library;
+    if (libraryElement == null) {
+      return 'null';
+    }
+    return libraryElement.definingCompilationUnit.source.fullName;
+  }
+
+  static bool _hasLocalOffset(List<String> components) {
     for (String component in components) {
       if (component.indexOf('@') != -1) {
         return true;
@@ -189,7 +220,7 @@ class ElementCodec {
     return false;
   }
 
-  String _substringBeforeAt(String str) {
+  static String _substringBeforeAt(String str) {
     int atOffset = str.indexOf('@');
     if (atOffset != -1) {
       str = str.substring(0, atOffset);

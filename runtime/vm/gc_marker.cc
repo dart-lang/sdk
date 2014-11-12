@@ -246,9 +246,10 @@ class MarkingVisitor : public ObjectPointerVisitor {
         // after skipping the function's code pointer, then we disconnect the
         // code from the function.
         StubCode* stub_code = isolate()->stub_code();
-        func->ptr()->instructions_ =
-            stub_code->LazyCompile_entry()->code()->ptr()->instructions_;
-        func->ptr()->unoptimized_code_ = Code::null();
+        func->StorePointer(
+            &(func->ptr()->instructions_),
+            stub_code->LazyCompile_entry()->code()->ptr()->instructions_);
+        func->StorePointer(&(func->ptr()->unoptimized_code_), Code::null());
         if (FLAG_log_code_drop) {
           // NOTE: This code runs while GC is in progress and runs within
           // a NoHandleScope block. Hence it is not okay to use a regular Zone

@@ -185,7 +185,7 @@ class RestrictViewPriorityQueue<N extends TypedElement, P extends Priority> {
 
   bool get isEmpty => restrictedQueues.length + mainQueue.length == 0;
 
-  int get length => restrictedQueues.fold(0, (v, e) => v + element.length) +
+  int get length => restrictedQueues.fold(0, (v, e) => v + e.length) +
                     mainQueue.length;
 
   PriorityQueue getRestricted(List<N> restrictions) {
@@ -208,7 +208,7 @@ class RestrictViewPriorityQueue<N extends TypedElement, P extends Priority> {
     var candidate = getRestricted([]);
     if (candidate != null &&
         (mainQueue.isEmpty ||
-         mainQueue.first.priority < candidate.first.priority)) {
+         mainQueue.firstPriority < candidate.firstPriority)) {
       return candidate.first;
     }
     return mainQueue.isEmpty ? null : mainQueue.first;
@@ -247,6 +247,7 @@ class RestrictViewPriorityQueue<N extends TypedElement, P extends Priority> {
         restrictedQueue.add(current, currentPriority);
       }
     }
+    return null;
   }
 
   String toString() {

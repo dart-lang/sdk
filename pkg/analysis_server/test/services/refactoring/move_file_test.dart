@@ -105,7 +105,7 @@ import '22/new_name.dart';
   test_importedLibrary_package() {
     // configure packages
     testFile = '/packages/my_pkg/aaa/test.dart';
-    File testFileRes = provider.newFile(testFile, '');
+    provider.newFile(testFile, '');
     Map<String, List<Folder>> packageMap = {
       'my_pkg': [provider.getResource('/packages/my_pkg')]
     };

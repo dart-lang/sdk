@@ -2106,7 +2106,15 @@ dt.typeDefinition {
           in a completion suggestion.
         </p>
         
-      <dl><dt class="value">ARGUMENT_LIST</dt><dt class="value">IMPORT</dt><dt class="value">IDENTIFIER</dt><dd>
+      <dl><dt class="value">ARGUMENT_LIST</dt><dd>
+          
+            <p>
+              A list of arguments for the method or function that is being invoked.
+              For this suggestion kind, the completion field is a textual representation
+              of the invocation and the parameterNames, parameterTypes, and requiredParameterCount
+              attributes are defined.
+            </p>
+          </dd><dt class="value">IMPORT</dt><dt class="value">IDENTIFIER</dt><dd>
             
             <p>
               The element identifier should be inserted at the completion location.

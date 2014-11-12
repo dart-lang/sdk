@@ -18,6 +18,14 @@ external_test/24: Fail
 external_test/25: Fail
 constructor_duplicate_final_test/03: Fail
 identical_const_test: Fail # Issue 21177
+super_bound_closure_test/01: MissingStaticWarning # Issue 18914
+mixin_forwarding_constructor4_test/01: MissingCompileTimeError # Issue 19576
+mixin_forwarding_constructor4_test/02: MissingCompileTimeError # Issue 19576
+mixin_forwarding_constructor4_test/03: MissingCompileTimeError # Issue 19576
+mixin_super_constructor_named_test/01: MissingCompileTimeError # Issue 19576
+mixin_super_constructor_positionals_test/01: MissingCompileTimeError # Issue 19576
+reify_typevar_static_test/00: MissingCompileTimeError # Issue 21565
+reify_typevar_static_test/01: MissingCompileTimeError # Issue 21565
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
@@ -162,8 +170,6 @@ factory_redirection_test/none: StaticWarning # Issue 18230
 override_inheritance_no_such_method_test/03: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/04: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/05: StaticWarning # Issue 16132
-
-regress_19413_test/01: MissingStaticWarning # Issue 19424
 
 # test issue 20074
 regress_20074_test: CompileTimeError # Issue 20074

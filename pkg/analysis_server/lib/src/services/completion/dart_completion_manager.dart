@@ -7,6 +7,7 @@ library test.services.completion.dart;
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/services/completion/arglist_computer.dart';
 import 'package:analysis_server/src/services/completion/combinator_computer.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/imported_computer.dart';
@@ -49,21 +50,24 @@ class DartCompletionManager extends CompletionManager {
   final AnalysisContext context;
   final Source source;
   final int offset;
+  final CompletionPerformance performance;
   DartCompletionRequest request;
   List<DartCompletionComputer> computers;
 
   DartCompletionManager(this.context, SearchEngine searchEngine, this.source,
-      this.offset) {
+      this.offset, this.performance) {
     request = new DartCompletionRequest(context, searchEngine, source, offset);
   }
 
   @override
   void compute() {
-    initComputers();
-    computeFast();
-    if (!computers.isEmpty) {
-      computeFull();
-    }
+    performance.logElapseTime('compute', () {
+      initComputers();
+      computeFast();
+      if (!computers.isEmpty) {
+        computeFull();
+      }
+    });
   }
 
   /**
@@ -71,12 +75,18 @@ class DartCompletionManager extends CompletionManager {
    * then send an initial response to the client.
    */
   void computeFast() {
-    CompilationUnit unit = context.parseCompilationUnit(source);
-    request.unit = unit;
-    request.node = new NodeLocator.con1(offset).searchWithin(unit);
-    request.node.accept(new _ReplacementOffsetBuilder(request));
-    computers.removeWhere((DartCompletionComputer c) => c.computeFast(request));
-    sendResults(computers.isEmpty);
+    performance.logElapseTime('computeFast', () {
+      CompilationUnit unit = context.parseCompilationUnit(source);
+      request.unit = unit;
+      request.node = new NodeLocator.con1(offset).searchWithin(unit);
+      request.node.accept(new _ReplacementOffsetBuilder(request));
+      computers.removeWhere((DartCompletionComputer c) {
+        return performance.logElapseTime('computeFast ${c.runtimeType}', () {
+          return c.computeFast(request);
+        });
+      });
+      sendResults(computers.isEmpty);
+    });
   }
 
   /**
@@ -84,20 +94,30 @@ class DartCompletionManager extends CompletionManager {
    * resolved and request that each remaining computer finish their work.
    */
   void computeFull() {
+    performance.logStartTime('waitForAnalysis');
     waitForAnalysis().then((CompilationUnit unit) {
+      performance.logElapseTime('waitForAnalysis');
       if (unit == null) {
         sendResults(true);
         return;
       }
-      request.unit = unit;
-      request.node = new NodeLocator.con1(offset).searchWithin(unit);
-      int count = computers.length;
-      computers.forEach((c) {
-        c.computeFull(request).then((bool changed) {
-          bool last = --count == 0;
-          if (changed || last) {
-            sendResults(last);
-          }
+      performance.logElapseTime('computeFull', () {
+        request.unit = unit;
+        request.node = new NodeLocator.con1(offset).searchWithin(unit);
+        int count = computers.length;
+        computers.forEach((DartCompletionComputer c) {
+          String name = c.runtimeType.toString();
+          String completeTag = 'computeFull $name complete';
+          performance.logStartTime(completeTag);
+          performance.logElapseTime('computeFull $name', () {
+            c.computeFull(request).then((bool changed) {
+              performance.logElapseTime(completeTag);
+              bool last = --count == 0;
+              if (changed || last) {
+                sendResults(last);
+              }
+            });
+          });
         });
       });
     });
@@ -111,6 +131,7 @@ class DartCompletionManager extends CompletionManager {
       computers = [
           new KeywordComputer(),
           new LocalComputer(),
+          new ArgListComputer(),
           new CombinatorComputer(),
           new ImportedComputer(),
           new InvocationComputer()];

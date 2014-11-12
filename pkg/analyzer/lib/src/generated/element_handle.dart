@@ -105,6 +105,10 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   bool get isProxy => actualElement.isProxy;
 
   @override
+  bool isSuperConstructorAccessible(ConstructorElement constructor) =>
+      actualElement.isSuperConstructorAccessible(constructor);
+
+  @override
   bool get isTypedef => actualElement.isTypedef;
 
   @override

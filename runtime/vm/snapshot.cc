@@ -519,7 +519,7 @@ RawApiError* SnapshotReader::VerifyVersion() {
   ASSERT(isolate()->no_gc_scope_depth() != 0);                                 \
   Raw##type* obj = reinterpret_cast<Raw##type*>(                               \
       AllocateUninitialized(k##type##Cid, type::InstanceSize(length)));        \
-  obj->ptr()->length_ = Smi::New(length);                                      \
+  obj->StoreSmi(&(obj->ptr()->length_), Smi::New(length));                     \
   return obj;                                                                  \
 
 
@@ -630,7 +630,7 @@ RawTypedData* SnapshotReader::NewTypedData(intptr_t class_id, intptr_t len) {
   const intptr_t lengthInBytes = len * TypedData::ElementSizeInBytes(class_id);
   RawTypedData* obj = reinterpret_cast<RawTypedData*>(
       AllocateUninitialized(class_id, TypedData::InstanceSize(lengthInBytes)));
-  obj->ptr()->length_ = Smi::New(len);
+  obj->StoreSmi(&(obj->ptr()->length_), Smi::New(len));
   return obj;
 }
 

@@ -44,6 +44,28 @@ final _exceptionPrefix = new RegExp(r'^([A-Z][a-zA-Z]*)?(Exception|Error): ');
 String getErrorMessage(error) =>
     error.toString().replaceFirst(_exceptionPrefix, '');
 
+/// Like `try`/`finally`, run [body] and ensure that [whenComplete] runs
+/// afterwards, regardless of whether [body] succeeded.
+///
+/// This is synchronicity-agnostic relative to [body]. If [body] returns a
+/// [Future], this wil run asynchronously; otherwise it will run synchronously.
+tryFinally(body(), whenComplete()) {
+  var result;
+  try {
+    result = body();
+  } catch (_) {
+    whenComplete();
+    rethrow;
+  }
+
+  if (result is! Future) {
+    whenComplete();
+    return result;
+  } else {
+    return result.whenComplete(whenComplete);
+  }
+}
+
 /// Returns a [StreamSink] that wraps [sink] and maps each event added using
 /// [callback].
 StreamSink mapStreamSink(StreamSink sink, callback(event)) =>

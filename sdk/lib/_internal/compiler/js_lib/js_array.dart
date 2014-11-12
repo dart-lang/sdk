@@ -168,11 +168,10 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   }
 
   void forEach(void f(E element)) {
-    int getLength() => JS('int', '#.length', this);
-    int length = getLength();
+    int length = this.length;
     for (int i = 0; i < length; i++) {
       f(JS('', '#[#]', this, i));
-      if (length != getLength()) {
+      if (length != this.length) {
         throw new ConcurrentModificationError(this);
       }
     }

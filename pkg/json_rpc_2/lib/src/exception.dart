@@ -64,4 +64,11 @@ class RpcException implements Exception {
       'id': id
     };
   }
+
+  String toString() {
+    var prefix = "JSON-RPC error $code";
+    var errorName = error_code.name(code);
+    if (errorName != null) prefix += " ($errorName)";
+    return "$prefix: $message";
+  }
 }

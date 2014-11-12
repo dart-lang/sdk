@@ -13,7 +13,6 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/html.dart' as html;
 import 'package:analyzer/src/generated/instrumentation.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart' as scanner;
 import 'package:analyzer/src/generated/source.dart';
@@ -37,12 +36,6 @@ class EnumTest {
         ..check_explicit_values();
   }
 
-  void test_AngularCode() {
-    new EnumTester<AngularCode>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
   void test_AngularPropertyKind() {
     new EnumTester<AngularPropertyKind>()
         ..check_getters()
@@ -61,20 +54,8 @@ class EnumTest {
         ..check_explicit_values();
   }
 
-  void test_CheckedModeCompileTimeErrorCode() {
-    new EnumTester<CheckedModeCompileTimeErrorCode>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
   void test_CommentType() {
     new EnumTester<CommentType>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
-  void test_CompileTimeErrorCode() {
-    new EnumTester<CompileTimeErrorCode>()
         ..check_getters()
         ..check_explicit_values();
   }
@@ -103,20 +84,8 @@ class EnumTest {
         ..check_explicit_values();
   }
 
-  void test_HintCode() {
-    new EnumTester<HintCode>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
   void test_html_TokenType() {
     new EnumTester<html.TokenType>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
-  void test_HtmlWarningCode() {
-    new EnumTester<HtmlWarningCode>()
         ..check_getters()
         ..check_explicit_values();
   }
@@ -151,26 +120,8 @@ class EnumTest {
         ..check_explicit_values();
   }
 
-  void test_ParserErrorCode() {
-    new EnumTester<ParserErrorCode>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
-  void test_PolymerCode() {
-    new EnumTester<PolymerCode>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
   void test_RedirectingConstructorKind() {
     new EnumTester<RedirectingConstructorKind>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
-  void test_ResolverErrorCode() {
-    new EnumTester<ResolverErrorCode>()
         ..check_getters()
         ..check_explicit_values();
   }
@@ -187,12 +138,6 @@ class EnumTest {
         ..check_explicit_values();
   }
 
-  void test_ScannerErrorCode() {
-    new EnumTester<scanner.ScannerErrorCode>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
   void test_SourceKind() {
     new EnumTester<SourceKind>()
         ..check_getters()
@@ -201,24 +146,6 @@ class EnumTest {
 
   void test_SourcePriority() {
     new EnumTester<SourcePriority>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
-  void test_StaticTypeWarningCode() {
-    new EnumTester<StaticTypeWarningCode>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
-  void test_StaticWarningCode() {
-    new EnumTester<StaticWarningCode>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
-  void test_TodoCode() {
-    new EnumTester<TodoCode>(ignoreGetters: ['TODO_REGEX'])
         ..check_getters()
         ..check_explicit_values();
   }

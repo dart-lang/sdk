@@ -13,10 +13,10 @@ import 'dart:async';
 import 'lib/metadata.dart';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-import '../../sdk/lib/_internal/compiler/implementation/mirrors/analyze.dart';
-import '../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart';
-import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
-import '../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart';
+import '../../pkg/compiler/lib/src/mirrors/analyze.dart';
+import '../../pkg/compiler/lib/src/mirrors/source_mirrors.dart';
+import '../../pkg/compiler/lib/src/mirrors/mirrors_util.dart';
+import '../../pkg/compiler/lib/src/source_file_provider.dart';
 
 // TODO(amouravski): There is currently magic that looks at dart:* libraries
 // rather than the declared library names. This changed due to recent syntax

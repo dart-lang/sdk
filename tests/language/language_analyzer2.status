@@ -17,6 +17,8 @@ external_test/21: Fail
 external_test/24: Fail
 external_test/25: Fail
 constructor_duplicate_final_test/03: Fail
+reify_typevar_static_test/00: MissingCompileTimeError # Issue 21565
+reify_typevar_static_test/01: MissingCompileTimeError # Issue 21565
 
 
 # Please add new failing tests before this line.
@@ -162,11 +164,6 @@ factory_redirection_test/none: StaticWarning # Issue 18230
 override_inheritance_no_such_method_test/03: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/04: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/05: StaticWarning # Issue 16132
-
-regress_19413_test/01: MissingStaticWarning # Issue 19424
-
-# test issue 20074
-regress_20074_test: CompileTimeError # Issue 20074
 
 # The following tests are currently assumed to be failing because the test is wrong.
 #

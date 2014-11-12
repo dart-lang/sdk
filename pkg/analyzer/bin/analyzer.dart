@@ -107,7 +107,7 @@ class BatchRunner {
     Stream cmdLine = stdin
         .transform(UTF8.decoder)
         .transform(new LineSplitter());
-    var subscription = cmdLine.listen((String line) {
+    cmdLine.listen((String line) {
       // may be finish
       if (line.isEmpty) {
         var time = stopwatch.elapsedMilliseconds;

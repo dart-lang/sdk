@@ -68,10 +68,21 @@ class DartUnitHoverComputer {
    */
   HoverInformation compute() {
     AstNode node = new NodeLocator.con1(_offset).searchWithin(_unit);
+    if (node.parent is TypeName &&
+        node.parent.parent is ConstructorName &&
+        node.parent.parent.parent is InstanceCreationExpression) {
+      node = node.parent.parent.parent;
+    }
+    if (node.parent is ConstructorName &&
+        node.parent.parent is InstanceCreationExpression) {
+      node = node.parent.parent;
+    }
     if (node is Expression) {
-      HoverInformation hover = new HoverInformation(node.offset, node.length);
+      Expression expression = node;
+      HoverInformation hover =
+          new HoverInformation(expression.offset, expression.length);
       // element
-      Element element = ElementLocator.locateWithOffset(node, _offset);
+      Element element = ElementLocator.locateWithOffset(expression, _offset);
       if (element != null) {
         // variable, if synthetic accessor
         if (element is PropertyAccessorElement) {
@@ -95,10 +106,10 @@ class DartUnitHoverComputer {
         hover.dartdoc = dartDoc;
       }
       // parameter
-      hover.parameter = _safeToString(node.bestParameterElement);
+      hover.parameter = _safeToString(expression.bestParameterElement);
       // types
-      hover.staticType = _safeToString(node.staticType);
-      hover.propagatedType = _safeToString(node.propagatedType);
+      hover.staticType = _safeToString(expression.staticType);
+      hover.propagatedType = _safeToString(expression.propagatedType);
       // done
       return hover;
     }

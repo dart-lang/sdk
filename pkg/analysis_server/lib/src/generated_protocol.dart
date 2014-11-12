@@ -5571,6 +5571,12 @@ class CompletionSuggestion implements HasToJson {
  * }
  */
 class CompletionSuggestionKind implements Enum {
+  /**
+   * A list of arguments for the method or function that is being invoked. For
+   * this suggestion kind, the completion field is a textual representation of
+   * the invocation and the parameterNames, parameterTypes, and
+   * requiredParameterCount attributes are defined.
+   */
   static const ARGUMENT_LIST = const CompletionSuggestionKind._("ARGUMENT_LIST");
 
   static const IMPORT = const CompletionSuggestionKind._("IMPORT");

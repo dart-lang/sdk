@@ -9,25 +9,25 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:compiler/compiler.dart' as api;
-import 'package:compiler/implementation/elements/elements.dart';
-import 'package:compiler/implementation/js_backend/js_backend.dart'
+import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/js_backend/js_backend.dart'
     show JavaScriptBackend;
-import 'package:compiler/implementation/resolution/resolution.dart';
-import 'package:compiler/implementation/source_file.dart';
-import 'package:compiler/implementation/tree/tree.dart';
-import 'package:compiler/implementation/util/util.dart';
+import 'package:compiler/src/resolution/resolution.dart';
+import 'package:compiler/src/source_file.dart';
+import 'package:compiler/src/tree/tree.dart';
+import 'package:compiler/src/util/util.dart';
 import 'parser_helper.dart';
 
-import 'package:compiler/implementation/elements/modelx.dart'
+import 'package:compiler/src/elements/modelx.dart'
     show ElementX,
          LibraryElementX,
          ErroneousElementX,
          FunctionElementX;
 
-import 'package:compiler/implementation/dart2jslib.dart'
+import 'package:compiler/src/dart2jslib.dart'
     hide TreeElementMapping;
 
-import 'package:compiler/implementation/deferred_load.dart'
+import 'package:compiler/src/deferred_load.dart'
     show DeferredLoadTask,
          OutputUnit;
 
@@ -73,6 +73,7 @@ class MockCompiler extends Compiler {
        // affected by inlining support.
        bool disableInlining: true,
        bool trustTypeAnnotations: false,
+       bool enableEnums: false,
        int this.expectedWarnings,
        int this.expectedErrors})
       : sourceFiles = new Map<String, SourceFile>(),
@@ -86,7 +87,8 @@ class MockCompiler extends Compiler {
               emitJavaScript: emitJavaScript,
               preserveComments: preserveComments,
               trustTypeAnnotations: trustTypeAnnotations,
-              showPackageWarnings: true) {
+              showPackageWarnings: true,
+              enableEnums: enableEnums) {
     this.disableInlining = disableInlining;
 
     deferredLoadTask = new MockDeferredLoadTask(this);
@@ -269,8 +271,10 @@ class MockCompiler extends Compiler {
   }
 
   /// Create a new [MockCompiler] and apply it asynchronously to [f].
-  static Future create(f(MockCompiler compiler)) {
-    MockCompiler compiler = new MockCompiler.internal();
+  static Future create(f(MockCompiler compiler),
+                       {bool enableEnums: false}) {
+    MockCompiler compiler = new MockCompiler.internal(
+        enableEnums: enableEnums);
     return compiler.init().then((_) => f(compiler));
   }
 }

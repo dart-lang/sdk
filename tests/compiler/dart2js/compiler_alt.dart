@@ -6,14 +6,14 @@
 /// for later inspection.
 ///
 /// Use this in testing to inspect the compiler after compilation by setting
-/// the `compileFunc` variable in `package:compiler/implementation/dart2js.dart`
+/// the `compileFunc` variable in `package:compiler/src/dart2js.dart`
 /// to [compiler] before calling the `internalMain` function.
 
 library dart2js.alt;
 
 import 'dart:async';
 import 'package:compiler/compiler.dart';
-import 'package:compiler/implementation/apiimpl.dart';
+import 'package:compiler/src/apiimpl.dart';
 
 Compiler compiler;
 

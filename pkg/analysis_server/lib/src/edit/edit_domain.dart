@@ -294,7 +294,6 @@ class _RefactoringManager {
    */
   Future<RefactoringStatus> _init(RefactoringKind kind, String file, int offset,
       int length) {
-    List<RefactoringProblem> problems = <RefactoringProblem>[];
     // check if we can continue with the existing Refactoring instance
     if (this.kind == kind &&
         this.file == file &&
@@ -373,6 +372,15 @@ class _RefactoringManager {
       if (nodes.isNotEmpty && elements.isNotEmpty) {
         AstNode node = nodes[0];
         Element element = elements[0];
+        // climb from "Class" in "new Class()" to "new Class()"
+        if (node.parent is TypeName &&
+            node.parent.parent is ConstructorName &&
+            node.parent.parent.parent is InstanceCreationExpression) {
+          InstanceCreationExpression creation = node.parent.parent.parent;
+          node = creation;
+          element = creation.staticElement;
+        }
+        // do create the refactoring
         refactoring = new RenameRefactoring(searchEngine, element);
         feedback =
             new RenameFeedback(node.offset, node.length, 'kind', 'oldName');

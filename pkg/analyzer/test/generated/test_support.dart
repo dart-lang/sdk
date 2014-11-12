@@ -239,7 +239,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * @throws AssertionFailedError if a different number of errors have been gathered than were
    *           expected
    */
-  void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
+  void assertErrorsWithCodes([List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
     StringBuffer buffer = new StringBuffer();
     //
     // Verify that the expected error codes have a non-empty message.
@@ -293,7 +293,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
         }
         buffer.write(expectedCount);
         buffer.write(" errors of type ");
-        buffer.write("${code.runtimeType}.$code");
+        buffer.write(code.uniqueName);
         buffer.write(", found ");
         buffer.write(actualCount);
       }
@@ -310,7 +310,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
         buffer.write("; ");
       }
       buffer.write("0 errors of type ");
-      buffer.write("${code.runtimeType}.$code");
+      buffer.write(code.uniqueName);
       buffer.write(", found ");
       buffer.write(actualCount);
       buffer.write(" (");

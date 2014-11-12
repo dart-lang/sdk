@@ -3,18 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import "package:compiler/implementation/scanner/scannerlib.dart";
-import "package:compiler/implementation/tree/tree.dart";
+import "package:compiler/src/scanner/scannerlib.dart";
+import "package:compiler/src/tree/tree.dart";
 
-import "package:compiler/implementation/dart2jslib.dart"
+import "package:compiler/src/dart2jslib.dart"
     show DiagnosticListener,
          Script;
 
-import "package:compiler/implementation/elements/elements.dart"
+import "package:compiler/src/elements/elements.dart"
     show CompilationUnitElement,
          LibraryElement;
 
-import "package:compiler/implementation/elements/modelx.dart"
+import "package:compiler/src/elements/modelx.dart"
     show CompilationUnitElementX,
          LibraryElementX;
 
@@ -25,6 +25,11 @@ main() {
   testClass1Field1Method();
   testClass1Field2Method();
   testClassDefTypeParam();
+  testEnumDef();
+  testEnum1Value();
+  testEnum2Value();
+  testEnum3Value();
+  testEnum3CommaValue();
 }
 
 testClassDef() {
@@ -51,9 +56,33 @@ testClassDefTypeParam() {
   compareCode('class T<X>{}');
 }
 
-void compareCode(String code) {
-  Expect.equals(code, doUnparse(code));
+testEnumDef() {
+  compareCode('enum T {}');
 }
+
+testEnum1Value() {
+  compareCode('enum T {A}');
+}
+
+testEnum2Value() {
+  compareCode('enum T {A,B}');
+}
+
+testEnum3Value() {
+  compareCode('enum T {A,B,C}');
+}
+
+testEnum3CommaValue() {
+  compareCode('enum T {A,B,C,}', expectedResult: 'enum T {A,B,C}');
+}
+
+void compareCode(String code, {String expectedResult}) {
+  if (expectedResult == null) {
+    expectedResult = code;
+  }
+  Expect.equals(expectedResult, doUnparse(code));
+}
+
 
 String doUnparse(String source) {
   MessageCollector diagnosticListener = new MessageCollector();

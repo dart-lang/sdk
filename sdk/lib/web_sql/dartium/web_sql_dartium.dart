@@ -252,7 +252,7 @@ class SqlResultSetRowList extends NativeFieldWrapperClass2 with ListMixin<Map>, 
 
   Map operator[](int index) {
     if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this);
     return _blink.BlinkSQLResultSetRowList.instance.item_Callback_1_(this, index);
   }
 

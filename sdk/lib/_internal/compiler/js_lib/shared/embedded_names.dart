@@ -19,6 +19,7 @@ const INTERCEPTED_NAMES = 'interceptedNames';
 const MANGLED_GLOBAL_NAMES = 'mangledGlobalNames';
 const MANGLED_NAMES = 'mangledNames';
 const LIBRARIES = 'libraries';
+const FINISHED_CLASSES = 'finishedClasses';
 const ALL_CLASSES = 'allClasses';
 const METADATA = 'metadata';
 const INTERCEPTORS_BY_TAG = 'interceptorsByTag';

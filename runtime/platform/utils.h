@@ -81,6 +81,12 @@ class Utils {
 
   static int HighestBit(int64_t v);
 
+  static int BitLength(int64_t value) {
+    // Flip bits if negative (-1 becomes 0).
+    value ^= value >> (8 * sizeof(value) - 1);
+    return (value == 0) ? 0 : (Utils::HighestBit(value) + 1);
+  }
+
   static int CountLeadingZeros(uword x);
   static int CountTrailingZeros(uword x);
 

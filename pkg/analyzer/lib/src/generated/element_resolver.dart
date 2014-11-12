@@ -868,14 +868,16 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (prefixElement is PrefixElement) {
       Element element = _resolver.nameScope.lookup(node, _definingLibrary);
       if (element == null && identifier.inSetterContext()) {
-        element = _resolver.nameScope.lookup(new ElementResolver_SyntheticIdentifier("${node.name}="), _definingLibrary);
+        element = _resolver.nameScope.lookup(new SyntheticIdentifier(
+            "${node.name}=", node),
+            _definingLibrary);
       }
       if (element == null) {
         if (identifier.inSetterContext()) {
           _resolver.reportErrorForNode(StaticWarningCode.UNDEFINED_SETTER, identifier, [identifier.name, prefixElement.name]);
         } else if (node.parent is Annotation) {
           Annotation annotation = node.parent as Annotation;
-          _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation, []);
+          _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
           return null;
         } else {
           _resolver.reportErrorForNode(StaticWarningCode.UNDEFINED_GETTER, identifier, [identifier.name, prefixElement.name]);
@@ -1013,22 +1015,23 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     Element element = _resolveSimpleIdentifier(node);
     ClassElement enclosingClass = _resolver.enclosingClass;
     if (_isFactoryConstructorReturnType(node) && !identical(element, enclosingClass)) {
-      _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, node, []);
+      _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, node);
     } else if (_isConstructorReturnType(node) && !identical(element, enclosingClass)) {
-      _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node, []);
+      _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
       element = null;
     } else if (element == null || (element is PrefixElement && !_isValidAsPrefix(node))) {
       // TODO(brianwilkerson) Recover from this error.
       if (_isConstructorReturnType(node)) {
-        _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node, []);
+        _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
       } else if (node.parent is Annotation) {
         Annotation annotation = node.parent as Annotation;
-        _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation, []);
+        _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       } else {
         _recordUndefinedNode(_resolver.enclosingClass, StaticWarningCode.UNDEFINED_IDENTIFIER, node, [node.name]);
       }
     }
     node.staticElement = element;
+    _markElementUsed(element);
     if (node.inSetterContext() && node.inGetterContext() && enclosingClass != null) {
       InterfaceType enclosingType = enclosingClass.type;
       AuxiliaryElements auxiliaryElements = new AuxiliaryElements(_lookUpGetter(null, enclosingType, node.name), null);
@@ -1059,7 +1062,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     SimpleIdentifier name = node.constructorName;
     String superName = name != null ? name.name : null;
     ConstructorElement element = superType.lookUpConstructor(superName, _definingLibrary);
-    if (element == null) {
+    if (element == null ||
+        !enclosingClass.isSuperConstructorAccessible(element)) {
       if (name != null) {
         _resolver.reportErrorForNode(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER, node, [superType.displayName, name]);
       } else {
@@ -1086,7 +1090,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   @override
   Object visitSuperExpression(SuperExpression node) {
     if (!_isSuperInValidContext(node)) {
-      _resolver.reportErrorForNode(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, node, []);
+      _resolver.reportErrorForNode(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, node);
     }
     return super.visitSuperExpression(node);
   }
@@ -1212,7 +1216,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   /**
    * Check that the for some index expression that the method element was resolved, otherwise a
-   * [StaticWarningCode#UNDEFINED_OPERATOR] is generated.
+   * [StaticTypeWarningCode.UNDEFINED_OPERATOR] is generated.
    *
    * @param node the index expression to resolve
    * @param target the target of the expression
@@ -1312,7 +1316,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * @param element the enclosing element. If null, `true` will be returned.
    * @return `false` iff the passed [Element] is a [ClassElement] that is a proxy
    *         or inherits proxy
-   * @see ClassElement#isOrInheritsProxy()
+   * See [ClassElement.isOrInheritsProxy].
    */
   bool _doesntHaveProxy(Element element) => !(element is ClassElement && element.isOrInheritsProxy);
 
@@ -1329,7 +1333,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     for (ImportElement importElement in _definingLibrary.imports) {
       PrefixElement prefixElement = importElement.prefix;
       if (prefixElement != null) {
-        Identifier prefixedIdentifier = new ElementResolver_SyntheticIdentifier("${prefixElement.name}.${identifier.name}");
+        Identifier prefixedIdentifier = new SyntheticIdentifier(
+            "${prefixElement.name}.${identifier.name}",
+            identifier);
         Element importedElement = nameScope.lookup(prefixedIdentifier, _definingLibrary);
         if (importedElement != null) {
           if (element == null) {
@@ -1897,6 +1903,29 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
+   * Marks [element] as used in its defining library.
+   */
+  void _markElementUsed(Element element) {
+    // only locally defined elements
+    if (element == null) {
+      return;
+    }
+    if (!identical(element.library, _definingLibrary)) {
+      return;
+    }
+    // convert members to base elements
+    if (element is Member) {
+      element = (element as Member).baseElement;
+    }
+    // ignore references to an element from itself
+    if (identical(element, _resolver.enclosingClass)) {
+      return;
+    }
+    // OK, the element is used
+    (element as ElementImpl).markUsed();
+  }
+
+  /**
    * Given some class element, this method uses [subtypeManager] to find the set of all
    * subtypes; the subtypes are then searched for a member (method, getter, or setter), that matches
    * a passed
@@ -2114,7 +2143,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     }
     // we need constructor
     if (constructor == null) {
-      _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation, []);
+      _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       return;
     }
     // record element
@@ -2126,13 +2155,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   void _resolveAnnotationElementGetter(Annotation annotation, PropertyAccessorElement accessorElement) {
     // accessor should be synthetic
     if (!accessorElement.isSynthetic) {
-      _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation, []);
+      _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       return;
     }
     // variable should be constant
     VariableElement variableElement = accessorElement.variable;
     if (!variableElement.isConst) {
-      _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation, []);
+      _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
     }
     // OK
     return;
@@ -2355,7 +2384,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         // imported top-level function or top-level getter that returns a function.
         //
         String name = "${target.name}.$methodName";
-        Identifier functionName = new ElementResolver_SyntheticIdentifier(name);
+        Identifier functionName = new SyntheticIdentifier(name, methodName);
         Element element = _resolver.nameScope.lookup(functionName, _definingLibrary);
         if (element != null) {
           // TODO(brianwilkerson) This isn't a method invocation, it's a function invocation where
@@ -2487,8 +2516,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           element = setter;
         }
       }
-    } else if (element == null && (node.inSetterContext() || node.parent is CommentReference)) {
-      element = _resolver.nameScope.lookup(new ElementResolver_SyntheticIdentifier("${node.name}="), _definingLibrary);
+    } else if (element == null
+        && (node.inSetterContext() || node.parent is CommentReference)) {
+      element = _resolver.nameScope.lookup(
+          new SyntheticIdentifier("${node.name}=", node),
+          _definingLibrary);
     }
     ClassElement enclosingClass = _resolver.enclosingClass;
     if (element == null && enclosingClass != null) {
@@ -2591,23 +2623,28 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 }
 
 /**
- * Instances of the class `SyntheticIdentifier` implement an identifier that can be used to
- * look up names in the lexical scope when there is no identifier in the AST structure. There is
- * no identifier in the AST when the parser could not distinguish between a method invocation and
- * an invocation of a top-level function imported with a prefix.
+ * A `SyntheticIdentifier` is an identifier that can be used to look up names in
+ * the lexical scope when there is no identifier in the AST structure. There is
+ * no identifier in the AST when the parser could not distinguish between a
+ * method invocation and an invocation of a top-level function imported with a
+ * prefix.
  */
-class ElementResolver_SyntheticIdentifier extends Identifier {
+class SyntheticIdentifier extends Identifier {
   /**
    * The name of the synthetic identifier.
    */
   final String name;
 
   /**
-   * Initialize a newly created synthetic identifier to have the given name.
-   *
-   * @param name the name of the synthetic identifier
+   * The identifier to be highlighted in case of an error
    */
-  ElementResolver_SyntheticIdentifier(this.name);
+  final Identifier targetIdentifier;
+
+  /**
+   * Initialize a newly created synthetic identifier to have the given [name]
+   * and [targetIdentifier].
+   */
+  SyntheticIdentifier(this.name, this.targetIdentifier);
 
   @override
   accept(AstVisitor visitor) => null;
@@ -2622,6 +2659,12 @@ class ElementResolver_SyntheticIdentifier extends Identifier {
   sc.Token get endToken => null;
 
   @override
+  int get length => targetIdentifier.length;
+
+  @override
+  int get offset => targetIdentifier.offset;
+
+  @override
   int get precedence => 16;
 
   @override
@@ -2634,4 +2677,3 @@ class ElementResolver_SyntheticIdentifier extends Identifier {
   void visitChildren(AstVisitor visitor) {
   }
 }
-

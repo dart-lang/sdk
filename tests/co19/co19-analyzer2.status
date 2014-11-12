@@ -9,10 +9,6 @@ LibTest/core/RegExp/firstMatch_A01_t01: Fail
 # TBF: infinite look: class A {const A();final m = const A();}
 Language/12_Expressions/01_Constants_A17_t03: fail
 
-# TBF: when we override "foo([x = 0]) {}" with "foo([x]) {}" we should report warning - different default value
-Language/07_Classes/1_Instance_Methods_A04_t02: MissingStaticWarning
-Language/07_Classes/4_Abstract_Instance_Members_A07_t04: MissingStaticWarning
-
 # TBF: Static members should not be accessible via subclasses.
 Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A01_t05: MissingStaticWarning
 
@@ -191,7 +187,6 @@ WebPlatformTest/dom/nodes/Node-isEqualNode_t01: StaticWarning # co19-roll r722: 
 WebPlatformTest/dom/nodes/Node-parentNode_t01: StaticWarning # co19-roll r722: Please triage this failure.
 
 # co19-roll r738
-Language/07_Classes/4_Abstract_Instance_Members_A07_t02: MissingStaticWarning # co19-roll r738: Please triage this failure.
 Language/07_Classes/07_Classes_A03_t06: MissingStaticWarning # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/StyleSheet/detached-parent-rule-without-wrapper_t01: StaticWarning # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/StyleSheet/detached-stylesheet-without-wrapper_t01: StaticWarning # co19-roll r738: Please triage this failure.

@@ -14,7 +14,7 @@ abstract class Mixin2 {
 
 class A {
   var superField;
-  A([this.superField = 3]);
+  A() : superField = 3;
 }
 
 class B extends A with Mixin1, Mixin2 {

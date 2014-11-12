@@ -297,8 +297,8 @@ enum MainOp {
 enum CompareAndBranchOp {
   CompareAndBranchMask = 0x7e000000,
   CompareAndBranchFixed = CompareBranchFixed | B29,
-  CBZ = CompareBranchFixed,
-  CBNZ = CompareBranchFixed | B24,
+  CBZ = CompareAndBranchFixed,
+  CBNZ = CompareAndBranchFixed | B24,
 };
 
 // C.3.2.2
@@ -455,6 +455,7 @@ enum MiscDP3SourceOp {
   MADD = MiscDP3SourceFixed,
   MSUB = MiscDP3SourceFixed | B15,
   SMULH = MiscDP3SourceFixed | B31 | B22,
+  UMADDL = MiscDP3SourceFixed | B31 | B23 | B21,
 };
 
 // C3.5.10

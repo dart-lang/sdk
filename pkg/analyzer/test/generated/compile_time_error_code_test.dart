@@ -1191,26 +1191,6 @@ class A {
     verify([source]);
   }
 
-  void test_duplicateDefinition_parameterWithFunctionName_local() {
-    Source source = addSource(r'''
-main() {
-  f(f) {}
-}''');
-    resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
-    verify([source]);
-  }
-
-  void test_duplicateDefinition_parameterWithFunctionName_topLevel() {
-    Source source = addSource(r'''
-main() {
-  f(f) {}
-}''');
-    resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
-    verify([source]);
-  }
-
   void test_duplicateDefinitionInheritance_instanceGetter_staticGetter() {
     Source source = addSource(r'''
 class A {
@@ -1399,7 +1379,8 @@ class C = a.A with M;'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUP
 class M {}
 class C = bool with M;''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                          CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
     verify([source]);
   }
 
@@ -1417,7 +1398,8 @@ class C = double with M;''');
 class M {}
 class C = int with M;''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                          CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
     verify([source]);
   }
 
@@ -1444,7 +1426,8 @@ class C = num with M;''');
 class M {}
 class C = String with M;''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                          CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
     verify([source]);
   }
 
@@ -2908,6 +2891,32 @@ class B {}
 class C = B with a.A;'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.MIXIN_DEFERRED_CLASS]);
   }
 
+  void test_mixinHasNoConstructors_mixinApp() {
+    Source source = addSource(r'''
+class B {
+  B({x});
+}
+class M {}
+class C = B with M;
+''');
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
+    verify([source]);
+  }
+
+  void test_mixinHasNoConstructors_mixinClass() {
+    Source source = addSource(r'''
+class B {
+  B({x});
+}
+class M {}
+class C extends B with M {}
+''');
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    verify([source]);
+  }
+
   void test_mixinInheritsFromNotObject_classDeclaration_extends() {
     Source source = addSource(r'''
 class A {}
@@ -3193,6 +3202,202 @@ class B extends A {
 }''');
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT]);
+    verify([source]);
+  }
+
+  void test_noDefaultSuperConstructorExplicit_MixinAppWithDirectSuperCall() {
+    Source source = addSource(r'''
+class M {}
+class B {
+  B({x});
+  B.named(); // To avoid MIXIN_HAS_NO_CONSTRUCTORS
+}
+class Mixed = B with M;
+class C extends Mixed {
+  C(x) : super();
+}
+''');
+    resolve(source);
+    assertErrors(source, [
+        CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
+    verify([source]);
+  }
+
+  void test_noDefaultSuperConstructorExplicit_MixinAppWithNamedSuperCall() {
+    Source source = addSource(r'''
+class M {}
+class B {
+  B.named({x});
+  B.named2(); // To avoid MIXIN_HAS_NO_CONSTRUCTORS
+}
+class Mixed = B with M;
+class C extends Mixed {
+  C(x) : super.named();
+}
+''');
+    resolve(source);
+    assertErrors(source, [
+        CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER]);
+    // Don't verify since call to super.named() can't be resolved.
+  }
+
+  void test_noDefaultSuperConstructorExplicit_mixinAppWithNamedParam() {
+    Source source = addSource(r'''
+class M {}
+class B {
+  B({x});
+  B.named(); // To avoid MIXIN_HAS_NO_CONSTRUCTORS
+}
+class Mixed = B with M;
+class C extends Mixed {
+  C();
+}
+''');
+    resolve(source);
+    assertErrors(source, [
+        CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
+    verify([source]);
+  }
+
+  void test_noDefaultSuperConstructorExplicit_mixinAppWithOptionalParam() {
+    Source source = addSource(r'''
+class M {}
+class B {
+  B([x]);
+  B.named(); // To avoid MIXIN_HAS_NO_CONSTRUCTORS
+}
+class Mixed = B with M;
+class C extends Mixed {
+  C();
+}
+''');
+    resolve(source);
+    assertErrors(source, [
+        CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
+    verify([source]);
+  }
+
+  void test_noDefaultSuperConstructorExplicit_MixinWithDirectSuperCall() {
+    Source source = addSource(r'''
+class M {}
+class B {
+  B({x});
+}
+class C extends B with M {
+  C(x) : super();
+}
+''');
+    resolve(source);
+    assertErrors(source, [
+        CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
+    verify([source]);
+  }
+
+  void test_noDefaultSuperConstructorExplicit_MixinWithNamedSuperCall() {
+    Source source = addSource(r'''
+class M {}
+class B {
+  B.named({x});
+}
+class C extends B with M {
+  C(x) : super.named();
+}
+''');
+    resolve(source);
+    assertErrors(source, [
+        CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER]);
+    // Don't verify since call to super.named() can't be resolved.
+  }
+
+  void test_noDefaultSuperConstructorExplicit_mixinWithNamedParam() {
+    Source source = addSource(r'''
+class M {}
+class B {
+  B({x});
+}
+class C extends B with M {
+  C();
+}
+''');
+    resolve(source);
+    assertErrors(source, [
+        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT]);
+    verify([source]);
+  }
+
+  void test_noDefaultSuperConstructorExplicit_mixinWithOptionalParam() {
+    Source source = addSource(r'''
+class M {}
+class B {
+  B([x]);
+}
+class C extends B with M {
+  C();
+}
+''');
+    resolve(source);
+    assertErrors(source, [
+        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT]);
+    verify([source]);
+  }
+
+  void test_noDefaultSuperConstructorImplicit_mixinAppWithNamedParam() {
+    Source source = addSource(r'''
+class M {}
+class B {
+  B({x});
+  B.named(); // To avoid MIXIN_HAS_NO_CONSTRUCTORS
+}
+class Mixed = B with M;
+class C extends Mixed {}
+''');
+    resolve(source);
+    assertErrors(source, [
+        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    verify([source]);
+  }
+
+  void test_noDefaultSuperConstructorImplicit_mixinAppWithOptionalParam() {
+    Source source = addSource(r'''
+class M {}
+class B {
+  B([x]);
+  B.named(); // To avoid MIXIN_HAS_NO_CONSTRUCTORS
+}
+class Mixed = B with M;
+class C extends Mixed {}
+''');
+    resolve(source);
+    assertErrors(source, [
+        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    verify([source]);
+  }
+
+  void test_noDefaultSuperConstructorImplicit_mixinWithNamedParam() {
+    Source source = addSource(r'''
+class M {}
+class B {
+  B({x});
+}
+class C extends B with M {}
+''');
+    resolve(source);
+    assertErrors(source, [
+        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    verify([source]);
+  }
+
+  void test_noDefaultSuperConstructorImplicit_mixinWithOptionalParam() {
+    Source source = addSource(r'''
+class M {}
+class B {
+  B([x]);
+}
+class C extends B with M {}
+''');
+    resolve(source);
+    assertErrors(source, [
+        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
     verify([source]);
   }
 
@@ -4415,6 +4620,22 @@ main() {
     verify([source]);
   }
 
+  void test_typeAliasCannotReferenceItself_19459() {
+    // A complex example involving multiple classes.  This is legal, since
+    // typedef F references itself only via a class.
+    Source source = addSource(r'''
+class A<B, C> {}
+abstract class D {
+  f(E e);
+}
+abstract class E extends A<dynamic, F> {}
+typedef D F();
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_typeAliasCannotReferenceItself_parameterType_named() {
     Source source = addSource("typedef A({A a});");
     resolve(source);
@@ -4444,6 +4665,7 @@ main() {
   }
 
   void test_typeAliasCannotReferenceItself_returnClass_withTypeAlias() {
+    // A typedef is allowed to indirectly reference itself via a class.
     Source source = addSource(r'''
 typedef C A();
 typedef A B();
@@ -4451,7 +4673,7 @@ class C {
   B a;
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
+    assertNoErrors(source);
     verify([source]);
   }
 

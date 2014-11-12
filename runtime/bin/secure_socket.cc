@@ -60,6 +60,7 @@ static void ThrowPRException(const char* exception_type,
     free(const_cast<char*>(message));
   }
   Dart_ThrowException(exception);
+  UNREACHABLE();
 }
 
 
@@ -121,6 +122,8 @@ void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
       DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 7));
   bool send_client_certificate =
       DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 8));
+  Dart_Handle protocols_handle =
+      ThrowIfError(Dart_GetNativeArgument(args, 9));
 
   const char* host_name = NULL;
   // TODO(whesse): Is truncating a Dart string containing \0 what we want?
@@ -142,6 +145,10 @@ void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
   // If this is a server connection, it must have a certificate to connect with.
   ASSERT(!is_server || certificate_name != NULL);
 
+  // The protocols_handle is guaranteed to be a valid Uint8List.
+  // It will have the correct length encoding of the protocols array.
+  ASSERT(!Dart_IsNull(protocols_handle));
+
   GetFilter(args)->Connect(host_name,
                            &raw_addr,
                            static_cast<int>(port),
@@ -149,7 +156,8 @@ void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
                            certificate_name,
                            request_client_certificate,
                            require_client_certificate,
-                           send_client_certificate);
+                           send_client_certificate,
+                           protocols_handle);
 }
 
 
@@ -163,6 +171,12 @@ void FUNCTION_NAME(SecureSocket_Destroy)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(SecureSocket_Handshake)(Dart_NativeArguments args) {
   GetFilter(args)->Handshake();
+}
+
+
+void FUNCTION_NAME(SecureSocket_GetSelectedProtocol)(
+    Dart_NativeArguments args) {
+  GetFilter(args)->GetSelectedProtocol(args);
 }
 
 
@@ -658,7 +672,8 @@ void SSLFilter::Connect(const char* host_name,
                         const char* certificate_name,
                         bool request_client_certificate,
                         bool require_client_certificate,
-                        bool send_client_certificate) {
+                        bool send_client_certificate,
+                        Dart_Handle protocols_handle) {
   is_server_ = is_server;
   if (in_handshake_) {
     FATAL("Connect called twice on the same _SecureFilter.");
@@ -673,12 +688,49 @@ void SSLFilter::Connect(const char* host_name,
     ThrowPRException("TlsException", "Failed SSL_ImportFD call");
   }
 
+
+  SECStatus status;
+
+  // Enable ALPN (application layer protocol negogiation) if the caller provides
+  // a valid list of supported protocols.
+  {
+    Dart_TypedData_Type protocols_type;
+    uint8_t* protocol_string = NULL;
+    intptr_t protocol_string_len = 0;
+
+    Dart_Handle result = Dart_TypedDataAcquireData(
+        protocols_handle,
+        &protocols_type,
+        reinterpret_cast<void**>(&protocol_string),
+        &protocol_string_len);
+    if (Dart_IsError(result)) {
+      Dart_PropagateError(result);
+    }
+
+    if (protocols_type != Dart_TypedData_kUint8) {
+      Dart_TypedDataReleaseData(protocols_handle);
+      Dart_PropagateError(Dart_NewApiError(
+          "Unexpected type for protocols (expected valid Uint8List)."));
+    }
+
+    if (protocol_string_len > 0) {
+      status = SSL_OptionSet(filter_, SSL_ENABLE_ALPN, PR_TRUE);
+      ASSERT(status == SECSuccess);
+
+      status = SSL_SetNextProtoNego(filter_,
+                                    protocol_string,
+                                    protocol_string_len);
+      ASSERT(status == SECSuccess);
+    }
+
+    Dart_TypedDataReleaseData(protocols_handle);
+  }
+
   SSLVersionRange vrange;
   vrange.min = SSL_LIBRARY_VERSION_3_0;
   vrange.max = SSL_LIBRARY_VERSION_TLS_1_2;
   SSL_VersionRangeSet(filter_, &vrange);
 
-  SECStatus status;
   if (is_server) {
     CERTCertificate* certificate = NULL;
     if (strstr(certificate_name, "CN=") != NULL) {
@@ -720,6 +772,7 @@ void SSLFilter::Connect(const char* host_name,
             certificate_name);
       }
     }
+
     // kt_rsa (key type RSA) is an enum constant from the NSS libraries.
     // TODO(whesse): Allow different key types.
     status = SSL_ConfigSecureServer(filter_, certificate, key, kt_rsa);
@@ -820,6 +873,46 @@ void SSLFilter::Handshake() {
                          "Handshake error in client");
       }
     }
+  }
+}
+
+void SSLFilter::GetSelectedProtocol(Dart_NativeArguments args) {
+  // Space for the selected protocol.
+  const unsigned int kBufferSize = 256;
+  unsigned char buffer[kBufferSize + 1];
+
+  unsigned int outLength = 0;
+  SSLNextProtoState outState;
+
+  SECStatus status = SSL_GetNextProto(
+      filter_, &outState, buffer, &outLength, kBufferSize);
+  if (status == SECSuccess) {
+    if (outState == SSL_NEXT_PROTO_SELECTED ||
+        outState == SSL_NEXT_PROTO_NEGOTIATED) {
+      ASSERT(outLength <= kBufferSize);
+      buffer[outLength] = '\0';
+      Dart_Handle protocol_string = DartUtils::NewString(
+          reinterpret_cast<const char *>(&buffer[0]));
+      if (Dart_IsError(protocol_string)) {
+        ThrowPRException("HandshakeException",
+                         "Protocol selected via ALPN, unable to get protocol "
+                         "string.");
+      } else {
+        Dart_SetReturnValue(args, protocol_string);
+      }
+    } else if (outState == SSL_NEXT_PROTO_NO_OVERLAP) {
+      ThrowPRException("HandshakeException",
+                       "Client and Server could not agree upon a protocol");
+    } else if (outState == SSL_NEXT_PROTO_NO_SUPPORT) {
+      // A value of `null` denotes that the client did not support protocol
+      // negogiation.
+      Dart_SetReturnValue(args, Dart_Null());
+    } else {
+      UNREACHABLE();
+    }
+  } else {
+    ThrowPRException("HandshakeException",
+                     "Could not retrieve selected protocol via ALPN");
   }
 }
 

@@ -240,10 +240,6 @@ def GetFromGsutil(name, directory, version_file, latest_pattern,
         print name + ' is up to date.\nVersion: ' + latest
       return 0 # up to date
 
-  if os.path.exists(directory):
-    print 'Removing old %s tree %s' % (name, directory)
-    shutil.rmtree(directory)
-
   # download the zip file to a temporary path, and unzip to the target location
   temp_dir = tempfile.mkdtemp()
   try:
@@ -270,7 +266,10 @@ def GetFromGsutil(name, directory, version_file, latest_pattern,
     if directory == SDK_DIR:
       unzipped_dir = os.path.join(temp_dir, 'dart-sdk')
     if os.path.exists(directory):
-      raise Exception(
+      print 'Removing old %s tree %s' % (name, directory)
+      shutil.rmtree(directory)
+      if os.path.exists(directory):
+        raise Exception(
           'Removal of directory %s failed. Is the executable running?' %
           directory)
     shutil.move(unzipped_dir, directory)

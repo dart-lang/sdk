@@ -52,7 +52,6 @@ main() {
                         'foo',
                         [
                             d.matcherFile('file.dart.js', isNot(isEmpty)),
-                            d.matcherFile('file.dart.precompiled.js', isNot(isEmpty)),
                             d.dir(
                                 'packages',
                                 [
@@ -72,13 +71,11 @@ main() {
                                                 [
                                                     d.file('dart.js', 'contents of dart.js'),
                                                     d.file('interop.js', 'contents of interop.js')])]),
-                                    d.matcherFile('subfile.dart.js', isNot(isEmpty)),
-                                    d.matcherFile('subfile.dart.precompiled.js', isNot(isEmpty)),])]),
+                                    d.matcherFile('subfile.dart.js', isNot(isEmpty)),])]),
                     d.dir(
                         'web',
                         [
                             d.matcherFile('file.dart.js', isNot(isEmpty)),
-                            d.matcherFile('file.dart.precompiled.js', isNot(isEmpty)),
                             d.dir(
                                 'packages',
                                 [
@@ -98,7 +95,6 @@ main() {
                                                 [
                                                     d.file('dart.js', 'contents of dart.js'),
                                                     d.file('interop.js', 'contents of interop.js')])]),
-                                    d.matcherFile('subfile.dart.js', isNot(isEmpty)),
-                                    d.matcherFile('subfile.dart.precompiled.js', isNot(isEmpty))])])])]).validate();
+                                    d.matcherFile('subfile.dart.js', isNot(isEmpty))])])])]).validate();
   });
 }

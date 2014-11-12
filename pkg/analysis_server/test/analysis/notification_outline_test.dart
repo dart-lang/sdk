@@ -738,8 +738,8 @@ set propB(int v) {}
         expect(element.name, "propA");
         {
           Location location = element.location;
-          expect(element.location.offset, testCode.indexOf("propA => null;"));
-          expect(element.location.length, "propA".length);
+          expect(location.offset, testCode.indexOf("propA => null;"));
+          expect(location.length, "propA".length);
         }
         expect(element.parameters, "");
         expect(element.returnType, "String");

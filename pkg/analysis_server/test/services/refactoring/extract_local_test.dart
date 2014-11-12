@@ -288,16 +288,16 @@ main() {
 
   test_const_inList_inConditionalExpression() {
     indexTestUnit('''
-main(bool b) {
-  const [b ? 1 : 2, 3];
+main() {
+  const [true ? 1 : 2, 3];
 }
 ''');
     _createRefactoringForString('1');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main(bool b) {
+main() {
   const res = 1;
-  const [b ? res : 2, 3];
+  const [true ? res : 2, 3];
 }
 ''');
   }

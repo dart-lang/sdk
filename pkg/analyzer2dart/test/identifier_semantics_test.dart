@@ -1092,6 +1092,94 @@ f() {
     helper.checkDynamic('h().x', 'h()', 'x', isRead: true);
   });
 
+  test('Get class defined at top level', () {
+    Helper helper = new Helper('''
+class A {}
+var t = A;
+''');
+    helper.checkTypeReference('A', 'A', AccessKind.TOPLEVEL_TYPE);
+  });
+
+  test('Get class defined at top level via prefix', () {
+    Helper helper = new Helper('''
+import 'lib.dart' as l;
+
+var t = l.A;
+''');
+    helper.addFile('/lib.dart', '''
+library lib;
+
+class A;
+''');
+    helper.checkTypeReference('l.A', 'A', AccessKind.TOPLEVEL_TYPE);
+  });
+
+  test('Get dynamic type', () {
+    Helper helper = new Helper('''
+var t = dynamic;
+''');
+    helper.checkTypeReference('dynamic', 'dynamic', AccessKind.TOPLEVEL_TYPE);
+  });
+
+  test('Get function typedef defined at top level', () {
+    Helper helper = new Helper('''
+typedef F();
+var t = F;
+''');
+    helper.checkTypeReference('F', 'F', AccessKind.TOPLEVEL_TYPE);
+  });
+
+  test('Get function typedef defined at top level via prefix', () {
+    Helper helper = new Helper('''
+import 'lib.dart' as l;
+
+var t = l.F;
+''');
+    helper.addFile('/lib.dart', '''
+library lib;
+
+typedef F();
+''');
+    helper.checkTypeReference('l.F', 'F', AccessKind.TOPLEVEL_TYPE);
+  });
+
+  test('Get mixin application defined at top level', () {
+    Helper helper = new Helper('''
+class A {}
+class B {}
+class C = A with B;
+var t = C;
+''');
+    helper.checkTypeReference('C', 'C', AccessKind.TOPLEVEL_TYPE);
+  });
+
+  test('Get mixin application defined at top level via prefix', () {
+    Helper helper = new Helper('''
+import 'lib.dart' as l;
+
+var t = l.C;
+''');
+    helper.addFile('/lib.dart', '''
+library lib;
+
+class A;
+class B;
+class C = A with B;
+''');
+    helper.checkTypeReference('l.C', 'C', AccessKind.TOPLEVEL_TYPE);
+  });
+
+  test('Get type parameter of enclosing class', () {
+    Helper helper = new Helper('''
+class A<T, U> {
+  f() {
+    var t = U;
+  }
+}
+''');
+    helper.checkTypeReference('U', 'U', AccessKind.TYPE_PARAMETER);
+  });
+
   test('Set variable defined at top level', () {
     Helper helper = new Helper('''
 var x;
@@ -2221,6 +2309,29 @@ class Helper {
       expect(semantics.isRead, equals(isRead));
       expect(semantics.isWrite, equals(isWrite));
       expect(semantics.isInvoke, equals(isInvoke));
+    };
+    libraryElement.unit.accept(visitor);
+    expect(count, equals(1));
+  }
+
+  /**
+   * Verify that the node represented by [expectedSource] is classified as a
+   * reference to a toplevel class or a type parameter.
+   */
+  void checkTypeReference(
+      String expectedSource, String expectedName, AccessKind expectedKind) {
+    TestVisitor visitor = new TestVisitor();
+    int count = 0;
+    visitor.onAccess = (AstNode node, AccessSemantics semantics) {
+      count++;
+      expect(node.toSource(), equals(expectedSource));
+      expect(semantics.kind, equals(expectedKind));
+      expect(semantics.element.name, equals(expectedName));
+      expect(semantics.classElement, isNull);
+      expect(semantics.target, isNull);
+      expect(semantics.isRead, isTrue);
+      expect(semantics.isWrite, isFalse);
+      expect(semantics.isInvoke, isFalse);
     };
     libraryElement.unit.accept(visitor);
     expect(count, equals(1));

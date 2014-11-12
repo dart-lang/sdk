@@ -39,6 +39,11 @@ abstract class Indexable<TMirror extends DeclarationMirror>
   /// This defines both the URL and the directory structure.
   String get qualifiedName => packagePrefix + ownerPrefix + name;
 
+  /// The name of the file we write this object's data into. The same as the
+  /// qualified name but with leading colons (i.e. dart:)
+  /// replaced by hyphens because of Windows.
+  String get fileName => qualifiedName.replaceFirst(":", "-");
+
   final TMirror mirror;
   final bool isPrivate;
   /// The comment text pre-resolution. We keep this around because inherited
