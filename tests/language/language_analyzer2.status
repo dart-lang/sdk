@@ -20,6 +20,7 @@ constructor_duplicate_final_test/03: Fail
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 21565
 reify_typevar_static_test/01: MissingCompileTimeError # Issue 21565
 
+enum_test: Fail # Issue 21582
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
