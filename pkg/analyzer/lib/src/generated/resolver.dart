@@ -1909,44 +1909,6 @@ class Dart2JSVerifier extends RecursiveAstVisitor<Object> {
 }
 
 /**
- * Instances of the class [UnusedElementVerifier] traverse an element
- * structure looking for cases of [HintCode.UNUSED_ELEMENT] and
- * [HintCode.UNUSED_LOCAL_VARIABLE].
- */
-class UnusedElementVerifier extends RecursiveElementVisitor {
-  /**
-   * The error reporter by which errors will be reported.
-   */
-  final ErrorReporter _errorReporter;
-
-  /**
-   * Create a new instance of the [UnusedElementVerifier].
-   */
-  UnusedElementVerifier(this._errorReporter);
-
-  @override
-  visitClassElement(ClassElement element) {
-    if (element is ClassElementImpl && !element.isUsed) {
-      _errorReporter.reportErrorForElement(
-          HintCode.UNUSED_ELEMENT,
-          element,
-          [element.kind.displayName, element.displayName]);
-    }
-    element.visitChildren(this);
-  }
-
-  @override
-  visitLocalVariableElement(LocalVariableElement element) {
-    if (element is LocalVariableElementImpl && !element.isUsed) {
-      _errorReporter.reportErrorForElement(
-          HintCode.UNUSED_LOCAL_VARIABLE,
-          element,
-          [element.displayName]);
-    }
-  }
-}
-
-/**
  * Instances of the class `DeadCodeVerifier` traverse an AST structure looking for cases of
  * [HintCode.DEAD_CODE].
  */
@@ -3506,9 +3468,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       LocalVariableElementImpl exception = new LocalVariableElementImpl.forNode(exceptionParameter);
       _currentHolder.addLocalVariable(exception);
       exceptionParameter.staticElement = exception;
-      // we cannot catch an exception without declaring a variable,
-      // so the exception variable is always used
-      exception.markUsed();
       // stack trace
       SimpleIdentifier stackTraceParameter = node.stackTraceParameter;
       if (stackTraceParameter != null) {
@@ -5377,6 +5336,8 @@ class HintGenerator {
 
   final AnalysisErrorListener _errorListener;
 
+  LibraryElement _library;
+
   ImportsVerifier _importsVerifier;
 
   bool _enableDart2JSHints = false;
@@ -5386,11 +5347,14 @@ class HintGenerator {
    */
   InheritanceManager _manager;
 
+  _GatherUsedElementsVisitor _usedElementsVisitor;
+
   HintGenerator(this._compilationUnits, this._context, this._errorListener) {
-    LibraryElement library = _compilationUnits[0].element.library;
-    _importsVerifier = new ImportsVerifier(library);
+    _library = _compilationUnits[0].element.library;
+    _importsVerifier = new ImportsVerifier(_library);
     _enableDart2JSHints = _context.analysisOptions.dart2jsHint;
     _manager = new InheritanceManager(_compilationUnits[0].element.library);
+    _usedElementsVisitor = new _GatherUsedElementsVisitor(_library);
   }
 
   void generateForLibrary() {
@@ -5411,6 +5375,7 @@ class HintGenerator {
       ErrorReporter definingCompilationUnitErrorReporter = new ErrorReporter(_errorListener, _compilationUnits[0].element.source);
       _importsVerifier.generateDuplicateImportHints(definingCompilationUnitErrorReporter);
       _importsVerifier.generateUnusedImportHints(definingCompilationUnitErrorReporter);
+      _library.accept(new _UnusedElementsVerifier(_errorListener, _usedElementsVisitor.usedElements));
     } finally {
       timeCounter.stop();
     }
@@ -5421,7 +5386,7 @@ class HintGenerator {
     unit.accept(_importsVerifier);
     // dead code analysis
     unit.accept(new DeadCodeVerifier(errorReporter));
-    unit.element.accept(new UnusedElementVerifier(errorReporter));
+    unit.accept(_usedElementsVisitor);
     // dart2js analysis
     if (_enableDart2JSHints) {
       unit.accept(new Dart2JSVerifier(errorReporter));
@@ -15146,7 +15111,6 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (element != null) {
       if (typeName is SimpleIdentifier) {
         typeName.staticElement = element;
-        _markTypeNameElementUsed(typeName, element);
       } else if (typeName is PrefixedIdentifier) {
         PrefixedIdentifier identifier = typeName;
         identifier.identifier.staticElement = element;
@@ -15156,31 +15120,6 @@ class TypeResolverVisitor extends ScopedVisitor {
           prefix.staticElement = prefixElement;
         }
       }
-    }
-  }
-
-  /**
-   * Marks [element] as used in its defining library.
-   */
-  void _markTypeNameElementUsed(Identifier typeName, Element element) {
-    if (identical(element, _enclosingClass)) {
-      return;
-    }
-    // ignore places where the element is not actually used
-    if (typeName.parent is TypeName) {
-      AstNode parent2 = typeName.parent.parent;
-      if (parent2 is IsExpression) {
-        return;
-      }
-      if (parent2 is VariableDeclarationList) {
-        return;
-      }
-    }
-    // check if the element is a local top-level element
-    if (element is ElementImpl &&
-        element.enclosingElement is CompilationUnitElement &&
-        identical(element.library, definingLibrary)) {
-      element.markUsed();
     }
   }
 
@@ -15392,21 +15331,6 @@ class VariableResolverVisitor extends ScopedVisitor {
           variableImpl.markPotentiallyMutatedInClosure();
         }
       }
-      if (node.inGetterContext()) {
-        if (parent.parent is ExpressionStatement &&
-            (parent is PrefixExpression ||
-             parent is PostfixExpression ||
-             parent is AssignmentExpression && parent.leftHandSide == node)) {
-          // v++;
-          // ++v;
-          // v += 2;
-        } else {
-          variableImpl.markUsed();
-        }
-      }
-      if (parent is MethodInvocation && parent.methodName == node) {
-        variableImpl.markUsed();
-      }
     } else if (kind == ElementKind.PARAMETER) {
       node.staticElement = element;
       if (node.inSetterContext()) {
@@ -15614,5 +15538,173 @@ class HtmlTagInfo {
    */
   String getTagWithId(String identifier) {
     return idToTagMap[identifier];
+  }
+}
+
+
+class _GatherUsedElementsVisitor extends RecursiveAstVisitor {
+  final Set<Element> usedElements = new HashSet<Element>();
+
+  final LibraryElement _enclosingLibrary;
+  ClassElement _enclosingClass;
+
+  _GatherUsedElementsVisitor(this._enclosingLibrary);
+
+  @override
+  visitCatchClause(CatchClause node) {
+    SimpleIdentifier exceptionParameter = node.exceptionParameter;
+    _useStaticElement(exceptionParameter);
+    super.visitCatchClause(node);
+  }
+
+  @override
+  visitClassDeclaration(ClassDeclaration node) {
+    ClassElement enclosingClassOld = _enclosingClass;
+    try {
+      _enclosingClass = node.element;
+      super.visitClassDeclaration(node);
+    } finally {
+      _enclosingClass = enclosingClassOld;
+    }
+  }
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.inDeclarationContext()) {
+      return;
+    }
+    Element staticElement = node.staticElement;
+    if (staticElement is LocalVariableElement) {
+      AstNode parent = node.parent;
+      if (node.inGetterContext()) {
+        if (parent.parent is ExpressionStatement &&
+            (parent is PrefixExpression ||
+             parent is PostfixExpression ||
+             parent is AssignmentExpression && parent.leftHandSide == node)) {
+          // v++;
+          // ++v;
+          // v += 2;
+        } else {
+          _useElement(staticElement);
+        }
+      }
+      if (parent is MethodInvocation && parent.methodName == node) {
+        _useElement(staticElement);
+      }
+    } else {
+      _useIdentifierElement(node);
+    }
+  }
+
+  @override
+  visitTypeName(TypeName node) {
+    _useIdentifierElement(node.name);
+  }
+
+  /**
+   * Marks an [Element] of [node] as used in the library.
+   */
+  void _useIdentifierElement(Identifier node) {
+    Element element = node.staticElement;
+    if (element == null) {
+      return;
+    }
+    // check if a local element
+    if (!identical(element.library, _enclosingLibrary)) {
+      return;
+    }
+    // ignore references to an element from itself
+    if (identical(element, _enclosingClass)) {
+      return;
+    }
+    // ignore places where the element is not actually used
+    if (node.parent is TypeName) {
+      AstNode parent2 = node.parent.parent;
+      if (parent2 is IsExpression) {
+        return;
+      }
+      if (parent2 is VariableDeclarationList) {
+        return;
+      }
+    }
+    // OK
+    _useElement(element);
+  }
+
+  _useElement(Element element) {
+    if (element != null) {
+      usedElements.add(element);
+    }
+  }
+
+  void _useStaticElement(SimpleIdentifier identifier) {
+    if (identifier != null) {
+      _useElement(identifier.staticElement);
+    }
+  }
+}
+
+
+/**
+ * Instances of the class [_UnusedElementsVerifier] traverse an element
+ * structure looking for cases of [HintCode.UNUSED_ELEMENT] and
+ * [HintCode.UNUSED_LOCAL_VARIABLE].
+ */
+class _UnusedElementsVerifier extends RecursiveElementVisitor {
+  /**
+   * The error listener to which errors will be reported.
+   */
+  final AnalysisErrorListener _errorListener;
+
+  /**
+   * The elements know to be used.
+   */
+  final Set<Element> _usedElements;
+
+  /**
+   * Create a new instance of the [_UnusedElementsVerifier].
+   */
+  _UnusedElementsVerifier(this._errorListener, this._usedElements);
+
+  @override
+  visitClassElement(ClassElement element) {
+    if (!_isUsed(element)) {
+      _reportErrorForElement(
+          HintCode.UNUSED_ELEMENT,
+          element,
+          [element.kind.displayName, element.displayName]);
+    }
+    element.visitChildren(this);
+  }
+
+  @override
+  visitLocalVariableElement(LocalVariableElement element) {
+    if (!_isUsed(element)) {
+      _reportErrorForElement(
+          HintCode.UNUSED_LOCAL_VARIABLE,
+          element,
+          [element.displayName]);
+    }
+  }
+
+  bool _isUsed(Element element) {
+    if (element is! LocalVariableElement) {
+      if (element.isPublic) {
+        return true;
+      }
+    }
+    return _usedElements.contains(element);
+  }
+
+  void _reportErrorForElement(ErrorCode errorCode, Element element, List<Object> arguments) {
+    if (element != null) {
+      _errorListener.onError(
+          new AnalysisError.con2(
+              element.source,
+              element.nameOffset,
+              element.displayName.length,
+              errorCode,
+              arguments));
+    }
   }
 }

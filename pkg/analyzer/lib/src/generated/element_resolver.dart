@@ -1031,7 +1031,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
     }
     node.staticElement = element;
-    _markElementUsed(element);
     if (node.inSetterContext() && node.inGetterContext() && enclosingClass != null) {
       InterfaceType enclosingType = enclosingClass.type;
       AuxiliaryElements auxiliaryElements = new AuxiliaryElements(_lookUpGetter(null, enclosingType, node.name), null);
@@ -1900,29 +1899,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       return null;
     }
     return _lookUpSetterInInterfaces(superclass, true, setterName, visitedInterfaces);
-  }
-
-  /**
-   * Marks [element] as used in its defining library.
-   */
-  void _markElementUsed(Element element) {
-    // only locally defined elements
-    if (element == null) {
-      return;
-    }
-    if (!identical(element.library, _definingLibrary)) {
-      return;
-    }
-    // convert members to base elements
-    if (element is Member) {
-      element = (element as Member).baseElement;
-    }
-    // ignore references to an element from itself
-    if (identical(element, _resolver.enclosingClass)) {
-      return;
-    }
-    // OK, the element is used
-    (element as ElementImpl).markUsed();
   }
 
   /**

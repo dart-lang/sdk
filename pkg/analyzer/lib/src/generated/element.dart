@@ -3384,26 +3384,6 @@ abstract class ElementImpl implements Element {
     return shortName;
   }
 
-  /**
-   * Return `true` if this element is used or potentially can be used.
-   *
-   * For a top-level element: it is public, or it is private and used in the
-   * defining library.
-   *
-   * For a local variable: its value is used (i.e. purely read or invoked)
-   * somewhere in its scope.
-   *
-   * This information is only available for local variables (including
-   * parameters) and only after the compilation unit containing the element
-   * has been resolved.
-   */
-  bool get isUsed {
-    if (isPublic) {
-      return true;
-    }
-    return hasModifier(Modifier.IS_USED_IN_LIBRARY);
-  }
-
   @override
   LibraryElement get library => getAncestor((element) => element is LibraryElement);
 
@@ -3569,13 +3549,6 @@ abstract class ElementImpl implements Element {
    * @return `true` if this element has the given modifier associated with it
    */
   bool hasModifier(Modifier modifier) => BooleanArray.getEnum(_modifiers, modifier);
-
-  /**
-   * Specifies that the element is used.
-   */
-  void markUsed() {
-    setModifier(Modifier.IS_USED_IN_LIBRARY, true);
-  }
 
   /**
    * If the given child is not `null`, use the given visitor to visit it.
@@ -8297,11 +8270,6 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
   accept(ElementVisitor visitor) => visitor.visitLocalVariableElement(this);
 
   @override
-  bool get isUsed {
-    return hasModifier(Modifier.IS_USED_IN_LIBRARY);
-  }
-
-  @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
 
   @override
@@ -8802,18 +8770,6 @@ class Modifier extends Enum<Modifier> {
   static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 9);
 
   /**
-   * Indicates that the element is used in the declaring library.
-   *
-   *
-   * For a top-level element: it is public, or it is private and used in the
-   * defining library.
-   *
-   * For a local variable: its value is used (i.e. purely read or invoked)
-   * somewhere in its scope.
-   */
-  static const Modifier IS_USED_IN_LIBRARY = const Modifier('IS_USED_IN_LIBRARY', 10);
-
-  /**
    * Indicates that a class can validly be used as a mixin.
    */
   static const Modifier MIXIN = const Modifier('MIXIN', 11);
@@ -8867,7 +8823,6 @@ class Modifier extends Enum<Modifier> {
       GENERATOR,
       GETTER,
       HAS_EXT_URI,
-      IS_USED_IN_LIBRARY,
       MIXIN,
       POTENTIALLY_MUTATED_IN_CONTEXT,
       POTENTIALLY_MUTATED_IN_SCOPE,
