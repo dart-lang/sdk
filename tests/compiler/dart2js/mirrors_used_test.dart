@@ -45,8 +45,7 @@ void expectOnlyVerboseInfo(Uri uri, int begin, int end, String message, kind) {
 
 void main() {
   Compiler compiler = compilerFor(
-      MEMORY_SOURCE_FILES, diagnosticHandler: expectOnlyVerboseInfo,
-      options: ['--enable-experimental-mirrors']);
+      MEMORY_SOURCE_FILES, diagnosticHandler: expectOnlyVerboseInfo);
   asyncTest(() => compiler.runCompiler(Uri.parse('memory:main.dart')).then((_) {
     print('');
     List generatedCode =

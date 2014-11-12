@@ -10,15 +10,12 @@ import 'package:compiler/src/dart2jslib.dart'
        show NullSink;
 
 import 'package:compiler/compiler.dart'
-    show Diagnostic, DiagnosticHandler, CompilerOutputProvider;
+       show Diagnostic, DiagnosticHandler, CompilerOutputProvider;
 
 import 'dart:async';
 
 import 'package:compiler/src/mirrors/source_mirrors.dart';
 import 'package:compiler/src/mirrors/analyze.dart';
-
-import 'package:compiler/src/library_loader.dart'
-    show LoadedLibraries;
 
 class DiagnosticMessage {
   final Uri uri;
@@ -186,7 +183,7 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
     });
     // TODO(johnniwinther): Assert that no libraries are loaded lazily from
     // this call.
-    compiler.onLibrariesLoaded(new MemoryLoadedLibraries(copiedLibraries));
+    compiler.onLibrariesLoaded(copiedLibraries);
 
     compiler.symbolConstructor = cachedCompiler.symbolConstructor;
     compiler.mirrorSystemClass = cachedCompiler.mirrorSystemClass;
@@ -230,27 +227,6 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
     cachedCompiler.buildId = null;
   }
   return compiler;
-}
-
-class MemoryLoadedLibraries implements LoadedLibraries {
-  final Map copiedLibraries;
-
-  MemoryLoadedLibraries(this.copiedLibraries);
-
-  @override
-  bool containsLibrary(Uri uri) => copiedLibraries.containsKey(uri);
-
-  @override
-  void forEachImportChain(f) {}
-
-  @override
-  void forEachLibrary(f) {}
-
-  @override
-  getLibrary(Uri uri) => copiedLibraries[uri];
-
-  @override
-  Uri get rootUri => null;
 }
 
 Future<MirrorSystem> mirrorSystemFor(Map<String,String> memorySourceFiles,

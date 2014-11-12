@@ -249,7 +249,6 @@ class HideFilter extends CombinatorFilter {
  */
 class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   _LibraryLoaderTask(Compiler compiler) : super(compiler);
-
   String get name => 'LibraryLoader';
 
   final Map<Uri, LibraryElement> libraryCanonicalUriMap =
@@ -343,8 +342,11 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         return compiler.withCurrentElement(library, () {
           return measure(() {
             currentHandler.computeExports();
-            LoadedLibraries loadedLibraries =
-                new _LoadedLibraries(library, currentHandler.nodeMap);
+            Map<Uri, LibraryElement> loadedLibraries = <Uri, LibraryElement>{};
+            currentHandler.loadedLibraries.forEach(
+                (LibraryElement loadedLibrary) {
+              loadedLibraries[loadedLibrary.canonicalUri] = loadedLibrary;
+            });
             currentHandler = null;
             return compiler.onLibrariesLoaded(loadedLibraries)
                 .then((_) => library);
@@ -1028,72 +1030,5 @@ class LibraryDependencyHandler implements LibraryLoader {
 
   Future processLibraryTags(LibraryElement library) {
     return task.processLibraryTags(this, library);
-  }
-}
-
-/// Information on the bulk of newly loaded libraries through a call to
-/// [LibraryLoader.loadLibrary].
-abstract class LoadedLibraries {
-  /// The uri passed to [LibraryLoader.loadLibrary].
-  Uri get rootUri;
-
-  /// Returns `true` if a library with canonical [uri] was loaded in this bulk.
-  bool containsLibrary(Uri uri);
-
-  /// Returns the library with canonical [uri] that was loaded in this bulk.
-  LibraryElement getLibrary(Uri uri);
-
-  /// Applies all libraries in this bulk to [f].
-  void forEachLibrary(f(LibraryElement library));
-
-  /// Applies all library imports in this bulk to [f].
-  ///
-  /// The argument [importChainReversed] to [f] contains the chain of imports
-  /// uris that lead to importing [library] starting in the canonical uri for
-  /// [library] and ending in [rootUri].
-  ///
-  /// [f] is called once for each chain of imports leading to [library].
-  void forEachImportChain(f(LibraryElement library,
-                            Link<Uri> importChainReversed));
-}
-
-class _LoadedLibraries implements LoadedLibraries {
-  final LibraryElement rootLibrary;
-  final Map<Uri, LibraryElement> loadedLibraries = <Uri, LibraryElement>{};
-  final Map<LibraryElement, LibraryDependencyNode> nodeMap;
-
-  _LoadedLibraries(this.rootLibrary, this.nodeMap) {
-    nodeMap.keys.forEach((LibraryElement loadedLibrary) {
-      loadedLibraries[loadedLibrary.canonicalUri] = loadedLibrary;
-    });
-  }
-
-  Uri get rootUri => rootLibrary.canonicalUri;
-
-  bool containsLibrary(Uri uri) => loadedLibraries.containsKey(uri);
-
-  LibraryElement getLibrary(Uri uri) => loadedLibraries[uri];
-
-  void forEachLibrary(f(LibraryElement library)) => nodeMap.keys.forEach(f);
-
-  void forEachImportChain(f(LibraryElement library, Link<Uri> importChain)) {
-    _processImports(rootLibrary, const Link<Uri>(), f);
-  }
-
-  void _processImports(LibraryElement library,
-                      Link<Uri> uris,
-                      f(LibraryElement library, Link<Uri> importChain)) {
-    Uri uri = library.canonicalUri;
-    if (uris.contains(uri)) {
-      // Cyclic import.
-      return;
-    }
-    uris = uris.prepend(uri);
-    f(library, uris);
-    LibraryDependencyNode node = nodeMap[library];
-    // TODO(johnniwinther): Reversing the imports every lookup.
-    for (ImportLink import in node.imports.reverse()) {
-      _processImports(import.importedLibrary, uris, f);
-    }
   }
 }

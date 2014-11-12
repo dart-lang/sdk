@@ -8,7 +8,6 @@ import 'dart:async' show Future;
 import 'dart:math' show max;
 import '../elements/elements.dart';
 import '../dart2jslib.dart';
-import '../library_loader.dart' show LoadedLibraries;
 import '../dart_types.dart';
 import '../tree/tree.dart';
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir;

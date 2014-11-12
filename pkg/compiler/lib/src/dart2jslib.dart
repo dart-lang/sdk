@@ -34,8 +34,7 @@ import 'js/js.dart' as js;
 import 'js_backend/js_backend.dart' as js_backend;
 import 'library_loader.dart'
     show LibraryLoader,
-         LibraryLoaderTask,
-         LoadedLibraries;
+         LibraryLoaderTask;
 import 'mirrors_used.dart' show MirrorUsageAnalyzerTask;
 import 'native/native.dart' as native;
 import 'ordered_typeset.dart';
@@ -50,7 +49,6 @@ import 'tree/tree.dart';
 import 'types/types.dart' as ti;
 import 'universe/universe.dart';
 import 'util/characters.dart' show $_;
-import 'util/uri_extras.dart' as uri_extras show relativize;
 import 'util/util.dart';
 
 export 'helpers/helpers.dart';

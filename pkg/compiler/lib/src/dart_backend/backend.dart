@@ -261,10 +261,10 @@ class DartBackend extends Backend {
 
   log(String message) => compiler.log('[DartBackend] $message');
 
-  Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
+  Future onLibrariesLoaded(Map<Uri, LibraryElement> loadedLibraries) {
     // All platform classes must be resolved to ensure that their member names
     // are preserved.
-    loadedLibraries.forEachLibrary((LibraryElement library) {
+    loadedLibraries.values.forEach((LibraryElement library) {
       if (library.isPlatformLibrary) {
         library.forEachLocalMember((Element element) {
           if (element.isClass) {
@@ -275,10 +275,10 @@ class DartBackend extends Backend {
       }
     });
     if (useMirrorHelperLibrary &&
-        loadedLibraries.containsLibrary(Compiler.DART_MIRRORS)) {
+        loadedLibraries.containsKey(Compiler.DART_MIRRORS)) {
       return compiler.libraryLoader.loadLibrary(
           compiler.translateResolvedUri(
-              loadedLibraries.getLibrary(Compiler.DART_MIRRORS),
+              loadedLibraries[Compiler.DART_MIRRORS],
               MirrorRenamerImpl.DART_MIRROR_HELPER, null)).
           then((LibraryElement library) {
         mirrorRenamer = new MirrorRenamerImpl(compiler, this, library);

@@ -332,7 +332,6 @@ Future compile(List<String> argv) {
                       (_) => hasDisallowUnsafeEval = true),
     new OptionHandler('--show-package-warnings', passThrough),
     new OptionHandler('--csp', passThrough),
-    new OptionHandler('--enable-experimental-mirrors', passThrough),
     new OptionHandler('--enable-async', setEnableAsync),
     new OptionHandler('--enable-enum', passThrough),
     new OptionHandler('-D.+=.*', addInEnvironment),

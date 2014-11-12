@@ -54,7 +54,7 @@ class TestCompiler extends apiimpl.Compiler {
     return super.onLibraryScanned(element, loader);
   }
 
-  Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
+  Future onLibrariesLoaded(Map<Uri, LibraryElement> loadedLibraries) {
     test('Compiler.onLibrariesLoaded');
     return super.onLibrariesLoaded(loadedLibraries);
   }

@@ -80,8 +80,6 @@ class Compiler extends leg.Compiler {
                 forceIncrementalSupport ||
                 hasOption(options, '--incremental-support'),
             suppressWarnings: hasOption(options, '--suppress-warnings'),
-            enableExperimentalMirrors:
-                hasOption(options, '--enable-experimental-mirrors'),
             enableAsyncAwait: hasOption(options, '--enable-async'),
             enableEnums: hasOption(options, '--enable-enum')) {
     tasks.addAll([
