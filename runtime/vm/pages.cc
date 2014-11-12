@@ -11,6 +11,7 @@
 #include "vm/lockers.h"
 #include "vm/object.h"
 #include "vm/thread.h"
+#include "vm/verified_memory.h"
 #include "vm/virtual_memory.h"
 
 namespace dart {
@@ -59,7 +60,7 @@ HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
 
 HeapPage* HeapPage::Allocate(intptr_t size_in_words, PageType type) {
   VirtualMemory* memory =
-      VirtualMemory::Reserve(size_in_words << kWordSizeLog2);
+      VerifiedMemory::Reserve(size_in_words << kWordSizeLog2);
   return Initialize(memory, type);
 }
 

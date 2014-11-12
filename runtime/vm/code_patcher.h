@@ -92,9 +92,6 @@ class CodePatcher : public AllStatic {
   static void InsertCallAt(uword start, uword target);
 
   static RawObject* GetEdgeCounterAt(uword pc, const Code& code);
-#if defined(TARGET_ARCH_IA32)
-  static int32_t EdgeCounterIncrementSizeInBytes();
-#endif  // TARGET_ARCH_IA32
 
   static int32_t GetPoolOffsetAt(uword return_address);
   static void SetPoolOffsetAt(uword return_address, int32_t offset);

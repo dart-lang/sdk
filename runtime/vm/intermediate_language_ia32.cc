@@ -2080,13 +2080,13 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
       intptr_t current_offset = 0;
       __ movl(EBX, raw_null);
       while (current_offset < array_size) {
-        __ movl(Address(EDI, current_offset), EBX);
+        __ StoreIntoObjectNoBarrier(EAX, Address(EDI, current_offset), EBX);
         current_offset += kWordSize;
       }
     } else {
       Label init_loop;
       __ Bind(&init_loop);
-      __ movl(Address(EDI, 0), raw_null);
+      __ StoreIntoObjectNoBarrier(EAX, Address(EDI, 0), Object::null_object());
       __ addl(EDI, Immediate(kWordSize));
       __ cmpl(EDI, EBX);
       __ j(BELOW, &init_loop, Assembler::kNearJump);

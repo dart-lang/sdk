@@ -44,6 +44,7 @@
 #include "vm/tags.h"
 #include "vm/timer.h"
 #include "vm/unicode.h"
+#include "vm/verified_memory.h"
 #include "vm/weak_code.h"
 
 namespace dart {
@@ -1698,6 +1699,7 @@ void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
   tags = RawObject::ClassIdTag::update(class_id, tags);
   tags = RawObject::SizeTag::update(size, tags);
   reinterpret_cast<RawObject*>(address)->tags_ = tags;
+  VerifiedMemory::Accept(address, size);
 }
 
 
@@ -1807,6 +1809,7 @@ RawObject* Object::Clone(const Object& orig, Heap::Space space) {
   memmove(reinterpret_cast<uint8_t*>(clone_addr + kHeaderSizeInBytes),
           reinterpret_cast<uint8_t*>(orig_addr + kHeaderSizeInBytes),
           size - kHeaderSizeInBytes);
+  VerifiedMemory::Accept(clone_addr, size);
   // Add clone to store buffer, if needed.
   if (!raw_clone->IsOldObject()) {
     // No need to remember an object in new space.
@@ -12164,6 +12167,7 @@ RawCode* Code::FinalizeCode(const char* name,
   MemoryRegion region(reinterpret_cast<void*>(instrs.EntryPoint()),
                       instrs.size());
   assembler->FinalizeInstructions(region);
+  VerifiedMemory::Accept(region.start(), region.size());
   CPU::FlushICache(instrs.EntryPoint(), instrs.size());
 
   code.set_compile_timestamp(OS::GetCurrentTimeMicros());
@@ -18804,6 +18808,8 @@ RawArray* Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
                          space));
     NoGCScope no_gc;
     raw->StoreSmi(&(raw->ptr()->length_), Smi::New(len));
+    VerifiedMemory::Accept(reinterpret_cast<uword>(raw->ptr()),
+                           Array::InstanceSize(len));
     return raw;
   }
 }

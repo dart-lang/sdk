@@ -8,8 +8,9 @@
 #include "platform/assert.h"
 #include "vm/atomic.h"
 #include "vm/globals.h"
-#include "vm/token.h"
 #include "vm/snapshot.h"
+#include "vm/token.h"
+#include "vm/verified_memory.h"
 
 namespace dart {
 
@@ -487,7 +488,7 @@ class RawObject {
   void StorePointer(type const* addr, type value) {
     // Ensure that this object contains the addr.
     ASSERT(Contains(reinterpret_cast<uword>(addr)));
-    *const_cast<type*>(addr) = value;
+    VerifiedMemory::Write(const_cast<type*>(addr), value);
     // Filter stores based on source and target.
     if (!value->IsHeapObject()) return;
     if (value->IsNewObject() && this->IsOldObject() &&
@@ -502,7 +503,7 @@ class RawObject {
   void StoreSmi(RawSmi* const* addr, RawSmi* value) {
     // Can't use Contains, as array length is initialized through this method.
     ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(this));
-    *const_cast<RawSmi**>(addr) = value;
+    VerifiedMemory::Write(const_cast<RawSmi**>(addr), value);
   }
 
   friend class Api;

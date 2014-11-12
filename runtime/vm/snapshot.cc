@@ -15,6 +15,7 @@
 #include "vm/object_store.h"
 #include "vm/snapshot_ids.h"
 #include "vm/symbols.h"
+#include "vm/verified_memory.h"
 #include "vm/version.h"
 
 namespace dart {
@@ -847,6 +848,7 @@ RawObject* SnapshotReader::AllocateUninitialized(intptr_t class_id,
   // Make sure to initialize the last word, as this can be left untouched in
   // case the object deserialized has an alignment tail.
   *reinterpret_cast<RawObject**>(address + size - kWordSize) = Object::null();
+  VerifiedMemory::Accept(address, size);
 
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   uword tags = 0;

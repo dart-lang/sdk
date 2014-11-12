@@ -16,6 +16,7 @@
 #include "vm/object_id_ring.h"
 #include "vm/stack_frame.h"
 #include "vm/store_buffer.h"
+#include "vm/verified_memory.h"
 #include "vm/verifier.h"
 #include "vm/visitor.h"
 #include "vm/weak_table.h"
@@ -227,6 +228,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       memmove(reinterpret_cast<void*>(new_addr),
               reinterpret_cast<void*>(raw_addr),
               size);
+      VerifiedMemory::Accept(new_addr, size);
       // Remember forwarding address.
       ForwardTo(raw_addr, new_addr);
     }
@@ -235,6 +237,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     *p = new_obj;
     // Update the store buffer as needed.
     if (visiting_old_object_ != NULL) {
+      VerifiedMemory::Accept(reinterpret_cast<uword>(p), sizeof(*p));
       UpdateStoreBuffer(p, new_obj);
     }
   }
@@ -356,7 +359,7 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words) {
     return new SemiSpace(NULL);
   } else {
     intptr_t size_in_bytes = size_in_words << kWordSizeLog2;
-    VirtualMemory* reserved = VirtualMemory::Reserve(size_in_bytes);
+    VirtualMemory* reserved = VerifiedMemory::Reserve(size_in_bytes);
     if ((reserved == NULL) || !reserved->Commit(false)) {  // Not executable.
       // TODO(koda): If cache_ is not empty, we could try to delete it.
       delete reserved;
@@ -486,7 +489,7 @@ void Scavenger::Epilogue(Isolate* isolate,
     // objects candidates for promotion next time.
     survivor_end_ = end_;
   }
-
+  VerifiedMemory::Accept(to_->start(), to_->end() - to_->start());
 #if defined(DEBUG)
   // We can only safely verify the store buffers from old space if there is no
   // concurrent old space task. At the same time we prevent new tasks from

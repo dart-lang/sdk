@@ -81,6 +81,8 @@ class VerifiedMemory : public AllStatic {
 #endif
 
   friend class Assembler;  // To use enabled/offset when generating code.
+  friend class FlowGraphCompiler;  // To compute edge counter code size.
+  friend class Intrinsifier;  // To know whether a jump is near or far.
 };
 
 }  // namespace dart

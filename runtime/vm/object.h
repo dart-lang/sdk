@@ -21,6 +21,7 @@
 #include "vm/report.h"
 #include "vm/scanner.h"
 #include "vm/tags.h"
+#include "vm/verified_memory.h"
 
 namespace dart {
 
@@ -610,6 +611,7 @@ class Object {
     ASSERT(Contains(reinterpret_cast<uword>(to)));
     if (raw()->IsNewObject()) {
       memmove(const_cast<RawObject**>(to), from, count * kWordSize);
+      VerifiedMemory::Accept(reinterpret_cast<uword>(to), count * kWordSize);
     } else {
       for (intptr_t i = 0; i < count; ++i) {
         StorePointer(&to[i], from[i]);
@@ -1585,10 +1587,6 @@ class TypeArguments : public Object {
 
   static const intptr_t kBytesPerElement = kWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
-
-  static intptr_t length_offset() {
-    return OFFSET_OF(RawTypeArguments, length_);
-  }
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawTypeArguments) ==

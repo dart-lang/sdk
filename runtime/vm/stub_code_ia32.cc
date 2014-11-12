@@ -1540,7 +1540,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ addl(EAX, Immediate(Smi::RawValue(1)));
   __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
   __ cmovno(EDI, EAX);
-  __ movl(Address(EBX, count_offset), EDI);
+  __ StoreIntoSmiField(Address(EBX, count_offset), EDI);
 
   // Load arguments descriptor into EDX.
   __ movl(EDX, FieldAddress(ECX, ICData::arguments_descriptor_offset()));
