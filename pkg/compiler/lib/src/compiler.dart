@@ -428,7 +428,7 @@ abstract class Backend {
   /// This method is called when all new libraries loaded through
   /// [LibraryLoader.loadLibrary] has been loaded and their imports/exports
   /// have been computed.
-  Future onLibrariesLoaded(Map<Uri, LibraryElement> loadedLibraries) {
+  Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
     return new Future.value();
   }
 
@@ -921,6 +921,7 @@ abstract class Compiler implements DiagnosticListener {
   bool enabledFunctionApply = false;
   bool enabledInvokeOn = false;
   bool hasIsolateSupport = false;
+  final bool enableExperimentalMirrors;
 
   Stopwatch progress;
 
@@ -969,6 +970,7 @@ abstract class Compiler implements DiagnosticListener {
             this.useContentSecurityPolicy: false,
             this.suppressWarnings: false,
             bool hasIncrementalSupport: false,
+            this.enableExperimentalMirrors: false,
             this.enableAsyncAwait: false,
             this.enableEnums: false,
             api.CompilerOutputProvider outputProvider,
@@ -1223,9 +1225,43 @@ abstract class Compiler implements DiagnosticListener {
   ///
   /// The method returns a [Future] allowing for the loading of additional
   /// libraries.
-  Future onLibrariesLoaded(Map<Uri, LibraryElement> loadedLibraries) {
+  Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
     return new Future.sync(() {
-      if (!loadedLibraries.containsKey(DART_CORE)) return new Future.value();
+      if (!loadedLibraries.containsLibrary(DART_CORE)) {
+        return null;
+      }
+      if (!enableExperimentalMirrors &&
+          loadedLibraries.containsLibrary(DART_MIRRORS)) {
+        // TODO(johnniwinther): Move computation of dependencies to the library
+        // loader.
+        Uri rootUri = loadedLibraries.rootUri;
+        Set<String> importChains = new Set<String>();
+        loadedLibraries.forEachImportChain(
+            (LibraryElement library, Link<Uri> importChainReversed) {
+          if (library.canonicalUri != DART_MIRRORS) return;
+          Link<CodeLocation> compactImportChain = const Link<CodeLocation>();
+          CodeLocation currentCodeLocation = new UriLocation(DART_MIRRORS);
+          compactImportChain = compactImportChain.prepend(currentCodeLocation);
+          for (Link<Uri> link = importChainReversed;
+               !link.isEmpty;
+               link = link.tail) {
+            Uri uri = link.head;
+            if (!currentCodeLocation.inSameLocation(uri)) {
+              currentCodeLocation =
+                  verbose ? new UriLocation(uri) : new CodeLocation(uri);
+              compactImportChain =
+                  compactImportChain.prepend(currentCodeLocation);
+            }
+          }
+          importChains.add(compactImportChain.map((CodeLocation codeLocation) {
+            return codeLocation.relativize(rootUri);
+          }).join(' => '));
+        });
+        reportWarning(NO_LOCATION_SPANNABLE,
+            MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
+            {'importChain': importChains.join(
+                 MessageKind.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)});
+      }
 
       functionClass.ensureResolved(this);
       functionApplyMethod = functionClass.lookupLocalMember('apply');
@@ -1235,8 +1271,8 @@ abstract class Compiler implements DiagnosticListener {
               coreLibrary.find('proxy')).value;
 
       // TODO(johnniwinther): Move this to the JavaScript backend.
-      LibraryElement jsHelperLibrary =
-          loadedLibraries[js_backend.JavaScriptBackend.DART_JS_HELPER];
+      LibraryElement jsHelperLibrary = loadedLibraries.getLibrary(
+              js_backend.JavaScriptBackend.DART_JS_HELPER);
       if (jsHelperLibrary != null) {
         patchConstant = resolver.constantCompiler.compileConstant(
             jsHelperLibrary.find('patch')).value;
@@ -1963,40 +1999,29 @@ abstract class Compiler implements DiagnosticListener {
   /// If [assumeInUserCode] is `true`, [element] is assumed to be in user code
   /// if no entrypoints have been set.
   bool inUserCode(Element element, {bool assumeInUserCode: false}) {
-    List<Uri> entrypoints = <Uri>[];
+    if (element == null) return false;
+    Iterable<CodeLocation> userCodeLocations =
+        computeUserCodeLocations(assumeInUserCode: assumeInUserCode);
+    Uri libraryUri = element.library.canonicalUri;
+    return userCodeLocations.any(
+        (CodeLocation codeLocation) => codeLocation.inSameLocation(libraryUri));
+  }
+
+  Iterable<CodeLocation> computeUserCodeLocations(
+      {bool assumeInUserCode: false}) {
+    List<CodeLocation> userCodeLocations = <CodeLocation>[];
     if (mainApp != null) {
-      entrypoints.add(mainApp.canonicalUri);
+      userCodeLocations.add(new CodeLocation(mainApp.canonicalUri));
     }
     if (librariesToAnalyzeWhenRun != null) {
-      entrypoints.addAll(librariesToAnalyzeWhenRun);
+      userCodeLocations.addAll(librariesToAnalyzeWhenRun.map(
+          (Uri uri) => new CodeLocation(uri)));
     }
-    if (entrypoints.isEmpty && assumeInUserCode) {
+    if (userCodeLocations.isEmpty && assumeInUserCode) {
       // Assume in user code since [mainApp] has not been set yet.
-      return true;
+      userCodeLocations.add(const AnyLocation());
     }
-    if (element == null) return false;
-    Uri libraryUri = element.library.canonicalUri;
-    if (libraryUri.scheme == 'package') {
-      for (Uri uri in entrypoints) {
-        if (uri.scheme != 'package') continue;
-        int slashPos = libraryUri.path.indexOf('/');
-        if (slashPos != -1) {
-          String packageName = libraryUri.path.substring(0, slashPos + 1);
-          if (uri.path.startsWith(packageName)) {
-            return true;
-          }
-        } else {
-          if (libraryUri.path == uri.path) {
-            return true;
-          }
-        }
-      }
-    } else {
-      for (Uri uri in entrypoints) {
-        if (libraryUri.scheme == uri.scheme) return true;
-      }
-    }
-    return false;
+    return userCodeLocations;
   }
 
   /// Return a canonical URI for the source of [element].
@@ -2187,4 +2212,87 @@ class GenericTask extends CompilerTask {
 
   GenericTask(this.name, Compiler compiler)
       : super(compiler);
+}
+
+/// [CodeLocation] divides uris into different classes.
+///
+/// These are used to group uris from user code, platform libraries and
+/// packages.
+abstract class CodeLocation {
+  /// Returns `true` if [uri] is in this code location.
+  bool inSameLocation(Uri uri);
+
+  /// Returns the uri of this location relative to [baseUri].
+  String relativize(Uri baseUri);
+
+  factory CodeLocation(Uri uri) {
+    if (uri.scheme == 'package') {
+      int slashPos = uri.path.indexOf('/');
+      if (slashPos != -1) {
+        String packageName = uri.path.substring(0, slashPos);
+        return new PackageLocation(packageName);
+      } else {
+        return new UriLocation(uri);
+      }
+    } else {
+      return new SchemeLocation(uri);
+    }
+  }
+}
+
+/// A code location defined by the scheme of the uri.
+///
+/// Used for non-package uris, such as 'dart', 'file', and 'http'.
+class SchemeLocation implements CodeLocation {
+  final Uri uri;
+
+  SchemeLocation(this.uri);
+
+  bool inSameLocation(Uri uri) {
+    return this.uri.scheme == uri.scheme;
+  }
+
+  String relativize(Uri baseUri) {
+    return uri_extras.relativize(baseUri, uri, false);
+  }
+}
+
+/// A code location defined by the package name.
+///
+/// Used for package uris, separated by their `package names`, that is, the
+/// 'foo' of 'package:foo/bar.dart'.
+class PackageLocation implements CodeLocation {
+  final String packageName;
+
+  PackageLocation(this.packageName);
+
+  bool inSameLocation(Uri uri) {
+    return uri.scheme == 'package' && uri.path.startsWith('$packageName/');
+  }
+
+  String relativize(Uri baseUri) => 'package:$packageName';
+}
+
+/// A code location defined by the whole uri.
+///
+/// Used for package uris with no package name. For instance 'package:foo.dart'.
+class UriLocation implements CodeLocation {
+  final Uri uri;
+
+  UriLocation(this.uri);
+
+  bool inSameLocation(Uri uri) => this.uri == uri;
+
+  String relativize(Uri baseUri) {
+    return uri_extras.relativize(baseUri, uri, false);
+  }
+}
+
+/// A code location that contains any uri.
+class AnyLocation implements CodeLocation {
+  const AnyLocation();
+
+  bool inSameLocation(Uri uri) => true;
+
+  String relativize(Uri baseUri) => '$baseUri';
 }
