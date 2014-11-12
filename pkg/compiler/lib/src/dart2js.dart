@@ -116,6 +116,7 @@ Future compile(List<String> argv) {
   bool analyzeAll = false;
   bool enableAsyncAwait = false;
   bool trustTypeAnnotations = false;
+  bool trustPrimitives = false;
   bool checkedMode = false;
   // List of provided options that imply that output is expected.
   List<String> optionsImplyCompilation = <String>[];
@@ -207,6 +208,11 @@ Future compile(List<String> argv) {
 
   setTrustTypeAnnotations(String argument) {
     trustTypeAnnotations = true;
+    implyCompilation(argument);
+  }
+
+  setTrustPrimitives(String argument) {
+    trustPrimitives = true;
     implyCompilation(argument);
   }
 
@@ -309,6 +315,9 @@ Future compile(List<String> argv) {
     new OptionHandler('--trust-type-annotations',
                       (_) => setTrustTypeAnnotations(
                           '--trust-type-annotations')),
+    new OptionHandler('--trust-primitives',
+                      (_) => setTrustPrimitives(
+                          '--trust-primitives')),
     new OptionHandler(r'--help|/\?|/h', (_) => wantHelp = true),
     new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
     new OptionHandler('--analyze-all', setAnalyzeAll),

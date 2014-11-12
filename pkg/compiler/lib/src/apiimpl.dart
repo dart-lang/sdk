@@ -44,6 +44,8 @@ class Compiler extends leg.Compiler {
             enableUserAssertions: hasOption(options, '--enable-checked-mode'),
             trustTypeAnnotations:
                 hasOption(options, '--trust-type-annotations'),
+            trustPrimitives:
+                hasOption(options, '--trust-primitives'),
             enableMinification: hasOption(options, '--minify'),
             preserveUris: hasOption(options, '--preserve-uris'),
             enableNativeLiveTypeAnalysis:

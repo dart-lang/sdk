@@ -253,6 +253,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void preGenerateMethod(HGraph graph) {
     new SsaInstructionSelection(compiler).visitGraph(graph);
     new SsaTypeKnownRemover().visitGraph(graph);
+    new SsaTrustedCheckRemover(compiler).visitGraph(graph);
     new SsaInstructionMerger(generateAtUseSite, compiler).visitGraph(graph);
     new SsaConditionMerger(
         generateAtUseSite, controlFlowOperators).visitGraph(graph);

@@ -273,6 +273,37 @@ class SsaTypeKnownRemover extends HBaseVisitor {
 }
 
 /**
+ * Remove [HTypeConversion] instructions from the graph in '--trust-primitives'
+ * mode.
+ */
+class SsaTrustedCheckRemover extends HBaseVisitor {
+
+  Compiler compiler;
+  SsaTrustedCheckRemover(this.compiler);
+
+  void visitGraph(HGraph graph) {
+    if (!compiler.trustPrimitives) return;
+    visitDominatorTree(graph);
+  }
+
+  void visitBasicBlock(HBasicBlock block) {
+    HInstruction instruction = block.first;
+    while (instruction != null) {
+      HInstruction next = instruction.next;
+      instruction.accept(this);
+      instruction = next;
+    }
+  }
+
+  void visitTypeConversion(HTypeConversion instruction) {
+    if (instruction.isReceiverTypeCheck || instruction.isArgumentTypeCheck) {
+      instruction.block.rewrite(instruction, instruction.checkedInput);
+      instruction.block.remove(instruction);
+    }
+  }
+}
+
+/**
  * Instead of emitting each SSA instruction with a temporary variable
  * mark instructions that can be emitted at their use-site.
  * For example, in:

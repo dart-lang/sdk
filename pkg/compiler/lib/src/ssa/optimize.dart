@@ -33,6 +33,7 @@ class SsaOptimizerTask extends CompilerTask {
   void optimize(CodegenWorkItem work, HGraph graph) {
     ConstantSystem constantSystem = compiler.backend.constantSystem;
     JavaScriptItemCompilationContext context = work.compilationContext;
+    bool trustPrimitives = compiler.trustPrimitives;
     measure(() {
       SsaDeadCodeEliminator dce;
       List<OptimizationPhase> phases = <OptimizationPhase>[
@@ -46,9 +47,11 @@ class SsaOptimizerTask extends CompilerTask {
           // After type propagation, more instructions can be
           // simplified.
           new SsaInstructionSimplifier(constantSystem, backend, work),
-          new SsaCheckInserter(backend, work, context.boundsChecked),
+          new SsaCheckInserter(
+              trustPrimitives, backend, work, context.boundsChecked),
           new SsaInstructionSimplifier(constantSystem, backend, work),
-          new SsaCheckInserter(backend, work, context.boundsChecked),
+          new SsaCheckInserter(
+              trustPrimitives, backend, work, context.boundsChecked),
           new SsaTypePropagator(compiler),
           // Run a dead code eliminator before LICM because dead
           // interceptors are often in the way of LICM'able instructions.
@@ -65,7 +68,8 @@ class SsaOptimizerTask extends CompilerTask {
           // Previous optimizations may have generated new
           // opportunities for instruction simplification.
           new SsaInstructionSimplifier(constantSystem, backend, work),
-          new SsaCheckInserter(backend, work, context.boundsChecked),
+          new SsaCheckInserter(
+              trustPrimitives, backend, work, context.boundsChecked),
           new SsaSimplifyInterceptors(compiler, constantSystem, work),
           dce = new SsaDeadCodeEliminator(compiler),
           new SsaTypePropagator(compiler)];
@@ -76,7 +80,8 @@ class SsaOptimizerTask extends CompilerTask {
             new SsaCodeMotion(),
             new SsaValueRangeAnalyzer(compiler, constantSystem, work),
             new SsaInstructionSimplifier(constantSystem, backend, work),
-            new SsaCheckInserter(backend, work, context.boundsChecked),
+            new SsaCheckInserter(
+                trustPrimitives, backend, work, context.boundsChecked),
             new SsaSimplifyInterceptors(compiler, constantSystem, work),
             new SsaDeadCodeEliminator(compiler)];
       } else {
@@ -886,16 +891,24 @@ class SsaInstructionSimplifier extends HBaseVisitor
 class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   final Set<HInstruction> boundsChecked;
   final CodegenWorkItem work;
+  final bool trustPrimitives;
   final JavaScriptBackend backend;
   final String name = "SsaCheckInserter";
   HGraph graph;
 
-  SsaCheckInserter(this.backend,
+  SsaCheckInserter(this.trustPrimitives,
+                   this.backend,
                    this.work,
                    this.boundsChecked);
 
   void visitGraph(HGraph graph) {
     this.graph = graph;
+
+    // In --trust-primitives mode we don't add bounds checks.  This is better
+    // than trying to remove them later as the limit expression would become
+    // dead and require DCE.
+    if (trustPrimitives) return;
+
     visitDominatorTree(graph);
   }
 
