@@ -789,18 +789,6 @@ bool Instruction::IsDominatedBy(Instruction* dom) {
 }
 
 
-bool Instruction::HasUnmatchedInputRepresentations() const {
-  for (intptr_t i = 0; i < InputCount(); i++) {
-    Definition* input = InputAt(i)->definition();
-    if (RequiredInputRepresentation(i) != input->representation()) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-
 void Definition::ReplaceWith(Definition* other,
                              ForwardInstructionIterator* iterator) {
   // Record other's input uses.
@@ -2006,7 +1994,7 @@ Definition* BoxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (!HasUses() && !CanDeoptimize()) return NULL;
+  if (!HasUses()) return NULL;
 
   // Fold away Unbox<rep>(Box<rep>(v)).
   BoxInstr* box_defn = value()->definition()->AsBox();
@@ -2262,10 +2250,17 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
       return this;
     }
     ComparisonInstr* comp = replacement->AsComparison();
-    if ((comp == NULL) ||
-        comp->CanDeoptimize() ||
-        comp->HasUnmatchedInputRepresentations()) {
+    if ((comp == NULL) || comp->CanDeoptimize()) {
       return this;
+    }
+
+    // Assert that the comparison is not serving as a pending deoptimization
+    // target for conversions.
+    for (intptr_t i = 0; i < comp->InputCount(); i++) {
+      if (comp->RequiredInputRepresentation(i) !=
+          comp->InputAt(i)->definition()->representation()) {
+        return this;
+      }
     }
 
     // Replace the comparison if the replacement is used at this branch,
