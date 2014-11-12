@@ -837,9 +837,9 @@ main() => new A();"""]);
                 "constant.",
       examples: const ["""
 enum Enum {}
-main() => new Enum(0, '');""", """
+main() => new Enum(0);""", """
 enum Enum {}
-main() => const Enum(0, '');"""]);
+main() => const Enum(0);"""]);
 
   static const MessageKind DUPLICATE_EXTENDS_IMPLEMENTS = const MessageKind(
       "'#{type}' can not be both extended and implemented.");

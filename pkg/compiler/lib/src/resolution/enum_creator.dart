@@ -20,13 +20,27 @@ class AstBuilder {
 
   int get charOffset => position.charOffset;
 
-  final Modifiers finalModifiers =
-      new Modifiers.withFlags(null, Modifiers.FLAG_FINAL);
-  final Modifiers constModifiers =
-      new Modifiers.withFlags(null, Modifiers.FLAG_CONST);
-  final Modifiers staticConstModifiers =
-      new Modifiers.withFlags(null,
-          Modifiers.FLAG_STATIC | Modifiers.FLAG_CONST);
+  Modifiers modifiers({bool isConst: false,
+                       bool isFinal: false,
+                       bool isStatic: false}) {
+    List identifiers = [];
+    int flags = 0;
+    if (isConst) {
+      identifiers.add(identifier('const'));
+      flags |= Modifiers.FLAG_CONST;
+    }
+    if (isFinal) {
+      identifiers.add(identifier('final'));
+      flags |= Modifiers.FLAG_FINAL;
+    }
+    if (isStatic) {
+      identifiers.add(identifier('static'));
+      flags |= Modifiers.FLAG_STATIC;
+    }
+    return new Modifiers.withFlags(
+        new NodeList(null, linkedList(identifiers), null, ''),
+        flags);
+  }
 
   Token keywordToken(String text) {
     return new KeywordToken(Keyword.keywords[text], position.charOffset);
@@ -135,6 +149,29 @@ class AstBuilder {
         new Send(null, identifier(typeName), arguments));
   }
 
+  Send reference(Identifier identifier) {
+    return new Send(null, identifier);
+  }
+
+  Send indexGet(Expression receiver, Expression index) {
+    return new Send(receiver,
+                    new Operator(symbolToken(INDEX_INFO)),
+                    new NodeList.singleton(index));
+  }
+
+  LiteralMapEntry mapLiteralEntry(Expression key, Expression value) {
+    return new LiteralMapEntry(key, symbolToken(COLON_INFO), value);
+  }
+
+  LiteralMap mapLiteral(List<LiteralMapEntry> entries, {bool isConst: false}) {
+    return new LiteralMap(
+        null, // Type arguments.
+        new NodeList(symbolToken(OPEN_CURLY_BRACKET_INFO),
+                     linkedList(entries),
+                     symbolToken(CLOSE_CURLY_BRACKET_INFO),
+                     ','),
+        isConst ? keywordToken('const') : null);
+  }
 }
 
 class EnumCreator {
@@ -153,7 +190,8 @@ class EnumCreator {
 
     EnumFieldElementX addInstanceMember(String name, InterfaceType type) {
       Identifier identifier = builder.identifier(name);
-      VariableList variableList = new VariableList(builder.finalModifiers);
+      VariableList variableList =
+          new VariableList(builder.modifiers(isFinal: true));
       variableList.type = type;
       EnumFieldElementX variable = new EnumFieldElementX(
           identifier, enumClass, variableList, identifier);
@@ -162,20 +200,18 @@ class EnumCreator {
     }
 
     EnumFieldElementX indexVariable = addInstanceMember('index', intType);
-    EnumFieldElementX nameVariable = addInstanceMember('_name', stringType);
 
     VariableDefinitions indexDefinition = builder.initializingFormal('index');
-    VariableDefinitions nameDefinition = builder.initializingFormal('_name');
 
     FunctionExpression constructorNode = builder.functionExpression(
-        builder.constModifiers,
+        builder.modifiers(isConst: true),
         enumClass.name,
-        builder.argumentList([indexDefinition, nameDefinition]),
+        builder.argumentList([indexDefinition]),
         builder.emptyStatement());
 
     EnumConstructorElementX constructor = new EnumConstructorElementX(
         enumClass,
-        builder.constModifiers,
+        builder.modifiers(isConst: true),
         constructorNode);
 
     EnumFormalElementX indexFormal = new EnumFormalElementX(
@@ -184,37 +220,37 @@ class EnumCreator {
         builder.identifier('index'),
         indexVariable);
 
-    EnumFormalElementX nameFormal = new EnumFormalElementX(
-        constructor,
-        nameDefinition,
-        builder.identifier('_name'),
-        nameVariable);
-
     FunctionSignatureX constructorSignature = new FunctionSignatureX(
-        requiredParameters: builder.linkedList([indexFormal, nameFormal]),
-        requiredParameterCount: 2,
+        requiredParameters: builder.linkedList([indexFormal]),
+        requiredParameterCount: 1,
         type: new FunctionType(constructor, const VoidType(),
-            <DartType>[intType, stringType]));
+            <DartType>[intType]));
     constructor.functionSignatureCache = constructorSignature;
     enumClass.addMember(constructor, compiler);
 
-    VariableList variableList = new VariableList(builder.staticConstModifiers);
+    VariableList variableList =
+        new VariableList(builder.modifiers(isStatic: true, isConst: true));
     variableList.type = enumType;
     int index = 0;
     List<Node> valueReferences = <Node>[];
+    List<LiteralMapEntry> mapEntries = <LiteralMapEntry>[];
     for (Link<Node> link = node.names.nodes;
          !link.isEmpty;
          link = link.tail) {
       Identifier name = link.head;
       AstBuilder valueBuilder = new AstBuilder(name.token);
-      valueReferences.add(new Send(null, name));
+
+      // Add reference for the `values` field.
+      valueReferences.add(valueBuilder.reference(name));
+
+      // Add map entry for `toString` implementation.
+      mapEntries.add(valueBuilder.mapLiteralEntry(
+            valueBuilder.literalInt(index),
+            valueBuilder.literalString('${enumClass.name}.${name.source}')));
 
       Expression initializer = valueBuilder.newExpression(
           enumClass.name,
-          valueBuilder.argumentList([
-            valueBuilder.literalInt(index),
-            valueBuilder.literalString('${name.source}')
-          ]),
+          valueBuilder.argumentList([valueBuilder.literalInt(index)]),
           isConst: true);
       SendSet definition = valueBuilder.createDefinition(name, initializer);
 
@@ -225,7 +261,7 @@ class EnumCreator {
     }
 
     VariableList valuesVariableList =
-        new VariableList(builder.staticConstModifiers);
+        new VariableList(builder.modifiers(isStatic: true, isConst: true));
     InterfaceType listType = compiler.listClass.computeType(compiler);
     valuesVariableList.type = listType.createInstantiation([enumType]);
 
@@ -249,12 +285,10 @@ class EnumCreator {
         'toString',
         builder.argumentList([]),
         builder.returnStatement(
-            new StringInterpolation(
-                builder.literalString('${enumClass.name}.', suffix: ''),
-                new NodeList.singleton(new StringInterpolationPart(
-                    new Send(null, builder.identifier('_name')),
-                    builder.literalString('', prefix: '')))
-            ))
+              builder.indexGet(
+                  builder.mapLiteral(mapEntries, isConst: true),
+                  builder.reference(builder.identifier('index')))
+            )
         );
 
     EnumMethodElementX toString = new EnumMethodElementX('toString',
