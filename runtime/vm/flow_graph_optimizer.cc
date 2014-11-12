@@ -589,7 +589,14 @@ bool FlowGraphOptimizer::Canonicalize() {
     BlockEntryInstr* entry = block_order_[i];
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
+      if (current->HasUnmatchedInputRepresentations()) {
+        // Can't canonicalize this instruction until all conversions for its
+        // inputs are inserted.
+        continue;
+      }
+
       Instruction* replacement = current->Canonicalize(flow_graph());
+
       if (replacement != current) {
         // For non-definitions Canonicalize should return either NULL or
         // this.
