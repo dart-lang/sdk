@@ -1,3 +1,7 @@
+#### 0.15.1+4
+  * Fix double-registration bug when using exports
+    [21439](http://dartbug.com/21439).
+
 #### 0.15.1+3
   * Make sure that `dart_support.js` is always appended after `platform.js`,
     [21435](http://dartbug.com/21435).
