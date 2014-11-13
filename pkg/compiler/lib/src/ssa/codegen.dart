@@ -1813,27 +1813,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  void generateConstant(ConstantValue constant) {
-    if (constant.isFunction) {
-      FunctionConstantValue function = constant;
-      registry.registerStaticUse(function.element);
-    }
-    if (constant.isType) {
-      // If the type is a web component, we need to ensure the constructors are
-      // available to 'upgrade' the native object.
-      TypeConstantValue type = constant;
-      Element element = type.representedType.element;
-      if (element != null && element.isClass) {
-        registry.registerTypeConstant(element);
-      }
-    }
-    push(backend.emitter.constantReference(constant));
-  }
-
   visitConstant(HConstant node) {
     assert(isGenerateAtUseSite(node));
-    generateConstant(node.constant);
-
+    push(backend.emitter.constantReference(node.constant));
     registry.registerCompileTimeConstant(node.constant);
     backend.constants.addCompileTimeConstantForEmission(node.constant);
   }
