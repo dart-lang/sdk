@@ -3,6 +3,10 @@
     is DateFormat.parseUtc, but the parseUTC variant is still retained
     for backward-compatibility.
 
+  * Provide a better error message when generating translated versions
+    and the name of a variable substitution in the message doesn't
+    match the name in the translation.
+
 ## 0.11.9
   * Fix bug with per-mille parsing (only divided by 100, not 1000)
   
