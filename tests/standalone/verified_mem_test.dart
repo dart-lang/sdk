@@ -11,7 +11,7 @@ void main() {
   for (int i = 0; i < 123; ++i) {
     a.add(new List(12345));
   }
-  for (int i = 0; i < 12345; ++i) {
+  for (int i = 0; i < 1234; ++i) {
     a[0] = new List(100000);
   }
 }
