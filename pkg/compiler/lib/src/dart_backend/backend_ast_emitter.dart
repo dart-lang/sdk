@@ -708,7 +708,7 @@ TypeAnnotation createTypeAnnotation(DartType type) {
   }
 }
 
-class ConstantEmitter extends ConstantExpressionVisitor<Expression> {
+class ConstantEmitter extends ConstantExpressionVisitor<Null, Expression> {
   ASTEmitter parent;
   ConstantEmitter(this.parent);
 
@@ -730,13 +730,13 @@ class ConstantEmitter extends ConstantExpressionVisitor<Expression> {
   }
 
   @override
-  Expression visitPrimitive(PrimitiveConstantExpression exp) {
+  Expression visitPrimitive(PrimitiveConstantExpression exp, [_]) {
     return handlePrimitiveConstant(exp.value);
   }
 
   /// Given a negative num constant, returns the corresponding positive
   /// literal wrapped by a unary minus operator.
-  Expression negatedLiteral(NumConstantValue constant) {
+  Expression negatedLiteral(NumConstantValue constant, [_]) {
     assert(constant.primitiveValue.isNegative);
     NumConstantValue positiveConstant;
     if (constant.isInt) {
@@ -750,7 +750,7 @@ class ConstantEmitter extends ConstantExpressionVisitor<Expression> {
   }
 
   @override
-  Expression visitList(ListConstantExpression exp) {
+  Expression visitList(ListConstantExpression exp, [_]) {
     return new LiteralList(
         exp.values.map(visit).toList(growable: false),
         isConst: true,
@@ -758,7 +758,7 @@ class ConstantEmitter extends ConstantExpressionVisitor<Expression> {
   }
 
   @override
-  Expression visitMap(MapConstantExpression exp) {
+  Expression visitMap(MapConstantExpression exp, [_]) {
     List<LiteralMapEntry> entries = new List<LiteralMapEntry>.generate(
         exp.values.length,
         (i) => new LiteralMapEntry(visit(exp.keys[i]),
@@ -770,7 +770,7 @@ class ConstantEmitter extends ConstantExpressionVisitor<Expression> {
   }
 
   @override
-  Expression visitConstructor(ConstructedConstantExpresssion exp) {
+  Expression visitConstructed(ConstructedConstantExpresssion exp, [_]) {
     int positionalArgumentCount = exp.selector.positionalArgumentCount;
     List<Argument> args = new List<Argument>.generate(
         positionalArgumentCount,
@@ -791,24 +791,24 @@ class ConstantEmitter extends ConstantExpressionVisitor<Expression> {
   }
 
   @override
-  Expression visitConcatenate(ConcatenateConstantExpression exp) {
+  Expression visitConcatenate(ConcatenateConstantExpression exp, [_]) {
     return new StringConcat(exp.arguments.map(visit).toList(growable: false));
   }
 
   @override
-  Expression visitSymbol(SymbolConstantExpression exp) {
+  Expression visitSymbol(SymbolConstantExpression exp, [_]) {
     return new LiteralSymbol(exp.name);
   }
 
   @override
-  Expression visitType(TypeConstantExpression exp) {
+  Expression visitType(TypeConstantExpression exp, [_]) {
     DartType type = exp.type;
     return new LiteralType(type.name)
                ..type = type;
   }
 
   @override
-  Expression visitVariable(VariableConstantExpression exp) {
+  Expression visitVariable(VariableConstantExpression exp, [_]) {
     Element element = exp.element;
     if (element.kind != ElementKind.VARIABLE) {
       return new Identifier(element.name)..element = element;
@@ -819,18 +819,18 @@ class ConstantEmitter extends ConstantExpressionVisitor<Expression> {
   }
 
   @override
-  Expression visitFunction(FunctionConstantExpression exp) {
+  Expression visitFunction(FunctionConstantExpression exp, [_]) {
     return new Identifier(exp.element.name)
                ..element = exp.element;
   }
 
   @override
-  Expression visitBinary(BinaryConstantExpression exp) {
+  Expression visitBinary(BinaryConstantExpression exp, [_]) {
     return handlePrimitiveConstant(exp.value);
   }
 
   @override
-  Expression visitConditional(ConditionalConstantExpression exp) {
+  Expression visitConditional(ConditionalConstantExpression exp, [_]) {
     if (exp.condition.value.isTrue) {
       return exp.trueExp.accept(this);
     } else {
@@ -839,7 +839,7 @@ class ConstantEmitter extends ConstantExpressionVisitor<Expression> {
   }
 
   @override
-  Expression visitUnary(UnaryConstantExpression exp) {
+  Expression visitUnary(UnaryConstantExpression exp, [_]) {
     return handlePrimitiveConstant(exp.value);
   }
 }

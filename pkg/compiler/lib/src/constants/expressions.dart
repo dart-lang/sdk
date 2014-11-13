@@ -30,7 +30,7 @@ abstract class ConstantExpression {
   // and back-end.
   int get precedence => 16;
 
-  accept(ConstantExpressionVisitor visitor);
+  accept(ConstantExpressionVisitor visitor, [context]);
 
   String getText() {
     ConstExpPrinter printer = new ConstExpPrinter();
@@ -53,7 +53,9 @@ class PrimitiveConstantExpression extends ConstantExpression {
     assert(value != null);
   }
 
-  accept(ConstantExpressionVisitor visitor) => visitor.visitPrimitive(this);
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitPrimitive(this, context);
+  }
 }
 
 /// Literal list constant.
@@ -64,7 +66,9 @@ class ListConstantExpression extends ConstantExpression {
 
   ListConstantExpression(this.value, this.type, this.values);
 
-  accept(ConstantExpressionVisitor visitor) => visitor.visitList(this);
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitList(this, context);
+  }
 }
 
 /// Literal map constant.
@@ -76,7 +80,9 @@ class MapConstantExpression extends ConstantExpression {
 
   MapConstantExpression(this.value, this.type, this.keys, this.values);
 
-  accept(ConstantExpressionVisitor visitor) => visitor.visitMap(this);
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitMap(this, context);
+  }
 }
 
 /// Invocation of a const constructor.
@@ -95,7 +101,9 @@ class ConstructedConstantExpresssion extends ConstantExpression {
     assert(type.element == target.enclosingClass);
   }
 
-  accept(ConstantExpressionVisitor visitor) => visitor.visitConstructor(this);
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitConstructed(this, context);
+  }
 }
 
 /// String literal with juxtaposition and/or interpolations.
@@ -106,7 +114,9 @@ class ConcatenateConstantExpression extends ConstantExpression {
 
   ConcatenateConstantExpression(this.value, this.arguments);
 
-  accept(ConstantExpressionVisitor visitor) => visitor.visitConcatenate(this);
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitConcatenate(this, context);
+  }
 }
 
 /// Symbol literal.
@@ -116,7 +126,9 @@ class SymbolConstantExpression extends ConstantExpression {
 
   SymbolConstantExpression(this.value, this.name);
 
-  accept(ConstantExpressionVisitor visitor) => visitor.visitSymbol(this);
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitSymbol(this, context);
+  }
 }
 
 /// Type literal.
@@ -129,7 +141,9 @@ class TypeConstantExpression extends ConstantExpression {
     assert(type is GenericType || type is DynamicType);
   }
 
-  accept(ConstantExpressionVisitor visitor) => visitor.visitType(this);
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitType(this, context);
+  }
 }
 
 /// Reference to a constant local, top-level, or static variable.
@@ -139,7 +153,9 @@ class VariableConstantExpression extends ConstantExpression {
 
   VariableConstantExpression(this.value, this.element);
 
-  accept(ConstantExpressionVisitor visitor) => visitor.visitVariable(this);
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitVariable(this, context);
+  }
 }
 
 /// Reference to a top-level or static function.
@@ -149,7 +165,9 @@ class FunctionConstantExpression extends ConstantExpression {
 
   FunctionConstantExpression(this.value, this.element);
 
-  accept(ConstantExpressionVisitor visitor) => visitor.visitFunction(this);
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitFunction(this, context);
+  }
 }
 
 /// A constant binary expression like `a * b` or `identical(a, b)`.
@@ -163,7 +181,9 @@ class BinaryConstantExpression extends ConstantExpression {
     assert(PRECEDENCE_MAP[operator] != null);
   }
 
-  accept(ConstantExpressionVisitor visitor) => visitor.visitBinary(this);
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitBinary(this, context);
+  }
 
   int get precedence => PRECEDENCE_MAP[operator];
 
@@ -201,7 +221,9 @@ class UnaryConstantExpression extends ConstantExpression {
     assert(PRECEDENCE_MAP[operator] != null);
   }
 
-  accept(ConstantExpressionVisitor visitor) => visitor.visitUnary(this);
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitUnary(this, context);
+  }
 
   int get precedence => PRECEDENCE_MAP[operator];
 
@@ -224,26 +246,32 @@ class ConditionalConstantExpression extends ConstantExpression {
                                 this.trueExp,
                                 this.falseExp);
 
-  accept(ConstantExpressionVisitor visitor) => visitor.visitConditional(this);
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitConditional(this, context);
+  }
 
   int get precedence => 3;
 }
 
-abstract class ConstantExpressionVisitor<T> {
-  T visit(ConstantExpression constant) => constant.accept(this);
+abstract class ConstantExpressionVisitor<C, R> {
+  const ConstantExpressionVisitor();
 
-  T visitPrimitive(PrimitiveConstantExpression exp);
-  T visitList(ListConstantExpression exp);
-  T visitMap(MapConstantExpression exp);
-  T visitConstructor(ConstructedConstantExpresssion exp);
-  T visitConcatenate(ConcatenateConstantExpression exp);
-  T visitSymbol(SymbolConstantExpression exp);
-  T visitType(TypeConstantExpression exp);
-  T visitVariable(VariableConstantExpression exp);
-  T visitFunction(FunctionConstantExpression exp);
-  T visitBinary(BinaryConstantExpression exp);
-  T visitUnary(UnaryConstantExpression exp);
-  T visitConditional(ConditionalConstantExpression exp);
+  R visit(ConstantExpression constant, [C context]) {
+    return constant.accept(this, context);
+  }
+
+  R visitPrimitive(PrimitiveConstantExpression exp, [C context]);
+  R visitList(ListConstantExpression exp, [C context]);
+  R visitMap(MapConstantExpression exp, [C context]);
+  R visitConstructed(ConstructedConstantExpresssion exp, [C context]);
+  R visitConcatenate(ConcatenateConstantExpression exp, [C context]);
+  R visitSymbol(SymbolConstantExpression exp, [C context]);
+  R visitType(TypeConstantExpression exp, [C context]);
+  R visitVariable(VariableConstantExpression exp, [C context]);
+  R visitFunction(FunctionConstantExpression exp, [C context]);
+  R visitBinary(BinaryConstantExpression exp, [C context]);
+  R visitUnary(UnaryConstantExpression exp, [C context]);
+  R visitConditional(ConditionalConstantExpression exp, [C context]);
 }
 
 /// Represents the declaration of a constant [element] with value [expression].
@@ -285,11 +313,11 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     sb.write('>');
   }
 
-  visitPrimitive(PrimitiveConstantExpression exp) {
+  visitPrimitive(PrimitiveConstantExpression exp, [_]) {
     sb.write(exp.value.unparse());
   }
 
-  visitList(ListConstantExpression exp) {
+  visitList(ListConstantExpression exp, [_]) {
     sb.write('const ');
     writeTypeArguments(exp.type);
     sb.write('[');
@@ -304,7 +332,7 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     sb.write(']');
   }
 
-  visitMap(MapConstantExpression exp) {
+  visitMap(MapConstantExpression exp, [_]) {
     sb.write('const ');
     writeTypeArguments(exp.type);
     sb.write('{');
@@ -319,7 +347,7 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     sb.write('}');
   }
 
-  visitConstructor(ConstructedConstantExpresssion exp) {
+  visitConstructed(ConstructedConstantExpresssion exp, [_]) {
     sb.write('const ');
     sb.write(exp.target.enclosingClass.name);
     if (exp.target.name != '') {
@@ -350,20 +378,20 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     sb.write(')');
   }
 
-  visitConcatenate(ConcatenateConstantExpression exp) {
+  visitConcatenate(ConcatenateConstantExpression exp, [_]) {
     sb.write(exp.value.unparse());
   }
 
-  visitSymbol(SymbolConstantExpression exp) {
+  visitSymbol(SymbolConstantExpression exp, [_]) {
     sb.write('#');
     sb.write(exp.name);
   }
 
-  visitType(TypeConstantExpression exp) {
+  visitType(TypeConstantExpression exp, [_]) {
     sb.write(exp.type.name);
   }
 
-  visitVariable(VariableConstantExpression exp) {
+  visitVariable(VariableConstantExpression exp, [_]) {
     if (exp.element.isStatic) {
       sb.write(exp.element.enclosingClass.name);
       sb.write('.');
@@ -371,7 +399,7 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     sb.write(exp.element.name);
   }
 
-  visitFunction(FunctionConstantExpression exp) {
+  visitFunction(FunctionConstantExpression exp, [_]) {
     if (exp.element.isStatic) {
       sb.write(exp.element.enclosingClass.name);
       sb.write('.');
@@ -379,7 +407,7 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     sb.write(exp.element.name);
   }
 
-  visitBinary(BinaryConstantExpression exp) {
+  visitBinary(BinaryConstantExpression exp, [_]) {
     if (exp.operator == 'identical') {
       sb.write('identical(');
       visit(exp.left);
@@ -395,12 +423,12 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     }
   }
 
-  visitUnary(UnaryConstantExpression exp) {
+  visitUnary(UnaryConstantExpression exp, [_]) {
     sb.write(exp.operator);
     write(exp, exp.expression);
   }
 
-  visitConditional(ConditionalConstantExpression exp) {
+  visitConditional(ConditionalConstantExpression exp, [_]) {
     write(exp, exp.condition, leftAssociative: false);
     sb.write(' ? ');
     write(exp, exp.trueExp);
