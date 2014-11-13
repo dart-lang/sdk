@@ -243,7 +243,7 @@ class _CommandLineParser {
   /** Creates a new command line parser */
   _CommandLineParser()
     : _knownFlags = <String>[],
-      _parser = new ArgParser();
+      _parser = new ArgParser(allowTrailingOptions: true);
 
 
   /**
