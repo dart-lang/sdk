@@ -1,5 +1,5 @@
 name: polymer
-version: 0.15.1+4
+version: 0.15.1+5
 author: Polymer.dart Authors <web-ui-dev@dartlang.org>
 description: >
   Polymer.dart is a new type of library for the web, built on top of Web
@@ -29,13 +29,13 @@ dev_dependencies:
 transformers:
 - polymer/src/build/mirrors_remover:
     $include: lib/polymer.dart
-- polymer/src/build/delete_file:
+- code_transformers/src/delete_file:
     $include:
       - lib/src/build/log_injector.css
       - lib/src/js/polymer/polymer.concat.js
       - lib/src/js/polymer/polymer.concat.js.map
       - lib/src/js/polymer/polymer.js.map
-- polymer/src/build/remove_sourcemap_comment:
+- code_transformers/src/remove_sourcemap_comment:
     $include: lib/src/js/polymer/polymer.js
 - observe:
     files: lib/src/instance.dart

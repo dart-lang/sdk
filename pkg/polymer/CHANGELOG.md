@@ -1,3 +1,6 @@
+#### Pub version 0.15.1+5
+  * Increase code_transformers lower bound and use shared transformers from it.
+
 #### 0.15.1+4
   * Fix double-registration bug when using exports
     [21439](http://dartbug.com/21439).

@@ -371,7 +371,6 @@ polymer/test/build/utils_test: Fail, OK # Uses dart:io.
 polymer/test/build/index_page_builder_test: Fail, OK # Uses dart:io.
 polymer/test/build/import_inliner_test: Fail, OK # Uses dart:io.
 polymer/test/build/linter_test: Fail, OK # Uses dart:io.
-polymer/test/build/remove_sourcemap_comment_test: Fail, OK # Uses dart:io.
 polymer/test/build/unique_message_test: Skip # Intended only as a vm test.
 shelf/test/shelf_io_test: Fail, OK # Uses dart:io
 shelf_web_socket/test/*: Fail, OK # Uses dart:io.
