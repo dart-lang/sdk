@@ -203,14 +203,6 @@ class ElementCodec {
     return <int>[firstId, lastId];
   }
 
-  static String _getComponentUnit(Element element) {
-    LibraryElement libraryElement = element.library;
-    if (libraryElement == null) {
-      return 'null';
-    }
-    return libraryElement.definingCompilationUnit.source.fullName;
-  }
-
   static bool _hasLocalOffset(List<String> components) {
     for (String component in components) {
       if (component.indexOf('@') != -1) {
@@ -218,14 +210,6 @@ class ElementCodec {
       }
     }
     return false;
-  }
-
-  static String _substringBeforeAt(String str) {
-    int atOffset = str.indexOf('@');
-    if (atOffset != -1) {
-      str = str.substring(0, atOffset);
-    }
-    return str;
   }
 }
 

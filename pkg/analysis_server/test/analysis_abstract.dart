@@ -257,11 +257,4 @@ class AbstractAnalysisTest {
   Future waitForTasksFinished() {
     return waitForServerOperationsPerformed(server);
   }
-
-  static String _getCodeString(code) {
-    if (code is List<String>) {
-      code = code.join('\n');
-    }
-    return code as String;
-  }
 }
