@@ -3340,12 +3340,232 @@ main() {
     verify([source]);
   }
 
-  void test_unusedLocalVariable() {
+  void test_unusedElement_method_notUsed_noReference() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  static _m() {}
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_method_notUsed_referenceFromItself() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  static _m(int p) {
+    _m(p - 1);
+  }
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_method_isUsed_staticInvocation() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  static _m() {}
+}
+main() {
+  A._m();
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_method_isUsed_invocation_static() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  _m() {}
+}
+main() {
+  A a = new A();
+  a._m();
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_method_isUsed_invocation_implicitThis() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  _m() {}
+  useMethod() {
+    _m();
+  }
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_method_isUsed_invocation_propagated() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  _m() {}
+}
+main() {
+  var a = new A();
+  a._m();
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_method_isUsed_invocation_subclass() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  _m() {}
+}
+class B extends A {
+  _m() {}
+}
+main(A a) {
+  a._m();
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_method_isUsed_invocation_implicitThis_subclass() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  _m() {}
+  useMethod() {
+    _m();
+  }
+}
+class B extends A {
+  _m() {}
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_method_isUsed_invocation_MemberElement() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A<T> {
+  _m(T t) {}
+}
+main(A<int> a) {
+  a._m(0);
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_method_isUsed_notPrivate() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  m() {}
+}
+main() {
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_method_isUsed_hasReference_implicitThis() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  _m() {}
+  useMethod() {
+    print(_m);
+  }
+}
+print(x) {}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_method_isUsed_hasReference_implicitThis_subclass() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  _m() {}
+  useMethod() {
+    print(_m);
+  }
+}
+class B extends A {
+  _m() {}
+}
+print(x) {}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_method_isUsed_hasReference_PropertyAccess() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  _m() {}
+}
+main() {
+  new A()._m;
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_method_isUsed_hasReference_PrefixedIdentifier() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  _m() {}
+}
+main(A a) {
+  a._m;
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedLocalVariable_inFunction() {
     enableUnusedLocalVariable = true;
     Source source = addSource(r'''
 main() {
   var v = 1;
   v = 2;
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
+    verify([source]);
+  }
+
+  void test_unusedLocalVariable_inMethod() {
+    enableUnusedLocalVariable = true;
+    Source source = addSource(r'''
+class A {
+  foo() {
+    var v = 1;
+    v = 2;
+  }
 }''');
     resolve(source);
     assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);

@@ -15542,11 +15542,27 @@ class HtmlTagInfo {
 }
 
 
+class _UsedElements {
+  /**
+   * Resolved, locally defined elements that are used or potentially can be
+   * used.
+   */
+  final HashSet<Element> elements = new HashSet<Element>();
+
+  /**
+   * Names of resolved or unresolved class members that are referenced in the
+   * library.
+   */
+  final HashSet<String> members = new HashSet<String>();
+}
+
+
 class _GatherUsedElementsVisitor extends RecursiveAstVisitor {
-  final Set<Element> usedElements = new HashSet<Element>();
+  final _UsedElements usedElements = new _UsedElements();
 
   final LibraryElement _enclosingLibrary;
   ClassElement _enclosingClass;
+  ExecutableElement _enclosingExec;
 
   _GatherUsedElementsVisitor(this._enclosingLibrary);
 
@@ -15569,12 +15585,23 @@ class _GatherUsedElementsVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  visitMethodDeclaration(MethodDeclaration node) {
+    ExecutableElement enclosingExecOld = _enclosingExec;
+    try {
+      _enclosingExec = node.element;
+      super.visitMethodDeclaration(node);
+    } finally {
+      _enclosingExec = enclosingExecOld;
+    }
+  }
+
+  @override
   visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       return;
     }
-    Element staticElement = node.staticElement;
-    if (staticElement is LocalVariableElement) {
+    Element element = node.staticElement;
+    if (element is LocalVariableElement) {
       AstNode parent = node.parent;
       if (node.inGetterContext()) {
         if (parent.parent is ExpressionStatement &&
@@ -15585,14 +15612,18 @@ class _GatherUsedElementsVisitor extends RecursiveAstVisitor {
           // ++v;
           // v += 2;
         } else {
-          _useElement(staticElement);
+          _useElement(element);
         }
       }
       if (parent is MethodInvocation && parent.methodName == node) {
-        _useElement(staticElement);
+        _useElement(element);
       }
     } else {
       _useIdentifierElement(node);
+      if (element == null ||
+          element is! LocalElement && !identical(element, _enclosingExec)) {
+        usedElements.members.add(node.name);
+      }
     }
   }
 
@@ -15617,6 +15648,9 @@ class _GatherUsedElementsVisitor extends RecursiveAstVisitor {
     if (identical(element, _enclosingClass)) {
       return;
     }
+    if (identical(element, _enclosingExec)) {
+      return;
+    }
     // ignore places where the element is not actually used
     if (node.parent is TypeName) {
       AstNode parent2 = node.parent.parent;
@@ -15633,7 +15667,7 @@ class _GatherUsedElementsVisitor extends RecursiveAstVisitor {
 
   _useElement(Element element) {
     if (element != null) {
-      usedElements.add(element);
+      usedElements.elements.add(element);
     }
   }
 
@@ -15659,7 +15693,7 @@ class _UnusedElementsVerifier extends RecursiveElementVisitor {
   /**
    * The elements know to be used.
    */
-  final Set<Element> _usedElements;
+  final _UsedElements _usedElements;
 
   /**
    * Create a new instance of the [_UnusedElementsVerifier].
@@ -15668,18 +15702,18 @@ class _UnusedElementsVerifier extends RecursiveElementVisitor {
 
   @override
   visitClassElement(ClassElement element) {
-    if (!_isUsed(element)) {
+    if (!_isUsedElement(element)) {
       _reportErrorForElement(
           HintCode.UNUSED_ELEMENT,
           element,
           [element.kind.displayName, element.displayName]);
     }
-    element.visitChildren(this);
+    super.visitClassElement(element);
   }
 
   @override
   visitLocalVariableElement(LocalVariableElement element) {
-    if (!_isUsed(element)) {
+    if (!_isUsedElement(element)) {
       _reportErrorForElement(
           HintCode.UNUSED_LOCAL_VARIABLE,
           element,
@@ -15687,13 +15721,34 @@ class _UnusedElementsVerifier extends RecursiveElementVisitor {
     }
   }
 
-  bool _isUsed(Element element) {
+  @override
+  visitMethodElement(MethodElement element) {
+    if (!_isUsedMember(element)) {
+      _reportErrorForElement(
+          HintCode.UNUSED_ELEMENT,
+          element,
+          [element.kind.displayName, element.displayName]);
+    }
+    super.visitMethodElement(element);
+  }
+
+  bool _isUsedElement(Element element) {
     if (element is! LocalVariableElement) {
       if (element.isPublic) {
         return true;
       }
     }
-    return _usedElements.contains(element);
+    return _usedElements.elements.contains(element);
+  }
+
+  bool _isUsedMember(Element element) {
+    if (element.isPublic) {
+      return true;
+    }
+    if (_usedElements.members.contains(element.displayName)) {
+      return true;
+    }
+    return _usedElements.elements.contains(element);
   }
 
   void _reportErrorForElement(ErrorCode errorCode, Element element, List<Object> arguments) {
