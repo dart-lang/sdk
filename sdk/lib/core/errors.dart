@@ -172,10 +172,11 @@ class ArgumentError extends Error {
 
   String toString() {
     if (!_hasValue) {
+      var result = "Invalid arguments(s)";
       if (message != null) {
-        return "Invalid argument(s): $message";
+        result = "$result: $message";
       }
-      return "Invalid argument(s)";
+      return result;
     }
     String nameString = "";
     if (name != null) {
@@ -189,8 +190,6 @@ class ArgumentError extends Error {
  * Error thrown due to an index being outside a valid range.
  */
 class RangeError extends ArgumentError {
-  /** The value that is outside its valid range. */
-  final num invalidValue;
   /** The minimum value that [value] is allowed to assume. */
   final num start;
   /** The maximum value that [value] is allowed to assume. */
@@ -202,12 +201,19 @@ class RangeError extends ArgumentError {
    * Create a new [RangeError] with the given [message].
    */
   RangeError(var message)
-      : invalidValue = null, start = null, end = null, super(message);
+      : start = null, end = null, super(message);
 
-  /** Create a new [RangeError] with a message for the given [value]. */
-  RangeError.value(num value, [String message = "Value not in range"])
-      : invalidValue = value, start = null, end = null,
-        super(message);
+  /**
+   * Create a new [RangeError] with a message for the given [value].
+   *
+   * An optional [name] can specify the argument name that has the
+   * invalid value, and the [message] can override the default error
+   * description.
+   */
+  RangeError.value(num value, [String name, String message])
+      : start = null, end = null,
+        super.value(value, name,
+                    (message != null) ? message : "Value not in range");
 
   /**
    * Create a new [RangeError] with for an invalid value being outside a range.
@@ -217,41 +223,52 @@ class RangeError extends ArgumentError {
    *
    * For a range from 0 to the length of something, end exclusive, use
    * [RangeError.index].
+   *
+   * An optional [name] can specify the argument name that has the
+   * invalid value, and the [message] can override the default error
+   * description.
    */
-  RangeError.range(this.invalidValue, this.start, this.end,
-                   [String message = "Invalid value"]) : super(message);
+  RangeError.range(num invalidValue, this.start, this.end,
+                   [String name, String message])
+      : super.value(invalidValue, name,
+                    (message != null) ? message : "Invalid value");
 
   /**
    * Creates a new [RangeError] stating that [index] is not a valid index
    * into [indexable].
    *
+   * An optional [name] can specify the argument name that has the
+   * invalid value, and the [message] can override the default error
+   * description.
+   *
    * The [length] is the length of [indexable] at the time of the error.
    * If `length` is omitted, it defaults to `indexable.length`.
-   *
-   * The message is used as part of the string representation of the error.
    */
   factory RangeError.index(int index, indexable,
-                           [String message,
+                           [String name,
+                            String message,
                             int length]) = IndexError;
 
   String toString() {
-    if (invalidValue == null) return "$message";
+    if (!_hasValue) return "RangeError: $message";
     String value = Error.safeToString(invalidValue);
+    String explanation = "";
     if (start == null) {
-      if (end == null) {
-        return "$message ($value)";
+      if (end != null) {
+        explanation = ": Not less than or equal to $end";
       }
-      return "$message ($value): Value must be less than or equal to $end";
+      // If both are null, we don't add a description of the limits.
+    } else if (end == null) {
+      explanation = ": Not greater than or equal to $start";
+    } else if (end > start) {
+      explanation = ": Not in range $start..$end, inclusive.";
+    } else if (end < start) {
+      explanation = ": Valid value range is empty";
+    } else {
+      // end == start.
+      explanation = ": Only valid value is $start";
     }
-    if (end == null) {
-      return "$message ($value): Value must be greater than or equal to $start";
-    }
-    if (end > start) {
-      return "$message ($value): Value must be in range $start..$end, "
-             "inclusive.";
-    }
-    if (end < start) return "$message ($value): Valid range is empty";
-    return "$message ($value): Only valid value is $start";
+    return "RangeError: $message ($value)$explanation";
   }
 }
 
@@ -265,8 +282,6 @@ class RangeError extends ArgumentError {
 class IndexError extends ArgumentError implements RangeError {
   /** The indexable object that [index] was not a valid index into. */
   final indexable;
-  /** The invalid index. */
-  final int invalidValue;
   /** The length of [indexable] at the time of the error. */
   final int length;
 
@@ -279,24 +294,25 @@ class IndexError extends ArgumentError implements RangeError {
    *
    * The message is used as part of the string representation of the error.
    */
-  IndexError(this.invalidValue, indexable,
-             [String message = "Index out of range", int length])
+  IndexError(int invalidValue, indexable,
+             [String name, String message, int length])
       : this.indexable = indexable,
         this.length = (length != null) ? length : indexable.length,
-        super(message);
+        super.value(invalidValue, name,
+                    (message != null) ? message : "Index out of range");
 
   // Getters inherited from RangeError.
   int get start => 0;
   int get end => length - 1;
 
   String toString() {
+    assert(_hasValue);
     String target = Error.safeToString(indexable);
+    var explanation = "index should be less than $length";
     if (invalidValue < 0) {
-      return "RangeError: $message ($target[$invalidValue]): "
-             "index must not be negative.";
+      explanation = "index must not be negative";
     }
-    return "RangeError: $message: ($target[$invalidValue]): "
-           "index should be less than $length.";
+    return "RangeError: $message ($target[$invalidValue]): $explanation";
   }
 }
 
