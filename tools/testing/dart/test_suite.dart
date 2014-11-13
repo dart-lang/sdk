@@ -1353,7 +1353,8 @@ class StandardTestSuite extends TestSuite {
             CommandBuilder.instance.getBrowserTestCommand(
                 runtime,
                 fullHtmlPath,
-                configuration));
+                configuration,
+                !isNegative(info)));
       }
 
       // Create BrowserTestCase and queue it.
@@ -1436,7 +1437,8 @@ class StandardTestSuite extends TestSuite {
         runtime,
         fullHtmlPath,
         configuration,
-        info.expectedMessages));
+        info.expectedMessages,
+        !isNegative(info)));
     String testDisplayName = '$suiteName/$testName';
     var testCase = new BrowserTestCase(
         testDisplayName,
@@ -1843,7 +1845,7 @@ class PKGTestSuite extends StandardTestSuite {
         var fullPath = _createUrlPathFromFile(customHtmlPath);
 
         commands.add(CommandBuilder.instance.getBrowserTestCommand(
-            runtime, fullPath, configuration));
+            runtime, fullPath, configuration, !isNegative(info)));
         String testDisplayName = '$suiteName/$testName';
         enqueueNewTestCase(new BrowserTestCase(testDisplayName,
                                                commands,
