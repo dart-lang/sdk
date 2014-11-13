@@ -79,51 +79,13 @@ class Error {
       return object.toString();
     }
     if (object is String) {
-      String string = object;
-      StringBuffer buffer = new StringBuffer('"');
-      const int TAB = 0x09;
-      const int NEWLINE = 0x0a;
-      const int CARRIGE_RETURN = 0x0d;
-      const int BACKSLASH = 0x5c;
-      const int DOUBLE_QUOTE = 0x22;
-      const int DIGIT_ZERO = 0x30;
-      const int LOWERCASE_A = 0x61;
-      const int MAX_CONTROL = 0x1f;
-      for (int i = 0; i < string.length; i++) {
-        int codeUnit = string.codeUnitAt(i);
-        if (codeUnit <= MAX_CONTROL) {
-          if (codeUnit == NEWLINE) {
-            buffer.write(r"\n");
-          } else if (codeUnit == CARRIGE_RETURN) {
-            buffer.write(r"\r");
-          } else if (codeUnit == TAB) {
-            buffer.write(r"\t");
-          } else {
-            buffer.write(r"\x");
-            // Convert code in range 0x00 .. 0x1f to hex a two-digit hex string.
-            if (codeUnit < 0x10) {
-              buffer.write("0");
-            } else {
-              buffer.write("1");
-              codeUnit -= 0x10;
-            }
-            // Single digit to hex.
-            buffer.writeCharCode(codeUnit < 10 ? DIGIT_ZERO + codeUnit
-                                               : LOWERCASE_A - 10 + codeUnit);
-          }
-        } else if (codeUnit == BACKSLASH) {
-          buffer.write(r"\\");
-        } else if (codeUnit == DOUBLE_QUOTE) {
-          buffer.write(r'\"');
-        } else {
-          buffer.writeCharCode(codeUnit);
-        }
-      }
-      buffer.write('"');
-      return buffer.toString();
+      return _stringToSafeString(object);
     }
     return _objectToString(object);
   }
+
+  /** Convert string to a valid string literal with no control characters. */
+  external static String _stringToSafeString(String string);
 
   external static String _objectToString(Object object);
 

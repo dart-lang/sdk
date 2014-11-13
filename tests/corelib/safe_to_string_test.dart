@@ -15,13 +15,13 @@ main() {
 
   Expect.stringEquals(r'"\\\"\n\r"', Error.safeToString('\\"\n\r'));
 
-  Expect.stringEquals(r'"\x00\x01\x02\x03\x04\x05\x06\x07"',
+  Expect.stringEquals(r'"\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007"',
                       Error.safeToString('\x00\x01\x02\x03\x04\x05\x06\x07'));
-  Expect.stringEquals(r'"\x08\t\n\x0b\x0c\r\x0e\x0f"',
+  Expect.stringEquals(r'"\b\t\n\u000b\f\r\u000e\u000f"',
                       Error.safeToString('\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f'));
-  Expect.stringEquals(r'"\x10\x11\x12\x13\x14\x15\x16\x17"',
+  Expect.stringEquals(r'"\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017"',
                       Error.safeToString('\x10\x11\x12\x13\x14\x15\x16\x17'));
-  Expect.stringEquals(r'"\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f"',
+  Expect.stringEquals(r'"\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f"',
                       Error.safeToString('\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f'));
   Expect.stringEquals('" "', Error.safeToString(" "));
 

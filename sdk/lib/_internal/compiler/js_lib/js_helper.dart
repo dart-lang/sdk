@@ -3238,6 +3238,10 @@ int random64() {
   return int32a + int32b * 0x100000000;
 }
 
+String jsonEncodeNative(String string) {
+  return JS("String", "JSON.stringify(#)", string);
+}
+
 /**
  * Returns a property name for placing data on JavaScript objects shared between
  * DOM isolates.  This happens when multiple programs are loaded in the same
