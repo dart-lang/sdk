@@ -15554,6 +15554,12 @@ class _UsedElements {
    * library.
    */
   final HashSet<String> members = new HashSet<String>();
+
+  /**
+   * Names of resolved or unresolved class members that are read in the
+   * library.
+   */
+  final HashSet<String> readMembers = new HashSet<String>();
 }
 
 
@@ -15601,28 +15607,36 @@ class _GatherUsedElementsVisitor extends RecursiveAstVisitor {
       return;
     }
     Element element = node.staticElement;
+    bool isIdentifierRead = _isReadIdentifier(node);
     if (element is LocalVariableElement) {
-      AstNode parent = node.parent;
-      if (node.inGetterContext()) {
-        if (parent.parent is ExpressionStatement &&
-            (parent is PrefixExpression ||
-             parent is PostfixExpression ||
-             parent is AssignmentExpression && parent.leftHandSide == node)) {
-          // v++;
-          // ++v;
-          // v += 2;
-        } else {
-          _useElement(element);
-        }
-      }
-      if (parent is MethodInvocation && parent.methodName == node) {
+      if (isIdentifierRead) {
         _useElement(element);
       }
+//    } else if (element is PropertyAccessorElement &&
+//        element.isSynthetic &&
+//        element.isPrivate) {
+//      PropertyInducingElement variable = element.variable;
+//      if (node.inGetterContext()) {
+//        AstNode parent = node.parent;
+//        if (parent.parent is ExpressionStatement &&
+//            (parent is PrefixExpression ||
+//             parent is PostfixExpression ||
+//             parent is AssignmentExpression && parent.leftHandSide == node)) {
+//          // f++;
+//          // ++f;
+//          // f += 2;
+//        } else {
+//          _useElement(variable);
+//        }
+//      }
     } else {
       _useIdentifierElement(node);
       if (element == null ||
           element is! LocalElement && !identical(element, _enclosingExec)) {
         usedElements.members.add(node.name);
+        if (isIdentifierRead) {
+          usedElements.readMembers.add(node.name);
+        }
       }
     }
   }
@@ -15676,6 +15690,26 @@ class _GatherUsedElementsVisitor extends RecursiveAstVisitor {
       _useElement(identifier.staticElement);
     }
   }
+
+  static bool _isReadIdentifier(SimpleIdentifier node) {
+    // not reading at all
+    if (!node.inGetterContext()) {
+      return false;
+    }
+    // check if useless reading
+    AstNode parent = node.parent;
+    if (parent.parent is ExpressionStatement &&
+        (parent is PrefixExpression ||
+         parent is PostfixExpression ||
+         parent is AssignmentExpression && parent.leftHandSide == node)) {
+      // v++;
+      // ++v;
+      // v += 2;
+      return false;
+    }
+    // OK
+    return true;
+  }
 }
 
 
@@ -15709,6 +15743,17 @@ class _UnusedElementsVerifier extends RecursiveElementVisitor {
           [element.kind.displayName, element.displayName]);
     }
     super.visitClassElement(element);
+  }
+
+  @override
+  visitFieldElement(FieldElement element) {
+    if (!element.isSynthetic && !_isReadMember(element)) {
+      _reportErrorForElement(
+          HintCode.UNUSED_FIELD,
+          element,
+          [element.displayName]);
+    }
+    super.visitFieldElement(element);
   }
 
   @override
@@ -15750,6 +15795,13 @@ class _UnusedElementsVerifier extends RecursiveElementVisitor {
       }
     }
     return _usedElements.elements.contains(element);
+  }
+
+  bool _isReadMember(Element element) {
+    if (element.isPublic) {
+      return true;
+    }
+    return _usedElements.readMembers.contains(element.displayName);
   }
 
   bool _isUsedMember(Element element) {

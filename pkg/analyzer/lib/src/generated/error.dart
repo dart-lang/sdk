@@ -2626,6 +2626,11 @@ class HintCode extends ErrorCode {
   static const HintCode UNUSED_ELEMENT = const HintCode('UNUSED_ELEMENT', "The {0} '{1}' is not used");
 
   /**
+   * Unused fields are fields which are never read.
+   */
+  static const HintCode UNUSED_FIELD = const HintCode('UNUSED_FIELD', "The value of the field '{0}' is not used");
+
+  /**
    * Unused imports are imports which are never used.
    */
   static const HintCode UNUSED_IMPORT = const HintCode('UNUSED_IMPORT', "Unused import");

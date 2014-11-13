@@ -3829,6 +3829,185 @@ print(x) {}''');
     verify([source]);
   }
 
+  void test_unusedField_notUsed_noReference() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  int _f;
+}
+''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_FIELD]);
+    verify([source]);
+  }
+
+  void test_unusedField_notUsed_simpleAssignment() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  int _f;
+  m() {
+    _f = 1;
+  }
+}
+main(A a) {
+  a._f = 2;
+}
+''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_FIELD]);
+    verify([source]);
+  }
+
+  void test_unusedField_notUsed_compoundAssign() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  int _f;
+  main() {
+    _f += 2;
+  }
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_FIELD]);
+    verify([source]);
+  }
+
+  void test_unusedField_notUsed_postfixExpr() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  int _f = 0;
+  main() {
+    _f++;
+  }
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_FIELD]);
+    verify([source]);
+  }
+
+  void test_unusedField_notUsed_prefixExpr() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  int _f = 0;
+  main() {
+    ++_f;
+  }
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_FIELD]);
+    verify([source]);
+  }
+
+  void test_unusedField_isUsed_argument() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  int _f = 0;
+  main() {
+    print(++_f);
+  }
+}
+print(x) {}''');
+    resolve(source);
+    assertErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedField_isUsed_reference_implicitThis() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  int _f;
+  main() {
+    print(_f);
+  }
+}
+print(x) {}''');
+    resolve(source);
+    assertErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedField_isUsed_reference_implicitThis_expressionFunctionBody() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  int _f;
+  m() => _f;
+}''');
+    resolve(source);
+    assertErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedField_isUsed_reference_implicitThis_subclass() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  int _f;
+  main() {
+    print(_f);
+  }
+}
+class B extends A {
+  int _f;
+}
+print(x) {}''');
+    resolve(source);
+    assertErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedField_isUsed_reference_qualified_staticElement() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  int _f;
+}
+main() {
+  A a = new A();
+  print(a._f);
+}
+print(x) {}''');
+    resolve(source);
+    assertErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedField_isUsed_reference_qualified_propagatedElement() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  int _f;
+}
+main() {
+  var a = new A();
+  print(a._f);
+}
+print(x) {}''');
+    resolve(source);
+    assertErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedField_isUsed_reference_qualified_unresolved() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  int _f;
+}
+main(a) {
+  print(a._f);
+}
+print(x) {}''');
+    resolve(source);
+    assertErrors(source);
+    verify([source]);
+  }
+
   void test_useOfVoidResult_assignmentExpression_function() {
     Source source = addSource(r'''
 void f() {}
@@ -6824,7 +7003,8 @@ class ResolverTestCase extends EngineTestCase {
   AnalysisContextImpl analysisContext2;
 
   /**
-   * Specifies if [assertErrors] should check for [HintCode.UNUSED_ELEMENT].
+   * Specifies if [assertErrors] should check for [HintCode.UNUSED_ELEMENT] and
+   * [HintCode.UNUSED_FIELD].
    */
   bool enableUnusedElement = false;
 
@@ -6875,12 +7055,13 @@ class ResolverTestCase extends EngineTestCase {
   void assertErrors(Source source, [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     for (AnalysisError error in analysisContext2.computeErrors(source)) {
-      if (error.errorCode == HintCode.UNUSED_ELEMENT &&
-          !enableUnusedElement) {
+      ErrorCode errorCode = error.errorCode;
+      if (!enableUnusedElement &&
+          (errorCode == HintCode.UNUSED_ELEMENT || errorCode == HintCode.UNUSED_FIELD)) {
         continue;
       }
-      if (error.errorCode == HintCode.UNUSED_LOCAL_VARIABLE &&
-          !enableUnusedLocalVariable) {
+      if (!enableUnusedLocalVariable &&
+          errorCode == HintCode.UNUSED_LOCAL_VARIABLE) {
         continue;
       }
       errorListener.onError(error);
