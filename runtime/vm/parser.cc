@@ -6098,18 +6098,6 @@ AstNode* Parser::LoadReceiver(intptr_t token_pos) {
 }
 
 
-AstNode* Parser::LoadTypeArgumentsParameter(intptr_t token_pos) {
-  // A nested function may access ':type_arguments' to use as instantiator,
-  // referring to the implicit first parameter of the outermost enclosing
-  // factory function.
-  const bool kTestOnly = false;
-  LocalVariable* param = LookupTypeArgumentsParameter(current_block_->scope,
-                                                      kTestOnly);
-  ASSERT(param != NULL);
-  return new(I) LoadLocalNode(TokenPos(), param);
-}
-
-
 AstNode* Parser::CallGetter(intptr_t token_pos,
                             AstNode* object,
                             const String& name) {

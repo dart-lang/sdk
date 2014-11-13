@@ -1213,9 +1213,9 @@ class RawContext : public RawObject {
   RawContext* parent_;
 
   // Variable length data follows here.
-  RawInstance** data() { OPEN_ARRAY_START(RawInstance*, RawInstance*); }
-  RawInstance* const* data() const {
-      OPEN_ARRAY_START(RawInstance*, RawInstance*);
+  RawObject** data() { OPEN_ARRAY_START(RawObject*, RawObject*); }
+  RawObject* const* data() const {
+      OPEN_ARRAY_START(RawObject*, RawObject*);
   }
   RawObject** to(intptr_t num_vars) {
     return reinterpret_cast<RawObject**>(&ptr()->data()[num_vars - 1]);

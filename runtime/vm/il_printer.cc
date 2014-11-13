@@ -505,7 +505,7 @@ void RelationalOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void AllocateObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", cls().ToCString());
+  f->Print("%s", String::Handle(cls().PrettyName()).ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); i++) {
     f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
@@ -518,7 +518,7 @@ void AllocateObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void MaterializeObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", String::Handle(cls_.Name()).ToCString());
+  f->Print("%s", String::Handle(cls_.PrettyName()).ToCString());
   for (intptr_t i = 0; i < InputCount(); i++) {
     f->Print(", ");
     f->Print("%s: ", slots_[i]->ToCString());
@@ -571,6 +571,10 @@ void AllocateContextInstr::PrintOperandsTo(BufferFormatter* f) const {
 void AllocateUninitializedContextInstr::PrintOperandsTo(
     BufferFormatter* f) const {
   f->Print("%" Pd "", num_context_variables());
+
+  if (Identity().IsNotAliased()) {
+    f->Print(" <not-aliased>");
+  }
 }
 
 

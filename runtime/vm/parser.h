@@ -546,7 +546,6 @@ class Parser : public ValueObject {
                                               bool test_only);
   void CaptureInstantiator();
   AstNode* LoadReceiver(intptr_t token_pos);
-  AstNode* LoadTypeArgumentsParameter(intptr_t token_pos);
   AstNode* LoadFieldIfUnresolved(AstNode* node);
   AstNode* LoadClosure(PrimaryNode* primary);
   AstNode* CallGetter(intptr_t token_pos, AstNode* object, const String& name);

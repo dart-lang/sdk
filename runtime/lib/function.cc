@@ -43,8 +43,8 @@ DEFINE_NATIVE_ENTRY(FunctionImpl_equals, 2) {
       if (func_a.IsImplicitInstanceClosureFunction()) {
         const Context& context_a = Context::Handle(Closure::context(receiver));
         const Context& context_b = Context::Handle(Closure::context(other));
-        const Instance& receiver_a = Instance::Handle(context_a.At(0));
-        const Instance& receiver_b = Instance::Handle(context_b.At(0));
+        const Object& receiver_a = Object::Handle(context_a.At(0));
+        const Object& receiver_b = Object::Handle(context_b.At(0));
         if (receiver_a.raw() == receiver_b.raw()) return Bool::True().raw();
       }
     }

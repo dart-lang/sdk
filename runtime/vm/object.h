@@ -4065,10 +4065,10 @@ class Context : public Object {
     return OFFSET_OF(RawContext, num_variables_);
   }
 
-  RawInstance* At(intptr_t context_index) const {
-    return *InstanceAddr(context_index);
+  RawObject* At(intptr_t context_index) const {
+    return *ObjectAddr(context_index);
   }
-  inline void SetAt(intptr_t context_index, const Instance& value) const;
+  inline void SetAt(intptr_t context_index, const Object& value) const;
 
   void Dump(int indent = 0) const;
 
@@ -4094,7 +4094,7 @@ class Context : public Object {
                          Heap::Space space = Heap::kNew);
 
  private:
-  RawInstance* const* InstanceAddr(intptr_t context_index) const {
+  RawObject* const* ObjectAddr(intptr_t context_index) const {
     ASSERT((context_index >= 0) && (context_index < num_variables()));
     return &raw_ptr()->data()[context_index];
   }
@@ -7444,8 +7444,8 @@ void Field::SetOffset(intptr_t value_in_bytes) const {
 }
 
 
-void Context::SetAt(intptr_t index, const Instance& value) const {
-  StorePointer(InstanceAddr(index), value.raw());
+void Context::SetAt(intptr_t index, const Object& value) const {
+  StorePointer(ObjectAddr(index), value.raw());
 }
 
 

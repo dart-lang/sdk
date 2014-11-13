@@ -3861,17 +3861,50 @@ class AllocateObjectInstr : public TemplateDefinition<0, NoThrow> {
 };
 
 
+class AllocateUninitializedContextInstr
+    : public TemplateDefinition<0, NoThrow> {
+ public:
+  AllocateUninitializedContextInstr(intptr_t token_pos,
+                                    intptr_t num_context_variables)
+      : token_pos_(token_pos),
+        num_context_variables_(num_context_variables),
+        identity_(AliasIdentity::Unknown()) {}
+
+  DECLARE_INSTRUCTION(AllocateUninitializedContext)
+  virtual CompileType ComputeType() const;
+
+  virtual intptr_t token_pos() const { return token_pos_; }
+  intptr_t num_context_variables() const { return num_context_variables_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  virtual AliasIdentity Identity() const { return identity_; }
+  virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
+
+ private:
+  const intptr_t token_pos_;
+  const intptr_t num_context_variables_;
+  AliasIdentity identity_;
+
+  DISALLOW_COPY_AND_ASSIGN(AllocateUninitializedContextInstr);
+};
+
+
 // This instruction captures the state of the object which had its allocation
 // removed during the AllocationSinking pass.
 // It does not produce any real code only deoptimization information.
 class MaterializeObjectInstr : public Definition {
  public:
   MaterializeObjectInstr(AllocateObjectInstr* allocation,
-                         const Class& cls,
                          const ZoneGrowableArray<const Object*>& slots,
                          ZoneGrowableArray<Value*>* values)
       : allocation_(allocation),
-        cls_(cls),
+        cls_(allocation->cls()),
+        num_variables_(-1),
         slots_(slots),
         values_(values),
         locations_(NULL),
@@ -3884,13 +3917,37 @@ class MaterializeObjectInstr : public Definition {
     }
   }
 
-  AllocateObjectInstr* allocation() const { return allocation_; }
+  MaterializeObjectInstr(AllocateUninitializedContextInstr* allocation,
+                         const ZoneGrowableArray<const Object*>& slots,
+                         ZoneGrowableArray<Value*>* values)
+      : allocation_(allocation),
+        cls_(Class::ZoneHandle(Object::context_class())),
+        num_variables_(allocation->num_context_variables()),
+        slots_(slots),
+        values_(values),
+        locations_(NULL),
+        visited_for_liveness_(false),
+        registers_remapped_(false) {
+    ASSERT(slots_.length() == values_->length());
+    for (intptr_t i = 0; i < InputCount(); i++) {
+      InputAt(i)->set_instruction(this);
+      InputAt(i)->set_use_index(i);
+    }
+  }
+
+  Definition* allocation() const { return allocation_; }
   const Class& cls() const { return cls_; }
+
+  intptr_t num_variables() const {
+    return num_variables_;
+  }
+
   intptr_t FieldOffsetAt(intptr_t i) const {
     return slots_[i]->IsField()
         ? Field::Cast(*slots_[i]).Offset()
         : Smi::Cast(*slots_[i]).Value();
   }
+
   const Location& LocationAt(intptr_t i) {
     return locations_[i];
   }
@@ -3937,8 +3994,9 @@ class MaterializeObjectInstr : public Definition {
     (*values_)[i] = value;
   }
 
-  AllocateObjectInstr* allocation_;
+  Definition* allocation_;
   const Class& cls_;
+  intptr_t num_variables_;
   const ZoneGrowableArray<const Object*>& slots_;
   ZoneGrowableArray<Value*>* values_;
   Location* locations_;
@@ -4228,7 +4286,7 @@ class AllocateContextInstr : public TemplateDefinition<0, NoThrow> {
   AllocateContextInstr(intptr_t token_pos,
                        intptr_t num_context_variables)
       : token_pos_(token_pos),
-        num_context_variables_(num_context_variables) {}
+        num_context_variables_(num_context_variables) { }
 
   DECLARE_INSTRUCTION(AllocateContext)
   virtual CompileType ComputeType() const;
@@ -4271,34 +4329,6 @@ class InitStaticFieldInstr : public TemplateInstruction<1, Throws> {
   const Field& field_;
 
   DISALLOW_COPY_AND_ASSIGN(InitStaticFieldInstr);
-};
-
-
-class AllocateUninitializedContextInstr
-    : public TemplateDefinition<0, NoThrow> {
- public:
-  AllocateUninitializedContextInstr(intptr_t token_pos,
-                                    intptr_t num_context_variables)
-      : token_pos_(token_pos),
-        num_context_variables_(num_context_variables) {}
-
-  DECLARE_INSTRUCTION(AllocateUninitializedContext)
-  virtual CompileType ComputeType() const;
-
-  virtual intptr_t token_pos() const { return token_pos_; }
-  intptr_t num_context_variables() const { return num_context_variables_; }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
- private:
-  const intptr_t token_pos_;
-  const intptr_t num_context_variables_;
-
-  DISALLOW_COPY_AND_ASSIGN(AllocateUninitializedContextInstr);
 };
 
 

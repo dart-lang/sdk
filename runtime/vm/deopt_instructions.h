@@ -113,42 +113,42 @@ class DeoptContext {
   void DeferMaterializedObjectRef(intptr_t idx, intptr_t* slot) {
     deferred_slots_ = new DeferredObjectRef(
         idx,
-        reinterpret_cast<RawInstance**>(slot),
+        reinterpret_cast<RawObject**>(slot),
         deferred_slots_);
   }
 
   void DeferMaterialization(double value, RawDouble** slot) {
     deferred_slots_ = new DeferredDouble(
         value,
-        reinterpret_cast<RawInstance**>(slot),
+        reinterpret_cast<RawObject**>(slot),
         deferred_slots_);
   }
 
   void DeferMintMaterialization(int64_t value, RawMint** slot) {
     deferred_slots_ = new DeferredMint(
         value,
-        reinterpret_cast<RawInstance**>(slot),
+        reinterpret_cast<RawObject**>(slot),
         deferred_slots_);
   }
 
   void DeferMaterialization(simd128_value_t value, RawFloat32x4** slot) {
     deferred_slots_ = new DeferredFloat32x4(
         value,
-        reinterpret_cast<RawInstance**>(slot),
+        reinterpret_cast<RawObject**>(slot),
         deferred_slots_);
   }
 
   void DeferMaterialization(simd128_value_t value, RawFloat64x2** slot) {
     deferred_slots_ = new DeferredFloat64x2(
         value,
-        reinterpret_cast<RawInstance**>(slot),
+        reinterpret_cast<RawObject**>(slot),
         deferred_slots_);
   }
 
   void DeferMaterialization(simd128_value_t value, RawInt32x4** slot) {
     deferred_slots_ = new DeferredInt32x4(
         value,
-        reinterpret_cast<RawInstance**>(slot),
+        reinterpret_cast<RawObject**>(slot),
         deferred_slots_);
   }
 

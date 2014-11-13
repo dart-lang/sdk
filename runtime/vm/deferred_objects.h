@@ -10,8 +10,8 @@
 namespace dart {
 
 // Forward declarations.
-class Instance;
-class RawInstance;
+class Object;
+class RawObject;
 class RawObject;
 class DeoptContext;
 
@@ -21,17 +21,17 @@ class DeoptContext;
 // the materialized object.
 class DeferredSlot {
  public:
-  DeferredSlot(RawInstance** slot, DeferredSlot* next)
+  DeferredSlot(RawObject** slot, DeferredSlot* next)
       : slot_(slot), next_(next) { }
   virtual ~DeferredSlot() { }
 
-  RawInstance** slot() const { return slot_; }
+  RawObject** slot() const { return slot_; }
   DeferredSlot* next() const { return next_; }
 
   virtual void Materialize(DeoptContext* deopt_context) = 0;
 
  private:
-  RawInstance** const slot_;
+  RawObject** const slot_;
   DeferredSlot* const next_;
 
   DISALLOW_COPY_AND_ASSIGN(DeferredSlot);
@@ -40,7 +40,7 @@ class DeferredSlot {
 
 class DeferredDouble : public DeferredSlot {
  public:
-  DeferredDouble(double value, RawInstance** slot, DeferredSlot* next)
+  DeferredDouble(double value, RawObject** slot, DeferredSlot* next)
       : DeferredSlot(slot, next), value_(value) { }
 
   virtual void Materialize(DeoptContext* deopt_context);
@@ -56,7 +56,7 @@ class DeferredDouble : public DeferredSlot {
 
 class DeferredMint : public DeferredSlot {
  public:
-  DeferredMint(int64_t value, RawInstance** slot, DeferredSlot* next)
+  DeferredMint(int64_t value, RawObject** slot, DeferredSlot* next)
       : DeferredSlot(slot, next), value_(value) { }
 
   virtual void Materialize(DeoptContext* deopt_context);
@@ -72,7 +72,7 @@ class DeferredMint : public DeferredSlot {
 
 class DeferredFloat32x4 : public DeferredSlot {
  public:
-  DeferredFloat32x4(simd128_value_t value, RawInstance** slot,
+  DeferredFloat32x4(simd128_value_t value, RawObject** slot,
                     DeferredSlot* next)
       : DeferredSlot(slot, next), value_(value) { }
 
@@ -89,7 +89,7 @@ class DeferredFloat32x4 : public DeferredSlot {
 
 class DeferredFloat64x2 : public DeferredSlot {
  public:
-  DeferredFloat64x2(simd128_value_t value, RawInstance** slot,
+  DeferredFloat64x2(simd128_value_t value, RawObject** slot,
                     DeferredSlot* next)
       : DeferredSlot(slot, next), value_(value) { }
 
@@ -106,7 +106,7 @@ class DeferredFloat64x2 : public DeferredSlot {
 
 class DeferredInt32x4 : public DeferredSlot {
  public:
-  DeferredInt32x4(simd128_value_t value, RawInstance** slot,
+  DeferredInt32x4(simd128_value_t value, RawObject** slot,
                    DeferredSlot* next)
       : DeferredSlot(slot, next), value_(value) { }
 
@@ -126,7 +126,7 @@ class DeferredInt32x4 : public DeferredSlot {
 // Object itself is described and materialized by DeferredObject.
 class DeferredObjectRef : public DeferredSlot {
  public:
-  DeferredObjectRef(intptr_t index, RawInstance** slot, DeferredSlot* next)
+  DeferredObjectRef(intptr_t index, RawObject** slot, DeferredSlot* next)
       : DeferredSlot(slot, next), index_(index) { }
 
   virtual void Materialize(DeoptContext* deopt_context);
@@ -155,7 +155,7 @@ class DeferredObject {
     return kFieldsStartIndex + kFieldEntrySize * field_count_;
   }
 
-  RawInstance* object();
+  RawObject* object();
 
   // Fill object with actual field values.
   void Fill();
@@ -163,7 +163,8 @@ class DeferredObject {
  private:
   enum {
     kClassIndex = 0,
-    kFieldsStartIndex = kClassIndex + 1
+    kLengthIndex,  // Number of context variables for contexts, -1 otherwise.
+    kFieldsStartIndex
   };
 
   enum {
@@ -180,6 +181,10 @@ class DeferredObject {
 
   RawObject* GetClass() const {
     return args_[kClassIndex];
+  }
+
+  RawObject* GetLength() const {
+    return args_[kLengthIndex];
   }
 
   RawObject* GetFieldOffset(intptr_t index) const {
@@ -199,7 +204,7 @@ class DeferredObject {
   RawObject** args_;
 
   // Object materialized from this description.
-  const Instance* object_;
+  const Object* object_;
 
   DISALLOW_COPY_AND_ASSIGN(DeferredObject);
 };

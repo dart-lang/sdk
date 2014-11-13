@@ -12569,7 +12569,7 @@ void Context::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
   JSONArray jsarr(&jsobj, "variables");
   for (intptr_t i = 0; i < num_variables(); i++) {
-    const Instance& var = Instance::Handle(At(i));
+    const Object& var = Object::Handle(At(i));
     JSONObject jselement(&jsarr);
     jselement.AddProperty("index", i);
     jselement.AddProperty("value", var);

@@ -5487,10 +5487,10 @@ class Place : public ValueObject {
   static Place* Wrap(Isolate* isolate, const Place& place, intptr_t id);
 
   static bool IsAllocation(Definition* defn) {
-    // TODO(vegorov): add CreateContext to this list.
     return (defn != NULL) &&
         (defn->IsAllocateObject() ||
          defn->IsCreateArray() ||
+         defn->IsAllocateUninitializedContext() ||
          (defn->IsStaticCall() &&
           defn->AsStaticCall()->IsRecognizedFactory()));
   }
@@ -5924,13 +5924,18 @@ class AliasedSet : public ZoneAllocated {
   bool HasLoadsFromPlace(Definition* defn, const Place* place) {
     ASSERT((place->kind() == Place::kField) ||
            (place->kind() == Place::kVMField));
-    ASSERT(place->instance() == defn);
 
     for (Value* use = defn->input_use_list();
          use != NULL;
          use = use->next_use()) {
+      Instruction* instr = use->instruction();
+      if ((instr->IsRedefinition() ||
+           instr->IsAssertAssignable()) &&
+          HasLoadsFromPlace(instr->AsDefinition(), place)) {
+        return true;
+      }
       bool is_load = false, is_store;
-      Place load_place(use->instruction(), &is_load, &is_store);
+      Place load_place(instr, &is_load, &is_store);
 
       if (is_load && load_place.Equals(place)) {
         return true;
@@ -5951,9 +5956,10 @@ class AliasedSet : public ZoneAllocated {
           (instr->IsStoreIndexed()
            && (use->use_index() == StoreIndexedInstr::kValuePos)) ||
           instr->IsStoreStaticField() ||
-          instr->IsPhi() ||
-          instr->IsAssertAssignable() ||
-          instr->IsRedefinition()) {
+          instr->IsPhi()) {
+        return true;
+      } else if ((instr->IsAssertAssignable() || instr->IsRedefinition()) &&
+                 AnyUseCreatesAlias(instr->AsDefinition())) {
         return true;
       } else if ((instr->IsStoreInstanceField()
            && (use->use_index() != StoreInstanceFieldInstr::kInstancePos))) {
@@ -5961,8 +5967,10 @@ class AliasedSet : public ZoneAllocated {
         // If we store this value into an object that is not aliased itself
         // and we never load again then the store does not create an alias.
         StoreInstanceFieldInstr* store = instr->AsStoreInstanceField();
-        Definition* instance = store->instance()->definition();
-        if (instance->IsAllocateObject() && !instance->Identity().IsAliased()) {
+        Definition* instance =
+            store->instance()->definition()->OriginalDefinition();
+        if (Place::IsAllocation(instance) &&
+            !instance->Identity().IsAliased()) {
           bool is_load, is_store;
           Place store_place(instr, &is_load, &is_store);
 
@@ -5977,7 +5985,6 @@ class AliasedSet : public ZoneAllocated {
             continue;
           }
         }
-
         return true;
       }
     }
@@ -5986,19 +5993,20 @@ class AliasedSet : public ZoneAllocated {
 
   // Mark any value stored into the given object as potentially aliased.
   void MarkStoredValuesEscaping(Definition* defn) {
-    if (!defn->IsAllocateObject()) {
-      return;
-    }
-
     // Find all stores into this object.
     for (Value* use = defn->input_use_list();
          use != NULL;
          use = use->next_use()) {
+      if (use->instruction()->IsRedefinition() ||
+          use->instruction()->IsAssertAssignable()) {
+        MarkStoredValuesEscaping(use->instruction()->AsDefinition());
+        continue;
+      }
       if ((use->use_index() == StoreInstanceFieldInstr::kInstancePos) &&
           use->instruction()->IsStoreInstanceField()) {
         StoreInstanceFieldInstr* store =
             use->instruction()->AsStoreInstanceField();
-        Definition* value = store->value()->definition();
+        Definition* value = store->value()->definition()->OriginalDefinition();
         if (value->Identity().IsNotAliased()) {
           value->SetIdentity(AliasIdentity::Aliased());
           identity_rollback_.Add(value);
@@ -6012,6 +6020,7 @@ class AliasedSet : public ZoneAllocated {
 
   // Determine if the given definition can't be aliased.
   void ComputeAliasing(Definition* alloc) {
+    ASSERT(Place::IsAllocation(alloc));
     ASSERT(alloc->Identity().IsUnknown());
     ASSERT(aliasing_worklist_.is_empty());
 
@@ -6020,7 +6029,7 @@ class AliasedSet : public ZoneAllocated {
 
     while (!aliasing_worklist_.is_empty()) {
       Definition* defn = aliasing_worklist_.RemoveLast();
-
+      ASSERT(Place::IsAllocation(defn));
       // If the definition in the worklist was optimistically marked as
       // not-aliased check that optimistic assumption still holds: check if
       // any of its uses can create an alias.
@@ -9442,7 +9451,7 @@ static bool IsSafeUse(Value* use, SafeUseCheck check_type) {
 // deoptimization exit. So candidate should only be used in StoreInstanceField
 // instructions that write into fields of the allocated object.
 // We do not support materialization of the object that has type arguments.
-static bool IsAllocationSinkingCandidate(AllocateObjectInstr* alloc,
+static bool IsAllocationSinkingCandidate(Definition* alloc,
                                          SafeUseCheck check_type) {
   for (Value* use = alloc->input_use_list();
        use != NULL;
@@ -9475,7 +9484,7 @@ static Definition* StoreInto(Value* use) {
 
 // Remove the given allocation from the graph. It is not observable.
 // If deoptimization occurs the object will be materialized.
-void AllocationSinking::EliminateAllocation(AllocateObjectInstr* alloc) {
+void AllocationSinking::EliminateAllocation(Definition* alloc) {
   ASSERT(IsAllocationSinkingCandidate(alloc, kStrictCheck));
 
   if (FLAG_trace_optimization) {
@@ -9521,11 +9530,20 @@ void AllocationSinking::CollectCandidates() {
        block_it.Advance()) {
     BlockEntryInstr* block = block_it.Current();
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-      AllocateObjectInstr* alloc = it.Current()->AsAllocateObject();
-      if ((alloc != NULL) &&
-          IsAllocationSinkingCandidate(alloc, kOptimisticCheck)) {
-        alloc->SetIdentity(AliasIdentity::AllocationSinkingCandidate());
-        candidates_.Add(alloc);
+      { AllocateObjectInstr* alloc = it.Current()->AsAllocateObject();
+        if ((alloc != NULL) &&
+            IsAllocationSinkingCandidate(alloc, kOptimisticCheck)) {
+          alloc->SetIdentity(AliasIdentity::AllocationSinkingCandidate());
+          candidates_.Add(alloc);
+        }
+      }
+      { AllocateUninitializedContextInstr* alloc =
+            it.Current()->AsAllocateUninitializedContext();
+        if ((alloc != NULL) &&
+            IsAllocationSinkingCandidate(alloc, kOptimisticCheck)) {
+          alloc->SetIdentity(AliasIdentity::AllocationSinkingCandidate());
+          candidates_.Add(alloc);
+        }
       }
     }
   }
@@ -9535,7 +9553,7 @@ void AllocationSinking::CollectCandidates() {
   do {
     changed = false;
     for (intptr_t i = 0; i < candidates_.length(); i++) {
-      AllocateObjectInstr* alloc = candidates_[i];
+      Definition* alloc = candidates_[i];
       if (alloc->Identity().IsAllocationSinkingCandidate()) {
         if (!IsAllocationSinkingCandidate(alloc, kStrictCheck)) {
           alloc->SetIdentity(AliasIdentity::Unknown());
@@ -9548,7 +9566,7 @@ void AllocationSinking::CollectCandidates() {
   // Shrink the list of candidates removing all unmarked ones.
   intptr_t j = 0;
   for (intptr_t i = 0; i < candidates_.length(); i++) {
-    AllocateObjectInstr* alloc = candidates_[i];
+    Definition* alloc = candidates_[i];
     if (alloc->Identity().IsAllocationSinkingCandidate()) {
       if (FLAG_trace_optimization) {
         OS::Print("discovered allocation sinking candidate: v%" Pd "\n",
@@ -9630,7 +9648,7 @@ void AllocationSinking::DiscoverFailedCandidates() {
   do {
     changed = false;
     for (intptr_t i = 0; i < candidates_.length(); i++) {
-      AllocateObjectInstr* alloc = candidates_[i];
+      Definition* alloc = candidates_[i];
       if (alloc->Identity().IsAllocationSinkingCandidate()) {
         if (!IsAllocationSinkingCandidate(alloc, kStrictCheck)) {
           alloc->SetIdentity(AliasIdentity::Unknown());
@@ -9643,7 +9661,7 @@ void AllocationSinking::DiscoverFailedCandidates() {
   // Remove all failed candidates from the candidates list.
   intptr_t j = 0;
   for (intptr_t i = 0; i < candidates_.length(); i++) {
-    AllocateObjectInstr* alloc = candidates_[i];
+    Definition* alloc = candidates_[i];
     if (!alloc->Identity().IsAllocationSinkingCandidate()) {
       if (FLAG_trace_optimization) {
         OS::Print("allocation v%" Pd " can't be eliminated\n",
@@ -9827,8 +9845,7 @@ MaterializeObjectInstr* AllocationSinking::MaterializationFor(
 // the given instruction that can deoptimize.
 void AllocationSinking::CreateMaterializationAt(
     Instruction* exit,
-    AllocateObjectInstr* alloc,
-    const Class& cls,
+    Definition* alloc,
     const ZoneGrowableArray<const Object*>& slots) {
   ZoneGrowableArray<Value*>* values =
       new(I) ZoneGrowableArray<Value*>(slots.length());
@@ -9856,8 +9873,16 @@ void AllocationSinking::CreateMaterializationAt(
     values->Add(new(I) Value(load));
   }
 
-  MaterializeObjectInstr* mat =
-      new(I) MaterializeObjectInstr(alloc, cls, slots, values);
+  MaterializeObjectInstr* mat = NULL;
+  if (alloc->IsAllocateObject()) {
+    mat = new(I) MaterializeObjectInstr(
+        alloc->AsAllocateObject(), slots, values);
+  } else {
+    ASSERT(alloc->IsAllocateUninitializedContext());
+    mat = new(I) MaterializeObjectInstr(
+        alloc->AsAllocateUninitializedContext(), slots, values);
+  }
+
   flow_graph_->InsertBefore(exit, mat, NULL, FlowGraph::kValue);
 
   // Replace all mentions of this allocation with a newly inserted
@@ -9950,7 +9975,7 @@ void AllocationSinking::ExitsCollector::CollectTransitively(Definition* alloc) {
 }
 
 
-void AllocationSinking::InsertMaterializations(AllocateObjectInstr* alloc) {
+void AllocationSinking::InsertMaterializations(Definition* alloc) {
   // Collect all fields that are written for this instance.
   ZoneGrowableArray<const Object*>* slots =
       new(I) ZoneGrowableArray<const Object*>(5);
@@ -9969,8 +9994,10 @@ void AllocationSinking::InsertMaterializations(AllocateObjectInstr* alloc) {
   }
 
   if (alloc->ArgumentCount() > 0) {
-    ASSERT(alloc->ArgumentCount() == 1);
-    intptr_t type_args_offset = alloc->cls().type_arguments_field_offset();
+    AllocateObjectInstr* alloc_object = alloc->AsAllocateObject();
+    ASSERT(alloc_object->ArgumentCount() == 1);
+    intptr_t type_args_offset =
+        alloc_object->cls().type_arguments_field_offset();
     AddSlot(slots, Smi::ZoneHandle(I, Smi::New(type_args_offset)));
   }
 
@@ -9980,7 +10007,7 @@ void AllocationSinking::InsertMaterializations(AllocateObjectInstr* alloc) {
   // Insert materializations at environment uses.
   for (intptr_t i = 0; i < exits_collector_.exits().length(); i++) {
     CreateMaterializationAt(
-        exits_collector_.exits()[i], alloc, alloc->cls(), *slots);
+        exits_collector_.exits()[i], alloc, *slots);
   }
 }
 

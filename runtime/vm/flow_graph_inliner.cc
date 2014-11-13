@@ -51,6 +51,8 @@ DEFINE_FLAG(bool, inline_recursive, false, "Inline recursive calls.");
 DEFINE_FLAG(int, max_inlined_per_depth, 500,
     "Max. number of inlined calls per depth");
 DEFINE_FLAG(bool, print_inlining_tree, false, "Print inlining tree");
+DEFINE_FLAG(bool, enable_inlining_annotations, false,
+            "Enable inlining annotations");
 
 DECLARE_FLAG(bool, compiler_stats);
 DECLARE_FLAG(bool, enable_type_checks);
@@ -448,6 +450,25 @@ class PolymorphicInliner : public ValueObject {
 };
 
 
+static bool HasAnnotation(const Function& function, const char* annotation) {
+  const Class& owner = Class::Handle(function.Owner());
+  const Library& library = Library::Handle(owner.library());
+  const Array& metadata =
+      Array::Cast(Object::Handle(library.GetMetadata(function)));
+
+  if (metadata.Length() > 0) {
+    Object& val = Object::Handle();
+    for (intptr_t i = 0; i < metadata.Length(); i++) {
+      val = metadata.At(i);
+      if (val.IsString() && String::Cast(val).Equals(annotation)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+
 class CallSiteInliner : public ValueObject {
  public:
   explicit CallSiteInliner(FlowGraph* flow_graph)
@@ -593,6 +614,13 @@ class CallSiteInliner : public ValueObject {
       return false;
     }
 
+    const char* kNeverInlineAnnotation = "NeverInline";
+    if (FLAG_enable_inlining_annotations &&
+        HasAnnotation(function, kNeverInlineAnnotation)) {
+      TRACE_INLINING(OS::Print("     Bailout: NeverInline annotation\n"));
+      return false;
+    }
+
     GrowableArray<Value*>* arguments = call_data->arguments;
     const intptr_t constant_arguments = CountConstants(*arguments);
     if (!ShouldWeInline(function,
@@ -614,7 +642,6 @@ class CallSiteInliner : public ValueObject {
     // Abort if this is a recursive occurrence.
     Definition* call = call_data->call;
     if (!FLAG_inline_recursive && IsCallRecursive(unoptimized_code, call)) {
-      function.set_is_inlinable(false);
       TRACE_INLINING(OS::Print("     Bailout: recursive function\n"));
       PRINT_INLINING_TREE("Recursive function",
           &call_data->caller, &function, call_data->call);
@@ -1685,6 +1712,14 @@ void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph, bool force) {
 
 
 bool FlowGraphInliner::AlwaysInline(const Function& function) {
+  const char* kAlwaysInlineAnnotation = "AlwaysInline";
+  if (FLAG_enable_inlining_annotations &&
+      HasAnnotation(function, kAlwaysInlineAnnotation)) {
+    TRACE_INLINING(OS::Print("AlwaysInline annotation for %s\n",
+                             function.ToCString()));
+    return true;
+  }
+
   if (function.IsImplicitGetterFunction() || function.IsGetterFunction() ||
       function.IsImplicitSetterFunction() || function.IsSetterFunction()) {
     const intptr_t count = function.optimized_instruction_count();

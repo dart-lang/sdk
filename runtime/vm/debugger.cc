@@ -707,7 +707,7 @@ void ActivationFrame::VariableAt(intptr_t i,
                                  String* name,
                                  intptr_t* token_pos,
                                  intptr_t* end_pos,
-                                 Instance* value) {
+                                 Object* value) {
   GetDescIndices();
   ASSERT(i < desc_indices_.length());
   intptr_t desc_index = desc_indices_[i];
@@ -767,7 +767,7 @@ RawArray* ActivationFrame::GetLocalVariables() {
   GetDescIndices();
   intptr_t num_variables = desc_indices_.length();
   String& var_name = String::Handle();
-  Instance& value = Instance::Handle();
+  Object& value = Instance::Handle();
   const Array& list = Array::Handle(Array::New(2 * num_variables));
   for (intptr_t i = 0; i < num_variables; i++) {
     intptr_t ignore;
@@ -802,7 +802,7 @@ RawObject* ActivationFrame::Evaluate(const String& expr) {
   const GrowableObjectArray& param_values =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   String& name = String::Handle();
-  Instance& value = Instance::Handle();
+  Object& value = Instance::Handle();
   intptr_t num_variables = desc_indices_.length();
   for (intptr_t i = 0; i < num_variables; i++) {
     intptr_t ignore;

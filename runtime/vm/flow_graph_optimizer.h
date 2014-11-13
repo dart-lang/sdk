@@ -435,7 +435,7 @@ class AllocationSinking : public ZoneAllocated {
         candidates_(5),
         materializations_(5) { }
 
-  const GrowableArray<AllocateObjectInstr*>& candidates() const {
+  const GrowableArray<Definition*>& candidates() const {
     return candidates_;
   }
 
@@ -480,21 +480,20 @@ class AllocationSinking : public ZoneAllocated {
 
   void DiscoverFailedCandidates();
 
-  void InsertMaterializations(AllocateObjectInstr* alloc);
+  void InsertMaterializations(Definition* alloc);
 
   void CreateMaterializationAt(
       Instruction* exit,
-      AllocateObjectInstr* alloc,
-      const Class& cls,
+      Definition* alloc,
       const ZoneGrowableArray<const Object*>& fields);
 
-  void EliminateAllocation(AllocateObjectInstr* alloc);
+  void EliminateAllocation(Definition* alloc);
 
   Isolate* isolate() const { return flow_graph_->isolate(); }
 
   FlowGraph* flow_graph_;
 
-  GrowableArray<AllocateObjectInstr*> candidates_;
+  GrowableArray<Definition*> candidates_;
   GrowableArray<MaterializeObjectInstr*> materializations_;
 
   ExitsCollector exits_collector_;
