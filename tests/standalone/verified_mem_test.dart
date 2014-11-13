@@ -8,7 +8,7 @@
 var a = [];
 
 void main() {
-  for (int i = 0; i < 123; ++i) {
+  for (int i = 0; i < 12; ++i) {
     a.add(new List(12345));
   }
   for (int i = 0; i < 1234; ++i) {
