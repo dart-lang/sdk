@@ -18,7 +18,7 @@ main() {
 
     schedulePub(
         args: ["build"],
-        output: new RegExp(r'Built 2 files to "build".'),
+        output: new RegExp(r'Built 1 file to "build".'),
         exitCode: 0);
 
     d.dir(

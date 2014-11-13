@@ -26,7 +26,7 @@ main() {
     schedulePub(args: ["build", "--format", "json"], outputJson: {
       'buildResult': 'success',
       'outputDirectory': 'build',
-      'numFiles': 2,
+      'numFiles': 1,
       'log': [{
           'level': 'Info',
           'transformer': {
