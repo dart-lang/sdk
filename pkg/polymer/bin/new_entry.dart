@@ -94,8 +94,6 @@ String html = '''
 <!doctype html>
 <html>
   <head>
-    <script src="packages/web_components/dart_support.js"></script>
-
     <!-- link rel="import" href="path_to_html_import.html" -->
   </head>
   <body>
@@ -118,60 +116,76 @@ String html = '''
   if (transformers != null) {
     // If there are transformers in the pubspec, look for the polymer
     // transformers, get the entry points, and delete the old entry points.
-    var transformersSourceSpan = transformers.span;
-    SourceSpan sourceSpan;
+    SourceSpan transformersSourceSpan = transformers.span;
 
+    SourceSpan polymerTransformerSourceSpan;
+    SourceSpan entryPointsSourceSpan;
     for (var e in transformers) {
-      if (e != 'polymer' && (e is! YamlMap || e['polymer'] == null)) continue;
-      if (e == 'polymer' || !e['polymer'].containsKey('entry_points')) {
-        if (path.split(entryPoint)[0] != 'web') {
-          print('WARNING: Did not add entry_point $entryPoint to pubspec.yaml'
-              ' because of already-existing transformer|polymer section');
-        }
-        return false;
-      } else if (e['polymer'].keys.length > 1) {
-        // TODO(dgrove): handle the case where there are additional sections
-        // in the polymer transformer.
-        throw new UnimplementedError('Cannot handle non-entry_point entries '
-            'for polymer transformer');
-      } else {
+      if (e == 'polymer') {
+        // If they had an empty polymer transformer, just get rid of it (we will
+        // replace it with our own map style one).
+        var polymerRegex = new RegExp(r'\n\s*-\spolymer\s*');
+        // Insert right after the newline.
+        insertionPoint = pubspecText.indexOf(polymerRegex) + 1;
+        pubspecText = pubspecText.replaceFirst(polymerRegex, '\n');
+      } else if (e is YamlMap && e['polymer'] != null) {
+        polymerTransformerSourceSpan = e['polymer'].span;
+
         var existing = e['polymer']['entry_points'];
+        if (existing == null && e['polymer'].containsKey('entry_points')) {
+          if (path.split(entryPoint)[0] != 'web') {
+            print('WARNING: Did not add entry_point $entryPoint to pubspec.yaml'
+              ' because of existing empty `entry_points` field in polymer'
+              ' transformer. This defaults to treating all files under `web/`'
+              ' as entry points, but you tried to add an entry point outside of'
+              ' the `web/` folder. You will need to explicitly list all entry'
+              ' points that you care about into your pubspec in order to'
+              ' include any outside of `web/`.');
+          }
+          return false;
+        }
         entryPoints = (existing == null ? [] :
             (existing is String ? [existing] : existing.toList()));
 
         if (entryPoints.contains(entryPoint)) return false;
         entryPoints.add(entryPoint);
 
-        sourceSpan = e.span;
+        if (existing != null) {
+          entryPointsSourceSpan = existing.span;
+        }
       }
     }
 
-    if (sourceSpan == null) {
-      // There were no polymer transformers.
-      insertionPoint = transformersSourceSpan.start.offset;
-      textToInsert = '- ';
+    if (polymerTransformerSourceSpan == null) {
+      if (insertionPoint == null) {
+        insertionPoint = transformersSourceSpan.start.offset;
+      }
+      textToInsert = '- polymer:\n    entry_points:\n';
+    } else if (entryPointsSourceSpan == null) {
+      insertionPoint = polymerTransformerSourceSpan.start.offset;
+      textToInsert = '    entry_points:\n';
     } else {
-      insertionPoint = sourceSpan.start.offset;
+      insertionPoint = entryPointsSourceSpan.start.offset;
       pubspecText = '${pubspecText.substring(0, insertionPoint)}'
-          '${pubspecText.substring(sourceSpan.end.offset)}';
+          '${pubspecText.substring(entryPointsSourceSpan.end.offset)}';
     }
   } else {
     // There were no transformers at all.
     insertionPoint = pubspecText.length;
     var optionalNewline = pubspecText.endsWith('\n') ? '' : '\n';
-    textToInsert = '${optionalNewline}transformers:\n- ';
+    textToInsert = '''
+${optionalNewline}transformers:
+- polymer:
+    entry_points:
+''';
     entryPoints = [entryPoint];
   }
 
+  if (entryPoints == null) entryPoints = [entryPoint];
   // TODO(dgrove): Once dartbug.com/20409 is addressed, use that here.
   var entryPointsText = entryPoints.map((e) => '    - $e').join('\n');
 
-  textToInsert =
-'''${textToInsert}polymer:
-    entry_points:
-$entryPointsText''';
-
-
+  textToInsert += entryPointsText;
   if (insertionPoint == pubspecText.length) {
     pubspecText = '${pubspecText}${textToInsert}';
   } else {
