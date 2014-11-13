@@ -8772,45 +8772,45 @@ class Modifier extends Enum<Modifier> {
   /**
    * Indicates that a class can validly be used as a mixin.
    */
-  static const Modifier MIXIN = const Modifier('MIXIN', 11);
+  static const Modifier MIXIN = const Modifier('MIXIN', 10);
 
   /**
    * Indicates that the value of a parameter or local variable might be mutated within the context.
    */
-  static const Modifier POTENTIALLY_MUTATED_IN_CONTEXT = const Modifier('POTENTIALLY_MUTATED_IN_CONTEXT', 12);
+  static const Modifier POTENTIALLY_MUTATED_IN_CONTEXT = const Modifier('POTENTIALLY_MUTATED_IN_CONTEXT', 11);
 
   /**
    * Indicates that the value of a parameter or local variable might be mutated within the scope.
    */
-  static const Modifier POTENTIALLY_MUTATED_IN_SCOPE = const Modifier('POTENTIALLY_MUTATED_IN_SCOPE', 13);
+  static const Modifier POTENTIALLY_MUTATED_IN_SCOPE = const Modifier('POTENTIALLY_MUTATED_IN_SCOPE', 12);
 
   /**
    * Indicates that a class contains an explicit reference to 'super'.
    */
-  static const Modifier REFERENCES_SUPER = const Modifier('REFERENCES_SUPER', 14);
+  static const Modifier REFERENCES_SUPER = const Modifier('REFERENCES_SUPER', 13);
 
   /**
    * Indicates that the pseudo-modifier 'set' was applied to the element.
    */
-  static const Modifier SETTER = const Modifier('SETTER', 15);
+  static const Modifier SETTER = const Modifier('SETTER', 14);
 
   /**
    * Indicates that the modifier 'static' was applied to the element.
    */
-  static const Modifier STATIC = const Modifier('STATIC', 16);
+  static const Modifier STATIC = const Modifier('STATIC', 15);
 
   /**
    * Indicates that the element does not appear in the source code but was implicitly created. For
    * example, if a class does not define any constructors, an implicit zero-argument constructor
    * will be created and it will be marked as being synthetic.
    */
-  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 17);
+  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 16);
 
   /**
    * Indicates that a class was defined using an alias. TODO(brianwilkerson) This should be renamed
    * to 'ALIAS'.
    */
-  static const Modifier TYPEDEF = const Modifier('TYPEDEF', 18);
+  static const Modifier TYPEDEF = const Modifier('TYPEDEF', 17);
 
   static const List<Modifier> values = const [
       ABSTRACT,
