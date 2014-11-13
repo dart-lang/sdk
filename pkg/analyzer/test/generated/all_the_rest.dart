@@ -10045,9 +10045,6 @@ $scriptBody
   XmlValidator_Tag _t(String tag, XmlValidator_Attributes attributes,
       String content, [List<XmlValidator_Tag> children = XmlValidator_Tag.EMPTY_LIST]) =>
       new XmlValidator_Tag(tag, attributes, content, children);
-  XmlValidator_Tag _t2(String tag, XmlValidator_Attributes attributes,
-      [List<XmlValidator_Tag> children = XmlValidator_Tag.EMPTY_LIST]) =>
-      new XmlValidator_Tag(tag, attributes, null, children);
   XmlValidator_Tag _t3(String tag, String content,
       [List<XmlValidator_Tag> children = XmlValidator_Tag.EMPTY_LIST]) =>
       new XmlValidator_Tag(tag, new XmlValidator_Attributes(), content, children);

@@ -6,7 +6,6 @@ library error;
 import 'dart:collection';
 
 import 'generated/error.dart';
-import 'generated/source.dart';
 
 /// The maximum line length when printing extracted source code when converting
 /// an [AnalyzerError] to a string.
@@ -91,14 +90,4 @@ class AnalyzerError implements Exception {
 
     return builder.toString();
   }
-}
-
-// A content receiver that collects all the content into a string.
-class _ContentReceiver implements Source_ContentReceiver {
-  final _buffer = new StringBuffer();
-
-  String get result => _buffer.toString();
-
-  void accept(String contents, _) =>
-    _buffer.write(contents.substring(0, contents.length));
 }

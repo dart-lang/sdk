@@ -2805,15 +2805,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Return a string with debugging information about the given source (the full name and
-   * modification stamp of the source).
-   *
-   * @param source the source for which a debugging string is to be produced
-   * @return debugging information about the given source
-   */
-  String _debuggingString(Source source) => "'${source.fullName}' [${getModificationStamp(source)}]";
-
-  /**
    * Return an array containing all of the change notices that are waiting to be returned. If there
    * are no notices, then return either `null` or an empty array, depending on the value of
    * the argument.
@@ -8586,25 +8577,6 @@ class DartEntry extends SourceEntry {
         || descriptor == RESOLVED_UNIT
         || descriptor == VERIFICATION_ERRORS;
   }
-
-  /**
-   * Given that the specified flag is being transitioned to the given state, set the value of the
-   * flag to the value that should be kept in the cache.
-   *
-   * @param index the index of the flag whose state is being set
-   * @param state the state to which the value is being transitioned
-   */
-  void _updateValueOfFlag(int index, CacheState state) {
-    if (state == CacheState.VALID) {
-      throw new IllegalArgumentException("Use setValue() to set the state to VALID");
-    } else if (state != CacheState.IN_PROCESS) {
-      //
-      // If the value is in process, we can leave the current value in the cache for any 'get'
-      // methods to access.
-      //
-      _setFlag(index, false);
-    }
-  }
 }
 
 /**
@@ -13136,15 +13108,6 @@ abstract class SourceEntry {
     StringBuffer buffer = new StringBuffer();
     _writeOn(buffer);
     return buffer.toString();
-  }
-
-  /**
-   * Set the value of all of the flags with the given [indexes] to false.
-   */
-  void _clearFlags(List<int> indexes) {
-    for (int i = 0; i < indexes.length; i++) {
-      _flags = BooleanArray.set(_flags, indexes[i], false);
-    }
   }
 
   /**

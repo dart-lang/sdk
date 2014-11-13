@@ -5257,30 +5257,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Return `true` if the given type represents the class `Future` from the
-   * `dart:async` library.
-   *
-   * @param type the type to be tested
-   * @return `true` if the given type represents the class `Future` from the
-   *         `dart:async` library
-   */
-  bool _isFuture(DartType type) {
-    if (type is InterfaceType) {
-      InterfaceType interfaceType = type;
-      if (interfaceType.name == "Future") {
-        ClassElement element = interfaceType.element;
-        if (element != null) {
-          LibraryElement library = element.library;
-          if (library.name == "dart.async") {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  /**
    * Return `true` iff the passed [ClassElement] has a method, getter or setter that
    * matches the name of the passed [ExecutableElement] in either the class itself, or one of
    * its' mixins that is concrete.

@@ -1474,24 +1474,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     _error(node, null);
     return null;
   }
-
-  /**
-   * Return `true` if the given element represents the 'length' getter in class 'String'.
-   *
-   * @param element the element being tested.
-   * @return
-   */
-  bool _isStringLength(Element element) {
-    if (element is! PropertyAccessorElement) {
-      return false;
-    }
-    PropertyAccessorElement accessor = element as PropertyAccessorElement;
-    if (!accessor.isGetter || accessor.name != "length") {
-      return false;
-    }
-    Element parent = accessor.enclosingElement;
-    return parent == _typeProvider.stringType.element;
-  }
 }
 
 /**

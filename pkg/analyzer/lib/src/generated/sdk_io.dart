@@ -512,13 +512,6 @@ class DirectoryBasedDartSdk implements DartSdk {
   }
 
   /**
-   * Ensure that the dart VM is executable. If it is not, make it executable and log that it was
-   * necessary for us to do so.
-   */
-  void _ensureVmIsExecutable() {
-  }
-
-  /**
    * Return the name of the file containing the Dartium executable.
    *
    * @return the name of the file containing the Dartium executable
