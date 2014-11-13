@@ -15732,6 +15732,17 @@ class _UnusedElementsVerifier extends RecursiveElementVisitor {
     super.visitMethodElement(element);
   }
 
+  @override
+  visitPropertyAccessorElement(PropertyAccessorElement element) {
+    if (!element.isSynthetic && !_isUsedMember(element)) {
+      _reportErrorForElement(
+          HintCode.UNUSED_ELEMENT,
+          element,
+          [element.kind.displayName, element.displayName]);
+    }
+    super.visitPropertyAccessorElement(element);
+  }
+
   bool _isUsedElement(Element element) {
     if (element is! LocalVariableElement) {
       if (element.isPublic) {

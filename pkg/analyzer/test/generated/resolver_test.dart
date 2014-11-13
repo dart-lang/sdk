@@ -3340,6 +3340,144 @@ main() {
     verify([source]);
   }
 
+  void test_unusedElement_getter_notUsed_noReference() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  get _g => null;
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_getter_notUsed_referenceFromItself() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  get _g {
+    return _g;
+  }
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_getter_isUsed_invocation_implicitThis() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  get _g => null;
+  useGetter() {
+    var v = _g;
+  }
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_getter_isUsed_invocation_PrefixedIdentifier() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  get _g => null;
+}
+main(A a) {
+  var v = a._g;
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_getter_isUsed_invocation_PropertyAccess() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  get _g => null;
+}
+main() {
+  var v = new A()._g;
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_setter_notUsed_noReference() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  set _s(x) {}
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_setter_notUsed_referenceFromItself() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  set _s(int x) {
+    if (x > 5) {
+      _s = x - 1;
+    }
+  }
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_setter_isUsed_invocation_implicitThis() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  set _s(x) {}
+  useSetter() {
+    _s = 42;
+  }
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_setter_isUsed_invocation_PrefixedIdentifier() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  set _s(x) {}
+}
+main(A a) {
+  a._s = 42;
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_setter_isUsed_invocation_PropertyAccess() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  set _s(x) {}
+}
+main() {
+  new A()._s = 42;
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_unusedElement_method_notUsed_noReference() {
     enableUnusedElement = true;
     Source source = addSource(r'''
