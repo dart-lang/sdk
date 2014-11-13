@@ -1009,8 +1009,8 @@ class StandardTestSuite extends TestSuite {
     String tempDir;
     if (compilerConfiguration.hasCompiler) {
       compileTimeArguments
-          ..addAll(args)
-          ..addAll(sharedOptions);
+          ..addAll(sharedOptions)
+          ..addAll(args);
       // Avoid doing this for analyzer.
       tempDir = createCompilationOutputDirectory(info.filePath);
     }
