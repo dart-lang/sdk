@@ -124,7 +124,7 @@ class CharSequenceReader implements CharacterReader {
 
   @override
   int peek() {
-    if (_charOffset + 1 >= _sequence.length) {
+    if (_charOffset + 1 >= _stringLength) {
       return -1;
     }
     return _sequence.codeUnitAt(_charOffset + 1);
