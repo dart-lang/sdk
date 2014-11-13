@@ -4,7 +4,7 @@
 
 library loop_rewriter;
 
-import 'tree_ir_nodes.dart';
+import '../tree_ir/tree_ir_nodes.dart';
 
 /// Rewrites [WhileTrue] statements with an [If] body into a [WhileCondition],
 /// in situations where only one of the branches contains a [Continue] to the

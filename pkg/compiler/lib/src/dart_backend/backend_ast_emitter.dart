@@ -4,7 +4,7 @@
 
 library backend_ast_emitter;
 
-import 'tree_ir_nodes.dart' as tree;
+import '../tree_ir/tree_ir_nodes.dart' as tree;
 import 'backend_ast_nodes.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';

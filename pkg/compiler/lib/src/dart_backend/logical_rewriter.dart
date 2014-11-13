@@ -5,7 +5,7 @@
 library logical_rewriter;
 
 import '../constants/values.dart' as values;
-import 'tree_ir_nodes.dart';
+import '../tree_ir/tree_ir_nodes.dart';
 
 /// Rewrites logical expressions to be more compact in the Tree IR.
 ///

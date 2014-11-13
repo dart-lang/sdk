@@ -6,9 +6,18 @@ part of js_backend;
 
 const VERBOSE_OPTIMIZER_HINTS = false;
 
+const bool USE_CPS_IR = const bool.fromEnvironment("USE_CPS_IR");
+
 class JavaScriptItemCompilationContext extends ItemCompilationContext {
   final Set<HInstruction> boundsChecked = new Set<HInstruction>();
   final Set<HInstruction> allocatedFixedLists = new Set<HInstruction>();
+}
+
+abstract class FunctionCompiler {
+  /// Generates JavaScript code for `work.element`.
+  jsAst.Fun compile(CodegenWorkItem work);
+
+  Iterable get tasks;
 }
 
 /*
@@ -97,9 +106,8 @@ class JavaScriptBackend extends Backend {
     return [closureClass, jsIndexableClass];
   }
 
-  SsaBuilderTask builder;
-  SsaOptimizerTask optimizer;
-  SsaCodeGeneratorTask generator;
+  FunctionCompiler functionCompiler;
+
   CodeEmitterTask emitter;
 
   /**
@@ -330,7 +338,9 @@ class JavaScriptBackend extends Backend {
       new Setlet<FunctionElement>();
 
   List<CompilerTask> get tasks {
-    return <CompilerTask>[builder, optimizer, generator, emitter];
+    List<CompilerTask> result = functionCompiler.tasks;
+    result.add(emitter);
+    return result;
   }
 
   final RuntimeTypes rti;
@@ -445,13 +455,13 @@ class JavaScriptBackend extends Backend {
         specializedGetInterceptors = new Map<String, Set<ClassElement>>(),
         super(compiler) {
     emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
-    builder = new SsaBuilderTask(this);
-    optimizer = new SsaOptimizerTask(this);
-    generator = new SsaCodeGeneratorTask(this);
     typeVariableHandler = new TypeVariableHandler(this);
     customElementsAnalysis = new CustomElementsAnalysis(this);
     constantCompilerTask = new JavaScriptConstantTask(compiler);
     resolutionCallbacks = new JavaScriptResolutionCallbacks(this);
+    functionCompiler = USE_CPS_IR
+         ? new CspFunctionCompiler(compiler, this)
+         : new SsaFunctionCompiler(this);
   }
 
   ConstantSystem get constantSystem => constants.constantSystem;
@@ -1187,7 +1197,8 @@ class JavaScriptBackend extends Backend {
       return;
     }
     if (kind.category == ElementCategory.VARIABLE) {
-      ConstantExpression initialValue = constants.getConstantForVariable(element);
+      ConstantExpression initialValue =
+          constants.getConstantForVariable(element);
       if (initialValue != null) {
         registerCompileTimeConstant(initialValue.value, work.registry);
         constants.addCompileTimeConstantForEmission(initialValue.value);
@@ -1203,10 +1214,7 @@ class JavaScriptBackend extends Backend {
         compiler.enqueuer.codegen.registerStaticUse(getCyclicThrowHelper());
       }
     }
-    HGraph graph = builder.build(work);
-    optimizer.optimize(work, graph);
-    jsAst.Expression code = generator.generateCode(work, graph);
-    generatedCode[element] = code;
+    generatedCode[element] = functionCompiler.compile(work);
   }
 
   native.NativeEnqueuer nativeResolutionEnqueuer(Enqueuer world) {

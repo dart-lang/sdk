@@ -34,7 +34,7 @@ Future<String> compile(String code) {
     compiler.processQueue(compiler.enqueuer.resolution, element);
     compiler.world.populate();
     compiler.backend.onResolutionComplete();
-    compiler.irBuilder.buildNodes(useNewBackend: true);
+    compiler.irBuilder.buildNodes();
     compiler.phase = Compiler.PHASE_COMPILING;
     DartBackend backend = compiler.backend;
     backend.assembleProgram();

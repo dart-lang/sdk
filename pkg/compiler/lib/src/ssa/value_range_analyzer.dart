@@ -595,11 +595,15 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   final Compiler compiler;
   final ConstantSystem constantSystem;
   final ValueRangeInfo info;
+  final SsaOptimizerTask optimizer;
 
   CodegenWorkItem work;
   HGraph graph;
 
-  SsaValueRangeAnalyzer(this.compiler, constantSystem, this.work)
+  SsaValueRangeAnalyzer(this.compiler,
+                        constantSystem,
+                        this.optimizer,
+                        this.work)
       : info = new ValueRangeInfo(constantSystem),
         this.constantSystem = constantSystem;
 
@@ -610,14 +614,13 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     // that the graph does not get polluted with these instructions
     // only necessary for this phase.
     removeRangeConversion();
-    JavaScriptBackend backend = compiler.backend;
     // TODO(herhut): Find a cleaner way to pass around ranges.
-    backend.optimizer.ranges = ranges;
+    optimizer.ranges = ranges;
   }
 
   void removeRangeConversion() {
     conversions.forEach((HRangeConversion instruction) {
-      instruction.block.rewrite(instruction, instruction.inputs[0]);;
+      instruction.block.rewrite(instruction, instruction.inputs[0]);
       instruction.block.remove(instruction);
     });
   }

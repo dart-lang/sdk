@@ -39,23 +39,23 @@ class SsaOptimizerTask extends CompilerTask {
       List<OptimizationPhase> phases = <OptimizationPhase>[
           // Run trivial instruction simplification first to optimize
           // some patterns useful for type conversion.
-          new SsaInstructionSimplifier(constantSystem, backend, work),
+          new SsaInstructionSimplifier(constantSystem, backend, this, work),
           new SsaTypeConversionInserter(compiler),
           new SsaRedundantPhiEliminator(),
           new SsaDeadPhiEliminator(),
           new SsaTypePropagator(compiler),
           // After type propagation, more instructions can be
           // simplified.
-          new SsaInstructionSimplifier(constantSystem, backend, work),
+          new SsaInstructionSimplifier(constantSystem, backend, this, work),
           new SsaCheckInserter(
               trustPrimitives, backend, work, context.boundsChecked),
-          new SsaInstructionSimplifier(constantSystem, backend, work),
+          new SsaInstructionSimplifier(constantSystem, backend, this, work),
           new SsaCheckInserter(
               trustPrimitives, backend, work, context.boundsChecked),
           new SsaTypePropagator(compiler),
           // Run a dead code eliminator before LICM because dead
           // interceptors are often in the way of LICM'able instructions.
-          new SsaDeadCodeEliminator(compiler),
+          new SsaDeadCodeEliminator(compiler, this),
           new SsaGlobalValueNumberer(compiler),
           // After GVN, some instructions might need their type to be
           // updated because they now have different inputs.
@@ -64,31 +64,31 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaLoadElimination(compiler),
           new SsaDeadPhiEliminator(),
           new SsaTypePropagator(compiler),
-          new SsaValueRangeAnalyzer(compiler, constantSystem, work),
+          new SsaValueRangeAnalyzer(compiler, constantSystem, this, work),
           // Previous optimizations may have generated new
           // opportunities for instruction simplification.
-          new SsaInstructionSimplifier(constantSystem, backend, work),
+          new SsaInstructionSimplifier(constantSystem, backend, this, work),
           new SsaCheckInserter(
               trustPrimitives, backend, work, context.boundsChecked),
           new SsaSimplifyInterceptors(compiler, constantSystem, work),
-          dce = new SsaDeadCodeEliminator(compiler),
+          dce = new SsaDeadCodeEliminator(compiler, this),
           new SsaTypePropagator(compiler)];
       runPhases(graph, phases);
       if (dce.eliminatedSideEffects) {
         phases = <OptimizationPhase>[
             new SsaGlobalValueNumberer(compiler),
             new SsaCodeMotion(),
-            new SsaValueRangeAnalyzer(compiler, constantSystem, work),
-            new SsaInstructionSimplifier(constantSystem, backend, work),
+            new SsaValueRangeAnalyzer(compiler, constantSystem, this, work),
+            new SsaInstructionSimplifier(constantSystem, backend, this, work),
             new SsaCheckInserter(
                 trustPrimitives, backend, work, context.boundsChecked),
             new SsaSimplifyInterceptors(compiler, constantSystem, work),
-            new SsaDeadCodeEliminator(compiler)];
+            new SsaDeadCodeEliminator(compiler, this)];
       } else {
         phases = <OptimizationPhase>[
             // Run the simplifier to remove unneeded type checks inserted
             // by type propagation.
-            new SsaInstructionSimplifier(constantSystem, backend, work)];
+            new SsaInstructionSimplifier(constantSystem, backend, this, work)];
       }
       runPhases(graph, phases);
     });
@@ -127,8 +127,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
   final ConstantSystem constantSystem;
   HGraph graph;
   Compiler get compiler => backend.compiler;
+  final SsaOptimizerTask optimizer;
 
-  SsaInstructionSimplifier(this.constantSystem, this.backend, this.work);
+  SsaInstructionSimplifier(this.constantSystem,
+                           this.backend,
+                           this.optimizer,
+                           this.work);
 
   void visitGraph(HGraph visitee) {
     graph = visitee;
@@ -976,9 +980,10 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   final String name = "SsaDeadCodeEliminator";
 
   final Compiler compiler;
+  final SsaOptimizerTask optimizer;
   SsaLiveBlockAnalyzer analyzer;
   bool eliminatedSideEffects = false;
-  SsaDeadCodeEliminator(this.compiler);
+  SsaDeadCodeEliminator(this.compiler, this.optimizer);
 
   HInstruction zapInstructionCache;
   HInstruction get zapInstruction {
@@ -1031,7 +1036,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   }
 
   void visitGraph(HGraph graph) {
-    analyzer = new SsaLiveBlockAnalyzer(graph, compiler);
+    analyzer = new SsaLiveBlockAnalyzer(graph, compiler, optimizer);
     analyzer.analyze();
     visitPostDominatorTree(graph);
     cleanPhis(graph);
@@ -1115,14 +1120,14 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
 
 class SsaLiveBlockAnalyzer extends HBaseVisitor {
   final HGraph graph;
-  final Compiler compiler;
   final Set<HBasicBlock> live = new Set<HBasicBlock>();
   final List<HBasicBlock> worklist = <HBasicBlock>[];
+  final SsaOptimizerTask optimizer;
+  final Compiler compiler;
 
-  SsaLiveBlockAnalyzer(this.graph, this.compiler);
+  SsaLiveBlockAnalyzer(this.graph, this.compiler, this.optimizer);
 
-  JavaScriptBackend get backend => compiler.backend;
-  Map<HInstruction, Range> get ranges => backend.optimizer.ranges;
+  Map<HInstruction, Range> get ranges => optimizer.ranges;
 
   bool isDeadBlock(HBasicBlock block) => !live.contains(block);
 

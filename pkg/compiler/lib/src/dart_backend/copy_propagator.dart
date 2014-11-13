@@ -5,7 +5,7 @@
 library copy_propagator;
 
 import '../elements/elements.dart';
-import 'tree_ir_nodes.dart';
+import '../tree_ir/tree_ir_nodes.dart';
 
 /// Eliminates moving assignments, such as w := v, by assigning directly to w
 /// at the definition of v.

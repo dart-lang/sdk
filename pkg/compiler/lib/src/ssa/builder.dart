@@ -4,6 +4,29 @@
 
 part of ssa;
 
+class SsaFunctionCompiler implements FunctionCompiler {
+  SsaCodeGeneratorTask generator;
+  SsaBuilderTask builder;
+  SsaOptimizerTask optimizer;
+
+  SsaFunctionCompiler(JavaScriptBackend backend)
+      : generator = new SsaCodeGeneratorTask(backend),
+        builder = new SsaBuilderTask(backend),
+        optimizer = new SsaOptimizerTask(backend);
+
+  /// Generates JavaScript code for `work.element`.
+  /// Using the ssa builder, optimizer and codegenerator.
+  js.Fun compile(CodegenWorkItem work) {
+    HGraph graph = builder.build(work);
+    optimizer.optimize(work, graph);
+    return generator.generateCode(work, graph);
+  }
+
+  Iterable<CompilerTask> get tasks {
+    return <CompilerTask>[builder, optimizer, generator];
+  }
+}
+
 /// A synthetic local variable only used with the SSA graph.
 ///
 /// For instance used for holding return value of function or the exception of a

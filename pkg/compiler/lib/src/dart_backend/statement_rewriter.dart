@@ -4,7 +4,7 @@
 
 library statement_rewriter;
 
-import 'tree_ir_nodes.dart';
+import '../tree_ir/tree_ir_nodes.dart';
 
 /**
  * Performs the following transformations on the tree:

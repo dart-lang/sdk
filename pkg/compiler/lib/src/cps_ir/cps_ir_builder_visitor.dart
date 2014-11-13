@@ -33,39 +33,33 @@ class IrBuilderTask extends CompilerTask {
 
   ir.FunctionDefinition getIr(Element element) => nodes[element.implementation];
 
-  void buildNodes({bool useNewBackend: false}) {
-    if (!irEnabled(useNewBackend: useNewBackend)) return;
+  ir.FunctionDefinition buildNode(AstElement element) {
+    if (!canBuild(element)) return null;
+    TreeElements elementsMapping = element.resolvedAst.elements;
+    element = element.implementation;
+    return compiler.withCurrentElement(element, () {
+      SourceFile sourceFile = elementSourceFile(element);
+      IrBuilderVisitor builder =
+          new IrBuilderVisitor(elementsMapping, compiler, sourceFile);
+      ir.FunctionDefinition function;
+      function = builder.buildFunction(element);
+
+      return function;
+    });
+  }
+
+  void buildNodes() {
     measure(() {
       Set<Element> resolved = compiler.enqueuer.resolution.resolvedElements;
       resolved.forEach((AstElement element) {
-        if (canBuild(element)) {
-          TreeElements elementsMapping = element.resolvedAst.elements;
-          element = element.implementation;
-          compiler.withCurrentElement(element, () {
-            SourceFile sourceFile = elementSourceFile(element);
-            IrBuilderVisitor builder =
-                new IrBuilderVisitor(elementsMapping, compiler, sourceFile);
-            ir.FunctionDefinition function;
-            function = builder.buildFunction(element);
-
-            if (function != null) {
-              nodes[element] = function;
-              compiler.tracer.traceCompilation(element.name, null);
-              compiler.tracer.traceGraph("IR Builder", function);
-            }
-          });
+        ir.FunctionDefinition functionDefinition = buildNode(element);
+        if (functionDefinition != null) {
+          nodes[element] = functionDefinition;
         }
       });
     });
   }
 
-  bool irEnabled({bool useNewBackend: false}) {
-    // TODO(sigurdm,kmillikin): Support checked-mode checks.
-    return (useNewBackend || const bool.fromEnvironment('USE_NEW_BACKEND')) &&
-        compiler.backend is DartBackend &&
-        !compiler.enableTypeAssertions &&
-        !compiler.enableConcreteTypeInference;
-  }
 
   bool canBuild(Element element) {
     FunctionElement function = element.asFunctionElement();

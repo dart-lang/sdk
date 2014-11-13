@@ -10,8 +10,8 @@ import 'ssa/ssa.dart' as ssa;
 import 'ssa/ssa_tracer.dart' show HTracer;
 import 'cps_ir/cps_ir_nodes.dart' as cps_ir;
 import 'cps_ir/cps_ir_tracer.dart' show IRTracer;
-import 'dart_backend/tree_ir_nodes.dart' as tree_ir;
-import 'dart_backend/tree_ir_tracer.dart' show TreeTracer;
+import 'tree_ir/tree_ir_nodes.dart' as tree_ir;
+import 'tree_ir/tree_ir_tracer.dart' show TreeTracer;
 import 'util/util.dart' show Indentation;
 import 'dart2jslib.dart';
 

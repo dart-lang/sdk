@@ -29,6 +29,7 @@ import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../universe/universe.dart';
 import '../util/util.dart';
+import '../js_backend/codegen/task.dart';
 
 part 'builder.dart';
 part 'codegen.dart';
