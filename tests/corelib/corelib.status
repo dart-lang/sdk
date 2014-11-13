@@ -205,18 +205,8 @@ int_parse_radix_test: fail
 list_insert_test: fail
 list_removeat_test: fail
 
-[ $arch == simarm || $arch == simarm64 ]
-big_integer_parsed_*: Pass, Slow
-
-[ $arch == simmips ]
-int_parse_radix_test: Skip # Timeout
-
 [ $arch == simmips || $arch == mips ]
-big_integer_parsed_*: Skip # Timeout. Issue 20879
-big_integer_huge_mul_vm_test: Skip # Timeout
-
-[ $arch == simarm && $checked ]
-num_parse_test: Skip  # Pass, Timeout
+big_integer_parsed_mul_div_vm_test: Pass, Slow  # Issue 20879.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 error_stack_trace_test: StaticWarning, OK # Test generates errors on purpose.

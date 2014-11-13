@@ -1118,6 +1118,41 @@ class _Bigint extends _IntegerImplementation implements int {
   bool get isEven => _used == 0 || (_digits[0] & 1) == 0;
   bool get isNegative => _neg;
 
+  String _toPow2String(int radix) {
+    if (_used == 0) return "0";
+    assert(radix & (radix - 1) == 0);
+    final bitsPerChar = radix.bitLength - 1;
+    final firstcx = _neg ? 1 : 0;  // Index of first char in str after the sign.
+    final lastdx = _used - 1;  // Index of last digit in bigint.
+    final bitLength = lastdx*DIGIT_BITS + _nbits(_digits[lastdx]);
+    // Index of char in str. Initialize with str length.
+    var cx = firstcx + (bitLength + bitsPerChar - 1) ~/ bitsPerChar;
+    _OneByteString str = _OneByteString._allocate(cx);
+    str._setAt(0, 0x2d);  // '-'. Is overwritten if not negative.
+    final mask = radix - 1;
+    var dx = 0;  // Digit index in bigint.
+    var bx = 0;  // Bit index in bigint digit.
+    do {
+      var ch;
+      if (bx > (DIGIT_BITS - bitsPerChar)) {
+        ch = _digits[dx++] >> bx;
+        bx += bitsPerChar - DIGIT_BITS;
+        if (dx <= lastdx) {
+          ch |= (_digits[dx] & ((1 << bx) - 1)) << (bitsPerChar - bx);
+        }
+      } else {
+        ch = (_digits[dx] >> bx) & mask;
+        bx += bitsPerChar;
+        if (bx >= DIGIT_BITS) {
+          bx -= DIGIT_BITS;
+          dx++;
+        }
+      }
+      str._setAt(--cx, _IntegerImplementation._digits.codeUnitAt(ch));
+    } while (cx > firstcx);
+    return str;
+  }
+
   _leftShiftWithMask32(int count, int mask) {
     if (_used == 0) return 0;
     if (count is! _Smi) {
