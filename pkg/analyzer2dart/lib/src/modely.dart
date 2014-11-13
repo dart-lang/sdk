@@ -570,6 +570,9 @@ class ClassElementY extends TypeDeclarationElementY
   int get id => unsupported('id');
 
   @override
+  bool implementsFunction(compiler) => unsupported('implementsFunction');
+
+  @override
   bool implementsInterface(intrface) => unsupported('implementsInterface');
 
   @override
