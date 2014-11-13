@@ -159,6 +159,8 @@ string_split_test: RuntimeError # Issue 21441.
 error_stack_trace1_test: Fail # Fails in minified mode, test depends on method names.
 
 [ $compiler == dartanalyzer ]
+from_environment_const_type_test: Skip # The -D option that defines a constant
+# for the Dart vm is not accepted by the deprecated java dartanalyzer.
 int_parse_radix_test: Fail, OK # Test contains errors but doesn’t mark them as expected
 list_insert_test: Fail, OK # Test contains errors but doesn’t mark them as expected
 list_removeat_test: Fail, OK # Test contains errors but doesn’t mark them as expected
