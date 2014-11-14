@@ -1658,15 +1658,6 @@ class Definition : public Instruction {
 
   Value* input_use_list() const { return input_use_list_; }
   void set_input_use_list(Value* head) { input_use_list_ = head; }
-  intptr_t InputUseListLength() const {
-    intptr_t length = 0;
-    Value* use = input_use_list_;
-    while (use != NULL) {
-      length++;
-      use = use->next_use();
-    }
-    return length;
-  }
 
   Value* env_use_list() const { return env_use_list_; }
   void set_env_use_list(Value* head) { env_use_list_ = head; }
