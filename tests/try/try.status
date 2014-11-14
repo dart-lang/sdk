@@ -23,6 +23,9 @@ web/incremental_compilation_update_test: Skip # Safari may crash on this test.
 web/source_update_test: Fail, Pass
 web/paste_content_rewriting_test: Fail, Pass
 
+[ $runtime == safarimobilesim ]
+web/end_to_end_test: Skip # Issue 21608
+
 [ $browser ]
 poi/poi_test: SkipByDesign # Uses dart:io.
 poi/poi_find_test: SkipByDesign # Uses dart:io.
