@@ -7,6 +7,9 @@
 
 [ $compiler == none && $runtime == dartium && $system == macos ]
 LayoutTests/fast/writing-mode/broken-ideographic-font_t01: Skip # Timing out on the bots
+LayoutTests/fast/css-generated-content/pseudo-animation-before-onload_t01: Skip # Depends on animation timing, commented as known to be flaky in test.  Will not fix.
+LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Pass, RuntimeError # Issue 21605
+LayoutTests/fast/writing-mode/flipped-blocks-hit-test-overflow_t01: Pass, RuntimeError # Issue 21605
 
 [ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 LayoutTests/fast/canvas/canvas-lineDash-input-sequence_t01: Skip # Issue 20867
@@ -795,6 +798,7 @@ LayoutTests/fast/dom/document-importNode-arguments_t01: RuntimeError # Re-enable
 LayoutTests/fast/dom/domparser-parsefromstring-mimetype-support_t01: RuntimeError # Re-enable fast/dom tests: Please triage this failure.
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Re-enable fast/dom tests: Please triage this failure.
 LayoutTests/fast/dom/text-api-arguments_t01: RuntimeError # Re-enable fast/dom tests: Please triage this failure.
+Language/14_Libraries_and_Scripts/3_Parts_A01_t05: Skip # Times out flakily. Issue 20881
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid ) && $checked ]
 # New Dartium checked failures on new co19 browser tests in co19 revision 706.
@@ -876,7 +880,6 @@ LibTest/core/List/List_class_A01_t02: Skip # Times out flakily. Issue 20956
 LibTest/html/Element/getBoundingClientRect_A01_t02: RuntimeError # Issue 19127.
 LibTest/html/Window/animationFrame_A01_t01: Skip # Times out. co19-roll r786: Please triage this failure.
 LibTest/math/log_A01_t01: Pass, Fail # co19 issue 44.
-Language/14_Libraries_and_Scripts/3_Parts_A01_t05: Skip # Times out flakily. Issue 20881
 LayoutTests/fast/canvas/canvas-composite-text-alpha_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/canvas-scale-drawImage-shadow_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/canvas-scale-fillPath-shadow_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
