@@ -54,7 +54,7 @@ class _GroupContext {
     }
   }
 
-  String get fullName => (parent == null || parent == _rootContext)
+  String get fullName => (parent == null || parent == _environment.rootContext)
       ? _name
       : "${parent.fullName}$groupSep$_name";
 

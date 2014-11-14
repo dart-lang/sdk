@@ -2,6 +2,7 @@
 
 * Add `reason` named argument to `expectAsync` and `expectAsyncUntil`, which has
   the same definition as `expect`'s `reason` argument.
+* Added support for private test environments.
 
 ##0.11.0+6
 

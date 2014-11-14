@@ -151,8 +151,32 @@ part 'src/simple_configuration.dart';
 part 'src/group_context.dart';
 part 'src/spread_args_helper.dart';
 part 'src/test_case.dart';
+part 'src/test_environment.dart';
 
-Configuration _config;
+const Symbol _UNITTEST_ENVIRONMENT = #unittest.environment;
+
+final _TestEnvironment _defaultEnvironment = new _TestEnvironment();
+
+/**
+ * Internal getter for the current unittest config.
+ */
+_TestEnvironment get _environment {
+  var environment = Zone.current[_UNITTEST_ENVIRONMENT];
+  if (environment == null)
+    return _defaultEnvironment;
+  return environment;
+}
+
+// Convenience getter for the current environment's config.
+Configuration get _config => _environment.config;
+
+// Convenience setter for the current environment's config.
+void set _config(Configuration config) {
+  _environment.config = config;
+}
+
+// Convenience getter for the current environment's test cases.
+List<TestCase> get _testCases => _environment.testCases;
 
 /// [Configuration] used by the unittest library.
 ///
@@ -185,47 +209,20 @@ void logMessage(String message) =>
 /// Separator used between group names and test names.
 String groupSep = ' ';
 
-final List<TestCase> _testCases = new List<TestCase>();
-
 /// Tests executed in this suite.
-final List<TestCase> testCases = new UnmodifiableListView<TestCase>(_testCases);
+final List<TestCase> testCases =
+    new UnmodifiableListView<TestCase>(_environment.testCases);
 
 /// Interval (in msecs) after which synchronous tests will insert an async
 /// delay to allow DOM or other updates.
 const int BREATH_INTERVAL = 200;
 
-/// The set of tests to run can be restricted by using [solo_test] and
-/// [solo_group].
-/// As groups can be nested we use a counter to keep track of the nest level
-/// of soloing, and a flag to tell if we have seen any solo tests.
-int _soloNestingLevel = 0;
-bool _soloTestSeen = false;
-
-// We use a 'dummy' context for the top level to eliminate null
-// checks when querying the context. This allows us to easily
-//  support top-level setUp/tearDown functions as well.
-final _rootContext = new _GroupContext();
-_GroupContext _currentContext = _rootContext;
-
-/// Represents the index of the currently running test case
-/// == -1 implies the test system is not running
-/// == [number of test cases] is a short-lived state flagging that the last test
-///    has completed
-int _currentTestCaseIndex = -1;
-
 /// [TestCase] currently being executed.
 TestCase get currentTestCase =>
-    (_currentTestCaseIndex >= 0 && _currentTestCaseIndex < testCases.length)
-        ? testCases[_currentTestCaseIndex]
+    (_environment.currentTestCaseIndex >= 0 &&
+     _environment.currentTestCaseIndex < testCases.length)
+        ? testCases[_environment.currentTestCaseIndex]
         : null;
-
-/// Whether the framework is in an initialized state.
-bool _initialized = false;
-
-String _uncaughtErrorMessage = null;
-
-/// Time since we last gave non-sync code a chance to be scheduled.
-int _lastBreath = new DateTime.now().millisecondsSinceEpoch;
 
 /* Test case result strings. */
 // TODO(gram) we should change these constants to use a different string
@@ -245,7 +242,7 @@ const ERROR = 'error';
 void test(String spec, TestFunction body) {
   _requireNotRunning();
   ensureInitialized();
-  if (!_soloTestSeen || _soloNestingLevel > 0) {
+  if (!_environment.soloTestSeen || _environment.soloNestingLevel > 0) {
     var testcase = new TestCase._internal(testCases.length + 1, _fullSpec(spec),
         body);
     _testCases.add(testcase);
@@ -272,16 +269,16 @@ void skip_test(String spec, TestFunction body) {}
 void solo_test(String spec, TestFunction body) {
   _requireNotRunning();
   ensureInitialized();
-  if (!_soloTestSeen) {
-    _soloTestSeen = true;
+  if (!_environment.soloTestSeen) {
+    _environment.soloTestSeen = true;
     // This is the first solo-ed test. Discard all tests up to now.
     _testCases.clear();
   }
-  ++_soloNestingLevel;
+  ++_environment.soloNestingLevel;
   try {
     test(spec, body);
   } finally {
-    --_soloNestingLevel;
+    --_environment.soloNestingLevel;
   }
 }
 
@@ -335,15 +332,16 @@ Function expectAsyncUntil(Function callback, bool isDone(),
 void group(String description, void body()) {
   ensureInitialized();
   _requireNotRunning();
-  _currentContext = new _GroupContext(_currentContext, description);
+  _environment.currentContext =
+      new _GroupContext(_environment.currentContext, description);
   try {
     body();
   } catch (e, trace) {
     var stack = (trace == null) ? '' : ': ${trace.toString()}';
-    _uncaughtErrorMessage = "${e.toString()}$stack";
+    _environment.uncaughtErrorMessage = "${e.toString()}$stack";
   } finally {
     // Now that the group is over, restore the previous one.
-    _currentContext = _currentContext.parent;
+    _environment.currentContext = _environment.currentContext.parent;
   }
 }
 
@@ -354,16 +352,16 @@ void skip_group(String description, void body()) {}
 void solo_group(String description, void body()) {
   _requireNotRunning();
   ensureInitialized();
-  if (!_soloTestSeen) {
-    _soloTestSeen = true;
+  if (!_environment.soloTestSeen) {
+    _environment.soloTestSeen = true;
     // This is the first solo-ed group. Discard all tests up to now.
     _testCases.clear();
   }
-  ++_soloNestingLevel;
+  ++_environment.soloNestingLevel;
   try {
     group(description, body);
   } finally {
-    --_soloNestingLevel;
+    --_environment.soloNestingLevel;
   }
 }
 
@@ -375,7 +373,7 @@ void solo_group(String description, void body()) {
 /// case it must return a [Future].
 void setUp(Function setupTest) {
   _requireNotRunning();
-  _currentContext.testSetup = setupTest;
+  _environment.currentContext.testSetup = setupTest;
 }
 
 /// Register a [tearDown] function for a test [group].
@@ -388,12 +386,12 @@ void setUp(Function setupTest) {
 /// asynchronous; in this case it must return a [Future].
 void tearDown(Function teardownTest) {
   _requireNotRunning();
-  _currentContext.testTeardown = teardownTest;
+  _environment.currentContext.testTeardown = teardownTest;
 }
 
 /// Advance to the next test case.
 void _nextTestCase() {
-  _currentTestCaseIndex++;
+  _environment.currentTestCaseIndex++;
   _runTest();
 }
 
@@ -406,7 +404,7 @@ void handleExternalError(e, String message, [stack]) {
   if (currentTestCase != null) {
     currentTestCase._error(msg, stack);
   } else {
-    _uncaughtErrorMessage = "$msg: $stack";
+    _environment.uncaughtErrorMessage = "$msg: $stack";
   }
 }
 
@@ -432,7 +430,7 @@ void filterTests(testFilter) {
 void runTests() {
   _requireNotRunning();
   _ensureInitialized(false);
-  _currentTestCaseIndex = 0;
+  _environment.currentTestCaseIndex = 0;
   _config.onStart();
   _runTest();
 }
@@ -454,11 +452,11 @@ void _registerException(TestCase testCase, e, [trace]) {
 
 /// Runs the next test.
 void _runTest() {
-  if (_currentTestCaseIndex >= testCases.length) {
-    assert(_currentTestCaseIndex == testCases.length);
+  if (_environment.currentTestCaseIndex >= testCases.length) {
+    assert(_environment.currentTestCaseIndex == testCases.length);
     _completeTests();
   } else {
-    var testCase = testCases[_currentTestCaseIndex];
+    var testCase = testCases[_environment.currentTestCaseIndex];
     Future f = runZoned(testCase._run, onError: (error, stack) {
       // TODO(kevmoo) Do a better job of flagging these are async errors.
       // https://code.google.com/p/dart/issues/detail?id=16530
@@ -482,8 +480,8 @@ void _runTest() {
     f.whenComplete(() {
       if (timer != null) timer.cancel();
       var now = new DateTime.now().millisecondsSinceEpoch;
-      if ((now - _lastBreath) >= BREATH_INTERVAL) {
-        _lastBreath = now;
+      if ((now - _environment.lastBreath) >= BREATH_INTERVAL) {
+        _environment.lastBreath = now;
         Timer.run(_nextTestCase);
       } else {
         scheduleMicrotask(_nextTestCase); // Schedule the next test.
@@ -494,7 +492,7 @@ void _runTest() {
 
 /// Publish results on the page and notify controller.
 void _completeTests() {
-  if (!_initialized) return;
+  if (!_environment.initialized) return;
   int passed = 0;
   int failed = 0;
   int errors = 0;
@@ -506,15 +504,16 @@ void _completeTests() {
       case ERROR: errors++; break;
     }
   }
-  _config.onSummary(passed, failed, errors, testCases, _uncaughtErrorMessage);
+  _config.onSummary(passed, failed, errors, testCases,
+      _environment.uncaughtErrorMessage);
   _config.onDone(passed > 0 && failed == 0 && errors == 0 &&
-      _uncaughtErrorMessage == null);
-  _initialized = false;
-  _currentTestCaseIndex = -1;
+      _environment.uncaughtErrorMessage == null);
+  _environment.initialized = false;
+  _environment.currentTestCaseIndex = -1;
 }
 
 String _fullSpec(String spec) {
-  var group = '${_currentContext.fullName}';
+  var group = '${_environment.currentContext.fullName}';
   if (spec == null) return group;
   return group != '' ? '$group$groupSep$spec' : spec;
 }
@@ -525,14 +524,14 @@ void ensureInitialized() {
 }
 
 void _ensureInitialized(bool configAutoStart) {
-  if (_initialized) {
+  if (_environment.initialized) {
     return;
   }
-  _initialized = true;
+  _environment.initialized = true;
   // Hook our async guard into the matcher library.
   wrapAsync = (f, [id]) => expectAsync(f, id: id);
 
-  _uncaughtErrorMessage = null;
+  _environment.uncaughtErrorMessage = null;
 
   unittestConfiguration.onInit();
 
@@ -583,7 +582,19 @@ bool formatStacks = true;
 bool filterStacks = true;
 
 void _requireNotRunning() {
-  if (_currentTestCaseIndex != -1) {
+  if (_environment.currentTestCaseIndex != -1) {
     throw new StateError('Not allowed when tests are running.');
   }
+}
+
+/// Method to create a test environment running in its own zone scope.
+///
+/// This allows for multiple invocations of the unittest library in the same
+/// application instance.
+/// This is useful when, for example, creating a test runner application which
+/// needs to create a new pristine test environment on each invocation to run
+/// a given set of test.
+dynamic withTestEnvironment(callback()) {
+  return runZoned(callback,
+      zoneValues: {_UNITTEST_ENVIRONMENT: new _TestEnvironment()});
 }
