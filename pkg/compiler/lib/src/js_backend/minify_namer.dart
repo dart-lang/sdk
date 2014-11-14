@@ -35,7 +35,8 @@ class MinifyNamer extends Namer {
     if (suggestion != null && !usedNames.contains(suggestion)) {
       freshName = suggestion;
     } else {
-      freshName = _getUnusedName(proposedName, usedNames);
+      freshName = _getUnusedName(proposedName, usedNames,
+          suggestedNames.values);
     }
     usedNames.add(freshName);
     return freshName;
@@ -96,15 +97,17 @@ class MinifyNamer extends Namer {
         suggestedInstanceNames,
         usedInstanceNames,
         const <String>[
-            r'$add', r'add$1', r'$and', r'codeUnitAt$1', r'$or',
+            r'$add', r'add$1', r'$and',
+            r'$or',
             r'current', r'$shr', r'$eq', r'$ne',
-            r'getPrototypeOf', r'hasOwnProperty', r'$index', r'$indexSet',
-            r'$isJavaScriptIndexingBehavior', r'$xor',
-            r'iterator', r'length', r'$lt', r'$gt', r'$le', r'$ge',
+            r'$index', r'$indexSet',
+            r'$xor', r'clone$0',
+            r'iterator', r'length',
+            r'$lt', r'$gt', r'$le', r'$ge',
             r'moveNext$0', r'node', r'on', r'$negate', r'push', r'self',
             r'start', r'target', r'$shl', r'value', r'width', r'style',
             r'noSuchMethod$1', r'$mul', r'$div', r'$sub', r'$not', r'$mod',
-            r'$tdiv']);
+            r'$tdiv', r'toString$0']);
 
     _populateSuggestedNames(
         suggestedGlobalNames,
@@ -112,16 +115,18 @@ class MinifyNamer extends Namer {
         const <String>[
             r'Object', 'wrapException', r'$eq', r'S', r'ioore',
             r'UnsupportedError$', r'length', r'$sub',
-            r'getInterceptor$JSArrayJSString', r'$add',
-            r'$gt', r'$ge', r'$lt', r'$le', r'add', r'getInterceptor$JSNumber',
-            r'iterator', r'$index', r'iae', r'getInterceptor$JSArray',
-            r'ArgumentError$', r'BoundClosure', r'StateError$',
-            r'getInterceptor', r'max', r'$mul', r'List_List', r'Map_Map',
-            r'getInterceptor$JSString', r'$div', r'$indexSet',
-            r'List_List$from', r'Set_Set$from', r'toString', r'toInt', r'min',
-            r'StringBuffer_StringBuffer', r'contains1', r'WhereIterable$',
+            r'$add', r'$gt', r'$ge', r'$lt', r'$le', r'add',
+            r'iae',
+            r'ArgumentError$', r'BoundClosure', r'Closure', r'StateError$',
+            r'getInterceptor', r'max', r'$mul',
+            r'Map', r'Key_Key', r'$div',
+            r'List_List$from',
+            r'LinkedHashMap_LinkedHashMap$_empty',
+            r'LinkedHashMap_LinkedHashMap$_literal',
+            r'min',
             r'RangeError$value', r'JSString', r'JSNumber',
-            r'JSArray', r'createInvocationMirror'
+            r'JSArray', r'createInvocationMirror', r'String',
+            r'setRuntimeTypeInfo', r'createRuntimeType'
             ]);
   }
 
@@ -146,7 +151,8 @@ class MinifyNamer extends Namer {
   // is slightly less efficient than just getting the next name in a series,
   // but it means that small changes in the input program will give smallish
   // changes in the output, which can be useful for diffing etc.
-  String _getUnusedName(String proposedName, Set<String> usedNames) {
+  String _getUnusedName(String proposedName, Set<String> usedNames,
+                        Iterable<String> suggestions) {
     int hash = _calculateHash(proposedName);
     // Avoid very small hashes that won't try many names.
     hash = hash < 1000 ? hash * 314159 : hash;  // Yes, it's prime.
@@ -156,7 +162,7 @@ class MinifyNamer extends Namer {
     // in a predictable order determined by the proposed name.  This is in order
     // to make the renamer stable: small changes in the input should nornally
     // result in relatively small changes in the output.
-    for (var n = 2; n <= 3; n++) {
+    for (var n = 1; n <= 3; n++) {
       int h = hash;
       while (h > 10) {
         var codes = <int>[_letterNumber(h)];
@@ -168,7 +174,8 @@ class MinifyNamer extends Namer {
         final candidate = new String.fromCharCodes(codes);
         if (!usedNames.contains(candidate) &&
             !jsReserved.contains(candidate) &&
-            !_hasBannedPrefix(candidate)) {
+            !_hasBannedPrefix(candidate) &&
+            (n != 1 || !suggestions.contains(candidate))) {
           return candidate;
         }
         // Try again with a slightly different hash.  After around 10 turns
@@ -176,18 +183,7 @@ class MinifyNamer extends Namer {
         h ~/= 7;
       }
     }
-
-    // If we can't find a hash based name in the three-letter space, then base
-    // the name on a letter and a counter.
-    var startLetter = new String.fromCharCodes([_letterNumber(hash)]);
-    var i = 0;
-    while (usedNames.contains("$startLetter$i")) {
-      i++;
-    }
-    // We don't need to check for banned prefix because the name is in the form
-    // xnnn, where nnn is a number.  There can be no getter or setter called
-    // gnnn since that would imply a numeric field name.
-    return "$startLetter$i";
+    return _badName(hash, usedNames);
   }
 
   /// Instance members starting with g and s are reserved for getters and
@@ -208,6 +204,21 @@ class MinifyNamer extends Namer {
       h &= 0xffffffff;
     }
     return h;
+  }
+
+  /// If we can't find a hash based name in the three-letter space, then base
+  /// the name on a letter and a counter.
+  String _badName(int hash, Set<String> usedNames) {
+    var startLetter = new String.fromCharCodes([_letterNumber(hash)]);
+    var name;
+    var i = 0;
+    do {
+      name = "$startLetter${i++}";
+    } while (usedNames.contains(name));
+    // We don't need to check for banned prefix because the name is in the form
+    // xnnn, where nnn is a number.  There can be no getter or setter called
+    // gnnn since that would imply a numeric field name.
+    return name;
   }
 
   int _letterNumber(int x) {
