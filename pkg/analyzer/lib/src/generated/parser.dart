@@ -3425,30 +3425,6 @@ class Parser {
   }
 
   /**
-   * Compare the given tokens to find the token that appears first in the source being parsed. That
-   * is, return the left-most of all of the tokens. The arguments are allowed to be `null`.
-   * Return the token with the smallest offset, or `null` if there are no arguments or if all
-   * of the arguments are `null`.
-   *
-   * @param tokens the tokens being compared
-   * @return the token with the smallest offset
-   */
-  Token _lexicallyFirst(List<Token> tokens) {
-    Token first = null;
-    int firstOffset = 2147483647;
-    for (Token token in tokens) {
-      if (token != null) {
-        int offset = token.offset;
-        if (offset < firstOffset) {
-          first = token;
-          firstOffset = offset;
-        }
-      }
-    }
-    return first;
-  }
-
-  /**
    * Increments the error reporting lock level. If level is more than `0`, then
    * [reportError] wont report any error.
    */
@@ -7686,7 +7662,7 @@ class Parser {
     } else if (varKeyword != null && staticKeyword != null && varKeyword.offset < staticKeyword.offset) {
       _reportErrorForToken(ParserErrorCode.STATIC_AFTER_VAR, staticKeyword);
     }
-    return _lexicallyFirst([constKeyword, finalKeyword, varKeyword]);
+    return Token.lexicallyFirst([constKeyword, finalKeyword, varKeyword]);
   }
 
   /**
@@ -7819,7 +7795,7 @@ class Parser {
         _reportErrorForToken(ParserErrorCode.FINAL_AND_VAR, varKeyword);
       }
     }
-    return _lexicallyFirst([constKeyword, finalKeyword, varKeyword]);
+    return Token.lexicallyFirst([constKeyword, finalKeyword, varKeyword]);
   }
 
   /**
@@ -9645,7 +9621,6 @@ Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline> {
   'isOperator_1': new MethodTrampoline(1, (Parser target, arg0) => target._isOperator(arg0)),
   'isSwitchMember_0': new MethodTrampoline(0, (Parser target) => target._isSwitchMember()),
   'isTypedIdentifier_1': new MethodTrampoline(1, (Parser target, arg0) => target._isTypedIdentifier(arg0)),
-  'lexicallyFirst_1': new MethodTrampoline(1, (Parser target, arg0) => target._lexicallyFirst(arg0)),
   'lockErrorListener_0': new MethodTrampoline(0, (Parser target) => target._lockErrorListener()),
   'matches_1': new MethodTrampoline(1, (Parser target, arg0) => target._matches(arg0)),
   'matchesGt_0': new MethodTrampoline(0, (Parser target) => target._matchesGt()),

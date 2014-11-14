@@ -54,12 +54,6 @@ class EnumTest {
         ..check_explicit_values();
   }
 
-  void test_CommentType() {
-    new EnumTester<CommentType>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
   void test_ElementKind() {
     new EnumTester<ElementKind>()
         ..check_getters()
@@ -158,12 +152,6 @@ class EnumTest {
 
   void test_UriKind() {
     new EnumTester<UriKind>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
-  void test_UriValidationCode() {
-    new EnumTester<UriValidationCode>()
         ..check_getters()
         ..check_explicit_values();
   }

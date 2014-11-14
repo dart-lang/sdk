@@ -2057,6 +2057,26 @@ class Token {
   Token _next;
 
   /**
+   * Compare the given [tokens] to find the token that appears first in the
+   * source being parsed. That is, return the left-most of all of the tokens.
+   * The list must be non-`null`, but the elements of the list are allowed to be
+   * `null`. Return the token with the smallest offset, or `null` if there are
+   * no tokens or if all of the tokens are `null`.
+   */
+  static Token lexicallyFirst(List<Token> tokens) {
+    Token first = null;
+    int offset = -1;
+    for (Token token in tokens) {
+      if (token != null && (offset < 0 || token.offset < offset)) {
+        first = token;
+        offset = token.offset;
+      }
+    }
+    return first;
+  }
+
+
+  /**
    * Initialize a newly created token to have the given type and offset.
    *
    * @param type the type of the token

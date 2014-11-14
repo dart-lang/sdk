@@ -43,8 +43,7 @@ class AdjacentStrings extends StringLiteral {
    * @param strings the strings that are implicitly concatenated
    */
   AdjacentStrings(List<StringLiteral> strings) {
-    this._strings = new NodeList<StringLiteral>(this);
-    this._strings.addAll(strings);
+    _strings = new NodeList<StringLiteral>(this, strings);
   }
 
   @override
@@ -99,9 +98,8 @@ abstract class AnnotatedNode extends AstNode {
    * @param metadata the annotations associated with this node
    */
   AnnotatedNode(Comment comment, List<Annotation> metadata) {
-    this._metadata = new NodeList<Annotation>(this);
-    this._comment = becomeParentOf(comment);
-    this._metadata.addAll(metadata);
+    _comment = becomeParentOf(comment);
+    _metadata = new NodeList<Annotation>(this, metadata);
   }
 
   @override
@@ -109,9 +107,8 @@ abstract class AnnotatedNode extends AstNode {
     if (_comment == null) {
       if (_metadata.isEmpty) {
         return firstTokenAfterCommentAndMetadata;
-      } else {
-        return _metadata.beginToken;
       }
+      return _metadata.beginToken;
     } else if (_metadata.isEmpty) {
       return _comment.beginToken;
     }
@@ -144,7 +141,7 @@ abstract class AnnotatedNode extends AstNode {
    * @param comment the documentation comment to be associated with this node
    */
   void set documentationComment(Comment comment) {
-    this._comment = becomeParentOf(comment);
+    _comment = becomeParentOf(comment);
   }
 
   /**
@@ -153,8 +150,8 @@ abstract class AnnotatedNode extends AstNode {
    * @param metadata the metadata to be associated with this node
    */
   void set metadata(List<Annotation> metadata) {
-    this._metadata.clear();
-    this._metadata.addAll(metadata);
+    _metadata.clear();
+    _metadata.addAll(metadata);
   }
 
   @override
@@ -271,9 +268,9 @@ class Annotation extends AstNode {
    *          annotation is not the invocation of a constructor
    */
   Annotation(this.atSign, Identifier name, this.period, SimpleIdentifier constructorName, ArgumentList arguments) {
-    this._name = becomeParentOf(name);
-    this._constructorName = becomeParentOf(constructorName);
-    this._arguments = becomeParentOf(arguments);
+    _name = becomeParentOf(name);
+    _constructorName = becomeParentOf(constructorName);
+    _arguments = becomeParentOf(arguments);
   }
 
   @override
@@ -307,8 +304,7 @@ class Annotation extends AstNode {
   Element get element {
     if (_element != null) {
       return _element;
-    }
-    if (_name != null) {
+    } else if (_name != null) {
       return _name.staticElement;
     }
     return null;
@@ -338,7 +334,7 @@ class Annotation extends AstNode {
    * @param arguments the arguments to the constructor being invoked
    */
   void set arguments(ArgumentList arguments) {
-    this._arguments = becomeParentOf(arguments);
+    _arguments = becomeParentOf(arguments);
   }
 
   /**
@@ -347,7 +343,7 @@ class Annotation extends AstNode {
    * @param constructorName the name of the constructor being invoked
    */
   void set constructorName(SimpleIdentifier constructorName) {
-    this._constructorName = becomeParentOf(constructorName);
+    _constructorName = becomeParentOf(constructorName);
   }
 
   /**
@@ -356,7 +352,7 @@ class Annotation extends AstNode {
    * @param element the element to be associated with this identifier
    */
   void set element(Element element) {
-    this._element = element;
+    _element = element;
   }
 
   /**
@@ -366,7 +362,7 @@ class Annotation extends AstNode {
    * @param name the name of the constructor being invoked or the name of the field being referenced
    */
   void set name(Identifier name) {
-    this._name = becomeParentOf(name);
+    _name = becomeParentOf(name);
   }
 
   @override
@@ -394,7 +390,7 @@ class ArgumentList extends AstNode {
   /**
    * The left parenthesis.
    */
-  Token _leftParenthesis;
+  Token leftParenthesis;
 
   /**
    * The expressions producing the values of the arguments.
@@ -404,7 +400,7 @@ class ArgumentList extends AstNode {
   /**
    * The right parenthesis.
    */
-  Token _rightParenthesis;
+  Token rightParenthesis;
 
   /**
    * An array containing the elements representing the parameters corresponding to each of the
@@ -431,11 +427,8 @@ class ArgumentList extends AstNode {
    * @param arguments the expressions producing the values of the arguments
    * @param rightParenthesis the right parenthesis
    */
-  ArgumentList(Token leftParenthesis, List<Expression> arguments, Token rightParenthesis) {
-    this._arguments = new NodeList<Expression>(this);
-    this._leftParenthesis = leftParenthesis;
-    this._arguments.addAll(arguments);
-    this._rightParenthesis = rightParenthesis;
+  ArgumentList(this.leftParenthesis, List<Expression> arguments, this.rightParenthesis) {
+    _arguments = new NodeList<Expression>(this, arguments);
   }
 
   @override
@@ -451,24 +444,10 @@ class ArgumentList extends AstNode {
   NodeList<Expression> get arguments => _arguments;
 
   @override
-  Token get beginToken => _leftParenthesis;
+  Token get beginToken => leftParenthesis;
 
   @override
-  Token get endToken => _rightParenthesis;
-
-  /**
-   * Return the left parenthesis.
-   *
-   * @return the left parenthesis
-   */
-  Token get leftParenthesis => _leftParenthesis;
-
-  /**
-   * Return the right parenthesis.
-   *
-   * @return the right parenthesis
-   */
-  Token get rightParenthesis => _rightParenthesis;
+  Token get endToken => rightParenthesis;
 
   /**
    * Set the parameter elements corresponding to each of the arguments in this list to the given
@@ -498,24 +477,6 @@ class ArgumentList extends AstNode {
       throw new IllegalArgumentException("Expected ${_arguments.length} parameters, not ${parameters.length}");
     }
     _correspondingStaticParameters = parameters;
-  }
-
-  /**
-   * Set the left parenthesis to the given token.
-   *
-   * @param parenthesis the left parenthesis
-   */
-  void set leftParenthesis(Token parenthesis) {
-    _leftParenthesis = parenthesis;
-  }
-
-  /**
-   * Set the right parenthesis to the given token.
-   *
-   * @param parenthesis the right parenthesis
-   */
-  void set rightParenthesis(Token parenthesis) {
-    _rightParenthesis = parenthesis;
   }
 
   @override
@@ -606,13 +567,12 @@ class AsExpression extends Expression {
    * Initialize a newly created as expression.
    *
    * @param expression the expression used to compute the value being cast
-   * @param isOperator the is operator
+   * @param asOperator the as operator
    * @param type the name of the type being cast to
    */
-  AsExpression(Expression expression, Token isOperator, TypeName type) {
-    this._expression = becomeParentOf(expression);
-    this.asOperator = isOperator;
-    this._type = becomeParentOf(type);
+  AsExpression(Expression expression, this.asOperator, TypeName type) {
+    _expression = becomeParentOf(expression);
+    _type = becomeParentOf(type);
   }
 
   @override
@@ -647,7 +607,7 @@ class AsExpression extends Expression {
    * @param expression the expression used to compute the value being cast
    */
   void set expression(Expression expression) {
-    this._expression = becomeParentOf(expression);
+    _expression = becomeParentOf(expression);
   }
 
   /**
@@ -656,7 +616,7 @@ class AsExpression extends Expression {
    * @param name the name of the type being cast to
    */
   void set type(TypeName name) {
-    this._type = becomeParentOf(name);
+    _type = becomeParentOf(name);
   }
 
   @override
@@ -710,7 +670,7 @@ class AssertStatement extends Statement {
    * @param semicolon the semicolon terminating the statement
    */
   AssertStatement(this.keyword, this.leftParenthesis, Expression condition, this.rightParenthesis, this.semicolon) {
-    this._condition = becomeParentOf(condition);
+    _condition = becomeParentOf(condition);
   }
 
   @override
@@ -735,7 +695,7 @@ class AssertStatement extends Statement {
    * @param the condition that is being asserted to be `true`
    */
   void set condition(Expression condition) {
-    this._condition = becomeParentOf(condition);
+    _condition = becomeParentOf(condition);
   }
 
   @override
@@ -773,14 +733,14 @@ class AssignmentExpression extends Expression {
    * `null` if the AST structure has not been resolved, if the operator is not a compound
    * operator, or if the operator could not be resolved.
    */
-  MethodElement _staticElement;
+  MethodElement staticElement;
 
   /**
    * The element associated with the operator based on the propagated type of the left-hand-side, or
    * `null` if the AST structure has not been resolved, if the operator is not a compound
    * operator, or if the operator could not be resolved.
    */
-  MethodElement _propagatedElement;
+  MethodElement propagatedElement;
 
   /**
    * Initialize a newly created assignment expression.
@@ -805,8 +765,8 @@ class AssignmentExpression extends Expression {
           message,
           new CaughtException(new AnalysisException(message), null));
     }
-    this._leftHandSide = becomeParentOf(leftHandSide);
-    this._rightHandSide = becomeParentOf(rightHandSide);
+    _leftHandSide = becomeParentOf(leftHandSide);
+    _rightHandSide = becomeParentOf(rightHandSide);
   }
 
   @override
@@ -845,31 +805,11 @@ class AssignmentExpression extends Expression {
   int get precedence => 1;
 
   /**
-   * Return the element associated with the operator based on the propagated type of the
-   * left-hand-side, or `null` if the AST structure has not been resolved, if the operator is
-   * not a compound operator, or if the operator could not be resolved. One example of the latter
-   * case is an operator that is not defined for the type of the left-hand operand.
-   *
-   * @return the element associated with the operator
-   */
-  MethodElement get propagatedElement => _propagatedElement;
-
-  /**
    * Return the expression used to compute the right hand side.
    *
    * @return the expression used to compute the right hand side
    */
   Expression get rightHandSide => _rightHandSide;
-
-  /**
-   * Return the element associated with the operator based on the static type of the left-hand-side,
-   * or `null` if the AST structure has not been resolved, if the operator is not a compound
-   * operator, or if the operator could not be resolved. One example of the latter case is an
-   * operator that is not defined for the type of the left-hand operand.
-   *
-   * @return the element associated with the operator
-   */
-  MethodElement get staticElement => _staticElement;
 
   /**
    * Return the expression used to compute the left hand side.
@@ -881,32 +821,12 @@ class AssignmentExpression extends Expression {
   }
 
   /**
-   * Set the element associated with the operator based on the propagated type of the left-hand-side
-   * to the given element.
-   *
-   * @param element the element to be associated with the operator
-   */
-  void set propagatedElement(MethodElement element) {
-    _propagatedElement = element;
-  }
-
-  /**
    * Set the expression used to compute the left hand side to the given expression.
    *
    * @param expression the expression used to compute the left hand side
    */
   void set rightHandSide(Expression expression) {
     _rightHandSide = becomeParentOf(expression);
-  }
-
-  /**
-   * Set the element associated with the operator based on the static type of the left-hand-side to
-   * the given element.
-   *
-   * @param element the static element to be associated with the operator
-   */
-  void set staticElement(MethodElement element) {
-    _staticElement = element;
   }
 
   @override
@@ -927,8 +847,8 @@ class AssignmentExpression extends Expression {
    */
   ParameterElement get propagatedParameterElementForRightHandSide {
     ExecutableElement executableElement = null;
-    if (_propagatedElement != null) {
-      executableElement = _propagatedElement;
+    if (propagatedElement != null) {
+      executableElement = propagatedElement;
     } else {
       if (_leftHandSide is Identifier) {
         Identifier identifier = _leftHandSide as Identifier;
@@ -967,8 +887,8 @@ class AssignmentExpression extends Expression {
    */
   ParameterElement get staticParameterElementForRightHandSide {
     ExecutableElement executableElement = null;
-    if (_staticElement != null) {
-      executableElement = _staticElement;
+    if (staticElement != null) {
+      executableElement = staticElement;
     } else {
       if (_leftHandSide is Identifier) {
         Element leftElement = (_leftHandSide as Identifier).staticElement;
@@ -1930,637 +1850,637 @@ class AstComparator implements AstVisitor<bool> {
 
   @override
   bool visitAdjacentStrings(AdjacentStrings node) {
-    AdjacentStrings other = this._other as AdjacentStrings;
+    AdjacentStrings other = _other as AdjacentStrings;
     return _isEqualNodeLists(node.strings, other.strings);
   }
 
   @override
   bool visitAnnotation(Annotation node) {
-    Annotation other = this._other as Annotation;
+    Annotation other = _other as Annotation;
     return isEqualTokens(node.atSign, other.atSign) && isEqualNodes(node.name, other.name) && isEqualTokens(node.period, other.period) && isEqualNodes(node.constructorName, other.constructorName) && isEqualNodes(node.arguments, other.arguments);
   }
 
   @override
   bool visitArgumentList(ArgumentList node) {
-    ArgumentList other = this._other as ArgumentList;
+    ArgumentList other = _other as ArgumentList;
     return isEqualTokens(node.leftParenthesis, other.leftParenthesis) && _isEqualNodeLists(node.arguments, other.arguments) && isEqualTokens(node.rightParenthesis, other.rightParenthesis);
   }
 
   @override
   bool visitAsExpression(AsExpression node) {
-    AsExpression other = this._other as AsExpression;
+    AsExpression other = _other as AsExpression;
     return isEqualNodes(node.expression, other.expression) && isEqualTokens(node.asOperator, other.asOperator) && isEqualNodes(node.type, other.type);
   }
 
   @override
   bool visitAssertStatement(AssertStatement node) {
-    AssertStatement other = this._other as AssertStatement;
+    AssertStatement other = _other as AssertStatement;
     return isEqualTokens(node.keyword, other.keyword) && isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodes(node.condition, other.condition) && isEqualTokens(node.rightParenthesis, other.rightParenthesis) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
   bool visitAssignmentExpression(AssignmentExpression node) {
-    AssignmentExpression other = this._other as AssignmentExpression;
+    AssignmentExpression other = _other as AssignmentExpression;
     return isEqualNodes(node.leftHandSide, other.leftHandSide) && isEqualTokens(node.operator, other.operator) && isEqualNodes(node.rightHandSide, other.rightHandSide);
   }
 
   @override
   bool visitAwaitExpression(AwaitExpression node) {
-    AwaitExpression other = this._other as AwaitExpression;
+    AwaitExpression other = _other as AwaitExpression;
     return isEqualTokens(node.awaitKeyword, other.awaitKeyword) && isEqualNodes(node.expression, other.expression);
   }
 
   @override
   bool visitBinaryExpression(BinaryExpression node) {
-    BinaryExpression other = this._other as BinaryExpression;
+    BinaryExpression other = _other as BinaryExpression;
     return isEqualNodes(node.leftOperand, other.leftOperand) && isEqualTokens(node.operator, other.operator) && isEqualNodes(node.rightOperand, other.rightOperand);
   }
 
   @override
   bool visitBlock(Block node) {
-    Block other = this._other as Block;
+    Block other = _other as Block;
     return isEqualTokens(node.leftBracket, other.leftBracket) && _isEqualNodeLists(node.statements, other.statements) && isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   @override
   bool visitBlockFunctionBody(BlockFunctionBody node) {
-    BlockFunctionBody other = this._other as BlockFunctionBody;
+    BlockFunctionBody other = _other as BlockFunctionBody;
     return isEqualNodes(node.block, other.block);
   }
 
   @override
   bool visitBooleanLiteral(BooleanLiteral node) {
-    BooleanLiteral other = this._other as BooleanLiteral;
+    BooleanLiteral other = _other as BooleanLiteral;
     return isEqualTokens(node.literal, other.literal) && node.value == other.value;
   }
 
   @override
   bool visitBreakStatement(BreakStatement node) {
-    BreakStatement other = this._other as BreakStatement;
+    BreakStatement other = _other as BreakStatement;
     return isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.label, other.label) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
   bool visitCascadeExpression(CascadeExpression node) {
-    CascadeExpression other = this._other as CascadeExpression;
+    CascadeExpression other = _other as CascadeExpression;
     return isEqualNodes(node.target, other.target) && _isEqualNodeLists(node.cascadeSections, other.cascadeSections);
   }
 
   @override
   bool visitCatchClause(CatchClause node) {
-    CatchClause other = this._other as CatchClause;
+    CatchClause other = _other as CatchClause;
     return isEqualTokens(node.onKeyword, other.onKeyword) && isEqualNodes(node.exceptionType, other.exceptionType) && isEqualTokens(node.catchKeyword, other.catchKeyword) && isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodes(node.exceptionParameter, other.exceptionParameter) && isEqualTokens(node.comma, other.comma) && isEqualNodes(node.stackTraceParameter, other.stackTraceParameter) && isEqualTokens(node.rightParenthesis, other.rightParenthesis) && isEqualNodes(node.body, other.body);
   }
 
   @override
   bool visitClassDeclaration(ClassDeclaration node) {
-    ClassDeclaration other = this._other as ClassDeclaration;
+    ClassDeclaration other = _other as ClassDeclaration;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.abstractKeyword, other.abstractKeyword) && isEqualTokens(node.classKeyword, other.classKeyword) && isEqualNodes(node.name, other.name) && isEqualNodes(node.typeParameters, other.typeParameters) && isEqualNodes(node.extendsClause, other.extendsClause) && isEqualNodes(node.withClause, other.withClause) && isEqualNodes(node.implementsClause, other.implementsClause) && isEqualTokens(node.leftBracket, other.leftBracket) && _isEqualNodeLists(node.members, other.members) && isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   @override
   bool visitClassTypeAlias(ClassTypeAlias node) {
-    ClassTypeAlias other = this._other as ClassTypeAlias;
+    ClassTypeAlias other = _other as ClassTypeAlias;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.name, other.name) && isEqualNodes(node.typeParameters, other.typeParameters) && isEqualTokens(node.equals, other.equals) && isEqualTokens(node.abstractKeyword, other.abstractKeyword) && isEqualNodes(node.superclass, other.superclass) && isEqualNodes(node.withClause, other.withClause) && isEqualNodes(node.implementsClause, other.implementsClause) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
   bool visitComment(Comment node) {
-    Comment other = this._other as Comment;
+    Comment other = _other as Comment;
     return _isEqualNodeLists(node.references, other.references);
   }
 
   @override
   bool visitCommentReference(CommentReference node) {
-    CommentReference other = this._other as CommentReference;
+    CommentReference other = _other as CommentReference;
     return isEqualTokens(node.newKeyword, other.newKeyword) && isEqualNodes(node.identifier, other.identifier);
   }
 
   @override
   bool visitCompilationUnit(CompilationUnit node) {
-    CompilationUnit other = this._other as CompilationUnit;
+    CompilationUnit other = _other as CompilationUnit;
     return isEqualTokens(node.beginToken, other.beginToken) && isEqualNodes(node.scriptTag, other.scriptTag) && _isEqualNodeLists(node.directives, other.directives) && _isEqualNodeLists(node.declarations, other.declarations) && isEqualTokens(node.endToken, other.endToken);
   }
 
   @override
   bool visitConditionalExpression(ConditionalExpression node) {
-    ConditionalExpression other = this._other as ConditionalExpression;
+    ConditionalExpression other = _other as ConditionalExpression;
     return isEqualNodes(node.condition, other.condition) && isEqualTokens(node.question, other.question) && isEqualNodes(node.thenExpression, other.thenExpression) && isEqualTokens(node.colon, other.colon) && isEqualNodes(node.elseExpression, other.elseExpression);
   }
 
   @override
   bool visitConstructorDeclaration(ConstructorDeclaration node) {
-    ConstructorDeclaration other = this._other as ConstructorDeclaration;
+    ConstructorDeclaration other = _other as ConstructorDeclaration;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.externalKeyword, other.externalKeyword) && isEqualTokens(node.constKeyword, other.constKeyword) && isEqualTokens(node.factoryKeyword, other.factoryKeyword) && isEqualNodes(node.returnType, other.returnType) && isEqualTokens(node.period, other.period) && isEqualNodes(node.name, other.name) && isEqualNodes(node.parameters, other.parameters) && isEqualTokens(node.separator, other.separator) && _isEqualNodeLists(node.initializers, other.initializers) && isEqualNodes(node.redirectedConstructor, other.redirectedConstructor) && isEqualNodes(node.body, other.body);
   }
 
   @override
   bool visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    ConstructorFieldInitializer other = this._other as ConstructorFieldInitializer;
+    ConstructorFieldInitializer other = _other as ConstructorFieldInitializer;
     return isEqualTokens(node.keyword, other.keyword) && isEqualTokens(node.period, other.period) && isEqualNodes(node.fieldName, other.fieldName) && isEqualTokens(node.equals, other.equals) && isEqualNodes(node.expression, other.expression);
   }
 
   @override
   bool visitConstructorName(ConstructorName node) {
-    ConstructorName other = this._other as ConstructorName;
+    ConstructorName other = _other as ConstructorName;
     return isEqualNodes(node.type, other.type) && isEqualTokens(node.period, other.period) && isEqualNodes(node.name, other.name);
   }
 
   @override
   bool visitContinueStatement(ContinueStatement node) {
-    ContinueStatement other = this._other as ContinueStatement;
+    ContinueStatement other = _other as ContinueStatement;
     return isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.label, other.label) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
   bool visitDeclaredIdentifier(DeclaredIdentifier node) {
-    DeclaredIdentifier other = this._other as DeclaredIdentifier;
+    DeclaredIdentifier other = _other as DeclaredIdentifier;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.type, other.type) && isEqualNodes(node.identifier, other.identifier);
   }
 
   @override
   bool visitDefaultFormalParameter(DefaultFormalParameter node) {
-    DefaultFormalParameter other = this._other as DefaultFormalParameter;
+    DefaultFormalParameter other = _other as DefaultFormalParameter;
     return isEqualNodes(node.parameter, other.parameter) && node.kind == other.kind && isEqualTokens(node.separator, other.separator) && isEqualNodes(node.defaultValue, other.defaultValue);
   }
 
   @override
   bool visitDoStatement(DoStatement node) {
-    DoStatement other = this._other as DoStatement;
+    DoStatement other = _other as DoStatement;
     return isEqualTokens(node.doKeyword, other.doKeyword) && isEqualNodes(node.body, other.body) && isEqualTokens(node.whileKeyword, other.whileKeyword) && isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodes(node.condition, other.condition) && isEqualTokens(node.rightParenthesis, other.rightParenthesis) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
   bool visitDoubleLiteral(DoubleLiteral node) {
-    DoubleLiteral other = this._other as DoubleLiteral;
+    DoubleLiteral other = _other as DoubleLiteral;
     return isEqualTokens(node.literal, other.literal) && node.value == other.value;
   }
 
   @override
   bool visitEmptyFunctionBody(EmptyFunctionBody node) {
-    EmptyFunctionBody other = this._other as EmptyFunctionBody;
+    EmptyFunctionBody other = _other as EmptyFunctionBody;
     return isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
   bool visitEmptyStatement(EmptyStatement node) {
-    EmptyStatement other = this._other as EmptyStatement;
+    EmptyStatement other = _other as EmptyStatement;
     return isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
   bool visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    EnumConstantDeclaration other = this._other as EnumConstantDeclaration;
+    EnumConstantDeclaration other = _other as EnumConstantDeclaration;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualNodes(node.name, other.name);
   }
 
   @override
   bool visitEnumDeclaration(EnumDeclaration node) {
-    EnumDeclaration other = this._other as EnumDeclaration;
+    EnumDeclaration other = _other as EnumDeclaration;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.name, other.name) && isEqualTokens(node.leftBracket, other.leftBracket) && _isEqualNodeLists(node.constants, other.constants) && isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   @override
   bool visitExportDirective(ExportDirective node) {
-    ExportDirective other = this._other as ExportDirective;
+    ExportDirective other = _other as ExportDirective;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.uri, other.uri) && _isEqualNodeLists(node.combinators, other.combinators) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
   bool visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    ExpressionFunctionBody other = this._other as ExpressionFunctionBody;
+    ExpressionFunctionBody other = _other as ExpressionFunctionBody;
     return isEqualTokens(node.functionDefinition, other.functionDefinition) && isEqualNodes(node.expression, other.expression) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
   bool visitExpressionStatement(ExpressionStatement node) {
-    ExpressionStatement other = this._other as ExpressionStatement;
+    ExpressionStatement other = _other as ExpressionStatement;
     return isEqualNodes(node.expression, other.expression) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
   bool visitExtendsClause(ExtendsClause node) {
-    ExtendsClause other = this._other as ExtendsClause;
+    ExtendsClause other = _other as ExtendsClause;
     return isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.superclass, other.superclass);
   }
 
   @override
   bool visitFieldDeclaration(FieldDeclaration node) {
-    FieldDeclaration other = this._other as FieldDeclaration;
+    FieldDeclaration other = _other as FieldDeclaration;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.staticKeyword, other.staticKeyword) && isEqualNodes(node.fields, other.fields) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
   bool visitFieldFormalParameter(FieldFormalParameter node) {
-    FieldFormalParameter other = this._other as FieldFormalParameter;
+    FieldFormalParameter other = _other as FieldFormalParameter;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.type, other.type) && isEqualTokens(node.thisToken, other.thisToken) && isEqualTokens(node.period, other.period) && isEqualNodes(node.identifier, other.identifier);
   }
 
   @override
   bool visitForEachStatement(ForEachStatement node) {
-    ForEachStatement other = this._other as ForEachStatement;
+    ForEachStatement other = _other as ForEachStatement;
     return isEqualTokens(node.forKeyword, other.forKeyword) && isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodes(node.loopVariable, other.loopVariable) && isEqualTokens(node.inKeyword, other.inKeyword) && isEqualNodes(node.iterable, other.iterable) && isEqualTokens(node.rightParenthesis, other.rightParenthesis) && isEqualNodes(node.body, other.body);
   }
 
   @override
   bool visitFormalParameterList(FormalParameterList node) {
-    FormalParameterList other = this._other as FormalParameterList;
+    FormalParameterList other = _other as FormalParameterList;
     return isEqualTokens(node.leftParenthesis, other.leftParenthesis) && _isEqualNodeLists(node.parameters, other.parameters) && isEqualTokens(node.leftDelimiter, other.leftDelimiter) && isEqualTokens(node.rightDelimiter, other.rightDelimiter) && isEqualTokens(node.rightParenthesis, other.rightParenthesis);
   }
 
   @override
   bool visitForStatement(ForStatement node) {
-    ForStatement other = this._other as ForStatement;
+    ForStatement other = _other as ForStatement;
     return isEqualTokens(node.forKeyword, other.forKeyword) && isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodes(node.variables, other.variables) && isEqualNodes(node.initialization, other.initialization) && isEqualTokens(node.leftSeparator, other.leftSeparator) && isEqualNodes(node.condition, other.condition) && isEqualTokens(node.rightSeparator, other.rightSeparator) && _isEqualNodeLists(node.updaters, other.updaters) && isEqualTokens(node.rightParenthesis, other.rightParenthesis) && isEqualNodes(node.body, other.body);
   }
 
   @override
   bool visitFunctionDeclaration(FunctionDeclaration node) {
-    FunctionDeclaration other = this._other as FunctionDeclaration;
+    FunctionDeclaration other = _other as FunctionDeclaration;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.externalKeyword, other.externalKeyword) && isEqualNodes(node.returnType, other.returnType) && isEqualTokens(node.propertyKeyword, other.propertyKeyword) && isEqualNodes(node.name, other.name) && isEqualNodes(node.functionExpression, other.functionExpression);
   }
 
   @override
   bool visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    FunctionDeclarationStatement other = this._other as FunctionDeclarationStatement;
+    FunctionDeclarationStatement other = _other as FunctionDeclarationStatement;
     return isEqualNodes(node.functionDeclaration, other.functionDeclaration);
   }
 
   @override
   bool visitFunctionExpression(FunctionExpression node) {
-    FunctionExpression other = this._other as FunctionExpression;
+    FunctionExpression other = _other as FunctionExpression;
     return isEqualNodes(node.parameters, other.parameters) && isEqualNodes(node.body, other.body);
   }
 
   @override
   bool visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    FunctionExpressionInvocation other = this._other as FunctionExpressionInvocation;
+    FunctionExpressionInvocation other = _other as FunctionExpressionInvocation;
     return isEqualNodes(node.function, other.function) && isEqualNodes(node.argumentList, other.argumentList);
   }
 
   @override
   bool visitFunctionTypeAlias(FunctionTypeAlias node) {
-    FunctionTypeAlias other = this._other as FunctionTypeAlias;
+    FunctionTypeAlias other = _other as FunctionTypeAlias;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.returnType, other.returnType) && isEqualNodes(node.name, other.name) && isEqualNodes(node.typeParameters, other.typeParameters) && isEqualNodes(node.parameters, other.parameters) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
   bool visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    FunctionTypedFormalParameter other = this._other as FunctionTypedFormalParameter;
+    FunctionTypedFormalParameter other = _other as FunctionTypedFormalParameter;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualNodes(node.returnType, other.returnType) && isEqualNodes(node.identifier, other.identifier) && isEqualNodes(node.parameters, other.parameters);
   }
 
   @override
   bool visitHideCombinator(HideCombinator node) {
-    HideCombinator other = this._other as HideCombinator;
+    HideCombinator other = _other as HideCombinator;
     return isEqualTokens(node.keyword, other.keyword) && _isEqualNodeLists(node.hiddenNames, other.hiddenNames);
   }
 
   @override
   bool visitIfStatement(IfStatement node) {
-    IfStatement other = this._other as IfStatement;
+    IfStatement other = _other as IfStatement;
     return isEqualTokens(node.ifKeyword, other.ifKeyword) && isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodes(node.condition, other.condition) && isEqualTokens(node.rightParenthesis, other.rightParenthesis) && isEqualNodes(node.thenStatement, other.thenStatement) && isEqualTokens(node.elseKeyword, other.elseKeyword) && isEqualNodes(node.elseStatement, other.elseStatement);
   }
 
   @override
   bool visitImplementsClause(ImplementsClause node) {
-    ImplementsClause other = this._other as ImplementsClause;
+    ImplementsClause other = _other as ImplementsClause;
     return isEqualTokens(node.keyword, other.keyword) && _isEqualNodeLists(node.interfaces, other.interfaces);
   }
 
   @override
   bool visitImportDirective(ImportDirective node) {
-    ImportDirective other = this._other as ImportDirective;
+    ImportDirective other = _other as ImportDirective;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.uri, other.uri) && isEqualTokens(node.asToken, other.asToken) && isEqualNodes(node.prefix, other.prefix) && _isEqualNodeLists(node.combinators, other.combinators) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
   bool visitIndexExpression(IndexExpression node) {
-    IndexExpression other = this._other as IndexExpression;
+    IndexExpression other = _other as IndexExpression;
     return isEqualNodes(node.target, other.target) && isEqualTokens(node.leftBracket, other.leftBracket) && isEqualNodes(node.index, other.index) && isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   @override
   bool visitInstanceCreationExpression(InstanceCreationExpression node) {
-    InstanceCreationExpression other = this._other as InstanceCreationExpression;
+    InstanceCreationExpression other = _other as InstanceCreationExpression;
     return isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.constructorName, other.constructorName) && isEqualNodes(node.argumentList, other.argumentList);
   }
 
   @override
   bool visitIntegerLiteral(IntegerLiteral node) {
-    IntegerLiteral other = this._other as IntegerLiteral;
+    IntegerLiteral other = _other as IntegerLiteral;
     return isEqualTokens(node.literal, other.literal) && (node.value == other.value);
   }
 
   @override
   bool visitInterpolationExpression(InterpolationExpression node) {
-    InterpolationExpression other = this._other as InterpolationExpression;
+    InterpolationExpression other = _other as InterpolationExpression;
     return isEqualTokens(node.leftBracket, other.leftBracket) && isEqualNodes(node.expression, other.expression) && isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   @override
   bool visitInterpolationString(InterpolationString node) {
-    InterpolationString other = this._other as InterpolationString;
+    InterpolationString other = _other as InterpolationString;
     return isEqualTokens(node.contents, other.contents) && node.value == other.value;
   }
 
   @override
   bool visitIsExpression(IsExpression node) {
-    IsExpression other = this._other as IsExpression;
+    IsExpression other = _other as IsExpression;
     return isEqualNodes(node.expression, other.expression) && isEqualTokens(node.isOperator, other.isOperator) && isEqualTokens(node.notOperator, other.notOperator) && isEqualNodes(node.type, other.type);
   }
 
   @override
   bool visitLabel(Label node) {
-    Label other = this._other as Label;
+    Label other = _other as Label;
     return isEqualNodes(node.label, other.label) && isEqualTokens(node.colon, other.colon);
   }
 
   @override
   bool visitLabeledStatement(LabeledStatement node) {
-    LabeledStatement other = this._other as LabeledStatement;
+    LabeledStatement other = _other as LabeledStatement;
     return _isEqualNodeLists(node.labels, other.labels) && isEqualNodes(node.statement, other.statement);
   }
 
   @override
   bool visitLibraryDirective(LibraryDirective node) {
-    LibraryDirective other = this._other as LibraryDirective;
+    LibraryDirective other = _other as LibraryDirective;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.libraryToken, other.libraryToken) && isEqualNodes(node.name, other.name) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
   bool visitLibraryIdentifier(LibraryIdentifier node) {
-    LibraryIdentifier other = this._other as LibraryIdentifier;
+    LibraryIdentifier other = _other as LibraryIdentifier;
     return _isEqualNodeLists(node.components, other.components);
   }
 
   @override
   bool visitListLiteral(ListLiteral node) {
-    ListLiteral other = this._other as ListLiteral;
+    ListLiteral other = _other as ListLiteral;
     return isEqualTokens(node.constKeyword, other.constKeyword) && isEqualNodes(node.typeArguments, other.typeArguments) && isEqualTokens(node.leftBracket, other.leftBracket) && _isEqualNodeLists(node.elements, other.elements) && isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   @override
   bool visitMapLiteral(MapLiteral node) {
-    MapLiteral other = this._other as MapLiteral;
+    MapLiteral other = _other as MapLiteral;
     return isEqualTokens(node.constKeyword, other.constKeyword) && isEqualNodes(node.typeArguments, other.typeArguments) && isEqualTokens(node.leftBracket, other.leftBracket) && _isEqualNodeLists(node.entries, other.entries) && isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   @override
   bool visitMapLiteralEntry(MapLiteralEntry node) {
-    MapLiteralEntry other = this._other as MapLiteralEntry;
+    MapLiteralEntry other = _other as MapLiteralEntry;
     return isEqualNodes(node.key, other.key) && isEqualTokens(node.separator, other.separator) && isEqualNodes(node.value, other.value);
   }
 
   @override
   bool visitMethodDeclaration(MethodDeclaration node) {
-    MethodDeclaration other = this._other as MethodDeclaration;
+    MethodDeclaration other = _other as MethodDeclaration;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.externalKeyword, other.externalKeyword) && isEqualTokens(node.modifierKeyword, other.modifierKeyword) && isEqualNodes(node.returnType, other.returnType) && isEqualTokens(node.propertyKeyword, other.propertyKeyword) && isEqualTokens(node.propertyKeyword, other.propertyKeyword) && isEqualNodes(node.name, other.name) && isEqualNodes(node.parameters, other.parameters) && isEqualNodes(node.body, other.body);
   }
 
   @override
   bool visitMethodInvocation(MethodInvocation node) {
-    MethodInvocation other = this._other as MethodInvocation;
+    MethodInvocation other = _other as MethodInvocation;
     return isEqualNodes(node.target, other.target) && isEqualTokens(node.period, other.period) && isEqualNodes(node.methodName, other.methodName) && isEqualNodes(node.argumentList, other.argumentList);
   }
 
   @override
   bool visitNamedExpression(NamedExpression node) {
-    NamedExpression other = this._other as NamedExpression;
+    NamedExpression other = _other as NamedExpression;
     return isEqualNodes(node.name, other.name) && isEqualNodes(node.expression, other.expression);
   }
 
   @override
   bool visitNativeClause(NativeClause node) {
-    NativeClause other = this._other as NativeClause;
+    NativeClause other = _other as NativeClause;
     return isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.name, other.name);
   }
 
   @override
   bool visitNativeFunctionBody(NativeFunctionBody node) {
-    NativeFunctionBody other = this._other as NativeFunctionBody;
+    NativeFunctionBody other = _other as NativeFunctionBody;
     return isEqualTokens(node.nativeToken, other.nativeToken) && isEqualNodes(node.stringLiteral, other.stringLiteral) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
   bool visitNullLiteral(NullLiteral node) {
-    NullLiteral other = this._other as NullLiteral;
+    NullLiteral other = _other as NullLiteral;
     return isEqualTokens(node.literal, other.literal);
   }
 
   @override
   bool visitParenthesizedExpression(ParenthesizedExpression node) {
-    ParenthesizedExpression other = this._other as ParenthesizedExpression;
+    ParenthesizedExpression other = _other as ParenthesizedExpression;
     return isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodes(node.expression, other.expression) && isEqualTokens(node.rightParenthesis, other.rightParenthesis);
   }
 
   @override
   bool visitPartDirective(PartDirective node) {
-    PartDirective other = this._other as PartDirective;
+    PartDirective other = _other as PartDirective;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.partToken, other.partToken) && isEqualNodes(node.uri, other.uri) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
   bool visitPartOfDirective(PartOfDirective node) {
-    PartOfDirective other = this._other as PartOfDirective;
+    PartOfDirective other = _other as PartOfDirective;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.partToken, other.partToken) && isEqualTokens(node.ofToken, other.ofToken) && isEqualNodes(node.libraryName, other.libraryName) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
   bool visitPostfixExpression(PostfixExpression node) {
-    PostfixExpression other = this._other as PostfixExpression;
+    PostfixExpression other = _other as PostfixExpression;
     return isEqualNodes(node.operand, other.operand) && isEqualTokens(node.operator, other.operator);
   }
 
   @override
   bool visitPrefixedIdentifier(PrefixedIdentifier node) {
-    PrefixedIdentifier other = this._other as PrefixedIdentifier;
+    PrefixedIdentifier other = _other as PrefixedIdentifier;
     return isEqualNodes(node.prefix, other.prefix) && isEqualTokens(node.period, other.period) && isEqualNodes(node.identifier, other.identifier);
   }
 
   @override
   bool visitPrefixExpression(PrefixExpression node) {
-    PrefixExpression other = this._other as PrefixExpression;
+    PrefixExpression other = _other as PrefixExpression;
     return isEqualTokens(node.operator, other.operator) && isEqualNodes(node.operand, other.operand);
   }
 
   @override
   bool visitPropertyAccess(PropertyAccess node) {
-    PropertyAccess other = this._other as PropertyAccess;
+    PropertyAccess other = _other as PropertyAccess;
     return isEqualNodes(node.target, other.target) && isEqualTokens(node.operator, other.operator) && isEqualNodes(node.propertyName, other.propertyName);
   }
 
   @override
   bool visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
-    RedirectingConstructorInvocation other = this._other as RedirectingConstructorInvocation;
+    RedirectingConstructorInvocation other = _other as RedirectingConstructorInvocation;
     return isEqualTokens(node.keyword, other.keyword) && isEqualTokens(node.period, other.period) && isEqualNodes(node.constructorName, other.constructorName) && isEqualNodes(node.argumentList, other.argumentList);
   }
 
   @override
   bool visitRethrowExpression(RethrowExpression node) {
-    RethrowExpression other = this._other as RethrowExpression;
+    RethrowExpression other = _other as RethrowExpression;
     return isEqualTokens(node.keyword, other.keyword);
   }
 
   @override
   bool visitReturnStatement(ReturnStatement node) {
-    ReturnStatement other = this._other as ReturnStatement;
+    ReturnStatement other = _other as ReturnStatement;
     return isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.expression, other.expression) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
   bool visitScriptTag(ScriptTag node) {
-    ScriptTag other = this._other as ScriptTag;
+    ScriptTag other = _other as ScriptTag;
     return isEqualTokens(node.scriptTag, other.scriptTag);
   }
 
   @override
   bool visitShowCombinator(ShowCombinator node) {
-    ShowCombinator other = this._other as ShowCombinator;
+    ShowCombinator other = _other as ShowCombinator;
     return isEqualTokens(node.keyword, other.keyword) && _isEqualNodeLists(node.shownNames, other.shownNames);
   }
 
   @override
   bool visitSimpleFormalParameter(SimpleFormalParameter node) {
-    SimpleFormalParameter other = this._other as SimpleFormalParameter;
+    SimpleFormalParameter other = _other as SimpleFormalParameter;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.type, other.type) && isEqualNodes(node.identifier, other.identifier);
   }
 
   @override
   bool visitSimpleIdentifier(SimpleIdentifier node) {
-    SimpleIdentifier other = this._other as SimpleIdentifier;
+    SimpleIdentifier other = _other as SimpleIdentifier;
     return isEqualTokens(node.token, other.token);
   }
 
   @override
   bool visitSimpleStringLiteral(SimpleStringLiteral node) {
-    SimpleStringLiteral other = this._other as SimpleStringLiteral;
+    SimpleStringLiteral other = _other as SimpleStringLiteral;
     return isEqualTokens(node.literal, other.literal) && (node.value == other.value);
   }
 
   @override
   bool visitStringInterpolation(StringInterpolation node) {
-    StringInterpolation other = this._other as StringInterpolation;
+    StringInterpolation other = _other as StringInterpolation;
     return _isEqualNodeLists(node.elements, other.elements);
   }
 
   @override
   bool visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    SuperConstructorInvocation other = this._other as SuperConstructorInvocation;
+    SuperConstructorInvocation other = _other as SuperConstructorInvocation;
     return isEqualTokens(node.keyword, other.keyword) && isEqualTokens(node.period, other.period) && isEqualNodes(node.constructorName, other.constructorName) && isEqualNodes(node.argumentList, other.argumentList);
   }
 
   @override
   bool visitSuperExpression(SuperExpression node) {
-    SuperExpression other = this._other as SuperExpression;
+    SuperExpression other = _other as SuperExpression;
     return isEqualTokens(node.keyword, other.keyword);
   }
 
   @override
   bool visitSwitchCase(SwitchCase node) {
-    SwitchCase other = this._other as SwitchCase;
+    SwitchCase other = _other as SwitchCase;
     return _isEqualNodeLists(node.labels, other.labels) && isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.expression, other.expression) && isEqualTokens(node.colon, other.colon) && _isEqualNodeLists(node.statements, other.statements);
   }
 
   @override
   bool visitSwitchDefault(SwitchDefault node) {
-    SwitchDefault other = this._other as SwitchDefault;
+    SwitchDefault other = _other as SwitchDefault;
     return _isEqualNodeLists(node.labels, other.labels) && isEqualTokens(node.keyword, other.keyword) && isEqualTokens(node.colon, other.colon) && _isEqualNodeLists(node.statements, other.statements);
   }
 
   @override
   bool visitSwitchStatement(SwitchStatement node) {
-    SwitchStatement other = this._other as SwitchStatement;
+    SwitchStatement other = _other as SwitchStatement;
     return isEqualTokens(node.keyword, other.keyword) && isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodes(node.expression, other.expression) && isEqualTokens(node.rightParenthesis, other.rightParenthesis) && isEqualTokens(node.leftBracket, other.leftBracket) && _isEqualNodeLists(node.members, other.members) && isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   @override
   bool visitSymbolLiteral(SymbolLiteral node) {
-    SymbolLiteral other = this._other as SymbolLiteral;
+    SymbolLiteral other = _other as SymbolLiteral;
     return isEqualTokens(node.poundSign, other.poundSign) && _isEqualTokenLists(node.components, other.components);
   }
 
   @override
   bool visitThisExpression(ThisExpression node) {
-    ThisExpression other = this._other as ThisExpression;
+    ThisExpression other = _other as ThisExpression;
     return isEqualTokens(node.keyword, other.keyword);
   }
 
   @override
   bool visitThrowExpression(ThrowExpression node) {
-    ThrowExpression other = this._other as ThrowExpression;
+    ThrowExpression other = _other as ThrowExpression;
     return isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.expression, other.expression);
   }
 
   @override
   bool visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    TopLevelVariableDeclaration other = this._other as TopLevelVariableDeclaration;
+    TopLevelVariableDeclaration other = _other as TopLevelVariableDeclaration;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualNodes(node.variables, other.variables) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
   bool visitTryStatement(TryStatement node) {
-    TryStatement other = this._other as TryStatement;
+    TryStatement other = _other as TryStatement;
     return isEqualTokens(node.tryKeyword, other.tryKeyword) && isEqualNodes(node.body, other.body) && _isEqualNodeLists(node.catchClauses, other.catchClauses) && isEqualTokens(node.finallyKeyword, other.finallyKeyword) && isEqualNodes(node.finallyBlock, other.finallyBlock);
   }
 
   @override
   bool visitTypeArgumentList(TypeArgumentList node) {
-    TypeArgumentList other = this._other as TypeArgumentList;
+    TypeArgumentList other = _other as TypeArgumentList;
     return isEqualTokens(node.leftBracket, other.leftBracket) && _isEqualNodeLists(node.arguments, other.arguments) && isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   @override
   bool visitTypeName(TypeName node) {
-    TypeName other = this._other as TypeName;
+    TypeName other = _other as TypeName;
     return isEqualNodes(node.name, other.name) && isEqualNodes(node.typeArguments, other.typeArguments);
   }
 
   @override
   bool visitTypeParameter(TypeParameter node) {
-    TypeParameter other = this._other as TypeParameter;
+    TypeParameter other = _other as TypeParameter;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualNodes(node.name, other.name) && isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.bound, other.bound);
   }
 
   @override
   bool visitTypeParameterList(TypeParameterList node) {
-    TypeParameterList other = this._other as TypeParameterList;
+    TypeParameterList other = _other as TypeParameterList;
     return isEqualTokens(node.leftBracket, other.leftBracket) && _isEqualNodeLists(node.typeParameters, other.typeParameters) && isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   @override
   bool visitVariableDeclaration(VariableDeclaration node) {
-    VariableDeclaration other = this._other as VariableDeclaration;
+    VariableDeclaration other = _other as VariableDeclaration;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualNodes(node.name, other.name) && isEqualTokens(node.equals, other.equals) && isEqualNodes(node.initializer, other.initializer);
   }
 
   @override
   bool visitVariableDeclarationList(VariableDeclarationList node) {
-    VariableDeclarationList other = this._other as VariableDeclarationList;
+    VariableDeclarationList other = _other as VariableDeclarationList;
     return isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && isEqualTokens(node.keyword, other.keyword) && isEqualNodes(node.type, other.type) && _isEqualNodeLists(node.variables, other.variables);
   }
 
   @override
   bool visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    VariableDeclarationStatement other = this._other as VariableDeclarationStatement;
+    VariableDeclarationStatement other = _other as VariableDeclarationStatement;
     return isEqualNodes(node.variables, other.variables) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
   bool visitWhileStatement(WhileStatement node) {
-    WhileStatement other = this._other as WhileStatement;
+    WhileStatement other = _other as WhileStatement;
     return isEqualTokens(node.keyword, other.keyword) && isEqualTokens(node.leftParenthesis, other.leftParenthesis) && isEqualNodes(node.condition, other.condition) && isEqualTokens(node.rightParenthesis, other.rightParenthesis) && isEqualNodes(node.body, other.body);
   }
 
   @override
   bool visitWithClause(WithClause node) {
-    WithClause other = this._other as WithClause;
+    WithClause other = _other as WithClause;
     return isEqualTokens(node.withKeyword, other.withKeyword) && _isEqualNodeLists(node.mixinTypes, other.mixinTypes);
   }
 
   @override
   bool visitYieldStatement(YieldStatement node) {
-    YieldStatement other = this._other as YieldStatement;
+    YieldStatement other = _other as YieldStatement;
     return isEqualTokens(node.yieldKeyword, other.yieldKeyword) && isEqualNodes(node.expression, other.expression) && isEqualTokens(node.semicolon, other.semicolon);
   }
 
@@ -2659,11 +2579,6 @@ class AstComparator implements AstVisitor<bool> {
  */
 abstract class AstNode {
   /**
-   * An empty array of ast nodes.
-   */
-  static List<AstNode> EMPTY_ARRAY = new List<AstNode>(0);
-
-  /**
    * The parent of the node, or `null` if the node is the root of an AST structure.
    */
   AstNode _parent;
@@ -2673,6 +2588,11 @@ abstract class AstNode {
    * have any properties associated with it.
    */
   Map<String, Object> _propertyMap;
+
+  /**
+   * An empty array of ast nodes.
+   */
+  static const List<AstNode> EMPTY_ARRAY = const <AstNode>[];
 
   /**
    * A comparator that can be used to sort AST nodes in lexical order. In other words,
@@ -2860,8 +2780,7 @@ abstract class AstNode {
    */
   AstNode becomeParentOf(AstNode child) {
     if (child != null) {
-      AstNode node = child;
-      node.parent = this;
+      child._parent = this;
     }
     return child;
   }
@@ -2883,6 +2802,7 @@ abstract class AstNode {
    *
    * @param newParent the node that is to be made the parent of this node
    */
+  @deprecated
   void set parent(AstNode newParent) {
     _parent = newParent;
   }
@@ -3127,7 +3047,7 @@ class AwaitExpression extends Expression {
    * @param expression the expression whose value is being waited on
    */
   AwaitExpression(this.awaitKeyword, Expression expression) {
-    this._expression = becomeParentOf(expression);
+    _expression = becomeParentOf(expression);
   }
 
   @override
@@ -3160,7 +3080,7 @@ class AwaitExpression extends Expression {
    * @param expression the expression whose value is being waited on
    */
   void set expression(Expression expression) {
-    this._expression = becomeParentOf(expression);
+    _expression = becomeParentOf(expression);
   }
 
   @override
@@ -3198,14 +3118,14 @@ class BinaryExpression extends Expression {
    * `null` if the AST structure has not been resolved, if the operator is not user definable,
    * or if the operator could not be resolved.
    */
-  MethodElement _staticElement;
+  MethodElement staticElement;
 
   /**
    * The element associated with the operator based on the propagated type of the left operand, or
    * `null` if the AST structure has not been resolved, if the operator is not user definable,
    * or if the operator could not be resolved.
    */
-  MethodElement _propagatedElement;
+  MethodElement propagatedElement;
 
   /**
    * Initialize a newly created binary expression.
@@ -3215,8 +3135,8 @@ class BinaryExpression extends Expression {
    * @param rightOperand the expression used to compute the right operand
    */
   BinaryExpression(Expression leftOperand, this.operator, Expression rightOperand) {
-    this._leftOperand = becomeParentOf(leftOperand);
-    this._rightOperand = becomeParentOf(rightOperand);
+    _leftOperand = becomeParentOf(leftOperand);
+    _rightOperand = becomeParentOf(rightOperand);
   }
 
   @override
@@ -3255,31 +3175,11 @@ class BinaryExpression extends Expression {
   int get precedence => operator.type.precedence;
 
   /**
-   * Return the element associated with the operator based on the propagated type of the left
-   * operand, or `null` if the AST structure has not been resolved, if the operator is not
-   * user definable, or if the operator could not be resolved. One example of the latter case is an
-   * operator that is not defined for the type of the left-hand operand.
-   *
-   * @return the element associated with the operator
-   */
-  MethodElement get propagatedElement => _propagatedElement;
-
-  /**
    * Return the expression used to compute the right operand.
    *
    * @return the expression used to compute the right operand
    */
   Expression get rightOperand => _rightOperand;
-
-  /**
-   * Return the element associated with the operator based on the static type of the left operand,
-   * or `null` if the AST structure has not been resolved, if the operator is not user
-   * definable, or if the operator could not be resolved. One example of the latter case is an
-   * operator that is not defined for the type of the left operand.
-   *
-   * @return the element associated with the operator
-   */
-  MethodElement get staticElement => _staticElement;
 
   /**
    * Set the expression used to compute the left operand to the given expression.
@@ -3291,32 +3191,12 @@ class BinaryExpression extends Expression {
   }
 
   /**
-   * Set the element associated with the operator based on the propagated type of the left operand
-   * to the given element.
-   *
-   * @param element the element to be associated with the operator
-   */
-  void set propagatedElement(MethodElement element) {
-    _propagatedElement = element;
-  }
-
-  /**
    * Set the expression used to compute the right operand to the given expression.
    *
    * @param expression the expression used to compute the right operand
    */
   void set rightOperand(Expression expression) {
     _rightOperand = becomeParentOf(expression);
-  }
-
-  /**
-   * Set the element associated with the operator based on the static type of the left operand to
-   * the given element.
-   *
-   * @param element the static element to be associated with the operator
-   */
-  void set staticElement(MethodElement element) {
-    _staticElement = element;
   }
 
   @override
@@ -3336,10 +3216,10 @@ class BinaryExpression extends Expression {
    *         operand will be bound
    */
   ParameterElement get propagatedParameterElementForRightOperand {
-    if (_propagatedElement == null) {
+    if (propagatedElement == null) {
       return null;
     }
-    List<ParameterElement> parameters = _propagatedElement.parameters;
+    List<ParameterElement> parameters = propagatedElement.parameters;
     if (parameters.length < 1) {
       return null;
     }
@@ -3357,10 +3237,10 @@ class BinaryExpression extends Expression {
    *         operand will be bound
    */
   ParameterElement get staticParameterElementForRightOperand {
-    if (_staticElement == null) {
+    if (staticElement == null) {
       return null;
     }
-    List<ParameterElement> parameters = _staticElement.parameters;
+    List<ParameterElement> parameters = staticElement.parameters;
     if (parameters.length < 1) {
       return null;
     }
@@ -3400,8 +3280,7 @@ class Block extends Statement {
    * @param rightBracket the right curly bracket
    */
   Block(this.leftBracket, List<Statement> statements, this.rightBracket) {
-    this._statements = new NodeList<Statement>(this);
-    this._statements.addAll(statements);
+    _statements = new NodeList<Statement>(this, statements);
   }
 
   @override
@@ -3460,7 +3339,7 @@ class BlockFunctionBody extends FunctionBody {
    * @param block the block representing the body of the function
    */
   BlockFunctionBody(this.keyword, this.star, Block block) {
-    this._block = becomeParentOf(block);
+    _block = becomeParentOf(block);
   }
 
   @override
@@ -3500,7 +3379,7 @@ class BlockFunctionBody extends FunctionBody {
    * @param block the block representing the body of the function
    */
   void set block(Block block) {
-    this._block = becomeParentOf(block);
+    _block = becomeParentOf(block);
   }
 
   @override
@@ -3602,7 +3481,7 @@ class BreadthFirstVisitor<R> extends GeneralizingAstVisitor<R> {
   }
 
   BreadthFirstVisitor() {
-    this._childVisitor = new GeneralizingAstVisitor_BreadthFirstVisitor(this);
+    _childVisitor = new GeneralizingAstVisitor_BreadthFirstVisitor(this);
   }
 }
 
@@ -3638,7 +3517,7 @@ class BreakStatement extends Statement {
    * @param semicolon the semicolon terminating the statement
    */
   BreakStatement(this.keyword, SimpleIdentifier label, this.semicolon) {
-    this._label = becomeParentOf(label);
+    _label = becomeParentOf(label);
   }
 
   @override
@@ -3708,9 +3587,8 @@ class CascadeExpression extends Expression {
    * @param cascadeSections the cascade sections sharing the common target
    */
   CascadeExpression(Expression target, List<Expression> cascadeSections) {
-    this._cascadeSections = new NodeList<Expression>(this);
-    this._target = becomeParentOf(target);
-    this._cascadeSections.addAll(cascadeSections);
+    _target = becomeParentOf(target);
+    _cascadeSections = new NodeList<Expression>(this, cascadeSections);
   }
 
   @override
@@ -3745,7 +3623,7 @@ class CascadeExpression extends Expression {
    * @param target the target of the cascade sections
    */
   void set target(Expression target) {
-    this._target = becomeParentOf(target);
+    _target = becomeParentOf(target);
   }
 
   @override
@@ -3787,7 +3665,7 @@ class CatchClause extends AstNode {
   /**
    * The left parenthesis.
    */
-  Token _leftParenthesis;
+  Token leftParenthesis;
 
   /**
    * The parameter whose value will be the exception that was thrown.
@@ -3809,7 +3687,7 @@ class CatchClause extends AstNode {
   /**
    * The right parenthesis.
    */
-  Token _rightParenthesis;
+  Token rightParenthesis;
 
   /**
    * The body of the catch block.
@@ -3829,13 +3707,11 @@ class CatchClause extends AstNode {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the catch block
    */
-  CatchClause(this.onKeyword, TypeName exceptionType, this.catchKeyword, Token leftParenthesis, SimpleIdentifier exceptionParameter, this.comma, SimpleIdentifier stackTraceParameter, Token rightParenthesis, Block body) {
-    this._exceptionType = becomeParentOf(exceptionType);
-    this._leftParenthesis = leftParenthesis;
-    this._exceptionParameter = becomeParentOf(exceptionParameter);
-    this._stackTraceParameter = becomeParentOf(stackTraceParameter);
-    this._rightParenthesis = rightParenthesis;
-    this._body = becomeParentOf(body);
+  CatchClause(this.onKeyword, TypeName exceptionType, this.catchKeyword, this.leftParenthesis, SimpleIdentifier exceptionParameter, this.comma, SimpleIdentifier stackTraceParameter, this.rightParenthesis, Block body) {
+    _exceptionType = becomeParentOf(exceptionType);
+    _exceptionParameter = becomeParentOf(exceptionParameter);
+    _stackTraceParameter = becomeParentOf(stackTraceParameter);
+    _body = becomeParentOf(body);
   }
 
   @override
@@ -3875,20 +3751,6 @@ class CatchClause extends AstNode {
   TypeName get exceptionType => _exceptionType;
 
   /**
-   * Return the left parenthesis.
-   *
-   * @return the left parenthesis
-   */
-  Token get leftParenthesis => _leftParenthesis;
-
-  /**
-   * Return the right parenthesis.
-   *
-   * @return the right parenthesis
-   */
-  Token get rightParenthesis => _rightParenthesis;
-
-  /**
    * Return the parameter whose value will be the stack trace associated with the exception, or
    * `null` if there is no stack trace parameter.
    *
@@ -3920,25 +3782,7 @@ class CatchClause extends AstNode {
    * @param exceptionType the type of exceptions caught by this catch clause
    */
   void set exceptionType(TypeName exceptionType) {
-    this._exceptionType = becomeParentOf(exceptionType);
-  }
-
-  /**
-   * Set the left parenthesis to the given token.
-   *
-   * @param parenthesis the left parenthesis
-   */
-  void set leftParenthesis(Token parenthesis) {
-    _leftParenthesis = parenthesis;
-  }
-
-  /**
-   * Set the right parenthesis to the given token.
-   *
-   * @param parenthesis the right parenthesis
-   */
-  void set rightParenthesis(Token parenthesis) {
-    _rightParenthesis = parenthesis;
+    _exceptionType = becomeParentOf(exceptionType);
   }
 
   /**
@@ -4047,13 +3891,12 @@ class ClassDeclaration extends CompilationUnitMember {
    * @param rightBracket the right curly bracket
    */
   ClassDeclaration(Comment comment, List<Annotation> metadata, this.abstractKeyword, this.classKeyword, SimpleIdentifier name, TypeParameterList typeParameters, ExtendsClause extendsClause, WithClause withClause, ImplementsClause implementsClause, this.leftBracket, List<ClassMember> members, this.rightBracket) : super(comment, metadata) {
-    this._members = new NodeList<ClassMember>(this);
-    this._name = becomeParentOf(name);
-    this._typeParameters = becomeParentOf(typeParameters);
-    this._extendsClause = becomeParentOf(extendsClause);
-    this._withClause = becomeParentOf(withClause);
-    this._implementsClause = becomeParentOf(implementsClause);
-    this._members.addAll(members);
+    _name = becomeParentOf(name);
+    _typeParameters = becomeParentOf(typeParameters);
+    _extendsClause = becomeParentOf(extendsClause);
+    _withClause = becomeParentOf(withClause);
+    _implementsClause = becomeParentOf(implementsClause);
+    _members = new NodeList<ClassMember>(this, members);
   }
 
   @override
@@ -4194,7 +4037,7 @@ class ClassDeclaration extends CompilationUnitMember {
    * @param extendsClause the extends clause for this class
    */
   void set extendsClause(ExtendsClause extendsClause) {
-    this._extendsClause = becomeParentOf(extendsClause);
+    _extendsClause = becomeParentOf(extendsClause);
   }
 
   /**
@@ -4203,7 +4046,7 @@ class ClassDeclaration extends CompilationUnitMember {
    * @param implementsClause the implements clause for the class
    */
   void set implementsClause(ImplementsClause implementsClause) {
-    this._implementsClause = becomeParentOf(implementsClause);
+    _implementsClause = becomeParentOf(implementsClause);
   }
 
   /**
@@ -4221,7 +4064,7 @@ class ClassDeclaration extends CompilationUnitMember {
    * @param nativeClause the native clause for this class
    */
   void set nativeClause(NativeClause nativeClause) {
-    this._nativeClause = becomeParentOf(nativeClause);
+    _nativeClause = becomeParentOf(nativeClause);
   }
 
   /**
@@ -4230,7 +4073,7 @@ class ClassDeclaration extends CompilationUnitMember {
    * @param typeParameters the type parameters for the class
    */
   void set typeParameters(TypeParameterList typeParameters) {
-    this._typeParameters = becomeParentOf(typeParameters);
+    _typeParameters = becomeParentOf(typeParameters);
   }
 
   /**
@@ -4239,7 +4082,7 @@ class ClassDeclaration extends CompilationUnitMember {
    * @param withClause the with clause for the class
    */
   void set withClause(WithClause withClause) {
-    this._withClause = becomeParentOf(withClause);
+    _withClause = becomeParentOf(withClause);
   }
 
   @override
@@ -4342,11 +4185,11 @@ class ClassTypeAlias extends TypeAlias {
    * @param semicolon the semicolon terminating the declaration
    */
   ClassTypeAlias(Comment comment, List<Annotation> metadata, Token keyword, SimpleIdentifier name, TypeParameterList typeParameters, this.equals, this.abstractKeyword, TypeName superclass, WithClause withClause, ImplementsClause implementsClause, Token semicolon) : super(comment, metadata, keyword, semicolon) {
-    this._name = becomeParentOf(name);
-    this._typeParameters = becomeParentOf(typeParameters);
-    this._superclass = becomeParentOf(superclass);
-    this._withClause = becomeParentOf(withClause);
-    this._implementsClause = becomeParentOf(implementsClause);
+    _name = becomeParentOf(name);
+    _typeParameters = becomeParentOf(typeParameters);
+    _superclass = becomeParentOf(superclass);
+    _withClause = becomeParentOf(withClause);
+    _implementsClause = becomeParentOf(implementsClause);
   }
 
   @override
@@ -4404,7 +4247,7 @@ class ClassTypeAlias extends TypeAlias {
    * @param implementsClause the implements clause for this class
    */
   void set implementsClause(ImplementsClause implementsClause) {
-    this._implementsClause = becomeParentOf(implementsClause);
+    _implementsClause = becomeParentOf(implementsClause);
   }
 
   /**
@@ -4413,7 +4256,7 @@ class ClassTypeAlias extends TypeAlias {
    * @param name the name of the class being declared
    */
   void set name(SimpleIdentifier name) {
-    this._name = becomeParentOf(name);
+    _name = becomeParentOf(name);
   }
 
   /**
@@ -4422,7 +4265,7 @@ class ClassTypeAlias extends TypeAlias {
    * @param superclass the name of the superclass of the class being declared
    */
   void set superclass(TypeName superclass) {
-    this._superclass = becomeParentOf(superclass);
+    _superclass = becomeParentOf(superclass);
   }
 
   /**
@@ -4431,7 +4274,7 @@ class ClassTypeAlias extends TypeAlias {
    * @param typeParameters the type parameters for the class
    */
   void set typeParameters(TypeParameterList typeParameters) {
-    this._typeParameters = becomeParentOf(typeParameters);
+    _typeParameters = becomeParentOf(typeParameters);
   }
 
   /**
@@ -4440,7 +4283,7 @@ class ClassTypeAlias extends TypeAlias {
    * @param withClause the with clause for this class
    */
   void set withClause(WithClause withClause) {
-    this._withClause = becomeParentOf(withClause);
+    _withClause = becomeParentOf(withClause);
   }
 
   @override
@@ -4560,8 +4403,7 @@ class Comment extends AstNode {
    * @param references the references embedded within the documentation comment
    */
   Comment(this.tokens, this._type, List<CommentReference> references) {
-    this._references = new NodeList<CommentReference>(this);
-    this._references.addAll(references);
+    _references = new NodeList<CommentReference>(this, references);
   }
 
   @override
@@ -4634,7 +4476,7 @@ class CommentReference extends AstNode {
    * @param identifier the identifier being referenced
    */
   CommentReference(this.newKeyword, Identifier identifier) {
-    this._identifier = becomeParentOf(identifier);
+    _identifier = becomeParentOf(identifier);
   }
 
   @override
@@ -4659,7 +4501,7 @@ class CommentReference extends AstNode {
    * @param identifier the identifier being referenced
    */
   void set identifier(Identifier identifier) {
-    this._identifier = becomeParentOf(identifier);
+    _identifier = becomeParentOf(identifier);
   }
 
   @override
@@ -4669,28 +4511,37 @@ class CommentReference extends AstNode {
 }
 
 /**
- * The enumeration `CommentType` encodes all the different types of comments that are
- * recognized by the parser.
+ * The enumeration `CommentType` encodes all the different types of comments
+ * that are recognized by the parser.
  */
-class CommentType extends Enum<CommentType> {
+class CommentType {
   /**
-   * An end-of-line comment.
+   * The name of the comment type.
    */
-  static const CommentType END_OF_LINE = const CommentType('END_OF_LINE', 0);
+  final String name;
 
   /**
    * A block comment.
    */
-  static const CommentType BLOCK = const CommentType('BLOCK', 1);
+  static const CommentType BLOCK = const CommentType('BLOCK');
 
   /**
    * A documentation comment.
    */
-  static const CommentType DOCUMENTATION = const CommentType('DOCUMENTATION', 2);
+  static const CommentType DOCUMENTATION = const CommentType('DOCUMENTATION');
 
-  static const List<CommentType> values = const [END_OF_LINE, BLOCK, DOCUMENTATION];
+  /**
+   * An end-of-line comment.
+   */
+  static const CommentType END_OF_LINE = const CommentType('END_OF_LINE');
 
-  const CommentType(String name, int ordinal) : super(name, ordinal);
+  /**
+   * Initialize a newly created comment type to have the given [name].
+   */
+  const CommentType(this.name);
+
+  @override
+  String toString() => name;
 }
 
 /**
@@ -4766,11 +4617,9 @@ class CompilationUnit extends AstNode {
    * @param endToken the last token in the token stream
    */
   CompilationUnit(this.beginToken, ScriptTag scriptTag, List<Directive> directives, List<CompilationUnitMember> declarations, this.endToken) {
-    this._directives = new NodeList<Directive>(this);
-    this._declarations = new NodeList<CompilationUnitMember>(this);
-    this._scriptTag = becomeParentOf(scriptTag);
-    this._directives.addAll(directives);
-    this._declarations.addAll(declarations);
+    _scriptTag = becomeParentOf(scriptTag);
+    _directives = new NodeList<Directive>(this, directives);
+    _declarations = new NodeList<CompilationUnitMember>(this, declarations);
   }
 
   @override
@@ -4816,7 +4665,7 @@ class CompilationUnit extends AstNode {
    * @param scriptTag the script tag at the beginning of the compilation unit
    */
   void set scriptTag(ScriptTag scriptTag) {
-    this._scriptTag = becomeParentOf(scriptTag);
+    _scriptTag = becomeParentOf(scriptTag);
   }
 
   @override
@@ -4931,9 +4780,9 @@ class ConditionalExpression extends Expression {
    *          `false`
    */
   ConditionalExpression(Expression condition, this.question, Expression thenExpression, this.colon, Expression elseExpression) {
-    this._condition = becomeParentOf(condition);
-    this._thenExpression = becomeParentOf(thenExpression);
-    this._elseExpression = becomeParentOf(elseExpression);
+    _condition = becomeParentOf(condition);
+    _thenExpression = becomeParentOf(thenExpression);
+    _elseExpression = becomeParentOf(elseExpression);
   }
 
   @override
@@ -5481,13 +5330,12 @@ class ConstructorDeclaration extends ClassMember {
    * @param body the body of the constructor
    */
   ConstructorDeclaration(Comment comment, List<Annotation> metadata, this.externalKeyword, this.constKeyword, this.factoryKeyword, Identifier returnType, this.period, SimpleIdentifier name, FormalParameterList parameters, this.separator, List<ConstructorInitializer> initializers, ConstructorName redirectedConstructor, FunctionBody body) : super(comment, metadata) {
-    this._initializers = new NodeList<ConstructorInitializer>(this);
-    this._returnType = becomeParentOf(returnType);
-    this._name = becomeParentOf(name);
-    this._parameters = becomeParentOf(parameters);
-    this._initializers.addAll(initializers);
-    this._redirectedConstructor = becomeParentOf(redirectedConstructor);
-    this._body = becomeParentOf(body);
+    _returnType = becomeParentOf(returnType);
+    _name = becomeParentOf(name);
+    _parameters = becomeParentOf(parameters);
+    _initializers = new NodeList<ConstructorInitializer>(this, initializers);
+    _redirectedConstructor = becomeParentOf(redirectedConstructor);
+    _body = becomeParentOf(body);
   }
 
   @override
@@ -5573,7 +5421,7 @@ class ConstructorDeclaration extends ClassMember {
    * @param parameters the parameters associated with the constructor
    */
   void set parameters(FormalParameterList parameters) {
-    this._parameters = becomeParentOf(parameters);
+    _parameters = becomeParentOf(parameters);
   }
 
   /**
@@ -5584,7 +5432,7 @@ class ConstructorDeclaration extends ClassMember {
    *          redirected
    */
   void set redirectedConstructor(ConstructorName redirectedConstructor) {
-    this._redirectedConstructor = becomeParentOf(redirectedConstructor);
+    _redirectedConstructor = becomeParentOf(redirectedConstructor);
   }
 
   /**
@@ -5609,29 +5457,11 @@ class ConstructorDeclaration extends ClassMember {
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    Token leftMost = _leftMost([externalKeyword, constKeyword, factoryKeyword]);
+    Token leftMost = Token.lexicallyFirst([externalKeyword, constKeyword, factoryKeyword]);
     if (leftMost != null) {
       return leftMost;
     }
     return _returnType.beginToken;
-  }
-
-  /**
-   * Return the left-most of the given tokens, or `null` if there are no tokens given or if
-   * all of the given tokens are `null`.
-   *
-   * @param tokens the tokens being compared to find the left-most token
-   * @return the left-most of the given tokens
-   */
-  Token _leftMost(List<Token> tokens) {
-    Token leftMost = null;
-    int offset = 2147483647;
-    for (Token token in tokens) {
-      if (token != null && token.offset < offset) {
-        leftMost = token;
-      }
-    }
-    return leftMost;
   }
 }
 
@@ -5682,8 +5512,8 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
    * @param expression the expression computing the value to which the field will be initialized
    */
   ConstructorFieldInitializer(this.keyword, this.period, SimpleIdentifier fieldName, this.equals, Expression expression) {
-    this._fieldName = becomeParentOf(fieldName);
-    this._expression = becomeParentOf(expression);
+    _fieldName = becomeParentOf(fieldName);
+    _expression = becomeParentOf(expression);
   }
 
   @override
@@ -5721,7 +5551,7 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
    * @param expression the expression computing the value to which the field will be initialized
    */
   void set expression(Expression expression) {
-    this._expression = becomeParentOf(expression);
+    _expression = becomeParentOf(expression);
   }
 
   /**
@@ -5784,7 +5614,7 @@ class ConstructorName extends AstNode {
    * `null` if the AST structure has not been resolved or if this constructor name could not
    * be resolved.
    */
-  ConstructorElement _staticElement;
+  ConstructorElement staticElement;
 
   /**
    * Initialize a newly created constructor name.
@@ -5794,8 +5624,8 @@ class ConstructorName extends AstNode {
    * @param name the name of the constructor
    */
   ConstructorName(TypeName type, this.period, SimpleIdentifier name) {
-    this._type = becomeParentOf(type);
-    this._name = becomeParentOf(name);
+    _type = becomeParentOf(type);
+    _name = becomeParentOf(name);
   }
 
   @override
@@ -5821,15 +5651,6 @@ class ConstructorName extends AstNode {
   SimpleIdentifier get name => _name;
 
   /**
-   * Return the element associated with this constructor name based on static type information, or
-   * `null` if the AST structure has not been resolved or if this constructor name could not
-   * be resolved.
-   *
-   * @return the element associated with this constructor name
-   */
-  ConstructorElement get staticElement => _staticElement;
-
-  /**
    * Return the name of the type defining the constructor.
    *
    * @return the name of the type defining the constructor
@@ -5842,17 +5663,7 @@ class ConstructorName extends AstNode {
    * @param name the name of the constructor
    */
   void set name(SimpleIdentifier name) {
-    this._name = becomeParentOf(name);
-  }
-
-  /**
-   * Set the element associated with this constructor name based on static type information to the
-   * given element.
-   *
-   * @param element the element to be associated with this constructor name
-   */
-  void set staticElement(ConstructorElement element) {
-    _staticElement = element;
+    _name = becomeParentOf(name);
   }
 
   /**
@@ -5861,7 +5672,7 @@ class ConstructorName extends AstNode {
    * @param type the name of the type defining the constructor
    */
   void set type(TypeName type) {
-    this._type = becomeParentOf(type);
+    _type = becomeParentOf(type);
   }
 
   @override
@@ -5903,7 +5714,7 @@ class ContinueStatement extends Statement {
    * @param semicolon the semicolon terminating the statement
    */
   ContinueStatement(this.keyword, SimpleIdentifier label, this.semicolon) {
-    this._label = becomeParentOf(label);
+    _label = becomeParentOf(label);
   }
 
   @override
@@ -5965,7 +5776,7 @@ abstract class Declaration extends AnnotatedNode {
  *
  * <pre>
  * declaredIdentifier ::=
- *     ([Annotation] finalConstVarOrType [SimpleIdentifier]
+ *     [Annotation] finalConstVarOrType [SimpleIdentifier]
  * </pre>
  */
 class DeclaredIdentifier extends Declaration {
@@ -5996,8 +5807,8 @@ class DeclaredIdentifier extends Declaration {
    * @param identifier the name of the parameter being declared
    */
   DeclaredIdentifier(Comment comment, List<Annotation> metadata, this.keyword, TypeName type, SimpleIdentifier identifier) : super(comment, metadata) {
-    this._type = becomeParentOf(type);
-    this._identifier = becomeParentOf(identifier);
+    _type = becomeParentOf(type);
+    _identifier = becomeParentOf(identifier);
   }
 
   @override
@@ -6005,11 +5816,10 @@ class DeclaredIdentifier extends Declaration {
 
   @override
   LocalVariableElement get element {
-    SimpleIdentifier identifier = this.identifier;
-    if (identifier == null) {
+    if (_identifier == null) {
       return null;
     }
-    return identifier.staticElement as LocalVariableElement;
+    return _identifier.staticElement as LocalVariableElement;
   }
 
   @override
@@ -6052,7 +5862,7 @@ class DeclaredIdentifier extends Declaration {
    * @param identifier the new name of the variable being declared
    */
   void set identifier(SimpleIdentifier identifier) {
-    this._identifier = becomeParentOf(identifier);
+    _identifier = becomeParentOf(identifier);
   }
 
   /**
@@ -6127,8 +5937,8 @@ class DefaultFormalParameter extends FormalParameter {
    * @param defaultValue the expression computing the default value for the parameter
    */
   DefaultFormalParameter(NormalFormalParameter parameter, this.kind, this.separator, Expression defaultValue) {
-    this._parameter = becomeParentOf(parameter);
-    this._defaultValue = becomeParentOf(defaultValue);
+    _parameter = becomeParentOf(parameter);
+    _defaultValue = becomeParentOf(defaultValue);
   }
 
   @override
@@ -6211,9 +6021,7 @@ class DeferredLibraryReferenceDetector extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitPrefixedIdentifier(PrefixedIdentifier node) {
-    // If result is already true, skip.
     if (!_result) {
-      // Set result to true if isDeferred() is true
       if (node.isDeferred) {
         _result = true;
       }
@@ -6240,7 +6048,7 @@ abstract class Directive extends AnnotatedNode {
    * The element associated with this directive, or `null` if the AST structure has not been
    * resolved or if this directive could not be resolved.
    */
-  Element _element;
+  Element element;
 
   /**
    * Initialize a newly create directive.
@@ -6251,30 +6059,12 @@ abstract class Directive extends AnnotatedNode {
   Directive(Comment comment, List<Annotation> metadata) : super(comment, metadata);
 
   /**
-   * Return the element associated with this directive, or `null` if the AST structure has not
-   * been resolved or if this directive could not be resolved. Examples of the latter case include a
-   * directive that contains an invalid URL or a URL that does not exist.
-   *
-   * @return the element associated with this directive
-   */
-  Element get element => _element;
-
-  /**
    * Return the token representing the keyword that introduces this directive ('import', 'export',
    * 'library' or 'part').
    *
    * @return the token representing the keyword that introduces this directive
    */
   Token get keyword;
-
-  /**
-   * Set the element associated with this directive to the given element.
-   *
-   * @param element the element associated with this directive
-   */
-  void set element(Element element) {
-    this._element = element;
-  }
 }
 
 /**
@@ -6304,7 +6094,7 @@ class DoStatement extends Statement {
   /**
    * The left parenthesis.
    */
-  Token _leftParenthesis;
+  Token leftParenthesis;
 
   /**
    * The condition that determines when the loop will terminate.
@@ -6314,7 +6104,7 @@ class DoStatement extends Statement {
   /**
    * The right parenthesis.
    */
-  Token _rightParenthesis;
+  Token rightParenthesis;
 
   /**
    * The semicolon terminating the statement.
@@ -6332,11 +6122,9 @@ class DoStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param semicolon the semicolon terminating the statement
    */
-  DoStatement(this.doKeyword, Statement body, this.whileKeyword, Token leftParenthesis, Expression condition, Token rightParenthesis, this.semicolon) {
-    this._body = becomeParentOf(body);
-    this._leftParenthesis = leftParenthesis;
-    this._condition = becomeParentOf(condition);
-    this._rightParenthesis = rightParenthesis;
+  DoStatement(this.doKeyword, Statement body, this.whileKeyword, this.leftParenthesis, Expression condition, this.rightParenthesis, this.semicolon) {
+    _body = becomeParentOf(body);
+    _condition = becomeParentOf(condition);
   }
 
   @override
@@ -6363,20 +6151,6 @@ class DoStatement extends Statement {
   Token get endToken => semicolon;
 
   /**
-   * Return the left parenthesis.
-   *
-   * @return the left parenthesis
-   */
-  Token get leftParenthesis => _leftParenthesis;
-
-  /**
-   * Return the right parenthesis.
-   *
-   * @return the right parenthesis
-   */
-  Token get rightParenthesis => _rightParenthesis;
-
-  /**
    * Set the body of the loop to the given statement.
    *
    * @param statement the body of the loop
@@ -6392,24 +6166,6 @@ class DoStatement extends Statement {
    */
   void set condition(Expression expression) {
     _condition = becomeParentOf(expression);
-  }
-
-  /**
-   * Set the left parenthesis to the given token.
-   *
-   * @param parenthesis the left parenthesis
-   */
-  void set leftParenthesis(Token parenthesis) {
-    _leftParenthesis = parenthesis;
-  }
-
-  /**
-   * Set the right parenthesis to the given token.
-   *
-   * @param parenthesis the right parenthesis
-   */
-  void set rightParenthesis(Token parenthesis) {
-    _rightParenthesis = parenthesis;
   }
 
   @override
@@ -6493,26 +6249,25 @@ class ElementLocator {
       return null;
     }
     // try to get Element from node
-    {
-      Element nodeElement = locate(node);
-      if (nodeElement != null) {
-        return nodeElement;
-      }
+    Element nodeElement = locate(node);
+    if (nodeElement != null) {
+      return nodeElement;
     }
-    // try to get Angular specific Element
-    {
-      Element element = null;
-      if (element != null) {
-        return element;
-      }
-    }
-    // try to get Polymer specific Element
-    {
-      Element element = null;
-      if (element != null) {
-        return element;
-      }
-    }
+    // TODO(brianwilkerson) Implement or delete the code below.
+//    // try to get Angular specific Element
+//    {
+//      Element element = null;
+//      if (element != null) {
+//        return element;
+//      }
+//    }
+//    // try to get Polymer specific Element
+//    {
+//      Element element = null;
+//      if (element != null) {
+//        return element;
+//      }
+//    }
     // no Element
     return null;
   }
@@ -6711,7 +6466,7 @@ class EnumConstantDeclaration extends Declaration {
    * @param name the name of the constant
    */
   EnumConstantDeclaration(Comment comment, List<Annotation> metadata, SimpleIdentifier name) : super(comment, metadata) {
-    this._name = becomeParentOf(name);
+    _name = becomeParentOf(name);
   }
 
   @override
@@ -6736,7 +6491,7 @@ class EnumConstantDeclaration extends Declaration {
    * @param name the name of the constant
    */
   void set name(SimpleIdentifier name) {
-    this._name = becomeParentOf(name);
+    _name = becomeParentOf(name);
   }
 
   @override
@@ -6795,9 +6550,8 @@ class EnumDeclaration extends CompilationUnitMember {
    * @param rightBracket the right curly bracket
    */
   EnumDeclaration(Comment comment, List<Annotation> metadata, this.keyword, SimpleIdentifier name, this.leftBracket, List<EnumConstantDeclaration> constants, this.rightBracket) : super(comment, metadata) {
-    this._constants = new NodeList<EnumConstantDeclaration>(this);
-    this._name = becomeParentOf(name);
-    this._constants.addAll(constants);
+    _name = becomeParentOf(name);
+    _constants = new NodeList<EnumConstantDeclaration>(this, constants);
   }
 
   @override
@@ -6829,7 +6583,7 @@ class EnumDeclaration extends CompilationUnitMember {
    * @param name the name of the enumeration
    */
   void set name(SimpleIdentifier name) {
-    this._name = becomeParentOf(name);
+    _name = becomeParentOf(name);
   }
 
   @override
@@ -6881,9 +6635,8 @@ class ExportDirective extends NamespaceDirective {
 
   @override
   LibraryElement get uriElement {
-    ExportElement exportElement = element;
-    if (exportElement != null) {
-      return exportElement.exportedLibrary;
+    if (element != null) {
+      return element.exportedLibrary;
     }
     return null;
   }
@@ -6908,11 +6661,6 @@ class ExportDirective extends NamespaceDirective {
  */
 abstract class Expression extends AstNode {
   /**
-   * An empty list of expressions.
-   */
-  static const List<Expression> EMPTY_ARRAY = const <Expression>[];
-
-  /**
    * The static type of this expression, or `null` if the AST structure has not been resolved.
    */
   DartType staticType;
@@ -6922,6 +6670,11 @@ abstract class Expression extends AstNode {
    * performed on the AST structure.
    */
   DartType propagatedType;
+
+  /**
+   * An empty list of expressions.
+   */
+  static const List<Expression> EMPTY_ARRAY = const <Expression>[];
 
   /**
    * Return the best parameter element information available for this expression. If type
@@ -7092,7 +6845,7 @@ class ExpressionFunctionBody extends FunctionBody {
    * @param semicolon the semicolon terminating the statement
    */
   ExpressionFunctionBody(this.keyword, this.functionDefinition, Expression expression, this.semicolon) {
-    this._expression = becomeParentOf(expression);
+    _expression = becomeParentOf(expression);
   }
 
   @override
@@ -7128,7 +6881,7 @@ class ExpressionFunctionBody extends FunctionBody {
    * @param expression the expression representing the body of the function
    */
   void set expression(Expression expression) {
-    this._expression = becomeParentOf(expression);
+    _expression = becomeParentOf(expression);
   }
 
   @override
@@ -7164,7 +6917,7 @@ class ExpressionStatement extends Statement {
    * @param semicolon the semicolon terminating the statement
    */
   ExpressionStatement(Expression expression, this.semicolon) {
-    this._expression = becomeParentOf(expression);
+    _expression = becomeParentOf(expression);
   }
 
   @override
@@ -7197,7 +6950,7 @@ class ExpressionStatement extends Statement {
    * @param expression the expression that comprises the statement
    */
   void set expression(Expression expression) {
-    this._expression = becomeParentOf(expression);
+    _expression = becomeParentOf(expression);
   }
 
   @override
@@ -7233,7 +6986,7 @@ class ExtendsClause extends AstNode {
    * @param superclass the name of the class that is being extended
    */
   ExtendsClause(this.keyword, TypeName superclass) {
-    this._superclass = becomeParentOf(superclass);
+    _superclass = becomeParentOf(superclass);
   }
 
   @override
@@ -7302,7 +7055,7 @@ class FieldDeclaration extends ClassMember {
    * @param semicolon the semicolon terminating the declaration
    */
   FieldDeclaration(Comment comment, List<Annotation> metadata, this.staticKeyword, VariableDeclarationList fieldList, this.semicolon) : super(comment, metadata) {
-    this._fieldList = becomeParentOf(fieldList);
+    _fieldList = becomeParentOf(fieldList);
   }
 
   @override
@@ -7334,7 +7087,7 @@ class FieldDeclaration extends ClassMember {
    * @param fieldList the fields being declared
    */
   void set fields(VariableDeclarationList fieldList) {
-    this._fieldList = becomeParentOf(fieldList);
+    _fieldList = becomeParentOf(fieldList);
   }
 
   @override
@@ -7403,8 +7156,8 @@ class FieldFormalParameter extends NormalFormalParameter {
    *          not a function-typed field formal parameter
    */
   FieldFormalParameter(Comment comment, List<Annotation> metadata, this.keyword, TypeName type, this.thisToken, this.period, SimpleIdentifier identifier, FormalParameterList parameters) : super(comment, metadata, identifier) {
-    this._type = becomeParentOf(type);
-    this._parameters = becomeParentOf(parameters);
+    _type = becomeParentOf(type);
+    _parameters = becomeParentOf(parameters);
   }
 
   @override
@@ -7452,7 +7205,7 @@ class FieldFormalParameter extends NormalFormalParameter {
    * @param parameters the parameters of the function-typed parameter
    */
   void set parameters(FormalParameterList parameters) {
-    this._parameters = becomeParentOf(parameters);
+    _parameters = becomeParentOf(parameters);
   }
 
   /**
@@ -7541,9 +7294,9 @@ class ForEachStatement extends Statement {
    * @param body the body of the loop
    */
   ForEachStatement.con1(this.awaitKeyword, this.forKeyword, this.leftParenthesis, DeclaredIdentifier loopVariable, this.inKeyword, Expression iterator, this.rightParenthesis, Statement body) {
-    this._loopVariable = becomeParentOf(loopVariable);
-    this._iterable = becomeParentOf(iterator);
-    this._body = becomeParentOf(body);
+    _loopVariable = becomeParentOf(loopVariable);
+    _iterable = becomeParentOf(iterator);
+    _body = becomeParentOf(body);
   }
 
   /**
@@ -7558,9 +7311,9 @@ class ForEachStatement extends Statement {
    * @param body the body of the loop
    */
   ForEachStatement.con2(this.awaitKeyword, this.forKeyword, this.leftParenthesis, SimpleIdentifier identifier, this.inKeyword, Expression iterator, this.rightParenthesis, Statement body) {
-    this._identifier = becomeParentOf(identifier);
-    this._iterable = becomeParentOf(iterator);
-    this._body = becomeParentOf(body);
+    _identifier = becomeParentOf(identifier);
+    _iterable = becomeParentOf(iterator);
+    _body = becomeParentOf(body);
   }
 
   @override
@@ -7607,7 +7360,7 @@ class ForEachStatement extends Statement {
    * @param body the body of the loop
    */
   void set body(Statement body) {
-    this._body = becomeParentOf(body);
+    _body = becomeParentOf(body);
   }
 
   /**
@@ -7616,7 +7369,7 @@ class ForEachStatement extends Statement {
    * @param identifier the loop variable
    */
   void set identifier(SimpleIdentifier identifier) {
-    this._identifier = becomeParentOf(identifier);
+    _identifier = becomeParentOf(identifier);
   }
 
   /**
@@ -7732,12 +7485,11 @@ class ForStatement extends Statement {
    * @param body the body of the loop
    */
   ForStatement(this.forKeyword, this.leftParenthesis, VariableDeclarationList variableList, Expression initialization, this.leftSeparator, Expression condition, this.rightSeparator, List<Expression> updaters, this.rightParenthesis, Statement body) {
-    this._updaters = new NodeList<Expression>(this);
-    this._variableList = becomeParentOf(variableList);
-    this._initialization = becomeParentOf(initialization);
-    this._condition = becomeParentOf(condition);
-    this._updaters.addAll(updaters);
-    this._body = becomeParentOf(body);
+    _variableList = becomeParentOf(variableList);
+    _initialization = becomeParentOf(initialization);
+    _condition = becomeParentOf(condition);
+    _updaters = new NodeList<Expression>(this, updaters);
+    _body = becomeParentOf(body);
   }
 
   @override
@@ -7791,7 +7543,7 @@ class ForStatement extends Statement {
    * @param body the body of the loop
    */
   void set body(Statement body) {
-    this._body = becomeParentOf(body);
+    _body = becomeParentOf(body);
   }
 
   /**
@@ -7809,7 +7561,7 @@ class ForStatement extends Statement {
    * @param initialization the initialization expression
    */
   void set initialization(Expression initialization) {
-    this._initialization = becomeParentOf(initialization);
+    _initialization = becomeParentOf(initialization);
   }
 
   /**
@@ -7818,7 +7570,7 @@ class ForStatement extends Statement {
    * @param variableList the declaration of the loop variables
    */
   void set variables(VariableDeclarationList variableList) {
-    this._variableList = becomeParentOf(variableList);
+    _variableList = becomeParentOf(variableList);
   }
 
   @override
@@ -7920,7 +7672,7 @@ class FormalParameterList extends AstNode {
   /**
    * The left parenthesis.
    */
-  Token _leftParenthesis;
+  Token leftParenthesis;
 
   /**
    * The parameters associated with the method.
@@ -7931,18 +7683,18 @@ class FormalParameterList extends AstNode {
    * The left square bracket ('[') or left curly brace ('{') introducing the optional parameters, or
    * `null` if there are no optional parameters.
    */
-  Token _leftDelimiter;
+  Token leftDelimiter;
 
   /**
    * The right square bracket (']') or right curly brace ('}') introducing the optional parameters,
    * or `null` if there are no optional parameters.
    */
-  Token _rightDelimiter;
+  Token rightDelimiter;
 
   /**
    * The right parenthesis.
    */
-  Token _rightParenthesis;
+  Token rightParenthesis;
 
   /**
    * Initialize a newly created parameter list.
@@ -7953,39 +7705,18 @@ class FormalParameterList extends AstNode {
    * @param rightDelimiter the right delimiter introducing the optional parameters
    * @param rightParenthesis the right parenthesis
    */
-  FormalParameterList(Token leftParenthesis, List<FormalParameter> parameters, Token leftDelimiter, Token rightDelimiter, Token rightParenthesis) {
-    this._parameters = new NodeList<FormalParameter>(this);
-    this._leftParenthesis = leftParenthesis;
-    this._parameters.addAll(parameters);
-    this._leftDelimiter = leftDelimiter;
-    this._rightDelimiter = rightDelimiter;
-    this._rightParenthesis = rightParenthesis;
+  FormalParameterList(this.leftParenthesis, List<FormalParameter> parameters, this.leftDelimiter, this.rightDelimiter, this.rightParenthesis) {
+    _parameters = new NodeList<FormalParameter>(this, parameters);
   }
 
   @override
   accept(AstVisitor visitor) => visitor.visitFormalParameterList(this);
 
   @override
-  Token get beginToken => _leftParenthesis;
+  Token get beginToken => leftParenthesis;
 
   @override
-  Token get endToken => _rightParenthesis;
-
-  /**
-   * Return the left square bracket ('[') or left curly brace ('{') introducing the optional
-   * parameters, or `null` if there are no optional parameters.
-   *
-   * @return the left square bracket ('[') or left curly brace ('{') introducing the optional
-   *         parameters
-   */
-  Token get leftDelimiter => _leftDelimiter;
-
-  /**
-   * Return the left parenthesis.
-   *
-   * @return the left parenthesis
-   */
-  Token get leftParenthesis => _leftParenthesis;
+  Token get endToken => rightParenthesis;
 
   /**
    * Return an array containing the elements representing the parameters in this list. The array
@@ -8008,60 +7739,6 @@ class FormalParameterList extends AstNode {
    * @return the parameters associated with the method
    */
   NodeList<FormalParameter> get parameters => _parameters;
-
-  /**
-   * Return the right square bracket (']') or right curly brace ('}') introducing the optional
-   * parameters, or `null` if there are no optional parameters.
-   *
-   * @return the right square bracket (']') or right curly brace ('}') introducing the optional
-   *         parameters
-   */
-  Token get rightDelimiter => _rightDelimiter;
-
-  /**
-   * Return the right parenthesis.
-   *
-   * @return the right parenthesis
-   */
-  Token get rightParenthesis => _rightParenthesis;
-
-  /**
-   * Set the left square bracket ('[') or left curly brace ('{') introducing the optional parameters
-   * to the given token.
-   *
-   * @param bracket the left delimiter introducing the optional parameters
-   */
-  void set leftDelimiter(Token bracket) {
-    _leftDelimiter = bracket;
-  }
-
-  /**
-   * Set the left parenthesis to the given token.
-   *
-   * @param parenthesis the left parenthesis
-   */
-  void set leftParenthesis(Token parenthesis) {
-    _leftParenthesis = parenthesis;
-  }
-
-  /**
-   * Set the right square bracket (']') or right curly brace ('}') introducing the optional
-   * parameters to the given token.
-   *
-   * @param bracket the right delimiter introducing the optional parameters
-   */
-  void set rightDelimiter(Token bracket) {
-    _rightDelimiter = bracket;
-  }
-
-  /**
-   * Set the right parenthesis to the given token.
-   *
-   * @param parenthesis the right parenthesis
-   */
-  void set rightParenthesis(Token parenthesis) {
-    _rightParenthesis = parenthesis;
-  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -8170,9 +7847,9 @@ class FunctionDeclaration extends CompilationUnitMember {
    * @param functionExpression the function expression being wrapped
    */
   FunctionDeclaration(Comment comment, List<Annotation> metadata, this.externalKeyword, TypeName returnType, this.propertyKeyword, SimpleIdentifier name, FunctionExpression functionExpression) : super(comment, metadata) {
-    this._returnType = becomeParentOf(returnType);
-    this._name = becomeParentOf(name);
-    this._functionExpression = becomeParentOf(functionExpression);
+    _returnType = becomeParentOf(returnType);
+    _name = becomeParentOf(name);
+    _functionExpression = becomeParentOf(functionExpression);
   }
 
   @override
@@ -8225,7 +7902,7 @@ class FunctionDeclaration extends CompilationUnitMember {
    * @param functionExpression the function expression being wrapped
    */
   void set functionExpression(FunctionExpression functionExpression) {
-    this._functionExpression = becomeParentOf(functionExpression);
+    _functionExpression = becomeParentOf(functionExpression);
   }
 
   /**
@@ -8234,7 +7911,7 @@ class FunctionDeclaration extends CompilationUnitMember {
    * @param identifier the name of the function
    */
   void set name(SimpleIdentifier identifier) {
-    this._name = becomeParentOf(identifier);
+    _name = becomeParentOf(identifier);
   }
 
   /**
@@ -8243,7 +7920,7 @@ class FunctionDeclaration extends CompilationUnitMember {
    * @param returnType the return type of the function
    */
   void set returnType(TypeName returnType) {
-    this._returnType = becomeParentOf(returnType);
+    _returnType = becomeParentOf(returnType);
   }
 
   @override
@@ -8258,8 +7935,7 @@ class FunctionDeclaration extends CompilationUnitMember {
   Token get firstTokenAfterCommentAndMetadata {
     if (externalKeyword != null) {
       return externalKeyword;
-    }
-    if (_returnType != null) {
+    } else if (_returnType != null) {
       return _returnType.beginToken;
     } else if (propertyKeyword != null) {
       return propertyKeyword;
@@ -8286,7 +7962,7 @@ class FunctionDeclarationStatement extends Statement {
    * @param functionDeclaration the the function declaration being wrapped
    */
   FunctionDeclarationStatement(FunctionDeclaration functionDeclaration) {
-    this._functionDeclaration = becomeParentOf(functionDeclaration);
+    _functionDeclaration = becomeParentOf(functionDeclaration);
   }
 
   @override
@@ -8311,7 +7987,7 @@ class FunctionDeclarationStatement extends Statement {
    * @param functionDeclaration the function declaration being wrapped
    */
   void set functionDeclaration(FunctionDeclaration functionDeclaration) {
-    this._functionDeclaration = becomeParentOf(functionDeclaration);
+    _functionDeclaration = becomeParentOf(functionDeclaration);
   }
 
   @override
@@ -8352,8 +8028,8 @@ class FunctionExpression extends Expression {
    * @param body the body of the function
    */
   FunctionExpression(FormalParameterList parameters, FunctionBody body) {
-    this._parameters = becomeParentOf(parameters);
-    this._body = becomeParentOf(body);
+    _parameters = becomeParentOf(parameters);
+    _body = becomeParentOf(body);
   }
 
   @override
@@ -8415,7 +8091,7 @@ class FunctionExpression extends Expression {
    * @param parameters the parameters associated with the function
    */
   void set parameters(FormalParameterList parameters) {
-    this._parameters = becomeParentOf(parameters);
+    _parameters = becomeParentOf(parameters);
   }
 
   @override
@@ -8458,7 +8134,7 @@ class FunctionExpressionInvocation extends Expression {
    * The element associated with the function being invoked based on propagated type information, or
    * `null` if the AST structure has not been resolved or the function could not be resolved.
    */
-  ExecutableElement _propagatedElement;
+  ExecutableElement propagatedElement;
 
   /**
    * Initialize a newly created function expression invocation.
@@ -8467,8 +8143,8 @@ class FunctionExpressionInvocation extends Expression {
    * @param argumentList the list of arguments to the method
    */
   FunctionExpressionInvocation(Expression function, ArgumentList argumentList) {
-    this._function = becomeParentOf(function);
-    this._argumentList = becomeParentOf(argumentList);
+    _function = becomeParentOf(function);
+    _argumentList = becomeParentOf(argumentList);
   }
 
   @override
@@ -8514,22 +8190,12 @@ class FunctionExpressionInvocation extends Expression {
   int get precedence => 15;
 
   /**
-   * Return the element associated with the function being invoked based on propagated type
-   * information, or `null` if the AST structure has not been resolved or the function could
-   * not be resolved. One common example of the latter case is an expression whose value can change
-   * over time.
-   *
-   * @return the element associated with the function being invoked
-   */
-  ExecutableElement get propagatedElement => _propagatedElement;
-
-  /**
    * Set the list of arguments to the method to the given list.
    *
    * @param argumentList the list of arguments to the method
    */
   void set argumentList(ArgumentList argumentList) {
-    this._argumentList = becomeParentOf(argumentList);
+    _argumentList = becomeParentOf(argumentList);
   }
 
   /**
@@ -8538,17 +8204,7 @@ class FunctionExpressionInvocation extends Expression {
    * @param function the expression producing the function being invoked
    */
   void set function(Expression function) {
-    this._function = becomeParentOf(function);
-  }
-
-  /**
-   * Set the element associated with the function being invoked based on propagated type information
-   * to the given element.
-   *
-   * @param element the element to be associated with the function being invoked
-   */
-  void set propagatedElement(ExecutableElement element) {
-    _propagatedElement = element;
+    _function = becomeParentOf(function);
   }
 
   @override
@@ -8605,10 +8261,10 @@ class FunctionTypeAlias extends TypeAlias {
    * @param semicolon the semicolon terminating the declaration
    */
   FunctionTypeAlias(Comment comment, List<Annotation> metadata, Token keyword, TypeName returnType, SimpleIdentifier name, TypeParameterList typeParameters, FormalParameterList parameters, Token semicolon) : super(comment, metadata, keyword, semicolon) {
-    this._returnType = becomeParentOf(returnType);
-    this._name = becomeParentOf(name);
-    this._typeParameters = becomeParentOf(typeParameters);
-    this._parameters = becomeParentOf(parameters);
+    _returnType = becomeParentOf(returnType);
+    _name = becomeParentOf(name);
+    _typeParameters = becomeParentOf(typeParameters);
+    _parameters = becomeParentOf(parameters);
   }
 
   @override
@@ -8653,7 +8309,7 @@ class FunctionTypeAlias extends TypeAlias {
    * @param name the name of the function type being declared
    */
   void set name(SimpleIdentifier name) {
-    this._name = becomeParentOf(name);
+    _name = becomeParentOf(name);
   }
 
   /**
@@ -8662,7 +8318,7 @@ class FunctionTypeAlias extends TypeAlias {
    * @param parameters the parameters associated with the function type
    */
   void set parameters(FormalParameterList parameters) {
-    this._parameters = becomeParentOf(parameters);
+    _parameters = becomeParentOf(parameters);
   }
 
   /**
@@ -8680,7 +8336,7 @@ class FunctionTypeAlias extends TypeAlias {
    * @param typeParameters the type parameters for the function type
    */
   void set typeParameters(TypeParameterList typeParameters) {
-    this._typeParameters = becomeParentOf(typeParameters);
+    _typeParameters = becomeParentOf(typeParameters);
   }
 
   @override
@@ -8724,8 +8380,8 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
    * @param parameters the parameters of the function-typed parameter
    */
   FunctionTypedFormalParameter(Comment comment, List<Annotation> metadata, TypeName returnType, SimpleIdentifier identifier, FormalParameterList parameters) : super(comment, metadata, identifier) {
-    this._returnType = becomeParentOf(returnType);
-    this._parameters = becomeParentOf(parameters);
+    _returnType = becomeParentOf(returnType);
+    _parameters = becomeParentOf(parameters);
   }
 
   @override
@@ -8769,7 +8425,7 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
    * @param parameters the parameters of the function-typed parameter
    */
   void set parameters(FormalParameterList parameters) {
-    this._parameters = becomeParentOf(parameters);
+    _parameters = becomeParentOf(parameters);
   }
 
   /**
@@ -8778,7 +8434,7 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
    * @param returnType the return type of the function
    */
   void set returnType(TypeName returnType) {
-    this._returnType = becomeParentOf(returnType);
+    _returnType = becomeParentOf(returnType);
   }
 
   @override
@@ -9209,8 +8865,7 @@ class HideCombinator extends Combinator {
    * @param hiddenNames the list of names from the library that are hidden by this combinator
    */
   HideCombinator(Token keyword, List<SimpleIdentifier> hiddenNames) : super(keyword) {
-    this._hiddenNames = new NodeList<SimpleIdentifier>(this);
-    this._hiddenNames.addAll(hiddenNames);
+    _hiddenNames = new NodeList<SimpleIdentifier>(this, hiddenNames);
   }
 
   @override
@@ -9350,9 +9005,9 @@ class IfStatement extends Statement {
    * @param elseStatement the statement that is executed if the condition evaluates to `false`
    */
   IfStatement(this.ifKeyword, this.leftParenthesis, Expression condition, this.rightParenthesis, Statement thenStatement, this.elseKeyword, Statement elseStatement) {
-    this._condition = becomeParentOf(condition);
-    this._thenStatement = becomeParentOf(thenStatement);
-    this._elseStatement = becomeParentOf(elseStatement);
+    _condition = becomeParentOf(condition);
+    _thenStatement = becomeParentOf(thenStatement);
+    _elseStatement = becomeParentOf(elseStatement);
   }
 
   @override
@@ -9456,8 +9111,7 @@ class ImplementsClause extends AstNode {
    * @param interfaces the interfaces that are being implemented
    */
   ImplementsClause(this.keyword, List<TypeName> interfaces) {
-    this._interfaces = new NodeList<TypeName>(this);
-    this._interfaces.addAll(interfaces);
+    _interfaces = new NodeList<TypeName>(this, interfaces);
   }
 
   @override
@@ -9613,7 +9267,7 @@ class ImportDirective extends NamespaceDirective {
    * @param semicolon the semicolon terminating the directive
    */
   ImportDirective(Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, this.deferredToken, this.asToken, SimpleIdentifier prefix, List<Combinator> combinators, Token semicolon) : super(comment, metadata, keyword, libraryUri, combinators, semicolon) {
-    this._prefix = becomeParentOf(prefix);
+    _prefix = becomeParentOf(prefix);
   }
 
   @override
@@ -9645,7 +9299,7 @@ class ImportDirective extends NamespaceDirective {
    * @param prefix the prefix to be used with the imported names
    */
   void set prefix(SimpleIdentifier prefix) {
-    this._prefix = becomeParentOf(prefix);
+    _prefix = becomeParentOf(prefix);
   }
 
   @override
@@ -10314,7 +9968,7 @@ class IndexExpression extends Expression {
   /**
    * The left square bracket.
    */
-  Token _leftBracket;
+  Token leftBracket;
 
   /**
    * The expression used to compute the index.
@@ -10324,21 +9978,21 @@ class IndexExpression extends Expression {
   /**
    * The right square bracket.
    */
-  Token _rightBracket;
+  Token rightBracket;
 
   /**
    * The element associated with the operator based on the static type of the target, or
    * `null` if the AST structure has not been resolved or if the operator could not be
    * resolved.
    */
-  MethodElement _staticElement;
+  MethodElement staticElement;
 
   /**
    * The element associated with the operator based on the propagated type of the target, or
    * `null` if the AST structure has not been resolved or if the operator could not be
    * resolved.
    */
-  MethodElement _propagatedElement;
+  MethodElement propagatedElement;
 
   /**
    * If this expression is both in a getter and setter context, the [AuxiliaryElements] will
@@ -10355,11 +10009,9 @@ class IndexExpression extends Expression {
    * @param index the expression used to compute the index
    * @param rightBracket the right square bracket
    */
-  IndexExpression.forTarget(Expression target, Token leftBracket, Expression index, Token rightBracket) {
-    this._target = becomeParentOf(target);
-    this._leftBracket = leftBracket;
-    this._index = becomeParentOf(index);
-    this._rightBracket = rightBracket;
+  IndexExpression.forTarget(Expression target, this.leftBracket, Expression index, this.rightBracket) {
+    _target = becomeParentOf(target);
+    _index = becomeParentOf(index);
   }
 
   /**
@@ -10370,10 +10022,8 @@ class IndexExpression extends Expression {
    * @param index the expression used to compute the index
    * @param rightBracket the right square bracket
    */
-  IndexExpression.forCascade(this.period, Token leftBracket, Expression index, Token rightBracket) {
-    this._leftBracket = leftBracket;
-    this._index = becomeParentOf(index);
-    this._rightBracket = rightBracket;
+  IndexExpression.forCascade(this.period, this.leftBracket, Expression index, this.rightBracket) {
+    _index = becomeParentOf(index);
   }
 
   @override
@@ -10404,7 +10054,7 @@ class IndexExpression extends Expression {
   }
 
   @override
-  Token get endToken => _rightBracket;
+  Token get endToken => rightBracket;
 
   /**
    * Return the expression used to compute the index.
@@ -10413,25 +10063,8 @@ class IndexExpression extends Expression {
    */
   Expression get index => _index;
 
-  /**
-   * Return the left square bracket.
-   *
-   * @return the left square bracket
-   */
-  Token get leftBracket => _leftBracket;
-
   @override
   int get precedence => 15;
-
-  /**
-   * Return the element associated with the operator based on the propagated type of the target, or
-   * `null` if the AST structure has not been resolved or if the operator could not be
-   * resolved. One example of the latter case is an operator that is not defined for the type of the
-   * target.
-   *
-   * @return the element associated with this operator
-   */
-  MethodElement get propagatedElement => _propagatedElement;
 
   /**
    * Return the expression used to compute the object being indexed. If this index expression is not
@@ -10455,23 +10088,6 @@ class IndexExpression extends Expression {
     }
     return _target;
   }
-
-  /**
-   * Return the right square bracket.
-   *
-   * @return the right square bracket
-   */
-  Token get rightBracket => _rightBracket;
-
-  /**
-   * Return the element associated with the operator based on the static type of the target, or
-   * `null` if the AST structure has not been resolved or if the operator could not be
-   * resolved. One example of the latter case is an operator that is not defined for the type of the
-   * target.
-   *
-   * @return the element associated with the operator
-   */
-  MethodElement get staticElement => _staticElement;
 
   /**
    * Return the expression used to compute the object being indexed, or `null` if this index
@@ -10546,44 +10162,6 @@ class IndexExpression extends Expression {
   }
 
   /**
-   * Set the left square bracket to the given token.
-   *
-   * @param bracket the left square bracket
-   */
-  void set leftBracket(Token bracket) {
-    _leftBracket = bracket;
-  }
-
-  /**
-   * Set the element associated with the operator based on the propagated type of the target to the
-   * given element.
-   *
-   * @param element the element to be associated with this operator
-   */
-  void set propagatedElement(MethodElement element) {
-    _propagatedElement = element;
-  }
-
-  /**
-   * Set the right square bracket to the given token.
-   *
-   * @param bracket the right square bracket
-   */
-  void set rightBracket(Token bracket) {
-    _rightBracket = bracket;
-  }
-
-  /**
-   * Set the element associated with the operator based on the static type of the target to the
-   * given element.
-   *
-   * @param element the static element to be associated with the operator
-   */
-  void set staticElement(MethodElement element) {
-    _staticElement = element;
-  }
-
-  /**
    * Set the expression used to compute the object being indexed to the given expression.
    *
    * @param expression the expression used to compute the object being indexed
@@ -10609,10 +10187,10 @@ class IndexExpression extends Expression {
    *         expression will be bound
    */
   ParameterElement get propagatedParameterElementForIndex {
-    if (_propagatedElement == null) {
+    if (propagatedElement == null) {
       return null;
     }
-    List<ParameterElement> parameters = _propagatedElement.parameters;
+    List<ParameterElement> parameters = propagatedElement.parameters;
     if (parameters.length < 1) {
       return null;
     }
@@ -10630,10 +10208,10 @@ class IndexExpression extends Expression {
    *         expression will be bound
    */
   ParameterElement get staticParameterElementForIndex {
-    if (_staticElement == null) {
+    if (staticElement == null) {
       return null;
     }
-    List<ParameterElement> parameters = _staticElement.parameters;
+    List<ParameterElement> parameters = staticElement.parameters;
     if (parameters.length < 1) {
       return null;
     }
@@ -10675,7 +10253,7 @@ class InstanceCreationExpression extends Expression {
   /**
    * The result of evaluating this expression, if it is constant.
    */
-  EvaluationResultImpl _result;
+  EvaluationResultImpl evaluationResult;
 
   /**
    * Initialize a newly created instance creation expression.
@@ -10685,8 +10263,8 @@ class InstanceCreationExpression extends Expression {
    * @param argumentList the list of arguments to the constructor
    */
   InstanceCreationExpression(this.keyword, ConstructorName constructorName, ArgumentList argumentList) {
-    this._constructorName = becomeParentOf(constructorName);
-    this._argumentList = becomeParentOf(argumentList);
+    _constructorName = becomeParentOf(constructorName);
+    _argumentList = becomeParentOf(argumentList);
   }
 
   @override
@@ -10712,15 +10290,6 @@ class InstanceCreationExpression extends Expression {
   @override
   Token get endToken => _argumentList.endToken;
 
-  /**
-   * Return the result of evaluating this constant as a compile-time constant expression, or
-   * `null` if this variable is not a 'const' expression or an error prevented the result from
-   * being computed.
-   *
-   * @return the result of evaluating this constant
-   */
-  EvaluationResultImpl get evaluationResult => _result;
-
   @override
   int get precedence => 16;
 
@@ -10737,7 +10306,7 @@ class InstanceCreationExpression extends Expression {
    * @param argumentList the list of arguments to the constructor
    */
   void set argumentList(ArgumentList argumentList) {
-    this._argumentList = becomeParentOf(argumentList);
+    _argumentList = becomeParentOf(argumentList);
   }
 
   /**
@@ -10746,17 +10315,7 @@ class InstanceCreationExpression extends Expression {
    * @param constructorName the name of the constructor to be invoked
    */
   void set constructorName(ConstructorName constructorName) {
-    this._constructorName = becomeParentOf(constructorName);
-  }
-
-  /**
-   * Set the result of evaluating this expression as a compile-time constant expression to the given
-   * result.
-   *
-   * @param result the result of evaluating this expression
-   */
-  void set evaluationResult(EvaluationResultImpl result) {
-    this._result = result;
+    _constructorName = becomeParentOf(constructorName);
   }
 
   @override
@@ -10864,7 +10423,7 @@ class InterpolationExpression extends InterpolationElement {
    * @param rightBracket the right curly bracket
    */
   InterpolationExpression(this.leftBracket, Expression expression, this.rightBracket) {
-    this._expression = becomeParentOf(expression);
+    _expression = becomeParentOf(expression);
   }
 
   @override
@@ -10895,7 +10454,7 @@ class InterpolationExpression extends InterpolationElement {
    * @param expression the expression to be evaluated for the value to be converted into a string
    */
   void set expression(Expression expression) {
-    this._expression = becomeParentOf(expression);
+    _expression = becomeParentOf(expression);
   }
 
   @override
@@ -10917,7 +10476,7 @@ class InterpolationString extends InterpolationElement {
   /**
    * The characters that will be added to the string.
    */
-  Token _contents;
+  Token contents;
 
   /**
    * The value of the literal.
@@ -10930,26 +10489,18 @@ class InterpolationString extends InterpolationElement {
    * @param the characters that will be added to the string
    * @param value the value of the literal
    */
-  InterpolationString(Token contents, String value) {
-    this._contents = contents;
-    this._value = value;
+  InterpolationString(this.contents, String value) {
+    _value = value;
   }
 
   @override
   accept(AstVisitor visitor) => visitor.visitInterpolationString(this);
 
   @override
-  Token get beginToken => _contents;
-
-  /**
-   * Return the characters that will be added to the string.
-   *
-   * @return the characters that will be added to the string
-   */
-  Token get contents => _contents;
+  Token get beginToken => contents;
 
   @override
-  Token get endToken => _contents;
+  Token get endToken => contents;
 
   /**
    * Return the value of the literal.
@@ -10957,15 +10508,6 @@ class InterpolationString extends InterpolationElement {
    * @return the value of the literal
    */
   String get value => _value;
-
-  /**
-   * Set the characters that will be added to the string to those in the given string.
-   *
-   * @param string the characters that will be added to the string
-   */
-  void set contents(Token string) {
-    _contents = string;
-  }
 
   /**
    * Set the value of the literal to the given string.
@@ -10984,8 +10526,8 @@ class InterpolationString extends InterpolationElement {
    * Return the offset of the after-last contents character.
    */
   int get contentsEnd {
-    int end = _contents.end;
-    String lexeme = _contents.lexeme;
+    int end = contents.end;
+    String lexeme = contents.lexeme;
     if (StringUtilities.endsWith3(lexeme, 0x22, 0x22, 0x22) ||
         StringUtilities.endsWith3(lexeme, 0x27, 0x27, 0x27)) {
       end -= 3;
@@ -10999,8 +10541,8 @@ class InterpolationString extends InterpolationElement {
    * Return the offset of the first contents character.
    */
   int get contentsOffset {
-    int offset = _contents.offset;
-    String lexeme = _contents.lexeme;
+    int offset = contents.offset;
+    String lexeme = contents.lexeme;
     if (lexeme.codeUnitAt(0) == 0x72) {
       offset += 1;
     }
@@ -11052,8 +10594,8 @@ class IsExpression extends Expression {
    * @param type the name of the type being tested for
    */
   IsExpression(Expression expression, this.isOperator, this.notOperator, TypeName type) {
-    this._expression = becomeParentOf(expression);
-    this._type = becomeParentOf(type);
+    _expression = becomeParentOf(expression);
+    _type = becomeParentOf(type);
   }
 
   @override
@@ -11089,7 +10631,7 @@ class IsExpression extends Expression {
    * @param expression the expression used to compute the value whose type is being tested
    */
   void set expression(Expression expression) {
-    this._expression = becomeParentOf(expression);
+    _expression = becomeParentOf(expression);
   }
 
   /**
@@ -11098,7 +10640,7 @@ class IsExpression extends Expression {
    * @param name the name of the type being tested for
    */
   void set type(TypeName name) {
-    this._type = becomeParentOf(name);
+    _type = becomeParentOf(name);
   }
 
   @override
@@ -11134,7 +10676,7 @@ class Label extends AstNode {
    * @param colon the colon that separates the label from whatever follows
    */
   Label(SimpleIdentifier label, this.colon) {
-    this._label = becomeParentOf(label);
+    _label = becomeParentOf(label);
   }
 
   @override
@@ -11159,7 +10701,7 @@ class Label extends AstNode {
    * @param label the label being associated with the statement
    */
   void set label(SimpleIdentifier label) {
-    this._label = becomeParentOf(label);
+    _label = becomeParentOf(label);
   }
 
   @override
@@ -11195,9 +10737,8 @@ class LabeledStatement extends Statement {
    * @param statement the statement with which the labels are being associated
    */
   LabeledStatement(List<Label> labels, Statement statement) {
-    this._labels = new NodeList<Label>(this);
-    this._labels.addAll(labels);
-    this._statement = becomeParentOf(statement);
+    _labels = new NodeList<Label>(this, labels);
+    _statement = becomeParentOf(statement);
   }
 
   @override
@@ -11234,7 +10775,7 @@ class LabeledStatement extends Statement {
    * @param statement the statement with which the labels are being associated
    */
   void set statement(Statement statement) {
-    this._statement = becomeParentOf(statement);
+    _statement = becomeParentOf(statement);
   }
 
   @override
@@ -11278,7 +10819,7 @@ class LibraryDirective extends Directive {
    * @param semicolon the semicolon terminating the directive
    */
   LibraryDirective(Comment comment, List<Annotation> metadata, this.libraryToken, LibraryIdentifier name, this.semicolon) : super(comment, metadata) {
-    this._name = becomeParentOf(name);
+    _name = becomeParentOf(name);
   }
 
   @override
@@ -11303,7 +10844,7 @@ class LibraryDirective extends Directive {
    * @param name the name of the library being defined
    */
   void set name(LibraryIdentifier name) {
-    this._name = becomeParentOf(name);
+    _name = becomeParentOf(name);
   }
 
   @override
@@ -11336,8 +10877,7 @@ class LibraryIdentifier extends Identifier {
    * @param components the components of the identifier
    */
   LibraryIdentifier(List<SimpleIdentifier> components) {
-    this._components = new NodeList<SimpleIdentifier>(this);
-    this._components.addAll(components);
+    _components = new NodeList<SimpleIdentifier>(this, components);
   }
 
   @override
@@ -11401,7 +10941,7 @@ class ListLiteral extends TypedLiteral {
   /**
    * The left square bracket.
    */
-  Token _leftBracket;
+  Token leftBracket;
 
   /**
    * The expressions used to compute the elements of the list.
@@ -11411,7 +10951,7 @@ class ListLiteral extends TypedLiteral {
   /**
    * The right square bracket.
    */
-  Token _rightBracket;
+  Token rightBracket;
 
   /**
    * Initialize a newly created list literal.
@@ -11423,11 +10963,8 @@ class ListLiteral extends TypedLiteral {
    * @param elements the expressions used to compute the elements of the list
    * @param rightBracket the right square bracket
    */
-  ListLiteral(Token constKeyword, TypeArgumentList typeArguments, Token leftBracket, List<Expression> elements, Token rightBracket) : super(constKeyword, typeArguments) {
-    this._elements = new NodeList<Expression>(this);
-    this._leftBracket = leftBracket;
-    this._elements.addAll(elements);
-    this._rightBracket = rightBracket;
+  ListLiteral(Token constKeyword, TypeArgumentList typeArguments, this.leftBracket, List<Expression> elements, this.rightBracket) : super(constKeyword, typeArguments) {
+    _elements = new NodeList<Expression>(this, elements);
   }
 
   @override
@@ -11435,15 +10972,14 @@ class ListLiteral extends TypedLiteral {
 
   @override
   Token get beginToken {
-    Token token = constKeyword;
-    if (token != null) {
-      return token;
+    if (constKeyword != null) {
+      return constKeyword;
     }
     TypeArgumentList typeArguments = this.typeArguments;
     if (typeArguments != null) {
       return typeArguments.beginToken;
     }
-    return _leftBracket;
+    return leftBracket;
   }
 
   /**
@@ -11454,39 +10990,7 @@ class ListLiteral extends TypedLiteral {
   NodeList<Expression> get elements => _elements;
 
   @override
-  Token get endToken => _rightBracket;
-
-  /**
-   * Return the left square bracket.
-   *
-   * @return the left square bracket
-   */
-  Token get leftBracket => _leftBracket;
-
-  /**
-   * Return the right square bracket.
-   *
-   * @return the right square bracket
-   */
-  Token get rightBracket => _rightBracket;
-
-  /**
-   * Set the left square bracket to the given token.
-   *
-   * @param bracket the left square bracket
-   */
-  void set leftBracket(Token bracket) {
-    _leftBracket = bracket;
-  }
-
-  /**
-   * Set the right square bracket to the given token.
-   *
-   * @param bracket the right square bracket
-   */
-  void set rightBracket(Token bracket) {
-    _rightBracket = bracket;
-  }
+  Token get endToken => rightBracket;
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -11527,7 +11031,7 @@ class MapLiteral extends TypedLiteral {
   /**
    * The left curly bracket.
    */
-  Token _leftBracket;
+  Token leftBracket;
 
   /**
    * The entries in the map.
@@ -11537,7 +11041,7 @@ class MapLiteral extends TypedLiteral {
   /**
    * The right curly bracket.
    */
-  Token _rightBracket;
+  Token rightBracket;
 
   /**
    * Initialize a newly created map literal.
@@ -11549,11 +11053,8 @@ class MapLiteral extends TypedLiteral {
    * @param entries the entries in the map
    * @param rightBracket the right curly bracket
    */
-  MapLiteral(Token constKeyword, TypeArgumentList typeArguments, Token leftBracket, List<MapLiteralEntry> entries, Token rightBracket) : super(constKeyword, typeArguments) {
-    this._entries = new NodeList<MapLiteralEntry>(this);
-    this._leftBracket = leftBracket;
-    this._entries.addAll(entries);
-    this._rightBracket = rightBracket;
+  MapLiteral(Token constKeyword, TypeArgumentList typeArguments, this.leftBracket, List<MapLiteralEntry> entries, this.rightBracket) : super(constKeyword, typeArguments) {
+    _entries = new NodeList<MapLiteralEntry>(this, entries);
   }
 
   @override
@@ -11561,19 +11062,18 @@ class MapLiteral extends TypedLiteral {
 
   @override
   Token get beginToken {
-    Token token = constKeyword;
-    if (token != null) {
-      return token;
+    if (constKeyword != null) {
+      return constKeyword;
     }
     TypeArgumentList typeArguments = this.typeArguments;
     if (typeArguments != null) {
       return typeArguments.beginToken;
     }
-    return _leftBracket;
+    return leftBracket;
   }
 
   @override
-  Token get endToken => _rightBracket;
+  Token get endToken => rightBracket;
 
   /**
    * Return the entries in the map.
@@ -11581,38 +11081,6 @@ class MapLiteral extends TypedLiteral {
    * @return the entries in the map
    */
   NodeList<MapLiteralEntry> get entries => _entries;
-
-  /**
-   * Return the left curly bracket.
-   *
-   * @return the left curly bracket
-   */
-  Token get leftBracket => _leftBracket;
-
-  /**
-   * Return the right curly bracket.
-   *
-   * @return the right curly bracket
-   */
-  Token get rightBracket => _rightBracket;
-
-  /**
-   * Set the left curly bracket to the given token.
-   *
-   * @param bracket the left curly bracket
-   */
-  void set leftBracket(Token bracket) {
-    _leftBracket = bracket;
-  }
-
-  /**
-   * Set the right curly bracket to the given token.
-   *
-   * @param bracket the right curly bracket
-   */
-  void set rightBracket(Token bracket) {
-    _rightBracket = bracket;
-  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -11654,8 +11122,8 @@ class MapLiteralEntry extends AstNode {
    * @param value the expression computing the value that will be associated with the key
    */
   MapLiteralEntry(Expression key, this.separator, Expression value) {
-    this._key = becomeParentOf(key);
-    this._value = becomeParentOf(value);
+    _key = becomeParentOf(key);
+    _value = becomeParentOf(value);
   }
 
   @override
@@ -11784,10 +11252,10 @@ class MethodDeclaration extends ClassMember {
    * @param body the body of the method
    */
   MethodDeclaration(Comment comment, List<Annotation> metadata, this.externalKeyword, this.modifierKeyword, TypeName returnType, this.propertyKeyword, this.operatorKeyword, SimpleIdentifier name, FormalParameterList parameters, FunctionBody body) : super(comment, metadata) {
-    this._returnType = becomeParentOf(returnType);
-    this._name = becomeParentOf(name);
-    this._parameters = becomeParentOf(parameters);
-    this._body = becomeParentOf(body);
+    _returnType = becomeParentOf(returnType);
+    _name = becomeParentOf(name);
+    _parameters = becomeParentOf(parameters);
+    _body = becomeParentOf(body);
   }
 
   @override
@@ -11895,7 +11363,7 @@ class MethodDeclaration extends ClassMember {
    * @param parameters the parameters associated with the method
    */
   void set parameters(FormalParameterList parameters) {
-    this._parameters = becomeParentOf(parameters);
+    _parameters = becomeParentOf(parameters);
   }
 
   /**
@@ -11975,9 +11443,9 @@ class MethodInvocation extends Expression {
    * @param argumentList the list of arguments to the method
    */
   MethodInvocation(Expression target, this.period, SimpleIdentifier methodName, ArgumentList argumentList) {
-    this._target = becomeParentOf(target);
-    this._methodName = becomeParentOf(methodName);
-    this._argumentList = becomeParentOf(argumentList);
+    _target = becomeParentOf(target);
+    _methodName = becomeParentOf(methodName);
+    _argumentList = becomeParentOf(argumentList);
   }
 
   @override
@@ -12061,7 +11529,7 @@ class MethodInvocation extends Expression {
    * @param argumentList the list of arguments to the method
    */
   void set argumentList(ArgumentList argumentList) {
-    this._argumentList = becomeParentOf(argumentList);
+    _argumentList = becomeParentOf(argumentList);
   }
 
   /**
@@ -12117,8 +11585,8 @@ class NamedExpression extends Expression {
    * @param expression the expression with which the name is associated
    */
   NamedExpression(Label name, Expression expression) {
-    this._name = becomeParentOf(name);
-    this._expression = becomeParentOf(expression);
+    _name = becomeParentOf(name);
+    _expression = becomeParentOf(expression);
   }
 
   @override
@@ -12168,7 +11636,7 @@ class NamedExpression extends Expression {
    * @param expression the expression with which the name is associated
    */
   void set expression(Expression expression) {
-    this._expression = becomeParentOf(expression);
+    _expression = becomeParentOf(expression);
   }
 
   /**
@@ -12224,8 +11692,7 @@ abstract class NamespaceDirective extends UriBasedDirective {
    * @param semicolon the semicolon terminating the directive
    */
   NamespaceDirective(Comment comment, List<Annotation> metadata, this.keyword, StringLiteral libraryUri, List<Combinator> combinators, this.semicolon) : super(comment, metadata, libraryUri) {
-    this._combinators = new NodeList<Combinator>(this);
-    this._combinators.addAll(combinators);
+    _combinators = new NodeList<Combinator>(this, combinators);
   }
 
   /**
@@ -12272,7 +11739,7 @@ class NativeClause extends AstNode {
    * @param name the name of the native object that implements the class.
    */
   NativeClause(this.keyword, StringLiteral name) {
-    this._name = becomeParentOf(name);
+    _name = becomeParentOf(name);
   }
 
   @override
@@ -12297,7 +11764,7 @@ class NativeClause extends AstNode {
    * @param name the name of the native object that implements the class.
    */
   void set name(StringLiteral name) {
-    this._name = becomeParentOf(name);
+    _name = becomeParentOf(name);
   }
 
   @override
@@ -12319,7 +11786,7 @@ class NativeFunctionBody extends FunctionBody {
   /**
    * The token representing 'native' that marks the start of the function body.
    */
-  final Token nativeToken;
+  Token nativeToken;
 
   /**
    * The string literal, after the 'native' token.
@@ -12329,7 +11796,7 @@ class NativeFunctionBody extends FunctionBody {
   /**
    * The token representing the semicolon that marks the end of the function body.
    */
-  final Token semicolon;
+  Token semicolon;
 
   /**
    * Initialize a newly created function body consisting of the 'native' token, a string literal,
@@ -12340,7 +11807,7 @@ class NativeFunctionBody extends FunctionBody {
    * @param semicolon the token representing the semicolon that marks the end of the function body
    */
   NativeFunctionBody(this.nativeToken, StringLiteral stringLiteral, this.semicolon) {
-    this._stringLiteral = becomeParentOf(stringLiteral);
+    _stringLiteral = becomeParentOf(stringLiteral);
   }
 
   @override
@@ -12365,7 +11832,7 @@ class NativeFunctionBody extends FunctionBody {
    * @param stringLiteral the string literal representing the string after the 'native' token
    */
   void set stringLiteral(StringLiteral stringLiteral) {
-    this._stringLiteral = becomeParentOf(stringLiteral);
+    _stringLiteral = becomeParentOf(stringLiteral);
   }
 
   @override
@@ -12413,10 +11880,7 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
    * @param start the start offset of the range used to identify the node
    * @param end the end offset of the range used to identify the node
    */
-  NodeLocator.con2(int start, int end) {
-    this._startOffset = start;
-    this._endOffset = end;
-  }
+  NodeLocator.con2(this._startOffset, this._endOffset);
 
   /**
    * Return the node that was found that corresponds to the given source range, or `null` if
@@ -13672,10 +13136,9 @@ abstract class NormalFormalParameter extends FormalParameter {
    * @param identifier the name of the parameter being declared
    */
   NormalFormalParameter(Comment comment, List<Annotation> metadata, SimpleIdentifier identifier) {
-    this._metadata = new NodeList<Annotation>(this);
-    this._comment = becomeParentOf(comment);
-    this._metadata.addAll(metadata);
-    this._identifier = becomeParentOf(identifier);
+    _comment = becomeParentOf(comment);
+    _metadata = new NodeList<Annotation>(this, metadata);
+    _identifier = becomeParentOf(identifier);
   }
 
   /**
@@ -13711,7 +13174,7 @@ abstract class NormalFormalParameter extends FormalParameter {
    * @param comment the documentation comment to be associated with this parameter
    */
   void set documentationComment(Comment comment) {
-    this._comment = becomeParentOf(comment);
+    _comment = becomeParentOf(comment);
   }
 
   /**
@@ -13720,7 +13183,7 @@ abstract class NormalFormalParameter extends FormalParameter {
    * @param identifier the name of the parameter being declared
    */
   void set identifier(SimpleIdentifier identifier) {
-    this._identifier = becomeParentOf(identifier);
+    _identifier = becomeParentOf(identifier);
   }
 
   /**
@@ -13729,8 +13192,8 @@ abstract class NormalFormalParameter extends FormalParameter {
    * @param metadata the metadata to be associated with this node
    */
   void set metadata(List<Annotation> metadata) {
-    this._metadata.clear();
-    this._metadata.addAll(metadata);
+    _metadata.clear();
+    _metadata.addAll(metadata);
   }
 
   @override
@@ -13796,9 +13259,7 @@ class NullLiteral extends Literal {
    *
    * @param token the token representing the literal
    */
-  NullLiteral(Token token) {
-    this.literal = token;
-  }
+  NullLiteral(this.literal);
 
   @override
   accept(AstVisitor visitor) => visitor.visitNullLiteral(this);
@@ -13827,7 +13288,7 @@ class ParenthesizedExpression extends Expression {
   /**
    * The left parenthesis.
    */
-  Token _leftParenthesis;
+  Token leftParenthesis;
 
   /**
    * The expression within the parentheses.
@@ -13837,7 +13298,7 @@ class ParenthesizedExpression extends Expression {
   /**
    * The right parenthesis.
    */
-  Token _rightParenthesis;
+  Token rightParenthesis;
 
   /**
    * Initialize a newly created parenthesized expression.
@@ -13846,20 +13307,18 @@ class ParenthesizedExpression extends Expression {
    * @param expression the expression within the parentheses
    * @param rightParenthesis the right parenthesis
    */
-  ParenthesizedExpression(Token leftParenthesis, Expression expression, Token rightParenthesis) {
-    this._leftParenthesis = leftParenthesis;
-    this._expression = becomeParentOf(expression);
-    this._rightParenthesis = rightParenthesis;
+  ParenthesizedExpression(this.leftParenthesis, Expression expression, this.rightParenthesis) {
+    _expression = becomeParentOf(expression);
   }
 
   @override
   accept(AstVisitor visitor) => visitor.visitParenthesizedExpression(this);
 
   @override
-  Token get beginToken => _leftParenthesis;
+  Token get beginToken => leftParenthesis;
 
   @override
-  Token get endToken => _rightParenthesis;
+  Token get endToken => rightParenthesis;
 
   /**
    * Return the expression within the parentheses.
@@ -13868,22 +13327,8 @@ class ParenthesizedExpression extends Expression {
    */
   Expression get expression => _expression;
 
-  /**
-   * Return the left parenthesis.
-   *
-   * @return the left parenthesis
-   */
-  Token get leftParenthesis => _leftParenthesis;
-
   @override
   int get precedence => 15;
-
-  /**
-   * Return the right parenthesis.
-   *
-   * @return the right parenthesis
-   */
-  Token get rightParenthesis => _rightParenthesis;
 
   /**
    * Set the expression within the parentheses to the given expression.
@@ -13891,25 +13336,7 @@ class ParenthesizedExpression extends Expression {
    * @param expression the expression within the parentheses
    */
   void set expression(Expression expression) {
-    this._expression = becomeParentOf(expression);
-  }
-
-  /**
-   * Set the left parenthesis to the given token.
-   *
-   * @param parenthesis the left parenthesis
-   */
-  void set leftParenthesis(Token parenthesis) {
-    _leftParenthesis = parenthesis;
-  }
-
-  /**
-   * Set the right parenthesis to the given token.
-   *
-   * @param parenthesis the right parenthesis
-   */
-  void set rightParenthesis(Token parenthesis) {
-    _rightParenthesis = parenthesis;
+    _expression = becomeParentOf(expression);
   }
 
   @override
@@ -14004,7 +13431,7 @@ class PartOfDirective extends Directive {
    * @param semicolon the semicolon terminating the directive
    */
   PartOfDirective(Comment comment, List<Annotation> metadata, this.partToken, this.ofToken, LibraryIdentifier libraryName, this.semicolon) : super(comment, metadata) {
-    this._libraryName = becomeParentOf(libraryName);
+    _libraryName = becomeParentOf(libraryName);
   }
 
   @override
@@ -14029,7 +13456,7 @@ class PartOfDirective extends Directive {
    * @param libraryName the name of the library that the containing compilation unit is part of
    */
   void set libraryName(LibraryIdentifier libraryName) {
-    this._libraryName = becomeParentOf(libraryName);
+    _libraryName = becomeParentOf(libraryName);
   }
 
   @override
@@ -14066,14 +13493,14 @@ class PostfixExpression extends Expression {
    * `null` if the AST structure has not been resolved, if the operator is not user definable,
    * or if the operator could not be resolved.
    */
-  MethodElement _propagatedElement;
+  MethodElement propagatedElement;
 
   /**
    * The element associated with the operator based on the static type of the operand, or
    * `null` if the AST structure has not been resolved, if the operator is not user definable,
    * or if the operator could not be resolved.
    */
-  MethodElement _staticElement;
+  MethodElement staticElement;
 
   /**
    * Initialize a newly created postfix expression.
@@ -14082,7 +13509,7 @@ class PostfixExpression extends Expression {
    * @param operator the postfix operator being applied to the operand
    */
   PostfixExpression(Expression operand, this.operator) {
-    this._operand = becomeParentOf(operand);
+    _operand = becomeParentOf(operand);
   }
 
   @override
@@ -14121,52 +13548,12 @@ class PostfixExpression extends Expression {
   int get precedence => 15;
 
   /**
-   * Return the element associated with the operator based on the propagated type of the operand, or
-   * `null` if the AST structure has not been resolved, if the operator is not user definable,
-   * or if the operator could not be resolved. One example of the latter case is an operator that is
-   * not defined for the type of the operand.
-   *
-   * @return the element associated with the operator
-   */
-  MethodElement get propagatedElement => _propagatedElement;
-
-  /**
-   * Return the element associated with the operator based on the static type of the operand, or
-   * `null` if the AST structure has not been resolved, if the operator is not user definable,
-   * or if the operator could not be resolved. One example of the latter case is an operator that is
-   * not defined for the type of the operand.
-   *
-   * @return the element associated with the operator
-   */
-  MethodElement get staticElement => _staticElement;
-
-  /**
    * Set the expression computing the operand for the operator to the given expression.
    *
    * @param expression the expression computing the operand for the operator
    */
   void set operand(Expression expression) {
     _operand = becomeParentOf(expression);
-  }
-
-  /**
-   * Set the element associated with the operator based on the propagated type of the operand to the
-   * given element.
-   *
-   * @param element the element to be associated with the operator
-   */
-  void set propagatedElement(MethodElement element) {
-    _propagatedElement = element;
-  }
-
-  /**
-   * Set the element associated with the operator based on the static type of the operand to the
-   * given element.
-   *
-   * @param element the element to be associated with the operator
-   */
-  void set staticElement(MethodElement element) {
-    _staticElement = element;
   }
 
   @override
@@ -14185,10 +13572,10 @@ class PostfixExpression extends Expression {
    *         operand will be bound
    */
   ParameterElement get propagatedParameterElementForOperand {
-    if (_propagatedElement == null) {
+    if (propagatedElement == null) {
       return null;
     }
-    List<ParameterElement> parameters = _propagatedElement.parameters;
+    List<ParameterElement> parameters = propagatedElement.parameters;
     if (parameters.length < 1) {
       return null;
     }
@@ -14206,10 +13593,10 @@ class PostfixExpression extends Expression {
    *         operand will be bound
    */
   ParameterElement get staticParameterElementForOperand {
-    if (_staticElement == null) {
+    if (staticElement == null) {
       return null;
     }
-    List<ParameterElement> parameters = _staticElement.parameters;
+    List<ParameterElement> parameters = staticElement.parameters;
     if (parameters.length < 1) {
       return null;
     }
@@ -14241,14 +13628,14 @@ class PrefixExpression extends Expression {
    * `null` if the AST structure has not been resolved, if the operator is not user definable,
    * or if the operator could not be resolved.
    */
-  MethodElement _staticElement;
+  MethodElement staticElement;
 
   /**
    * The element associated with the operator based on the propagated type of the operand, or
    * `null` if the AST structure has not been resolved, if the operator is not user definable,
    * or if the operator could not be resolved.
    */
-  MethodElement _propagatedElement;
+  MethodElement propagatedElement;
 
   /**
    * Initialize a newly created prefix expression.
@@ -14257,7 +13644,7 @@ class PrefixExpression extends Expression {
    * @param operand the expression computing the operand for the operator
    */
   PrefixExpression(this.operator, Expression operand) {
-    this._operand = becomeParentOf(operand);
+    _operand = becomeParentOf(operand);
   }
 
   @override
@@ -14296,52 +13683,12 @@ class PrefixExpression extends Expression {
   int get precedence => 14;
 
   /**
-   * Return the element associated with the operator based on the propagated type of the operand, or
-   * `null` if the AST structure has not been resolved, if the operator is not user definable,
-   * or if the operator could not be resolved. One example of the latter case is an operator that is
-   * not defined for the type of the operand.
-   *
-   * @return the element associated with the operator
-   */
-  MethodElement get propagatedElement => _propagatedElement;
-
-  /**
-   * Return the element associated with the operator based on the static type of the operand, or
-   * `null` if the AST structure has not been resolved, if the operator is not user definable,
-   * or if the operator could not be resolved. One example of the latter case is an operator that is
-   * not defined for the type of the operand.
-   *
-   * @return the element associated with the operator
-   */
-  MethodElement get staticElement => _staticElement;
-
-  /**
    * Set the expression computing the operand for the operator to the given expression.
    *
    * @param expression the expression computing the operand for the operator
    */
   void set operand(Expression expression) {
     _operand = becomeParentOf(expression);
-  }
-
-  /**
-   * Set the element associated with the operator based on the propagated type of the operand to the
-   * given element.
-   *
-   * @param element the element to be associated with the operator
-   */
-  void set propagatedElement(MethodElement element) {
-    _propagatedElement = element;
-  }
-
-  /**
-   * Set the element associated with the operator based on the static type of the operand to the
-   * given element.
-   *
-   * @param element the static element to be associated with the operator
-   */
-  void set staticElement(MethodElement element) {
-    _staticElement = element;
   }
 
   @override
@@ -14360,10 +13707,10 @@ class PrefixExpression extends Expression {
    *         operand will be bound
    */
   ParameterElement get propagatedParameterElementForOperand {
-    if (_propagatedElement == null) {
+    if (propagatedElement == null) {
       return null;
     }
-    List<ParameterElement> parameters = _propagatedElement.parameters;
+    List<ParameterElement> parameters = propagatedElement.parameters;
     if (parameters.length < 1) {
       return null;
     }
@@ -14381,10 +13728,10 @@ class PrefixExpression extends Expression {
    *         operand will be bound
    */
   ParameterElement get staticParameterElementForOperand {
-    if (_staticElement == null) {
+    if (staticElement == null) {
       return null;
     }
-    List<ParameterElement> parameters = _staticElement.parameters;
+    List<ParameterElement> parameters = staticElement.parameters;
     if (parameters.length < 1) {
       return null;
     }
@@ -14426,8 +13773,8 @@ class PrefixedIdentifier extends Identifier {
    * @param identifier the prefix associated with the library in which the identifier is defined
    */
   PrefixedIdentifier(SimpleIdentifier prefix, this.period, SimpleIdentifier identifier) {
-    this._prefix = becomeParentOf(prefix);
-    this._identifier = becomeParentOf(identifier);
+    _prefix = becomeParentOf(prefix);
+    _identifier = becomeParentOf(identifier);
   }
 
   @override
@@ -14510,7 +13857,7 @@ class PrefixedIdentifier extends Identifier {
    * @param identifier the identifier being prefixed
    */
   void set identifier(SimpleIdentifier identifier) {
-    this._identifier = becomeParentOf(identifier);
+    _identifier = becomeParentOf(identifier);
   }
 
   /**
@@ -14566,8 +13913,8 @@ class PropertyAccess extends Expression {
    * @param propertyName the name of the property being accessed
    */
   PropertyAccess(Expression target, this.operator, SimpleIdentifier propertyName) {
-    this._target = becomeParentOf(target);
-    this._propertyName = becomeParentOf(propertyName);
+    _target = becomeParentOf(target);
+    _propertyName = becomeParentOf(propertyName);
   }
 
   @override
@@ -15359,8 +14706,8 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
    * @param argumentList the list of arguments to the constructor
    */
   RedirectingConstructorInvocation(this.keyword, this.period, SimpleIdentifier constructorName, ArgumentList argumentList) {
-    this._constructorName = becomeParentOf(constructorName);
-    this._argumentList = becomeParentOf(argumentList);
+    _constructorName = becomeParentOf(constructorName);
+    _argumentList = becomeParentOf(argumentList);
   }
 
   @override
@@ -15393,7 +14740,7 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
    * @param argumentList the list of arguments to the constructor
    */
   void set argumentList(ArgumentList argumentList) {
-    this._argumentList = becomeParentOf(argumentList);
+    _argumentList = becomeParentOf(argumentList);
   }
 
   /**
@@ -15484,7 +14831,7 @@ class ReturnStatement extends Statement {
    * @param semicolon the semicolon terminating the statement
    */
   ReturnStatement(this.keyword, Expression expression, this.semicolon) {
-    this._expression = becomeParentOf(expression);
+    _expression = becomeParentOf(expression);
   }
 
   @override
@@ -15510,7 +14857,7 @@ class ReturnStatement extends Statement {
    * @param expression the expression computing the value to be returned
    */
   void set expression(Expression expression) {
-    this._expression = becomeParentOf(expression);
+    _expression = becomeParentOf(expression);
   }
 
   @override
@@ -15760,8 +15107,7 @@ class ShowCombinator extends Combinator {
    * @param shownNames the list of names from the library that are made visible by this combinator
    */
   ShowCombinator(Token keyword, List<SimpleIdentifier> shownNames) : super(keyword) {
-    this._shownNames = new NodeList<SimpleIdentifier>(this);
-    this._shownNames.addAll(shownNames);
+    _shownNames = new NodeList<SimpleIdentifier>(this, shownNames);
   }
 
   @override
@@ -16140,7 +15486,7 @@ class SimpleFormalParameter extends NormalFormalParameter {
    * @param identifier the name of the parameter being declared
    */
   SimpleFormalParameter(Comment comment, List<Annotation> metadata, this.keyword, TypeName type, SimpleIdentifier identifier) : super(comment, metadata, identifier) {
-    this._type = becomeParentOf(type);
+    _type = becomeParentOf(type);
   }
 
   @override
@@ -16543,7 +15889,7 @@ class SimpleStringLiteral extends SingleStringLiteral {
   /**
    * The toolkit specific element associated with this literal, or `null`.
    */
-  Element _toolkitElement;
+  Element toolkitElement;
 
   /**
    * Initialize a newly created simple string literal.
@@ -16552,7 +15898,7 @@ class SimpleStringLiteral extends SingleStringLiteral {
    * @param value the value of the literal
    */
   SimpleStringLiteral(this.literal, String value) {
-    this._value = StringUtilities.intern(value);
+    _value = StringUtilities.intern(value);
   }
 
   @override
@@ -16582,13 +15928,6 @@ class SimpleStringLiteral extends SingleStringLiteral {
 
   @override
   Token get endToken => literal;
-
-  /**
-   * Return the toolkit specific, non-Dart, element associated with this literal, or `null`.
-   *
-   * @return the element associated with this literal
-   */
-  Element get toolkitElement => _toolkitElement;
 
   /**
    * Return the value of the literal.
@@ -16631,15 +15970,6 @@ class SimpleStringLiteral extends SingleStringLiteral {
 
   @override
   bool get isSynthetic => literal.isSynthetic;
-
-  /**
-   * Set the toolkit specific, non-Dart, element associated with this literal.
-   *
-   * @param element the toolkit specific element to be associated with this literal
-   */
-  void set toolkitElement(Element element) {
-    _toolkitElement = element;
-  }
 
   /**
    * Set the value of the literal to the given string.
@@ -16707,8 +16037,7 @@ class StringInterpolation extends SingleStringLiteral {
    * @param elements the elements that will be composed to produce the resulting string
    */
   StringInterpolation(List<InterpolationElement> elements) {
-    this._elements = new NodeList<InterpolationElement>(this);
-    this._elements.addAll(elements);
+    _elements = new NodeList<InterpolationElement>(this, elements);
   }
 
   @override
@@ -16752,7 +16081,7 @@ class StringInterpolation extends SingleStringLiteral {
   @override
   bool get isMultiline {
     InterpolationString element = _elements.first;
-    String lexeme = element._contents.lexeme;
+    String lexeme = element.contents.lexeme;
     if (lexeme.length < 3) {
       return false;
     }
@@ -16767,7 +16096,7 @@ class StringInterpolation extends SingleStringLiteral {
   @override
   bool get isSingleQuoted {
     InterpolationString lastString = _elements.first;
-    String lexeme = lastString._contents.lexeme;
+    String lexeme = lastString.contents.lexeme;
     return StringUtilities.startsWithChar(lexeme, 0x27);
   }
 }
@@ -16891,8 +16220,8 @@ class SuperConstructorInvocation extends ConstructorInitializer {
    * @param argumentList the list of arguments to the constructor
    */
   SuperConstructorInvocation(this.keyword, this.period, SimpleIdentifier constructorName, ArgumentList argumentList) {
-    this._constructorName = becomeParentOf(constructorName);
-    this._argumentList = becomeParentOf(argumentList);
+    _constructorName = becomeParentOf(constructorName);
+    _argumentList = becomeParentOf(argumentList);
   }
 
   @override
@@ -16925,7 +16254,7 @@ class SuperConstructorInvocation extends ConstructorInitializer {
    * @param argumentList the list of arguments to the constructor
    */
   void set argumentList(ArgumentList argumentList) {
-    this._argumentList = becomeParentOf(argumentList);
+    _argumentList = becomeParentOf(argumentList);
   }
 
   /**
@@ -17007,7 +16336,7 @@ class SwitchCase extends SwitchMember {
    * @param statements the statements that will be executed if this switch member is selected
    */
   SwitchCase(List<Label> labels, Token keyword, Expression expression, Token colon, List<Statement> statements) : super(labels, keyword, colon, statements) {
-    this._expression = becomeParentOf(expression);
+    _expression = becomeParentOf(expression);
   }
 
   @override
@@ -17026,7 +16355,7 @@ class SwitchCase extends SwitchMember {
    * @param expression the expression controlling whether the statements will be executed
    */
   void set expression(Expression expression) {
-    this._expression = becomeParentOf(expression);
+    _expression = becomeParentOf(expression);
   }
 
   @override
@@ -17106,10 +16435,8 @@ abstract class SwitchMember extends AstNode {
    * @param statements the statements that will be executed if this switch member is selected
    */
   SwitchMember(List<Label> labels, this.keyword, this.colon, List<Statement> statements) {
-    this._labels = new NodeList<Label>(this);
-    this._statements = new NodeList<Statement>(this);
-    this._labels.addAll(labels);
-    this._statements.addAll(statements);
+    _labels = new NodeList<Label>(this, labels);
+    _statements = new NodeList<Statement>(this, statements);
   }
 
   @override
@@ -17199,9 +16526,8 @@ class SwitchStatement extends Statement {
    * @param rightBracket the right curly bracket
    */
   SwitchStatement(this.keyword, this.leftParenthesis, Expression expression, this.rightParenthesis, this.leftBracket, List<SwitchMember> members, this.rightBracket) {
-    this._members = new NodeList<SwitchMember>(this);
-    this._expression = becomeParentOf(expression);
-    this._members.addAll(members);
+    _expression = becomeParentOf(expression);
+    _members = new NodeList<SwitchMember>(this, members);
   }
 
   @override
@@ -17234,7 +16560,7 @@ class SwitchStatement extends Statement {
    * @param expression the expression used to determine which of the switch members will be selected
    */
   void set expression(Expression expression) {
-    this._expression = becomeParentOf(expression);
+    _expression = becomeParentOf(expression);
   }
 
   @override
@@ -17351,7 +16677,7 @@ class ThrowExpression extends Expression {
    * @param expression the expression computing the exception to be thrown
    */
   ThrowExpression(this.keyword, Expression expression) {
-    this._expression = becomeParentOf(expression);
+    _expression = becomeParentOf(expression);
   }
 
   @override
@@ -17384,7 +16710,7 @@ class ThrowExpression extends Expression {
    * @param expression the expression computing the exception to be thrown
    */
   void set expression(Expression expression) {
-    this._expression = becomeParentOf(expression);
+    _expression = becomeParentOf(expression);
   }
 
   @override
@@ -18553,7 +17879,7 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
    * @param semicolon the semicolon terminating the declaration
    */
   TopLevelVariableDeclaration(Comment comment, List<Annotation> metadata, VariableDeclarationList variableList, this.semicolon) : super(comment, metadata) {
-    this._variableList = becomeParentOf(variableList);
+    _variableList = becomeParentOf(variableList);
   }
 
   @override
@@ -18578,7 +17904,7 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
    * @param variableList the top-level variables being declared
    */
   void set variables(VariableDeclarationList variableList) {
-    this._variableList = becomeParentOf(variableList);
+    _variableList = becomeParentOf(variableList);
   }
 
   @override
@@ -18640,10 +17966,9 @@ class TryStatement extends Statement {
    * @param finallyBlock the finally block contained in the try statement
    */
   TryStatement(this.tryKeyword, Block body, List<CatchClause> catchClauses, this.finallyKeyword, Block finallyBlock) {
-    this._catchClauses = new NodeList<CatchClause>(this);
-    this._body = becomeParentOf(body);
-    this._catchClauses.addAll(catchClauses);
-    this._finallyBlock = becomeParentOf(finallyBlock);
+    _body = becomeParentOf(body);
+    _catchClauses = new NodeList<CatchClause>(this, catchClauses);
+    _finallyBlock = becomeParentOf(finallyBlock);
   }
 
   @override
@@ -18784,8 +18109,7 @@ class TypeArgumentList extends AstNode {
    * @param rightBracket the right bracket
    */
   TypeArgumentList(this.leftBracket, List<TypeName> arguments, this.rightBracket) {
-    this._arguments = new NodeList<TypeName>(this);
-    this._arguments.addAll(arguments);
+    _arguments = new NodeList<TypeName>(this, arguments);
   }
 
   @override
@@ -18843,8 +18167,8 @@ class TypeName extends AstNode {
    *          no type arguments
    */
   TypeName(Identifier name, TypeArgumentList typeArguments) {
-    this._name = becomeParentOf(name);
-    this._typeArguments = becomeParentOf(typeArguments);
+    _name = becomeParentOf(name);
+    _typeArguments = becomeParentOf(typeArguments);
   }
 
   @override
@@ -18910,7 +18234,7 @@ class TypeName extends AstNode {
    * @param typeArguments the type arguments associated with the type
    */
   void set typeArguments(TypeArgumentList typeArguments) {
-    this._typeArguments = becomeParentOf(typeArguments);
+    _typeArguments = becomeParentOf(typeArguments);
   }
 
   @override
@@ -18956,8 +18280,8 @@ class TypeParameter extends Declaration {
    * @param bound the name of the upper bound for legal arguments
    */
   TypeParameter(Comment comment, List<Annotation> metadata, SimpleIdentifier name, this.keyword, TypeName bound) : super(comment, metadata) {
-    this._name = becomeParentOf(name);
-    this._bound = becomeParentOf(bound);
+    _name = becomeParentOf(name);
+    _bound = becomeParentOf(bound);
   }
 
   @override
@@ -19050,8 +18374,7 @@ class TypeParameterList extends AstNode {
    * @param rightBracket the right angle bracket
    */
   TypeParameterList(this.leftBracket, List<TypeParameter> typeParameters, this.rightBracket) {
-    this._typeParameters = new NodeList<TypeParameter>(this);
-    this._typeParameters.addAll(typeParameters);
+    _typeParameters = new NodeList<TypeParameter>(this, typeParameters);
   }
 
   @override
@@ -19106,7 +18429,7 @@ abstract class TypedLiteral extends Literal {
    *          arguments were declared
    */
   TypedLiteral(this.constKeyword, TypeArgumentList typeArguments) {
-    this._typeArguments = becomeParentOf(typeArguments);
+    _typeArguments = becomeParentOf(typeArguments);
   }
 
   /**
@@ -19123,7 +18446,7 @@ abstract class TypedLiteral extends Literal {
    * @param typeArguments the type argument associated with this literal
    */
   void set typeArguments(TypeArgumentList typeArguments) {
-    this._typeArguments = becomeParentOf(typeArguments);
+    _typeArguments = becomeParentOf(typeArguments);
   }
 
   @override
@@ -19507,7 +18830,7 @@ abstract class UriBasedDirective extends Directive {
    * @param uri the URI referenced by this directive
    */
   UriBasedDirective(Comment comment, List<Annotation> metadata, StringLiteral uri) : super(comment, metadata) {
-    this._uri = becomeParentOf(uri);
+    _uri = becomeParentOf(uri);
   }
 
   /**
@@ -19532,7 +18855,7 @@ abstract class UriBasedDirective extends Directive {
    * @param uri the URI referenced by this directive
    */
   void set uri(StringLiteral uri) {
-    this._uri = becomeParentOf(uri);
+    _uri = becomeParentOf(uri);
   }
 
   /**
@@ -19570,19 +18893,25 @@ abstract class UriBasedDirective extends Directive {
 /**
  * Validation codes returned by [UriBasedDirective.validate].
  */
-class UriValidationCode extends Enum<UriValidationCode> {
-  static const UriValidationCode INVALID_URI = const UriValidationCode('INVALID_URI', 0);
+class UriValidationCode {
+  /**
+   * The name of the validation code.
+   */
+  final String name;
 
-  static const UriValidationCode URI_WITH_INTERPOLATION = const UriValidationCode('URI_WITH_INTERPOLATION', 1);
+  static const UriValidationCode INVALID_URI = const UriValidationCode('INVALID_URI');
 
-  static const UriValidationCode URI_WITH_DART_EXT_SCHEME = const UriValidationCode('URI_WITH_DART_EXT_SCHEME', 2);
+  static const UriValidationCode URI_WITH_INTERPOLATION = const UriValidationCode('URI_WITH_INTERPOLATION');
 
-  static const List<UriValidationCode> values = const [
-      INVALID_URI,
-      URI_WITH_INTERPOLATION,
-      URI_WITH_DART_EXT_SCHEME];
+  static const UriValidationCode URI_WITH_DART_EXT_SCHEME = const UriValidationCode('URI_WITH_DART_EXT_SCHEME');
 
-  const UriValidationCode(String name, int ordinal) : super(name, ordinal);
+  /**
+   * Initialize a newly created validation code to have the given [name].
+   */
+  const UriValidationCode(this.name);
+
+  @override
+  String toString() => name;
 }
 
 /**
@@ -19623,8 +18952,8 @@ class VariableDeclaration extends Declaration {
    * @param initializer the expression used to compute the initial value for the variable
    */
   VariableDeclaration(Comment comment, List<Annotation> metadata, SimpleIdentifier name, this.equals, Expression initializer) : super(comment, metadata) {
-    this._name = becomeParentOf(name);
-    this._initializer = becomeParentOf(initializer);
+    _name = becomeParentOf(name);
+    _initializer = becomeParentOf(initializer);
   }
 
   @override
@@ -19702,7 +19031,7 @@ class VariableDeclaration extends Declaration {
    * @param initializer the expression used to compute the initial value for the variable
    */
   void set initializer(Expression initializer) {
-    this._initializer = becomeParentOf(initializer);
+    _initializer = becomeParentOf(initializer);
   }
 
   /**
@@ -19711,7 +19040,7 @@ class VariableDeclaration extends Declaration {
    * @param name the name of the variable being declared
    */
   void set name(SimpleIdentifier name) {
-    this._name = becomeParentOf(name);
+    _name = becomeParentOf(name);
   }
 
   @override
@@ -19767,9 +19096,8 @@ class VariableDeclarationList extends AnnotatedNode {
    * @param variables a list containing the individual variables being declared
    */
   VariableDeclarationList(Comment comment, List<Annotation> metadata, this.keyword, TypeName type, List<VariableDeclaration> variables) : super(comment, metadata) {
-    this._variables = new NodeList<VariableDeclaration>(this);
-    this._type = becomeParentOf(type);
-    this._variables.addAll(variables);
+    _type = becomeParentOf(type);
+    _variables = new NodeList<VariableDeclaration>(this, variables);
   }
 
   @override
@@ -19862,7 +19190,7 @@ class VariableDeclarationStatement extends Statement {
    * @param semicolon the semicolon terminating the statement
    */
   VariableDeclarationStatement(VariableDeclarationList variableList, this.semicolon) {
-    this._variableList = becomeParentOf(variableList);
+    _variableList = becomeParentOf(variableList);
   }
 
   @override
@@ -19887,7 +19215,7 @@ class VariableDeclarationStatement extends Statement {
    * @param variableList the variables being declared
    */
   void set variables(VariableDeclarationList variableList) {
-    this._variableList = becomeParentOf(variableList);
+    _variableList = becomeParentOf(variableList);
   }
 
   @override
@@ -19940,8 +19268,8 @@ class WhileStatement extends Statement {
    * @param body the body of the loop
    */
   WhileStatement(this.keyword, this.leftParenthesis, Expression condition, this.rightParenthesis, Statement body) {
-    this._condition = becomeParentOf(condition);
-    this._body = becomeParentOf(body);
+    _condition = becomeParentOf(condition);
+    _body = becomeParentOf(body);
   }
 
   @override
@@ -20005,7 +19333,7 @@ class WithClause extends AstNode {
   /**
    * The token representing the 'with' keyword.
    */
-  Token _withKeyword;
+  Token withKeyword;
 
   /**
    * The names of the mixins that were specified.
@@ -20018,17 +19346,15 @@ class WithClause extends AstNode {
    * @param withKeyword the token representing the 'with' keyword
    * @param mixinTypes the names of the mixins that were specified
    */
-  WithClause(Token withKeyword, List<TypeName> mixinTypes) {
-    this._mixinTypes = new NodeList<TypeName>(this);
-    this._withKeyword = withKeyword;
-    this._mixinTypes.addAll(mixinTypes);
+  WithClause(this.withKeyword, List<TypeName> mixinTypes) {
+    _mixinTypes = new NodeList<TypeName>(this, mixinTypes);
   }
 
   @override
   accept(AstVisitor visitor) => visitor.visitWithClause(this);
 
   @override
-  Token get beginToken => _withKeyword;
+  Token get beginToken => withKeyword;
 
   @override
   Token get endToken => _mixinTypes.endToken;
@@ -20041,19 +19367,13 @@ class WithClause extends AstNode {
   NodeList<TypeName> get mixinTypes => _mixinTypes;
 
   /**
-   * Return the token representing the 'with' keyword.
-   *
-   * @return the token representing the 'with' keyword
-   */
-  Token get withKeyword => _withKeyword;
-
-  /**
    * Set the token representing the 'with' keyword to the given token.
    *
    * @param withKeyword the token representing the 'with' keyword
    */
+  @deprecated
   void set mixinKeyword(Token withKeyword) {
-    this._withKeyword = withKeyword;
+    this.withKeyword = withKeyword;
   }
 
   @override
@@ -20095,7 +19415,7 @@ class YieldStatement extends Statement {
    * @param semicolon the semicolon following the expression
    */
   YieldStatement(this.yieldKeyword, this.star, Expression expression, this.semicolon) {
-    this._expression = becomeParentOf(expression);
+    _expression = becomeParentOf(expression);
   }
 
   @override
@@ -20130,7 +19450,7 @@ class YieldStatement extends Statement {
    * @param expression the expression whose value will be yielded
    */
   void set expression(Expression expression) {
-    this._expression = becomeParentOf(expression);
+    _expression = becomeParentOf(expression);
   }
 
   @override
@@ -20138,18 +19458,18 @@ class YieldStatement extends Statement {
     safelyVisitChild(_expression, visitor);
   }
 }
+
 /**
- * Instances of the class {@code NodeList} represent a list of AST nodes that have a common parent.
+ * Instances of the class `NodeList` represent a list of AST nodes that have a
+ * common parent.
  */
 class NodeList<E extends AstNode> extends Object with ListMixin<E> {
   /**
-   * Create an empty list with the given owner. This is a convenience method that allows the
-   * compiler to determine the correct value of the type argument [E] without needing to
-   * explicitly specify it.
+   * Create an empty list with the given [owner].
    *
-   * @param owner the node that is the parent of each of the elements in the list
-   * @return the list that was created
+   * Use "new NodeList<E>(owner)"
    */
+  @deprecated
   static NodeList create(AstNode owner) => new NodeList(owner);
 
   /**
@@ -20163,26 +19483,30 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
   List<E> _elements = <E>[];
 
   /**
-   * Initialize a newly created list of nodes to be empty.
-   *
-   * @param owner the node that is the parent of each of the elements in the list
+   * Initialize a newly created list of nodes such that all of the nodes that
+   * are added to the list will have their parent set to the given [owner]. The
+   * list will initially be populated with the given [elements].
    */
-  NodeList(this.owner);
+  NodeList(this.owner, [List<E> elements]) {
+    addAll(elements);
+  }
 
   /**
-   * Use the given visitor to visit each of the nodes in this list.
-   *
-   * @param visitor the visitor to be used to visit the elements of this list
+   * Use the given [visitor] to visit each of the nodes in this list.
    */
   accept(AstVisitor visitor) {
-    var length = _elements.length;
+    int length = _elements.length;
     for (var i = 0; i < length; i++) {
       _elements[i].accept(visitor);
     }
   }
+
+  @override
   void add(E node) {
     insert(length, node);
   }
+
+  @override
   void insert(int index, E node) {
     int length = _elements.length;
     if (index < 0 || index > length) {
@@ -20190,11 +19514,13 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
     }
     owner.becomeParentOf(node);
     if (length == 0) {
-      _elements = <E> [node];
+      _elements.add(node);
     } else {
       _elements.insert(index, node);
     }
   }
+
+  @override
   bool addAll(Iterable<E> nodes) {
     if (nodes != null && !nodes.isEmpty) {
       _elements.addAll(nodes);
@@ -20205,17 +19531,17 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
     }
     return false;
   }
+
   E operator[](int index) {
     if (index < 0 || index >= _elements.length) {
       throw new RangeError("Index: $index, Size: ${_elements.length}");
     }
-    return _elements[index] as E;
+    return _elements[index];
   }
 
   /**
-   * Return the first token included in this node's source range.
-   *
-   * @return the first token included in this node's source range
+   * Return the first token included in this node list's source range, or `null`
+   * if the list is empty.
    */
   Token get beginToken {
     if (_elements.length == 0) {
@@ -20225,29 +19551,27 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
   }
 
   /**
-   * Return the last token included in this node list's source range.
-   *
-   * @return the last token included in this node list's source range
+   * Return the last token included in this node list's source range, or `null`
+   * if the list is empty.
    */
   Token get endToken {
-    if (_elements.length == 0) {
+    int length = _elements.length;
+    if (length == 0) {
       return null;
     }
-    return _elements[_elements.length - 1].endToken;
+    return _elements[length - 1].endToken;
   }
+
+  @override
   E removeAt(int index) {
     if (index < 0 || index >= _elements.length) {
       throw new RangeError("Index: $index, Size: ${_elements.length}");
     }
-    E removedNode = _elements[index] as E;
-    int length = _elements.length;
-    if (length == 1) {
-      _elements = AstNode.EMPTY_ARRAY;
-      return removedNode;
-    }
+    E removedNode = _elements[index];
     _elements.removeAt(index);
     return removedNode;
   }
+
   void operator[]=(int index, E node) {
     if (index < 0 || index >= _elements.length) {
       throw new RangeError("Index: $index, Size: ${_elements.length}");
@@ -20255,10 +19579,15 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
     owner.becomeParentOf(node);
     _elements[index] = node;
   }
+
+  @override
   void clear() {
     _elements = <E>[];
   }
+
   int get length => _elements.length;
+
+  @deprecated
   void set length(int value) {
     throw new UnsupportedError("Cannot resize NodeList.");
   }

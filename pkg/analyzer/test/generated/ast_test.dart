@@ -468,6 +468,81 @@ class ConstantEvaluatorTest extends ParserTestCase {
   Object _getConstantValue(String source) => ParserTestCase.parseExpression(source).accept(new ConstantEvaluator());
 }
 
+class ConstructorDeclarationTest extends EngineTestCase {
+  void test_firstTokenAfterCommentAndMetadata_externalOnly() {
+    Token externalKeyword = TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
+    ConstructorDeclaration declaration = AstFactory.constructorDeclaration2(
+        null,
+        null,
+        AstFactory.identifier3('int'),
+        null,
+        null,
+        null,
+        null);
+    declaration.externalKeyword = externalKeyword;
+    expect(declaration.firstTokenAfterCommentAndMetadata, externalKeyword);
+  }
+
+  void test_firstTokenAfterCommentAndMetadata_constOnly() {
+    ConstructorDeclaration declaration = AstFactory.constructorDeclaration2(
+        Keyword.CONST,
+        null,
+        AstFactory.identifier3('int'),
+        null,
+        null,
+        null,
+        null);
+    expect(declaration.firstTokenAfterCommentAndMetadata, declaration.constKeyword);
+  }
+
+  void test_firstTokenAfterCommentAndMetadata_factoryOnly() {
+    ConstructorDeclaration declaration = AstFactory.constructorDeclaration2(
+        null,
+        Keyword.FACTORY,
+        AstFactory.identifier3('int'),
+        null,
+        null,
+        null,
+        null);
+    expect(declaration.firstTokenAfterCommentAndMetadata, declaration.factoryKeyword);
+  }
+
+  void test_firstTokenAfterCommentAndMetadata_all_inverted() {
+    Token externalKeyword = TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
+    externalKeyword.offset = 14;
+    ConstructorDeclaration declaration = AstFactory.constructorDeclaration2(
+        Keyword.CONST,
+        Keyword.FACTORY,
+        AstFactory.identifier3('int'),
+        null,
+        null,
+        null,
+        null);
+    declaration.externalKeyword = externalKeyword;
+    declaration.constKeyword.offset = 8;
+    Token factoryKeyword = declaration.factoryKeyword;
+    factoryKeyword.offset = 0;
+    expect(declaration.firstTokenAfterCommentAndMetadata, factoryKeyword);
+  }
+
+  void test_firstTokenAfterCommentAndMetadata_all_normal() {
+    Token token = TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
+    token.offset = 0;
+    ConstructorDeclaration declaration = AstFactory.constructorDeclaration2(
+        Keyword.CONST,
+        Keyword.FACTORY,
+        AstFactory.identifier3('int'),
+        null,
+        null,
+        null,
+        null);
+    declaration.externalKeyword = token;
+    declaration.constKeyword.offset = 9;
+    declaration.factoryKeyword.offset = 15;
+    expect(declaration.firstTokenAfterCommentAndMetadata, token);
+  }
+}
+
 class IndexExpressionTest extends EngineTestCase {
   void test_inGetterContext_assignment_compound_left() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
@@ -627,14 +702,6 @@ class NodeListTest extends EngineTestCase {
     expect(secondNode.parent, same(parent));
     expect(thirdNode.parent, same(parent));
     expect(fourthNode.parent, same(parent));
-  }
-
-  void test_create() {
-    AstNode owner = AstFactory.argumentList();
-    NodeList<AstNode> list = NodeList.create(owner);
-    expect(list, isNotNull);
-    expect(list, hasLength(0));
-    expect(list.owner, same(owner));
   }
 
   void test_creation() {
@@ -2645,16 +2712,17 @@ class WrapperKind extends Enum<WrapperKind> {
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ConstantEvaluatorTest);
-  runReflectiveTests(NodeLocatorTest);
-  runReflectiveTests(ToSourceVisitorTest);
   runReflectiveTests(BreadthFirstVisitorTest);
   runReflectiveTests(ClassDeclarationTest);
   runReflectiveTests(ClassTypeAliasTest);
+  runReflectiveTests(ConstantEvaluatorTest);
+  runReflectiveTests(ConstructorDeclarationTest);
   runReflectiveTests(IndexExpressionTest);
   runReflectiveTests(NodeListTest);
+  runReflectiveTests(NodeLocatorTest);
   runReflectiveTests(SimpleIdentifierTest);
   runReflectiveTests(SimpleStringLiteralTest);
   runReflectiveTests(StringInterpolationTest);
+  runReflectiveTests(ToSourceVisitorTest);
   runReflectiveTests(VariableDeclarationTest);
 }
