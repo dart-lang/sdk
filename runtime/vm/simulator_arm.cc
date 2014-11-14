@@ -786,6 +786,16 @@ class Redirection {
     return reinterpret_cast<Redirection*>(addr_of_redirection);
   }
 
+  static uword FunctionForRedirect(uword address_of_svc) {
+    Redirection* current;
+    for (current = list_; current != NULL; current = current->next_) {
+      if (current->address_of_svc_instruction() == address_of_svc) {
+        return current->external_function_;
+      }
+    }
+    return 0;
+  }
+
  private:
   static const int32_t kRedirectSvcInstruction =
     ((AL << kConditionShift) | (0xf << 24) | kRedirectionSvcCode);
@@ -818,6 +828,11 @@ uword Simulator::RedirectExternalReference(uword function,
   Redirection* redirection =
       Redirection::Get(function, call_kind, argument_count);
   return redirection->address_of_svc_instruction();
+}
+
+
+uword Simulator::FunctionForRedirect(uword redirect) {
+  return Redirection::FunctionForRedirect(redirect);
 }
 
 

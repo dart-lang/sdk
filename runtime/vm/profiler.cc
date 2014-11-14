@@ -22,8 +22,7 @@
 namespace dart {
 
 
-#if defined(USING_SIMULATOR) || defined(TARGET_OS_ANDROID) || \
-    defined(HOST_ARCH_ARM64)
+#if defined(TARGET_OS_ANDROID) || defined(HOST_ARCH_ARM64)
   DEFINE_FLAG(bool, profile, false, "Enable Sampling Profiler");
 #else
   DEFINE_FLAG(bool, profile, true, "Enable Sampling Profiler");
@@ -35,7 +34,7 @@ DEFINE_FLAG(int, profile_period, 1000,
             "Time between profiler samples in microseconds. Minimum 50.");
 DEFINE_FLAG(int, profile_depth, 8,
             "Maximum number stack frames walked. Minimum 1. Maximum 255.");
-#if defined(PROFILE_NATIVE_CODE)
+#if defined(PROFILE_NATIVE_CODE) || defined(USING_SIMULATOR)
 DEFINE_FLAG(bool, profile_vm, true,
             "Always collect native stack traces.");
 #else
@@ -2040,15 +2039,24 @@ void Profiler::RecordSampleInterruptCallback(
   // At this point we have a valid stack boundary for this isolate and
   // know that our initial stack and frame pointers are within the boundary.
 
-  // Increment counter for vm tag.
-  VMTagCounters* counters = isolate->vm_tag_counters();
-  ASSERT(counters != NULL);
-  counters->Increment(isolate->vm_tag());
-
   // Setup sample.
   Sample* sample = sample_buffer->ReserveSample();
   sample->Init(isolate, OS::GetCurrentTimeMicros(), state.tid);
-  sample->set_vm_tag(isolate->vm_tag());
+  uword vm_tag = isolate->vm_tag();
+#if defined(USING_SIMULATOR)
+  // When running in the simulator, the runtime entry function address
+  // (stored as the vm tag) is the address of a redirect function.
+  // Attempt to find the real runtime entry function address and use that.
+  uword redirect_vm_tag = Simulator::FunctionForRedirect(vm_tag);
+  if (redirect_vm_tag != 0) {
+    vm_tag = redirect_vm_tag;
+  }
+#endif
+  // Increment counter for vm tag.
+  VMTagCounters* counters = isolate->vm_tag_counters();
+  ASSERT(counters != NULL);
+  counters->Increment(vm_tag);
+  sample->set_vm_tag(vm_tag);
   sample->set_user_tag(isolate->user_tag());
   sample->set_sp(sp);
   sample->set_fp(state.fp);

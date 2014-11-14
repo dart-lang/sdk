@@ -656,6 +656,16 @@ class Redirection {
     return reinterpret_cast<Redirection*>(addr_of_redirection);
   }
 
+  static uword FunctionForRedirect(uword address_of_break) {
+    Redirection* current;
+    for (current = list_; current != NULL; current = current->next_) {
+      if (current->address_of_break_instruction() == address_of_break) {
+        return current->external_function_;
+      }
+    }
+    return 0;
+  }
+
  private:
   static const int32_t kRedirectInstruction =
     Instr::kBreakPointInstruction | (Instr::kRedirectCode << kBreakCodeShift);
@@ -689,6 +699,11 @@ uword Simulator::RedirectExternalReference(uword function,
   Redirection* redirection =
       Redirection::Get(function, call_kind, argument_count);
   return redirection->address_of_break_instruction();
+}
+
+
+uword Simulator::FunctionForRedirect(uword redirect) {
+  return Redirection::FunctionForRedirect(redirect);
 }
 
 
