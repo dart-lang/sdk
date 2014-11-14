@@ -15903,9 +15903,9 @@ RawInteger* Smi::ShiftOp(Token::Kind kind,
         return raw();
       }
       { // Check for overflow.
-        int cnt = Utils::HighestBit(left_value);
-        if ((cnt + right_value) >= Smi::kBits) {
-          if ((cnt + right_value) >= Mint::kBits) {
+        int cnt = Utils::BitLength(left_value);
+        if ((cnt + right_value) > Smi::kBits) {
+          if ((cnt + right_value) > Mint::kBits) {
             return Bigint::NewFromShiftedInt64(left_value, right_value);
           } else {
             int64_t left_64 = left_value;
