@@ -720,7 +720,7 @@ class Primitives {
     return "Instance of '$name'";
   }
 
-  static num dateNow() => JS('num', r'Date.now()');
+  static num dateNow() => JS('int', r'Date.now()');
 
   static void initTicker() {
     if (timerFrequency != null) return;
