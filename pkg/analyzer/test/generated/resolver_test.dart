@@ -3335,6 +3335,119 @@ main() {
     verify([source]);
   }
 
+  void test_unusedElement_functionLocal_notUsed_noReference() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+main() {
+  f() {}
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_functionLocal_notUsed_referenceFromItself() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+main() {
+  _f(int p) {
+    _f(p - 1);
+  }
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_functionLocal_isUsed_invocation() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+main() {
+  f() {}
+  f();
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_functionLocal_isUsed_reference() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+main() {
+  f() {}
+  print(f);
+}
+print(x) {}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_functionLocal_isUsed_closure() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+main() {
+  print(() {});
+}
+print(x) {}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_functionTop_notUsed_noReference() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+_f() {}
+main() {
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_functionTop_notUsed_referenceFromItself() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+_f(int p) {
+  _f(p - 1);
+}
+main() {
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_functionTop_isUsed_invocation() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+_f() {}
+main() {
+  _f();
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_functionTop_isUsed_reference() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+_f() {}
+main() {
+  print(_f);
+}
+print(x) {}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_unusedElement_getter_notUsed_noReference() {
     enableUnusedElement = true;
     Source source = addSource(r'''

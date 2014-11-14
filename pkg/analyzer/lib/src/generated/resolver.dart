@@ -15651,6 +15651,25 @@ class _GatherUsedElementsVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    ExecutableElement enclosingExecOld = _enclosingExec;
+    try {
+      _enclosingExec = node.element;
+      super.visitFunctionDeclaration(node);
+    } finally {
+      _enclosingExec = enclosingExecOld;
+    }
+  }
+
+  @override
+  visitFunctionExpression(FunctionExpression node) {
+    if (node.parent is! FunctionDeclaration) {
+      _useElement(node.element);
+    }
+    super.visitFunctionExpression(node);
+  }
+
+  @override
   visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement enclosingExecOld = _enclosingExec;
     try {
@@ -15807,13 +15826,24 @@ class _UnusedElementsVerifier extends RecursiveElementVisitor {
 
   @override
   visitFieldElement(FieldElement element) {
-    if (!element.isSynthetic && !_isReadMember(element)) {
+    if (!_isReadMember(element)) {
       _reportErrorForElement(
           HintCode.UNUSED_FIELD,
           element,
           [element.displayName]);
     }
     super.visitFieldElement(element);
+  }
+
+  @override
+  visitFunctionElement(FunctionElement element) {
+    if (!_isUsedElement(element)) {
+      _reportErrorForElement(
+          HintCode.UNUSED_ELEMENT,
+          element,
+          [element.kind.displayName, element.displayName]);
+    }
+    super.visitFunctionElement(element);
   }
 
   @override
@@ -15839,7 +15869,7 @@ class _UnusedElementsVerifier extends RecursiveElementVisitor {
 
   @override
   visitPropertyAccessorElement(PropertyAccessorElement element) {
-    if (!element.isSynthetic && !_isUsedMember(element)) {
+    if (!_isUsedMember(element)) {
       _reportErrorForElement(
           HintCode.UNUSED_ELEMENT,
           element,
@@ -15849,7 +15879,13 @@ class _UnusedElementsVerifier extends RecursiveElementVisitor {
   }
 
   bool _isUsedElement(Element element) {
-    if (element is! LocalVariableElement) {
+    if (element.isSynthetic) {
+      return true;
+    }
+    if (element is LocalVariableElement ||
+        element is FunctionElement && !element.isStatic) {
+      // local variable or function
+    } else {
       if (element.isPublic) {
         return true;
       }
@@ -15861,11 +15897,17 @@ class _UnusedElementsVerifier extends RecursiveElementVisitor {
     if (element.isPublic) {
       return true;
     }
+    if (element.isSynthetic) {
+      return true;
+    }
     return _usedElements.readMembers.contains(element.displayName);
   }
 
   bool _isUsedMember(Element element) {
     if (element.isPublic) {
+      return true;
+    }
+    if (element.isSynthetic) {
       return true;
     }
     if (_usedElements.members.contains(element.displayName)) {
