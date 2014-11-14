@@ -1,5 +1,5 @@
 name: glob
-version: 1.0.2
+version: 1.0.3
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
 description: Bash-style filename globbing.
