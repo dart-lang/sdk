@@ -59,13 +59,15 @@ class FormatterException implements Exception {
 
 /// Specifies the kind of code snippet to format.
 class CodeKind {
-  const CodeKind._();
+  final int ordinal;
+
+  const CodeKind._(this.ordinal);
 
   /// A compilation unit snippet.
-  static const COMPILATION_UNIT = const CodeKind._();
+  static const COMPILATION_UNIT = const CodeKind._(0);
 
   /// A statement snippet.
-  static const STATEMENT = const CodeKind._();
+  static const STATEMENT = const CodeKind._(1);
 
 }
 
