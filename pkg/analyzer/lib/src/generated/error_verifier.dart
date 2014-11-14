@@ -3996,6 +3996,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * See [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT].
    */
   bool _checkForNoDefaultSuperConstructorImplicit(ClassDeclaration node) {
+    // do nothing if mixin errors have already been reported for this class.
+    ClassElementImpl enclosingClass = _enclosingClass;
+    if (enclosingClass.mixinErrorsReported) {
+      return false;
+    }
     // do nothing if there is explicit constructor
     List<ConstructorElement> constructors = _enclosingClass.constructors;
     if (!constructors[0].isSynthetic) {
@@ -4835,6 +4840,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * [StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT].
    */
   bool _checkForUndefinedConstructorInInitializerImplicit(ConstructorDeclaration node) {
+    if (_enclosingClass == null) {
+      return false;
+    }
+    // do nothing if mixin errors have already been reported for this class.
+    ClassElementImpl enclosingClass = _enclosingClass;
+    if (enclosingClass.mixinErrorsReported) {
+      return false;
+    }
     //
     // Ignore if the constructor is not generative.
     //
@@ -4853,9 +4866,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     //
     // Check to see whether the superclass has a non-factory unnamed constructor.
     //
-    if (_enclosingClass == null) {
-      return false;
-    }
     InterfaceType superType = _enclosingClass.supertype;
     if (superType == null) {
       return false;

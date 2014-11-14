@@ -2912,8 +2912,69 @@ class B {
 class M {}
 class C extends B with M {}
 ''');
+    // Note: the implicit call from C's default constructor to B() should not
+    // generate a further error (despite the fact that it's not forwarded),
+    // since CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS does a better job
+    // of explaining the probem to the user.
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
+    verify([source]);
+  }
+
+  void test_mixinHasNoConstructors_mixinClass_explicitSuperCall() {
+    Source source = addSource(r'''
+class B {
+  B({x});
+}
+class M {}
+class C extends B with M {
+  C() : super();
+}
+''');
+    // Note: the explicit call from C() to B() should not generate a further
+    // error (despite the fact that it's not forwarded), since
+    // CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS does a better job of
+    // explaining the error to the user.
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
+    verify([source]);
+  }
+
+  void test_mixinHasNoConstructors_mixinClass_implicitSuperCall() {
+    Source source = addSource(r'''
+class B {
+  B({x});
+}
+class M {}
+class C extends B with M {
+  C();
+}
+''');
+    // Note: the implicit call from C() to B() should not generate a further
+    // error (despite the fact that it's not forwarded), since
+    // CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS does a better job of
+    // explaining the error to the user.
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
+    verify([source]);
+  }
+
+  void test_mixinHasNoConstructors_mixinClass_namedSuperCall() {
+    Source source = addSource(r'''
+class B {
+  B.named({x});
+}
+class M {}
+class C extends B with M {
+  C() : super.named();
+}
+''');
+    // Note: the explicit call from C() to B.named() should not generate a
+    // further error (despite the fact that it's not forwarded), since
+    // CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS does a better job of
+    // explaining the error to the user.
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
     verify([source]);
   }
 
@@ -3282,6 +3343,7 @@ class C extends Mixed {
 class M {}
 class B {
   B({x});
+  B.other();
 }
 class C extends B with M {
   C(x) : super();
@@ -3298,6 +3360,7 @@ class C extends B with M {
 class M {}
 class B {
   B.named({x});
+  B.other();
 }
 class C extends B with M {
   C(x) : super.named();
@@ -3314,6 +3377,7 @@ class C extends B with M {
 class M {}
 class B {
   B({x});
+  B.named();
 }
 class C extends B with M {
   C();
@@ -3330,6 +3394,7 @@ class C extends B with M {
 class M {}
 class B {
   B([x]);
+  B.other();
 }
 class C extends B with M {
   C();
@@ -3378,6 +3443,7 @@ class C extends Mixed {}
 class M {}
 class B {
   B({x});
+  B.other();
 }
 class C extends B with M {}
 ''');
@@ -3392,6 +3458,7 @@ class C extends B with M {}
 class M {}
 class B {
   B([x]);
+  B.other();
 }
 class C extends B with M {}
 ''');

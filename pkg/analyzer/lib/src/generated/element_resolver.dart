@@ -1048,7 +1048,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    ClassElement enclosingClass = _resolver.enclosingClass;
+    ClassElementImpl enclosingClass = _resolver.enclosingClass;
     if (enclosingClass == null) {
       // TODO(brianwilkerson) Report this error.
       return null;
@@ -1062,7 +1062,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     String superName = name != null ? name.name : null;
     ConstructorElement element = superType.lookUpConstructor(superName, _definingLibrary);
     if (element == null ||
-        !enclosingClass.isSuperConstructorAccessible(element)) {
+        (!enclosingClass.mixinErrorsReported &&
+         !enclosingClass.isSuperConstructorAccessible(element))) {
       if (name != null) {
         _resolver.reportErrorForNode(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER, node, [superType.displayName, name]);
       } else {

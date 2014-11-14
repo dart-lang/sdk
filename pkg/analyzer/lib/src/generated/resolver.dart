@@ -5684,13 +5684,47 @@ class ImplicitConstructorBuilder extends ScopedVisitor {
   ImplicitConstructorBuilder.con2(ResolvableLibrary library, Source source, TypeProvider typeProvider) : super.con4(library, source, typeProvider);
 
   @override
-  Object visitClassDeclaration(ClassDeclaration node) => null;
+  Object visitClassDeclaration(ClassDeclaration node) {
+    ClassElementImpl classElement = node.element;
+    classElement.mixinErrorsReported = false;
+    if (node.extendsClause != null && node.withClause != null) {
+      // We don't need to build any implicitly constructors for the mixin
+      // application (since there isn't an explicit element for it), but we
+      // need to verify that they _could_ be built.
+      InterfaceType superclassType = null;
+      TypeName superclassName = node.extendsClause.superclass;
+      DartType type = superclassName.type;
+      if (type is InterfaceType) {
+        superclassType = type;
+      } else {
+        superclassType = typeProvider.objectType;
+      }
+      ClassElement superclassElement = classElement.supertype.element;
+      if (superclassElement != null) {
+        bool constructorFound = false;
+        void callback(ConstructorElement explicitConstructor,
+                      List<DartType> parameterTypes,
+                      List<DartType> argumentTypes) {
+          constructorFound = true;
+        }
+        if (_findForwardedConstructors(
+                classElement, superclassName, superclassType, callback) &&
+            !constructorFound) {
+          reportErrorForNode(CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
+              node.withClause, [superclassType.element.name]);
+          classElement.mixinErrorsReported = true;
+        }
+      }
+    }
+    return null;
+  }
 
   @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
     super.visitClassTypeAlias(node);
     InterfaceType superclassType = null;
-    DartType type = node.superclass.type;
+    TypeName superclassName = node.superclass;
+    DartType type = superclassName.type;
     if (type is InterfaceType) {
       superclassType = type;
     } else {
@@ -5698,31 +5732,65 @@ class ImplicitConstructorBuilder extends ScopedVisitor {
     }
     ClassElementImpl classElement = node.element as ClassElementImpl;
     if (classElement != null) {
-      ClassElement superclassElement = superclassType.element;
-      if (superclassElement != null) {
-        List<ConstructorElement> constructors = superclassElement.constructors;
-        int count = constructors.length;
-        if (count > 0) {
-          List<DartType> parameterTypes = TypeParameterTypeImpl.getTypes(superclassType.typeParameters);
-          List<DartType> argumentTypes = _getArgumentTypes(node.superclass.typeArguments, parameterTypes);
-          InterfaceType classType = classElement.type;
-          List<ConstructorElement> implicitConstructors = new List<ConstructorElement>();
-          for (int i = 0; i < count; i++) {
-            ConstructorElement explicitConstructor = constructors[i];
-            if (!explicitConstructor.isFactory &&
-                classElement.isSuperConstructorAccessible(explicitConstructor)) {
-              implicitConstructors.add(_createImplicitContructor(classType, explicitConstructor, parameterTypes, argumentTypes));
-            }
-          }
+      if (superclassType.element != null) {
+        List<ConstructorElement> implicitConstructors =
+            new List<ConstructorElement>();
+        void callback(ConstructorElement explicitConstructor,
+                      List<DartType> parameterTypes,
+                      List<DartType> argumentTypes) {
+          implicitConstructors.add(_createImplicitContructor(
+              classElement.type,
+              explicitConstructor,
+              parameterTypes,
+              argumentTypes));
+        }
+        if (_findForwardedConstructors(
+                classElement, superclassName, superclassType, callback)) {
           if (implicitConstructors.isEmpty) {
             reportErrorForNode(CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
-                node, [superclassElement.name]);
+                node, [superclassType.element.name]);
+          } else {
+            classElement.constructors = implicitConstructors;
           }
-          classElement.constructors = implicitConstructors;
         }
       }
     }
     return null;
+  }
+
+  /**
+   * Find all the constructors that should be forwarded from the superclass
+   * named [superclassName], having type [superclassType], to the class or
+   * mixin application [classElement], and pass information about them to
+   * [callback].
+   *
+   * Return true if some constructors were considered.  (A false return value
+   * can only happen if the supeclass is a built-in type, in which case it
+   * can't be used as a mixin anyway).
+   */
+  bool _findForwardedConstructors(
+      ClassElementImpl classElement,
+      TypeName superclassName,
+      InterfaceType superclassType,
+      void callback(ConstructorElement explicitConstructor,
+                    List<DartType> parameterTypes,
+                    List<DartType> argumentTypes)) {
+    ClassElement superclassElement = superclassType.element;
+    List<ConstructorElement> constructors = superclassElement.constructors;
+    int count = constructors.length;
+    if (count == 0) {
+      return false;
+    }
+    List<DartType> parameterTypes = TypeParameterTypeImpl.getTypes(superclassType.typeParameters);
+    List<DartType> argumentTypes = _getArgumentTypes(superclassName.typeArguments, parameterTypes);
+    for (int i = 0; i < count; i++) {
+      ConstructorElement explicitConstructor = constructors[i];
+      if (!explicitConstructor.isFactory &&
+          classElement.isSuperConstructorAccessible(explicitConstructor)) {
+        callback(explicitConstructor, parameterTypes, argumentTypes);
+      }
+    }
+    return true;
   }
 
   @override
