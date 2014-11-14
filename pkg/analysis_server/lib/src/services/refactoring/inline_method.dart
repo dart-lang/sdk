@@ -101,17 +101,23 @@ String _getMethodSourceForInvocation(RefactoringStatus status, _SourcePart part,
     }
   });
   // replace static field "qualifier" with invocation target
-  part._staticFieldQualifiers.forEach(
-      (String className, List<SourceRange> ranges) {
-    for (SourceRange range in ranges) {
-      edits.add(newSourceEdit_range(range, className + '.'));
+  part._staticFieldOffsets.forEach((String className, List<int> offsets) {
+    for (int offset in offsets) {
+//      edits.add(newSourceEdit_range(range, className + '.'));
+      edits.add(new SourceEdit(offset, 0, className + '.'));
     }
   });
-  // replace instance field "qualifier" with invocation target
+  // replace "this" references with invocation target
   if (targetExpression != null) {
-    String targetSource = utils.getNodeText(targetExpression) + '.';
-    for (SourceRange qualifierRange in part._instanceFieldQualifiers) {
-      edits.add(newSourceEdit_range(qualifierRange, targetSource));
+    String targetSource = utils.getNodeText(targetExpression);
+    // explicit "this" references
+    for (int offset in part._explicitThisOffsets) {
+      edits.add(new SourceEdit(offset, 4, targetSource));
+    }
+    // implicit "this" references
+    targetSource += '.';
+    for (int offset in part._implicitThisOffsets) {
+      edits.add(new SourceEdit(offset, 0, targetSource));
     }
   }
   // prepare edits to replace conflicting variables
@@ -680,30 +686,36 @@ class _SourcePart {
   /**
    * The occurrences of the method parameters.
    */
-  Map<ParameterElement, List<_ParameterOccurrence>> _parameters = {};
+  final Map<ParameterElement, List<_ParameterOccurrence>> _parameters = {};
 
   /**
    * The occurrences of the method local variables.
    */
-  Map<VariableElement, List<SourceRange>> _variables = {};
+  final Map<VariableElement, List<SourceRange>> _variables = {};
 
   /**
-   * The source ranges of the qualifiers in instance field references.
-   * Some of them have length `0`.
+   * The offsets of explicit `this` expression references.
    */
-  List<SourceRange> _instanceFieldQualifiers = [];
+  final List<int> _explicitThisOffsets = [];
 
   /**
-   * The source ranges of the qualifiers in instance field references.
-   * Some of them have length `0`.
+   * The offsets of implicit `this` expression references.
    */
-  Map<String, List<SourceRange>> _staticFieldQualifiers = {};
+  final List<int> _implicitThisOffsets = [];
+
+  /**
+   * The offsets of the implicit class references in static field references.
+   */
+  final Map<String, List<int>> _staticFieldOffsets = {};
 
   _SourcePart(this._base, this._source, this._prefix);
 
-  void addInstanceFieldQualifier(SourceRange range) {
-    range = rangeFromBase(range, _base);
-    _instanceFieldQualifiers.add(range);
+  void addExplicitThisOffset(int offset) {
+    _explicitThisOffsets.add(offset - _base);
+  }
+
+  void addImplicitThisOffset(int offset) {
+    _implicitThisOffsets.add(offset - _base);
   }
 
   void addParameterOccurrence(ParameterElement parameter, SourceRange range,
@@ -719,14 +731,13 @@ class _SourcePart {
     }
   }
 
-  void addStaticFieldQualifier(String className, SourceRange range) {
-    List<SourceRange> ranges = _staticFieldQualifiers[className];
-    if (ranges == null) {
-      ranges = [];
-      _staticFieldQualifiers[className] = ranges;
+  void addStaticFieldOffset(String className, int offset) {
+    List<int> offsets = _staticFieldOffsets[className];
+    if (offsets == null) {
+      offsets = [];
+      _staticFieldOffsets[className] = offsets;
     }
-    range = rangeFromBase(range, _base);
-    ranges.add(range);
+    offsets.add(offset - _base);
   }
 
   void addVariable(VariableElement element, SourceRange range) {
@@ -759,6 +770,8 @@ class _VariablesVisitor extends GeneralizingAstVisitor {
    */
   _SourcePart result;
 
+  int offset;
+
   _VariablesVisitor(this.methodElement, this.bodyRange, this.result);
 
   @override
@@ -780,25 +793,25 @@ class _VariablesVisitor extends GeneralizingAstVisitor {
     }
   }
 
+  @override
+  visitThisExpression(ThisExpression node) {
+    int offset = node.offset;
+    if (bodyRange.contains(offset)) {
+      result.addExplicitThisOffset(offset);
+    }
+  }
+
   void _addInstanceFieldQualifier(SimpleIdentifier node) {
     PropertyAccessorElement accessor = getPropertyAccessorElement(node);
     if (isFieldAccessorElement(accessor)) {
       AstNode qualifier = getNodeQualifier(node);
-      if (qualifier == null || qualifier is ThisExpression) {
+      if (qualifier == null) {
+        int offset = node.offset;
         if (accessor.isStatic) {
           String className = accessor.enclosingElement.displayName;
-          if (qualifier == null) {
-            SourceRange qualifierRange = rangeStartLength(node, 0);
-            result.addStaticFieldQualifier(className, qualifierRange);
-          }
+          result.addStaticFieldOffset(className, offset);
         } else {
-          SourceRange qualifierRange;
-          if (qualifier != null) {
-            qualifierRange = rangeStartStart(qualifier, node);
-          } else {
-            qualifierRange = rangeStartLength(node, 0);
-          }
-          result.addInstanceFieldQualifier(qualifierRange);
+          result.addImplicitThisOffset(offset);
         }
       }
     }

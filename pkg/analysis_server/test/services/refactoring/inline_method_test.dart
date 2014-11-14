@@ -933,6 +933,41 @@ class A {
 ''');
   }
 
+  test_method_this() {
+    // TODO
+    indexTestUnit(r'''
+class A {
+  accept(B b) {}
+}
+class B {
+  test(A a) {
+    print(this);
+    a.accept(this);
+  }
+}
+main() {
+  B b = new B();
+  A a = new A();
+  b.test(a);
+}
+''');
+    _createRefactoring('test(A a) {');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+class A {
+  accept(B b) {}
+}
+class B {
+}
+main() {
+  B b = new B();
+  A a = new A();
+  print(b);
+  a.accept(b);
+}
+''');
+  }
+
   test_method_unqualifiedUnvocation() {
     indexTestUnit(r'''
 class A {
