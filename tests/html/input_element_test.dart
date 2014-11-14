@@ -184,5 +184,11 @@ main() {
       e.value = null;
       expect(e.value, '');
     });
+    test('valueSetNullProxy', () {
+      final e = new TextInputElement();
+      var list = new List(5);
+      e.value = list[0];
+      expect(e.value, '');
+    });
   });
 }

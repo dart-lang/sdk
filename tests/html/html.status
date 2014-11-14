@@ -19,6 +19,9 @@ storage_quota_test/missingenumcheck: Fail
 [ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 datalistelement_test: Skip # Issue 20540
 
+[ $compiler == dart2js ]
+input_element_test/attributes: Fail # Issue 21555
+
 [ $compiler == dart2js && $csp ]
 custom/js_custom_test: Fail # Issue 14643
 custom/element_upgrade_test: Fail # Issue 17298
