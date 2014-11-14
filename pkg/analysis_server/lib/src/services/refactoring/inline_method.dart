@@ -200,7 +200,6 @@ class InlineMethodRefactoringImpl extends RefactoringImpl implements
 
   ExecutableElement _methodElement;
   bool _isAccessor;
-  String _methodFile;
   CompilationUnit _methodUnit;
   CorrectionUtils _methodUtils;
   AstNode _methodNode;
@@ -340,7 +339,6 @@ class InlineMethodRefactoringImpl extends RefactoringImpl implements
     }
     _methodElement = element as ExecutableElement;
     _isAccessor = element is PropertyAccessorElement;
-    _methodFile = _methodElement.source.fullName;
     _methodUnit = element.unit;
     _methodUtils = new CorrectionUtils(_methodUnit);
     // class member

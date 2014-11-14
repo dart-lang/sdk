@@ -114,12 +114,6 @@ class AssistContext {
  * Utilities for analyzing [CompilationUnit], its parts and source.
  */
 class CorrectionUtils {
-  /**
-   * If `true` then [addEdit] validates that
-   * [Edit] replaces correct part of the [Source].
-   */
-  static bool _DEBUG_VALIDATE_EDITS = true;
-
   static List<String> _KNOWN_METHOD_NAME_PREFIXES = ["get", "is", "to"];
 
   /**

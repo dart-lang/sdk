@@ -643,11 +643,6 @@ class Server {
   int _nextId = 0;
 
   /**
-   * [StreamController] to which notifications will be sent.
-   */
-  final StreamController _notifications = new StreamController();
-
-  /**
    * Messages which have been exchanged with the server; we buffer these
    * up until the test finishes, so that they can be examined in the debugger
    * or printed out in response to a call to [debugStdio].
