@@ -2402,7 +2402,7 @@ void Range::Shr(const Range* left,
 }
 
 
-bool Range::And(const Range* left_range,
+void Range::And(const Range* left_range,
                 const Range* right_range,
                 RangeBoundary* result_min,
                 RangeBoundary* result_max) {
@@ -2414,16 +2414,17 @@ bool Range::And(const Range* left_range,
   if (Range::ConstantMin(right_range).ConstantValue() >= 0) {
     *result_min = RangeBoundary::FromConstant(0);
     *result_max = Range::ConstantMax(right_range);
-    return true;
+    return;
   }
 
   if (Range::ConstantMin(left_range).ConstantValue() >= 0) {
     *result_min = RangeBoundary::FromConstant(0);
     *result_max = Range::ConstantMax(left_range);
-    return true;
+    return;
   }
 
-  return false;
+  *result_min = RangeBoundary::MinConstant(RangeBoundary::kRangeBoundaryInt64);
+  *result_max = RangeBoundary::MaxConstant(RangeBoundary::kRangeBoundaryInt64);
 }
 
 
@@ -2524,7 +2525,7 @@ void Range::Sub(const Range* left_range,
 }
 
 
-bool Range::Mul(const Range* left_range,
+void Range::Mul(const Range* left_range,
                 const Range* right_range,
                 RangeBoundary* result_min,
                 RangeBoundary* result_max) {
@@ -2545,7 +2546,7 @@ bool Range::Mul(const Range* left_range,
     const int64_t r_max =
         OnlyNegativeOrZero(*left_range, *right_range) ? 0 : mul_max;
     *result_max = RangeBoundary::FromConstant(r_max);
-    return true;
+    return;
   }
 
   // TODO(vegorov): handle mixed sign case that leads to (-Infinity, 0] range.
@@ -2553,10 +2554,11 @@ bool Range::Mul(const Range* left_range,
       OnlyNegativeOrZero(*left_range, *right_range)) {
     *result_min = RangeBoundary::FromConstant(0);
     *result_max = RangeBoundary::PositiveInfinity();
-    return true;
+    return;
   }
 
-  return false;
+  *result_min = RangeBoundary::NegativeInfinity();
+  *result_max = RangeBoundary::PositiveInfinity();
 }
 
 
@@ -2603,38 +2605,38 @@ void Range::BinaryOp(const Token::Kind op,
     case Token::kADD:
       Range::Add(left_range, right_range, &min, &max, left_defn);
       break;
+
     case Token::kSUB:
       Range::Sub(left_range, right_range, &min, &max, left_defn);
       break;
-    case Token::kMUL: {
-      if (!Range::Mul(left_range, right_range, &min, &max)) {
-        *result = Range::Full(RangeBoundary::kRangeBoundaryInt64);
-        return;
-      }
+
+    case Token::kMUL:
+      Range::Mul(left_range, right_range, &min, &max);
       break;
-    }
-    case Token::kSHL: {
+
+    case Token::kSHL:
       Range::Shl(left_range, right_range, &min, &max);
       break;
-    }
-    case Token::kSHR: {
+
+    case Token::kSHR:
       Range::Shr(left_range, right_range, &min, &max);
       break;
-    }
 
     case Token::kBIT_AND:
-      if (!Range::And(left_range, right_range, &min, &max)) {
-        *result = Range::Full(RangeBoundary::kRangeBoundaryInt64);
-        return;
-      }
+      Range::And(left_range, right_range, &min, &max);
       break;
 
     case Token::kBIT_XOR:
       Range::Xor(left_range, right_range, &min, &max);
       break;
 
-    default:
+    case Token::kBIT_OR:
       *result = Range::Full(RangeBoundary::kRangeBoundaryInt64);
+      return;
+
+    default:
+      *result = Range(RangeBoundary::NegativeInfinity(),
+                      RangeBoundary::PositiveInfinity());
       return;
   }
 

@@ -531,8 +531,9 @@ TEST_CASE(RangeAnd) {
                  static_cast<int64_t>(20),
                  static_cast<int64_t>(-20),
                  static_cast<int64_t>(20),
-                 RangeBoundary(),
-                 RangeBoundary());
+                 RangeBoundary::MinConstant(RangeBoundary::kRangeBoundaryInt64),
+                 RangeBoundary::MaxConstant(
+                    RangeBoundary::kRangeBoundaryInt64));
 
 #undef TEST_RANGE_AND
 }

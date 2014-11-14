@@ -440,7 +440,7 @@ class Range : public ZoneAllocated {
                   RangeBoundary* max,
                   Definition* left_defn);
 
-  static bool Mul(const Range* left_range,
+  static void Mul(const Range* left_range,
                   const Range* right_range,
                   RangeBoundary* min,
                   RangeBoundary* max);
@@ -454,7 +454,7 @@ class Range : public ZoneAllocated {
                   RangeBoundary* min,
                   RangeBoundary* max);
 
-  static bool And(const Range* left_range,
+  static void And(const Range* left_range,
                   const Range* right_range,
                   RangeBoundary* min,
                   RangeBoundary* max);
