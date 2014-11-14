@@ -42,11 +42,6 @@ class AnalysisContextFactory {
   static String _DART_JS_HELPER = "dart:_js_helper";
 
   /**
-   * The fake SDK used by all of the contexts created by this factory.
-   */
-  static DirectoryBasedDartSdk _FAKE_SDK;
-
-  /**
    * Create an analysis context that has a fake core library already resolved.
    *
    * @return the analysis context that was created

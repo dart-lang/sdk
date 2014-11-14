@@ -10151,10 +10151,7 @@ class HtmlUnitBuilderTest extends EngineTestCase {
     changeSet.addedSource(source);
     _context.applyChanges(changeSet);
     HtmlUnitBuilder builder = new HtmlUnitBuilder(_context);
-    return builder.buildHtmlElement(
-        source,
-        _context.getModificationStamp(source),
-        _context.parseHtmlUnit(source));
+    return builder.buildHtmlElement(source, _context.parseHtmlUnit(source));
   }
   HtmlUnitBuilderTest_ExpectedLibrary
       _l([List<HtmlUnitBuilderTest_ExpectedVariable> expectedVariables = HtmlUnitBuilderTest_ExpectedVariable.EMPTY_LIST]) =>
@@ -10290,10 +10287,7 @@ class HtmlWarningCodeTest extends EngineTestCase {
     changeSet.addedSource(source);
     _context.applyChanges(changeSet);
     HtmlUnitBuilder builder = new HtmlUnitBuilder(_context);
-    builder.buildHtmlElement(
-        source,
-        _context.getModificationStamp(source),
-        _context.parseHtmlUnit(source));
+    builder.buildHtmlElement(source, _context.parseHtmlUnit(source));
     GatheringErrorListener errorListener = new GatheringErrorListener();
     errorListener.addAll2(builder.errorListener);
     errorListener.assertErrorsWithCodes(expectedErrorCodes);

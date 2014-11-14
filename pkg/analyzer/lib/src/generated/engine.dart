@@ -935,16 +935,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   HashMap<Source, ChangeNoticeImpl> _pendingNotices = new HashMap<Source, ChangeNoticeImpl>();
 
   /**
-   * The object used to synchronize access to all of the caches. The rules related to the use of
-   * this lock object are
-   * * no analysis work is done while holding the lock, and
-   * * no analysis results can be recorded unless we have obtained the lock and validated that the
-   * results are for the same version (modification time) of the source as our current cache
-   * content.
-   */
-  static Object _cacheLock = new Object();
-
-  /**
    * The object used to record the results of performing an analysis task.
    */
   AnalysisContextImpl_AnalysisTaskResultRecorder _resultRecorder;
@@ -12718,7 +12708,7 @@ class ResolveHtmlTask extends AnalysisTask {
     // Build the standard HTML element.
     //
     HtmlUnitBuilder builder = new HtmlUnitBuilder(context);
-    _element = builder.buildHtmlElement(source, modificationTime, _unit);
+    _element = builder.buildHtmlElement(source, _unit);
     RecordingErrorListener errorListener = builder.errorListener;
     //
     // Validate the directives

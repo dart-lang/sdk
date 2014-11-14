@@ -5419,11 +5419,6 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
   RecordingErrorListener _errorListener;
 
   /**
-   * The modification time of the source for which an element is being built.
-   */
-  int _modificationStamp = 0;
-
-  /**
    * The HTML element being built.
    */
   HtmlElementImpl _htmlElement;
@@ -5456,13 +5451,10 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
    * Build the HTML element for the given source.
    *
    * @param source the source describing the compilation unit
-   * @param modificationStamp the modification time of the source for which an element is being
-   *          built
    * @param unit the AST structure representing the HTML
    * @throws AnalysisException if the analysis could not be performed
    */
-  HtmlElementImpl buildHtmlElement(Source source, int modificationStamp, ht.HtmlUnit unit) {
-    this._modificationStamp = modificationStamp;
+  HtmlElementImpl buildHtmlElement(Source source, ht.HtmlUnit unit) {
     HtmlElementImpl result = new HtmlElementImpl(_context, source.shortName);
     result.source = source;
     _htmlElement = result;

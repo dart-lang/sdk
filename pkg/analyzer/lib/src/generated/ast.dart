@@ -12483,7 +12483,6 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
  * been found.
  */
 class NodeLocator_NodeFoundException extends RuntimeException {
-  static int _serialVersionUID = 1;
 }
 
 /**

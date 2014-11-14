@@ -17,14 +17,6 @@ import 'package:analyzer/src/generated/parser.dart';
 /// Instances of the class [_GatheringErrorListener] implement an error listener
 /// that collects all of the errors passed to it for later examination.
 class _GatheringErrorListener implements AnalysisErrorListener {
-
-  /// The source being parsed.
-  String _rawSource;
-
-  /// The source being parsed after inserting a marker at the beginning and end
-  /// of the range of the most recent error.
-  String _markedSource;
-
   /// A list containing the errors that were collected.
   final List<AnalysisError> _errors = new List<AnalysisError>();
 
@@ -32,11 +24,6 @@ class _GatheringErrorListener implements AnalysisErrorListener {
   final Map<Source, LineInfo> _lineInfoMap = new Map<Source, LineInfo>();
 
   void onError(AnalysisError error) {
-    if (_rawSource != null) {
-      var left = error.offset;
-      var right = left + error.length - 1;
-      _markedSource = '${_rawSource.substring(0, left)}^${_rawSource.substring(left, right)}^${_rawSource.substring(right)}';
-    }
     _errors.add(error);
   }
 

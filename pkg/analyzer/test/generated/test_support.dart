@@ -140,17 +140,6 @@ class GatheringErrorListener implements AnalysisErrorListener {
   static List<AnalysisError> _NO_ERRORS = new List<AnalysisError>(0);
 
   /**
-   * The source being parsed.
-   */
-  final String _rawSource;
-
-  /**
-   * The source being parsed after inserting a marker at the beginning and end of the range of the
-   * most recent error.
-   */
-  String _markedSource;
-
-  /**
    * A list containing the errors that were collected.
    */
   List<AnalysisError> _errors = new List<AnalysisError>();
@@ -163,14 +152,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
   /**
    * Initialize a newly created error listener to collect errors.
    */
-  GatheringErrorListener() : this.con1(null);
-
-  /**
-   * Initialize a newly created error listener to collect errors.
-   */
-  GatheringErrorListener.con1(this._rawSource) {
-    this._markedSource = _rawSource;
-  }
+  GatheringErrorListener();
 
   /**
    * Return the errors that were collected.
@@ -397,12 +379,6 @@ class GatheringErrorListener implements AnalysisErrorListener {
 
   @override
   void onError(AnalysisError error) {
-    if (_rawSource != null) {
-      int left = error.offset;
-      int right = left + error.length - 1;
-      _markedSource =
-          "${_rawSource.substring(0, left)}^${_rawSource.substring(left, right)}^${_rawSource.substring(right)}";
-    }
     _errors.add(error);
   }
 
