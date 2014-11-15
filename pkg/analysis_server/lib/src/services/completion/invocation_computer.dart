@@ -19,93 +19,48 @@ import '../../protocol_server.dart' show CompletionSuggestionKind;
  * `completion.getSuggestions` request results.
  */
 class InvocationComputer extends DartCompletionComputer {
+  SuggestionBuilder builder;
 
   @override
   bool computeFast(DartCompletionRequest request) {
-    // TODO: implement computeFast
-    return false;
+    builder = request.node.accept(new _InvocationAstVisitor(request));
+    if (builder != null) {
+      return builder.computeFast(request.node);
+    }
+    return true;
   }
 
   @override
   Future<bool> computeFull(DartCompletionRequest request) {
-    return request.node.accept(new _InvocationAstVisitor(request));
+    if (builder != null) {
+      return builder.computeFull(request.node);
+    }
+    return new Future.value(false);
   }
 }
 
-/**
- * An [AstNode] vistor for determining the appropriate invocation/access
- * suggestions based upon the node in which the completion is requested.
- */
-class _InvocationAstVisitor extends GeneralizingAstVisitor<Future<bool>> {
+class _ExpressionSuggestionBuilder implements SuggestionBuilder {
   final DartCompletionRequest request;
 
-  _InvocationAstVisitor(this.request);
+  _ExpressionSuggestionBuilder(this.request);
 
   @override
-  Future<bool> visitConstructorName(ConstructorName node) {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
-    Token period = node.period;
-    if (period != null && period.end <= request.offset) {
-      return _addNamedConstructorSuggestions(node);
+  bool computeFast(AstNode node) {
+    return false;
+  }
+
+  @override
+  Future<bool> computeFull(AstNode node) {
+    if (node is SimpleIdentifier) {
+      node = node.parent;
     }
-    return super.visitConstructorName(node);
-  }
-
-  @override
-  Future<bool> visitMethodInvocation(MethodInvocation node) {
-    Token period = node.period;
-    if (period == null || period.offset < request.offset) {
-      _addExpressionSuggestions(node.target);
+    if (node is MethodInvocation) {
+      node = node.realTarget;
+    } else if (node is PropertyAccess) {
+      node = node.realTarget;
     }
-    return new Future.value(false);
-  }
-
-  @override
-  Future<bool> visitNode(AstNode node) {
-    return new Future.value(false);
-  }
-
-  @override
-  Future<bool> visitPrefixedIdentifier(PrefixedIdentifier node) {
-    if (request.offset > node.period.offset) {
-      SimpleIdentifier prefix = node.prefix;
-      if (prefix != null) {
-        return _addElementSuggestions(prefix.bestElement);
-      }
-    }
-    return super.visitPrefixedIdentifier(node);
-  }
-
-  @override
-  Future<bool> visitPropertyAccess(PropertyAccess node) {
-    Token operator = node.operator;
-    if (operator != null && operator.offset < request.offset) {
-      return _addExpressionSuggestions(node.realTarget);
-    }
-    return super.visitPropertyAccess(node);
-  }
-
-  @override
-  Future<bool> visitSimpleIdentifier(SimpleIdentifier node) {
-    return node.parent.accept(this);
-  }
-
-  /**
-   * Add invocation / access suggestions for the given element.
-   */
-  Future<bool> _addElementSuggestions(Element element) {
-    if (element != null) {
-      return element.accept(new _InvocationElementVisitor(request));
-    }
-    return new Future.value(false);
-  }
-
-  /**
-   * Add invocation / access suggestions for the given expression.
-   */
-  Future<bool> _addExpressionSuggestions(Expression target) {
-    if (target != null) {
-      DartType type = target.bestType;
+    if (node is Expression) {
+      DartType type = node.bestType;
       if (type != null) {
         ClassElementSuggestionBuilder.suggestionsFor(request, type.element);
         return new Future.value(true);
@@ -113,17 +68,57 @@ class _InvocationAstVisitor extends GeneralizingAstVisitor<Future<bool>> {
     }
     return new Future.value(false);
   }
+}
 
-  Future<bool> _addNamedConstructorSuggestions(ConstructorName node) {
-    TypeName typeName = node.type;
-    if (typeName != null) {
-      DartType type = typeName.type;
-      if (type != null) {
-        NamedConstructorSuggestionBuilder.suggestionsFor(request, type.element);
-        return new Future.value(true);
+/**
+ * An [AstNode] vistor for determining which suggestion builder
+ * should be used to build invocation/access suggestions.
+ */
+class _InvocationAstVisitor extends GeneralizingAstVisitor<SuggestionBuilder> {
+  final DartCompletionRequest request;
+
+  _InvocationAstVisitor(this.request);
+
+  @override
+  SuggestionBuilder visitMethodInvocation(MethodInvocation node) {
+    Token period = node.period;
+    if (period == null || period.offset < request.offset) {
+      return new _ExpressionSuggestionBuilder(request);
+    }
+    return null;
+  }
+
+  @override
+  SuggestionBuilder visitNode(AstNode node) {
+    return null;
+  }
+
+  @override
+  SuggestionBuilder visitPrefixedIdentifier(PrefixedIdentifier node) {
+    // some PrefixedIdentifier nodes are transformed into
+    // ConstructorName nodes during the resolution process.
+    Token period = node.period;
+    if (request.offset > period.offset) {
+      SimpleIdentifier prefix = node.prefix;
+      if (prefix != null) {
+        return new _PrefixedIdentifierSuggestionBuilder(request);
       }
     }
-    return new Future.value(false);
+    return null;
+  }
+
+  @override
+  SuggestionBuilder visitPropertyAccess(PropertyAccess node) {
+    Token operator = node.operator;
+    if (operator != null && operator.offset < request.offset) {
+      return new _ExpressionSuggestionBuilder(request);
+    }
+    return null;
+  }
+
+  @override
+  SuggestionBuilder visitSimpleIdentifier(SimpleIdentifier node) {
+    return node.parent.accept(this);
   }
 }
 
@@ -131,11 +126,39 @@ class _InvocationAstVisitor extends GeneralizingAstVisitor<Future<bool>> {
  * An [Element] visitor for determining the appropriate invocation/access
  * suggestions based upon the element for which the completion is requested.
  */
-class _InvocationElementVisitor extends GeneralizingElementVisitor<Future<bool>>
-    {
+class _PrefixedIdentifierSuggestionBuilder extends
+    GeneralizingElementVisitor<Future<bool>> implements SuggestionBuilder {
+
   final DartCompletionRequest request;
 
-  _InvocationElementVisitor(this.request);
+  _PrefixedIdentifierSuggestionBuilder(this.request);
+
+  @override
+  bool computeFast(AstNode node) {
+    return false;
+  }
+
+  @override
+  Future<bool> computeFull(AstNode node) {
+    if (node is SimpleIdentifier) {
+      node = node.parent;
+    }
+    if (node is ConstructorName) {
+      // some PrefixedIdentifier nodes are transformed into
+      // ConstructorName nodes during the resolution process.
+      return new NamedConstructorSuggestionBuilder(request).computeFull(node);
+    }
+    if (node is PrefixedIdentifier) {
+      SimpleIdentifier prefix = node.prefix;
+      if (prefix != null) {
+        Element element = prefix.bestElement;
+        if (element != null) {
+          return element.accept(this);
+        }
+      }
+    }
+    return new Future.value(false);
+  }
 
   @override
   Future<bool> visitClassElement(ClassElement element) {

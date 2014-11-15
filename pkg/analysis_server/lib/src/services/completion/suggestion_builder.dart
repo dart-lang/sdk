@@ -4,6 +4,8 @@
 
 library services.completion.suggestion.builder;
 
+import 'dart:async';
+
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart' hide Element,
     ElementKind;
@@ -219,13 +221,38 @@ class LibraryElementSuggestionBuilder extends _AbstractSuggestionBuilder {
 
 /**
  * This class visits elements in a class and provides suggestions based upon
- * the visible named constructors in that class. Clients should call
- * [NamedConstructorSuggestionBuilder.suggestionsFor].
+ * the visible named constructors in that class.
  */
-class NamedConstructorSuggestionBuilder extends _AbstractSuggestionBuilder {
+class NamedConstructorSuggestionBuilder extends _AbstractSuggestionBuilder
+    implements SuggestionBuilder {
 
   NamedConstructorSuggestionBuilder(DartCompletionRequest request)
       : super(request, CompletionSuggestionKind.INVOCATION);
+
+  @override
+  bool computeFast(AstNode node) {
+    return false;
+  }
+
+  @override
+  Future<bool> computeFull(AstNode node) {
+    if (node is SimpleIdentifier) {
+      node = node.parent;
+    }
+    if (node is ConstructorName) {
+      TypeName typeName = node.type;
+      if (typeName != null) {
+        DartType type = typeName.type;
+        if (type != null) {
+          if (type.element is ClassElement) {
+            type.element.accept(this);
+          }
+          return new Future.value(true);
+        }
+      }
+    }
+    return new Future.value(false);
+  }
 
   @override
   visitClassElement(ClassElement element) {
@@ -244,15 +271,23 @@ class NamedConstructorSuggestionBuilder extends _AbstractSuggestionBuilder {
   visitElement(Element element) {
     // ignored
   }
+}
+
+/**
+ * Common interface implemented by suggestion builders.
+ */
+abstract class SuggestionBuilder {
+  /**
+   * Compute suggestions and return `true` if building is complete,
+   * or `false` if [computeFull] should be called.
+   */
+  bool computeFast(AstNode node);
 
   /**
-   * Add suggestions for the visible members in the given class
+   * Return a future that computes the suggestions given a fully resolved AST.
+   * The future returns `true` if suggestions were added, else `false`.
    */
-  static void suggestionsFor(DartCompletionRequest request, Element element) {
-    if (element is ClassElement) {
-      element.accept(new NamedConstructorSuggestionBuilder(request));
-    }
-  }
+  Future<bool> computeFull(AstNode node);
 }
 
 /**
