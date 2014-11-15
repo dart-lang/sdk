@@ -2189,6 +2189,95 @@ int res() {
 ''');
   }
 
+  test_statements_return_multiple_ifElse() {
+    indexTestUnit('''
+num main(bool b) {
+// start
+  if (b) {
+    return 1;
+  } else {
+    return 2.0;
+  }
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+num main(bool b) {
+// start
+  return res(b);
+// end
+}
+
+num res(bool b) {
+  if (b) {
+    return 1;
+  } else {
+    return 2.0;
+  }
+}
+''');
+  }
+
+  test_statements_return_multiple_ifThen() {
+    indexTestUnit('''
+num main(bool b) {
+// start
+  if (b) {
+    return 1;
+  }
+  return 2.0;
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+num main(bool b) {
+// start
+  return res(b);
+// end
+}
+
+num res(bool b) {
+  if (b) {
+    return 1;
+  }
+  return 2.0;
+}
+''');
+  }
+
+  test_statements_return_multiple_ignoreInFunction() {
+    indexTestUnit('''
+int main() {
+// start
+  localFunction() {
+    return 'abc';
+  }
+  return 42;
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+int main() {
+// start
+  return res();
+// end
+}
+
+int res() {
+  localFunction() {
+    return 'abc';
+  }
+  return 42;
+}
+''');
+  }
+
   test_statements_return_single() {
     indexTestUnit('''
 main() {

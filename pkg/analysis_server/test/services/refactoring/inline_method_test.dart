@@ -934,7 +934,6 @@ class A {
   }
 
   test_method_this() {
-    // TODO
     indexTestUnit(r'''
 class A {
   accept(B b) {}

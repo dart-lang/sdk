@@ -576,14 +576,11 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     }
     // may be ends with "return" statement
     if (_selectionStatements != null) {
-      Statement lastStatement =
-          _selectionStatements[_selectionStatements.length - 1];
-      if (lastStatement is ReturnStatement) {
-        Expression expression = lastStatement.expression;
-        if (expression != null) {
-          _returnType = expression.bestType;
-        }
-      }
+      _ReturnTypeComputer returnTypeComputer = new _ReturnTypeComputer();
+      _selectionStatements.forEach((statement) {
+        statement.accept(returnTypeComputer);
+      });
+      _returnType = returnTypeComputer.returnType;
     }
     // may be single variable to return
     if (assignedUsedVariables.length == 1) {
@@ -1097,6 +1094,28 @@ class _ResetCanCreateGetterVisitor extends RecursiveAstVisitor {
   visitWhileStatement(WhileStatement node) {
     ref.createGetter = false;
     super.visitWhileStatement(node);
+  }
+}
+
+
+class _ReturnTypeComputer extends RecursiveAstVisitor {
+  DartType returnType;
+
+  @override
+  visitBlockFunctionBody(BlockFunctionBody node) {
+  }
+
+  @override
+  visitReturnStatement(ReturnStatement node) {
+    Expression expression = node.expression;
+    if (expression != null) {
+      DartType type = expression.bestType;
+      if (returnType == null) {
+        returnType = type;
+      } else {
+        returnType = returnType.getLeastUpperBound(type);
+      }
+    }
   }
 }
 
