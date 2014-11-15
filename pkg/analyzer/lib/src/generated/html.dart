@@ -1300,9 +1300,9 @@ class XmlAttributeNode extends XmlNode {
  */
 abstract class XmlExpression {
   /**
-   * An empty array of expressions.
+   * An empty list of expressions.
    */
-  static List<XmlExpression> EMPTY_ARRAY = new List<XmlExpression>(0);
+  static const List<XmlExpression> EMPTY_ARRAY = const <XmlExpression>[];
 
   /**
    * Check if the given offset belongs to the expression's source range.

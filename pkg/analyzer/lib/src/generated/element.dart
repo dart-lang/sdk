@@ -280,9 +280,9 @@ class AngularDecoratorElementImpl extends AngularHasSelectorElementImpl implemen
  */
 abstract class AngularElement implements ToolkitObjectElement {
   /**
-   * An empty array of Angular elements.
+   * An empty list of Angular elements.
    */
-  static final List<AngularElement> EMPTY_ARRAY = new List<AngularElement>(0);
+  static const List<AngularElement> EMPTY_ARRAY = const <AngularElement>[];
 
   /**
    * Returns the [AngularApplication] this element is used in.
@@ -470,9 +470,9 @@ abstract class AngularHasTemplateElement implements AngularElement {
  */
 abstract class AngularPropertyElement implements AngularElement {
   /**
-   * An empty array of property elements.
+   * An empty list of property elements.
    */
-  static final List<AngularPropertyElement> EMPTY_ARRAY = <AngularPropertyElement>[];
+  static const List<AngularPropertyElement> EMPTY_ARRAY = const <AngularPropertyElement>[];
 
   /**
    * Returns the field this property is mapped to.
@@ -594,9 +594,9 @@ class AngularPropertyKind_TWO_WAY extends AngularPropertyKind {
  */
 abstract class AngularScopePropertyElement implements AngularElement {
   /**
-   * An empty array of scope property elements.
+   * An empty list of scope property elements.
    */
-  static final List<AngularScopePropertyElement> EMPTY_ARRAY = <AngularScopePropertyElement>[];
+  static const List<AngularScopePropertyElement> EMPTY_ARRAY = const <AngularScopePropertyElement>[];
 
   /**
    * Returns the type of this property, not `null`, maybe <code>dynamic</code>.
@@ -695,9 +695,9 @@ class AngularTagSelectorElementImpl extends AngularSelectorElementImpl implement
  */
 abstract class AngularViewElement implements AngularHasTemplateElement {
   /**
-   * An empty array of view elements.
+   * An empty list of view elements.
    */
-  static final List<AngularViewElement> EMPTY_ARRAY = new List<AngularViewElement>(0);
+  static const List<AngularViewElement> EMPTY_ARRAY = const <AngularViewElement>[];
 }
 
 /**
@@ -1268,9 +1268,9 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   List<TypeParameterElement> _typeParameters = TypeParameterElementImpl.EMPTY_ARRAY;
 
   /**
-   * An empty array of class elements.
+   * An empty list of class elements.
    */
-  static List<ClassElement> EMPTY_ARRAY = new List<ClassElement>(0);
+  static const List<ClassElement> EMPTY_ARRAY = const <ClassElement>[];
 
   /**
    * Initialize a newly created class element to have the given name.
@@ -2019,9 +2019,9 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
  */
 class CompilationUnitElementImpl extends UriReferencedElementImpl implements CompilationUnitElement {
   /**
-   * An empty array of compilation unit elements.
+   * An empty list of compilation unit elements.
    */
-  static List<CompilationUnitElement> EMPTY_ARRAY = new List<CompilationUnitElement>(0);
+  static const List<CompilationUnitElement> EMPTY_ARRAY = const <CompilationUnitElement>[];
 
   /**
    * The source that corresponds to this compilation unit.
@@ -2458,9 +2458,9 @@ abstract class ConstructorElement implements ClassMemberElement, ExecutableEleme
  */
 class ConstructorElementImpl extends ExecutableElementImpl implements ConstructorElement {
   /**
-   * An empty array of constructor elements.
+   * An empty list of constructor elements.
    */
-  static List<ConstructorElement> EMPTY_ARRAY = new List<ConstructorElement>(0);
+  static const List<ConstructorElement> EMPTY_ARRAY = const <ConstructorElement>[];
 
   /**
    * The constructor to which this constructor is redirecting.
@@ -3194,9 +3194,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
   final Element element;
 
   /**
-   * An empty array of annotations.
+   * An empty list of annotations.
    */
-  static List<ElementAnnotationImpl> EMPTY_ARRAY = new List<ElementAnnotationImpl>(0);
+  static const List<ElementAnnotationImpl> EMPTY_ARRAY = const <ElementAnnotationImpl>[];
 
   /**
    * The name of the class used to mark an element as being deprecated.
@@ -4210,9 +4210,9 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
   FunctionType type;
 
   /**
-   * An empty array of executable elements.
+   * An empty list of executable elements.
    */
-  static List<ExecutableElement> EMPTY_ARRAY = new List<ExecutableElement>(0);
+  static const List<ExecutableElement> EMPTY_ARRAY = const <ExecutableElement>[];
 
   /**
    * Initialize a newly created executable element to have the given name.
@@ -4488,9 +4488,9 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
  */
 abstract class ExportElement implements Element, UriReferencedElement {
   /**
-   * An empty array of export elements.
+   * An empty list of export elements.
    */
-  static final List<ExportElement> EMPTY_ARRAY = new List<ExportElement>(0);
+  static const List<ExportElement> EMPTY_ARRAY = const <ExportElement>[];
 
   /**
    * Return an array containing the combinators that were specified as part of the export directive
@@ -4595,9 +4595,9 @@ abstract class FieldElement implements ClassMemberElement, PropertyInducingEleme
  */
 class FieldElementImpl extends PropertyInducingElementImpl implements FieldElement {
   /**
-   * An empty array of field elements.
+   * An empty list of field elements.
    */
-  static List<FieldElement> EMPTY_ARRAY = new List<FieldElement>(0);
+  static const List<FieldElement> EMPTY_ARRAY = const <FieldElement>[];
 
   /**
    * Initialize a newly created field element to have the given name.
@@ -4846,9 +4846,9 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
   int _visibleRangeLength = -1;
 
   /**
-   * An empty array of function elements.
+   * An empty list of function elements.
    */
-  static List<FunctionElement> EMPTY_ARRAY = new List<FunctionElement>(0);
+  static const List<FunctionElement> EMPTY_ARRAY = const <FunctionElement>[];
 
   /**
    * Initialize a newly created function element to have the given name.
@@ -6156,9 +6156,9 @@ abstract class HtmlElement implements Element {
  */
 class HtmlElementImpl extends ElementImpl implements HtmlElement {
   /**
-   * An empty array of HTML file elements.
+   * An empty list of HTML file elements.
    */
-  static List<HtmlElement> EMPTY_ARRAY = new List<HtmlElement>(0);
+  static const List<HtmlElement> EMPTY_ARRAY = const<HtmlElement>[];
 
   /**
    * The analysis context in which this library is defined.
@@ -6284,9 +6284,9 @@ abstract class HtmlScriptElement implements Element {
  */
 abstract class HtmlScriptElementImpl extends ElementImpl implements HtmlScriptElement {
   /**
-   * An empty array of HTML script elements.
+   * An empty list of HTML script elements.
    */
-  static List<HtmlScriptElement> EMPTY_ARRAY = new List<HtmlScriptElement>(0);
+  static const List<HtmlScriptElement> EMPTY_ARRAY = const <HtmlScriptElement>[];
 
   /**
    * Initialize a newly created script element to have the specified tag name and offset.
@@ -6302,9 +6302,9 @@ abstract class HtmlScriptElementImpl extends ElementImpl implements HtmlScriptEl
  */
 abstract class ImportElement implements Element, UriReferencedElement {
   /**
-   * An empty array of import elements.
+   * An empty list of import elements.
    */
-  static final List<ImportElement> EMPTY_ARRAY = new List<ImportElement>(0);
+  static const List<ImportElement> EMPTY_ARRAY = const<ImportElement>[];
 
   /**
    * Return an array containing the combinators that were specified as part of the import directive
@@ -6420,9 +6420,9 @@ class ImportElementImpl extends UriReferencedElementImpl implements ImportElemen
  */
 abstract class InterfaceType implements ParameterizedType {
   /**
-   * An empty array of types.
+   * An empty list of types.
    */
-  static final List<InterfaceType> EMPTY_ARRAY = new List<InterfaceType>(0);
+  static const List<InterfaceType> EMPTY_ARRAY = const <InterfaceType>[];
 
   /**
    * Return an array containing all of the accessors (getters and setters) declared in this type.
@@ -7513,9 +7513,9 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   final bool _onSwitchMember;
 
   /**
-   * An empty array of label elements.
+   * An empty list of label elements.
    */
-  static List<LabelElement> EMPTY_ARRAY = new List<LabelElement>(0);
+  static const List<LabelElement> EMPTY_ARRAY = const <LabelElement>[];
 
   /**
    * Initialize a newly created label element to have the given name.
@@ -7714,9 +7714,9 @@ abstract class LibraryElement implements Element {
  */
 class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /**
-   * An empty array of library elements.
+   * An empty list of library elements.
    */
-  static List<LibraryElement> EMPTY_ARRAY = new List<LibraryElement>(0);
+  static const List<LibraryElement> EMPTY_ARRAY = const <LibraryElement>[];
 
   /**
    * Determine if the given library is up to date with respect to the given time stamp.
@@ -8218,9 +8218,9 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
   int _visibleRangeLength = -1;
 
   /**
-   * An empty array of field elements.
+   * An empty list of field elements.
    */
-  static List<LocalVariableElement> EMPTY_ARRAY = new List<LocalVariableElement>(0);
+  static const List<LocalVariableElement> EMPTY_ARRAY = const <LocalVariableElement>[];
 
   /**
    * Initialize a newly created local variable element to have the given name.
@@ -8509,9 +8509,9 @@ abstract class MethodElement implements ClassMemberElement, ExecutableElement {
  */
 class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   /**
-   * An empty array of method elements.
+   * An empty list of method elements.
    */
-  static List<MethodElement> EMPTY_ARRAY = new List<MethodElement>(0);
+  static const List<MethodElement> EMPTY_ARRAY = const <MethodElement>[];
 
   /**
    * Initialize a newly created method element to have the given name.
@@ -9092,7 +9092,7 @@ class MultiplyInheritedPropertyAccessorElementImpl extends PropertyAccessorEleme
  */
 abstract class NamespaceCombinator {
   /**
-   * An empty array of namespace combinators.
+   * An empty list of namespace combinators.
    */
   static const List<NamespaceCombinator> EMPTY_ARRAY = const <NamespaceCombinator>[];
 }
@@ -9164,9 +9164,9 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
   int _visibleRangeLength = -1;
 
   /**
-   * An empty array of field elements.
+   * An empty list of field elements.
    */
-  static List<ParameterElement> EMPTY_ARRAY = new List<ParameterElement>(0);
+  static const List<ParameterElement> EMPTY_ARRAY = const<ParameterElement>[];
 
   /**
    * Initialize a newly created parameter element to have the given name.
@@ -9477,9 +9477,9 @@ abstract class ParameterizedType implements DartType {
  */
 abstract class PolymerAttributeElement implements PolymerElement {
   /**
-   * An empty array of Polymer custom tag attributes.
+   * An empty list of Polymer custom tag attributes.
    */
-  static final List<PolymerAttributeElement> EMPTY_ARRAY = new List<PolymerAttributeElement>(0);
+  static const List<PolymerAttributeElement> EMPTY_ARRAY = const <PolymerAttributeElement>[];
 
   /**
    * Return the [FieldElement] associated with this attribute. Maybe `null` if
@@ -9519,9 +9519,9 @@ class PolymerAttributeElementImpl extends PolymerElementImpl implements PolymerA
  */
 abstract class PolymerElement implements ToolkitObjectElement {
   /**
-   * An empty array of Polymer elements.
+   * An empty list of Polymer elements.
    */
-  static final List<PolymerElement> EMPTY_ARRAY = new List<PolymerElement>(0);
+  static const List<PolymerElement> EMPTY_ARRAY = const <PolymerElement>[];
 }
 
 /**
@@ -9601,9 +9601,9 @@ class PolymerTagDartElementImpl extends PolymerElementImpl implements PolymerTag
  */
 abstract class PolymerTagHtmlElement implements PolymerElement {
   /**
-   * An empty array of [PolymerTagHtmlElement]s.
+   * An empty list of [PolymerTagHtmlElement]s.
    */
-  static final List<PolymerTagHtmlElement> EMPTY_ARRAY = new List<PolymerTagHtmlElement>(0);
+  static const List<PolymerTagHtmlElement> EMPTY_ARRAY = const <PolymerTagHtmlElement>[];
 
   /**
    * Return an array containing all of the attributes declared by this tag.
@@ -9700,9 +9700,9 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   List<LibraryElement> _importedLibraries = LibraryElementImpl.EMPTY_ARRAY;
 
   /**
-   * An empty array of prefix elements.
+   * An empty list of prefix elements.
    */
-  static List<PrefixElement> EMPTY_ARRAY = new List<PrefixElement>(0);
+  static const List<PrefixElement> EMPTY_ARRAY = const <PrefixElement>[];
 
   /**
    * Initialize a newly created prefix element to have the given name.
@@ -9828,9 +9828,9 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
   PropertyInducingElement variable;
 
   /**
-   * An empty array of property accessor elements.
+   * An empty list of property accessor elements.
    */
-  static List<PropertyAccessorElement> EMPTY_ARRAY = new List<PropertyAccessorElement>(0);
+  static const List<PropertyAccessorElement> EMPTY_ARRAY = const <PropertyAccessorElement>[];
 
   /**
    * Initialize a newly created property accessor element to have the given name.
@@ -10183,9 +10183,9 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl implement
   DartType propagatedType;
 
   /**
-   * An empty array of elements.
+   * An empty list of elements.
    */
-  static List<PropertyInducingElement> EMPTY_ARRAY = new List<PropertyInducingElement>(0);
+  static const List<PropertyInducingElement> EMPTY_ARRAY = const <PropertyInducingElement>[];
 
   /**
    * Initialize a newly created element to have the given name.
@@ -10592,9 +10592,9 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
  */
 abstract class ToolkitObjectElement implements Element {
   /**
-   * An empty array of toolkit object elements.
+   * An empty list of toolkit object elements.
    */
-  static final List<ToolkitObjectElement> EMPTY_ARRAY = new List<ToolkitObjectElement>(0);
+  static const List<ToolkitObjectElement> EMPTY_ARRAY = const <ToolkitObjectElement>[];
 }
 
 /**
@@ -10624,9 +10624,9 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {
  */
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl implements TopLevelVariableElement {
   /**
-   * An empty array of top-level variable elements.
+   * An empty list of top-level variable elements.
    */
-  static List<TopLevelVariableElement> EMPTY_ARRAY = new List<TopLevelVariableElement>(0);
+  static const List<TopLevelVariableElement> EMPTY_ARRAY = const <TopLevelVariableElement>[];
 
   /**
    * Initialize a newly created top-level variable element to have the given name.
@@ -10719,9 +10719,9 @@ abstract class TypeImpl implements DartType {
   final String name;
 
   /**
-   * An empty array of types.
+   * An empty list of types.
    */
-  static List<DartType> EMPTY_ARRAY = new List<DartType>(0);
+  static const List<DartType> EMPTY_ARRAY = const <DartType>[];
 
   /**
    * Initialize a newly created type to be declared by the given element and to have the given name.
@@ -10968,9 +10968,9 @@ class TypeParameterElementImpl extends ElementImpl implements TypeParameterEleme
   DartType bound;
 
   /**
-   * An empty array of type parameter elements.
+   * An empty list of type parameter elements.
    */
-  static List<TypeParameterElement> EMPTY_ARRAY = new List<TypeParameterElement>(0);
+  static const List<TypeParameterElement> EMPTY_ARRAY = const <TypeParameterElement>[];
 
   /**
    * Initialize a newly created type parameter element to have the given name.
@@ -11019,9 +11019,9 @@ abstract class TypeParameterType implements DartType {
  */
 class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   /**
-   * An empty array of type parameter types.
+   * An empty list of type parameter types.
    */
-  static List<TypeParameterType> EMPTY_ARRAY = new List<TypeParameterType>(0);
+  static const List<TypeParameterType> EMPTY_ARRAY = const <TypeParameterType>[];
 
   /**
    * Return an array containing the type parameter types defined by the given array of type
@@ -11543,9 +11543,9 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
   FunctionElement _initializer;
 
   /**
-   * An empty array of variable elements.
+   * An empty list of variable elements.
    */
-  static List<VariableElement> EMPTY_ARRAY = new List<VariableElement>(0);
+  static const List<VariableElement> EMPTY_ARRAY = const <VariableElement>[];
 
   /**
    * Initialize a newly created variable element to have the given name.

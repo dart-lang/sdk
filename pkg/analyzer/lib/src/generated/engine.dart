@@ -7433,9 +7433,9 @@ class ChangeNoticeImpl implements ChangeNotice {
   LineInfo _lineInfo;
 
   /**
-   * An empty array of change notices.
+   * An empty list of change notices.
    */
-  static List<ChangeNoticeImpl> EMPTY_ARRAY = new List<ChangeNoticeImpl>(0);
+  static const List<ChangeNoticeImpl> EMPTY_ARRAY = const <ChangeNoticeImpl>[];
 
   /**
    * Initialize a newly created notice associated with the given source.

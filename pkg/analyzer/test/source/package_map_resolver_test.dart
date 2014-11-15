@@ -55,7 +55,7 @@ main() {
 
 
 class _PackageMapUriResolverTest {
-  static HashMap EMPTY_MAP = new HashMap<String, List<Folder>>();
+  static const Map EMPTY_MAP = const <String, List<Folder>>{};
   MemoryResourceProvider provider = new MemoryResourceProvider();
 
   void test_isPackageUri() {

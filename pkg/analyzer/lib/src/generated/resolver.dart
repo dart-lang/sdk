@@ -7433,9 +7433,9 @@ class Library {
   LibraryScope _libraryScope;
 
   /**
-   * An empty array that can be used to initialize lists of libraries.
+   * An empty list that can be used to initialize lists of libraries.
    */
-  static List<Library> _EMPTY_ARRAY = new List<Library>(0);
+  static const List<Library> _EMPTY_ARRAY = const <Library>[];
 
   /**
    * The prefix of a URI using the dart-ext scheme to reference a native code library.

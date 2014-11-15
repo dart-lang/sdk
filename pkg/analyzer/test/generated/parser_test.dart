@@ -1839,9 +1839,9 @@ class NonErrorParserTest extends ParserTestCase {
 
 class ParserTestCase extends EngineTestCase {
   /**
-   * An empty array of objects used as arguments to zero-argument methods.
+   * An empty list of objects used as arguments to zero-argument methods.
    */
-  static List<Object> _EMPTY_ARGUMENTS = new List<Object>(0);
+  static const List<Object> _EMPTY_ARGUMENTS = const <Object>[];
 
   /**
    * A flag indicating whether parser is to parse function bodies.
