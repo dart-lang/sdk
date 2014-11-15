@@ -2278,6 +2278,37 @@ int res() {
 ''');
   }
 
+  test_statements_return_multiple_sameElementDifferentTypeArgs() {
+    indexTestUnit('''
+main(bool b) {
+// start
+  if (b) {
+    return <int>[];
+  } else {
+    return <String>[];
+  }
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main(bool b) {
+// start
+  return res(b);
+// end
+}
+
+List res(bool b) {
+  if (b) {
+    return <int>[];
+  } else {
+    return <String>[];
+  }
+}
+''');
+  }
+
   test_statements_return_single() {
     indexTestUnit('''
 main() {

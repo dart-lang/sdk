@@ -20,6 +20,7 @@ import 'engine.dart' show AnalysisContext, AnalysisEngine, AnalysisException;
 import 'constant.dart' show EvaluationResultImpl;
 import 'resolver.dart';
 import 'utilities_dart.dart';
+import 'element.dart';
 
 /**
  * Information about Angular application.
@@ -6706,6 +6707,67 @@ abstract class InterfaceType implements ParameterizedType {
 
   @override
   InterfaceType substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes);
+
+  /**
+   * Returns a "smart" version of the "least upper bound" of the given types.
+   *
+   * If these types have the same element and differ only in terms of the type
+   * arguments, attempts to find a compatible set of type arguments.
+   *
+   * Otherwise, calls [DartType.getLeastUpperBound].
+   */
+  static InterfaceType getSmartLeastUpperBound(InterfaceType first,
+                                               InterfaceType second) {
+    if (first.element == second.element) {
+      return _leastUpperBound(first, second);
+    }
+    return first.getLeastUpperBound(second);
+  }
+
+  /**
+   * Return the "least upper bound" of the given types under the assumption that
+   * the types have the same element and differ only in terms of the type
+   * arguments.
+   *
+   * The resulting type is composed by comparing the corresponding type
+   * arguments, keeping those that are the same, and using 'dynamic' for those
+   * that are different.
+   */
+  static InterfaceType _leastUpperBound(InterfaceType firstType,
+                                        InterfaceType secondType) {
+    ClassElement firstElement = firstType.element;
+    ClassElement secondElement = secondType.element;
+    if (firstElement != secondElement) {
+      throw new IllegalArgumentException('The same elements expected, but '
+          '$firstElement and $secondElement are given.');
+    }
+    if (firstType == secondType) {
+      return firstType;
+    }
+    List<DartType> firstArguments = firstType.typeArguments;
+    List<DartType> secondArguments = secondType.typeArguments;
+    int argumentCount = firstArguments.length;
+    if (argumentCount == 0) {
+      return firstType;
+    }
+    List<DartType> lubArguments = new List<DartType>(argumentCount);
+    for (int i = 0; i < argumentCount; i++) {
+      //
+      // Ideally we would take the least upper bound of the two argument types,
+      // but this can cause an infinite recursion (such as when finding the
+      // least upper bound of String and num).
+      //
+      if (firstArguments[i] == secondArguments[i]) {
+        lubArguments[i] = firstArguments[i];
+      }
+      if (lubArguments[i] == null) {
+        lubArguments[i] = DynamicTypeImpl.instance;
+      }
+    }
+    InterfaceTypeImpl lub = new InterfaceTypeImpl.con1(firstElement);
+    lub.typeArguments = lubArguments;
+    return lub;
+  }
 }
 
 /**
