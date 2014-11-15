@@ -753,9 +753,9 @@ class Assembler : public ValueObject {
 
   void DoubleAbs(XmmRegister reg);
 
-  void LockCmpxchgl(const Address& address, Register reg) {
+  void LockCmpxchgq(const Address& address, Register reg) {
     lock();
-    cmpxchgl(address, reg);
+    cmpxchgq(address, reg);
   }
 
   void PushRegisters(intptr_t cpu_register_set, intptr_t xmm_register_set);

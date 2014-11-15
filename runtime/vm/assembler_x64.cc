@@ -2884,13 +2884,13 @@ void Assembler::StoreIntoObject(Register object,
     StoreIntoObjectFilterNoSmi(object, value, &done);
   }
   // A store buffer update is required.
-  if (value != RAX) pushq(RAX);
-  if (object != RAX) {
-    movq(RAX, object);
+  if (value != RDX) pushq(RDX);
+  if (object != RDX) {
+    movq(RDX, object);
   }
   StubCode* stub_code = Isolate::Current()->stub_code();
   Call(&stub_code->UpdateStoreBufferLabel(), PP);
-  if (value != RAX) popq(RAX);
+  if (value != RDX) popq(RDX);
   Bind(&done);
 }
 

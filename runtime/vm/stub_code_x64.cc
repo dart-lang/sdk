@@ -928,50 +928,58 @@ DECLARE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, Isolate* isolate);
 
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
-//   RAX: Address being stored
+//   RDX: Address being stored
 void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Save registers being destroyed.
-  __ pushq(RDX);
+  __ pushq(RAX);
   __ pushq(RCX);
 
   Label add_to_buffer;
   // Check whether this object has already been remembered. Skip adding to the
   // store buffer if the object is in the store buffer already.
-  // Spilled: RDX, RCX
-  // RAX: Address being stored
-  __ movq(RCX, FieldAddress(RAX, Object::tags_offset()));
+  // Spilled: RAX, RCX
+  // RDX: Address being stored
+  Label reload;
+  __ Bind(&reload);
+  __ movq(RCX, FieldAddress(RDX, Object::tags_offset()));
   __ testq(RCX, Immediate(1 << RawObject::kRememberedBit));
   __ j(EQUAL, &add_to_buffer, Assembler::kNearJump);
   __ popq(RCX);
-  __ popq(RDX);
+  __ popq(RAX);
   __ ret();
 
+  // Update the tags that this object has been remembered.
+  // RDX: Address being stored
+  // RAX: Current tag value
   __ Bind(&add_to_buffer);
+  __ movq(RCX, RAX);
   __ orq(RCX, Immediate(1 << RawObject::kRememberedBit));
-  __ movq(FieldAddress(RAX, Object::tags_offset()), RCX);
+  // Compare the tag word with RAX, update to RCX if unchanged.
+  __ LockCmpxchgq(FieldAddress(RDX, Object::tags_offset()), RCX);
+  __ j(NOT_EQUAL, &reload);
 
   // Load the isolate.
-  // RAX: Address being stored
-  __ LoadIsolate(RDX);
+  // RDX: Address being stored
+  __ LoadIsolate(RAX);
 
   // Load the StoreBuffer block out of the isolate. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
-  // RAX: Address being stored
-  // RDX: Isolate
-  __ movq(RDX, Address(RDX, Isolate::store_buffer_offset()));
-  __ movl(RCX, Address(RDX, StoreBufferBlock::top_offset()));
-  __ movq(Address(RDX, RCX, TIMES_8, StoreBufferBlock::pointers_offset()), RAX);
+  // RDX: Address being stored
+  // RAX: Isolate
+  __ movq(RAX, Address(RAX, Isolate::store_buffer_offset()));
+  __ movl(RCX, Address(RAX, StoreBufferBlock::top_offset()));
+  __ movq(Address(RAX, RCX, TIMES_8, StoreBufferBlock::pointers_offset()), RDX);
 
   // Increment top_ and check for overflow.
   // RCX: top_
-  // RDX: StoreBufferBlock
+  // RAX: StoreBufferBlock
   Label L;
   __ incq(RCX);
-  __ movl(Address(RDX, StoreBufferBlock::top_offset()), RCX);
+  __ movl(Address(RAX, StoreBufferBlock::top_offset()), RCX);
   __ cmpl(RCX, Immediate(StoreBufferBlock::kSize));
   // Restore values.
   __ popq(RCX);
-  __ popq(RDX);
+  __ popq(RAX);
   __ j(EQUAL, &L, Assembler::kNearJump);
   __ ret();
 
