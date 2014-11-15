@@ -1914,7 +1914,7 @@ RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
     RawOneByteString* obj = reader->NewOneByteString(len);
     str_obj = obj;
     str_obj.set_tags(tags);
-    obj->ptr()->hash_ = Smi::New(hash);
+    str_obj.SetHash(hash);
     if (len > 0) {
       uint8_t* raw_ptr = CharAddr(str_obj, 0);
       reader->ReadBytes(raw_ptr, len);
@@ -1943,7 +1943,7 @@ RawTwoByteString* TwoByteString::ReadFrom(SnapshotReader* reader,
     RawTwoByteString* obj = reader->NewTwoByteString(len);
     str_obj = obj;
     str_obj.set_tags(tags);
-    obj->ptr()->hash_ = Smi::New(hash);
+    str_obj.SetHash(hash);
     NoGCScope no_gc;
     uint16_t* raw_ptr = (len > 0)? CharAddr(str_obj, 0) : NULL;
     for (intptr_t i = 0; i < len; i++) {
