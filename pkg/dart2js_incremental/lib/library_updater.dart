@@ -375,6 +375,9 @@ class LibraryUpdater extends JsFeatures {
   }
 
   String computeUpdateJs() {
+    Set existingClasses =
+        new Set.from(compiler.codegenWorld.directlyInstantiatedClasses);
+
     List<Update> removals = <Update>[];
     List<Element> updatedElements = applyUpdates(removals);
     if (compiler.progress != null) {
@@ -393,6 +396,30 @@ class LibraryUpdater extends JsFeatures {
     compiler.processQueue(compiler.enqueuer.codegen, null);
 
     List<jsAst.Statement> updates = <jsAst.Statement>[];
+
+    Set newClasses =
+        new Set.from(compiler.codegenWorld.directlyInstantiatedClasses);
+    newClasses.removeAll(existingClasses);
+
+    for (ClassElementX cls in newClasses) {
+      jsAst.Node access = namer.elementAccess(cls);
+      String name = namer.getNameOfClass(cls);
+
+      // TODO(ahe): Compute arguments.
+      List<jsAst.Node> arguments = <jsAst.Node>[];
+
+      // TODO(ahe): Compute statements, that is initializers.
+      List<jsAst.Statement> statements = <jsAst.Statement>[];
+
+      updates.add(
+          js.statement(
+              '# = function $name(#) {#}', [access, arguments, statements]));
+    }
+
+    for (ClassElementX cls in newClasses) {
+      // TODO(ahe): Set up superclasses.
+    }
+
     for (Element element in compiler.enqueuer.codegen.newlyEnqueuedElements) {
       if (!element.isField) {
         updates.add(computeMemberUpdateJs(element));

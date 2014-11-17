@@ -407,6 +407,60 @@ main() {
 """,
             const <String> ['v2']),
     ],
+
+    // Test that a newly instantiated class is handled.
+    const <ProgramResult>[
+        const ProgramResult(
+            """
+class A {
+  m() {
+    print('Called A.m');
+  }
+}
+
+class B {
+  m() {
+    print('Called B.m');
+  }
+}
+
+var instance;
+main() {
+  if (instance == null) {
+    instance = new A();
+//   } else {
+//     instance = new B();
+  }
+  instance.m();
+}
+""",
+            const <String>['Called A.m']),
+        const ProgramResult(
+            """
+class A {
+  m() {
+    print('Called A.m');
+  }
+}
+
+class B {
+  m() {
+    print('Called B.m');
+  }
+}
+
+var instance;
+main() {
+  if (instance == null) {
+    instance = new A();
+  } else {
+    instance = new B();
+  }
+  instance.m();
+}
+""",
+            const <String>['Called B.m']),
+    ],
 ];
 
 void main() {
