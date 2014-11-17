@@ -9,6 +9,7 @@
 #include "vm/code_patcher.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
+#include "vm/flow_graph_compiler.h"
 #include "vm/instructions.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
@@ -303,7 +304,8 @@ RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
 class EdgeCounter : public ValueObject {
  public:
   EdgeCounter(uword pc, const Code& code)
-      : end_(pc - kAdjust), object_pool_(Array::Handle(code.ObjectPool())) {
+      : end_(pc - FlowGraphCompiler::EdgeCounterIncrementSizeInBytes()),
+        object_pool_(Array::Handle(code.ObjectPool())) {
     ASSERT(IsValid(end_));
   }
 
@@ -317,11 +319,6 @@ class EdgeCounter : public ValueObject {
   }
 
  private:
-  // The edge counter load is followed by the fixed-size edge counter
-  // incrementing code:
-  //     48 83 40 17 02             addq [rax+0x17],0x2
-  static const intptr_t kAdjust = 5;
-
   uword end_;
   const Array& object_pool_;
 };

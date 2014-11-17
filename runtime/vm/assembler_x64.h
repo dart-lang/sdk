@@ -650,10 +650,12 @@ class Assembler : public ValueObject {
   void int3();
   void hlt();
 
+  // Note: verified_mem mode forces far jumps.
   void j(Condition condition, Label* label, bool near = kFarJump);
   void j(Condition condition, const ExternalLabel* label);
 
   void jmp(Register reg);
+  // Note: verified_mem mode forces far jumps.
   void jmp(Label* label, bool near = kFarJump);
   void jmp(const ExternalLabel* label);
 
@@ -747,6 +749,12 @@ class Assembler : public ValueObject {
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 Register value);
+
+  // Stores a Smi value into a heap object field that always contains a Smi.
+  void StoreIntoSmiField(const Address& dest, Register value);
+  void ZeroSmiField(const Address& dest);
+  // Increments a Smi field. Leaves flags in same state as an 'addq'.
+  void IncrementSmiField(const Address& dest, int64_t increment);
 
   void DoubleNegate(XmmRegister d);
   void FloatNegate(XmmRegister f);
@@ -1075,6 +1083,11 @@ class Assembler : public ValueObject {
   void StoreIntoObjectFilterNoSmi(Register object,
                                   Register value,
                                   Label* no_update);
+
+  // Analogous to VerifiedMemory::Verify(address, kWordSize).
+  void VerifyHeapWord(const Address& address);
+  // Analogous to VerifiedMemory::Write.
+  void VerifiedWrite(const Address& dest, Register value);
 
   void ComputeCounterAddressesForCid(intptr_t cid,
                                      Heap::Space space,

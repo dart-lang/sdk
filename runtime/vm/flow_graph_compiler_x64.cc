@@ -18,6 +18,7 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/verified_memory.h"
 
 namespace dart {
 
@@ -1265,8 +1266,17 @@ void FlowGraphCompiler::EmitEdgeCounter() {
   counter.SetAt(0, Smi::Handle(Smi::New(0)));
   __ Comment("Edge counter");
   __ LoadObject(RAX, counter, PP);
-  __ AddImmediate(FieldAddress(RAX, Array::element_offset(0)),
-                  Immediate(Smi::RawValue(1)), PP);
+#if defined(DEBUG)
+  intptr_t increment_start = assembler_->CodeSize();
+#endif  // DEBUG
+  __ IncrementSmiField(FieldAddress(RAX, Array::element_offset(0)), 1);
+  DEBUG_ASSERT((assembler_->CodeSize() - increment_start) ==
+               EdgeCounterIncrementSizeInBytes());
+}
+
+
+int32_t FlowGraphCompiler::EdgeCounterIncrementSizeInBytes() {
+  return VerifiedMemory::enabled() ? 70 : 5;
 }
 
 

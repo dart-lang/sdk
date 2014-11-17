@@ -366,8 +366,9 @@ static void PushArgumentsArray(Assembler* assembler) {
   Label loop, loop_condition;
   __ jmp(&loop_condition, Assembler::kNearJump);
   __ Bind(&loop);
-  __ movq(RAX, Address(R12, 0));
-  __ movq(Address(RBX, 0), RAX);
+  __ movq(RDI, Address(R12, 0));
+  // No generational barrier needed, since array is in new space.
+  __ StoreIntoObjectNoBarrier(RAX, Address(RBX, 0), RDI);
   __ addq(RBX, Immediate(kWordSize));
   __ subq(R12, Immediate(kWordSize));
   __ Bind(&loop_condition);
@@ -652,7 +653,8 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ Bind(&init_loop);
   __ cmpq(RDI, RCX);
   __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
-  __ movq(Address(RDI, 0), R12);
+  // No generational barrier needed, since we are storing null.
+  __ StoreIntoObjectNoBarrier(RAX, Address(RDI, 0), R12);
   __ addq(RDI, Immediate(kWordSize));
   __ jmp(&init_loop, Assembler::kNearJump);
   __ Bind(&done);
@@ -885,7 +887,10 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // Setup the parent field.
     // RAX: new object.
     // R10: number of context variables.
-    __ movq(FieldAddress(RAX, Context::parent_offset()), R12);
+    // No generational barrier needed, since we are storing null.
+    __ StoreIntoObjectNoBarrier(RAX,
+                                FieldAddress(RAX, Context::parent_offset()),
+                                R12);
 
     // Initialize the context variables.
     // RAX: new object.
@@ -897,7 +902,10 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
       __ jmp(&entry, Assembler::kNearJump);
       __ Bind(&loop);
       __ decq(R10);
-      __ movq(Address(R13, R10, TIMES_8, 0), R12);
+      // No generational barrier needed, since we are storing null.
+      __ StoreIntoObjectNoBarrier(RAX,
+                                  Address(R13, R10, TIMES_8, 0),
+                                  R12);
       __ Bind(&entry);
       __ cmpq(R10, Immediate(0));
       __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
@@ -1046,7 +1054,7 @@ void StubCode::GenerateAllocationStubForClass(
     __ movq(Address(RCX, 0), RBX);
     __ UpdateAllocationStats(cls.id(), space);
 
-    // RAX: new object start.
+    // RAX: new object start (untagged).
     // RBX: next object start.
     // RDX: new object type arguments (if is_cls_parameterized).
     // Set the tags.
@@ -1055,9 +1063,10 @@ void StubCode::GenerateAllocationStubForClass(
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
     __ movq(Address(RAX, Instance::tags_offset()), Immediate(tags));
+    __ addq(RAX, Immediate(kHeapObjectTag));
 
     // Initialize the remaining words of the object.
-    // RAX: new object start.
+    // RAX: new object (tagged).
     // RBX: next object start.
     // RDX: new object type arguments (if is_cls_parameterized).
     // R12: raw null.
@@ -1068,12 +1077,14 @@ void StubCode::GenerateAllocationStubForClass(
       for (intptr_t current_offset = Instance::NextFieldOffset();
            current_offset < instance_size;
            current_offset += kWordSize) {
-        __ movq(Address(RAX, current_offset), R12);
+        __ StoreIntoObjectNoBarrier(RAX,
+                                    FieldAddress(RAX, current_offset),
+                                    R12);
       }
     } else {
-      __ leaq(RCX, Address(RAX, Instance::NextFieldOffset()));
+      __ leaq(RCX, FieldAddress(RAX, Instance::NextFieldOffset()));
       // Loop until the whole object is initialized.
-      // RAX: new object.
+      // RAX: new object (tagged).
       // RBX: next object start.
       // RCX: next word to be initialized.
       // RDX: new object type arguments (if is_cls_parameterized).
@@ -1082,7 +1093,7 @@ void StubCode::GenerateAllocationStubForClass(
       __ Bind(&init_loop);
       __ cmpq(RCX, RBX);
       __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
-      __ movq(Address(RCX, 0), R12);
+      __ StoreIntoObjectNoBarrier(RAX, Address(RCX, 0), R12);
       __ addq(RCX, Immediate(kWordSize));
       __ jmp(&init_loop, Assembler::kNearJump);
       __ Bind(&done);
@@ -1090,11 +1101,11 @@ void StubCode::GenerateAllocationStubForClass(
     if (is_cls_parameterized) {
       // RDX: new object type arguments.
       // Set the type arguments in the new object.
-      __ movq(Address(RAX, cls.type_arguments_field_offset()), RDX);
+      intptr_t offset = cls.type_arguments_field_offset();
+      __ StoreIntoObjectNoBarrier(RAX, FieldAddress(RAX, offset), RDX);
     }
     // Done allocating and initializing the instance.
-    // RAX: new object.
-    __ addq(RAX, Immediate(kHeapObjectTag));
+    // RAX: new object (tagged).
     __ ret();
 
     __ Bind(&slow_case);
@@ -1204,16 +1215,21 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ movq(R12, RCX);
   __ orq(R12, RAX);
   __ testq(R12, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, not_smi_or_overflow, Assembler::kNearJump);
+#if defined(DEBUG)
+  const bool jump_length = Assembler::kFarJump;
+#else
+  const bool jump_length = Assembler::kNearJump;
+#endif
+  __ j(NOT_ZERO, not_smi_or_overflow, jump_length);
   switch (kind) {
     case Token::kADD: {
       __ addq(RAX, RCX);
-      __ j(OVERFLOW, not_smi_or_overflow, Assembler::kNearJump);
+      __ j(OVERFLOW, not_smi_or_overflow, jump_length);
       break;
     }
     case Token::kSUB: {
       __ subq(RAX, RCX);
-      __ j(OVERFLOW, not_smi_or_overflow, Assembler::kNearJump);
+      __ j(OVERFLOW, not_smi_or_overflow, jump_length);
       break;
     }
     case Token::kEQ: {
@@ -1255,7 +1271,7 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ addq(R8, Immediate(Smi::RawValue(1)));
   __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
   __ cmovnoq(R9, R8);
-  __ movq(Address(R12, count_offset), R9);
+  __ StoreIntoSmiField(Address(R12, count_offset), R9);
 
   __ ret();
 }
@@ -1397,7 +1413,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ addq(R8, Immediate(Smi::RawValue(1)));
   __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
   __ cmovnoq(R9, R8);
-  __ movq(Address(R12, count_offset), R9);
+  __ StoreIntoSmiField(Address(R12, count_offset), R9);
 
   __ Bind(&call_target_function);
   // RAX: Target function.
@@ -1543,7 +1559,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ addq(R8, Immediate(Smi::RawValue(1)));
   __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
   __ cmovnoq(R9, R8);
-  __ movq(Address(R12, count_offset), R9);
+  __ StoreIntoSmiField(Address(R12, count_offset), R9);
 
   // Load arguments descriptor into R10.
   __ movq(R10, FieldAddress(RBX, ICData::arguments_descriptor_offset()));

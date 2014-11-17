@@ -1999,13 +1999,13 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
     if (array_size < (kInlineArraySize * kWordSize)) {
       intptr_t current_offset = 0;
       while (current_offset < array_size) {
-        __ movq(Address(RDI, current_offset), R12);
+        __ StoreIntoObjectNoBarrier(RAX, Address(RDI, current_offset), R12);
         current_offset += kWordSize;
       }
     } else {
       Label init_loop;
       __ Bind(&init_loop);
-      __ movq(Address(RDI, 0), R12);
+      __ StoreIntoObjectNoBarrier(RAX, Address(RDI, 0), R12);
       __ addq(RDI, Immediate(kWordSize));
       __ cmpq(RDI, RCX);
       __ j(BELOW, &init_loop, Assembler::kNearJump);

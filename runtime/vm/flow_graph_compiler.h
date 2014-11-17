@@ -384,9 +384,9 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitEdgeCounter();
 
-#if defined(TARGET_ARCH_IA32)
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
   static int32_t EdgeCounterIncrementSizeInBytes();
-#endif  // TARGET_ARCH_IA32
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64
 
   void EmitOptimizedInstanceCall(ExternalLabel* target_label,
                                  const ICData& ic_data,

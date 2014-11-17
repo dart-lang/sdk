@@ -88,8 +88,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
       RCX);
 
   // Set the length field in the growable array object to 0.
-  __ movq(FieldAddress(RAX, GrowableObjectArray::length_offset()),
-          Immediate(0));
+  __ ZeroSmiField(FieldAddress(RAX, GrowableObjectArray::length_offset()));
   __ ret();  // returns the newly allocated object in RAX.
 
   __ Bind(&fall_through);
@@ -154,7 +153,8 @@ void Intrinsifier::GrowableArraySetLength(Assembler* assembler) {
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Length value.
   __ testq(RCX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi length.
-  __ movq(FieldAddress(RAX, GrowableObjectArray::length_offset()), RCX);
+  FieldAddress length_field(RAX, GrowableObjectArray::length_offset());
+  __ StoreIntoSmiField(length_field, RCX);
   __ ret();
   __ Bind(&fall_through);
 }
@@ -196,10 +196,9 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // Compare length with capacity.
   __ cmpq(RCX, FieldAddress(RDX, Array::length_offset()));
   __ j(EQUAL, &fall_through);  // Must grow data.
-  const Immediate& value_one =
-      Immediate(reinterpret_cast<int64_t>(Smi::New(1)));
   // len = len + 1;
-  __ addq(FieldAddress(RAX, GrowableObjectArray::length_offset()), value_one);
+  __ IncrementSmiField(FieldAddress(RAX, GrowableObjectArray::length_offset()),
+                       1);
   __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Value
   ASSERT(kSmiTagShift == 1);
   __ StoreIntoObject(RDX,
@@ -1691,7 +1690,7 @@ void Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   __ incq(RAX);
   __ Bind(&set_hash_code);
   __ SmiTag(RAX);
-  __ movq(FieldAddress(RBX, String::hash_offset()), RAX);
+  __ StoreIntoSmiField(FieldAddress(RBX, String::hash_offset()), RAX);
   __ ret();
 }
 
@@ -1765,7 +1764,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                               FieldAddress(RAX, String::length_offset()),
                               RDI);
   // Clear hash.
-  __ movq(FieldAddress(RAX, String::hash_offset()), Immediate(0));
+  __ ZeroSmiField(FieldAddress(RAX, String::hash_offset()));
   __ jmp(ok, Assembler::kNearJump);
 
   __ Bind(&pop_and_fail);
