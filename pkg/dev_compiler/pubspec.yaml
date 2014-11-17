@@ -1,0 +1,7 @@
+name: ddc
+description: Dart dev checker / compiler
+dependencies:
+  analyzer: 0.22.4
+  args: any
+  logging: any
+  unittest: any
