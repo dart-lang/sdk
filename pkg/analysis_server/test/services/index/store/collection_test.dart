@@ -5,8 +5,9 @@
 library test.services.src.index.store.collection;
 
 import 'package:analysis_server/src/services/index/store/collection.dart';
-import '../../../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
+
+import '../../../reflective_tests.dart';
 
 
 main() {

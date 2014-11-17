@@ -9,16 +9,16 @@ library engine.sdk.io;
 
 import 'package:analyzer/src/generated/java_engine.dart';
 
-import 'java_core.dart';
-import 'java_io.dart';
-import 'java_engine_io.dart';
-import 'source_io.dart';
-import 'error.dart';
-import 'scanner.dart';
 import 'ast.dart';
-import 'parser.dart';
-import 'sdk.dart';
 import 'engine.dart';
+import 'error.dart';
+import 'java_core.dart';
+import 'java_engine_io.dart';
+import 'java_io.dart';
+import 'parser.dart';
+import 'scanner.dart';
+import 'sdk.dart';
+import 'source_io.dart';
 
 /**
  * Instances of the class `DirectoryBasedDartSdk` represent a Dart SDK installed in a
@@ -39,51 +39,6 @@ import 'engine.dart';
  * </pre>
  */
 class DirectoryBasedDartSdk implements DartSdk {
-  /**
-   * The [AnalysisContext] which is used for all of the sources in this [DartSdk].
-   */
-  InternalAnalysisContext _analysisContext;
-
-  /**
-   * The directory containing the SDK.
-   */
-  JavaFile _sdkDirectory;
-
-  /**
-   * The revision number of this SDK, or `"0"` if the revision number cannot be discovered.
-   */
-  String _sdkVersion;
-
-  /**
-   * The file containing the dart2js executable.
-   */
-  JavaFile _dart2jsExecutable;
-
-  /**
-   * The file containing the dart formatter executable.
-   */
-  JavaFile _dartFmtExecutable;
-
-  /**
-   * The file containing the Dartium executable.
-   */
-  JavaFile _dartiumExecutable;
-
-  /**
-   * The file containing the pub executable.
-   */
-  JavaFile _pubExecutable;
-
-  /**
-   * The file containing the VM executable.
-   */
-  JavaFile _vmExecutable;
-
-  /**
-   * A mapping from Dart library URI's to the library represented by that URI.
-   */
-  LibraryMap _libraryMap;
-
   /**
    * The default SDK, or `null` if the default SDK either has not yet been created or cannot
    * be created for some reason.
@@ -128,7 +83,8 @@ class DirectoryBasedDartSdk implements DartSdk {
   /**
    * The name of the file containing the Dartium executable on Macintosh.
    */
-  static String _DARTIUM_EXECUTABLE_NAME_MAC = "Chromium.app/Contents/MacOS/Chromium";
+  static String _DARTIUM_EXECUTABLE_NAME_MAC =
+      "Chromium.app/Contents/MacOS/Chromium";
 
   /**
    * The name of the file containing the Dartium executable on Windows.
@@ -218,7 +174,8 @@ class DirectoryBasedDartSdk implements DartSdk {
    * @return the default directory for the Dart SDK
    */
   static JavaFile get defaultSdkDirectory {
-    String sdkProperty = JavaSystemIO.getProperty(_DEFAULT_DIRECTORY_PROPERTY_NAME);
+    String sdkProperty =
+        JavaSystemIO.getProperty(_DEFAULT_DIRECTORY_PROPERTY_NAME);
     if (sdkProperty == null) {
       return null;
     }
@@ -230,6 +187,51 @@ class DirectoryBasedDartSdk implements DartSdk {
   }
 
   /**
+   * The [AnalysisContext] which is used for all of the sources in this [DartSdk].
+   */
+  InternalAnalysisContext _analysisContext;
+
+  /**
+   * The directory containing the SDK.
+   */
+  JavaFile _sdkDirectory;
+
+  /**
+   * The revision number of this SDK, or `"0"` if the revision number cannot be discovered.
+   */
+  String _sdkVersion;
+
+  /**
+   * The file containing the dart2js executable.
+   */
+  JavaFile _dart2jsExecutable;
+
+  /**
+   * The file containing the dart formatter executable.
+   */
+  JavaFile _dartFmtExecutable;
+
+  /**
+   * The file containing the Dartium executable.
+   */
+  JavaFile _dartiumExecutable;
+
+  /**
+   * The file containing the pub executable.
+   */
+  JavaFile _pubExecutable;
+
+  /**
+   * The file containing the VM executable.
+   */
+  JavaFile _vmExecutable;
+
+  /**
+   * A mapping from Dart library URI's to the library represented by that URI.
+   */
+  LibraryMap _libraryMap;
+
+  /**
    * Initialize a newly created SDK to represent the Dart SDK installed in the given directory.
    *
    * @param sdkDirectory the directory containing the SDK
@@ -238,6 +240,208 @@ class DirectoryBasedDartSdk implements DartSdk {
   DirectoryBasedDartSdk(JavaFile sdkDirectory, [bool useDart2jsPaths = false]) {
     this._sdkDirectory = sdkDirectory.getAbsoluteFile();
     _libraryMap = initialLibraryMap(useDart2jsPaths);
+  }
+
+  @override
+  AnalysisContext get context {
+    if (_analysisContext == null) {
+      _analysisContext = new SdkAnalysisContext();
+      SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
+      _analysisContext.sourceFactory = factory;
+      List<String> uris = this.uris;
+      ChangeSet changeSet = new ChangeSet();
+      for (String uri in uris) {
+        changeSet.addedSource(factory.forUri(uri));
+      }
+      _analysisContext.applyChanges(changeSet);
+    }
+    return _analysisContext;
+  }
+
+  /**
+   * Return the file containing the dart2js executable, or `null` if it does not exist.
+   *
+   * @return the file containing the dart2js executable
+   */
+  JavaFile get dart2JsExecutable {
+    if (_dart2jsExecutable == null) {
+      _dart2jsExecutable = _verifyExecutable(
+          new JavaFile.relative(
+              new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME),
+              OSUtilities.isWindows() ?
+                  _DART2JS_EXECUTABLE_NAME_WIN :
+                  _DART2JS_EXECUTABLE_NAME));
+    }
+    return _dart2jsExecutable;
+  }
+
+  /**
+   * Return the file containing the dart formatter executable, or `null` if it does not exist.
+   *
+   * @return the file containing the dart formatter executable
+   */
+  JavaFile get dartFmtExecutable {
+    if (_dartFmtExecutable == null) {
+      _dartFmtExecutable = _verifyExecutable(
+          new JavaFile.relative(
+              new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME),
+              OSUtilities.isWindows() ?
+                  _DARTFMT_EXECUTABLE_NAME_WIN :
+                  _DARTFMT_EXECUTABLE_NAME));
+    }
+    return _dartFmtExecutable;
+  }
+
+  /**
+   * Return the name of the file containing the Dartium executable.
+   *
+   * @return the name of the file containing the Dartium executable
+   */
+  String get dartiumBinaryName {
+    if (OSUtilities.isWindows()) {
+      return _DARTIUM_EXECUTABLE_NAME_WIN;
+    } else if (OSUtilities.isMac()) {
+      return _DARTIUM_EXECUTABLE_NAME_MAC;
+    } else {
+      return _DARTIUM_EXECUTABLE_NAME_LINUX;
+    }
+  }
+
+  /**
+   * Return the file containing the Dartium executable, or `null` if it does not exist.
+   *
+   * @return the file containing the Dartium executable
+   */
+  JavaFile get dartiumExecutable {
+    if (_dartiumExecutable == null) {
+      _dartiumExecutable = _verifyExecutable(
+          new JavaFile.relative(dartiumWorkingDirectory, dartiumBinaryName));
+    }
+    return _dartiumExecutable;
+  }
+
+  /**
+   * Return the directory where dartium can be found (the directory that will be the working
+   * directory is Dartium is invoked without changing the default).
+   *
+   * @return the directory where dartium can be found
+   */
+  JavaFile get dartiumWorkingDirectory =>
+      getDartiumWorkingDirectory(_sdkDirectory.getParentFile());
+
+  /**
+   * Return the directory containing the SDK.
+   *
+   * @return the directory containing the SDK
+   */
+  JavaFile get directory => _sdkDirectory;
+
+  /**
+   * Return the directory containing documentation for the SDK.
+   *
+   * @return the SDK's documentation directory
+   */
+  JavaFile get docDirectory =>
+      new JavaFile.relative(_sdkDirectory, _DOCS_DIRECTORY_NAME);
+
+  /**
+   * Return `true` if this SDK includes documentation.
+   *
+   * @return `true` if this installation of the SDK has documentation
+   */
+  bool get hasDocumentation => docDirectory.exists();
+
+  /**
+   * Return `true` if the Dartium binary is available.
+   *
+   * @return `true` if the Dartium binary is available
+   */
+  bool get isDartiumInstalled => dartiumExecutable != null;
+
+  /**
+   * Return the directory within the SDK directory that contains the libraries.
+   *
+   * @return the directory that contains the libraries
+   */
+  JavaFile get libraryDirectory =>
+      new JavaFile.relative(_sdkDirectory, _LIB_DIRECTORY_NAME);
+
+  /**
+   * Return the file containing the Pub executable, or `null` if it does not exist.
+   *
+   * @return the file containing the Pub executable
+   */
+  JavaFile get pubExecutable {
+    if (_pubExecutable == null) {
+      _pubExecutable = _verifyExecutable(
+          new JavaFile.relative(
+              new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME),
+              OSUtilities.isWindows() ? _PUB_EXECUTABLE_NAME_WIN : _PUB_EXECUTABLE_NAME));
+    }
+    return _pubExecutable;
+  }
+
+  @override
+  List<SdkLibrary> get sdkLibraries => _libraryMap.sdkLibraries;
+
+  /**
+   * Return the revision number of this SDK, or `"0"` if the revision number cannot be
+   * discovered.
+   *
+   * @return the revision number of this SDK
+   */
+  @override
+  String get sdkVersion {
+    if (_sdkVersion == null) {
+      _sdkVersion = DartSdk.DEFAULT_VERSION;
+      JavaFile revisionFile =
+          new JavaFile.relative(_sdkDirectory, _VERSION_FILE_NAME);
+      try {
+        String revision = revisionFile.readAsStringSync();
+        if (revision != null) {
+          _sdkVersion = revision.trim();
+        }
+      } on JavaIOException catch (exception) {
+        // Fall through to return the default.
+      }
+    }
+    return _sdkVersion;
+  }
+
+  /**
+   * Return an array containing the library URI's for the libraries defined in this SDK.
+   *
+   * @return the library URI's for the libraries defined in this SDK
+   */
+  @override
+  List<String> get uris => _libraryMap.uris;
+
+  /**
+   * Return the name of the file containing the VM executable.
+   *
+   * @return the name of the file containing the VM executable
+   */
+  String get vmBinaryName {
+    if (OSUtilities.isWindows()) {
+      return _VM_EXECUTABLE_NAME_WIN;
+    } else {
+      return _VM_EXECUTABLE_NAME;
+    }
+  }
+
+  /**
+   * Return the file containing the VM executable, or `null` if it does not exist.
+   *
+   * @return the file containing the VM executable
+   */
+  JavaFile get vmExecutable {
+    if (_vmExecutable == null) {
+      _vmExecutable = _verifyExecutable(
+          new JavaFile.relative(
+              new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME),
+              vmBinaryName));
+    }
+    return _vmExecutable;
   }
 
   @override
@@ -264,7 +468,8 @@ class DirectoryBasedDartSdk implements DartSdk {
       }
       libraryPath = new JavaFile(libraryPath).getParent();
       if (filePath.startsWith("$libraryPath${JavaFile.separator}")) {
-        String path = "${library.shortName}/${filePath.substring(libraryPath.length + 1)}";
+        String path =
+            "${library.shortName}/${filePath.substring(libraryPath.length + 1)}";
         try {
           return new FileBasedSource.con2(parseUriWithException(path), file);
         } on URISyntaxException catch (exception, stackTrace) {
@@ -278,66 +483,6 @@ class DirectoryBasedDartSdk implements DartSdk {
     return null;
   }
 
-  @override
-  AnalysisContext get context {
-    if (_analysisContext == null) {
-      _analysisContext = new SdkAnalysisContext();
-      SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
-      _analysisContext.sourceFactory = factory;
-      List<String> uris = this.uris;
-      ChangeSet changeSet = new ChangeSet();
-      for (String uri in uris) {
-        changeSet.addedSource(factory.forUri(uri));
-      }
-      _analysisContext.applyChanges(changeSet);
-    }
-    return _analysisContext;
-  }
-
-  /**
-   * Return the file containing the dart2js executable, or `null` if it does not exist.
-   *
-   * @return the file containing the dart2js executable
-   */
-  JavaFile get dart2JsExecutable {
-    if (_dart2jsExecutable == null) {
-      _dart2jsExecutable = _verifyExecutable(new JavaFile.relative(new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME), OSUtilities.isWindows() ? _DART2JS_EXECUTABLE_NAME_WIN : _DART2JS_EXECUTABLE_NAME));
-    }
-    return _dart2jsExecutable;
-  }
-
-  /**
-   * Return the file containing the dart formatter executable, or `null` if it does not exist.
-   *
-   * @return the file containing the dart formatter executable
-   */
-  JavaFile get dartFmtExecutable {
-    if (_dartFmtExecutable == null) {
-      _dartFmtExecutable = _verifyExecutable(new JavaFile.relative(new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME), OSUtilities.isWindows() ? _DARTFMT_EXECUTABLE_NAME_WIN : _DARTFMT_EXECUTABLE_NAME));
-    }
-    return _dartFmtExecutable;
-  }
-
-  /**
-   * Return the file containing the Dartium executable, or `null` if it does not exist.
-   *
-   * @return the file containing the Dartium executable
-   */
-  JavaFile get dartiumExecutable {
-    if (_dartiumExecutable == null) {
-      _dartiumExecutable = _verifyExecutable(new JavaFile.relative(dartiumWorkingDirectory, dartiumBinaryName));
-    }
-    return _dartiumExecutable;
-  }
-
-  /**
-   * Return the directory where dartium can be found (the directory that will be the working
-   * directory is Dartium is invoked without changing the default).
-   *
-   * @return the directory where dartium can be found
-   */
-  JavaFile get dartiumWorkingDirectory => getDartiumWorkingDirectory(_sdkDirectory.getParentFile());
-
   /**
    * Return the directory where dartium can be found (the directory that will be the working
    * directory is Dartium is invoked without changing the default).
@@ -345,21 +490,8 @@ class DirectoryBasedDartSdk implements DartSdk {
    * @param installDir the installation directory
    * @return the directory where dartium can be found
    */
-  JavaFile getDartiumWorkingDirectory(JavaFile installDir) => new JavaFile.relative(installDir, _DARTIUM_DIRECTORY_NAME);
-
-  /**
-   * Return the directory containing the SDK.
-   *
-   * @return the directory containing the SDK
-   */
-  JavaFile get directory => _sdkDirectory;
-
-  /**
-   * Return the directory containing documentation for the SDK.
-   *
-   * @return the SDK's documentation directory
-   */
-  JavaFile get docDirectory => new JavaFile.relative(_sdkDirectory, _DOCS_DIRECTORY_NAME);
+  JavaFile getDartiumWorkingDirectory(JavaFile installDir) =>
+      new JavaFile.relative(installDir, _DARTIUM_DIRECTORY_NAME);
 
   /**
    * Return the auxiliary documentation file for the given library, or `null` if no such file
@@ -375,94 +507,38 @@ class DirectoryBasedDartSdk implements DartSdk {
       return null;
     }
     JavaFile libDir = new JavaFile.relative(dir, libraryName);
-    JavaFile docFile = new JavaFile.relative(libDir, "$libraryName$_DOC_FILE_SUFFIX");
+    JavaFile docFile =
+        new JavaFile.relative(libDir, "$libraryName$_DOC_FILE_SUFFIX");
     if (docFile.exists()) {
       return docFile;
     }
     return null;
   }
 
-  /**
-   * Return the directory within the SDK directory that contains the libraries.
-   *
-   * @return the directory that contains the libraries
-   */
-  JavaFile get libraryDirectory => new JavaFile.relative(_sdkDirectory, _LIB_DIRECTORY_NAME);
-
-  /**
-   * Return the file containing the Pub executable, or `null` if it does not exist.
-   *
-   * @return the file containing the Pub executable
-   */
-  JavaFile get pubExecutable {
-    if (_pubExecutable == null) {
-      _pubExecutable = _verifyExecutable(new JavaFile.relative(new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME), OSUtilities.isWindows() ? _PUB_EXECUTABLE_NAME_WIN : _PUB_EXECUTABLE_NAME));
-    }
-    return _pubExecutable;
-  }
-
-  @override
-  List<SdkLibrary> get sdkLibraries => _libraryMap.sdkLibraries;
-
   @override
   SdkLibrary getSdkLibrary(String dartUri) => _libraryMap.getLibrary(dartUri);
 
   /**
-   * Return the revision number of this SDK, or `"0"` if the revision number cannot be
-   * discovered.
+   * Read all of the configuration files to initialize the library maps.
    *
-   * @return the revision number of this SDK
+   * @param useDart2jsPaths `true` if the dart2js path should be used when it is available
+   * @return the initialized library map
    */
-  @override
-  String get sdkVersion {
-    if (_sdkVersion == null) {
-      _sdkVersion = DartSdk.DEFAULT_VERSION;
-      JavaFile revisionFile = new JavaFile.relative(_sdkDirectory, _VERSION_FILE_NAME);
-      try {
-        String revision = revisionFile.readAsStringSync();
-        if (revision != null) {
-          _sdkVersion = revision.trim();
-        }
-      } on JavaIOException catch (exception) {
-        // Fall through to return the default.
-      }
+  LibraryMap initialLibraryMap(bool useDart2jsPaths) {
+    JavaFile librariesFile = new JavaFile.relative(
+        new JavaFile.relative(libraryDirectory, _INTERNAL_DIR),
+        _LIBRARIES_FILE);
+    try {
+      String contents = librariesFile.readAsStringSync();
+      return new SdkLibrariesReader(
+          useDart2jsPaths).readFromFile(librariesFile, contents);
+    } catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logError(
+          "Could not initialize the library map from ${librariesFile.getAbsolutePath()}",
+          new CaughtException(exception, stackTrace));
+      return new LibraryMap();
     }
-    return _sdkVersion;
   }
-
-  /**
-   * Return an array containing the library URI's for the libraries defined in this SDK.
-   *
-   * @return the library URI's for the libraries defined in this SDK
-   */
-  @override
-  List<String> get uris => _libraryMap.uris;
-
-  /**
-   * Return the file containing the VM executable, or `null` if it does not exist.
-   *
-   * @return the file containing the VM executable
-   */
-  JavaFile get vmExecutable {
-    if (_vmExecutable == null) {
-      _vmExecutable = _verifyExecutable(new JavaFile.relative(new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME), vmBinaryName));
-    }
-    return _vmExecutable;
-  }
-
-  /**
-   * Return `true` if this SDK includes documentation.
-   *
-   * @return `true` if this installation of the SDK has documentation
-   */
-  bool get hasDocumentation => docDirectory.exists();
-
-  /**
-   * Return `true` if the Dartium binary is available.
-   *
-   * @return `true` if the Dartium binary is available
-   */
-  bool get isDartiumInstalled => dartiumExecutable != null;
 
   @override
   Source mapDartUri(String dartUri) {
@@ -493,59 +569,13 @@ class DirectoryBasedDartSdk implements DartSdk {
   }
 
   /**
-   * Read all of the configuration files to initialize the library maps.
-   *
-   * @param useDart2jsPaths `true` if the dart2js path should be used when it is available
-   * @return the initialized library map
-   */
-  LibraryMap initialLibraryMap(bool useDart2jsPaths) {
-    JavaFile librariesFile = new JavaFile.relative(new JavaFile.relative(libraryDirectory, _INTERNAL_DIR), _LIBRARIES_FILE);
-    try {
-      String contents = librariesFile.readAsStringSync();
-      return new SdkLibrariesReader(useDart2jsPaths).readFromFile(librariesFile, contents);
-    } catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logError(
-          "Could not initialize the library map from ${librariesFile.getAbsolutePath()}",
-          new CaughtException(exception, stackTrace));
-      return new LibraryMap();
-    }
-  }
-
-  /**
-   * Return the name of the file containing the Dartium executable.
-   *
-   * @return the name of the file containing the Dartium executable
-   */
-  String get dartiumBinaryName {
-    if (OSUtilities.isWindows()) {
-      return _DARTIUM_EXECUTABLE_NAME_WIN;
-    } else if (OSUtilities.isMac()) {
-      return _DARTIUM_EXECUTABLE_NAME_MAC;
-    } else {
-      return _DARTIUM_EXECUTABLE_NAME_LINUX;
-    }
-  }
-
-  /**
-   * Return the name of the file containing the VM executable.
-   *
-   * @return the name of the file containing the VM executable
-   */
-  String get vmBinaryName {
-    if (OSUtilities.isWindows()) {
-      return _VM_EXECUTABLE_NAME_WIN;
-    } else {
-      return _VM_EXECUTABLE_NAME;
-    }
-  }
-
-  /**
    * Verify that the given executable file exists and is executable.
    *
    * @param file the binary file
    * @return the file if it exists and is executable, else `null`
    */
-  JavaFile _verifyExecutable(JavaFile file) => file.isExecutable() ? file : null;
+  JavaFile _verifyExecutable(JavaFile file) =>
+      file.isExecutable() ? file : null;
 }
 
 /**
@@ -592,7 +622,8 @@ class SdkLibrariesReader {
    * @param libraryFileContents the contents from the library file
    * @return the library map read from the given source
    */
-  LibraryMap readFromFile(JavaFile file, String libraryFileContents) => readFromSource(new FileBasedSource.con1(file), libraryFileContents);
+  LibraryMap readFromFile(JavaFile file, String libraryFileContents) =>
+      readFromSource(new FileBasedSource.con1(file), libraryFileContents);
 
   /**
    * Return the library map read from the given source.
@@ -603,11 +634,16 @@ class SdkLibrariesReader {
    */
   LibraryMap readFromSource(Source source, String libraryFileContents) {
     BooleanErrorListener errorListener = new BooleanErrorListener();
-    Scanner scanner = new Scanner(source, new CharSequenceReader(libraryFileContents), errorListener);
+    Scanner scanner = new Scanner(
+        source,
+        new CharSequenceReader(libraryFileContents),
+        errorListener);
     Parser parser = new Parser(source, errorListener);
     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
-    SdkLibrariesReader_LibraryBuilder libraryBuilder = new SdkLibrariesReader_LibraryBuilder(_useDart2jsPaths);
-    // If any syntactic errors were found then don't try to visit the AST structure.
+    SdkLibrariesReader_LibraryBuilder libraryBuilder =
+        new SdkLibrariesReader_LibraryBuilder(_useDart2jsPaths);
+    // If any syntactic errors were found then don't try to visit the AST
+    // structure.
     if (!errorListener.errorReported) {
       unit.accept(libraryBuilder);
     }

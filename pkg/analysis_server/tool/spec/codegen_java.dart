@@ -8,17 +8,37 @@
 library CodegenJava;
 
 import 'package:html5lib/dom.dart' as dom;
+
 import 'api.dart';
 import 'codegen_tools.dart';
 import 'from_html.dart';
 import 'to_html.dart';
 
 /**
+ * Create a [GeneratedFile] that creates Java code and outputs it to [path].
+ * [path] uses Posix-style path separators regardless of the OS.
+ */
+GeneratedFile javaGeneratedFile(String path, CodegenJavaVisitor
+    createVisitor(Api api)) {
+  return new GeneratedFile(path, () {
+    CodegenJavaVisitor visitor = createVisitor(readApi());
+    return visitor.collectCode(visitor.visitApi);
+  });
+}
+
+/**
+ * Iterate through the values in [map] in the order of increasing keys.
+ */
+Iterable<String> _valuesSortedByKey(Map<String, String> map) {
+  List<String> keys = map.keys.toList();
+  keys.sort();
+  return keys.map((String key) => map[key]);
+}
+
+/**
  * Common code for all Java code generation.
  */
 class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
-  _CodegenJavaState _state;
-
   /**
    * Variable names which must be changed in order to avoid conflict with
    * reserved words in Java.
@@ -40,6 +60,8 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
     'Override': 'OverrideMember',
   };
 
+  _CodegenJavaState _state;
+
   /**
    * Visitor used to produce doc comments.
    */
@@ -50,27 +72,6 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
         toHtmlVisitor = new ToHtmlVisitor(api);
 
   /**
-   * Convenience method for subclasses for calling docComment.
-   */
-  void javadocComment(List<dom.Node> docs) {
-    docComment(docs, width: 99, javadocStyle: true);
-  }
-
-  /**
-   * Create a public field, using [callback] to create its contents.
-   */
-  void publicField(String fieldName, void callback()) {
-    _state.publicFields[fieldName] = collectCode(callback);
-  }
-
-  /**
-   * Create a private field, using [callback] to create its contents.
-   */
-  void privateField(String fieldName, void callback()) {
-    _state.privateFields[fieldName] = collectCode(callback);
-  }
-
-  /**
    * Create a constructor, using [callback] to create its contents.
    */
   void constructor(String name, void callback()) {
@@ -78,17 +79,114 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   }
 
   /**
-   * Create a private method, using [callback] to create its contents.
+   * Return true iff the passed [TypeDecl] will represent an array in Java.
    */
-  void privateMethod(String methodName, void callback()) {
-    _state.privateMethods[methodName] = collectCode(callback);
+  bool isArray(TypeDecl type) {
+    return type is TypeList && isPrimitive(type.itemType);
   }
 
   /**
-   * Create a public method, using [callback] to create its contents.
+   * Return true iff the passed [TypeDecl] is a type declared in the spec_input.
    */
-  void publicMethod(String methodName, void callback()) {
-    _state.publicMethods[methodName] = collectCode(callback);
+  bool isDeclaredInSpec(TypeDecl type) {
+//    TypeReference resolvedType = super.resolveTypeReferenceChain(type);
+//    if(resolvedType is TypeObject) {
+//      return truye;
+//    }
+    if (type is TypeReference) {
+      return api.types.containsKey(type.typeName) && javaType(type) != 'String';
+    }
+    return false;
+  }
+
+  /**
+   * Return true iff the passed [TypeDecl] will represent an array in Java.
+   */
+  bool isList(TypeDecl type) {
+    return type is TypeList && !isPrimitive(type.itemType);
+  }
+
+  /**
+   * Return true iff the passed [TypeDecl] will represent a Map in type.
+   */
+  bool isMap(TypeDecl type) {
+    return type is TypeMap;
+  }
+
+  /**
+   * Return true iff the passed [TypeDecl] will be represented as Object in Java.
+   */
+  bool isObject(TypeDecl type) {
+    String typeStr = javaType(type);
+    return typeStr == 'Object';
+  }
+
+  /**
+   * Return true iff the passed [TypeDecl] will represent a primitive Java type.
+   */
+  bool isPrimitive(TypeDecl type) {
+    if (type is TypeReference) {
+      String typeStr = javaType(type);
+      return typeStr == 'boolean' || typeStr == 'int' || typeStr == 'long';
+    }
+    return false;
+  }
+
+  /**
+   * Convenience method for subclasses for calling docComment.
+   */
+  void javadocComment(List<dom.Node> docs) {
+    docComment(docs, width: 99, javadocStyle: true);
+  }
+
+  /**
+   * Return a Java type for the given [TypeObjectField].
+   */
+  String javaFieldType(TypeObjectField field) {
+    return javaType(field.type, field.optional);
+  }
+
+  /**
+   * Return a suitable representation of [name] as the name of a Java variable.
+   */
+  String javaName(String name) {
+    if (_variableRenames.containsKey(name)) {
+      return _variableRenames[name];
+    }
+    return name;
+  }
+
+  /**
+   * Convert the given [TypeDecl] to a Java type.
+   */
+  String javaType(TypeDecl type, [bool optional = false]) {
+    if (type is TypeReference) {
+      TypeReference resolvedType = resolveTypeReferenceChain(type);
+      String typeName = resolvedType.typeName;
+      if (_typeRenames.containsKey(typeName)) {
+        typeName = _typeRenames[typeName];
+        if (optional) {
+          if (typeName == 'boolean') {
+            typeName = 'Boolean';
+          } else if (typeName == 'int') {
+            typeName = 'Integer';
+          }
+        }
+      }
+      return typeName;
+    } else if (type is TypeList) {
+      if (isPrimitive(type.itemType)) {
+        return '${javaType(type.itemType)}[]';
+      } else {
+        return 'List<${javaType(type.itemType)}>';
+      }
+    } else if (type is TypeMap) {
+      return 'Map<${javaType(type.keyType)}, ${javaType(type.valueType)}>';
+    } else if (type is TypeUnion) {
+      return 'Object';
+    } else {
+      throw new Exception("Can't make type buildable");
+    }
   }
 
   /**
@@ -136,107 +234,31 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   }
 
   /**
-   * Return a Java type for the given [TypeObjectField].
+   * Create a private field, using [callback] to create its contents.
    */
-  String javaFieldType(TypeObjectField field) {
-    return javaType(field.type, field.optional);
+  void privateField(String fieldName, void callback()) {
+    _state.privateFields[fieldName] = collectCode(callback);
   }
 
   /**
-   * Convert the given [TypeDecl] to a Java type.
+   * Create a private method, using [callback] to create its contents.
    */
-  String javaType(TypeDecl type, [bool optional = false]) {
-    if (type is TypeReference) {
-      TypeReference resolvedType = resolveTypeReferenceChain(type);
-      String typeName = resolvedType.typeName;
-      if (_typeRenames.containsKey(typeName)) {
-        typeName = _typeRenames[typeName];
-        if (optional) {
-          if (typeName == 'boolean') {
-            typeName = 'Boolean';
-          } else if (typeName == 'int') {
-            typeName = 'Integer';
-          }
-        }
-      }
-      return typeName;
-    } else if (type is TypeList) {
-      if (isPrimitive(type.itemType)) {
-        return '${javaType(type.itemType)}[]';
-      } else {
-        return 'List<${javaType(type.itemType)}>';
-      }
-    } else if (type is TypeMap) {
-      return 'Map<${javaType(type.keyType)}, ${javaType(type.valueType)}>';
-    } else if (type is TypeUnion) {
-      return 'Object';
-    } else {
-      throw new Exception("Can't make type buildable");
-    }
+  void privateMethod(String methodName, void callback()) {
+    _state.privateMethods[methodName] = collectCode(callback);
   }
 
   /**
-   * Return true iff the passed [TypeDecl] will represent a primitive Java type.
+   * Create a public field, using [callback] to create its contents.
    */
-  bool isPrimitive(TypeDecl type) {
-    if (type is TypeReference) {
-      String typeStr = javaType(type);
-      return typeStr == 'boolean' || typeStr == 'int' || typeStr == 'long';
-    }
-    return false;
+  void publicField(String fieldName, void callback()) {
+    _state.publicFields[fieldName] = collectCode(callback);
   }
 
   /**
-   * Return true iff the passed [TypeDecl] is a type declared in the spec_input.
+   * Create a public method, using [callback] to create its contents.
    */
-  bool isDeclaredInSpec(TypeDecl type) {
-//    TypeReference resolvedType = super.resolveTypeReferenceChain(type);
-//    if(resolvedType is TypeObject) {
-//      return truye;
-//    }
-    if (type is TypeReference) {
-      return api.types.containsKey(type.typeName) && javaType(type) != 'String';
-    }
-    return false;
-  }
-
-  /**
-   * Return true iff the passed [TypeDecl] will be represented as Object in Java.
-   */
-  bool isObject(TypeDecl type) {
-    String typeStr = javaType(type);
-    return typeStr == 'Object';
-  }
-
-  /**
-   * Return true iff the passed [TypeDecl] will represent an array in Java.
-   */
-  bool isList(TypeDecl type) {
-    return type is TypeList && !isPrimitive(type.itemType);
-  }
-
-  /**
-   * Return true iff the passed [TypeDecl] will represent an array in Java.
-   */
-  bool isArray(TypeDecl type) {
-    return type is TypeList && isPrimitive(type.itemType);
-  }
-
-  /**
-   * Return true iff the passed [TypeDecl] will represent a Map in type.
-   */
-  bool isMap(TypeDecl type) {
-    return type is TypeMap;
-  }
-
-  /**
-   * Return a suitable representation of [name] as the name of a Java variable.
-   */
-  String javaName(String name) {
-    if (_variableRenames.containsKey(name)) {
-      return _variableRenames[name];
-    }
-    return name;
+  void publicMethod(String methodName, void callback()) {
+    _state.publicMethods[methodName] = collectCode(callback);
   }
 
   @override
@@ -247,15 +269,6 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
     }
     return type;
   }
-}
-
-/**
- * Iterate through the values in [map] in the order of increasing keys.
- */
-Iterable<String> _valuesSortedByKey(Map<String, String> map) {
-  List<String> keys = map.keys.toList();
-  keys.sort();
-  return keys.map((String key) => map[key]);
 }
 
 /**
@@ -286,16 +299,4 @@ class _CodegenJavaState {
    * Temporary storage for constructors.
    */
   Map<String, String> constructors = <String, String>{};
-}
-
-/**
- * Create a [GeneratedFile] that creates Java code and outputs it to [path].
- * [path] uses Posix-style path separators regardless of the OS.
- */
-GeneratedFile javaGeneratedFile(String path, CodegenJavaVisitor
-    createVisitor(Api api)) {
-  return new GeneratedFile(path, () {
-    CodegenJavaVisitor visitor = createVisitor(readApi());
-    return visitor.collectCode(visitor.visitApi);
-  });
 }

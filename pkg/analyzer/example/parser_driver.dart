@@ -1,5 +1,4 @@
 #!/usr/bin/env dart
-
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -44,12 +43,6 @@ _parse(File file) {
   }
 }
 
-class _ErrorCollector extends AnalysisErrorListener {
-  List<AnalysisError> errors;
-  _ErrorCollector() : errors = new List<AnalysisError>();
-  onError(error) => errors.add(error);
-}
-
 class _ASTVisitor extends GeneralizingAstVisitor {
   visitNode(AstNode node) {
     print('${node.runtimeType} : <"$node">');
@@ -57,3 +50,8 @@ class _ASTVisitor extends GeneralizingAstVisitor {
   }
 }
 
+class _ErrorCollector extends AnalysisErrorListener {
+  List<AnalysisError> errors;
+  _ErrorCollector() : errors = new List<AnalysisError>();
+  onError(error) => errors.add(error);
+}

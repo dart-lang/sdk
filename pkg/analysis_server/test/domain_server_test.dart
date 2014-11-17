@@ -4,14 +4,14 @@
 
 library test.domain.server;
 
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'mock_sdk.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:unittest/unittest.dart';
 
+import 'mock_sdk.dart';
 import 'mocks.dart';
 
 main() {
@@ -22,7 +22,10 @@ main() {
     var serverChannel = new MockServerChannel();
     var resourceProvider = PhysicalResourceProvider.INSTANCE;
     server = new AnalysisServer(
-        serverChannel, resourceProvider, new MockPackageMapProvider(), null,
+        serverChannel,
+        resourceProvider,
+        new MockPackageMapProvider(),
+        null,
         new MockSdk());
     handler = new ServerDomainHandler(server);
   });
@@ -51,8 +54,8 @@ main() {
       test('success', () {
         expect(server.serverServices, isEmpty);
         // send request
-        Request request = new ServerSetSubscriptionsParams(
-            [ServerService.STATUS]).toRequest('0');
+        Request request =
+            new ServerSetSubscriptionsParams([ServerService.STATUS]).toRequest('0');
         var response = handler.handleRequest(request);
         expect(response, isResponseSuccess('0'));
         // set of services has been changed

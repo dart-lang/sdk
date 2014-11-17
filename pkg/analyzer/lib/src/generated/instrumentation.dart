@@ -42,46 +42,20 @@ class Instrumentation {
   /**
    * A builder that will silently ignore all data and logging requests.
    */
-  static InstrumentationBuilder _NULL_INSTRUMENTATION_BUILDER = new InstrumentationBuilder_Instrumentation_NULL_INSTRUMENTATION_BUILDER();
+  static InstrumentationBuilder _NULL_INSTRUMENTATION_BUILDER =
+      new InstrumentationBuilder_Instrumentation_NULL_INSTRUMENTATION_BUILDER();
 
   /**
    * An instrumentation logger that can be used when no other instrumentation logger has been
    * configured. This logger will silently ignore all data and logging requests.
    */
-  static InstrumentationLogger _NULL_LOGGER = new InstrumentationLogger_Instrumentation_NULL_LOGGER();
+  static InstrumentationLogger _NULL_LOGGER =
+      new InstrumentationLogger_Instrumentation_NULL_LOGGER();
 
   /**
    * The current instrumentation logger.
    */
   static InstrumentationLogger _CURRENT_LOGGER = _NULL_LOGGER;
-
-  /**
-   * Create a builder that can collect the data associated with an operation.
-   *
-   * @param clazz the class performing the operation (not `null`)
-   * @return the builder that was created (not `null`)
-   */
-  static InstrumentationBuilder builder(Type clazz) => _CURRENT_LOGGER.createBuilder(clazz.toString());
-
-  /**
-   * Create a builder that can collect the data associated with an operation.
-   *
-   * @param name the name used to uniquely identify the operation (not `null`)
-   * @return the builder that was created (not `null`)
-   */
-  static InstrumentationBuilder builder2(String name) => _CURRENT_LOGGER.createBuilder(name);
-
-  /**
-   * Get the currently active instrumentation logger
-   */
-  static InstrumentationLogger get logger => _CURRENT_LOGGER;
-
-  /**
-   * Return a builder that will silently ignore all data and logging requests.
-   *
-   * @return the builder (not `null`)
-   */
-  static InstrumentationBuilder get nullBuilder => _NULL_INSTRUMENTATION_BUILDER;
 
   /**
    * Is this instrumentation system currently configured to drop instrumentation data provided to
@@ -92,6 +66,11 @@ class Instrumentation {
   static bool get isNullLogger => identical(_CURRENT_LOGGER, _NULL_LOGGER);
 
   /**
+   * Get the currently active instrumentation logger
+   */
+  static InstrumentationLogger get logger => _CURRENT_LOGGER;
+
+  /**
    * Set the logger that should receive instrumentation information to the given logger.
    *
    * @param logger the logger that should receive instrumentation information
@@ -99,6 +78,32 @@ class Instrumentation {
   static void set logger(InstrumentationLogger logger) {
     _CURRENT_LOGGER = logger == null ? _NULL_LOGGER : logger;
   }
+
+  /**
+   * Return a builder that will silently ignore all data and logging requests.
+   *
+   * @return the builder (not `null`)
+   */
+  static InstrumentationBuilder get nullBuilder =>
+      _NULL_INSTRUMENTATION_BUILDER;
+
+  /**
+   * Create a builder that can collect the data associated with an operation.
+   *
+   * @param clazz the class performing the operation (not `null`)
+   * @return the builder that was created (not `null`)
+   */
+  static InstrumentationBuilder builder(Type clazz) =>
+      _CURRENT_LOGGER.createBuilder(clazz.toString());
+
+  /**
+   * Create a builder that can collect the data associated with an operation.
+   *
+   * @param name the name used to uniquely identify the operation (not `null`)
+   * @return the builder that was created (not `null`)
+   */
+  static InstrumentationBuilder builder2(String name) =>
+      _CURRENT_LOGGER.createBuilder(name);
 }
 
 /**
@@ -108,6 +113,14 @@ class Instrumentation {
  * For an example of using objects that implement this interface, see [Instrumentation].
  */
 abstract class InstrumentationBuilder {
+  /**
+   * Answer the [InstrumentationLevel] of this `InstrumentationBuilder`.
+   *
+   * @return one of [InstrumentationLevel.EVERYTHING], [InstrumentationLevel.METRICS],
+   *         [InstrumentationLevel.OFF]
+   */
+  InstrumentationLevel get instrumentationLevel;
+
   /**
    * Append the given data to the data being collected by this builder. The information is declared
    * to potentially contain data that is either user identifiable or contains user intellectual
@@ -151,14 +164,6 @@ abstract class InstrumentationBuilder {
    * @return this builder
    */
   InstrumentationBuilder data4(String name, List<String> value);
-
-  /**
-   * Answer the [InstrumentationLevel] of this `InstrumentationBuilder`.
-   *
-   * @return one of [InstrumentationLevel.EVERYTHING], [InstrumentationLevel.METRICS],
-   *         [InstrumentationLevel.OFF]
-   */
-  InstrumentationLevel get instrumentationLevel;
 
   /**
    * Log the data that has been collected. The instrumentation builder should not be used after this
@@ -232,7 +237,11 @@ abstract class InstrumentationBuilder {
   InstrumentationBuilder record(Exception exception);
 }
 
-class InstrumentationBuilder_Instrumentation_NULL_INSTRUMENTATION_BUILDER implements InstrumentationBuilder {
+class InstrumentationBuilder_Instrumentation_NULL_INSTRUMENTATION_BUILDER
+    implements InstrumentationBuilder {
+  @override
+  InstrumentationLevel get instrumentationLevel => InstrumentationLevel.OFF;
+
   @override
   InstrumentationBuilder data(String name, bool value) => this;
 
@@ -244,9 +253,6 @@ class InstrumentationBuilder_Instrumentation_NULL_INSTRUMENTATION_BUILDER implem
 
   @override
   InstrumentationBuilder data4(String name, List<String> value) => this;
-
-  @override
-  InstrumentationLevel get instrumentationLevel => InstrumentationLevel.OFF;
 
   @override
   void log() {
@@ -279,15 +285,22 @@ class InstrumentationBuilder_Instrumentation_NULL_INSTRUMENTATION_BUILDER implem
  */
 class InstrumentationLevel extends Enum<InstrumentationLevel> {
   /** Recording all instrumented information */
-  static const InstrumentationLevel EVERYTHING = const InstrumentationLevel('EVERYTHING', 0);
+  static const InstrumentationLevel EVERYTHING =
+      const InstrumentationLevel('EVERYTHING', 0);
 
   /** Recording only metrics */
-  static const InstrumentationLevel METRICS = const InstrumentationLevel('METRICS', 1);
+  static const InstrumentationLevel METRICS =
+      const InstrumentationLevel('METRICS', 1);
 
   /** Nothing recorded */
   static const InstrumentationLevel OFF = const InstrumentationLevel('OFF', 2);
 
-  static const List<InstrumentationLevel> values = const [EVERYTHING, METRICS, OFF];
+  static const List<InstrumentationLevel> values = const [
+      EVERYTHING,
+      METRICS,
+      OFF];
+
+  const InstrumentationLevel(String name, int ordinal) : super(name, ordinal);
 
   static InstrumentationLevel fromString(String str) {
     if (str == "EVERYTHING") {
@@ -301,8 +314,6 @@ class InstrumentationLevel extends Enum<InstrumentationLevel> {
     }
     throw new IllegalArgumentException("Unrecognised InstrumentationLevel");
   }
-
-  const InstrumentationLevel(String name, int ordinal) : super(name, ordinal);
 }
 
 /**
@@ -322,7 +333,9 @@ abstract class InstrumentationLogger {
   InstrumentationBuilder createBuilder(String name);
 }
 
-class InstrumentationLogger_Instrumentation_NULL_LOGGER implements InstrumentationLogger {
+class InstrumentationLogger_Instrumentation_NULL_LOGGER implements
+    InstrumentationLogger {
   @override
-  InstrumentationBuilder createBuilder(String name) => Instrumentation._NULL_INSTRUMENTATION_BUILDER;
+  InstrumentationBuilder createBuilder(String name) =>
+      Instrumentation._NULL_INSTRUMENTATION_BUILDER;
 }

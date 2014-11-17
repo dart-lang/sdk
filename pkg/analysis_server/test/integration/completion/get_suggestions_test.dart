@@ -6,10 +6,14 @@ library test.integration.completion.get.suggestions;
 
 import 'dart:async';
 
-import '../../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import '../integration_tests.dart';
+
+main() {
+  runReflectiveTests(Test);
+}
 
 @ReflectiveTestCase()
 class Test extends AbstractAnalysisServerIntegrationTest {
@@ -26,8 +30,9 @@ main() {
     standardAnalysisSetup();
 
     return analysisFinished.then((_) {
-      return sendCompletionGetSuggestions(pathname, text.indexOf('test.') +
-          'test.'.length).then((result) {
+      return sendCompletionGetSuggestions(
+          pathname,
+          text.indexOf('test.') + 'test.'.length).then((result) {
         // Since the feature doesn't work yet, just pause for a second to
         // collect the output of the analysis server, and then stop the test.
         // TODO(paulberry): finish writing the integration test once the feature
@@ -44,8 +49,4 @@ main() {
     // placeholder until we have a passing test.
     // TODO(paulberry): remove this.
   }
-}
-
-main() {
-  runReflectiveTests(Test);
 }

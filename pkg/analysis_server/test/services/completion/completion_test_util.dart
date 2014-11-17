@@ -103,7 +103,8 @@ class AbstractCompletionTest extends AbstractContextTest {
     return cs;
   }
 
-  void assertSuggestArgumentList(List<String> paramNames, List<String> paramTypes) {
+  void assertSuggestArgumentList(List<String> paramNames,
+      List<String> paramTypes) {
     CompletionSuggestionKind csKind = CompletionSuggestionKind.ARGUMENT_LIST;
     CompletionSuggestion cs = getSuggest(csKind: csKind);
     if (cs == null) {

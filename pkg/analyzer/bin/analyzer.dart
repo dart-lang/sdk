@@ -1,5 +1,4 @@
 #!/usr/bin/env dart
-
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -11,13 +10,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analyzer/options.dart';
 import 'package:analyzer/src/analyzer_impl.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/interner.dart';
 import 'package:analyzer/src/generated/java_core.dart' show JavaSystem;
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/options.dart';
 
 void main(List<String> args) {
   StringUtilities.INTERNER = new MappedInterner();
@@ -104,14 +103,14 @@ class BatchRunner {
     int totalTests = 0;
     ErrorSeverity batchResult = ErrorSeverity.NONE;
     // read line from stdin
-    Stream cmdLine = stdin
-        .transform(UTF8.decoder)
-        .transform(new LineSplitter());
+    Stream cmdLine =
+        stdin.transform(UTF8.decoder).transform(new LineSplitter());
     cmdLine.listen((String line) {
       // may be finish
       if (line.isEmpty) {
         var time = stopwatch.elapsedMilliseconds;
-        stdout.writeln('>>> BATCH END (${totalTests - testsFailed}/$totalTests) ${time}ms');
+        stdout.writeln(
+            '>>> BATCH END (${totalTests - testsFailed}/$totalTests) ${time}ms');
         exitCode = batchResult.ordinal;
       }
       // prepare aruments
@@ -136,7 +135,8 @@ class BatchRunner {
         // Write stderr end token and flush.
         stderr.writeln('>>> EOF STDERR');
         String resultPassString = resultPass ? 'PASS' : 'FAIL';
-        stdout.writeln('>>> TEST $resultPassString ${stopwatch.elapsedMilliseconds}ms');
+        stdout.writeln(
+            '>>> TEST $resultPassString ${stopwatch.elapsedMilliseconds}ms');
       } catch (e, stackTrace) {
         stderr.writeln(e);
         stderr.writeln(stackTrace);

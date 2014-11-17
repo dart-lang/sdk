@@ -74,25 +74,27 @@ class CommandLineOptions {
   /**
    * Initialize options from the given parsed [args].
    */
-  CommandLineOptions._fromArgs(ArgResults args, Map<String, String> definedVariables)
-    : dartSdkPath = args['dart-sdk'],
-      this.definedVariables = definedVariables,
-      disableHints = args['no-hints'],
-      displayVersion = args['version'],
-      enableAsync = args['enable-async'],
-      enableEnum = args['enable-enum'],
-      enableTypeChecks = args['enable_type_checks'],
-      ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
-      log = args['log'],
-      machineFormat = args['machine'] || args['format'] == 'machine',
-      packageRootPath = args['package-root'],
-      perf = args['perf'],
-      shouldBatch = args['batch'],
-      showPackageWarnings = args['show-package-warnings'] || args['package-warnings'],
-      showSdkWarnings = args['show-sdk-warnings'] || args['warnings'],
-      sourceFiles = args.rest,
-      warmPerf = args['warm-perf'],
-      warningsAreFatal = args['fatal-warnings'];
+  CommandLineOptions._fromArgs(ArgResults args, Map<String,
+      String> definedVariables)
+      : dartSdkPath = args['dart-sdk'],
+        this.definedVariables = definedVariables,
+        disableHints = args['no-hints'],
+        displayVersion = args['version'],
+        enableAsync = args['enable-async'],
+        enableEnum = args['enable-enum'],
+        enableTypeChecks = args['enable_type_checks'],
+        ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
+        log = args['log'],
+        machineFormat = args['machine'] || args['format'] == 'machine',
+        packageRootPath = args['package-root'],
+        perf = args['perf'],
+        shouldBatch = args['batch'],
+        showPackageWarnings = args['show-package-warnings'] ||
+          args['package-warnings'],
+        showSdkWarnings = args['show-sdk-warnings'] || args['warnings'],
+        sourceFiles = args.rest,
+        warmPerf = args['warm-perf'],
+        warningsAreFatal = args['fatal-warnings'];
 
   /**
    * Parse [args] into [CommandLineOptions] describing the specified
@@ -118,64 +120,131 @@ class CommandLineOptions {
     return options;
   }
 
+  static String _getVersion() {
+    try {
+      // This is relative to bin/snapshot, so ../..
+      String versionPath =
+          Platform.script.resolve('../../version').toFilePath();
+      File versionFile = new File(versionPath);
+      return versionFile.readAsStringSync().trim();
+    } catch (_) {
+      // This happens when the script is not running in the context of an SDK.
+      return "<unknown>";
+    }
+  }
+
   static CommandLineOptions _parse(List<String> args) {
     args = args.expand((String arg) => arg.split('=')).toList();
     var parser = new _CommandLineParser()
-      ..addFlag('batch', abbr: 'b', help: 'Run in batch mode',
-          defaultsTo: false, negatable: false)
-      ..addOption('dart-sdk', help: 'The path to the Dart SDK')
-      ..addOption('package-root', abbr: 'p',
-          help: 'The path to the package root. The flag package-root is deprecated. Remove to use package information computed by pub.')
-      ..addOption('format',
-          help: 'Specifies the format in which errors are displayed')
-      ..addFlag('machine',
-          help: 'Print errors in a format suitable for parsing (deprecated)',
-          defaultsTo: false, negatable: false)
-      ..addFlag('version', help: 'Print the analyzer version',
-          defaultsTo: false, negatable: false)
-      ..addFlag('no-hints', help: 'Do not show hint results',
-          defaultsTo: false, negatable: false)
-      ..addFlag('ignore-unrecognized-flags',
-          help: 'Ignore unrecognized command line flags',
-          defaultsTo: false, negatable: false)
-      ..addFlag('fatal-warnings', help: 'Treat non-type warnings as fatal',
-          defaultsTo: false, negatable: false)
-      ..addFlag('package-warnings',
-          help: 'Show warnings from package: imports',
-          defaultsTo: false, negatable: false)
-      ..addFlag('show-package-warnings',
-          help: 'Show warnings from package: imports (deprecated)',
-          defaultsTo: false, negatable: false)
-      ..addFlag('perf',
-          help: 'Show performance statistics',
-          defaultsTo: false, negatable: false)
-      ..addFlag('warnings', help: 'Show warnings from SDK imports',
-          defaultsTo: false, negatable: false)
-      ..addFlag('show-sdk-warnings', help: 'Show warnings from SDK imports (deprecated)',
-          defaultsTo: false, negatable: false)
-      ..addFlag('help', abbr: 'h', help: 'Display this help message',
-          defaultsTo: false, negatable: false)
-      //
-      // Hidden flags.
-      //
-      ..addFlag('enable-async',
-          help: 'Enable support for the proposed async feature',
-          defaultsTo: false, negatable: false, hide: true)
-      ..addFlag('enable-enum',
-          help: 'Enable support for the proposed enum feature',
-          defaultsTo: false, negatable: false, hide: true)
-      ..addFlag('log', help: 'Log additional messages and exceptions',
-          defaultsTo: false, negatable: false, hide: true)
-      ..addFlag('warm-perf',
-          help: 'Show both cold and warm performance statistics',
-          defaultsTo: false, negatable: false, hide: true)
-      ..addFlag('enable_type_checks',
-          help: 'Check types in constant evaluation',
-          defaultsTo: false, negatable: false, hide: true);
+        ..addFlag(
+            'batch',
+            abbr: 'b',
+            help: 'Run in batch mode',
+            defaultsTo: false,
+            negatable: false)
+        ..addOption('dart-sdk', help: 'The path to the Dart SDK')
+        ..addOption(
+            'package-root',
+            abbr: 'p',
+            help:
+                'The path to the package root. The flag package-root is deprecated. Remove to use package information computed by pub.')
+        ..addOption(
+            'format',
+            help: 'Specifies the format in which errors are displayed')
+        ..addFlag(
+            'machine',
+            help: 'Print errors in a format suitable for parsing (deprecated)',
+            defaultsTo: false,
+            negatable: false)
+        ..addFlag(
+            'version',
+            help: 'Print the analyzer version',
+            defaultsTo: false,
+            negatable: false)
+        ..addFlag(
+            'no-hints',
+            help: 'Do not show hint results',
+            defaultsTo: false,
+            negatable: false)
+        ..addFlag(
+            'ignore-unrecognized-flags',
+            help: 'Ignore unrecognized command line flags',
+            defaultsTo: false,
+            negatable: false)
+        ..addFlag(
+            'fatal-warnings',
+            help: 'Treat non-type warnings as fatal',
+            defaultsTo: false,
+            negatable: false)
+        ..addFlag(
+            'package-warnings',
+            help: 'Show warnings from package: imports',
+            defaultsTo: false,
+            negatable: false)
+        ..addFlag(
+            'show-package-warnings',
+            help: 'Show warnings from package: imports (deprecated)',
+            defaultsTo: false,
+            negatable: false)
+        ..addFlag(
+            'perf',
+            help: 'Show performance statistics',
+            defaultsTo: false,
+            negatable: false)
+        ..addFlag(
+            'warnings',
+            help: 'Show warnings from SDK imports',
+            defaultsTo: false,
+            negatable: false)
+        ..addFlag(
+            'show-sdk-warnings',
+            help: 'Show warnings from SDK imports (deprecated)',
+            defaultsTo: false,
+            negatable: false)
+        ..addFlag(
+            'help',
+            abbr: 'h',
+            help: 'Display this help message',
+            defaultsTo: false,
+            negatable: false)
+        //
+        // Hidden flags.
+        //
+        ..addFlag(
+            'enable-async',
+            help: 'Enable support for the proposed async feature',
+            defaultsTo: false,
+            negatable: false,
+            hide: true)
+        ..addFlag(
+            'enable-enum',
+            help: 'Enable support for the proposed enum feature',
+            defaultsTo: false,
+            negatable: false,
+            hide: true)
+        ..addFlag(
+            'log',
+            help: 'Log additional messages and exceptions',
+            defaultsTo: false,
+            negatable: false,
+            hide: true)
+        ..addFlag(
+            'warm-perf',
+            help: 'Show both cold and warm performance statistics',
+            defaultsTo: false,
+            negatable: false,
+            hide: true)
+        ..addFlag(
+            'enable_type_checks',
+            help: 'Check types in constant evaluation',
+            defaultsTo: false,
+            negatable: false,
+            hide: true);
 
     try {
       // TODO(scheglov) https://code.google.com/p/dart/issues/detail?id=11061
-      args = args.map((String arg) => arg == '-batch' ? '--batch' : arg).toList();
+      args =
+          args.map((String arg) => arg == '-batch' ? '--batch' : arg).toList();
       Map<String, String> definedVariables = <String, String>{};
       var results = parser.parse(args, definedVariables);
       // help requests
@@ -214,19 +283,6 @@ class CommandLineOptions {
     print('');
     print('For more information, see http://www.dartlang.org/tools/analyzer.');
   }
-
-  static String _getVersion() {
-    try {
-      // This is relative to bin/snapshot, so ../..
-      String versionPath =
-          Platform.script.resolve('../../version').toFilePath();
-      File versionFile = new File(versionPath);
-      return versionFile.readAsStringSync().trim();
-    } catch (_) {
-      // This happens when the script is not running in the context of an SDK.
-      return "<unknown>";
-    }
-  }
 }
 
 /**
@@ -242,8 +298,8 @@ class _CommandLineParser {
 
   /** Creates a new command line parser */
   _CommandLineParser()
-    : _knownFlags = <String>[],
-      _parser = new ArgParser(allowTrailingOptions: true);
+      : _knownFlags = <String>[],
+        _parser = new ArgParser(allowTrailingOptions: true);
 
 
   /**
@@ -254,8 +310,14 @@ class _CommandLineParser {
   void addFlag(String name, {String abbr, String help, bool defaultsTo: false,
       bool negatable: true, void callback(bool value), bool hide: false}) {
     _knownFlags.add(name);
-    _parser.addFlag(name, abbr: abbr, help: help, defaultsTo: defaultsTo,
-        negatable: negatable, callback: callback, hide: hide);
+    _parser.addFlag(
+        name,
+        abbr: abbr,
+        help: help,
+        defaultsTo: defaultsTo,
+        negatable: negatable,
+        callback: callback,
+        hide: hide);
   }
 
   /**
@@ -264,11 +326,17 @@ class _CommandLineParser {
    * See [ArgParser.addOption()].
    */
   void addOption(String name, {String abbr, String help, List<String> allowed,
-      Map<String, String> allowedHelp, String defaultsTo,
-      void callback(value), bool allowMultiple: false}) {
+      Map<String, String> allowedHelp, String defaultsTo, void callback(value),
+      bool allowMultiple: false}) {
     _knownFlags.add(name);
-    _parser.addOption(name, abbr: abbr, help: help, allowed: allowed,
-        allowedHelp: allowedHelp, defaultsTo: defaultsTo, callback: callback,
+    _parser.addOption(
+        name,
+        abbr: abbr,
+        help: help,
+        allowed: allowed,
+        allowedHelp: allowedHelp,
+        defaultsTo: defaultsTo,
+        callback: callback,
         allowMultiple: allowMultiple);
   }
 
@@ -287,9 +355,11 @@ class _CommandLineParser {
    *
    * See [ArgParser].
    */
-  ArgResults parse(List<String> args, Map<String, String> definedVariables) => _parser.parse(_filterUnknowns(parseDefinedVariables(args, definedVariables)));
+  ArgResults parse(List<String> args, Map<String, String> definedVariables) =>
+      _parser.parse(_filterUnknowns(parseDefinedVariables(args, definedVariables)));
 
-  List<String> parseDefinedVariables(List<String> args, Map<String, String> definedVariables) {
+  List<String> parseDefinedVariables(List<String> args, Map<String,
+      String> definedVariables) {
     int count = args.length;
     List<String> remainingArgs = <String>[];
     for (int i = 0; i < count; i++) {
@@ -313,14 +383,14 @@ class _CommandLineParser {
     if (!args.contains('--ignore-unrecognized-flags')) {
       return args;
     }
-
-    //TODO(pquitslund): replace w/ the following once library skew issues are sorted out
+    //TODO(pquitslund): replace w/ the following once library skew issues are
+    // sorted out
     //return args.where((arg) => !arg.startsWith('--') ||
     //  _knownFlags.contains(arg.substring(2)));
 
     // Filter all unrecognized flags and options.
     var filtered = <String>[];
-    for (var i=0; i < args.length; ++i) {
+    for (var i = 0; i < args.length; ++i) {
       var arg = args[i];
       if (arg.startsWith('--') && arg.length > 2) {
         if (!_knownFlags.contains(arg.substring(2))) {

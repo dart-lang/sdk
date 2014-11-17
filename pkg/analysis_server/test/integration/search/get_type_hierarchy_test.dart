@@ -12,6 +12,10 @@ import 'package:unittest/unittest.dart';
 import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
+main() {
+  runReflectiveTests(Test);
+}
+
 /**
  * Results of a getTypeHierarchy request, processed for easier testing.
  */
@@ -38,7 +42,7 @@ class HierarchyResults {
    */
   HierarchyResults(this.items) {
     pivot = items[0];
-    nameToIndex = <String, int> {};
+    nameToIndex = <String, int>{};
     for (int i = 0; i < items.length; i++) {
       nameToIndex[items[i].classElement.name] = i;
     }
@@ -58,33 +62,27 @@ class HierarchyResults {
 }
 
 @ReflectiveTestCase()
-class Test extends AbstractAnalysisServerIntegrationTest
-    {
+class Test extends AbstractAnalysisServerIntegrationTest {
   /**
    * Pathname of the main file to run tests in.
    */
   String pathname;
 
-  test_getTypeHierarchy() {
-    pathname = sourcePath('test.dart');
-    // Write a dummy file which will be overridden by tests using
-    // [sendAnalysisUpdateContent].
-    writeFile(pathname, '// dummy');
-    standardAnalysisSetup();
-
-    // Run all the getTypeHierarchy tests at once so that the server can take
-    // advantage of incremental analysis and the test doesn't time out.
-    List tests = [getTypeHierarchy_classElement, getTypeHierarchy_displayName,
-        getTypeHierarchy_memberElement, getTypeHierarchy_superclass,
-        getTypeHierarchy_interfaces, getTypeHierarchy_mixins,
-        getTypeHierarchy_subclasses, getTypeHierarchy_badTarget,
-        getTypeHierarchy_functionTarget];
-    return Future.forEach(tests, (test) => test());
+  Future getTypeHierarchy_badTarget() {
+    String text = r'''
+main() {
+  if /* target */ (true) {
+    print('Hello');
+  }
+}
+''';
+    return typeHierarchyTest(text).then((HierarchyResults results) {
+      expect(results, isNull);
+    });
   }
 
   Future getTypeHierarchy_classElement() {
-    String text =
-        r'''
+    String text = r'''
 class Base {}
 class Pivot /* target */ extends Base {}
 class Derived extends Pivot {}
@@ -99,8 +97,9 @@ class Derived extends Pivot {}
         expect(element.kind, equals(ElementKind.CLASS));
         expect(element.name, equals(name));
         if (name != 'Object') {
-          expect(element.location.offset, equals(text.indexOf(
-              'class $name') + 'class '.length));
+          expect(
+              element.location.offset,
+              equals(text.indexOf('class $name') + 'class '.length));
         }
       }
       checkElement('Object');
@@ -111,8 +110,7 @@ class Derived extends Pivot {}
   }
 
   Future getTypeHierarchy_displayName() {
-    String text =
-        r'''
+    String text = r'''
 class Base<T> {}
 class Pivot /* target */ extends Base<int> {}
 ''';
@@ -124,9 +122,39 @@ class Pivot /* target */ extends Base<int> {}
     });
   }
 
+  Future getTypeHierarchy_functionTarget() {
+    String text = r'''
+main /* target */ () {
+}
+''';
+    return typeHierarchyTest(text).then((HierarchyResults results) {
+      expect(results, isNull);
+    });
+  }
+
+  Future getTypeHierarchy_interfaces() {
+    String text = r'''
+class Interface1 {}
+class Interface2 {}
+class Pivot /* target */ implements Interface1, Interface2 {}
+''';
+    return typeHierarchyTest(text).then((HierarchyResults results) {
+      expect(results.items, hasLength(4));
+      expect(results.pivot.interfaces, hasLength(2));
+      expect(
+          results.pivot.interfaces,
+          contains(results.nameToIndex['Interface1']));
+      expect(
+          results.pivot.interfaces,
+          contains(results.nameToIndex['Interface2']));
+      expect(results.getItem('Object').interfaces, isEmpty);
+      expect(results.getItem('Interface1').interfaces, isEmpty);
+      expect(results.getItem('Interface2').interfaces, isEmpty);
+    });
+  }
+
   Future getTypeHierarchy_memberElement() {
-    String text =
-        r'''
+    String text = r'''
 class Base1 {
   void foo /* base1 */ ();
 }
@@ -141,59 +169,22 @@ class Derived2 extends Derived1 {
     return typeHierarchyTest(text).then((HierarchyResults results) {
       expect(results.items, hasLength(6));
       expect(results.getItem('Object').memberElement, isNull);
-      expect(results.getItem('Base1').memberElement.location.offset,
+      expect(
+          results.getItem('Base1').memberElement.location.offset,
           equals(text.indexOf('foo /* base1 */')));
       expect(results.getItem('Base2').memberElement, isNull);
-      expect(results.getItem('Pivot').memberElement.location.offset,
+      expect(
+          results.getItem('Pivot').memberElement.location.offset,
           equals(text.indexOf('foo /* target */')));
       expect(results.getItem('Derived1').memberElement, isNull);
-      expect(results.getItem('Derived2').memberElement.location.offset,
+      expect(
+          results.getItem('Derived2').memberElement.location.offset,
           equals(text.indexOf('foo /* derived2 */')));
     });
   }
 
-  Future getTypeHierarchy_superclass() {
-    String text =
-        r'''
-class Base1 {}
-class Base2 extends Base1 {}
-class Pivot /* target */ extends Base2 {}
-''';
-    return typeHierarchyTest(text).then((HierarchyResults results) {
-      expect(results.items, hasLength(4));
-      expect(results.getItem('Object').superclass, isNull);
-      expect(results.getItem('Base1').superclass, equals(
-          results.nameToIndex['Object']));
-      expect(results.getItem('Base2').superclass, equals(
-          results.nameToIndex['Base1']));
-      expect(results.getItem('Pivot').superclass, equals(
-          results.nameToIndex['Base2']));
-    });
-  }
-
-  Future getTypeHierarchy_interfaces() {
-    String text =
-        r'''
-class Interface1 {}
-class Interface2 {}
-class Pivot /* target */ implements Interface1, Interface2 {}
-''';
-    return typeHierarchyTest(text).then((HierarchyResults results) {
-      expect(results.items, hasLength(4));
-      expect(results.pivot.interfaces, hasLength(2));
-      expect(results.pivot.interfaces, contains(
-          results.nameToIndex['Interface1']));
-      expect(results.pivot.interfaces, contains(
-          results.nameToIndex['Interface2']));
-      expect(results.getItem('Object').interfaces, isEmpty);
-      expect(results.getItem('Interface1').interfaces, isEmpty);
-      expect(results.getItem('Interface2').interfaces, isEmpty);
-    });
-  }
-
   Future getTypeHierarchy_mixins() {
-    String text =
-        r'''
+    String text = r'''
 class Base {}
 class Mixin1 {}
 class Mixin2 {}
@@ -212,8 +203,7 @@ class Pivot /* target */ extends Base with Mixin1, Mixin2 {}
   }
 
   Future getTypeHierarchy_subclasses() {
-    String text =
-        r'''
+    String text = r'''
 class Base {}
 class Pivot /* target */ extends Base {}
 class Sub1 extends Pivot {}
@@ -223,41 +213,59 @@ class Sub2a extends Sub2 {}
     return typeHierarchyTest(text).then((HierarchyResults results) {
       expect(results.items, hasLength(6));
       expect(results.pivot.subclasses, hasLength(2));
-      expect(results.pivot.subclasses, contains(results.nameToIndex['Sub1'])
-          );
-      expect(results.pivot.subclasses, contains(results.nameToIndex['Sub2'])
-          );
+      expect(results.pivot.subclasses, contains(results.nameToIndex['Sub1']));
+      expect(results.pivot.subclasses, contains(results.nameToIndex['Sub2']));
       expect(results.getItem('Object').subclasses, isEmpty);
       expect(results.getItem('Base').subclasses, isEmpty);
       expect(results.getItem('Sub1').subclasses, isEmpty);
-      expect(results.getItem('Sub2').subclasses, equals(
-          [results.nameToIndex['Sub2a']]));
+      expect(
+          results.getItem('Sub2').subclasses,
+          equals([results.nameToIndex['Sub2a']]));
       expect(results.getItem('Sub2a').subclasses, isEmpty);
     });
   }
 
-  Future getTypeHierarchy_badTarget() {
-    String text =
-        r'''
-main() {
-  if /* target */ (true) {
-    print('Hello');
-  }
-}
+  Future getTypeHierarchy_superclass() {
+    String text = r'''
+class Base1 {}
+class Base2 extends Base1 {}
+class Pivot /* target */ extends Base2 {}
 ''';
     return typeHierarchyTest(text).then((HierarchyResults results) {
-      expect(results, isNull);
+      expect(results.items, hasLength(4));
+      expect(results.getItem('Object').superclass, isNull);
+      expect(
+          results.getItem('Base1').superclass,
+          equals(results.nameToIndex['Object']));
+      expect(
+          results.getItem('Base2').superclass,
+          equals(results.nameToIndex['Base1']));
+      expect(
+          results.getItem('Pivot').superclass,
+          equals(results.nameToIndex['Base2']));
     });
   }
 
-  Future getTypeHierarchy_functionTarget() {
-    String text = r'''
-main /* target */ () {
-}
-''';
-    return typeHierarchyTest(text).then((HierarchyResults results) {
-      expect(results, isNull);
-    });
+  test_getTypeHierarchy() {
+    pathname = sourcePath('test.dart');
+    // Write a dummy file which will be overridden by tests using
+    // [sendAnalysisUpdateContent].
+    writeFile(pathname, '// dummy');
+    standardAnalysisSetup();
+
+    // Run all the getTypeHierarchy tests at once so that the server can take
+    // advantage of incremental analysis and the test doesn't time out.
+    List tests = [
+        getTypeHierarchy_classElement,
+        getTypeHierarchy_displayName,
+        getTypeHierarchy_memberElement,
+        getTypeHierarchy_superclass,
+        getTypeHierarchy_interfaces,
+        getTypeHierarchy_mixins,
+        getTypeHierarchy_subclasses,
+        getTypeHierarchy_badTarget,
+        getTypeHierarchy_functionTarget];
+    return Future.forEach(tests, (test) => test());
   }
 
   Future<HierarchyResults> typeHierarchyTest(String text) {
@@ -265,8 +273,8 @@ main /* target */ () {
     sendAnalysisUpdateContent({
       pathname: new AddContentOverlay(text)
     });
-    return analysisFinished.then((_) => sendSearchGetTypeHierarchy(pathname,
-        offset)).then((result) {
+    return analysisFinished.then(
+        (_) => sendSearchGetTypeHierarchy(pathname, offset)).then((result) {
       if (result.hierarchyItems == null) {
         return null;
       } else {
@@ -274,8 +282,4 @@ main /* target */ () {
       }
     });
   }
-}
-
-main() {
-  runReflectiveTests(Test);
 }

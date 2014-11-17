@@ -6,164 +6,14 @@ library codegen.protocol;
 
 import 'dart:convert';
 
+import 'package:html5lib/dom.dart' as dom;
+
 import 'api.dart';
 import 'codegen_dart.dart';
 import 'codegen_tools.dart';
 import 'from_html.dart';
 import 'implied_types.dart';
 import 'to_html.dart';
-
-import 'package:html5lib/dom.dart' as dom;
-
-/**
- * Container for code that can be used to translate a data type from JSON.
- */
-abstract class FromJsonCode {
-  /**
-   * True if the data type is already in JSON form, so the translation is the
-   * identity function.
-   */
-  bool get isIdentity;
-
-  /**
-   * Get the translation code in the form of a closure.
-   */
-  String get asClosure;
-
-  /**
-   * Get the translation code in the form of a code snippet, where [jsonPath]
-   * is the variable holding the JSON path, and [json] is the variable holding
-   * the raw JSON.
-   */
-  String asSnippet(String jsonPath, String json);
-}
-
-/**
- * Representation of FromJsonCode for a function defined elsewhere.
- */
-class FromJsonFunction extends FromJsonCode {
-  final String asClosure;
-
-  FromJsonFunction(this.asClosure);
-
-  @override
-  bool get isIdentity => false;
-
-  @override
-  String asSnippet(String jsonPath, String json) =>
-      '$asClosure($jsonPath, $json)';
-}
-
-typedef String FromJsonSnippetCallback(String jsonPath, String json);
-
-/**
- * Representation of FromJsonCode for a snippet of inline code.
- */
-class FromJsonSnippet extends FromJsonCode {
-  /**
-   * Callback that can be used to generate the code snippet, once the names
-   * of the [jsonPath] and [json] variables are known.
-   */
-  final FromJsonSnippetCallback callback;
-
-  FromJsonSnippet(this.callback);
-
-  @override
-  bool get isIdentity => false;
-
-  @override
-  String get asClosure =>
-      '(String jsonPath, Object json) => ${callback('jsonPath', 'json')}';
-
-  @override
-  String asSnippet(String jsonPath, String json) => callback(jsonPath, json);
-}
-
-/**
- * Representation of FromJsonCode for the identity transformation.
- */
-class FromJsonIdentity extends FromJsonSnippet {
-  FromJsonIdentity() : super((String jsonPath, String json) => json);
-
-  @override
-  bool get isIdentity => true;
-}
-
-/**
- * Container for code that can be used to translate a data type to JSON.
- */
-abstract class ToJsonCode {
-  /**
-   * True if the data type is already in JSON form, so the translation is the
-   * identity function.
-   */
-  bool get isIdentity;
-
-  /**
-   * Get the translation code in the form of a closure.
-   */
-  String get asClosure;
-
-  /**
-   * Get the translation code in the form of a code snippet, where [value]
-   * is the variable holding the object to be translated.
-   */
-  String asSnippet(String value);
-}
-
-/**
- * Representation of ToJsonCode for a function defined elsewhere.
- */
-class ToJsonFunction extends ToJsonCode {
-  final String asClosure;
-
-  ToJsonFunction(this.asClosure);
-
-  @override
-  bool get isIdentity => false;
-
-  @override
-  String asSnippet(String value) => '$asClosure($value)';
-}
-
-typedef String ToJsonSnippetCallback(String value);
-
-/**
- * Representation of ToJsonCode for a snippet of inline code.
- */
-class ToJsonSnippet extends ToJsonCode {
-  /**
-   * Callback that can be used to generate the code snippet, once the name
-   * of the [value] variable is known.
-   */
-  final ToJsonSnippetCallback callback;
-
-  /**
-   * Dart type of the [value] variable.
-   */
-  final String type;
-
-  ToJsonSnippet(this.type, this.callback);
-
-  @override
-  bool get isIdentity => false;
-
-  @override
-  String get asClosure => '($type value) => ${callback('value')}';
-
-  @override
-  String asSnippet(String value) => callback(value);
-}
-
-/**
- * Representation of FromJsonCode for the identity transformation.
- */
-class ToJsonIdentity extends ToJsonSnippet {
-  ToJsonIdentity(String type) : super(type, (String value) => value);
-
-  @override
-  bool get isIdentity => true;
-}
 
 /**
  * Special flags that need to be inserted into the declaration of the Element
@@ -178,10 +28,27 @@ const Map<String, String> specialElementFlags = const {
   'deprecated': '0x20'
 };
 
+final GeneratedFile target =
+    new GeneratedFile('../../lib/src/generated_protocol.dart', () {
+  CodegenProtocolVisitor visitor = new CodegenProtocolVisitor(readApi());
+  return visitor.collectCode(visitor.visitApi);
+});
+
+/**
+ * Translate spec_input.html into protocol_matchers.dart.
+ */
+main() {
+  target.generate();
+}
+
 /**
  * Callback type used to represent arbitrary code generation.
  */
 typedef void CodegenCallback();
+
+typedef String FromJsonSnippetCallback(String jsonPath, String json);
+
+typedef String ToJsonSnippetCallback(String value);
 
 /**
  * Visitor which produces Dart code representing the API.
@@ -216,12 +83,30 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         toHtmlVisitor = new ToHtmlVisitor(api),
         impliedTypes = computeImpliedTypes(api);
 
-  @override
-  visitApi() {
-    outputHeader();
-    writeln();
-    writeln('part of protocol;');
-    emitClasses();
+  /**
+   * Compute the code necessary to compare two objects for equality.
+   */
+  String compareEqualsCode(TypeDecl type, String thisVar, String otherVar) {
+    TypeDecl resolvedType = resolveTypeReferenceChain(type);
+    if (resolvedType is TypeReference ||
+        resolvedType is TypeEnum ||
+        resolvedType is TypeObject ||
+        resolvedType is TypeUnion) {
+      return '$thisVar == $otherVar';
+    } else if (resolvedType is TypeList) {
+      String itemTypeName = dartType(resolvedType.itemType);
+      String subComparison = compareEqualsCode(resolvedType.itemType, 'a', 'b');
+      String closure = '($itemTypeName a, $itemTypeName b) => $subComparison';
+      return '_listEqual($thisVar, $otherVar, $closure)';
+    } else if (resolvedType is TypeMap) {
+      String valueTypeName = dartType(resolvedType.valueType);
+      String subComparison =
+          compareEqualsCode(resolvedType.valueType, 'a', 'b');
+      String closure = '($valueTypeName a, $valueTypeName b) => $subComparison';
+      return '_mapEqual($thisVar, $otherVar, $closure)';
+    }
+    throw new Exception(
+        "Don't know how to compare for equality: $resolvedType");
   }
 
   /**
@@ -241,6 +126,77 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         emitEnumClass(dartTypeName, type, impliedType);
       }
     }
+  }
+
+  /**
+   * Emit a convenience constructor for decoding a piece of protocol, if
+   * appropriate.  Return true if a constructor was emitted.
+   */
+  bool emitConvenienceConstructor(String className, ImpliedType impliedType) {
+    // The type of object from which this piece of protocol should be decoded.
+    String inputType;
+    // The name of the input object.
+    String inputName;
+    // The field within the input object to decode.
+    String fieldName;
+    // Constructor call to create the JsonDecoder object.
+    String makeDecoder;
+    // Name of the constructor to create.
+    String constructorName;
+    // Extra arguments for the constructor.
+    List<String> extraArgs = <String>[];
+    switch (impliedType.kind) {
+      case 'requestParams':
+        inputType = 'Request';
+        inputName = 'request';
+        fieldName = '_params';
+        makeDecoder = 'new RequestDecoder(request)';
+        constructorName = 'fromRequest';
+        break;
+      case 'requestResult':
+        inputType = 'Response';
+        inputName = 'response';
+        fieldName = '_result';
+        makeDecoder =
+            'new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id))';
+        constructorName = 'fromResponse';
+        break;
+      case 'notificationParams':
+        inputType = 'Notification';
+        inputName = 'notification';
+        fieldName = '_params';
+        makeDecoder = 'new ResponseDecoder(null)';
+        constructorName = 'fromNotification';
+        break;
+      case 'refactoringOptions':
+        inputType = 'EditGetRefactoringParams';
+        inputName = 'refactoringParams';
+        fieldName = 'options';
+        makeDecoder = 'new RequestDecoder(request)';
+        constructorName = 'fromRefactoringParams';
+        extraArgs.add('Request request');
+        break;
+      default:
+        return false;
+    }
+    List<String> args = ['$inputType $inputName'];
+    args.addAll(extraArgs);
+    writeln('factory $className.$constructorName(${args.join(', ')}) {');
+    indent(() {
+      String fieldNameString =
+          literalString(fieldName.replaceFirst(new RegExp('^_'), ''));
+      if (className == 'EditGetRefactoringParams') {
+        writeln('var params = new $className.fromJson(');
+        writeln('    $makeDecoder, $fieldNameString, $inputName.$fieldName);');
+        writeln('REQUEST_ID_REFACTORING_KINDS[request.id] = params.kind;');
+        writeln('return params;');
+      } else {
+        writeln('return new $className.fromJson(');
+        writeln('    $makeDecoder, $fieldNameString, $inputName.$fieldName);');
+      }
+    });
+    writeln('}');
+    return true;
   }
 
   /**
@@ -268,6 +224,108 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       emitObjectEqualsMember(null, className);
       writeln();
       emitObjectHashCode(null, className);
+    });
+    writeln('}');
+  }
+
+  /**
+   * Emit a class to encapsulate an enum.
+   */
+  void emitEnumClass(String className, TypeEnum type, ImpliedType impliedType) {
+    docComment(toHtmlVisitor.collectHtml(() {
+      toHtmlVisitor.p(() {
+        toHtmlVisitor.write(impliedType.humanReadableName);
+      });
+      if (impliedType.type != null) {
+        toHtmlVisitor.showType(null, impliedType.type);
+      }
+    }));
+    writeln('class $className implements Enum {');
+    indent(() {
+      if (emitSpecialStaticMembers(className)) {
+        writeln();
+      }
+      for (TypeEnumValue value in type.values) {
+        docComment(toHtmlVisitor.collectHtml(() {
+          toHtmlVisitor.translateHtml(value.html);
+        }));
+        String valueString = literalString(value.value);
+        writeln(
+            'static const ${value.value} = const $className._($valueString);');
+        writeln();
+      }
+      writeln('final String name;');
+      writeln();
+      writeln('const $className._(this.name);');
+      writeln();
+      emitEnumClassConstructor(className, type);
+      writeln();
+      emitEnumFromJsonConstructor(className, type, impliedType);
+      writeln();
+      if (emitSpecialConstructors(className)) {
+        writeln();
+      }
+      if (emitSpecialGetters(className)) {
+        writeln();
+      }
+      if (emitSpecialMethods(className)) {
+        writeln();
+      }
+      writeln('@override');
+      writeln('String toString() => "$className.\$name";');
+      writeln();
+      writeln('String toJson() => name;');
+    });
+    writeln('}');
+  }
+
+  /**
+   * Emit the constructor for an enum class.
+   */
+  void emitEnumClassConstructor(String className, TypeEnum type) {
+    writeln('factory $className(String name) {');
+    indent(() {
+      writeln('switch (name) {');
+      indent(() {
+        for (TypeEnumValue value in type.values) {
+          String valueString = literalString(value.value);
+          writeln('case $valueString:');
+          indent(() {
+            writeln('return ${value.value};');
+          });
+        }
+      });
+      writeln('}');
+      writeln(r"throw new Exception('Illegal enum value: $name');");
+    });
+    writeln('}');
+  }
+
+  /**
+   * Emit the method for decoding an enum from JSON.
+   */
+  void emitEnumFromJsonConstructor(String className, TypeEnum type,
+      ImpliedType impliedType) {
+    writeln(
+        'factory $className.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {');
+    indent(() {
+      writeln('if (json is String) {');
+      indent(() {
+        writeln('try {');
+        indent(() {
+          writeln('return new $className(json);');
+        });
+        writeln('} catch(_) {');
+        indent(() {
+          writeln('// Fall through');
+        });
+        writeln('}');
+      });
+      writeln('}');
+      String humanReadableNameString =
+          literalString(impliedType.humanReadableName);
+      writeln(
+          'throw jsonDecoder.mismatch(jsonPath, $humanReadableNameString);');
     });
     writeln('}');
   }
@@ -345,46 +403,208 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   }
 
   /**
-   * If the class named [className] requires special static members, emit them
-   * and return true.
+   * Emit the constructor for an object class.
    */
-  bool emitSpecialStaticMembers(String className) {
-    switch (className) {
-      case 'Element':
-        List<String> makeFlagsArgs = <String>[];
-        List<String> makeFlagsStatements = <String>[];
-        specialElementFlags.forEach((String name, String value) {
-          String flag = 'FLAG_${name.toUpperCase()}';
-          String camelName = camelJoin(['is', name]);
-          writeln('static const int $flag = $value;');
-          makeFlagsArgs.add('$camelName: false');
-          makeFlagsStatements.add('if ($camelName) flags |= $flag;');
-        });
-        writeln();
-        writeln('static int makeFlags({${makeFlagsArgs.join(', ')}}) {');
-        indent(() {
-          writeln('int flags = 0;');
-          for (String statement in makeFlagsStatements) {
-            writeln(statement);
+  void emitObjectConstructor(TypeObject type, String className) {
+    List<String> args = <String>[];
+    List<String> optionalArgs = <String>[];
+    List<CodegenCallback> extraInitCode = <CodegenCallback>[];
+    for (TypeObjectField field in type.fields) {
+      if (field.value != null) {
+        continue;
+      }
+      String arg = 'this.${field.name}';
+      if (isOptionalConstructorArg(className, field)) {
+        optionalArgs.add(arg);
+        if (!field.optional) {
+          // Optional constructor arg, but non-optional field.  If no arg is
+          // given, the constructor should populate with the empty list.
+          TypeDecl fieldType = field.type;
+          if (fieldType is TypeList) {
+            extraInitCode.add(() {
+              writeln('if (${field.name} == null) {');
+              indent(() {
+                writeln('${field.name} = <${dartType(fieldType.itemType)}>[];');
+              });
+              writeln('}');
+            });
+          } else {
+            throw new Exception(
+                "Don't know how to create default field value.");
           }
-          writeln('return flags;');
-        });
-        writeln('}');
-        return true;
-      case 'SourceEdit':
-        docComment(
-            [
-                new dom.Text(
-                    'Get the result of applying a set of ' +
-                        '[edits] to the given [code].  Edits are applied in the order ' +
-                        'they appear in [edits].')]);
-        writeln(
-            'static String applySequence(String code, Iterable<SourceEdit> edits) =>');
-        writeln('    _applySequence(code, edits);');
-        return true;
-      default:
-        return false;
+        }
+      } else {
+        args.add(arg);
+      }
     }
+    if (optionalArgs.isNotEmpty) {
+      args.add('{${optionalArgs.join(', ')}}');
+    }
+    write('$className(${args.join(', ')})');
+    if (extraInitCode.isEmpty) {
+      writeln(';');
+    } else {
+      writeln(' {');
+      indent(() {
+        for (CodegenCallback callback in extraInitCode) {
+          callback();
+        }
+      });
+      writeln('}');
+    }
+  }
+
+  /**
+   * Emit the operator== code for an object class.
+   */
+  void emitObjectEqualsMember(TypeObject type, String className) {
+    writeln('@override');
+    writeln('bool operator==(other) {');
+    indent(() {
+      writeln('if (other is $className) {');
+      indent(() {
+        var comparisons = <String>[];
+        if (type != null) {
+          for (TypeObjectField field in type.fields) {
+            if (field.value != null) {
+              continue;
+            }
+            comparisons.add(
+                compareEqualsCode(field.type, field.name, 'other.${field.name}'));
+          }
+        }
+        if (comparisons.isEmpty) {
+          writeln('return true;');
+        } else {
+          String concatenated = comparisons.join(' &&\n    ');
+          writeln('return $concatenated;');
+        }
+      });
+      writeln('}');
+      writeln('return false;');
+    });
+    writeln('}');
+  }
+
+  /**
+   * Emit the method for decoding an object from JSON.
+   */
+  void emitObjectFromJsonConstructor(String className, TypeObject type,
+      ImpliedType impliedType) {
+    String humanReadableNameString =
+        literalString(impliedType.humanReadableName);
+    if (className == 'RefactoringFeedback') {
+      writeln(
+          'factory RefactoringFeedback.fromJson(JsonDecoder jsonDecoder, '
+              'String jsonPath, Object json, Map responseJson) {');
+      indent(() {
+        writeln(
+            'return _refactoringFeedbackFromJson(jsonDecoder, jsonPath, '
+                'json, responseJson);');
+      });
+      writeln('}');
+      return;
+    }
+    if (className == 'RefactoringOptions') {
+      writeln(
+          'factory RefactoringOptions.fromJson(JsonDecoder jsonDecoder, '
+              'String jsonPath, Object json, RefactoringKind kind) {');
+      indent(() {
+        writeln(
+            'return _refactoringOptionsFromJson(jsonDecoder, jsonPath, ' 'json, kind);');
+      });
+      writeln('}');
+      return;
+    }
+    writeln(
+        'factory $className.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {');
+    indent(() {
+      writeln('if (json == null) {');
+      indent(() {
+        writeln('json = {};');
+      });
+      writeln('}');
+      writeln('if (json is Map) {');
+      indent(() {
+        List<String> args = <String>[];
+        List<String> optionalArgs = <String>[];
+        for (TypeObjectField field in type.fields) {
+          String fieldNameString = literalString(field.name);
+          String fieldAccessor = 'json[$fieldNameString]';
+          String jsonPath = 'jsonPath + ${literalString('.${field.name}')}';
+          if (field.value != null) {
+            String valueString = literalString(field.value);
+            writeln('if ($fieldAccessor != $valueString) {');
+            indent(() {
+              writeln(
+                  'throw jsonDecoder.mismatch(jsonPath, "equal " + $valueString);');
+            });
+            writeln('}');
+            continue;
+          }
+          if (isOptionalConstructorArg(className, field)) {
+            optionalArgs.add('${field.name}: ${field.name}');
+          } else {
+            args.add(field.name);
+          }
+          TypeDecl fieldType = field.type;
+          String fieldDartType = dartType(fieldType);
+          writeln('$fieldDartType ${field.name};');
+          writeln('if (json.containsKey($fieldNameString)) {');
+          indent(() {
+            String fromJson =
+                fromJsonCode(fieldType).asSnippet(jsonPath, fieldAccessor);
+            writeln('${field.name} = $fromJson;');
+          });
+          write('}');
+          if (!field.optional) {
+            writeln(' else {');
+            indent(() {
+              writeln(
+                  "throw jsonDecoder.missingKey(jsonPath, $fieldNameString);");
+            });
+            writeln('}');
+          } else {
+            writeln();
+          }
+        }
+        args.addAll(optionalArgs);
+        writeln('return new $className(${args.join(', ')});');
+      });
+      writeln('} else {');
+      indent(() {
+        writeln(
+            'throw jsonDecoder.mismatch(jsonPath, $humanReadableNameString);');
+      });
+      writeln('}');
+    });
+    writeln('}');
+  }
+
+  /**
+   * Emit the hashCode getter for an object class.
+   */
+  void emitObjectHashCode(TypeObject type, String className) {
+    writeln('@override');
+    writeln('int get hashCode {');
+    indent(() {
+      if (type == null) {
+        writeln('return ${className.hashCode};');
+      } else {
+        writeln('int hash = 0;');
+        for (TypeObjectField field in type.fields) {
+          String valueToCombine;
+          if (field.value != null) {
+            valueToCombine = field.value.hashCode.toString();
+          } else {
+            valueToCombine = '${field.name}.hashCode';
+          }
+          writeln('hash = _JenkinsSmiHash.combine(hash, $valueToCombine);');
+        }
+        writeln('return _JenkinsSmiHash.finish(hash);');
+      }
+    });
+    writeln('}');
   }
 
   /**
@@ -500,69 +720,46 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   }
 
   /**
-   * Emit the constructor for an object class.
+   * If the class named [className] requires special static members, emit them
+   * and return true.
    */
-  void emitObjectConstructor(TypeObject type, String className) {
-    List<String> args = <String>[];
-    List<String> optionalArgs = <String>[];
-    List<CodegenCallback> extraInitCode = <CodegenCallback>[];
-    for (TypeObjectField field in type.fields) {
-      if (field.value != null) {
-        continue;
-      }
-      String arg = 'this.${field.name}';
-      if (isOptionalConstructorArg(className, field)) {
-        optionalArgs.add(arg);
-        if (!field.optional) {
-          // Optional constructor arg, but non-optional field.  If no arg is
-          // given, the constructor should populate with the empty list.
-          TypeDecl fieldType = field.type;
-          if (fieldType is TypeList) {
-            extraInitCode.add(() {
-              writeln('if (${field.name} == null) {');
-              indent(() {
-                writeln('${field.name} = <${dartType(fieldType.itemType)}>[];');
-              });
-              writeln('}');
-            });
-          } else {
-            throw new Exception(
-                "Don't know how to create default field value.");
+  bool emitSpecialStaticMembers(String className) {
+    switch (className) {
+      case 'Element':
+        List<String> makeFlagsArgs = <String>[];
+        List<String> makeFlagsStatements = <String>[];
+        specialElementFlags.forEach((String name, String value) {
+          String flag = 'FLAG_${name.toUpperCase()}';
+          String camelName = camelJoin(['is', name]);
+          writeln('static const int $flag = $value;');
+          makeFlagsArgs.add('$camelName: false');
+          makeFlagsStatements.add('if ($camelName) flags |= $flag;');
+        });
+        writeln();
+        writeln('static int makeFlags({${makeFlagsArgs.join(', ')}}) {');
+        indent(() {
+          writeln('int flags = 0;');
+          for (String statement in makeFlagsStatements) {
+            writeln(statement);
           }
-        }
-      } else {
-        args.add(arg);
-      }
+          writeln('return flags;');
+        });
+        writeln('}');
+        return true;
+      case 'SourceEdit':
+        docComment(
+            [
+                new dom.Text(
+                    'Get the result of applying a set of ' +
+                        '[edits] to the given [code].  Edits are applied in the order ' +
+                        'they appear in [edits].')]);
+        writeln(
+            'static String applySequence(String code, Iterable<SourceEdit> edits) =>');
+        writeln('    _applySequence(code, edits);');
+        return true;
+      default:
+        return false;
     }
-    if (optionalArgs.isNotEmpty) {
-      args.add('{${optionalArgs.join(', ')}}');
-    }
-    write('$className(${args.join(', ')})');
-    if (extraInitCode.isEmpty) {
-      writeln(';');
-    } else {
-      writeln(' {');
-      indent(() {
-        for (CodegenCallback callback in extraInitCode) {
-          callback();
-        }
-      });
-      writeln('}');
-    }
-  }
-
-  /**
-   * True if the constructor argument for the given field should be optional.
-   */
-  bool isOptionalConstructorArg(String className, TypeObjectField field) {
-    if (field.optional) {
-      return true;
-    }
-    List<String> forceOptional = _optionalConstructorArguments[className];
-    if (forceOptional != null && forceOptional.contains(field.name)) {
-      return true;
-    }
-    return false;
   }
 
   /**
@@ -593,6 +790,25 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       writeln('return result;');
     });
     writeln('}');
+  }
+
+  /**
+   * Emit the toNotification() code for a class, if appropriate.  Returns true
+   * if code was emitted.
+   */
+  bool emitToNotificationMember(ImpliedType impliedType) {
+    if (impliedType.kind == 'notificationParams') {
+      writeln('Notification toNotification() {');
+      indent(() {
+        String eventString =
+            literalString((impliedType.apiNode as Notification).longEvent);
+        String jsonPart = impliedType.type != null ? 'toJson()' : 'null';
+        writeln('return new Notification($eventString, $jsonPart);');
+      });
+      writeln('}');
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -629,364 +845,6 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       return true;
     }
     return false;
-  }
-
-  /**
-   * Emit the toNotification() code for a class, if appropriate.  Returns true
-   * if code was emitted.
-   */
-  bool emitToNotificationMember(ImpliedType impliedType) {
-    if (impliedType.kind == 'notificationParams') {
-      writeln('Notification toNotification() {');
-      indent(() {
-        String eventString =
-            literalString((impliedType.apiNode as Notification).longEvent);
-        String jsonPart = impliedType.type != null ? 'toJson()' : 'null';
-        writeln('return new Notification($eventString, $jsonPart);');
-      });
-      writeln('}');
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Emit the operator== code for an object class.
-   */
-  void emitObjectEqualsMember(TypeObject type, String className) {
-    writeln('@override');
-    writeln('bool operator==(other) {');
-    indent(() {
-      writeln('if (other is $className) {');
-      indent(() {
-        var comparisons = <String>[];
-        if (type != null) {
-          for (TypeObjectField field in type.fields) {
-            if (field.value != null) {
-              continue;
-            }
-            comparisons.add(
-                compareEqualsCode(field.type, field.name, 'other.${field.name}'));
-          }
-        }
-        if (comparisons.isEmpty) {
-          writeln('return true;');
-        } else {
-          String concatenated = comparisons.join(' &&\n    ');
-          writeln('return $concatenated;');
-        }
-      });
-      writeln('}');
-      writeln('return false;');
-    });
-    writeln('}');
-  }
-
-  /**
-   * Emit the hashCode getter for an object class.
-   */
-  void emitObjectHashCode(TypeObject type, String className) {
-    writeln('@override');
-    writeln('int get hashCode {');
-    indent(() {
-      if (type == null) {
-        writeln('return ${className.hashCode};');
-      } else {
-        writeln('int hash = 0;');
-        for (TypeObjectField field in type.fields) {
-          String valueToCombine;
-          if (field.value != null) {
-            valueToCombine = field.value.hashCode.toString();
-          } else {
-            valueToCombine = '${field.name}.hashCode';
-          }
-          writeln('hash = _JenkinsSmiHash.combine(hash, $valueToCombine);');
-        }
-        writeln('return _JenkinsSmiHash.finish(hash);');
-      }
-    });
-    writeln('}');
-  }
-
-  /**
-   * Emit a class to encapsulate an enum.
-   */
-  void emitEnumClass(String className, TypeEnum type, ImpliedType impliedType) {
-    docComment(toHtmlVisitor.collectHtml(() {
-      toHtmlVisitor.p(() {
-        toHtmlVisitor.write(impliedType.humanReadableName);
-      });
-      if (impliedType.type != null) {
-        toHtmlVisitor.showType(null, impliedType.type);
-      }
-    }));
-    writeln('class $className implements Enum {');
-    indent(() {
-      if (emitSpecialStaticMembers(className)) {
-        writeln();
-      }
-      for (TypeEnumValue value in type.values) {
-        docComment(toHtmlVisitor.collectHtml(() {
-          toHtmlVisitor.translateHtml(value.html);
-        }));
-        String valueString = literalString(value.value);
-        writeln(
-            'static const ${value.value} = const $className._($valueString);');
-        writeln();
-      }
-      writeln('final String name;');
-      writeln();
-      writeln('const $className._(this.name);');
-      writeln();
-      emitEnumClassConstructor(className, type);
-      writeln();
-      emitEnumFromJsonConstructor(className, type, impliedType);
-      writeln();
-      if (emitSpecialConstructors(className)) {
-        writeln();
-      }
-      if (emitSpecialGetters(className)) {
-        writeln();
-      }
-      if (emitSpecialMethods(className)) {
-        writeln();
-      }
-      writeln('@override');
-      writeln('String toString() => "$className.\$name";');
-      writeln();
-      writeln('String toJson() => name;');
-    });
-    writeln('}');
-  }
-
-  /**
-   * Emit the constructor for an enum class.
-   */
-  void emitEnumClassConstructor(String className, TypeEnum type) {
-    writeln('factory $className(String name) {');
-    indent(() {
-      writeln('switch (name) {');
-      indent(() {
-        for (TypeEnumValue value in type.values) {
-          String valueString = literalString(value.value);
-          writeln('case $valueString:');
-          indent(() {
-            writeln('return ${value.value};');
-          });
-        }
-      });
-      writeln('}');
-      writeln(r"throw new Exception('Illegal enum value: $name');");
-    });
-    writeln('}');
-  }
-
-  /**
-   * Compute the code necessary to convert [type] to JSON.
-   */
-  ToJsonCode toJsonCode(TypeDecl type) {
-    TypeDecl resolvedType = resolveTypeReferenceChain(type);
-    if (resolvedType is TypeReference) {
-      return new ToJsonIdentity(dartType(type));
-    } else if (resolvedType is TypeList) {
-      ToJsonCode itemCode = toJsonCode(resolvedType.itemType);
-      if (itemCode.isIdentity) {
-        return new ToJsonIdentity(dartType(type));
-      } else {
-        return new ToJsonSnippet(
-            dartType(type),
-            (String value) => '$value.map(${itemCode.asClosure}).toList()');
-      }
-    } else if (resolvedType is TypeMap) {
-      ToJsonCode keyCode;
-      if (dartType(resolvedType.keyType) != 'String') {
-        keyCode = toJsonCode(resolvedType.keyType);
-      } else {
-        keyCode = new ToJsonIdentity(dartType(resolvedType.keyType));
-      }
-      ToJsonCode valueCode = toJsonCode(resolvedType.valueType);
-      if (keyCode.isIdentity && valueCode.isIdentity) {
-        return new ToJsonIdentity(dartType(resolvedType));
-      } else {
-        return new ToJsonSnippet(dartType(type), (String value) {
-          StringBuffer result = new StringBuffer();
-          result.write('mapMap($value');
-          if (!keyCode.isIdentity) {
-            result.write(', keyCallback: ${keyCode.asClosure}');
-          }
-          if (!valueCode.isIdentity) {
-            result.write(', valueCallback: ${valueCode.asClosure}');
-          }
-          result.write(')');
-          return result.toString();
-        });
-      }
-    } else if (resolvedType is TypeUnion) {
-      for (TypeDecl choice in resolvedType.choices) {
-        if (resolveTypeReferenceChain(choice) is! TypeObject) {
-          throw new Exception('Union types must be unions of objects');
-        }
-      }
-      return new ToJsonSnippet(
-          dartType(type),
-          (String value) => '$value.toJson()');
-    } else if (resolvedType is TypeObject || resolvedType is TypeEnum) {
-      return new ToJsonSnippet(
-          dartType(type),
-          (String value) => '$value.toJson()');
-    } else {
-      throw new Exception("Can't convert $resolvedType from JSON");
-    }
-  }
-
-  /**
-   * Compute the code necessary to compare two objects for equality.
-   */
-  String compareEqualsCode(TypeDecl type, String thisVar, String otherVar) {
-    TypeDecl resolvedType = resolveTypeReferenceChain(type);
-    if (resolvedType is TypeReference ||
-        resolvedType is TypeEnum ||
-        resolvedType is TypeObject ||
-        resolvedType is TypeUnion) {
-      return '$thisVar == $otherVar';
-    } else if (resolvedType is TypeList) {
-      String itemTypeName = dartType(resolvedType.itemType);
-      String subComparison = compareEqualsCode(resolvedType.itemType, 'a', 'b');
-      String closure = '($itemTypeName a, $itemTypeName b) => $subComparison';
-      return '_listEqual($thisVar, $otherVar, $closure)';
-    } else if (resolvedType is TypeMap) {
-      String valueTypeName = dartType(resolvedType.valueType);
-      String subComparison =
-          compareEqualsCode(resolvedType.valueType, 'a', 'b');
-      String closure = '($valueTypeName a, $valueTypeName b) => $subComparison';
-      return '_mapEqual($thisVar, $otherVar, $closure)';
-    }
-    throw new Exception(
-        "Don't know how to compare for equality: $resolvedType");
-  }
-
-  /**
-   * Emit the method for decoding an object from JSON.
-   */
-  void emitObjectFromJsonConstructor(String className, TypeObject type,
-      ImpliedType impliedType) {
-    String humanReadableNameString =
-        literalString(impliedType.humanReadableName);
-    if (className == 'RefactoringFeedback') {
-      writeln(
-          'factory RefactoringFeedback.fromJson(JsonDecoder jsonDecoder, '
-              'String jsonPath, Object json, Map responseJson) {');
-      indent(() {
-        writeln(
-            'return _refactoringFeedbackFromJson(jsonDecoder, jsonPath, '
-                'json, responseJson);');
-      });
-      writeln('}');
-      return;
-    }
-    if (className == 'RefactoringOptions') {
-      writeln(
-          'factory RefactoringOptions.fromJson(JsonDecoder jsonDecoder, '
-              'String jsonPath, Object json, RefactoringKind kind) {');
-      indent(() {
-        writeln(
-            'return _refactoringOptionsFromJson(jsonDecoder, jsonPath, ' 'json, kind);');
-      });
-      writeln('}');
-      return;
-    }
-    writeln(
-        'factory $className.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {');
-    indent(() {
-      writeln('if (json == null) {');
-      indent(() {
-        writeln('json = {};');
-      });
-      writeln('}');
-      writeln('if (json is Map) {');
-      indent(() {
-        List<String> args = <String>[];
-        List<String> optionalArgs = <String>[];
-        for (TypeObjectField field in type.fields) {
-          String fieldNameString = literalString(field.name);
-          String fieldAccessor = 'json[$fieldNameString]';
-          String jsonPath = 'jsonPath + ${literalString('.${field.name}')}';
-          if (field.value != null) {
-            String valueString = literalString(field.value);
-            writeln('if ($fieldAccessor != $valueString) {');
-            indent(() {
-              writeln(
-                  'throw jsonDecoder.mismatch(jsonPath, "equal " + $valueString);');
-            });
-            writeln('}');
-            continue;
-          }
-          if (isOptionalConstructorArg(className, field)) {
-            optionalArgs.add('${field.name}: ${field.name}');
-          } else {
-            args.add(field.name);
-          }
-          TypeDecl fieldType = field.type;
-          String fieldDartType = dartType(fieldType);
-          writeln('$fieldDartType ${field.name};');
-          writeln('if (json.containsKey($fieldNameString)) {');
-          indent(() {
-            String fromJson =
-                fromJsonCode(fieldType).asSnippet(jsonPath, fieldAccessor);
-            writeln('${field.name} = $fromJson;');
-          });
-          write('}');
-          if (!field.optional) {
-            writeln(' else {');
-            indent(() {
-              writeln(
-                  "throw jsonDecoder.missingKey(jsonPath, $fieldNameString);");
-            });
-            writeln('}');
-          } else {
-            writeln();
-          }
-        }
-        args.addAll(optionalArgs);
-        writeln('return new $className(${args.join(', ')});');
-      });
-      writeln('} else {');
-      indent(() {
-        writeln(
-            'throw jsonDecoder.mismatch(jsonPath, $humanReadableNameString);');
-      });
-      writeln('}');
-    });
-    writeln('}');
-  }
-
-  /**
-   * Emit the method for decoding an enum from JSON.
-   */
-  void emitEnumFromJsonConstructor(String className, TypeEnum type,
-      ImpliedType impliedType) {
-    writeln(
-        'factory $className.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {');
-    indent(() {
-      writeln('if (json is String) {');
-      indent(() {
-        writeln('try {');
-        indent(() {
-          writeln('return new $className(json);');
-        });
-        writeln('} catch(_) {');
-        indent(() {
-          writeln('// Fall through');
-        });
-        writeln('}');
-      });
-      writeln('}');
-      String humanReadableNameString =
-          literalString(impliedType.humanReadableName);
-      writeln(
-          'throw jsonDecoder.mismatch(jsonPath, $humanReadableNameString);');
-    });
-    writeln('}');
   }
 
   /**
@@ -1090,74 +948,17 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   }
 
   /**
-   * Emit a convenience constructor for decoding a piece of protocol, if
-   * appropriate.  Return true if a constructor was emitted.
+   * True if the constructor argument for the given field should be optional.
    */
-  bool emitConvenienceConstructor(String className, ImpliedType impliedType) {
-    // The type of object from which this piece of protocol should be decoded.
-    String inputType;
-    // The name of the input object.
-    String inputName;
-    // The field within the input object to decode.
-    String fieldName;
-    // Constructor call to create the JsonDecoder object.
-    String makeDecoder;
-    // Name of the constructor to create.
-    String constructorName;
-    // Extra arguments for the constructor.
-    List<String> extraArgs = <String>[];
-    switch (impliedType.kind) {
-      case 'requestParams':
-        inputType = 'Request';
-        inputName = 'request';
-        fieldName = '_params';
-        makeDecoder = 'new RequestDecoder(request)';
-        constructorName = 'fromRequest';
-        break;
-      case 'requestResult':
-        inputType = 'Response';
-        inputName = 'response';
-        fieldName = '_result';
-        makeDecoder =
-            'new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id))';
-        constructorName = 'fromResponse';
-        break;
-      case 'notificationParams':
-        inputType = 'Notification';
-        inputName = 'notification';
-        fieldName = '_params';
-        makeDecoder = 'new ResponseDecoder(null)';
-        constructorName = 'fromNotification';
-        break;
-      case 'refactoringOptions':
-        inputType = 'EditGetRefactoringParams';
-        inputName = 'refactoringParams';
-        fieldName = 'options';
-        makeDecoder = 'new RequestDecoder(request)';
-        constructorName = 'fromRefactoringParams';
-        extraArgs.add('Request request');
-        break;
-      default:
-        return false;
+  bool isOptionalConstructorArg(String className, TypeObjectField field) {
+    if (field.optional) {
+      return true;
     }
-    List<String> args = ['$inputType $inputName'];
-    args.addAll(extraArgs);
-    writeln('factory $className.$constructorName(${args.join(', ')}) {');
-    indent(() {
-      String fieldNameString =
-          literalString(fieldName.replaceFirst(new RegExp('^_'), ''));
-      if (className == 'EditGetRefactoringParams') {
-        writeln('var params = new $className.fromJson(');
-        writeln('    $makeDecoder, $fieldNameString, $inputName.$fieldName);');
-        writeln('REQUEST_ID_REFACTORING_KINDS[request.id] = params.kind;');
-        writeln('return params;');
-      } else {
-        writeln('return new $className.fromJson(');
-        writeln('    $makeDecoder, $fieldNameString, $inputName.$fieldName);');
-      }
-    });
-    writeln('}');
-    return true;
+    List<String> forceOptional = _optionalConstructorArguments[className];
+    if (forceOptional != null && forceOptional.contains(field.name)) {
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -1166,17 +967,216 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   String literalString(String s) {
     return JSON.encode(s);
   }
+
+  /**
+   * Compute the code necessary to convert [type] to JSON.
+   */
+  ToJsonCode toJsonCode(TypeDecl type) {
+    TypeDecl resolvedType = resolveTypeReferenceChain(type);
+    if (resolvedType is TypeReference) {
+      return new ToJsonIdentity(dartType(type));
+    } else if (resolvedType is TypeList) {
+      ToJsonCode itemCode = toJsonCode(resolvedType.itemType);
+      if (itemCode.isIdentity) {
+        return new ToJsonIdentity(dartType(type));
+      } else {
+        return new ToJsonSnippet(
+            dartType(type),
+            (String value) => '$value.map(${itemCode.asClosure}).toList()');
+      }
+    } else if (resolvedType is TypeMap) {
+      ToJsonCode keyCode;
+      if (dartType(resolvedType.keyType) != 'String') {
+        keyCode = toJsonCode(resolvedType.keyType);
+      } else {
+        keyCode = new ToJsonIdentity(dartType(resolvedType.keyType));
+      }
+      ToJsonCode valueCode = toJsonCode(resolvedType.valueType);
+      if (keyCode.isIdentity && valueCode.isIdentity) {
+        return new ToJsonIdentity(dartType(resolvedType));
+      } else {
+        return new ToJsonSnippet(dartType(type), (String value) {
+          StringBuffer result = new StringBuffer();
+          result.write('mapMap($value');
+          if (!keyCode.isIdentity) {
+            result.write(', keyCallback: ${keyCode.asClosure}');
+          }
+          if (!valueCode.isIdentity) {
+            result.write(', valueCallback: ${valueCode.asClosure}');
+          }
+          result.write(')');
+          return result.toString();
+        });
+      }
+    } else if (resolvedType is TypeUnion) {
+      for (TypeDecl choice in resolvedType.choices) {
+        if (resolveTypeReferenceChain(choice) is! TypeObject) {
+          throw new Exception('Union types must be unions of objects');
+        }
+      }
+      return new ToJsonSnippet(
+          dartType(type),
+          (String value) => '$value.toJson()');
+    } else if (resolvedType is TypeObject || resolvedType is TypeEnum) {
+      return new ToJsonSnippet(
+          dartType(type),
+          (String value) => '$value.toJson()');
+    } else {
+      throw new Exception("Can't convert $resolvedType from JSON");
+    }
+  }
+
+  @override
+  visitApi() {
+    outputHeader();
+    writeln();
+    writeln('part of protocol;');
+    emitClasses();
+  }
 }
 
-final GeneratedFile target =
-    new GeneratedFile('../../lib/src/generated_protocol.dart', () {
-  CodegenProtocolVisitor visitor = new CodegenProtocolVisitor(readApi());
-  return visitor.collectCode(visitor.visitApi);
-});
+/**
+ * Container for code that can be used to translate a data type from JSON.
+ */
+abstract class FromJsonCode {
+  /**
+   * Get the translation code in the form of a closure.
+   */
+  String get asClosure;
+
+  /**
+   * True if the data type is already in JSON form, so the translation is the
+   * identity function.
+   */
+  bool get isIdentity;
+
+  /**
+   * Get the translation code in the form of a code snippet, where [jsonPath]
+   * is the variable holding the JSON path, and [json] is the variable holding
+   * the raw JSON.
+   */
+  String asSnippet(String jsonPath, String json);
+}
 
 /**
- * Translate spec_input.html into protocol_matchers.dart.
+ * Representation of FromJsonCode for a function defined elsewhere.
  */
-main() {
-  target.generate();
+class FromJsonFunction extends FromJsonCode {
+  final String asClosure;
+
+  FromJsonFunction(this.asClosure);
+
+  @override
+  bool get isIdentity => false;
+
+  @override
+  String asSnippet(String jsonPath, String json) =>
+      '$asClosure($jsonPath, $json)';
+}
+
+/**
+ * Representation of FromJsonCode for the identity transformation.
+ */
+class FromJsonIdentity extends FromJsonSnippet {
+  FromJsonIdentity() : super((String jsonPath, String json) => json);
+
+  @override
+  bool get isIdentity => true;
+}
+
+/**
+ * Representation of FromJsonCode for a snippet of inline code.
+ */
+class FromJsonSnippet extends FromJsonCode {
+  /**
+   * Callback that can be used to generate the code snippet, once the names
+   * of the [jsonPath] and [json] variables are known.
+   */
+  final FromJsonSnippetCallback callback;
+
+  FromJsonSnippet(this.callback);
+
+  @override
+  String get asClosure =>
+      '(String jsonPath, Object json) => ${callback('jsonPath', 'json')}';
+
+  @override
+  bool get isIdentity => false;
+
+  @override
+  String asSnippet(String jsonPath, String json) => callback(jsonPath, json);
+}
+
+/**
+ * Container for code that can be used to translate a data type to JSON.
+ */
+abstract class ToJsonCode {
+  /**
+   * Get the translation code in the form of a closure.
+   */
+  String get asClosure;
+
+  /**
+   * True if the data type is already in JSON form, so the translation is the
+   * identity function.
+   */
+  bool get isIdentity;
+
+  /**
+   * Get the translation code in the form of a code snippet, where [value]
+   * is the variable holding the object to be translated.
+   */
+  String asSnippet(String value);
+}
+
+/**
+ * Representation of ToJsonCode for a function defined elsewhere.
+ */
+class ToJsonFunction extends ToJsonCode {
+  final String asClosure;
+
+  ToJsonFunction(this.asClosure);
+
+  @override
+  bool get isIdentity => false;
+
+  @override
+  String asSnippet(String value) => '$asClosure($value)';
+}
+
+/**
+ * Representation of FromJsonCode for the identity transformation.
+ */
+class ToJsonIdentity extends ToJsonSnippet {
+  ToJsonIdentity(String type) : super(type, (String value) => value);
+
+  @override
+  bool get isIdentity => true;
+}
+
+/**
+ * Representation of ToJsonCode for a snippet of inline code.
+ */
+class ToJsonSnippet extends ToJsonCode {
+  /**
+   * Callback that can be used to generate the code snippet, once the name
+   * of the [value] variable is known.
+   */
+  final ToJsonSnippetCallback callback;
+
+  /**
+   * Dart type of the [value] variable.
+   */
+  final String type;
+
+  ToJsonSnippet(this.type, this.callback);
+
+  @override
+  String get asClosure => '($type value) => ${callback('value')}';
+
+  @override
+  bool get isIdentity => false;
+
+  @override
+  String asSnippet(String value) => callback(value);
 }

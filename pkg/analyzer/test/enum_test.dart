@@ -6,7 +6,6 @@ library test.enums;
 
 import 'dart:mirrors';
 
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';

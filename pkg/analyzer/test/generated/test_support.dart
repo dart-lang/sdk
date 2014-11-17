@@ -23,10 +23,6 @@ import 'package:unittest/unittest.dart';
  * The class `EngineTestCase` defines utility methods for making assertions.
  */
 class EngineTestCase {
-  void setUp() {}
-
-  void tearDown() {}
-
   /**
    * Assert that the given collection has the same number of elements as the number of specified
    * names, and that for each specified name, a corresponding element can be found in the given
@@ -99,6 +95,10 @@ class EngineTestCase {
     return null;
   }
 
+  void setUp() {}
+
+  void tearDown() {}
+
   /**
    * Assert that the given object is an instance of the expected class.
    *
@@ -110,7 +110,8 @@ class EngineTestCase {
   static Object assertInstanceOf(Predicate<Object> predicate,
       Type expectedClass, Object object) {
     if (!predicate(object)) {
-      fail("Expected instance of $expectedClass, found ${object == null ? "null" : object.runtimeType}");
+      fail(
+          "Expected instance of $expectedClass, found ${object == null ? "null" : object.runtimeType}");
     }
     return object;
   }
@@ -221,13 +222,17 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * @throws AssertionFailedError if a different number of errors have been gathered than were
    *           expected
    */
-  void assertErrorsWithCodes([List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
+  void assertErrorsWithCodes([List<ErrorCode> expectedErrorCodes =
+      ErrorCode.EMPTY_LIST]) {
     StringBuffer buffer = new StringBuffer();
     //
     // Verify that the expected error codes have a non-empty message.
     //
     for (ErrorCode errorCode in expectedErrorCodes) {
-      expect(errorCode.message.isEmpty, isFalse, reason: "Empty error code message");
+      expect(
+          errorCode.message.isEmpty,
+          isFalse,
+          reason: "Empty error code message");
     }
     //
     // Compute the expected number of each type of error.
@@ -340,7 +345,8 @@ class GatheringErrorListener implements AnalysisErrorListener {
     }
     if (expectedErrorCount != actualErrorCount ||
         expectedWarningCount != actualWarningCount) {
-      fail("Expected $expectedErrorCount errors and $expectedWarningCount warnings, found $actualErrorCount errors and $actualWarningCount warnings");
+      fail(
+          "Expected $expectedErrorCount errors and $expectedWarningCount warnings, found $actualErrorCount errors and $actualWarningCount warnings");
     }
   }
 
@@ -581,10 +587,6 @@ class TestSource implements Source {
     }
     return new TimestampedData<String>(0, _contents);
   }
-  void setContents(String value) {
-    modificationStamp = new DateTime.now().millisecondsSinceEpoch;
-    _contents = value;
-  }
   String get encoding {
     throw new UnsupportedOperationException();
   }
@@ -619,5 +621,9 @@ class TestSource implements Source {
   }
   Uri resolveRelativeUri(Uri uri) {
     return new Uri(scheme: 'file', path: _name).resolveUri(uri);
+  }
+  void setContents(String value) {
+    modificationStamp = new DateTime.now().millisecondsSinceEpoch;
+    _contents = value;
   }
 }

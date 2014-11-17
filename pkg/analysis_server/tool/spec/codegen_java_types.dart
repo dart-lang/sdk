@@ -15,12 +15,64 @@ import 'codegen_tools.dart';
 import 'from_html.dart';
 import 'implied_types.dart';
 
-/**
- * Type references in the spec that are named something else in Java.
- */
-const Map<String, String> _typeRenames = const {
-  'Override': 'OverrideMember',
-};
+final String pathToGenTypes =
+    '../../../../editor/tools/plugins/com.google.dart.server/src/com/google/dart/server/generated/types/';
+
+final GeneratedDirectory targetDir = new GeneratedDirectory(pathToGenTypes, () {
+  Api api = readApi();
+  Map<String, ImpliedType> impliedTypes = computeImpliedTypes(api);
+  Map<String, FileContentsComputer> map =
+      new Map<String, FileContentsComputer>();
+  for (ImpliedType impliedType in impliedTypes.values) {
+    String typeNameInSpec = capitalize(impliedType.camelName);
+    bool isRefactoringFeedback = impliedType.kind == 'refactoringFeedback';
+    bool isRefactoringOption = impliedType.kind == 'refactoringOptions';
+    if (impliedType.kind == 'typeDefinition' ||
+        isRefactoringFeedback ||
+        isRefactoringOption) {
+      TypeDecl type = impliedType.type;
+      if (type is TypeObject || type is TypeEnum) {
+        // This is for situations such as 'Override' where the name in the spec
+        // doesn't match the java object that we generate:
+        String typeNameInJava = typeNameInSpec;
+        if (_typeRenames.containsKey(typeNameInSpec)) {
+          typeNameInJava = _typeRenames[typeNameInSpec];
+        }
+        map['${typeNameInJava}.java'] = () {
+          String superclassName = null;
+          if (isRefactoringFeedback) {
+            superclassName = 'RefactoringFeedback';
+          }
+          if (isRefactoringOption) {
+            superclassName = 'RefactoringOptions';
+          }
+          // configure accessors
+          bool generateGetters = true;
+          bool generateSetters = false;
+          if (isRefactoringOption ||
+              typeNameInSpec == 'RefactoringMethodParameter') {
+            generateSetters = true;
+          }
+          // create the visitor
+          CodegenJavaType visitor = new CodegenJavaType(
+              api,
+              typeNameInJava,
+              superclassName,
+              generateGetters,
+              generateSetters);
+          return visitor.collectCode(() {
+            dom.Element doc = type.html;
+            if (impliedType.apiNode is TypeDefinition) {
+              doc = (impliedType.apiNode as TypeDefinition).html;
+            }
+            visitor.emitType(type, doc);
+          });
+        };
+      }
+    }
+  }
+  return map;
+});
 
 /**
  * A map between the field names and values for the Element object such as:
@@ -52,6 +104,20 @@ const Map<String, String> _extraMethodsOnElement = const {
   'isTopLevelOrStatic': 'TOP_LEVEL_STATIC',
 };
 
+/**
+ * Type references in the spec that are named something else in Java.
+ */
+const Map<String, String> _typeRenames = const {
+  'Override': 'OverrideMember',
+};
+
+/**
+ * Translate spec_input.html into AnalysisServer.java.
+ */
+main() {
+  targetDir.generate();
+}
+
 class CodegenJavaType extends CodegenJavaVisitor {
   final String className;
   final String superclassName;
@@ -62,6 +128,13 @@ class CodegenJavaType extends CodegenJavaVisitor {
       this.generateGetters, this.generateSetters)
       : super(api);
 
+  /**
+   * Get the name of the consumer class for responses to this request.
+   */
+  String consumerName(Request request) {
+    return camelJoin([request.method, 'consumer'], doCapitalize: true);
+  }
+
   void emitType(TypeDecl type, dom.Element html) {
     outputHeader(javaStyle: true);
     writeln('package com.google.dart.server.generated.types;');
@@ -71,6 +144,140 @@ class CodegenJavaType extends CodegenJavaVisitor {
     } else if (type is TypeEnum) {
       _writeTypeEnum(type, html);
     }
+  }
+
+  String _getAsTypeMethodName(TypeDecl typeDecl) {
+    String name = javaType(typeDecl, true);
+    if (name == 'String') {
+      return 'getAsString';
+    } else if (name == 'boolean' || name == 'Boolean') {
+      return 'getAsBoolean';
+    } else if (name == 'int' || name == 'Integer') {
+      return 'getAsInt';
+    } else if (name == 'long' || name == 'Long') {
+      return 'getAsLong';
+    } else if (name.startsWith('List')) {
+      return 'getAsJsonArray';
+    } else {
+      // TODO (jwren) cleanup
+      return 'getAsJsonArray';
+    }
+  }
+
+  String _getEqualsLogicForField(TypeObjectField field, String other) {
+    String name = javaName(field.name);
+    if (isPrimitive(field.type) && !field.optional) {
+      return '${other}.${name} == ${name}';
+    } else if (isArray(field.type)) {
+      return 'Arrays.equals(other.${name}, ${name})';
+    } else {
+      return 'ObjectUtilities.equals(${other}.${name}, ${name})';
+    }
+  }
+
+  /**
+   * For some [TypeObjectField] return the [String] source for the field value
+   * for the toString generation.
+   */
+  String _getToStringForField(TypeObjectField field) {
+    String name = javaName(field.name);
+    if (isArray(field.type) || isList(field.type)) {
+      return 'StringUtils.join(${name}, ", ")';
+    } else {
+      return name;
+    }
+  }
+
+  bool _isTypeFieldInUpdateContentUnionType(String className,
+      String fieldName) {
+    if ((className == 'AddContentOverlay' ||
+        className == 'ChangeContentOverlay' ||
+        className == 'RemoveContentOverlay') &&
+        fieldName == 'type') {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * This method writes extra fields and methods to the Element type.
+   */
+  void _writeExtraContentInElementType() {
+    //
+    // Extra fields on the Element type such as:
+    // private static final int ABSTRACT = 0x01;
+    //
+    _extraFieldsOnElement.forEach((String name, String value) {
+      publicField(javaName(name), () {
+        writeln('private static final int ${name} = ${value};');
+      });
+    });
+
+    //
+    // Extra methods for the Element type such as:
+    // public boolean isFinal() {
+    //   return (flags & FINAL) != 0;
+    // }
+    //
+    _extraMethodsOnElement.forEach((String methodName, String fieldName) {
+      publicMethod(methodName, () {
+        writeln('public boolean ${methodName}() {');
+        writeln('  return (flags & ${fieldName}) != 0;');
+        writeln('}');
+      });
+    });
+  }
+
+  /**
+   * For some [TypeObjectField] write out the source that adds the field
+   * information to the 'jsonObject'.
+   */
+  void _writeOutJsonObjectAddStatement(TypeObjectField field) {
+    String name = javaName(field.name);
+    if (isDeclaredInSpec(field.type)) {
+      writeln('jsonObject.add("${name}", ${name}.toJson());');
+    } else if (field.type is TypeList) {
+      TypeDecl listItemType = (field.type as TypeList).itemType;
+      String jsonArrayName = 'jsonArray${capitalize(name)}';
+      writeln('JsonArray ${jsonArrayName} = new JsonArray();');
+      writeln('for (${javaType(listItemType)} elt : ${name}) {');
+      indent(() {
+        if (isDeclaredInSpec(listItemType)) {
+          writeln('${jsonArrayName}.add(elt.toJson());');
+        } else {
+          writeln('${jsonArrayName}.add(new JsonPrimitive(elt));');
+        }
+      });
+      writeln('}');
+      writeln('jsonObject.add("${name}", ${jsonArrayName});');
+    } else {
+      writeln('jsonObject.addProperty("${name}", ${name});');
+    }
+  }
+
+  void _writeTypeEnum(TypeDecl type, dom.Element html) {
+    javadocComment(toHtmlVisitor.collectHtml(() {
+      toHtmlVisitor.translateHtml(html);
+      toHtmlVisitor.br();
+      toHtmlVisitor.write('@coverage dart.server.generated.types');
+    }));
+    makeClass('public class ${className}', () {
+      TypeEnum typeEnum = type as TypeEnum;
+      List<TypeEnumValue> values = typeEnum.values;
+      //
+      // enum fields
+      //
+      for (TypeEnumValue value in values) {
+        privateField(javaName(value.value), () {
+          javadocComment(toHtmlVisitor.collectHtml(() {
+            toHtmlVisitor.translateHtml(value.html);
+          }));
+          writeln(
+              'public static final String ${value.value} = \"${value.value}\";');
+        });
+      }
+    });
   }
 
   void _writeTypeObject(TypeDecl type, dom.Element html) {
@@ -512,211 +719,4 @@ class CodegenJavaType extends CodegenJavaVisitor {
 
     });
   }
-
-  void _writeTypeEnum(TypeDecl type, dom.Element html) {
-    javadocComment(toHtmlVisitor.collectHtml(() {
-      toHtmlVisitor.translateHtml(html);
-      toHtmlVisitor.br();
-      toHtmlVisitor.write('@coverage dart.server.generated.types');
-    }));
-    makeClass('public class ${className}', () {
-      TypeEnum typeEnum = type as TypeEnum;
-      List<TypeEnumValue> values = typeEnum.values;
-      //
-      // enum fields
-      //
-      for (TypeEnumValue value in values) {
-        privateField(javaName(value.value), () {
-          javadocComment(toHtmlVisitor.collectHtml(() {
-            toHtmlVisitor.translateHtml(value.html);
-          }));
-          writeln(
-              'public static final String ${value.value} = \"${value.value}\";');
-        });
-      }
-    });
-  }
-
-  /**
-   * This method writes extra fields and methods to the Element type.
-   */
-  void _writeExtraContentInElementType() {
-    //
-    // Extra fields on the Element type such as:
-    // private static final int ABSTRACT = 0x01;
-    //
-    _extraFieldsOnElement.forEach((String name, String value) {
-      publicField(javaName(name), () {
-        writeln('private static final int ${name} = ${value};');
-      });
-    });
-
-    //
-    // Extra methods for the Element type such as:
-    // public boolean isFinal() {
-    //   return (flags & FINAL) != 0;
-    // }
-    //
-    _extraMethodsOnElement.forEach((String methodName, String fieldName) {
-      publicMethod(methodName, () {
-        writeln('public boolean ${methodName}() {');
-        writeln('  return (flags & ${fieldName}) != 0;');
-        writeln('}');
-      });
-    });
-  }
-
-  String _getEqualsLogicForField(TypeObjectField field, String other) {
-    String name = javaName(field.name);
-    if (isPrimitive(field.type) && !field.optional) {
-      return '${other}.${name} == ${name}';
-    } else if (isArray(field.type)) {
-      return 'Arrays.equals(other.${name}, ${name})';
-    } else {
-      return 'ObjectUtilities.equals(${other}.${name}, ${name})';
-    }
-  }
-
-  bool _isTypeFieldInUpdateContentUnionType(String className,
-      String fieldName) {
-    if ((className == 'AddContentOverlay' ||
-        className == 'ChangeContentOverlay' ||
-        className == 'RemoveContentOverlay') &&
-        fieldName == 'type') {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  String _getAsTypeMethodName(TypeDecl typeDecl) {
-    String name = javaType(typeDecl, true);
-    if (name == 'String') {
-      return 'getAsString';
-    } else if (name == 'boolean' || name == 'Boolean') {
-      return 'getAsBoolean';
-    } else if (name == 'int' || name == 'Integer') {
-      return 'getAsInt';
-    } else if (name == 'long' || name == 'Long') {
-      return 'getAsLong';
-    } else if (name.startsWith('List')) {
-      return 'getAsJsonArray';
-    } else {
-      // TODO (jwren) cleanup
-      return 'getAsJsonArray';
-    }
-  }
-
-  /**
-   * For some [TypeObjectField] return the [String] source for the field value
-   * for the toString generation.
-   */
-  String _getToStringForField(TypeObjectField field) {
-    String name = javaName(field.name);
-    if (isArray(field.type) || isList(field.type)) {
-      return 'StringUtils.join(${name}, ", ")';
-    } else {
-      return name;
-    }
-  }
-
-  /**
-   * For some [TypeObjectField] write out the source that adds the field
-   * information to the 'jsonObject'.
-   */
-  void _writeOutJsonObjectAddStatement(TypeObjectField field) {
-    String name = javaName(field.name);
-    if (isDeclaredInSpec(field.type)) {
-      writeln('jsonObject.add("${name}", ${name}.toJson());');
-    } else if (field.type is TypeList) {
-      TypeDecl listItemType = (field.type as TypeList).itemType;
-      String jsonArrayName = 'jsonArray${capitalize(name)}';
-      writeln('JsonArray ${jsonArrayName} = new JsonArray();');
-      writeln('for (${javaType(listItemType)} elt : ${name}) {');
-      indent(() {
-        if (isDeclaredInSpec(listItemType)) {
-          writeln('${jsonArrayName}.add(elt.toJson());');
-        } else {
-          writeln('${jsonArrayName}.add(new JsonPrimitive(elt));');
-        }
-      });
-      writeln('}');
-      writeln('jsonObject.add("${name}", ${jsonArrayName});');
-    } else {
-      writeln('jsonObject.addProperty("${name}", ${name});');
-    }
-  }
-
-  /**
-   * Get the name of the consumer class for responses to this request.
-   */
-  String consumerName(Request request) {
-    return camelJoin([request.method, 'consumer'], doCapitalize: true);
-  }
-}
-
-final String pathToGenTypes =
-    '../../../../editor/tools/plugins/com.google.dart.server/src/com/google/dart/server/generated/types/';
-
-final GeneratedDirectory targetDir = new GeneratedDirectory(pathToGenTypes, () {
-  Api api = readApi();
-  Map<String, ImpliedType> impliedTypes = computeImpliedTypes(api);
-  Map<String, FileContentsComputer> map =
-      new Map<String, FileContentsComputer>();
-  for (ImpliedType impliedType in impliedTypes.values) {
-    String typeNameInSpec = capitalize(impliedType.camelName);
-    bool isRefactoringFeedback = impliedType.kind == 'refactoringFeedback';
-    bool isRefactoringOption = impliedType.kind == 'refactoringOptions';
-    if (impliedType.kind == 'typeDefinition' ||
-        isRefactoringFeedback ||
-        isRefactoringOption) {
-      TypeDecl type = impliedType.type;
-      if (type is TypeObject || type is TypeEnum) {
-        // This is for situations such as 'Override' where the name in the spec
-        // doesn't match the java object that we generate:
-        String typeNameInJava = typeNameInSpec;
-        if (_typeRenames.containsKey(typeNameInSpec)) {
-          typeNameInJava = _typeRenames[typeNameInSpec];
-        }
-        map['${typeNameInJava}.java'] = () {
-          String superclassName = null;
-          if (isRefactoringFeedback) {
-            superclassName = 'RefactoringFeedback';
-          }
-          if (isRefactoringOption) {
-            superclassName = 'RefactoringOptions';
-          }
-          // configure accessors
-          bool generateGetters = true;
-          bool generateSetters = false;
-          if (isRefactoringOption ||
-              typeNameInSpec == 'RefactoringMethodParameter') {
-            generateSetters = true;
-          }
-          // create the visitor
-          CodegenJavaType visitor = new CodegenJavaType(
-              api,
-              typeNameInJava,
-              superclassName,
-              generateGetters,
-              generateSetters);
-          return visitor.collectCode(() {
-            dom.Element doc = type.html;
-            if (impliedType.apiNode is TypeDefinition) {
-              doc = (impliedType.apiNode as TypeDefinition).html;
-            }
-            visitor.emitType(type, doc);
-          });
-        };
-      }
-    }
-  }
-  return map;
-});
-
-/**
- * Translate spec_input.html into AnalysisServer.java.
- */
-main() {
-  targetDir.generate();
 }

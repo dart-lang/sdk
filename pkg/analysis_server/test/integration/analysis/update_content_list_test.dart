@@ -10,6 +10,10 @@ import 'package:unittest/unittest.dart';
 import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
+main() {
+  runReflectiveTests(Test);
+}
+
 @ReflectiveTestCase()
 class Test extends AbstractAnalysisServerIntegrationTest {
   test_updateContent_list() {
@@ -47,8 +51,4 @@ main() {
       expect(currentAnalysisErrors[pathname], isEmpty);
     });
   }
-}
-
-main() {
-  runReflectiveTests(Test);
 }

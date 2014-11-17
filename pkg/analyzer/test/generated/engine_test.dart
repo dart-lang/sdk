@@ -31,10 +31,10 @@ import 'package:analyzer/src/task/task_dart.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
+import '../reflective_tests.dart';
 import 'all_the_rest.dart';
 import 'resolver_test.dart';
 import 'test_support.dart';
-import '../reflective_tests.dart';
 
 
 main() {
@@ -166,24 +166,37 @@ class AnalysisContextImplTest extends EngineTestCase {
   }
 
   void fail_performAnalysisTask_importedLibraryDelete_html() {
-    Source htmlSource = _addSource(
-        "/page.html",
-        r'''
+    Source htmlSource = _addSource("/page.html", r'''
 <html><body><script type="application/dart">
   import 'libB.dart';
   main() {print('hello dart');}
 </script></body></html>''');
     Source libBSource = _addSource("/libB.dart", "library libB;");
     _analyzeAll_assertFinished();
-    expect(_context.getResolvedHtmlUnit(htmlSource), isNotNull, reason: "htmlUnit resolved 1");
-    expect(_context.getResolvedCompilationUnit2(libBSource, libBSource), isNotNull, reason: "libB resolved 1");
-    expect(!_hasAnalysisErrorWithErrorSeverity(_context.getErrors(htmlSource)), isTrue, reason: "htmlSource doesn't have errors");
+    expect(
+        _context.getResolvedHtmlUnit(htmlSource),
+        isNotNull,
+        reason: "htmlUnit resolved 1");
+    expect(
+        _context.getResolvedCompilationUnit2(libBSource, libBSource),
+        isNotNull,
+        reason: "libB resolved 1");
+    expect(
+        !_hasAnalysisErrorWithErrorSeverity(_context.getErrors(htmlSource)),
+        isTrue,
+        reason: "htmlSource doesn't have errors");
     // remove libB.dart content and analyze
     _context.setContents(libBSource, null);
     _analyzeAll_assertFinished();
-    expect(_context.getResolvedHtmlUnit(htmlSource), isNotNull, reason: "htmlUnit resolved 1");
+    expect(
+        _context.getResolvedHtmlUnit(htmlSource),
+        isNotNull,
+        reason: "htmlUnit resolved 1");
     AnalysisErrorInfo errors = _context.getErrors(htmlSource);
-    expect(_hasAnalysisErrorWithErrorSeverity(errors), isTrue, reason: "htmlSource has an error");
+    expect(
+        _hasAnalysisErrorWithErrorSeverity(errors),
+        isTrue,
+        reason: "htmlSource has an error");
   }
 
   void fail_recordLibraryElements() {
@@ -220,15 +233,11 @@ class AnalysisContextImplTest extends EngineTestCase {
   void test_applyChanges_change_flush_element() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
-    Source librarySource = _addSource(
-        "/lib.dart",
-        r'''
+    Source librarySource = _addSource("/lib.dart", r'''
 library lib;
 int a = 0;''');
     expect(_context.computeLibraryElement(librarySource), isNotNull);
-    _context.setContents(
-        librarySource,
-        r'''
+    _context.setContents(librarySource, r'''
 library lib;
 int aa = 0;''');
     expect(_context.getLibraryElement(librarySource), isNull);
@@ -237,27 +246,19 @@ int aa = 0;''');
   void test_applyChanges_change_multiple() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
-    Source librarySource = _addSource(
-        "/lib.dart",
-        r'''
+    Source librarySource = _addSource("/lib.dart", r'''
 library lib;
 part 'part.dart';
 int a = 0;''');
-    Source partSource = _addSource(
-        "/part.dart",
-        r'''
+    Source partSource = _addSource("/part.dart", r'''
 part of lib;
 int b = a;''');
     _context.computeLibraryElement(librarySource);
-    _context.setContents(
-        librarySource,
-        r'''
+    _context.setContents(librarySource, r'''
 library lib;
 part 'part.dart';
 int aa = 0;''');
-    _context.setContents(
-        partSource,
-        r'''
+    _context.setContents(partSource, r'''
 part of lib;
 int b = aa;''');
     _context.computeLibraryElement(librarySource);
@@ -272,7 +273,9 @@ int b = aa;''');
         partUnit.declarations[0] as TopLevelVariableDeclaration;
     Element useElement =
         (use.variables.variables[0].initializer as SimpleIdentifier).staticElement;
-    expect((useElement as PropertyAccessorElement).variable, same(declarationElement));
+    expect(
+        (useElement as PropertyAccessorElement).variable,
+        same(declarationElement));
   }
 
   void test_applyChanges_empty() {
@@ -298,13 +301,10 @@ int b = aa;''');
   void test_applyChanges_remove() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
-    Source libA = _addSource(
-        "/libA.dart",
-        r'''
+    Source libA = _addSource("/libA.dart", r'''
 library libA;
 import 'libB.dart';''');
-    Source libB =
-        _addSource("/libB.dart", "library libB;");
+    Source libB = _addSource("/libB.dart", "library libB;");
     LibraryElement libAElement = _context.computeLibraryElement(libA);
     List<LibraryElement> importedLibraries = libAElement.importedLibraries;
     expect(importedLibraries, hasLength(2));
@@ -324,13 +324,10 @@ import 'libB.dart';''');
   void test_applyChanges_removeContainer() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
-    Source libA = _addSource(
-        "/libA.dart",
-        r'''
+    Source libA = _addSource("/libA.dart", r'''
 library libA;
 import 'libB.dart';''');
-    Source libB =
-        _addSource("/libB.dart", "library libB;");
+    Source libB = _addSource("/libB.dart", "library libB;");
     _context.computeLibraryElement(libA);
     _context.computeErrors(libA);
     _context.computeErrors(libB);
@@ -348,8 +345,7 @@ import 'libB.dart';''');
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
     String comment = "/** Comment */";
-    Source source =
-        _addSource("/test.dart", """
+    Source source = _addSource("/test.dart", """
 $comment
 class A {}""");
     LibraryElement libraryElement = _context.computeLibraryElement(source);
@@ -362,8 +358,7 @@ class A {}""");
   void test_computeDocumentationComment_none() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
-    Source source =
-        _addSource("/test.dart", "class A {}");
+    Source source = _addSource("/test.dart", "class A {}");
     LibraryElement libraryElement = _context.computeLibraryElement(source);
     expect(libraryElement, isNotNull);
     ClassElement classElement = libraryElement.definingCompilationUnit.types[0];
@@ -499,9 +494,7 @@ class A {}""");
   }
 
   void test_computeLineInfo_dart() {
-    Source source = _addSource(
-        "/test.dart",
-        r'''
+    Source source = _addSource("/test.dart", r'''
 library lib;
 
 main() {}''');
@@ -510,9 +503,7 @@ main() {}''');
   }
 
   void test_computeLineInfo_html() {
-    Source source = _addSource(
-        "/test.html",
-        r'''
+    Source source = _addSource("/test.html", r'''
 <html>
   <body>
     <h1>A</h1>
@@ -575,7 +566,9 @@ main() {}''');
   }
 
   void test_exists_true() {
-    expect(_context.exists(new AnalysisContextImplTest_Source_exists_true()), isTrue);
+    expect(
+        _context.exists(new AnalysisContextImplTest_Source_exists_true()),
+        isTrue);
   }
 
   void test_getAnalysisOptions() {
@@ -626,9 +619,7 @@ main() {}''');
   }
 
   void test_getElement_constructor_named() {
-    Source source = _addSource(
-        "/lib.dart",
-        r'''
+    Source source = _addSource("/lib.dart", r'''
 class A {
   A.named() {}
 }''');
@@ -642,9 +633,7 @@ class A {
   }
 
   void test_getElement_constructor_unnamed() {
-    Source source = _addSource(
-        "/lib.dart",
-        r'''
+    Source source = _addSource("/lib.dart", r'''
 class A {
   A() {}
 }''');
@@ -695,9 +684,7 @@ class A {
   }
 
   void test_getErrors_html_some() {
-    Source source = _addSource(
-        "/test.html",
-        r'''
+    Source source = _addSource("/test.html", r'''
 <html><head>
 <script type='application/dart' src='test.dart'/>
 </head></html>''');
@@ -727,9 +714,7 @@ class A {
   void test_getHtmlFilesReferencing_html() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
-    Source htmlSource = _addSource(
-        "/test.html",
-        r'''
+    Source htmlSource = _addSource("/test.html", r'''
 <html><head>
 <script type='application/dart' src='test.dart'/>
 <script type='application/dart' src='test.js'/>
@@ -745,9 +730,7 @@ class A {
   }
 
   void test_getHtmlFilesReferencing_library() {
-    Source htmlSource = _addSource(
-        "/test.html",
-        r'''
+    Source htmlSource = _addSource("/test.html", r'''
 <html><head>
 <script type='application/dart' src='test.dart'/>
 <script type='application/dart' src='test.js'/>
@@ -764,9 +747,7 @@ class A {
   void test_getHtmlFilesReferencing_part() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
-    Source htmlSource = _addSource(
-        "/test.html",
-        r'''
+    Source htmlSource = _addSource("/test.html", r'''
 <html><head>
 <script type='application/dart' src='test.dart'/>
 <script type='application/dart' src='test.js'/>
@@ -822,9 +803,7 @@ class A {
     _sourceFactory = _context.sourceFactory;
     List<Source> sources = _context.launchableClientLibrarySources;
     expect(sources, hasLength(0));
-    Source source = _addSource(
-        "/test.dart",
-        r'''
+    Source source = _addSource("/test.dart", r'''
 import 'dart:html';
 main() {}''');
     _context.computeLibraryElement(source);
@@ -846,9 +825,7 @@ main() {}''');
   void test_getLibrariesContaining() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
-    Source librarySource = _addSource(
-        "/lib.dart",
-        r'''
+    Source librarySource = _addSource("/lib.dart", r'''
 library lib;
 part 'part.dart';''');
     Source partSource = _addSource("/part.dart", "part of lib;");
@@ -866,15 +843,11 @@ part 'part.dart';''');
     _sourceFactory = _context.sourceFactory;
     Source libASource = _addSource("/libA.dart", "library libA;");
     _addSource("/libB.dart", "library libB;");
-    Source lib1Source = _addSource(
-        "/lib1.dart",
-        r'''
+    Source lib1Source = _addSource("/lib1.dart", r'''
 library lib1;
 import 'libA.dart';
 export 'libB.dart';''');
-    Source lib2Source = _addSource(
-        "/lib2.dart",
-        r'''
+    Source lib2Source = _addSource("/lib2.dart", r'''
 library lib2;
 import 'libB.dart';
 export 'libA.dart';''');
@@ -887,9 +860,7 @@ export 'libA.dart';''');
   void test_getLibrariesReferencedFromHtml() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
-    Source htmlSource = _addSource(
-        "/test.html",
-        r'''
+    Source htmlSource = _addSource("/test.html", r'''
 <html><head>
 <script type='application/dart' src='test.dart'/>
 <script type='application/dart' src='test.js'/>
@@ -905,9 +876,7 @@ export 'libA.dart';''');
   void test_getLibrariesReferencedFromHtml_no() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
-    Source htmlSource = _addSource(
-        "/test.html",
-        r'''
+    Source htmlSource = _addSource("/test.html", r'''
 <html><head>
 <script type='application/dart' src='test.js'/>
 </head></html>''');
@@ -944,9 +913,7 @@ export 'libA.dart';''');
   }
 
   void test_getLineInfo() {
-    Source source = _addSource(
-        "/test.dart",
-        r'''
+    Source source = _addSource("/test.dart", r'''
 library lib;
 
 main() {}''');
@@ -959,8 +926,10 @@ main() {}''');
 
   void test_getModificationStamp_fromSource() {
     int stamp = 42;
-    expect(_context.getModificationStamp(
-            new AnalysisContextImplTest_Source_getModificationStamp_fromSource(stamp)), stamp);
+    expect(
+        _context.getModificationStamp(
+            new AnalysisContextImplTest_Source_getModificationStamp_fromSource(stamp)),
+        stamp);
   }
 
   void test_getModificationStamp_overridden() {
@@ -1060,9 +1029,7 @@ main() {}''');
   void test_isClientLibrary_dart() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
-    Source source = _addSource(
-        "/test.dart",
-        r'''
+    Source source = _addSource("/test.dart", r'''
 import 'dart:html';
 
 main() {}''');
@@ -1081,9 +1048,7 @@ main() {}''');
   void test_isServerLibrary_dart() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
-    Source source = _addSource(
-        "/test.dart",
-        r'''
+    Source source = _addSource("/test.dart", r'''
 library lib;
 
 main() {}''');
@@ -1148,14 +1113,10 @@ main() {}''');
   }
 
   void test_parseHtmlUnit_resolveDirectives() {
-    Source libSource = _addSource(
-        "/lib.dart",
-        r'''
+    Source libSource = _addSource("/lib.dart", r'''
 library lib;
 class ClassA {}''');
-    Source source = _addSource(
-        "/lib.html",
-        r'''
+    Source source = _addSource("/lib.html", r'''
 <html>
 <head>
   <script type='application/dart'>
@@ -1177,6 +1138,338 @@ class ClassA {}''');
     expect(importNode.source, libSource);
   }
 
+  void test_performAnalysisTask_addPart() {
+    Source libSource = _addSource("/lib.dart", r'''
+library lib;
+part 'part.dart';''');
+    // run all tasks without part
+    _analyzeAll_assertFinished();
+    // add part and run all tasks
+    Source partSource = _addSource("/part.dart", r'''
+part of lib;
+''');
+    _analyzeAll_assertFinished();
+    // "libSource" should be here
+    List<Source> librariesWithPart =
+        _context.getLibrariesContaining(partSource);
+    expect(librariesWithPart, unorderedEquals([libSource]));
+  }
+
+  void test_performAnalysisTask_changeLibraryContents() {
+    Source libSource =
+        _addSource("/test.dart", "library lib; part 'test-part.dart';");
+    Source partSource = _addSource("/test-part.dart", "part of lib;");
+    _analyzeAll_assertFinished();
+    expect(
+        _context.getResolvedCompilationUnit2(libSource, libSource),
+        isNotNull,
+        reason: "library resolved 1");
+    expect(
+        _context.getResolvedCompilationUnit2(partSource, libSource),
+        isNotNull,
+        reason: "part resolved 1");
+    // update and analyze #1
+    _context.setContents(libSource, "library lib;");
+    expect(
+        _context.getResolvedCompilationUnit2(libSource, libSource),
+        isNull,
+        reason: "library changed 2");
+    expect(
+        _context.getResolvedCompilationUnit2(partSource, libSource),
+        isNull,
+        reason: "part changed 2");
+    _analyzeAll_assertFinished();
+    expect(
+        _context.getResolvedCompilationUnit2(libSource, libSource),
+        isNotNull,
+        reason: "library resolved 2");
+    expect(
+        _context.getResolvedCompilationUnit2(partSource, libSource),
+        isNull,
+        reason: "part resolved 2");
+    // update and analyze #2
+    _context.setContents(libSource, "library lib; part 'test-part.dart';");
+    expect(
+        _context.getResolvedCompilationUnit2(libSource, libSource),
+        isNull,
+        reason: "library changed 3");
+    expect(
+        _context.getResolvedCompilationUnit2(partSource, libSource),
+        isNull,
+        reason: "part changed 3");
+    _analyzeAll_assertFinished();
+    expect(
+        _context.getResolvedCompilationUnit2(libSource, libSource),
+        isNotNull,
+        reason: "library resolved 2");
+    expect(
+        _context.getResolvedCompilationUnit2(partSource, libSource),
+        isNotNull,
+        reason: "part resolved 3");
+  }
+
+  void test_performAnalysisTask_changeLibraryThenPartContents() {
+    Source libSource =
+        _addSource("/test.dart", "library lib; part 'test-part.dart';");
+    Source partSource = _addSource("/test-part.dart", "part of lib;");
+    _analyzeAll_assertFinished();
+    expect(
+        _context.getResolvedCompilationUnit2(libSource, libSource),
+        isNotNull,
+        reason: "library resolved 1");
+    expect(
+        _context.getResolvedCompilationUnit2(partSource, libSource),
+        isNotNull,
+        reason: "part resolved 1");
+    // update and analyze #1
+    _context.setContents(libSource, "library lib;");
+    expect(
+        _context.getResolvedCompilationUnit2(libSource, libSource),
+        isNull,
+        reason: "library changed 2");
+    expect(
+        _context.getResolvedCompilationUnit2(partSource, libSource),
+        isNull,
+        reason: "part changed 2");
+    _analyzeAll_assertFinished();
+    expect(
+        _context.getResolvedCompilationUnit2(libSource, libSource),
+        isNotNull,
+        reason: "library resolved 2");
+    expect(
+        _context.getResolvedCompilationUnit2(partSource, libSource),
+        isNull,
+        reason: "part resolved 2");
+    // update and analyze #2
+    _context.setContents(partSource, "part of lib; // 1");
+    // Assert that changing the part's content does not effect the library
+    // now that it is no longer part of that library
+    expect(
+        _context.getResolvedCompilationUnit2(libSource, libSource),
+        isNotNull,
+        reason: "library changed 3");
+    expect(
+        _context.getResolvedCompilationUnit2(partSource, libSource),
+        isNull,
+        reason: "part changed 3");
+    _analyzeAll_assertFinished();
+    expect(
+        _context.getResolvedCompilationUnit2(libSource, libSource),
+        isNotNull,
+        reason: "library resolved 3");
+    expect(
+        _context.getResolvedCompilationUnit2(partSource, libSource),
+        isNull,
+        reason: "part resolved 3");
+  }
+
+  void test_performAnalysisTask_changePartContents_makeItAPart() {
+    Source libSource = _addSource("/lib.dart", r'''
+library lib;
+part 'part.dart';
+void f(x) {}''');
+    Source partSource = _addSource("/part.dart", "void g() { f(null); }");
+    _analyzeAll_assertFinished();
+    expect(
+        _context.getResolvedCompilationUnit2(libSource, libSource),
+        isNotNull,
+        reason: "library resolved 1");
+    expect(
+        _context.getResolvedCompilationUnit2(partSource, libSource),
+        isNotNull,
+        reason: "part resolved 1");
+    // update and analyze
+    _context.setContents(partSource, r'''
+part of lib;
+void g() { f(null); }''');
+    expect(
+        _context.getResolvedCompilationUnit2(libSource, libSource),
+        isNull,
+        reason: "library changed 2");
+    expect(
+        _context.getResolvedCompilationUnit2(partSource, libSource),
+        isNull,
+        reason: "part changed 2");
+    _analyzeAll_assertFinished();
+    expect(
+        _context.getResolvedCompilationUnit2(libSource, libSource),
+        isNotNull,
+        reason: "library resolved 2");
+    expect(
+        _context.getResolvedCompilationUnit2(partSource, libSource),
+        isNotNull,
+        reason: "part resolved 2");
+    expect(_context.getErrors(libSource).errors, hasLength(0));
+    expect(_context.getErrors(partSource).errors, hasLength(0));
+  }
+
+  /**
+   * https://code.google.com/p/dart/issues/detail?id=12424
+   */
+  void test_performAnalysisTask_changePartContents_makeItNotPart() {
+    Source libSource = _addSource("/lib.dart", r'''
+library lib;
+part 'part.dart';
+void f(x) {}''');
+    Source partSource = _addSource("/part.dart", r'''
+part of lib;
+void g() { f(null); }''');
+    _analyzeAll_assertFinished();
+    expect(_context.getErrors(libSource).errors, hasLength(0));
+    expect(_context.getErrors(partSource).errors, hasLength(0));
+    // Remove 'part' directive, which should make "f(null)" an error.
+    _context.setContents(partSource, r'''
+//part of lib;
+void g() { f(null); }''');
+    _analyzeAll_assertFinished();
+    expect(_context.getErrors(libSource).errors.length != 0, isTrue);
+  }
+
+  void test_performAnalysisTask_changePartContents_noSemanticChanges() {
+    Source libSource =
+        _addSource("/test.dart", "library lib; part 'test-part.dart';");
+    Source partSource = _addSource("/test-part.dart", "part of lib;");
+    _analyzeAll_assertFinished();
+    expect(
+        _context.getResolvedCompilationUnit2(libSource, libSource),
+        isNotNull,
+        reason: "library resolved 1");
+    expect(
+        _context.getResolvedCompilationUnit2(partSource, libSource),
+        isNotNull,
+        reason: "part resolved 1");
+    // update and analyze #1
+    _context.setContents(partSource, "part of lib; // 1");
+    expect(
+        _context.getResolvedCompilationUnit2(libSource, libSource),
+        isNull,
+        reason: "library changed 2");
+    expect(
+        _context.getResolvedCompilationUnit2(partSource, libSource),
+        isNull,
+        reason: "part changed 2");
+    _analyzeAll_assertFinished();
+    expect(
+        _context.getResolvedCompilationUnit2(libSource, libSource),
+        isNotNull,
+        reason: "library resolved 2");
+    expect(
+        _context.getResolvedCompilationUnit2(partSource, libSource),
+        isNotNull,
+        reason: "part resolved 2");
+    // update and analyze #2
+    _context.setContents(partSource, "part of lib; // 12");
+    expect(
+        _context.getResolvedCompilationUnit2(libSource, libSource),
+        isNull,
+        reason: "library changed 3");
+    expect(
+        _context.getResolvedCompilationUnit2(partSource, libSource),
+        isNull,
+        reason: "part changed 3");
+    _analyzeAll_assertFinished();
+    expect(
+        _context.getResolvedCompilationUnit2(libSource, libSource),
+        isNotNull,
+        reason: "library resolved 3");
+    expect(
+        _context.getResolvedCompilationUnit2(partSource, libSource),
+        isNotNull,
+        reason: "part resolved 3");
+  }
+
+  void test_performAnalysisTask_importedLibraryAdd() {
+    Source libASource =
+        _addSource("/libA.dart", "library libA; import 'libB.dart';");
+    _analyzeAll_assertFinished();
+    expect(
+        _context.getResolvedCompilationUnit2(libASource, libASource),
+        isNotNull,
+        reason: "libA resolved 1");
+    expect(
+        _hasAnalysisErrorWithErrorSeverity(_context.getErrors(libASource)),
+        isTrue,
+        reason: "libA has an error");
+    // add libB.dart and analyze
+    Source libBSource = _addSource("/libB.dart", "library libB;");
+    _analyzeAll_assertFinished();
+    expect(
+        _context.getResolvedCompilationUnit2(libASource, libASource),
+        isNotNull,
+        reason: "libA resolved 2");
+    expect(
+        _context.getResolvedCompilationUnit2(libBSource, libBSource),
+        isNotNull,
+        reason: "libB resolved 2");
+    expect(
+        !_hasAnalysisErrorWithErrorSeverity(_context.getErrors(libASource)),
+        isTrue,
+        reason: "libA doesn't have errors");
+  }
+
+  void test_performAnalysisTask_importedLibraryAdd_html() {
+    Source htmlSource = _addSource("/page.html", r'''
+<html><body><script type="application/dart">
+  import '/libB.dart';
+  main() {print('hello dart');}
+</script></body></html>''');
+    _analyzeAll_assertFinished();
+    expect(
+        _context.getResolvedHtmlUnit(htmlSource),
+        isNotNull,
+        reason: "htmlUnit resolved 1");
+    expect(
+        _hasAnalysisErrorWithErrorSeverity(_context.getErrors(htmlSource)),
+        isTrue,
+        reason: "htmlSource has an error");
+    // add libB.dart and analyze
+    Source libBSource = _addSource("/libB.dart", "library libB;");
+    _analyzeAll_assertFinished();
+    expect(
+        _context.getResolvedHtmlUnit(htmlSource),
+        isNotNull,
+        reason: "htmlUnit resolved 1");
+    expect(
+        _context.getResolvedCompilationUnit2(libBSource, libBSource),
+        isNotNull,
+        reason: "libB resolved 2");
+    AnalysisErrorInfo errors = _context.getErrors(htmlSource);
+    expect(
+        !_hasAnalysisErrorWithErrorSeverity(errors),
+        isTrue,
+        reason: "htmlSource doesn't have errors");
+  }
+
+  void test_performAnalysisTask_importedLibraryDelete() {
+    Source libASource =
+        _addSource("/libA.dart", "library libA; import 'libB.dart';");
+    Source libBSource = _addSource("/libB.dart", "library libB;");
+    _analyzeAll_assertFinished();
+    expect(
+        _context.getResolvedCompilationUnit2(libASource, libASource),
+        isNotNull,
+        reason: "libA resolved 1");
+    expect(
+        _context.getResolvedCompilationUnit2(libBSource, libBSource),
+        isNotNull,
+        reason: "libB resolved 1");
+    expect(
+        !_hasAnalysisErrorWithErrorSeverity(_context.getErrors(libASource)),
+        isTrue,
+        reason: "libA doesn't have errors");
+    // remove libB.dart content and analyze
+    _context.setContents(libBSource, null);
+    _analyzeAll_assertFinished();
+    expect(
+        _context.getResolvedCompilationUnit2(libASource, libASource),
+        isNotNull,
+        reason: "libA resolved 2");
+    expect(
+        _hasAnalysisErrorWithErrorSeverity(_context.getErrors(libASource)),
+        isTrue,
+        reason: "libA has an error");
+  }
+
   void test_performAnalysisTask_IOException() {
     TestSource source = _addSourceWithException2("/test.dart", "library test;");
     int oldTimestamp = _context.getModificationStamp(source);
@@ -1193,207 +1486,14 @@ class ClassA {}''');
     expect(source.readCount, 2);
   }
 
-  void test_performAnalysisTask_addPart() {
-    Source libSource = _addSource(
-        "/lib.dart",
-        r'''
-library lib;
-part 'part.dart';''');
-    // run all tasks without part
-    _analyzeAll_assertFinished();
-    // add part and run all tasks
-    Source partSource =
-        _addSource("/part.dart", r'''
-part of lib;
-''');
-    _analyzeAll_assertFinished();
-    // "libSource" should be here
-    List<Source> librariesWithPart =
-        _context.getLibrariesContaining(partSource);
-    expect(librariesWithPart, unorderedEquals([libSource]));
-  }
-
-  void test_performAnalysisTask_changeLibraryContents() {
-    Source libSource =
-        _addSource("/test.dart", "library lib; part 'test-part.dart';");
-    Source partSource = _addSource("/test-part.dart", "part of lib;");
-    _analyzeAll_assertFinished();
-    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 1");
-    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNotNull, reason: "part resolved 1");
-    // update and analyze #1
-    _context.setContents(libSource, "library lib;");
-    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNull, reason: "library changed 2");
-    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNull, reason: "part changed 2");
-    _analyzeAll_assertFinished();
-    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 2");
-    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNull, reason: "part resolved 2");
-    // update and analyze #2
-    _context.setContents(libSource, "library lib; part 'test-part.dart';");
-    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNull, reason: "library changed 3");
-    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNull, reason: "part changed 3");
-    _analyzeAll_assertFinished();
-    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 2");
-    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNotNull, reason: "part resolved 3");
-  }
-
-  void test_performAnalysisTask_changeLibraryThenPartContents() {
-    Source libSource =
-        _addSource("/test.dart", "library lib; part 'test-part.dart';");
-    Source partSource = _addSource("/test-part.dart", "part of lib;");
-    _analyzeAll_assertFinished();
-    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 1");
-    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNotNull, reason: "part resolved 1");
-    // update and analyze #1
-    _context.setContents(libSource, "library lib;");
-    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNull, reason: "library changed 2");
-    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNull, reason: "part changed 2");
-    _analyzeAll_assertFinished();
-    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 2");
-    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNull, reason: "part resolved 2");
-    // update and analyze #2
-    _context.setContents(partSource, "part of lib; // 1");
-    // Assert that changing the part's content does not effect the library
-    // now that it is no longer part of that library
-    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library changed 3");
-    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNull, reason: "part changed 3");
-    _analyzeAll_assertFinished();
-    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 3");
-    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNull, reason: "part resolved 3");
-  }
-
-  void test_performAnalysisTask_changePartContents_makeItAPart() {
-    Source libSource = _addSource(
-        "/lib.dart",
-        r'''
-library lib;
-part 'part.dart';
-void f(x) {}''');
-    Source partSource = _addSource(
-        "/part.dart",
-        "void g() { f(null); }");
-    _analyzeAll_assertFinished();
-    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 1");
-    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNotNull, reason: "part resolved 1");
-    // update and analyze
-    _context.setContents(
-        partSource,
-        r'''
-part of lib;
-void g() { f(null); }''');
-    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNull, reason: "library changed 2");
-    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNull, reason: "part changed 2");
-    _analyzeAll_assertFinished();
-    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 2");
-    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNotNull, reason: "part resolved 2");
-    expect(_context.getErrors(libSource).errors, hasLength(0));
-    expect(_context.getErrors(partSource).errors, hasLength(0));
-  }
-
-  /**
-   * https://code.google.com/p/dart/issues/detail?id=12424
-   */
-  void test_performAnalysisTask_changePartContents_makeItNotPart() {
-    Source libSource = _addSource(
-        "/lib.dart",
-        r'''
-library lib;
-part 'part.dart';
-void f(x) {}''');
-    Source partSource = _addSource(
-        "/part.dart",
-        r'''
-part of lib;
-void g() { f(null); }''');
-    _analyzeAll_assertFinished();
-    expect(_context.getErrors(libSource).errors, hasLength(0));
-    expect(_context.getErrors(partSource).errors, hasLength(0));
-    // Remove 'part' directive, which should make "f(null)" an error.
-    _context.setContents(
-        partSource,
-        r'''
-//part of lib;
-void g() { f(null); }''');
-    _analyzeAll_assertFinished();
-    expect(_context.getErrors(libSource).errors.length != 0, isTrue);
-  }
-
-  void test_performAnalysisTask_changePartContents_noSemanticChanges() {
-    Source libSource =
-        _addSource("/test.dart", "library lib; part 'test-part.dart';");
-    Source partSource = _addSource("/test-part.dart", "part of lib;");
-    _analyzeAll_assertFinished();
-    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 1");
-    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNotNull, reason: "part resolved 1");
-    // update and analyze #1
-    _context.setContents(partSource, "part of lib; // 1");
-    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNull, reason: "library changed 2");
-    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNull, reason: "part changed 2");
-    _analyzeAll_assertFinished();
-    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 2");
-    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNotNull, reason: "part resolved 2");
-    // update and analyze #2
-    _context.setContents(partSource, "part of lib; // 12");
-    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNull, reason: "library changed 3");
-    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNull, reason: "part changed 3");
-    _analyzeAll_assertFinished();
-    expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 3");
-    expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNotNull, reason: "part resolved 3");
-  }
-
-  void test_performAnalysisTask_importedLibraryAdd() {
-    Source libASource =
-        _addSource("/libA.dart", "library libA; import 'libB.dart';");
-    _analyzeAll_assertFinished();
-    expect(_context.getResolvedCompilationUnit2(libASource, libASource), isNotNull, reason: "libA resolved 1");
-    expect(_hasAnalysisErrorWithErrorSeverity(_context.getErrors(libASource)), isTrue, reason: "libA has an error");
-    // add libB.dart and analyze
-    Source libBSource = _addSource("/libB.dart", "library libB;");
-    _analyzeAll_assertFinished();
-    expect(_context.getResolvedCompilationUnit2(libASource, libASource), isNotNull, reason: "libA resolved 2");
-    expect(_context.getResolvedCompilationUnit2(libBSource, libBSource), isNotNull, reason: "libB resolved 2");
-    expect(!_hasAnalysisErrorWithErrorSeverity(_context.getErrors(libASource)), isTrue, reason: "libA doesn't have errors");
-  }
-
-  void test_performAnalysisTask_importedLibraryAdd_html() {
-    Source htmlSource = _addSource(
-        "/page.html",
-        r'''
-<html><body><script type="application/dart">
-  import '/libB.dart';
-  main() {print('hello dart');}
-</script></body></html>''');
-    _analyzeAll_assertFinished();
-    expect(_context.getResolvedHtmlUnit(htmlSource), isNotNull, reason: "htmlUnit resolved 1");
-    expect(_hasAnalysisErrorWithErrorSeverity(_context.getErrors(htmlSource)), isTrue, reason: "htmlSource has an error");
-    // add libB.dart and analyze
-    Source libBSource = _addSource("/libB.dart", "library libB;");
-    _analyzeAll_assertFinished();
-    expect(_context.getResolvedHtmlUnit(htmlSource), isNotNull, reason: "htmlUnit resolved 1");
-    expect(_context.getResolvedCompilationUnit2(libBSource, libBSource), isNotNull, reason: "libB resolved 2");
-    AnalysisErrorInfo errors = _context.getErrors(htmlSource);
-    expect(!_hasAnalysisErrorWithErrorSeverity(errors), isTrue, reason: "htmlSource doesn't have errors");
-  }
-
-  void test_performAnalysisTask_importedLibraryDelete() {
-    Source libASource =
-        _addSource("/libA.dart", "library libA; import 'libB.dart';");
-    Source libBSource = _addSource("/libB.dart", "library libB;");
-    _analyzeAll_assertFinished();
-    expect(_context.getResolvedCompilationUnit2(libASource, libASource), isNotNull, reason: "libA resolved 1");
-    expect(_context.getResolvedCompilationUnit2(libBSource, libBSource), isNotNull, reason: "libB resolved 1");
-    expect(!_hasAnalysisErrorWithErrorSeverity(_context.getErrors(libASource)), isTrue, reason: "libA doesn't have errors");
-    // remove libB.dart content and analyze
-    _context.setContents(libBSource, null);
-    _analyzeAll_assertFinished();
-    expect(_context.getResolvedCompilationUnit2(libASource, libASource), isNotNull, reason: "libA resolved 2");
-    expect(_hasAnalysisErrorWithErrorSeverity(_context.getErrors(libASource)), isTrue, reason: "libA has an error");
-  }
-
   void test_performAnalysisTask_missingPart() {
     Source source =
         _addSource("/test.dart", "library lib; part 'no-such-file.dart';");
     _analyzeAll_assertFinished();
-    expect(_context.getLibraryElement(source), isNotNull, reason: "performAnalysisTask failed to compute an element model");
+    expect(
+        _context.getLibraryElement(source),
+        isNotNull,
+        reason: "performAnalysisTask failed to compute an element model");
   }
 
   void test_performAnalysisTask_modifiedAfterParse() {
@@ -1535,9 +1635,7 @@ library lib;
 part 'part.dart';
 int a = 0;''';
     Source librarySource = _addSource("/lib.dart", oldCode);
-    Source partSource = _addSource(
-        "/part.dart",
-        r'''
+    Source partSource = _addSource("/part.dart", r'''
 part of lib;
 int b = a;''');
     LibraryElement element = _context.computeLibraryElement(librarySource);
@@ -1556,7 +1654,9 @@ int ya = 0;''';
         _getIncrementalAnalysisCache(_context);
     expect(incrementalCache.librarySource, librarySource);
     expect(incrementalCache.resolvedUnit, same(unit));
-    expect(_context.getResolvedCompilationUnit2(partSource, librarySource), isNull);
+    expect(
+        _context.getResolvedCompilationUnit2(partSource, librarySource),
+        isNull);
     expect(incrementalCache.newContents, newCode);
   }
 
@@ -1567,14 +1667,12 @@ int ya = 0;''';
     options.incremental = true;
     _context.analysisOptions = options;
     _sourceFactory = _context.sourceFactory;
-    String oldCode =
-        r'''
+    String oldCode = r'''
 library lib;
 int a = 0;''';
     Source librarySource = _addSource("/lib.dart", oldCode);
     int offset = oldCode.indexOf("int a") + 4;
-    String newCode =
-        r'''
+    String newCode = r'''
 library lib;
 int ya = 0;''';
     _context.setChangedContents(librarySource, newCode, offset, 0, 1);
@@ -1585,15 +1683,11 @@ int ya = 0;''';
   void test_setContents_libraryWithPart() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
-    Source librarySource = _addSource(
-        "/lib.dart",
-        r'''
+    Source librarySource = _addSource("/lib.dart", r'''
 library lib;
 part 'part.dart';
 int a = 0;''');
-    Source partSource = _addSource(
-        "/part.dart",
-        r'''
+    Source partSource = _addSource("/part.dart", r'''
 part of lib;
 int b = a;''');
     _context.computeLibraryElement(librarySource);
@@ -1608,22 +1702,20 @@ int b = a;''');
         0);
     _setIncrementalAnalysisCache(_context, incrementalCache);
     expect(_getIncrementalAnalysisCache(_context), same(incrementalCache));
-    _context.setContents(
-        librarySource,
-        r'''
+    _context.setContents(librarySource, r'''
 library lib;
 part 'part.dart';
 int aa = 0;''');
-    expect(_context.getResolvedCompilationUnit2(partSource, librarySource), isNull);
+    expect(
+        _context.getResolvedCompilationUnit2(partSource, librarySource),
+        isNull);
     expect(_getIncrementalAnalysisCache(_context), isNull);
   }
 
   void test_setContents_null() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
-    Source librarySource = _addSource(
-        "/lib.dart",
-        r'''
+    Source librarySource = _addSource("/lib.dart", r'''
 library lib;
 int a = 0;''');
     _context.computeLibraryElement(librarySource);
@@ -1639,7 +1731,9 @@ int a = 0;''');
     _setIncrementalAnalysisCache(_context, incrementalCache);
     expect(_getIncrementalAnalysisCache(_context), same(incrementalCache));
     _context.setContents(librarySource, null);
-    expect(_context.getResolvedCompilationUnit2(librarySource, librarySource), isNull);
+    expect(
+        _context.getResolvedCompilationUnit2(librarySource, librarySource),
+        isNull);
     expect(_getIncrementalAnalysisCache(_context), isNull);
   }
 
@@ -1653,14 +1747,10 @@ int a = 0;''');
   void test_unreadableSource() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
-    Source test1 = _addSource(
-        "/test1.dart",
-        r'''
+    Source test1 = _addSource("/test1.dart", r'''
 import 'test2.dart';
 library test1;''');
-    Source test2 = _addSource(
-        "/test2.dart",
-        r'''
+    Source test2 = _addSource("/test2.dart", r'''
 import 'test1.dart';
 import 'test3.dart';
 library test2;''');
@@ -1712,7 +1802,8 @@ library test2;''');
     }
     List<ChangeNotice> notice = _context.performAnalysisTask().changeNotices;
     if (notice != null) {
-      fail("performAnalysisTask failed to terminate after analyzing all sources");
+      fail(
+          "performAnalysisTask failed to terminate after analyzing all sources");
     }
   }
 
@@ -1922,7 +2013,9 @@ class AnalysisOptionsImplTest extends EngineTestCase {
 
   void test_getEnableDeferredLoading() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    expect(options.enableDeferredLoading, AnalysisOptionsImpl.DEFAULT_ENABLE_DEFERRED_LOADING);
+    expect(
+        options.enableDeferredLoading,
+        AnalysisOptionsImpl.DEFAULT_ENABLE_DEFERRED_LOADING);
     bool value = !options.enableDeferredLoading;
     options.enableDeferredLoading = value;
     expect(options.enableDeferredLoading, value);
@@ -1966,16 +2059,6 @@ class AnalysisOptionsImplTest extends EngineTestCase {
 }
 
 
-class AnalysisTaskTest extends EngineTestCase {
-  void test_perform_exception() {
-    InternalAnalysisContext context = new AnalysisContextImpl();
-    context.sourceFactory = new SourceFactory([new FileUriResolver()]);
-    AnalysisTask task = new AnalysisTask_test_perform_exception(context);
-    task.perform(new TestTaskVisitor<Object>());
-  }
-}
-
-
 class AnalysisTask_test_perform_exception extends AnalysisTask {
   AnalysisTask_test_perform_exception(InternalAnalysisContext arg0)
       : super(arg0);
@@ -1993,6 +2076,16 @@ class AnalysisTask_test_perform_exception extends AnalysisTask {
 }
 
 
+class AnalysisTaskTest extends EngineTestCase {
+  void test_perform_exception() {
+    InternalAnalysisContext context = new AnalysisContextImpl();
+    context.sourceFactory = new SourceFactory([new FileUriResolver()]);
+    AnalysisTask task = new AnalysisTask_test_perform_exception(context);
+    task.perform(new TestTaskVisitor<Object>());
+  }
+}
+
+
 class CompilationUnitMock extends TypedMock implements CompilationUnit {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -2006,9 +2099,7 @@ class DartEntryTest extends EngineTestCase {
     entry.setValue(
         DartEntry.SCAN_ERRORS,
         <AnalysisError>[
-            new AnalysisError.con1(
-                source,
-                ScannerErrorCode.UNTERMINATED_STRING_LITERAL)]);
+            new AnalysisError.con1(source, ScannerErrorCode.UNTERMINATED_STRING_LITERAL)]);
     entry.setValue(
         DartEntry.PARSE_ERRORS,
         <AnalysisError>[
@@ -2024,9 +2115,7 @@ class DartEntryTest extends EngineTestCase {
         DartEntry.VERIFICATION_ERRORS,
         source,
         <AnalysisError>[
-            new AnalysisError.con1(
-                source,
-                StaticWarningCode.CASE_BLOCK_NOT_TERMINATED)]);
+            new AnalysisError.con1(source, StaticWarningCode.CASE_BLOCK_NOT_TERMINATED)]);
     entry.setValueInLibrary(
         DartEntry.ANGULAR_ERRORS,
         source,
@@ -2043,27 +2132,49 @@ class DartEntryTest extends EngineTestCase {
     DartEntry entry = new DartEntry();
     expect(entry.getState(SourceEntry.CONTENT), same(CacheState.INVALID));
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.INVALID));
+    expect(
+        entry.getState(DartEntry.CONTAINING_LIBRARIES),
+        same(CacheState.INVALID));
     expect(entry.getState(DartEntry.ELEMENT), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.INVALID));
+    expect(
+        entry.getState(DartEntry.EXPORTED_LIBRARIES),
+        same(CacheState.INVALID));
+    expect(
+        entry.getState(DartEntry.IMPORTED_LIBRARIES),
+        same(CacheState.INVALID));
     expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.INVALID));
+    expect(
+        entry.getState(DartEntry.PUBLIC_NAMESPACE),
+        same(CacheState.INVALID));
     expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.INVALID));
 
-    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.HINTS, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource), same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_UNIT, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.HINTS, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource),
+        same(CacheState.INVALID));
   }
 
   void test_getResolvableCompilationUnit_none() {
@@ -2081,8 +2192,7 @@ class DartEntryTest extends EngineTestCase {
     importDirective.uriContent = importUri;
     String exportUri = "/f2.dart";
     Source exportSource = new TestSource(exportUri);
-    ExportDirective exportDirective =
-        AstFactory.exportDirective2(exportUri);
+    ExportDirective exportDirective = AstFactory.exportDirective2(exportUri);
     exportDirective.source = exportSource;
     exportDirective.uriContent = exportUri;
     String partUri = "/f3.dart";
@@ -2128,8 +2238,7 @@ class DartEntryTest extends EngineTestCase {
     importDirective.uriContent = importUri;
     String exportUri = "f2.dart";
     Source exportSource = new TestSource(exportUri);
-    ExportDirective exportDirective =
-        AstFactory.exportDirective2(exportUri);
+    ExportDirective exportDirective = AstFactory.exportDirective2(exportUri);
     exportDirective.source = exportSource;
     exportDirective.uriContent = exportUri;
     String partUri = "f3.dart";
@@ -2158,16 +2267,6 @@ class DartEntryTest extends EngineTestCase {
     expect(resultPartDirective.source, same(partSource));
   }
 
-  void test_getStateInLibrary_invalid_element() {
-    DartEntry entry = new DartEntry();
-    try {
-      entry.getStateInLibrary(DartEntry.ELEMENT, new TestSource());
-      fail("Expected IllegalArgumentException for ELEMENT");
-    } on ArgumentError catch (exception) {
-      // Expected
-    }
-  }
-
   void test_getState_invalid_resolutionErrors() {
     DartEntry entry = new DartEntry();
     try {
@@ -2188,6 +2287,16 @@ class DartEntryTest extends EngineTestCase {
     }
   }
 
+  void test_getStateInLibrary_invalid_element() {
+    DartEntry entry = new DartEntry();
+    try {
+      entry.getStateInLibrary(DartEntry.ELEMENT, new TestSource());
+      fail("Expected IllegalArgumentException for ELEMENT");
+    } on ArgumentError catch (exception) {
+      // Expected
+    }
+  }
+
   void test_getValue_containingLibraries() {
     Source testSource = new TestSource();
     DartEntry entry = new DartEntry();
@@ -2200,6 +2309,25 @@ class DartEntryTest extends EngineTestCase {
     entry.removeContainingLibrary(testSource);
     value = entry.containingLibraries;
     expect(value, hasLength(0));
+  }
+
+  void test_getValue_invalid_resolutionErrors() {
+    DartEntry entry = new DartEntry();
+    try {
+      entry.getValue(DartEntry.RESOLUTION_ERRORS);
+      fail("Expected IllegalArgumentException for RESOLUTION_ERRORS");
+    } on ArgumentError catch (exception) {
+    }
+  }
+
+  void test_getValue_invalid_verificationErrors() {
+    DartEntry entry = new DartEntry();
+    try {
+      entry.getValue(DartEntry.VERIFICATION_ERRORS);
+      fail("Expected IllegalArgumentException for VERIFICATION_ERRORS");
+    } on ArgumentError catch (exception) {
+      // Expected
+    }
   }
 
   void test_getValueInLibrary_invalid_element() {
@@ -2232,25 +2360,6 @@ class DartEntryTest extends EngineTestCase {
     try {
       entry.getValueInLibrary(DartEntry.ELEMENT, source3);
       fail("Expected IllegalArgumentException for ELEMENT");
-    } on ArgumentError catch (exception) {
-      // Expected
-    }
-  }
-
-  void test_getValue_invalid_resolutionErrors() {
-    DartEntry entry = new DartEntry();
-    try {
-      entry.getValue(DartEntry.RESOLUTION_ERRORS);
-      fail("Expected IllegalArgumentException for RESOLUTION_ERRORS");
-    } on ArgumentError catch (exception) {
-    }
-  }
-
-  void test_getValue_invalid_verificationErrors() {
-    DartEntry entry = new DartEntry();
-    try {
-      entry.getValue(DartEntry.VERIFICATION_ERRORS);
-      fail("Expected IllegalArgumentException for VERIFICATION_ERRORS");
     } on ArgumentError catch (exception) {
       // Expected
     }
@@ -2301,27 +2410,49 @@ class DartEntryTest extends EngineTestCase {
     entry.invalidateAllInformation();
     expect(entry.getState(SourceEntry.CONTENT), same(CacheState.INVALID));
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.CONTAINING_LIBRARIES),
+        same(CacheState.VALID));
     expect(entry.getState(DartEntry.ELEMENT), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.INVALID));
+    expect(
+        entry.getState(DartEntry.EXPORTED_LIBRARIES),
+        same(CacheState.INVALID));
+    expect(
+        entry.getState(DartEntry.IMPORTED_LIBRARIES),
+        same(CacheState.INVALID));
     expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.INVALID));
+    expect(
+        entry.getState(DartEntry.PUBLIC_NAMESPACE),
+        same(CacheState.INVALID));
     expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.INVALID));
 
-    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.HINTS, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource), same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_UNIT, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.HINTS, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource),
+        same(CacheState.INVALID));
   }
 
   void test_invalidateAllResolutionInformation() {
@@ -2330,27 +2461,49 @@ class DartEntryTest extends EngineTestCase {
     entry.invalidateAllResolutionInformation(false);
     expect(entry.getState(SourceEntry.CONTENT), same(CacheState.VALID));
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.CONTAINING_LIBRARIES),
+        same(CacheState.VALID));
     expect(entry.getState(DartEntry.ELEMENT), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.EXPORTED_LIBRARIES),
+        same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.IMPORTED_LIBRARIES),
+        same(CacheState.VALID));
     expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.VALID));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.VALID));
     expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.INVALID));
+    expect(
+        entry.getState(DartEntry.PUBLIC_NAMESPACE),
+        same(CacheState.INVALID));
     expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.VALID));
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.VALID));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
 
-    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.HINTS, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource), same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_UNIT, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.HINTS, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource),
+        same(CacheState.INVALID));
   }
 
   void test_invalidateAllResolutionInformation_includingUris() {
@@ -2359,27 +2512,49 @@ class DartEntryTest extends EngineTestCase {
     entry.invalidateAllResolutionInformation(true);
     expect(entry.getState(SourceEntry.CONTENT), same(CacheState.VALID));
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.CONTAINING_LIBRARIES),
+        same(CacheState.VALID));
     expect(entry.getState(DartEntry.ELEMENT), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.INVALID));
-    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.INVALID));
+    expect(
+        entry.getState(DartEntry.EXPORTED_LIBRARIES),
+        same(CacheState.INVALID));
+    expect(
+        entry.getState(DartEntry.IMPORTED_LIBRARIES),
+        same(CacheState.INVALID));
     expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.INVALID));
     expect(entry.getState(DartEntry.PARSE_ERRORS), same(CacheState.VALID));
     expect(entry.getState(DartEntry.PARSED_UNIT), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.PUBLIC_NAMESPACE), same(CacheState.INVALID));
+    expect(
+        entry.getState(DartEntry.PUBLIC_NAMESPACE),
+        same(CacheState.INVALID));
     expect(entry.getState(DartEntry.SCAN_ERRORS), same(CacheState.VALID));
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.VALID));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
 
-    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.HINTS, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource), same(CacheState.INVALID));
-    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource), same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_UNIT, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.HINTS, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource),
+        same(CacheState.INVALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource),
+        same(CacheState.INVALID));
   }
 
   void test_isClient() {
@@ -2421,10 +2596,16 @@ class DartEntryTest extends EngineTestCase {
         new CaughtException(new AnalysisException(), null));
     expect(entry.getState(SourceEntry.CONTENT), same(CacheState.VALID));
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.CONTAINING_LIBRARIES),
+        same(CacheState.VALID));
     expect(entry.getState(DartEntry.ELEMENT), same(CacheState.ERROR));
-    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.EXPORTED_LIBRARIES),
+        same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.IMPORTED_LIBRARIES),
+        same(CacheState.VALID));
     expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.VALID));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.ERROR));
@@ -2435,21 +2616,49 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.VALID));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
 
-    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.HINTS, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary), same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.HINTS, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary),
+        same(CacheState.ERROR));
 
-    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.HINTS, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, secondLibrary), same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_UNIT, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.HINTS, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, secondLibrary),
+        same(CacheState.VALID));
   }
 
   void test_recordContentError() {
@@ -2460,10 +2669,16 @@ class DartEntryTest extends EngineTestCase {
         new CaughtException(new AnalysisException(), null));
     expect(entry.getState(SourceEntry.CONTENT), same(CacheState.ERROR));
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.ERROR));
-    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.CONTAINING_LIBRARIES),
+        same(CacheState.VALID));
     expect(entry.getState(DartEntry.ELEMENT), same(CacheState.ERROR));
-    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.ERROR));
-    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.ERROR));
+    expect(
+        entry.getState(DartEntry.EXPORTED_LIBRARIES),
+        same(CacheState.ERROR));
+    expect(
+        entry.getState(DartEntry.IMPORTED_LIBRARIES),
+        same(CacheState.ERROR));
     expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.ERROR));
@@ -2474,13 +2689,27 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.ERROR));
 
-    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.HINTS, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary), same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.HINTS, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary),
+        same(CacheState.ERROR));
 
     // The following lines are commented out because we don't currently have
     // any way of setting the state for data associated with a library we
@@ -2503,10 +2732,16 @@ class DartEntryTest extends EngineTestCase {
         new CaughtException(new AnalysisException(), null));
     expect(entry.getState(SourceEntry.CONTENT), same(CacheState.VALID));
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.CONTAINING_LIBRARIES),
+        same(CacheState.VALID));
     expect(entry.getState(DartEntry.ELEMENT), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.EXPORTED_LIBRARIES),
+        same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.IMPORTED_LIBRARIES),
+        same(CacheState.VALID));
     expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.VALID));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.VALID));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.VALID));
@@ -2517,21 +2752,49 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.VALID));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
 
-    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.HINTS, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary), same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.HINTS, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary),
+        same(CacheState.VALID));
 
-    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.HINTS, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, secondLibrary), same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_UNIT, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.HINTS, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, secondLibrary),
+        same(CacheState.VALID));
   }
 
   void test_recordParseError() {
@@ -2541,10 +2804,16 @@ class DartEntryTest extends EngineTestCase {
     entry.recordParseError(new CaughtException(new AnalysisException(), null));
     expect(entry.getState(SourceEntry.CONTENT), same(CacheState.VALID));
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.CONTAINING_LIBRARIES),
+        same(CacheState.VALID));
     expect(entry.getState(DartEntry.ELEMENT), same(CacheState.ERROR));
-    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.ERROR));
-    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.ERROR));
+    expect(
+        entry.getState(DartEntry.EXPORTED_LIBRARIES),
+        same(CacheState.ERROR));
+    expect(
+        entry.getState(DartEntry.IMPORTED_LIBRARIES),
+        same(CacheState.ERROR));
     expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.ERROR));
@@ -2555,13 +2824,27 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
 
-    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.HINTS, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary), same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.HINTS, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary),
+        same(CacheState.ERROR));
 
     // The following lines are commented out because we don't currently have
     // any way of setting the state for data associated with a library we
@@ -2583,10 +2866,16 @@ class DartEntryTest extends EngineTestCase {
         new CaughtException(new AnalysisException(), null));
     expect(entry.getState(SourceEntry.CONTENT), same(CacheState.VALID));
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.CONTAINING_LIBRARIES),
+        same(CacheState.VALID));
     expect(entry.getState(DartEntry.ELEMENT), same(CacheState.ERROR));
-    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.EXPORTED_LIBRARIES),
+        same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.IMPORTED_LIBRARIES),
+        same(CacheState.VALID));
     expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.VALID));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.ERROR));
@@ -2597,13 +2886,27 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.VALID));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
 
-    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.HINTS, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary), same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.HINTS, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary),
+        same(CacheState.ERROR));
 
     // The following lines are commented out because we don't currently have
     // any way of setting the state for data associated with a library we
@@ -2626,10 +2929,16 @@ class DartEntryTest extends EngineTestCase {
         new CaughtException(new AnalysisException(), null));
     expect(entry.getState(SourceEntry.CONTENT), same(CacheState.VALID));
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.CONTAINING_LIBRARIES),
+        same(CacheState.VALID));
     expect(entry.getState(DartEntry.ELEMENT), same(CacheState.ERROR));
-    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.EXPORTED_LIBRARIES),
+        same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.IMPORTED_LIBRARIES),
+        same(CacheState.VALID));
     expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.VALID));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.ERROR));
@@ -2640,21 +2949,49 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.VALID));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
 
-    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.HINTS, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary), same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.HINTS, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary),
+        same(CacheState.ERROR));
 
-    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.HINTS, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, secondLibrary), same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_UNIT, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.HINTS, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, secondLibrary),
+        same(CacheState.VALID));
   }
 
   void test_recordScanError() {
@@ -2664,10 +3001,16 @@ class DartEntryTest extends EngineTestCase {
     entry.recordScanError(new CaughtException(new AnalysisException(), null));
     expect(entry.getState(SourceEntry.CONTENT), same(CacheState.VALID));
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.ERROR));
-    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.CONTAINING_LIBRARIES),
+        same(CacheState.VALID));
     expect(entry.getState(DartEntry.ELEMENT), same(CacheState.ERROR));
-    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.ERROR));
-    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.ERROR));
+    expect(
+        entry.getState(DartEntry.EXPORTED_LIBRARIES),
+        same(CacheState.ERROR));
+    expect(
+        entry.getState(DartEntry.IMPORTED_LIBRARIES),
+        same(CacheState.ERROR));
     expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.ERROR));
@@ -2678,13 +3021,27 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.ERROR));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.ERROR));
 
-    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.HINTS, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary), same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.HINTS, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary),
+        same(CacheState.ERROR));
 
     // The following lines are commented out because we don't currently have
     // any way of setting the state for data associated with a library we
@@ -2707,10 +3064,16 @@ class DartEntryTest extends EngineTestCase {
         new CaughtException(new AnalysisException(), null));
     expect(entry.getState(SourceEntry.CONTENT), same(CacheState.VALID));
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.CONTAINING_LIBRARIES),
+        same(CacheState.VALID));
     expect(entry.getState(DartEntry.ELEMENT), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.EXPORTED_LIBRARIES),
+        same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.IMPORTED_LIBRARIES),
+        same(CacheState.VALID));
     expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.VALID));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.VALID));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.VALID));
@@ -2721,21 +3084,49 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.VALID));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
 
-    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.HINTS, firstLibrary), same(CacheState.ERROR));
-    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary), same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.HINTS, firstLibrary),
+        same(CacheState.ERROR));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary),
+        same(CacheState.ERROR));
 
-    expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.HINTS, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, secondLibrary), same(CacheState.VALID));
-    expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, secondLibrary), same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.BUILT_UNIT, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.HINTS, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, secondLibrary),
+        same(CacheState.VALID));
+    expect(
+        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, secondLibrary),
+        same(CacheState.VALID));
   }
 
   void test_removeResolution_multiple_first() {
@@ -2811,7 +3202,8 @@ class DartEntryTest extends EngineTestCase {
   void test_resolvableCompilationUnit_builtUnit() {
     Source librarySource = new TestSource('/lib.dart');
     CompilationUnit unit = AstFactory.compilationUnit();
-    CompilationUnitElement element = ElementFactory.compilationUnit('test.dart');
+    CompilationUnitElement element =
+        ElementFactory.compilationUnit('test.dart');
     unit.element = element;
     DartEntry entry = new DartEntry();
     entry.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
@@ -2839,7 +3231,8 @@ class DartEntryTest extends EngineTestCase {
   void test_resolvableCompilationUnit_resolved() {
     Source librarySource = new TestSource('/lib.dart');
     CompilationUnit unit = AstFactory.compilationUnit();
-    CompilationUnitElement element = ElementFactory.compilationUnit('test.dart');
+    CompilationUnitElement element =
+        ElementFactory.compilationUnit('test.dart');
     unit.element = element;
     DartEntry entry = new DartEntry();
     entry.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
@@ -2907,8 +3300,8 @@ class DartEntryTest extends EngineTestCase {
       fail("Expected IllegalArgumentException for VERIFICATION_ERRORS");
     } on ArgumentError catch (exception) {
       // Expected
-     }
-   }
+    }
+  }
 
   void test_setState_isClient() {
     _setState(DartEntry.IS_CLIENT);
@@ -2922,12 +3315,12 @@ class DartEntryTest extends EngineTestCase {
     _setState(SourceEntry.LINE_INFO);
   }
 
-  void test_setState_parseErrors() {
-    _setState(DartEntry.PARSE_ERRORS);
-  }
-
   void test_setState_parsedUnit() {
     _setState(DartEntry.PARSED_UNIT);
+  }
+
+  void test_setState_parseErrors() {
+    _setState(DartEntry.PARSE_ERRORS);
   }
 
   void test_setState_publicNamespace() {
@@ -2994,15 +3387,15 @@ class DartEntryTest extends EngineTestCase {
     _setValue(SourceEntry.LINE_INFO, new LineInfo(<int>[0]));
   }
 
+  void test_setValue_parsedUnit() {
+    _setValue(DartEntry.PARSED_UNIT, AstFactory.compilationUnit());
+  }
+
   void test_setValue_parseErrors() {
     _setValue(
         DartEntry.PARSE_ERRORS,
         <AnalysisError>[
             new AnalysisError.con1(null, ParserErrorCode.ABSTRACT_CLASS_MEMBER)]);
-  }
-
-  void test_setValue_parsedUnit() {
-    _setValue(DartEntry.PARSED_UNIT, AstFactory.compilationUnit());
   }
 
   void test_setValue_publicNamespace() {
@@ -3072,7 +3465,10 @@ class DartEntryTest extends EngineTestCase {
       entry.setValueInLibrary(DartEntry.HINTS, firstLibrary, null);
       entry.setValueInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary, null);
       entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary, null);
-      entry.setValueInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary, null);
+      entry.setValueInLibrary(
+          DartEntry.VERIFICATION_ERRORS,
+          firstLibrary,
+          null);
     }
     if (secondLibrary != null) {
       entry.setValueInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary, null);
@@ -3081,17 +3477,26 @@ class DartEntryTest extends EngineTestCase {
       entry.setValueInLibrary(DartEntry.HINTS, secondLibrary, null);
       entry.setValueInLibrary(DartEntry.RESOLUTION_ERRORS, secondLibrary, null);
       entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, secondLibrary, null);
-      entry.setValueInLibrary(DartEntry.VERIFICATION_ERRORS, secondLibrary, null);
+      entry.setValueInLibrary(
+          DartEntry.VERIFICATION_ERRORS,
+          secondLibrary,
+          null);
     }
     //
     // Validate that the state was set correctly.
     //
     expect(entry.getState(SourceEntry.CONTENT), same(CacheState.VALID));
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.CONTAINING_LIBRARIES), same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.CONTAINING_LIBRARIES),
+        same(CacheState.VALID));
     expect(entry.getState(DartEntry.ELEMENT), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.EXPORTED_LIBRARIES), same(CacheState.VALID));
-    expect(entry.getState(DartEntry.IMPORTED_LIBRARIES), same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.EXPORTED_LIBRARIES),
+        same(CacheState.VALID));
+    expect(
+        entry.getState(DartEntry.IMPORTED_LIBRARIES),
+        same(CacheState.VALID));
     expect(entry.getState(DartEntry.INCLUDED_PARTS), same(CacheState.VALID));
     expect(entry.getState(DartEntry.IS_CLIENT), same(CacheState.VALID));
     expect(entry.getState(DartEntry.IS_LAUNCHABLE), same(CacheState.VALID));
@@ -3102,22 +3507,50 @@ class DartEntryTest extends EngineTestCase {
     expect(entry.getState(DartEntry.SOURCE_KIND), same(CacheState.VALID));
     expect(entry.getState(DartEntry.TOKEN_STREAM), same(CacheState.VALID));
     if (firstLibrary != null) {
-      expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary), same(CacheState.VALID));
-      expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary), same(CacheState.VALID));
-      expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary), same(CacheState.VALID));
-      expect(entry.getStateInLibrary(DartEntry.HINTS, firstLibrary), same(CacheState.VALID));
-      expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary), same(CacheState.VALID));
-      expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary), same(CacheState.VALID));
-      expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary), same(CacheState.VALID));
+      expect(
+          entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, firstLibrary),
+          same(CacheState.VALID));
+      expect(
+          entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, firstLibrary),
+          same(CacheState.VALID));
+      expect(
+          entry.getStateInLibrary(DartEntry.BUILT_UNIT, firstLibrary),
+          same(CacheState.VALID));
+      expect(
+          entry.getStateInLibrary(DartEntry.HINTS, firstLibrary),
+          same(CacheState.VALID));
+      expect(
+          entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, firstLibrary),
+          same(CacheState.VALID));
+      expect(
+          entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, firstLibrary),
+          same(CacheState.VALID));
+      expect(
+          entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, firstLibrary),
+          same(CacheState.VALID));
     }
     if (secondLibrary != null) {
-      expect(entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary), same(CacheState.VALID));
-      expect(entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary), same(CacheState.VALID));
-      expect(entry.getStateInLibrary(DartEntry.BUILT_UNIT, secondLibrary), same(CacheState.VALID));
-      expect(entry.getStateInLibrary(DartEntry.HINTS, secondLibrary), same(CacheState.VALID));
-      expect(entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, secondLibrary), same(CacheState.VALID));
-      expect(entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, secondLibrary), same(CacheState.VALID));
-      expect(entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, secondLibrary), same(CacheState.VALID));
+      expect(
+          entry.getStateInLibrary(DartEntry.ANGULAR_ERRORS, secondLibrary),
+          same(CacheState.VALID));
+      expect(
+          entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, secondLibrary),
+          same(CacheState.VALID));
+      expect(
+          entry.getStateInLibrary(DartEntry.BUILT_UNIT, secondLibrary),
+          same(CacheState.VALID));
+      expect(
+          entry.getStateInLibrary(DartEntry.HINTS, secondLibrary),
+          same(CacheState.VALID));
+      expect(
+          entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, secondLibrary),
+          same(CacheState.VALID));
+      expect(
+          entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, secondLibrary),
+          same(CacheState.VALID));
+      expect(
+          entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, secondLibrary),
+          same(CacheState.VALID));
     }
     return entry;
   }
@@ -3132,9 +3565,13 @@ class DartEntryTest extends EngineTestCase {
   void _setStateInLibrary(DataDescriptor descriptor) {
     Source source = new TestSource();
     DartEntry entry = new DartEntry();
-    expect(entry.getStateInLibrary(descriptor, source), isNot(same(CacheState.FLUSHED)));
+    expect(
+        entry.getStateInLibrary(descriptor, source),
+        isNot(same(CacheState.FLUSHED)));
     entry.setStateInLibrary(descriptor, source, CacheState.FLUSHED);
-    expect(entry.getStateInLibrary(descriptor, source), same(CacheState.FLUSHED));
+    expect(
+        entry.getStateInLibrary(descriptor, source),
+        same(CacheState.FLUSHED));
   }
 
   void _setValue(DataDescriptor descriptor, Object newValue) {
@@ -3194,9 +3631,7 @@ class GenerateDartErrorsTaskTest extends EngineTestCase {
     ChangeSet changeSet = new ChangeSet();
     changeSet.addedSource(source);
     context.applyChanges(changeSet);
-    context.setContents(
-        source,
-        r'''
+    context.setContents(source, r'''
 library lib;
 class A {
   int f = new A();
@@ -3204,11 +3639,8 @@ class A {
     LibraryElement libraryElement = context.computeLibraryElement(source);
     CompilationUnit unit =
         context.getResolvedCompilationUnit(source, libraryElement);
-    GenerateDartErrorsTask task = new GenerateDartErrorsTask(
-        context,
-        source,
-        unit,
-        libraryElement);
+    GenerateDartErrorsTask task =
+        new GenerateDartErrorsTask(context, source, unit, libraryElement);
     task.perform(
         new GenerateDartErrorsTaskTestTV_perform(libraryElement, source));
   }
@@ -3227,20 +3659,15 @@ class A {
 //        "export '\${a}lib3.dart';",
 //        "part '/does/not/exist.dart';",
 //        "class A {}"]));
-    context.setContents(
-        source,
-        r'''
+    context.setContents(source, r'''
 library lib;
 part '/does/not/exist.dart';
 class A {}''');
     LibraryElement libraryElement = context.computeLibraryElement(source);
     CompilationUnit unit =
         context.getResolvedCompilationUnit(source, libraryElement);
-    GenerateDartErrorsTask task = new GenerateDartErrorsTask(
-        context,
-        source,
-        unit,
-        libraryElement);
+    GenerateDartErrorsTask task =
+        new GenerateDartErrorsTask(context, source, unit, libraryElement);
     task.perform(
         new GenerateDartErrorsTaskTestTV_perform_validateDirectives(
             libraryElement,
@@ -3328,18 +3755,12 @@ class GenerateDartHintsTaskTest extends EngineTestCase {
         new FileBasedSource.con1(FileUtilities2.createFile("/part.dart"));
     changeSet.addedSource(partSource);
     context.applyChanges(changeSet);
-    context.setContents(
-        librarySource,
-        r'''
+    context.setContents(librarySource, r'''
 library lib;
 import 'unused.dart';
 part 'part.dart';''');
-    context.setContents(
-        unusedSource,
-        "library unused;");
-    context.setContents(
-        partSource,
-        "part of lib;");
+    context.setContents(unusedSource, "library unused;");
+    context.setContents(partSource, "part of lib;");
     List<TimestampedData<CompilationUnit>> units = new List<TimestampedData>(2);
     units[0] = new TimestampedData<CompilationUnit>(
         context.getModificationStamp(librarySource),
@@ -3505,37 +3926,57 @@ class HtmlEntryTest extends EngineTestCase {
   void test_invalidateAllResolutionInformation() {
     HtmlEntry entry = _entryWithValidState();
     entry.invalidateAllResolutionInformation(false);
-    expect(entry.getState(HtmlEntry.ANGULAR_APPLICATION), same(CacheState.VALID));
+    expect(
+        entry.getState(HtmlEntry.ANGULAR_APPLICATION),
+        same(CacheState.VALID));
     expect(entry.getState(HtmlEntry.ANGULAR_COMPONENT), same(CacheState.VALID));
     expect(entry.getState(HtmlEntry.ANGULAR_ENTRY), same(CacheState.INVALID));
     expect(entry.getState(HtmlEntry.ANGULAR_ERRORS), same(CacheState.INVALID));
-    expect(entry.getState(HtmlEntry.POLYMER_BUILD_ERRORS), same(CacheState.INVALID));
-    expect(entry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS), same(CacheState.INVALID));
+    expect(
+        entry.getState(HtmlEntry.POLYMER_BUILD_ERRORS),
+        same(CacheState.INVALID));
+    expect(
+        entry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS),
+        same(CacheState.INVALID));
     expect(entry.getState(HtmlEntry.ELEMENT), same(CacheState.INVALID));
     expect(entry.getState(HtmlEntry.HINTS), same(CacheState.INVALID));
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
     expect(entry.getState(HtmlEntry.PARSE_ERRORS), same(CacheState.VALID));
     expect(entry.getState(HtmlEntry.PARSED_UNIT), same(CacheState.VALID));
-    expect(entry.getState(HtmlEntry.REFERENCED_LIBRARIES), same(CacheState.VALID));
-    expect(entry.getState(HtmlEntry.RESOLUTION_ERRORS), same(CacheState.INVALID));
+    expect(
+        entry.getState(HtmlEntry.REFERENCED_LIBRARIES),
+        same(CacheState.VALID));
+    expect(
+        entry.getState(HtmlEntry.RESOLUTION_ERRORS),
+        same(CacheState.INVALID));
   }
 
   void test_invalidateAllResolutionInformation_includingUris() {
     HtmlEntry entry = _entryWithValidState();
     entry.invalidateAllResolutionInformation(true);
-    expect(entry.getState(HtmlEntry.ANGULAR_APPLICATION), same(CacheState.VALID));
+    expect(
+        entry.getState(HtmlEntry.ANGULAR_APPLICATION),
+        same(CacheState.VALID));
     expect(entry.getState(HtmlEntry.ANGULAR_COMPONENT), same(CacheState.VALID));
     expect(entry.getState(HtmlEntry.ANGULAR_ENTRY), same(CacheState.INVALID));
     expect(entry.getState(HtmlEntry.ANGULAR_ERRORS), same(CacheState.INVALID));
-    expect(entry.getState(HtmlEntry.POLYMER_BUILD_ERRORS), same(CacheState.INVALID));
-    expect(entry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS), same(CacheState.INVALID));
+    expect(
+        entry.getState(HtmlEntry.POLYMER_BUILD_ERRORS),
+        same(CacheState.INVALID));
+    expect(
+        entry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS),
+        same(CacheState.INVALID));
     expect(entry.getState(HtmlEntry.ELEMENT), same(CacheState.INVALID));
     expect(entry.getState(HtmlEntry.HINTS), same(CacheState.INVALID));
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
     expect(entry.getState(HtmlEntry.PARSE_ERRORS), same(CacheState.VALID));
     expect(entry.getState(HtmlEntry.PARSED_UNIT), same(CacheState.VALID));
-    expect(entry.getState(HtmlEntry.REFERENCED_LIBRARIES), same(CacheState.INVALID));
-    expect(entry.getState(HtmlEntry.RESOLUTION_ERRORS), same(CacheState.INVALID));
+    expect(
+        entry.getState(HtmlEntry.REFERENCED_LIBRARIES),
+        same(CacheState.INVALID));
+    expect(
+        entry.getState(HtmlEntry.RESOLUTION_ERRORS),
+        same(CacheState.INVALID));
   }
 
   void test_setState_angularErrors() {
@@ -3554,12 +3995,12 @@ class HtmlEntryTest extends EngineTestCase {
     state = SourceEntry.LINE_INFO;
   }
 
-  void test_setState_parseErrors() {
-    state = HtmlEntry.PARSE_ERRORS;
-  }
-
   void test_setState_parsedUnit() {
     state = HtmlEntry.PARSED_UNIT;
+  }
+
+  void test_setState_parseErrors() {
+    state = HtmlEntry.PARSE_ERRORS;
   }
 
   void test_setState_polymerBuildErrors() {
@@ -3608,15 +4049,15 @@ class HtmlEntryTest extends EngineTestCase {
     _setValue(SourceEntry.LINE_INFO, new LineInfo(<int>[0]));
   }
 
+  void test_setValue_parsedUnit() {
+    _setValue(HtmlEntry.PARSED_UNIT, new ht.HtmlUnit(null, null, null));
+  }
+
   void test_setValue_parseErrors() {
     _setValue(
         HtmlEntry.PARSE_ERRORS,
         <AnalysisError>[
             new AnalysisError.con1(null, HtmlWarningCode.INVALID_URI, ["-"])]);
-  }
-
-  void test_setValue_parsedUnit() {
-    _setValue(HtmlEntry.PARSED_UNIT, new ht.HtmlUnit(null, null, null));
   }
 
   void test_setValue_polymerBuildErrors() {
@@ -3664,9 +4105,15 @@ class HtmlEntryTest extends EngineTestCase {
     expect(entry.getState(SourceEntry.LINE_INFO), same(CacheState.VALID));
     expect(entry.getState(HtmlEntry.PARSE_ERRORS), same(CacheState.VALID));
     expect(entry.getState(HtmlEntry.PARSED_UNIT), same(CacheState.VALID));
-    expect(entry.getState(HtmlEntry.POLYMER_BUILD_ERRORS), same(CacheState.VALID));
-    expect(entry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS), same(CacheState.VALID));
-    expect(entry.getState(HtmlEntry.REFERENCED_LIBRARIES), same(CacheState.VALID));
+    expect(
+        entry.getState(HtmlEntry.POLYMER_BUILD_ERRORS),
+        same(CacheState.VALID));
+    expect(
+        entry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS),
+        same(CacheState.VALID));
+    expect(
+        entry.getState(HtmlEntry.REFERENCED_LIBRARIES),
+        same(CacheState.VALID));
     expect(entry.getState(HtmlEntry.RESOLUTION_ERRORS), same(CacheState.VALID));
     return entry;
   }
@@ -4284,7 +4731,8 @@ class IncrementalAnalysisTaskTestTV_assertTask extends
 
 class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   void test_addSourceInfo() {
-    TestAnalysisContext_test_addSourceInfo innerContext = new TestAnalysisContext_test_addSourceInfo();
+    TestAnalysisContext_test_addSourceInfo innerContext =
+        new TestAnalysisContext_test_addSourceInfo();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.addSourceInfo(null, null);
@@ -4292,7 +4740,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_applyChanges() {
-    TestAnalysisContext_test_applyChanges innerContext = new TestAnalysisContext_test_applyChanges();
+    TestAnalysisContext_test_applyChanges innerContext =
+        new TestAnalysisContext_test_applyChanges();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.applyChanges(null);
@@ -4300,7 +4749,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_computeDocumentationComment() {
-    TestAnalysisContext_test_computeDocumentationComment innerContext = new TestAnalysisContext_test_computeDocumentationComment();
+    TestAnalysisContext_test_computeDocumentationComment innerContext =
+        new TestAnalysisContext_test_computeDocumentationComment();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.computeDocumentationComment(null);
@@ -4308,7 +4758,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_computeErrors() {
-    TestAnalysisContext_test_computeErrors innerContext = new TestAnalysisContext_test_computeErrors();
+    TestAnalysisContext_test_computeErrors innerContext =
+        new TestAnalysisContext_test_computeErrors();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.computeErrors(null);
@@ -4316,7 +4767,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_computeExportedLibraries() {
-    TestAnalysisContext_test_computeExportedLibraries innerContext = new TestAnalysisContext_test_computeExportedLibraries();
+    TestAnalysisContext_test_computeExportedLibraries innerContext =
+        new TestAnalysisContext_test_computeExportedLibraries();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.computeExportedLibraries(null);
@@ -4324,7 +4776,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_computeHtmlElement() {
-    TestAnalysisContext_test_computeHtmlElement innerContext = new TestAnalysisContext_test_computeHtmlElement();
+    TestAnalysisContext_test_computeHtmlElement innerContext =
+        new TestAnalysisContext_test_computeHtmlElement();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.computeHtmlElement(null);
@@ -4332,7 +4785,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_computeImportedLibraries() {
-    TestAnalysisContext_test_computeImportedLibraries innerContext = new TestAnalysisContext_test_computeImportedLibraries();
+    TestAnalysisContext_test_computeImportedLibraries innerContext =
+        new TestAnalysisContext_test_computeImportedLibraries();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.computeImportedLibraries(null);
@@ -4340,7 +4794,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_computeKindOf() {
-    TestAnalysisContext_test_computeKindOf innerContext = new TestAnalysisContext_test_computeKindOf();
+    TestAnalysisContext_test_computeKindOf innerContext =
+        new TestAnalysisContext_test_computeKindOf();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.computeKindOf(null);
@@ -4348,7 +4803,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_computeLibraryElement() {
-    TestAnalysisContext_test_computeLibraryElement innerContext = new TestAnalysisContext_test_computeLibraryElement();
+    TestAnalysisContext_test_computeLibraryElement innerContext =
+        new TestAnalysisContext_test_computeLibraryElement();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.computeLibraryElement(null);
@@ -4356,7 +4812,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_computeLineInfo() {
-    TestAnalysisContext_test_computeLineInfo innerContext = new TestAnalysisContext_test_computeLineInfo();
+    TestAnalysisContext_test_computeLineInfo innerContext =
+        new TestAnalysisContext_test_computeLineInfo();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.computeLineInfo(null);
@@ -4364,7 +4821,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_computeResolvableCompilationUnit() {
-    TestAnalysisContext_test_computeResolvableCompilationUnit innerContext = new TestAnalysisContext_test_computeResolvableCompilationUnit();
+    TestAnalysisContext_test_computeResolvableCompilationUnit innerContext =
+        new TestAnalysisContext_test_computeResolvableCompilationUnit();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.computeResolvableCompilationUnit(null);
@@ -4376,7 +4834,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_dispose() {
-    TestAnalysisContext_test_dispose innerContext = new TestAnalysisContext_test_dispose();
+    TestAnalysisContext_test_dispose innerContext =
+        new TestAnalysisContext_test_dispose();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.dispose();
@@ -4384,7 +4843,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_exists() {
-    TestAnalysisContext_test_exists innerContext = new TestAnalysisContext_test_exists();
+    TestAnalysisContext_test_exists innerContext =
+        new TestAnalysisContext_test_exists();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.exists(null);
@@ -4392,7 +4852,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getAnalysisOptions() {
-    TestAnalysisContext_test_getAnalysisOptions innerContext = new TestAnalysisContext_test_getAnalysisOptions();
+    TestAnalysisContext_test_getAnalysisOptions innerContext =
+        new TestAnalysisContext_test_getAnalysisOptions();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.analysisOptions;
@@ -4400,7 +4861,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getAngularApplicationWithHtml() {
-    TestAnalysisContext_test_getAngularApplicationWithHtml innerContext = new TestAnalysisContext_test_getAngularApplicationWithHtml();
+    TestAnalysisContext_test_getAngularApplicationWithHtml innerContext =
+        new TestAnalysisContext_test_getAngularApplicationWithHtml();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getAngularApplicationWithHtml(null);
@@ -4408,7 +4870,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getCompilationUnitElement() {
-    TestAnalysisContext_test_getCompilationUnitElement innerContext = new TestAnalysisContext_test_getCompilationUnitElement();
+    TestAnalysisContext_test_getCompilationUnitElement innerContext =
+        new TestAnalysisContext_test_getCompilationUnitElement();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getCompilationUnitElement(null, null);
@@ -4416,7 +4879,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getContents() {
-    TestAnalysisContext_test_getContents innerContext = new TestAnalysisContext_test_getContents();
+    TestAnalysisContext_test_getContents innerContext =
+        new TestAnalysisContext_test_getContents();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getContents(null);
@@ -4432,7 +4896,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
 //  }
 
   void test_getElement() {
-    TestAnalysisContext_test_getElement innerContext = new TestAnalysisContext_test_getElement();
+    TestAnalysisContext_test_getElement innerContext =
+        new TestAnalysisContext_test_getElement();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getElement(null);
@@ -4440,7 +4905,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getErrors() {
-    TestAnalysisContext_test_getErrors innerContext = new TestAnalysisContext_test_getErrors();
+    TestAnalysisContext_test_getErrors innerContext =
+        new TestAnalysisContext_test_getErrors();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getErrors(null);
@@ -4448,7 +4914,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getHtmlElement() {
-    TestAnalysisContext_test_getHtmlElement innerContext = new TestAnalysisContext_test_getHtmlElement();
+    TestAnalysisContext_test_getHtmlElement innerContext =
+        new TestAnalysisContext_test_getHtmlElement();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getHtmlElement(null);
@@ -4456,7 +4923,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getHtmlFilesReferencing() {
-    TestAnalysisContext_test_getHtmlFilesReferencing innerContext = new TestAnalysisContext_test_getHtmlFilesReferencing();
+    TestAnalysisContext_test_getHtmlFilesReferencing innerContext =
+        new TestAnalysisContext_test_getHtmlFilesReferencing();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getHtmlFilesReferencing(null);
@@ -4464,7 +4932,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getHtmlSources() {
-    TestAnalysisContext_test_getHtmlSources innerContext = new TestAnalysisContext_test_getHtmlSources();
+    TestAnalysisContext_test_getHtmlSources innerContext =
+        new TestAnalysisContext_test_getHtmlSources();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.htmlSources;
@@ -4472,7 +4941,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getKindOf() {
-    TestAnalysisContext_test_getKindOf innerContext = new TestAnalysisContext_test_getKindOf();
+    TestAnalysisContext_test_getKindOf innerContext =
+        new TestAnalysisContext_test_getKindOf();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getKindOf(null);
@@ -4480,7 +4950,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getLaunchableClientLibrarySources() {
-    TestAnalysisContext_test_getLaunchableClientLibrarySources innerContext = new TestAnalysisContext_test_getLaunchableClientLibrarySources();
+    TestAnalysisContext_test_getLaunchableClientLibrarySources innerContext =
+        new TestAnalysisContext_test_getLaunchableClientLibrarySources();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.launchableClientLibrarySources;
@@ -4488,7 +4959,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getLaunchableServerLibrarySources() {
-    TestAnalysisContext_test_getLaunchableServerLibrarySources innerContext = new TestAnalysisContext_test_getLaunchableServerLibrarySources();
+    TestAnalysisContext_test_getLaunchableServerLibrarySources innerContext =
+        new TestAnalysisContext_test_getLaunchableServerLibrarySources();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.launchableServerLibrarySources;
@@ -4496,7 +4968,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getLibrariesContaining() {
-    TestAnalysisContext_test_getLibrariesContaining innerContext = new TestAnalysisContext_test_getLibrariesContaining();
+    TestAnalysisContext_test_getLibrariesContaining innerContext =
+        new TestAnalysisContext_test_getLibrariesContaining();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getLibrariesContaining(null);
@@ -4504,7 +4977,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getLibrariesDependingOn() {
-    TestAnalysisContext_test_getLibrariesDependingOn innerContext = new TestAnalysisContext_test_getLibrariesDependingOn();
+    TestAnalysisContext_test_getLibrariesDependingOn innerContext =
+        new TestAnalysisContext_test_getLibrariesDependingOn();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getLibrariesDependingOn(null);
@@ -4512,7 +4986,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getLibrariesReferencedFromHtml() {
-    TestAnalysisContext_test_getLibrariesReferencedFromHtml innerContext = new TestAnalysisContext_test_getLibrariesReferencedFromHtml();
+    TestAnalysisContext_test_getLibrariesReferencedFromHtml innerContext =
+        new TestAnalysisContext_test_getLibrariesReferencedFromHtml();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getLibrariesReferencedFromHtml(null);
@@ -4520,7 +4995,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getLibraryElement() {
-    TestAnalysisContext_test_getLibraryElement innerContext = new TestAnalysisContext_test_getLibraryElement();
+    TestAnalysisContext_test_getLibraryElement innerContext =
+        new TestAnalysisContext_test_getLibraryElement();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getLibraryElement(null);
@@ -4528,7 +5004,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getLibrarySources() {
-    TestAnalysisContext_test_getLibrarySources innerContext = new TestAnalysisContext_test_getLibrarySources();
+    TestAnalysisContext_test_getLibrarySources innerContext =
+        new TestAnalysisContext_test_getLibrarySources();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.librarySources;
@@ -4536,7 +5013,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getLineInfo() {
-    TestAnalysisContext_test_getLineInfo innerContext = new TestAnalysisContext_test_getLineInfo();
+    TestAnalysisContext_test_getLineInfo innerContext =
+        new TestAnalysisContext_test_getLineInfo();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getLineInfo(null);
@@ -4544,7 +5022,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getModificationStamp() {
-    TestAnalysisContext_test_getModificationStamp innerContext = new TestAnalysisContext_test_getModificationStamp();
+    TestAnalysisContext_test_getModificationStamp innerContext =
+        new TestAnalysisContext_test_getModificationStamp();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getModificationStamp(null);
@@ -4552,7 +5031,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getPublicNamespace() {
-    TestAnalysisContext_test_getPublicNamespace innerContext = new TestAnalysisContext_test_getPublicNamespace();
+    TestAnalysisContext_test_getPublicNamespace innerContext =
+        new TestAnalysisContext_test_getPublicNamespace();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getPublicNamespace(null);
@@ -4560,7 +5040,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getRefactoringUnsafeSources() {
-    TestAnalysisContext_test_getRefactoringUnsafeSources innerContext = new TestAnalysisContext_test_getRefactoringUnsafeSources();
+    TestAnalysisContext_test_getRefactoringUnsafeSources innerContext =
+        new TestAnalysisContext_test_getRefactoringUnsafeSources();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.refactoringUnsafeSources;
@@ -4568,7 +5049,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getResolvedCompilationUnit_element() {
-    TestAnalysisContext_test_getResolvedCompilationUnit_element innerContext = new TestAnalysisContext_test_getResolvedCompilationUnit_element();
+    TestAnalysisContext_test_getResolvedCompilationUnit_element innerContext =
+        new TestAnalysisContext_test_getResolvedCompilationUnit_element();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getResolvedCompilationUnit(null, null);
@@ -4576,7 +5058,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getResolvedCompilationUnit_source() {
-    TestAnalysisContext_test_getResolvedCompilationUnit_source innerContext = new TestAnalysisContext_test_getResolvedCompilationUnit_source();
+    TestAnalysisContext_test_getResolvedCompilationUnit_source innerContext =
+        new TestAnalysisContext_test_getResolvedCompilationUnit_source();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getResolvedCompilationUnit2(null, null);
@@ -4584,7 +5067,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getResolvedHtmlUnit() {
-    TestAnalysisContext_test_getResolvedHtmlUnit innerContext = new TestAnalysisContext_test_getResolvedHtmlUnit();
+    TestAnalysisContext_test_getResolvedHtmlUnit innerContext =
+        new TestAnalysisContext_test_getResolvedHtmlUnit();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.getResolvedHtmlUnit(null);
@@ -4592,7 +5076,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getSourceFactory() {
-    TestAnalysisContext_test_getSourceFactory innerContext = new TestAnalysisContext_test_getSourceFactory();
+    TestAnalysisContext_test_getSourceFactory innerContext =
+        new TestAnalysisContext_test_getSourceFactory();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.sourceFactory;
@@ -4600,7 +5085,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getStatistics() {
-    TestAnalysisContext_test_getStatistics innerContext = new TestAnalysisContext_test_getStatistics();
+    TestAnalysisContext_test_getStatistics innerContext =
+        new TestAnalysisContext_test_getStatistics();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.statistics;
@@ -4608,7 +5094,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_getTypeProvider() {
-    TestAnalysisContext_test_getTypeProvider innerContext = new TestAnalysisContext_test_getTypeProvider();
+    TestAnalysisContext_test_getTypeProvider innerContext =
+        new TestAnalysisContext_test_getTypeProvider();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.typeProvider;
@@ -4616,7 +5103,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_isClientLibrary() {
-    TestAnalysisContext_test_isClientLibrary innerContext = new TestAnalysisContext_test_isClientLibrary();
+    TestAnalysisContext_test_isClientLibrary innerContext =
+        new TestAnalysisContext_test_isClientLibrary();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.isClientLibrary(null);
@@ -4624,7 +5112,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_isDisposed() {
-    TestAnalysisContext_test_isDisposed innerContext = new TestAnalysisContext_test_isDisposed();
+    TestAnalysisContext_test_isDisposed innerContext =
+        new TestAnalysisContext_test_isDisposed();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.isDisposed;
@@ -4632,7 +5121,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_isServerLibrary() {
-    TestAnalysisContext_test_isServerLibrary innerContext = new TestAnalysisContext_test_isServerLibrary();
+    TestAnalysisContext_test_isServerLibrary innerContext =
+        new TestAnalysisContext_test_isServerLibrary();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.isServerLibrary(null);
@@ -4640,7 +5130,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_parseCompilationUnit() {
-    TestAnalysisContext_test_parseCompilationUnit innerContext = new TestAnalysisContext_test_parseCompilationUnit();
+    TestAnalysisContext_test_parseCompilationUnit innerContext =
+        new TestAnalysisContext_test_parseCompilationUnit();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.parseCompilationUnit(null);
@@ -4648,7 +5139,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_parseHtmlUnit() {
-    TestAnalysisContext_test_parseHtmlUnit innerContext = new TestAnalysisContext_test_parseHtmlUnit();
+    TestAnalysisContext_test_parseHtmlUnit innerContext =
+        new TestAnalysisContext_test_parseHtmlUnit();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.parseHtmlUnit(null);
@@ -4656,7 +5148,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_performAnalysisTask() {
-    TestAnalysisContext_test_performAnalysisTask innerContext = new TestAnalysisContext_test_performAnalysisTask();
+    TestAnalysisContext_test_performAnalysisTask innerContext =
+        new TestAnalysisContext_test_performAnalysisTask();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.performAnalysisTask();
@@ -4664,7 +5157,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_recordLibraryElements() {
-    TestAnalysisContext_test_recordLibraryElements innerContext = new TestAnalysisContext_test_recordLibraryElements();
+    TestAnalysisContext_test_recordLibraryElements innerContext =
+        new TestAnalysisContext_test_recordLibraryElements();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.recordLibraryElements(null);
@@ -4672,7 +5166,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_resolveCompilationUnit() {
-    TestAnalysisContext_test_resolveCompilationUnit innerContext = new TestAnalysisContext_test_resolveCompilationUnit();
+    TestAnalysisContext_test_resolveCompilationUnit innerContext =
+        new TestAnalysisContext_test_resolveCompilationUnit();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.resolveCompilationUnit2(null, null);
@@ -4680,7 +5175,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_resolveCompilationUnit_element() {
-    TestAnalysisContext_test_resolveCompilationUnit_element innerContext = new TestAnalysisContext_test_resolveCompilationUnit_element();
+    TestAnalysisContext_test_resolveCompilationUnit_element innerContext =
+        new TestAnalysisContext_test_resolveCompilationUnit_element();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.resolveCompilationUnit(null, null);
@@ -4688,7 +5184,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_resolveHtmlUnit() {
-    TestAnalysisContext_test_resolveHtmlUnit innerContext = new TestAnalysisContext_test_resolveHtmlUnit();
+    TestAnalysisContext_test_resolveHtmlUnit innerContext =
+        new TestAnalysisContext_test_resolveHtmlUnit();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.resolveHtmlUnit(null);
@@ -4696,7 +5193,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_setAnalysisOptions() {
-    TestAnalysisContext_test_setAnalysisOptions innerContext = new TestAnalysisContext_test_setAnalysisOptions();
+    TestAnalysisContext_test_setAnalysisOptions innerContext =
+        new TestAnalysisContext_test_setAnalysisOptions();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.analysisOptions = null;
@@ -4704,7 +5202,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_setAnalysisPriorityOrder() {
-    TestAnalysisContext_test_setAnalysisPriorityOrder innerContext = new TestAnalysisContext_test_setAnalysisPriorityOrder();
+    TestAnalysisContext_test_setAnalysisPriorityOrder innerContext =
+        new TestAnalysisContext_test_setAnalysisPriorityOrder();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.analysisPriorityOrder = null;
@@ -4712,7 +5211,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_setChangedContents() {
-    TestAnalysisContext_test_setChangedContents innerContext = new TestAnalysisContext_test_setChangedContents();
+    TestAnalysisContext_test_setChangedContents innerContext =
+        new TestAnalysisContext_test_setChangedContents();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.setChangedContents(null, null, 0, 0, 0);
@@ -4720,7 +5220,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_setContents() {
-    TestAnalysisContext_test_setContents innerContext = new TestAnalysisContext_test_setContents();
+    TestAnalysisContext_test_setContents innerContext =
+        new TestAnalysisContext_test_setContents();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.setContents(null, null);
@@ -4728,7 +5229,8 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
   }
 
   void test_setSourceFactory() {
-    TestAnalysisContext_test_setSourceFactory innerContext = new TestAnalysisContext_test_setSourceFactory();
+    TestAnalysisContext_test_setSourceFactory innerContext =
+        new TestAnalysisContext_test_setSourceFactory();
     InstrumentedAnalysisContextImpl context =
         new InstrumentedAnalysisContextImpl.con1(innerContext);
     context.sourceFactory = null;
@@ -4798,8 +5300,7 @@ class A {''';
   }
 
   void test_perform_part() {
-    String content =
-        r'''
+    String content = r'''
 part of lib;
 class B {}''';
     Source source = new TestSource('/test.dart', content);
@@ -4837,10 +5338,7 @@ class A {}''';
    */
   ParseDartTask _createParseTask(InternalAnalysisContext context, Source source,
       String content) {
-    ScanDartTask scanTask = new ScanDartTask(
-        context,
-        source,
-        content);
+    ScanDartTask scanTask = new ScanDartTask(context, source, content);
     scanTask.perform(new ParseDartTaskTestTV_createParseTask());
     return new ParseDartTask(
         context,
@@ -4926,9 +5424,10 @@ class ParseDartTaskTestTV_perform_validateDirectives extends
     expect(task.compilationUnit, isNotNull);
     GatheringErrorListener errorListener = new GatheringErrorListener();
     errorListener.addAll(task.errors);
-    errorListener.assertErrorsWithCodes([
-        CompileTimeErrorCode.URI_WITH_INTERPOLATION,
-        CompileTimeErrorCode.INVALID_URI]);
+    errorListener.assertErrorsWithCodes(
+        [
+            CompileTimeErrorCode.URI_WITH_INTERPOLATION,
+            CompileTimeErrorCode.INVALID_URI]);
     expect(task.source, same(source));
     expect(task.hasNonPartOfDirective, isTrue);
     expect(task.hasPartOfDirective, isFalse);
@@ -4950,10 +5449,7 @@ class ParseHtmlTaskTest extends EngineTestCase {
     InternalAnalysisContext context = new AnalysisContextImpl();
     context.setContents(source, contents);
     context.sourceFactory = new SourceFactory([new FileUriResolver()]);
-    ParseHtmlTask task = new ParseHtmlTask(
-        context,
-        source,
-        contents);
+    ParseHtmlTask task = new ParseHtmlTask(context, source, contents);
     Logger oldLogger = AnalysisEngine.instance.logger;
     try {
       AnalysisEngine.instance.logger = testLogger;
@@ -5086,6 +5582,19 @@ class ParseHtmlTaskTest extends EngineTestCase {
 }
 
 
+class ParseHtmlTaskTest_non_existing_source extends TestSource {
+  ParseHtmlTaskTest_non_existing_source(String arg0) : super(arg0);
+  @override
+  Uri resolveRelativeUri(Uri containedUri) {
+    try {
+      return parseUriWithException("file:/does/not/exist.dart");
+    } on URISyntaxException catch (exception) {
+      return null;
+    }
+  }
+}
+
+
 class ParseHtmlTaskTestTV_accept extends TestTaskVisitor<bool> {
   @override
   bool visitParseHtmlTask(ParseHtmlTask task) => true;
@@ -5106,19 +5615,6 @@ class ParseHtmlTaskTestTV_parseSource extends TestTaskVisitor<bool> {
     expect(task.lineInfo, isNotNull);
     expect(task.source, same(source));
     return true;
-  }
-}
-
-
-class ParseHtmlTaskTest_non_existing_source extends TestSource {
-  ParseHtmlTaskTest_non_existing_source(String arg0) : super(arg0);
-  @override
-  Uri resolveRelativeUri(Uri containedUri) {
-    try {
-      return parseUriWithException("file:/does/not/exist.dart");
-    } on URISyntaxException catch (exception) {
-      return null;
-    }
   }
 }
 
@@ -5187,9 +5683,7 @@ class ResolveDartLibraryTaskTest extends EngineTestCase {
     task.perform(new ResolveDartLibraryTaskTestTV_perform_exception());
   }
   void test_perform_library() {
-    Source source = new TestSource(
-        '/test.dart',
-        r'''
+    Source source = new TestSource('/test.dart', r'''
 library lib;
 class A {}''');
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
@@ -5289,9 +5783,7 @@ class ResolveDartUnitTaskTest extends EngineTestCase {
     classElement.constructors = <ConstructorElement>[constructorElement];
     unitElement.types = <ClassElement>[classElement];
     Source source = unitElement.source;
-    context.setContents(
-        source,
-        r'''
+    context.setContents(source, r'''
 library lib;
 class A {}''');
     ResolveDartUnitTask task =
@@ -5385,14 +5877,10 @@ class ResolveHtmlTaskTest extends EngineTestCase {
 </html>''';
     Source source = new TestSource("/test.html", content);
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
-    ParseHtmlTask parseTask =
-        new ParseHtmlTask(context, source, content);
+    ParseHtmlTask parseTask = new ParseHtmlTask(context, source, content);
     parseTask.perform(new ResolveHtmlTaskTestTV_perform_valid_2());
-    ResolveHtmlTask task = new ResolveHtmlTask(
-        context,
-        source,
-        modificationStamp,
-        parseTask.htmlUnit);
+    ResolveHtmlTask task =
+        new ResolveHtmlTask(context, source, modificationStamp, parseTask.htmlUnit);
     task.perform(
         new ResolveHtmlTaskTestTV_perform_valid(modificationStamp, source));
   }
@@ -5470,8 +5958,7 @@ class ScanDartTaskTest extends EngineTestCase {
     Source source = new TestSource('test.dart', content);
     InternalAnalysisContext context = new AnalysisContextImpl();
     context.sourceFactory = new SourceFactory([new FileUriResolver()]);
-    ScanDartTask task =
-        new ScanDartTask(context, source, content);
+    ScanDartTask task = new ScanDartTask(context, source, content);
     task.perform(new ScanDartTaskTestTV_perform_valid(context, source));
   }
 }
@@ -5829,8 +6316,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
   @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
-                                     DataDescriptor rowDesc,
-                                     CacheState state)) {
+      DataDescriptor rowDesc, CacheState state)) {
     fail("Unexpected invocation of visitCacheItems");
   }
 }
@@ -6709,15 +7195,6 @@ class _AnalysisCacheTest_test_setMaxCacheSize implements CacheRetentionPolicy {
 }
 
 
-class _AnalysisContextImplTest_test_applyChanges_removeContainer implements
-    SourceContainer {
-  Source libB;
-  _AnalysisContextImplTest_test_applyChanges_removeContainer(this.libB);
-  @override
-  bool contains(Source source) => source == libB;
-}
-
-
 class _AnalysisContext_sourceChangeDuringResolution extends
     AnalysisContextForTests {
   @override
@@ -6727,6 +7204,15 @@ class _AnalysisContext_sourceChangeDuringResolution extends
     applyChanges(changeSet);
     return super.recordResolveDartLibraryTaskResults(task);
   }
+}
+
+
+class _AnalysisContextImplTest_test_applyChanges_removeContainer implements
+    SourceContainer {
+  Source libB;
+  _AnalysisContextImplTest_test_applyChanges_removeContainer(this.libB);
+  @override
+  bool contains(Source source) => source == libB;
 }
 
 

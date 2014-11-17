@@ -8,10 +8,10 @@ import 'dart:async';
 
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/protocol.dart';
-import '../reflective_tests.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
+import '../reflective_tests.dart';
 
 
 main() {
@@ -30,8 +30,8 @@ class AssistsTest extends AbstractAnalysisTest {
   }
 
   void prepareAssistsAt(int offset, int length) {
-    Request request = new EditGetAssistsParams(testFile, offset,
-        length).toRequest('0');
+    Request request =
+        new EditGetAssistsParams(testFile, offset, length).toRequest('0');
     Response response = handleSuccessfulRequest(request);
     var result = new EditGetAssistsResult.fromResponse(response);
     changes = result.assists;

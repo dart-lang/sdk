@@ -5,8 +5,9 @@
 library test.services.correction.levenshtein;
 
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
-import '../../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
+
+import '../../reflective_tests.dart';
 
 
 main() {

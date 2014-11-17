@@ -25,22 +25,6 @@ class NamingConventionsTest extends RefactoringTest {
   @override
   Refactoring get refactoring => null;
 
-  void test_validateClassName_OK() {
-    assertRefactoringStatusOK(validateClassName("NewName"));
-  }
-
-  void test_validateClassName_OK_leadingDollar() {
-    assertRefactoringStatusOK(validateClassName("\$NewName"));
-  }
-
-  void test_validateClassName_OK_leadingUnderscore() {
-    assertRefactoringStatusOK(validateClassName("_NewName"));
-  }
-
-  void test_validateClassName_OK_middleDollar() {
-    assertRefactoringStatusOK(validateClassName("New\$Name"));
-  }
-
   void test_validateClassName_doesNotStartWithLowerCase() {
     assertRefactoringStatus(
         validateClassName("newName"),
@@ -84,19 +68,27 @@ class NamingConventionsTest extends RefactoringTest {
         expectedMessage: "Class name must not be null.");
   }
 
+  void test_validateClassName_OK() {
+    assertRefactoringStatusOK(validateClassName("NewName"));
+  }
+
+  void test_validateClassName_OK_leadingDollar() {
+    assertRefactoringStatusOK(validateClassName("\$NewName"));
+  }
+
+  void test_validateClassName_OK_leadingUnderscore() {
+    assertRefactoringStatusOK(validateClassName("_NewName"));
+  }
+
+  void test_validateClassName_OK_middleDollar() {
+    assertRefactoringStatusOK(validateClassName("New\$Name"));
+  }
+
   void test_validateClassName_trailingBlanks() {
     assertRefactoringStatus(
         validateClassName("NewName "),
         RefactoringProblemSeverity.FATAL,
         expectedMessage: "Class name must not start or end with a blank.");
-  }
-
-  void test_validateConstructorName_OK() {
-    assertRefactoringStatusOK(validateConstructorName("newName"));
-  }
-
-  void test_validateConstructorName_OK_leadingUnderscore() {
-    assertRefactoringStatusOK(validateConstructorName("_newName"));
   }
 
   void test_validateConstructorName_doesNotStartWithLowerCase() {
@@ -139,23 +131,19 @@ class NamingConventionsTest extends RefactoringTest {
         expectedMessage: "Constructor name must not be null.");
   }
 
+  void test_validateConstructorName_OK() {
+    assertRefactoringStatusOK(validateConstructorName("newName"));
+  }
+
+  void test_validateConstructorName_OK_leadingUnderscore() {
+    assertRefactoringStatusOK(validateConstructorName("_newName"));
+  }
+
   void test_validateConstructorName_trailingBlanks() {
     assertRefactoringStatus(
         validateConstructorName("newName "),
         RefactoringProblemSeverity.FATAL,
         expectedMessage: "Constructor name must not start or end with a blank.");
-  }
-
-  void test_validateFieldName_OK() {
-    assertRefactoringStatusOK(validateFieldName("newName"));
-  }
-
-  void test_validateFieldName_OK_leadingUnderscore() {
-    assertRefactoringStatusOK(validateFieldName("_newName"));
-  }
-
-  void test_validateFieldName_OK_middleUnderscore() {
-    assertRefactoringStatusOK(validateFieldName("new_name"));
   }
 
   void test_validateFieldName_doesNotStartWithLowerCase() {
@@ -201,23 +189,23 @@ class NamingConventionsTest extends RefactoringTest {
         expectedMessage: "Field name must not be null.");
   }
 
+  void test_validateFieldName_OK() {
+    assertRefactoringStatusOK(validateFieldName("newName"));
+  }
+
+  void test_validateFieldName_OK_leadingUnderscore() {
+    assertRefactoringStatusOK(validateFieldName("_newName"));
+  }
+
+  void test_validateFieldName_OK_middleUnderscore() {
+    assertRefactoringStatusOK(validateFieldName("new_name"));
+  }
+
   void test_validateFieldName_trailingBlanks() {
     assertRefactoringStatus(
         validateFieldName("newName "),
         RefactoringProblemSeverity.FATAL,
         expectedMessage: "Field name must not start or end with a blank.");
-  }
-
-  void test_validateFunctionName_OK() {
-    assertRefactoringStatusOK(validateFunctionName("newName"));
-  }
-
-  void test_validateFunctionName_OK_leadingUnderscore() {
-    assertRefactoringStatusOK(validateFunctionName("_newName"));
-  }
-
-  void test_validateFunctionName_OK_middleUnderscore() {
-    assertRefactoringStatusOK(validateFunctionName("new_name"));
   }
 
   void test_validateFunctionName_doesNotStartWithLowerCase() {
@@ -263,27 +251,23 @@ class NamingConventionsTest extends RefactoringTest {
         expectedMessage: "Function name must not be null.");
   }
 
+  void test_validateFunctionName_OK() {
+    assertRefactoringStatusOK(validateFunctionName("newName"));
+  }
+
+  void test_validateFunctionName_OK_leadingUnderscore() {
+    assertRefactoringStatusOK(validateFunctionName("_newName"));
+  }
+
+  void test_validateFunctionName_OK_middleUnderscore() {
+    assertRefactoringStatusOK(validateFunctionName("new_name"));
+  }
+
   void test_validateFunctionName_trailingBlanks() {
     assertRefactoringStatus(
         validateFunctionName("newName "),
         RefactoringProblemSeverity.FATAL,
         expectedMessage: "Function name must not start or end with a blank.");
-  }
-
-  void test_validateFunctionTypeAliasName_OK() {
-    assertRefactoringStatusOK(validateFunctionTypeAliasName("NewName"));
-  }
-
-  void test_validateFunctionTypeAliasName_OK_leadingDollar() {
-    assertRefactoringStatusOK(validateFunctionTypeAliasName("\$NewName"));
-  }
-
-  void test_validateFunctionTypeAliasName_OK_leadingUnderscore() {
-    assertRefactoringStatusOK(validateFunctionTypeAliasName("_NewName"));
-  }
-
-  void test_validateFunctionTypeAliasName_OK_middleDollar() {
-    assertRefactoringStatusOK(validateFunctionTypeAliasName("New\$Name"));
   }
 
   void test_validateFunctionTypeAliasName_doesNotStartWithLowerCase() {
@@ -331,24 +315,28 @@ class NamingConventionsTest extends RefactoringTest {
         expectedMessage: "Function type alias name must not be null.");
   }
 
+  void test_validateFunctionTypeAliasName_OK() {
+    assertRefactoringStatusOK(validateFunctionTypeAliasName("NewName"));
+  }
+
+  void test_validateFunctionTypeAliasName_OK_leadingDollar() {
+    assertRefactoringStatusOK(validateFunctionTypeAliasName("\$NewName"));
+  }
+
+  void test_validateFunctionTypeAliasName_OK_leadingUnderscore() {
+    assertRefactoringStatusOK(validateFunctionTypeAliasName("_NewName"));
+  }
+
+  void test_validateFunctionTypeAliasName_OK_middleDollar() {
+    assertRefactoringStatusOK(validateFunctionTypeAliasName("New\$Name"));
+  }
+
   void test_validateFunctionTypeAliasName_trailingBlanks() {
     assertRefactoringStatus(
         validateFunctionTypeAliasName("NewName "),
         RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "Function type alias name must not start or end with a blank.");
-  }
-
-  void test_validateImportPrefixName_OK() {
-    assertRefactoringStatusOK(validateImportPrefixName("newName"));
-  }
-
-  void test_validateImportPrefixName_OK_leadingUnderscore() {
-    assertRefactoringStatusOK(validateImportPrefixName("_newName"));
-  }
-
-  void test_validateImportPrefixName_OK_middleUnderscore() {
-    assertRefactoringStatusOK(validateImportPrefixName("new_name"));
   }
 
   void test_validateImportPrefixName_doesNotStartWithLowerCase() {
@@ -391,27 +379,23 @@ class NamingConventionsTest extends RefactoringTest {
         expectedMessage: "Import prefix name must not be null.");
   }
 
+  void test_validateImportPrefixName_OK() {
+    assertRefactoringStatusOK(validateImportPrefixName("newName"));
+  }
+
+  void test_validateImportPrefixName_OK_leadingUnderscore() {
+    assertRefactoringStatusOK(validateImportPrefixName("_newName"));
+  }
+
+  void test_validateImportPrefixName_OK_middleUnderscore() {
+    assertRefactoringStatusOK(validateImportPrefixName("new_name"));
+  }
+
   void test_validateImportPrefixName_trailingBlanks() {
     assertRefactoringStatus(
         validateImportPrefixName("newName "),
         RefactoringProblemSeverity.FATAL,
         expectedMessage: "Import prefix name must not start or end with a blank.");
-  }
-
-  void test_validateLabelName_OK() {
-    assertRefactoringStatusOK(validateLabelName("newName"));
-  }
-
-  void test_validateLabelName_OK_leadingDollar() {
-    assertRefactoringStatusOK(validateLabelName("\$newName"));
-  }
-
-  void test_validateLabelName_OK_leadingUnderscore() {
-    assertRefactoringStatusOK(validateLabelName("_newName"));
-  }
-
-  void test_validateLabelName_OK_middleUnderscore() {
-    assertRefactoringStatusOK(validateLabelName("new_name"));
   }
 
   void test_validateLabelName_doesNotStartWithLowerCase() {
@@ -457,19 +441,27 @@ class NamingConventionsTest extends RefactoringTest {
         expectedMessage: "Label name must not be null.");
   }
 
+  void test_validateLabelName_OK() {
+    assertRefactoringStatusOK(validateLabelName("newName"));
+  }
+
+  void test_validateLabelName_OK_leadingDollar() {
+    assertRefactoringStatusOK(validateLabelName("\$newName"));
+  }
+
+  void test_validateLabelName_OK_leadingUnderscore() {
+    assertRefactoringStatusOK(validateLabelName("_newName"));
+  }
+
+  void test_validateLabelName_OK_middleUnderscore() {
+    assertRefactoringStatusOK(validateLabelName("new_name"));
+  }
+
   void test_validateLabelName_trailingBlanks() {
     assertRefactoringStatus(
         validateLabelName("newName "),
         RefactoringProblemSeverity.FATAL,
         expectedMessage: "Label name must not start or end with a blank.");
-  }
-
-  void test_validateLibraryName_OK_oneIdentifier() {
-    assertRefactoringStatusOK(validateLibraryName("name"));
-  }
-
-  void test_validateLibraryName_OK_severalIdentifiers() {
-    assertRefactoringStatusOK(validateLibraryName("my.library.name"));
   }
 
   void test_validateLibraryName_blank() {
@@ -531,23 +523,19 @@ class NamingConventionsTest extends RefactoringTest {
         expectedMessage: "Library name must not be null.");
   }
 
+  void test_validateLibraryName_OK_oneIdentifier() {
+    assertRefactoringStatusOK(validateLibraryName("name"));
+  }
+
+  void test_validateLibraryName_OK_severalIdentifiers() {
+    assertRefactoringStatusOK(validateLibraryName("my.library.name"));
+  }
+
   void test_validateLibraryName_trailingBlanks() {
     assertRefactoringStatus(
         validateLibraryName("my.bad .name"),
         RefactoringProblemSeverity.FATAL,
         expectedMessage: "Library name identifier must not start or end with a blank.");
-  }
-
-  void test_validateMethodName_OK() {
-    assertRefactoringStatusOK(validateMethodName("newName"));
-  }
-
-  void test_validateMethodName_OK_leadingUnderscore() {
-    assertRefactoringStatusOK(validateMethodName("_newName"));
-  }
-
-  void test_validateMethodName_OK_middleUnderscore() {
-    assertRefactoringStatusOK(validateMethodName("new_name"));
   }
 
   void test_validateMethodName_doesNotStartWithLowerCase() {
@@ -593,23 +581,23 @@ class NamingConventionsTest extends RefactoringTest {
         expectedMessage: "Method name must not be null.");
   }
 
+  void test_validateMethodName_OK() {
+    assertRefactoringStatusOK(validateMethodName("newName"));
+  }
+
+  void test_validateMethodName_OK_leadingUnderscore() {
+    assertRefactoringStatusOK(validateMethodName("_newName"));
+  }
+
+  void test_validateMethodName_OK_middleUnderscore() {
+    assertRefactoringStatusOK(validateMethodName("new_name"));
+  }
+
   void test_validateMethodName_trailingBlanks() {
     assertRefactoringStatus(
         validateMethodName("newName "),
         RefactoringProblemSeverity.FATAL,
         expectedMessage: "Method name must not start or end with a blank.");
-  }
-
-  void test_validateParameterName_OK() {
-    assertRefactoringStatusOK(validateParameterName("newName"));
-  }
-
-  void test_validateParameterName_OK_leadingUnderscore() {
-    assertRefactoringStatusOK(validateParameterName("_newName"));
-  }
-
-  void test_validateParameterName_OK_middleUnderscore() {
-    assertRefactoringStatusOK(validateParameterName("new_name"));
   }
 
   void test_validateParameterName_doesNotStartWithLowerCase() {
@@ -655,27 +643,23 @@ class NamingConventionsTest extends RefactoringTest {
         expectedMessage: "Parameter name must not be null.");
   }
 
+  void test_validateParameterName_OK() {
+    assertRefactoringStatusOK(validateParameterName("newName"));
+  }
+
+  void test_validateParameterName_OK_leadingUnderscore() {
+    assertRefactoringStatusOK(validateParameterName("_newName"));
+  }
+
+  void test_validateParameterName_OK_middleUnderscore() {
+    assertRefactoringStatusOK(validateParameterName("new_name"));
+  }
+
   void test_validateParameterName_trailingBlanks() {
     assertRefactoringStatus(
         validateParameterName("newName "),
         RefactoringProblemSeverity.FATAL,
         expectedMessage: "Parameter name must not start or end with a blank.");
-  }
-
-  void test_validateVariableName_OK() {
-    assertRefactoringStatusOK(validateVariableName("newName"));
-  }
-
-  void test_validateVariableName_OK_leadingDollar() {
-    assertRefactoringStatusOK(validateVariableName("\$newName"));
-  }
-
-  void test_validateVariableName_OK_leadingUnderscore() {
-    assertRefactoringStatusOK(validateVariableName("_newName"));
-  }
-
-  void test_validateVariableName_OK_middleUnderscore() {
-    assertRefactoringStatusOK(validateVariableName("new_name"));
   }
 
   void test_validateVariableName_doesNotStartWithLowerCase() {
@@ -719,6 +703,22 @@ class NamingConventionsTest extends RefactoringTest {
         validateVariableName(null),
         RefactoringProblemSeverity.FATAL,
         expectedMessage: "Variable name must not be null.");
+  }
+
+  void test_validateVariableName_OK() {
+    assertRefactoringStatusOK(validateVariableName("newName"));
+  }
+
+  void test_validateVariableName_OK_leadingDollar() {
+    assertRefactoringStatusOK(validateVariableName("\$newName"));
+  }
+
+  void test_validateVariableName_OK_leadingUnderscore() {
+    assertRefactoringStatusOK(validateVariableName("_newName"));
+  }
+
+  void test_validateVariableName_OK_middleUnderscore() {
+    assertRefactoringStatusOK(validateVariableName("new_name"));
   }
 
   void test_validateVariableName_trailingBlanks() {

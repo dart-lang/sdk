@@ -5,9 +5,9 @@
 library test.services.refactoring.rename_class_member;
 
 import 'package:analysis_server/src/protocol.dart';
-import '../../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import 'abstract_rename.dart';
 
 
@@ -19,28 +19,6 @@ main() {
 
 @ReflectiveTestCase()
 class RenameClassMemberTest extends RenameRefactoringTest {
-  test_checkFinalConditions_OK_noShadow() {
-    indexTestUnit('''
-class A {
-  int newName;
-}
-class B {
-  test() {}
-}
-class C extends A {
-  main() {
-    print(newName);
-  }
-}
-''');
-    createRenameRefactoringAtString('test() {}');
-    // check status
-    refactoring.newName = 'newName';
-    return refactoring.checkFinalConditions().then((status) {
-      assertRefactoringStatusOK(status);
-    });
-  }
-
   test_checkFinalConditions_hasMember_MethodElement() {
     indexTestUnit('''
 class A {
@@ -60,30 +38,17 @@ class A {
     });
   }
 
-  test_checkFinalConditions_shadowed_byLocal_OK_qualifiedReference() {
+  test_checkFinalConditions_OK_noShadow() {
     indexTestUnit('''
 class A {
-  test() {}
-  main() {
-    var newName;
-    this.test(); // marker
-  }
+  int newName;
 }
-''');
-    createRenameRefactoringAtString('test() {}');
-    // check status
-    refactoring.newName = 'newName';
-    return refactoring.checkFinalConditions().then((status) {
-      assertRefactoringStatusOK(status);
-    });
-  }
-
-  test_checkFinalConditions_shadowed_byLocal_OK_renamedNotUsed() {
-    indexTestUnit('''
-class A {
+class B {
   test() {}
+}
+class C extends A {
   main() {
-    var newName;
+    print(newName);
   }
 }
 ''');
@@ -143,6 +108,41 @@ class B extends A {
     });
   }
 
+  test_checkFinalConditions_shadowed_byLocal_OK_qualifiedReference() {
+    indexTestUnit('''
+class A {
+  test() {}
+  main() {
+    var newName;
+    this.test(); // marker
+  }
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    // check status
+    refactoring.newName = 'newName';
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatusOK(status);
+    });
+  }
+
+  test_checkFinalConditions_shadowed_byLocal_OK_renamedNotUsed() {
+    indexTestUnit('''
+class A {
+  test() {}
+  main() {
+    var newName;
+  }
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    // check status
+    refactoring.newName = 'newName';
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatusOK(status);
+    });
+  }
+
   test_checkFinalConditions_shadowed_byParameter_inSameClass() {
     indexTestUnit('''
 class A {
@@ -189,30 +189,6 @@ class B extends A {
     });
   }
 
-  test_checkFinalConditions_shadowsSuper_MethodElement() {
-    indexTestUnit('''
-class A {
-  test() {}
-}
-class B extends A {
-  newName() {} // marker
-  main() {
-    test();
-  }
-}
-''');
-    createRenameRefactoringAtString('test() {}');
-    // check status
-    refactoring.newName = 'newName';
-    return refactoring.checkFinalConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.ERROR,
-          expectedMessage: "Renamed method will be shadowed by method 'B.newName'.",
-          expectedContextSearch: 'newName() {} // marker');
-    });
-  }
-
   test_checkFinalConditions_shadowsSuper_inSubClass_FieldElement() {
     indexTestUnit('''
 class A {
@@ -236,6 +212,30 @@ class C extends B {
           RefactoringProblemSeverity.ERROR,
           expectedMessage: "Renamed method will shadow field 'A.newName'.",
           expectedContextSearch: 'newName; // marker');
+    });
+  }
+
+  test_checkFinalConditions_shadowsSuper_MethodElement() {
+    indexTestUnit('''
+class A {
+  test() {}
+}
+class B extends A {
+  newName() {} // marker
+  main() {
+    test();
+  }
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    // check status
+    refactoring.newName = 'newName';
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatus(
+          status,
+          RefactoringProblemSeverity.ERROR,
+          expectedMessage: "Renamed method will be shadowed by method 'B.newName'.",
+          expectedContextSearch: 'newName() {} // marker');
     });
   }
 

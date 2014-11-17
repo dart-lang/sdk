@@ -10,11 +10,11 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart';
-import 'mock_sdk.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:unittest/unittest.dart';
 
+import 'mock_sdk.dart';
 import 'mocks.dart';
 
 
@@ -23,8 +23,8 @@ int findIdentifierLength(String search) {
   while (length < search.length) {
     int c = search.codeUnitAt(length);
     if (!(c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0) ||
-          c >= 'A'.codeUnitAt(0) && c <= 'Z'.codeUnitAt(0) ||
-          c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0))) {
+        c >= 'A'.codeUnitAt(0) && c <= 'Z'.codeUnitAt(0) ||
+        c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0))) {
       break;
     }
     length++;
@@ -56,9 +56,7 @@ class AbstractAnalysisTest {
 //  Map<String, List<Map<String, Object>>> filesNavigation = {};
 
 
-  AbstractAnalysisTest() {
-  }
-
+  AbstractAnalysisTest();
   void addAnalysisSubscription(AnalysisService service, String file) {
     // add file to subscription
     var files = analysisSubscriptions[service];
@@ -68,8 +66,8 @@ class AbstractAnalysisTest {
     }
     files.add(file);
     // set subscriptions
-    Request request = new AnalysisSetSubscriptionsParams(
-        analysisSubscriptions).toRequest('0');
+    Request request =
+        new AnalysisSetSubscriptionsParams(analysisSubscriptions).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
@@ -84,12 +82,6 @@ class AbstractAnalysisTest {
     return testFile;
   }
 
-  String modifyTestFile(String content) {
-    addFile(testFile, content);
-    this.testCode = content;
-    return testFile;
-  }
-
   Index createIndex() {
     return null;
   }
@@ -99,8 +91,8 @@ class AbstractAnalysisTest {
    */
   void createProject() {
     resourceProvider.newFolder(projectPath);
-    Request request = new AnalysisSetAnalysisRootsParams([projectPath],
-        []).toRequest('0');
+    Request request =
+        new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
@@ -133,6 +125,12 @@ class AbstractAnalysisTest {
     Response response = handler.handleRequest(request);
     expect(response, isResponseSuccess('0'));
     return response;
+  }
+
+  String modifyTestFile(String content) {
+    addFile(testFile, content);
+    this.testCode = content;
+    return testFile;
   }
 
 //  /**
@@ -230,13 +228,17 @@ class AbstractAnalysisTest {
     packageMapProvider = new MockPackageMapProvider();
     Index index = createIndex();
     server = new AnalysisServer(
-        serverChannel, resourceProvider, packageMapProvider, index,
+        serverChannel,
+        resourceProvider,
+        packageMapProvider,
+        index,
         new MockSdk());
     server.contextDirectoryManager.defaultOptions.enableAsync = true;
     server.contextDirectoryManager.defaultOptions.enableEnum = true;
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
-    Stream<Notification> notificationStream = serverChannel.notificationController.stream;
+    Stream<Notification> notificationStream =
+        serverChannel.notificationController.stream;
     notificationStream.listen((Notification notification) {
       processNotification(notification);
     });

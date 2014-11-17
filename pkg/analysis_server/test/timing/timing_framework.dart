@@ -14,218 +14,19 @@ import '../integration/integration_test_methods.dart';
 import '../integration/integration_tests.dart';
 
 /**
- * The abstract class [TimingTest] defines the behavior of objects that measure
- * the time required to perform some sequence of server operations.
- */
-abstract class TimingTest extends IntegrationTestMixin {
-  /**
-   * The connection to the analysis server.
-   */
-  Server server;
-
-  /**
-   * The temporary directory in which source files can be stored.
-   */
-  Directory sourceDirectory;
-
-  /**
-   * A flag indicating whether the teardown process should skip sending a
-   * "server.shutdown" request because the server is known to have already
-   * shutdown.
-   */
-  bool skipShutdown = false;
-
-  /**
-   * The number of times the test will be performed in order to warm up the VM.
-   */
-  static final int DEFAULT_WARMUP_COUNT = 10;
-
-  /**
-   * The number of times the test will be performed in order to compute a time.
-   */
-  static final int DEFAULT_TIMING_COUNT = 10;
-
-  /**
-   * The file suffix used to identify Dart files.
-   */
-  static final String DART_SUFFIX = '.dart';
-
-  /**
-   * The file suffix used to identify HTML files.
-   */
-  static final String HTML_SUFFIX = '.html';
-
-  /**
-   * The amount of time to give the server to respond to a shutdown request
-   * before forcibly terminating it.
-   */
-  static const Duration SHUTDOWN_TIMEOUT = const Duration(seconds: 5);
-
-  /**
-   * Initialize a newly created test.
-   */
-  TimingTest();
-
-  /**
-   * Return the number of iterations that should be performed in order to warm
-   * up the VM.
-   */
-  int get warmupCount => DEFAULT_WARMUP_COUNT;
-
-  /**
-   * Return the number of iterations that should be performed in order to
-   * compute a time.
-   */
-  int get timingCount => DEFAULT_TIMING_COUNT;
-
-  /**
-   * Perform any operations that need to be performed once before any iterations.
-   */
-  Future oneTimeSetUp() {
-    initializeInttestMixin();
-    server = new Server();
-    sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
-    Completer serverConnected = new Completer();
-    onServerConnected.listen((_) {
-      serverConnected.complete();
-    });
-    skipShutdown = true;
-    return server.start(profileServer: true).then((params) {
-      server.listenToOutput(dispatchNotification);
-      server.exitCode.then((_) {
-        skipShutdown = true;
-      });
-      return serverConnected.future;
-    });
-  }
-
-  /**
-   * Perform any operations that need to be performed before each iteration.
-   */
-  Future setUp();
-
-  /**
-   * Perform any operations that part of a single iteration. It is the execution
-   * of this method that will be measured.
-   */
-  Future perform();
-
-  /**
-   * Perform any operations that need to be performed after each iteration.
-   */
-  Future tearDown();
-
-  /**
-   * Perform any operations that need to be performed once after all iterations.
-   */
-  Future oneTimeTearDown() {
-    return _shutdownIfNeeded().then((_) {
-      sourceDirectory.deleteSync(recursive: true);
-    });
-  }
-
-  /**
-   * Return a future that will complete with a timing result representing the
-   * number of milliseconds required to perform the operation the specified
-   * number of times.
-   */
-  Future<TimingResult> run() {
-    List<int> times = new List<int>();
-    return oneTimeSetUp().then((_) {
-      return _repeat(warmupCount, null).then((_) {
-        return _repeat(timingCount, times).then((_) {
-          return oneTimeTearDown().then((_) {
-            return new Future.value(new TimingResult(times));
-          });
-        });
-      });
-    });
-  }
-
-  /**
-   * Convert the given [relativePath] to an absolute path, by interpreting it
-   * relative to [sourceDirectory].  On Windows any forward slashes in
-   * [relativePath] are converted to backslashes.
-   */
-  String sourcePath(String relativePath) {
-    return join(sourceDirectory.path, relativePath.replaceAll('/', separator));
-  }
-
-  /**
-   * Write a source file with the given absolute [pathname] and [contents].
-   *
-   * If the file didn't previously exist, it is created.  If it did, it is
-   * overwritten.
-   *
-   * Parent directories are created as necessary.
-   */
-  void writeFile(String pathname, String contents) {
-    new Directory(dirname(pathname)).createSync(recursive: true);
-    new File(pathname).writeAsStringSync(contents);
-  }
-
-  /**
-   * Return the number of nanoseconds that have elapsed since the given
-   * [stopwatch] was last stopped.
-   */
-  int _elapsedNanoseconds(Stopwatch stopwatch) {
-    return (stopwatch.elapsedTicks * 1000000000) ~/ stopwatch.frequency;
-  }
-
-  /**
-   * Repeatedly execute this test [count] times, adding timing information to
-   * the given list of [times] if it is non-`null`.
-   */
-  Future _repeat(int count, List<int> times) {
-    Stopwatch stopwatch = new Stopwatch();
-    return setUp().then((_) {
-      stopwatch.start();
-      return perform().then((_) {
-        stopwatch.stop();
-        if (times != null) {
-          times.add(_elapsedNanoseconds(stopwatch));
-        }
-        return tearDown().then((_) {
-          if (count > 0) {
-            return _repeat(count - 1, times);
-          } else {
-            return new Future.value();
-          }
-        });
-      });
-    });
-  }
-
-  /**
-   * Shut the server down unless [skipShutdown] is `true`.
-   */
-  Future _shutdownIfNeeded() {
-    if (skipShutdown) {
-      return new Future.value();
-    }
-    // Give the server a short time to comply with the shutdown request; if it
-    // doesn't exit, then forcibly terminate it.
-    sendServerShutdown();
-    return server.exitCode.timeout(SHUTDOWN_TIMEOUT, onTimeout: () {
-      return server.kill();
-    });
-  }
-}
-
-/**
  * Instances of the class [TimingResult] represent the timing information
  * gathered while executing a given timing test.
  */
 class TimingResult {
   /**
-   * The amount of time spent executing each test, in nanoseconds.
-   */
-  List<int> times;
-
-  /**
    * The number of nanoseconds in a millisecond.
    */
   static int NANOSECONDS_PER_MILLISECOND = 1000000;
+
+  /**
+   * The amount of time spent executing each test, in nanoseconds.
+   */
+  List<int> times;
 
   /**
    * Initialize a newly created timing result.
@@ -315,5 +116,204 @@ class TimingResult {
       convertedValues.add(times[i] ~/ NANOSECONDS_PER_MILLISECOND);
     }
     return convertedValues;
+  }
+}
+
+/**
+ * The abstract class [TimingTest] defines the behavior of objects that measure
+ * the time required to perform some sequence of server operations.
+ */
+abstract class TimingTest extends IntegrationTestMixin {
+  /**
+   * The number of times the test will be performed in order to warm up the VM.
+   */
+  static final int DEFAULT_WARMUP_COUNT = 10;
+
+  /**
+   * The number of times the test will be performed in order to compute a time.
+   */
+  static final int DEFAULT_TIMING_COUNT = 10;
+
+  /**
+   * The file suffix used to identify Dart files.
+   */
+  static final String DART_SUFFIX = '.dart';
+
+  /**
+   * The file suffix used to identify HTML files.
+   */
+  static final String HTML_SUFFIX = '.html';
+
+  /**
+   * The amount of time to give the server to respond to a shutdown request
+   * before forcibly terminating it.
+   */
+  static const Duration SHUTDOWN_TIMEOUT = const Duration(seconds: 5);
+
+  /**
+   * The connection to the analysis server.
+   */
+  Server server;
+
+  /**
+   * The temporary directory in which source files can be stored.
+   */
+  Directory sourceDirectory;
+
+  /**
+   * A flag indicating whether the teardown process should skip sending a
+   * "server.shutdown" request because the server is known to have already
+   * shutdown.
+   */
+  bool skipShutdown = false;
+
+  /**
+   * Initialize a newly created test.
+   */
+  TimingTest();
+
+  /**
+   * Return the number of iterations that should be performed in order to
+   * compute a time.
+   */
+  int get timingCount => DEFAULT_TIMING_COUNT;
+
+  /**
+   * Return the number of iterations that should be performed in order to warm
+   * up the VM.
+   */
+  int get warmupCount => DEFAULT_WARMUP_COUNT;
+
+  /**
+   * Perform any operations that need to be performed once before any iterations.
+   */
+  Future oneTimeSetUp() {
+    initializeInttestMixin();
+    server = new Server();
+    sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
+    Completer serverConnected = new Completer();
+    onServerConnected.listen((_) {
+      serverConnected.complete();
+    });
+    skipShutdown = true;
+    return server.start(profileServer: true).then((params) {
+      server.listenToOutput(dispatchNotification);
+      server.exitCode.then((_) {
+        skipShutdown = true;
+      });
+      return serverConnected.future;
+    });
+  }
+
+  /**
+   * Perform any operations that need to be performed once after all iterations.
+   */
+  Future oneTimeTearDown() {
+    return _shutdownIfNeeded().then((_) {
+      sourceDirectory.deleteSync(recursive: true);
+    });
+  }
+
+  /**
+   * Perform any operations that part of a single iteration. It is the execution
+   * of this method that will be measured.
+   */
+  Future perform();
+
+  /**
+   * Return a future that will complete with a timing result representing the
+   * number of milliseconds required to perform the operation the specified
+   * number of times.
+   */
+  Future<TimingResult> run() {
+    List<int> times = new List<int>();
+    return oneTimeSetUp().then((_) {
+      return _repeat(warmupCount, null).then((_) {
+        return _repeat(timingCount, times).then((_) {
+          return oneTimeTearDown().then((_) {
+            return new Future.value(new TimingResult(times));
+          });
+        });
+      });
+    });
+  }
+
+  /**
+   * Perform any operations that need to be performed before each iteration.
+   */
+  Future setUp();
+
+  /**
+   * Convert the given [relativePath] to an absolute path, by interpreting it
+   * relative to [sourceDirectory].  On Windows any forward slashes in
+   * [relativePath] are converted to backslashes.
+   */
+  String sourcePath(String relativePath) {
+    return join(sourceDirectory.path, relativePath.replaceAll('/', separator));
+  }
+
+  /**
+   * Perform any operations that need to be performed after each iteration.
+   */
+  Future tearDown();
+
+  /**
+   * Write a source file with the given absolute [pathname] and [contents].
+   *
+   * If the file didn't previously exist, it is created.  If it did, it is
+   * overwritten.
+   *
+   * Parent directories are created as necessary.
+   */
+  void writeFile(String pathname, String contents) {
+    new Directory(dirname(pathname)).createSync(recursive: true);
+    new File(pathname).writeAsStringSync(contents);
+  }
+
+  /**
+   * Return the number of nanoseconds that have elapsed since the given
+   * [stopwatch] was last stopped.
+   */
+  int _elapsedNanoseconds(Stopwatch stopwatch) {
+    return (stopwatch.elapsedTicks * 1000000000) ~/ stopwatch.frequency;
+  }
+
+  /**
+   * Repeatedly execute this test [count] times, adding timing information to
+   * the given list of [times] if it is non-`null`.
+   */
+  Future _repeat(int count, List<int> times) {
+    Stopwatch stopwatch = new Stopwatch();
+    return setUp().then((_) {
+      stopwatch.start();
+      return perform().then((_) {
+        stopwatch.stop();
+        if (times != null) {
+          times.add(_elapsedNanoseconds(stopwatch));
+        }
+        return tearDown().then((_) {
+          if (count > 0) {
+            return _repeat(count - 1, times);
+          } else {
+            return new Future.value();
+          }
+        });
+      });
+    });
+  }
+
+  /**
+   * Shut the server down unless [skipShutdown] is `true`.
+   */
+  Future _shutdownIfNeeded() {
+    if (skipShutdown) {
+      return new Future.value();
+    }
+    // Give the server a short time to comply with the shutdown request; if it
+    // doesn't exit, then forcibly terminate it.
+    sendServerShutdown();
+    return server.exitCode.timeout(SHUTDOWN_TIMEOUT, onTimeout: () {
+      return server.kill();
+    });
   }
 }

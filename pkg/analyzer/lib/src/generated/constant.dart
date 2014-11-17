@@ -8,28 +8,24 @@
 library engine.constant;
 
 import 'dart:collection';
-import 'java_core.dart';
-import 'java_engine.dart' show ObjectUtilities;
-import 'source.dart' show Source;
-import 'error.dart';
-import 'scanner.dart' show Token, TokenType;
+
 import 'ast.dart';
 import 'element.dart';
-import 'resolver.dart' show TypeProvider;
 import 'engine.dart' show AnalysisEngine, RecordingErrorListener;
-import 'utilities_dart.dart' show ParameterKind;
+import 'error.dart';
+import 'java_core.dart';
+import 'java_engine.dart' show ObjectUtilities;
+import 'resolver.dart' show TypeProvider;
+import 'scanner.dart' show Token, TokenType;
+import 'source.dart' show Source;
 import 'utilities_collection.dart';
+import 'utilities_dart.dart' show ParameterKind;
 
 /**
  * Instances of the class `BoolState` represent the state of an object representing a boolean
  * value.
  */
 class BoolState extends InstanceState {
-  /**
-   * The value of this instance.
-   */
-  final bool value;
-
   /**
    * An instance representing the boolean value 'false'.
    */
@@ -46,12 +42,9 @@ class BoolState extends InstanceState {
   static BoolState UNKNOWN_VALUE = new BoolState(null);
 
   /**
-   * Return the boolean state representing the given boolean value.
-   *
-   * @param value the value to be represented
-   * @return the boolean state representing the given boolean value
+   * The value of this instance.
    */
-  static BoolState from(bool value) => value ? BoolState.TRUE_STATE : BoolState.FALSE_STATE;
+  final bool value;
 
   /**
    * Initialize a newly created state to represent the given value.
@@ -59,6 +52,33 @@ class BoolState extends InstanceState {
    * @param value the value of this instance
    */
   BoolState(this.value);
+
+  @override
+  bool get hasExactValue => true;
+
+  @override
+  int get hashCode => value == null ? 0 : (value ? 2 : 3);
+
+  /**
+   * Return `true` if this object represents an object whose type is 'bool'.
+   *
+   * @return `true` if this object represents a boolean value
+   */
+  @override
+  bool get isBool => true;
+
+  @override
+  bool get isBoolNumStringOrNull => true;
+
+  @override
+  bool get isUnknown => value == null;
+
+  @override
+  String get typeName => "bool";
+
+  @override
+  bool operator ==(Object object) =>
+      object is BoolState && identical(value, object.value);
 
   @override
   BoolState convertToBool() => this;
@@ -95,32 +115,6 @@ class BoolState extends InstanceState {
   }
 
   @override
-  bool operator ==(Object object) => object is BoolState && identical(value, object.value);
-
-  @override
-  String get typeName => "bool";
-
-  @override
-  bool get hasExactValue => true;
-
-  @override
-  int get hashCode => value == null ? 0 : (value ? 2 : 3);
-
-  /**
-   * Return `true` if this object represents an object whose type is 'bool'.
-   *
-   * @return `true` if this object represents a boolean value
-   */
-  @override
-  bool get isBool => true;
-
-  @override
-  bool get isBoolNumStringOrNull => true;
-
-  @override
-  bool get isUnknown => value == null;
-
-  @override
   BoolState logicalAnd(InstanceState rightOperand) {
     assertBool(rightOperand);
     if (value == null) {
@@ -148,6 +142,15 @@ class BoolState extends InstanceState {
 
   @override
   String toString() => value == null ? "-unknown-" : (value ? "true" : "false");
+
+  /**
+   * Return the boolean state representing the given boolean value.
+   *
+   * @param value the value to be represented
+   * @return the boolean state representing the given boolean value
+   */
+  static BoolState from(bool value) =>
+      value ? BoolState.TRUE_STATE : BoolState.FALSE_STATE;
 }
 
 /**
@@ -215,7 +218,8 @@ class ConstantEvaluator {
   EvaluationResult evaluate(Expression expression) {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
-    DartObjectImpl result = expression.accept(new ConstantVisitor.con1(_typeProvider, errorReporter));
+    DartObjectImpl result =
+        expression.accept(new ConstantVisitor.con1(_typeProvider, errorReporter));
     if (result != null) {
       return EvaluationResult.forValue(result);
     }
@@ -232,17 +236,20 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
   /**
    * A table mapping constant variable elements to the declarations of those variables.
    */
-  final HashMap<VariableElement, VariableDeclaration> variableMap = new HashMap<VariableElement, VariableDeclaration>();
+  final HashMap<VariableElement, VariableDeclaration> variableMap =
+      new HashMap<VariableElement, VariableDeclaration>();
 
   /**
    * A table mapping constant constructors to the declarations of those constructors.
    */
-  final HashMap<ConstructorElement, ConstructorDeclaration> constructorMap = new HashMap<ConstructorElement, ConstructorDeclaration>();
+  final HashMap<ConstructorElement, ConstructorDeclaration> constructorMap =
+      new HashMap<ConstructorElement, ConstructorDeclaration>();
 
   /**
    * A collection of constant constructor invocations.
    */
-  final List<InstanceCreationExpression> constructorInvocations = new List<InstanceCreationExpression>();
+  final List<InstanceCreationExpression> constructorInvocations =
+      new List<InstanceCreationExpression>();
 
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
@@ -296,28 +303,26 @@ class ConstantValueComputer {
   /**
    * Source of RegExp matching declarable operator names. From sdk/lib/internal/symbol.dart.
    */
-  static String _OPERATOR_RE = "(?:[\\-+*/%&|^]|\\[\\]=?|==|~/?|<[<=]?|>[>=]?|unary-)";
+  static String _OPERATOR_RE =
+      "(?:[\\-+*/%&|^]|\\[\\]=?|==|~/?|<[<=]?|>[>=]?|unary-)";
 
   /**
    * Source of RegExp matching any public identifier. From sdk/lib/internal/symbol.dart.
    */
-  static String _PUBLIC_IDENTIFIER_RE = "(?!${ConstantValueComputer._RESERVED_WORD_RE}\\b(?!\\\$))[a-zA-Z\$][\\w\$]*";
+  static String _PUBLIC_IDENTIFIER_RE =
+      "(?!${ConstantValueComputer._RESERVED_WORD_RE}\\b(?!\\\$))[a-zA-Z\$][\\w\$]*";
 
   /**
    * Source of RegExp matching Dart reserved words. From sdk/lib/internal/symbol.dart.
    */
-  static String _RESERVED_WORD_RE = "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|d(?:efault|o)|e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|i[fns]|n(?:ew|ull)|ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|r(?:ue|y))|v(?:ar|oid)|w(?:hile|ith))";
+  static String _RESERVED_WORD_RE =
+      "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|d(?:efault|o)|e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|i[fns]|n(?:ew|ull)|ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|r(?:ue|y))|v(?:ar|oid)|w(?:hile|ith))";
 
   /**
    * RegExp that validates a non-empty non-private symbol. From sdk/lib/internal/symbol.dart.
    */
-  static RegExp _PUBLIC_SYMBOL_PATTERN = new RegExp("^(?:${ConstantValueComputer._OPERATOR_RE}\$|$_PUBLIC_IDENTIFIER_RE(?:=?\$|[.](?!\$)))+?\$");
-
-  /**
-   * Determine whether the given string is a valid name for a public symbol (i.e. whether it is
-   * allowed for a call to the Symbol constructor).
-   */
-  static bool isValidPublicSymbol(String name) => name.isEmpty || name == "void" || new JavaPatternMatcher(_PUBLIC_SYMBOL_PATTERN, name).matches();
+  static RegExp _PUBLIC_SYMBOL_PATTERN = new RegExp(
+      "^(?:${ConstantValueComputer._OPERATOR_RE}\$|$_PUBLIC_IDENTIFIER_RE(?:=?\$|[.](?!\$)))+?\$");
 
   /**
    * The type provider used to access the known types.
@@ -377,81 +382,6 @@ class ConstantValueComputer {
   }
 
   /**
-   * Compute values for all of the constants in the compilation units that were added.
-   */
-  void computeValues() {
-    _variableDeclarationMap = _constantFinder.variableMap;
-    constructorDeclarationMap = _constantFinder.constructorMap;
-    _constructorInvocations = _constantFinder.constructorInvocations;
-    _variableDeclarationMap.values.forEach((VariableDeclaration declaration) {
-      ReferenceFinder referenceFinder = new ReferenceFinder(declaration, referenceGraph, _variableDeclarationMap, constructorDeclarationMap);
-      referenceGraph.addNode(declaration);
-      declaration.initializer.accept(referenceFinder);
-    });
-    constructorDeclarationMap.forEach((ConstructorElement element, ConstructorDeclaration declaration) {
-      ReferenceFinder referenceFinder = new ReferenceFinder(declaration, referenceGraph, _variableDeclarationMap, constructorDeclarationMap);
-      referenceGraph.addNode(declaration);
-      bool superInvocationFound = false;
-      NodeList<ConstructorInitializer> initializers = declaration.initializers;
-      for (ConstructorInitializer initializer in initializers) {
-        if (initializer is SuperConstructorInvocation) {
-          superInvocationFound = true;
-        }
-        initializer.accept(referenceFinder);
-      }
-      if (!superInvocationFound) {
-        // No explicit superconstructor invocation found, so we need to manually insert
-        // a reference to the implicit superconstructor.
-        InterfaceType superclass = (element.returnType as InterfaceType).superclass;
-        if (superclass != null && !superclass.isObject) {
-          ConstructorElement unnamedConstructor = superclass.element.unnamedConstructor;
-          ConstructorDeclaration superConstructorDeclaration = findConstructorDeclaration(unnamedConstructor);
-          if (superConstructorDeclaration != null) {
-            referenceGraph.addEdge(declaration, superConstructorDeclaration);
-          }
-        }
-      }
-      for (FormalParameter parameter in declaration.parameters.parameters) {
-        referenceGraph.addNode(parameter);
-        referenceGraph.addEdge(declaration, parameter);
-        if (parameter is DefaultFormalParameter) {
-          Expression defaultValue = parameter.defaultValue;
-          if (defaultValue != null) {
-            ReferenceFinder parameterReferenceFinder = new ReferenceFinder(parameter, referenceGraph, _variableDeclarationMap, constructorDeclarationMap);
-            defaultValue.accept(parameterReferenceFinder);
-          }
-        }
-      }
-    });
-    for (InstanceCreationExpression expression in _constructorInvocations) {
-      referenceGraph.addNode(expression);
-      ConstructorElement constructor = expression.staticElement;
-      if (constructor == null) {
-        continue;
-      }
-      constructor = _followConstantRedirectionChain(constructor);
-      ConstructorDeclaration declaration = findConstructorDeclaration(constructor);
-      // An instance creation expression depends both on the constructor and the arguments passed
-      // to it.
-      ReferenceFinder referenceFinder = new ReferenceFinder(expression, referenceGraph, _variableDeclarationMap, constructorDeclarationMap);
-      if (declaration != null) {
-        referenceGraph.addEdge(expression, declaration);
-      }
-      expression.argumentList.accept(referenceFinder);
-    }
-    List<List<AstNode>> topologicalSort = referenceGraph.computeTopologicalSort();
-    for (List<AstNode> constantsInCycle in topologicalSort) {
-      if (constantsInCycle.length == 1) {
-        _computeValueFor(constantsInCycle[0]);
-      } else {
-        for (AstNode constant in constantsInCycle) {
-          _generateCycleError(constantsInCycle, constant);
-        }
-      }
-    }
-  }
-
-  /**
    * This method is called just before computing the constant value associated with an AST node.
    * Unit tests will override this method to introduce additional error checking.
    */
@@ -474,12 +404,112 @@ class ConstantValueComputer {
   }
 
   /**
+   * Compute values for all of the constants in the compilation units that were added.
+   */
+  void computeValues() {
+    _variableDeclarationMap = _constantFinder.variableMap;
+    constructorDeclarationMap = _constantFinder.constructorMap;
+    _constructorInvocations = _constantFinder.constructorInvocations;
+    _variableDeclarationMap.values.forEach((VariableDeclaration declaration) {
+      ReferenceFinder referenceFinder = new ReferenceFinder(
+          declaration,
+          referenceGraph,
+          _variableDeclarationMap,
+          constructorDeclarationMap);
+      referenceGraph.addNode(declaration);
+      declaration.initializer.accept(referenceFinder);
+    });
+    constructorDeclarationMap.forEach(
+        (ConstructorElement element, ConstructorDeclaration declaration) {
+      ReferenceFinder referenceFinder = new ReferenceFinder(
+          declaration,
+          referenceGraph,
+          _variableDeclarationMap,
+          constructorDeclarationMap);
+      referenceGraph.addNode(declaration);
+      bool superInvocationFound = false;
+      NodeList<ConstructorInitializer> initializers = declaration.initializers;
+      for (ConstructorInitializer initializer in initializers) {
+        if (initializer is SuperConstructorInvocation) {
+          superInvocationFound = true;
+        }
+        initializer.accept(referenceFinder);
+      }
+      if (!superInvocationFound) {
+        // No explicit superconstructor invocation found, so we need to
+        // manually insert a reference to the implicit superconstructor.
+        InterfaceType superclass =
+            (element.returnType as InterfaceType).superclass;
+        if (superclass != null && !superclass.isObject) {
+          ConstructorElement unnamedConstructor =
+              superclass.element.unnamedConstructor;
+          ConstructorDeclaration superConstructorDeclaration =
+              findConstructorDeclaration(unnamedConstructor);
+          if (superConstructorDeclaration != null) {
+            referenceGraph.addEdge(declaration, superConstructorDeclaration);
+          }
+        }
+      }
+      for (FormalParameter parameter in declaration.parameters.parameters) {
+        referenceGraph.addNode(parameter);
+        referenceGraph.addEdge(declaration, parameter);
+        if (parameter is DefaultFormalParameter) {
+          Expression defaultValue = parameter.defaultValue;
+          if (defaultValue != null) {
+            ReferenceFinder parameterReferenceFinder = new ReferenceFinder(
+                parameter,
+                referenceGraph,
+                _variableDeclarationMap,
+                constructorDeclarationMap);
+            defaultValue.accept(parameterReferenceFinder);
+          }
+        }
+      }
+    });
+    for (InstanceCreationExpression expression in _constructorInvocations) {
+      referenceGraph.addNode(expression);
+      ConstructorElement constructor = expression.staticElement;
+      if (constructor == null) {
+        continue;
+      }
+      constructor = _followConstantRedirectionChain(constructor);
+      ConstructorDeclaration declaration =
+          findConstructorDeclaration(constructor);
+      // An instance creation expression depends both on the constructor and
+      // the arguments passed to it.
+      ReferenceFinder referenceFinder = new ReferenceFinder(
+          expression,
+          referenceGraph,
+          _variableDeclarationMap,
+          constructorDeclarationMap);
+      if (declaration != null) {
+        referenceGraph.addEdge(expression, declaration);
+      }
+      expression.argumentList.accept(referenceFinder);
+    }
+    List<List<AstNode>> topologicalSort =
+        referenceGraph.computeTopologicalSort();
+    for (List<AstNode> constantsInCycle in topologicalSort) {
+      if (constantsInCycle.length == 1) {
+        _computeValueFor(constantsInCycle[0]);
+      } else {
+        for (AstNode constant in constantsInCycle) {
+          _generateCycleError(constantsInCycle, constant);
+        }
+      }
+    }
+  }
+
+  /**
    * Create the ConstantVisitor used to evaluate constants. Unit tests will override this method to
    * introduce additional error checking.
    */
-  ConstantVisitor createConstantVisitor(ErrorReporter errorReporter) => new ConstantVisitor.con1(typeProvider, errorReporter);
+  ConstantVisitor createConstantVisitor(ErrorReporter errorReporter) =>
+      new ConstantVisitor.con1(typeProvider, errorReporter);
 
-  ConstructorDeclaration findConstructorDeclaration(ConstructorElement constructor) => constructorDeclarationMap[_getConstructorBase(constructor)];
+  ConstructorDeclaration
+      findConstructorDeclaration(ConstructorElement constructor) =>
+      constructorDeclarationMap[_getConstructorBase(constructor)];
 
   /**
    * Check that the arguments to a call to fromEnvironment() are correct.
@@ -491,7 +521,9 @@ class ConstantValueComputer {
    *          Note: "defaultValue" is always allowed to be null.
    * @return true if the arguments are correct, false if there is an error.
    */
-  bool _checkFromEnvironmentArguments(NodeList<Expression> arguments, List<DartObjectImpl> argumentValues, HashMap<String, DartObjectImpl> namedArgumentValues, InterfaceType expectedDefaultValueType) {
+  bool _checkFromEnvironmentArguments(NodeList<Expression> arguments,
+      List<DartObjectImpl> argumentValues, HashMap<String,
+      DartObjectImpl> namedArgumentValues, InterfaceType expectedDefaultValueType) {
     int argumentCount = arguments.length;
     if (argumentCount < 1 || argumentCount > 2) {
       return false;
@@ -506,11 +538,14 @@ class ConstantValueComputer {
       if (arguments[1] is! NamedExpression) {
         return false;
       }
-      if (!((arguments[1] as NamedExpression).name.label.name == _DEFAULT_VALUE_PARAM)) {
+      if (!((arguments[1] as NamedExpression).name.label.name ==
+          _DEFAULT_VALUE_PARAM)) {
         return false;
       }
-      ParameterizedType defaultValueType = namedArgumentValues[_DEFAULT_VALUE_PARAM].type;
-      if (!(identical(defaultValueType, expectedDefaultValueType) || identical(defaultValueType, typeProvider.nullType))) {
+      ParameterizedType defaultValueType =
+          namedArgumentValues[_DEFAULT_VALUE_PARAM].type;
+      if (!(identical(defaultValueType, expectedDefaultValueType) ||
+          identical(defaultValueType, typeProvider.nullType))) {
         return false;
       }
     }
@@ -525,7 +560,9 @@ class ConstantValueComputer {
    * @param namedArgumentValues the values of the named arguments.
    * @return true if the arguments are correct, false if there is an error.
    */
-  bool _checkSymbolArguments(NodeList<Expression> arguments, List<DartObjectImpl> argumentValues, HashMap<String, DartObjectImpl> namedArgumentValues) {
+  bool _checkSymbolArguments(NodeList<Expression> arguments,
+      List<DartObjectImpl> argumentValues, HashMap<String,
+      DartObjectImpl> namedArgumentValues) {
     if (arguments.length != 1) {
       return false;
     }
@@ -550,36 +587,51 @@ class ConstantValueComputer {
       VariableDeclaration declaration = constNode;
       VariableElement element = declaration.element;
       RecordingErrorListener errorListener = new RecordingErrorListener();
-      ErrorReporter errorReporter = new ErrorReporter(errorListener, element.source);
-      DartObjectImpl dartObject = declaration.initializer.accept(createConstantVisitor(errorReporter));
+      ErrorReporter errorReporter =
+          new ErrorReporter(errorListener, element.source);
+      DartObjectImpl dartObject =
+          declaration.initializer.accept(createConstantVisitor(errorReporter));
       if (dartObject != null) {
         if (!_runtimeTypeMatch(dartObject, element.type)) {
           errorReporter.reportErrorForNode(
               CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
-              declaration, [dartObject.type, element.type]);
+              declaration,
+              [dartObject.type, element.type]);
         }
       }
-      (element as VariableElementImpl).evaluationResult = new EvaluationResultImpl.con2(dartObject, errorListener.errors);
+      (element as VariableElementImpl).evaluationResult =
+          new EvaluationResultImpl.con2(dartObject, errorListener.errors);
     } else if (constNode is InstanceCreationExpression) {
       InstanceCreationExpression expression = constNode;
       ConstructorElement constructor = expression.staticElement;
       if (constructor == null) {
-        // Couldn't resolve the constructor so we can't compute a value.  No problem--the error
-        // has already been reported.  But we still need to store an evaluation result.
+        // Couldn't resolve the constructor so we can't compute a value.
+        // No problem - the error has already been reported.
+        // But we still need to store an evaluation result.
         expression.evaluationResult = new EvaluationResultImpl.con1(null);
         return;
       }
       RecordingErrorListener errorListener = new RecordingErrorListener();
-      CompilationUnit sourceCompilationUnit = expression.getAncestor((node) => node is CompilationUnit);
-      ErrorReporter errorReporter = new ErrorReporter(errorListener, sourceCompilationUnit.element.source);
+      CompilationUnit sourceCompilationUnit =
+          expression.getAncestor((node) => node is CompilationUnit);
+      ErrorReporter errorReporter =
+          new ErrorReporter(errorListener, sourceCompilationUnit.element.source);
       ConstantVisitor constantVisitor = createConstantVisitor(errorReporter);
-      DartObjectImpl result = _evaluateConstructorCall(constNode, expression.argumentList.arguments, constructor, constantVisitor, errorReporter);
-      expression.evaluationResult = new EvaluationResultImpl.con2(result, errorListener.errors);
+      DartObjectImpl result = _evaluateConstructorCall(
+          constNode,
+          expression.argumentList.arguments,
+          constructor,
+          constantVisitor,
+          errorReporter);
+      expression.evaluationResult =
+          new EvaluationResultImpl.con2(result, errorListener.errors);
     } else if (constNode is ConstructorDeclaration) {
       ConstructorDeclaration declaration = constNode;
       NodeList<ConstructorInitializer> initializers = declaration.initializers;
-      ConstructorElementImpl constructor = declaration.element as ConstructorElementImpl;
-      constructor.constantInitializers = new ConstantValueComputer_InitializerCloner().cloneNodeList(initializers);
+      ConstructorElementImpl constructor =
+          declaration.element as ConstructorElementImpl;
+      constructor.constantInitializers =
+          new ConstantValueComputer_InitializerCloner().cloneNodeList(initializers);
     } else if (constNode is FormalParameter) {
       if (constNode is DefaultFormalParameter) {
         DefaultFormalParameter parameter = constNode;
@@ -587,14 +639,18 @@ class ConstantValueComputer {
         Expression defaultValue = parameter.defaultValue;
         if (defaultValue != null) {
           RecordingErrorListener errorListener = new RecordingErrorListener();
-          ErrorReporter errorReporter = new ErrorReporter(errorListener, element.source);
-          DartObjectImpl dartObject = defaultValue.accept(createConstantVisitor(errorReporter));
-          (element as ParameterElementImpl).evaluationResult = new EvaluationResultImpl.con2(dartObject, errorListener.errors);
+          ErrorReporter errorReporter =
+              new ErrorReporter(errorListener, element.source);
+          DartObjectImpl dartObject =
+              defaultValue.accept(createConstantVisitor(errorReporter));
+          (element as ParameterElementImpl).evaluationResult =
+              new EvaluationResultImpl.con2(dartObject, errorListener.errors);
         }
       }
     } else {
       // Should not happen.
-      AnalysisEngine.instance.logger.logError("Constant value computer trying to compute the value of a node which is not a VariableDeclaration, InstanceCreationExpression, FormalParameter, or ConstructorDeclaration");
+      AnalysisEngine.instance.logger.logError(
+          "Constant value computer trying to compute the value of a node which is not a VariableDeclaration, InstanceCreationExpression, FormalParameter, or ConstructorDeclaration");
       return;
     }
   }
@@ -608,40 +664,50 @@ class ConstantValueComputer {
    * @param namedArgumentValues Named parameters passed to fromEnvironment()
    * @return A [DartObjectImpl] object corresponding to the evaluated result
    */
-  DartObjectImpl _computeValueFromEnvironment(DartObject environmentValue, DartObjectImpl builtInDefaultValue, HashMap<String, DartObjectImpl> namedArgumentValues) {
+  DartObjectImpl _computeValueFromEnvironment(DartObject environmentValue,
+      DartObjectImpl builtInDefaultValue, HashMap<String,
+      DartObjectImpl> namedArgumentValues) {
     DartObjectImpl value = environmentValue as DartObjectImpl;
     if (value.isUnknown || value.isNull) {
-      // The name either doesn't exist in the environment or we couldn't parse the corresponding
-      // value.  If the code supplied an explicit default, use it.
+      // The name either doesn't exist in the environment or we couldn't parse
+      // the corresponding value.
+      // If the code supplied an explicit default, use it.
       if (namedArgumentValues.containsKey(_DEFAULT_VALUE_PARAM)) {
         value = namedArgumentValues[_DEFAULT_VALUE_PARAM];
       } else if (value.isNull) {
-        // The code didn't supply an explicit default.  The name exists in the environment but
-        // we couldn't parse the corresponding value.  So use the built-in default value, because
-        // this is what the VM does.
+        // The code didn't supply an explicit default.
+        // The name exists in the environment but we couldn't parse the
+        // corresponding value.
+        // So use the built-in default value, because this is what the VM does.
         value = builtInDefaultValue;
       } else {
-        // The code didn't supply an explicit default.  The name doesn't exist in the environment.
-        // The VM would use the built-in default value, but we don't want to do that for analysis
-        // because it's likely to lead to cascading errors.  So just leave [value] in the unknown
-        // state.
+        // The code didn't supply an explicit default.
+        // The name doesn't exist in the environment.
+        // The VM would use the built-in default value, but we don't want to do
+        // that for analysis because it's likely to lead to cascading errors.
+        // So just leave [value] in the unknown state.
       }
     }
     return value;
   }
 
-  DartObjectImpl _evaluateConstructorCall(AstNode node, NodeList<Expression> arguments, ConstructorElement constructor, ConstantVisitor constantVisitor, ErrorReporter errorReporter) {
+  DartObjectImpl _evaluateConstructorCall(AstNode node,
+      NodeList<Expression> arguments, ConstructorElement constructor,
+      ConstantVisitor constantVisitor, ErrorReporter errorReporter) {
     int argumentCount = arguments.length;
-    List<DartObjectImpl> argumentValues = new List<DartObjectImpl>(argumentCount);
+    List<DartObjectImpl> argumentValues =
+        new List<DartObjectImpl>(argumentCount);
     List<Expression> argumentNodes = new List<Expression>(argumentCount);
-    HashMap<String, DartObjectImpl> namedArgumentValues = new HashMap<String, DartObjectImpl>();
+    HashMap<String, DartObjectImpl> namedArgumentValues =
+        new HashMap<String, DartObjectImpl>();
     HashMap<String, NamedExpression> namedArgumentNodes =
         new HashMap<String, NamedExpression>();
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments[i];
       if (argument is NamedExpression) {
         String name = argument.name.label.name;
-        namedArgumentValues[name] = constantVisitor._valueOf(argument.expression);
+        namedArgumentValues[name] =
+            constantVisitor._valueOf(argument.expression);
         namedArgumentNodes[name] = argument;
         argumentValues[i] = constantVisitor.null2;
       } else {
@@ -652,54 +718,89 @@ class ConstantValueComputer {
     constructor = _followConstantRedirectionChain(constructor);
     InterfaceType definingClass = constructor.returnType as InterfaceType;
     if (constructor.isFactory) {
-      // We couldn't find a non-factory constructor.  See if it's because we reached an external
-      // const factory constructor that we can emulate.
+      // We couldn't find a non-factory constructor.
+      // See if it's because we reached an external const factory constructor
+      // that we can emulate.
       if (constructor.name == "fromEnvironment") {
-        if (!_checkFromEnvironmentArguments(arguments, argumentValues, namedArgumentValues, definingClass)) {
-          errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
+        if (!_checkFromEnvironmentArguments(
+            arguments,
+            argumentValues,
+            namedArgumentValues,
+            definingClass)) {
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+              node);
           return null;
         }
-        String variableName = argumentCount < 1 ? null : argumentValues[0].stringValue;
+        String variableName =
+            argumentCount < 1 ? null : argumentValues[0].stringValue;
         if (identical(definingClass, typeProvider.boolType)) {
           DartObject valueFromEnvironment;
-          valueFromEnvironment = _declaredVariables.getBool(typeProvider, variableName);
-          return _computeValueFromEnvironment(valueFromEnvironment, new DartObjectImpl(typeProvider.boolType, BoolState.FALSE_STATE), namedArgumentValues);
+          valueFromEnvironment =
+              _declaredVariables.getBool(typeProvider, variableName);
+          return _computeValueFromEnvironment(
+              valueFromEnvironment,
+              new DartObjectImpl(typeProvider.boolType, BoolState.FALSE_STATE),
+              namedArgumentValues);
         } else if (identical(definingClass, typeProvider.intType)) {
           DartObject valueFromEnvironment;
-          valueFromEnvironment = _declaredVariables.getInt(typeProvider, variableName);
-          return _computeValueFromEnvironment(valueFromEnvironment, new DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE), namedArgumentValues);
+          valueFromEnvironment =
+              _declaredVariables.getInt(typeProvider, variableName);
+          return _computeValueFromEnvironment(
+              valueFromEnvironment,
+              new DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE),
+              namedArgumentValues);
         } else if (identical(definingClass, typeProvider.stringType)) {
           DartObject valueFromEnvironment;
-          valueFromEnvironment = _declaredVariables.getString(typeProvider, variableName);
-          return _computeValueFromEnvironment(valueFromEnvironment, new DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE), namedArgumentValues);
+          valueFromEnvironment =
+              _declaredVariables.getString(typeProvider, variableName);
+          return _computeValueFromEnvironment(
+              valueFromEnvironment,
+              new DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE),
+              namedArgumentValues);
         }
-      } else if (constructor.name == "" && identical(definingClass, typeProvider.symbolType) && argumentCount == 1) {
-        if (!_checkSymbolArguments(arguments, argumentValues, namedArgumentValues)) {
-          errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
+      } else if (constructor.name == "" &&
+          identical(definingClass, typeProvider.symbolType) &&
+          argumentCount == 1) {
+        if (!_checkSymbolArguments(
+            arguments,
+            argumentValues,
+            namedArgumentValues)) {
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+              node);
           return null;
         }
         String argumentValue = argumentValues[0].stringValue;
-        return new DartObjectImpl(definingClass, new SymbolState(argumentValue));
+        return new DartObjectImpl(
+            definingClass,
+            new SymbolState(argumentValue));
       }
-      // Either it's an external const factory constructor that we can't emulate, or an error
-      // occurred (a cycle, or a const constructor trying to delegate to a non-const constructor).
-      // In the former case, the best we can do is consider it an unknown value.  In the latter
-      // case, the error has already been reported, so considering it an unknown value will
-      // suppress further errors.
+      // Either it's an external const factory constructor that we can't
+      // emulate, or an error occurred (a cycle, or a const constructor trying
+      // to delegate to a non-const constructor).
+      // In the former case, the best we can do is consider it an unknown value.
+      // In the latter case, the error has already been reported, so considering
+      // it an unknown value will suppress further errors.
       return constantVisitor._validWithUnknownValue(definingClass);
     }
     beforeGetConstantInitializers(constructor);
-    ConstructorElementImpl constructorBase = _getConstructorBase(constructor) as ConstructorElementImpl;
-    List<ConstructorInitializer> initializers = constructorBase.constantInitializers;
+    ConstructorElementImpl constructorBase =
+        _getConstructorBase(constructor) as ConstructorElementImpl;
+    List<ConstructorInitializer> initializers =
+        constructorBase.constantInitializers;
     if (initializers == null) {
-      // This can happen in some cases where there are compile errors in the code being analyzed
-      // (for example if the code is trying to create a const instance using a non-const
-      // constructor, or the node we're visiting is involved in a cycle).  The error has already
-      // been reported, so consider it an unknown value to suppress further errors.
+      // This can happen in some cases where there are compile errors in the
+      // code being analyzed (for example if the code is trying to create a
+      // const instance using a non-const constructor, or the node we're
+      // visiting is involved in a cycle).  The error has already been reported,
+      // so consider it an unknown value to suppress further errors.
       return constantVisitor._validWithUnknownValue(definingClass);
     }
-    HashMap<String, DartObjectImpl> fieldMap = new HashMap<String, DartObjectImpl>();
-    HashMap<String, DartObjectImpl> parameterMap = new HashMap<String, DartObjectImpl>();
+    HashMap<String, DartObjectImpl> fieldMap =
+        new HashMap<String, DartObjectImpl>();
+    HashMap<String, DartObjectImpl> parameterMap =
+        new HashMap<String, DartObjectImpl>();
     List<ParameterElement> parameters = constructor.parameters;
     int parameterCount = parameters.length;
     for (int i = 0; i < parameterCount; i++) {
@@ -724,10 +825,11 @@ class ConstantValueComputer {
         errorTarget = node;
       }
       if (argumentValue == null && baseParameter is ParameterElementImpl) {
-        // The parameter is an optional positional parameter for which no value was provided, so
-        // use the default value.
+        // The parameter is an optional positional parameter for which no value
+        // was provided, so use the default value.
         beforeGetParameterDefault(baseParameter);
-        EvaluationResultImpl evaluationResult = (baseParameter as ParameterElementImpl).evaluationResult;
+        EvaluationResultImpl evaluationResult =
+            (baseParameter as ParameterElementImpl).evaluationResult;
         if (evaluationResult == null) {
           // No default was provided, so the default value is null.
           argumentValue = constantVisitor.null2;
@@ -766,14 +868,17 @@ class ConstantValueComputer {
         }
       }
     }
-    ConstantVisitor initializerVisitor = new ConstantVisitor.con2(typeProvider, parameterMap, errorReporter);
+    ConstantVisitor initializerVisitor =
+        new ConstantVisitor.con2(typeProvider, parameterMap, errorReporter);
     String superName = null;
     NodeList<Expression> superArguments = null;
     for (ConstructorInitializer initializer in initializers) {
       if (initializer is ConstructorFieldInitializer) {
         ConstructorFieldInitializer constructorFieldInitializer = initializer;
-        Expression initializerExpression = constructorFieldInitializer.expression;
-        DartObjectImpl evaluationResult = initializerExpression.accept(initializerVisitor);
+        Expression initializerExpression =
+            constructorFieldInitializer.expression;
+        DartObjectImpl evaluationResult =
+            initializerExpression.accept(initializerVisitor);
         if (evaluationResult != null) {
           String fieldName = constructorFieldInitializer.fieldName.name;
           fieldMap[fieldName] = evaluationResult;
@@ -783,7 +888,8 @@ class ConstantValueComputer {
             if (!_runtimeTypeMatch(evaluationResult, field.type)) {
               errorReporter.reportErrorForNode(
                   CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
-                  node, [evaluationResult.type, fieldName, field.type]);
+                  node,
+                  [evaluationResult.type, fieldName, field.type]);
             }
           }
         }
@@ -800,28 +906,46 @@ class ConstantValueComputer {
         ConstructorElement constructor = initializer.staticElement;
         if (constructor != null && constructor.isConst) {
           return _evaluateConstructorCall(
-              node, initializer.argumentList.arguments, constructor,
-              initializerVisitor, errorReporter);
+              node,
+              initializer.argumentList.arguments,
+              constructor,
+              initializerVisitor,
+              errorReporter);
         }
       }
     }
     // Evaluate explicit or implicit call to super().
     InterfaceType superclass = definingClass.superclass;
     if (superclass != null && !superclass.isObject) {
-      ConstructorElement superConstructor = superclass.lookUpConstructor(superName, constructor.library);
+      ConstructorElement superConstructor =
+          superclass.lookUpConstructor(superName, constructor.library);
       if (superConstructor != null) {
         if (superArguments == null) {
           superArguments = new NodeList<Expression>(null);
         }
-        _evaluateSuperConstructorCall(node, fieldMap, superConstructor, superArguments, initializerVisitor, errorReporter);
+        _evaluateSuperConstructorCall(
+            node,
+            fieldMap,
+            superConstructor,
+            superArguments,
+            initializerVisitor,
+            errorReporter);
       }
     }
     return new DartObjectImpl(definingClass, new GenericState(fieldMap));
   }
 
-  void _evaluateSuperConstructorCall(AstNode node, HashMap<String, DartObjectImpl> fieldMap, ConstructorElement superConstructor, NodeList<Expression> superArguments, ConstantVisitor initializerVisitor, ErrorReporter errorReporter) {
+  void _evaluateSuperConstructorCall(AstNode node, HashMap<String,
+      DartObjectImpl> fieldMap, ConstructorElement superConstructor,
+      NodeList<Expression> superArguments, ConstantVisitor initializerVisitor,
+      ErrorReporter errorReporter) {
     if (superConstructor != null && superConstructor.isConst) {
-      DartObjectImpl evaluationResult = _evaluateConstructorCall(node, superArguments, superConstructor, initializerVisitor, errorReporter);
+      DartObjectImpl evaluationResult = _evaluateConstructorCall(
+          node,
+          superArguments,
+          superConstructor,
+          initializerVisitor,
+          errorReporter);
       if (evaluationResult != null) {
         fieldMap[GenericState.SUPERCLASS_FIELD] = evaluationResult;
       }
@@ -837,30 +961,38 @@ class ConstantValueComputer {
    *         is encountered), the chain will be followed as far as possible and then a const factory
    *         constructor will be returned.
    */
-  ConstructorElement _followConstantRedirectionChain(ConstructorElement constructor) {
-    HashSet<ConstructorElement> constructorsVisited = new HashSet<ConstructorElement>();
+  ConstructorElement
+      _followConstantRedirectionChain(ConstructorElement constructor) {
+    HashSet<ConstructorElement> constructorsVisited =
+        new HashSet<ConstructorElement>();
     while (constructor.isFactory) {
-      if (identical(constructor.enclosingElement.type, typeProvider.symbolType)) {
-        // The dart:core.Symbol has a const factory constructor that redirects to
-        // dart:_internal.Symbol.  That in turn redirects to an external const constructor, which
-        // we won't be able to evaluate.  So stop following the chain of redirections at
-        // dart:core.Symbol, and let [evaluateInstanceCreationExpression] handle it specially.
+      if (identical(
+          constructor.enclosingElement.type,
+          typeProvider.symbolType)) {
+        // The dart:core.Symbol has a const factory constructor that redirects
+        // to dart:_internal.Symbol.  That in turn redirects to an external
+        // const constructor, which we won't be able to evaluate.
+        // So stop following the chain of redirections at dart:core.Symbol, and
+        // let [evaluateInstanceCreationExpression] handle it specially.
         break;
       }
       constructorsVisited.add(constructor);
-      ConstructorElement redirectedConstructor = constructor.redirectedConstructor;
+      ConstructorElement redirectedConstructor =
+          constructor.redirectedConstructor;
       if (redirectedConstructor == null) {
         // This can happen if constructor is an external factory constructor.
         break;
       }
       if (!redirectedConstructor.isConst) {
         // Delegating to a non-const constructor--this is not allowed (and
-        // is checked elsewhere--see [ErrorVerifier.checkForRedirectToNonConstConstructor()]).
+        // is checked elsewhere--see
+        // [ErrorVerifier.checkForRedirectToNonConstConstructor()]).
         break;
       }
       if (constructorsVisited.contains(redirectedConstructor)) {
         // Cycle in redirecting factory constructors--this is not allowed
-        // and is checked elsewhere--see [ErrorVerifier.checkForRecursiveFactoryRedirect()]).
+        // and is checked elsewhere--see
+        // [ErrorVerifier.checkForRecursiveFactoryRedirect()]).
         break;
       }
       constructor = redirectedConstructor;
@@ -900,6 +1032,15 @@ class ConstantValueComputer {
     }
     return obj.type.isSubtypeOf(type);
   }
+
+  /**
+   * Determine whether the given string is a valid name for a public symbol (i.e. whether it is
+   * allowed for a call to the Symbol constructor).
+   */
+  static bool isValidPublicSymbol(String name) =>
+      name.isEmpty ||
+          name == "void" ||
+          new JavaPatternMatcher(_PUBLIC_SYMBOL_PATTERN, name).matches();
 }
 
 /**
@@ -914,10 +1055,21 @@ class ConstantValueComputer_InitializerCloner extends AstCloner {
   ConstantValueComputer_InitializerCloner() : super(true);
 
   @override
-  InstanceCreationExpression visitInstanceCreationExpression(InstanceCreationExpression node) {
-    InstanceCreationExpression expression = super.visitInstanceCreationExpression(node);
+  InstanceCreationExpression
+      visitInstanceCreationExpression(InstanceCreationExpression node) {
+    InstanceCreationExpression expression =
+        super.visitInstanceCreationExpression(node);
     expression.evaluationResult = node.evaluationResult;
     return expression;
+  }
+
+  @override
+  RedirectingConstructorInvocation
+      visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+    RedirectingConstructorInvocation invocation =
+        super.visitRedirectingConstructorInvocation(node);
+    invocation.staticElement = node.staticElement;
+    return invocation;
   }
 
   @override
@@ -928,17 +1080,10 @@ class ConstantValueComputer_InitializerCloner extends AstCloner {
   }
 
   @override
-  SuperConstructorInvocation visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    SuperConstructorInvocation invocation = super.visitSuperConstructorInvocation(node);
-    invocation.staticElement = node.staticElement;
-    return invocation;
-  }
-
-  @override
-  RedirectingConstructorInvocation visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
-    RedirectingConstructorInvocation invocation =
-        super.visitRedirectingConstructorInvocation(node);
+  SuperConstructorInvocation
+      visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    SuperConstructorInvocation invocation =
+        super.visitSuperConstructorInvocation(node);
     invocation.staticElement = node.staticElement;
     return invocation;
   }
@@ -1019,7 +1164,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    */
   ConstantVisitor.con1(this._typeProvider, this._errorReporter) {
     this._lexicalEnvironment = null;
-    this._dartObjectComputer = new DartObjectComputer(_errorReporter, _typeProvider);
+    this._dartObjectComputer =
+        new DartObjectComputer(_errorReporter, _typeProvider);
   }
 
   /**
@@ -1029,9 +1175,31 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    * @param lexicalEnvironment values which should override simpleIdentifiers, or null if no
    *          overriding is necessary.
    */
-  ConstantVisitor.con2(this._typeProvider, HashMap<String, DartObjectImpl> lexicalEnvironment, this._errorReporter) {
+  ConstantVisitor.con2(this._typeProvider, HashMap<String,
+      DartObjectImpl> lexicalEnvironment, this._errorReporter) {
     this._lexicalEnvironment = lexicalEnvironment;
-    this._dartObjectComputer = new DartObjectComputer(_errorReporter, _typeProvider);
+    this._dartObjectComputer =
+        new DartObjectComputer(_errorReporter, _typeProvider);
+  }
+
+  /**
+   * Return an object representing the value 'null'.
+   *
+   * @return an object representing the value 'null'
+   */
+  DartObjectImpl get null2 {
+    if (_nullObject == null) {
+      _nullObject =
+          new DartObjectImpl(_typeProvider.nullType, NullState.NULL_STATE);
+    }
+    return _nullObject;
+  }
+
+  /**
+   * This method is called just before retrieving an evaluation result from an AST node. Unit tests
+   * will override it to introduce additional error checking.
+   */
+  void beforeGetEvaluationResult(AstNode node) {
   }
 
   @override
@@ -1041,7 +1209,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       if (result == null) {
         result = string.accept(this);
       } else {
-        result = _dartObjectComputer.concatenate(node, result, string.accept(this));
+        result =
+            _dartObjectComputer.concatenate(node, result, string.accept(this));
       }
     }
     return result;
@@ -1054,7 +1223,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     TokenType operatorType = node.operator.type;
     // 'null' is almost never good operand
     if (operatorType != TokenType.BANG_EQ && operatorType != TokenType.EQ_EQ) {
-      if (leftResult != null && leftResult.isNull || rightResult != null && rightResult.isNull) {
+      if (leftResult != null && leftResult.isNull ||
+          rightResult != null && rightResult.isNull) {
         _error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
         return null;
       }
@@ -1078,13 +1248,19 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       } else if (operatorType == TokenType.GT) {
         return _dartObjectComputer.greaterThan(node, leftResult, rightResult);
       } else if (operatorType == TokenType.GT_EQ) {
-        return _dartObjectComputer.greaterThanOrEqual(node, leftResult, rightResult);
+        return _dartObjectComputer.greaterThanOrEqual(
+            node,
+            leftResult,
+            rightResult);
       } else if (operatorType == TokenType.GT_GT) {
         return _dartObjectComputer.shiftRight(node, leftResult, rightResult);
       } else if (operatorType == TokenType.LT) {
         return _dartObjectComputer.lessThan(node, leftResult, rightResult);
       } else if (operatorType == TokenType.LT_EQ) {
-        return _dartObjectComputer.lessThanOrEqual(node, leftResult, rightResult);
+        return _dartObjectComputer.lessThanOrEqual(
+            node,
+            leftResult,
+            rightResult);
       } else if (operatorType == TokenType.LT_LT) {
         return _dartObjectComputer.shiftLeft(node, leftResult, rightResult);
       } else if (operatorType == TokenType.MINUS) {
@@ -1109,7 +1285,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   }
 
   @override
-  DartObjectImpl visitBooleanLiteral(BooleanLiteral node) => new DartObjectImpl(_typeProvider.boolType, BoolState.from(node.value));
+  DartObjectImpl visitBooleanLiteral(BooleanLiteral node) =>
+      new DartObjectImpl(_typeProvider.boolType, BoolState.from(node.value));
 
   @override
   DartObjectImpl visitConditionalExpression(ConditionalExpression node) {
@@ -1120,14 +1297,17 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (conditionResult == null) {
       return conditionResult;
     } else if (!conditionResult.isBool) {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, condition);
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+          condition);
       return null;
     } else if (thenResult == null) {
       return thenResult;
     } else if (elseResult == null) {
       return elseResult;
     }
-    conditionResult = _dartObjectComputer.applyBooleanConversion(condition, conditionResult);
+    conditionResult =
+        _dartObjectComputer.applyBooleanConversion(condition, conditionResult);
     if (conditionResult == null) {
       return conditionResult;
     }
@@ -1138,14 +1318,17 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
     ParameterizedType thenType = thenResult.type;
     ParameterizedType elseType = elseResult.type;
-    return _validWithUnknownValue(thenType.getLeastUpperBound(elseType) as InterfaceType);
+    return _validWithUnknownValue(
+        thenType.getLeastUpperBound(elseType) as InterfaceType);
   }
 
   @override
-  DartObjectImpl visitDoubleLiteral(DoubleLiteral node) => new DartObjectImpl(_typeProvider.doubleType, new DoubleState(node.value));
+  DartObjectImpl visitDoubleLiteral(DoubleLiteral node) =>
+      new DartObjectImpl(_typeProvider.doubleType, new DoubleState(node.value));
 
   @override
-  DartObjectImpl visitInstanceCreationExpression(InstanceCreationExpression node) {
+  DartObjectImpl
+      visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (!node.isConst) {
       // TODO(brianwilkerson) Figure out which error to report.
       _error(node, null);
@@ -1162,7 +1345,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   }
 
   @override
-  DartObjectImpl visitIntegerLiteral(IntegerLiteral node) => new DartObjectImpl(_typeProvider.intType, new IntState(node.value));
+  DartObjectImpl visitIntegerLiteral(IntegerLiteral node) =>
+      new DartObjectImpl(_typeProvider.intType, new IntState(node.value));
 
   @override
   DartObjectImpl visitInterpolationExpression(InterpolationExpression node) {
@@ -1175,12 +1359,15 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   }
 
   @override
-  DartObjectImpl visitInterpolationString(InterpolationString node) => new DartObjectImpl(_typeProvider.stringType, new StringState(node.value));
+  DartObjectImpl visitInterpolationString(InterpolationString node) =>
+      new DartObjectImpl(_typeProvider.stringType, new StringState(node.value));
 
   @override
   DartObjectImpl visitListLiteral(ListLiteral node) {
     if (node.constKeyword == null) {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL, node);
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL,
+          node);
       return null;
     }
     bool errorOccurred = false;
@@ -1197,7 +1384,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return null;
     }
     DartType elementType = _typeProvider.dynamicType;
-    if (node.typeArguments != null && node.typeArguments.arguments.length == 1) {
+    if (node.typeArguments != null &&
+        node.typeArguments.arguments.length == 1) {
       DartType type = node.typeArguments.arguments[0].type;
       if (type != null) {
         elementType = type;
@@ -1210,11 +1398,14 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   @override
   DartObjectImpl visitMapLiteral(MapLiteral node) {
     if (node.constKeyword == null) {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL, node);
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL,
+          node);
       return null;
     }
     bool errorOccurred = false;
-    HashMap<DartObjectImpl, DartObjectImpl> map = new HashMap<DartObjectImpl, DartObjectImpl>();
+    HashMap<DartObjectImpl, DartObjectImpl> map =
+        new HashMap<DartObjectImpl, DartObjectImpl>();
     for (MapLiteralEntry entry in node.entries) {
       DartObjectImpl keyResult = entry.key.accept(this);
       DartObjectImpl valueResult = entry.value.accept(this);
@@ -1229,7 +1420,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
     DartType keyType = _typeProvider.dynamicType;
     DartType valueType = _typeProvider.dynamicType;
-    if (node.typeArguments != null && node.typeArguments.arguments.length == 2) {
+    if (node.typeArguments != null &&
+        node.typeArguments.arguments.length == 2) {
       DartType keyTypeCandidate = node.typeArguments.arguments[0].type;
       if (keyTypeCandidate != null) {
         keyType = keyTypeCandidate;
@@ -1239,8 +1431,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         valueType = valueTypeCandidate;
       }
     }
-    InterfaceType mapType = _typeProvider.mapType.substitute4(
-        [keyType, valueType]);
+    InterfaceType mapType =
+        _typeProvider.mapType.substitute4([keyType, valueType]);
     return new DartObjectImpl(mapType, new MapState(map));
   }
 
@@ -1258,7 +1450,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
             if (library.isDartCore) {
               DartObjectImpl leftArgument = arguments[0].accept(this);
               DartObjectImpl rightArgument = arguments[1].accept(this);
-              return _dartObjectComputer.isIdentical(node, leftArgument,
+              return _dartObjectComputer.isIdentical(
+                  node,
+                  leftArgument,
                   rightArgument);
             }
           }
@@ -1271,7 +1465,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   }
 
   @override
-  DartObjectImpl visitNamedExpression(NamedExpression node) => node.expression.accept(this);
+  DartObjectImpl visitNamedExpression(NamedExpression node) =>
+      node.expression.accept(this);
 
   @override
   DartObjectImpl visitNode(AstNode node) {
@@ -1284,11 +1479,13 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   DartObjectImpl visitNullLiteral(NullLiteral node) => null2;
 
   @override
-  DartObjectImpl visitParenthesizedExpression(ParenthesizedExpression node) => node.expression.accept(this);
+  DartObjectImpl visitParenthesizedExpression(ParenthesizedExpression node) =>
+      node.expression.accept(this);
 
   @override
   DartObjectImpl visitPrefixedIdentifier(PrefixedIdentifier node) {
-    // TODO(brianwilkerson) Uncomment the lines below when the new constant support can be added.
+    // TODO(brianwilkerson) Uncomment the lines below when the new constant
+    // support can be added.
     //    Element element = node.getStaticElement();
     //    if (isStringLength(element)) {
     //      EvaluationResultImpl target = node.getPrefix().accept(this);
@@ -1333,7 +1530,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   @override
   DartObjectImpl visitPropertyAccess(PropertyAccess node) {
     Element element = node.propertyName.staticElement;
-    // TODO(brianwilkerson) Uncomment the lines below when the new constant support can be added.
+    // TODO(brianwilkerson) Uncomment the lines below when the new constant
+    // support can be added.
     //    if (isStringLength(element)) {
     //      EvaluationResultImpl target = node.getRealTarget().accept(this);
     //      return target.stringLength(typeProvider, node);
@@ -1343,14 +1541,16 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitSimpleIdentifier(SimpleIdentifier node) {
-    if (_lexicalEnvironment != null && _lexicalEnvironment.containsKey(node.name)) {
+    if (_lexicalEnvironment != null &&
+        _lexicalEnvironment.containsKey(node.name)) {
       return _lexicalEnvironment[node.name];
     }
     return _getConstantValue(node, node.staticElement);
   }
 
   @override
-  DartObjectImpl visitSimpleStringLiteral(SimpleStringLiteral node) => new DartObjectImpl(_typeProvider.stringType, new StringState(node.value));
+  DartObjectImpl visitSimpleStringLiteral(SimpleStringLiteral node) =>
+      new DartObjectImpl(_typeProvider.stringType, new StringState(node.value));
 
   @override
   DartObjectImpl visitStringInterpolation(StringInterpolation node) {
@@ -1361,7 +1561,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         result = element.accept(this);
         first = false;
       } else {
-        result = _dartObjectComputer.concatenate(node, result, element.accept(this));
+        result =
+            _dartObjectComputer.concatenate(node, result, element.accept(this));
       }
     }
     return result;
@@ -1377,57 +1578,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       }
       buffer.write(components[i].lexeme);
     }
-    return new DartObjectImpl(_typeProvider.symbolType, new SymbolState(buffer.toString()));
-  }
-
-  /**
-   * This method is called just before retrieving an evaluation result from an AST node. Unit tests
-   * will override it to introduce additional error checking.
-   */
-  void beforeGetEvaluationResult(AstNode node) {
-  }
-
-  /**
-   * Return an object representing the value 'null'.
-   *
-   * @return an object representing the value 'null'
-   */
-  DartObjectImpl get null2 {
-    if (_nullObject == null) {
-      _nullObject = new DartObjectImpl(_typeProvider.nullType, NullState.NULL_STATE);
-    }
-    return _nullObject;
-  }
-
-  DartObjectImpl _validWithUnknownValue(InterfaceType type) {
-    if (type.element.library.isDartCore) {
-      String typeName = type.name;
-      if (typeName == "bool") {
-        return new DartObjectImpl(type, BoolState.UNKNOWN_VALUE);
-      } else if (typeName == "double") {
-        return new DartObjectImpl(type, DoubleState.UNKNOWN_VALUE);
-      } else if (typeName == "int") {
-        return new DartObjectImpl(type, IntState.UNKNOWN_VALUE);
-      } else if (typeName == "String") {
-        return new DartObjectImpl(type, StringState.UNKNOWN_VALUE);
-      }
-    }
-    return new DartObjectImpl(type, GenericState.UNKNOWN_VALUE);
-  }
-
-  /**
-   * Return the value of the given expression, or a representation of 'null' if the expression
-   * cannot be evaluated.
-   *
-   * @param expression the expression whose value is to be returned
-   * @return the value of the given expression
-   */
-  DartObjectImpl _valueOf(Expression expression) {
-    DartObjectImpl expressionValue = expression.accept(this);
-    if (expressionValue != null) {
-      return expressionValue;
-    }
-    return null2;
+    return new DartObjectImpl(
+        _typeProvider.symbolType,
+        new SymbolState(buffer.toString()));
   }
 
   /**
@@ -1437,7 +1590,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    * @param code the error code indicating the nature of the error
    */
   void _error(AstNode node, ErrorCode code) {
-    _errorReporter.reportErrorForNode(code == null ? CompileTimeErrorCode.INVALID_CONSTANT : code, node);
+    _errorReporter.reportErrorForNode(
+        code == null ? CompileTimeErrorCode.INVALID_CONSTANT : code,
+        node);
   }
 
   /**
@@ -1474,6 +1629,37 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     _error(node, null);
     return null;
   }
+
+  DartObjectImpl _validWithUnknownValue(InterfaceType type) {
+    if (type.element.library.isDartCore) {
+      String typeName = type.name;
+      if (typeName == "bool") {
+        return new DartObjectImpl(type, BoolState.UNKNOWN_VALUE);
+      } else if (typeName == "double") {
+        return new DartObjectImpl(type, DoubleState.UNKNOWN_VALUE);
+      } else if (typeName == "int") {
+        return new DartObjectImpl(type, IntState.UNKNOWN_VALUE);
+      } else if (typeName == "String") {
+        return new DartObjectImpl(type, StringState.UNKNOWN_VALUE);
+      }
+    }
+    return new DartObjectImpl(type, GenericState.UNKNOWN_VALUE);
+  }
+
+  /**
+   * Return the value of the given expression, or a representation of 'null' if the expression
+   * cannot be evaluated.
+   *
+   * @param expression the expression whose value is to be returned
+   * @return the value of the given expression
+   */
+  DartObjectImpl _valueOf(Expression expression) {
+    DartObjectImpl expressionValue = expression.accept(this);
+    if (expressionValue != null) {
+      return expressionValue;
+    }
+    return null2;
+  }
 }
 
 /**
@@ -1498,12 +1684,40 @@ abstract class DartObject {
   double get doubleValue;
 
   /**
+   * Return `true` if this object's value can be represented exactly.
+   *
+   * @return `true` if this object's value can be represented exactly
+   */
+  bool get hasExactValue;
+
+  /**
    * Return the integer value of this object, or `null` if either the value of this object is
    * not known or this object is not of type 'int'.
    *
    * @return the integer value of this object
    */
   int get intValue;
+
+  /**
+   * Return `true` if this object represents the value 'false'.
+   *
+   * @return `true` if this object represents the value 'false'
+   */
+  bool get isFalse;
+
+  /**
+   * Return `true` if this object represents the value 'null'.
+   *
+   * @return `true` if this object represents the value 'null'
+   */
+  bool get isNull;
+
+  /**
+   * Return `true` if this object represents the value 'true'.
+   *
+   * @return `true` if this object represents the value 'true'
+   */
+  bool get isTrue;
 
   /**
    * Return the string value of this object, or `null` if either the value of this object is
@@ -1528,34 +1742,6 @@ abstract class DartObject {
    * @return this object's value
    */
   Object get value;
-
-  /**
-   * Return `true` if this object's value can be represented exactly.
-   *
-   * @return `true` if this object's value can be represented exactly
-   */
-  bool get hasExactValue;
-
-  /**
-   * Return `true` if this object represents the value 'false'.
-   *
-   * @return `true` if this object represents the value 'false'
-   */
-  bool get isFalse;
-
-  /**
-   * Return `true` if this object represents the value 'null'.
-   *
-   * @return `true` if this object represents the value 'null'
-   */
-  bool get isNull;
-
-  /**
-   * Return `true` if this object represents the value 'true'.
-   *
-   * @return `true` if this object represents the value 'true'
-   */
-  bool get isTrue;
 }
 
 /**
@@ -1576,7 +1762,8 @@ class DartObjectComputer {
 
   DartObjectComputer(this._errorReporter, this._typeProvider);
 
-  DartObjectImpl add(BinaryExpression node, DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+  DartObjectImpl add(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.add(_typeProvider, rightOperand);
@@ -1594,7 +1781,8 @@ class DartObjectComputer {
    * @param node the node against which errors should be reported
    * @return the result of applying boolean conversion to the given value
    */
-  DartObjectImpl applyBooleanConversion(AstNode node, DartObjectImpl evaluationResult) {
+  DartObjectImpl applyBooleanConversion(AstNode node,
+      DartObjectImpl evaluationResult) {
     if (evaluationResult != null) {
       try {
         return evaluationResult.convertToBool(_typeProvider);
@@ -1605,7 +1793,8 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl bitAnd(BinaryExpression node, DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+  DartObjectImpl bitAnd(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.bitAnd(_typeProvider, rightOperand);
@@ -1627,7 +1816,8 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl bitOr(BinaryExpression node, DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+  DartObjectImpl bitOr(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.bitOr(_typeProvider, rightOperand);
@@ -1638,7 +1828,8 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl bitXor(BinaryExpression node, DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+  DartObjectImpl bitXor(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.bitXor(_typeProvider, rightOperand);
@@ -1649,7 +1840,8 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl concatenate(Expression node, DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+  DartObjectImpl concatenate(Expression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.concatenate(_typeProvider, rightOperand);
@@ -1660,7 +1852,8 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl divide(BinaryExpression node, DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+  DartObjectImpl divide(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.divide(_typeProvider, rightOperand);
@@ -1671,7 +1864,8 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl equalEqual(Expression node, DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+  DartObjectImpl equalEqual(Expression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.equalEqual(_typeProvider, rightOperand);
@@ -1682,7 +1876,8 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl greaterThan(BinaryExpression node, DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+  DartObjectImpl greaterThan(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.greaterThan(_typeProvider, rightOperand);
@@ -1693,7 +1888,8 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl greaterThanOrEqual(BinaryExpression node, DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+  DartObjectImpl greaterThanOrEqual(BinaryExpression node,
+      DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.greaterThanOrEqual(_typeProvider, rightOperand);
@@ -1704,7 +1900,8 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl integerDivide(BinaryExpression node, DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+  DartObjectImpl integerDivide(BinaryExpression node,
+      DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.integerDivide(_typeProvider, rightOperand);
@@ -1716,7 +1913,7 @@ class DartObjectComputer {
   }
 
   DartObjectImpl isIdentical(Expression node, DartObjectImpl leftOperand,
-                             DartObjectImpl rightOperand) {
+      DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.isIdentical(_typeProvider, rightOperand);
@@ -1727,7 +1924,8 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl lessThan(BinaryExpression node, DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+  DartObjectImpl lessThan(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.lessThan(_typeProvider, rightOperand);
@@ -1738,7 +1936,8 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl lessThanOrEqual(BinaryExpression node, DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+  DartObjectImpl lessThanOrEqual(BinaryExpression node,
+      DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.lessThanOrEqual(_typeProvider, rightOperand);
@@ -1749,7 +1948,8 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl logicalAnd(BinaryExpression node, DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+  DartObjectImpl logicalAnd(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.logicalAnd(_typeProvider, rightOperand);
@@ -1771,7 +1971,8 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl logicalOr(BinaryExpression node, DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+  DartObjectImpl logicalOr(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.logicalOr(_typeProvider, rightOperand);
@@ -1782,7 +1983,8 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl minus(BinaryExpression node, DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+  DartObjectImpl minus(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.minus(_typeProvider, rightOperand);
@@ -1804,7 +2006,8 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl notEqual(BinaryExpression node, DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+  DartObjectImpl notEqual(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.notEqual(_typeProvider, rightOperand);
@@ -1815,7 +2018,8 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl performToString(AstNode node, DartObjectImpl evaluationResult) {
+  DartObjectImpl performToString(AstNode node,
+      DartObjectImpl evaluationResult) {
     if (evaluationResult != null) {
       try {
         return evaluationResult.performToString(_typeProvider);
@@ -1826,7 +2030,8 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl remainder(BinaryExpression node, DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+  DartObjectImpl remainder(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.remainder(_typeProvider, rightOperand);
@@ -1837,7 +2042,8 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl shiftLeft(BinaryExpression node, DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+  DartObjectImpl shiftLeft(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.shiftLeft(_typeProvider, rightOperand);
@@ -1848,7 +2054,8 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl shiftRight(BinaryExpression node, DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+  DartObjectImpl shiftRight(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.shiftRight(_typeProvider, rightOperand);
@@ -1865,10 +2072,12 @@ class DartObjectComputer {
    * @param node the node against which errors should be reported
    * @return the result of invoking the 'length' getter on this result
    */
-  EvaluationResultImpl stringLength(Expression node, EvaluationResultImpl evaluationResult) {
+  EvaluationResultImpl stringLength(Expression node,
+      EvaluationResultImpl evaluationResult) {
     if (evaluationResult.value != null) {
       try {
-        return new EvaluationResultImpl.con1(evaluationResult.value.stringLength(_typeProvider));
+        return new EvaluationResultImpl.con1(
+            evaluationResult.value.stringLength(_typeProvider));
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
@@ -1876,7 +2085,8 @@ class DartObjectComputer {
     return new EvaluationResultImpl.con1(null);
   }
 
-  DartObjectImpl times(BinaryExpression node, DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+  DartObjectImpl times(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.times(_typeProvider, rightOperand);
@@ -1893,6 +2103,11 @@ class DartObjectComputer {
  */
 class DartObjectImpl implements DartObject {
   /**
+   * An empty list of objects.
+   */
+  static const List<DartObjectImpl> EMPTY_LIST = const <DartObjectImpl>[];
+
+  /**
    * The run-time type of this object.
    */
   final ParameterizedType type;
@@ -1903,17 +2118,103 @@ class DartObjectImpl implements DartObject {
   final InstanceState _state;
 
   /**
-   * An empty list of objects.
-   */
-  static const List<DartObjectImpl> EMPTY_LIST = const <DartObjectImpl>[];
-
-  /**
    * Initialize a newly created object to have the given type and state.
    *
    * @param type the run-time type of this object
    * @param state the state of the object
    */
   DartObjectImpl(this.type, this._state);
+
+  @override
+  bool get boolValue {
+    if (_state is BoolState) {
+      return (_state as BoolState).value;
+    }
+    return null;
+  }
+
+  @override
+  double get doubleValue {
+    if (_state is DoubleState) {
+      return (_state as DoubleState).value;
+    }
+    return null;
+  }
+
+  HashMap<String, DartObjectImpl> get fields => _state.fields;
+
+  @override
+  bool get hasExactValue => _state.hasExactValue;
+
+  @override
+  int get hashCode =>
+      ObjectUtilities.combineHashCodes(type.hashCode, _state.hashCode);
+
+  @override
+  int get intValue {
+    if (_state is IntState) {
+      return (_state as IntState).value;
+    }
+    return null;
+  }
+
+  /**
+   * Return `true` if this object represents an object whose type is 'bool'.
+   *
+   * @return `true` if this object represents a boolean value
+   */
+  bool get isBool => _state.isBool;
+
+  /**
+   * Return `true` if this object represents an object whose type is either 'bool', 'num',
+   * 'String', or 'Null'.
+   *
+   * @return `true` if this object represents either a boolean, numeric, string or null value
+   */
+  bool get isBoolNumStringOrNull => _state.isBoolNumStringOrNull;
+
+  @override
+  bool get isFalse =>
+      _state is BoolState && identical((_state as BoolState).value, false);
+
+  @override
+  bool get isNull => _state is NullState;
+
+  @override
+  bool get isTrue =>
+      _state is BoolState && identical((_state as BoolState).value, true);
+
+  /**
+   * Return true if this object represents an unknown value.
+   */
+  bool get isUnknown => _state.isUnknown;
+
+  /**
+   * Return `true` if this object represents an instance of a user-defined class.
+   *
+   * @return `true` if this object represents an instance of a user-defined class
+   */
+  bool get isUserDefinedObject => _state is GenericState;
+
+  @override
+  String get stringValue {
+    if (_state is StringState) {
+      return (_state as StringState).value;
+    }
+    return null;
+  }
+
+  @override
+  Object get value => _state.value;
+
+  @override
+  bool operator ==(Object object) {
+    if (object is! DartObjectImpl) {
+      return false;
+    }
+    DartObjectImpl dartObject = object as DartObjectImpl;
+    return type == dartObject.type && _state == dartObject._state;
+  }
 
   /**
    * Return the result of invoking the '+' operator on this object with the given argument.
@@ -1946,7 +2247,9 @@ class DartObjectImpl implements DartObject {
    * @return the result of invoking the '&' operator on this object with the given argument
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
-  DartObjectImpl bitAnd(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.intType, _state.bitAnd(rightOperand._state));
+  DartObjectImpl bitAnd(TypeProvider typeProvider,
+      DartObjectImpl rightOperand) =>
+      new DartObjectImpl(typeProvider.intType, _state.bitAnd(rightOperand._state));
 
   /**
    * Return the result of invoking the '~' operator on this object.
@@ -1955,7 +2258,8 @@ class DartObjectImpl implements DartObject {
    * @return the result of invoking the '~' operator on this object
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
-  DartObjectImpl bitNot(TypeProvider typeProvider) => new DartObjectImpl(typeProvider.intType, _state.bitNot());
+  DartObjectImpl bitNot(TypeProvider typeProvider) =>
+      new DartObjectImpl(typeProvider.intType, _state.bitNot());
 
   /**
    * Return the result of invoking the '|' operator on this object with the given argument.
@@ -1965,7 +2269,9 @@ class DartObjectImpl implements DartObject {
    * @return the result of invoking the '|' operator on this object with the given argument
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
-  DartObjectImpl bitOr(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.intType, _state.bitOr(rightOperand._state));
+  DartObjectImpl bitOr(TypeProvider typeProvider,
+      DartObjectImpl rightOperand) =>
+      new DartObjectImpl(typeProvider.intType, _state.bitOr(rightOperand._state));
 
   /**
    * Return the result of invoking the '^' operator on this object with the given argument.
@@ -1975,7 +2281,9 @@ class DartObjectImpl implements DartObject {
    * @return the result of invoking the '^' operator on this object with the given argument
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
-  DartObjectImpl bitXor(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.intType, _state.bitXor(rightOperand._state));
+  DartObjectImpl bitXor(TypeProvider typeProvider,
+      DartObjectImpl rightOperand) =>
+      new DartObjectImpl(typeProvider.intType, _state.bitXor(rightOperand._state));
 
   /**
    * Return the result of invoking the ' ' operator on this object with the given argument.
@@ -1985,7 +2293,11 @@ class DartObjectImpl implements DartObject {
    * @return the result of invoking the ' ' operator on this object with the given argument
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
-  DartObjectImpl concatenate(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.stringType, _state.concatenate(rightOperand._state));
+  DartObjectImpl concatenate(TypeProvider typeProvider,
+      DartObjectImpl rightOperand) =>
+      new DartObjectImpl(
+          typeProvider.stringType,
+          _state.concatenate(rightOperand._state));
 
   /**
    * Return the result of applying boolean conversion to this object.
@@ -2010,7 +2322,8 @@ class DartObjectImpl implements DartObject {
    * @return the result of invoking the '/' operator on this object with the given argument
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
-  DartObjectImpl divide(TypeProvider typeProvider, DartObjectImpl rightOperand) {
+  DartObjectImpl divide(TypeProvider typeProvider,
+      DartObjectImpl rightOperand) {
     InstanceState result = _state.divide(rightOperand._state);
     if (result is IntState) {
       return new DartObjectImpl(typeProvider.intType, result);
@@ -2031,61 +2344,25 @@ class DartObjectImpl implements DartObject {
    * @return the result of invoking the '==' operator on this object with the given argument
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
-  DartObjectImpl equalEqual(TypeProvider typeProvider, DartObjectImpl rightOperand) {
+  DartObjectImpl equalEqual(TypeProvider typeProvider,
+      DartObjectImpl rightOperand) {
     if (type != rightOperand.type) {
       String typeName = type.name;
-      if (!(typeName == "bool" || typeName == "double" || typeName == "int" || typeName == "num" || typeName == "String" || typeName == "Null" || type.isDynamic)) {
-        throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
+      if (!(typeName == "bool" ||
+          typeName == "double" ||
+          typeName == "int" ||
+          typeName == "num" ||
+          typeName == "String" ||
+          typeName == "Null" ||
+          type.isDynamic)) {
+        throw new EvaluationException(
+            CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
       }
     }
-    return new DartObjectImpl(typeProvider.boolType, _state.equalEqual(rightOperand._state));
+    return new DartObjectImpl(
+        typeProvider.boolType,
+        _state.equalEqual(rightOperand._state));
   }
-
-  @override
-  bool operator ==(Object object) {
-    if (object is! DartObjectImpl) {
-      return false;
-    }
-    DartObjectImpl dartObject = object as DartObjectImpl;
-    return type == dartObject.type && _state == dartObject._state;
-  }
-
-  @override
-  bool get boolValue {
-    if (_state is BoolState) {
-      return (_state as BoolState).value;
-    }
-    return null;
-  }
-
-  @override
-  double get doubleValue {
-    if (_state is DoubleState) {
-      return (_state as DoubleState).value;
-    }
-    return null;
-  }
-
-  HashMap<String, DartObjectImpl> get fields => _state.fields;
-
-  @override
-  int get intValue {
-    if (_state is IntState) {
-      return (_state as IntState).value;
-    }
-    return null;
-  }
-
-  @override
-  String get stringValue {
-    if (_state is StringState) {
-      return (_state as StringState).value;
-    }
-    return null;
-  }
-
-  @override
-  Object get value => _state.value;
 
   /**
    * Return the result of invoking the '&gt;' operator on this object with the given argument.
@@ -2095,7 +2372,11 @@ class DartObjectImpl implements DartObject {
    * @return the result of invoking the '&gt;' operator on this object with the given argument
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
-  DartObjectImpl greaterThan(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.boolType, _state.greaterThan(rightOperand._state));
+  DartObjectImpl greaterThan(TypeProvider typeProvider,
+      DartObjectImpl rightOperand) =>
+      new DartObjectImpl(
+          typeProvider.boolType,
+          _state.greaterThan(rightOperand._state));
 
   /**
    * Return the result of invoking the '&gt;=' operator on this object with the given argument.
@@ -2105,13 +2386,11 @@ class DartObjectImpl implements DartObject {
    * @return the result of invoking the '&gt;=' operator on this object with the given argument
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
-  DartObjectImpl greaterThanOrEqual(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.boolType, _state.greaterThanOrEqual(rightOperand._state));
-
-  @override
-  bool get hasExactValue => _state.hasExactValue;
-
-  @override
-  int get hashCode => ObjectUtilities.combineHashCodes(type.hashCode, _state.hashCode);
+  DartObjectImpl greaterThanOrEqual(TypeProvider typeProvider,
+      DartObjectImpl rightOperand) =>
+      new DartObjectImpl(
+          typeProvider.boolType,
+          _state.greaterThanOrEqual(rightOperand._state));
 
   /**
    * Return the result of invoking the '~/' operator on this object with the given argument.
@@ -2121,7 +2400,11 @@ class DartObjectImpl implements DartObject {
    * @return the result of invoking the '~/' operator on this object with the given argument
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
-  DartObjectImpl integerDivide(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.intType, _state.integerDivide(rightOperand._state));
+  DartObjectImpl integerDivide(TypeProvider typeProvider,
+      DartObjectImpl rightOperand) =>
+      new DartObjectImpl(
+          typeProvider.intType,
+          _state.integerDivide(rightOperand._state));
 
   /**
    * Return the result of invoking the identical function on this object with
@@ -2133,46 +2416,11 @@ class DartObjectImpl implements DartObject {
    *         the given argument
    */
   DartObjectImpl isIdentical(TypeProvider typeProvider,
-                             DartObjectImpl rightOperand) {
-    return new DartObjectImpl(typeProvider.boolType,
+      DartObjectImpl rightOperand) {
+    return new DartObjectImpl(
+        typeProvider.boolType,
         _state.isIdentical(rightOperand._state));
   }
-
-  /**
-   * Return `true` if this object represents an object whose type is 'bool'.
-   *
-   * @return `true` if this object represents a boolean value
-   */
-  bool get isBool => _state.isBool;
-
-  /**
-   * Return `true` if this object represents an object whose type is either 'bool', 'num',
-   * 'String', or 'Null'.
-   *
-   * @return `true` if this object represents either a boolean, numeric, string or null value
-   */
-  bool get isBoolNumStringOrNull => _state.isBoolNumStringOrNull;
-
-  @override
-  bool get isFalse => _state is BoolState && identical((_state as BoolState).value, false);
-
-  @override
-  bool get isNull => _state is NullState;
-
-  @override
-  bool get isTrue => _state is BoolState && identical((_state as BoolState).value, true);
-
-  /**
-   * Return true if this object represents an unknown value.
-   */
-  bool get isUnknown => _state.isUnknown;
-
-  /**
-   * Return `true` if this object represents an instance of a user-defined class.
-   *
-   * @return `true` if this object represents an instance of a user-defined class
-   */
-  bool get isUserDefinedObject => _state is GenericState;
 
   /**
    * Return the result of invoking the '&lt;' operator on this object with the given argument.
@@ -2182,7 +2430,9 @@ class DartObjectImpl implements DartObject {
    * @return the result of invoking the '&lt;' operator on this object with the given argument
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
-  DartObjectImpl lessThan(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.boolType, _state.lessThan(rightOperand._state));
+  DartObjectImpl lessThan(TypeProvider typeProvider,
+      DartObjectImpl rightOperand) =>
+      new DartObjectImpl(typeProvider.boolType, _state.lessThan(rightOperand._state));
 
   /**
    * Return the result of invoking the '&lt;=' operator on this object with the given argument.
@@ -2192,7 +2442,11 @@ class DartObjectImpl implements DartObject {
    * @return the result of invoking the '&lt;=' operator on this object with the given argument
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
-  DartObjectImpl lessThanOrEqual(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.boolType, _state.lessThanOrEqual(rightOperand._state));
+  DartObjectImpl lessThanOrEqual(TypeProvider typeProvider,
+      DartObjectImpl rightOperand) =>
+      new DartObjectImpl(
+          typeProvider.boolType,
+          _state.lessThanOrEqual(rightOperand._state));
 
   /**
    * Return the result of invoking the '&&' operator on this object with the given argument.
@@ -2202,7 +2456,11 @@ class DartObjectImpl implements DartObject {
    * @return the result of invoking the '&&' operator on this object with the given argument
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
-  DartObjectImpl logicalAnd(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.boolType, _state.logicalAnd(rightOperand._state));
+  DartObjectImpl logicalAnd(TypeProvider typeProvider,
+      DartObjectImpl rightOperand) =>
+      new DartObjectImpl(
+          typeProvider.boolType,
+          _state.logicalAnd(rightOperand._state));
 
   /**
    * Return the result of invoking the '!' operator on this object.
@@ -2211,7 +2469,8 @@ class DartObjectImpl implements DartObject {
    * @return the result of invoking the '!' operator on this object
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
-  DartObjectImpl logicalNot(TypeProvider typeProvider) => new DartObjectImpl(typeProvider.boolType, _state.logicalNot());
+  DartObjectImpl logicalNot(TypeProvider typeProvider) =>
+      new DartObjectImpl(typeProvider.boolType, _state.logicalNot());
 
   /**
    * Return the result of invoking the '||' operator on this object with the given argument.
@@ -2221,7 +2480,11 @@ class DartObjectImpl implements DartObject {
    * @return the result of invoking the '||' operator on this object with the given argument
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
-  DartObjectImpl logicalOr(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.boolType, _state.logicalOr(rightOperand._state));
+  DartObjectImpl logicalOr(TypeProvider typeProvider,
+      DartObjectImpl rightOperand) =>
+      new DartObjectImpl(
+          typeProvider.boolType,
+          _state.logicalOr(rightOperand._state));
 
   /**
    * Return the result of invoking the '-' operator on this object with the given argument.
@@ -2272,14 +2535,21 @@ class DartObjectImpl implements DartObject {
    * @return the result of invoking the '!=' operator on this object with the given argument
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
-  DartObjectImpl notEqual(TypeProvider typeProvider, DartObjectImpl rightOperand) {
+  DartObjectImpl notEqual(TypeProvider typeProvider,
+      DartObjectImpl rightOperand) {
     if (type != rightOperand.type) {
       String typeName = type.name;
-      if (typeName != "bool" && typeName != "double" && typeName != "int" && typeName != "num" && typeName != "String") {
+      if (typeName != "bool" &&
+          typeName != "double" &&
+          typeName != "int" &&
+          typeName != "num" &&
+          typeName != "String") {
         return new DartObjectImpl(typeProvider.boolType, BoolState.TRUE_STATE);
       }
     }
-    return new DartObjectImpl(typeProvider.boolType, _state.equalEqual(rightOperand._state).logicalNot());
+    return new DartObjectImpl(
+        typeProvider.boolType,
+        _state.equalEqual(rightOperand._state).logicalNot());
   }
 
   /**
@@ -2305,7 +2575,8 @@ class DartObjectImpl implements DartObject {
    * @return the result of invoking the '%' operator on this object with the given argument
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
-  DartObjectImpl remainder(TypeProvider typeProvider, DartObjectImpl rightOperand) {
+  DartObjectImpl remainder(TypeProvider typeProvider,
+      DartObjectImpl rightOperand) {
     InstanceState result = _state.remainder(rightOperand._state);
     if (result is IntState) {
       return new DartObjectImpl(typeProvider.intType, result);
@@ -2315,7 +2586,8 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.numType, result);
     }
     // We should never get here.
-    throw new IllegalStateException("remainder returned a ${result.runtimeType}");
+    throw new IllegalStateException(
+        "remainder returned a ${result.runtimeType}");
   }
 
   /**
@@ -2326,7 +2598,9 @@ class DartObjectImpl implements DartObject {
    * @return the result of invoking the '&lt;&lt;' operator on this object with the given argument
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
-  DartObjectImpl shiftLeft(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.intType, _state.shiftLeft(rightOperand._state));
+  DartObjectImpl shiftLeft(TypeProvider typeProvider,
+      DartObjectImpl rightOperand) =>
+      new DartObjectImpl(typeProvider.intType, _state.shiftLeft(rightOperand._state));
 
   /**
    * Return the result of invoking the '&gt;&gt;' operator on this object with the given argument.
@@ -2336,7 +2610,11 @@ class DartObjectImpl implements DartObject {
    * @return the result of invoking the '&gt;&gt;' operator on this object with the given argument
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
-  DartObjectImpl shiftRight(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.intType, _state.shiftRight(rightOperand._state));
+  DartObjectImpl shiftRight(TypeProvider typeProvider,
+      DartObjectImpl rightOperand) =>
+      new DartObjectImpl(
+          typeProvider.intType,
+          _state.shiftRight(rightOperand._state));
 
   /**
    * Return the result of invoking the 'length' getter on this object.
@@ -2345,7 +2623,8 @@ class DartObjectImpl implements DartObject {
    * @return the result of invoking the 'length' getter on this object
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
-  DartObjectImpl stringLength(TypeProvider typeProvider) => new DartObjectImpl(typeProvider.intType, _state.stringLength());
+  DartObjectImpl stringLength(TypeProvider typeProvider) =>
+      new DartObjectImpl(typeProvider.intType, _state.stringLength());
 
   /**
    * Return the result of invoking the '*' operator on this object with the given argument.
@@ -2449,7 +2728,8 @@ class DeclaredVariables {
   DartObject getString(TypeProvider typeProvider, String variableName) {
     String value = _declaredVariables[variableName];
     if (value == null) {
-      return new DartObjectImpl(typeProvider.stringType,
+      return new DartObjectImpl(
+          typeProvider.stringType,
           StringState.UNKNOWN_VALUE);
     }
     return new DartObjectImpl(typeProvider.stringType, new StringState(value));
@@ -2462,14 +2742,14 @@ class DeclaredVariables {
  */
 class DoubleState extends NumState {
   /**
-   * The value of this instance.
-   */
-  final double value;
-
-  /**
    * A state that can be used to represent a double whose value is not known.
    */
   static DoubleState UNKNOWN_VALUE = new DoubleState(null);
+
+  /**
+   * The value of this instance.
+   */
+  final double value;
 
   /**
    * Initialize a newly created state to represent a double with the given value.
@@ -2477,6 +2757,25 @@ class DoubleState extends NumState {
    * @param value the value of this instance
    */
   DoubleState(this.value);
+
+  @override
+  bool get hasExactValue => true;
+
+  @override
+  int get hashCode => value == null ? 0 : value.hashCode;
+
+  @override
+  bool get isBoolNumStringOrNull => true;
+
+  @override
+  bool get isUnknown => value == null;
+
+  @override
+  String get typeName => "double";
+
+  @override
+  bool operator ==(Object object) =>
+      object is DoubleState && (value == object.value);
 
   @override
   NumState add(InstanceState rightOperand) {
@@ -2499,7 +2798,8 @@ class DoubleState extends NumState {
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return UNKNOWN_VALUE;
     }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -2531,13 +2831,91 @@ class DoubleState extends NumState {
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return UNKNOWN_VALUE;
     }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
   BoolState equalEqual(InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
     return isIdentical(rightOperand);
+  }
+
+  @override
+  BoolState greaterThan(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = rightOperand.value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value > rightValue.toDouble());
+    } else if (rightOperand is DoubleState) {
+      double rightValue = rightOperand.value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value > rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  @override
+  BoolState greaterThanOrEqual(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = rightOperand.value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value >= rightValue.toDouble());
+    } else if (rightOperand is DoubleState) {
+      double rightValue = rightOperand.value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value >= rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  @override
+  IntState integerDivide(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      return IntState.UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = rightOperand.value;
+      if (rightValue == null) {
+        return IntState.UNKNOWN_VALUE;
+      }
+      double result = value / rightValue.toDouble();
+      return new IntState(result.toInt());
+    } else if (rightOperand is DoubleState) {
+      double rightValue = rightOperand.value;
+      if (rightValue == null) {
+        return IntState.UNKNOWN_VALUE;
+      }
+      double result = value / rightValue;
+      return new IntState(result.toInt());
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return IntState.UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -2564,98 +2942,6 @@ class DoubleState extends NumState {
   }
 
   @override
-  bool operator ==(Object object) => object is DoubleState && (value == object.value);
-
-  @override
-  String get typeName => "double";
-
-  @override
-  BoolState greaterThan(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    if (value == null) {
-      return BoolState.UNKNOWN_VALUE;
-    }
-    if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
-      if (rightValue == null) {
-        return BoolState.UNKNOWN_VALUE;
-      }
-      return BoolState.from(value > rightValue.toDouble());
-    } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
-      if (rightValue == null) {
-        return BoolState.UNKNOWN_VALUE;
-      }
-      return BoolState.from(value > rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return BoolState.UNKNOWN_VALUE;
-    }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
-  }
-
-  @override
-  BoolState greaterThanOrEqual(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    if (value == null) {
-      return BoolState.UNKNOWN_VALUE;
-    }
-    if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
-      if (rightValue == null) {
-        return BoolState.UNKNOWN_VALUE;
-      }
-      return BoolState.from(value >= rightValue.toDouble());
-    } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
-      if (rightValue == null) {
-        return BoolState.UNKNOWN_VALUE;
-      }
-      return BoolState.from(value >= rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return BoolState.UNKNOWN_VALUE;
-    }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
-  }
-
-  @override
-  bool get hasExactValue => true;
-
-  @override
-  int get hashCode => value == null ? 0 : value.hashCode;
-
-  @override
-  IntState integerDivide(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    if (value == null) {
-      return IntState.UNKNOWN_VALUE;
-    }
-    if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
-      if (rightValue == null) {
-        return IntState.UNKNOWN_VALUE;
-      }
-      double result = value / rightValue.toDouble();
-      return new IntState(result.toInt());
-    } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
-      if (rightValue == null) {
-        return IntState.UNKNOWN_VALUE;
-      }
-      double result = value / rightValue;
-      return new IntState(result.toInt());
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return IntState.UNKNOWN_VALUE;
-    }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
-  }
-
-  @override
-  bool get isBoolNumStringOrNull => true;
-
-  @override
-  bool get isUnknown => value == null;
-
-  @override
   BoolState lessThan(InstanceState rightOperand) {
     assertNumOrNull(rightOperand);
     if (value == null) {
@@ -2676,7 +2962,8 @@ class DoubleState extends NumState {
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return BoolState.UNKNOWN_VALUE;
     }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -2700,7 +2987,8 @@ class DoubleState extends NumState {
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return BoolState.UNKNOWN_VALUE;
     }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -2724,7 +3012,8 @@ class DoubleState extends NumState {
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return UNKNOWN_VALUE;
     }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -2756,7 +3045,8 @@ class DoubleState extends NumState {
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return UNKNOWN_VALUE;
     }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -2780,7 +3070,8 @@ class DoubleState extends NumState {
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return UNKNOWN_VALUE;
     }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -2796,6 +3087,15 @@ class DynamicState extends InstanceState {
    * The unique instance of this class.
    */
   static DynamicState DYNAMIC_STATE = new DynamicState();
+
+  @override
+  bool get isBool => true;
+
+  @override
+  bool get isBoolNumStringOrNull => true;
+
+  @override
+  String get typeName => "dynamic";
 
   @override
   NumState add(InstanceState rightOperand) {
@@ -2849,14 +3149,6 @@ class DynamicState extends InstanceState {
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
-    return BoolState.UNKNOWN_VALUE;
-  }
-
-  @override
-  String get typeName => "dynamic";
-
-  @override
   BoolState greaterThan(InstanceState rightOperand) {
     assertNumOrNull(rightOperand);
     return BoolState.UNKNOWN_VALUE;
@@ -2875,10 +3167,9 @@ class DynamicState extends InstanceState {
   }
 
   @override
-  bool get isBool => true;
-
-  @override
-  bool get isBoolNumStringOrNull => true;
+  BoolState isIdentical(InstanceState rightOperand) {
+    return BoolState.UNKNOWN_VALUE;
+  }
 
   @override
   BoolState lessThan(InstanceState rightOperand) {
@@ -2981,24 +3272,6 @@ class EvaluationException extends JavaException {
  */
 class EvaluationResult {
   /**
-   * Return an evaluation result representing the result of evaluating an expression that is not a
-   * compile-time constant because of the given errors.
-   *
-   * @param errors the errors that should be reported for the expression(s) that were evaluated
-   * @return the result of evaluating an expression that is not a compile-time constant
-   */
-  static EvaluationResult forErrors(List<AnalysisError> errors) => new EvaluationResult(null, errors);
-
-  /**
-   * Return an evaluation result representing the result of evaluating an expression that is a
-   * compile-time constant that evaluates to the given value.
-   *
-   * @param value the value of the expression
-   * @return the result of evaluating an expression that is a compile-time constant
-   */
-  static EvaluationResult forValue(DartObject value) => new EvaluationResult(value, null);
-
-  /**
    * The value of the expression.
    */
   final DartObject value;
@@ -3023,7 +3296,8 @@ class EvaluationResult {
    * the expression is not a valid compile time constant if the errors would have been reported by
    * other parts of the analysis engine.
    */
-  List<AnalysisError> get errors => _errors == null ? AnalysisError.NO_ERRORS : _errors;
+  List<AnalysisError> get errors =>
+      _errors == null ? AnalysisError.NO_ERRORS : _errors;
 
   /**
    * Return `true` if the expression is a compile-time constant expression that would not
@@ -3032,6 +3306,26 @@ class EvaluationResult {
    * @return `true` if the expression is a valid compile-time constant expression
    */
   bool get isValid => _errors == null;
+
+  /**
+   * Return an evaluation result representing the result of evaluating an expression that is not a
+   * compile-time constant because of the given errors.
+   *
+   * @param errors the errors that should be reported for the expression(s) that were evaluated
+   * @return the result of evaluating an expression that is not a compile-time constant
+   */
+  static EvaluationResult forErrors(List<AnalysisError> errors) =>
+      new EvaluationResult(null, errors);
+
+  /**
+   * Return an evaluation result representing the result of evaluating an expression that is a
+   * compile-time constant that evaluates to the given value.
+   *
+   * @param value the value of the expression
+   * @return the result of evaluating an expression that is a compile-time constant
+   */
+  static EvaluationResult forValue(DartObject value) =>
+      new EvaluationResult(value, null);
 }
 
 /**
@@ -3058,6 +3352,8 @@ class EvaluationResultImpl {
     this._errors = errors;
   }
 
+  List<AnalysisError> get errors => _errors;
+
   bool equalValues(TypeProvider typeProvider, EvaluationResultImpl result) {
     if (this.value != null) {
       if (result.value == null) {
@@ -3068,8 +3364,6 @@ class EvaluationResultImpl {
       return false;
     }
   }
-
-  List<AnalysisError> get errors => _errors;
 
   @override
   String toString() {
@@ -3098,15 +3392,22 @@ class FunctionState extends InstanceState {
   FunctionState(this._element);
 
   @override
+  int get hashCode => _element == null ? 0 : _element.hashCode;
+
+  @override
+  String get typeName => "Function";
+
+  @override
+  bool operator ==(Object object) =>
+      object is FunctionState && (_element == object._element);
+
+  @override
   StringState convertToString() {
     if (_element == null) {
       return StringState.UNKNOWN_VALUE;
     }
     return new StringState(_element.name);
   }
-
-  @override
-  bool operator ==(Object object) => object is FunctionState && (_element == object._element);
 
   @override
   BoolState equalEqual(InstanceState rightOperand) {
@@ -3131,12 +3432,6 @@ class FunctionState extends InstanceState {
   }
 
   @override
-  String get typeName => "Function";
-
-  @override
-  int get hashCode => _element == null ? 0 : _element.hashCode;
-
-  @override
   String toString() => _element == null ? "-unknown-" : _element.name;
 }
 
@@ -3146,11 +3441,6 @@ class FunctionState extends InstanceState {
  */
 class GenericState extends InstanceState {
   /**
-   * The values of the fields of this instance.
-   */
-  final HashMap<String, DartObjectImpl> _fieldMap;
-
-  /**
    * Pseudo-field that we use to represent fields in the superclass.
    */
   static String SUPERCLASS_FIELD = "(super)";
@@ -3158,7 +3448,13 @@ class GenericState extends InstanceState {
   /**
    * A state that can be used to represent an object whose state is not known.
    */
-  static GenericState UNKNOWN_VALUE = new GenericState(new HashMap<String, DartObjectImpl>());
+  static GenericState UNKNOWN_VALUE =
+      new GenericState(new HashMap<String, DartObjectImpl>());
+
+  /**
+   * The values of the fields of this instance.
+   */
+  final HashMap<String, DartObjectImpl> _fieldMap;
 
   /**
    * Initialize a newly created state to represent a newly created object.
@@ -3166,6 +3462,46 @@ class GenericState extends InstanceState {
    * @param fieldMap the values of the fields of this instance
    */
   GenericState(this._fieldMap);
+
+  @override
+  HashMap<String, DartObjectImpl> get fields => _fieldMap;
+
+  @override
+  int get hashCode {
+    int hashCode = 0;
+    for (DartObjectImpl value in _fieldMap.values) {
+      hashCode += value.hashCode;
+    }
+    return hashCode;
+  }
+
+  @override
+  bool get isUnknown => identical(this, UNKNOWN_VALUE);
+
+  @override
+  String get typeName => "user defined type";
+
+  @override
+  bool operator ==(Object object) {
+    if (object is! GenericState) {
+      return false;
+    }
+    GenericState state = object as GenericState;
+    HashSet<String> otherFields =
+        new HashSet<String>.from(state._fieldMap.keys.toSet());
+    for (String fieldName in _fieldMap.keys.toSet()) {
+      if (_fieldMap[fieldName] != state._fieldMap[fieldName]) {
+        return false;
+      }
+      otherFields.remove(fieldName);
+    }
+    for (String fieldName in otherFields) {
+      if (state._fieldMap[fieldName] != _fieldMap[fieldName]) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   @override
   StringState convertToString() => StringState.UNKNOWN_VALUE;
@@ -3183,45 +3519,6 @@ class GenericState extends InstanceState {
     }
     return BoolState.from(this == rightOperand);
   }
-
-  @override
-  bool operator ==(Object object) {
-    if (object is! GenericState) {
-      return false;
-    }
-    GenericState state = object as GenericState;
-    HashSet<String> otherFields = new HashSet<String>.from(state._fieldMap.keys.toSet());
-    for (String fieldName in _fieldMap.keys.toSet()) {
-      if (_fieldMap[fieldName] != state._fieldMap[fieldName]) {
-        return false;
-      }
-      otherFields.remove(fieldName);
-    }
-    for (String fieldName in otherFields) {
-      if (state._fieldMap[fieldName] != _fieldMap[fieldName]) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  @override
-  HashMap<String, DartObjectImpl> get fields => _fieldMap;
-
-  @override
-  String get typeName => "user defined type";
-
-  @override
-  int get hashCode {
-    int hashCode = 0;
-    for (DartObjectImpl value in _fieldMap.values) {
-      hashCode += value.hashCode;
-    }
-    return hashCode;
-  }
-
-  @override
-  bool get isUnknown => identical(this, UNKNOWN_VALUE);
 }
 
 /**
@@ -3230,6 +3527,55 @@ class GenericState extends InstanceState {
  */
 abstract class InstanceState {
   /**
+   * If this represents a generic dart object, return a map from its fieldnames to their values.
+   * Otherwise return null.
+   */
+  HashMap<String, DartObjectImpl> get fields => null;
+
+  /**
+   * Return `true` if this object's value can be represented exactly.
+   *
+   * @return `true` if this object's value can be represented exactly
+   */
+  bool get hasExactValue => false;
+
+  /**
+   * Return `true` if this object represents an object whose type is 'bool'.
+   *
+   * @return `true` if this object represents a boolean value
+   */
+  bool get isBool => false;
+
+  /**
+   * Return `true` if this object represents an object whose type is either 'bool', 'num',
+   * 'String', or 'Null'.
+   *
+   * @return `true` if this object represents either a boolean, numeric, string or null value
+   */
+  bool get isBoolNumStringOrNull => false;
+
+  /**
+   * Return true if this object represents an unknown value.
+   */
+  bool get isUnknown => false;
+
+  /**
+   * Return the name of the type of this value.
+   *
+   * @return the name of the type of this value
+   */
+  String get typeName;
+
+  /**
+   * Return this object's value if it can be represented exactly, or `null` if either the
+   * value cannot be represented exactly or if the value is `null`. Clients should use
+   * [hasExactValue] to distinguish between these two cases.
+   *
+   * @return this object's value
+   */
+  Object get value => null;
+
+  /**
    * Return the result of invoking the '+' operator on this object with the given argument.
    *
    * @param rightOperand the right-hand operand of the operation
@@ -3237,13 +3583,92 @@ abstract class InstanceState {
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
   InstanceState add(InstanceState rightOperand) {
-    // TODO(brianwilkerson) Uncomment the code below when the new constant support can be added.
-    //    if (this instanceof StringState || rightOperand instanceof StringState) {
-    //      return concatenate(rightOperand);
-    //    }
+    // TODO(brianwilkerson) Uncomment the code below when the new constant
+    // support can be added.
+//    if (this instanceof StringState || rightOperand instanceof StringState) {
+//      return concatenate(rightOperand);
+//    }
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
     throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+  }
+
+  /**
+   * Throw an exception if the given state does not represent a boolean value.
+   *
+   * @param state the state being tested
+   * @throws EvaluationException if the given state does not represent a boolean value
+   */
+  void assertBool(InstanceState state) {
+    if (!(state is BoolState || state is DynamicState)) {
+      throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+    }
+  }
+
+  /**
+   * Throw an exception if the given state does not represent a boolean, numeric, string or null
+   * value.
+   *
+   * @param state the state being tested
+   * @throws EvaluationException if the given state does not represent a boolean, numeric, string or
+   *           null value
+   */
+  void assertBoolNumStringOrNull(InstanceState state) {
+    if (!(state is BoolState ||
+        state is DoubleState ||
+        state is IntState ||
+        state is NumState ||
+        state is StringState ||
+        state is NullState ||
+        state is DynamicState)) {
+      throw new EvaluationException(
+          CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
+    }
+  }
+
+  /**
+   * Throw an exception if the given state does not represent an integer or null value.
+   *
+   * @param state the state being tested
+   * @throws EvaluationException if the given state does not represent an integer or null value
+   */
+  void assertIntOrNull(InstanceState state) {
+    if (!(state is IntState ||
+        state is NumState ||
+        state is NullState ||
+        state is DynamicState)) {
+      throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
+    }
+  }
+
+  /**
+   * Throw an exception if the given state does not represent a boolean, numeric, string or null
+   * value.
+   *
+   * @param state the state being tested
+   * @throws EvaluationException if the given state does not represent a boolean, numeric, string or
+   *           null value
+   */
+  void assertNumOrNull(InstanceState state) {
+    if (!(state is DoubleState ||
+        state is IntState ||
+        state is NumState ||
+        state is NullState ||
+        state is DynamicState)) {
+      throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+    }
+  }
+
+  /**
+   * Throw an exception if the given state does not represent a String value.
+   *
+   * @param state the state being tested
+   * @throws EvaluationException if the given state does not represent a String value
+   */
+  void assertString(InstanceState state) {
+    if (!(state is StringState || state is DynamicState)) {
+      throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+    }
   }
 
   /**
@@ -3348,28 +3773,6 @@ abstract class InstanceState {
   BoolState equalEqual(InstanceState rightOperand);
 
   /**
-   * If this represents a generic dart object, return a map from its fieldnames to their values.
-   * Otherwise return null.
-   */
-  HashMap<String, DartObjectImpl> get fields => null;
-
-  /**
-   * Return the name of the type of this value.
-   *
-   * @return the name of the type of this value
-   */
-  String get typeName;
-
-  /**
-   * Return this object's value if it can be represented exactly, or `null` if either the
-   * value cannot be represented exactly or if the value is `null`. Clients should use
-   * [hasExactValue] to distinguish between these two cases.
-   *
-   * @return this object's value
-   */
-  Object get value => null;
-
-  /**
    * Return the result of invoking the '&gt;' operator on this object with the given argument.
    *
    * @param rightOperand the right-hand operand of the operation
@@ -3396,13 +3799,6 @@ abstract class InstanceState {
   }
 
   /**
-   * Return `true` if this object's value can be represented exactly.
-   *
-   * @return `true` if this object's value can be represented exactly
-   */
-  bool get hasExactValue => false;
-
-  /**
    * Return the result of invoking the '~/' operator on this object with the given argument.
    *
    * @param rightOperand the right-hand operand of the operation
@@ -3424,26 +3820,6 @@ abstract class InstanceState {
    *         the given argument
    */
   BoolState isIdentical(InstanceState rightOperand);
-
-  /**
-   * Return `true` if this object represents an object whose type is 'bool'.
-   *
-   * @return `true` if this object represents a boolean value
-   */
-  bool get isBool => false;
-
-  /**
-   * Return `true` if this object represents an object whose type is either 'bool', 'num',
-   * 'String', or 'Null'.
-   *
-   * @return `true` if this object represents either a boolean, numeric, string or null value
-   */
-  bool get isBoolNumStringOrNull => false;
-
-  /**
-   * Return true if this object represents an unknown value.
-   */
-  bool get isUnknown => false;
 
   /**
    * Return the result of invoking the '&lt;' operator on this object with the given argument.
@@ -3594,70 +3970,6 @@ abstract class InstanceState {
     assertNumOrNull(rightOperand);
     throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
-
-  /**
-   * Throw an exception if the given state does not represent a boolean value.
-   *
-   * @param state the state being tested
-   * @throws EvaluationException if the given state does not represent a boolean value
-   */
-  void assertBool(InstanceState state) {
-    if (!(state is BoolState || state is DynamicState)) {
-      throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
-    }
-  }
-
-  /**
-   * Throw an exception if the given state does not represent a boolean, numeric, string or null
-   * value.
-   *
-   * @param state the state being tested
-   * @throws EvaluationException if the given state does not represent a boolean, numeric, string or
-   *           null value
-   */
-  void assertBoolNumStringOrNull(InstanceState state) {
-    if (!(state is BoolState || state is DoubleState || state is IntState || state is NumState || state is StringState || state is NullState || state is DynamicState)) {
-      throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
-    }
-  }
-
-  /**
-   * Throw an exception if the given state does not represent an integer or null value.
-   *
-   * @param state the state being tested
-   * @throws EvaluationException if the given state does not represent an integer or null value
-   */
-  void assertIntOrNull(InstanceState state) {
-    if (!(state is IntState || state is NumState || state is NullState || state is DynamicState)) {
-      throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
-    }
-  }
-
-  /**
-   * Throw an exception if the given state does not represent a boolean, numeric, string or null
-   * value.
-   *
-   * @param state the state being tested
-   * @throws EvaluationException if the given state does not represent a boolean, numeric, string or
-   *           null value
-   */
-  void assertNumOrNull(InstanceState state) {
-    if (!(state is DoubleState || state is IntState || state is NumState || state is NullState || state is DynamicState)) {
-      throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
-    }
-  }
-
-  /**
-   * Throw an exception if the given state does not represent a String value.
-   *
-   * @param state the state being tested
-   * @throws EvaluationException if the given state does not represent a String value
-   */
-  void assertString(InstanceState state) {
-    if (!(state is StringState || state is DynamicState)) {
-      throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
-    }
-  }
 }
 
 /**
@@ -3665,14 +3977,14 @@ abstract class InstanceState {
  */
 class IntState extends NumState {
   /**
-   * The value of this instance.
-   */
-  final int value;
-
-  /**
    * A state that can be used to represent an int whose value is not known.
    */
   static IntState UNKNOWN_VALUE = new IntState(null);
+
+  /**
+   * The value of this instance.
+   */
+  final int value;
 
   /**
    * Initialize a newly created state to represent an int with the given value.
@@ -3680,6 +3992,25 @@ class IntState extends NumState {
    * @param value the value of this instance
    */
   IntState(this.value);
+
+  @override
+  bool get hasExactValue => true;
+
+  @override
+  int get hashCode => value == null ? 0 : value.hashCode;
+
+  @override
+  bool get isBoolNumStringOrNull => true;
+
+  @override
+  bool get isUnknown => value == null;
+
+  @override
+  String get typeName => "int";
+
+  @override
+  bool operator ==(Object object) =>
+      object is IntState && (value == object.value);
 
   @override
   NumState add(InstanceState rightOperand) {
@@ -3705,7 +4036,8 @@ class IntState extends NumState {
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return UNKNOWN_VALUE;
     }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -3723,7 +4055,8 @@ class IntState extends NumState {
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return UNKNOWN_VALUE;
     }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -3749,7 +4082,8 @@ class IntState extends NumState {
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return UNKNOWN_VALUE;
     }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -3767,7 +4101,8 @@ class IntState extends NumState {
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return UNKNOWN_VALUE;
     }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -3804,13 +4139,93 @@ class IntState extends NumState {
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return UNKNOWN_VALUE;
     }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
   BoolState equalEqual(InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
     return isIdentical(rightOperand);
+  }
+
+  @override
+  BoolState greaterThan(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = rightOperand.value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value.compareTo(rightValue) > 0);
+    } else if (rightOperand is DoubleState) {
+      double rightValue = rightOperand.value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value.toDouble() > rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  @override
+  BoolState greaterThanOrEqual(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = rightOperand.value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value.compareTo(rightValue) >= 0);
+    } else if (rightOperand is DoubleState) {
+      double rightValue = rightOperand.value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value.toDouble() >= rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  @override
+  IntState integerDivide(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = rightOperand.value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      } else if (rightValue == 0) {
+        throw new EvaluationException(
+            CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE);
+      }
+      return new IntState(value ~/ rightValue);
+    } else if (rightOperand is DoubleState) {
+      double rightValue = rightOperand.value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      }
+      double result = value.toDouble() / rightValue;
+      return new IntState(result.toInt());
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -3837,99 +4252,6 @@ class IntState extends NumState {
   }
 
   @override
-  bool operator ==(Object object) => object is IntState && (value == object.value);
-
-  @override
-  String get typeName => "int";
-
-  @override
-  BoolState greaterThan(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    if (value == null) {
-      return BoolState.UNKNOWN_VALUE;
-    }
-    if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
-      if (rightValue == null) {
-        return BoolState.UNKNOWN_VALUE;
-      }
-      return BoolState.from(value.compareTo(rightValue) > 0);
-    } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
-      if (rightValue == null) {
-        return BoolState.UNKNOWN_VALUE;
-      }
-      return BoolState.from(value.toDouble() > rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return BoolState.UNKNOWN_VALUE;
-    }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
-  }
-
-  @override
-  BoolState greaterThanOrEqual(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    if (value == null) {
-      return BoolState.UNKNOWN_VALUE;
-    }
-    if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
-      if (rightValue == null) {
-        return BoolState.UNKNOWN_VALUE;
-      }
-      return BoolState.from(value.compareTo(rightValue) >= 0);
-    } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
-      if (rightValue == null) {
-        return BoolState.UNKNOWN_VALUE;
-      }
-      return BoolState.from(value.toDouble() >= rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return BoolState.UNKNOWN_VALUE;
-    }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
-  }
-
-  @override
-  bool get hasExactValue => true;
-
-  @override
-  int get hashCode => value == null ? 0 : value.hashCode;
-
-  @override
-  IntState integerDivide(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    if (value == null) {
-      return UNKNOWN_VALUE;
-    }
-    if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
-      if (rightValue == null) {
-        return UNKNOWN_VALUE;
-      } else if (rightValue == 0) {
-        throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE);
-      }
-      return new IntState(value ~/ rightValue);
-    } else if (rightOperand is DoubleState) {
-      double rightValue = rightOperand.value;
-      if (rightValue == null) {
-        return UNKNOWN_VALUE;
-      }
-      double result = value.toDouble() / rightValue;
-      return new IntState(result.toInt());
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return UNKNOWN_VALUE;
-    }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
-  }
-
-  @override
-  bool get isBoolNumStringOrNull => true;
-
-  @override
-  bool get isUnknown => value == null;
-
-  @override
   BoolState lessThan(InstanceState rightOperand) {
     assertNumOrNull(rightOperand);
     if (value == null) {
@@ -3950,7 +4272,8 @@ class IntState extends NumState {
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return BoolState.UNKNOWN_VALUE;
     }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -3974,7 +4297,8 @@ class IntState extends NumState {
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return BoolState.UNKNOWN_VALUE;
     }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -4001,7 +4325,8 @@ class IntState extends NumState {
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return UNKNOWN_VALUE;
     }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -4038,7 +4363,8 @@ class IntState extends NumState {
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return UNKNOWN_VALUE;
     }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -4058,7 +4384,8 @@ class IntState extends NumState {
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return UNKNOWN_VALUE;
     }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -4078,7 +4405,8 @@ class IntState extends NumState {
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return UNKNOWN_VALUE;
     }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -4105,7 +4433,8 @@ class IntState extends NumState {
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return UNKNOWN_VALUE;
     }
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -4130,20 +4459,41 @@ class ListState extends InstanceState {
   ListState(this._elements);
 
   @override
-  StringState convertToString() => StringState.UNKNOWN_VALUE;
-
-  @override
-  BoolState equalEqual(InstanceState rightOperand) {
-    assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
+  bool get hasExactValue {
+    int count = _elements.length;
+    for (int i = 0; i < count; i++) {
+      if (!_elements[i].hasExactValue) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
-    if (rightOperand is DynamicState) {
-      return BoolState.UNKNOWN_VALUE;
+  int get hashCode {
+    int value = 0;
+    int count = _elements.length;
+    for (int i = 0; i < count; i++) {
+      value = (value << 3) ^ _elements[i].hashCode;
     }
-    return BoolState.from(this == rightOperand);
+    return value;
+  }
+
+  @override
+  String get typeName => "List";
+
+  @override
+  List<Object> get value {
+    int count = _elements.length;
+    List<Object> result = new List<Object>(count);
+    for (int i = 0; i < count; i++) {
+      DartObjectImpl element = _elements[i];
+      if (!element.hasExactValue) {
+        return null;
+      }
+      result[i] = element.value;
+    }
+    return result;
   }
 
   @override
@@ -4167,41 +4517,20 @@ class ListState extends InstanceState {
   }
 
   @override
-  String get typeName => "List";
+  StringState convertToString() => StringState.UNKNOWN_VALUE;
 
   @override
-  List<Object> get value {
-    int count = _elements.length;
-    List<Object> result = new List<Object>(count);
-    for (int i = 0; i < count; i++) {
-      DartObjectImpl element = _elements[i];
-      if (!element.hasExactValue) {
-        return null;
-      }
-      result[i] = element.value;
-    }
-    return result;
+  BoolState equalEqual(InstanceState rightOperand) {
+    assertBoolNumStringOrNull(rightOperand);
+    return isIdentical(rightOperand);
   }
 
   @override
-  bool get hasExactValue {
-    int count = _elements.length;
-    for (int i = 0; i < count; i++) {
-      if (!_elements[i].hasExactValue) {
-        return false;
-      }
+  BoolState isIdentical(InstanceState rightOperand) {
+    if (rightOperand is DynamicState) {
+      return BoolState.UNKNOWN_VALUE;
     }
-    return true;
-  }
-
-  @override
-  int get hashCode {
-    int value = 0;
-    int count = _elements.length;
-    for (int i = 0; i < count; i++) {
-      value = (value << 3) ^ _elements[i].hashCode;
-    }
-    return value;
+    return BoolState.from(this == rightOperand);
   }
 }
 
@@ -4223,42 +4552,22 @@ class MapState extends InstanceState {
   MapState(this._entries);
 
   @override
-  StringState convertToString() => StringState.UNKNOWN_VALUE;
-
-  @override
-  BoolState equalEqual(InstanceState rightOperand) {
-    assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
-  }
-
-  @override
-  BoolState isIdentical(InstanceState rightOperand) {
-    if (rightOperand is DynamicState) {
-      return BoolState.UNKNOWN_VALUE;
-    }
-    return BoolState.from(this == rightOperand);
-  }
-
-  @override
-  bool operator ==(Object object) {
-    if (object is! MapState) {
-      return false;
-    }
-    HashMap<DartObjectImpl, DartObjectImpl> otherElements = (object as MapState)._entries;
-    int count = _entries.length;
-    if (otherElements.length != count) {
-      return false;
-    } else if (count == 0) {
-      return true;
-    }
+  bool get hasExactValue {
     for (DartObjectImpl key in _entries.keys) {
-      DartObjectImpl value = _entries[key];
-      DartObjectImpl otherValue = otherElements[key];
-      if (value != otherValue) {
+      if (!key.hasExactValue || !_entries[key].hasExactValue) {
         return false;
       }
     }
     return true;
+  }
+
+  @override
+  int get hashCode {
+    int value = 0;
+    for (DartObjectImpl key in _entries.keys.toSet()) {
+      value = (value << 3) ^ key.hashCode;
+    }
+    return value;
   }
 
   @override
@@ -4278,9 +4587,22 @@ class MapState extends InstanceState {
   }
 
   @override
-  bool get hasExactValue {
+  bool operator ==(Object object) {
+    if (object is! MapState) {
+      return false;
+    }
+    HashMap<DartObjectImpl, DartObjectImpl> otherElements =
+        (object as MapState)._entries;
+    int count = _entries.length;
+    if (otherElements.length != count) {
+      return false;
+    } else if (count == 0) {
+      return true;
+    }
     for (DartObjectImpl key in _entries.keys) {
-      if (!key.hasExactValue || !_entries[key].hasExactValue) {
+      DartObjectImpl value = _entries[key];
+      DartObjectImpl otherValue = otherElements[key];
+      if (value != otherValue) {
         return false;
       }
     }
@@ -4288,12 +4610,20 @@ class MapState extends InstanceState {
   }
 
   @override
-  int get hashCode {
-    int value = 0;
-    for (DartObjectImpl key in _entries.keys.toSet()) {
-      value = (value << 3) ^ key.hashCode;
+  StringState convertToString() => StringState.UNKNOWN_VALUE;
+
+  @override
+  BoolState equalEqual(InstanceState rightOperand) {
+    assertBoolNumStringOrNull(rightOperand);
+    return isIdentical(rightOperand);
+  }
+
+  @override
+  BoolState isIdentical(InstanceState rightOperand) {
+    if (rightOperand is DynamicState) {
+      return BoolState.UNKNOWN_VALUE;
     }
-    return value;
+    return BoolState.from(this == rightOperand);
   }
 }
 
@@ -4307,8 +4637,24 @@ class NullState extends InstanceState {
   static NullState NULL_STATE = new NullState();
 
   @override
+  bool get hasExactValue => true;
+
+  @override
+  int get hashCode => 0;
+
+  @override
+  bool get isBoolNumStringOrNull => true;
+
+  @override
+  String get typeName => "Null";
+
+  @override
+  bool operator ==(Object object) => object is NullState;
+
+  @override
   BoolState convertToBool() {
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -4329,23 +4675,9 @@ class NullState extends InstanceState {
   }
 
   @override
-  bool operator ==(Object object) => object is NullState;
-
-  @override
-  String get typeName => "Null";
-
-  @override
-  bool get hasExactValue => true;
-
-  @override
-  int get hashCode => 0;
-
-  @override
-  bool get isBoolNumStringOrNull => true;
-
-  @override
   BoolState logicalNot() {
-    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -4361,6 +4693,21 @@ class NumState extends InstanceState {
    * A state that can be used to represent a number whose value is not known.
    */
   static NumState UNKNOWN_VALUE = new NumState();
+
+  @override
+  int get hashCode => 7;
+
+  @override
+  bool get isBoolNumStringOrNull => true;
+
+  @override
+  bool get isUnknown => identical(this, UNKNOWN_VALUE);
+
+  @override
+  String get typeName => "num";
+
+  @override
+  bool operator ==(Object object) => object is NumState;
 
   @override
   NumState add(InstanceState rightOperand) {
@@ -4384,17 +4731,6 @@ class NumState extends InstanceState {
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
-    return BoolState.UNKNOWN_VALUE;
-  }
-
-  @override
-  bool operator ==(Object object) => object is NumState;
-
-  @override
-  String get typeName => "num";
-
-  @override
   BoolState greaterThan(InstanceState rightOperand) {
     assertNumOrNull(rightOperand);
     return BoolState.UNKNOWN_VALUE;
@@ -4407,9 +4743,6 @@ class NumState extends InstanceState {
   }
 
   @override
-  int get hashCode => 7;
-
-  @override
   IntState integerDivide(InstanceState rightOperand) {
     assertNumOrNull(rightOperand);
     if (rightOperand is IntState) {
@@ -4417,7 +4750,8 @@ class NumState extends InstanceState {
       if (rightValue == null) {
         return IntState.UNKNOWN_VALUE;
       } else if (rightValue == 0) {
-        throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE);
+        throw new EvaluationException(
+            CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE);
       }
     } else if (rightOperand is DynamicState) {
       return IntState.UNKNOWN_VALUE;
@@ -4426,10 +4760,9 @@ class NumState extends InstanceState {
   }
 
   @override
-  bool get isBoolNumStringOrNull => true;
-
-  @override
-  bool get isUnknown => identical(this, UNKNOWN_VALUE);
+  BoolState isIdentical(InstanceState rightOperand) {
+    return BoolState.UNKNOWN_VALUE;
+  }
 
   @override
   BoolState lessThan(InstanceState rightOperand) {
@@ -4492,7 +4825,8 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
   /**
    * A table mapping constant constructors to the declarations of those constructors.
    */
-  final HashMap<ConstructorElement, ConstructorDeclaration> _constructorDeclarationMap;
+  final HashMap<ConstructorElement, ConstructorDeclaration>
+      _constructorDeclarationMap;
 
   /**
    * Initialize a newly created reference finder to find references from the given variable to other
@@ -4506,12 +4840,28 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
    * @param constructorDeclarationMap A table mapping constant constructors to the declarations of
    *          those constructors.
    */
-  ReferenceFinder(this._source, this._referenceGraph, this._variableDeclarationMap, this._constructorDeclarationMap);
+  ReferenceFinder(this._source, this._referenceGraph,
+      this._variableDeclarationMap, this._constructorDeclarationMap);
 
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
       _referenceGraph.addEdge(_source, node);
+    }
+    return null;
+  }
+
+  @override
+  Object
+      visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+    super.visitRedirectingConstructorInvocation(node);
+    ConstructorElement target = node.staticElement;
+    if (target != null && target.isConst) {
+      ConstructorDeclaration targetDeclaration =
+          _constructorDeclarationMap[target];
+      if (targetDeclaration != null) {
+        _referenceGraph.addEdge(_source, targetDeclaration);
+      }
     }
     return null;
   }
@@ -4525,11 +4875,13 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
     if (element is VariableElement) {
       VariableElement variable = element as VariableElement;
       if (variable.isConst) {
-        VariableDeclaration variableDeclaration = _variableDeclarationMap[variable];
-        // The declaration will be null when the variable is not defined in the compilation units
-        // that were used to produce the variableDeclarationMap.  In such cases, the variable should
-        // already have a value associated with it, but we don't bother to check because there's
-        // nothing we can do about it at this point.
+        VariableDeclaration variableDeclaration =
+            _variableDeclarationMap[variable];
+        // The declaration will be null when the variable is not defined in the
+        // compilation units that were used to produce the
+        // variableDeclarationMap.  In such cases, the variable should already
+        // have a value associated with it, but we don't bother to check because
+        // there's nothing we can do about it at this point.
         if (variableDeclaration != null) {
           _referenceGraph.addEdge(_source, variableDeclaration);
         }
@@ -4543,26 +4895,15 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
     super.visitSuperConstructorInvocation(node);
     ConstructorElement constructor = node.staticElement;
     if (constructor != null && constructor.isConst) {
-      ConstructorDeclaration constructorDeclaration = _constructorDeclarationMap[constructor];
-      // The declaration will be null when the constructor is not defined in the compilation
-      // units that were used to produce the constructorDeclarationMap.  In such cases, the
-      // constructor should already have its initializer AST's stored in it, but we don't bother
+      ConstructorDeclaration constructorDeclaration =
+          _constructorDeclarationMap[constructor];
+      // The declaration will be null when the constructor is not defined in the
+      // compilation units that were used to produce the
+      // constructorDeclarationMap.  In such cases, the constructor should
+      // already have its initializer AST's stored in it, but we don't bother
       // to check because there's nothing we can do about it at this point.
       if (constructorDeclaration != null) {
         _referenceGraph.addEdge(_source, constructorDeclaration);
-      }
-    }
-    return null;
-  }
-
-  @override
-  Object visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
-    super.visitRedirectingConstructorInvocation(node);
-    ConstructorElement target = node.staticElement;
-    if (target != null && target.isConst) {
-      ConstructorDeclaration targetDeclaration = _constructorDeclarationMap[target];
-      if (targetDeclaration != null) {
-        _referenceGraph.addEdge(_source, targetDeclaration);
       }
     }
     return null;
@@ -4575,14 +4916,14 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
  */
 class StringState extends InstanceState {
   /**
-   * The value of this instance.
-   */
-  final String value;
-
-  /**
    * A state that can be used to represent a double whose value is not known.
    */
   static StringState UNKNOWN_VALUE = new StringState(null);
+
+  /**
+   * The value of this instance.
+   */
+  final String value;
 
   /**
    * Initialize a newly created state to represent the given value.
@@ -4590,6 +4931,25 @@ class StringState extends InstanceState {
    * @param value the value of this instance
    */
   StringState(this.value);
+
+  @override
+  bool get hasExactValue => true;
+
+  @override
+  int get hashCode => value == null ? 0 : value.hashCode;
+
+  @override
+  bool get isBoolNumStringOrNull => true;
+
+  @override
+  bool get isUnknown => value == null;
+
+  @override
+  String get typeName => "String";
+
+  @override
+  bool operator ==(Object object) =>
+      object is StringState && (value == object.value);
 
   @override
   StringState concatenate(InstanceState rightOperand) {
@@ -4635,24 +4995,6 @@ class StringState extends InstanceState {
   }
 
   @override
-  bool operator ==(Object object) => object is StringState && (value == object.value);
-
-  @override
-  String get typeName => "String";
-
-  @override
-  bool get hasExactValue => true;
-
-  @override
-  int get hashCode => value == null ? 0 : value.hashCode;
-
-  @override
-  bool get isBoolNumStringOrNull => true;
-
-  @override
-  bool get isUnknown => value == null;
-
-  @override
   IntState stringLength() {
     if (value == null) {
       return IntState.UNKNOWN_VALUE;
@@ -4680,6 +5022,19 @@ class SymbolState extends InstanceState {
    * @param value the value of this instance
    */
   SymbolState(this.value);
+
+  @override
+  bool get hasExactValue => true;
+
+  @override
+  int get hashCode => value == null ? 0 : value.hashCode;
+
+  @override
+  String get typeName => "Symbol";
+
+  @override
+  bool operator ==(Object object) =>
+      object is SymbolState && (value == object.value);
 
   @override
   StringState convertToString() {
@@ -4713,18 +5068,6 @@ class SymbolState extends InstanceState {
   }
 
   @override
-  bool operator ==(Object object) => object is SymbolState && (value == object.value);
-
-  @override
-  String get typeName => "Symbol";
-
-  @override
-  bool get hasExactValue => true;
-
-  @override
-  int get hashCode => value == null ? 0 : value.hashCode;
-
-  @override
   String toString() => value == null ? "-unknown-" : "#$value";
 }
 
@@ -4745,15 +5088,22 @@ class TypeState extends InstanceState {
   TypeState(this._element);
 
   @override
+  int get hashCode => _element == null ? 0 : _element.hashCode;
+
+  @override
+  String get typeName => "Type";
+
+  @override
+  bool operator ==(Object object) =>
+      object is TypeState && (_element == object._element);
+
+  @override
   StringState convertToString() {
     if (_element == null) {
       return StringState.UNKNOWN_VALUE;
     }
     return new StringState(_element.name);
   }
-
-  @override
-  bool operator ==(Object object) => object is TypeState && (_element == object._element);
 
   @override
   BoolState equalEqual(InstanceState rightOperand) {
@@ -4777,12 +5127,6 @@ class TypeState extends InstanceState {
     }
     return BoolState.FALSE_STATE;
   }
-
-  @override
-  String get typeName => "Type";
-
-  @override
-  int get hashCode => _element == null ? 0 : _element.hashCode;
 
   @override
   String toString() => _element == null ? "-unknown-" : _element.name;

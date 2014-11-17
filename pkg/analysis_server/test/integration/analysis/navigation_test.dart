@@ -10,6 +10,10 @@ import 'package:unittest/unittest.dart';
 import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
+main() {
+  runReflectiveTests(AnalysisNavigationTest);
+}
+
 @ReflectiveTestCase()
 class AnalysisNavigationTest extends AbstractAnalysisServerIntegrationTest {
   test_navigation() {
@@ -128,8 +132,4 @@ part of foo;
           ElementKind.TYPE_PARAMETER);
     });
   }
-}
-
-main() {
-  runReflectiveTests(AnalysisNavigationTest);
 }

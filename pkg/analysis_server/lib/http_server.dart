@@ -34,11 +34,6 @@ class HttpAnalysisServer {
   GetHandler getHandler;
 
   /**
-   * Initialize a newly created HTTP server.
-   */
-  HttpAnalysisServer(this.socketServer);
-
-  /**
    * Future that is completed with the HTTP server once it is running.
    */
   Future<HttpServer> _server;
@@ -47,6 +42,47 @@ class HttpAnalysisServer {
    * Last PRINT_BUFFER_LENGTH lines printed.
    */
   List<String> _printBuffer = <String>[];
+
+  /**
+   * Initialize a newly created HTTP server.
+   */
+  HttpAnalysisServer(this.socketServer);
+
+  void close() {
+    _server.then((HttpServer server) {
+      server.close();
+    });
+  }
+
+  /**
+   * Record that the given line was printed out by the analysis server.
+   */
+  void recordPrint(String line) {
+    _printBuffer.add(line);
+    if (_printBuffer.length > MAX_PRINT_BUFFER_LENGTH) {
+      _printBuffer.removeRange(
+          0,
+          _printBuffer.length - MAX_PRINT_BUFFER_LENGTH);
+    }
+  }
+
+  /**
+   * Begin serving HTTP requests over the given port.
+   */
+  void serveHttp(int port) {
+    _server = HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port);
+    _server.then(_handleServer);
+  }
+
+  /**
+   * Handle a GET request received by the HTTP server.
+   */
+  void _handleGetRequest(HttpRequest request) {
+    if (getHandler == null) {
+      getHandler = new GetHandler(socketServer, _printBuffer);
+    }
+    getHandler.handleGetRequest(request);
+  }
 
   /**
    * Attach a listener to a newly created HTTP server.
@@ -67,16 +103,6 @@ class HttpAnalysisServer {
   }
 
   /**
-   * Handle a GET request received by the HTTP server.
-   */
-  void _handleGetRequest(HttpRequest request) {
-    if (getHandler == null) {
-      getHandler = new GetHandler(socketServer, _printBuffer);
-    }
-    getHandler.handleGetRequest(request);
-  }
-
-  /**
    * Handle an UPGRADE request received by the HTTP server by creating and
    * running an analysis server on a [WebSocket]-based communication channel.
    */
@@ -94,30 +120,5 @@ class HttpAnalysisServer {
     response.headers.add(HttpHeaders.CONTENT_TYPE, "text/plain");
     response.write('Not found');
     response.close();
-  }
-
-  /**
-   * Begin serving HTTP requests over the given port.
-   */
-  void serveHttp(int port) {
-    _server = HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port);
-    _server.then(_handleServer);
-  }
-
-  void close() {
-    _server.then((HttpServer server) {
-      server.close();
-    });
-  }
-
-  /**
-   * Record that the given line was printed out by the analysis server.
-   */
-  void recordPrint(String line) {
-    _printBuffer.add(line);
-    if (_printBuffer.length > MAX_PRINT_BUFFER_LENGTH) {
-      _printBuffer.removeRange(0,
-          _printBuffer.length - MAX_PRINT_BUFFER_LENGTH);
-    }
   }
 }

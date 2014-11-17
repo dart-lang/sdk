@@ -8,8 +8,9 @@ import 'dart:convert';
 
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'reflective_tests.dart';
 import 'package:unittest/unittest.dart';
+
+import 'reflective_tests.dart';
 
 
 Matcher _throwsRequestFailure = throwsA(new isInstanceOf<RequestFailure>());
@@ -73,6 +74,15 @@ class NotificationTest {
     }));
   }
 
+  void test_toJson_noParams() {
+    Notification notification = new Notification('foo');
+    expect(notification.event, equals('foo'));
+    expect(notification.toJson().keys, isNot(contains('params')));
+    expect(notification.toJson(), equals({
+      'event': 'foo'
+    }));
+  }
+
   void test_toJson_withParams() {
     Notification notification = new Notification('foo', {
       'x': 'y'
@@ -86,15 +96,6 @@ class NotificationTest {
       'params': {
         'x': 'y'
       }
-    }));
-  }
-
-  void test_toJson_noParams() {
-    Notification notification = new Notification('foo');
-    expect(notification.event, equals('foo'));
-    expect(notification.toJson().keys, isNot(contains('params')));
-    expect(notification.toJson(), equals({
-      'event': 'foo'
     }));
   }
 }

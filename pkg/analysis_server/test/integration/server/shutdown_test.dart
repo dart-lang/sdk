@@ -6,10 +6,14 @@ library test.integration.server.shutdown;
 
 import 'dart:async';
 
-import '../../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import '../integration_tests.dart';
+
+main() {
+  runReflectiveTests(Test);
+}
 
 @ReflectiveTestCase()
 class Test extends AbstractAnalysisServerIntegrationTest {
@@ -24,8 +28,4 @@ class Test extends AbstractAnalysisServerIntegrationTest {
       });
     });
   }
-}
-
-main() {
-  runReflectiveTests(Test);
 }

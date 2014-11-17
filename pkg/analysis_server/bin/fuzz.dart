@@ -143,7 +143,8 @@ class _FuzzTest {
           expect(list, isNotNull);
           expect(list.length, equals(0));
           list.forEach((CompletionResults results) {
-            print('${results.elapsed} received ${results.suggestionCount} suggestions');
+            print(
+                '${results.elapsed} received ${results.suggestionCount} suggestions');
           });
           return editor;
         });

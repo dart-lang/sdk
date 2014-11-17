@@ -10,14 +10,14 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'mock_sdk.dart';
-import 'reflective_tests.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
+import 'mock_sdk.dart';
 import 'mocks.dart';
+import 'reflective_tests.dart';
 
 
 main() {
@@ -49,8 +49,8 @@ main() {
     group('setAnalysisRoots', () {
       Response testSetAnalysisRoots(List<String> included,
           List<String> excluded) {
-        Request request = new AnalysisSetAnalysisRootsParams(included,
-            excluded).toRequest('0');
+        Request request =
+            new AnalysisSetAnalysisRootsParams(included, excluded).toRequest('0');
         return handler.handleRequest(request);
       }
 
@@ -93,8 +93,8 @@ main() {
       test('invalid', () {
         // TODO(paulberry): under the "eventual consistency" model this request
         // should not be invalid.
-        var request = new AnalysisSetPriorityFilesParams(
-            ['/project/lib.dart']).toRequest('0');
+        var request =
+            new AnalysisSetPriorityFilesParams(['/project/lib.dart']).toRequest('0');
         var response = handler.handleRequest(request);
         expect(response, isResponseFailure('0'));
       });
@@ -106,14 +106,14 @@ main() {
         resourceProvider.newFile('/p2/b.dart', 'library b;');
         resourceProvider.newFile('/p2/c.dart', 'library c;');
 
-        var setRootsRequest = new AnalysisSetAnalysisRootsParams(
-            ['/p1', '/p2'], []).toRequest('0');
+        var setRootsRequest =
+            new AnalysisSetAnalysisRootsParams(['/p1', '/p2'], []).toRequest('0');
         var setRootsResponse = handler.handleRequest(setRootsRequest);
         expect(setRootsResponse, isResponseSuccess('0'));
 
         void setPriorityFiles(List<String> fileList) {
-          var request = new AnalysisSetPriorityFilesParams(
-              fileList).toRequest('0');
+          var request =
+              new AnalysisSetPriorityFilesParams(fileList).toRequest('0');
           var response = handler.handleRequest(request);
           expect(response, isResponseSuccess('0'));
           // TODO(brianwilkerson) Enable the line below after getPriorityFiles
@@ -129,9 +129,11 @@ main() {
 
     group('updateOptions', () {
       test('invalid', () {
-        var request = new Request('0', ANALYSIS_UPDATE_OPTIONS, {OPTIONS: {
-          'not-an-option': true
-        }});
+        var request = new Request('0', ANALYSIS_UPDATE_OPTIONS, {
+          OPTIONS: {
+            'not-an-option': true
+          }
+        });
         var response = handler.handleRequest(request);
         // Invalid options should be silently ignored.
         expect(response, isResponseSuccess('0'));
@@ -139,12 +141,14 @@ main() {
 
       test('null', () {
         // null is allowed as a synonym for {}.
-        var request = new Request('0', ANALYSIS_UPDATE_OPTIONS, {OPTIONS: null});
+        var request = new Request('0', ANALYSIS_UPDATE_OPTIONS, {
+          OPTIONS: null
+        });
         var response = handler.handleRequest(request);
         expect(response, isResponseSuccess('0'));
       });
-
-      // TODO(paulberry): disabled because analyzeAngular is currently not in the API.
+      // TODO(paulberry): disabled because analyzeAngular is currently not in
+      // the API.
 //      test('valid', () {
 //        engine.AnalysisOptions oldOptions = server.contextDirectoryManager.defaultOptions;
 //        bool analyzeAngular = !oldOptions.analyzeAngular;
@@ -157,136 +161,6 @@ main() {
 //        expect(oldOptions.analyzeAngular, equals(analyzeAngular));
 //        expect(oldOptions.enableDeferredLoading, equals(enableDeferredLoading));
 //      });
-    });
-  });
-}
-
-
-testUpdateContent() {
-  test('bad type', () {
-    AnalysisTestHelper helper = new AnalysisTestHelper();
-    helper.createSingleFileProject('// empty');
-    return helper.waitForOperationsFinished().then((_) {
-      Request request = new Request('0', ANALYSIS_UPDATE_CONTENT, {
-        'files': {
-          helper.testFile: {
-            TYPE: 'foo',
-          }
-        }
-      });
-      Response response = helper.handler.handleRequest(request);
-      expect(response, isResponseFailure('0'));
-    });
-  });
-
-  test('full content', () {
-    AnalysisTestHelper helper = new AnalysisTestHelper();
-    helper.createSingleFileProject('// empty');
-    return helper.waitForOperationsFinished().then((_) {
-      // no errors initially
-      List<AnalysisError> errors = helper.getTestErrors();
-      expect(errors, isEmpty);
-      // update code
-      helper.sendContentChange(new AddContentOverlay('library lib'));
-      // wait, there is an error
-      return helper.waitForOperationsFinished().then((_) {
-        List<AnalysisError> errors = helper.getTestErrors();
-        expect(errors, hasLength(1));
-      });
-    });
-  });
-
-  test('incremental', () {
-    AnalysisTestHelper helper = new AnalysisTestHelper();
-    String initialContent = 'library A;';
-    helper.createSingleFileProject(initialContent);
-    return helper.waitForOperationsFinished().then((_) {
-      // no errors initially
-      List<AnalysisError> errors = helper.getTestErrors();
-      expect(errors, isEmpty);
-      // Add the file to the cache
-      helper.sendContentChange(new AddContentOverlay(initialContent));
-      // update code
-      helper.sendContentChange(new ChangeContentOverlay([
-          new SourceEdit('library '.length, 'A;'.length, 'lib')]));
-      // wait, there is an error
-      return helper.waitForOperationsFinished().then((_) {
-        List<AnalysisError> errors = helper.getTestErrors();
-        expect(errors, hasLength(1));
-      });
-    });
-  });
-
-  test('change on disk, normal', () {
-    AnalysisTestHelper helper = new AnalysisTestHelper();
-    helper.createSingleFileProject('library A;');
-    return helper.waitForOperationsFinished().then((_) {
-      // There should be no errors
-      expect(helper.getTestErrors(), hasLength(0));
-      // Change file on disk, adding a syntax error.
-      helper.resourceProvider.modifyFile(helper.testFile, 'library lib');
-      // There should be errors now.
-      return pumpEventQueue().then((_) {
-        return helper.waitForOperationsFinished().then((_) {
-          expect(helper.getTestErrors(), hasLength(1));
-        });
-      });
-    });
-  });
-
-  test('change on disk, during override', () {
-    AnalysisTestHelper helper = new AnalysisTestHelper();
-    helper.createSingleFileProject('library A;');
-    return helper.waitForOperationsFinished().then((_) {
-      // update code
-      helper.sendContentChange(new AddContentOverlay('library B;'));
-      // There should be no errors
-      return helper.waitForOperationsFinished().then((_) {
-        expect(helper.getTestErrors(), hasLength(0));
-        // Change file on disk, adding a syntax error.
-        helper.resourceProvider.modifyFile(helper.testFile, 'library lib');
-        // There should still be no errors (file should not have been reread).
-        return helper.waitForOperationsFinished().then((_) {
-          expect(helper.getTestErrors(), hasLength(0));
-          // Send a content change with a null content param--file should be
-          // reread from disk.
-          helper.sendContentChange(new RemoveContentOverlay());
-          // There should be errors now.
-          return helper.waitForOperationsFinished().then((_) {
-            expect(helper.getTestErrors(), hasLength(1));
-          });
-        });
-      });
-    });
-  });
-
-  group('out of range', () {
-    Future outOfRangeTest(SourceEdit edit) {
-      AnalysisTestHelper helper = new AnalysisTestHelper();
-      helper.createSingleFileProject('library A;');
-      return helper.waitForOperationsFinished().then((_) {
-        helper.sendContentChange(new AddContentOverlay('library B;'));
-        return helper.waitForOperationsFinished().then((_) {
-          ChangeContentOverlay contentChange = new ChangeContentOverlay([edit]);
-          Request request = new AnalysisUpdateContentParams({
-            helper.testFile: contentChange}).toRequest('0');
-          Response response = helper.handler.handleRequest(request);
-          expect(response, isResponseFailure('0',
-              RequestErrorCode.INVALID_OVERLAY_CHANGE));
-        });
-      });
-    }
-
-    test('negative length', () {
-      return outOfRangeTest(new SourceEdit(3, -1, 'foo'));
-    });
-
-    test('negative offset', () {
-      return outOfRangeTest(new SourceEdit(-1, 3, 'foo'));
-    });
-
-    test('beyond end', () {
-      return outOfRangeTest(new SourceEdit(6, 6, 'foo'));
     });
   });
 }
@@ -356,6 +230,139 @@ main() {
 }
 
 
+testUpdateContent() {
+  test('bad type', () {
+    AnalysisTestHelper helper = new AnalysisTestHelper();
+    helper.createSingleFileProject('// empty');
+    return helper.waitForOperationsFinished().then((_) {
+      Request request = new Request('0', ANALYSIS_UPDATE_CONTENT, {
+        'files': {
+          helper.testFile: {
+            TYPE: 'foo',
+          }
+        }
+      });
+      Response response = helper.handler.handleRequest(request);
+      expect(response, isResponseFailure('0'));
+    });
+  });
+
+  test('full content', () {
+    AnalysisTestHelper helper = new AnalysisTestHelper();
+    helper.createSingleFileProject('// empty');
+    return helper.waitForOperationsFinished().then((_) {
+      // no errors initially
+      List<AnalysisError> errors = helper.getTestErrors();
+      expect(errors, isEmpty);
+      // update code
+      helper.sendContentChange(new AddContentOverlay('library lib'));
+      // wait, there is an error
+      return helper.waitForOperationsFinished().then((_) {
+        List<AnalysisError> errors = helper.getTestErrors();
+        expect(errors, hasLength(1));
+      });
+    });
+  });
+
+  test('incremental', () {
+    AnalysisTestHelper helper = new AnalysisTestHelper();
+    String initialContent = 'library A;';
+    helper.createSingleFileProject(initialContent);
+    return helper.waitForOperationsFinished().then((_) {
+      // no errors initially
+      List<AnalysisError> errors = helper.getTestErrors();
+      expect(errors, isEmpty);
+      // Add the file to the cache
+      helper.sendContentChange(new AddContentOverlay(initialContent));
+      // update code
+      helper.sendContentChange(
+          new ChangeContentOverlay(
+              [new SourceEdit('library '.length, 'A;'.length, 'lib')]));
+      // wait, there is an error
+      return helper.waitForOperationsFinished().then((_) {
+        List<AnalysisError> errors = helper.getTestErrors();
+        expect(errors, hasLength(1));
+      });
+    });
+  });
+
+  test('change on disk, normal', () {
+    AnalysisTestHelper helper = new AnalysisTestHelper();
+    helper.createSingleFileProject('library A;');
+    return helper.waitForOperationsFinished().then((_) {
+      // There should be no errors
+      expect(helper.getTestErrors(), hasLength(0));
+      // Change file on disk, adding a syntax error.
+      helper.resourceProvider.modifyFile(helper.testFile, 'library lib');
+      // There should be errors now.
+      return pumpEventQueue().then((_) {
+        return helper.waitForOperationsFinished().then((_) {
+          expect(helper.getTestErrors(), hasLength(1));
+        });
+      });
+    });
+  });
+
+  test('change on disk, during override', () {
+    AnalysisTestHelper helper = new AnalysisTestHelper();
+    helper.createSingleFileProject('library A;');
+    return helper.waitForOperationsFinished().then((_) {
+      // update code
+      helper.sendContentChange(new AddContentOverlay('library B;'));
+      // There should be no errors
+      return helper.waitForOperationsFinished().then((_) {
+        expect(helper.getTestErrors(), hasLength(0));
+        // Change file on disk, adding a syntax error.
+        helper.resourceProvider.modifyFile(helper.testFile, 'library lib');
+        // There should still be no errors (file should not have been reread).
+        return helper.waitForOperationsFinished().then((_) {
+          expect(helper.getTestErrors(), hasLength(0));
+          // Send a content change with a null content param--file should be
+          // reread from disk.
+          helper.sendContentChange(new RemoveContentOverlay());
+          // There should be errors now.
+          return helper.waitForOperationsFinished().then((_) {
+            expect(helper.getTestErrors(), hasLength(1));
+          });
+        });
+      });
+    });
+  });
+
+  group('out of range', () {
+    Future outOfRangeTest(SourceEdit edit) {
+      AnalysisTestHelper helper = new AnalysisTestHelper();
+      helper.createSingleFileProject('library A;');
+      return helper.waitForOperationsFinished().then((_) {
+        helper.sendContentChange(new AddContentOverlay('library B;'));
+        return helper.waitForOperationsFinished().then((_) {
+          ChangeContentOverlay contentChange = new ChangeContentOverlay([edit]);
+          Request request = new AnalysisUpdateContentParams({
+            helper.testFile: contentChange
+          }).toRequest('0');
+          Response response = helper.handler.handleRequest(request);
+          expect(
+              response,
+              isResponseFailure('0', RequestErrorCode.INVALID_OVERLAY_CHANGE));
+        });
+      });
+    }
+
+    test('negative length', () {
+      return outOfRangeTest(new SourceEdit(3, -1, 'foo'));
+    });
+
+    test('negative offset', () {
+      return outOfRangeTest(new SourceEdit(-1, 3, 'foo'));
+    });
+
+    test('beyond end', () {
+      return outOfRangeTest(new SourceEdit(6, 6, 'foo'));
+    });
+  });
+}
+
+
 int _getSafeInt(Map<String, Object> json, String key, int defaultValue) {
   Object value = json[key];
   if (value is int) {
@@ -416,8 +423,8 @@ f(A a) {
 library lib_a;
 class A {}
 ''');
-    packageMapProvider.packageMap['pkgA'] = [
-        resourceProvider.getResource('/packages/pkgA')];
+    packageMapProvider.packageMap['pkgA'] =
+        [resourceProvider.getResource('/packages/pkgA')];
     addTestFile('''
 import 'package:pkgA/libA.dart';
 main(A a) {
@@ -472,11 +479,13 @@ class AnalysisTestHelper {
         filesErrors[decoded.file] = decoded.errors;
       }
       if (notification.event == ANALYSIS_HIGHLIGHTS) {
-        var params = new AnalysisHighlightsParams.fromNotification(notification);
+        var params =
+            new AnalysisHighlightsParams.fromNotification(notification);
         filesHighlights[params.file] = params.regions;
       }
       if (notification.event == ANALYSIS_NAVIGATION) {
-        var params = new AnalysisNavigationParams.fromNotification(notification);
+        var params =
+            new AnalysisNavigationParams.fromNotification(notification);
         filesNavigation[params.file] = params.regions;
       }
     });
@@ -491,8 +500,8 @@ class AnalysisTestHelper {
     }
     files.add(file);
     // set subscriptions
-    Request request = new AnalysisSetSubscriptionsParams(
-        analysisSubscriptions).toRequest('0');
+    Request request =
+        new AnalysisSetSubscriptionsParams(analysisSubscriptions).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
@@ -509,8 +518,8 @@ class AnalysisTestHelper {
    */
   void createEmptyProject() {
     resourceProvider.newFolder('/project');
-    Request request = new AnalysisSetAnalysisRootsParams(['/project'],
-        []).toRequest('0');
+    Request request =
+        new AnalysisSetAnalysisRootsParams(['/project'], []).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
@@ -522,8 +531,8 @@ class AnalysisTestHelper {
     this.testCode = _getCodeString(code);
     resourceProvider.newFolder('/project');
     resourceProvider.newFile(testFile, testCode);
-    Request request = new AnalysisSetAnalysisRootsParams(['/project'],
-        []).toRequest('0');
+    Request request =
+        new AnalysisSetAnalysisRootsParams(['/project'], []).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
@@ -610,7 +619,8 @@ class AnalysisTestHelper {
    */
   void sendContentChange(dynamic contentChange) {
     Request request = new AnalysisUpdateContentParams({
-      testFile: contentChange}).toRequest('0');
+      testFile: contentChange
+    }).toRequest('0');
     handleSuccessfulRequest(request);
   }
 

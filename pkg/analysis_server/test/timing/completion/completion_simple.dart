@@ -81,6 +81,16 @@ f(C c) {
   }
 
   @override
+  Future perform() {
+    sendAnalysisUpdateContent({
+      mainFilePath: new ChangeContentOverlay(
+          [new SourceEdit(cursorOffset, 0, '.')])
+    });
+    sendCompletionGetSuggestions(mainFilePath, cursorOffset + 1);
+    return completionReceived.future;
+  }
+
+  @override
   Future setUp() {
     completionReceived = new Completer();
     onCompletionResults.listen((_) {
@@ -94,16 +104,6 @@ f(C c) {
       mainFilePath: new AddContentOverlay(originalContent)
     });
     return new Future.value();
-  }
-
-  @override
-  Future perform() {
-    sendAnalysisUpdateContent({
-      mainFilePath: new ChangeContentOverlay(
-          [new SourceEdit(cursorOffset, 0, '.')])
-    });
-    sendCompletionGetSuggestions(mainFilePath, cursorOffset + 1);
-    return completionReceived.future;
   }
 
   @override

@@ -157,9 +157,7 @@ class ExecutionDomainHandler implements RequestHandler {
         kind = ExecutableKind.SERVER;
       }
       server.sendNotification(
-          new ExecutionLaunchDataParams(
-              filePath,
-              kind: kind).toNotification());
+          new ExecutionLaunchDataParams(filePath, kind: kind).toNotification());
     } else if (AnalysisEngine.isHtmlFileName(filePath)) {
       List<Source> libraries = context.getLibrariesReferencedFromHtml(source);
       server.sendNotification(
@@ -173,8 +171,8 @@ class ExecutionDomainHandler implements RequestHandler {
    * Return `true` if the given [filePath] represents a file that is in an
    * analysis root.
    */
-  bool _isInAnalysisRoot(String filePath)
-      => server.contextDirectoryManager.isInAnalysisRoot(filePath);
+  bool _isInAnalysisRoot(String filePath) =>
+      server.contextDirectoryManager.isInAnalysisRoot(filePath);
 
   void _reportCurrentFileStatus() {
     for (AnalysisContext context in server.getAnalysisContexts()) {
@@ -199,12 +197,13 @@ class ExecutionDomainHandler implements RequestHandler {
       for (Source source in context.htmlSources) {
         String filePath = source.fullName;
         if (_isInAnalysisRoot(filePath)) {
-          List<Source> libraries = context.getLibrariesReferencedFromHtml(source);
+          List<Source> libraries =
+              context.getLibrariesReferencedFromHtml(source);
           server.sendNotification(
               new ExecutionLaunchDataParams(
                   filePath,
                   referencedFiles: _getFullNames(libraries)).toNotification());
-          }
+        }
       }
     }
   }

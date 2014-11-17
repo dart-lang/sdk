@@ -5,9 +5,9 @@
 library test.services.refactoring.rename_unit_member;
 
 import 'package:analysis_server/src/protocol.dart';
-import '../../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import 'abstract_rename.dart';
 
 
@@ -19,26 +19,6 @@ main() {
 
 @ReflectiveTestCase()
 class RenameUnitMemberTest extends RenameRefactoringTest {
-  test_checkFinalConditions_OK_qualifiedSuper_MethodElement() {
-    indexTestUnit('''
-class Test {}
-class A {
-  NewName() {}
-}
-class B extends A {
-  main() {
-    super.NewName(); // super-ref
-  }
-}
-''');
-    createRenameRefactoringAtString('Test {}');
-    // check status
-    refactoring.newName = 'NewName';
-    return refactoring.checkFinalConditions().then((status) {
-      assertRefactoringStatusOK(status);
-    });
-  }
-
   test_checkFinalConditions_hasTopLevel_ClassElement() {
     indexTestUnit('''
 class Test {}
@@ -74,6 +54,26 @@ typedef NewName(); // existing
     });
   }
 
+  test_checkFinalConditions_OK_qualifiedSuper_MethodElement() {
+    indexTestUnit('''
+class Test {}
+class A {
+  NewName() {}
+}
+class B extends A {
+  main() {
+    super.NewName(); // super-ref
+  }
+}
+''');
+    createRenameRefactoringAtString('Test {}');
+    // check status
+    refactoring.newName = 'NewName';
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatusOK(status);
+    });
+  }
+
   test_checkFinalConditions_shadowedBy_MethodElement() {
     indexTestUnit('''
 class Test {}
@@ -94,30 +94,6 @@ class A {
           expectedMessage:
               "Reference to renamed class will be shadowed by method 'A.NewName'.",
           expectedContextSearch: 'NewName() {}');
-    });
-  }
-
-  test_checkFinalConditions_shadowsInSubClass_MethodElement() {
-    indexTestUnit('''
-class Test {}
-class A {
-  NewName() {}
-}
-class B extends A {
-  main() {
-    NewName(); // super-ref
-  }
-}
-''');
-    createRenameRefactoringAtString('Test {}');
-    // check status
-    refactoring.newName = 'NewName';
-    return refactoring.checkFinalConditions().then((status) {
-      assertRefactoringStatus(
-          status,
-          RefactoringProblemSeverity.ERROR,
-          expectedMessage: "Renamed class will shadow method 'A.NewName'.",
-          expectedContextSearch: 'NewName(); // super-ref');
     });
   }
 
@@ -169,6 +145,30 @@ class B extends A {
     refactoring.newName = 'NewName';
     return refactoring.checkFinalConditions().then((status) {
       assertRefactoringStatusOK(status);
+    });
+  }
+
+  test_checkFinalConditions_shadowsInSubClass_MethodElement() {
+    indexTestUnit('''
+class Test {}
+class A {
+  NewName() {}
+}
+class B extends A {
+  main() {
+    NewName(); // super-ref
+  }
+}
+''');
+    createRenameRefactoringAtString('Test {}');
+    // check status
+    refactoring.newName = 'NewName';
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatus(
+          status,
+          RefactoringProblemSeverity.ERROR,
+          expectedMessage: "Renamed class will shadow method 'A.NewName'.",
+          expectedContextSearch: 'NewName(); // super-ref');
     });
   }
 

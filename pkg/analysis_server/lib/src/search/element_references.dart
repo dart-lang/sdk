@@ -105,13 +105,6 @@ class ElementReferencesComputer {
     return newSearchResult_fromMatch(match);
   }
 
-  static bool _isMemberElement(Element element) {
-    if (element is ConstructorElement) {
-      return false;
-    }
-    return element.enclosingElement is ClassElement;
-  }
-
   static bool _isDeclarationInteresting(Element element) {
     if (element is LabelElement) {
       return true;
@@ -129,6 +122,13 @@ class ElementReferencesComputer {
       return !element.isSynthetic;
     }
     return false;
+  }
+
+  static bool _isMemberElement(Element element) {
+    if (element is ConstructorElement) {
+      return false;
+    }
+    return element.enclosingElement is ClassElement;
   }
 }
 

@@ -37,7 +37,7 @@ class ServerDomainHandler implements RequestHandler {
       if (requestName == SERVER_GET_VERSION) {
         return getVersion(request);
       } else if (requestName == SERVER_SET_SUBSCRIPTIONS) {
-          return setSubscriptions(request);
+        return setSubscriptions(request);
       } else if (requestName == SERVER_SHUTDOWN) {
         return shutdown(request);
       }

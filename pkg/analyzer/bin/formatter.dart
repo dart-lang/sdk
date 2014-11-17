@@ -1,5 +1,4 @@
 #!/usr/bin/env dart
-
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -76,8 +75,8 @@ int _parseSpacesPerIndent(String indentOption) {
   }
   int spacesPerIndent = _toInt(indentOption);
   if (spacesPerIndent == null) {
-    throw new FormatterException('Indentation is specified as an Integer or '
-        'the value "tab".');
+    throw new FormatterException(
+        'Indentation is specified as an Integer or ' 'the value "tab".');
   }
   return spacesPerIndent;
 }
@@ -86,8 +85,8 @@ int _parseSpacesPerIndent(String indentOption) {
 bool _parseTabsForIndent(String indentOption) => indentOption == 'tab';
 
 CodeKind _parseKind(kindOption) {
-  switch(kindOption) {
-    case 'stmt' :
+  switch (kindOption) {
+    case 'stmt':
       return CodeKind.STATEMENT;
     default:
       return CodeKind.COMPILATION_UNIT;
@@ -101,8 +100,8 @@ int _parseLineLength(String lengthOption) {
     if (val == 'INF' || val == 'INFINITY') {
       length = -1;
     } else {
-      throw new FormatterException('Line length is specified as an Integer or '
-          'the value "Inf".');
+      throw new FormatterException(
+          'Line length is specified as an Integer or ' 'the value "Inf".');
     }
   }
   return length;
@@ -110,7 +109,7 @@ int _parseLineLength(String lengthOption) {
 
 
 Selection _parseSelection(String selectionOption) {
-  if(selectionOption == null) return null;
+  if (selectionOption == null) return null;
 
   var units = selectionOption.split(',');
   if (units.length == 2) {
@@ -120,8 +119,8 @@ Selection _parseSelection(String selectionOption) {
       return new Selection(offset, length);
     }
   }
-  throw new FormatterException('Selections are specified as integer pairs '
-                               '(e.g., "(offset, length)".');
+  throw new FormatterException(
+      'Selections are specified as integer pairs ' '(e.g., "(offset, length)".');
 }
 
 int _toInt(str) => int.parse(str, onError: (_) => null);
@@ -144,8 +143,9 @@ _formatResource(resource) {
   }
 }
 
-_formatDirectory(dir) => dir.listSync(followLinks: FOLLOW_LINKS)
-    .forEach((resource) => _formatResource(resource));
+_formatDirectory(dir) =>
+    dir.listSync(
+        followLinks: FOLLOW_LINKS).forEach((resource) => _formatResource(resource));
 
 _formatFile(file) {
   if (_isDartFile(file)) {
@@ -176,37 +176,62 @@ _isDartFile(file) => dartFileRegExp.hasMatch(path.basename(file.path));
 
 _formatStdin(kind) {
   var input = new StringBuffer();
-  stdin.transform(new Utf8Decoder())
-      .listen((data) => input.write(data),
-        onError: (error) => _log('Error reading from stdin'),
-        onDone: () => print(_format(input.toString(), kind)));
+  stdin.transform(
+      new Utf8Decoder()).listen(
+          (data) => input.write(data),
+          onError: (error) => _log('Error reading from stdin'),
+          onDone: () => print(_format(input.toString(), kind)));
 }
 
 /// Initialize the arg parser instance.
 ArgParser _initArgParser() {
   // NOTE: these flags are placeholders only!
   var parser = new ArgParser();
-  parser.addFlag(WRITE_FLAG, abbr: 'w', negatable: false,
+  parser.addFlag(
+      WRITE_FLAG,
+      abbr: 'w',
+      negatable: false,
       help: 'Write reformatted sources to files (overwriting contents).  '
-            'Do not print reformatted sources to standard output.');
-  parser.addFlag(TRANSFORM_FLAG, abbr: 't', negatable: false,
+          'Do not print reformatted sources to standard output.');
+  parser.addFlag(
+      TRANSFORM_FLAG,
+      abbr: 't',
+      negatable: false,
       help: 'Perform code transformations.');
-  parser.addOption(MAX_LINE_FLAG, abbr: 'l', defaultsTo: '80',
+  parser.addOption(
+      MAX_LINE_FLAG,
+      abbr: 'l',
+      defaultsTo: '80',
       help: 'Wrap lines longer than this length. '
-            'To never wrap, specify "Infinity" or "Inf" for short.');
-  parser.addOption(INDENT_FLAG, abbr: 'i', defaultsTo: '2',
+          'To never wrap, specify "Infinity" or "Inf" for short.');
+  parser.addOption(
+      INDENT_FLAG,
+      abbr: 'i',
+      defaultsTo: '2',
       help: 'Specify number of spaces per indentation. '
-            'To indent using tabs, specify "--$INDENT_FLAG tab".'
-            '--- [PROVISIONAL API].', hide: true);
-  parser.addOption(KIND_FLAG, abbr: 'k', defaultsTo: 'cu',
-      help: 'Specify source snippet kind ("stmt" or "cu") '
-            '--- [PROVISIONAL API].', hide: true);
-  parser.addOption(SELECTION_FLAG, abbr: 's',
+          'To indent using tabs, specify "--$INDENT_FLAG tab".' '--- [PROVISIONAL API].',
+      hide: true);
+  parser.addOption(
+      KIND_FLAG,
+      abbr: 'k',
+      defaultsTo: 'cu',
+      help: 'Specify source snippet kind ("stmt" or "cu") ' '--- [PROVISIONAL API].',
+      hide: true);
+  parser.addOption(
+      SELECTION_FLAG,
+      abbr: 's',
       help: 'Specify selection information as an offset,length pair '
-            '(e.g., -s "0,4").', hide: true);
-  parser.addFlag(MACHINE_FLAG, abbr: 'm', negatable: false,
+          '(e.g., -s "0,4").',
+      hide: true);
+  parser.addFlag(
+      MACHINE_FLAG,
+      abbr: 'm',
+      negatable: false,
       help: 'Produce output in a format suitable for parsing.');
-  parser.addFlag(HELP_FLAG, abbr: 'h', negatable: false,
+  parser.addFlag(
+      HELP_FLAG,
+      abbr: 'h',
+      negatable: false,
       help: 'Print this usage information.');
   return parser;
 }
@@ -215,25 +240,26 @@ ArgParser _initArgParser() {
 /// Displays usage information.
 _printUsage() {
   var buffer = new StringBuffer();
-  buffer..write('$BINARY_NAME formats Dart programs.')
-        ..write('\n\n')
-        ..write('Without an explicit path, $BINARY_NAME processes the standard '
-                'input.  Given a file, it operates on that file; given a '
-                'directory, it operates on all .dart files in that directory, '
-                'recursively. (Files starting with a period are ignored.) By '
-                'default, $BINARY_NAME prints the reformatted sources to '
-                'standard output.')
-        ..write('\n\n')
-        ..write('Usage: $BINARY_NAME [flags] [path...]\n\n')
-        ..write('Supported flags are:\n')
-        ..write('${argParser.usage}\n\n');
+  buffer
+      ..write('$BINARY_NAME formats Dart programs.')
+      ..write('\n\n')
+      ..write(
+          'Without an explicit path, $BINARY_NAME processes the standard '
+              'input.  Given a file, it operates on that file; given a '
+              'directory, it operates on all .dart files in that directory, '
+              'recursively. (Files starting with a period are ignored.) By '
+              'default, $BINARY_NAME prints the reformatted sources to ' 'standard output.')
+      ..write('\n\n')
+      ..write('Usage: $BINARY_NAME [flags] [path...]\n\n')
+      ..write('Supported flags are:\n')
+      ..write('${argParser.usage}\n\n');
   _log(buffer.toString());
 }
 
 /// Format this [src], treating it as the given snippet [kind].
 String _format(src, kind) {
-  var formatResult = new CodeFormatter(formatterSettings).format(
-      kind, src, selection: selection);
+  var formatResult =
+      new CodeFormatter(formatterSettings).format(kind, src, selection: selection);
   if (machineFormat) {
     if (formatResult.selection == null) {
       formatResult.selection = defaultSelection;
@@ -243,14 +269,14 @@ String _format(src, kind) {
   return formatResult.source;
 }
 
-_toJson(formatResult) =>
-    // Actual JSON format TBD
-    JSON.encode({'source': formatResult.source,
-                 'selection': {
-                     'offset': formatResult.selection.offset,
-                     'length': formatResult.selection.length
-                  }
-    });
+_toJson(formatResult) => // Actual JSON format TBD
+JSON.encode({
+  'source': formatResult.source,
+  'selection': {
+    'offset': formatResult.selection.offset,
+    'length': formatResult.selection.length
+  }
+});
 
 /// Log the given [msg].
 _log(String msg) {

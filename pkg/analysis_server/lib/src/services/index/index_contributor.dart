@@ -169,9 +169,8 @@ class _AngularHtmlIndexContributor extends _ExpressionVisitor {
    * [store] - the [IndexStore] to record relations into.
    */
   _AngularHtmlIndexContributor(this._store) {
-    _indexContributor = new _AngularHtmlIndexContributor_forEmbeddedDart(
-        _store,
-        this);
+    _indexContributor =
+        new _AngularHtmlIndexContributor_forEmbeddedDart(_store, this);
   }
 
   @override
@@ -252,8 +251,8 @@ class _AngularHtmlIndexContributor_forEmbeddedDart extends _IndexContributor {
   final _AngularHtmlIndexContributor angularContributor;
 
   _AngularHtmlIndexContributor_forEmbeddedDart(IndexStore store,
-      this.angularContributor) : super(
-      store);
+      this.angularContributor)
+      : super(store);
 
   @override
   Element peekElement() => angularContributor._htmlUnitElement;
@@ -421,18 +420,6 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
   }
 
   @override
-  Object visitEnumDeclaration(EnumDeclaration node) {
-    ClassElement element = node.element;
-    enterScope(element);
-    try {
-      _recordElementDefinition(element);
-      return super.visitEnumDeclaration(node);
-    } finally {
-      _exitScope();
-    }
-  }
-
-  @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
     ClassElement element = node.element;
     enterScope(element);
@@ -534,6 +521,18 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
     enterScope(element);
     try {
       return super.visitDeclaredIdentifier(node);
+    } finally {
+      _exitScope();
+    }
+  }
+
+  @override
+  Object visitEnumDeclaration(EnumDeclaration node) {
+    ClassElement element = node.element;
+    enterScope(element);
+    try {
+      _recordElementDefinition(element);
+      return super.visitEnumDeclaration(node);
     } finally {
       _exitScope();
     }
@@ -915,23 +914,6 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
   }
 
   /**
-   * Records [ImportElement] that declares given prefix and imports library with element used
-   * with given prefix node.
-   */
-  void _recordImportElementReferenceWithPrefix(SimpleIdentifier prefixNode) {
-    ImportElementInfo info = internal_getImportElementInfo(prefixNode);
-    if (info != null) {
-      int offset = prefixNode.offset;
-      int length = info.periodEnd - offset;
-      Location location = _createLocationForOffset(offset, length);
-      recordRelationship(
-          info.element,
-          IndexConstants.IS_REFERENCED_BY,
-          location);
-    }
-  }
-
-  /**
    * Records [ImportElement] reference if given [SimpleIdentifier] references some
    * top-level element and not qualified with import prefix.
    */
@@ -949,6 +931,23 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
       Location location = _createLocationForOffset(node.offset, 0);
       recordRelationship(
           importElement,
+          IndexConstants.IS_REFERENCED_BY,
+          location);
+    }
+  }
+
+  /**
+   * Records [ImportElement] that declares given prefix and imports library with element used
+   * with given prefix node.
+   */
+  void _recordImportElementReferenceWithPrefix(SimpleIdentifier prefixNode) {
+    ImportElementInfo info = internal_getImportElementInfo(prefixNode);
+    if (info != null) {
+      int offset = prefixNode.offset;
+      int length = info.periodEnd - offset;
+      Location location = _createLocationForOffset(offset, length);
+      recordRelationship(
+          info.element,
           IndexConstants.IS_REFERENCED_BY,
           location);
     }

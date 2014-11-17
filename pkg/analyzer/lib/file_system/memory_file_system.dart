@@ -153,9 +153,8 @@ class MemoryResourceProvider implements ResourceProvider {
  * non-existent file.
  */
 class _MemoryDummyLink extends _MemoryResource implements File {
-  _MemoryDummyLink(MemoryResourceProvider provider, String path) : super(
-      provider,
-      path);
+  _MemoryDummyLink(MemoryResourceProvider provider, String path)
+      : super(provider, path);
 
   @override
   bool get exists => false;
@@ -182,9 +181,8 @@ class _MemoryDummyLink extends _MemoryResource implements File {
  * An in-memory implementation of [File].
  */
 class _MemoryFile extends _MemoryResource implements File {
-  _MemoryFile(MemoryResourceProvider provider, String path) : super(
-      provider,
-      path);
+  _MemoryFile(MemoryResourceProvider provider, String path)
+      : super(provider, path);
 
   String get _content {
     String content = _provider._pathToContent[path];
@@ -284,9 +282,8 @@ class _MemoryFileSource implements Source {
  * An in-memory implementation of [Folder].
  */
 class _MemoryFolder extends _MemoryResource implements Folder {
-  _MemoryFolder(MemoryResourceProvider provider, String path) : super(
-      provider,
-      path);
+  _MemoryFolder(MemoryResourceProvider provider, String path)
+      : super(provider, path);
   @override
   Stream<WatchEvent> get changes {
     StreamController<WatchEvent> streamController =

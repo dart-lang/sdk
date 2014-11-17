@@ -493,3 +493,6 @@ analyzer/test/*: PubGetError
 
 [ $runtime == drt ]
 http/test/html/client_test: Skip # Issue 18566
+
+[ $runtime == vm]
+analysis_server/test/integration/analysis/reanalyze_concurrent_test: Pass, Fail # issue 21638

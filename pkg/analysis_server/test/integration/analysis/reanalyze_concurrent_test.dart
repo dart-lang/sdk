@@ -4,7 +4,9 @@
 
 /**
  * This test verifies that if reanalysis is performed while reanalysis is in
- * progress, no problems occur.  See dartbug.com/21448.
+ * progress, no problems occur.
+ *
+ * See dartbug.com/21448.
  */
 library test.integration.analysis.reanalyze_concurrent;
 
@@ -15,6 +17,10 @@ import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
 import '../integration_tests.dart';
+
+main() {
+  runReflectiveTests(Test);
+}
 
 @ReflectiveTestCase()
 class Test extends AbstractAnalysisServerIntegrationTest {
@@ -41,11 +47,11 @@ main() {}''';
               if (data.analysis.isAnalyzing) {
                 // Most likely what happened is that the first reanalyze
                 // completed before the second reanalyze had a chance to start,
-                // and we are just now starting the second reanalyze.  If this is
-                // the case, then the test isn't testing what it's meant to test
-                // (because we are trying to test what happens when one reanalyze
-                // starts while another is in progress).  In which case we will
-                // need to give the analyzer more work to do.
+                // and we are just now starting the second reanalyze.  If this
+                // is the case, then the test isn't testing what it's meant to
+                // test (because we are trying to test what happens when one
+                // reanalyze starts while another is in progress).  In which
+                // case we will need to give the analyzer more work to do.
                 fail('First reanalyze finished before second started.');
               }
             }
@@ -57,8 +63,4 @@ main() {}''';
       });
     });
   }
-}
-
-main() {
-  runReflectiveTests(Test);
 }

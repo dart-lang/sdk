@@ -4,18 +4,16 @@
 
 library test.integration.server.get.version;
 
-
 import '../../reflective_tests.dart';
-
 import '../integration_tests.dart';
+
+main() {
+  runReflectiveTests(Test);
+}
 
 @ReflectiveTestCase()
 class Test extends AbstractAnalysisServerIntegrationTest {
   test_getVersion() {
     return sendServerGetVersion();
   }
-}
-
-main() {
-  runReflectiveTests(Test);
 }

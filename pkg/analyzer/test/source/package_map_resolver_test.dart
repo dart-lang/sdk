@@ -4,8 +4,6 @@
 
 library test.source.package_map_resolver;
 
-import 'dart:collection';
-
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -76,34 +74,6 @@ class _PackageMapUriResolverTest {
     expect(PackageMapUriResolver.isPackageUri(uri), isFalse);
   }
 
-  void test_resolve_OK() {
-    const pkgFileA = '/pkgA/lib/libA.dart';
-    const pkgFileB = '/pkgB/lib/libB.dart';
-    provider.newFile(pkgFileA, 'library lib_a;');
-    provider.newFile(pkgFileB, 'library lib_b;');
-    PackageMapUriResolver resolver =
-        new PackageMapUriResolver(provider, <String, List<Folder>>{
-      'pkgA': [provider.getResource('/pkgA/lib/')],
-      'pkgB': [provider.getResource('/pkgB/lib/')]
-    });
-    {
-      Uri uri = Uri.parse('package:pkgA/libA.dart');
-      Source result = resolver.resolveAbsolute(uri);
-      expect(result, isNotNull);
-      expect(result.exists(), isTrue);
-      expect(result.uriKind, UriKind.PACKAGE_URI);
-      expect(result.fullName, pkgFileA);
-    }
-    {
-      Uri uri = Uri.parse('package:pkgB/libB.dart');
-      Source result = resolver.resolveAbsolute(uri);
-      expect(result, isNotNull);
-      expect(result.exists(), isTrue);
-      expect(result.uriKind, UriKind.PACKAGE_URI);
-      expect(result.fullName, pkgFileB);
-    }
-  }
-
   void test_resolve_multiple_folders() {
     const pkgFileA = '/part1/lib/libA.dart';
     const pkgFileB = '/part2/lib/libB.dart';
@@ -138,6 +108,34 @@ class _PackageMapUriResolverTest {
     Uri uri = Uri.parse('dart:core');
     Source result = resolver.resolveAbsolute(uri);
     expect(result, isNull);
+  }
+
+  void test_resolve_OK() {
+    const pkgFileA = '/pkgA/lib/libA.dart';
+    const pkgFileB = '/pkgB/lib/libB.dart';
+    provider.newFile(pkgFileA, 'library lib_a;');
+    provider.newFile(pkgFileB, 'library lib_b;');
+    PackageMapUriResolver resolver =
+        new PackageMapUriResolver(provider, <String, List<Folder>>{
+      'pkgA': [provider.getResource('/pkgA/lib/')],
+      'pkgB': [provider.getResource('/pkgB/lib/')]
+    });
+    {
+      Uri uri = Uri.parse('package:pkgA/libA.dart');
+      Source result = resolver.resolveAbsolute(uri);
+      expect(result, isNotNull);
+      expect(result.exists(), isTrue);
+      expect(result.uriKind, UriKind.PACKAGE_URI);
+      expect(result.fullName, pkgFileA);
+    }
+    {
+      Uri uri = Uri.parse('package:pkgB/libB.dart');
+      Source result = resolver.resolveAbsolute(uri);
+      expect(result, isNotNull);
+      expect(result.exists(), isTrue);
+      expect(result.uriKind, UriKind.PACKAGE_URI);
+      expect(result.fullName, pkgFileB);
+    }
   }
 
   void test_resolve_package_invalid_leadingSlash() {

@@ -91,6 +91,29 @@ AnalysisError newAnalysisError_fromEngine(engine.LineInfo lineInfo,
 /**
  * Construct based on a value from the analyzer engine.
  */
+Element newElement_fromEngine(engine.Element element) {
+  String name = element.displayName;
+  String elementParameters = _getParametersString(element);
+  String elementReturnType = _getReturnTypeString(element);
+  return new Element(
+      newElementKind_fromEngine(element.kind),
+      name,
+      Element.makeFlags(
+          isPrivate: element.isPrivate,
+          isDeprecated: element.isDeprecated,
+          isAbstract: _isAbstract(element),
+          isConst: _isConst(element),
+          isFinal: _isFinal(element),
+          isStatic: _isStatic(element)),
+      location: newLocation_fromElement(element),
+      parameters: elementParameters,
+      returnType: elementReturnType);
+}
+
+
+/**
+ * Construct based on a value from the analyzer engine.
+ */
 ElementKind newElementKind_fromEngine(engine.ElementKind kind) {
   if (kind == engine.ElementKind.CLASS) {
     return ElementKind.CLASS;
@@ -141,29 +164,6 @@ ElementKind newElementKind_fromEngine(engine.ElementKind kind) {
     return ElementKind.TYPE_PARAMETER;
   }
   return ElementKind.UNKNOWN;
-}
-
-
-/**
- * Construct based on a value from the analyzer engine.
- */
-Element newElement_fromEngine(engine.Element element) {
-  String name = element.displayName;
-  String elementParameters = _getParametersString(element);
-  String elementReturnType = _getReturnTypeString(element);
-  return new Element(
-      newElementKind_fromEngine(element.kind),
-      name,
-      Element.makeFlags(
-          isPrivate: element.isPrivate,
-          isDeprecated: element.isDeprecated,
-          isAbstract: _isAbstract(element),
-          isConst: _isConst(element),
-          isFinal: _isFinal(element),
-          isStatic: _isStatic(element)),
-      location: newLocation_fromElement(element),
-      parameters: elementParameters,
-      returnType: elementReturnType);
 }
 
 
@@ -240,6 +240,17 @@ OverriddenMember newOverriddenMember_fromEngine(engine.Element member) {
 /**
  * Construct based on a value from the search engine.
  */
+SearchResult newSearchResult_fromMatch(engine.SearchMatch match) {
+  SearchResultKind kind = newSearchResultKind_fromEngine(match.kind);
+  Location location = newLocation_fromMatch(match);
+  List<Element> path = _computePath(match.element);
+  return new SearchResult(location, kind, !match.isResolved, path);
+}
+
+
+/**
+ * Construct based on a value from the search engine.
+ */
 SearchResultKind newSearchResultKind_fromEngine(engine.MatchKind kind) {
   if (kind == engine.MatchKind.DECLARATION) {
     return SearchResultKind.DECLARATION;
@@ -260,17 +271,6 @@ SearchResultKind newSearchResultKind_fromEngine(engine.MatchKind kind) {
     return SearchResultKind.REFERENCE;
   }
   return SearchResultKind.UNKNOWN;
-}
-
-
-/**
- * Construct based on a value from the search engine.
- */
-SearchResult newSearchResult_fromMatch(engine.SearchMatch match) {
-  SearchResultKind kind = newSearchResultKind_fromEngine(match.kind);
-  Location location = newLocation_fromMatch(match);
-  List<Element> path = _computePath(match.element);
-  return new SearchResult(location, kind, !match.isResolved, path);
 }
 
 

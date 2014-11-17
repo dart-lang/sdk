@@ -11,8 +11,26 @@ import 'api.dart';
 import 'codegen_java.dart';
 import 'codegen_tools.dart';
 
+final GeneratedFile target = javaGeneratedFile(
+    '../../../../editor/tools/plugins/com.google.dart.server/src/com/google/dart/server/AnalysisServer.java',
+    (Api api) => new CodegenAnalysisServer(api));
+
+/**
+ * Translate spec_input.html into AnalysisServer.java.
+ */
+main() {
+  target.generate();
+}
+
 class CodegenAnalysisServer extends CodegenJavaVisitor {
   CodegenAnalysisServer(Api api) : super(api);
+
+  /**
+   * Get the name of the consumer class for responses to this request.
+   */
+  String consumerName(Request request) {
+    return camelJoin([request.method, 'consumer'], doCapitalize: true);
+  }
 
   @override
   void visitApi() {
@@ -24,27 +42,23 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
     writeln('import java.util.List;');
     writeln('import java.util.Map;');
     writeln();
-    writeln(
-        '''/**
+    writeln('''/**
  * The interface {@code AnalysisServer} defines the behavior of objects that interface to an
  * analysis server.
  * 
  * @coverage dart.server
- */'''
-        );
+ */''');
     makeClass('public interface AnalysisServer', () {
       //
       // addAnalysisServerListener(..)
       //
       publicMethod('addAnalysisServerListener', () {
-        writeln(
-            '''/**
+        writeln('''/**
  * Add the given listener to the list of listeners that will receive notification when new
  * analysis results become available.
  * 
  * @param listener the listener to be added
- */'''
-            );
+ */''');
         writeln(
             'public void addAnalysisServerListener(AnalysisServerListener listener);');
       });
@@ -53,14 +67,12 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
       // removeAnalysisServerListener(..)
       //
       publicMethod('removeAnalysisServerListener', () {
-        writeln(
-            '''/**
+        writeln('''/**
  * Remove the given listener from the list of listeners that will receive notification when new
    * analysis results become available.
  * 
  * @param listener the listener to be removed
- */'''
-            );
+ */''');
         writeln(
             'public void removeAnalysisServerListener(AnalysisServerListener listener);');
       });
@@ -69,11 +81,9 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
       // start(..)
       //
       publicMethod('start', () {
-        writeln(
-            '''/**
+        writeln('''/**
  * Start the analysis server.
- */'''
-            );
+ */''');
         writeln('public void start() throws Exception;');
       });
       super.visitApi();
@@ -103,22 +113,4 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
       writeln(');');
     });
   }
-
-  /**
-   * Get the name of the consumer class for responses to this request.
-   */
-  String consumerName(Request request) {
-    return camelJoin([request.method, 'consumer'], doCapitalize: true);
-  }
-}
-
-final GeneratedFile target = javaGeneratedFile(
-    '../../../../editor/tools/plugins/com.google.dart.server/src/com/google/dart/server/AnalysisServer.java',
-    (Api api) => new CodegenAnalysisServer(api));
-
-/**
- * Translate spec_input.html into AnalysisServer.java.
- */
-main() {
-  target.generate();
 }

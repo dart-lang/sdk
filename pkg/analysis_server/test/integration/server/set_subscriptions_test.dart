@@ -12,6 +12,10 @@ import 'package:unittest/unittest.dart';
 import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
+main() {
+  runReflectiveTests(Test);
+}
+
 @ReflectiveTestCase()
 class Test extends AbstractAnalysisServerIntegrationTest {
   test_setSubscriptions() {
@@ -49,8 +53,4 @@ main() {
       });
     });
   }
-}
-
-main() {
-  runReflectiveTests(Test);
 }

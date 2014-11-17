@@ -12,8 +12,10 @@ import 'dart:io';
 import 'package:html5lib/dom.dart' as dom;
 import 'package:path/path.dart';
 
-import 'text_formatter.dart';
 import 'html_tools.dart';
+import 'text_formatter.dart';
+
+final RegExp trailingWhitespaceRegExp = new RegExp(r' +$', multiLine: true);
 
 /**
  * Join the given strings using camelCase.  If [doCapitalize] is true, the first
@@ -38,13 +40,26 @@ String capitalize(String string) {
   return string[0].toUpperCase() + string.substring(1);
 }
 
-final RegExp trailingWhitespaceRegExp = new RegExp(r' +$', multiLine: true);
+/**
+ * Type of functions used to compute the contents of a set of generated files.
+ */
+typedef Map<String, FileContentsComputer> DirectoryContentsComputer();
+
+/**
+ * Type of functions used to compute the contents of a generated file.
+ */
+typedef String FileContentsComputer();
 
 /**
  * Mixin class for generating code.
  */
 class CodeGenerator {
   _CodeGeneratorState _state;
+
+  /**
+   * Measure the width of the current indentation level.
+   */
+  int get indentWidth => _state.nextIndent.length;
 
   /**
    * Execute [callback], collecting any code that is output using [write]
@@ -62,17 +77,21 @@ class CodeGenerator {
   }
 
   /**
-   * Output text without ending the current line.
+   * Generate a doc comment based on the HTML in [docs].
+   *
+   * If [javadocStyle] is true, then the output is compatable with Javadoc,
+   * which understands certain HTML constructs.
    */
-  void write(Object obj) {
-    _state.write(obj.toString());
-  }
-
-  /**
-   * Output text, ending the current line.
-   */
-  void writeln([Object obj = '']) {
-    _state.write('$obj\n');
+  void docComment(List<dom.Node> docs, {int width: 79, bool javadocStyle:
+      false}) {
+    if (containsOnlyWhitespace(docs)) {
+      return;
+    }
+    writeln('/**');
+    indentBy(' * ', () {
+      write(nodesToText(docs, width - _state.indent.length, javadocStyle));
+    });
+    writeln(' */');
   }
 
   /**
@@ -103,29 +122,6 @@ class CodeGenerator {
       _state.nextIndent = oldNextIndent;
       _state.indent = oldIndent;
     }
-  }
-
-  /**
-   * Measure the width of the current indentation level.
-   */
-  int get indentWidth => _state.nextIndent.length;
-
-  /**
-   * Generate a doc comment based on the HTML in [docs].
-   *
-   * If [javadocStyle] is true, then the output is compatable with Javadoc,
-   * which understands certain HTML constructs.
-   */
-  void docComment(List<dom.Node> docs, {int width: 79, bool javadocStyle:
-      false}) {
-    if (containsOnlyWhitespace(docs)) {
-      return;
-    }
-    writeln('/**');
-    indentBy(' * ', () {
-      write(nodesToText(docs, width - _state.indent.length, javadocStyle));
-    });
-    writeln(' */');
   }
 
   void outputHeader({bool javaStyle: false}) {
@@ -161,77 +157,6 @@ class CodeGenerator {
     }
     writeln(header.trim());
   }
-}
-
-/**
- * State used by [CodeGenerator].
- */
-class _CodeGeneratorState {
-  StringBuffer buffer = new StringBuffer();
-  String nextIndent = '';
-  String indent = '';
-  bool indentNeeded = true;
-
-  void write(String text) {
-    List<String> lines = text.split('\n');
-    for (int i = 0; i < lines.length; i++) {
-      if (i == lines.length - 1 && lines[i].isEmpty) {
-        break;
-      }
-      if (indentNeeded) {
-        buffer.write(nextIndent);
-        nextIndent = indent;
-      }
-      indentNeeded = false;
-      buffer.write(lines[i]);
-      if (i != lines.length - 1) {
-        buffer.writeln();
-        indentNeeded = true;
-      }
-    }
-  }
-}
-
-/**
- * Mixin class for generating HTML representations of code that are suitable
- * for enclosing inside a <pre> element.
- */
-abstract class HtmlCodeGenerator {
-  _HtmlCodeGeneratorState _state;
-
-  /**
-   * Execute [callback], collecting any code that is output using [write],
-   * [writeln], [add], or [addAll], and return the result as a list of DOM
-   * nodes.
-   */
-  List<dom.Node> collectHtml(void callback()) {
-    _HtmlCodeGeneratorState oldState = _state;
-    try {
-      _state = new _HtmlCodeGeneratorState();
-      if (callback != null) {
-        callback();
-      }
-      return _state.buffer;
-    } finally {
-      _state = oldState;
-    }
-  }
-
-  /**
-   * Add the given [node] to the HTML output.
-   */
-  void add(dom.Node node) {
-    _state.add(node);
-  }
-
-  /**
-   * Add the given [nodes] to the HTML output.
-   */
-  void addAll(Iterable<dom.Node> nodes) {
-    for (dom.Node node in nodes) {
-      _state.add(node);
-    }
-  }
 
   /**
    * Output text without ending the current line.
@@ -246,78 +171,101 @@ abstract class HtmlCodeGenerator {
   void writeln([Object obj = '']) {
     _state.write('$obj\n');
   }
-
-  /**
-   * Execute [callback], indenting any code it outputs by two spaces.
-   */
-  void indent(void callback()) {
-    String oldIndent = _state.indent;
-    try {
-      _state.indent += '  ';
-      callback();
-    } finally {
-      _state.indent = oldIndent;
-    }
-  }
-
-  /**
-   * Execute [callback], wrapping its output in an element with the given
-   * [name] and [attributes].
-   */
-  void element(String name, Map<String, String> attributes, [void callback()]) {
-    add(makeElement(name, attributes, collectHtml(callback)));
-  }
 }
-
-/**
- * State used by [HtmlCodeGenerator].
- */
-class _HtmlCodeGeneratorState {
-  List<dom.Node> buffer = <dom.Node>[];
-  String indent = '';
-  bool indentNeeded = true;
-
-  void add(dom.Node node) {
-    if (node is dom.Text) {
-      write(node.text);
-    } else {
-      buffer.add(node);
-    }
-  }
-
-  void write(String text) {
-    if (text.isEmpty) {
-      return;
-    }
-    if (indentNeeded) {
-      buffer.add(new dom.Text(indent));
-    }
-    List<String> lines = text.split('\n');
-    if (lines.last.isEmpty) {
-      lines.removeLast();
-      buffer.add(new dom.Text(lines.join('\n$indent') + '\n'));
-      indentNeeded = true;
-    } else {
-      buffer.add(new dom.Text(lines.join('\n$indent')));
-      indentNeeded = false;
-    }
-  }
-}
-
-/**
- * Type of functions used to compute the contents of a generated file.
- */
-typedef String FileContentsComputer();
-
-/**
- * Type of functions used to compute the contents of a set of generated files.
- */
-typedef Map<String, FileContentsComputer> DirectoryContentsComputer();
 
 abstract class GeneratedContent {
   FileSystemEntity get outputFile;
   bool check();
   void generate();
+}
+
+/**
+ * Class representing a single output directory (either generated code or
+ * generated HTML). No other content should exisit in the directory.
+ */
+class GeneratedDirectory extends GeneratedContent {
+
+  /**
+   * The path to the directory that will have the generated content.
+   */
+  final String outputDirPath;
+
+  /**
+   * Callback function which computes the directory contents.
+   */
+  final DirectoryContentsComputer directoryContentsComputer;
+
+  GeneratedDirectory(this.outputDirPath, this.directoryContentsComputer);
+
+  /**
+   * Get a Directory object representing the output directory.
+   */
+  Directory get outputFile =>
+      new Directory(joinAll(posix.split(outputDirPath)));
+
+  /**
+   * Check whether the directory has the correct contents, and return true if it
+   * does.
+   */
+  @override
+  bool check() {
+    Map<String, FileContentsComputer> map = directoryContentsComputer();
+    try {
+      map.forEach((String file, FileContentsComputer fileContentsComputer) {
+        String expectedContents = fileContentsComputer();
+        File outputFile =
+            new File(joinAll(posix.split(posix.join(outputDirPath, file))));
+        if (expectedContents != outputFile.readAsStringSync()) {
+          return false;
+        }
+      });
+      int nonHiddenFileCount = 0;
+      outputFile.listSync(
+          recursive: false,
+          followLinks: false).forEach((FileSystemEntity fileSystemEntity) {
+        if (fileSystemEntity is File &&
+            !basename(fileSystemEntity.path).startsWith('.')) {
+          nonHiddenFileCount++;
+        }
+      });
+      if (nonHiddenFileCount != map.length) {
+        // The number of files generated doesn't match the number we expected to
+        // generate.
+        return false;
+      }
+    } catch (e) {
+      // There was a problem reading the file (most likely because it didn't
+      // exist).  Treat that the same as if the file doesn't have the expected
+      // contents.
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Replace the directory with the correct contents.  [spec] is the "tool/spec"
+   * directory.  If [spec] is unspecified, it is assumed to be the directory
+   * containing Platform.executable.
+   */
+  @override
+  void generate() {
+    try {
+      // delete the contents of the directory (and the directory itself)
+      outputFile.deleteSync(recursive: true);
+    } catch (e) {
+      // Error caught while trying to delete the directory, this can happen if
+      // it didn't yet exist.
+    }
+    // re-create the empty directory
+    outputFile.createSync(recursive: true);
+
+    // generate all of the files in the directory
+    Map<String, FileContentsComputer> map = directoryContentsComputer();
+    map.forEach((String file, FileContentsComputer fileContentsComputer) {
+      File outputFile = new File(joinAll(posix.split(outputDirPath + file)));
+      outputFile.writeAsStringSync(fileContentsComputer());
+    });
+  }
 }
 
 /**
@@ -372,89 +320,142 @@ class GeneratedFile extends GeneratedContent {
 }
 
 /**
- * Class representing a single output directory (either generated code or
- * generated HTML). No other content should exisit in the directory.
+ * Mixin class for generating HTML representations of code that are suitable
+ * for enclosing inside a <pre> element.
  */
-class GeneratedDirectory extends GeneratedContent {
+abstract class HtmlCodeGenerator {
+  _HtmlCodeGeneratorState _state;
 
   /**
-   * The path to the directory that will have the generated content.
+   * Add the given [node] to the HTML output.
    */
-  final String outputDirPath;
-
-  /**
-   * Callback function which computes the directory contents.
-   */
-  final DirectoryContentsComputer directoryContentsComputer;
-
-  GeneratedDirectory(this.outputDirPath, this.directoryContentsComputer);
-
-  /**
-   * Get a Directory object representing the output directory.
-   */
-  Directory get outputFile =>
-      new Directory(joinAll(posix.split(outputDirPath)));
-
-  /**
-   * Check whether the directory has the correct contents, and return true if it
-   * does.
-   */
-  @override
-  bool check() {
-    Map<String, FileContentsComputer> map = directoryContentsComputer();
-    try {
-      map.forEach((String file, FileContentsComputer fileContentsComputer) {
-        String expectedContents = fileContentsComputer();
-        File outputFile =
-            new File(joinAll(posix.split(posix.join(outputDirPath, file))));
-        if (expectedContents != outputFile.readAsStringSync()) {
-          return false;
-        }
-      });
-      int nonHiddenFileCount = 0;
-      outputFile.listSync(
-          recursive: false,
-          followLinks: false).forEach((FileSystemEntity fileSystemEntity) {
-         if(fileSystemEntity is File && !basename(fileSystemEntity.path).startsWith('.')) {
-           nonHiddenFileCount++;
-         }
-      });
-      if (nonHiddenFileCount != map.length) {
-        // The number of files generated doesn't match the number we expected to
-        // generate.
-        return false;
-      }
-    } catch (e) {
-      // There was a problem reading the file (most likely because it didn't
-      // exist).  Treat that the same as if the file doesn't have the expected
-      // contents.
-      return false;
-    }
-    return true;
+  void add(dom.Node node) {
+    _state.add(node);
   }
 
   /**
-   * Replace the directory with the correct contents.  [spec] is the "tool/spec"
-   * directory.  If [spec] is unspecified, it is assumed to be the directory
-   * containing Platform.executable.
+   * Add the given [nodes] to the HTML output.
    */
-  @override
-  void generate() {
-    try {
-      // delete the contents of the directory (and the directory itself)
-      outputFile.deleteSync(recursive: true);
-    } catch (e) {
-      // Error caught while trying to delete the directory, this can happen if
-      // it didn't yet exist.
+  void addAll(Iterable<dom.Node> nodes) {
+    for (dom.Node node in nodes) {
+      _state.add(node);
     }
-    // re-create the empty directory
-    outputFile.createSync(recursive: true);
+  }
 
-    // generate all of the files in the directory
-    Map<String, FileContentsComputer> map = directoryContentsComputer();
-    map.forEach((String file, FileContentsComputer fileContentsComputer) {
-      File outputFile = new File(joinAll(posix.split(outputDirPath + file)));
-      outputFile.writeAsStringSync(fileContentsComputer());
-    });
+  /**
+   * Execute [callback], collecting any code that is output using [write],
+   * [writeln], [add], or [addAll], and return the result as a list of DOM
+   * nodes.
+   */
+  List<dom.Node> collectHtml(void callback()) {
+    _HtmlCodeGeneratorState oldState = _state;
+    try {
+      _state = new _HtmlCodeGeneratorState();
+      if (callback != null) {
+        callback();
+      }
+      return _state.buffer;
+    } finally {
+      _state = oldState;
+    }
+  }
+
+  /**
+   * Execute [callback], wrapping its output in an element with the given
+   * [name] and [attributes].
+   */
+  void element(String name, Map<String, String> attributes, [void callback()]) {
+    add(makeElement(name, attributes, collectHtml(callback)));
+  }
+
+  /**
+   * Execute [callback], indenting any code it outputs by two spaces.
+   */
+  void indent(void callback()) {
+    String oldIndent = _state.indent;
+    try {
+      _state.indent += '  ';
+      callback();
+    } finally {
+      _state.indent = oldIndent;
+    }
+  }
+
+  /**
+   * Output text without ending the current line.
+   */
+  void write(Object obj) {
+    _state.write(obj.toString());
+  }
+
+  /**
+   * Output text, ending the current line.
+   */
+  void writeln([Object obj = '']) {
+    _state.write('$obj\n');
+  }
+}
+
+/**
+ * State used by [CodeGenerator].
+ */
+class _CodeGeneratorState {
+  StringBuffer buffer = new StringBuffer();
+  String nextIndent = '';
+  String indent = '';
+  bool indentNeeded = true;
+
+  void write(String text) {
+    List<String> lines = text.split('\n');
+    for (int i = 0; i < lines.length; i++) {
+      if (i == lines.length - 1 && lines[i].isEmpty) {
+        break;
+      }
+      if (indentNeeded) {
+        buffer.write(nextIndent);
+        nextIndent = indent;
+      }
+      indentNeeded = false;
+      buffer.write(lines[i]);
+      if (i != lines.length - 1) {
+        buffer.writeln();
+        indentNeeded = true;
+      }
+    }
+  }
+}
+
+/**
+ * State used by [HtmlCodeGenerator].
+ */
+class _HtmlCodeGeneratorState {
+  List<dom.Node> buffer = <dom.Node>[];
+  String indent = '';
+  bool indentNeeded = true;
+
+  void add(dom.Node node) {
+    if (node is dom.Text) {
+      write(node.text);
+    } else {
+      buffer.add(node);
+    }
+  }
+
+  void write(String text) {
+    if (text.isEmpty) {
+      return;
+    }
+    if (indentNeeded) {
+      buffer.add(new dom.Text(indent));
+    }
+    List<String> lines = text.split('\n');
+    if (lines.last.isEmpty) {
+      lines.removeLast();
+      buffer.add(new dom.Text(lines.join('\n$indent') + '\n'));
+      indentNeeded = true;
+    } else {
+      buffer.add(new dom.Text(lines.join('\n$indent')));
+      indentNeeded = false;
+    }
   }
 }

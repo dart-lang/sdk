@@ -11,11 +11,11 @@ import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart' show Index;
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
-import 'reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
 import 'mocks.dart';
+import 'reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
@@ -159,6 +159,15 @@ class CompletionTest extends AbstractAnalysisTest {
     });
   }
 
+  test_invocation() {
+    addTestFile('class A {b() {}} main() {A a; a.^}');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
+    });
+  }
+
   test_keyword() {
     addTestFile('library A; cl^');
     return getSuggestions().then((_) {
@@ -184,15 +193,6 @@ class CompletionTest extends AbstractAnalysisTest {
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'a');
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'x');
-    });
-  }
-
-  test_invocation() {
-    addTestFile('class A {b() {}} main() {A a; a.^}');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset));
-      expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
     });
   }
 

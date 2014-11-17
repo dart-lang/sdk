@@ -406,7 +406,7 @@ class GetHandler {
         response.write('</td>');
       }
     }
-    ;
+
     response.write('</tr>');
   }
 }

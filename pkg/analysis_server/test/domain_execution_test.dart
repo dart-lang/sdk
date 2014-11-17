@@ -4,20 +4,29 @@
 
 library test.domain.execution;
 
-import 'package:analyzer/file_system/physical_file_system.dart';
+import 'dart:async';
+
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_execution.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'mock_sdk.dart';
-import 'package:unittest/unittest.dart';
-
-import 'mocks.dart';
-import 'operation/operation_queue_test.dart';
-import 'package:typed_mock/typed_mock.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'dart:async';
+import 'package:typed_mock/typed_mock.dart';
+import 'package:unittest/unittest.dart';
+
+import 'mock_sdk.dart';
+import 'mocks.dart';
+import 'operation/operation_queue_test.dart';
+
+/**
+ * Return a matcher that will match an [ExecutableFile] if it has the given
+ * [source] and [kind].
+ */
+Matcher isExecutableFile(Source source, ExecutableKind kind) {
+  return new IsExecutableFile(source.fullName, kind);
+}
 
 main() {
   group('ExecutionDomainHandler', () {
@@ -168,14 +177,15 @@ main() {
       Source source7 = new TestSource('/g.html');
 
       AnalysisContext context = new AnalysisContextMock();
-      when(context.launchableClientLibrarySources)
-          .thenReturn([source1, source2]);
-      when(context.launchableServerLibrarySources)
-          .thenReturn([source2, source3]);
+      when(
+          context.launchableClientLibrarySources).thenReturn([source1, source2]);
+      when(
+          context.launchableServerLibrarySources).thenReturn([source2, source3]);
       when(context.librarySources).thenReturn([source4]);
       when(context.htmlSources).thenReturn([source5]);
-      when(context.getLibrariesReferencedFromHtml(anyObject))
-          .thenReturn([source6, source7]);
+      when(
+          context.getLibrariesReferencedFromHtml(
+              anyObject)).thenReturn([source6, source7]);
 
       ServerContextManager manager = new ServerContextManagerMock();
       when(manager.isInAnalysisRoot(anyString)).thenReturn(true);
@@ -189,10 +199,13 @@ main() {
       when(server.onFileAnalyzed).thenReturn(controller.stream);
 
       List<String> unsentNotifications = <String>[
-          source1.fullName, source2.fullName, source3.fullName,
-          source4.fullName, source5.fullName];
-      when(server.sendNotification(anyObject))
-          .thenInvoke((Notification notification) {
+          source1.fullName,
+          source2.fullName,
+          source3.fullName,
+          source4.fullName,
+          source5.fullName];
+      when(
+          server.sendNotification(anyObject)).thenInvoke((Notification notification) {
         ExecutionLaunchDataParams params =
             new ExecutionLaunchDataParams.fromNotification(notification);
 
@@ -228,26 +241,6 @@ main() {
 }
 
 /**
- * A [Source] that knows it's [fullName].
- */
-class TestSource implements Source {
-  String fullName;
-
-  TestSource(this.fullName);
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-/**
- * Return a matcher that will match an [ExecutableFile] if it has the given
- * [source] and [kind].
- */
-Matcher isExecutableFile(Source source, ExecutableKind kind) {
-  return new IsExecutableFile(source.fullName, kind);
-}
-
-/**
  * A matcher that will match an [ExecutableFile] if it has a specified [source]
  * and [kind].
  */
@@ -269,4 +262,16 @@ class IsExecutableFile extends Matcher {
     }
     return item.file == expectedFile && item.kind == expectedKind;
   }
+}
+
+/**
+ * A [Source] that knows it's [fullName].
+ */
+class TestSource implements Source {
+  String fullName;
+
+  TestSource(this.fullName);
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -16,8 +16,8 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
-import 'mocks.dart';
 import 'mock_sdk.dart';
+import 'mocks.dart';
 
 main() {
   group('AnalysisServer', () {
@@ -31,8 +31,9 @@ main() {
       notice.setErrors([], new LineInfo([0]));
       AnalysisResult firstResult = new AnalysisResult([notice], 0, '', 0);
       AnalysisResult lastResult = new AnalysisResult(null, 1, '', 1);
-      when(context.performAnalysisTask).thenReturnList(
-          [firstResult, firstResult, firstResult, lastResult]);
+      when(
+          context.performAnalysisTask).thenReturnList(
+              [firstResult, firstResult, firstResult, lastResult]);
       helper.server.serverServices.add(ServerService.STATUS);
       helper.server.schedulePerformAnalysisOperation(context);
       // Pump the event queue to make sure the server has finished any
@@ -59,40 +60,39 @@ main() {
       AnalysisServerTestHelper helper = new AnalysisServerTestHelper();
       helper.server.handlers = [new EchoHandler()];
       var request = new Request('my22', 'echo');
-      return helper.channel.sendRequest(request)
-          .then((Response response) {
-            expect(response.id, equals('my22'));
-            expect(response.error, isNull);
-          });
+      return helper.channel.sendRequest(request).then((Response response) {
+        expect(response.id, equals('my22'));
+        expect(response.error, isNull);
+      });
     });
 
     test('shutdown', () {
       AnalysisServerTestHelper helper = new AnalysisServerTestHelper();
       helper.server.handlers = [new ServerDomainHandler(helper.server)];
       var request = new Request('my28', SERVER_SHUTDOWN);
-      return helper.channel.sendRequest(request)
-          .then((Response response) {
-            expect(response.id, equals('my28'));
-            expect(response.error, isNull);
-          });
+      return helper.channel.sendRequest(request).then((Response response) {
+        expect(response.id, equals('my28'));
+        expect(response.error, isNull);
+      });
     });
 
     test('unknownRequest', () {
       AnalysisServerTestHelper helper = new AnalysisServerTestHelper();
       helper.server.handlers = [new EchoHandler()];
       var request = new Request('my22', 'randomRequest');
-      return helper.channel.sendRequest(request)
-          .then((Response response) {
-            expect(response.id, equals('my22'));
-            expect(response.error, isNotNull);
-          });
+      return helper.channel.sendRequest(request).then((Response response) {
+        expect(response.id, equals('my22'));
+        expect(response.error, isNotNull);
+      });
     });
 
     test('rethrow exceptions', () {
       AnalysisServerTestHelper helper = new AnalysisServerTestHelper();
       Exception exceptionToThrow = new Exception('test exception');
-      MockServerOperation operation = new MockServerOperation(
-          ServerOperationPriority.ANALYSIS, (_) { throw exceptionToThrow; });
+      MockServerOperation operation =
+          new MockServerOperation(ServerOperationPriority.ANALYSIS, (_) {
+        throw exceptionToThrow;
+      });
       helper.server.operationQueue.add(operation);
       helper.server.performOperationPending = true;
       try {
@@ -134,7 +134,9 @@ main() {
         wasAdded = false;
         wasChanged = false;
         wasRemoved = false;
-        helper.server.setAnalysisRoots('0', ['/foo'], [], {'/foo':'/bar'});
+        helper.server.setAnalysisRoots('0', ['/foo'], [], {
+          '/foo': '/bar'
+        });
         return pumpEventQueue();
       }).then((_) {
         expect(wasAdded, isFalse);
@@ -163,8 +165,12 @@ class AnalysisServerTestHelper {
   AnalysisServerTestHelper({bool rethrowExceptions: true}) {
     channel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
-    server = new AnalysisServer(channel, resourceProvider,
-        new MockPackageMapProvider(), null, new MockSdk(),
+    server = new AnalysisServer(
+        channel,
+        resourceProvider,
+        new MockPackageMapProvider(),
+        null,
+        new MockSdk(),
         rethrowExceptions: rethrowExceptions);
   }
 }
@@ -173,7 +179,9 @@ class EchoHandler implements RequestHandler {
   @override
   Response handleRequest(Request request) {
     if (request.method == 'echo') {
-      return new Response(request.id, result: {'echo': true});
+      return new Response(request.id, result: {
+        'echo': true
+      });
     }
     return null;
   }

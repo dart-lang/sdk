@@ -15,6 +15,20 @@ import 'codegen_tools.dart';
 import 'from_html.dart';
 import 'to_html.dart';
 
+final GeneratedFile target =
+    new GeneratedFile('../../test/integration/integration_test_methods.dart', () {
+  CodegenInttestMethodsVisitor visitor =
+      new CodegenInttestMethodsVisitor(readApi());
+  return visitor.collectCode(visitor.visitApi);
+});
+
+/**
+ * Translate spec_input.html into protocol_matchers.dart.
+ */
+main() {
+  target.generate();
+}
+
 /**
  * Visitor that generates the code for integration_test_methods.dart
  */
@@ -39,6 +53,45 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor with CodeGenerator
   CodegenInttestMethodsVisitor(Api api)
       : super(api),
         toHtmlVisitor = new ToHtmlVisitor(api);
+
+  /**
+   * Generate a function argument for the given parameter field.
+   */
+  String formatArgument(TypeObjectField field) =>
+      '${dartType(field.type)} ${field.name}';
+
+  /**
+   * Figure out the appropriate Dart type for data having the given API
+   * protocol [type].
+   */
+  String jsonType(TypeDecl type) {
+    type = resolveTypeReferenceChain(type);
+    if (type is TypeEnum) {
+      return 'String';
+    } else if (type is TypeList) {
+      return 'List<${jsonType(type.itemType)}>';
+    } else if (type is TypeMap) {
+      return 'Map<String, ${jsonType(type.valueType)}>';
+    } else if (type is TypeObject) {
+      return 'Map<String, dynamic>';
+    } else if (type is TypeReference) {
+      switch (type.typeName) {
+        case 'String':
+        case 'int':
+        case 'bool':
+          // These types correspond exactly to Dart types
+          return type.typeName;
+        case 'object':
+          return 'Map<String, dynamic>';
+        default:
+          throw new Exception(type.typeName);
+      }
+    } else if (type is TypeUnion) {
+      return 'Object';
+    } else {
+      throw new Exception('Unexpected kind of TypeDecl');
+    }
+  }
 
   @override
   visitApi() {
@@ -104,7 +157,9 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor with CodeGenerator
   visitNotification(Notification notification) {
     String streamName =
         camelJoin(['on', notification.domainName, notification.event]);
-    String className = camelJoin([notification.domainName, notification.event, 'params'], doCapitalize: true);
+    String className = camelJoin(
+        [notification.domainName, notification.event, 'params'],
+        doCapitalize: true);
     writeln();
     docComment(toHtmlVisitor.collectHtml(() {
       toHtmlVisitor.translateHtml(notification.html);
@@ -130,7 +185,8 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor with CodeGenerator
         if (notification.params == null) {
           constructorCall = 'new $className()';
         } else {
-          constructorCall = "new $className.fromJson(decoder, 'params', params)";
+          constructorCall =
+              "new $className.fromJson(decoder, 'params', params)";
         }
         writeln('_$streamName.add($constructorCall);');
         writeln('break;');
@@ -210,57 +266,4 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor with CodeGenerator
     });
     writeln('}');
   }
-
-  /**
-   * Generate a function argument for the given parameter field.
-   */
-  String formatArgument(TypeObjectField field) =>
-      '${dartType(field.type)} ${field.name}';
-
-  /**
-   * Figure out the appropriate Dart type for data having the given API
-   * protocol [type].
-   */
-  String jsonType(TypeDecl type) {
-    type = resolveTypeReferenceChain(type);
-    if (type is TypeEnum) {
-      return 'String';
-    } else if (type is TypeList) {
-      return 'List<${jsonType(type.itemType)}>';
-    } else if (type is TypeMap) {
-      return 'Map<String, ${jsonType(type.valueType)}>';
-    } else if (type is TypeObject) {
-      return 'Map<String, dynamic>';
-    } else if (type is TypeReference) {
-      switch (type.typeName) {
-        case 'String':
-        case 'int':
-        case 'bool':
-          // These types correspond exactly to Dart types
-          return type.typeName;
-        case 'object':
-          return 'Map<String, dynamic>';
-        default:
-          throw new Exception(type.typeName);
-      }
-    } else if (type is TypeUnion) {
-      return 'Object';
-    } else {
-      throw new Exception('Unexpected kind of TypeDecl');
-    }
-  }
-}
-
-final GeneratedFile target =
-    new GeneratedFile('../../test/integration/integration_test_methods.dart', () {
-  CodegenInttestMethodsVisitor visitor =
-      new CodegenInttestMethodsVisitor(readApi());
-  return visitor.collectCode(visitor.visitApi);
-});
-
-/**
- * Translate spec_input.html into protocol_matchers.dart.
- */
-main() {
-  target.generate();
 }

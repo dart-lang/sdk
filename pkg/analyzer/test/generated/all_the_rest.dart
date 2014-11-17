@@ -368,7 +368,8 @@ abstract class AbstractScannerTest {
       }
       return ht.TokenType.TEXT;
     }
-    fail("Unknown expected token $count: ${expected != null ? expected.runtimeType : "null"}");
+    fail(
+        "Unknown expected token $count: ${expected != null ? expected.runtimeType : "null"}");
     return null;
   }
 
@@ -452,6 +453,20 @@ abstract class AbstractScannerTest {
 
 
 class AngularCompilationUnitBuilderTest extends AngularTest {
+  void test_bad_notConstructorAnnotation() {
+    String mainContent = r'''
+const MY_ANNOTATION = null;
+@MY_ANNOTATION()
+class MyFilter {
+}''';
+    resolveMainSource(mainContent);
+    // prepare AngularFilterElement
+    ClassElement classElement = mainUnitElement.getType("MyFilter");
+    AngularFormatterElement filter =
+        getAngularElement(classElement, (e) => e is AngularFormatterElement);
+    expect(filter, isNull);
+  }
+
   void test_Decorator() {
     String mainContent = _createAngularSource(r'''
 @Decorator(selector: '[my-dir]',
@@ -566,6 +581,218 @@ class MyFilter {
     expect(filter, isNull);
   }
 
+  void test_getElement_component_name() {
+    resolveMainSource(_createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
+class MyComponent {}'''));
+    SimpleStringLiteral node =
+        _findMainNode("ctrl'", (n) => n is SimpleStringLiteral);
+    int offset = node.offset;
+    // find AngularComponentElement
+    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is AngularComponentElement,
+        AngularComponentElement,
+        element);
+  }
+
+  void test_getElement_component_property_fromFieldAnnotation() {
+    resolveMainSource(_createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
+class MyComponent {
+  @NgOneWay('prop')
+  var field;
+}'''));
+    // prepare node
+    SimpleStringLiteral node =
+        _findMainNode("prop'", (n) => n is SimpleStringLiteral);
+    int offset = node.offset;
+    // prepare Element
+    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+    expect(element, isNotNull);
+    // check AngularPropertyElement
+    AngularPropertyElement property = element as AngularPropertyElement;
+    expect(property.name, "prop");
+  }
+
+  void test_getElement_component_property_fromMap() {
+    resolveMainSource(_createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+             map: const {
+               'prop' : '@field',
+             })
+class MyComponent {
+  var field;
+}'''));
+    // AngularPropertyElement
+    {
+      SimpleStringLiteral node =
+          _findMainNode("prop'", (n) => n is SimpleStringLiteral);
+      int offset = node.offset;
+      // prepare Element
+      Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+      expect(element, isNotNull);
+      // check AngularPropertyElement
+      AngularPropertyElement property = element as AngularPropertyElement;
+      expect(property.name, "prop");
+    }
+    // FieldElement
+    {
+      SimpleStringLiteral node =
+          _findMainNode("@field'", (n) => n is SimpleStringLiteral);
+      int offset = node.offset;
+      // prepare Element
+      Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+      expect(element, isNotNull);
+      // check FieldElement
+      FieldElement field = element as FieldElement;
+      expect(field.name, "field");
+    }
+  }
+
+  void test_getElement_component_selector() {
+    resolveMainSource(_createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
+class MyComponent {}'''));
+    SimpleStringLiteral node =
+        _findMainNode("myComp'", (n) => n is SimpleStringLiteral);
+    int offset = node.offset;
+    // find AngularSelectorElement
+    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is AngularSelectorElement,
+        AngularSelectorElement,
+        element);
+  }
+
+  void test_getElement_controller_name() {
+    resolveMainSource(_createAngularSource(r'''
+@Controller(publishAs: 'ctrl', selector: '[myApp]')
+class MyController {
+}'''));
+    SimpleStringLiteral node =
+        _findMainNode("ctrl'", (n) => n is SimpleStringLiteral);
+    int offset = node.offset;
+    // find AngularControllerElement
+    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is AngularControllerElement,
+        AngularControllerElement,
+        element);
+  }
+
+  void test_getElement_directive_property() {
+    resolveMainSource(_createAngularSource(r'''
+@Decorator(selector: '[my-dir]',
+             map: const {
+               'my-dir' : '=>field'
+             })
+class MyDirective {
+  set field(value) {}
+}'''));
+    // prepare node
+    SimpleStringLiteral node =
+        _findMainNode("my-dir'", (n) => n is SimpleStringLiteral);
+    int offset = node.offset;
+    // prepare Element
+    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+    expect(element, isNotNull);
+    // check AngularPropertyElement
+    AngularPropertyElement property = element as AngularPropertyElement;
+    expect(property.name, "my-dir");
+  }
+
+  void test_getElement_directive_selector() {
+    resolveMainSource(_createAngularSource(r'''
+@Decorator(selector: '[my-dir]')
+class MyDirective {}'''));
+    SimpleStringLiteral node =
+        _findMainNode("my-dir]'", (n) => n is SimpleStringLiteral);
+    int offset = node.offset;
+    // find AngularSelectorElement
+    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is AngularSelectorElement,
+        AngularSelectorElement,
+        element);
+  }
+
+  void test_getElement_filter_name() {
+    resolveMainSource(_createAngularSource(r'''
+@Formatter(name: 'myFilter')
+class MyFilter {
+  call(p1, p2) {}
+}'''));
+    SimpleStringLiteral node =
+        _findMainNode("myFilter'", (n) => n is SimpleStringLiteral);
+    int offset = node.offset;
+    // find FilterElement
+    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is AngularFormatterElement,
+        AngularFormatterElement,
+        element);
+  }
+
+  void test_getElement_noClassDeclaration() {
+    resolveMainSource("var foo = 'bar';");
+    SimpleStringLiteral node =
+        _findMainNode("bar'", (n) => n is SimpleStringLiteral);
+    Element element = AngularCompilationUnitBuilder.getElement(node, 0);
+    expect(element, isNull);
+  }
+
+  void test_getElement_noClassElement() {
+    resolveMainSource(r'''
+class A {
+  const A(p);
+}
+
+@A('bar')
+class B {}''');
+    SimpleStringLiteral node =
+        _findMainNode("bar'", (n) => n is SimpleStringLiteral);
+    // reset B element
+    ClassDeclaration classDeclaration =
+        node.getAncestor((node) => node is ClassDeclaration);
+    classDeclaration.name.staticElement = null;
+    // class is not resolved - no element
+    Element element = AngularCompilationUnitBuilder.getElement(node, 0);
+    expect(element, isNull);
+  }
+
+  void test_getElement_noNode() {
+    Element element = AngularCompilationUnitBuilder.getElement(null, 0);
+    expect(element, isNull);
+  }
+
+  void test_getElement_notFound() {
+    resolveMainSource(r'''
+class MyComponent {
+  var str = 'some string';
+}''');
+    // prepare node
+    SimpleStringLiteral node =
+        _findMainNode("some string'", (n) => n is SimpleStringLiteral);
+    int offset = node.offset;
+    // no Element
+    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+    expect(element, isNull);
+  }
+
+  void test_getElement_SimpleStringLiteral_withToolkitElement() {
+    SimpleStringLiteral literal = AstFactory.string2("foo");
+    Element element = new AngularScopePropertyElementImpl("foo", 0, null);
+    literal.toolkitElement = element;
+    expect(
+        AngularCompilationUnitBuilder.getElement(literal, -1),
+        same(element));
+  }
+
   void test_NgComponent_bad_cannotParseSelector() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
@@ -599,8 +826,7 @@ class MyComponent {
   void test_NgComponent_bad_notHtmlTemplate() {
     contextHelper.addSource("/my_template", "");
     contextHelper.addSource("/my_styles.css", "");
-    addMainSource(
-        _createAngularSource(r'''
+    addMainSource(_createAngularSource(r'''
 @NgComponent(publishAs: 'ctrl', selector: 'myComp',
              templateUrl: 'my_template', cssUrl: 'my_styles.css')
 class MyComponent {
@@ -757,8 +983,7 @@ class MyComponent {
   void test_NgComponent_properties_fieldFromSuper() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    resolveMainSourceNoErrors(
-        _createAngularSource(r'''
+    resolveMainSourceNoErrors(_createAngularSource(r'''
 class MySuper {
   var myPropA;
 }
@@ -792,8 +1017,7 @@ class MyComponent extends MySuper {
   void test_NgComponent_properties_fromFields() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    resolveMainSourceNoErrors(
-        _createAngularSource(r'''
+    resolveMainSourceNoErrors(_createAngularSource(r'''
 @Component(publishAs: 'ctrl', selector: 'myComp',
              templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
 class MyComponent {
@@ -856,8 +1080,7 @@ class MyComponent {
   void test_NgComponent_properties_fromMap() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    resolveMainSourceNoErrors(
-        _createAngularSource(r'''
+    resolveMainSourceNoErrors(_createAngularSource(r'''
 @Component(publishAs: 'ctrl', selector: 'myComp',
              templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
              map: const {
@@ -938,9 +1161,13 @@ class MyComponent {
     expect(component.nameOffset, AngularTest.findOffset(mainContent, "ctrl'"));
     _assertIsTagSelector(component.selector, "myComp");
     expect(component.templateUri, "my_template.html");
-    expect(component.templateUriOffset, AngularTest.findOffset(mainContent, "my_template.html'"));
+    expect(
+        component.templateUriOffset,
+        AngularTest.findOffset(mainContent, "my_template.html'"));
     expect(component.styleUri, "my_styles.css");
-    expect(component.styleUriOffset, AngularTest.findOffset(mainContent, "my_styles.css'"));
+    expect(
+        component.styleUriOffset,
+        AngularTest.findOffset(mainContent, "my_styles.css'"));
     expect(component.properties, hasLength(0));
   }
 
@@ -979,21 +1206,27 @@ class MyComponent {
       AngularScopePropertyElement property = scopeProperties[0];
       expect(findMainElement2("boolProp"), same(property));
       expect(property.name, "boolProp");
-      expect(property.nameOffset, AngularTest.findOffset(mainContent, "boolProp'"));
+      expect(
+          property.nameOffset,
+          AngularTest.findOffset(mainContent, "boolProp'"));
       expect(property.type.name, "bool");
     }
     {
       AngularScopePropertyElement property = scopeProperties[1];
       expect(findMainElement2("intProp"), same(property));
       expect(property.name, "intProp");
-      expect(property.nameOffset, AngularTest.findOffset(mainContent, "intProp'"));
+      expect(
+          property.nameOffset,
+          AngularTest.findOffset(mainContent, "intProp'"));
       expect(property.type.name, "int");
     }
     {
       AngularScopePropertyElement property = scopeProperties[2];
       expect(findMainElement2("stringProp"), same(property));
       expect(property.name, "stringProp");
-      expect(property.nameOffset, AngularTest.findOffset(mainContent, "stringProp'"));
+      expect(
+          property.nameOffset,
+          AngularTest.findOffset(mainContent, "stringProp'"));
       expect(property.type.name, "String");
     }
   }
@@ -1046,244 +1279,11 @@ class MyController {
   }
 
   void test_NgController_noAnnotationArguments() {
-    String mainContent =
-        _createAngularSource(r'''
+    String mainContent = _createAngularSource(r'''
 @NgController
 class MyController {
 }''');
     resolveMainSource(mainContent);
-  }
-
-  void test_bad_notConstructorAnnotation() {
-    String mainContent = r'''
-const MY_ANNOTATION = null;
-@MY_ANNOTATION()
-class MyFilter {
-}''';
-    resolveMainSource(mainContent);
-    // prepare AngularFilterElement
-    ClassElement classElement = mainUnitElement.getType("MyFilter");
-    AngularFormatterElement filter =
-        getAngularElement(classElement, (e) => e is AngularFormatterElement);
-    expect(filter, isNull);
-  }
-
-  void test_getElement_SimpleStringLiteral_withToolkitElement() {
-    SimpleStringLiteral literal = AstFactory.string2("foo");
-    Element element = new AngularScopePropertyElementImpl("foo", 0, null);
-    literal.toolkitElement = element;
-    expect(AngularCompilationUnitBuilder.getElement(literal, -1), same(element));
-  }
-
-  void test_getElement_component_name() {
-    resolveMainSource(
-        _createAngularSource(r'''
-@Component(publishAs: 'ctrl', selector: 'myComp',
-             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
-class MyComponent {}'''));
-    SimpleStringLiteral node =
-        _findMainNode("ctrl'", (n) => n is SimpleStringLiteral);
-    int offset = node.offset;
-    // find AngularComponentElement
-    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is AngularComponentElement,
-        AngularComponentElement,
-        element);
-  }
-
-  void test_getElement_component_property_fromFieldAnnotation() {
-    resolveMainSource(
-        _createAngularSource(r'''
-@Component(publishAs: 'ctrl', selector: 'myComp',
-             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
-class MyComponent {
-  @NgOneWay('prop')
-  var field;
-}'''));
-    // prepare node
-    SimpleStringLiteral node =
-        _findMainNode("prop'", (n) => n is SimpleStringLiteral);
-    int offset = node.offset;
-    // prepare Element
-    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
-    expect(element, isNotNull);
-    // check AngularPropertyElement
-    AngularPropertyElement property = element as AngularPropertyElement;
-    expect(property.name, "prop");
-  }
-
-  void test_getElement_component_property_fromMap() {
-    resolveMainSource(
-        _createAngularSource(r'''
-@Component(publishAs: 'ctrl', selector: 'myComp',
-             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
-             map: const {
-               'prop' : '@field',
-             })
-class MyComponent {
-  var field;
-}'''));
-    // AngularPropertyElement
-    {
-      SimpleStringLiteral node =
-          _findMainNode("prop'", (n) => n is SimpleStringLiteral);
-      int offset = node.offset;
-      // prepare Element
-      Element element = AngularCompilationUnitBuilder.getElement(node, offset);
-      expect(element, isNotNull);
-      // check AngularPropertyElement
-      AngularPropertyElement property = element as AngularPropertyElement;
-      expect(property.name, "prop");
-    }
-    // FieldElement
-    {
-      SimpleStringLiteral node =
-          _findMainNode("@field'", (n) => n is SimpleStringLiteral);
-      int offset = node.offset;
-      // prepare Element
-      Element element = AngularCompilationUnitBuilder.getElement(node, offset);
-      expect(element, isNotNull);
-      // check FieldElement
-      FieldElement field = element as FieldElement;
-      expect(field.name, "field");
-    }
-  }
-
-  void test_getElement_component_selector() {
-    resolveMainSource(
-        _createAngularSource(r'''
-@Component(publishAs: 'ctrl', selector: 'myComp',
-             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
-class MyComponent {}'''));
-    SimpleStringLiteral node =
-        _findMainNode("myComp'", (n) => n is SimpleStringLiteral);
-    int offset = node.offset;
-    // find AngularSelectorElement
-    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is AngularSelectorElement,
-        AngularSelectorElement,
-        element);
-  }
-
-  void test_getElement_controller_name() {
-    resolveMainSource(
-        _createAngularSource(r'''
-@Controller(publishAs: 'ctrl', selector: '[myApp]')
-class MyController {
-}'''));
-    SimpleStringLiteral node =
-        _findMainNode("ctrl'", (n) => n is SimpleStringLiteral);
-    int offset = node.offset;
-    // find AngularControllerElement
-    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is AngularControllerElement,
-        AngularControllerElement,
-        element);
-  }
-
-  void test_getElement_directive_property() {
-    resolveMainSource(
-        _createAngularSource(r'''
-@Decorator(selector: '[my-dir]',
-             map: const {
-               'my-dir' : '=>field'
-             })
-class MyDirective {
-  set field(value) {}
-}'''));
-    // prepare node
-    SimpleStringLiteral node =
-        _findMainNode("my-dir'", (n) => n is SimpleStringLiteral);
-    int offset = node.offset;
-    // prepare Element
-    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
-    expect(element, isNotNull);
-    // check AngularPropertyElement
-    AngularPropertyElement property = element as AngularPropertyElement;
-    expect(property.name, "my-dir");
-  }
-
-  void test_getElement_directive_selector() {
-    resolveMainSource(
-        _createAngularSource(r'''
-@Decorator(selector: '[my-dir]')
-class MyDirective {}'''));
-    SimpleStringLiteral node =
-        _findMainNode("my-dir]'", (n) => n is SimpleStringLiteral);
-    int offset = node.offset;
-    // find AngularSelectorElement
-    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is AngularSelectorElement,
-        AngularSelectorElement,
-        element);
-  }
-
-  void test_getElement_filter_name() {
-    resolveMainSource(
-        _createAngularSource(r'''
-@Formatter(name: 'myFilter')
-class MyFilter {
-  call(p1, p2) {}
-}'''));
-    SimpleStringLiteral node =
-        _findMainNode("myFilter'", (n) => n is SimpleStringLiteral);
-    int offset = node.offset;
-    // find FilterElement
-    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is AngularFormatterElement,
-        AngularFormatterElement,
-        element);
-  }
-
-  void test_getElement_noClassDeclaration() {
-    resolveMainSource("var foo = 'bar';");
-    SimpleStringLiteral node =
-        _findMainNode("bar'", (n) => n is SimpleStringLiteral);
-    Element element = AngularCompilationUnitBuilder.getElement(node, 0);
-    expect(element, isNull);
-  }
-
-  void test_getElement_noClassElement() {
-    resolveMainSource(r'''
-class A {
-  const A(p);
-}
-
-@A('bar')
-class B {}''');
-    SimpleStringLiteral node =
-        _findMainNode("bar'", (n) => n is SimpleStringLiteral);
-    // reset B element
-    ClassDeclaration classDeclaration =
-        node.getAncestor((node) => node is ClassDeclaration);
-    classDeclaration.name.staticElement = null;
-    // class is not resolved - no element
-    Element element = AngularCompilationUnitBuilder.getElement(node, 0);
-    expect(element, isNull);
-  }
-
-  void test_getElement_noNode() {
-    Element element = AngularCompilationUnitBuilder.getElement(null, 0);
-    expect(element, isNull);
-  }
-
-  void test_getElement_notFound() {
-    resolveMainSource(r'''
-class MyComponent {
-  var str = 'some string';
-}''');
-    // prepare node
-    SimpleStringLiteral node =
-        _findMainNode("some string'", (n) => n is SimpleStringLiteral);
-    int offset = node.offset;
-    // no Element
-    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
-    expect(element, isNull);
   }
 
   void test_parseSelector_hasAttribute() {
@@ -1332,7 +1332,9 @@ class MyComponent {
     expect(selector.name, "tag[attr]");
     expect(selector.nameOffset, -1);
     expect((selector as IsTagHasAttributeSelectorElementImpl).tagName, "tag");
-    expect((selector as IsTagHasAttributeSelectorElementImpl).attributeName, "attr");
+    expect(
+        (selector as IsTagHasAttributeSelectorElementImpl).attributeName,
+        "attr");
   }
 
   void test_parseSelector_unknown() {
@@ -1366,14 +1368,18 @@ class MyRouteInitializer {
       expect(view.templateUri, "my_templateA.html");
       expect(view.name, null);
       expect(view.nameOffset, -1);
-      expect(view.templateUriOffset, AngularTest.findOffset(mainContent, "my_templateA.html'"));
+      expect(
+          view.templateUriOffset,
+          AngularTest.findOffset(mainContent, "my_templateA.html'"));
     }
     {
       AngularViewElement view = views[1];
       expect(view.templateUri, "my_templateB.html");
       expect(view.name, null);
       expect(view.nameOffset, -1);
-      expect(view.templateUriOffset, AngularTest.findOffset(mainContent, "my_templateB.html'"));
+      expect(
+          view.templateUriOffset,
+          AngularTest.findOffset(mainContent, "my_templateB.html'"));
     }
   }
 
@@ -1440,248 +1446,6 @@ class MyRouteInitializer {
 
 
 class AngularHtmlUnitResolverTest extends AngularTest {
-  void test_NgComponent_resolveTemplateFile() {
-    addMainSource(r'''
-import 'angular.dart';
-
-@Component(
-    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
-    publishAs: 'ctrl',
-    selector: 'myComponent')
-class MyComponent {
-  String field;
-}''');
-    contextHelper.addSource(
-        "/entry-point.html",
-        AngularTest.createHtmlWithAngular(''));
-    addIndexSource2(
-        "/my_template.html",
-        r'''
-<div>
-  {{ctrl.field}}
-</div>''');
-    contextHelper.addSource("/my_styles.css", "");
-    contextHelper.runTasks();
-    resolveIndex();
-    assertNoErrors();
-    assertResolvedIdentifier2("ctrl.", "MyComponent");
-    assertResolvedIdentifier2("field}}", "String");
-  }
-
-  void test_NgComponent_updateDartFile() {
-    Source componentSource = contextHelper.addSource(
-        "/my_component.dart",
-        r'''
-library my.component;
-import 'angular.dart';
-@Component(selector: 'myComponent')
-class MyComponent {
-}''');
-    contextHelper.addSource(
-        "/my_module.dart",
-        r'''
-library my.module;
-import 'my_component.dart';''');
-    addMainSource(r'''
-library main;
-import 'my_module.dart';''');
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController("<myComponent/>"));
-    // "myComponent" tag was resolved
-    {
-      ht.XmlTagNode tagNode =
-          ht.HtmlUnitUtils.getTagNode(indexUnit, findOffset2("myComponent"));
-      AngularSelectorElement tagElement =
-          tagNode.element as AngularSelectorElement;
-      expect(tagElement, isNotNull);
-      expect(tagElement.name, "myComponent");
-    }
-    // replace "myComponent" with "myComponent2"
-    // in my_component.dart and index.html
-    {
-      context.setContents(
-          componentSource,
-          _getSourceContent(componentSource).replaceAll("myComponent", "myComponent2"));
-      indexContent =
-          _getSourceContent(indexSource).replaceAll("myComponent", "myComponent2");
-      context.setContents(indexSource, indexContent);
-    }
-    contextHelper.runTasks();
-    resolveIndex();
-    // "myComponent2" tag should be resolved
-    {
-      ht.XmlTagNode tagNode =
-          ht.HtmlUnitUtils.getTagNode(indexUnit, findOffset2("myComponent2"));
-      AngularSelectorElement tagElement =
-          tagNode.element as AngularSelectorElement;
-      expect(tagElement, isNotNull);
-      expect(tagElement.name, "myComponent2");
-    }
-  }
-
-  void test_NgComponent_use_resolveAttributes() {
-    contextHelper.addSource(
-        "/my_template.html",
-        r'''
-    <div>
-      {{ctrl.field}}
-    </div>''');
-    addMainSource(r'''
-
-import 'angular.dart';
-
-@Component(
-    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
-    publishAs: 'ctrl',
-    selector: 'myComponent', // selector
-    map: const {'attrA' : '=>setA', 'attrB' : '@setB'})
-class MyComponent {
-  set setA(value) {}
-  set setB(value) {}
-}''');
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r'''
-<input type='text' ng-model='someModel'/>
-<myComponent attrA='someModel' attrB='bbb'/>'''));
-    // "attrA" attribute expression was resolved
-    expect(findIdentifier("someModel"), isNotNull);
-    // "myComponent" tag was resolved
-    ht.XmlTagNode tagNode =
-        ht.HtmlUnitUtils.getTagNode(indexUnit, findOffset2("myComponent"));
-    AngularSelectorElement tagElement =
-        tagNode.element as AngularSelectorElement;
-    expect(tagElement, isNotNull);
-    expect(tagElement.name, "myComponent");
-    expect(tagElement.nameOffset, findMainOffset("myComponent', // selector"));
-    // "attrA" attribute was resolved
-    {
-      ht.XmlAttributeNode node =
-          ht.HtmlUnitUtils.getAttributeNode(indexUnit, findOffset2("attrA='"));
-      AngularPropertyElement element = node.element as AngularPropertyElement;
-      expect(element, isNotNull);
-      expect(element.name, "attrA");
-      expect(element.field.name, "setA");
-    }
-    // "attrB" attribute was resolved, even if it @binding
-    {
-      ht.XmlAttributeNode node =
-          ht.HtmlUnitUtils.getAttributeNode(indexUnit, findOffset2("attrB='"));
-      AngularPropertyElement element = node.element as AngularPropertyElement;
-      expect(element, isNotNull);
-      expect(element.name, "attrB");
-      expect(element.field.name, "setB");
-    }
-  }
-
-  void test_NgDirective_noAttribute() {
-    addMainSource(r'''
-
-import 'angular.dart';
-
-@NgDirective(selector: '[my-directive]', map: const {'foo': '=>input'})
-class MyDirective {
-  set input(value) {}
-}''');
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r'''
-<div my-directive>
-</div>'''));
-  }
-
-  void test_NgDirective_noExpression() {
-    addMainSource(r'''
-
-import 'angular.dart';
-
-@NgDirective(selector: '[my-directive]', map: const {'.': '=>input'})
-class MyDirective {
-  set input(value) {}
-}''');
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r'''
-<div my-directive>
-</div>'''));
-  }
-
-  void test_NgDirective_resolvedExpression() {
-    addMainSource(r'''
-
-import 'angular.dart';
-
-@Decorator(selector: '[my-directive]')
-class MyDirective {
-  @NgOneWay('my-property')
-  String condition;
-}''');
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r'''
-<input type='text' ng-model='name'>
-<div my-directive my-property='name != null'>
-</div>'''));
-    resolveMainNoErrors();
-    // "my-directive" attribute was resolved
-    {
-      AngularSelectorElement selector =
-          findMainElement(ElementKind.ANGULAR_SELECTOR, "my-directive");
-      ht.XmlAttributeNode attrNodeSelector =
-          ht.HtmlUnitUtils.getAttributeNode(indexUnit, findOffset2("my-directive"));
-      expect(attrNodeSelector, isNotNull);
-      expect(attrNodeSelector.element, same(selector));
-    }
-    // "my-property" attribute was resolved
-    {
-      ht.XmlAttributeNode attrNodeProperty =
-          ht.HtmlUnitUtils.getAttributeNode(indexUnit, findOffset2("my-property='"));
-      AngularPropertyElement propertyElement =
-          attrNodeProperty.element as AngularPropertyElement;
-      expect(propertyElement, isNotNull);
-      expect(propertyElement.propertyKind, same(AngularPropertyKind.ONE_WAY));
-      expect(propertyElement.field.name, "condition");
-    }
-    // "name" expression was resolved
-    expect(findIdentifier("name != null"), isNotNull);
-  }
-
-  void test_NgDirective_resolvedExpression_attrString() {
-    addMainSource(r'''
-
-import 'angular.dart';
-
-@NgDirective(selector: '[my-directive])
-class MyDirective {
-  @NgAttr('my-property')
-  String property;
-}''');
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r'''
-<input type='text' ng-model='name'>
-<div my-directive my-property='name != null'>
-</div>'''));
-    resolveMain();
-    // @NgAttr means "string attribute", which we don't parse
-    expect(findIdentifierMaybe("name != null"), isNull);
-  }
-
-  void test_NgDirective_resolvedExpression_dotAsName() {
-    addMainSource(r'''
-
-import 'angular.dart';
-
-@Decorator(
-    selector: '[my-directive]',
-    map: const {'.' : '=>condition'})
-class MyDirective {
-  set condition(value) {}
-}''');
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r'''
-<input type='text' ng-model='name'>
-<div my-directive='name != null'>
-</div>'''));
-    // "name" attribute was resolved
-    expect(findIdentifier("name != null"), isNotNull);
-  }
-
   void fail_analysisContext_changeDart_invalidateApplication() {
     addMainSource(r'''
 
@@ -1696,9 +1460,7 @@ class MyComponent {
     contextHelper.addSource(
         "/entry-point.html",
         AngularTest.createHtmlWithAngular(''));
-    addIndexSource2(
-        "/my_template.html",
-        r'''
+    addIndexSource2("/my_template.html", r'''
 <div>
   {{ctrl.noMethod()}}
 </div>''');
@@ -1717,6 +1479,168 @@ class MyComponent {
       expect(errors, isEmpty);
       expect(errors.length == 0, isTrue);
     }
+  }
+
+  void fail_ngRepeat_additionalVariables() {
+    addMyController();
+    _resolveIndexNoErrors(AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat='name in ctrl.names'>
+  {{$index}} {{$first}} {{$middle}} {{$last}} {{$even}} {{$odd}}
+</li>'''));
+    assertResolvedIdentifier2("\$index", "int");
+    assertResolvedIdentifier2("\$first", "bool");
+    assertResolvedIdentifier2("\$middle", "bool");
+    assertResolvedIdentifier2("\$last", "bool");
+    assertResolvedIdentifier2("\$even", "bool");
+    assertResolvedIdentifier2("\$odd", "bool");
+  }
+
+  void fail_ngRepeat_bad_expectedIdentifier() {
+    addMyController();
+    resolveIndex2(AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat='name + 42 in ctrl.names'>
+</li>'''));
+    assertErrors(indexSource, [AngularCode.INVALID_REPEAT_ITEM_SYNTAX]);
+  }
+
+  void fail_ngRepeat_bad_expectedIn() {
+    addMyController();
+    resolveIndex2(AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat='name : ctrl.names'>
+</li>'''));
+    assertErrors(indexSource, [AngularCode.INVALID_REPEAT_SYNTAX]);
+  }
+
+  void fail_ngRepeat_filters_filter_literal() {
+    addMyController();
+    _resolveIndexNoErrors(AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat='item in ctrl.items | filter:42:null'/>
+</li>'''));
+    // filter "filter" is resolved
+    Element filterElement = assertResolvedIdentifier("filter");
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is AngularFormatterElement,
+        AngularFormatterElement,
+        filterElement);
+  }
+
+  void fail_ngRepeat_filters_filter_propertyMap() {
+    addMyController();
+    _resolveIndexNoErrors(AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat='item in ctrl.items | filter:{name:null, done:false}'/>
+</li>'''));
+    assertResolvedIdentifier2("name:", "String");
+    assertResolvedIdentifier2("done:", "bool");
+  }
+
+  void fail_ngRepeat_filters_missingColon() {
+    addMyController();
+    resolveIndex2(AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy:'' true"/>
+</li>'''));
+    assertErrors(indexSource, [AngularCode.MISSING_FORMATTER_COLON]);
+  }
+
+  void fail_ngRepeat_filters_noArgs() {
+    addMyController();
+    _resolveIndexNoErrors(AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy"/>
+</li>'''));
+    // filter "orderBy" is resolved
+    Element filterElement = assertResolvedIdentifier("orderBy");
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is AngularFormatterElement,
+        AngularFormatterElement,
+        filterElement);
+  }
+
+  void fail_ngRepeat_filters_orderBy_emptyString() {
+    addMyController();
+    _resolveIndexNoErrors(AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy:'':true"/>
+</li>'''));
+    // filter "orderBy" is resolved
+    Element filterElement = assertResolvedIdentifier("orderBy");
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is AngularFormatterElement,
+        AngularFormatterElement,
+        filterElement);
+  }
+
+  void fail_ngRepeat_filters_orderBy_propertyList() {
+    addMyController();
+    _resolveIndexNoErrors(AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy:['name', 'done']"/>
+</li>'''));
+    assertResolvedIdentifier2("name'", "String");
+    assertResolvedIdentifier2("done'", "bool");
+  }
+
+  void fail_ngRepeat_filters_orderBy_propertyName() {
+    addMyController();
+    _resolveIndexNoErrors(AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy:'name'"/>
+</li>'''));
+    assertResolvedIdentifier2("name'", "String");
+  }
+
+  void fail_ngRepeat_filters_orderBy_propertyName_minus() {
+    addMyController();
+    _resolveIndexNoErrors(AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy:'-name'"/>
+</li>'''));
+    assertResolvedIdentifier2("name'", "String");
+  }
+
+  void fail_ngRepeat_filters_orderBy_propertyName_plus() {
+    addMyController();
+    _resolveIndexNoErrors(AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy:'+name'"/>
+</li>'''));
+    assertResolvedIdentifier2("name'", "String");
+  }
+
+  void fail_ngRepeat_filters_orderBy_propertyName_untypedItems() {
+    addMyController();
+    _resolveIndexNoErrors(AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.untypedItems | orderBy:'name'"/>
+</li>'''));
+    assertResolvedIdentifier2("name'", "dynamic");
+  }
+
+  void fail_ngRepeat_filters_two() {
+    addMyController();
+    _resolveIndexNoErrors(AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy:'+' | orderBy:'-'"/>
+</li>'''));
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is AngularFormatterElement,
+        AngularFormatterElement,
+        assertResolvedIdentifier("orderBy:'+'"));
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is AngularFormatterElement,
+        AngularFormatterElement,
+        assertResolvedIdentifier("orderBy:'-'"));
+  }
+
+  void fail_ngRepeat_resolvedExpressions() {
+    addMyController();
+    _resolveIndexNoErrors(AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat='name in ctrl.names'>
+  {{name}}
+</li>'''));
+    assertResolvedIdentifier2("name in", "String");
+    assertResolvedIdentifier2("ctrl.", "MyController");
+    assertResolvedIdentifier2("names'", "List<String>");
+    assertResolvedIdentifier2("name}}", "String");
+  }
+
+  void fail_ngRepeat_trackBy() {
+    addMyController();
+    _resolveIndexNoErrors(AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat='name in ctrl.names track by name.length'/>
+</li>'''));
+    assertResolvedIdentifier2("length'", "int");
   }
 
   void test_analysisContext_changeEntryPoint_clearAngularErrors_inDart() {
@@ -1763,9 +1687,7 @@ class MyComponent {
     Source entrySource = contextHelper.addSource(
         "/entry-point.html",
         AngularTest.createHtmlWithAngular(''));
-    addIndexSource2(
-        "/my_template.html",
-        r'''
+    addIndexSource2("/my_template.html", r'''
 <div>
   {{ctrl.noMethod()}}
 </div>''');
@@ -1821,8 +1743,7 @@ class MyComponent {
 
   void test_contextProperties() {
     addMyController();
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithAngular(r'''
+    _resolveIndexNoErrors(AngularTest.createHtmlWithAngular(r'''
 <div>
   {{$id}}
   {{$parent}}
@@ -1845,7 +1766,9 @@ class MyComponent {
     // set AngularElement
     AngularElement angularElement = new AngularControllerElementImpl("ctrl", 0);
     local.toolkitObjects = <AngularElement>[angularElement];
-    expect(AngularHtmlUnitResolver.getAngularElement(local), same(angularElement));
+    expect(
+        AngularHtmlUnitResolver.getAngularElement(local),
+        same(angularElement));
   }
 
   void test_getAngularElement_notAngular() {
@@ -1864,8 +1787,237 @@ class MyComponent {
   void test_ngClick() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r"<button ng-click='ctrl.doSomething($event)'/>"));
+        AngularTest.createHtmlWithMyController(
+            r"<button ng-click='ctrl.doSomething($event)'/>"));
     assertResolvedIdentifier("doSomething");
+  }
+
+  void test_NgComponent_resolveTemplateFile() {
+    addMainSource(r'''
+import 'angular.dart';
+
+@Component(
+    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+    publishAs: 'ctrl',
+    selector: 'myComponent')
+class MyComponent {
+  String field;
+}''');
+    contextHelper.addSource(
+        "/entry-point.html",
+        AngularTest.createHtmlWithAngular(''));
+    addIndexSource2("/my_template.html", r'''
+<div>
+  {{ctrl.field}}
+</div>''');
+    contextHelper.addSource("/my_styles.css", "");
+    contextHelper.runTasks();
+    resolveIndex();
+    assertNoErrors();
+    assertResolvedIdentifier2("ctrl.", "MyComponent");
+    assertResolvedIdentifier2("field}}", "String");
+  }
+
+  void test_NgComponent_updateDartFile() {
+    Source componentSource = contextHelper.addSource("/my_component.dart", r'''
+library my.component;
+import 'angular.dart';
+@Component(selector: 'myComponent')
+class MyComponent {
+}''');
+    contextHelper.addSource("/my_module.dart", r'''
+library my.module;
+import 'my_component.dart';''');
+    addMainSource(r'''
+library main;
+import 'my_module.dart';''');
+    _resolveIndexNoErrors(
+        AngularTest.createHtmlWithMyController("<myComponent/>"));
+    // "myComponent" tag was resolved
+    {
+      ht.XmlTagNode tagNode =
+          ht.HtmlUnitUtils.getTagNode(indexUnit, findOffset2("myComponent"));
+      AngularSelectorElement tagElement =
+          tagNode.element as AngularSelectorElement;
+      expect(tagElement, isNotNull);
+      expect(tagElement.name, "myComponent");
+    }
+    // replace "myComponent" with "myComponent2"
+    // in my_component.dart and index.html
+    {
+      context.setContents(
+          componentSource,
+          _getSourceContent(componentSource).replaceAll("myComponent", "myComponent2"));
+      indexContent =
+          _getSourceContent(indexSource).replaceAll("myComponent", "myComponent2");
+      context.setContents(indexSource, indexContent);
+    }
+    contextHelper.runTasks();
+    resolveIndex();
+    // "myComponent2" tag should be resolved
+    {
+      ht.XmlTagNode tagNode =
+          ht.HtmlUnitUtils.getTagNode(indexUnit, findOffset2("myComponent2"));
+      AngularSelectorElement tagElement =
+          tagNode.element as AngularSelectorElement;
+      expect(tagElement, isNotNull);
+      expect(tagElement.name, "myComponent2");
+    }
+  }
+
+  void test_NgComponent_use_resolveAttributes() {
+    contextHelper.addSource("/my_template.html", r'''
+    <div>
+      {{ctrl.field}}
+    </div>''');
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Component(
+    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+    publishAs: 'ctrl',
+    selector: 'myComponent', // selector
+    map: const {'attrA' : '=>setA', 'attrB' : '@setB'})
+class MyComponent {
+  set setA(value) {}
+  set setB(value) {}
+}''');
+    _resolveIndexNoErrors(AngularTest.createHtmlWithMyController(r'''
+<input type='text' ng-model='someModel'/>
+<myComponent attrA='someModel' attrB='bbb'/>'''));
+    // "attrA" attribute expression was resolved
+    expect(findIdentifier("someModel"), isNotNull);
+    // "myComponent" tag was resolved
+    ht.XmlTagNode tagNode =
+        ht.HtmlUnitUtils.getTagNode(indexUnit, findOffset2("myComponent"));
+    AngularSelectorElement tagElement =
+        tagNode.element as AngularSelectorElement;
+    expect(tagElement, isNotNull);
+    expect(tagElement.name, "myComponent");
+    expect(tagElement.nameOffset, findMainOffset("myComponent', // selector"));
+    // "attrA" attribute was resolved
+    {
+      ht.XmlAttributeNode node =
+          ht.HtmlUnitUtils.getAttributeNode(indexUnit, findOffset2("attrA='"));
+      AngularPropertyElement element = node.element as AngularPropertyElement;
+      expect(element, isNotNull);
+      expect(element.name, "attrA");
+      expect(element.field.name, "setA");
+    }
+    // "attrB" attribute was resolved, even if it @binding
+    {
+      ht.XmlAttributeNode node =
+          ht.HtmlUnitUtils.getAttributeNode(indexUnit, findOffset2("attrB='"));
+      AngularPropertyElement element = node.element as AngularPropertyElement;
+      expect(element, isNotNull);
+      expect(element.name, "attrB");
+      expect(element.field.name, "setB");
+    }
+  }
+
+  void test_NgDirective_noAttribute() {
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@NgDirective(selector: '[my-directive]', map: const {'foo': '=>input'})
+class MyDirective {
+  set input(value) {}
+}''');
+    _resolveIndexNoErrors(AngularTest.createHtmlWithMyController(r'''
+<div my-directive>
+</div>'''));
+  }
+
+  void test_NgDirective_noExpression() {
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@NgDirective(selector: '[my-directive]', map: const {'.': '=>input'})
+class MyDirective {
+  set input(value) {}
+}''');
+    _resolveIndexNoErrors(AngularTest.createHtmlWithMyController(r'''
+<div my-directive>
+</div>'''));
+  }
+
+  void test_NgDirective_resolvedExpression() {
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Decorator(selector: '[my-directive]')
+class MyDirective {
+  @NgOneWay('my-property')
+  String condition;
+}''');
+    _resolveIndexNoErrors(AngularTest.createHtmlWithMyController(r'''
+<input type='text' ng-model='name'>
+<div my-directive my-property='name != null'>
+</div>'''));
+    resolveMainNoErrors();
+    // "my-directive" attribute was resolved
+    {
+      AngularSelectorElement selector =
+          findMainElement(ElementKind.ANGULAR_SELECTOR, "my-directive");
+      ht.XmlAttributeNode attrNodeSelector =
+          ht.HtmlUnitUtils.getAttributeNode(indexUnit, findOffset2("my-directive"));
+      expect(attrNodeSelector, isNotNull);
+      expect(attrNodeSelector.element, same(selector));
+    }
+    // "my-property" attribute was resolved
+    {
+      ht.XmlAttributeNode attrNodeProperty =
+          ht.HtmlUnitUtils.getAttributeNode(indexUnit, findOffset2("my-property='"));
+      AngularPropertyElement propertyElement =
+          attrNodeProperty.element as AngularPropertyElement;
+      expect(propertyElement, isNotNull);
+      expect(propertyElement.propertyKind, same(AngularPropertyKind.ONE_WAY));
+      expect(propertyElement.field.name, "condition");
+    }
+    // "name" expression was resolved
+    expect(findIdentifier("name != null"), isNotNull);
+  }
+
+  void test_NgDirective_resolvedExpression_attrString() {
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@NgDirective(selector: '[my-directive])
+class MyDirective {
+  @NgAttr('my-property')
+  String property;
+}''');
+    _resolveIndexNoErrors(AngularTest.createHtmlWithMyController(r'''
+<input type='text' ng-model='name'>
+<div my-directive my-property='name != null'>
+</div>'''));
+    resolveMain();
+    // @NgAttr means "string attribute", which we don't parse
+    expect(findIdentifierMaybe("name != null"), isNull);
+  }
+
+  void test_NgDirective_resolvedExpression_dotAsName() {
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Decorator(
+    selector: '[my-directive]',
+    map: const {'.' : '=>condition'})
+class MyDirective {
+  set condition(value) {}
+}''');
+    _resolveIndexNoErrors(AngularTest.createHtmlWithMyController(r'''
+<input type='text' ng-model='name'>
+<div my-directive='name != null'>
+</div>'''));
+    // "name" attribute was resolved
+    expect(findIdentifier("name != null"), isNotNull);
   }
 
   /**
@@ -1880,8 +2032,7 @@ class MyComponent {
 
   void test_ngModel_modelAfterUsage() {
     addMyController();
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r'''
+    _resolveIndexNoErrors(AngularTest.createHtmlWithMyController(r'''
 <h3>Hello {{name}}!</h3>
 <input type='text' ng-model='name'>'''));
     assertResolvedIdentifier2("name}}!", "String");
@@ -1890,8 +2041,7 @@ class MyComponent {
 
   void test_ngModel_modelBeforeUsage() {
     addMyController();
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r'''
+    _resolveIndexNoErrors(AngularTest.createHtmlWithMyController(r'''
 <input type='text' ng-model='name'>
 <h3>Hello {{name}}!</h3>'''));
     assertResolvedIdentifier2("name}}!", "String");
@@ -1903,7 +2053,8 @@ class MyComponent {
   void test_ngModel_notIdentifier() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController("<input type='text' ng-model='ctrl.field'>"));
+        AngularTest.createHtmlWithMyController(
+            "<input type='text' ng-model='ctrl.field'>"));
     assertResolvedIdentifier2("field'>", "String");
   }
 
@@ -1913,186 +2064,9 @@ class MyComponent {
   void test_ngMouseOut() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r"<button ng-mouseout='ctrl.doSomething($event)'/>"));
+        AngularTest.createHtmlWithMyController(
+            r"<button ng-mouseout='ctrl.doSomething($event)'/>"));
     assertResolvedIdentifier("doSomething");
-  }
-
-  void fail_ngRepeat_additionalVariables() {
-    addMyController();
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r'''
-<li ng-repeat='name in ctrl.names'>
-  {{$index}} {{$first}} {{$middle}} {{$last}} {{$even}} {{$odd}}
-</li>'''));
-    assertResolvedIdentifier2("\$index", "int");
-    assertResolvedIdentifier2("\$first", "bool");
-    assertResolvedIdentifier2("\$middle", "bool");
-    assertResolvedIdentifier2("\$last", "bool");
-    assertResolvedIdentifier2("\$even", "bool");
-    assertResolvedIdentifier2("\$odd", "bool");
-  }
-
-  void fail_ngRepeat_bad_expectedIdentifier() {
-    addMyController();
-    resolveIndex2(
-        AngularTest.createHtmlWithMyController(r'''
-<li ng-repeat='name + 42 in ctrl.names'>
-</li>'''));
-    assertErrors(indexSource, [AngularCode.INVALID_REPEAT_ITEM_SYNTAX]);
-  }
-
-  void fail_ngRepeat_bad_expectedIn() {
-    addMyController();
-    resolveIndex2(
-        AngularTest.createHtmlWithMyController(r'''
-<li ng-repeat='name : ctrl.names'>
-</li>'''));
-    assertErrors(indexSource, [AngularCode.INVALID_REPEAT_SYNTAX]);
-  }
-
-  void fail_ngRepeat_filters_filter_literal() {
-    addMyController();
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r'''
-<li ng-repeat='item in ctrl.items | filter:42:null'/>
-</li>'''));
-    // filter "filter" is resolved
-    Element filterElement = assertResolvedIdentifier("filter");
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is AngularFormatterElement,
-        AngularFormatterElement,
-        filterElement);
-  }
-
-  void fail_ngRepeat_filters_filter_propertyMap() {
-    addMyController();
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r'''
-<li ng-repeat='item in ctrl.items | filter:{name:null, done:false}'/>
-</li>'''));
-    assertResolvedIdentifier2("name:", "String");
-    assertResolvedIdentifier2("done:", "bool");
-  }
-
-  void fail_ngRepeat_filters_missingColon() {
-    addMyController();
-    resolveIndex2(
-        AngularTest.createHtmlWithMyController(r'''
-<li ng-repeat="item in ctrl.items | orderBy:'' true"/>
-</li>'''));
-    assertErrors(indexSource, [AngularCode.MISSING_FORMATTER_COLON]);
-  }
-
-  void fail_ngRepeat_filters_noArgs() {
-    addMyController();
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r'''
-<li ng-repeat="item in ctrl.items | orderBy"/>
-</li>'''));
-    // filter "orderBy" is resolved
-    Element filterElement = assertResolvedIdentifier("orderBy");
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is AngularFormatterElement,
-        AngularFormatterElement,
-        filterElement);
-  }
-
-  void fail_ngRepeat_filters_orderBy_emptyString() {
-    addMyController();
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r'''
-<li ng-repeat="item in ctrl.items | orderBy:'':true"/>
-</li>'''));
-    // filter "orderBy" is resolved
-    Element filterElement = assertResolvedIdentifier("orderBy");
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is AngularFormatterElement,
-        AngularFormatterElement,
-        filterElement);
-  }
-
-  void fail_ngRepeat_filters_orderBy_propertyList() {
-    addMyController();
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r'''
-<li ng-repeat="item in ctrl.items | orderBy:['name', 'done']"/>
-</li>'''));
-    assertResolvedIdentifier2("name'", "String");
-    assertResolvedIdentifier2("done'", "bool");
-  }
-
-  void fail_ngRepeat_filters_orderBy_propertyName() {
-    addMyController();
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r'''
-<li ng-repeat="item in ctrl.items | orderBy:'name'"/>
-</li>'''));
-    assertResolvedIdentifier2("name'", "String");
-  }
-
-  void fail_ngRepeat_filters_orderBy_propertyName_minus() {
-    addMyController();
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r'''
-<li ng-repeat="item in ctrl.items | orderBy:'-name'"/>
-</li>'''));
-    assertResolvedIdentifier2("name'", "String");
-  }
-
-  void fail_ngRepeat_filters_orderBy_propertyName_plus() {
-    addMyController();
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r'''
-<li ng-repeat="item in ctrl.items | orderBy:'+name'"/>
-</li>'''));
-    assertResolvedIdentifier2("name'", "String");
-  }
-
-  void fail_ngRepeat_filters_orderBy_propertyName_untypedItems() {
-    addMyController();
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r'''
-<li ng-repeat="item in ctrl.untypedItems | orderBy:'name'"/>
-</li>'''));
-    assertResolvedIdentifier2("name'", "dynamic");
-  }
-
-  void fail_ngRepeat_filters_two() {
-    addMyController();
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r'''
-<li ng-repeat="item in ctrl.items | orderBy:'+' | orderBy:'-'"/>
-</li>'''));
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is AngularFormatterElement,
-        AngularFormatterElement,
-        assertResolvedIdentifier("orderBy:'+'"));
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is AngularFormatterElement,
-        AngularFormatterElement,
-        assertResolvedIdentifier("orderBy:'-'"));
-  }
-
-  void fail_ngRepeat_resolvedExpressions() {
-    addMyController();
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r'''
-<li ng-repeat='name in ctrl.names'>
-  {{name}}
-</li>'''));
-    assertResolvedIdentifier2("name in", "String");
-    assertResolvedIdentifier2("ctrl.", "MyController");
-    assertResolvedIdentifier2("names'", "List<String>");
-    assertResolvedIdentifier2("name}}", "String");
-  }
-
-  void fail_ngRepeat_trackBy() {
-    addMyController();
-    _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(r'''
-<li ng-repeat='name in ctrl.names track by name.length'/>
-</li>'''));
-    assertResolvedIdentifier2("length'", "int");
   }
 
   /**
@@ -2217,7 +2191,8 @@ class MyController {
   void test_resolveExpression_inAttribute() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController("<button title='{{ctrl.field}}'></button>"));
+        AngularTest.createHtmlWithMyController(
+            "<button title='{{ctrl.field}}'></button>"));
     assertResolvedIdentifier2("ctrl", "MyController");
   }
 
@@ -2246,7 +2221,8 @@ class MyController {
   void test_resolveExpression_withFormatter_missingColon() {
     addMyController();
     resolveIndex2(
-        AngularTest.createHtmlWithMyController("{{ctrl.field | uppercase, lowercase}}"));
+        AngularTest.createHtmlWithMyController(
+            "{{ctrl.field | uppercase, lowercase}}"));
     assertErrors(indexSource, [AngularCode.MISSING_FORMATTER_COLON]);
   }
 
@@ -2276,9 +2252,7 @@ class MyComponent {
     contextHelper.addSource(
         "/entry-point.html",
         AngularTest.createHtmlWithAngular(''));
-    addIndexSource2(
-        "/my_template.html",
-        r'''
+    addIndexSource2("/my_template.html", r'''
 <div>
   {{scopeProperty}}
 </div>''');
@@ -2313,9 +2287,7 @@ void setScopeProperties(Scope scope) {
     contextHelper.addSource(
         "/entry-point.html",
         AngularTest.createHtmlWithAngular(''));
-    addIndexSource2(
-        "/my_template.html",
-        r'''
+    addIndexSource2("/my_template.html", r'''
 <div>
   {{ctrl}}
 </div>''');
@@ -2353,9 +2325,7 @@ class MyRouteInitializer {
     contextHelper.addSource(
         "/entry-point.html",
         AngularTest.createHtmlWithAngular(''));
-    addIndexSource2(
-        "/my_template.html",
-        r'''
+    addIndexSource2("/my_template.html", r'''
 <div my-controller>
   {{ctrl.field}}
 </div>''');
@@ -2383,36 +2353,6 @@ class MyRouteInitializer {
  * Tests for [HtmlUnitUtils] for Angular HTMLs.
  */
 class AngularHtmlUnitUtilsTest extends AngularTest {
-  void test_getElementToOpen_controller() {
-    addMyController();
-    _resolveSimpleCtrlFieldHtml();
-    // prepare expression
-    int offset = indexContent.indexOf("ctrl");
-    Expression expression = ht.HtmlUnitUtils.getExpression(indexUnit, offset);
-    // get element
-    Element element = ht.HtmlUnitUtils.getElementToOpen(indexUnit, expression);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is AngularControllerElement,
-        AngularControllerElement,
-        element);
-    expect(element.name, "ctrl");
-  }
-
-  void test_getElementToOpen_field() {
-    addMyController();
-    _resolveSimpleCtrlFieldHtml();
-    // prepare expression
-    int offset = indexContent.indexOf("field");
-    Expression expression = ht.HtmlUnitUtils.getExpression(indexUnit, offset);
-    // get element
-    Element element = ht.HtmlUnitUtils.getElementToOpen(indexUnit, expression);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is PropertyAccessorElement,
-        PropertyAccessorElement,
-        element);
-    expect(element.name, "field");
-  }
-
   void test_getElement_forExpression() {
     addMyController();
     _resolveSimpleCtrlFieldHtml();
@@ -2453,6 +2393,36 @@ class AngularHtmlUnitUtilsTest extends AngularTest {
     }
   }
 
+  void test_getElementToOpen_controller() {
+    addMyController();
+    _resolveSimpleCtrlFieldHtml();
+    // prepare expression
+    int offset = indexContent.indexOf("ctrl");
+    Expression expression = ht.HtmlUnitUtils.getExpression(indexUnit, offset);
+    // get element
+    Element element = ht.HtmlUnitUtils.getElementToOpen(indexUnit, expression);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is AngularControllerElement,
+        AngularControllerElement,
+        element);
+    expect(element.name, "ctrl");
+  }
+
+  void test_getElementToOpen_field() {
+    addMyController();
+    _resolveSimpleCtrlFieldHtml();
+    // prepare expression
+    int offset = indexContent.indexOf("field");
+    Expression expression = ht.HtmlUnitUtils.getExpression(indexUnit, offset);
+    // get element
+    Element element = ht.HtmlUnitUtils.getElementToOpen(indexUnit, expression);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is PropertyAccessorElement,
+        PropertyAccessorElement,
+        element);
+    expect(element.name, "field");
+  }
+
   void test_getEnclosingTagNode() {
     resolveIndex2(r'''
 <html>
@@ -2484,7 +2454,9 @@ class AngularHtmlUnitUtilsTest extends AngularTest {
     expect(ht.HtmlUnitUtils.getExpression(indexUnit, offset), isNotNull);
     expect(ht.HtmlUnitUtils.getExpression(indexUnit, offset + 1), isNotNull);
     expect(ht.HtmlUnitUtils.getExpression(indexUnit, offset + 2), isNotNull);
-    expect(ht.HtmlUnitUtils.getExpression(indexUnit, offset + "ctrl.field".length), isNotNull);
+    expect(
+        ht.HtmlUnitUtils.getExpression(indexUnit, offset + "ctrl.field".length),
+        isNotNull);
     // try without unit
     expect(ht.HtmlUnitUtils.getExpression(null, offset), isNull);
   }
@@ -2608,7 +2580,8 @@ class MyController {
    * @throws AssertionFailedError if a different number of errors have been reported than were
    *           expected
    */
-  void assertErrors(Source source, [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
+  void assertErrors(Source source, [List<ErrorCode> expectedErrorCodes =
+      ErrorCode.EMPTY_LIST]) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     AnalysisErrorInfo errorsInfo = context.getErrors(source);
     for (AnalysisError error in errorsInfo.errors) {
@@ -2814,9 +2787,7 @@ class MyController {
   }
 
   void _configureForAngular(AnalysisContextHelper contextHelper) {
-    contextHelper.addSource(
-        "/angular.dart",
-        r'''
+    contextHelper.addSource("/angular.dart", r'''
 library angular;
 
 class Scope {
@@ -3183,23 +3154,23 @@ class ConstantEvaluatorTest extends ResolverTestCase {
     _assertValue(false, "'a' == 'b'");
   }
 
-  void test_greaterThanOrEqual_int_int() {
-    _assertValue(false, "2 >= 3");
-  }
-
   void test_greaterThan_int_int() {
     _assertValue(false, "2 > 3");
+  }
+
+  void test_greaterThanOrEqual_int_int() {
+    _assertValue(false, "2 >= 3");
   }
 
   void test_leftShift_int_int() {
     _assertValue3(64, "16 << 2");
   }
-  void test_lessThanOrEqual_int_int() {
-    _assertValue(true, "2 <= 3");
-  }
-
   void test_lessThan_int_int() {
     _assertValue(true, "2 < 3");
+  }
+
+  void test_lessThanOrEqual_int_int() {
+    _assertValue(true, "2 <= 3");
   }
 
   void test_literal_boolean_false() {
@@ -3557,16 +3528,12 @@ const int a = 0;''');
   }
 
   void test_computeValues_multipleSources() {
-    Source librarySource = addNamedSource(
-        "/lib.dart",
-        r'''
+    Source librarySource = addNamedSource("/lib.dart", r'''
 library lib;
 part 'part.dart';
 const int c = b;
 const int a = 0;''');
-    Source partSource = addNamedSource(
-        "/part.dart",
-        r'''
+    Source partSource = addNamedSource("/part.dart", r'''
 part of lib;
 const int b = a;
 const int d = c;''');
@@ -3754,8 +3721,7 @@ class A {
 const A a = const A.foo();
 class A {
   const A.foo() : this.bar();
-}''',
-        [CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR]);
+}''', [CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR]);
   }
 
   void test_dependencyOnNonFactoryRedirect_toNonConst() {
@@ -3804,11 +3770,15 @@ const y = 2;''');
   }
 
   void test_fromEnvironment_bool_default_overridden() {
-    expect(_assertValidBool(_check_fromEnvironment_bool("false", "true")), false);
+    expect(
+        _assertValidBool(_check_fromEnvironment_bool("false", "true")),
+        false);
   }
 
   void test_fromEnvironment_bool_default_parseError() {
-    expect(_assertValidBool(_check_fromEnvironment_bool("parseError", "true")), true);
+    expect(
+        _assertValidBool(_check_fromEnvironment_bool("parseError", "true")),
+        true);
   }
 
   void test_fromEnvironment_bool_default_true() {
@@ -3820,7 +3790,9 @@ const y = 2;''');
   }
 
   void test_fromEnvironment_bool_parseError() {
-    expect(_assertValidBool(_check_fromEnvironment_bool("parseError", null)), false);
+    expect(
+        _assertValidBool(_check_fromEnvironment_bool("parseError", null)),
+        false);
   }
 
   void test_fromEnvironment_bool_true() {
@@ -3836,7 +3808,9 @@ const y = 2;''');
   }
 
   void test_fromEnvironment_int_default_parseError() {
-    expect(_assertValidInt(_check_fromEnvironment_int("parseError", "123")), 123);
+    expect(
+        _assertValidInt(_check_fromEnvironment_int("parseError", "123")),
+        123);
   }
 
   void test_fromEnvironment_int_default_undeclared() {
@@ -3864,11 +3838,15 @@ const y = 2;''');
   }
 
   void test_fromEnvironment_string_default_overridden() {
-    expect(_assertValidString(_check_fromEnvironment_string("abc", "'def'")), "abc");
+    expect(
+        _assertValidString(_check_fromEnvironment_string("abc", "'def'")),
+        "abc");
   }
 
   void test_fromEnvironment_string_default_undeclared() {
-    expect(_assertValidString(_check_fromEnvironment_string(null, "'def'")), "def");
+    expect(
+        _assertValidString(_check_fromEnvironment_string(null, "'def'")),
+        "def");
   }
 
   void test_fromEnvironment_string_empty() {
@@ -3876,7 +3854,9 @@ const y = 2;''');
   }
 
   void test_fromEnvironment_string_ok() {
-    expect(_assertValidString(_check_fromEnvironment_string("abc", null)), "abc");
+    expect(
+        _assertValidString(_check_fromEnvironment_string("abc", null)),
+        "abc");
   }
 
   void test_fromEnvironment_string_undeclared() {
@@ -4060,9 +4040,8 @@ class A {
   const A.a2() : x = 5;
   final int x;
 }''');
-    Map<String, DartObjectImpl> aFields = _assertType(
-        _evaluateInstanceCreationExpression(compilationUnit, "foo"),
-        "A");
+    Map<String, DartObjectImpl> aFields =
+        _assertType(_evaluateInstanceCreationExpression(compilationUnit, "foo"), "A");
     _assertIntField(aFields, 'x', 5);
   }
 
@@ -4074,9 +4053,8 @@ class A {
   const A.a2(x) : y = x + 10;
   final int y;
 }''');
-    Map<String, DartObjectImpl> aFields = _assertType(
-        _evaluateInstanceCreationExpression(compilationUnit, "foo"),
-        "A");
+    Map<String, DartObjectImpl> aFields =
+        _assertType(_evaluateInstanceCreationExpression(compilationUnit, "foo"), "A");
     _assertIntField(aFields, 'y', 111);
   }
 
@@ -4102,9 +4080,8 @@ class A {
   const A.a2([x = 100]) : y = x + 10;
   final int y;
 }''');
-    Map<String, DartObjectImpl> aFields = _assertType(
-        _evaluateInstanceCreationExpression(compilationUnit, "foo"),
-        "A");
+    Map<String, DartObjectImpl> aFields =
+        _assertType(_evaluateInstanceCreationExpression(compilationUnit, "foo"), "A");
     _assertIntField(aFields, 'y', 110);
   }
 
@@ -4145,9 +4122,8 @@ class A {
   const A() : x = 5;
   final int x;
 }''');
-    Map<String, DartObjectImpl> aFields = _assertType(
-        _evaluateInstanceCreationExpression(compilationUnit, "foo"),
-        "A");
+    Map<String, DartObjectImpl> aFields =
+        _assertType(_evaluateInstanceCreationExpression(compilationUnit, "foo"), "A");
     _assertIntField(aFields, 'x', 5);
   }
 
@@ -4163,6 +4139,44 @@ class B implements A {
     _assertType(
         _evaluateInstanceCreationExpression(compilationUnit, "foo"),
         "B");
+  }
+
+  void test_instanceCreationExpression_redirect_cycle() {
+    // It is an error to have a cycle in factory redirects; however, we need
+    // to make sure that even if the error occurs, attempting to evaluate the
+    // constant will terminate.
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A();
+class A {
+  const factory A() = A.b;
+  const factory A.b() = A;
+}''');
+    _assertValidUnknown(
+        _evaluateInstanceCreationExpression(compilationUnit, "foo"));
+  }
+
+  void test_instanceCreationExpression_redirect_extern() {
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A();
+class A {
+  external const factory A();
+}''');
+    _assertValidUnknown(
+        _evaluateInstanceCreationExpression(compilationUnit, "foo"));
+  }
+
+  void test_instanceCreationExpression_redirect_nonConst() {
+    // It is an error for a const factory constructor redirect to a non-const
+    // constructor; however, we need to make sure that even if the error
+    // attempting to evaluate the constant won't cause a crash.
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A();
+class A {
+  const factory A() = A.b;
+  A.b();
+}''');
+    _assertValidUnknown(
+        _evaluateInstanceCreationExpression(compilationUnit, "foo"));
   }
 
   void test_instanceCreationExpression_redirectWithTypeParams() {
@@ -4204,44 +4218,6 @@ const A<int> a = const A<int>(10);''');
     Map<String, DartObjectImpl> fields = _assertType(result, "B<int>");
     expect(fields, hasLength(1));
     _assertIntField(fields, "x", 10);
-  }
-
-  void test_instanceCreationExpression_redirect_cycle() {
-    // It is an error to have a cycle in factory redirects; however, we need
-    // to make sure that even if the error occurs, attempting to evaluate the
-    // constant will terminate.
-    CompilationUnit compilationUnit = resolveSource(r'''
-const foo = const A();
-class A {
-  const factory A() = A.b;
-  const factory A.b() = A;
-}''');
-    _assertValidUnknown(
-        _evaluateInstanceCreationExpression(compilationUnit, "foo"));
-  }
-
-  void test_instanceCreationExpression_redirect_extern() {
-    CompilationUnit compilationUnit = resolveSource(r'''
-const foo = const A();
-class A {
-  external const factory A();
-}''');
-    _assertValidUnknown(
-        _evaluateInstanceCreationExpression(compilationUnit, "foo"));
-  }
-
-  void test_instanceCreationExpression_redirect_nonConst() {
-    // It is an error for a const factory constructor redirect to a non-const
-    // constructor; however, we need to make sure that even if the error
-    // attempting to evaluate the constant won't cause a crash.
-    CompilationUnit compilationUnit = resolveSource(r'''
-const foo = const A();
-class A {
-  const factory A() = A.b;
-  A.b();
-}''');
-    _assertValidUnknown(
-        _evaluateInstanceCreationExpression(compilationUnit, "foo"));
   }
 
   void test_instanceCreationExpression_symbol() {
@@ -4395,33 +4371,46 @@ const c_num = const C<num>();''');
     expect(value.isUnknown, isTrue);
   }
 
-  void _checkInstanceCreationOptionalParams(bool isFieldFormal, bool isNamed,
-      bool hasDefault) {
-    String fieldName = "j";
-    String paramName = isFieldFormal ? fieldName : "i";
-    String formalParam =
-        "${isFieldFormal ? "this." : "int "}$paramName${hasDefault ? " = 3" : ""}";
-    CompilationUnit compilationUnit = resolveSource("""
-const x = const A();
-const y = const A(${isNamed ? '$paramName: ' : ''}10);
-class A {
-  const A(${isNamed ? "{$formalParam}" : "[$formalParam]"})${isFieldFormal ? "" : " : $fieldName = $paramName"};
-  final int $fieldName;
-}""");
-    EvaluationResultImpl x =
-        _evaluateInstanceCreationExpression(compilationUnit, "x");
-    Map<String, DartObjectImpl> fieldsOfX = _assertType(x, "A");
-    expect(fieldsOfX, hasLength(1));
-    if (hasDefault) {
-      _assertIntField(fieldsOfX, fieldName, 3);
-    } else {
-      _assertNullField(fieldsOfX, fieldName);
+  EvaluationResultImpl _check_fromEnvironment_bool(String valueInEnvironment,
+      String defaultExpr) {
+    String envVarName = "x";
+    String varName = "foo";
+    if (valueInEnvironment != null) {
+      analysisContext2.declaredVariables.define(envVarName, valueInEnvironment);
     }
-    EvaluationResultImpl y =
-        _evaluateInstanceCreationExpression(compilationUnit, "y");
-    Map<String, DartObjectImpl> fieldsOfY = _assertType(y, "A");
-    expect(fieldsOfY, hasLength(1));
-    _assertIntField(fieldsOfY, fieldName, 10);
+    String defaultArg =
+        defaultExpr == null ? "" : ", defaultValue: $defaultExpr";
+    CompilationUnit compilationUnit = resolveSource(
+        "const $varName = const bool.fromEnvironment('$envVarName'$defaultArg);");
+    return _evaluateInstanceCreationExpression(compilationUnit, varName);
+  }
+
+  EvaluationResultImpl _check_fromEnvironment_int(String valueInEnvironment,
+      String defaultExpr) {
+    String envVarName = "x";
+    String varName = "foo";
+    if (valueInEnvironment != null) {
+      analysisContext2.declaredVariables.define(envVarName, valueInEnvironment);
+    }
+    String defaultArg =
+        defaultExpr == null ? "" : ", defaultValue: $defaultExpr";
+    CompilationUnit compilationUnit = resolveSource(
+        "const $varName = const int.fromEnvironment('$envVarName'$defaultArg);");
+    return _evaluateInstanceCreationExpression(compilationUnit, varName);
+  }
+
+  EvaluationResultImpl _check_fromEnvironment_string(String valueInEnvironment,
+      String defaultExpr) {
+    String envVarName = "x";
+    String varName = "foo";
+    if (valueInEnvironment != null) {
+      analysisContext2.declaredVariables.define(envVarName, valueInEnvironment);
+    }
+    String defaultArg =
+        defaultExpr == null ? "" : ", defaultValue: $defaultExpr";
+    CompilationUnit compilationUnit = resolveSource(
+        "const $varName = const String.fromEnvironment('$envVarName'$defaultArg);");
+    return _evaluateInstanceCreationExpression(compilationUnit, varName);
   }
 
   void _checkInstanceCreation_withSupertypeParams(bool isExplicit) {
@@ -4450,46 +4439,33 @@ const c_int_num = const C<int, num>();""");
     _assertFieldType(c_int_num_fields, GenericState.SUPERCLASS_FIELD, "A<num>");
   }
 
-  EvaluationResultImpl _check_fromEnvironment_bool(String valueInEnvironment,
-      String defaultExpr) {
-    String envVarName = "x";
-    String varName = "foo";
-    if (valueInEnvironment != null) {
-      analysisContext2.declaredVariables.define(envVarName, valueInEnvironment);
+  void _checkInstanceCreationOptionalParams(bool isFieldFormal, bool isNamed,
+      bool hasDefault) {
+    String fieldName = "j";
+    String paramName = isFieldFormal ? fieldName : "i";
+    String formalParam =
+        "${isFieldFormal ? "this." : "int "}$paramName${hasDefault ? " = 3" : ""}";
+    CompilationUnit compilationUnit = resolveSource("""
+const x = const A();
+const y = const A(${isNamed ? '$paramName: ' : ''}10);
+class A {
+  const A(${isNamed ? "{$formalParam}" : "[$formalParam]"})${isFieldFormal ? "" : " : $fieldName = $paramName"};
+  final int $fieldName;
+}""");
+    EvaluationResultImpl x =
+        _evaluateInstanceCreationExpression(compilationUnit, "x");
+    Map<String, DartObjectImpl> fieldsOfX = _assertType(x, "A");
+    expect(fieldsOfX, hasLength(1));
+    if (hasDefault) {
+      _assertIntField(fieldsOfX, fieldName, 3);
+    } else {
+      _assertNullField(fieldsOfX, fieldName);
     }
-    String defaultArg =
-        defaultExpr == null ? "" : ", defaultValue: $defaultExpr";
-    CompilationUnit compilationUnit = resolveSource(
-                "const $varName = const bool.fromEnvironment('$envVarName'$defaultArg);");
-    return _evaluateInstanceCreationExpression(compilationUnit, varName);
-  }
-
-  EvaluationResultImpl _check_fromEnvironment_int(String valueInEnvironment,
-      String defaultExpr) {
-    String envVarName = "x";
-    String varName = "foo";
-    if (valueInEnvironment != null) {
-      analysisContext2.declaredVariables.define(envVarName, valueInEnvironment);
-    }
-    String defaultArg =
-        defaultExpr == null ? "" : ", defaultValue: $defaultExpr";
-    CompilationUnit compilationUnit = resolveSource(
-                "const $varName = const int.fromEnvironment('$envVarName'$defaultArg);");
-    return _evaluateInstanceCreationExpression(compilationUnit, varName);
-  }
-
-  EvaluationResultImpl _check_fromEnvironment_string(String valueInEnvironment,
-      String defaultExpr) {
-    String envVarName = "x";
-    String varName = "foo";
-    if (valueInEnvironment != null) {
-      analysisContext2.declaredVariables.define(envVarName, valueInEnvironment);
-    }
-    String defaultArg =
-        defaultExpr == null ? "" : ", defaultValue: $defaultExpr";
-    CompilationUnit compilationUnit = resolveSource(
-                "const $varName = const String.fromEnvironment('$envVarName'$defaultArg);");
-    return _evaluateInstanceCreationExpression(compilationUnit, varName);
+    EvaluationResultImpl y =
+        _evaluateInstanceCreationExpression(compilationUnit, "y");
+    Map<String, DartObjectImpl> fieldsOfY = _assertType(y, "A");
+    expect(fieldsOfY, hasLength(1));
+    _assertIntField(fieldsOfY, fieldName, 10);
   }
 
   EvaluationResultImpl
@@ -4560,7 +4536,8 @@ class ConstantVisitorTest extends ResolverTestCase {
     errorListener.assertNoErrors();
   }
 
-  void test_visitConditionalExpression_instanceCreation_invalidFieldInitializer() {
+  void
+      test_visitConditionalExpression_instanceCreation_invalidFieldInitializer() {
     TestTypeProvider typeProvider = new TestTypeProvider();
     LibraryElementImpl libraryElement = ElementFactory.library(null, "lib");
     String className = "C";
@@ -4659,8 +4636,7 @@ class ConstantVisitorTest extends ResolverTestCase {
   }
 
   void test_visitSimpleIdentifier_inEnvironment() {
-    CompilationUnit compilationUnit =
-        resolveSource(r'''
+    CompilationUnit compilationUnit = resolveSource(r'''
 const a = b;
 const b = 3;''');
     Map<String, DartObjectImpl> environment = new Map<String, DartObjectImpl>();
@@ -4671,8 +4647,7 @@ const b = 3;''');
   }
 
   void test_visitSimpleIdentifier_notInEnvironment() {
-    CompilationUnit compilationUnit =
-        resolveSource(r'''
+    CompilationUnit compilationUnit = resolveSource(r'''
 const a = b;
 const b = 3;''');
     Map<String, DartObjectImpl> environment = new Map<String, DartObjectImpl>();
@@ -4683,8 +4658,7 @@ const b = 3;''');
   }
 
   void test_visitSimpleIdentifier_withoutEnvironment() {
-    CompilationUnit compilationUnit =
-        resolveSource(r'''
+    CompilationUnit compilationUnit = resolveSource(r'''
 const a = b;
 const b = 3;''');
     _assertValue(3, _evaluateConstant(compilationUnit, "a", null));
@@ -5050,12 +5024,16 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_equals_list_false_differentSizes() {
-    expect(_listValue([_boolValue(true)]) ==
-            _listValue([_boolValue(true), _boolValue(false)]), isFalse);
+    expect(
+        _listValue([_boolValue(true)]) ==
+            _listValue([_boolValue(true), _boolValue(false)]),
+        isFalse);
   }
 
   void test_equals_list_false_sameSize() {
-    expect(_listValue([_boolValue(true)]) == _listValue([_boolValue(false)]), isFalse);
+    expect(
+        _listValue([_boolValue(true)]) == _listValue([_boolValue(false)]),
+        isFalse);
   }
 
   void test_equals_list_true_empty() {
@@ -5148,6 +5126,70 @@ class DartObjectImplTest extends EngineTestCase {
 
   void test_getValue_string_unknown() {
     expect(_stringValue(null).value, isNull);
+  }
+
+  void test_greaterThan_knownDouble_knownDouble_false() {
+    _assertGreaterThan(_boolValue(false), _doubleValue(1.0), _doubleValue(2.0));
+  }
+
+  void test_greaterThan_knownDouble_knownDouble_true() {
+    _assertGreaterThan(_boolValue(true), _doubleValue(2.0), _doubleValue(1.0));
+  }
+
+  void test_greaterThan_knownDouble_knownInt_false() {
+    _assertGreaterThan(_boolValue(false), _doubleValue(1.0), _intValue(2));
+  }
+
+  void test_greaterThan_knownDouble_knownInt_true() {
+    _assertGreaterThan(_boolValue(true), _doubleValue(2.0), _intValue(1));
+  }
+
+  void test_greaterThan_knownDouble_unknownDouble() {
+    _assertGreaterThan(_boolValue(null), _doubleValue(1.0), _doubleValue(null));
+  }
+
+  void test_greaterThan_knownDouble_unknownInt() {
+    _assertGreaterThan(_boolValue(null), _doubleValue(1.0), _intValue(null));
+  }
+
+  void test_greaterThan_knownInt_knownInt_false() {
+    _assertGreaterThan(_boolValue(false), _intValue(1), _intValue(2));
+  }
+
+  void test_greaterThan_knownInt_knownInt_true() {
+    _assertGreaterThan(_boolValue(true), _intValue(2), _intValue(1));
+  }
+
+  void test_greaterThan_knownInt_knownString() {
+    _assertGreaterThan(null, _intValue(1), _stringValue("2"));
+  }
+
+  void test_greaterThan_knownInt_unknownDouble() {
+    _assertGreaterThan(_boolValue(null), _intValue(1), _doubleValue(null));
+  }
+
+  void test_greaterThan_knownInt_unknownInt() {
+    _assertGreaterThan(_boolValue(null), _intValue(1), _intValue(null));
+  }
+
+  void test_greaterThan_knownString_knownInt() {
+    _assertGreaterThan(null, _stringValue("1"), _intValue(2));
+  }
+
+  void test_greaterThan_unknownDouble_knownDouble() {
+    _assertGreaterThan(_boolValue(null), _doubleValue(null), _doubleValue(2.0));
+  }
+
+  void test_greaterThan_unknownDouble_knownInt() {
+    _assertGreaterThan(_boolValue(null), _doubleValue(null), _intValue(2));
+  }
+
+  void test_greaterThan_unknownInt_knownDouble() {
+    _assertGreaterThan(_boolValue(null), _intValue(null), _doubleValue(2.0));
+  }
+
+  void test_greaterThan_unknownInt_knownInt() {
+    _assertGreaterThan(_boolValue(null), _intValue(null), _intValue(2));
   }
 
   void test_greaterThanOrEqual_knownDouble_knownDouble_false() {
@@ -5244,70 +5286,6 @@ class DartObjectImplTest extends EngineTestCase {
     _assertGreaterThanOrEqual(_boolValue(null), _intValue(null), _intValue(2));
   }
 
-  void test_greaterThan_knownDouble_knownDouble_false() {
-    _assertGreaterThan(_boolValue(false), _doubleValue(1.0), _doubleValue(2.0));
-  }
-
-  void test_greaterThan_knownDouble_knownDouble_true() {
-    _assertGreaterThan(_boolValue(true), _doubleValue(2.0), _doubleValue(1.0));
-  }
-
-  void test_greaterThan_knownDouble_knownInt_false() {
-    _assertGreaterThan(_boolValue(false), _doubleValue(1.0), _intValue(2));
-  }
-
-  void test_greaterThan_knownDouble_knownInt_true() {
-    _assertGreaterThan(_boolValue(true), _doubleValue(2.0), _intValue(1));
-  }
-
-  void test_greaterThan_knownDouble_unknownDouble() {
-    _assertGreaterThan(_boolValue(null), _doubleValue(1.0), _doubleValue(null));
-  }
-
-  void test_greaterThan_knownDouble_unknownInt() {
-    _assertGreaterThan(_boolValue(null), _doubleValue(1.0), _intValue(null));
-  }
-
-  void test_greaterThan_knownInt_knownInt_false() {
-    _assertGreaterThan(_boolValue(false), _intValue(1), _intValue(2));
-  }
-
-  void test_greaterThan_knownInt_knownInt_true() {
-    _assertGreaterThan(_boolValue(true), _intValue(2), _intValue(1));
-  }
-
-  void test_greaterThan_knownInt_knownString() {
-    _assertGreaterThan(null, _intValue(1), _stringValue("2"));
-  }
-
-  void test_greaterThan_knownInt_unknownDouble() {
-    _assertGreaterThan(_boolValue(null), _intValue(1), _doubleValue(null));
-  }
-
-  void test_greaterThan_knownInt_unknownInt() {
-    _assertGreaterThan(_boolValue(null), _intValue(1), _intValue(null));
-  }
-
-  void test_greaterThan_knownString_knownInt() {
-    _assertGreaterThan(null, _stringValue("1"), _intValue(2));
-  }
-
-  void test_greaterThan_unknownDouble_knownDouble() {
-    _assertGreaterThan(_boolValue(null), _doubleValue(null), _doubleValue(2.0));
-  }
-
-  void test_greaterThan_unknownDouble_knownInt() {
-    _assertGreaterThan(_boolValue(null), _doubleValue(null), _intValue(2));
-  }
-
-  void test_greaterThan_unknownInt_knownDouble() {
-    _assertGreaterThan(_boolValue(null), _intValue(null), _doubleValue(2.0));
-  }
-
-  void test_greaterThan_unknownInt_knownInt() {
-    _assertGreaterThan(_boolValue(null), _intValue(null), _intValue(2));
-  }
-
   void test_hasExactValue_bool_false() {
     expect(_boolValue(false).hasExactValue, isTrue);
   }
@@ -5357,15 +5335,21 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_hasExactValue_map_invalidKey() {
-    expect(_mapValue([_dynamicValue(), _stringValue("value")]).hasExactValue, isFalse);
+    expect(
+        _mapValue([_dynamicValue(), _stringValue("value")]).hasExactValue,
+        isFalse);
   }
 
   void test_hasExactValue_map_invalidValue() {
-    expect(_mapValue([_stringValue("key"), _dynamicValue()]).hasExactValue, isFalse);
+    expect(
+        _mapValue([_stringValue("key"), _dynamicValue()]).hasExactValue,
+        isFalse);
   }
 
   void test_hasExactValue_map_valid() {
-    expect(_mapValue([_stringValue("key"), _stringValue("value")]).hasExactValue, isTrue);
+    expect(
+        _mapValue([_stringValue("key"), _stringValue("value")]).hasExactValue,
+        isTrue);
   }
 
   void test_hasExactValue_null() {
@@ -5425,7 +5409,9 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_identical_list_false() {
-    _assertIdentical(_boolValue(false), _listValue(),
+    _assertIdentical(
+        _boolValue(false),
+        _listValue(),
         _listValue([_intValue(3)]));
   }
 
@@ -5434,7 +5420,9 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_identical_map_false() {
-    _assertIdentical(_boolValue(false), _mapValue(),
+    _assertIdentical(
+        _boolValue(false),
+        _mapValue(),
         _mapValue([_intValue(1), _intValue(2)]));
   }
 
@@ -5457,10 +5445,7 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_identical_string_unknown() {
-    _assertIdentical(
-        _boolValue(null),
-        _stringValue(null),
-        _stringValue("def"));
+    _assertIdentical(_boolValue(null), _stringValue(null), _stringValue("def"));
   }
 
   void test_integerDivide_knownDouble_knownDouble() {
@@ -5573,6 +5558,70 @@ class DartObjectImplTest extends EngineTestCase {
     expect(_stringValue(null).isBoolNumStringOrNull, isTrue);
   }
 
+  void test_lessThan_knownDouble_knownDouble_false() {
+    _assertLessThan(_boolValue(false), _doubleValue(2.0), _doubleValue(1.0));
+  }
+
+  void test_lessThan_knownDouble_knownDouble_true() {
+    _assertLessThan(_boolValue(true), _doubleValue(1.0), _doubleValue(2.0));
+  }
+
+  void test_lessThan_knownDouble_knownInt_false() {
+    _assertLessThan(_boolValue(false), _doubleValue(2.0), _intValue(1));
+  }
+
+  void test_lessThan_knownDouble_knownInt_true() {
+    _assertLessThan(_boolValue(true), _doubleValue(1.0), _intValue(2));
+  }
+
+  void test_lessThan_knownDouble_unknownDouble() {
+    _assertLessThan(_boolValue(null), _doubleValue(1.0), _doubleValue(null));
+  }
+
+  void test_lessThan_knownDouble_unknownInt() {
+    _assertLessThan(_boolValue(null), _doubleValue(1.0), _intValue(null));
+  }
+
+  void test_lessThan_knownInt_knownInt_false() {
+    _assertLessThan(_boolValue(false), _intValue(2), _intValue(1));
+  }
+
+  void test_lessThan_knownInt_knownInt_true() {
+    _assertLessThan(_boolValue(true), _intValue(1), _intValue(2));
+  }
+
+  void test_lessThan_knownInt_knownString() {
+    _assertLessThan(null, _intValue(1), _stringValue("2"));
+  }
+
+  void test_lessThan_knownInt_unknownDouble() {
+    _assertLessThan(_boolValue(null), _intValue(1), _doubleValue(null));
+  }
+
+  void test_lessThan_knownInt_unknownInt() {
+    _assertLessThan(_boolValue(null), _intValue(1), _intValue(null));
+  }
+
+  void test_lessThan_knownString_knownInt() {
+    _assertLessThan(null, _stringValue("1"), _intValue(2));
+  }
+
+  void test_lessThan_unknownDouble_knownDouble() {
+    _assertLessThan(_boolValue(null), _doubleValue(null), _doubleValue(2.0));
+  }
+
+  void test_lessThan_unknownDouble_knownInt() {
+    _assertLessThan(_boolValue(null), _doubleValue(null), _intValue(2));
+  }
+
+  void test_lessThan_unknownInt_knownDouble() {
+    _assertLessThan(_boolValue(null), _intValue(null), _doubleValue(2.0));
+  }
+
+  void test_lessThan_unknownInt_knownInt() {
+    _assertLessThan(_boolValue(null), _intValue(null), _intValue(2));
+  }
+
   void test_lessThanOrEqual_knownDouble_knownDouble_false() {
     _assertLessThanOrEqual(
         _boolValue(false),
@@ -5653,70 +5702,6 @@ class DartObjectImplTest extends EngineTestCase {
 
   void test_lessThanOrEqual_unknownInt_knownInt() {
     _assertLessThanOrEqual(_boolValue(null), _intValue(null), _intValue(2));
-  }
-
-  void test_lessThan_knownDouble_knownDouble_false() {
-    _assertLessThan(_boolValue(false), _doubleValue(2.0), _doubleValue(1.0));
-  }
-
-  void test_lessThan_knownDouble_knownDouble_true() {
-    _assertLessThan(_boolValue(true), _doubleValue(1.0), _doubleValue(2.0));
-  }
-
-  void test_lessThan_knownDouble_knownInt_false() {
-    _assertLessThan(_boolValue(false), _doubleValue(2.0), _intValue(1));
-  }
-
-  void test_lessThan_knownDouble_knownInt_true() {
-    _assertLessThan(_boolValue(true), _doubleValue(1.0), _intValue(2));
-  }
-
-  void test_lessThan_knownDouble_unknownDouble() {
-    _assertLessThan(_boolValue(null), _doubleValue(1.0), _doubleValue(null));
-  }
-
-  void test_lessThan_knownDouble_unknownInt() {
-    _assertLessThan(_boolValue(null), _doubleValue(1.0), _intValue(null));
-  }
-
-  void test_lessThan_knownInt_knownInt_false() {
-    _assertLessThan(_boolValue(false), _intValue(2), _intValue(1));
-  }
-
-  void test_lessThan_knownInt_knownInt_true() {
-    _assertLessThan(_boolValue(true), _intValue(1), _intValue(2));
-  }
-
-  void test_lessThan_knownInt_knownString() {
-    _assertLessThan(null, _intValue(1), _stringValue("2"));
-  }
-
-  void test_lessThan_knownInt_unknownDouble() {
-    _assertLessThan(_boolValue(null), _intValue(1), _doubleValue(null));
-  }
-
-  void test_lessThan_knownInt_unknownInt() {
-    _assertLessThan(_boolValue(null), _intValue(1), _intValue(null));
-  }
-
-  void test_lessThan_knownString_knownInt() {
-    _assertLessThan(null, _stringValue("1"), _intValue(2));
-  }
-
-  void test_lessThan_unknownDouble_knownDouble() {
-    _assertLessThan(_boolValue(null), _doubleValue(null), _doubleValue(2.0));
-  }
-
-  void test_lessThan_unknownDouble_knownInt() {
-    _assertLessThan(_boolValue(null), _doubleValue(null), _intValue(2));
-  }
-
-  void test_lessThan_unknownInt_knownDouble() {
-    _assertLessThan(_boolValue(null), _intValue(null), _doubleValue(2.0));
-  }
-
-  void test_lessThan_unknownInt_knownInt() {
-    _assertLessThan(_boolValue(null), _intValue(null), _intValue(2));
   }
 
   void test_logicalAnd_false_false() {
@@ -6929,11 +6914,13 @@ class DartObjectImplTest extends EngineTestCase {
     }
   }
 
-  DartObjectImpl _listValue([List<DartObjectImpl> elements = DartObjectImpl.EMPTY_LIST]) {
+  DartObjectImpl _listValue([List<DartObjectImpl> elements =
+      DartObjectImpl.EMPTY_LIST]) {
     return new DartObjectImpl(_typeProvider.listType, new ListState(elements));
   }
 
-  DartObjectImpl _mapValue([List<DartObjectImpl> keyElementPairs = DartObjectImpl.EMPTY_LIST]) {
+  DartObjectImpl _mapValue([List<DartObjectImpl> keyElementPairs =
+      DartObjectImpl.EMPTY_LIST]) {
     Map<DartObjectImpl, DartObjectImpl> map =
         new Map<DartObjectImpl, DartObjectImpl>();
     int count = keyElementPairs.length;
@@ -7049,7 +7036,8 @@ class DeclaredVariablesTest extends EngineTestCase {
     TestTypeProvider typeProvider = new TestTypeProvider();
     String variableName = "var";
     DeclaredVariables variables = new DeclaredVariables();
-    _assertUnknownDartObject(typeProvider.boolType,
+    _assertUnknownDartObject(
+        typeProvider.boolType,
         variables.getBool(typeProvider, variableName));
   }
 
@@ -7067,7 +7055,8 @@ class DeclaredVariablesTest extends EngineTestCase {
     TestTypeProvider typeProvider = new TestTypeProvider();
     String variableName = "var";
     DeclaredVariables variables = new DeclaredVariables();
-    _assertUnknownDartObject(typeProvider.intType,
+    _assertUnknownDartObject(
+        typeProvider.intType,
         variables.getInt(typeProvider, variableName));
   }
 
@@ -7096,7 +7085,8 @@ class DeclaredVariablesTest extends EngineTestCase {
     TestTypeProvider typeProvider = new TestTypeProvider();
     String variableName = "var";
     DeclaredVariables variables = new DeclaredVariables();
-    _assertUnknownDartObject(typeProvider.stringType,
+    _assertUnknownDartObject(
+        typeProvider.stringType,
         variables.getString(typeProvider, variableName));
   }
 
@@ -7105,7 +7095,7 @@ class DeclaredVariablesTest extends EngineTestCase {
   }
 
   void _assertUnknownDartObject(ParameterizedType expectedType,
-                                DartObject result) {
+      DartObject result) {
     expect((result as DartObjectImpl).isUnknown, isTrue);
     expect(result.type, expectedType);
   }
@@ -7126,7 +7116,9 @@ class DirectoryBasedDartSdkTest {
 
   void test_fromFile_invalid() {
     DirectoryBasedDartSdk sdk = _createDartSdk();
-    expect(sdk.fromFileUri(new JavaFile("/not/in/the/sdk.dart").toURI()), isNull);
+    expect(
+        sdk.fromFileUri(new JavaFile("/not/in/the/sdk.dart").toURI()),
+        isNull);
   }
 
   void test_fromFile_library() {
@@ -7212,7 +7204,11 @@ class DirectoryBasedDartSdkTest {
 
   DirectoryBasedDartSdk _createDartSdk() {
     JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    expect(sdkDirectory, isNotNull, reason: "No SDK configured; set the property 'com.google.dart.sdk' on the command line");
+    expect(
+        sdkDirectory,
+        isNotNull,
+        reason:
+            "No SDK configured; set the property 'com.google.dart.sdk' on the command line");
     return new DirectoryBasedDartSdk(sdkDirectory);
   }
 }
@@ -7398,8 +7394,13 @@ class ElementBuilderTest extends EngineTestCase {
     ClassElement classM = ElementFactory.classElement2('M', []);
     WithClause withClause =
         AstFactory.withClause([AstFactory.typeName(classM, [])]);
-    ClassTypeAlias alias = AstFactory.classTypeAlias('C', null, null,
-        AstFactory.typeName(classB, []), withClause, null);
+    ClassTypeAlias alias = AstFactory.classTypeAlias(
+        'C',
+        null,
+        null,
+        AstFactory.typeName(classB, []),
+        withClause,
+        null);
     alias.accept(builder);
     List<ClassElement> types = holder.types;
     expect(types, hasLength(1));
@@ -7427,8 +7428,13 @@ class ElementBuilderTest extends EngineTestCase {
     ClassElement classM = ElementFactory.classElement2('M', []);
     WithClause withClause =
         AstFactory.withClause([AstFactory.typeName(classM, [])]);
-    ClassTypeAlias classCAst = AstFactory.classTypeAlias('C', null,
-        Keyword.ABSTRACT, AstFactory.typeName(classB, []), withClause, null);
+    ClassTypeAlias classCAst = AstFactory.classTypeAlias(
+        'C',
+        null,
+        Keyword.ABSTRACT,
+        AstFactory.typeName(classB, []),
+        withClause,
+        null);
     classCAst.accept(builder);
     List<ClassElement> types = holder.types;
     expect(types, hasLength(1));
@@ -7450,9 +7456,13 @@ class ElementBuilderTest extends EngineTestCase {
     ClassElementImpl classM = ElementFactory.classElement2('M', []);
     WithClause withClause =
         AstFactory.withClause([AstFactory.typeName(classM, [])]);
-    ClassTypeAlias classCAst = AstFactory.classTypeAlias('C',
-        AstFactory.typeParameterList(['T']), null,
-        AstFactory.typeName(classB, []), withClause, null);
+    ClassTypeAlias classCAst = AstFactory.classTypeAlias(
+        'C',
+        AstFactory.typeParameterList(['T']),
+        null,
+        AstFactory.typeName(classB, []),
+        withClause,
+        null);
     classCAst.accept(builder);
     List<ClassElement> types = holder.types;
     expect(types, hasLength(1));
@@ -8157,15 +8167,18 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.identifier3(methodName),
         AstFactory.formalParameterList(
             [AstFactory.simpleFormalParameter3(parameterName)]),
-        AstFactory.blockFunctionBody2([
-            AstFactory.variableDeclarationStatement2(
-                Keyword.VAR,
-                [AstFactory.variableDeclaration(localVariableName)]),
-            AstFactory.tryStatement2(
-                AstFactory.block([AstFactory.labeledStatement(
-                    [AstFactory.label2(labelName)],
-                    AstFactory.returnStatement())]),
-                [AstFactory.catchClause(exceptionParameterName)])]));
+        AstFactory.blockFunctionBody2(
+            [
+                AstFactory.variableDeclarationStatement2(
+                    Keyword.VAR,
+                    [AstFactory.variableDeclaration(localVariableName)]),
+                AstFactory.tryStatement2(
+                    AstFactory.block(
+                        [
+                            AstFactory.labeledStatement(
+                                [AstFactory.label2(labelName)],
+                                AstFactory.returnStatement())]),
+                    [AstFactory.catchClause(exceptionParameterName)])]));
     methodDeclaration.accept(builder);
     List<MethodElement> methods = holder.methods;
     expect(methods, hasLength(1));
@@ -8186,10 +8199,12 @@ class ElementBuilderTest extends EngineTestCase {
     VariableElement secondVariable = localVariables[1];
     expect(firstVariable, isNotNull);
     expect(secondVariable, isNotNull);
-    expect((firstVariable.name == localVariableName &&
+    expect(
+        (firstVariable.name == localVariableName &&
             secondVariable.name == exceptionParameterName) ||
             (firstVariable.name == exceptionParameterName &&
-                secondVariable.name == localVariableName), isTrue);
+                secondVariable.name == localVariableName),
+        isTrue);
     List<LabelElement> labels = method.labels;
     expect(labels, hasLength(1));
     LabelElement label = labels[0];
@@ -8508,24 +8523,8 @@ class ElementLocatorTest extends ResolverTestCase {
     resetWithOptions(analysisOptions);
   }
 
-  void test_locateWithOffset_BinaryExpression() {
-    AstNode id = _findNodeIn("+", "var x = 3 + 4;");
-    Element element = ElementLocator.locateWithOffset(id, 0);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodElement,
-        MethodElement,
-        element);
-  }
-
-  void test_locateWithOffset_StringLiteral() {
-    AstNode id = _findNodeIn("abc", "var x = 'abc';");
-    Element element = ElementLocator.locateWithOffset(id, 1);
-    expect(element, isNull);
-  }
-
   void test_locate_AssignmentExpression() {
-    AstNode id =
-        _findNodeIn("+=", r'''
+    AstNode id = _findNodeIn("+=", r'''
 int x = 0;
 void main() {
   x += 1;
@@ -8563,8 +8562,7 @@ void main() {
   }
 
   void test_locate_ConstructorDeclaration() {
-    AstNode id =
-        _findNodeIndexedIn("bar", 0, r'''
+    AstNode id = _findNodeIndexedIn("bar", 0, r'''
 class A {
   A.bar() {}
 }''');
@@ -8590,10 +8588,7 @@ class A {
 
   void
       test_locate_Identifier_annotationClass_namedConstructor_forSimpleFormalParameter() {
-    AstNode id = _findNodeIndexedIn(
-        "Class",
-        2,
-        r'''
+    AstNode id = _findNodeIndexedIn("Class", 2, r'''
 class Class {
   const Class.name();
 }
@@ -8608,10 +8603,7 @@ void main(@Class.name() parameter) {
 
   void
       test_locate_Identifier_annotationClass_unnamedConstructor_forSimpleFormalParameter() {
-    AstNode id = _findNodeIndexedIn(
-        "Class",
-        2,
-        r'''
+    AstNode id = _findNodeIndexedIn("Class", 2, r'''
 class Class {
   const Class();
 }
@@ -8634,8 +8626,7 @@ void main(@Class() parameter) {
   }
 
   void test_locate_Identifier_constructor_named() {
-    AstNode id =
-        _findNodeIndexedIn("bar", 0, r'''
+    AstNode id = _findNodeIndexedIn("bar", 0, r'''
 class A {
   A.bar() {}
 }''');
@@ -8668,8 +8659,7 @@ class A {
   }
 
   void test_locate_Identifier_propertAccess() {
-    AstNode id =
-        _findNodeIn("length", r'''
+    AstNode id = _findNodeIn("length", r'''
 void main() {
  int x = 'foo'.length;
 }''');
@@ -8690,10 +8680,7 @@ void main() {
   }
 
   void test_locate_IndexExpression() {
-    AstNode id = _findNodeIndexedIn(
-        "\\[",
-        1,
-        r'''
+    AstNode id = _findNodeIndexedIn("\\[", 1, r'''
 void main() {
   List x = [1, 2];
   var y = x[0];
@@ -8706,8 +8693,7 @@ void main() {
   }
 
   void test_locate_InstanceCreationExpression() {
-    AstNode node =
-        _findNodeIndexedIn("A(", 0, r'''
+    AstNode node = _findNodeIndexedIn("A(", 0, r'''
 class A {}
 void main() {
  new A();
@@ -8783,10 +8769,7 @@ class A {
   }
 
   void test_locate_MethodInvocation_method() {
-    AstNode id = _findNodeIndexedIn(
-        "bar",
-        1,
-        r'''
+    AstNode id = _findNodeIndexedIn("bar", 1, r'''
 class A {
   int bar() => 42;
 }
@@ -8801,8 +8784,7 @@ void main() {
   }
 
   void test_locate_MethodInvocation_topLevel() {
-    String code =
-        r'''
+    String code = r'''
 foo(x) {}
 void main() {
  foo(0);
@@ -8828,18 +8810,8 @@ void main() {
         element);
   }
 
-  void test_locate_PrefixExpression() {
-    AstNode id = _findNodeIn("++", "int addOne(int x) => ++x;");
-    Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodElement,
-        MethodElement,
-        element);
-  }
-
   void test_locate_PrefixedIdentifier() {
-    AstNode id =
-        _findNodeIn("int", r'''
+    AstNode id = _findNodeIn("int", r'''
 import 'dart:core' as core;
 core.int value;''');
     PrefixedIdentifier identifier =
@@ -8848,6 +8820,15 @@ core.int value;''');
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ClassElement,
         ClassElement,
+        element);
+  }
+
+  void test_locate_PrefixExpression() {
+    AstNode id = _findNodeIn("++", "int addOne(int x) => ++x;");
+    Element element = ElementLocator.locate(id);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is MethodElement,
+        MethodElement,
         element);
   }
 
@@ -8899,6 +8880,21 @@ core.int value;''');
         element);
   }
 
+  void test_locateWithOffset_BinaryExpression() {
+    AstNode id = _findNodeIn("+", "var x = 3 + 4;");
+    Element element = ElementLocator.locateWithOffset(id, 0);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is MethodElement,
+        MethodElement,
+        element);
+  }
+
+  void test_locateWithOffset_StringLiteral() {
+    AstNode id = _findNodeIn("abc", "var x = 'abc';");
+    Element element = ElementLocator.locateWithOffset(id, 1);
+    expect(element, isNull);
+  }
+
   /**
    * Find the first AST node matching a pattern in the resolved AST for the given source.
    *
@@ -8919,8 +8915,7 @@ core.int value;''');
    * [code] the code to resolve.
    * Returns the matched node in the resolved AST for the given source lines
    */
-  AstNode _findNodeIndexedIn(String nodePattern, int index,
-                             String code) {
+  AstNode _findNodeIndexedIn(String nodePattern, int index, String code) {
     CompilationUnit cu = _resolveContents(code);
     int start = _getOffsetOfMatch(code, nodePattern, index);
     int end = start + nodePattern.length;
@@ -9100,39 +9095,57 @@ class ErrorReporterTest extends EngineTestCase {
 
 class ErrorSeverityTest extends EngineTestCase {
   void test_max_error_error() {
-    expect(ErrorSeverity.ERROR.max(ErrorSeverity.ERROR), same(ErrorSeverity.ERROR));
+    expect(
+        ErrorSeverity.ERROR.max(ErrorSeverity.ERROR),
+        same(ErrorSeverity.ERROR));
   }
 
   void test_max_error_none() {
-    expect(ErrorSeverity.ERROR.max(ErrorSeverity.NONE), same(ErrorSeverity.ERROR));
+    expect(
+        ErrorSeverity.ERROR.max(ErrorSeverity.NONE),
+        same(ErrorSeverity.ERROR));
   }
 
   void test_max_error_warning() {
-    expect(ErrorSeverity.ERROR.max(ErrorSeverity.WARNING), same(ErrorSeverity.ERROR));
+    expect(
+        ErrorSeverity.ERROR.max(ErrorSeverity.WARNING),
+        same(ErrorSeverity.ERROR));
   }
 
   void test_max_none_error() {
-    expect(ErrorSeverity.NONE.max(ErrorSeverity.ERROR), same(ErrorSeverity.ERROR));
+    expect(
+        ErrorSeverity.NONE.max(ErrorSeverity.ERROR),
+        same(ErrorSeverity.ERROR));
   }
 
   void test_max_none_none() {
-    expect(ErrorSeverity.NONE.max(ErrorSeverity.NONE), same(ErrorSeverity.NONE));
+    expect(
+        ErrorSeverity.NONE.max(ErrorSeverity.NONE),
+        same(ErrorSeverity.NONE));
   }
 
   void test_max_none_warning() {
-    expect(ErrorSeverity.NONE.max(ErrorSeverity.WARNING), same(ErrorSeverity.WARNING));
+    expect(
+        ErrorSeverity.NONE.max(ErrorSeverity.WARNING),
+        same(ErrorSeverity.WARNING));
   }
 
   void test_max_warning_error() {
-    expect(ErrorSeverity.WARNING.max(ErrorSeverity.ERROR), same(ErrorSeverity.ERROR));
+    expect(
+        ErrorSeverity.WARNING.max(ErrorSeverity.ERROR),
+        same(ErrorSeverity.ERROR));
   }
 
   void test_max_warning_none() {
-    expect(ErrorSeverity.WARNING.max(ErrorSeverity.NONE), same(ErrorSeverity.WARNING));
+    expect(
+        ErrorSeverity.WARNING.max(ErrorSeverity.NONE),
+        same(ErrorSeverity.WARNING));
   }
 
   void test_max_warning_warning() {
-    expect(ErrorSeverity.WARNING.max(ErrorSeverity.WARNING), same(ErrorSeverity.WARNING));
+    expect(
+        ErrorSeverity.WARNING.max(ErrorSeverity.WARNING),
+        same(ErrorSeverity.WARNING));
   }
 }
 
@@ -9354,6 +9367,10 @@ class ExitDetectorTest extends ParserTestCase {
     _assertFalse("(){};");
   }
 
+  void test_functionExpression_bodyThrows() {
+    _assertFalse("(int i) => throw '';");
+  }
+
   void test_functionExpressionInvocation() {
     _assertFalse("f(g);");
   }
@@ -9366,32 +9383,12 @@ class ExitDetectorTest extends ParserTestCase {
     _assertTrue("throw ''(g);");
   }
 
-  void test_functionExpression_bodyThrows() {
-    _assertFalse("(int i) => throw '';");
-  }
-
   void test_identifier_prefixedIdentifier() {
     _assertFalse("a.b;");
   }
 
   void test_identifier_simpleIdentifier() {
     _assertFalse("a;");
-  }
-
-  void test_ifElse_bothReturn() {
-    _assertTrue("if (c) return 0; else return 1;");
-  }
-
-  void test_ifElse_elseReturn() {
-    _assertFalse("if (c) i++; else return 1;");
-  }
-
-  void test_ifElse_noReturn() {
-    _assertFalse("if (c) i++; else j++;");
-  }
-
-  void test_ifElse_thenReturn() {
-    _assertFalse("if (c) return 0; else j++;");
   }
 
   void test_if_false_else_return() {
@@ -9420,6 +9417,22 @@ class ExitDetectorTest extends ParserTestCase {
 
   void test_if_true_return() {
     _assertTrue("if (true) { return 0; }");
+  }
+
+  void test_ifElse_bothReturn() {
+    _assertTrue("if (c) return 0; else return 1;");
+  }
+
+  void test_ifElse_elseReturn() {
+    _assertFalse("if (c) i++; else return 1;");
+  }
+
+  void test_ifElse_noReturn() {
+    _assertFalse("if (c) i++; else j++;");
+  }
+
+  void test_ifElse_thenReturn() {
+    _assertFalse("if (c) return 0; else j++;");
   }
 
   void test_indexExpression() {
@@ -9458,10 +9471,6 @@ class ExitDetectorTest extends ParserTestCase {
     _assertTrue("label: throw '';");
   }
 
-  void test_literal_String() {
-    _assertFalse("'str';");
-  }
-
   void test_literal_boolean() {
     _assertFalse("true;");
   }
@@ -9476,6 +9485,10 @@ class ExitDetectorTest extends ParserTestCase {
 
   void test_literal_null() {
     _assertFalse("null;");
+  }
+
+  void test_literal_String() {
+    _assertFalse("'str';");
   }
 
   void test_methodInvocation() {
@@ -9864,7 +9877,9 @@ class FileUriResolverTest {
     Source result =
         resolver.resolveAbsolute(parseUriWithException("file:/does/not/exist.dart"));
     expect(result, isNotNull);
-    expect(result.fullName, FileUtilities2.createFile("/does/not/exist.dart").getAbsolutePath());
+    expect(
+        result.fullName,
+        FileUtilities2.createFile("/does/not/exist.dart").getAbsolutePath());
   }
 
   void test_resolve_nonFile() {
@@ -9902,9 +9917,7 @@ $scriptBody
             _t4(
                 "html",
                 [
-                    _t4(
-                        "body",
-                        [_t("script", _a(["type", "'application/dart'"]), scriptBody)])])]);
+                    _t4("body", [_t("script", _a(["type", "'application/dart'"]), scriptBody)])])]);
   }
   ht.HtmlUnit parse(String contents) {
 //    TestSource source =
@@ -10043,12 +10056,14 @@ $scriptBody
   XmlValidator_Attributes _a(List<String> keyValuePairs) =>
       new XmlValidator_Attributes(keyValuePairs);
   XmlValidator_Tag _t(String tag, XmlValidator_Attributes attributes,
-      String content, [List<XmlValidator_Tag> children = XmlValidator_Tag.EMPTY_LIST]) =>
+      String content, [List<XmlValidator_Tag> children =
+      XmlValidator_Tag.EMPTY_LIST]) =>
       new XmlValidator_Tag(tag, attributes, content, children);
   XmlValidator_Tag _t3(String tag, String content,
       [List<XmlValidator_Tag> children = XmlValidator_Tag.EMPTY_LIST]) =>
       new XmlValidator_Tag(tag, new XmlValidator_Attributes(), content, children);
-  XmlValidator_Tag _t4(String tag, [List<XmlValidator_Tag> children = XmlValidator_Tag.EMPTY_LIST]) =>
+  XmlValidator_Tag _t4(String tag, [List<XmlValidator_Tag> children =
+      XmlValidator_Tag.EMPTY_LIST]) =>
       new XmlValidator_Tag(tag, new XmlValidator_Attributes(), null, children);
   void _validate(ht.HtmlUnit htmlUnit, List<XmlValidator_Tag> expectedTags) {
     XmlValidator validator = new XmlValidator();
@@ -10154,7 +10169,8 @@ class HtmlUnitBuilderTest extends EngineTestCase {
     return builder.buildHtmlElement(source, _context.parseHtmlUnit(source));
   }
   HtmlUnitBuilderTest_ExpectedLibrary
-      _l([List<HtmlUnitBuilderTest_ExpectedVariable> expectedVariables = HtmlUnitBuilderTest_ExpectedVariable.EMPTY_LIST]) =>
+      _l([List<HtmlUnitBuilderTest_ExpectedVariable> expectedVariables =
+      HtmlUnitBuilderTest_ExpectedVariable.EMPTY_LIST]) =>
       new HtmlUnitBuilderTest_ExpectedLibrary(this, expectedVariables);
   _ExpectedScript _s(HtmlUnitBuilderTest_ExpectedLibrary expectedLibrary) =>
       new _ExpectedScript.con1(expectedLibrary);
@@ -10183,7 +10199,10 @@ class HtmlUnitBuilderTest_ExpectedLibrary {
   void _validate(int scriptIndex, EmbeddedHtmlScriptElementImpl script) {
     LibraryElement library = script.scriptLibrary;
     expect(library, isNotNull, reason: "script $scriptIndex");
-    expect(script.context, same(HtmlUnitBuilderTest_this._context), reason: "script $scriptIndex");
+    expect(
+        script.context,
+        same(HtmlUnitBuilderTest_this._context),
+        reason: "script $scriptIndex");
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull, reason: "script $scriptIndex");
     List<TopLevelVariableElement> variables = unit.topLevelVariables;
@@ -10191,15 +10210,19 @@ class HtmlUnitBuilderTest_ExpectedLibrary {
     for (int index = 0; index < variables.length; index++) {
       _expectedVariables[index].validate(scriptIndex, variables[index]);
     }
-    expect(library.enclosingElement, same(script), reason: "script $scriptIndex");
+    expect(
+        library.enclosingElement,
+        same(script),
+        reason: "script $scriptIndex");
   }
 }
 
 
 class HtmlUnitBuilderTest_ExpectedVariable {
+  static const List<HtmlUnitBuilderTest_ExpectedVariable> EMPTY_LIST = const
+      <HtmlUnitBuilderTest_ExpectedVariable>[
+      ];
   final String _expectedName;
-  static const List<HtmlUnitBuilderTest_ExpectedVariable> EMPTY_LIST
-      = const <HtmlUnitBuilderTest_ExpectedVariable>[];
   HtmlUnitBuilderTest_ExpectedVariable(this._expectedName);
   void validate(int scriptIndex, TopLevelVariableElement variable) {
     expect(variable, isNotNull, reason: "script $scriptIndex");
@@ -10251,8 +10274,7 @@ class HtmlWarningCodeTest extends EngineTestCase {
     _verify(r'''
 <html>
 <script type='application/dart' src='ht:'/>
-</html>''',
-        [HtmlWarningCode.INVALID_URI]);
+</html>''', [HtmlWarningCode.INVALID_URI]);
     _assertErrorLocation2(_errors[0], "ht:");
   }
 
@@ -10260,8 +10282,7 @@ class HtmlWarningCodeTest extends EngineTestCase {
     _verify(r'''
 <html>
 <script type='application/dart' src='other.dart'/>
-</html>''',
-        [HtmlWarningCode.URI_DOES_NOT_EXIST]);
+</html>''', [HtmlWarningCode.URI_DOES_NOT_EXIST]);
     _assertErrorLocation2(_errors[0], "other.dart");
   }
 
@@ -10488,9 +10509,7 @@ class ReferenceFinderTest extends EngineTestCase {
 class SDKLibrariesReaderTest extends EngineTestCase {
   void test_readFrom_dart2js() {
     LibraryMap libraryMap = new SdkLibrariesReader(
-        true).readFromFile(
-            FileUtilities2.createFile("/libs.dart"),
-            r'''
+        true).readFromFile(FileUtilities2.createFile("/libs.dart"), r'''
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   'first' : const LibraryInfo(
     'first/first.dart',
@@ -10519,9 +10538,7 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   }
   void test_readFrom_normal() {
     LibraryMap libraryMap = new SdkLibrariesReader(
-        false).readFromFile(
-            FileUtilities2.createFile("/libs.dart"),
-            r'''
+        false).readFromFile(FileUtilities2.createFile("/libs.dart"), r'''
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   'first' : const LibraryInfo(
     'first/first.dart',
@@ -10588,8 +10605,7 @@ class SourceFactoryTest {
   }
   void test_resolveUri_absolute() {
     UriResolver_absolute resolver = new UriResolver_absolute();
-    SourceFactory factory =
-        new SourceFactory([resolver]);
+    SourceFactory factory = new SourceFactory([resolver]);
     factory.resolveUri(null, "dart:core");
     expect(resolver.invoked, isTrue);
   }
@@ -10600,7 +10616,9 @@ class SourceFactoryTest {
     Source containingSource =
         new FileBasedSource.con1(FileUtilities2.createFile("/does/not/exist.dart"));
     Source result = factory.resolveUri(containingSource, absolutePath);
-    expect(result.fullName, FileUtilities2.createFile(absolutePath).getAbsolutePath());
+    expect(
+        result.fullName,
+        FileUtilities2.createFile(absolutePath).getAbsolutePath());
   }
   void test_resolveUri_nonAbsolute_relative() {
     SourceFactory factory =
@@ -10608,7 +10626,9 @@ class SourceFactoryTest {
     Source containingSource =
         new FileBasedSource.con1(FileUtilities2.createFile("/does/not/have.dart"));
     Source result = factory.resolveUri(containingSource, "exist.dart");
-    expect(result.fullName, FileUtilities2.createFile("/does/not/exist.dart").getAbsolutePath());
+    expect(
+        result.fullName,
+        FileUtilities2.createFile("/does/not/exist.dart").getAbsolutePath());
   }
   void test_restoreUri() {
     JavaFile file1 = FileUtilities2.createFile("/some/file1.dart");
@@ -10705,22 +10725,6 @@ class UriKindTest {
 }
 
 
-class UriResolver_SourceFactoryTest_test_fromEncoding_valid extends UriResolver
-    {
-  String encoding;
-
-  UriResolver_SourceFactoryTest_test_fromEncoding_valid(this.encoding);
-
-  @override
-  Source resolveAbsolute(Uri uri) {
-    if (uri.toString() == encoding) {
-      return new TestSource();
-    }
-    return null;
-  }
-}
-
-
 class UriResolver_absolute extends UriResolver {
   bool invoked = false;
 
@@ -10764,6 +10768,22 @@ class UriResolver_restoreUri extends UriResolver {
   Uri restoreAbsolute(Source source) {
     if (identical(source, source1)) {
       return expected1;
+    }
+    return null;
+  }
+}
+
+
+class UriResolver_SourceFactoryTest_test_fromEncoding_valid extends UriResolver
+    {
+  String encoding;
+
+  UriResolver_SourceFactoryTest_test_fromEncoding_valid(this.encoding);
+
+  @override
+  Source resolveAbsolute(Uri uri) {
+    if (uri.toString() == encoding) {
+      return new TestSource();
     }
     return null;
   }
@@ -10817,7 +10837,9 @@ class ValidatingConstantValueComputer extends ConstantValueComputer {
       FormalParameter parameterNode =
           constructorNode.parameters.parameters[parameterIndex];
       expect(referenceGraph.nodes.contains(parameterNode), isTrue);
-      expect(referenceGraph.containsPath(_nodeBeingEvaluated, parameterNode), isTrue);
+      expect(
+          referenceGraph.containsPath(_nodeBeingEvaluated, parameterNode),
+          isTrue);
     }
   }
 
@@ -10964,7 +10986,8 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
         while (!identical(token, lastToken)) {
           token = token.next;
           if (++count > 1000) {
-            fail("Expected $_expectedTagsIndex tag: ${expected._tag} to have a sequence of tokens from getAttributeEnd() to getContentEnd()");
+            fail(
+                "Expected $_expectedTagsIndex tag: ${expected._tag} to have a sequence of tokens from getAttributeEnd() to getContentEnd()");
             break;
           }
         }
@@ -11053,12 +11076,13 @@ class XmlValidator_Attributes {
 
 
 class XmlValidator_Tag {
+  static const List<XmlValidator_Tag> EMPTY_LIST = const <XmlValidator_Tag>[];
   final String _tag;
   final XmlValidator_Attributes _attributes;
   final String _content;
   final List<XmlValidator_Tag> _children;
-  static const List<XmlValidator_Tag> EMPTY_LIST = const <XmlValidator_Tag>[];
-  XmlValidator_Tag(this._tag, this._attributes, this._content, [this._children = EMPTY_LIST]);
+  XmlValidator_Tag(this._tag, this._attributes, this._content, [this._children =
+      EMPTY_LIST]);
 }
 
 
@@ -11101,7 +11125,8 @@ class _ExpectedScript {
   }
   void _validateEmbedded(int scriptIndex, HtmlScriptElement script) {
     if (script is! EmbeddedHtmlScriptElementImpl) {
-      fail("Expected script $scriptIndex to be embedded, but found ${script != null ? script.runtimeType : "null"}");
+      fail(
+          "Expected script $scriptIndex to be embedded, but found ${script != null ? script.runtimeType : "null"}");
     }
     EmbeddedHtmlScriptElementImpl embeddedScript =
         script as EmbeddedHtmlScriptElementImpl;
@@ -11109,7 +11134,8 @@ class _ExpectedScript {
   }
   void _validateExternal(int scriptIndex, HtmlScriptElement script) {
     if (script is! ExternalHtmlScriptElementImpl) {
-      fail("Expected script $scriptIndex to be external with src=$_expectedExternalScriptName but found ${script != null ? script.runtimeType : "null"}");
+      fail(
+          "Expected script $scriptIndex to be external with src=$_expectedExternalScriptName but found ${script != null ? script.runtimeType : "null"}");
     }
     ExternalHtmlScriptElementImpl externalScript =
         script as ExternalHtmlScriptElementImpl;
@@ -11119,7 +11145,10 @@ class _ExpectedScript {
     } else {
       expect(scriptSource, isNotNull, reason: "script $scriptIndex");
       String actualExternalScriptName = scriptSource.shortName;
-      expect(actualExternalScriptName, _expectedExternalScriptName, reason: "script $scriptIndex");
+      expect(
+          actualExternalScriptName,
+          _expectedExternalScriptName,
+          reason: "script $scriptIndex");
     }
   }
 }

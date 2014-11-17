@@ -6,39 +6,11 @@ library engine.resolver.static_type_analyzer;
 
 import 'dart:collection';
 
-import 'java_engine.dart';
-import 'scanner.dart' as sc;
 import 'ast.dart';
 import 'element.dart';
+import 'java_engine.dart';
 import 'resolver.dart';
-
-class GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction extends GeneralizingAstVisitor<Object> {
-  DartType result = null;
-
-  GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction();
-
-  @override
-  Object visitExpression(Expression node) => null;
-
-  @override
-  Object visitReturnStatement(ReturnStatement node) {
-    // prepare this 'return' type
-    DartType type;
-    Expression expression = node.expression;
-    if (expression != null) {
-      type = expression.bestType;
-    } else {
-      type = BottomTypeImpl.instance;
-    }
-    // merge types
-    if (result == null) {
-      result = type;
-    } else {
-      result = result.getLeastUpperBound(type);
-    }
-    return null;
-  }
-}
+import 'scanner.dart' as sc;
 
 /**
  * Instances of the class `StaticTypeAnalyzer` perform two type-related tasks. First, they
@@ -51,73 +23,11 @@ class GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnTypeOfFun
  */
 class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   /**
-   * Create a table mapping HTML tag names to the names of the classes (in 'dart:html') that
-   * implement those tags.
-   *
-   * @return the table that was created
+   * A table mapping HTML tag names to the names of the classes (in 'dart:html') that implement
+   * those tags.
    */
-  static HashMap<String, String> _createHtmlTagToClassMap() {
-    HashMap<String, String> map = new HashMap<String, String>();
-    map["a"] = "AnchorElement";
-    map["area"] = "AreaElement";
-    map["br"] = "BRElement";
-    map["base"] = "BaseElement";
-    map["body"] = "BodyElement";
-    map["button"] = "ButtonElement";
-    map["canvas"] = "CanvasElement";
-    map["content"] = "ContentElement";
-    map["dl"] = "DListElement";
-    map["datalist"] = "DataListElement";
-    map["details"] = "DetailsElement";
-    map["div"] = "DivElement";
-    map["embed"] = "EmbedElement";
-    map["fieldset"] = "FieldSetElement";
-    map["form"] = "FormElement";
-    map["hr"] = "HRElement";
-    map["head"] = "HeadElement";
-    map["h1"] = "HeadingElement";
-    map["h2"] = "HeadingElement";
-    map["h3"] = "HeadingElement";
-    map["h4"] = "HeadingElement";
-    map["h5"] = "HeadingElement";
-    map["h6"] = "HeadingElement";
-    map["html"] = "HtmlElement";
-    map["iframe"] = "IFrameElement";
-    map["img"] = "ImageElement";
-    map["input"] = "InputElement";
-    map["keygen"] = "KeygenElement";
-    map["li"] = "LIElement";
-    map["label"] = "LabelElement";
-    map["legend"] = "LegendElement";
-    map["link"] = "LinkElement";
-    map["map"] = "MapElement";
-    map["menu"] = "MenuElement";
-    map["meter"] = "MeterElement";
-    map["ol"] = "OListElement";
-    map["object"] = "ObjectElement";
-    map["optgroup"] = "OptGroupElement";
-    map["output"] = "OutputElement";
-    map["p"] = "ParagraphElement";
-    map["param"] = "ParamElement";
-    map["pre"] = "PreElement";
-    map["progress"] = "ProgressElement";
-    map["script"] = "ScriptElement";
-    map["select"] = "SelectElement";
-    map["source"] = "SourceElement";
-    map["span"] = "SpanElement";
-    map["style"] = "StyleElement";
-    map["caption"] = "TableCaptionElement";
-    map["td"] = "TableCellElement";
-    map["col"] = "TableColElement";
-    map["table"] = "TableElement";
-    map["tr"] = "TableRowElement";
-    map["textarea"] = "TextAreaElement";
-    map["title"] = "TitleElement";
-    map["track"] = "TrackElement";
-    map["ul"] = "UListElement";
-    map["video"] = "VideoElement";
-    return map;
-  }
+  static HashMap<String, String> _HTML_ELEMENT_TO_CLASS_MAP =
+      _createHtmlTagToClassMap();
 
   /**
    * The resolver driving the resolution and type analysis.
@@ -153,13 +63,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   /**
    * A table mapping [ExecutableElement]s to their propagated return types.
    */
-  HashMap<ExecutableElement, DartType> _propagatedReturnTypes = new HashMap<ExecutableElement, DartType>();
-
-  /**
-   * A table mapping HTML tag names to the names of the classes (in 'dart:html') that implement
-   * those tags.
-   */
-  static HashMap<String, String> _HTML_ELEMENT_TO_CLASS_MAP = _createHtmlTagToClassMap();
+  HashMap<ExecutableElement, DartType> _propagatedReturnTypes =
+      new HashMap<ExecutableElement, DartType>();
 
   /**
    * Initialize a newly created type analyzer.
@@ -181,6 +86,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   void set thisType(InterfaceType thisType) {
     this._thisType = thisType;
   }
+
+  get thisType_J2DAccessor => _thisType;
+
+  set thisType_J2DAccessor(__v) => _thisType = __v;
 
   /**
    * The Dart Language Specification, 12.5: <blockquote>The static type of a string literal is
@@ -267,8 +176,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       _recordStaticType(node, staticType);
       MethodElement propagatedMethodElement = node.propagatedElement;
       if (!identical(propagatedMethodElement, staticMethodElement)) {
-        DartType propagatedType = _computeStaticReturnType(propagatedMethodElement);
-        if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+        DartType propagatedType =
+            _computeStaticReturnType(propagatedMethodElement);
+        if (propagatedType != null &&
+            propagatedType.isMoreSpecificThan(staticType)) {
           _recordPropagatedType(node, propagatedType);
         }
       }
@@ -321,8 +232,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     _recordStaticType(node, staticType);
     MethodElement propagatedMethodElement = node.propagatedElement;
     if (!identical(propagatedMethodElement, staticMethodElement)) {
-      DartType propagatedType = _computeStaticReturnType(propagatedMethodElement);
-      if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+      DartType propagatedType =
+          _computeStaticReturnType(propagatedMethodElement);
+      if (propagatedType != null &&
+          propagatedType.isMoreSpecificThan(staticType)) {
         _recordPropagatedType(node, propagatedType);
       }
     }
@@ -386,8 +299,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       if (propagatedElseType == null) {
         propagatedElseType = staticElseType;
       }
-      DartType propagatedType = propagatedThenType.getLeastUpperBound(propagatedElseType);
-      if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+      DartType propagatedType =
+          propagatedThenType.getLeastUpperBound(propagatedElseType);
+      if (propagatedType != null &&
+          propagatedType.isMoreSpecificThan(staticType)) {
         _recordPropagatedType(node, propagatedType);
       }
     }
@@ -407,8 +322,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     FunctionExpression function = node.functionExpression;
-    ExecutableElementImpl functionElement = node.element as ExecutableElementImpl;
-    functionElement.returnType = _computeStaticReturnTypeOfFunctionDeclaration(node);
+    ExecutableElementImpl functionElement =
+        node.element as ExecutableElementImpl;
+    functionElement.returnType =
+        _computeStaticReturnTypeOfFunctionDeclaration(node);
     _recordPropagatedTypeOfFunction(functionElement, function.body);
     _recordStaticType(function, functionElement.type);
     return null;
@@ -447,11 +364,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   @override
   Object visitFunctionExpression(FunctionExpression node) {
     if (node.parent is FunctionDeclaration) {
-      // The function type will be resolved and set when we visit the parent node.
+      // The function type will be resolved and set when we visit the parent
+      // node.
       return null;
     }
-    ExecutableElementImpl functionElement = node.element as ExecutableElementImpl;
-    functionElement.returnType = _computeStaticReturnTypeOfFunctionExpression(node);
+    ExecutableElementImpl functionElement =
+        node.element as ExecutableElementImpl;
+    functionElement.returnType =
+        _computeStaticReturnTypeOfFunctionExpression(node);
     _recordPropagatedTypeOfFunction(functionElement, node.body);
     _recordStaticType(node, node.element.type);
     return null;
@@ -476,20 +396,35 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     DartType staticStaticType = _computeStaticReturnType(staticMethodElement);
     _recordStaticType(node, staticStaticType);
     // Record propagated return type of the static element.
-    DartType staticPropagatedType = _computePropagatedReturnType(staticMethodElement);
-    if (staticPropagatedType != null && (staticStaticType == null || staticPropagatedType.isMoreSpecificThan(staticStaticType))) {
+    DartType staticPropagatedType =
+        _computePropagatedReturnType(staticMethodElement);
+    if (staticPropagatedType != null &&
+        (staticStaticType == null ||
+            staticPropagatedType.isMoreSpecificThan(staticStaticType))) {
       _recordPropagatedType(node, staticPropagatedType);
     }
     ExecutableElement propagatedMethodElement = node.propagatedElement;
     if (!identical(propagatedMethodElement, staticMethodElement)) {
       // Record static return type of the propagated element.
-      DartType propagatedStaticType = _computeStaticReturnType(propagatedMethodElement);
-      if (propagatedStaticType != null && (staticStaticType == null || propagatedStaticType.isMoreSpecificThan(staticStaticType)) && (staticPropagatedType == null || propagatedStaticType.isMoreSpecificThan(staticPropagatedType))) {
+      DartType propagatedStaticType =
+          _computeStaticReturnType(propagatedMethodElement);
+      if (propagatedStaticType != null &&
+          (staticStaticType == null ||
+              propagatedStaticType.isMoreSpecificThan(staticStaticType)) &&
+          (staticPropagatedType == null ||
+              propagatedStaticType.isMoreSpecificThan(staticPropagatedType))) {
         _recordPropagatedType(node, propagatedStaticType);
       }
       // Record propagated return type of the propagated element.
-      DartType propagatedPropagatedType = _computePropagatedReturnType(propagatedMethodElement);
-      if (propagatedPropagatedType != null && (staticStaticType == null || propagatedPropagatedType.isMoreSpecificThan(staticStaticType)) && (staticPropagatedType == null || propagatedPropagatedType.isMoreSpecificThan(staticPropagatedType)) && (propagatedStaticType == null || propagatedPropagatedType.isMoreSpecificThan(propagatedStaticType))) {
+      DartType propagatedPropagatedType =
+          _computePropagatedReturnType(propagatedMethodElement);
+      if (propagatedPropagatedType != null &&
+          (staticStaticType == null ||
+              propagatedPropagatedType.isMoreSpecificThan(staticStaticType)) &&
+          (staticPropagatedType == null ||
+              propagatedPropagatedType.isMoreSpecificThan(staticPropagatedType)) &&
+          (propagatedStaticType == null ||
+              propagatedPropagatedType.isMoreSpecificThan(propagatedStaticType))) {
         _recordPropagatedType(node, propagatedPropagatedType);
       }
     }
@@ -510,7 +445,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       MethodElement propagatedMethodElement = node.propagatedElement;
       if (!identical(propagatedMethodElement, staticMethodElement)) {
         DartType propagatedType = _computeArgumentType(propagatedMethodElement);
-        if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+        if (propagatedType != null &&
+            propagatedType.isMoreSpecificThan(staticType)) {
           _recordPropagatedType(node, propagatedType);
         }
       }
@@ -520,8 +456,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       _recordStaticType(node, staticType);
       MethodElement propagatedMethodElement = node.propagatedElement;
       if (!identical(propagatedMethodElement, staticMethodElement)) {
-        DartType propagatedType = _computeStaticReturnType(propagatedMethodElement);
-        if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+        DartType propagatedType =
+            _computeStaticReturnType(propagatedMethodElement);
+        if (propagatedType != null &&
+            propagatedType.isMoreSpecificThan(staticType)) {
           _recordPropagatedType(node, propagatedType);
         }
       }
@@ -547,12 +485,16 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       if (_isHtmlLibrary(library)) {
         String constructorName = element.name;
         if ("tag" == constructorName) {
-          DartType returnType = _getFirstArgumentAsTypeWithMap(library, node.argumentList, _HTML_ELEMENT_TO_CLASS_MAP);
+          DartType returnType = _getFirstArgumentAsTypeWithMap(
+              library,
+              node.argumentList,
+              _HTML_ELEMENT_TO_CLASS_MAP);
           if (returnType != null) {
             _recordPropagatedType(node, returnType);
           }
         } else {
-          DartType returnType = _getElementNameAsType(library, constructorName, _HTML_ELEMENT_TO_CLASS_MAP);
+          DartType returnType =
+              _getElementNameAsType(library, constructorName, _HTML_ELEMENT_TO_CLASS_MAP);
           if (returnType != null) {
             _recordPropagatedType(node, returnType);
           }
@@ -606,7 +548,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         }
       }
     }
-    _recordStaticType(node, _typeProvider.listType.substitute4(<DartType> [staticType]));
+    _recordStaticType(
+        node,
+        _typeProvider.listType.substitute4(<DartType>[staticType]));
     return null;
   }
 
@@ -642,7 +586,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         }
       }
     }
-    _recordStaticType(node, _typeProvider.mapType.substitute4(<DartType> [staticKeyType, staticValueType]));
+    _recordStaticType(
+        node,
+        _typeProvider.mapType.substitute4(<DartType>[staticKeyType, staticValueType]));
     return null;
   }
 
@@ -692,7 +638,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       DartType staticType = variable.type;
       _recordStaticType(methodNameNode, staticType);
       DartType propagatedType = _overrideManager.getType(variable);
-      if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+      if (propagatedType != null &&
+          propagatedType.isMoreSpecificThan(staticType)) {
         _recordPropagatedType(methodNameNode, propagatedType);
       }
     }
@@ -700,8 +647,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     DartType staticStaticType = _computeStaticReturnType(staticMethodElement);
     _recordStaticType(node, staticStaticType);
     // Record propagated return type of the static element.
-    DartType staticPropagatedType = _computePropagatedReturnType(staticMethodElement);
-    if (staticPropagatedType != null && (staticStaticType == null || staticPropagatedType.isMoreSpecificThan(staticStaticType))) {
+    DartType staticPropagatedType =
+        _computePropagatedReturnType(staticMethodElement);
+    if (staticPropagatedType != null &&
+        (staticStaticType == null ||
+            staticPropagatedType.isMoreSpecificThan(staticStaticType))) {
       _recordPropagatedType(node, staticPropagatedType);
     }
     bool needPropagatedType = true;
@@ -716,11 +666,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           // 2) Future<valueType>, if the closure returns a value.
           NodeList<Expression> arguments = node.argumentList.arguments;
           if (arguments.length == 1) {
-            // TODO(brianwilkerson) Handle the case where both arguments are provided.
+            // TODO(brianwilkerson) Handle the case where both arguments are
+            // provided.
             Expression closureArg = arguments[0];
             if (closureArg is FunctionExpression) {
               FunctionExpression closureExpr = closureArg;
-              DartType returnType = _computePropagatedReturnType(closureExpr.element);
+              DartType returnType =
+                  _computePropagatedReturnType(closureExpr.element);
               if (returnType != null) {
                 // prepare the type of the returned Future
                 InterfaceTypeImpl newFutureType;
@@ -728,8 +680,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
                   newFutureType = returnType as InterfaceTypeImpl;
                 } else {
                   InterfaceType futureType = targetType as InterfaceType;
-                  newFutureType = new InterfaceTypeImpl.con1(futureType.element);
-                  newFutureType.typeArguments = <DartType> [returnType];
+                  newFutureType =
+                      new InterfaceTypeImpl.con1(futureType.element);
+                  newFutureType.typeArguments = <DartType>[returnType];
                 }
                 // set the 'then' invocation type
                 _recordPropagatedType(node, newFutureType);
@@ -744,10 +697,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       Expression target = node.realTarget;
       if (target != null) {
         DartType targetType = target.bestType;
-        if (targetType is InterfaceType && (targetType.name == "HtmlDocument" || targetType.name == "Document")) {
+        if (targetType is InterfaceType &&
+            (targetType.name == "HtmlDocument" || targetType.name == "Document")) {
           LibraryElement library = targetType.element.library;
           if (_isHtmlLibrary(library)) {
-            DartType returnType = _getFirstArgumentAsType(library, node.argumentList);
+            DartType returnType =
+                _getFirstArgumentAsType(library, node.argumentList);
             if (returnType != null) {
               _recordPropagatedType(node, returnType);
               needPropagatedType = false;
@@ -762,7 +717,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         if (methodElement != null) {
           LibraryElement library = methodElement.library;
           if (_isHtmlLibrary(library)) {
-            DartType returnType = _getFirstArgumentAsQuery(library, node.argumentList);
+            DartType returnType =
+                _getFirstArgumentAsQuery(library, node.argumentList);
             if (returnType != null) {
               _recordPropagatedType(node, returnType);
               needPropagatedType = false;
@@ -771,10 +727,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         }
       } else {
         DartType targetType = target.bestType;
-        if (targetType is InterfaceType && (targetType.name == "HtmlDocument" || targetType.name == "Document")) {
+        if (targetType is InterfaceType &&
+            (targetType.name == "HtmlDocument" || targetType.name == "Document")) {
           LibraryElement library = targetType.element.library;
           if (_isHtmlLibrary(library)) {
-            DartType returnType = _getFirstArgumentAsQuery(library, node.argumentList);
+            DartType returnType =
+                _getFirstArgumentAsQuery(library, node.argumentList);
             if (returnType != null) {
               _recordPropagatedType(node, returnType);
               needPropagatedType = false;
@@ -786,10 +744,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       Expression target = node.realTarget;
       if (target != null) {
         DartType targetType = target.bestType;
-        if (targetType is InterfaceType && (targetType.name == "HtmlDocument" || targetType.name == "Document")) {
+        if (targetType is InterfaceType &&
+            (targetType.name == "HtmlDocument" || targetType.name == "Document")) {
           LibraryElement library = targetType.element.library;
           if (_isHtmlLibrary(library)) {
-            DartType returnType = _getFirstArgumentAsQuery(library, node.argumentList);
+            DartType returnType =
+                _getFirstArgumentAsQuery(library, node.argumentList);
             if (returnType != null) {
               _recordPropagatedType(node, returnType);
               needPropagatedType = false;
@@ -798,7 +758,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         }
       }
     } else if (methodName == "JS") {
-      DartType returnType = _getFirstArgumentAsType(_typeProvider.objectType.element.library, node.argumentList);
+      DartType returnType = _getFirstArgumentAsType(
+          _typeProvider.objectType.element.library,
+          node.argumentList);
       if (returnType != null) {
         _recordPropagatedType(node, returnType);
         needPropagatedType = false;
@@ -807,14 +769,16 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       Expression target = node.realTarget;
       if (target != null) {
         DartType targetType = target.bestType;
-        if (targetType is InterfaceType && (targetType.name == "CanvasElement")) {
+        if (targetType is InterfaceType &&
+            (targetType.name == "CanvasElement")) {
           NodeList<Expression> arguments = node.argumentList.arguments;
           if (arguments.length == 1) {
             Expression argument = arguments[0];
             if (argument is StringLiteral) {
               String value = argument.stringValue;
               if ("2d" == value) {
-                PropertyAccessorElement getter = targetType.element.getGetter("context2D");
+                PropertyAccessorElement getter =
+                    targetType.element.getGetter("context2D");
                 if (getter != null) {
                   DartType returnType = getter.returnType;
                   if (returnType != null) {
@@ -830,20 +794,33 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     }
     if (needPropagatedType) {
       Element propagatedElement = methodNameNode.propagatedElement;
-      // HACK: special case for object methods ([toString]) on dynamic expressions.
-      // More special cases in [visitPrefixedIdentfier].
+      // HACK: special case for object methods ([toString]) on dynamic
+      // expressions. More special cases in [visitPrefixedIdentfier].
       if (propagatedElement == null) {
-        propagatedElement = _typeProvider.objectType.getMethod(methodNameNode.name);
+        propagatedElement =
+            _typeProvider.objectType.getMethod(methodNameNode.name);
       }
       if (!identical(propagatedElement, staticMethodElement)) {
         // Record static return type of the propagated element.
-        DartType propagatedStaticType = _computeStaticReturnType(propagatedElement);
-        if (propagatedStaticType != null && (staticStaticType == null || propagatedStaticType.isMoreSpecificThan(staticStaticType)) && (staticPropagatedType == null || propagatedStaticType.isMoreSpecificThan(staticPropagatedType))) {
+        DartType propagatedStaticType =
+            _computeStaticReturnType(propagatedElement);
+        if (propagatedStaticType != null &&
+            (staticStaticType == null ||
+                propagatedStaticType.isMoreSpecificThan(staticStaticType)) &&
+            (staticPropagatedType == null ||
+                propagatedStaticType.isMoreSpecificThan(staticPropagatedType))) {
           _recordPropagatedType(node, propagatedStaticType);
         }
         // Record propagated return type of the propagated element.
-        DartType propagatedPropagatedType = _computePropagatedReturnType(propagatedElement);
-        if (propagatedPropagatedType != null && (staticStaticType == null || propagatedPropagatedType.isMoreSpecificThan(staticStaticType)) && (staticPropagatedType == null || propagatedPropagatedType.isMoreSpecificThan(staticPropagatedType)) && (propagatedStaticType == null || propagatedPropagatedType.isMoreSpecificThan(propagatedStaticType))) {
+        DartType propagatedPropagatedType =
+            _computePropagatedReturnType(propagatedElement);
+        if (propagatedPropagatedType != null &&
+            (staticStaticType == null ||
+                propagatedPropagatedType.isMoreSpecificThan(staticStaticType)) &&
+            (staticPropagatedType == null ||
+                propagatedPropagatedType.isMoreSpecificThan(staticPropagatedType)) &&
+            (propagatedStaticType == null ||
+                propagatedPropagatedType.isMoreSpecificThan(propagatedStaticType))) {
           _recordPropagatedType(node, propagatedPropagatedType);
         }
       }
@@ -908,7 +885,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     Expression operand = node.operand;
     DartType staticType = _getStaticType(operand);
     sc.TokenType operator = node.operator.type;
-    if (operator == sc.TokenType.MINUS_MINUS || operator == sc.TokenType.PLUS_PLUS) {
+    if (operator == sc.TokenType.MINUS_MINUS ||
+        operator == sc.TokenType.PLUS_PLUS) {
       DartType intType = _typeProvider.intType;
       if (identical(_getStaticType(node.operand), intType)) {
         staticType = intType;
@@ -944,7 +922,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       staticType = staticElement.type;
     } else if (staticElement is PropertyAccessorElement) {
       staticType = _getTypeOfProperty(staticElement, node.prefix.staticType);
-      propagatedType = _getPropertyPropagatedType(staticElement, propagatedType);
+      propagatedType =
+          _getPropertyPropagatedType(staticElement, propagatedType);
     } else if (staticElement is ExecutableElement) {
       staticType = staticElement.type;
     } else if (staticElement is TypeParameterElement) {
@@ -955,10 +934,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     _recordStaticType(prefixedIdentifier, staticType);
     _recordStaticType(node, staticType);
     Element propagatedElement = prefixedIdentifier.propagatedElement;
-    // HACK: special case for object getters ([hashCode] and [runtimeType]) on dynamic expressions.
-    // More special cases in [visitMethodInvocation].
+    // HACK: special case for object getters ([hashCode] and [runtimeType]) on
+    // dynamic expressions. More special cases in [visitMethodInvocation].
     if (propagatedElement == null) {
-      propagatedElement = _typeProvider.objectType.getGetter(prefixedIdentifier.name);
+      propagatedElement =
+          _typeProvider.objectType.getGetter(prefixedIdentifier.name);
     }
     if (propagatedElement is ClassElement) {
       if (_isNotTypeLiteral(node)) {
@@ -971,8 +951,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else if (propagatedElement is MethodElement) {
       propagatedType = (propagatedElement as MethodElement).type;
     } else if (propagatedElement is PropertyAccessorElement) {
-      propagatedType = _getTypeOfProperty(propagatedElement as PropertyAccessorElement, node.prefix.staticType);
-      propagatedType = _getPropertyPropagatedType(propagatedElement, propagatedType);
+      propagatedType = _getTypeOfProperty(
+          propagatedElement as PropertyAccessorElement,
+          node.prefix.staticType);
+      propagatedType =
+          _getPropertyPropagatedType(propagatedElement, propagatedType);
     } else if (propagatedElement is ExecutableElement) {
       propagatedType = (propagatedElement as ExecutableElement).type;
     } else if (propagatedElement is TypeParameterElement) {
@@ -981,10 +964,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       propagatedType = (propagatedElement as VariableElement).type;
     }
     DartType overriddenType = _overrideManager.getType(propagatedElement);
-    if (propagatedType == null || (overriddenType != null && overriddenType.isMoreSpecificThan(propagatedType))) {
+    if (propagatedType == null ||
+        (overriddenType != null && overriddenType.isMoreSpecificThan(propagatedType))) {
       propagatedType = overriddenType;
     }
-    if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+    if (propagatedType != null &&
+        propagatedType.isMoreSpecificThan(staticType)) {
       _recordPropagatedType(prefixedIdentifier, propagatedType);
       _recordPropagatedType(node, propagatedType);
     }
@@ -1005,7 +990,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       // The other cases are equivalent to invoking a method.
       ExecutableElement staticMethodElement = node.staticElement;
       DartType staticType = _computeStaticReturnType(staticMethodElement);
-      if (operator == sc.TokenType.MINUS_MINUS || operator == sc.TokenType.PLUS_PLUS) {
+      if (operator == sc.TokenType.MINUS_MINUS ||
+          operator == sc.TokenType.PLUS_PLUS) {
         DartType intType = _typeProvider.intType;
         if (identical(_getStaticType(node.operand), intType)) {
           staticType = intType;
@@ -1014,8 +1000,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       _recordStaticType(node, staticType);
       MethodElement propagatedMethodElement = node.propagatedElement;
       if (!identical(propagatedMethodElement, staticMethodElement)) {
-        DartType propagatedType = _computeStaticReturnType(propagatedMethodElement);
-        if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+        DartType propagatedType =
+            _computeStaticReturnType(propagatedMethodElement);
+        if (propagatedType != null &&
+            propagatedType.isMoreSpecificThan(staticType)) {
           _recordPropagatedType(node, propagatedType);
         }
       }
@@ -1073,7 +1061,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       staticType = staticElement.type;
     } else if (staticElement is PropertyAccessorElement) {
       Expression realTarget = node.realTarget;
-      staticType = _getTypeOfProperty(staticElement, realTarget != null ? _getStaticType(realTarget) : null);
+      staticType = _getTypeOfProperty(
+          staticElement,
+          realTarget != null ? _getStaticType(realTarget) : null);
     } else {
       // TODO(brianwilkerson) Report this internal error.
     }
@@ -1085,11 +1075,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       propagatedType = propagatedElement.type;
     } else if (propagatedElement is PropertyAccessorElement) {
       Expression realTarget = node.realTarget;
-      propagatedType = _getTypeOfProperty(propagatedElement, realTarget != null ? realTarget.bestType : null);
+      propagatedType = _getTypeOfProperty(
+          propagatedElement,
+          realTarget != null ? realTarget.bestType : null);
     } else {
       // TODO(brianwilkerson) Report this internal error.
     }
-    if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+    if (propagatedType != null &&
+        propagatedType.isMoreSpecificThan(staticType)) {
       _recordPropagatedType(propertyName, propagatedType);
       _recordPropagatedType(node, propagatedType);
     }
@@ -1179,16 +1172,18 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       staticType = _dynamicType;
     }
     _recordStaticType(node, staticType);
-    // TODO(brianwilkerson) I think we want to repeat the logic above using the propagated element
-    // to get another candidate for the propagated type.
+    // TODO(brianwilkerson) I think we want to repeat the logic above using the
+    // propagated element to get another candidate for the propagated type.
     DartType propagatedType = _getPropertyPropagatedType(element, null);
     if (propagatedType == null) {
       DartType overriddenType = _overrideManager.getType(element);
-      if (propagatedType == null || overriddenType != null && overriddenType.isMoreSpecificThan(propagatedType)) {
+      if (propagatedType == null ||
+          overriddenType != null && overriddenType.isMoreSpecificThan(propagatedType)) {
         propagatedType = overriddenType;
       }
     }
-    if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+    if (propagatedType != null &&
+        propagatedType.isMoreSpecificThan(staticType)) {
       _recordPropagatedType(node, propagatedType);
     }
     return null;
@@ -1217,7 +1212,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   @override
   Object visitSuperExpression(SuperExpression node) {
     if (_thisType == null) {
-      // TODO(brianwilkerson) Report this error if it hasn't already been reported
+      // TODO(brianwilkerson) Report this error if it hasn't already been
+      // reported.
       _recordStaticType(node, _dynamicType);
     } else {
       _recordStaticType(node, _thisType);
@@ -1238,7 +1234,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   @override
   Object visitThisExpression(ThisExpression node) {
     if (_thisType == null) {
-      // TODO(brianwilkerson) Report this error if it hasn't already been reported
+      // TODO(brianwilkerson) Report this error if it hasn't already been
+      // reported.
       _recordStaticType(node, _dynamicType);
     } else {
       _recordStaticType(node, _thisType);
@@ -1314,8 +1311,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       return expressionBody.expression.bestType;
     }
     if (body is BlockFunctionBody) {
-      GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction visitor
-          = new GeneralizingAstVisitor_StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction();
+
+      _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction visitor =
+          new _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction();
       body.accept(visitor);
       return visitor.result;
     }
@@ -1331,8 +1329,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   DartType _computeStaticReturnType(Element element) {
     if (element is PropertyAccessorElement) {
       //
-      // This is a function invocation expression disguised as something else. We are invoking a
-      // getter and then invoking the returned function.
+      // This is a function invocation expression disguised as something else.
+      // We are invoking a getter and then invoking the returned function.
       //
       FunctionType propertyType = element.type;
       if (propertyType != null) {
@@ -1340,7 +1338,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         if (returnType.isDartCoreFunction) {
           return _dynamicType;
         } else if (returnType is InterfaceType) {
-          MethodElement callMethod = returnType.lookUpMethod(FunctionElement.CALL_METHOD_NAME, _resolver.definingLibrary);
+          MethodElement callMethod = returnType.lookUpMethod(
+              FunctionElement.CALL_METHOD_NAME,
+              _resolver.definingLibrary);
           if (callMethod != null) {
             return callMethod.type.returnType;
           }
@@ -1357,7 +1357,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else if (element is ExecutableElement) {
       FunctionType type = element.type;
       if (type != null) {
-        // TODO(brianwilkerson) Figure out the conditions under which the type is null.
+        // TODO(brianwilkerson) Figure out the conditions under which the type
+        // is null.
         return type.returnType;
       }
     } else if (element is VariableElement) {
@@ -1378,7 +1379,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * @param node the function expression whose static return type is to be computed
    * @return the static return type that was computed
    */
-  DartType _computeStaticReturnTypeOfFunctionDeclaration(FunctionDeclaration node) {
+  DartType
+      _computeStaticReturnTypeOfFunctionDeclaration(FunctionDeclaration node) {
     TypeName returnType = node.returnType;
     if (returnType == null) {
       return _dynamicType;
@@ -1394,7 +1396,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * @param node the function expression whose return type is to be computed
    * @return the return type that was computed
    */
-  DartType _computeStaticReturnTypeOfFunctionExpression(FunctionExpression node) {
+  DartType
+      _computeStaticReturnTypeOfFunctionExpression(FunctionExpression node) {
     FunctionBody body = node.body;
     if (body is ExpressionFunctionBody) {
       return _getStaticType(body.expression);
@@ -1411,7 +1414,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * @param nameMap an optional map used to map the element name to a type name
    * @return the type specified by the first argument in the argument list
    */
-  DartType _getElementNameAsType(LibraryElement library, String elementName, HashMap<String, String> nameMap) {
+  DartType _getElementNameAsType(LibraryElement library, String elementName,
+      HashMap<String, String> nameMap) {
     if (elementName != null) {
       if (nameMap != null) {
         elementName = nameMap[elementName.toLowerCase()];
@@ -1433,7 +1437,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * @param argumentList the list of arguments from which a type is to be extracted
    * @return the type specified by the first argument in the argument list
    */
-  DartType _getFirstArgumentAsQuery(LibraryElement library, ArgumentList argumentList) {
+  DartType _getFirstArgumentAsQuery(LibraryElement library,
+      ArgumentList argumentList) {
     String argumentValue = _getFirstArgumentAsString(argumentList);
     if (argumentValue != null) {
       //
@@ -1444,7 +1449,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         return null;
       }
       //
-      // Otherwise, try to extract the tag based on http://www.w3.org/TR/CSS2/selector.html.
+      // Otherwise, try to extract the tag based on
+      // http://www.w3.org/TR/CSS2/selector.html.
       //
       String tag = argumentValue;
       tag = StringUtilities.substringBeforeChar(tag, 0x3A);
@@ -1487,7 +1493,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * @param argumentList the list of arguments from which a type is to be extracted
    * @return the type specified by the first argument in the argument list
    */
-  DartType _getFirstArgumentAsType(LibraryElement library, ArgumentList argumentList) => _getFirstArgumentAsTypeWithMap(library, argumentList, null);
+  DartType _getFirstArgumentAsType(LibraryElement library,
+      ArgumentList argumentList) =>
+      _getFirstArgumentAsTypeWithMap(library, argumentList, null);
 
   /**
    * If the given argument list contains at least one argument, and if the argument is a simple
@@ -1499,7 +1507,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * @param nameMap an optional map used to map the element name to a type name
    * @return the type specified by the first argument in the argument list
    */
-  DartType _getFirstArgumentAsTypeWithMap(LibraryElement library, ArgumentList argumentList, HashMap<String, String> nameMap) => _getElementNameAsType(library, _getFirstArgumentAsString(argumentList), nameMap);
+  DartType _getFirstArgumentAsTypeWithMap(LibraryElement library,
+      ArgumentList argumentList, HashMap<String, String> nameMap) =>
+      _getElementNameAsType(
+          library,
+          _getFirstArgumentAsString(argumentList),
+          nameMap);
 
   /**
    * Return the propagated type of the given [Element], or `null`.
@@ -1510,7 +1523,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       if (accessor.isGetter) {
         PropertyInducingElement variable = accessor.variable;
         DartType propagatedType = variable.propagatedType;
-        if (currentType == null || propagatedType != null && propagatedType.isMoreSpecificThan(currentType)) {
+        if (currentType == null ||
+            propagatedType != null && propagatedType.isMoreSpecificThan(currentType)) {
           return propagatedType;
         }
       }
@@ -1527,7 +1541,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   DartType _getStaticType(Expression expression) {
     DartType type = expression.staticType;
     if (type == null) {
-      // TODO(brianwilkerson) Determine the conditions for which the static type is null.
+      // TODO(brianwilkerson) Determine the conditions for which the static type
+      // is null.
       return _dynamicType;
     }
     return type;
@@ -1542,7 +1557,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   DartType _getType(TypeName typeName) {
     DartType type = typeName.type;
     if (type == null) {
-      //TODO(brianwilkerson) Determine the conditions for which the type is null.
+      //TODO(brianwilkerson) Determine the conditions for which the type is
+      // null.
       return _dynamicType;
     }
     return type;
@@ -1558,12 +1574,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    *          specific type information
    * @return the type that should be recorded for a node that resolved to the given accessor
    */
-  DartType _getTypeOfProperty(PropertyAccessorElement accessor, DartType context) {
+  DartType _getTypeOfProperty(PropertyAccessorElement accessor,
+      DartType context) {
     FunctionType functionType = accessor.type;
     if (functionType == null) {
-      // TODO(brianwilkerson) Report this internal error. This happens when we are analyzing a
-      // reference to a property before we have analyzed the declaration of the property or when
-      // the property does not have a defined type.
+      // TODO(brianwilkerson) Report this internal error. This happens when we
+      // are analyzing a reference to a property before we have analyzed the
+      // declaration of the property or when the property does not have a
+      // defined type.
       return _dynamicType;
     }
     if (accessor.isSetter) {
@@ -1582,11 +1600,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     }
     DartType returnType = functionType.returnType;
     if (returnType is TypeParameterType && context is InterfaceType) {
-      // if the return type is a TypeParameter, we try to use the context [that the function is being
-      // called on] to get a more accurate returnType type
+      // if the return type is a TypeParameter, we try to use the context [that
+      // the function is being called on] to get a more accurate returnType type
       InterfaceType interfaceTypeContext = context;
       //      Type[] argumentTypes = interfaceTypeContext.getTypeArguments();
-      List<TypeParameterElement> typeParameterElements = interfaceTypeContext.element != null ? interfaceTypeContext.element.typeParameters : null;
+      List<TypeParameterElement> typeParameterElements =
+          interfaceTypeContext.element != null ?
+              interfaceTypeContext.element.typeParameters :
+              null;
       if (typeParameterElements != null) {
         for (int i = 0; i < typeParameterElements.length; i++) {
           TypeParameterElement typeParameterElement = typeParameterElements[i];
@@ -1595,8 +1616,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           }
         }
         // TODO(jwren) troubleshoot why call to substitute doesn't work
-        //        Type[] parameterTypes = TypeParameterTypeImpl.getTypes(parameterElements);
-        //        return returnType.substitute(argumentTypes, parameterTypes);
+//        Type[] parameterTypes = TypeParameterTypeImpl.getTypes(parameterElements);
+//        return returnType.substitute(argumentTypes, parameterTypes);
       }
     }
     return returnType;
@@ -1606,7 +1627,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * Return `true` if the given [Type] is the `Future` form the 'dart:async'
    * library.
    */
-  bool _isAsyncFutureType(DartType type) => type is InterfaceType && type.name == "Future" && _isAsyncLibrary(type.element.library);
+  bool _isAsyncFutureType(DartType type) =>
+      type is InterfaceType &&
+          type.name == "Future" &&
+          _isAsyncLibrary(type.element.library);
 
   /**
    * Return `true` if the given library is the 'dart:async' library.
@@ -1622,7 +1646,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * @param library the library being tested
    * @return `true` if the library is 'dart:html'
    */
-  bool _isHtmlLibrary(LibraryElement library) => library != null && "dart.dom.html" == library.name;
+  bool _isHtmlLibrary(LibraryElement library) =>
+      library != null && "dart.dom.html" == library.name;
 
   /**
    * Return `true` if the given node is not a type literal.
@@ -1632,7 +1657,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   bool _isNotTypeLiteral(Identifier node) {
     AstNode parent = node.parent;
-    return parent is TypeName || (parent is PrefixedIdentifier && (parent.parent is TypeName || identical(parent.prefix, node))) || (parent is PropertyAccess && identical(parent.target, node)) || (parent is MethodInvocation && identical(node, parent.target));
+    return parent is TypeName ||
+        (parent is PrefixedIdentifier &&
+            (parent.parent is TypeName || identical(parent.prefix, node))) ||
+        (parent is PropertyAccess && identical(parent.target, node)) ||
+        (parent is MethodInvocation && identical(node, parent.target));
   }
 
   /**
@@ -1656,8 +1685,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * @return the propagated return type that was computed, may be `null` if it is not more
    *         specific than the static return type.
    */
-  void _recordPropagatedTypeOfFunction(ExecutableElement functionElement, FunctionBody body) {
-    DartType propagatedReturnType = _computePropagatedReturnTypeOfFunction(body);
+  void _recordPropagatedTypeOfFunction(ExecutableElement functionElement,
+      FunctionBody body) {
+    DartType propagatedReturnType =
+        _computePropagatedReturnTypeOfFunction(body);
     if (propagatedReturnType == null) {
       return;
     }
@@ -1695,23 +1726,34 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * @param staticType the static type of the expression as resolved
    * @return the better type guess, or the same static type as given
    */
-  DartType _refineBinaryExpressionType(BinaryExpression node, DartType staticType) {
+  DartType _refineBinaryExpressionType(BinaryExpression node,
+      DartType staticType) {
     sc.TokenType operator = node.operator.type;
     // bool
-    if (operator == sc.TokenType.AMPERSAND_AMPERSAND || operator == sc.TokenType.BAR_BAR || operator == sc.TokenType.EQ_EQ || operator == sc.TokenType.BANG_EQ) {
+    if (operator == sc.TokenType.AMPERSAND_AMPERSAND ||
+        operator == sc.TokenType.BAR_BAR ||
+        operator == sc.TokenType.EQ_EQ ||
+        operator == sc.TokenType.BANG_EQ) {
       return _typeProvider.boolType;
     }
     DartType intType = _typeProvider.intType;
     if (_getStaticType(node.leftOperand) == intType) {
       // int op double
-      if (operator == sc.TokenType.MINUS || operator == sc.TokenType.PERCENT || operator == sc.TokenType.PLUS || operator == sc.TokenType.STAR) {
+      if (operator == sc.TokenType.MINUS ||
+          operator == sc.TokenType.PERCENT ||
+          operator == sc.TokenType.PLUS ||
+          operator == sc.TokenType.STAR) {
         DartType doubleType = _typeProvider.doubleType;
         if (_getStaticType(node.rightOperand) == doubleType) {
           return doubleType;
         }
       }
       // int op int
-      if (operator == sc.TokenType.MINUS || operator == sc.TokenType.PERCENT || operator == sc.TokenType.PLUS || operator == sc.TokenType.STAR || operator == sc.TokenType.TILDE_SLASH) {
+      if (operator == sc.TokenType.MINUS ||
+          operator == sc.TokenType.PERCENT ||
+          operator == sc.TokenType.PLUS ||
+          operator == sc.TokenType.STAR ||
+          operator == sc.TokenType.TILDE_SLASH) {
         if (_getStaticType(node.rightOperand) == intType) {
           staticType = intType;
         }
@@ -1721,7 +1763,101 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     return staticType;
   }
 
-  get thisType_J2DAccessor => _thisType;
+  /**
+   * Create a table mapping HTML tag names to the names of the classes (in 'dart:html') that
+   * implement those tags.
+   *
+   * @return the table that was created
+   */
+  static HashMap<String, String> _createHtmlTagToClassMap() {
+    HashMap<String, String> map = new HashMap<String, String>();
+    map["a"] = "AnchorElement";
+    map["area"] = "AreaElement";
+    map["br"] = "BRElement";
+    map["base"] = "BaseElement";
+    map["body"] = "BodyElement";
+    map["button"] = "ButtonElement";
+    map["canvas"] = "CanvasElement";
+    map["content"] = "ContentElement";
+    map["dl"] = "DListElement";
+    map["datalist"] = "DataListElement";
+    map["details"] = "DetailsElement";
+    map["div"] = "DivElement";
+    map["embed"] = "EmbedElement";
+    map["fieldset"] = "FieldSetElement";
+    map["form"] = "FormElement";
+    map["hr"] = "HRElement";
+    map["head"] = "HeadElement";
+    map["h1"] = "HeadingElement";
+    map["h2"] = "HeadingElement";
+    map["h3"] = "HeadingElement";
+    map["h4"] = "HeadingElement";
+    map["h5"] = "HeadingElement";
+    map["h6"] = "HeadingElement";
+    map["html"] = "HtmlElement";
+    map["iframe"] = "IFrameElement";
+    map["img"] = "ImageElement";
+    map["input"] = "InputElement";
+    map["keygen"] = "KeygenElement";
+    map["li"] = "LIElement";
+    map["label"] = "LabelElement";
+    map["legend"] = "LegendElement";
+    map["link"] = "LinkElement";
+    map["map"] = "MapElement";
+    map["menu"] = "MenuElement";
+    map["meter"] = "MeterElement";
+    map["ol"] = "OListElement";
+    map["object"] = "ObjectElement";
+    map["optgroup"] = "OptGroupElement";
+    map["output"] = "OutputElement";
+    map["p"] = "ParagraphElement";
+    map["param"] = "ParamElement";
+    map["pre"] = "PreElement";
+    map["progress"] = "ProgressElement";
+    map["script"] = "ScriptElement";
+    map["select"] = "SelectElement";
+    map["source"] = "SourceElement";
+    map["span"] = "SpanElement";
+    map["style"] = "StyleElement";
+    map["caption"] = "TableCaptionElement";
+    map["td"] = "TableCellElement";
+    map["col"] = "TableColElement";
+    map["table"] = "TableElement";
+    map["tr"] = "TableRowElement";
+    map["textarea"] = "TextAreaElement";
+    map["title"] = "TitleElement";
+    map["track"] = "TrackElement";
+    map["ul"] = "UListElement";
+    map["video"] = "VideoElement";
+    return map;
+  }
+}
 
-  set thisType_J2DAccessor(__v) => _thisType = __v;
+class _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction extends
+    GeneralizingAstVisitor<Object> {
+  DartType result = null;
+
+  _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction();
+
+  @override
+  Object visitExpression(Expression node) => null;
+
+  @override
+  Object visitReturnStatement(ReturnStatement node) {
+    // prepare this 'return' type
+    DartType type;
+    Expression expression = node.expression;
+    if (expression != null) {
+      type = expression.bestType;
+    } else {
+      type = BottomTypeImpl.instance;
+    }
+    // merge types
+    if (result == null) {
+      result = type;
+    } else {
+      result = result.getLeastUpperBound(type);
+    }
+    return null;
+  }
 }

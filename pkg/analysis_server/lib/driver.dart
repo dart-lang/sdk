@@ -40,7 +40,8 @@ class Driver {
    * The name of the option used to specify the log file to which
    * instrumentation data is to be written.
    */
-  static const String INSTRUMENTATION_LOG_FILE_OPTION = "instrumentation-log-file";
+  static const String INSTRUMENTATION_LOG_FILE_OPTION =
+      "instrumentation-log-file";
 
   /**
    * The name of the option used to specify the port to which the server will
@@ -61,28 +62,29 @@ class Driver {
 
   StdioAnalysisServer stdioServer;
 
-  Driver() {
-  }
-
+  Driver();
   /**
    * Use the given command-line arguments to start this server.
    */
   void start(List<String> args) {
     ArgParser parser = new ArgParser();
-    parser.addFlag(ENABLE_INSTRUMENTATION_OPTION,
+    parser.addFlag(
+        ENABLE_INSTRUMENTATION_OPTION,
         help: "enable sending instrumentation information to a server",
         defaultsTo: false,
         negatable: false);
-    parser.addFlag(HELP_OPTION,
+    parser.addFlag(
+        HELP_OPTION,
         help: "print this help message without starting a server",
         defaultsTo: false,
         negatable: false);
-    parser.addOption(INSTRUMENTATION_LOG_FILE_OPTION,
+    parser.addOption(
+        INSTRUMENTATION_LOG_FILE_OPTION,
         help: "[path] the file to which instrumentation data will be logged");
-    parser.addOption(PORT_OPTION,
+    parser.addOption(
+        PORT_OPTION,
         help: "[port] the port on which the server will listen");
-    parser.addOption(SDK_OPTION,
-        help: "[path] the path to the sdk");
+    parser.addOption(SDK_OPTION, help: "[path] the path to the sdk");
 
     ArgResults results = parser.parse(args);
     if (results[HELP_OPTION]) {
@@ -91,9 +93,11 @@ class Driver {
     }
     if (results[ENABLE_INSTRUMENTATION_OPTION]) {
       if (results[INSTRUMENTATION_LOG_FILE_OPTION] != null) {
-        // TODO(brianwilkerson) Initialize the instrumentation system with logging.
+        // TODO(brianwilkerson) Initialize the instrumentation system with
+        // logging.
       } else {
-        // TODO(brianwilkerson) Initialize the instrumentation system without logging.
+        // TODO(brianwilkerson) Initialize the instrumentation system without
+        // logging.
       }
     }
     int port;
@@ -141,8 +145,8 @@ class Driver {
    * the function [printHandler].
    */
   dynamic _capturePrints(dynamic callback(), void printHandler(String line)) {
-    ZoneSpecification zoneSpecification = new ZoneSpecification(print:
-        (Zone self, ZoneDelegate parent, Zone zone, String line) {
+    ZoneSpecification zoneSpecification = new ZoneSpecification(
+        print: (Zone self, ZoneDelegate parent, Zone zone, String line) {
       printHandler(line);
       // Note: we don't pass the line on to stdout, because that is reserved
       // for communication to the client.

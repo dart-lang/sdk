@@ -48,7 +48,9 @@ class PubPackageMapProvider implements PackageMapProvider {
     io.ProcessResult result;
     try {
       result = io.Process.runSync(
-          executable, [PUB_LIST_COMMAND], workingDirectory: folder.path);
+          executable,
+          [PUB_LIST_COMMAND],
+          workingDirectory: folder.path);
     } on io.ProcessException catch (exception, stackTrace) {
       AnalysisEngine.instance.logger.logInformation(
           "Error running pub $PUB_LIST_COMMAND\n$exception\n$stackTrace");

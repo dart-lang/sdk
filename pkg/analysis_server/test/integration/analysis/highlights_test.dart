@@ -10,6 +10,10 @@ import 'package:unittest/unittest.dart';
 import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
+main() {
+  runReflectiveTests(AnalysisHighlightsTest);
+}
+
 @ReflectiveTestCase()
 class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
   test_highlights() {
@@ -143,8 +147,4 @@ int topLevelVariable;
       expect(highlights, isEmpty);
     });
   }
-}
-
-main() {
-  runReflectiveTests(AnalysisHighlightsTest);
 }

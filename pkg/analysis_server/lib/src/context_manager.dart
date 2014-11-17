@@ -11,23 +11,23 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart';
-
-
-/**
- * File name of pubspec files.
- */
-const String PUBSPEC_NAME = 'pubspec.yaml';
 
 
 /**
  * The name of `packages` folders.
  */
 const String PACKAGES_NAME = 'packages';
+
+
+/**
+ * File name of pubspec files.
+ */
+const String PUBSPEC_NAME = 'pubspec.yaml';
 
 
 /**
@@ -116,11 +116,6 @@ abstract class ContextManager {
   }
 
   /**
-   * Remove the context associated with the given [folder].
-   */
-  void removeContext(Folder folder);
-
-  /**
    * Rebuild the set of contexts from scratch based on the data last sent to
    * setRoots().
    */
@@ -132,6 +127,11 @@ abstract class ContextManager {
     // Rebuild contexts based on the data last sent to setRoots().
     setRoots(includedPaths, excludedPaths, packageRoots);
   }
+
+  /**
+   * Remove the context associated with the given [folder].
+   */
+  void removeContext(Folder folder);
 
   /**
    * Change the set of paths which should be used as starting points to
@@ -226,7 +226,7 @@ abstract class ContextManager {
    * Called when the package map for a context has changed.
    */
   void updateContextPackageUriResolver(Folder contextFolder,
-                                       UriResolver packageUriResolver);
+      UriResolver packageUriResolver);
 
   /**
    * Resursively adds all Dart and HTML files to the [changeSet].
@@ -303,14 +303,14 @@ abstract class ContextManager {
     UriResolver packageUriResolver;
     if (info.packageRoot != null) {
       info.packageMapDependencies = new Set<String>();
-      packageUriResolver = new PackageUriResolver(
-          [new JavaFile(info.packageRoot)]);
+      packageUriResolver =
+          new PackageUriResolver([new JavaFile(info.packageRoot)]);
     } else {
       PackageMapInfo packageMapInfo =
           _packageMapProvider.computePackageMap(folder);
       info.packageMapDependencies = packageMapInfo.dependencies;
-      packageUriResolver = new PackageMapUriResolver(
-          resourceProvider, packageMapInfo.packageMap);
+      packageUriResolver =
+          new PackageMapUriResolver(resourceProvider, packageMapInfo.packageMap);
       // TODO(paulberry): if any of the dependencies is outside of [folder],
       // we'll need to watch their parent folders as well.
     }
@@ -321,26 +321,14 @@ abstract class ContextManager {
    * Create a new empty context associated with [folder].
    */
   _ContextInfo _createContext(Folder folder, List<_ContextInfo> children) {
-    _ContextInfo info = new _ContextInfo(folder, children,
-        normalizedPackageRoots[folder.path]);
+    _ContextInfo info =
+        new _ContextInfo(folder, children, normalizedPackageRoots[folder.path]);
     _contexts[folder] = info;
     info.changeSubscription = folder.changes.listen((WatchEvent event) {
       _handleWatchEvent(folder, info, event);
     });
     UriResolver packageUriResolver = _computePackageUriResolver(folder, info);
     addContext(folder, packageUriResolver);
-    return info;
-  }
-
-  /**
-   * Create a new context associated with [folder] and fills its with sources.
-   */
-  _ContextInfo _createContextWithSources(Folder folder,
-      List<_ContextInfo> children) {
-    _ContextInfo info = _createContext(folder, children);
-    ChangeSet changeSet = new ChangeSet();
-    _addSourceFiles(changeSet, folder, info);
-    applyChangesToContext(folder, changeSet);
     return info;
   }
 
@@ -382,6 +370,18 @@ abstract class ContextManager {
     // OK, create a context without a pubspec
     _createContextWithSources(folder, children);
     return children;
+  }
+
+  /**
+   * Create a new context associated with [folder] and fills its with sources.
+   */
+  _ContextInfo _createContextWithSources(Folder folder,
+      List<_ContextInfo> children) {
+    _ContextInfo info = _createContext(folder, children);
+    ChangeSet changeSet = new ChangeSet();
+    _addSourceFiles(changeSet, folder, info);
+    applyChangesToContext(folder, changeSet);
+    return info;
   }
 
   /**

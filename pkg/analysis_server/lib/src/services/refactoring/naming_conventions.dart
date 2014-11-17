@@ -102,11 +102,10 @@ RefactoringStatus validateLibraryName(String name) {
   // check identifiers
   List<String> identifiers = name.split('.');
   for (String identifier in identifiers) {
-    RefactoringStatus status =
-        _validateIdentifier(
-            identifier,
-            "Library name identifier",
-            "a lowercase letter or underscore");
+    RefactoringStatus status = _validateIdentifier(
+        identifier,
+        "Library name identifier",
+        "a lowercase letter or underscore");
     if (!status.isOK) {
       return status;
     }

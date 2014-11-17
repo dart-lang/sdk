@@ -96,6 +96,18 @@ class MemberSorter {
   }
 
   /**
+   * Sorts all members of all [ClassDeclaration]s.
+   */
+  void _sortClassesMembers() {
+    for (CompilationUnitMember unitMember in unit.declarations) {
+      if (unitMember is ClassDeclaration) {
+        ClassDeclaration classDeclaration = unitMember;
+        _sortClassMembers(classDeclaration);
+      }
+    }
+  }
+
+  /**
    * Sorts all members of the given [ClassDeclaration].
    */
   void _sortClassMembers(ClassDeclaration classDeclaration) {
@@ -146,18 +158,6 @@ class MemberSorter {
     }
     // do sort
     _sortAndReorderMembers(members);
-  }
-
-  /**
-   * Sorts all members of all [ClassDeclaration]s.
-   */
-  void _sortClassesMembers() {
-    for (CompilationUnitMember unitMember in unit.declarations) {
-      if (unitMember is ClassDeclaration) {
-        ClassDeclaration classDeclaration = unitMember;
-        _sortClassMembers(classDeclaration);
-      }
-    }
   }
 
   /**

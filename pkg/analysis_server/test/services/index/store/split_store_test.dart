@@ -10,14 +10,14 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/store/codec.dart';
 import 'package:analysis_server/src/services/index/store/memory_node_manager.dart';
 import 'package:analysis_server/src/services/index/store/split_store.dart';
-import '../../../mocks.dart';
-import '../../../reflective_tests.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../../mocks.dart';
+import '../../../reflective_tests.dart';
 import 'mocks.dart';
 import 'single_source_container.dart';
 
@@ -32,15 +32,8 @@ main() {
 }
 
 
-void _assertHasLocationQ(List<Location> locations, Element element, int offset,
-    int length) {
-  _assertHasLocation(locations, element, offset, length, isQualified: true);
-}
-
-
 void _assertHasLocation(List<Location> locations, Element element, int offset,
-    int length, {bool isQualified: false,
-      bool isResolved: true}) {
+    int length, {bool isQualified: false, bool isResolved: true}) {
   for (Location location in locations) {
     if ((element == null || location.element == element) &&
         location.offset == offset &&
@@ -53,6 +46,12 @@ void _assertHasLocation(List<Location> locations, Element element, int offset,
   fail(
       'Expected to find Location'
           '(element=$element, offset=$offset, length=$length)');
+}
+
+
+void _assertHasLocationQ(List<Location> locations, Element element, int offset,
+    int length) {
+  _assertHasLocation(locations, element, offset, length, isQualified: true);
 }
 
 
@@ -459,12 +458,11 @@ class _RelationKeyDataTest {
     int relationshipId = 1;
     when(relationshipCodec.encode(relationship)).thenReturn(relationshipId);
     // create RelationKeyData
-    RelationKeyData keyData =
-        new RelationKeyData.forObject(
-            elementCodec,
-            relationshipCodec,
-            element,
-            relationship);
+    RelationKeyData keyData = new RelationKeyData.forObject(
+        elementCodec,
+        relationshipCodec,
+        element,
+        relationship);
     // touch
     keyData.hashCode;
     // equals

@@ -116,41 +116,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  bool visitCascadeExpression(CascadeExpression node) {
-    Expression target = node.target;
-    // This computer handles the expression
-    // while InvocationComputer handles the cascade selector
-    if (target != null && offset <= target.end) {
-      return visitNode(node);
-    } else {
-      return finished;
-    }
-  }
-
-  @override
-  bool visitNamespaceDirective(NamespaceDirective node) {
-    // No suggestions
-    return finished;
-  }
-
-  @override
-  bool visitStringLiteral(StringLiteral node) {
-    // ignore
-    return finished;
-  }
-
-  @override
-  bool visitVariableDeclaration(VariableDeclaration node) {
-    // Do not add suggestions if editing the name in a var declaration
-    SimpleIdentifier name = node.name;
-    if (name == null || name.offset < offset || offset > name.end) {
-      return visitNode(node);
-    } else {
-      return finished;
-    }
-  }
-
-  @override
   void declaredFunction(FunctionDeclaration declaration) {
     if (typesOnly) {
       return;
@@ -284,6 +249,18 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
+  bool visitCascadeExpression(CascadeExpression node) {
+    Expression target = node.target;
+    // This computer handles the expression
+    // while InvocationComputer handles the cascade selector
+    if (target != null && offset <= target.end) {
+      return visitNode(node);
+    } else {
+      return finished;
+    }
+  }
+
+  @override
   visitCombinator(Combinator node) {
     // Handled by CombinatorComputer
   }
@@ -302,6 +279,12 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
+  bool visitNamespaceDirective(NamespaceDirective node) {
+    // No suggestions
+    return finished;
+  }
+
+  @override
   visitPrefixedIdentifier(PrefixedIdentifier node) {
     // InvocationComputer adds suggestions for prefixed elements
     // but this computer adds suggestions for the prefix itself
@@ -317,11 +300,28 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
+  bool visitStringLiteral(StringLiteral node) {
+    // ignore
+    return finished;
+  }
+
+  @override
   visitTypeName(TypeName node) {
     // If suggesting completions within a TypeName node
     // then limit suggestions to only types
     typesOnly = true;
     return visitNode(node);
+  }
+
+  @override
+  bool visitVariableDeclaration(VariableDeclaration node) {
+    // Do not add suggestions if editing the name in a var declaration
+    SimpleIdentifier name = node.name;
+    if (name == null || name.offset < offset || offset > name.end) {
+      return visitNode(node);
+    } else {
+      return finished;
+    }
   }
 
   CompletionSuggestion _addSuggestion(SimpleIdentifier id, TypeName typeName,

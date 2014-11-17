@@ -22,13 +22,25 @@ main() {
 }
 
 class BuildUnitElementTaskTest extends EngineTestCase {
+  CompilationUnit parseUnit(InternalAnalysisContext context, Source source,
+      String content) {
+    ScanDartTask scanTask = new ScanDartTask(context, source, content);
+    scanTask.perform(new ScanDartTaskTestTV_accept());
+    ParseDartTask parseTask =
+        new ParseDartTask(context, source, scanTask.tokenStream, scanTask.lineInfo);
+    parseTask.perform(new ParseDartTaskTestTV_accept());
+    return parseTask.compilationUnit;
+  }
+
   void test_accept() {
-    BuildUnitElementTask task = new BuildUnitElementTask(null, null, null, null);
+    BuildUnitElementTask task =
+        new BuildUnitElementTask(null, null, null, null);
     expect(task.accept(new BuildUnitElementTaskTV_accept()), isTrue);
   }
 
   void test_getException() {
-    BuildUnitElementTask task = new BuildUnitElementTask(null, null, null, null);
+    BuildUnitElementTask task =
+        new BuildUnitElementTask(null, null, null, null);
     expect(task.exception, isNull);
   }
 
@@ -69,21 +81,6 @@ class A {}""";
     BuildUnitElementTask task =
         new BuildUnitElementTask(context, source, source, unit);
     task.perform(new BuildUnitElementTaskTV_perform_valid(source, unit));
-  }
-
-  CompilationUnit parseUnit(InternalAnalysisContext context, Source source, String content) {
-    ScanDartTask scanTask = new ScanDartTask(
-        context,
-        source,
-        content);
-    scanTask.perform(new ScanDartTaskTestTV_accept());
-    ParseDartTask parseTask = new ParseDartTask(
-        context,
-        source,
-        scanTask.tokenStream,
-        scanTask.lineInfo);
-    parseTask.perform(new ParseDartTaskTestTV_accept());
-    return parseTask.compilationUnit;
   }
 }
 

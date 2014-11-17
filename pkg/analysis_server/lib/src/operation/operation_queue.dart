@@ -7,8 +7,8 @@ library operation.queue;
 import 'dart:collection';
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation.dart';
+import 'package:analysis_server/src/operation/operation_analysis.dart';
 
 
 /**
@@ -30,11 +30,18 @@ class ServerOperationQueue {
   }
 
   /**
+   * Returns `true` if there are no queued [ServerOperation]s.
+   */
+  bool get isEmpty {
+    return _queues.every((queue) => queue.isEmpty);
+  }
+
+  /**
    * Adds the given operation to this queue. The exact position in the queue
    * depends on the priority of the given operation relative to the priorities
    * of the other operations in the queue.
    */
-   void add(ServerOperation operation) {
+  void add(ServerOperation operation) {
     int queueIndex = operation.priority.ordinal;
     Queue<ServerOperation> queue = _queues[queueIndex];
     queue.addLast(operation);
@@ -47,13 +54,6 @@ class ServerOperationQueue {
     for (Queue<ServerOperation> queue in _queues) {
       queue.clear();
     }
-  }
-
-  /**
-   * Returns `true` if there are no queued [ServerOperation]s.
-   */
-  bool get isEmpty {
-    return _queues.every((queue) => queue.isEmpty);
   }
 
   /**
@@ -80,4 +80,3 @@ class ServerOperationQueue {
     return null;
   }
 }
-

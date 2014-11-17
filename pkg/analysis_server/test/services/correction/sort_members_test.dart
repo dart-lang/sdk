@@ -370,6 +370,20 @@ class C {}
 ''');
   }
 
+  void test_unitMembers_class_ignoreCase() {
+    _parseTestUnit(r'''
+class C {}
+class a {}
+class B {}
+''');
+    // validate change
+    _assertSort(r'''
+class a {}
+class B {}
+class C {}
+''');
+  }
+
   void test_unitMembers_classTypeAlias() {
     _parseTestUnit(r'''
 class M {}
@@ -383,20 +397,6 @@ class A = Object with M;
 class B = Object with M;
 class C = Object with M;
 class M {}
-''');
-  }
-
-  void test_unitMembers_class_ignoreCase() {
-    _parseTestUnit(r'''
-class C {}
-class a {}
-class B {}
-''');
-    // validate change
-    _assertSort(r'''
-class a {}
-class B {}
-class C {}
 ''');
   }
 

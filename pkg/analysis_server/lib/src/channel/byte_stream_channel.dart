@@ -27,19 +27,18 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
   Stream<Notification> notificationStream;
 
   ByteStreamClientChannel(this.input, this.output) {
-    Stream jsonStream = input.transform((new Utf8Codec()).decoder)
-        .transform(new LineSplitter())
-        .transform(new JsonStreamDecoder())
-        .where((json) => json is Map)
-        .asBroadcastStream();
-    responseStream = jsonStream
-        .where((json) => json[Notification.EVENT] == null)
-        .transform(new ResponseConverter())
-        .asBroadcastStream();
-    notificationStream = jsonStream
-        .where((json) => json[Notification.EVENT] != null)
-        .transform(new NotificationConverter())
-        .asBroadcastStream();
+    Stream jsonStream = input.transform(
+        (new Utf8Codec()).decoder).transform(
+            new LineSplitter()).transform(
+                new JsonStreamDecoder()).where((json) => json is Map).asBroadcastStream();
+    responseStream = jsonStream.where(
+        (json) =>
+            json[Notification.EVENT] ==
+                null).transform(new ResponseConverter()).asBroadcastStream();
+    notificationStream = jsonStream.where(
+        (json) =>
+            json[Notification.EVENT] !=
+                null).transform(new NotificationConverter()).asBroadcastStream();
   }
 
   @override
@@ -90,9 +89,12 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
   @override
   void listen(void onRequest(Request request), {Function onError, void
       onDone()}) {
-    input.transform((new Utf8Codec()).decoder).transform(new LineSplitter()
-        ).listen((String data) => _readRequest(data, onRequest), onError: onError,
-        onDone: () {
+    input.transform(
+        (new Utf8Codec()).decoder).transform(
+            new LineSplitter()).listen(
+                (String data) => _readRequest(data, onRequest),
+                onError: onError,
+                onDone: () {
       close();
       onDone();
     });

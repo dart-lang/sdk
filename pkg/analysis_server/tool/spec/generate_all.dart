@@ -8,12 +8,12 @@ import 'dart:io';
 
 import 'package:path/path.dart';
 
-import 'codegen_tools.dart';
 import 'codegen_analysis_server.dart' as codegen_analysis_server;
 import 'codegen_dart_protocol.dart' as codegen_dart_protocol;
-import 'codegen_java_types.dart' as codegen_java_types;
 import 'codegen_inttest_methods.dart' as codegen_inttest_methods;
+import 'codegen_java_types.dart' as codegen_java_types;
 import 'codegen_matchers.dart' as codegen_matchers;
+import 'codegen_tools.dart';
 import 'to_html.dart' as to_html;
 
 /**

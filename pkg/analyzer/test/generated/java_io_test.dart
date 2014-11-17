@@ -7,10 +7,11 @@
 
 library engine.java_io_test;
 
-import 'package:analyzer/src/generated/java_io.dart';
-import 'package:unittest/unittest.dart';
-import 'package:path/path.dart';
 import 'dart:io';
+
+import 'package:analyzer/src/generated/java_io.dart';
+import 'package:path/path.dart';
+import 'package:unittest/unittest.dart';
 
 main() {
   group('JavaFile', () {

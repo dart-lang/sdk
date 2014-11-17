@@ -24,15 +24,16 @@ class HtmlFactory {
     return new Token.con1(TokenType.GT, 0);
   }
 
-  static Token ltToken() {
-    return new Token.con1(TokenType.LT, 0);
-  }
-
   static Token ltsToken() {
     return new Token.con1(TokenType.LT_SLASH, 0);
   }
 
-  static HtmlScriptTagNode scriptTag([List<XmlAttributeNode> attributes = XmlAttributeNode.EMPTY_LIST]) {
+  static Token ltToken() {
+    return new Token.con1(TokenType.LT, 0);
+  }
+
+  static HtmlScriptTagNode scriptTag([List<XmlAttributeNode> attributes =
+      XmlAttributeNode.EMPTY_LIST]) {
     return new HtmlScriptTagNode(
         ltToken(),
         stringToken("script"),
@@ -70,7 +71,8 @@ class HtmlFactory {
     return new Token.con2(TokenType.STRING, 0, value);
   }
 
-  static XmlTagNode tagNode(String name, [List<XmlAttributeNode> attributes = XmlAttributeNode.EMPTY_LIST]) {
+  static XmlTagNode tagNode(String name, [List<XmlAttributeNode> attributes =
+      XmlAttributeNode.EMPTY_LIST]) {
     return new XmlTagNode(
         ltToken(),
         stringToken(name),

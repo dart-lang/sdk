@@ -8,15 +8,17 @@
 library engine.html;
 
 import 'dart:collection';
-import 'java_core.dart';
-import 'java_engine.dart';
-import 'source.dart';
-import 'error.dart' show AnalysisErrorListener;
-import 'scanner.dart' as sc show Scanner, SubSequenceReader, Token;
-import 'parser.dart' show Parser;
+
 import 'ast.dart';
 import 'element.dart';
-import 'engine.dart' show AnalysisEngine, AngularHtmlUnitResolver, ExpressionVisitor;
+import 'engine.dart' show AnalysisEngine, AngularHtmlUnitResolver,
+    ExpressionVisitor;
+import 'error.dart' show AnalysisErrorListener;
+import 'java_core.dart';
+import 'java_engine.dart';
+import 'parser.dart' show Parser;
+import 'scanner.dart' as sc show Scanner, SubSequenceReader, Token;
+import 'source.dart';
 
 /**
  * The abstract class `AbstractScanner` implements a scanner for HTML code. Subclasses are
@@ -82,18 +84,8 @@ abstract class AbstractScanner {
    * Set array of element tags for which the content between tags should be consider a single token.
    */
   void set passThroughElements(List<String> passThroughElements) {
-    this._passThroughElements = passThroughElements != null ? passThroughElements : _NO_PASS_THROUGH_ELEMENTS;
-  }
-
-  /**
-   * Scan the source code to produce a list of tokens representing the source.
-   *
-   * @return the first token in the list of tokens that were produced
-   */
-  Token tokenize() {
-    _scan();
-    _appendEofToken();
-    return _firstToken();
+    this._passThroughElements =
+        passThroughElements != null ? passThroughElements : _NO_PASS_THROUGH_ELEMENTS;
   }
 
   /**
@@ -129,9 +121,21 @@ abstract class AbstractScanner {
     _lineStarts.add(offset);
   }
 
+  /**
+   * Scan the source code to produce a list of tokens representing the source.
+   *
+   * @return the first token in the list of tokens that were produced
+   */
+  Token tokenize() {
+    _scan();
+    _appendEofToken();
+    return _firstToken();
+  }
+
   void _appendEofToken() {
     Token eofToken = new Token.con1(TokenType.EOF, offset);
-    // The EOF token points to itself so that there is always infinite look-ahead.
+    // The EOF token points to itself so that there is always infinite
+    // look-ahead.
     eofToken.setNext(eofToken);
     _tail = _tail.setNext(eofToken);
   }
@@ -142,9 +146,11 @@ abstract class AbstractScanner {
     return token;
   }
 
-  Token _emitWithOffset(TokenType type, int start) => _emit(new Token.con1(type, start));
+  Token _emitWithOffset(TokenType type, int start) =>
+      _emit(new Token.con1(type, start));
 
-  Token _emitWithOffsetAndLength(TokenType type, int start, int count) => _emit(new Token.con2(type, start, getString(start, count)));
+  Token _emitWithOffsetAndLength(TokenType type, int start, int count) =>
+      _emit(new Token.con2(type, start, getString(start, count)));
 
   Token _firstToken() => _tokens.next;
 
@@ -362,16 +368,6 @@ class ExpressionVisitor_HtmlUnitUtils_getExpression extends ExpressionVisitor {
  * of [XmlNode]s.
  */
 class HtmlParser extends XmlParser {
-  /**
-   * The line information associated with the source being parsed.
-   */
-  LineInfo _lineInfo;
-
-  /**
-   * The error listener to which errors will be reported.
-   */
-  final AnalysisErrorListener _errorListener;
-
   static String _APPLICATION_DART_IN_DOUBLE_QUOTES = "\"application/dart\"";
 
   static String _APPLICATION_DART_IN_SINGLE_QUOTES = "'application/dart'";
@@ -383,49 +379,31 @@ class HtmlParser extends XmlParser {
   /**
    * A set containing the names of tags that do not have a closing tag.
    */
-  static Set<String> SELF_CLOSING = new HashSet<String>.from(<String>[
-      "area",
-      "base",
-      "basefont",
-      "br",
-      "col",
-      "frame",
-      "hr",
-      "img",
-      "input",
-      "link",
-      "meta",
-      "param",
-      "!"]);
+  static Set<String> SELF_CLOSING = new HashSet<String>.from(
+      <String>[
+          "area",
+          "base",
+          "basefont",
+          "br",
+          "col",
+          "frame",
+          "hr",
+          "img",
+          "input",
+          "link",
+          "meta",
+          "param",
+          "!"]);
 
   /**
-   * Given the contents of an embedded expression that occurs at the given offset, parse it as a
-   * Dart expression. The contents should not include the expression's delimiters.
-   *
-   * @param source the source that contains that given token
-   * @param token the token to start parsing from
-   * @return the Dart expression that was parsed
+   * The line information associated with the source being parsed.
    */
-  static Expression parseEmbeddedExpression(Source source, sc.Token token, AnalysisErrorListener errorListener) {
-    Parser parser = new Parser(source, errorListener);
-    return parser.parseExpression(token);
-  }
+  LineInfo _lineInfo;
 
   /**
-   * Given the contents of an embedded expression that occurs at the given offset, scans it as a
-   * Dart code.
-   *
-   * @param source the source of that contains the given contents
-   * @param contents the contents to scan
-   * @param contentOffset the offset of the contents in the larger file
-   * @return the first Dart token
+   * The error listener to which errors will be reported.
    */
-  static sc.Token scanDartSource(Source source, LineInfo lineInfo, String contents, int contentOffset, AnalysisErrorListener errorListener) {
-    LineInfo_Location location = lineInfo.getLocation(contentOffset);
-    sc.Scanner scanner = new sc.Scanner(source, new sc.SubSequenceReader(contents, contentOffset), errorListener);
-    scanner.setSourceStart(location.lineNumber, location.columnNumber);
-    return scanner.tokenize();
-  }
+  final AnalysisErrorListener _errorListener;
 
   /**
    * Construct a parser for the specified source.
@@ -434,6 +412,53 @@ class HtmlParser extends XmlParser {
    * @param errorListener the error listener to which errors will be reported
    */
   HtmlParser(Source source, this._errorListener) : super(source);
+
+  @override
+  XmlAttributeNode createAttributeNode(Token name, Token equals, Token value) =>
+      new XmlAttributeNode(name, equals, value);
+
+  @override
+  XmlTagNode createTagNode(Token nodeStart, Token tag,
+      List<XmlAttributeNode> attributes, Token attributeEnd,
+      List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag, Token nodeEnd) {
+    if (_isScriptNode(tag, attributes, tagNodes)) {
+      HtmlScriptTagNode tagNode = new HtmlScriptTagNode(
+          nodeStart,
+          tag,
+          attributes,
+          attributeEnd,
+          tagNodes,
+          contentEnd,
+          closingTag,
+          nodeEnd);
+      String contents = tagNode.content;
+      int contentOffset = attributeEnd.end;
+      LineInfo_Location location = _lineInfo.getLocation(contentOffset);
+      sc.Scanner scanner = new sc.Scanner(
+          source,
+          new sc.SubSequenceReader(contents, contentOffset),
+          _errorListener);
+      scanner.setSourceStart(location.lineNumber, location.columnNumber);
+      sc.Token firstToken = scanner.tokenize();
+      Parser parser = new Parser(source, _errorListener);
+      CompilationUnit unit = parser.parseCompilationUnit(firstToken);
+      unit.lineInfo = _lineInfo;
+      tagNode.script = unit;
+      return tagNode;
+    }
+    return new XmlTagNode(
+        nodeStart,
+        tag,
+        attributes,
+        attributeEnd,
+        tagNodes,
+        contentEnd,
+        closingTag,
+        nodeEnd);
+  }
+
+  @override
+  bool isSelfClosing(Token tag) => SELF_CLOSING.contains(tag.lexeme);
 
   /**
    * Parse the given tokens.
@@ -448,38 +473,14 @@ class HtmlParser extends XmlParser {
     return new HtmlUnit(token, tagNodes, currentToken);
   }
 
-  @override
-  XmlAttributeNode createAttributeNode(Token name, Token equals, Token value) => new XmlAttributeNode(name, equals, value);
-
-  @override
-  XmlTagNode createTagNode(Token nodeStart, Token tag, List<XmlAttributeNode> attributes, Token attributeEnd, List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag, Token nodeEnd) {
-    if (_isScriptNode(tag, attributes, tagNodes)) {
-      HtmlScriptTagNode tagNode = new HtmlScriptTagNode(nodeStart, tag, attributes, attributeEnd, tagNodes, contentEnd, closingTag, nodeEnd);
-      String contents = tagNode.content;
-      int contentOffset = attributeEnd.end;
-      LineInfo_Location location = _lineInfo.getLocation(contentOffset);
-      sc.Scanner scanner = new sc.Scanner(source, new sc.SubSequenceReader(contents, contentOffset), _errorListener);
-      scanner.setSourceStart(location.lineNumber, location.columnNumber);
-      sc.Token firstToken = scanner.tokenize();
-      Parser parser = new Parser(source, _errorListener);
-      CompilationUnit unit = parser.parseCompilationUnit(firstToken);
-      unit.lineInfo = _lineInfo;
-      tagNode.script = unit;
-      return tagNode;
-    }
-    return new XmlTagNode(nodeStart, tag, attributes, attributeEnd, tagNodes, contentEnd, closingTag, nodeEnd);
-  }
-
-  @override
-  bool isSelfClosing(Token tag) => SELF_CLOSING.contains(tag.lexeme);
-
   /**
    * Determine if the specified node is a Dart script.
    *
    * @param node the node to be tested (not `null`)
    * @return `true` if the node is a Dart script
    */
-  bool _isScriptNode(Token tag, List<XmlAttributeNode> attributes, List<XmlTagNode> tagNodes) {
+  bool _isScriptNode(Token tag, List<XmlAttributeNode> attributes,
+      List<XmlTagNode> tagNodes) {
     if (tagNodes.length != 0 || tag.lexeme != _SCRIPT) {
       return false;
     }
@@ -488,13 +489,48 @@ class HtmlParser extends XmlParser {
         Token valueToken = attribute.valueToken;
         if (valueToken != null) {
           String value = valueToken.lexeme;
-          if (value == _APPLICATION_DART_IN_DOUBLE_QUOTES || value == _APPLICATION_DART_IN_SINGLE_QUOTES) {
+          if (value == _APPLICATION_DART_IN_DOUBLE_QUOTES ||
+              value == _APPLICATION_DART_IN_SINGLE_QUOTES) {
             return true;
           }
         }
       }
     }
     return false;
+  }
+
+  /**
+   * Given the contents of an embedded expression that occurs at the given offset, parse it as a
+   * Dart expression. The contents should not include the expression's delimiters.
+   *
+   * @param source the source that contains that given token
+   * @param token the token to start parsing from
+   * @return the Dart expression that was parsed
+   */
+  static Expression parseEmbeddedExpression(Source source, sc.Token token,
+      AnalysisErrorListener errorListener) {
+    Parser parser = new Parser(source, errorListener);
+    return parser.parseExpression(token);
+  }
+
+  /**
+   * Given the contents of an embedded expression that occurs at the given offset, scans it as a
+   * Dart code.
+   *
+   * @param source the source of that contains the given contents
+   * @param contents the contents to scan
+   * @param contentOffset the offset of the contents in the larger file
+   * @return the first Dart token
+   */
+  static sc.Token scanDartSource(Source source, LineInfo lineInfo,
+      String contents, int contentOffset, AnalysisErrorListener errorListener) {
+    LineInfo_Location location = lineInfo.getLocation(contentOffset);
+    sc.Scanner scanner = new sc.Scanner(
+        source,
+        new sc.SubSequenceReader(contents, contentOffset),
+        errorListener);
+    scanner.setSourceStart(location.lineNumber, location.columnNumber);
+    return scanner.tokenize();
   }
 }
 
@@ -526,10 +562,18 @@ class HtmlScriptTagNode extends XmlTagNode {
    * @param closingTag the name of the tag that occurs in the closing tag
    * @param nodeEnd the last token in the tag
    */
-  HtmlScriptTagNode(Token nodeStart, Token tag, List<XmlAttributeNode> attributes, Token attributeEnd, List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag, Token nodeEnd) : super(nodeStart, tag, attributes, attributeEnd, tagNodes, contentEnd, closingTag, nodeEnd);
-
-  @override
-  accept(XmlVisitor visitor) => visitor.visitHtmlScriptTagNode(this);
+  HtmlScriptTagNode(Token nodeStart, Token tag,
+      List<XmlAttributeNode> attributes, Token attributeEnd,
+      List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag, Token nodeEnd)
+      : super(
+          nodeStart,
+          tag,
+          attributes,
+          attributeEnd,
+          tagNodes,
+          contentEnd,
+          closingTag,
+          nodeEnd);
 
   /**
    * Return the AST structure representing the Dart code within this tag, or `null` if this
@@ -547,6 +591,9 @@ class HtmlScriptTagNode extends XmlTagNode {
   void set script(CompilationUnit unit) {
     _script = unit;
   }
+
+  @override
+  accept(XmlVisitor visitor) => visitor.visitHtmlScriptTagNode(this);
 }
 
 /**
@@ -581,9 +628,6 @@ class HtmlUnit extends XmlNode {
     this._tagNodes = becomeParentOfAll(tagNodes);
   }
 
-  @override
-  accept(XmlVisitor visitor) => visitor.visitHtmlUnit(this);
-
   /**
    * Return the element associated with this HTML unit.
    *
@@ -591,6 +635,15 @@ class HtmlUnit extends XmlNode {
    */
   @override
   HtmlElement get element => super.element as HtmlElement;
+
+  @override
+  void set element(Element element) {
+    if (element != null && element is! HtmlElement) {
+      throw new IllegalArgumentException(
+          "HtmlElement expected, but ${element.runtimeType} given");
+    }
+    super.element = element;
+  }
 
   /**
    * Answer the tag nodes contained in the receiver. Callers should not manipulate the returned list
@@ -601,12 +654,7 @@ class HtmlUnit extends XmlNode {
   List<XmlTagNode> get tagNodes => _tagNodes;
 
   @override
-  void set element(Element element) {
-    if (element != null && element is! HtmlElement) {
-      throw new IllegalArgumentException("HtmlElement expected, but ${element.runtimeType} given");
-    }
-    super.element = element;
-  }
+  accept(XmlVisitor visitor) => visitor.visitHtmlUnit(this);
 
   @override
   void visitChildren(XmlVisitor visitor) {
@@ -628,8 +676,8 @@ class HtmlUnitUtils {
     if (htmlUnit == null) {
       return null;
     }
-    RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode visitor
-        = new RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode(offset);
+    RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode visitor =
+        new RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode(offset);
     try {
       htmlUnit.accept(visitor);
     } on HtmlUnitUtils_FoundAttributeNodeError catch (e) {
@@ -663,7 +711,8 @@ class HtmlUnitUtils {
   static Element getElementToOpen(HtmlUnit htmlUnit, Expression expression) {
     Element element = getElement(expression);
     {
-      AngularElement angularElement = AngularHtmlUnitResolver.getAngularElement(element);
+      AngularElement angularElement =
+          AngularHtmlUnitResolver.getAngularElement(element);
       if (angularElement != null) {
         return angularElement;
       }
@@ -679,8 +728,8 @@ class HtmlUnitUtils {
     if (htmlUnit == null) {
       return null;
     }
-    RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode visitor
-        = new RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode(offset);
+    RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode visitor =
+        new RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode(offset);
     try {
       htmlUnit.accept(visitor);
     } on HtmlUnitUtils_FoundTagNodeError catch (e) {
@@ -697,8 +746,8 @@ class HtmlUnitUtils {
     if (htmlUnit == null) {
       return null;
     }
-    ExpressionVisitor_HtmlUnitUtils_getExpression visitor
-        = new ExpressionVisitor_HtmlUnitUtils_getExpression(offset);
+    ExpressionVisitor_HtmlUnitUtils_getExpression visitor =
+        new ExpressionVisitor_HtmlUnitUtils_getExpression(offset);
     try {
       // TODO(scheglov) this code is very Angular specific
       htmlUnit.accept(visitor);
@@ -725,7 +774,9 @@ class HtmlUnitUtils {
     }
     // is "offset" in the open tag?
     Token closeTag = node.closingTag;
-    if (closeTag != null && closeTag.offset <= offset && offset <= closeTag.end) {
+    if (closeTag != null &&
+        closeTag.offset <= offset &&
+        offset <= closeTag.end) {
       return node;
     }
     // not on a tag name
@@ -821,7 +872,8 @@ class RecursiveXmlVisitor<R> implements XmlVisitor<R> {
   }
 }
 
-class RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode extends RecursiveXmlVisitor<Object> {
+class RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode extends
+    RecursiveXmlVisitor<Object> {
   final int offset;
 
   XmlAttributeNode result;
@@ -839,7 +891,8 @@ class RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode extends RecursiveXmlVis
   }
 }
 
-class RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode extends RecursiveXmlVisitor<Object> {
+class RecursiveXmlVisitor_HtmlUnitUtils_getEnclosingTagNode extends
+    RecursiveXmlVisitor<Object> {
   final int offset;
 
   XmlTagNode result;
@@ -925,7 +978,8 @@ class StringScanner extends AbstractScanner {
   }
 
   @override
-  String getString(int start, int endDelta) => _string.substring(start, _charOffset + 1 + endDelta).toString();
+  String getString(int start, int endDelta) =>
+      _string.substring(start, _charOffset + 1 + endDelta).toString();
 
   @override
   int peek() {
@@ -933,86 +987,6 @@ class StringScanner extends AbstractScanner {
       return _string.codeUnitAt(_charOffset + 1);
     }
     return -1;
-  }
-}
-
-/**
- * Instances of the class `ToSourceVisitor` write a source representation of a visited XML
- * node (and all of it's children) to a writer.
- */
-class ToSourceVisitor implements XmlVisitor<Object> {
-  /**
-   * The writer to which the source is to be written.
-   */
-  final PrintWriter _writer;
-
-  /**
-   * Initialize a newly created visitor to write source code representing the visited nodes to the
-   * given writer.
-   *
-   * @param writer the writer to which the source is to be written
-   */
-  ToSourceVisitor(this._writer);
-
-  @override
-  Object visitHtmlScriptTagNode(HtmlScriptTagNode node) => visitXmlTagNode(node);
-
-  @override
-  Object visitHtmlUnit(HtmlUnit node) {
-    for (XmlTagNode child in node.tagNodes) {
-      _visit(child);
-    }
-    return null;
-  }
-
-  @override
-  Object visitXmlAttributeNode(XmlAttributeNode node) {
-    String name = node.name;
-    Token value = node.valueToken;
-    if (name.length == 0) {
-      _writer.print("__");
-    } else {
-      _writer.print(name);
-    }
-    _writer.print("=");
-    if (value == null) {
-      _writer.print("__");
-    } else {
-      _writer.print(value.lexeme);
-    }
-    return null;
-  }
-
-  @override
-  Object visitXmlTagNode(XmlTagNode node) {
-    _writer.print("<");
-    String tagName = node.tag;
-    _writer.print(tagName);
-    for (XmlAttributeNode attribute in node.attributes) {
-      _writer.print(" ");
-      _visit(attribute);
-    }
-    _writer.print(node.attributeEnd.lexeme);
-    if (node.closingTag != null) {
-      for (XmlTagNode child in node.tagNodes) {
-        _visit(child);
-      }
-      _writer.print("</");
-      _writer.print(tagName);
-      _writer.print(">");
-    }
-    return null;
-  }
-
-  /**
-   * Safely visit the given node.
-   *
-   * @param node the node to be visited
-   */
-  void _visit(XmlNode node) {
-    if (node != null) {
-      node.accept(this);
-    }
   }
 }
 
@@ -1075,6 +1049,15 @@ class Token {
   int get end => offset + length;
 
   /**
+   * Return `true` if this token is a synthetic token. A synthetic token is a token that was
+   * introduced by the parser in order to recover from an error in the code. Synthetic tokens always
+   * have a length of zero (`0`).
+   *
+   * @return `true` if this token is a synthetic token
+   */
+  bool get isSynthetic => length == 0;
+
+  /**
    * Return the number of characters in the node's source range.
    *
    * @return the number of characters in the node's source range
@@ -1094,15 +1077,6 @@ class Token {
    * @return the next token in the token stream
    */
   Token get next => _next;
-
-  /**
-   * Return `true` if this token is a synthetic token. A synthetic token is a token that was
-   * introduced by the parser in order to recover from an error in the code. Synthetic tokens always
-   * have a length of zero (`0`).
-   *
-   * @return `true` if this token is a synthetic token
-   */
-  bool get isSynthetic => length == 0;
 
   /**
    * Set the next token in the token stream to the given token. This has the side-effect of setting
@@ -1177,16 +1151,103 @@ class TokenType extends Enum<TokenType> {
 }
 
 class TokenType_EOF extends TokenType {
-  const TokenType_EOF(String name, int ordinal, String arg0) : super(name, ordinal, arg0);
+  const TokenType_EOF(String name, int ordinal, String arg0)
+      : super(name, ordinal, arg0);
 
   @override
   String toString() => "-eof-";
 }
 
 /**
+ * Instances of the class `ToSourceVisitor` write a source representation of a visited XML
+ * node (and all of it's children) to a writer.
+ */
+class ToSourceVisitor implements XmlVisitor<Object> {
+  /**
+   * The writer to which the source is to be written.
+   */
+  final PrintWriter _writer;
+
+  /**
+   * Initialize a newly created visitor to write source code representing the visited nodes to the
+   * given writer.
+   *
+   * @param writer the writer to which the source is to be written
+   */
+  ToSourceVisitor(this._writer);
+
+  @override
+  Object visitHtmlScriptTagNode(HtmlScriptTagNode node) =>
+      visitXmlTagNode(node);
+
+  @override
+  Object visitHtmlUnit(HtmlUnit node) {
+    for (XmlTagNode child in node.tagNodes) {
+      _visit(child);
+    }
+    return null;
+  }
+
+  @override
+  Object visitXmlAttributeNode(XmlAttributeNode node) {
+    String name = node.name;
+    Token value = node.valueToken;
+    if (name.length == 0) {
+      _writer.print("__");
+    } else {
+      _writer.print(name);
+    }
+    _writer.print("=");
+    if (value == null) {
+      _writer.print("__");
+    } else {
+      _writer.print(value.lexeme);
+    }
+    return null;
+  }
+
+  @override
+  Object visitXmlTagNode(XmlTagNode node) {
+    _writer.print("<");
+    String tagName = node.tag;
+    _writer.print(tagName);
+    for (XmlAttributeNode attribute in node.attributes) {
+      _writer.print(" ");
+      _visit(attribute);
+    }
+    _writer.print(node.attributeEnd.lexeme);
+    if (node.closingTag != null) {
+      for (XmlTagNode child in node.tagNodes) {
+        _visit(child);
+      }
+      _writer.print("</");
+      _writer.print(tagName);
+      _writer.print(">");
+    }
+    return null;
+  }
+
+  /**
+   * Safely visit the given node.
+   *
+   * @param node the node to be visited
+   */
+  void _visit(XmlNode node) {
+    if (node != null) {
+      node.accept(this);
+    }
+  }
+}
+
+/**
  * Instances of `XmlAttributeNode` represent name/value pairs owned by an [XmlTagNode].
  */
 class XmlAttributeNode extends XmlNode {
+  /**
+   * An empty list of XML attribute nodes.
+   */
+  static const List<XmlAttributeNode> EMPTY_LIST = const <XmlAttributeNode>[];
+
   final Token _name;
 
   final Token equals;
@@ -1194,11 +1255,6 @@ class XmlAttributeNode extends XmlNode {
   final Token _value;
 
   List<XmlExpression> expressions = XmlExpression.EMPTY_ARRAY;
-
-  /**
-   * An empty list of XML attribute nodes.
-   */
-  static const List<XmlAttributeNode> EMPTY_LIST = const <XmlAttributeNode>[];
 
   /**
    * Construct a new instance representing an XML attribute.
@@ -1209,9 +1265,6 @@ class XmlAttributeNode extends XmlNode {
    * @param value the value token (not `null`)
    */
   XmlAttributeNode(this._name, this.equals, this._value);
-
-  @override
-  accept(XmlVisitor visitor) => visitor.visitXmlAttributeNode(this);
 
   @override
   Token get beginToken => _name;
@@ -1243,7 +1296,8 @@ class XmlAttributeNode extends XmlNode {
     if (_value == null) {
       return null;
     }
-    //TODO (danrubel): replace HTML character encodings with the actual characters
+    //TODO (danrubel): replace HTML character encodings with the actual
+    // characters
     String text = _value.lexeme;
     int len = text.length;
     if (len > 0) {
@@ -1274,7 +1328,8 @@ class XmlAttributeNode extends XmlNode {
       return -1;
     }
     String text = _value.lexeme;
-    if (StringUtilities.startsWithChar(text, 0x22) || StringUtilities.startsWithChar(text, 0x27)) {
+    if (StringUtilities.startsWithChar(text, 0x22) ||
+        StringUtilities.startsWithChar(text, 0x27)) {
       return _value.offset + 1;
     }
     return _value.offset;
@@ -1287,6 +1342,9 @@ class XmlAttributeNode extends XmlNode {
    * @return the value token or `null` if this represents a badly formed attribute
    */
   Token get valueToken => _value;
+
+  @override
+  accept(XmlVisitor visitor) => visitor.visitXmlAttributeNode(this);
 
   @override
   void visitChildren(XmlVisitor visitor) {
@@ -1305,11 +1363,6 @@ abstract class XmlExpression {
   static const List<XmlExpression> EMPTY_ARRAY = const <XmlExpression>[];
 
   /**
-   * Check if the given offset belongs to the expression's source range.
-   */
-  bool contains(int offset) => this.offset <= offset && offset < end;
-
-  /**
    * Return the offset of the character immediately following the last character of this
    * expression's source range. This is equivalent to `getOffset() + getLength()`.
    *
@@ -1326,6 +1379,11 @@ abstract class XmlExpression {
    * Return the offset of the first character in the expression's source range.
    */
   int get offset;
+
+  /**
+   * Check if the given offset belongs to the expression's source range.
+   */
+  bool contains(int offset) => this.offset <= offset && offset < end;
 
   /**
    * Return the [Reference] at the given offset.
@@ -1368,14 +1426,6 @@ abstract class XmlNode {
   Element _element;
 
   /**
-   * Use the given visitor to visit this node.
-   *
-   * @param visitor the visitor that will visit this node
-   * @return the value returned by the visitor as a result of visiting this node
-   */
-  accept(XmlVisitor visitor);
-
-  /**
    * Return the first token included in this node's source range.
    *
    * @return the first token or `null` if none
@@ -1388,6 +1438,15 @@ abstract class XmlNode {
    * @return the element or `null` if the receiver is not resolved
    */
   Element get element => _element;
+
+  /**
+   * Set the element associated with this node.
+   *
+   * @param element the element
+   */
+  void set element(Element element) {
+    this._element = element;
+  }
 
   /**
    * Return the offset of the character immediately following the last character of this node's
@@ -1445,28 +1504,33 @@ abstract class XmlNode {
   XmlNode get parent => _parent;
 
   /**
-   * Set the element associated with this node.
+   * Set the parent of this node to the given node.
    *
-   * @param element the element
+   * @param newParent the node that is to be made the parent of this node
    */
-  void set element(Element element) {
-    this._element = element;
-  }
-
-  @override
-  String toString() {
-    PrintStringWriter writer = new PrintStringWriter();
-    accept(new ToSourceVisitor(writer));
-    return writer.toString();
+  void set parent(XmlNode newParent) {
+    XmlNode current = newParent;
+    while (current != null) {
+      if (identical(current, this)) {
+        AnalysisEngine.instance.logger.logError(
+            "Circular structure while setting an XML node's parent",
+            new CaughtException(
+                new ArgumentError(_buildRecursiveStructureMessage(newParent)),
+                null));
+        return;
+      }
+      current = current.parent;
+    }
+    _parent = newParent;
   }
 
   /**
-   * Use the given visitor to visit all of the children of this node. The children will be visited
-   * in source order.
+   * Use the given visitor to visit this node.
    *
-   * @param visitor the visitor that will be used to visit the children of this node
+   * @param visitor the visitor that will visit this node
+   * @return the value returned by the visitor as a result of visiting this node
    */
-  void visitChildren(XmlVisitor visitor);
+  accept(XmlVisitor visitor);
 
   /**
    * Make this node the parent of the given child node.
@@ -1503,6 +1567,21 @@ abstract class XmlNode {
     return children;
   }
 
+  @override
+  String toString() {
+    PrintStringWriter writer = new PrintStringWriter();
+    accept(new ToSourceVisitor(writer));
+    return writer.toString();
+  }
+
+  /**
+   * Use the given visitor to visit all of the children of this node. The children will be visited
+   * in source order.
+   *
+   * @param visitor the visitor that will be used to visit the children of this node
+   */
+  void visitChildren(XmlVisitor visitor);
+
   /**
    * This method exists for debugging purposes only.
    */
@@ -1538,27 +1617,6 @@ abstract class XmlNode {
     }
     return buffer.toString();
   }
-
-  /**
-   * Set the parent of this node to the given node.
-   *
-   * @param newParent the node that is to be made the parent of this node
-   */
-  void set parent(XmlNode newParent) {
-    XmlNode current = newParent;
-    while (current != null) {
-      if (identical(current, this)) {
-        AnalysisEngine.instance.logger.logError(
-            "Circular structure while setting an XML node's parent",
-            new CaughtException(
-                new ArgumentError(_buildRecursiveStructureMessage(newParent)),
-                null));
-        return;
-      }
-      current = current.parent;
-    }
-    _parent = newParent;
-  }
 }
 
 /**
@@ -1584,6 +1642,13 @@ class XmlParser {
   XmlParser(this.source);
 
   /**
+   * Answer the current token.
+   *
+   * @return the current token
+   */
+  Token get currentToken => _currentToken;
+
+  /**
    * Create a node representing an attribute.
    *
    * @param name the name of the attribute
@@ -1591,7 +1656,8 @@ class XmlParser {
    * @param value the value of the attribute
    * @return the node that was created
    */
-  XmlAttributeNode createAttributeNode(Token name, Token equals, Token value) => new XmlAttributeNode(name, equals, value);
+  XmlAttributeNode createAttributeNode(Token name, Token equals, Token value) =>
+      new XmlAttributeNode(name, equals, value);
 
   /**
    * Create a node representing a tag.
@@ -1606,7 +1672,18 @@ class XmlParser {
    * @param nodeEnd the last token in the tag
    * @return the node that was created
    */
-  XmlTagNode createTagNode(Token nodeStart, Token tag, List<XmlAttributeNode> attributes, Token attributeEnd, List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag, Token nodeEnd) => new XmlTagNode(nodeStart, tag, attributes, attributeEnd, tagNodes, contentEnd, closingTag, nodeEnd);
+  XmlTagNode createTagNode(Token nodeStart, Token tag,
+      List<XmlAttributeNode> attributes, Token attributeEnd,
+      List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag, Token nodeEnd) =>
+      new XmlTagNode(
+          nodeStart,
+          tag,
+          attributes,
+          attributeEnd,
+          tagNodes,
+          contentEnd,
+          closingTag,
+          nodeEnd);
 
   /**
    * Answer `true` if the specified tag is self closing and thus should never have content or
@@ -1630,7 +1707,9 @@ class XmlParser {
     while (type != TokenType.EOF) {
       if (type == TokenType.LT) {
         tagNodes.add(_parseTagNode());
-      } else if (type == TokenType.DECLARATION || type == TokenType.DIRECTIVE || type == TokenType.COMMENT) {
+      } else if (type == TokenType.DECLARATION ||
+          type == TokenType.DIRECTIVE ||
+          type == TokenType.COMMENT) {
         // ignored tokens
         _currentToken = _currentToken.next;
       } else {
@@ -1641,13 +1720,6 @@ class XmlParser {
     }
     return tagNodes;
   }
-
-  /**
-   * Answer the current token.
-   *
-   * @return the current token
-   */
-  Token get currentToken => _currentToken;
 
   /**
    * Insert a synthetic token of the specified type before the current token
@@ -1701,11 +1773,15 @@ class XmlParser {
    */
   List<XmlAttributeNode> _parseAttributes() {
     TokenType type = _currentToken.type;
-    if (type == TokenType.GT || type == TokenType.SLASH_GT || type == TokenType.EOF) {
+    if (type == TokenType.GT ||
+        type == TokenType.SLASH_GT ||
+        type == TokenType.EOF) {
       return XmlTagNode.NO_ATTRIBUTES;
     }
     List<XmlAttributeNode> attributes = new List<XmlAttributeNode>();
-    while (type != TokenType.GT && type != TokenType.SLASH_GT && type != TokenType.EOF) {
+    while (type != TokenType.GT &&
+        type != TokenType.SLASH_GT &&
+        type != TokenType.EOF) {
       if (type == TokenType.TAG) {
         attributes.add(_parseAttribute());
       } else {
@@ -1767,7 +1843,8 @@ class XmlParser {
     List<XmlAttributeNode> attributes = _parseAttributes();
     // Token ending attribute list
     Token attributeEnd;
-    if (_currentToken.type == TokenType.GT || _currentToken.type == TokenType.SLASH_GT) {
+    if (_currentToken.type == TokenType.GT ||
+        _currentToken.type == TokenType.SLASH_GT) {
       attributeEnd = _currentToken;
       _currentToken = _currentToken.next;
     } else {
@@ -1776,7 +1853,15 @@ class XmlParser {
     }
     // If the node has no children, then return the node
     if (attributeEnd.type == TokenType.SLASH_GT || isSelfClosing(tag)) {
-      return createTagNode(nodeStart, tag, attributes, attributeEnd, XmlTagNode.NO_TAG_NODES, _currentToken, null, attributeEnd);
+      return createTagNode(
+          nodeStart,
+          tag,
+          attributes,
+          attributeEnd,
+          XmlTagNode.NO_TAG_NODES,
+          _currentToken,
+          null,
+          attributeEnd);
     }
     // Parse the child tag nodes
     List<XmlTagNode> tagNodes = _parseChildTagNodes();
@@ -1786,8 +1871,8 @@ class XmlParser {
       contentEnd = _currentToken;
       _currentToken = _currentToken.next;
     } else {
-      // TODO (danrubel): handle self closing HTML elements by inserting synthetic tokens
-      // but not reporting an error
+      // TODO (danrubel): handle self closing HTML elements by inserting
+      // synthetic tokens but not reporting an error
       _reportUnexpectedToken();
       contentEnd = _insertSyntheticToken(TokenType.LT_SLASH);
     }
@@ -1809,7 +1894,15 @@ class XmlParser {
       _reportUnexpectedToken();
       nodeEnd = _insertSyntheticToken(TokenType.GT);
     }
-    return createTagNode(nodeStart, tag, attributes, attributeEnd, tagNodes, contentEnd, closingTag, nodeEnd);
+    return createTagNode(
+        nodeStart,
+        tag,
+        attributes,
+        attributeEnd,
+        tagNodes,
+        contentEnd,
+        closingTag,
+        nodeEnd);
   }
 
   /**
@@ -1828,12 +1921,14 @@ class XmlTagNode extends XmlNode {
   /**
    * Constant representing empty list of attributes.
    */
-  static List<XmlAttributeNode> NO_ATTRIBUTES = new UnmodifiableListView(new List<XmlAttributeNode>());
+  static List<XmlAttributeNode> NO_ATTRIBUTES =
+      new UnmodifiableListView(new List<XmlAttributeNode>());
 
   /**
    * Constant representing empty list of tag nodes.
    */
-  static List<XmlTagNode> NO_TAG_NODES = new UnmodifiableListView(new List<XmlTagNode>());
+  static List<XmlTagNode> NO_TAG_NODES =
+      new UnmodifiableListView(new List<XmlTagNode>());
 
   /**
    * The starting [TokenType.LT] token (not `null`).
@@ -1913,27 +2008,11 @@ class XmlTagNode extends XmlNode {
    * @param nodeEnd the ending [TokenType.GT] or [TokenType.SLASH_GT] token (not
    *          `null`)
    */
-  XmlTagNode(this.nodeStart, this._tag, List<XmlAttributeNode> attributes, this.attributeEnd, List<XmlTagNode> tagNodes, this.contentEnd, this.closingTag, this.nodeEnd) {
+  XmlTagNode(this.nodeStart, this._tag, List<XmlAttributeNode> attributes,
+      this.attributeEnd, List<XmlTagNode> tagNodes, this.contentEnd, this.closingTag,
+      this.nodeEnd) {
     this._attributes = becomeParentOfAll(attributes, ifEmpty: NO_ATTRIBUTES);
     this._tagNodes = becomeParentOfAll(tagNodes, ifEmpty: NO_TAG_NODES);
-  }
-
-  @override
-  accept(XmlVisitor visitor) => visitor.visitXmlTagNode(this);
-
-  /**
-   * Answer the attribute with the specified name.
-   *
-   * @param name the attribute name
-   * @return the attribute or `null` if no matching attribute is found
-   */
-  XmlAttributeNode getAttribute(String name) {
-    for (XmlAttributeNode attribute in _attributes) {
-      if (attribute.name == name) {
-        return attribute;
-      }
-    }
-    return null;
   }
 
   /**
@@ -1943,19 +2022,6 @@ class XmlTagNode extends XmlNode {
    * @return the attributes (not `null`, contains no `null`s)
    */
   List<XmlAttributeNode> get attributes => _attributes;
-
-  /**
-   * Find the attribute with the given name (see [getAttribute] and answer the lexeme
-   * for the attribute's value token without the leading and trailing quotes (see
-   * [XmlAttributeNode.getText]).
-   *
-   * @param name the attribute name
-   * @return the attribute text or `null` if no matching attribute is found
-   */
-  String getAttributeText(String name) {
-    XmlAttributeNode attribute = getAttribute(name);
-    return attribute != null ? attribute.text : null;
-  }
 
   @override
   Token get beginToken => nodeStart;
@@ -2031,6 +2097,37 @@ class XmlTagNode extends XmlNode {
    * @return the token (not `null`)
    */
   Token get tagToken => _tag;
+
+  @override
+  accept(XmlVisitor visitor) => visitor.visitXmlTagNode(this);
+
+  /**
+   * Answer the attribute with the specified name.
+   *
+   * @param name the attribute name
+   * @return the attribute or `null` if no matching attribute is found
+   */
+  XmlAttributeNode getAttribute(String name) {
+    for (XmlAttributeNode attribute in _attributes) {
+      if (attribute.name == name) {
+        return attribute;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Find the attribute with the given name (see [getAttribute] and answer the lexeme
+   * for the attribute's value token without the leading and trailing quotes (see
+   * [XmlAttributeNode.getText]).
+   *
+   * @param name the attribute name
+   * @return the attribute text or `null` if no matching attribute is found
+   */
+  String getAttributeText(String name) {
+    XmlAttributeNode attribute = getAttribute(name);
+    return attribute != null ? attribute.text : null;
+  }
 
   @override
   void visitChildren(XmlVisitor visitor) {

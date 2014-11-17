@@ -8,9 +8,10 @@
 library engine.sdk;
 
 import 'dart:collection';
-import 'source.dart' show ContentCache, Source, UriKind;
+
 import 'ast.dart';
 import 'engine.dart' show AnalysisContext;
+import 'source.dart' show ContentCache, Source, UriKind;
 
 /**
  * Instances of the class `DartSdk` represent a Dart SDK installed in a specified location.
@@ -37,16 +38,6 @@ abstract class DartSdk {
   static final String DEFAULT_VERSION = "0";
 
   /**
-   * Return a source representing the given file: URI if the file is in this SDK, or `null` if
-   * the file is not in this SDK.
-   *
-   * @param uri the file URI for which a source is to be returned
-   * @return the source representing the given URI
-   * @throws
-   */
-  Source fromFileUri(Uri uri);
-
-  /**
    * Return the [AnalysisContext] used for all of the sources in this [DartSdk].
    *
    * @return the [AnalysisContext] used for all of the sources in this [DartSdk]
@@ -59,15 +50,6 @@ abstract class DartSdk {
    * @return the libraries defined in this SDK
    */
   List<SdkLibrary> get sdkLibraries;
-
-  /**
-   * Return the library representing the library with the given `dart:` URI, or `null`
-   * if the given URI does not denote a library in this SDK.
-   *
-   * @param dartUri the URI of the library to be returned
-   * @return the SDK library object
-   */
-  SdkLibrary getSdkLibrary(String dartUri);
 
   /**
    * Return the revision number of this SDK, or `"0"` if the revision number cannot be
@@ -83,6 +65,25 @@ abstract class DartSdk {
    * @return the library URI's for the libraries defined in this SDK
    */
   List<String> get uris;
+
+  /**
+   * Return a source representing the given file: URI if the file is in this SDK, or `null` if
+   * the file is not in this SDK.
+   *
+   * @param uri the file URI for which a source is to be returned
+   * @return the source representing the given URI
+   * @throws
+   */
+  Source fromFileUri(Uri uri);
+
+  /**
+   * Return the library representing the library with the given `dart:` URI, or `null`
+   * if the given URI does not denote a library in this SDK.
+   *
+   * @param dartUri the URI of the library to be returned
+   * @return the SDK library object
+   */
+  SdkLibrary getSdkLibrary(String dartUri);
 
   /**
    * Return the source representing the library with the given `dart:` URI, or `null` if
@@ -102,15 +103,8 @@ class LibraryMap {
   /**
    * A table mapping Dart library URI's to the library.
    */
-  HashMap<String, SdkLibraryImpl> _libraryMap = new HashMap<String, SdkLibraryImpl>();
-
-  /**
-   * Return the library with the given URI, or `null` if the URI does not map to a library.
-   *
-   * @param dartUri the URI of the library to be returned
-   * @return the library with the given URI
-   */
-  SdkLibrary getLibrary(String dartUri) => _libraryMap[dartUri];
+  HashMap<String, SdkLibraryImpl> _libraryMap =
+      new HashMap<String, SdkLibraryImpl>();
 
   /**
    * Return an array containing all the sdk libraries [SdkLibraryImpl] in the mapping
@@ -125,6 +119,14 @@ class LibraryMap {
    * @return the library URI's for which a mapping is available
    */
   List<String> get uris => new List.from(_libraryMap.keys.toSet());
+
+  /**
+   * Return the library with the given URI, or `null` if the URI does not map to a library.
+   *
+   * @param dartUri the URI of the library to be returned
+   * @return the library with the given URI
+   */
+  SdkLibrary getLibrary(String dartUri) => _libraryMap[dartUri];
 
   /**
    * Return the library with the given URI, or `null` if the URI does not map to a library.
@@ -268,21 +270,6 @@ abstract class SdkLibrary {
   String get category;
 
   /**
-   * Return the path to the file defining the library. The path is relative to the `lib`
-   * directory within the SDK.
-   *
-   * @return the path to the file defining the library
-   */
-  String get path;
-
-  /**
-   * Return the short name of the library. This is the URI of the library, including `dart:`.
-   *
-   * @return the short name of the library
-   */
-  String get shortName;
-
-  /**
    * Return `true` if this library can be compiled to JavaScript by dart2js.
    *
    * @return `true` if this library can be compiled to JavaScript by dart2js
@@ -323,6 +310,21 @@ abstract class SdkLibrary {
    * @return `true` if this library can be run on the VM
    */
   bool get isVmLibrary;
+
+  /**
+   * Return the path to the file defining the library. The path is relative to the `lib`
+   * directory within the SDK.
+   *
+   * @return the path to the file defining the library
+   */
+  String get path;
+
+  /**
+   * Return the short name of the library. This is the URI of the library, including `dart:`.
+   *
+   * @return the short name of the library
+   */
+  String get shortName;
 }
 
 /**
@@ -330,6 +332,18 @@ abstract class SdkLibrary {
  * within the SDK.
  */
 class SdkLibraryImpl implements SdkLibrary {
+  /**
+   * The bit mask used to access the bit representing the flag indicating whether a library is
+   * intended to work on the dart2js platform.
+   */
+  static int DART2JS_PLATFORM = 1;
+
+  /**
+   * The bit mask used to access the bit representing the flag indicating whether a library is
+   * intended to work on the VM platform.
+   */
+  static int VM_PLATFORM = 2;
+
   /**
    * The short name of the library. This is the name used after `dart:` in a URI.
    */
@@ -363,18 +377,6 @@ class SdkLibraryImpl implements SdkLibrary {
   int _platforms = 0;
 
   /**
-   * The bit mask used to access the bit representing the flag indicating whether a library is
-   * intended to work on the dart2js platform.
-   */
-  static int DART2JS_PLATFORM = 1;
-
-  /**
-   * The bit mask used to access the bit representing the flag indicating whether a library is
-   * intended to work on the VM platform.
-   */
-  static int VM_PLATFORM = 2;
-
-  /**
    * Initialize a newly created library to represent the library with the given name.
    *
    * @param name the short name of the library
@@ -383,8 +385,23 @@ class SdkLibraryImpl implements SdkLibrary {
     this._shortName = name;
   }
 
-  @override
-  String get shortName => _shortName;
+  /**
+   * Set whether the library is documented to match the given value.
+   *
+   * @param documented `true` if the library is documented
+   */
+  void set documented(bool documented) {
+    this._documented = documented;
+  }
+
+  /**
+   * Set whether the library is an implementation library to match the given value.
+   *
+   * @param implementation `true` if the library is an implementation library
+   */
+  void set implementation(bool implementation) {
+    this._implementation = implementation;
+  }
 
   @override
   bool get isDart2JsLibrary => (_platforms & DART2JS_PLATFORM) != 0;
@@ -412,29 +429,14 @@ class SdkLibraryImpl implements SdkLibrary {
   @override
   bool get isVmLibrary => (_platforms & VM_PLATFORM) != 0;
 
+  @override
+  String get shortName => _shortName;
+
   /**
    * Record that this library can be compiled to JavaScript by dart2js.
    */
   void setDart2JsLibrary() {
     _platforms |= DART2JS_PLATFORM;
-  }
-
-  /**
-   * Set whether the library is documented to match the given value.
-   *
-   * @param documented `true` if the library is documented
-   */
-  void set documented(bool documented) {
-    this._documented = documented;
-  }
-
-  /**
-   * Set whether the library is an implementation library to match the given value.
-   *
-   * @param implementation `true` if the library is an implementation library
-   */
-  void set implementation(bool implementation) {
-    this._implementation = implementation;
   }
 
   /**

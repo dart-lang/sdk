@@ -12,20 +12,19 @@ import 'package:html5lib/dom.dart' as dom;
 /**
  * Make a deep copy of the given HTML nodes.
  */
-List<dom.Node> cloneHtmlNodes(List<dom.Node> nodes) => nodes.map((dom.Node node)
-    => node.clone(true)).toList();
+List<dom.Node> cloneHtmlNodes(List<dom.Node> nodes) =>
+    nodes.map((dom.Node node) => node.clone(true)).toList();
 
 /**
- * Create an HTML element with the given name, attributes, and child nodes.
+ * Return true if the given iterable contains only whitespace text nodes.
  */
-dom.Element makeElement(String name, Map<dynamic, String>
-    attributes, List<dom.Node> children) {
-  dom.Element result = new dom.Element.tag(name);
-  result.attributes.addAll(attributes);
-  for (dom.Node child in children) {
-    result.append(child);
+bool containsOnlyWhitespace(Iterable<dom.Node> nodes) {
+  for (dom.Node node in nodes) {
+    if (!isWhitespaceNode(node)) {
+      return false;
+    }
   }
-  return result;
+  return true;
 }
 
 /**
@@ -61,15 +60,16 @@ bool isWhitespaceNode(dom.Node node) {
 }
 
 /**
- * Return true if the given iterable contains only whitespace text nodes.
+ * Create an HTML element with the given name, attributes, and child nodes.
  */
-bool containsOnlyWhitespace(Iterable<dom.Node> nodes) {
-  for (dom.Node node in nodes) {
-    if (!isWhitespaceNode(node)) {
-      return false;
-    }
+dom.Element makeElement(String name, Map<dynamic, String> attributes,
+    List<dom.Node> children) {
+  dom.Element result = new dom.Element.tag(name);
+  result.attributes.addAll(attributes);
+  for (dom.Node child in children) {
+    result.append(child);
   }
-  return true;
+  return result;
 }
 
 /**
@@ -77,6 +77,22 @@ bool containsOnlyWhitespace(Iterable<dom.Node> nodes) {
  */
 class HtmlGenerator {
   List<dom.Node> _html;
+
+  /**
+   * Add the given [node] to the HTML output.
+   */
+  void add(dom.Node node) {
+    _html.add(node);
+  }
+
+  /**
+   * Add the given [nodes] to the HTML output.
+   */
+  void addAll(Iterable<dom.Node> nodes) {
+    for (dom.Node node in nodes) {
+      add(node);
+    }
+  }
 
   /**
    * Execute [callback], collecting any code that is output using [write],
@@ -97,19 +113,12 @@ class HtmlGenerator {
   }
 
   /**
-   * Add the given [node] to the HTML output.
+   * Execute [callback], wrapping its output in an element with the given
+   * [name] and [attributes].
    */
-  void add(dom.Node node) {
-    _html.add(node);
-  }
-
-  /**
-   * Add the given [nodes] to the HTML output.
-   */
-  void addAll(Iterable<dom.Node> nodes) {
-    for (dom.Node node in nodes) {
-      add(node);
-    }
+  void element(String name, Map<dynamic, String> attributes, [void
+      callback()]) {
+    add(makeElement(name, attributes, collectHtml(callback)));
   }
 
   /**
@@ -124,13 +133,5 @@ class HtmlGenerator {
    */
   void writeln([Object obj = '']) {
     write('$obj\n');
-  }
-
-  /**
-   * Execute [callback], wrapping its output in an element with the given
-   * [name] and [attributes].
-   */
-  void element(String name, Map<dynamic, String> attributes, [void callback()]) {
-    add(makeElement(name, attributes, collectHtml(callback)));
   }
 }

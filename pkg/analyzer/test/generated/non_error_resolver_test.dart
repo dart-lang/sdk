@@ -4,17 +4,23 @@
 
 library engine.non_error_resolver_test;
 
-import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
+import 'package:analyzer/src/generated/source_io.dart';
 import 'package:unittest/unittest.dart' as _ut;
+
+import '../reflective_tests.dart';
 import 'resolver_test.dart';
 import 'test_support.dart';
-import '../reflective_tests.dart';
 
+
+main() {
+  _ut.groupSep = ' | ';
+  runReflectiveTests(NonErrorResolverTest);
+}
 
 class NonErrorResolverTest extends ResolverTestCase {
   void fail_undefinedEnumConstant() {
@@ -483,8 +489,12 @@ abstract class A {
     verify([source]);
     CompilationUnit unit = analysisContext.parseCompilationUnit(source);
     {
-      SimpleIdentifier ref = EngineTestCase.findNode(unit, code, "p]", (node) => node is SimpleIdentifier);
-      EngineTestCase.assertInstanceOf((obj) => obj is ParameterElement, ParameterElement, ref.staticElement);
+      SimpleIdentifier ref =
+          EngineTestCase.findNode(unit, code, "p]", (node) => node is SimpleIdentifier);
+      EngineTestCase.assertInstanceOf(
+          (obj) => obj is ParameterElement,
+          ParameterElement,
+          ref.staticElement);
     }
   }
 
@@ -498,8 +508,12 @@ foo(int p) {
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = analysisContext.parseCompilationUnit(source);
-    SimpleIdentifier ref = EngineTestCase.findNode(unit, code, "p]", (node) => node is SimpleIdentifier);
-    EngineTestCase.assertInstanceOf((obj) => obj is ParameterElement, ParameterElement, ref.staticElement);
+    SimpleIdentifier ref =
+        EngineTestCase.findNode(unit, code, "p]", (node) => node is SimpleIdentifier);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is ParameterElement,
+        ParameterElement,
+        ref.staticElement);
   }
 
   void test_commentReference_beforeFunction_expressionBody() {
@@ -511,8 +525,12 @@ foo(int p) => null;''';
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = analysisContext.parseCompilationUnit(source);
-    SimpleIdentifier ref = EngineTestCase.findNode(unit, code, "p]", (node) => node is SimpleIdentifier);
-    EngineTestCase.assertInstanceOf((obj) => obj is ParameterElement, ParameterElement, ref.staticElement);
+    SimpleIdentifier ref =
+        EngineTestCase.findNode(unit, code, "p]", (node) => node is SimpleIdentifier);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is ParameterElement,
+        ParameterElement,
+        ref.staticElement);
   }
 
   void test_commentReference_beforeMethod() {
@@ -529,12 +547,20 @@ abstract class A {
     verify([source]);
     CompilationUnit unit = analysisContext.parseCompilationUnit(source);
     {
-      SimpleIdentifier ref = EngineTestCase.findNode(unit, code, "p1]", (node) => node is SimpleIdentifier);
-      EngineTestCase.assertInstanceOf((obj) => obj is ParameterElement, ParameterElement, ref.staticElement);
+      SimpleIdentifier ref =
+          EngineTestCase.findNode(unit, code, "p1]", (node) => node is SimpleIdentifier);
+      EngineTestCase.assertInstanceOf(
+          (obj) => obj is ParameterElement,
+          ParameterElement,
+          ref.staticElement);
     }
     {
-      SimpleIdentifier ref = EngineTestCase.findNode(unit, code, "p2]", (node) => node is SimpleIdentifier);
-      EngineTestCase.assertInstanceOf((obj) => obj is ParameterElement, ParameterElement, ref.staticElement);
+      SimpleIdentifier ref =
+          EngineTestCase.findNode(unit, code, "p2]", (node) => node is SimpleIdentifier);
+      EngineTestCase.assertInstanceOf(
+          (obj) => obj is ParameterElement,
+          ParameterElement,
+          ref.staticElement);
     }
   }
 
@@ -549,8 +575,15 @@ class A {
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = analysisContext.parseCompilationUnit(source);
-    SimpleIdentifier ref = EngineTestCase.findNode(unit, code, "foo]", (node) => node is SimpleIdentifier);
-    EngineTestCase.assertInstanceOf((obj) => obj is MethodElement, MethodElement, ref.staticElement);
+    SimpleIdentifier ref = EngineTestCase.findNode(
+        unit,
+        code,
+        "foo]",
+        (node) => node is SimpleIdentifier);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is MethodElement,
+        MethodElement,
+        ref.staticElement);
   }
 
   void test_commentReference_setter() {
@@ -571,12 +604,26 @@ class B extends A {
     verify([source]);
     CompilationUnit unit = analysisContext.parseCompilationUnit(source);
     {
-      SimpleIdentifier ref = EngineTestCase.findNode(unit, code, "x] in A", (node) => node is SimpleIdentifier);
-      EngineTestCase.assertInstanceOf((obj) => obj is PropertyAccessorElement, PropertyAccessorElement, ref.staticElement);
+      SimpleIdentifier ref = EngineTestCase.findNode(
+          unit,
+          code,
+          "x] in A",
+          (node) => node is SimpleIdentifier);
+      EngineTestCase.assertInstanceOf(
+          (obj) => obj is PropertyAccessorElement,
+          PropertyAccessorElement,
+          ref.staticElement);
     }
     {
-      SimpleIdentifier ref = EngineTestCase.findNode(unit, code, "x] in B", (node) => node is SimpleIdentifier);
-      EngineTestCase.assertInstanceOf((obj) => obj is PropertyAccessorElement, PropertyAccessorElement, ref.staticElement);
+      SimpleIdentifier ref = EngineTestCase.findNode(
+          unit,
+          code,
+          "x] in B",
+          (node) => node is SimpleIdentifier);
+      EngineTestCase.assertInstanceOf(
+          (obj) => obj is PropertyAccessorElement,
+          PropertyAccessorElement,
+          ref.staticElement);
     }
   }
 
@@ -676,7 +723,9 @@ class B extends A {
   const B(): super();
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
     verify([source]);
   }
 
@@ -728,18 +777,18 @@ class A {
   }
 
   void test_constDeferredClass_new() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
 class A {
   const A.b();
-}''',
-        r'''
+}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 main() {
   new a.A.b();
-}'''], <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode>[]);
+}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[]);
   }
 
   void test_constEval_functionTypeLiteral() {
@@ -984,8 +1033,9 @@ class B {}''');
   }
 
   void test_duplicateDefinition_emptyName() {
-    // Note: This code has two FunctionElements '() {}' with an empty name, this tests that the
-    // empty string is not put into the scope (more than once).
+    // Note: This code has two FunctionElements '() {}' with an empty name,
+    // this tests that the empty string is not put into the scope
+    // (more than once).
     Source source = addSource(r'''
 Map _globalMap = {
   'a' : () {},
@@ -1508,10 +1558,9 @@ import 'lib.dart';
 import 'lib.dart';''');
     addNamedSource("/lib.dart", "library lib;");
     resolve(source);
-    assertErrors(source, [
-        HintCode.UNUSED_IMPORT,
-        HintCode.UNUSED_IMPORT,
-        HintCode.DUPLICATE_IMPORT]);
+    assertErrors(
+        source,
+        [HintCode.UNUSED_IMPORT, HintCode.UNUSED_IMPORT, HintCode.DUPLICATE_IMPORT]);
     verify([source]);
   }
 
@@ -1588,6 +1637,22 @@ class C<E> extends A<E> implements B<E> {}''');
     verify([source]);
   }
 
+  void test_inconsistentMethodInheritance_accessors_typeParameters1() {
+    Source source = addSource(r'''
+abstract class A<E> {
+  E get x;
+}
+abstract class B<E> {
+  E get x;
+}
+class C<E> implements A<E>, B<E> {
+  E get x => null;
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_inconsistentMethodInheritance_accessors_typeParameters_diamond() {
     Source source = addSource(r'''
 abstract class F<E> extends B<E> {}
@@ -1601,22 +1666,6 @@ abstract class B<E> implements C<E> {
   E get g { return null; }
 }
 class A<E> extends B<E> implements D<E> {
-}''');
-    resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  void test_inconsistentMethodInheritance_accessors_typeParameters1() {
-    Source source = addSource(r'''
-abstract class A<E> {
-  E get x;
-}
-abstract class B<E> {
-  E get x;
-}
-class C<E> implements A<E>, B<E> {
-  E get x => null;
 }''');
     resolve(source);
     assertNoErrors(source);
@@ -1936,8 +1985,10 @@ f([String x = '0']) {
   void test_invalidAssignment_implicitlyImplementFunctionViaCall_1() {
     // 18341
     //
-    // This test and 'test_invalidAssignment_implicitlyImplementFunctionViaCall_2()'
-    // are closely related: here we see that 'I' checks as a subtype of 'IntToInt'.
+    // This test and
+    // 'test_invalidAssignment_implicitlyImplementFunctionViaCall_2()'
+    // are closely related: here we see that 'I' checks as a subtype of
+    // 'IntToInt'.
     Source source = addSource(r'''
 class I {
   int call(int x) => 0;
@@ -1996,12 +2047,14 @@ Function f = new C();''');
     // 18341
     //
     // Like 'test_invalidAssignment_implicitlyImplementFunctionViaCall_2()',
-    // but uses type 'VoidToInt' instead of more precise type 'IntToInt' for 'f'.
+    // but uses type 'VoidToInt' instead of more precise type 'IntToInt' for
+    // 'f'.
     //
-    // Here 'C <: IntToInt <: VoidToInt', but the spec gives no transitivity rule
-    // for '<:'. However, many of the :/tools/test.py tests assume this transitivity
-    // for 'JsBuilder' objects, assigning them to '(String) -> dynamic'. The declared type of
-    // 'JsBuilder.call' is '(String, [dynamic]) -> Expression'.
+    // Here 'C <: IntToInt <: VoidToInt', but the spec gives no transitivity
+    // rule for '<:'. However, many of the :/tools/test.py tests assume this
+    // transitivity for 'JsBuilder' objects, assigning them to
+    // '(String) -> dynamic'. The declared type of 'JsBuilder.call' is
+    // '(String, [dynamic]) -> Expression'.
     Source source = addSource(r'''
 class I {
   int call([int x]) => 0;
@@ -2442,17 +2495,17 @@ var v2 = const <int> [42];''');
   }
 
   void test_loadLibraryDefined() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-foo() => 22;''',
-        r'''
+foo() => 22;''', r'''
 import 'lib1.dart' deferred as other;
 main() {
   other.loadLibrary().then((_) => other.foo());
-}'''], <ErrorCode>[
-        ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED,
-        StaticTypeWarningCode.UNDEFINED_FUNCTION], <ErrorCode>[]);
+}'''],
+          <ErrorCode>[
+              ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED,
+              StaticTypeWarningCode.UNDEFINED_FUNCTION],
+          <ErrorCode>[]);
   }
 
   void test_mapKeyTypeNotAssignable() {
@@ -2752,7 +2805,8 @@ f() {
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_getter() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_getter() {
     Source source = addSource(r'''
 class A {
   int get g => 0;
@@ -2766,7 +2820,8 @@ class C extends B {}''');
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_method() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_method() {
     Source source = addSource(r'''
 class A {
   m(p) {}
@@ -2780,7 +2835,8 @@ class C extends B {}''');
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_setter() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_setter() {
     Source source = addSource(r'''
 class A {
   set s(v) {}
@@ -2794,7 +2850,8 @@ class C extends B {}''');
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_interface() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_interface() {
     // 15979
     Source source = addSource(r'''
 abstract class M {}
@@ -2821,7 +2878,8 @@ abstract class B = A with M;''');
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_superclass() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_superclass() {
     // 15979
     Source source = addSource(r'''
 class M {}
@@ -3622,8 +3680,8 @@ class C implements A {
 class B implements A{}
 class A implements B{}''');
     resolve(source);
-    // Test is that a stack overflow isn't reached in resolution (previous line), no need to assert
-    // error set.
+    // Test is that a stack overflow isn't reached in resolution
+    // (previous line), no need to assert error set.
   }
 
   void test_recursiveConstructorRedirect() {
@@ -3774,7 +3832,8 @@ f() {
   }
 
   void test_returnOfInvalidType_async() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl.con1(analysisContext2.analysisOptions);
+    AnalysisOptionsImpl options =
+        new AnalysisOptionsImpl.con1(analysisContext2.analysisOptions);
     options.enableAsync = true;
     resetWithOptions(options);
     Source source = addSource(r'''
@@ -3847,8 +3906,9 @@ B f(A a) { return a; }''');
     // where T is a type parameter and Type is the type Type from
     // core, this particular test case comes from issue 18468.
     //
-    // A test cannot be added to TypeParameterTypeImplTest since the types returned out of the
-    // TestTypeProvider don't have a mock 'dart.core' enclosing library element.
+    // A test cannot be added to TypeParameterTypeImplTest since the types
+    // returned out of the TestTypeProvider don't have a mock 'dart.core'
+    // enclosing library element.
     // See TypeParameterTypeImpl.isMoreSpecificThan().
     Source source = addSource(r'''
 class Foo<T> {
@@ -3902,22 +3962,20 @@ class _InvertedCodec<T2, S2> extends Codec<T2, S2> {
   }
 
   void test_sharedDeferredPrefix() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-f1() {}''',
-        r'''
+f1() {}''', r'''
 library lib2;
-f2() {}''',
-        r'''
+f2() {}''', r'''
 library lib3;
-f3() {}''',
-        r'''
+f3() {}''', r'''
 library root;
 import 'lib1.dart' deferred as lib1;
 import 'lib2.dart' as lib;
 import 'lib3.dart' as lib;
-main() { lib1.f1(); lib.f2(); lib.f3(); }'''], <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode>[]);
+main() { lib1.f1(); lib.f2(); lib.f3(); }'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[]);
   }
 
   void test_staticAccessToInstanceMember_annotation() {
@@ -4044,7 +4102,8 @@ f() { return new G<B>(); }''');
   }
 
   void test_typeArgumentNotMatchingBounds_typeArgumentList_20() {
-    Source source = addSource("abstract class A<T extends A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A>>>>>>>>>>>>>>>>>>>>>{}");
+    Source source = addSource(
+        "abstract class A<T extends A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A>>>>>>>>>>>>>>>>>>>>>{}");
     resolve(source);
     assertNoErrors(source);
     verify([source]);
@@ -4060,7 +4119,8 @@ main(Object p) {
     verify([source]);
   }
 
-  void test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_noAssignment() {
+  void
+      test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_noAssignment() {
     Source source = addSource(r'''
 callMe(f()) { f(); }
 main(Object p) {
@@ -4097,7 +4157,8 @@ main(Object p) {
     verify([source]);
   }
 
-  void test_typePromotion_conditional_useInThen_accessedInClosure_noAssignment() {
+  void
+      test_typePromotion_conditional_useInThen_accessedInClosure_noAssignment() {
     Source source = addSource(r'''
 callMe(f()) { f(); }
 main(Object p) {
@@ -4640,21 +4701,6 @@ main() {
     assertNoErrors(source);
   }
 
-  void test_wrongNumberOfParametersForOperator_index() {
-    Source source = addSource(r'''
-class A {
-  operator []=(a, b) {}
-}''');
-    resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  void test_wrongNumberOfParametersForOperator_minus() {
-    _check_wrongNumberOfParametersForOperator("-", "");
-    _check_wrongNumberOfParametersForOperator("-", "a");
-  }
-
   void test_wrongNumberOfParametersForOperator1() {
     _check_wrongNumberOfParametersForOperator1("<");
     _check_wrongNumberOfParametersForOperator1(">");
@@ -4671,6 +4717,21 @@ class A {
     _check_wrongNumberOfParametersForOperator1("<<");
     _check_wrongNumberOfParametersForOperator1(">>");
     _check_wrongNumberOfParametersForOperator1("[]");
+  }
+
+  void test_wrongNumberOfParametersForOperator_index() {
+    Source source = addSource(r'''
+class A {
+  operator []=(a, b) {}
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_wrongNumberOfParametersForOperator_minus() {
+    _check_wrongNumberOfParametersForOperator("-", "");
+    _check_wrongNumberOfParametersForOperator("-", "a");
   }
 
   void test_wrongNumberOfParametersForSetter() {
@@ -4727,7 +4788,8 @@ f() sync* {
     verify([source]);
   }
 
-  void _check_wrongNumberOfParametersForOperator(String name, String parameters) {
+  void _check_wrongNumberOfParametersForOperator(String name,
+      String parameters) {
     Source source = addSource("""
 class A {
   operator $name($parameters) {}
@@ -4741,9 +4803,4 @@ class A {
   void _check_wrongNumberOfParametersForOperator1(String name) {
     _check_wrongNumberOfParametersForOperator(name, "a");
   }
-}
-
-main() {
-  _ut.groupSep = ' | ';
-  runReflectiveTests(NonErrorResolverTest);
 }

@@ -232,6 +232,34 @@ RefactoringOptions _refactoringOptionsFromJson(JsonDecoder jsonDecoder,
 
 
 /**
+ * Type of callbacks used to decode parts of JSON objects.  [jsonPath] is a
+ * string describing the part of the JSON object being decoded, and [value] is
+ * the part to decode.
+ */
+typedef Object JsonDecoderCallback(String jsonPath, Object value);
+
+
+/**
+ * Instances of the class [DomainHandler] implement a [RequestHandler] and
+ * also startup and shutdown methods.
+ */
+abstract class DomainHandler extends RequestHandler {
+  /**
+   * Perform any operations associated with the shutdown of the domain. It is
+   * not guaranteed that this method will be called. If it is, it will be
+   * called after the last [Request] has been made.
+   */
+  void shutdown() {}
+
+  /**
+   * Perform any operations associated with the startup of the domain. This
+   * will be called before the first [Request].
+   */
+  void startup() {}
+}
+
+
+/**
  * Classes implementing [Enum] represent enumerated types in the protocol.
  */
 abstract class Enum {
@@ -241,14 +269,6 @@ abstract class Enum {
    */
   String get name;
 }
-
-
-/**
- * Type of callbacks used to decode parts of JSON objects.  [jsonPath] is a
- * string describing the part of the JSON object being decoded, and [value] is
- * the part to decode.
- */
-typedef Object JsonDecoderCallback(String jsonPath, Object value);
 
 
 /**
@@ -269,6 +289,13 @@ abstract class HasToJson {
  */
 abstract class JsonDecoder {
   /**
+   * Retrieve the RefactoringKind that should be assumed when decoding
+   * refactoring feedback objects, or null if no refactoring feedback object is
+   * expected to be encountered.
+   */
+  RefactoringKind get refactoringKind;
+
+  /**
    * Create an exception to throw if the JSON object at [jsonPath] fails to
    * match the API definition of [expected].
    */
@@ -279,13 +306,6 @@ abstract class JsonDecoder {
    * the key [key].
    */
   dynamic missingKey(String jsonPath, String key);
-
-  /**
-   * Retrieve the RefactoringKind that should be assumed when decoding
-   * refactoring feedback objects, or null if no refactoring feedback object is
-   * expected to be encountered.
-   */
-  RefactoringKind get refactoringKind;
 
   /**
    * Decode a JSON object that is expected to be a boolean.  The strings "true"
@@ -457,7 +477,6 @@ class Notification {
   }
 }
 
-
 /**
  * Instances of the class [Request] represent a request that was received.
  */
@@ -553,6 +572,7 @@ class Request {
   }
 }
 
+
 /**
  * JsonDecoder for decoding requests.  Errors are reporting by throwing a
  * [RequestFailure].
@@ -564,6 +584,11 @@ class RequestDecoder extends JsonDecoder {
   final Request _request;
 
   RequestDecoder(this._request);
+
+  RefactoringKind get refactoringKind {
+    // Refactoring feedback objects should never appear in requests.
+    return null;
+  }
 
   @override
   dynamic mismatch(String jsonPath, String expected) {
@@ -579,13 +604,7 @@ class RequestDecoder extends JsonDecoder {
             jsonPath,
             'contain key ${JSON.encode(key)}'));
   }
-
-  RefactoringKind get refactoringKind {
-    // Refactoring feedback objects should never appear in requests.
-    return null;
-  }
 }
-
 
 /**
  * Instances of the class [RequestFailure] represent an exception that occurred
@@ -616,25 +635,6 @@ abstract class RequestHandler {
    * the client.
    */
   Response handleRequest(Request request);
-}
-
-/**
- * Instances of the class [DomainHandler] implement a [RequestHandler] and
- * also startup and shutdown methods.
- */
-abstract class DomainHandler extends RequestHandler {
-  /**
-   * Perform any operations associated with the startup of the domain. This
-   * will be called before the first [Request].
-   */
-  void startup() { }
-
-  /**
-   * Perform any operations associated with the shutdown of the domain. It is
-   * not guaranteed that this method will be called. If it is, it will be
-   * called after the last [Request] has been made.
-   */
-  void shutdown() { }
 }
 
 /**

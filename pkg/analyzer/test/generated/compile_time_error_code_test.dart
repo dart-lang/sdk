@@ -4,21 +4,29 @@
 
 library engine.compile_time_error_code_test;
 
-import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/source_io.dart';
 import 'package:unittest/unittest.dart' as _ut;
-import 'resolver_test.dart';
-import '../reflective_tests.dart';
 
+import '../reflective_tests.dart';
+import 'resolver_test.dart';
+
+
+main() {
+  _ut.groupSep = ' | ';
+  runReflectiveTests(CompileTimeErrorCodeTest);
+}
 
 class CompileTimeErrorCodeTest extends ResolverTestCase {
   void fail_compileTimeConstantRaisesException() {
     Source source = addSource(r'''
 ''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.COMPILE_TIME_CONSTANT_RAISES_EXCEPTION]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.COMPILE_TIME_CONSTANT_RAISES_EXCEPTION]);
     verify([source]);
   }
 
@@ -29,7 +37,9 @@ class C {
 }
 f() { return const C(); }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION]);
     verify([source]);
   }
 
@@ -100,7 +110,9 @@ class B extends Object mixin A {}''');
     Source source = addSource(r'''
 ''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS]);
     verify([source]);
   }
 
@@ -111,7 +123,9 @@ class A {
   final m = const A();
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT]);
     verify([source]);
   }
 
@@ -120,7 +134,9 @@ class A {
 const x = y + 1;
 const y = x + 1;''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT]);
     verify([source]);
   }
 
@@ -133,7 +149,8 @@ const y = x + 1;''');
   }
 
   void fail_yieldEachInNonGenerator_async() {
-    // TODO(brianwilkerson) We are currently parsing the yield statement as a binary expression.
+    // TODO(brianwilkerson) We are currently parsing the yield statement as a
+    // binary expression.
     resetWithAsync();
     Source source = addSource(r'''
 f() async {
@@ -145,7 +162,8 @@ f() async {
   }
 
   void fail_yieldEachInNonGenerator_sync() {
-    // TODO(brianwilkerson) We are currently parsing the yield statement as a binary expression.
+    // TODO(brianwilkerson) We are currently parsing the yield statement as a
+    // binary expression.
     resetWithAsync();
     Source source = addSource(r'''
 f() {
@@ -157,7 +175,8 @@ f() {
   }
 
   void fail_yieldInNonGenerator_async() {
-    // TODO(brianwilkerson) We are currently trying to parse the yield statement as a binary expression.
+    // TODO(brianwilkerson) We are currently trying to parse the yield statement
+    // as a binary expression.
     resetWithAsync();
     Source source = addSource(r'''
 f() async {
@@ -169,7 +188,8 @@ f() async {
   }
 
   void fail_yieldInNonGenerator_sync() {
-    // TODO(brianwilkerson) We are currently trying to parse the yield statement as a binary expression.
+    // TODO(brianwilkerson) We are currently trying to parse the yield statement
+    // as a binary expression.
     resetWithAsync();
     Source source = addSource(r'''
 f() {
@@ -249,7 +269,9 @@ class A {}
 class B {}
 class as = A with B;''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME]);
     verify([source]);
   }
 
@@ -286,21 +308,27 @@ f() {
   void test_builtInIdentifierAsTypedefName_functionTypeAlias() {
     Source source = addSource("typedef bool as();");
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME]);
     verify([source]);
   }
 
   void test_builtInIdentifierAsTypeName() {
     Source source = addSource("class as {}");
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME]);
     verify([source]);
   }
 
   void test_builtInIdentifierAsTypeParameterName() {
     Source source = addSource("class A<as> {}");
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME]);
     verify([source]);
   }
 
@@ -322,7 +350,9 @@ f(var a) {
   }
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
     verify([source]);
   }
 
@@ -333,7 +363,9 @@ class A {
   A.x() {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD]);
     verify([source]);
   }
 
@@ -344,7 +376,9 @@ class A {
   void x() {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD]);
     verify([source]);
   }
 
@@ -405,7 +439,9 @@ class B extends A {
 class T<T> {
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS]);
     verify([source]);
   }
 
@@ -415,7 +451,9 @@ class A<T> {
   var T;
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER]);
     verify([source]);
   }
 
@@ -425,7 +463,9 @@ class A<T> {
   get T => null;
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER]);
     verify([source]);
   }
 
@@ -435,7 +475,9 @@ class A<T> {
   T() {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER]);
     verify([source]);
   }
 
@@ -445,7 +487,9 @@ class A<T> {
   static T() {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER]);
     verify([source]);
   }
 
@@ -455,7 +499,9 @@ class A<T> {
   set T(x) {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER]);
     verify([source]);
   }
 
@@ -494,7 +540,9 @@ int f() {
   return 3;
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST]);
     verify([source]);
   }
 
@@ -533,7 +581,9 @@ class B extends A {
   const B(): super();
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER]);
     verify([source]);
   }
 
@@ -546,7 +596,9 @@ class B extends A {
   const B();
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER]);
     verify([source]);
   }
 
@@ -559,9 +611,11 @@ class B extends Object with A {
   const B();
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN,
-        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN,
+            CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD]);
     verify([source]);
   }
 
@@ -574,9 +628,11 @@ class B extends A {
   const B();
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
-        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
+            CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER]);
     verify([source]);
   }
 
@@ -587,38 +643,40 @@ class A {
   const A();
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD]);
     verify([source]);
   }
 
   void test_constDeferredClass() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
 class A {
   const A();
-}''',
-        r'''
+}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 main() {
   const a.A();
-}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.CONST_DEFERRED_CLASS]);
+}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]);
   }
 
   void test_constDeferredClass_namedConstructor() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
 class A {
   const A.b();
-}''',
-        r'''
+}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 main() {
   const a.A.b();
-}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.CONST_DEFERRED_CLASS]);
+}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]);
   }
 
   void test_constEval_newInstance_constConstructor() {
@@ -628,7 +686,9 @@ class A {
 }
 const a = new A();''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
     verify([source]);
   }
 
@@ -654,7 +714,9 @@ class A {
 final a = const A();
 const C = a.m;''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
     verify([source]);
   }
 
@@ -704,10 +766,12 @@ const C = a.m;''');
   void test_constEvalTypeBool_binary_leftTrue() {
     Source source = addSource("const C = (true || 0);");
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
-        StaticTypeWarningCode.NON_BOOL_OPERAND,
-        HintCode.DEAD_CODE]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+            StaticTypeWarningCode.NON_BOOL_OPERAND,
+            HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -721,7 +785,9 @@ class B {
   const B(num p) : a = p == const A();
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING]);
     verify([source]);
   }
 
@@ -735,7 +801,9 @@ class B {
   const B(String p) : a = p != const A();
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING]);
     verify([source]);
   }
 
@@ -784,44 +852,52 @@ f(p) {
   const C = p;
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
     verify([source]);
   }
 
   void test_constInitializedWithNonConstValue_missingConstInListLiteral() {
     Source source = addSource("const List L = [0];");
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
     verify([source]);
   }
 
   void test_constInitializedWithNonConstValue_missingConstInMapLiteral() {
     Source source = addSource("const Map M = {'a' : 0};");
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
     verify([source]);
   }
 
   void test_constInitializedWithNonConstValueFromDeferredClass() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-const V = 1;''',
-        r'''
+const V = 1;''', r'''
 library root;
 import 'lib1.dart' deferred as a;
-const B = a.V;'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY]);
+const B = a.V;'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[
+              CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_constInitializedWithNonConstValueFromDeferredClass_nested() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-const V = 1;''',
-        r'''
+const V = 1;''', r'''
 library root;
 import 'lib1.dart' deferred as a;
-const B = a.V + 1;'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY]);
+const B = a.V + 1;'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[
+              CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_constInstanceField() {
@@ -844,7 +920,9 @@ main() {
   const {const A() : 0};
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
     verify([source]);
   }
 
@@ -864,7 +942,9 @@ main() {
   const {B.a : 0};
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
     verify([source]);
   }
 
@@ -882,7 +962,9 @@ main() {
   var m = const { const A(): 42 };
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
     verify([source]);
   }
 
@@ -899,7 +981,9 @@ main() {
   const {const B() : 0};
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
     verify([source]);
   }
 
@@ -910,7 +994,9 @@ class A {
 }
 f() { return const A<A>(); }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS]);
     verify([source]);
   }
 
@@ -924,7 +1010,9 @@ f(p) {
   return const C<A>();
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS]);
     verify([source]);
   }
 
@@ -938,7 +1026,9 @@ f(p) {
   return const C<A, A>();
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS]);
     verify([source]);
   }
 
@@ -963,7 +1053,9 @@ var v = 42;
 main() {
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT]);
     verify([source]);
   }
 
@@ -974,7 +1066,9 @@ class A {
 }
 f(p) { return const A(p); }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT]);
     verify([source]);
   }
 
@@ -1009,9 +1103,11 @@ class A<T> {
   const A();
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
-        StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
+            StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
     verify([source]);
   }
 
@@ -1022,9 +1118,11 @@ class A<T> {
   const A();
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
-        StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
+            StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
     verify([source]);
   }
 
@@ -1037,7 +1135,9 @@ f() {
   return const A.noSuchConstructor();
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR]);
     // no verify(), 'noSuchConstructor' is not resolved
   }
 
@@ -1050,28 +1150,36 @@ f() {
   return const A();
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT]);
     verify([source]);
   }
 
   void test_defaultValueInFunctionTypeAlias() {
     Source source = addSource("typedef F([x = 0]);");
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS]);
     verify([source]);
   }
 
   void test_defaultValueInFunctionTypedParameter_named() {
     Source source = addSource("f(g({p: null})) {}");
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER]);
     verify([source]);
   }
 
   void test_defaultValueInFunctionTypedParameter_optional() {
     Source source = addSource("f(g([p = null])) {}");
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER]);
     verify([source]);
   }
 
@@ -1085,7 +1193,9 @@ class B implements A {
   B([int x = 1]) {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -1096,9 +1206,11 @@ class A {
   A.a() {}
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
-        CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
+            CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME]);
     verify([source]);
   }
 
@@ -1109,9 +1221,11 @@ class A {
   A() {}
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT,
-        CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT,
+            CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT]);
     verify([source]);
   }
 
@@ -1200,11 +1314,14 @@ class B extends A {
   static int get x => 0;
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
     verify([source]);
   }
 
-  void test_duplicateDefinitionInheritance_instanceGetterAbstract_staticGetter() {
+  void
+      test_duplicateDefinitionInheritance_instanceGetterAbstract_staticGetter() {
     Source source = addSource(r'''
 abstract class A {
   int get x;
@@ -1213,7 +1330,9 @@ class B extends A {
   static int get x => 0;
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
     verify([source]);
   }
 
@@ -1226,11 +1345,14 @@ class B extends A {
   static x() {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
     verify([source]);
   }
 
-  void test_duplicateDefinitionInheritance_instanceMethodAbstract_staticMethod() {
+  void
+      test_duplicateDefinitionInheritance_instanceMethodAbstract_staticMethod() {
     Source source = addSource(r'''
 abstract class A {
   x();
@@ -1239,7 +1361,9 @@ abstract class B extends A {
   static x() {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
     verify([source]);
   }
 
@@ -1252,11 +1376,14 @@ class B extends A {
   static set x(value) {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
     verify([source]);
   }
 
-  void test_duplicateDefinitionInheritance_instanceSetterAbstract_staticSetter() {
+  void
+      test_duplicateDefinitionInheritance_instanceSetterAbstract_staticSetter() {
     Source source = addSource(r'''
 abstract class A {
   set x(value);
@@ -1265,7 +1392,9 @@ class B extends A {
   static set x(value) {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
     verify([source]);
   }
 
@@ -1298,79 +1427,91 @@ export 'lib1.dart';''');
   }
 
   void test_extendsDeferredClass() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-class A {}''',
-        r'''
+class A {}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
-class B extends a.A {}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS]);
+class B extends a.A {}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS]);
   }
 
   void test_extendsDeferredClass_classTypeAlias() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-class A {}''',
-        r'''
+class A {}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 class M {}
-class C = a.A with M;'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS]);
+class C = a.A with M;'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS]);
   }
 
   void test_extendsDisallowedClass_class_bool() {
     Source source = addSource("class A extends bool {}");
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+            CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
     verify([source]);
   }
 
   void test_extendsDisallowedClass_class_double() {
     Source source = addSource("class A extends double {}");
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+            CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
     verify([source]);
   }
 
   void test_extendsDisallowedClass_class_int() {
     Source source = addSource("class A extends int {}");
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+            CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
     verify([source]);
   }
 
   void test_extendsDisallowedClass_class_Null() {
     Source source = addSource("class A extends Null {}");
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+            CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
     verify([source]);
   }
 
   void test_extendsDisallowedClass_class_num() {
     Source source = addSource("class A extends num {}");
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+            CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
     verify([source]);
   }
 
   void test_extendsDisallowedClass_class_String() {
     Source source = addSource("class A extends String {}");
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+            CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
     verify([source]);
   }
 
@@ -1379,8 +1520,11 @@ class C = a.A with M;'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUP
 class M {}
 class C = bool with M;''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-                          CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+            CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
     verify([source]);
   }
 
@@ -1398,8 +1542,11 @@ class C = double with M;''');
 class M {}
 class C = int with M;''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-                          CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+            CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
     verify([source]);
   }
 
@@ -1426,8 +1573,11 @@ class C = num with M;''');
 class M {}
 class C = String with M;''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-                          CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+            CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
     verify([source]);
   }
 
@@ -1492,7 +1642,9 @@ class A {
   A() : x = 0, x = 1 {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS]);
     verify([source]);
   }
 
@@ -1503,9 +1655,11 @@ class A {
   A() : x = 0, x = 1, x = 2 {}
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
-        CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
+            CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS]);
     verify([source]);
   }
 
@@ -1517,9 +1671,11 @@ class A {
   A() : x = 0, x = 1, y = 0, y = 1 {}
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
-        CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
+            CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS]);
     verify([source]);
   }
 
@@ -1530,7 +1686,9 @@ class A {
   A(this.x) : x = 1 {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER]);
     verify([source]);
   }
 
@@ -1541,7 +1699,9 @@ class A {
   factory A(this.x) {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -1553,9 +1713,11 @@ class A {
   m(this.x) {}
 }''');
     resolve(source);
-    assertErrors(source, [
-        ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
-        CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [
+            ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
+            CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -1566,7 +1728,9 @@ class A {
   m([this.x]) {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -1578,7 +1742,9 @@ class A {
   A() : this.named(), x = 42;
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -1590,7 +1756,9 @@ class A {
   A() : x = 42, this.named();
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -1602,7 +1770,9 @@ class A {
   A(this.x) : this.named();
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -1613,7 +1783,9 @@ class A {
   A() : x = 0, x = 0 {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS]);
     verify([source]);
   }
 
@@ -1632,7 +1804,9 @@ class A {
   A(this.x) : x = 0 {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER]);
     verify([source]);
   }
 
@@ -1643,7 +1817,9 @@ class A {
   A(this.x, this.x) {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES]);
     verify([source]);
   }
 
@@ -1679,23 +1855,28 @@ f() {
 var b1 = const bool.fromEnvironment(1);
 var b2 = const bool.fromEnvironment('x', defaultValue: 1);''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+            StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+            CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+            StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
   void test_fromEnvironment_bool_badDefault_whenDefined() {
-    // The type of the defaultValue needs to be correct even when the default value
-    // isn't used (because the variable is defined in the environment).
+    // The type of the defaultValue needs to be correct even when the default
+    // value isn't used (because the variable is defined in the environment).
     analysisContext2.declaredVariables.define("x", "true");
-    Source source = addSource("var b = const bool.fromEnvironment('x', defaultValue: 1);");
+    Source source =
+        addSource("var b = const bool.fromEnvironment('x', defaultValue: 1);");
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+            StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -1706,32 +1887,34 @@ class A {
   get x => 0;
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME]);
     verify([source]);
   }
 
   void test_implementsDeferredClass() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-class A {}''',
-        r'''
+class A {}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
-class B implements a.A {}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS]);
+class B implements a.A {}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS]);
   }
 
   void test_implementsDeferredClass_classTypeAlias() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-class A {}''',
-        r'''
+class A {}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 class B {}
 class M {}
-class C = B with M implements a.A;'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS]);
+class C = B with M implements a.A;'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS]);
   }
 
   void test_implementsDisallowedClass_class_bool() {
@@ -1779,9 +1962,11 @@ class C = B with M implements a.A;'''], <ErrorCode> [ParserErrorCode.DEFERRED_IM
   void test_implementsDisallowedClass_class_String_num() {
     Source source = addSource("class A implements String, num {}");
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
-        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+            CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -1851,9 +2036,11 @@ class A {}
 class M {}
 class C = A with M implements String, num;''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
-        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+            CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -1910,10 +2097,12 @@ class B implements A, A {}''');
 class A {} class C{}
 class B implements A, A, A, A {}''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.IMPLEMENTS_REPEATED,
-        CompileTimeErrorCode.IMPLEMENTS_REPEATED,
-        CompileTimeErrorCode.IMPLEMENTS_REPEATED]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.IMPLEMENTS_REPEATED,
+            CompileTimeErrorCode.IMPLEMENTS_REPEATED,
+            CompileTimeErrorCode.IMPLEMENTS_REPEATED]);
     verify([source]);
   }
 
@@ -1941,7 +2130,9 @@ class A {
   var f;
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
     verify([source]);
   }
 
@@ -1952,7 +2143,9 @@ class A {
   final y = x;
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
     verify([source]);
   }
 
@@ -1964,7 +2157,9 @@ class A {
   f() {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
     verify([source]);
   }
 
@@ -1975,11 +2170,14 @@ class A {
   m() {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
     verify([source]);
   }
 
-  void test_implicitThisReferenceInInitializer_redirectingConstructorInvocation() {
+  void
+      test_implicitThisReferenceInInitializer_redirectingConstructorInvocation() {
     Source source = addSource(r'''
 class A {
   A(p) {}
@@ -1987,7 +2185,9 @@ class A {
   var f;
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
     verify([source]);
   }
 
@@ -2001,33 +2201,37 @@ class B extends A {
   var f;
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
     verify([source]);
   }
 
   void test_importInternalLibrary() {
     Source source = addSource("import 'dart:_interceptors';");
     resolve(source);
-    // Note, in these error cases we may generate an UNUSED_IMPORT hint, while we could prevent
-    // the hint from being generated by testing the import directive for the error, this is such a
-    // minor corner case that we don't think we should add the additional computation time to figure
-    // out such cases.
-    assertErrors(source, [
-        CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY,
-        HintCode.UNUSED_IMPORT]);
+    // Note, in these error cases we may generate an UNUSED_IMPORT hint, while
+    // we could prevent the hint from being generated by testing the import
+    // directive for the error, this is such a minor corner case that we don't
+    // think we should add the additional computation time to figure out such
+    // cases.
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, HintCode.UNUSED_IMPORT]);
     verify([source]);
   }
 
   void test_importInternalLibrary_js_helper() {
     Source source = addSource("import 'dart:_js_helper';");
     resolve(source);
-    // Note, in these error cases we may generate an UNUSED_IMPORT hint, while we could prevent
-    // the hint from being generated by testing the import directive for the error, this is such a
-    // minor corner case that we don't think we should add the additional computation time to figure
-    // out such cases.
-    assertErrors(source, [
-        CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY,
-        HintCode.UNUSED_IMPORT]);
+    // Note, in these error cases we may generate an UNUSED_IMPORT hint, while
+    // we could prevent the hint from being generated by testing the import
+    // directive for the error, this is such a minor corner case that we don't
+    // think we should add the additional computation time to figure out such
+    // cases.
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, HintCode.UNUSED_IMPORT]);
     verify([source]);
   }
 
@@ -2055,7 +2259,9 @@ f(var p) {
   }
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES]);
     verify([source]);
   }
 
@@ -2080,9 +2286,11 @@ foo(var p) {
   }
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
-        CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
+            CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES]);
     verify([source]);
   }
 
@@ -2099,9 +2307,11 @@ f(var p) {
   }
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
-        CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
+            CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES]);
     verify([source]);
   }
 
@@ -2114,7 +2324,9 @@ class A {
 }
 A a = const A();''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD]);
   }
 
   void test_initializerForNonExistent_initializer() {
@@ -2123,7 +2335,9 @@ class A {
   A() : x = 0 {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD]);
   }
 
   void test_initializerForStaticField() {
@@ -2143,7 +2357,9 @@ class A {
   A(this.x) {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
     verify([source]);
   }
 
@@ -2156,7 +2372,9 @@ class B extends A {
   B(this.x) {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
     verify([source]);
   }
 
@@ -2166,7 +2384,9 @@ class A {
   A([this.x]) {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
     verify([source]);
   }
 
@@ -2177,7 +2397,9 @@ class A {
   A(this.x) {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
     verify([source]);
   }
 
@@ -2188,7 +2410,9 @@ class A {
   A([this.x]) {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD]);
     verify([source]);
   }
 
@@ -2203,7 +2427,9 @@ class A {
   }
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY]);
     verify([source]);
   }
 
@@ -2218,7 +2444,9 @@ class A {
   }
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY]);
     verify([source]);
   }
 
@@ -2231,7 +2459,9 @@ class A {
   }
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC]);
     verify([source]);
   }
 
@@ -2244,7 +2474,9 @@ class A {
   }
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC]);
     verify([source]);
   }
 
@@ -2257,7 +2489,9 @@ class A {
   }
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC]);
     verify([source]);
   }
 
@@ -2328,7 +2562,8 @@ main() {
     verify([source]);
   }
 
-  void test_invalidAnnotation_importWithPrefix_notVariableOrConstructorInvocation() {
+  void
+      test_invalidAnnotation_importWithPrefix_notVariableOrConstructorInvocation() {
     addNamedSource("/lib.dart", r'''
 library lib;
 typedef V();''');
@@ -2417,39 +2652,39 @@ class A {
 
   void test_invalidAnnotationFromDeferredLibrary() {
     // See test_invalidAnnotation_notConstantVariable
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
 class V { const V(); }
-const v = const V();''',
-        r'''
+const v = const V();''', r'''
 library root;
 import 'lib1.dart' deferred as a;
-@a.v main () {}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY]);
+@a.v main () {}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_invalidAnnotationFromDeferredLibrary_constructor() {
     // See test_invalidAnnotation_notConstantVariable
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-class C { const C(); }''',
-        r'''
+class C { const C(); }''', r'''
 library root;
 import 'lib1.dart' deferred as a;
-@a.C() main () {}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY]);
+@a.C() main () {}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_invalidAnnotationFromDeferredLibrary_namedConstructor() {
     // See test_invalidAnnotation_notConstantVariable
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-class C { const C.name(); }''',
-        r'''
+class C { const C.name(); }''', r'''
 library root;
 import 'lib1.dart' deferred as a;
-@a.C.name() main () {}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY]);
+@a.C.name() main () {}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_invalidConstructorName_notEnclosingClassName_defined() {
@@ -2480,7 +2715,9 @@ class A {
   factory B() {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS]);
     verify([source]);
   }
 
@@ -2490,7 +2727,9 @@ class A {
   factory B() {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS]);
     // no verify() call, "B" is not resolved
   }
 
@@ -2501,7 +2740,9 @@ class A {
   A() async {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -2512,7 +2753,9 @@ class A {
   A() async* {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -2523,7 +2766,9 @@ class A {
   A() sync* {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -2670,7 +2915,9 @@ class A<E> {
   }
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST]);
     verify([source]);
   }
 
@@ -2682,7 +2929,9 @@ class A<E> {
   }
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP]);
     verify([source]);
   }
 
@@ -2716,7 +2965,9 @@ const x = const Foo<int>(const Foo<int>(0, 1),
     const <Foo<String>>[]); // (1)
 ''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
     verify([source]);
   }
 
@@ -2737,7 +2988,9 @@ class Foo {
   }
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
     verify([source]);
   }
 
@@ -2822,7 +3075,9 @@ class A {
   x(y) {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME]);
     verify([source]);
   }
 
@@ -2840,9 +3095,11 @@ bool odd(E e) {
   return false;
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
-        CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+            CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH]);
     verify([source]);
   }
 
@@ -2869,26 +3126,26 @@ class B = Object with A;''');
   }
 
   void test_mixinDeferredClass() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-class A {}''',
-        r'''
+class A {}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
-class B extends Object with a.A {}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.MIXIN_DEFERRED_CLASS]);
+class B extends Object with a.A {}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[CompileTimeErrorCode.MIXIN_DEFERRED_CLASS]);
   }
 
   void test_mixinDeferredClass_classTypeAlias() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-class A {}''',
-        r'''
+class A {}''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 class B {}
-class C = B with a.A;'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.MIXIN_DEFERRED_CLASS]);
+class C = B with a.A;'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[CompileTimeErrorCode.MIXIN_DEFERRED_CLASS]);
   }
 
   void test_mixinHasNoConstructors_mixinApp() {
@@ -3119,9 +3376,11 @@ class C = A with String;''');
 class A {}
 class C = A with String, num;''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
-        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
+            CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -3173,7 +3432,9 @@ int A;
 class B {}
 class C extends A with B {}''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS]);
     verify([source]);
   }
 
@@ -3183,7 +3444,9 @@ int A;
 class B {}
 class C = A with B;''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS]);
     verify([source]);
   }
 
@@ -3195,7 +3458,9 @@ class A {
   A.b() {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS]);
     verify([source]);
   }
 
@@ -3211,8 +3476,9 @@ class B extends A {
   }
 
   void test_nativeClauseInNonSDKCode() {
-    // TODO(jwren) Move this test somewhere else: This test verifies a parser error code is generated
-    // through the ErrorVerifier, it is not a CompileTimeErrorCode.
+    // TODO(jwren) Move this test somewhere else: This test verifies a parser
+    // error code is generated through the ErrorVerifier, it is not a
+    // CompileTimeErrorCode.
     Source source = addSource("class A native 'string' {}");
     resolve(source);
     assertErrors(source, [ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE]);
@@ -3220,23 +3486,29 @@ class B extends A {
   }
 
   void test_nativeFunctionBodyInNonSDKCode_function() {
-    // TODO(jwren) Move this test somewhere else: This test verifies a parser error code is generated
-    // through the ErrorVerifier, it is not a CompileTimeErrorCode.
+    // TODO(jwren) Move this test somewhere else: This test verifies a parser
+    // error code is generated through the ErrorVerifier, it is not a
+    // CompileTimeErrorCode.
     Source source = addSource("int m(a) native 'string';");
     resolve(source);
-    assertErrors(source, [ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE]);
+    assertErrors(
+        source,
+        [ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE]);
     verify([source]);
   }
 
   void test_nativeFunctionBodyInNonSDKCode_method() {
-    // TODO(jwren) Move this test somewhere else: This test verifies a parser error code is generated
-    // through the ErrorVerifier, it is not a CompileTimeErrorCode.
+    // TODO(jwren) Move this test somewhere else: This test verifies a parser
+    // error code is generated through the ErrorVerifier, it is not a
+    // CompileTimeErrorCode.
     Source source = addSource(r'''
 class A{
   static int m(a) native 'string';
 }''');
     resolve(source);
-    assertErrors(source, [ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE]);
+    assertErrors(
+        source,
+        [ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE]);
     verify([source]);
   }
 
@@ -3249,7 +3521,9 @@ class A {
 main() {
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS]);
     verify([source]);
   }
 
@@ -3262,7 +3536,9 @@ class B extends A {
   B() {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT]);
     verify([source]);
   }
 
@@ -3279,8 +3555,28 @@ class C extends Mixed {
 }
 ''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
+    verify([source]);
+  }
+
+  void test_noDefaultSuperConstructorExplicit_mixinAppWithNamedParam() {
+    Source source = addSource(r'''
+class M {}
+class B {
+  B({x});
+  B.named(); // To avoid MIXIN_HAS_NO_CONSTRUCTORS
+}
+class Mixed = B with M;
+class C extends Mixed {
+  C();
+}
+''');
+    resolve(source);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
     verify([source]);
   }
 
@@ -3297,27 +3593,10 @@ class C extends Mixed {
 }
 ''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER]);
     // Don't verify since call to super.named() can't be resolved.
-  }
-
-  void test_noDefaultSuperConstructorExplicit_mixinAppWithNamedParam() {
-    Source source = addSource(r'''
-class M {}
-class B {
-  B({x});
-  B.named(); // To avoid MIXIN_HAS_NO_CONSTRUCTORS
-}
-class Mixed = B with M;
-class C extends Mixed {
-  C();
-}
-''');
-    resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
-    verify([source]);
   }
 
   void test_noDefaultSuperConstructorExplicit_mixinAppWithOptionalParam() {
@@ -3333,8 +3612,9 @@ class C extends Mixed {
 }
 ''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
     verify([source]);
   }
 
@@ -3350,8 +3630,27 @@ class C extends B with M {
 }
 ''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
+    verify([source]);
+  }
+
+  void test_noDefaultSuperConstructorExplicit_mixinWithNamedParam() {
+    Source source = addSource(r'''
+class M {}
+class B {
+  B({x});
+  B.named();
+}
+class C extends B with M {
+  C();
+}
+''');
+    resolve(source);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT]);
     verify([source]);
   }
 
@@ -3367,26 +3666,10 @@ class C extends B with M {
 }
 ''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER]);
     // Don't verify since call to super.named() can't be resolved.
-  }
-
-  void test_noDefaultSuperConstructorExplicit_mixinWithNamedParam() {
-    Source source = addSource(r'''
-class M {}
-class B {
-  B({x});
-  B.named();
-}
-class C extends B with M {
-  C();
-}
-''');
-    resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT]);
-    verify([source]);
   }
 
   void test_noDefaultSuperConstructorExplicit_mixinWithOptionalParam() {
@@ -3401,8 +3684,9 @@ class C extends B with M {
 }
 ''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT]);
     verify([source]);
   }
 
@@ -3417,8 +3701,9 @@ class Mixed = B with M;
 class C extends Mixed {}
 ''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
     verify([source]);
   }
 
@@ -3433,8 +3718,9 @@ class Mixed = B with M;
 class C extends Mixed {}
 ''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
     verify([source]);
   }
 
@@ -3448,8 +3734,9 @@ class B {
 class C extends B with M {}
 ''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
     verify([source]);
   }
 
@@ -3463,8 +3750,9 @@ class B {
 class C extends B with M {}
 ''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
     verify([source]);
   }
 
@@ -3476,7 +3764,9 @@ class A {
 class B extends A {
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
     verify([source]);
   }
 
@@ -3485,7 +3775,9 @@ class B extends A {
 class A { A.named() {} }
 class B extends A {}''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
     verify([source]);
   }
 
@@ -3498,7 +3790,9 @@ class A {
 main() {
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -3511,7 +3805,9 @@ class A {
 main() {
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -3578,25 +3874,27 @@ class A {
   }
 
   void test_nonConstantDefaultValueFromDeferredLibrary() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-const V = 1;''',
-        r'''
+const V = 1;''', r'''
 library root;
 import 'lib1.dart' deferred as a;
-f({x : a.V}) {}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY]);
+f({x : a.V}) {}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[
+              CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonConstantDefaultValueFromDeferredLibrary_nested() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-const V = 1;''',
-        r'''
+const V = 1;''', r'''
 library root;
 import 'lib1.dart' deferred as a;
-f({x : a.V + 1}) {}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY]);
+f({x : a.V + 1}) {}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[
+              CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonConstCaseExpression() {
@@ -3613,11 +3911,9 @@ f(int p, int q) {
   }
 
   void test_nonConstCaseExpressionFromDeferredLibrary() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-const int c = 1;''',
-        r'''
+const int c = 1;''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 main (int p) {
@@ -3625,15 +3921,16 @@ main (int p) {
     case a.c:
       break;
   }
-}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY]);
+}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[
+              CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonConstCaseExpressionFromDeferredLibrary_nested() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-const int c = 1;''',
-        r'''
+const int c = 1;''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 main (int p) {
@@ -3641,7 +3938,10 @@ main (int p) {
     case a.c + 1:
       break;
   }
-}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY]);
+}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[
+              CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonConstListElement() {
@@ -3655,29 +3955,31 @@ f(a) {
   }
 
   void test_nonConstListElementFromDeferredLibrary() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-const int c = 1;''',
-        r'''
+const int c = 1;''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 f() {
   return const [a.c];
-}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY]);
+}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[
+              CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonConstListElementFromDeferredLibrary_nested() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-const int c = 1;''',
-        r'''
+const int c = 1;''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 f() {
   return const [a.c + 1];
-}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY]);
+}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[
+              CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonConstMapAsExpressionStatement_begin() {
@@ -3686,7 +3988,9 @@ f() {
   {'a' : 0, 'b' : 1}.length;
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
     verify([source]);
   }
 
@@ -3696,7 +4000,9 @@ f() {
   {'a' : 0, 'b' : 1};
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
     verify([source]);
   }
 
@@ -3711,29 +4017,29 @@ f(a) {
   }
 
   void test_nonConstMapKeyFromDeferredLibrary() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-const int c = 1;''',
-        r'''
+const int c = 1;''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 f() {
   return const {a.c : 0};
-}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY]);
+}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonConstMapKeyFromDeferredLibrary_nested() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-const int c = 1;''',
-        r'''
+const int c = 1;''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 f() {
   return const {a.c + 1 : 0};
-}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY]);
+}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonConstMapValue() {
@@ -3747,29 +4053,29 @@ f(a) {
   }
 
   void test_nonConstMapValueFromDeferredLibrary() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-const int c = 1;''',
-        r'''
+const int c = 1;''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 f() {
   return const {'a' : a.c};
-}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY]);
+}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonConstMapValueFromDeferredLibrary_nested() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-const int c = 1;''',
-        r'''
+const int c = 1;''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 f() {
   return const {'a' : a.c + 1};
-}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY]);
+}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonConstValueInInitializer_binary_notBool_left() {
@@ -3779,9 +4085,11 @@ class A {
   const A(String p) : a = p && true;
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
-        StaticTypeWarningCode.NON_BOOL_OPERAND]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+            StaticTypeWarningCode.NON_BOOL_OPERAND]);
     verify([source]);
   }
 
@@ -3792,9 +4100,11 @@ class A {
   const A(String p) : a = true && p;
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
-        StaticTypeWarningCode.NON_BOOL_OPERAND]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+            StaticTypeWarningCode.NON_BOOL_OPERAND]);
     verify([source]);
   }
 
@@ -3805,9 +4115,11 @@ class A {
   const A(String p) : a = 5 & p;
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.CONST_EVAL_TYPE_INT,
-        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.CONST_EVAL_TYPE_INT,
+            StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -3818,9 +4130,11 @@ class A {
   const A(String p) : a = 5 + p;
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
-        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
+            StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -3832,7 +4146,9 @@ class A {
   const A() : a = C;
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
     verify([source]);
   }
 
@@ -3847,7 +4163,9 @@ class B {
 }
 var b = const B();''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
     verify([source]);
   }
 
@@ -3859,7 +4177,9 @@ class A {
   const A() : this.named(C);
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
     verify([source]);
   }
 
@@ -3873,58 +4193,61 @@ class B extends A {
   const B() : super(C);
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
     verify([source]);
   }
 
   void test_nonConstValueInInitializerFromDeferredLibrary_field() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-const int c = 1;''',
-        r'''
+const int c = 1;''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 class A {
   final int x;
   const A() : x = a.c;
-}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY]);
+}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[
+              CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonConstValueInInitializerFromDeferredLibrary_field_nested() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-const int c = 1;''',
-        r'''
+const int c = 1;''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 class A {
   final int x;
   const A() : x = a.c + 1;
-}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY]);
+}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[
+              CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonConstValueInInitializerFromDeferredLibrary_redirecting() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-const int c = 1;''',
-        r'''
+const int c = 1;''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 class A {
   const A.named(p);
   const A() : this.named(a.c);
-}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY]);
+}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[
+              CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonConstValueInInitializerFromDeferredLibrary_super() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-const int c = 1;''',
-        r'''
+const int c = 1;''', r'''
 library root;
 import 'lib1.dart' deferred as a;
 class A {
@@ -3932,7 +4255,10 @@ class A {
 }
 class B extends A {
   const B() : super(a.c);
-}'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY]);
+}'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[
+              CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY]);
   }
 
   void test_nonGenerativeConstructor_explicit() {
@@ -4038,7 +4364,9 @@ import 'lib.dart' as p;
 typedef p();
 p.A a;''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER]);
     verify([source]);
   }
 
@@ -4051,7 +4379,9 @@ import 'lib.dart' as p;
 p() {}
 p.A a;''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER]);
     verify([source]);
   }
 
@@ -4064,7 +4394,9 @@ import 'lib.dart' as p;
 var p = null;
 p.A a;''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER]);
     verify([source]);
   }
 
@@ -4077,7 +4409,9 @@ import 'lib.dart' as p;
 class p {}
 p.A a;''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER]);
     verify([source]);
   }
 
@@ -4113,9 +4447,11 @@ class A {
   A.b() : this.a();
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT,
-        CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT,
+            CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT]);
     verify([source]);
   }
 
@@ -4141,13 +4477,15 @@ class C implements A {
   factory C() = B;
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
-        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
-        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+            CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+            CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE]);
     verify([source]);
   }
 
@@ -4173,13 +4511,15 @@ class C<T> implements A<T> {
   factory C() = B;
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
-        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
-        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+            CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+            CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE]);
     verify([source]);
   }
 
@@ -4195,13 +4535,15 @@ class C implements A {
   factory C.nameC() = B.nameB;
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
-        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
-        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+            CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+            CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE]);
     verify([source]);
   }
 
@@ -4221,11 +4563,13 @@ class C implements A, B {
   factory C() = B;
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
-        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+            CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE]);
     verify([source]);
   }
 
@@ -4234,9 +4578,11 @@ class C implements A, B {
 class A extends B {}
 class B extends A {}''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE]);
     verify([source]);
   }
 
@@ -4245,9 +4591,11 @@ class B extends A {}''');
 class A extends B {}
 class B implements A {}''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE]);
     verify([source]);
   }
 
@@ -4256,9 +4604,11 @@ class B implements A {}''');
 class A implements B {}
 class B implements A {}''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE]);
     verify([source]);
   }
 
@@ -4267,9 +4617,11 @@ class B implements A {}''');
 class M1 = Object with M2;
 class M2 = Object with M1;''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE]);
     verify([source]);
   }
 
@@ -4278,7 +4630,9 @@ class M2 = Object with M1;''');
 abstract class A implements A {}
 class B implements A {}''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS]);
     verify([source]);
   }
 
@@ -4288,9 +4642,11 @@ abstract class A implements B {}
 abstract class B implements A {}
 class C implements A {}''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE]);
     verify([source]);
   }
 
@@ -4301,24 +4657,30 @@ abstract class B implements C {}
 abstract class C implements A {}
 class D implements A {}''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE]);
     verify([source]);
   }
 
   void test_recursiveInterfaceInheritanceBaseCaseExtends() {
     Source source = addSource("class A extends A {}");
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS]);
     verify([source]);
   }
 
   void test_recursiveInterfaceInheritanceBaseCaseImplements() {
     Source source = addSource("class A implements A {}");
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS]);
     verify([source]);
   }
 
@@ -4328,14 +4690,18 @@ class A {}
 class M {}
 class B = A with M implements B;''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS]);
     verify([source]);
   }
 
   void test_recursiveInterfaceInheritanceBaseCaseWith() {
     Source source = addSource("class M = Object with M;");
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH]);
     verify([source]);
   }
 
@@ -4345,7 +4711,9 @@ class A {
   A() : this.noSuchConstructor();
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR]);
   }
 
   void test_redirectGenerativeToNonGenerativeConstructor() {
@@ -4355,7 +4723,9 @@ class A {
   factory A.x() => null;
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -4368,7 +4738,9 @@ class B {
   const factory B() = A.name;
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR]);
   }
 
   void test_redirectToMissingConstructor_unnamed() {
@@ -4380,7 +4752,9 @@ class B {
   const factory B() = A;
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR]);
   }
 
   void test_redirectToNonClass_notAType() {
@@ -4411,7 +4785,9 @@ class A {
   const factory A.b() = A.a;
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -4487,7 +4863,9 @@ class A {
   A() { return 0; }
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -4497,7 +4875,9 @@ class A {
   A() => null;
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -4524,18 +4904,17 @@ f() sync* {
   }
 
   void test_sharedDeferredPrefix() {
-    resolveWithAndWithoutExperimental(<String> [
-        r'''
+    resolveWithAndWithoutExperimental(<String>[r'''
 library lib1;
-f1() {}''',
-        r'''
+f1() {}''', r'''
 library lib2;
-f2() {}''',
-        r'''
+f2() {}''', r'''
 library root;
 import 'lib1.dart' deferred as lib;
 import 'lib2.dart' as lib;
-main() { lib.f1(); lib.f2(); }'''], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> [CompileTimeErrorCode.SHARED_DEFERRED_PREFIX]);
+main() { lib.f1(); lib.f2(); }'''],
+          <ErrorCode>[ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED],
+          <ErrorCode>[CompileTimeErrorCode.SHARED_DEFERRED_PREFIX]);
   }
 
   void test_superInInvalidContext_binaryExpression() {
@@ -4638,7 +5017,9 @@ class B {
   B.name() {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -4650,7 +5031,9 @@ class B {
   B.name() {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -4662,13 +5045,15 @@ var s3 = const Symbol();
 var s4 = const Symbol('x', 'y');
 var s5 = const Symbol('x', foo: 'x');''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-        CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS,
-        CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS,
-        CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+            CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+            StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+            CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS,
+            CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS,
+            CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER]);
     verify([source]);
   }
 
@@ -4680,10 +5065,12 @@ main() {
   F foo(G g) => g;
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
-        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
-        StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+            CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
     verify([source]);
   }
 
@@ -4706,28 +5093,36 @@ typedef D F();
   void test_typeAliasCannotReferenceItself_parameterType_named() {
     Source source = addSource("typedef A({A a});");
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
     verify([source]);
   }
 
   void test_typeAliasCannotReferenceItself_parameterType_positional() {
     Source source = addSource("typedef A([A a]);");
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
     verify([source]);
   }
 
   void test_typeAliasCannotReferenceItself_parameterType_required() {
     Source source = addSource("typedef A(A a);");
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
     verify([source]);
   }
 
   void test_typeAliasCannotReferenceItself_parameterType_typeArgument() {
     Source source = addSource("typedef A(List<A> a);");
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
     verify([source]);
   }
 
@@ -4747,7 +5142,9 @@ class C {
   void test_typeAliasCannotReferenceItself_returnType() {
     Source source = addSource("typedef A A();");
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
     verify([source]);
   }
 
@@ -4756,16 +5153,20 @@ class C {
 typedef B A();
 typedef A B();''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
-        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+            CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
     verify([source]);
   }
 
   void test_typeAliasCannotReferenceItself_typeVariableBounds() {
     Source source = addSource("typedef A<T extends A>();");
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
     verify([source]);
   }
 
@@ -4778,7 +5179,9 @@ class G<E extends A> {
 }
 f() { return const G<B>(); }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
     verify([source]);
   }
 
@@ -4799,7 +5202,9 @@ class B extends A {
   B() : super.named();
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER]);
     // no verify(), "super.named()" is not resolved
   }
 
@@ -4812,7 +5217,9 @@ class B extends A {
   B() : super();
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
     verify([source]);
   }
 
@@ -4825,7 +5232,9 @@ class B extends A {
   B();
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
     verify([source]);
   }
 
@@ -4863,10 +5272,13 @@ main() {
   void test_uriWithInterpolation_constant() {
     Source source = addSource("import 'stuff_\$platform.dart';");
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.URI_WITH_INTERPOLATION,
-        StaticWarningCode.UNDEFINED_IDENTIFIER]);
-    // We cannot verify resolution with an unresolvable URI: 'stuff_$platform.dart'
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.URI_WITH_INTERPOLATION,
+            StaticWarningCode.UNDEFINED_IDENTIFIER]);
+    // We cannot verify resolution with an unresolvable
+    // URI: 'stuff_$platform.dart'
   }
 
   void test_uriWithInterpolation_nonConstant() {
@@ -4876,22 +5288,6 @@ part '${'a'}.dart';''');
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.URI_WITH_INTERPOLATION]);
     // We cannot verify resolution with an unresolvable URI: '${'a'}.dart'
-  }
-
-  void test_wrongNumberOfParametersForOperator_minus() {
-    Source source = addSource(r'''
-class A {
-  operator -(a, b) {}
-}''');
-    resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS]);
-    verify([source]);
-    reset();
-  }
-
-  void test_wrongNumberOfParametersForOperator_tilde() {
-    _check_wrongNumberOfParametersForOperator("~", "a");
-    _check_wrongNumberOfParametersForOperator("~", "a, b");
   }
 
   void test_wrongNumberOfParametersForOperator1() {
@@ -4912,31 +5308,57 @@ class A {
     _check_wrongNumberOfParametersForOperator1("[]");
   }
 
+  void test_wrongNumberOfParametersForOperator_minus() {
+    Source source = addSource(r'''
+class A {
+  operator -(a, b) {}
+}''');
+    resolve(source);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS]);
+    verify([source]);
+    reset();
+  }
+
+  void test_wrongNumberOfParametersForOperator_tilde() {
+    _check_wrongNumberOfParametersForOperator("~", "a");
+    _check_wrongNumberOfParametersForOperator("~", "a, b");
+  }
+
   void test_wrongNumberOfParametersForSetter_function_named() {
     Source source = addSource("set x({p}) {}");
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
     verify([source]);
   }
 
   void test_wrongNumberOfParametersForSetter_function_optional() {
     Source source = addSource("set x([p]) {}");
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
     verify([source]);
   }
 
   void test_wrongNumberOfParametersForSetter_function_tooFew() {
     Source source = addSource("set x() {}");
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
     verify([source]);
   }
 
   void test_wrongNumberOfParametersForSetter_function_tooMany() {
     Source source = addSource("set x(a, b) {}");
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
     verify([source]);
   }
 
@@ -4946,7 +5368,9 @@ class A {
   set x({p}) {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
     verify([source]);
   }
 
@@ -4956,7 +5380,9 @@ class A {
   set x([p]) {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
     verify([source]);
   }
 
@@ -4966,7 +5392,9 @@ class A {
   set x() {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
     verify([source]);
   }
 
@@ -4976,7 +5404,9 @@ class A {
   set x(a, b) {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
     verify([source]);
   }
 
@@ -5000,9 +5430,11 @@ class A {
   const A(bool p) : a = $expr;
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
-        StaticTypeWarningCode.NON_BOOL_OPERAND]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+            StaticTypeWarningCode.NON_BOOL_OPERAND]);
     verify([source]);
     reset();
   }
@@ -5014,9 +5446,11 @@ class A {
   const A(int p) : a = $expr;
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.CONST_EVAL_TYPE_INT,
-        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.CONST_EVAL_TYPE_INT,
+            StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
     reset();
   }
@@ -5028,20 +5462,25 @@ class A {
   const A(num p) : a = $expr;
 }''');
     resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
-        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    assertErrors(
+        source,
+        [
+            CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
+            StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
     reset();
   }
 
-  void _check_wrongNumberOfParametersForOperator(String name, String parameters) {
+  void _check_wrongNumberOfParametersForOperator(String name,
+      String parameters) {
     Source source = addSource('''
 class A {
   operator $name($parameters) {}
 }''');
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR]);
+    assertErrors(
+        source,
+        [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR]);
     verify([source]);
     reset();
   }
@@ -5050,9 +5489,4 @@ class A {
     _check_wrongNumberOfParametersForOperator(name, "");
     _check_wrongNumberOfParametersForOperator(name, "a, b");
   }
-}
-
-main() {
-  _ut.groupSep = ' | ';
-  runReflectiveTests(CompileTimeErrorCodeTest);
 }

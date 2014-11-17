@@ -11,26 +11,6 @@ import 'generated/error.dart';
 /// an [AnalyzerError] to a string.
 final _MAX_ERROR_LINE_LENGTH = 120;
 
-/// An error class that collects multiple [AnalyzerError]s that are emitted
-/// during a single analysis.
-class AnalyzerErrorGroup implements Exception {
-  /// The errors in this collection.
-  List<AnalyzerError> get errors =>
-    new UnmodifiableListView<AnalyzerError>(_errors);
-  final List<AnalyzerError> _errors;
-
-  AnalyzerErrorGroup(Iterable<AnalyzerError> errors)
-      : _errors = errors.toList();
-
-  /// Creates an [AnalyzerErrorGroup] from a list of lower-level
-  /// [AnalysisError]s.
-  AnalyzerErrorGroup.fromAnalysisErrors(Iterable<AnalysisError> errors)
-      : this(errors.map((e) => new AnalyzerError(e)));
-
-  String get message => toString();
-  String toString() => errors.join("\n");
-}
-
 /// A wrapper around [AnalysisError] that provides a more user-friendly string
 /// representation.
 class AnalyzerError implements Exception {
@@ -90,4 +70,24 @@ class AnalyzerError implements Exception {
 
     return builder.toString();
   }
+}
+
+/// An error class that collects multiple [AnalyzerError]s that are emitted
+/// during a single analysis.
+class AnalyzerErrorGroup implements Exception {
+  final List<AnalyzerError> _errors;
+  AnalyzerErrorGroup(Iterable<AnalyzerError> errors)
+      : _errors = errors.toList();
+
+  /// Creates an [AnalyzerErrorGroup] from a list of lower-level
+  /// [AnalysisError]s.
+  AnalyzerErrorGroup.fromAnalysisErrors(Iterable<AnalysisError> errors)
+      : this(errors.map((e) => new AnalyzerError(e)));
+
+  /// The errors in this collection.
+  List<AnalyzerError> get errors =>
+      new UnmodifiableListView<AnalyzerError>(_errors);
+
+  String get message => toString();
+  String toString() => errors.join("\n");
 }

@@ -5,21 +5,20 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:args/args.dart';
 import 'package:analysis_server/src/analysis_manager.dart';
+import 'package:args/args.dart';
 
 /**
  * Start analysis server as a separate process and use the websocket protocol
  * to analyze the application specified on the command line.
  */
 void main(List<String> args) {
-  new _DartDependencyAnalyzer(args).run()
-      .catchError((error, stack) {
-        print('Analysis failed: $error');
-        if (stack != null) {
-          print(stack);
-        }
-      });
+  new _DartDependencyAnalyzer(args).run().catchError((error, stack) {
+    print('Analysis failed: $error');
+    if (stack != null) {
+      print(stack);
+    }
+  });
 }
 
 /**
@@ -65,6 +64,27 @@ class _DartDependencyAnalyzer {
   _DartDependencyAnalyzer(this.args);
 
   /**
+   * Use the given manager to perform the analysis.
+   */
+  void analyze(AnalysisManager manager) {
+    if (manager == null) {
+      return;
+    }
+    this.manager = manager;
+    print('Analyzing...');
+  }
+
+  /**
+   * Print information about how to use the server.
+   */
+  void printUsage(ArgParser parser) {
+    print('Usage: $BINARY_NAME [flags] <application_directory>');
+    print('');
+    print('Supported flags are:');
+    print(parser.usage);
+  }
+
+  /**
    * Parse the command line arguments to determine the application to be
    * analyzed, then launch and manage an analysis server to do the work.
    */
@@ -79,10 +99,9 @@ class _DartDependencyAnalyzer {
    */
   Future<AnalysisManager> start() {
     ArgParser parser = new ArgParser();
-    parser.addOption(
-        DART_SDK_OPTION,
-        help: '[sdkPath] path to Dart SDK');
-    parser.addFlag(HELP_OPTION,
+    parser.addOption(DART_SDK_OPTION, help: '[sdkPath] path to Dart SDK');
+    parser.addFlag(
+        HELP_OPTION,
         help: 'print this help message without starting analysis',
         defaultsTo: false,
         negatable: false);
@@ -94,7 +113,7 @@ class _DartDependencyAnalyzer {
     ArgResults results;
     try {
       results = parser.parse(args);
-    } on FormatException catch(e) {
+    } on FormatException catch (e) {
       print(e.message);
       print('');
       printUsage(parser);
@@ -154,32 +173,11 @@ class _DartDependencyAnalyzer {
   }
 
   /**
-   * Use the given manager to perform the analysis.
-   */
-  void analyze(AnalysisManager manager) {
-    if (manager == null) {
-      return;
-    }
-    this.manager = manager;
-    print('Analyzing...');
-  }
-
-  /**
    * Stop the analysis server.
    */
   void stop() {
     if (manager != null) {
       manager.stop();
     }
-  }
-
-  /**
-   * Print information about how to use the server.
-   */
-  void printUsage(ArgParser parser) {
-    print('Usage: $BINARY_NAME [flags] <application_directory>');
-    print('');
-    print('Supported flags are:');
-    print(parser.usage);
   }
 }

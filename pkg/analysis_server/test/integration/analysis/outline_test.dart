@@ -10,12 +10,28 @@ import 'package:unittest/unittest.dart';
 import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
+main() {
+  runReflectiveTests(Test);
+}
+
 @ReflectiveTestCase()
 class Test extends AbstractAnalysisServerIntegrationTest {
+  /**
+   * Verify that the range of source text covered by the given outline objects
+   * is connected (the end of each object in the list corresponds to the start
+   * of the next).
+   */
+  void checkConnected(List<Outline> outlineObjects) {
+    for (int i = 0; i < outlineObjects.length - 1; i++) {
+      expect(
+          outlineObjects[i + 1].offset,
+          equals(outlineObjects[i].offset + outlineObjects[i].length));
+    }
+  }
+
   test_outline() {
     String pathname = sourcePath('test.dart');
-    String text =
-        r'''
+    String text = r'''
 class Class1 {
   int field;
 
@@ -65,20 +81,4 @@ class Class2 {
       checkConnected(members);
     });
   }
-
-  /**
-   * Verify that the range of source text covered by the given outline objects
-   * is connected (the end of each object in the list corresponds to the start
-   * of the next).
-   */
-  void checkConnected(List<Outline> outlineObjects) {
-    for (int i = 0; i < outlineObjects.length - 1; i++) {
-      expect(outlineObjects[i + 1].offset, equals(outlineObjects[i].offset
-          + outlineObjects[i].length));
-    }
-  }
-}
-
-main() {
-  runReflectiveTests(Test);
 }

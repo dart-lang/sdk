@@ -10,6 +10,17 @@ import 'package:analyzer/src/generated/resolver.dart';
 
 
 /**
+ * Returns the [Element] exported from the given [LibraryElement].
+ */
+Element getExportedElement(LibraryElement library, String name) {
+  if (library == null) {
+    return null;
+  }
+  return getExportNamespaceForLibrary(library)[name];
+}
+
+
+/**
  * Returns the namespace of the given [ExportElement].
  */
 Map<String, Element> getExportNamespaceForDirective(ExportElement exp) {
@@ -26,17 +37,6 @@ Map<String, Element> getExportNamespaceForLibrary(LibraryElement library) {
   Namespace namespace =
       new NamespaceBuilder().createExportNamespaceForLibrary(library);
   return namespace.definedNames;
-}
-
-
-/**
- * Returns the [Element] exported from the given [LibraryElement].
- */
-Element getExportedElement(LibraryElement library, String name) {
-  if (library == null) {
-    return null;
-  }
-  return getExportNamespaceForLibrary(library)[name];
 }
 
 

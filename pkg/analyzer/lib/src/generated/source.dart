@@ -7,13 +7,13 @@
 
 library engine.source;
 
-import 'dart:collection';
 import "dart:math" as math;
+import 'dart:collection';
 
-import 'java_core.dart';
-import 'sdk.dart' show DartSdk;
 import 'engine.dart';
+import 'java_core.dart';
 import 'java_engine.dart';
+import 'sdk.dart' show DartSdk;
 
 /**
  * Instances of class `ContentCache` hold content used to override the default content of a
@@ -79,7 +79,7 @@ class ContentCache {
       if (newStamp == oldStamp) {
         _stampMap[source] = newStamp + 1;
       }
-      String oldContent =_contentMap[source];
+      String oldContent = _contentMap[source];
       _contentMap[source] = contents;
       return oldContent;
     }
@@ -91,19 +91,6 @@ class ContentCache {
  */
 class DartUriResolver extends UriResolver {
   /**
-   * Return `true` if the given URI is a `dart-ext:` URI.
-   *
-   * @param uriContent the textual representation of the URI being tested
-   * @return `true` if the given URI is a `dart-ext:` URI
-   */
-  static bool isDartExtUri(String uriContent) => uriContent != null && uriContent.startsWith(_DART_EXT_SCHEME);
-
-  /**
-   * The Dart SDK against which URI's are to be resolved.
-   */
-  final DartSdk _sdk;
-
-  /**
    * The name of the `dart` scheme.
    */
   static String DART_SCHEME = "dart";
@@ -114,12 +101,9 @@ class DartUriResolver extends UriResolver {
   static String _DART_EXT_SCHEME = "dart-ext:";
 
   /**
-   * Return `true` if the given URI is a `dart:` URI.
-   *
-   * @param uri the URI being tested
-   * @return `true` if the given URI is a `dart:` URI
+   * The Dart SDK against which URI's are to be resolved.
    */
-  static bool isDartUri(Uri uri) => DART_SCHEME == uri.scheme;
+  final DartSdk _sdk;
 
   /**
    * Initialize a newly created resolver to resolve Dart URI's against the given platform within the
@@ -143,6 +127,23 @@ class DartUriResolver extends UriResolver {
     }
     return _sdk.mapDartUri(uri.toString());
   }
+
+  /**
+   * Return `true` if the given URI is a `dart-ext:` URI.
+   *
+   * @param uriContent the textual representation of the URI being tested
+   * @return `true` if the given URI is a `dart-ext:` URI
+   */
+  static bool isDartExtUri(String uriContent) =>
+      uriContent != null && uriContent.startsWith(_DART_EXT_SCHEME);
+
+  /**
+   * Return `true` if the given URI is a `dart:` URI.
+   *
+   * @param uri the URI being tested
+   * @return `true` if the given URI is a `dart:` URI
+   */
+  static bool isDartUri(Uri uri) => DART_SCHEME == uri.scheme;
 }
 
 /**
@@ -260,7 +261,8 @@ abstract class LocalSourcePredicate {
    * Instance of [LocalSourcePredicate] that returns `true` for all [Source]s
    * except of SDK.
    */
-  static final LocalSourcePredicate NOT_SDK = new LocalSourcePredicate_NOT_SDK();
+  static final LocalSourcePredicate NOT_SDK =
+      new LocalSourcePredicate_NOT_SDK();
 
   /**
    * Determines if the given [Source] is local.
@@ -297,18 +299,6 @@ class NonExistingSource implements Source {
   NonExistingSource(this._name, this.uriKind);
 
   @override
-  bool operator ==(Object obj) {
-    if (obj is NonExistingSource) {
-      NonExistingSource other = obj;
-      return other.uriKind == uriKind && (other._name == _name);
-    }
-    return false;
-  }
-
-  @override
-  bool exists() => false;
-
-  @override
   TimestampedData<String> get contents {
     throw new UnsupportedOperationException("${_name}does not exist.");
   }
@@ -322,6 +312,12 @@ class NonExistingSource implements Source {
   String get fullName => _name;
 
   @override
+  int get hashCode => _name.hashCode;
+
+  @override
+  bool get isInSystemLibrary => false;
+
+  @override
   int get modificationStamp => 0;
 
   @override
@@ -331,10 +327,16 @@ class NonExistingSource implements Source {
   Uri get uri => null;
 
   @override
-  int get hashCode => _name.hashCode;
+  bool operator ==(Object obj) {
+    if (obj is NonExistingSource) {
+      NonExistingSource other = obj;
+      return other.uriKind == uriKind && (other._name == _name);
+    }
+    return false;
+  }
 
   @override
-  bool get isInSystemLibrary => false;
+  bool exists() => false;
 
   @override
   Uri resolveRelativeUri(Uri relativeUri) {
@@ -369,29 +371,6 @@ abstract class Source {
   static const List<Source> EMPTY_ARRAY = const <Source>[];
 
   /**
-   * Return `true` if the given object is a source that represents the same source code as
-   * this source.
-   *
-   * @param object the object to be compared with this object
-   * @return `true` if the given object is a source that represents the same source code as
-   *         this source
-   * See [Object.==].
-   */
-  @override
-  bool operator ==(Object object);
-
-  /**
-   * Return `true` if this source exists.
-   *
-   * Clients should consider using the the method [AnalysisContext.exists] because
-   * contexts can have local overrides of the content of a source that the source is not aware of
-   * and a source with local content is considered to exist even if there is no file on disk.
-   *
-   * @return `true` if this source exists
-   */
-  bool exists();
-
-  /**
    * Get the contents and timestamp of this source.
    *
    * Clients should consider using the the method [AnalysisContext.getContents]
@@ -420,6 +399,22 @@ abstract class Source {
    * @return a name that can be displayed to the user to denote this source
    */
   String get fullName;
+
+  /**
+   * Return a hash code for this source.
+   *
+   * @return a hash code for this source
+   * See [Object.hashCode].
+   */
+  @override
+  int get hashCode;
+
+  /**
+   * Return `true` if this source is in one of the system libraries.
+   *
+   * @return `true` if this is in a system library
+   */
+  bool get isInSystemLibrary;
 
   /**
    * Return the modification stamp for this source. A modification stamp is a non-negative integer
@@ -462,20 +457,27 @@ abstract class Source {
   UriKind get uriKind;
 
   /**
-   * Return a hash code for this source.
+   * Return `true` if the given object is a source that represents the same source code as
+   * this source.
    *
-   * @return a hash code for this source
-   * See [Object.hashCode].
+   * @param object the object to be compared with this object
+   * @return `true` if the given object is a source that represents the same source code as
+   *         this source
+   * See [Object.==].
    */
   @override
-  int get hashCode;
+  bool operator ==(Object object);
 
   /**
-   * Return `true` if this source is in one of the system libraries.
+   * Return `true` if this source exists.
    *
-   * @return `true` if this is in a system library
+   * Clients should consider using the the method [AnalysisContext.exists] because
+   * contexts can have local overrides of the content of a source that the source is not aware of
+   * and a source with local content is considered to exist even if there is no file on disk.
+   *
+   * @return `true` if this source exists
    */
-  bool get isInSystemLibrary;
+  bool exists();
 
   /**
    * Resolve the relative URI against the URI associated with this source object.
@@ -491,6 +493,20 @@ abstract class Source {
    * @throws AnalysisException if the relative URI could not be resolved
    */
   Uri resolveRelativeUri(Uri relativeUri);
+}
+
+/**
+ * The interface `ContentReceiver` defines the behavior of objects that can receive the
+ * content of a source.
+ */
+abstract class Source_ContentReceiver {
+  /**
+   * Accept the contents of a source.
+   *
+   * @param contents the contents of the source
+   * @param modificationTime the time at which the contents were last set
+   */
+  void accept(String contents, int modificationTime);
 }
 
 /**
@@ -537,6 +553,32 @@ class SourceFactory {
    * @param resolvers the resolvers used to resolve absolute URI's
    */
   SourceFactory(this._resolvers);
+
+  /**
+   * Return the [DartSdk] associated with this [SourceFactory], or `null` if there
+   * is no such SDK.
+   *
+   * @return the [DartSdk] associated with this [SourceFactory], or `null` if
+   *         there is no such SDK
+   */
+  DartSdk get dartSdk {
+    for (UriResolver resolver in _resolvers) {
+      if (resolver is DartUriResolver) {
+        DartUriResolver dartUriResolver = resolver;
+        return dartUriResolver.dartSdk;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Sets the [LocalSourcePredicate].
+   *
+   * @param localSourcePredicate the predicate to determine is [Source] is local
+   */
+  void set localSourcePredicate(LocalSourcePredicate localSourcePredicate) {
+    this._localSourcePredicate = localSourcePredicate;
+  }
 
   /**
    * Return a source object representing the given absolute URI, or `null` if the URI is not a
@@ -596,23 +638,6 @@ class SourceFactory {
   }
 
   /**
-   * Return the [DartSdk] associated with this [SourceFactory], or `null` if there
-   * is no such SDK.
-   *
-   * @return the [DartSdk] associated with this [SourceFactory], or `null` if
-   *         there is no such SDK
-   */
-  DartSdk get dartSdk {
-    for (UriResolver resolver in _resolvers) {
-      if (resolver is DartUriResolver) {
-        DartUriResolver dartUriResolver = resolver;
-        return dartUriResolver.dartSdk;
-      }
-    }
-    return null;
-  }
-
-  /**
    * Determines if the given [Source] is local.
    *
    * @param source the [Source] to analyze
@@ -636,7 +661,9 @@ class SourceFactory {
     }
     try {
       // Force the creation of an escaped URI to deal with spaces, etc.
-      return _internalResolveUri(containingSource, parseUriWithException(containedUri));
+      return _internalResolveUri(
+          containingSource,
+          parseUriWithException(containedUri));
     } catch (exception, stackTrace) {
       String containingFullName =
           containingSource != null ? containingSource.fullName : '<null>';
@@ -665,15 +692,6 @@ class SourceFactory {
   }
 
   /**
-   * Sets the [LocalSourcePredicate].
-   *
-   * @param localSourcePredicate the predicate to determine is [Source] is local
-   */
-  void set localSourcePredicate(LocalSourcePredicate localSourcePredicate) {
-    this._localSourcePredicate = localSourcePredicate;
-  }
-
-  /**
    * Return a source object representing the URI that results from resolving the given (possibly
    * relative) contained URI against the URI associated with an existing source object, or
    * `null` if the URI could not be resolved.
@@ -687,7 +705,8 @@ class SourceFactory {
   Source _internalResolveUri(Source containingSource, Uri containedUri) {
     if (!containedUri.isAbsolute) {
       if (containingSource == null) {
-        throw new AnalysisException("Cannot resolve a relative URI without a containing source: $containedUri");
+        throw new AnalysisException(
+            "Cannot resolve a relative URI without a containing source: $containedUri");
       }
       containedUri = containingSource.resolveRelativeUri(containedUri);
     }
@@ -764,6 +783,24 @@ class SourceRange {
   SourceRange(this.offset, this.length);
 
   /**
+   * @return the 0-based index of the after-last character of the source code for this element,
+   *         relative to the source buffer in which this element is contained.
+   */
+  int get end => offset + length;
+
+  @override
+  int get hashCode => 31 * offset + length;
+
+  @override
+  bool operator ==(Object obj) {
+    if (obj is! SourceRange) {
+      return false;
+    }
+    SourceRange sourceRange = obj as SourceRange;
+    return sourceRange.offset == offset && sourceRange.length == length;
+  }
+
+  /**
    * @return `true` if <code>x</code> is in [offset, offset + length) interval.
    */
   bool contains(int x) => offset <= x && x < offset + length;
@@ -781,7 +818,8 @@ class SourceRange {
   /**
    * @return `true` if this [SourceRange] covers <code>otherRange</code>.
    */
-  bool covers(SourceRange otherRange) => offset <= otherRange.offset && otherRange.end <= end;
+  bool covers(SourceRange otherRange) =>
+      offset <= otherRange.offset && otherRange.end <= end;
 
   /**
    * @return `true` if this [SourceRange] ends in <code>otherRange</code>.
@@ -791,25 +829,11 @@ class SourceRange {
     return otherRange.contains(thisEnd);
   }
 
-  @override
-  bool operator ==(Object obj) {
-    if (obj is! SourceRange) {
-      return false;
-    }
-    SourceRange sourceRange = obj as SourceRange;
-    return sourceRange.offset == offset && sourceRange.length == length;
-  }
-
-  /**
-   * @return the 0-based index of the after-last character of the source code for this element,
-   *         relative to the source buffer in which this element is contained.
-   */
-  int get end => offset + length;
-
   /**
    * @return the expanded instance of [SourceRange], which has the same center.
    */
-  SourceRange getExpanded(int delta) => new SourceRange(offset - delta, delta + length + delta);
+  SourceRange getExpanded(int delta) =>
+      new SourceRange(offset - delta, delta + length + delta);
 
   /**
    * @return the instance of [SourceRange] with end moved on "delta".
@@ -819,7 +843,8 @@ class SourceRange {
   /**
    * @return the expanded translated of [SourceRange], with moved start and the same length.
    */
-  SourceRange getTranslated(int delta) => new SourceRange(offset + delta, length);
+  SourceRange getTranslated(int delta) =>
+      new SourceRange(offset + delta, length);
 
   /**
    * @return the minimal [SourceRange] that cover this and the given [SourceRange]s.
@@ -829,9 +854,6 @@ class SourceRange {
     int newEnd = math.max(offset + length, other.offset + other.length);
     return new SourceRange(newOffset, newEnd - newOffset);
   }
-
-  @override
-  int get hashCode => 31 * offset + length;
 
   /**
    * @return `true` if this [SourceRange] intersects with given.
@@ -859,20 +881,6 @@ class SourceRange {
 }
 
 /**
- * The interface `ContentReceiver` defines the behavior of objects that can receive the
- * content of a source.
- */
-abstract class Source_ContentReceiver {
-  /**
-   * Accept the contents of a source.
-   *
-   * @param contents the contents of the source
-   * @param modificationTime the time at which the contents were last set
-   */
-  void accept(String contents, int modificationTime);
-}
-
-/**
  * The enumeration `UriKind` defines the different kinds of URI's that are known to the
  * analysis engine. These are used to keep track of the kind of URI associated with a given source.
  */
@@ -895,6 +903,18 @@ class UriKind extends Enum<UriKind> {
   static const List<UriKind> values = const [DART_URI, FILE_URI, PACKAGE_URI];
 
   /**
+   * The single character encoding used to identify this kind of URI.
+   */
+  final int encoding;
+
+  /**
+   * Initialize a newly created URI kind to have the given encoding.
+   *
+   * @param encoding the single character encoding used to identify this kind of URI.
+   */
+  const UriKind(String name, int ordinal, this.encoding) : super(name, ordinal);
+
+  /**
    * Return the URI kind represented by the given encoding, or `null` if there is no kind with
    * the given encoding.
    *
@@ -914,18 +934,6 @@ class UriKind extends Enum<UriKind> {
     }
     return null;
   }
-
-  /**
-   * The single character encoding used to identify this kind of URI.
-   */
-  final int encoding;
-
-  /**
-   * Initialize a newly created URI kind to have the given encoding.
-   *
-   * @param encoding the single character encoding used to identify this kind of URI.
-   */
-  const UriKind(String name, int ordinal, this.encoding) : super(name, ordinal);
 }
 
 /**
