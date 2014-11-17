@@ -28,20 +28,15 @@ import '../../js_backend/codegen/codegen.dart';
 import '../../ssa/ssa.dart' as ssa;
 
 class CspFunctionCompiler implements FunctionCompiler {
+  final IrBuilderTask irBuilderTask;
+  final ConstantSystem constantSystem;
+  final Compiler compiler;
+
+  // TODO(karlklose,sigurm): remove and update dart-doc of [compile].
+  final FunctionCompiler fallbackCompiler;
 
   // TODO(sigurdm): Assign this.
   Tracer tracer;
-
-  String get name => 'CPS Ir pipeline';
-
-  final IrBuilderTask irBuilderTask;
-
-  final ConstantSystem constantSystem;
-
-  final Compiler compiler;
-
-  // Remember to update dart-doc of [compile] when this field is removed.
-  final FunctionCompiler fallbackCompiler;
 
   CspFunctionCompiler(Compiler compiler, JavaScriptBackend backend)
       : irBuilderTask = new IrBuilderTask(compiler),
@@ -49,9 +44,12 @@ class CspFunctionCompiler implements FunctionCompiler {
         constantSystem = backend.constantSystem,
         compiler = compiler;
 
+  String get name => 'CPS Ir pipeline';
+
   /// Generates JavaScript code for `work.element`. First tries to use the
   /// Cps Ir -> tree ir -> js pipeline, and if that fails due to language
-  /// features not implemented it will fall back to the ssa pipeline.
+  /// features not implemented it will fall back to the ssa pipeline (for
+  /// platform code) or will cancel compilation (for user code).
   js.Fun compile(CodegenWorkItem work) {
     AstElement element = work.element;
     return compiler.withCurrentElement(element, () {
@@ -65,9 +63,15 @@ class CspFunctionCompiler implements FunctionCompiler {
         treeFunction = optimizeTreeIR(treeFunction);
         return compileToJavaScript(work, treeFunction);
       } on CodegenBailout catch (e) {
-        compiler.log('Falling back to SSA compiler for $element'
-            ' (${e.message})');
-        return fallbackCompiler.compile(work);
+        if (element.library.isPlatformLibrary) {
+          compiler.log('Falling back to SSA compiler for $element'
+              ' (${e.message})');
+          return fallbackCompiler.compile(work);
+        } else {
+          String message = "Unable to compile $element with the new compiler.\n"
+              "  Reason: ${e.message}";
+          compiler.internalError(element, message);
+        }
       }
     });
   }
