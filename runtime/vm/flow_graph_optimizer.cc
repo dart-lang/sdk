@@ -5616,9 +5616,11 @@ class PhiPlaceMoves : public ZoneAllocated {
 class AliasedSet : public ZoneAllocated {
  public:
   AliasedSet(Isolate* isolate,
+             DirectChainedHashMap<PointerKeyValueTrait<Place> >* places_map,
              ZoneGrowableArray<Place*>* places,
              PhiPlaceMoves* phi_moves)
       : isolate_(isolate),
+        places_map_(places_map),
         places_(*places),
         phi_moves_(phi_moves),
         aliases_(5),
@@ -5639,38 +5641,6 @@ class AliasedSet : public ZoneAllocated {
     return (result != NULL) ? result->id() : static_cast<intptr_t>(kNoAlias);
   }
 
-  bool IsStore(Instruction* instr, BitVector** killed) {
-    bool is_load = false, is_store = false;
-    Place place(instr, &is_load, &is_store);
-    if (is_store && (place.kind() != Place::kNone)) {
-      const intptr_t alias_id = LookupAliasId(place.ToAlias());
-      if (alias_id != kNoAlias) {
-        *killed = GetKilledSet(alias_id);
-      } else if (!place.IsFinalField()) {
-        // We encountered unknown alias: this means intrablock load forwarding
-        // refined parameter of this store, for example
-        //
-        //     o   <- alloc()
-        //     a.f <- o
-        //     u   <- a.f
-        //     u.x <- null ;; this store alias is *.x
-        //
-        // after intrablock load forwarding
-        //
-        //     o   <- alloc()
-        //     a.f <- o
-        //     o.x <- null ;; this store alias is o.x
-        //
-        // In this case we fallback to using place id recorded in the
-        // instruction that still points to the old place with a more generic
-        // alias.
-        *killed = GetKilledSet(
-            LookupAliasId(places_[instr->place_id()]->ToAlias()));
-      }
-    }
-    return is_store;
-  }
-
   BitVector* GetKilledSet(intptr_t alias) {
     return (alias < killed_.length()) ? killed_[alias] : NULL;
   }
@@ -5682,6 +5652,10 @@ class AliasedSet : public ZoneAllocated {
 
   const ZoneGrowableArray<Place*>& places() const {
     return places_;
+  }
+
+  Place* LookupCanonical(Place* place) const {
+    return places_map_->Lookup(place);
   }
 
   void PrintSet(BitVector* set) {
@@ -5719,10 +5693,12 @@ class AliasedSet : public ZoneAllocated {
     return !alloc->Identity().IsNotAliased();
   }
 
+  enum {
+    kNoAlias = 0
+  };
+
  private:
   enum {
-    kNoAlias = 0,
-
     // Artificial alias that is used to collect all representatives of the
     // *[C], X[C] aliases for arbitrary C.
     kAnyConstantIndexedAlias = 1,
@@ -6055,6 +6031,8 @@ class AliasedSet : public ZoneAllocated {
 
   Isolate* isolate_;
 
+  DirectChainedHashMap<PointerKeyValueTrait<Place> >* places_map_;
+
   const ZoneGrowableArray<Place*>& places_;
 
   const PhiPlaceMoves* phi_moves_;
@@ -6224,17 +6202,14 @@ static AliasedSet* NumberPlaces(
   PhiPlaceMoves* phi_moves = ComputePhiMoves(map, places);
 
   // Build aliasing sets mapping aliases to loads.
-  return new(isolate) AliasedSet(isolate, places, phi_moves);
+  return new(isolate) AliasedSet(isolate, map, places, phi_moves);
 }
 
 
 class LoadOptimizer : public ValueObject {
  public:
-  LoadOptimizer(FlowGraph* graph,
-                AliasedSet* aliased_set,
-                DirectChainedHashMap<PointerKeyValueTrait<Place> >* map)
+  LoadOptimizer(FlowGraph* graph, AliasedSet* aliased_set)
       : graph_(graph),
-        map_(map),
         aliased_set_(aliased_set),
         in_(graph_->preorder().length()),
         out_(graph_->preorder().length()),
@@ -6280,7 +6255,7 @@ class LoadOptimizer : public ValueObject {
       // as loads from loaded context.
       // TODO(vegorov): renumber newly discovered congruences during the
       // forwarding to forward chains without running whole pass twice.
-      LoadOptimizer load_optimizer(graph, aliased_set, &map);
+      LoadOptimizer load_optimizer(graph, aliased_set);
       return load_optimizer.Optimize();
     }
     return false;
@@ -6328,8 +6303,38 @@ class LoadOptimizer : public ValueObject {
            instr_it.Advance()) {
         Instruction* instr = instr_it.Current();
 
+        bool is_load = false, is_store = false;
+        Place place(instr, &is_load, &is_store);
+
         BitVector* killed = NULL;
-        if (aliased_set_->IsStore(instr, &killed)) {
+        if (is_store) {
+          const intptr_t alias_id =
+              aliased_set_->LookupAliasId(place.ToAlias());
+          if (alias_id != AliasedSet::kNoAlias) {
+            killed = aliased_set_->GetKilledSet(alias_id);
+          } else if (!place.IsFinalField()) {
+            // We encountered unknown alias: this means intrablock load
+            // forwarding refined parameter of this store, for example
+            //
+            //     o   <- alloc()
+            //     a.f <- o
+            //     u   <- a.f
+            //     u.x <- null ;; this store alias is *.x
+            //
+            // after intrablock load forwarding
+            //
+            //     o   <- alloc()
+            //     a.f <- o
+            //     o.x <- null ;; this store alias is o.x
+            //
+            // In this case we fallback to using place id recorded in the
+            // instruction that still points to the old place with a more
+            // generic alias.
+            const intptr_t old_alias_id = aliased_set_->LookupAliasId(
+                aliased_set_->places()[instr->place_id()]->ToAlias());
+            killed = aliased_set_->GetKilledSet(old_alias_id);
+          }
+
           if (killed != NULL) {
             kill->AddAll(killed);
             // There is no need to clear out_values when clearing GEN set
@@ -6347,22 +6352,27 @@ class LoadOptimizer : public ValueObject {
               (array_store->class_id() == kTypedDataFloat64ArrayCid) ||
               (array_store->class_id() == kTypedDataFloat32ArrayCid) ||
               (array_store->class_id() == kTypedDataFloat32x4ArrayCid)) {
-            bool is_load = false, is_store = false;
-            Place store_place(instr, &is_load, &is_store);
-            ASSERT(!is_load && is_store);
-            Place* place = map_->Lookup(&store_place);
-            if (place != NULL) {
+            Place* canonical_place = aliased_set_->LookupCanonical(&place);
+            if (canonical_place != NULL) {
               // Store has a corresponding numbered place that might have a
               // load. Try forwarding stored value to it.
-              gen->Add(place->id());
+              gen->Add(canonical_place->id());
               if (out_values == NULL) out_values = CreateBlockOutValues();
-              (*out_values)[place->id()] = GetStoredValue(instr);
+              (*out_values)[canonical_place->id()] = GetStoredValue(instr);
             }
           }
 
           ASSERT(!instr->IsDefinition() ||
                  !IsLoadEliminationCandidate(instr->AsDefinition()));
           continue;
+        } else if (is_load) {
+          // Check if this load needs renumbering because of the intrablock
+          // load forwarding.
+          const Place* canonical = aliased_set_->LookupCanonical(&place);
+          if ((canonical != NULL) &&
+            (canonical->id() != instr->AsDefinition()->place_id())) {
+            instr->AsDefinition()->set_place_id(canonical->id());
+          }
         }
 
         // If instruction has effects then kill all loads affected.
