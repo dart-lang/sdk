@@ -168,7 +168,7 @@ class Class extends OwnedIndexable<dart2js_mirrors.Dart2JsInterfaceTypeMirror>
   /// If [this] is private (or an intermediary mixin class), it will add the
   /// subclass to the list of subclasses in the superclasses.
   void addSubclass(Class subclass) {
-    if (docName == 'dart-core.Object') return;
+    if (docName == 'dart:core.Object') return;
 
     if (!includePrivateMembers && isPrivate || mirror.isNameSynthetic) {
       if (_superclass != null) _superclass.addSubclass(subclass);
@@ -182,8 +182,8 @@ class Class extends OwnedIndexable<dart2js_mirrors.Dart2JsInterfaceTypeMirror>
 
   /// Check if this [Class] is an error or exception.
   bool isError() {
-    if (qualifiedName == 'dart-core.Error' ||
-        qualifiedName == 'dart-core.Exception')
+    if (qualifiedName == 'dart:core.Error' ||
+        qualifiedName == 'dart:core.Exception')
       return true;
     for (var interface in interfaces) {
       if (interface.isError()) return true;
@@ -215,7 +215,7 @@ class Class extends OwnedIndexable<dart2js_mirrors.Dart2JsInterfaceTypeMirror>
   /// If a class extends a private superclass, find the closest public
   /// superclass of the private superclass.
   String validSuperclass() {
-    if (_superclass == null) return 'dart-core.Object';
+    if (_superclass == null) return 'dart:core.Object';
     if (_superclass.isVisible) return _superclass.qualifiedName;
     return _superclass.validSuperclass();
   }
