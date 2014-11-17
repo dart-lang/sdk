@@ -96,6 +96,10 @@ abstract class ClassWorld {
 
   /// Returns `true` if any subclass of [superclass] implements [type].
   bool hasAnySubclassThatImplements(ClassElement superclass, ClassElement type);
+
+  /// Returns `true` if closed-world assumptions can be made, that is,
+  /// incremental compilation isn't enabled.
+  bool get hasClosedWorldAssumption;
 }
 
 class World implements ClassWorld {
@@ -521,4 +525,6 @@ class World implements ClassWorld {
     }
     return functionsThatMightBePassedToApply.contains(element);
   }
+
+  bool get hasClosedWorldAssumption => !compiler.hasIncrementalSupport;
 }

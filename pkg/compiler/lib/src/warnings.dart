@@ -4,7 +4,7 @@
 
 part of dart2js;
 
-const DONT_KNOW_HOW_TO_FIX = "";
+const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
 
 /**
  * The messages in this file should meet the following guide lines:

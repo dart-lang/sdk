@@ -747,6 +747,13 @@ class TypedSelector extends Selector {
       new Map<Selector, Map<TypeMask, TypedSelector>>();
 
   factory TypedSelector(TypeMask mask, Selector selector, World world) {
+    if (!world.hasClosedWorldAssumption) {
+      bool isNullable = mask.isNullable;
+      mask = world.compiler.typesTask.dynamicType;
+      if (isNullable) {
+        mask = mask.nullable();
+      }
+    }
     // TODO(johnniwinther): Allow more TypeSelector kinds during resoluton.
     assert(world.isClosed || mask.isExact);
     if (selector.mask == mask) return selector;

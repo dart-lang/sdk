@@ -417,7 +417,14 @@ class LibraryUpdater extends JsFeatures {
     }
 
     for (ClassElementX cls in newClasses) {
-      // TODO(ahe): Set up superclasses.
+      if (cls.isObject) continue;
+      jsAst.Node classAccess = namer.elementAccess(cls);
+      jsAst.Node superAccess = namer.elementAccess(cls.superclass);
+
+      updates.add(
+          js.statement(
+              r'self.$dart_unsafe_eval.inheritFrom(#, #)',
+              [classAccess, superAccess]));
     }
 
     for (Element element in compiler.enqueuer.codegen.newlyEnqueuedElements) {

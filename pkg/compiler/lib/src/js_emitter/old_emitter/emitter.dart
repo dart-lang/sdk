@@ -304,8 +304,8 @@ class OldEmitter implements Emitter {
 
   /** Needs defineClass to be defined. */
   jsAst.Expression buildInheritFrom() {
-    return js(r'''
-        var inheritFrom = function() {
+    jsAst.Expression result = js(r'''
+        function() {
           function tmp() {}
           var hasOwnProperty = Object.prototype.hasOwnProperty;
           return function (constructor, superConstructor) {
@@ -323,6 +323,10 @@ class OldEmitter implements Emitter {
           };
         }()
       ''');
+    if (compiler.hasIncrementalSupport) {
+      result = js(r'self.$dart_unsafe_eval.inheritFrom = #', [result]);
+    }
+    return js(r'var inheritFrom = #', [result]);
   }
 
   /// Code that needs to be run before first invocation of

@@ -482,6 +482,60 @@ main() {
 """,
             const <String>['a', 'b', 'c']),
     ],
+
+    // Test that a newly instantiated class is handled.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class A {
+  get name => 'A.m';
+
+  m() {
+    print('Called $name');
+  }
+}
+
+class B extends A {
+  get name => 'B.m';
+}
+
+var instance;
+main() {
+  if (instance == null) {
+    instance = new A();
+//   } else {
+//     instance = new B();
+  }
+  instance.m();
+}
+""",
+            const <String>['Called A.m']),
+        const ProgramResult(
+            r"""
+class A {
+  get name => 'A.m';
+
+  m() {
+    print('Called $name');
+  }
+}
+
+class B extends A {
+  get name => 'B.m';
+}
+
+var instance;
+main() {
+  if (instance == null) {
+    instance = new A();
+  } else {
+    instance = new B();
+  }
+  instance.m();
+}
+""",
+            const <String>['Called B.m']),
+    ],
 ];
 
 void main() {
