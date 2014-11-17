@@ -748,6 +748,7 @@ class TypedSelector extends Selector {
 
   factory TypedSelector(TypeMask mask, Selector selector, World world) {
     if (!world.hasClosedWorldAssumption) {
+      // TODO(johnniwinther): Improve use of TypedSelector in an open world.
       bool isNullable = mask.isNullable;
       mask = world.compiler.typesTask.dynamicType;
       if (isNullable) {

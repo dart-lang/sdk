@@ -349,6 +349,9 @@ class LibraryUpdater extends JsFeatures {
         ' ${before} (${before.runtimeType} -> ${after.runtimeType}).');
   }
 
+  /// Apply the collected [updates]. Return a list of elements that needs to be
+  /// recompiled after applying the updates. Any elements removed as a
+  /// consequence of applying the patches are added to [removals] if provided.
   List<Element> applyUpdates([List<Update> removals]) {
     for (Update update in updates) {
       update.captureState();
