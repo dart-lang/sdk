@@ -4,13 +4,12 @@
 
 library test.analysis_server;
 
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'mock_sdk.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -18,6 +17,7 @@ import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
+import 'mock_sdk.dart';
 
 main() {
   group('AnalysisServer', () {
@@ -102,16 +102,68 @@ main() {
         expect(exception.cause.exception, equals(exceptionToThrow));
       }
     });
+
+    test('contexts changed event', () {
+      AnalysisServerTestHelper helper = new AnalysisServerTestHelper();
+      helper.resourceProvider.newFolder('/foo');
+
+      bool wasAdded = false;
+      bool wasChanged = false;
+      bool wasRemoved = false;
+      helper.server.onContextsChanged.listen((ContextsChangedEvent event) {
+        wasAdded = event.added.length == 1;
+        if (wasAdded) {
+          expect(event.added[0], isNotNull);
+        }
+        wasChanged = event.changed.length == 1;
+        if (wasChanged) {
+          expect(event.changed[0], isNotNull);
+        }
+        wasRemoved = event.removed.length == 1;
+        if (wasRemoved) {
+          expect(event.removed[0], isNotNull);
+        }
+      });
+
+      helper.server.setAnalysisRoots('0', ['/foo'], [], {});
+      return pumpEventQueue().then((_) {
+        expect(wasAdded, isTrue);
+        expect(wasChanged, isFalse);
+        expect(wasRemoved, isFalse);
+
+        wasAdded = false;
+        wasChanged = false;
+        wasRemoved = false;
+        helper.server.setAnalysisRoots('0', ['/foo'], [], {'/foo':'/bar'});
+        return pumpEventQueue();
+      }).then((_) {
+        expect(wasAdded, isFalse);
+        expect(wasChanged, isTrue);
+        expect(wasRemoved, isFalse);
+
+        wasAdded = false;
+        wasChanged = false;
+        wasRemoved = false;
+        helper.server.setAnalysisRoots('0', [], [], {});
+        return pumpEventQueue();
+      }).then((_) {
+        expect(wasAdded, isFalse);
+        expect(wasChanged, isFalse);
+        expect(wasRemoved, isTrue);
+      });
+    });
   });
 }
 
 class AnalysisServerTestHelper {
   MockServerChannel channel;
   AnalysisServer server;
+  MemoryResourceProvider resourceProvider;
 
   AnalysisServerTestHelper({bool rethrowExceptions: true}) {
     channel = new MockServerChannel();
-    server = new AnalysisServer(channel, PhysicalResourceProvider.INSTANCE,
+    resourceProvider = new MemoryResourceProvider();
+    server = new AnalysisServer(channel, resourceProvider,
         new MockPackageMapProvider(), null, new MockSdk(),
         rethrowExceptions: rethrowExceptions);
   }

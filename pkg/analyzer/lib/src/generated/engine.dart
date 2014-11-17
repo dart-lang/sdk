@@ -284,6 +284,12 @@ class AnalysisCache {
  * proposed future state, such as the state after a refactoring.
  */
 abstract class AnalysisContext {
+
+  /**
+   * An empty list of contexts.
+   */
+  static const List<AnalysisContext> EMPTY_LIST = const <AnalysisContext>[];
+
   /**
    * Add the given listener to the list of objects that are to be notified when various analysis
    * results are produced in this context.

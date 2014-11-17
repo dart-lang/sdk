@@ -36,9 +36,22 @@ class ServerContextManager extends ContextManager {
    */
   AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
 
+  /**
+   * The controller for sending [ContextsChangedEvent]s.
+   */
+  StreamController<ContextsChangedEvent> _onContextsChangedController;
+
   ServerContextManager(this.analysisServer, ResourceProvider resourceProvider,
       PackageMapProvider packageMapProvider)
-      : super(resourceProvider, packageMapProvider);
+      : super(resourceProvider, packageMapProvider) {
+    _onContextsChangedController = new StreamController<ContextsChangedEvent>();
+  }
+
+  /**
+   * The stream that is notified when contexts are added or removed.
+   */
+  Stream<ContextsChangedEvent> get onContextsChanged =>
+      _onContextsChangedController.stream;
 
   @override
   void addContext(Folder folder, UriResolver packageUriResolver) {
@@ -46,6 +59,8 @@ class ServerContextManager extends ContextManager {
     analysisServer.folderMap[folder] = context;
     context.sourceFactory = _createSourceFactory(packageUriResolver);
     context.analysisOptions = new AnalysisOptionsImpl.con1(defaultOptions);
+    _onContextsChangedController.add(
+        new ContextsChangedEvent(added: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
   }
 
@@ -64,6 +79,8 @@ class ServerContextManager extends ContextManager {
     if (analysisServer.index != null) {
       analysisServer.index.removeContext(context);
     }
+    _onContextsChangedController.add(
+        new ContextsChangedEvent(removed: [context]));
     analysisServer.sendContextAnalysisDoneNotifications(
         context,
         AnalysisDoneReason.CONTEXT_REMOVED);
@@ -71,9 +88,11 @@ class ServerContextManager extends ContextManager {
 
   @override
   void updateContextPackageUriResolver(Folder contextFolder,
-                                       UriResolver packageUriResolver) {
+      UriResolver packageUriResolver) {
     AnalysisContext context = analysisServer.folderMap[contextFolder];
     context.sourceFactory = _createSourceFactory(packageUriResolver);
+    _onContextsChangedController.add(
+        new ContextsChangedEvent(changed: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
   }
 
@@ -88,6 +107,36 @@ class ServerContextManager extends ContextManager {
         packageUriResolver];
     return new SourceFactory(resolvers);
   }
+}
+
+
+/**
+ * A [ContextsChangedEvent] indicate what contexts were added or removed.
+ *
+ * No context should be added to the event more than once. It does not make
+ * sense, for example, for a context to be both added and removed.
+ */
+class ContextsChangedEvent {
+
+  /**
+   * The contexts that were added to the server.
+   */
+  final List<AnalysisContext> added;
+
+  /**
+   * The contexts that were changed.
+   */
+  final List<AnalysisContext> changed;
+
+  /**
+   * The contexts that were removed from the server.
+   */
+  final List<AnalysisContext> removed;
+
+  ContextsChangedEvent({
+      this.added: AnalysisContext.EMPTY_LIST,
+      this.changed: AnalysisContext.EMPTY_LIST,
+      this.removed: AnalysisContext.EMPTY_LIST});
 }
 
 
@@ -229,6 +278,11 @@ class AnalysisServer {
   bool rethrowExceptions;
 
   /**
+   * The stream that is notified when contexts are added or removed.
+   */
+  Stream<ContextsChangedEvent> onContextsChanged;
+
+  /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    *
@@ -244,6 +298,8 @@ class AnalysisServer {
     operationQueue = new ServerOperationQueue(this);
     contextDirectoryManager =
         new ServerContextManager(this, resourceProvider, packageMapProvider);
+    onContextsChanged =
+        contextDirectoryManager.onContextsChanged.asBroadcastStream();
     AnalysisEngine.instance.logger = new AnalysisLogger();
     _onAnalysisStartedController = new StreamController.broadcast();
     _onAnalysisCompleteController = new StreamController.broadcast();
@@ -435,9 +491,8 @@ class AnalysisServer {
           channel.sendResponse(exception.response);
           return;
         } catch (exception, stackTrace) {
-          RequestError error = new RequestError(
-              RequestErrorCode.SERVER_ERROR,
-              exception.toString());
+          RequestError error =
+              new RequestError(RequestErrorCode.SERVER_ERROR, exception.toString());
           if (stackTrace != null) {
             error.stackTrace = stackTrace.toString();
           }
@@ -920,7 +975,7 @@ class AnalysisServer {
    * Schedules [performOperation] exection.
    */
   void _schedulePerformOperation() {
-    assert (!performOperationPending);
+    assert(!performOperationPending);
     new Future(performOperation);
     performOperationPending = true;
   }
