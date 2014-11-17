@@ -55,7 +55,8 @@ import 'package:compiler/src/js_backend/js_backend.dart' show
     Namer;
 
 import 'package:compiler/src/util/util.dart' show
-    Link;
+    Link,
+    LinkBuilder;
 
 import 'package:compiler/src/elements/modelx.dart' show
     DeclarationSite,
@@ -229,13 +230,12 @@ class LibraryUpdater extends JsFeatures {
   }
 
   bool canReuseRemovedFunction(PartialFunctionElement element) {
-    if (!element.isInstanceMember) {
-      return cannotReuse(
-          element, "Removed function that isn't an instance method.");
-    }
-    logVerbose("Removed instance method $element.");
+    logVerbose("Removed method $element.");
 
     PartialClassElement cls = element.enclosingClass;
+    if (cls != null && !element.isInstanceMember) {
+      return cannotReuse(element, "Removed static method");
+    }
     for (ScopeContainerElement scope in scopesAffectedBy(element, cls)) {
       scanSites(scope, (Element member, DeclarationSite site) {
         // TODO(ahe): Cache qualifiedNamesIn to avoid quadratic behavior.
@@ -527,13 +527,17 @@ abstract class ReuseFunction {
 class RemovedFunctionUpdate extends Update with JsFeatures, ReuseFunction {
   final PartialFunctionElement element;
 
-  /// Name of property to remove using JavaScript "delete".
+  /// Name of property to remove using JavaScript "delete". Null for
+  /// non-instance methods.
   String name;
 
   /// Name of super-alias property to remove using JavaScript "delete".  Null
-  /// for methods that aren't "super aliased" (should imply that this field is
-  /// null for all non-instance methods).
+  /// for methods that aren't "super aliased", and non-instance methods.
   String superName;
+
+  /// For instance methods, access to class object. Otherwise, access to the
+  /// method itself.
+  jsAst.Node elementAccess;
 
   bool wasStateCaptured = false;
 
@@ -550,10 +554,13 @@ class RemovedFunctionUpdate extends Update with JsFeatures, ReuseFunction {
     if (wasStateCaptured) throw "captureState was called twice.";
 
     if (element.isInstanceMember) {
+      elementAccess = namer.elementAccess(element.enclosingClass);
       name = namer.getNameOfMember(element);
-    }
-    if (backend.isAliasedSuperMember(element)) {
-      superName = namer.getNameOfAliasedSuperMember(element);
+      if (backend.isAliasedSuperMember(element)) {
+        superName = namer.getNameOfAliasedSuperMember(element);
+      }
+    } else {
+      elementAccess = namer.elementAccess(element);
     }
 
     wasStateCaptured = true;
@@ -561,42 +568,54 @@ class RemovedFunctionUpdate extends Update with JsFeatures, ReuseFunction {
 
   PartialElement apply() {
     if (!wasStateCaptured) throw "captureState must be called before apply.";
-    removeFromEnclosingClass();
+    removeFromEnclosing();
     reuseElement();
     return null;
   }
 
-  void removeFromEnclosingClass() {
+  void removeFromEnclosing() {
     PartialClassElement cls = element.enclosingClass;
-
-    Link<Element> localMembersReversed = const Link<Element>();
-    bool foundElement = false;
-    cls.forEachLocalMember((member) {
-      if (member != element) {
-        localMembersReversed = localMembersReversed.prepend(member);
-      } else {
-        if (foundElement) {
-          throw "Found '$element' twice in '$cls'.";
-        }
-        foundElement = true;
-      }
-    });
-    if (!foundElement) {
-      throw "Don't find '$element' in '$cls'.";
+    if (cls == null) {
+      removeFromLibrary(element.library);
+    } else {
+      removeFromEnclosingClass(cls);
     }
-    cls.localMembersCache = null;
-    cls.localMembersReversed = localMembersReversed;
-    cls.localScope.contents.remove(element.name);
+  }
 
-    return null;
+  void removeFromEnclosingClass(PartialClassElement cls) {
+    cls.localMembersCache = null;
+    cls.localMembersReversed =
+        copyLinkWithout(element, cls.localMembersReversed);
+    cls.localScope.contents.remove(element.name);
+  }
+
+  void removeFromLibrary(LibraryElementX library) {
+    library.localMembers = copyLinkWithout(element, library.localMembers);
+    library.localScope.contents.remove(element.name);
+  }
+
+  Link copyLinkWithout(e, Link link) {
+    // TODO(ahe): Consider adding to [Link].
+    LinkBuilder copy = new LinkBuilder();
+
+    for (; !link.isEmpty; link = link.tail) {
+      if (link.head != e) {
+        copy.addLast(e);
+      }
+    }
+
+    return copy.toLink(link);
   }
 
   void writeUpdateJsOn(List<jsAst.Statement> updates) {
-    if (name == null) {
-      compiler.internalError(element, '${element.runtimeType}');
+    if (elementAccess == null) {
+      compiler.internalError(
+          element, 'No elementAccess for ${element.runtimeType}');
     }
     if (element.isInstanceMember) {
-      jsAst.Node elementAccess = namer.elementAccess(element.enclosingClass);
+      if (name == null) {
+        compiler.internalError(element, 'No name for ${element.runtimeType}');
+      }
       updates.add(
           js.statement('delete #.prototype.#', [elementAccess, name]));
 
@@ -605,8 +624,7 @@ class RemovedFunctionUpdate extends Update with JsFeatures, ReuseFunction {
             js.statement('delete #.prototype.#', [elementAccess, superName]));
       }
     } else {
-      compiler.internalError(
-          element, 'Removal of non-instance methods not yest supported.');
+      updates.add(js.statement('delete #', [elementAccess]));
     }
   }
 }

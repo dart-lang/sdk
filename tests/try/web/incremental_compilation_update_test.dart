@@ -293,6 +293,55 @@ main() {
             const <String> ['v2']),
     ],
 
+    // Test that deleting a top-level method works.
+    const <ProgramResult>[
+        const ProgramResult(
+            """
+toplevel() {
+  print('v1');
+}
+class C {
+  m() {
+    try {
+      toplevel();
+    } catch (e) {
+      print('v2');
+    }
+  }
+}
+var instance;
+main() {
+  if (instance == null) {
+    instance = new C();
+  }
+  instance.m();
+}
+""",
+            const <String> ['v1']),
+        const ProgramResult(
+            """
+class C {
+  m() {
+    try {
+      toplevel();
+    } catch (e) {
+      print('v2');
+    }
+  }
+}
+var instance;
+main() {
+  if (instance == null) {
+    instance = new C();
+  }
+  instance.m();
+}
+""",
+            const <String> ['v2']),
+    ],
+
+
+
 ];
 
 void main() {
