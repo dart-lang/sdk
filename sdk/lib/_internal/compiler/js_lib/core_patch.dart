@@ -8,6 +8,7 @@ import 'dart:_interceptors';
 import 'dart:_js_helper' show patch,
                               checkInt,
                               getRuntimeType,
+                              jsonEncodeNative,
                               JSSyntaxRegExp,
                               Primitives,
                               stringJoinUnchecked,
@@ -138,6 +139,11 @@ class Error {
   @patch
   static String _objectToString(Object object) {
     return Primitives.objectToString(object);
+  }
+
+  @patch
+  static String _stringToSafeString(String string) {
+    return jsonEncodeNative(string);
   }
 
   @patch

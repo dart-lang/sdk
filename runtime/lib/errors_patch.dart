@@ -3,10 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:mirrors' show MirrorSystem;
+import 'dart:convert' show JSON;
 
 patch class Error {
   /* patch */ static String _objectToString(Object object) {
     return Object._toString(object);
+  }
+
+  /* patch */ static String _stringToSafeString(String string) {
+    return JSON.encode(string);
   }
 
   /* patch */ StackTrace get stackTrace => _stackTrace;

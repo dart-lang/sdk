@@ -40,7 +40,7 @@ main() {
 
     schedulePub(
         args: ["build", "foo", "web"],
-        output: new RegExp(r'Built 16 files to "build".'));
+        output: new RegExp(r'Built 12 files to "build".'));
 
     d.dir(
         appPath,
