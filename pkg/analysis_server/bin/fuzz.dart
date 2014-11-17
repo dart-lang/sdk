@@ -154,11 +154,11 @@ class _FuzzTest {
     });
   }
 
-  void _printAnalysisSummary(AnalysisResults results) {
-    print(
-        'Found ${results.errorCount} errors, ${results.warningCount} warnings,'
-            ' and ${results.hintCount} hints in $results.elapsed');
-  }
+//  void _printAnalysisSummary(AnalysisResults results) {
+//    print(
+//        'Found ${results.errorCount} errors, ${results.warningCount} warnings,'
+//            ' and ${results.hintCount} hints in $results.elapsed');
+//  }
 
   /// Print information about how to use the server.
   void _printUsage(ArgParser parser) {

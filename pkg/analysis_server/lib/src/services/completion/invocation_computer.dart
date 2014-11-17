@@ -55,9 +55,9 @@ class _ExpressionSuggestionBuilder implements SuggestionBuilder {
       node = node.parent;
     }
     if (node is MethodInvocation) {
-      node = node.realTarget;
+      node = (node as MethodInvocation).realTarget;
     } else if (node is PropertyAccess) {
-      node = node.realTarget;
+      node = (node as PropertyAccess).realTarget;
     }
     if (node is Expression) {
       DartType type = node.bestType;
