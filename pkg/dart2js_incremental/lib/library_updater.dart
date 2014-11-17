@@ -233,9 +233,6 @@ class LibraryUpdater extends JsFeatures {
     logVerbose("Removed method $element.");
 
     PartialClassElement cls = element.enclosingClass;
-    if (cls != null && !element.isInstanceMember) {
-      return cannotReuse(element, "Removed static method");
-    }
     for (ScopeContainerElement scope in scopesAffectedBy(element, cls)) {
       scanSites(scope, (Element member, DeclarationSite site) {
         // TODO(ahe): Cache qualifiedNamesIn to avoid quadratic behavior.

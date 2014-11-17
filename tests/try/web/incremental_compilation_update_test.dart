@@ -12,6 +12,9 @@ import 'dart:async' show
 import 'package:async_helper/async_helper.dart' show
     asyncTest;
 
+import 'package:try/src/interaction_manager.dart' show
+    splitLines;
+
 import 'sandbox.dart' show
     appendIFrame,
     listener;
@@ -340,12 +343,76 @@ main() {
             const <String> ['v2']),
     ],
 
-
-
+    // Test that deleting a static method works.
+    const <ProgramResult>[
+        const ProgramResult(
+            """
+class B {
+  static staticMethod() {
+    print('v1');
+  }
+}
+class C {
+  m() {
+    try {
+      B.staticMethod();
+    } catch (e) {
+      print('v2');
+    }
+    try {
+      // Ensure that noSuchMethod support is compiled. This test is not about
+      // adding new classes.
+      B.missingMethod();
+      print('bad');
+    } catch (e) {
+    }
+  }
+}
+var instance;
+main() {
+  if (instance == null) {
+    instance = new C();
+  }
+  instance.m();
+}
+""",
+            const <String> ['v1']),
+        const ProgramResult(
+            """
+class B {
+}
+class C {
+  m() {
+    try {
+      B.staticMethod();
+    } catch (e) {
+      print('v2');
+    }
+    try {
+      // Ensure that noSuchMethod support is compiled. This test is not about
+      // adding new classes.
+      B.missingMethod();
+      print('bad');
+    } catch (e) {
+    }
+  }
+}
+var instance;
+main() {
+  if (instance == null) {
+    instance = new C();
+  }
+  instance.m();
+}
+""",
+            const <String> ['v2']),
+    ],
 ];
 
 void main() {
   listener.start();
+
+  document.head.append(lineNumberStyle());
 
   return asyncTest(() => Future.forEach(tests, compileAndRun));
 }
@@ -363,7 +430,11 @@ Future compileAndRun(List<ProgramResult> programs) {
 
   return listener.expect('iframe-ready').then((_) {
     ProgramResult program = programs.first;
-    status.append(new PreElement()..appendText(program.code));
+
+
+    status.append(new HeadingElement.h2()..appendText("Full program:"));
+    status.append(numberedLines(program.code));
+
     status.style.color = 'orange';
     WebCompilerTestCase test = new WebCompilerTestCase(program.code);
     return test.run().then((String jsCode) {
@@ -378,7 +449,8 @@ Future compileAndRun(List<ProgramResult> programs) {
         int version = 2;
         return Future.forEach(programs.skip(1), (ProgramResult program) {
 
-          status.append(new PreElement()..appendText(program.code));
+          status.append(new HeadingElement.h2()..appendText("Update:"));
+          status.append(numberedLines(program.code));
 
           WebInputProvider inputProvider =
               test.incrementalCompiler.inputProvider;
@@ -412,4 +484,52 @@ void logger(x) {
   if (listener.elapsed > timeout) {
     throw 'Test timed out.';
   }
+}
+
+Element numberedLines(String code) {
+  DivElement result = new DivElement();
+  result.classes.add("output");
+
+  for (String text in splitLines(code)) {
+    Element line = new PreElement()
+        ..appendText(text.trimRight())
+        ..classes.add("line");
+    result.append(line);
+  }
+
+  return result;
+}
+
+
+StyleElement lineNumberStyle() {
+  StyleElement style = new StyleElement()..appendText('''
+h2 {
+  color: black;
+}
+
+.output {
+  padding: 0px;
+  counter-reset: line-number;
+  padding-bottom: 1em;
+}
+
+.line {
+  white-space: pre-wrap;
+  padding-left: 3.5em;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.line::before {
+  counter-increment: line-number;
+  content: counter(line-number) " ";
+  position: absolute;
+  left: 0px;
+  width: 3em;
+  text-align: right;
+  background-color: lightgoldenrodyellow;
+}
+''');
+  style.type = 'text/css';
+  return style;
 }
