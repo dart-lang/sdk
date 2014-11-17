@@ -1945,6 +1945,9 @@ void Assembler::hlt() {
 
 void Assembler::j(Condition condition, Label* label, bool near) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (VerifiedMemory::enabled()) {
+    near = Assembler::kFarJump;
+  }
   if (label->IsBound()) {
     static const int kShortSize = 2;
     static const int kLongSize = 6;
@@ -1987,6 +1990,9 @@ void Assembler::jmp(Register reg) {
 
 void Assembler::jmp(Label* label, bool near) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (VerifiedMemory::enabled()) {
+    near = Assembler::kFarJump;
+  }
   if (label->IsBound()) {
     static const int kShortSize = 2;
     static const int kLongSize = 5;
@@ -2199,8 +2205,29 @@ void Assembler::StoreIntoObjectFilter(Register object,
 }
 
 
+void Assembler::VerifyHeapWord(const Address& address) {
+  if (VerifiedMemory::enabled()) {
+    Register addr_reg = EDX;
+    Register value = EBX;
+    // Preserve registers.
+    pushl(addr_reg);
+    pushl(value);
+    leal(addr_reg, address);
+    // ASSERT(*address == *(address + offset))
+    movl(value, Address(addr_reg, 0));
+    cmpl(value, Address(addr_reg, VerifiedMemory::offset()));
+    Label ok;
+    j(EQUAL, &ok, Assembler::kNearJump);
+    Stop("Write barrier verification failed");
+    Bind(&ok);
+    popl(value);
+    popl(addr_reg);
+  }
+}
+
+
 void Assembler::VerifiedWrite(const Address& dest, Register value) {
-  // TODO(koda): Verify previous value.
+  VerifyHeapWord(dest);
   movl(dest, value);
   if (VerifiedMemory::enabled()) {
     Register temp = (value == EDX) ? ECX : EDX;
@@ -2271,8 +2298,8 @@ void Assembler::UnverifiedStoreOldObject(const Address& dest,
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value) {
+  VerifyHeapWord(dest);
   if (value.IsSmi() || value.InVMHeap()) {
-    // TODO(koda): Verify previous value.
     Immediate imm_value(reinterpret_cast<int32_t>(value.raw()));
     movl(dest, imm_value);
     if (VerifiedMemory::enabled()) {
@@ -2309,8 +2336,9 @@ void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
 
 
 void Assembler::ZeroSmiField(const Address& dest) {
+  // TODO(koda): Add VerifySmi once we distinguish initalization.
+  VerifyHeapWord(dest);
   Immediate zero(Smi::RawValue(0));
-  // TODO(koda): Verify previous value.
   movl(dest, zero);
   if (VerifiedMemory::enabled()) {
     Register temp = ECX;
@@ -2325,8 +2353,8 @@ void Assembler::ZeroSmiField(const Address& dest) {
 void Assembler::IncrementSmiField(const Address& dest, int32_t increment) {
   // Note: FlowGraphCompiler::EdgeCounterIncrementSizeInBytes depends on
   // the length of this instruction sequence.
-  //
-  // TODO(koda): Implement testl for addresses and check that dest is a smi.
+  // TODO(koda): Add VerifySmi once we distinguish initalization.
+  VerifyHeapWord(dest);
   Immediate inc_imm(Smi::RawValue(increment));
   addl(dest, inc_imm);
   if (VerifiedMemory::enabled()) {

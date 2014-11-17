@@ -626,10 +626,12 @@ class Assembler : public ValueObject {
   void int3();
   void hlt();
 
+  // Note: verified_mem mode forces far jumps.
   void j(Condition condition, Label* label, bool near = kFarJump);
   void j(Condition condition, const ExternalLabel* label);
 
   void jmp(Register reg);
+  // Note: verified_mem mode forces far jumps.
   void jmp(Label* label, bool near = kFarJump);
   void jmp(const ExternalLabel* label);
 
@@ -929,7 +931,9 @@ class Assembler : public ValueObject {
                                   Register value,
                                   Label* no_update);
 
-  // Private helpers for write barrier verification.
+  // Analogous to VerifiedMemory::Verify(address, kWordSize).
+  void VerifyHeapWord(const Address& address);
+  // Analogous to VerifiedMemory::Write.
   void VerifiedWrite(const Address& dest, Register value);
   void UnverifiedStoreOldObject(const Address& dest, const Object& value);
 

@@ -367,6 +367,7 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words) {
     }
 #if defined(DEBUG)
     memset(reserved->address(), kZapValue, size_in_bytes);
+    VerifiedMemory::Accept(reserved->start(), size_in_bytes);
 #endif  // defined(DEBUG)
     return new SemiSpace(reserved);
   }

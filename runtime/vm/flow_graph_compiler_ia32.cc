@@ -1234,13 +1234,15 @@ void FlowGraphCompiler::EmitEdgeCounter() {
   intptr_t increment_start = assembler_->CodeSize();
 #endif  // DEBUG
   __ IncrementSmiField(FieldAddress(EAX, Array::element_offset(0)), 1);
+  // If the assertion below fails, update EdgeCounterIncrementSizeInBytes.
   DEBUG_ASSERT((assembler_->CodeSize() - increment_start) ==
                EdgeCounterIncrementSizeInBytes());
 }
 
 
 int32_t FlowGraphCompiler::EdgeCounterIncrementSizeInBytes() {
-  return VerifiedMemory::enabled() ? 16 : 4;
+  // Used by CodePatcher; so must be constant across all code in an isolate.
+  return VerifiedMemory::enabled() ? 50 : 4;
 }
 
 

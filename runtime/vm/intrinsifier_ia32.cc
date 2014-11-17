@@ -114,10 +114,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // Try allocating in new space.
   const Class& cls = Class::Handle(
       Isolate::Current()->object_store()->growable_object_array_class());
-  const bool jump_length = VerifiedMemory::enabled() ?
-      Assembler::kFarJump :
-      Assembler::kNearJump;
-  __ TryAllocate(cls, &fall_through, jump_length, EAX, EBX);
+  __ TryAllocate(cls, &fall_through, Assembler::kNearJump, EAX, EBX);
 
   // Store backing array object in growable array object.
   __ movl(EBX, Address(ESP, kArrayOffset));  // data argument.
