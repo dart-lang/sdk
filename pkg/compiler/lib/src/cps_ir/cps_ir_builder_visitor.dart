@@ -41,10 +41,7 @@ class IrBuilderTask extends CompilerTask {
       SourceFile sourceFile = elementSourceFile(element);
       IrBuilderVisitor builder =
           new IrBuilderVisitor(elementsMapping, compiler, sourceFile);
-      ir.FunctionDefinition function;
-      function = builder.buildFunction(element);
-
-      return function;
+      return builder.buildFunction(element);
     });
   }
 

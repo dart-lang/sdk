@@ -9,9 +9,16 @@ import '../../js/js.dart' as js;
 import '../../elements/elements.dart';
 import '../../util/maplet.dart';
 
-class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
-  static const String UNIMPLEMENTED = "Javascript generation aborted";
+class CodegenBailout {
+  final tree_ir.Node node;
+  final String reason;
+  CodegenBailout(this.node, this.reason);
+  String get message {
+    return 'bailout${node != null ? " on $node" : ""}: $reason';
+  }
+}
 
+class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   /// Variables to be hoisted at the top of the current function.
   List<js.VariableDeclaration> variables = <js.VariableDeclaration>[];
 
@@ -47,8 +54,9 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
     return arguments.map(visitExpression).toList();
   }
 
-  giveup(tree_ir.Node node) {
-    throw UNIMPLEMENTED;
+  giveup(tree_ir.Node node,
+         [String reason = 'unimplemented in CodeGenerator']) {
+    throw new CodegenBailout(node, reason);
   }
 
   @override

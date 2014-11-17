@@ -41,7 +41,7 @@ class CspFunctionCompiler implements FunctionCompiler {
   final Compiler compiler;
 
   // Remember to update dart-doc of [compile] when this field is removed.
-  FunctionCompiler fallbackCompiler;
+  final FunctionCompiler fallbackCompiler;
 
   CspFunctionCompiler(Compiler compiler, JavaScriptBackend backend)
       : irBuilderTask = new IrBuilderTask(compiler),
@@ -54,73 +54,99 @@ class CspFunctionCompiler implements FunctionCompiler {
   /// features not implemented it will fall back to the ssa pipeline.
   js.Fun compile(CodegenWorkItem work) {
     AstElement element = work.element;
-      return compiler.withCurrentElement(element, () {
-        try {
-        // TODO(sigurdm): Support these constructs.
-        if(work.element.isGenerativeConstructorBody ||
-           work.element.enclosingClass is ClosureClassElement ||
-           work.element.isNative) {
-          throw CodeGenerator.UNIMPLEMENTED;
-        }
-
-        void traceGraph(String title, var irObject) {
-          if (tracer != null) {
-            tracer.traceGraph(title, irObject);
-          }
-        }
-
-        cps.FunctionDefinition cps_definition =
-            irBuilderTask.buildNode(element);
-        if (cps_definition == null) throw CodeGenerator.UNIMPLEMENTED;
+    return compiler.withCurrentElement(element, () {
+      try {
         if (tracer != null) {
           tracer.traceCompilation(element.name, null);
         }
-        // Transformations on the CPS IR.
-        traceGraph("IR Builder", cps_definition);
-        new ConstantPropagator(compiler, constantSystem)
-            .rewrite(cps_definition);
-        traceGraph("Sparse constant propagation", cps_definition);
-        new RedundantPhiEliminator().rewrite(cps_definition);
-        traceGraph("Redundant phi elimination", cps_definition);
-        new ShrinkingReducer().rewrite(cps_definition);
-        traceGraph("Shrinking reductions", cps_definition);
-
-        // Do not rewrite the IR after variable allocation.  Allocation
-        // makes decisions based on an approximation of IR variable live
-        // ranges that can be invalidated by transforming the IR.
-        new cps.RegisterAllocator().visit(cps_definition);
-
-        tree_builder.Builder builder = new tree_builder.Builder(compiler);
-        tree_ir.FunctionDefinition definition = builder.build(cps_definition);
-        assert(definition != null);
-        traceGraph('Tree builder', definition);
-
-        // Transformations on the Tree IR.
-        new StatementRewriter().rewrite(definition);
-        traceGraph('Statement rewriter', definition);
-        new CopyPropagator().rewrite(definition);
-        traceGraph('Copy propagation', definition);
-        new LoopRewriter().rewrite(definition);
-        traceGraph('Loop rewriter', definition);
-        new LogicalRewriter().rewrite(definition);
-        traceGraph('Logical rewriter', definition);
-        new backend_ast_emitter.UnshadowParameters().unshadow(definition);
-        traceGraph('Unshadow parameters', definition);
-
-        CodeGenerator codeGen = new CodeGenerator();
-
-        codeGen.buildFunction(definition);
-        return buildJavaScriptFunction(work.element,
-                                       codeGen.parameters,
-                                       codeGen.body);
-      } catch (e, tr) {
-        if (e == CodeGenerator.UNIMPLEMENTED) {
-          return fallbackCompiler.compile(work);
-        } else {
-          rethrow;
-        }
+        cps.FunctionDefinition cpsFunction = compileToCpsIR(element);
+        cpsFunction = optimizeCpsIR(cpsFunction);
+        tree_ir.FunctionDefinition treeFunction = compileToTreeIR(cpsFunction);
+        treeFunction = optimizeTreeIR(treeFunction);
+        return compileToJavaScript(work, treeFunction);
+      } on CodegenBailout catch (e) {
+        compiler.log('Falling back to SSA compiler for $element'
+            ' (${e.message})');
+        return fallbackCompiler.compile(work);
       }
     });
+  }
+
+  void giveUp(String reason) {
+    throw new CodegenBailout(null, reason);
+  }
+
+  void traceGraph(String title, var irObject) {
+    if (tracer != null) {
+      tracer.traceGraph(title, irObject);
+    }
+  }
+
+  cps.FunctionDefinition compileToCpsIR(AstElement element) {
+    // TODO(sigurdm): Support these constructs.
+    if (element.isGenerativeConstructorBody ||
+        element.enclosingClass is ClosureClassElement ||
+        element.isNative) {
+      giveUp('unsupported element kind: ${element.name}:${element.kind}');
+    }
+
+    cps.FunctionDefinition cpsNode = irBuilderTask.buildNode(element);
+    if (cpsNode == null) {
+      giveUp('unable to build cps definition of $element');
+    }
+    return cpsNode;
+  }
+
+  cps.FunctionDefinition optimizeCpsIR(cps.FunctionDefinition cpsNode) {
+    // Transformations on the CPS IR.
+    traceGraph("IR Builder", cpsNode);
+    new ConstantPropagator(compiler, constantSystem)
+        .rewrite(cpsNode);
+    traceGraph("Sparse constant propagation", cpsNode);
+    new RedundantPhiEliminator().rewrite(cpsNode);
+    traceGraph("Redundant phi elimination", cpsNode);
+    new ShrinkingReducer().rewrite(cpsNode);
+    traceGraph("Shrinking reductions", cpsNode);
+
+    // Do not rewrite the IR after variable allocation.  Allocation
+    // makes decisions based on an approximation of IR variable live
+    // ranges that can be invalidated by transforming the IR.
+    new cps.RegisterAllocator().visit(cpsNode);
+    return cpsNode;
+  }
+
+  tree_ir.FunctionDefinition compileToTreeIR(cps.FunctionDefinition cpsNode) {
+    tree_builder.Builder builder = new tree_builder.Builder(compiler);
+    tree_ir.FunctionDefinition treeNode = builder.build(cpsNode);
+    assert(treeNode != null);
+    traceGraph('Tree builder', treeNode);
+    return treeNode;
+  }
+
+  tree_ir.FunctionDefinition optimizeTreeIR(
+      tree_ir.FunctionDefinition treeNode) {
+    // Transformations on the Tree IR.
+    new StatementRewriter().rewrite(treeNode);
+    traceGraph('Statement rewriter', treeNode);
+    new CopyPropagator().rewrite(treeNode);
+    traceGraph('Copy propagation', treeNode);
+    new LoopRewriter().rewrite(treeNode);
+    traceGraph('Loop rewriter', treeNode);
+    new LogicalRewriter().rewrite(treeNode);
+    traceGraph('Logical rewriter', treeNode);
+    new backend_ast_emitter.UnshadowParameters().unshadow(treeNode);
+    traceGraph('Unshadow parameters', treeNode);
+    return treeNode;
+  }
+
+  js.Fun compileToJavaScript(CodegenWorkItem work,
+                             tree_ir.FunctionDefinition definition) {
+    CodeGenerator codeGen = new CodeGenerator();
+
+    codeGen.buildFunction(definition);
+    return buildJavaScriptFunction(work.element,
+                                   codeGen.parameters,
+                                   codeGen.body);
   }
 
   Iterable<CompilerTask> get tasks {
