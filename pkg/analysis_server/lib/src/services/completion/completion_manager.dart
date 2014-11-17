@@ -13,36 +13,42 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
+ * [CompletionCache] contains information about the prior code completion
+ * for use in the next code completion.
+ */
+abstract class CompletionCache {
+
+  /**
+   * The context in which the completion was computed.
+   */
+  final AnalysisContext context;
+
+  /**
+   * The source in which the completion was computed.
+   */
+  final Source source;
+
+  CompletionCache(this.context, this.source);
+}
+
+/**
  * Manages `CompletionComputer`s for a given completion request.
  */
 abstract class CompletionManager {
 
+  /**
+   * The controller used for returning completion results.
+   */
   StreamController<CompletionResult> controller;
 
-  /**
-   * Compute completion results and append them to the stream.
-   * Subclasses should override this method, append at least one result
-   * to the [controller], and close the controller stream once complete.
-   * Clients should not call this method directly as it is automatically called
-   * when a client listens to the stream returned by [results].
-   */
-  void compute();
-
-  /**
-   * Generate a stream of code completion results.
-   */
-  Stream<CompletionResult> results() {
-    controller = new StreamController<CompletionResult>(onListen: () {
-      scheduleMicrotask(compute);
-    });
-    return controller.stream;
-  }
+  CompletionManager();
 
   /**
    * Create a manager for the given request.
    */
-  static CompletionManager create(AnalysisContext context, Source source,
-      int offset, SearchEngine searchEngine, CompletionPerformance performance) {
+  factory CompletionManager.create(AnalysisContext context, Source source,
+      int offset, SearchEngine searchEngine, CompletionCache cache,
+      CompletionPerformance performance) {
     if (context != null) {
       if (AnalysisEngine.isDartFileName(source.shortName)) {
         return new DartCompletionManager(
@@ -59,6 +65,31 @@ abstract class CompletionManager {
     }
     return new NoOpCompletionManager(source, offset);
   }
+
+  /**
+   * Return cached information from the current completion operation
+   * if there is any. Subclasses may override this method.
+   */
+  CompletionCache get completionCache => null;
+
+  /**
+   * Compute completion results and append them to the stream.
+   * Clients should not call this method directly as it is automatically called
+   * when a client listens to the stream returned by [results].
+   * Subclasses should override this method, append at least one result
+   * to the [controller], and close the controller stream once complete.
+   */
+  void compute();
+
+  /**
+   * Generate a stream of code completion results.
+   */
+  Stream<CompletionResult> results() {
+    controller = new StreamController<CompletionResult>(onListen: () {
+      scheduleMicrotask(compute);
+    });
+    return controller.stream;
+  }
 }
 
 /**
@@ -67,7 +98,7 @@ abstract class CompletionManager {
 class CompletionPerformance {
   final Map<String, Duration> _startTimes = new Map<String, Duration>();
   final Stopwatch _stopwatch = new Stopwatch();
-  final List<OperationPerformance> operations = [];
+  final List<OperationPerformance> operations = <OperationPerformance>[];
 
   CompletionPerformance() {
     _stopwatch.start();

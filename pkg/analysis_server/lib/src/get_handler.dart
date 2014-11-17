@@ -10,7 +10,6 @@ import 'dart:math';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_completion.dart';
-import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';

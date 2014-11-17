@@ -6,10 +6,11 @@ library test.services.completion.manager;
 
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
-import '../../abstract_context.dart';
-import '../../reflective_tests.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
+
+import '../../abstract_context.dart';
+import '../../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
@@ -19,28 +20,33 @@ main() {
 @ReflectiveTestCase()
 class CompletionManagerTest extends AbstractContextTest {
   var perf = new CompletionPerformance();
+  var cache = null;
 
   test_dart() {
     Source source = addSource('/does/not/exist.dart', '');
-    var manager = CompletionManager.create(context, source, 0, null, perf);
+    var manager =
+        new CompletionManager.create(context, source, 0, null, cache, perf);
     expect(manager.runtimeType, DartCompletionManager);
   }
 
   test_html() {
     Source source = addSource('/does/not/exist.html', '');
-    var manager = CompletionManager.create(context, source, 0, null, perf);
+    var manager =
+        new CompletionManager.create(context, source, 0, null, cache, perf);
     expect(manager.runtimeType, NoOpCompletionManager);
   }
 
   test_null_context() {
     Source source = addSource('/does/not/exist.dart', '');
-    var manager = CompletionManager.create(null, source, 0, null, perf);
+    var manager =
+        new CompletionManager.create(null, source, 0, null, cache, perf);
     expect(manager.runtimeType, NoOpCompletionManager);
   }
 
   test_other() {
     Source source = addSource('/does/not/exist.foo', '');
-    var manager = CompletionManager.create(context, source, 0, null, perf);
+    var manager =
+        new CompletionManager.create(context, source, 0, null, cache, perf);
     expect(manager.runtimeType, NoOpCompletionManager);
   }
 }

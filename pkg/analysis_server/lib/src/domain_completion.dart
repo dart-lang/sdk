@@ -9,6 +9,9 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 
+export 'package:analysis_server/src/services/completion/completion_manager.dart'
+    show CompletionPerformance, OperationPerformance;
+
 /**
  * Instances of the class [CompletionDomainHandler] implement a [RequestHandler]
  * that handles requests in the search domain.
@@ -23,6 +26,13 @@ class CompletionDomainHandler implements RequestHandler {
    * The next completion response id.
    */
   int _nextCompletionId = 0;
+
+  /**
+   * Cached information from a prior completion operation.
+   * The type of cached information depends upon the completion operation.
+   */
+  // TODO (danrubel) clear cache if either source or context changes
+  CompletionCache _cache;
 
   /**
    * Code completion peformance for the last completion operation.
@@ -57,12 +67,14 @@ class CompletionDomainHandler implements RequestHandler {
         new CompletionGetSuggestionsParams.fromRequest(request);
     // schedule completion analysis
     String completionId = (_nextCompletionId++).toString();
-    CompletionManager.create(
+    CompletionManager manager = new CompletionManager.create(
         server.getAnalysisContext(params.file),
         server.getSource(params.file),
         params.offset,
         server.searchEngine,
-        performance).results().listen((CompletionResult result) {
+        _cache,
+        performance);
+    manager.results().listen((CompletionResult result) {
       sendCompletionNotification(
           completionId,
           result.replacementOffset,
@@ -71,6 +83,7 @@ class CompletionDomainHandler implements RequestHandler {
           result.last);
       if (result.last) {
         performance.complete();
+        _cache = manager.completionCache;
       }
     });
     // initial response without results
