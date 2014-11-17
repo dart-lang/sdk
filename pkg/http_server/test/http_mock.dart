@@ -9,6 +9,9 @@ class MockHttpHeaders implements HttpHeaders {
   final Map<String, List<String>> _headers =
       new HashMap<String, List<String>>();
 
+  operator[](key) => _headers[key];
+
+  int get contentLength => int.parse(_headers[HttpHeaders.CONTENT_LENGTH][0]);
 
   DateTime get ifModifiedSince {
     List<String> values = _headers[HttpHeaders.IF_MODIFIED_SINCE];
@@ -97,7 +100,11 @@ class MockHttpHeaders implements HttpHeaders {
    * Implemented to remove editor warnings
    */
   dynamic noSuchMethod(Invocation invocation) {
-    print([invocation.memberName, invocation.isGetter, invocation.isSetter, invocation.isMethod, invocation.isAccessor]);
+    print([invocation.memberName,
+           invocation.isGetter,
+           invocation.isSetter,
+           invocation.isMethod,
+           invocation.isAccessor]);
     return super.noSuchMethod(invocation);
   }
 }
@@ -181,6 +188,8 @@ class MockHttpResponse implements HttpResponse {
       super.noSuchMethod(invocation);
 
   String get mockContent => UTF8.decode(_buffer);
+
+  List<int> get mockContentBinary => _buffer;
 
   bool get mockDone => _isDone;
 
