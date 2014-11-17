@@ -345,7 +345,10 @@ class ConstantPropagator : public FlowGraphVisitor {
   void EliminateRedundantBranches();
 
   void SetReachable(BlockEntryInstr* block);
-  void SetValue(Definition* definition, const Object& value);
+  bool SetValue(Definition* definition, const Object& value);
+
+  Definition* UnwrapPhi(Definition* defn);
+  void MarkPhi(Definition* defn);
 
   // Assign the join (least upper bound) of a pair of abstract values to the
   // first one.
@@ -381,14 +384,11 @@ class ConstantPropagator : public FlowGraphVisitor {
   // preorder number.
   BitVector* reachable_;
 
-  // Definitions can move up the lattice twice, so we use a mark bit to
-  // indicate that they are already on the worklist in order to avoid adding
-  // them again.  Indexed by SSA temp index.
-  BitVector* definition_marks_;
+  BitVector* marked_phis_;
 
   // Worklists of blocks and definitions.
   GrowableArray<BlockEntryInstr*> block_worklist_;
-  GrowableArray<Definition*> definition_worklist_;
+  DefinitionWorklist definition_worklist_;
 };
 
 

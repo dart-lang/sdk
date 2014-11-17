@@ -7525,10 +7525,10 @@ ConstantPropagator::ConstantPropagator(
       non_constant_(Object::non_constant()),
       reachable_(new(graph->isolate()) BitVector(
           graph->isolate(), graph->preorder().length())),
-      definition_marks_(new(graph->isolate()) BitVector(
+      marked_phis_(new(graph->isolate()) BitVector(
           graph->isolate(), graph->max_virtual_register_number())),
       block_worklist_(),
-      definition_worklist_() {}
+      definition_worklist_(graph, 10) {}
 
 
 void ConstantPropagator::Optimize(FlowGraph* graph) {
@@ -7556,7 +7556,7 @@ void ConstantPropagator::SetReachable(BlockEntryInstr* block) {
 }
 
 
-void ConstantPropagator::SetValue(Definition* definition, const Object& value) {
+bool ConstantPropagator::SetValue(Definition* definition, const Object& value) {
   // We would like to assert we only go up (toward non-constant) in the lattice.
   //
   // ASSERT(IsUnknown(definition->constant_value()) ||
@@ -7568,13 +7568,11 @@ void ConstantPropagator::SetValue(Definition* definition, const Object& value) {
   if (definition->constant_value().raw() != value.raw()) {
     definition->constant_value() = value.raw();
     if (definition->input_use_list() != NULL) {
-      ASSERT(definition->HasSSATemp());
-      if (!definition_marks_->Contains(definition->ssa_temp_index())) {
-        definition_worklist_.Add(definition);
-        definition_marks_->Add(definition->ssa_temp_index());
-      }
+      definition_worklist_.Add(definition);
     }
+    return true;
   }
+  return false;
 }
 
 
@@ -7740,6 +7738,34 @@ void ConstantPropagator::VisitDeoptimize(DeoptimizeInstr* instr) {
 }
 
 
+Definition* ConstantPropagator::UnwrapPhi(Definition* defn) {
+  if (defn->IsPhi()) {
+    JoinEntryInstr* block = defn->AsPhi()->block();
+
+    Definition* input = NULL;
+    for (intptr_t i = 0; i < defn->InputCount(); ++i) {
+      if (reachable_->Contains(block->PredecessorAt(i)->preorder_number())) {
+        if (input == NULL) {
+          input = defn->InputAt(i)->definition();
+        } else {
+          return defn;
+        }
+      }
+    }
+
+    return input;
+  }
+
+  return defn;
+}
+
+
+void ConstantPropagator::MarkPhi(Definition* phi) {
+  ASSERT(phi->IsPhi());
+  marked_phis_->Add(phi->ssa_temp_index());
+}
+
+
 // --------------------------------------------------------------------------
 // Analysis of definitions.  Compute the constant value.  If it has changed
 // and the definition has input uses, add the definition to the definition
@@ -7755,7 +7781,11 @@ void ConstantPropagator::VisitPhi(PhiInstr* instr) {
            instr->InputAt(pred_idx)->definition()->constant_value());
     }
   }
-  SetValue(instr, value);
+  if (!SetValue(instr, value) &&
+      marked_phis_->Contains(instr->ssa_temp_index())) {
+    marked_phis_->Remove(instr->ssa_temp_index());
+    definition_worklist_.Add(instr);
+  }
 }
 
 
@@ -7871,15 +7901,25 @@ void ConstantPropagator::VisitIfThenElse(IfThenElseInstr* instr) {
 
 
 void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
-  const Object& left = instr->left()->definition()->constant_value();
-  const Object& right = instr->right()->definition()->constant_value();
+  Definition* left_defn = instr->left()->definition();
+  Definition* right_defn = instr->right()->definition();
 
-  if (instr->left()->definition() == instr->right()->definition()) {
+  Definition* unwrapped_left_defn = UnwrapPhi(left_defn);
+  Definition* unwrapped_right_defn = UnwrapPhi(right_defn);
+  if (unwrapped_left_defn == unwrapped_right_defn) {
     // Fold x === x, and x !== x to true/false.
     SetValue(instr, Bool::Get(instr->kind() == Token::kEQ_STRICT));
+    if (unwrapped_left_defn != left_defn) {
+      MarkPhi(left_defn);
+    }
+    if (unwrapped_right_defn != right_defn) {
+      MarkPhi(right_defn);
+    }
     return;
   }
 
+  const Object& left = left_defn->constant_value();
+  const Object& right = right_defn->constant_value();
   if (IsNonConstant(left) || IsNonConstant(right)) {
     // TODO(vegorov): incorporate nullability information into the lattice.
     if ((left.IsNull() && instr->right()->Type()->HasDecidableNullability()) ||
@@ -7957,16 +7997,28 @@ void ConstantPropagator::VisitTestCids(TestCidsInstr* instr) {
 
 
 void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
-  const Object& left = instr->left()->definition()->constant_value();
-  const Object& right = instr->right()->definition()->constant_value();
+  Definition* left_defn = instr->left()->definition();
+  Definition* right_defn = instr->right()->definition();
 
-  if (instr->left()->definition() == instr->right()->definition()) {
+  if (RawObject::IsIntegerClassId(instr->operation_cid())) {
     // Fold x == x, and x != x to true/false for numbers comparisons.
-    if (RawObject::IsIntegerClassId(instr->operation_cid())) {
-      return SetValue(instr, Bool::Get(instr->kind() == Token::kEQ));
+    Definition* unwrapped_left_defn = UnwrapPhi(left_defn);
+    Definition* unwrapped_right_defn = UnwrapPhi(right_defn);
+    if (unwrapped_left_defn == unwrapped_right_defn) {
+      // Fold x === x, and x !== x to true/false.
+      SetValue(instr, Bool::Get(instr->kind() == Token::kEQ));
+      if (unwrapped_left_defn != left_defn) {
+        MarkPhi(left_defn);
+      }
+      if (unwrapped_right_defn != right_defn) {
+        MarkPhi(right_defn);
+      }
+      return;
     }
   }
 
+  const Object& left = left_defn->constant_value();
+  const Object& right = right_defn->constant_value();
   if (IsNonConstant(left) || IsNonConstant(right)) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(left) && IsConstant(right)) {
@@ -8795,9 +8847,8 @@ void ConstantPropagator::Analyze() {
 
   while (true) {
     if (block_worklist_.is_empty()) {
-      if (definition_worklist_.is_empty()) break;
+      if (definition_worklist_.IsEmpty()) break;
       Definition* definition = definition_worklist_.RemoveLast();
-      definition_marks_->Remove(definition->ssa_temp_index());
       Value* use = definition->input_use_list();
       while (use != NULL) {
         use->instruction()->Accept(this);
