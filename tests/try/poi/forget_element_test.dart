@@ -400,4 +400,5 @@ List<CompilerTestCase> get tests => <CompilerTestCase>[
         constantCount: 1,
         initialValueCount: 1),
 
+    // TODO(ahe): Add test for super sends [backend.aliasedSuperMembers].
 ]..addAll(assertUnimplementedLocalMetadata());

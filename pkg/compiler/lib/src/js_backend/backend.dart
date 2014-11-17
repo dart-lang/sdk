@@ -2261,6 +2261,7 @@ class JavaScriptBackend extends Backend {
   void forgetElement(Element element) {
     constants.forgetElement(element);
     constantCompilerTask.dartConstantCompiler.forgetElement(element);
+    aliasedSuperMembers.remove(element);
   }
 
   void registerMainHasArguments(Enqueuer enqueuer) {
