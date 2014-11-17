@@ -232,12 +232,12 @@ class LibraryUpdater extends JsFeatures {
   bool canReuseRemovedFunction(PartialFunctionElement element) {
     logVerbose("Removed method $element.");
 
-    PartialClassElement cls = element.enclosingClass;
-    for (ScopeContainerElement scope in scopesAffectedBy(element, cls)) {
+    ScopeContainerElement container = element.enclosingElement;
+    for (ScopeContainerElement scope in scopesAffectedBy(element, container)) {
       scanSites(scope, (Element member, DeclarationSite site) {
         // TODO(ahe): Cache qualifiedNamesIn to avoid quadratic behavior.
         Map<String, List<String>> names = qualifiedNamesIn(site);
-        if (canNamesResolveTo(names, element, cls)) {
+        if (canNamesResolveStaticallyTo(names, element, container)) {
           _elementsToInvalidate.add(member);
         }
       });
@@ -250,6 +250,8 @@ class LibraryUpdater extends JsFeatures {
     return true;
   }
 
+  /// Invoke [f] on each [DeclarationSite] in [element]. If [element] is a
+  /// [ScopeContainerElement], invoke f on all local members as well.
   void scanSites(
       Element element,
       void f(ElementX element, DeclarationSite site)) {
@@ -262,15 +264,19 @@ class LibraryUpdater extends JsFeatures {
     }
   }
 
+  /// Assume [element] is either removed from or added to [container], and
+  /// return all [ScopeContainerElement] that can see this change.
   List<ScopeContainerElement> scopesAffectedBy(
       Element element,
-      ClassElement cls) {
+      ScopeContainerElement container) {
     // TODO(ahe): Use library export graph to compute this.
     // TODO(ahe): Should return all user-defined libraries and packages.
-    LibraryElement library = element.library;
+    LibraryElement library = container.library;
     List<ScopeContainerElement> result = <ScopeContainerElement>[library];
 
-    if (cls == null) return result;
+    if (!container.isClass) return result;
+
+    ClassElement cls = container;
 
     var externalSubtypes =
         compiler.world.subtypesOf(cls).where((e) => e.library != library);
@@ -660,7 +666,16 @@ class RemovedFunctionUpdate extends Update with JsFeatures, ReuseFunction {
   }
 }
 
-Map<String, List<String>> qualifiedNamesIn(PartialElement element) {
+/// Returns all qualified names in [element] with less than four identifiers. A
+/// qualified name is an identifier followed by a sequence of dots and
+/// identifiers, for example, "x", and "x.y.z". But not "x.y.z.w" ("w" is the
+/// fourth identifier).
+///
+/// The longest possible name that can be resolved is three identifiers, for
+/// example, "prefix.MyClass.staticMethod". Since four or more identifiers
+/// cannot resolve to anything statically, they're not included in the returned
+/// value of this method.
+Set<String> qualifiedNamesIn(PartialElement element) {
   Token beginToken = element.beginToken;
   Token endToken = element.endToken;
   Token token = beginToken;
@@ -673,15 +688,33 @@ Map<String, List<String>> qualifiedNamesIn(PartialElement element) {
       }
     }
   }
-  Map<String, List<String>> names = new Map<String, List<String>>();
-  List<List<Token>> qualifieds = <List<Token>>[];
+  Set<String> names = new Set<String>();
   do {
     if (token.isIdentifier()) {
-      List<String> name = names.putIfAbsent(token.value, () => <String>[]);
-      while (identical('.', token.next.stringValue) &&
-             token.next.next.isIdentifier()) {
+      String name = token.value;
+      // [name] is a single "identifier".
+      names.add(name);
+      if (identical('.', token.next.stringValue) &&
+          token.next.next.isIdentifier()) {
         token = token.next.next;
-        name.add(token.value);
+        name += '.${token.value}';
+        // [name] is "idenfifier.idenfifier".
+        names.add(name);
+
+        if (identical('.', token.next.stringValue) &&
+            token.next.next.isIdentifier()) {
+          token = token.next.next;
+          name += '.${token.value}';
+          // [name] is "idenfifier.idenfifier.idenfifier".
+          names.add(name);
+
+          while (identical('.', token.next.stringValue) &&
+                 token.next.next.isIdentifier()) {
+            // Skip remaining identifiers, they cannot statically resolve to
+            // anything, and must be dynamic sends.
+            token = token.next.next;
+          }
+        }
       }
     }
     token = token.next;
@@ -689,21 +722,19 @@ Map<String, List<String>> qualifiedNamesIn(PartialElement element) {
   return names;
 }
 
-bool canNamesResolveTo(
-    Map<String, List<String>> names,
+/// Returns true if one of the qualified names in names (as computed by
+/// [qualifiedNamesIn]) could be a static reference to [element].
+bool canNamesResolveStaticallyTo(
+    Set<String> names,
     Element element,
-    ClassElement cls) {
-  if (names.containsKey(element.name)) {
-    return true;
+    ScopeContainerElement container) {
+  if (names.contains(element.name)) return true;
+  if (container != null && container.isClass) {
+    // [names] contains C.m, where C is the name of [container], and m is the
+    // name of [element].
+    if (names.contains("${container.name}.${element.name}")) return true;
   }
-  if (cls != null) {
-    List<String> rest = names[cls.name];
-    if (rest != null && rest.contains(element.name)) {
-      // [names] contains C.m, where C is the name of [cls], and m is the name
-      // of [element].
-      return true;
-    }
-  }
+  // TODO(ahe): Check for prefixes as well.
   return false;
 }
 
