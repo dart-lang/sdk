@@ -197,6 +197,102 @@ main() {
 """,
             const <String> ['v2']),
     ],
+
+//     // Test that deleting an instance method works.
+//     const <ProgramResult>[
+//         const ProgramResult(
+//             """
+// class C {
+//   m() {
+//     print('v1');
+//   }
+// }
+// var instance;
+// main() {
+//   if (instance == null) {
+//     instance = new C();
+//   }
+//   try {
+//     instance.m();
+//   } catch (e) {
+//     print('v2');
+//   }
+// }
+// """,
+//             const <String> ['v1']),
+//         const ProgramResult(
+//             """
+// class C {
+// }
+// var instance;
+// main() {
+//   if (instance == null) {
+//     instance = new C();
+//   }
+//   try {
+//     instance.m();
+//   } catch (e) {
+//     print('v2');
+//   }
+// }
+// """,
+//             const <String> ['v2']),
+//     ],
+
+    // Test that deleting an instance method works, even when accessed through
+    // super.
+    const <ProgramResult>[
+        const ProgramResult(
+            """
+class A {
+  m() {
+    print('v2');
+  }
+}
+class B extends A {
+  m() {
+    print('v1');
+  }
+}
+class C extends B {
+  m() {
+    super.m();
+  }
+}
+var instance;
+main() {
+  if (instance == null) {
+    instance = new C();
+  }
+  instance.m();
+}
+""",
+            const <String> ['v1']),
+        const ProgramResult(
+            """
+class A {
+  m() {
+    print('v2');
+  }
+}
+class B extends A {
+}
+class C extends B {
+  m() {
+    super.m();
+  }
+}
+var instance;
+main() {
+  if (instance == null) {
+    instance = new C();
+  }
+  instance.m();
+}
+""",
+            const <String> ['v2']),
+    ],
+
 ];
 
 void main() {

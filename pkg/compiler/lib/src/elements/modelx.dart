@@ -267,6 +267,10 @@ abstract class ElementX extends Element {
   }
 
   DeclarationSite get declarationSite => null;
+
+  void reuseElement() {
+    throw "reuseElement isn't implemented on ${runtimeType}.";
+  }
 }
 
 class ErroneousElementX extends ElementX implements ErroneousElement {

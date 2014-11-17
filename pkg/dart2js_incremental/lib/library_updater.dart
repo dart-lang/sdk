@@ -17,6 +17,7 @@ import 'package:compiler/src/dart2jslib.dart' show
     Script;
 
 import 'package:compiler/src/elements/elements.dart' show
+    ClassElement,
     Element,
     FunctionElement,
     LibraryElement,
@@ -52,6 +53,13 @@ import 'package:_internal/compiler/js_lib/shared/embedded_names.dart'
 import 'package:compiler/src/js_backend/js_backend.dart' show
     JavaScriptBackend,
     Namer;
+
+import 'package:compiler/src/util/util.dart' show
+    Link;
+
+import 'package:compiler/src/elements/modelx.dart' show
+    DeclarationSite,
+    ElementX;
 
 import 'diff.dart' show
     Difference,
@@ -95,6 +103,8 @@ class LibraryUpdater {
   final List<Update> updates = <Update>[];
 
   final List<FailedUpdate> _failedUpdates = <FailedUpdate>[];
+
+  final Set<ElementX> _elementsToInvalidate = new Set<ElementX>();
 
   LibraryUpdater(
       this.compiler,
@@ -169,8 +179,13 @@ class LibraryUpdater {
     logTime('Differences computed.');
     for (Difference difference in differences) {
       logTime('Looking at difference: $difference');
-      if (difference.before == null || difference.after == null) {
-        cannotReuse(difference, "Can't reuse; Scope changed.");
+
+      if (difference.before == null && difference.after is PartialElement) {
+        canReuseAddedElement(difference.after);
+        continue;
+      }
+      if (difference.after == null && difference.before is PartialElement) {
+        canReuseRemovedElement(difference.before);
         continue;
       }
       Token diffToken = difference.token;
@@ -203,6 +218,84 @@ class LibraryUpdater {
     }
 
     return _failedUpdates.isEmpty;
+  }
+
+  bool canReuseAddedElement(PartialElement element) {
+    return cannotReuse(element, "Scope changed, element added.");
+  }
+
+  bool canReuseRemovedElement(PartialElement element) {
+    if (element is PartialFunctionElement) {
+      return canReuseRemovedFunction(element);
+    }
+    return cannotReuse(
+        element, "Removed element that isn't a method.");
+  }
+
+  bool canReuseRemovedFunction(PartialFunctionElement element) {
+    if (!element.isInstanceMember) {
+      return cannotReuse(
+          element, "Removed function that isn't an instance method.");
+    }
+    logVerbose("Removed instance method $element.");
+
+    PartialClassElement cls = element.enclosingClass;
+    for (ScopeContainerElement scope in scopesAffectedBy(element, cls)) {
+      scanSites(scope, (Element member, DeclarationSite site) {
+        // TODO(ahe): Cache qualifiedNamesIn to avoid quadratic behavior.
+        Map<String, List<String>> names = qualifiedNamesIn(site);
+        if (canNamesResolveTo(names, element, cls)) {
+          _elementsToInvalidate.add(member);
+        }
+      });
+    }
+
+    // TODO(ahe): Don't modify the class here, instead use an instance of
+    // Update.
+    Link<Element> localMembersReversed = const Link<Element>();
+    cls.forEachLocalMember((member) {
+      if (member != element) {
+        localMembersReversed = localMembersReversed.prepend(member);
+      }
+    });
+    cls.localMembersCache = null;
+    cls.localMembersReversed = localMembersReversed;
+    cls.localScope.contents.remove(element.name);
+
+    // TODO(ahe): Also compute a patch which removes the function, e.g.,
+    // "delete GlobalObject.MyClass.prototype.memberName".
+
+    // TODO(ahe): Also forget [element].
+
+    return true;
+  }
+
+  void scanSites(
+      Element element,
+      void f(ElementX element, DeclarationSite site)) {
+    DeclarationSite site = declarationSite(element);
+    if (site != null) {
+      f(element, site);
+    }
+    if (element is ScopeContainerElement) {
+      element.forEachLocalMember((member) { scanSites(member, f); });
+    }
+  }
+
+  List<ScopeContainerElement> scopesAffectedBy(
+      Element element,
+      ClassElement cls) {
+    // TODO(ahe): Use library export graph to compute this.
+    // TODO(ahe): Should return all user-defined libraries and packages.
+    LibraryElement library = element.library;
+    List<ScopeContainerElement> result = <ScopeContainerElement>[library];
+
+    if (cls == null) return result;
+
+    var externalSubtypes =
+        compiler.world.subtypesOf(cls).where((e) => e.library != library);
+
+    return result..addAll(externalSubtypes);
   }
 
   /// Returns true if function [before] can be reused to reflect the changes in
@@ -275,7 +368,12 @@ class LibraryUpdater {
       throw new StateError(
           "Can't compute update.\n\n${_failedUpdates.join('\n\n')}");
     }
-    return updates.map((Update update) => update.apply()).toList();
+    for (ElementX element in _elementsToInvalidate) {
+      compiler.forgetElement(element);
+      element.reuseElement();
+    }
+    return updates.map((Update update) => update.apply()).toList()
+        ..addAll(_elementsToInvalidate);
   }
 
   String computeUpdateJs() {
@@ -322,6 +420,12 @@ class LibraryUpdater {
       jsAst.Node elementAccess = namer.elementAccess(element.enclosingClass);
       statements.add(
           js.statement('#.prototype.# = f', [elementAccess, name]));
+
+      if (backend.isAliasedSuperMember(element)) {
+        String superName = namer.getNameOfAliasedSuperMember(element);
+        statements.add(
+            js.statement('#.prototype.# = f', [elementAccess, superName]));
+      }
     } else {
       jsAst.Node elementAccess = namer.elementAccess(element);
       jsAst.Expression globalFunctionsAccess =
@@ -402,4 +506,55 @@ class FunctionUpdate extends Update {
     compiler.forgetElement(before);
     before.reuseElement();
   }
+}
+
+Map<String, List<String>> qualifiedNamesIn(PartialElement element) {
+  Token beginToken = element.beginToken;
+  Token endToken = element.endToken;
+  Token token = beginToken;
+  if (element is PartialClassElement) {
+    ClassNode node = element.cachedNode;
+    if (node != null) {
+      NodeList body = node.body;
+      if (body != null) {
+        endToken = body.beginToken;
+      }
+    }
+  }
+  Map<String, List<String>> names = new Map<String, List<String>>();
+  List<List<Token>> qualifieds = <List<Token>>[];
+  do {
+    if (token.isIdentifier()) {
+      List<String> name = names.putIfAbsent(token.value, () => <String>[]);
+      while (identical('.', token.next.stringValue) &&
+             token.next.next.isIdentifier()) {
+        token = token.next.next;
+        name.add(token.value);
+      }
+    }
+    token = token.next;
+  } while (token.kind != EOF_TOKEN && token != endToken);
+  return names;
+}
+
+bool canNamesResolveTo(
+    Map<String, List<String>> names,
+    Element element,
+    ClassElement cls) {
+  if (names.containsKey(element.name)) {
+    return true;
+  }
+  if (cls != null) {
+    List<String> rest = names[cls.name];
+    if (rest != null && rest.contains(element.name)) {
+      // [names] contains C.m, where C is the name of [cls], and m is the name
+      // of [element].
+      return true;
+    }
+  }
+  return false;
+}
+
+DeclarationSite declarationSite(Element element) {
+  return element is ElementX ? element.declarationSite : null;
 }
