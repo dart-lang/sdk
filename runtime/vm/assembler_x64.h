@@ -938,7 +938,7 @@ class Assembler : public ValueObject {
                         Register end_address);
 
   // Debugging and bringup support.
-  void Stop(const char* message);
+  void Stop(const char* message, bool fixed_length_encoding = false);
   void Unimplemented(const char* message);
   void Untested(const char* message);
   void Unreachable(const char* message);

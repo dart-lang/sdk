@@ -2890,7 +2890,8 @@ void Assembler::VerifyHeapWord(const Address& address) {
     cmpq(value, Address(addr_reg, VerifiedMemory::offset()));
     Label ok;
     j(EQUAL, &ok);
-    Stop("Write barrier verification failed");
+    static const bool kFixedLengthEncoding = true;
+    Stop("Write barrier verification failed", kFixedLengthEncoding);
     Bind(&ok);
     popq(value);
     popq(addr_reg);
@@ -3019,12 +3020,19 @@ void Assembler::DoubleAbs(XmmRegister reg) {
 }
 
 
-void Assembler::Stop(const char* message) {
+void Assembler::Stop(const char* message, bool fixed_length_encoding) {
   int64_t message_address = reinterpret_cast<int64_t>(message);
   if (FLAG_print_stop_message) {
     pushq(TMP);  // Preserve TMP register.
     pushq(RDI);  // Preserve RDI register.
-    LoadImmediate(RDI, Immediate(message_address), PP);
+    if (fixed_length_encoding) {
+      AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+      EmitRegisterREX(RDI, REX_W);
+      EmitUint8(0xB8 | (RDI & 7));
+      EmitInt64(message_address);
+    } else {
+      LoadImmediate(RDI, Immediate(message_address), PP);
+    }
     call(&StubCode::PrintStopMessageLabel());
     popq(RDI);  // Restore RDI register.
     popq(TMP);  // Restore TMP register.

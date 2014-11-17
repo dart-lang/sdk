@@ -1270,13 +1270,20 @@ void FlowGraphCompiler::EmitEdgeCounter() {
   intptr_t increment_start = assembler_->CodeSize();
 #endif  // DEBUG
   __ IncrementSmiField(FieldAddress(RAX, Array::element_offset(0)), 1);
-  DEBUG_ASSERT((assembler_->CodeSize() - increment_start) ==
-               EdgeCounterIncrementSizeInBytes());
+#if defined(DEBUG)
+  intptr_t expected = EdgeCounterIncrementSizeInBytes();
+  intptr_t actual = assembler_->CodeSize() - increment_start;
+  if (actual != expected) {
+    FATAL2("Edge counter increment length: %" Pd ", expected %" Pd "\n",
+           actual,
+           expected);
+  }
+#endif  // DEBUG
 }
 
 
 int32_t FlowGraphCompiler::EdgeCounterIncrementSizeInBytes() {
-  return VerifiedMemory::enabled() ? 70 : 5;
+  return VerifiedMemory::enabled() ? 73 : 5;
 }
 
 
