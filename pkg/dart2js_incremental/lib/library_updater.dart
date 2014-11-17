@@ -87,7 +87,7 @@ class FailedUpdate {
 
 // TODO(ahe): Generalize this class. For now only works for Compiler.mainApp,
 // and only if that library has exactly one compilation unit.
-class LibraryUpdater {
+class LibraryUpdater extends JsFeatures {
   final Compiler compiler;
 
   final api.CompilerInputProvider inputProvider;
@@ -106,6 +106,8 @@ class LibraryUpdater {
 
   final Set<ElementX> _elementsToInvalidate = new Set<ElementX>();
 
+  final Set<ElementX> _removedElements = new Set<ElementX>();
+
   LibraryUpdater(
       this.compiler,
       this.inputProvider,
@@ -118,12 +120,6 @@ class LibraryUpdater {
   bool get hasPendingUpdates => !updates.isEmpty;
 
   bool get failed => !_failedUpdates.isEmpty;
-
-  JavaScriptBackend get backend => compiler.backend;
-
-  Namer get namer => backend.namer;
-
-  CodeEmitterTask get emitter => backend.emitter;
 
   /// Used as tear-off passed to [LibraryLoaderTask.resetAsync].
   Future<bool> reuseLibrary(LibraryElement library) {
@@ -250,22 +246,9 @@ class LibraryUpdater {
       });
     }
 
-    // TODO(ahe): Don't modify the class here, instead use an instance of
-    // Update.
-    Link<Element> localMembersReversed = const Link<Element>();
-    cls.forEachLocalMember((member) {
-      if (member != element) {
-        localMembersReversed = localMembersReversed.prepend(member);
-      }
-    });
-    cls.localMembersCache = null;
-    cls.localMembersReversed = localMembersReversed;
-    cls.localScope.contents.remove(element.name);
+    _removedElements.add(element);
 
-    // TODO(ahe): Also compute a patch which removes the function, e.g.,
-    // "delete GlobalObject.MyClass.prototype.memberName".
-
-    // TODO(ahe): Also forget [element].
+    updates.add(new RemovedFunctionUpdate(compiler, element));
 
     return true;
   }
@@ -363,7 +346,10 @@ class LibraryUpdater {
         ' ${before} (${before.runtimeType} -> ${after.runtimeType}).');
   }
 
-  List<Element> applyUpdates() {
+  List<Element> applyUpdates([List<Update> removals]) {
+    for (Update update in updates) {
+      update.captureState();
+    }
     if (!_failedUpdates.isEmpty) {
       throw new StateError(
           "Can't compute update.\n\n${_failedUpdates.join('\n\n')}");
@@ -372,12 +358,28 @@ class LibraryUpdater {
       compiler.forgetElement(element);
       element.reuseElement();
     }
-    return updates.map((Update update) => update.apply()).toList()
-        ..addAll(_elementsToInvalidate);
+    List<Element> elementsToInvalidate = <Element>[];
+    for (ElementX element in _elementsToInvalidate) {
+      if (!_removedElements.contains(element)) {
+        elementsToInvalidate.add(element);
+      }
+    }
+    for (Update update in updates) {
+      Element element = update.apply();
+      if (update.isRemoval) {
+        if (removals != null) {
+          removals.add(update);
+        }
+      } else {
+        elementsToInvalidate.add(element);
+      }
+    }
+    return elementsToInvalidate;
   }
 
   String computeUpdateJs() {
-    List<Element> updatedElements = applyUpdates();
+    List<Update> removals = <Update>[];
+    List<Element> updatedElements = applyUpdates(removals);
     if (compiler.progress != null) {
       compiler.progress.reset();
     }
@@ -398,6 +400,9 @@ class LibraryUpdater {
       if (!element.isField) {
         updates.add(computeMemberUpdateJs(element));
       }
+    }
+    for (RemovedFunctionUpdate update in removals) {
+      update.writeUpdateJsOn(updates);
     }
 
     if (updates.length == 1) {
@@ -476,10 +481,17 @@ abstract class Update {
 
   /// Applies the update to [before] and returns that element.
   PartialElement apply();
+
+  bool get isRemoval => false;
+
+  /// Called before any patches are applied to capture any state that is needed
+  /// later.
+  void captureState() {
+  }
 }
 
 /// Represents an update of a function element.
-class FunctionUpdate extends Update {
+class FunctionUpdate extends Update with ReuseFunction {
   final PartialFunctionElement before;
 
   final PartialFunctionElement after;
@@ -499,12 +511,103 @@ class FunctionUpdate extends Update {
     before.endToken = after.endToken;
     before.getOrSet = after.getOrSet;
   }
+}
+
+abstract class ReuseFunction {
+  PartialFunctionElement get before;
 
   /// Reset various caches and remove this element from the compiler's internal
   /// state.
   void reuseElement() {
     compiler.forgetElement(before);
     before.reuseElement();
+  }
+}
+
+class RemovedFunctionUpdate extends Update with JsFeatures, ReuseFunction {
+  final PartialFunctionElement element;
+
+  /// Name of property to remove using JavaScript "delete".
+  String name;
+
+  /// Name of super-alias property to remove using JavaScript "delete".  Null
+  /// for methods that aren't "super aliased" (should imply that this field is
+  /// null for all non-instance methods).
+  String superName;
+
+  bool wasStateCaptured = false;
+
+  RemovedFunctionUpdate(Compiler compiler, this.element)
+      : super(compiler);
+
+  PartialFunctionElement get before => element;
+
+  PartialElement get after => null;
+
+  bool get isRemoval => true;
+
+  void captureState() {
+    if (wasStateCaptured) throw "captureState was called twice.";
+
+    if (element.isInstanceMember) {
+      name = namer.getNameOfMember(element);
+    }
+    if (backend.isAliasedSuperMember(element)) {
+      superName = namer.getNameOfAliasedSuperMember(element);
+    }
+
+    wasStateCaptured = true;
+  }
+
+  PartialElement apply() {
+    if (!wasStateCaptured) throw "captureState must be called before apply.";
+    removeFromEnclosingClass();
+    reuseElement();
+    return null;
+  }
+
+  void removeFromEnclosingClass() {
+    PartialClassElement cls = element.enclosingClass;
+
+    Link<Element> localMembersReversed = const Link<Element>();
+    bool foundElement = false;
+    cls.forEachLocalMember((member) {
+      if (member != element) {
+        localMembersReversed = localMembersReversed.prepend(member);
+      } else {
+        if (foundElement) {
+          throw "Found '$element' twice in '$cls'.";
+        }
+        foundElement = true;
+      }
+    });
+    if (!foundElement) {
+      throw "Don't find '$element' in '$cls'.";
+    }
+    cls.localMembersCache = null;
+    cls.localMembersReversed = localMembersReversed;
+    cls.localScope.contents.remove(element.name);
+
+    return null;
+  }
+
+  void writeUpdateJsOn(List<jsAst.Statement> updates) {
+    if (name == null) {
+      compiler.internalError(element, '${element.runtimeType}');
+    }
+    if (element.isInstanceMember) {
+      jsAst.Node elementAccess = namer.elementAccess(element.enclosingClass);
+      updates.add(
+          js.statement('delete #.prototype.#', [elementAccess, name]));
+
+      if (superName != null) {
+        updates.add(
+            js.statement('delete #.prototype.#', [elementAccess, superName]));
+      }
+    } else {
+      compiler.internalError(
+          element, 'Removal of non-instance methods not yest supported.');
+    }
   }
 }
 
@@ -557,4 +660,14 @@ bool canNamesResolveTo(
 
 DeclarationSite declarationSite(Element element) {
   return element is ElementX ? element.declarationSite : null;
+}
+
+abstract class JsFeatures {
+  Compiler get compiler;
+
+  JavaScriptBackend get backend => compiler.backend;
+
+  Namer get namer => backend.namer;
+
+  CodeEmitterTask get emitter => backend.emitter;
 }
