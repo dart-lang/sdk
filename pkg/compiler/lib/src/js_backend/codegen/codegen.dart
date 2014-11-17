@@ -4,10 +4,14 @@
 
 library code_generator;
 
+import 'glue.dart';
+
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
 import '../../js/js.dart' as js;
 import '../../elements/elements.dart';
 import '../../util/maplet.dart';
+import '../../constants/values.dart';
+import '../../dart2jslib.dart';
 
 class CodegenBailout {
   final tree_ir.Node node;
@@ -19,6 +23,10 @@ class CodegenBailout {
 }
 
 class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
+  final CodegenRegistry registry;
+
+  final Glue glue;
+
   /// Variables to be hoisted at the top of the current function.
   List<js.VariableDeclaration> variables = <js.VariableDeclaration>[];
 
@@ -35,13 +43,15 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   /// Variable names that have already been used. Used to avoid name clashes.
   Set<String> usedVariableNames;
 
-  List<js.Parameter> parameters;
+  List<js.Parameter> parameters = new List<js.Parameter>();
   List<js.Statement> accumulator = new List<js.Statement>();
 
   js.Block body;
 
   /// Generates JavaScript code for the body of [function].
   /// The code will be in [body] and the parameters will be in [parameters].
+  CodeGenerator(this.glue, this.registry);
+
   void buildFunction(tree_ir.FunctionDefinition function) {
     visitStatement(function.body);
     for (tree_ir.Variable parameter in function.parameters) {
@@ -73,8 +83,9 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   js.Expression visitConstant(tree_ir.Constant node) {
-    return giveup(node);
-    // TODO: implement visitConstant
+    ConstantValue constant = node.expression.value;
+    registry.registerCompileTimeConstant(constant);
+    return glue.constantReference(constant);
   }
 
   @override

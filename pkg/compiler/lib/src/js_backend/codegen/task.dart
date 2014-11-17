@@ -5,7 +5,11 @@
 /// Generate code using the cps-based IR pipeline.
 library code_generator_task;
 
-import '../js_backend.dart';import '../../dart2jslib.dart';
+import 'glue.dart';
+import 'codegen.dart';
+
+import '../js_backend.dart';
+import '../../dart2jslib.dart';
 import '../../source_file.dart';
 import '../../cps_ir/cps_ir_nodes.dart' as cps;
 import '../../cps_ir/cps_ir_builder.dart';
@@ -145,7 +149,8 @@ class CspFunctionCompiler implements FunctionCompiler {
 
   js.Fun compileToJavaScript(CodegenWorkItem work,
                              tree_ir.FunctionDefinition definition) {
-    CodeGenerator codeGen = new CodeGenerator();
+    CodeGenerator codeGen =
+        new CodeGenerator(new Glue(compiler), work.registry);
 
     codeGen.buildFunction(definition);
     return buildJavaScriptFunction(work.element,
