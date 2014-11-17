@@ -45,7 +45,7 @@ class CspFunctionCompiler implements FunctionCompiler {
 
   CspFunctionCompiler(Compiler compiler, JavaScriptBackend backend)
       : irBuilderTask = new IrBuilderTask(compiler),
-        fallbackCompiler = new ssa.SsaFunctionCompiler(backend),
+        fallbackCompiler = new ssa.SsaFunctionCompiler(backend, true),
         constantSystem = backend.constantSystem,
         compiler = compiler;
 

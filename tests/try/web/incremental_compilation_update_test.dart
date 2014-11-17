@@ -461,6 +461,27 @@ main() {
 """,
             const <String>['Called B.m']),
     ],
+
+    // Test that source maps don't throw exceptions.
+    const <ProgramResult>[
+        const ProgramResult(
+            """
+main() {
+  print('a');
+}
+""",
+            const <String>['a']),
+
+        const ProgramResult(
+            """
+main() {
+  print('a');
+  print('b');
+  print('c');
+}
+""",
+            const <String>['a', 'b', 'c']),
+    ],
 ];
 
 void main() {

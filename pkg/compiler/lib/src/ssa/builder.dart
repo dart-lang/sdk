@@ -9,9 +9,9 @@ class SsaFunctionCompiler implements FunctionCompiler {
   SsaBuilderTask builder;
   SsaOptimizerTask optimizer;
 
-  SsaFunctionCompiler(JavaScriptBackend backend)
+  SsaFunctionCompiler(JavaScriptBackend backend, bool generateSourceMap)
       : generator = new SsaCodeGeneratorTask(backend),
-        builder = new SsaBuilderTask(backend),
+        builder = new SsaBuilderTask(backend, generateSourceMap),
         optimizer = new SsaOptimizerTask(backend);
 
   /// Generates JavaScript code for `work.element`.
@@ -41,10 +41,11 @@ class SyntheticLocal extends Local {
 class SsaBuilderTask extends CompilerTask {
   final CodeEmitterTask emitter;
   final JavaScriptBackend backend;
+  final bool generateSourceMap;
 
   String get name => 'SSA builder';
 
-  SsaBuilderTask(JavaScriptBackend backend)
+  SsaBuilderTask(JavaScriptBackend backend, this.generateSourceMap)
     : emitter = backend.emitter,
       backend = backend,
       super(backend.compiler);
@@ -55,7 +56,8 @@ class SsaBuilderTask extends CompilerTask {
       return compiler.withCurrentElement(element, () {
         HInstruction.idCounter = 0;
         SsaBuilder builder =
-            new SsaBuilder(backend, work, emitter.nativeEmitter);
+            new SsaBuilder(
+                backend, work, emitter.nativeEmitter, generateSourceMap);
         HGraph graph;
         ElementKind kind = element.kind;
         if (kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
@@ -931,6 +933,7 @@ class SsaBuilder extends ResolvedVisitor {
   final ConstantSystem constantSystem;
   final CodegenWorkItem work;
   final RuntimeTypes rti;
+  final bool generateSourceMap;
 
   /* This field is used by the native handler. */
   final NativeEmitter nativeEmitter;
@@ -1009,7 +1012,8 @@ class SsaBuilder extends ResolvedVisitor {
 
   SsaBuilder(JavaScriptBackend backend,
              CodegenWorkItem work,
-             this.nativeEmitter)
+             this.nativeEmitter,
+             this.generateSourceMap)
     : this.compiler = backend.compiler,
       this.backend = backend,
       this.constantSystem = backend.constantSystem,
@@ -2414,7 +2418,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   HInstruction attachPosition(HInstruction target, ast.Node node) {
-    if (node != null) {
+    if (generateSourceMap && node != null) {
       target.sourcePosition = sourceFileLocationForBeginToken(node);
     }
     return target;

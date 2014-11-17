@@ -461,7 +461,7 @@ class JavaScriptBackend extends Backend {
     resolutionCallbacks = new JavaScriptResolutionCallbacks(this);
     functionCompiler = USE_CPS_IR
          ? new CspFunctionCompiler(compiler, this)
-         : new SsaFunctionCompiler(this);
+         : new SsaFunctionCompiler(this, generateSourceMap);
   }
 
   ConstantSystem get constantSystem => constants.constantSystem;
