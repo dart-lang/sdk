@@ -639,7 +639,8 @@ class ProgramChecker extends RecursiveAstVisitor {
     return _context.getResolvedCompilationUnit2(source, container);
   }
 
-  ProgramChecker(this._context, this._rules, this._root, Source source, this._checkSdk)
+  ProgramChecker(this._context, this._rules, this._root, Source source,
+                 this._checkSdk)
       : _unitMap = new Map<Uri, CompilationUnit>(),
         libraries = new Map<Uri, Library>(),
         _stack = new List<Library>() {
