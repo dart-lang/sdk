@@ -1638,10 +1638,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitInvokeStatic(HInvokeStatic node) {
     Element element = node.element;
-    ClassElement cls = element.enclosingClass;
     List<DartType> instantiatedTypes = node.instantiatedTypes;
 
-    registry.registerStaticUse(element);
+    registry.registerStaticInvocation(element);
 
     if (instantiatedTypes != null && !instantiatedTypes.isEmpty) {
       instantiatedTypes.forEach((type) {
@@ -1655,7 +1654,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitInvokeSuper(HInvokeSuper node) {
     Element superMethod = node.element;
-    registry.registerStaticUse(superMethod);
+    registry.registerSuperInvocation(superMethod);
     ClassElement superClass = superMethod.enclosingClass;
     if (superMethod.kind == ElementKind.FIELD) {
       String fieldName = backend.namer.instanceFieldPropertyName(superMethod);

@@ -16,6 +16,10 @@ const String TEST_MAIN_FILE = 'test.dart';
 
 /// The list of tests to run.
 const List<String> RAW_TESTS = const [
+  """
+  foo() { return 42; }
+  main() { return foo(); }
+  """,
   "main() {}",
   "main() { return 42; }",
 ];

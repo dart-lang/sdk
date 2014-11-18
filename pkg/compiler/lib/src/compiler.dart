@@ -169,6 +169,10 @@ class CodegenRegistry extends Registry {
     world.registerStaticUse(element);
   }
 
+  void registerSuperInvocation(Element element) {
+    world.registerStaticUse(element);
+  }
+
   void registerInstantiation(InterfaceType type) {
     world.registerInstantiatedType(type, this);
   }

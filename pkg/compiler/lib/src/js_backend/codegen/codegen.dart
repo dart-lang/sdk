@@ -108,8 +108,12 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   js.Expression visitInvokeStatic(tree_ir.InvokeStatic node) {
-    return giveup(node);
-    // TODO: implement visitInvokeStatic
+    Element element = node.target;
+
+    registry.registerStaticInvocation(element);
+
+    js.Expression elementAccess = glue.elementAccess(node.target);
+    return new js.Call(elementAccess, visitArguments(node.arguments));
   }
 
   @override
