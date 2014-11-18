@@ -1713,22 +1713,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   Element getElement(ElementLocation location) {
     // TODO(brianwilkerson) This should not be a "get" method.
     try {
-      List<String> components = location.components;
-      Source source = _computeSourceFromEncoding(components[0]);
-      String sourceName = source.shortName;
-      if (AnalysisEngine.isDartFileName(sourceName)) {
-        ElementImpl element = computeLibraryElement(source) as ElementImpl;
-        for (int i = 1; i < components.length; i++) {
-          if (element == null) {
-            return null;
-          }
-          element = element.getChild(components[i]);
-        }
-        return element;
+      if (location is DartElementLocation) {
+        String libSourceEncoding = location.librarySourceEncoding;
+        Source libSource = _computeSourceFromEncoding(libSourceEncoding);
+        LibraryElementImpl libElement = computeLibraryElement(libSource);
+        return libElement.getChildElement(
+            location.unitSourceEncoding,
+            location.nameOffset,
+            location.kind);
       }
-      if (AnalysisEngine.isHtmlFileName(sourceName)) {
-        return computeHtmlElement(source);
-      }
+      // TODO(scheglov) add HtmlElementLocation
     } on AnalysisException catch (exception) {
     }
     return null;

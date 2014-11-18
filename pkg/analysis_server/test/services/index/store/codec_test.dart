@@ -19,6 +19,7 @@ main() {
   groupSep = ' | ';
   runReflectiveTests(_ContextCodecTest);
   runReflectiveTests(_ElementCodecTest);
+  runReflectiveTests(_ElementKindCodecTest);
   runReflectiveTests(_RelationshipCodecTest);
   runReflectiveTests(_StringCodecTest);
 }
@@ -146,12 +147,9 @@ main() {
       int id = codec.encode(element, false);
       expect(codec.decode(context, id), element);
     }
-    // check strings, "foo" as a single string, no "foo@17" or "bar@35"
-    expect(stringCodec.nameToIndex, hasLength(4));
+    // check strings, only source encoding
+    expect(stringCodec.nameToIndex, hasLength(1));
     expect(stringCodec.nameToIndex, containsPair('file:///test.dart', 0));
-    expect(stringCodec.nameToIndex, containsPair('main', 1));
-    expect(stringCodec.nameToIndex, containsPair('foo', 2));
-    expect(stringCodec.nameToIndex, containsPair('bar', 3));
   }
 
   void test_localVariable() {
@@ -175,11 +173,16 @@ main() {
       int id = codec.encode(element, false);
       expect(codec.decode(context, id), element);
     }
-    // check strings, "foo" as a single string, no "foo@21" or "foo@47"
-    expect(stringCodec.nameToIndex, hasLength(3));
+    // check strings, only source encoding
+    expect(stringCodec.nameToIndex, hasLength(1));
     expect(stringCodec.nameToIndex, containsPair('file:///test.dart', 0));
-    expect(stringCodec.nameToIndex, containsPair('main', 1));
-    expect(stringCodec.nameToIndex, containsPair('foo', 2));
+  }
+
+  void test_name() {
+    Element element = new NameElement('myName');
+    int id = codec.encode(element, false);
+    // we don't need decoding - it is never used as a location
+    expect(codec.decode(null, id), null);
   }
 
   void test_notLocal() {
@@ -193,10 +196,24 @@ main() {
     expect(codec.encode(element, false), id);
     expect(codec.decode(context, id), element);
     // check strings
-    expect(stringCodec.nameToIndex, hasLength(3));
+    expect(stringCodec.nameToIndex, hasLength(1));
     expect(stringCodec.nameToIndex, containsPair('file:///test.dart', 0));
-    expect(stringCodec.nameToIndex, containsPair('main', 1));
-    expect(stringCodec.nameToIndex, containsPair('foo', 2));
+  }
+}
+
+
+@ReflectiveTestCase()
+class _ElementKindCodecTest {
+  ElementKindCodec codec = new ElementKindCodec();
+
+  void test_decode_unknown() {
+    expect(codec.decode(1 << 20), isNull);
+  }
+
+  void test_encodeDecode() {
+    int idClass = codec.encode(ElementKind.CLASS);
+    int idMethod = codec.encode(ElementKind.METHOD);
+    expect(idClass, isNot(idMethod));
   }
 }
 

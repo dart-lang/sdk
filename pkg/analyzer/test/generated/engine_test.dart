@@ -605,17 +605,18 @@ main() {}''');
   }
 
   void test_getElement() {
-    _context = AnalysisContextFactory.contextWithCore();
-    _sourceFactory = _context.sourceFactory;
-    LibraryElement core =
-        _context.computeLibraryElement(_sourceFactory.forUri("dart:core"));
-    expect(core, isNotNull);
-    ClassElement classObject =
-        _findClass(core.definingCompilationUnit, "Object");
-    expect(classObject, isNotNull);
-    ElementLocation location = classObject.location;
+    Source source = _addSource('/test.dart', r'''
+class A {}
+class B {}
+class C {}
+''');
+    _analyzeAll_assertFinished();
+    LibraryElement library = _context.computeLibraryElement(source);
+    ClassElement classB = library.definingCompilationUnit.getType('B');
+    expect(classB, isNotNull);
+    ElementLocation location = classB.location;
     Element element = _context.getElement(location);
-    expect(element, same(classObject));
+    expect(element, same(classB));
   }
 
   void test_getElement_constructor_named() {
