@@ -4373,8 +4373,8 @@ void Parser::ParseEnumDefinition(const Class& cls) {
       ReportError("enum identifier conflicts with "
                   "implicit instance method 'toString()'");
     }
-    for (intptr_t i = 0; i < declared_names.length(); i++) {
-      if (enum_ident->Equals(*declared_names[i])) {
+    for (intptr_t n = 0; n < declared_names.length(); n++) {
+      if (enum_ident->Equals(*declared_names[n])) {
         ReportError("Duplicate name '%s' in enum definition '%s'",
                     enum_ident->ToCString(),
                     enum_name.ToCString());
