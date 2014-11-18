@@ -20,25 +20,25 @@ import 'mirror_based.dart';
 /// For example:
 ///        int size()
 ///          "return" :
-///            - "outer" : "dart-core.int"
+///            - "outer" : "dart:core.int"
 ///              "inner" :
 ///
 ///        List<String> toList()
 ///          "return" :
-///            - "outer" : "dart-core.List"
+///            - "outer" : "dart:core.List"
 ///              "inner" :
-///                - "outer" : "dart-core.String"
+///                - "outer" : "dart:core.String"
 ///                  "inner" :
 ///
 ///        Map<String, List<int>>
 ///          "return" :
-///            - "outer" : "dart-core.Map"
+///            - "outer" : "dart:core.Map"
 ///              "inner" :
-///                - "outer" : "dart-core.String"
+///                - "outer" : "dart:core.String"
 ///                  "inner" :
-///                - "outer" : "dart-core.List"
+///                - "outer" : "dart:core.List"
 ///                  "inner" :
-///                    - "outer" : "dart-core.int"
+///                    - "outer" : "dart:core.int"
 ///                      "inner" :
 class DocGenType extends MirrorBased {
   final TypeMirror mirror;
