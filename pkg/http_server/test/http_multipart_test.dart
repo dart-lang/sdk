@@ -93,6 +93,16 @@ void postDataTest(List<int> message,
   });
 }
 
+void testEmptyPostData() {
+  var message = '''
+------WebKitFormBoundaryU3FBruSkJKG0Yor1--\r\n''';
+
+  postDataTest(message.codeUnits,
+               'multipart/form-data',
+               '----WebKitFormBoundaryU3FBruSkJKG0Yor1',
+               []);
+}
+
 void testPostData() {
   var message = '''
 \r\n--AaB03x\r
@@ -212,5 +222,6 @@ Content of file\r
 
 
 void main() {
+  testEmptyPostData();
   testPostData();
 }

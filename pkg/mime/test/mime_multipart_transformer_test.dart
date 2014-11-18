@@ -69,8 +69,12 @@ void _testParse(String message,
 }
 
 void _testParseValid() {
+  // Empty message from Chrome form post.
+  var message = '------WebKitFormBoundaryU3FBruSkJKG0Yor1--\r\n';
+  _testParse(message, "----WebKitFormBoundaryU3FBruSkJKG0Yor1", [], []);
+
   // Sample from Wikipedia.
-  var message = """
+  message = """
 This is a message with multiple parts in MIME format.\r
 --frontier\r
 Content-Type: text/plain\r
