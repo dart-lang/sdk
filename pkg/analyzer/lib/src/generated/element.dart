@@ -2399,7 +2399,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl implements
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(_accessors, visitor);
-    safelyVisitChildren(_enums, visitor);
     safelyVisitChildren(_functions, visitor);
     safelyVisitChildren(_typeAliases, visitor);
     safelyVisitChildren(_types, visitor);
@@ -2971,11 +2970,6 @@ class DynamicElementImpl extends ElementImpl {
 
   @override
   ElementKind get kind => ElementKind.DYNAMIC;
-
-  @override
-  ElementLocation get location {
-    return new DartElementLocation(null, null, nameOffset, kind);
-  }
 
   @override
   accept(ElementVisitor visitor) => null;
@@ -3565,20 +3559,7 @@ abstract class ElementImpl implements Element {
       getAncestor((element) => element is LibraryElement);
 
   @override
-  ElementLocation get location {
-    // TODO(scheglov) add separate DartElementImpl
-    LibraryElement library = this.library;
-    if (library == null) {
-      return new DartElementLocation(null, null, nameOffset, kind);
-    }
-    String librarySourceEncoding = library.source.encoding;
-    String unitSourceEncoding = source.encoding;
-    return new DartElementLocation(
-        librarySourceEncoding,
-        unitSourceEncoding,
-        nameOffset,
-        kind);
-  }
+  ElementLocation get location => new ElementLocationImpl.con1(this);
 
   @override
   String get name => _name;
@@ -3932,51 +3913,172 @@ class ElementKind extends Enum<ElementKind> {
 }
 
 /**
- * The interface `ElementLocation` defines the behavior of objects that
- * represent the location of an element within the element model.
+ * The interface `ElementLocation` defines the behavior of objects that represent the location
+ * of an element within the element model.
  */
 abstract class ElementLocation {
+  /**
+   * Return the path to the element whose location is represented by this object. Clients must not
+   * modify the returned array.
+   *
+   * @return the path to the element whose location is represented by this object
+   */
+  List<String> get components;
+
+  /**
+   * Return an encoded representation of this location that can be used to create a location that is
+   * equal to this location.
+   *
+   * @return an encoded representation of this location
+   */
+  String get encoding;
 }
 
 /**
- * The interface `DartElementLocation` defines the behavior of objects that
- * represent the location of a Dart element within the element model.
+ * Instances of the class `ElementLocationImpl` implement an [ElementLocation].
  */
-class DartElementLocation implements ElementLocation {
+class ElementLocationImpl implements ElementLocation {
   /**
-   * An encoded representation of the library source that contains this element.
+   * The character used to separate components in the encoded form.
    */
-  final String librarySourceEncoding;
+  static int _SEPARATOR_CHAR = 0x3B;
 
   /**
-   * An encoded representation of the unit source that contains this element.
+   * The path to the element whose location is represented by this object.
    */
-  final String unitSourceEncoding;
+  List<String> _components;
 
   /**
-   * The offset of the name of this element in the file that contains
-   * the declaration of this element, or `-1` if this element is synthetic,
-   * does not have a name, or otherwise does not have an offset.
+   * Initialize a newly created location to represent the given element.
+   *
+   * @param element the element whose location is being represented
    */
-  final int nameOffset;
+  ElementLocationImpl.con1(Element element) {
+    List<String> components = new List<String>();
+    Element ancestor = element;
+    while (ancestor != null) {
+      components.insert(0, (ancestor as ElementImpl).identifier);
+      ancestor = ancestor.enclosingElement;
+    }
+    this._components = components;
+  }
 
   /**
-   * The kind of this element.
+   * Initialize a newly created location from the given encoded form.
+   *
+   * @param encoding the encoded form of a location
    */
-  final ElementKind kind;
+  ElementLocationImpl.con2(String encoding) {
+    this._components = _decode(encoding);
+  }
 
-  DartElementLocation(this.librarySourceEncoding, this.unitSourceEncoding,
-      this.nameOffset, this.kind);
+  /**
+   * Initialize a newly created location from the given components.
+   *
+   * @param components the components of a location
+   */
+  ElementLocationImpl.con3(List<String> components) {
+    this._components = components;
+  }
 
   @override
-  bool operator ==(Object other) {
-    if (other is DartElementLocation) {
-      return other.librarySourceEncoding == librarySourceEncoding &&
-          other.unitSourceEncoding == unitSourceEncoding &&
-          other.nameOffset == nameOffset &&
-          other.kind == kind;
+  List<String> get components => _components;
+
+  @override
+  String get encoding {
+    StringBuffer buffer = new StringBuffer();
+    int length = _components.length;
+    for (int i = 0; i < length; i++) {
+      if (i > 0) {
+        buffer.writeCharCode(_SEPARATOR_CHAR);
+      }
+      _encode(buffer, _components[i]);
     }
-    return false;
+    return buffer.toString();
+  }
+
+  @override
+  int get hashCode {
+    int result = 1;
+    for (int i = 0; i < _components.length; i++) {
+      String component = _components[i];
+      result = 31 * result + component.hashCode;
+    }
+    return result;
+  }
+
+  @override
+  bool operator ==(Object object) {
+    if (identical(this, object)) {
+      return true;
+    }
+    if (object is! ElementLocationImpl) {
+      return false;
+    }
+    ElementLocationImpl location = object as ElementLocationImpl;
+    List<String> otherComponents = location._components;
+    int length = _components.length;
+    if (otherComponents.length != length) {
+      return false;
+    }
+    for (int i = 0; i < length; i++) {
+      if (_components[i] != otherComponents[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  String toString() => encoding;
+
+  /**
+   * Decode the encoded form of a location into an array of components.
+   *
+   * @param encoding the encoded form of a location
+   * @return the components that were encoded
+   */
+  List<String> _decode(String encoding) {
+    List<String> components = new List<String>();
+    StringBuffer buffer = new StringBuffer();
+    int index = 0;
+    int length = encoding.length;
+    while (index < length) {
+      int currentChar = encoding.codeUnitAt(index);
+      if (currentChar == _SEPARATOR_CHAR) {
+        if (index + 1 < length &&
+            encoding.codeUnitAt(index + 1) == _SEPARATOR_CHAR) {
+          buffer.writeCharCode(_SEPARATOR_CHAR);
+          index += 2;
+        } else {
+          components.add(buffer.toString());
+          buffer = new StringBuffer();
+          index++;
+        }
+      } else {
+        buffer.writeCharCode(currentChar);
+        index++;
+      }
+    }
+    components.add(buffer.toString());
+    return components;
+  }
+
+  /**
+   * Append an encoded form of the given component to the given builder.
+   *
+   * @param builder the builder to which the encoded component is to be appended
+   * @param component the component to be appended to the builder
+   */
+  void _encode(StringBuffer buffer, String component) {
+    int length = component.length;
+    for (int i = 0; i < length; i++) {
+      int currentChar = component.codeUnitAt(i);
+      if (currentChar == _SEPARATOR_CHAR) {
+        buffer.writeCharCode(_SEPARATOR_CHAR);
+      }
+      buffer.writeCharCode(currentChar);
+    }
   }
 }
 
@@ -8487,51 +8589,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return null;
   }
 
-  /**
-   * Returns the child [Element] of this library.
-   *
-   * [unitSourceEncoding] - the encoding of the unit.
-   * [offset] - the name offset of the element.
-   * [kind] - the kind of the element.
-   */
-  ElementImpl getChildElement(String unitSourceEncoding, int offset,
-      ElementKind kind) {
-    for (CompilationUnitElement unit in units) {
-      if (unit.source.encoding == unitSourceEncoding) {
-        ElementImpl element = _findElementAt(unit, offset, kind);
-        if (element != null) {
-          return element;
-        }
-        break;
-      }
-    }
-    for (ImportElement importElement in _imports) {
-      if (importElement.nameOffset == offset) {
-        return importElement as ImportElementImpl;
-      }
-    }
-    for (ExportElement exportElement in _exports) {
-      if (exportElement.nameOffset == offset) {
-        return exportElement as ExportElementImpl;
-      }
-    }
-    return null;
-  }
-
-  ElementImpl _findElementAt(CompilationUnitElement unit, int offset,
-      ElementKind kind) {
-    if (offset == -1) {
-      return unit as ElementImpl;
-    }
-    _FindElementAt visitor = new _FindElementAt(offset, kind);
-    try {
-      unit.accept(visitor);
-    } on _FindElementAtDone catch (e) {
-      return visitor.result;
-    }
-    return null;
-  }
-
   @override
   List<ImportElement> getImportsWithPrefix(PrefixElement prefixElement) {
     int count = _imports.length;
@@ -12412,26 +12469,4 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   VoidTypeImpl substitute2(List<DartType> argumentTypes,
       List<DartType> parameterTypes) =>
       this;
-}
-
-
-class _FindElementAt extends GeneralizingElementVisitor {
-  final int offset;
-  final ElementKind kind;
-  Element result;
-
-  _FindElementAt(this.offset, this.kind);
-
-  @override
-  visitElement(Element element) {
-    if (element.nameOffset == offset && element.kind == kind) {
-      result = element;
-      throw new _FindElementAtDone();
-    }
-    super.visitElement(element);
-  }
-}
-
-
-class _FindElementAtDone {
 }

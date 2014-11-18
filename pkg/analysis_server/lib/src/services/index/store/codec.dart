@@ -68,12 +68,7 @@ class ContextCodec {
  * A helper that encodes/decodes [Element]s to/from integers.
  */
 class ElementCodec {
-  static const KIND_DART = 0;
-  static const KIND_NAME = 1;
-  static const KIND_UNKNOWN = 2;
-
   final StringCodec _stringCodec;
-  final ElementKindCodec _kindCodec = new ElementKindCodec();
 
   /**
    * A table mapping element encodings to a single integer.
@@ -96,23 +91,10 @@ class ElementCodec {
    */
   Element decode(AnalysisContext context, int index) {
     List<int> path = _indexToPath[index];
-    int encodingKind = path[0];
-    // DART
-    if (encodingKind == KIND_DART) {
-      String librarySourceEncoding = _stringCodec.decode(path[1]);
-      String unitSourceEncoding = _stringCodec.decode(path[2]);
-      int nameOffset = path[3];
-      ElementKind kind = _kindCodec.decode(path[4]);
-      ElementLocation location = new DartElementLocation(
-          librarySourceEncoding,
-          unitSourceEncoding,
-          nameOffset,
-          kind);
-      return context.getElement(location);
-    }
-    // NAME - never used as a location, so we are never asked to decode it
-    // TODO(scheglov) support for KIND_HTML ?
-    return null;
+    List<String> components = _getLocationComponents(path);
+    ElementLocation location = new ElementLocationImpl.con3(components);
+    Element element = context.getElement(location);
+    return element;
   }
 
   /**
@@ -146,37 +128,60 @@ class ElementCodec {
     return index;
   }
 
+  List<String> _getLocationComponents(List<int> path) {
+    int length = path.length;
+    List<String> components = new List<String>();
+    for (int i = 0; i < length; i++) {
+      int componentId = path[i];
+      String component = _stringCodec.decode(componentId);
+      if (i < length - 1 && path[i + 1] < 0) {
+        component += '@${(-path[i + 1])}';
+        i++;
+      }
+      components.add(component);
+    }
+    return components;
+  }
+
   /**
    * If [usePath] is `true` then [Source] path should be used instead of URI.
    */
   List<int> _getLocationPath(Element element, bool usePath) {
-    LibraryElement library = element.library;
-    // DynamicElement, NameElement
-    if (library == null) {
-      int nameId = _stringCodec.encode(element.name);
-      return <int>[KIND_NAME, nameId];
-    }
-    // normal Element
-    ElementLocation location = element.location;
-    if (location is DartElementLocation) {
-      String librarySourceEncoding;
-      String unitSourceEncoding;
-      if (usePath) {
-        unitSourceEncoding = library.source.fullName;
-        unitSourceEncoding = element.source.fullName;
-      } else {
-        librarySourceEncoding = location.librarySourceEncoding;
-        unitSourceEncoding = location.unitSourceEncoding;
+    // prepare the location components
+    List<String> components = element.location.components;
+    if (usePath) {
+      LibraryElement library = element.library;
+      if (library != null) {
+        components[0] = library.source.fullName;
+        if (element.enclosingElement is CompilationUnitElement) {
+          components[1] = library.definingCompilationUnit.source.fullName;
+        }
       }
-      int libraryId = _stringCodec.encode(librarySourceEncoding);
-      int unitId = _stringCodec.encode(unitSourceEncoding);
-      // done
-      int nameOffset = location.nameOffset;
-      int kindId = _kindCodec.encode(location.kind);
-      return <int>[KIND_DART, libraryId, unitId, nameOffset, kindId];
     }
-    // unknown
-    return <int>[KIND_UNKNOWN];
+    // encode the location
+    int length = components.length;
+    if (_hasLocalOffset(components)) {
+      List<int> path = new List<int>();
+      for (String component in components) {
+        int atOffset = component.indexOf('@');
+        if (atOffset == -1) {
+          path.add(_stringCodec.encode(component));
+        } else {
+          String preAtString = component.substring(0, atOffset);
+          String atString = component.substring(atOffset + 1);
+          path.add(_stringCodec.encode(preAtString));
+          path.add(-1 * int.parse(atString));
+        }
+      }
+      return path;
+    } else {
+      List<int> path = new List<int>.filled(length, 0);
+      for (int i = 0; i < length; i++) {
+        String component = components[i];
+        path[i] = _stringCodec.encode(component);
+      }
+      return path;
+    }
   }
 
   /**
@@ -197,24 +202,14 @@ class ElementCodec {
     int lastId = _stringCodec.encode(lastComponent);
     return <int>[firstId, lastId];
   }
-}
 
-
-/**
- * A helper that encodes/decodes [ElementKind]s to/from integers.
- */
-class ElementKindCodec {
-  ElementKind decode(int id) {
-    for (ElementKind kind in ElementKind.values) {
-      if (kind.ordinal == id) {
-        return kind;
+  static bool _hasLocalOffset(List<String> components) {
+    for (String component in components) {
+      if (component.indexOf('@') != -1) {
+        return true;
       }
     }
-    return null;
-  }
-
-  int encode(ElementKind kind) {
-    return kind.ordinal;
+    return false;
   }
 }
 

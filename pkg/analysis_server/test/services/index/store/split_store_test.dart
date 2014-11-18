@@ -448,8 +448,7 @@ class _RelationKeyDataTest {
     int elementId = 2;
     {
       element = new MockElement();
-      ElementLocation location =
-          new DartElementLocation('lib.dart', 'unit.dart', 42, ElementKind.CLASS);
+      ElementLocation location = new ElementLocationImpl.con3(['foo', 'bar']);
       when(element.location).thenReturn(location);
       when(context.getElement(location)).thenReturn(element);
       when(elementCodec.encode(element, anyBool)).thenReturn(elementId);
@@ -493,13 +492,13 @@ class _SplitIndexStoreTest {
   Element elementC = new MockElement('elementC');
   Element elementD = new MockElement('elementD');
   ElementLocation elementLocationA =
-      new DartElementLocation('lib.dart', 'unitA.dart', 1, ElementKind.CLASS);
+      new ElementLocationImpl.con3(['/home/user/sourceA.dart', 'ClassA']);
   ElementLocation elementLocationB =
-      new DartElementLocation('lib.dart', 'unitB.dart', 2, ElementKind.CLASS);
+      new ElementLocationImpl.con3(['/home/user/sourceB.dart', 'ClassB']);
   ElementLocation elementLocationC =
-      new DartElementLocation('lib.dart', 'unitC.dart', 3, ElementKind.CLASS);
+      new ElementLocationImpl.con3(['/home/user/sourceC.dart', 'ClassC']);
   ElementLocation elementLocationD =
-      new DartElementLocation('lib.dart', 'unitD.dart', 4, ElementKind.CLASS);
+      new ElementLocationImpl.con3(['/home/user/sourceD.dart', 'ClassD']);
   HtmlElement htmlElementA = new MockHtmlElement();
   HtmlElement htmlElementB = new MockHtmlElement();
   LibraryElement libraryElement = new MockLibraryElement();

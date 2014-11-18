@@ -33,6 +33,7 @@ main() {
   runReflectiveTests(VoidTypeImplTest);
   runReflectiveTests(ClassElementImplTest);
   runReflectiveTests(CompilationUnitElementImplTest);
+  runReflectiveTests(ElementLocationImplTest);
   runReflectiveTests(ElementImplTest);
   runReflectiveTests(HtmlElementImplTest);
   runReflectiveTests(LibraryElementImplTest);
@@ -1054,6 +1055,70 @@ class ElementKindTest extends EngineTestCase {
 
   void test_of_null() {
     expect(ElementKind.of(null), same(ElementKind.ERROR));
+  }
+}
+
+class ElementLocationImplTest extends EngineTestCase {
+  void test_create_encoding() {
+    String encoding = "a;b;c";
+    ElementLocationImpl location = new ElementLocationImpl.con2(encoding);
+    expect(location.encoding, encoding);
+  }
+
+  /**
+   * For example unnamed constructor.
+   */
+  void test_create_encoding_emptyLast() {
+    String encoding = "a;b;c;";
+    ElementLocationImpl location = new ElementLocationImpl.con2(encoding);
+    expect(location.encoding, encoding);
+  }
+
+  void test_equals_equal() {
+    String encoding = "a;b;c";
+    ElementLocationImpl first = new ElementLocationImpl.con2(encoding);
+    ElementLocationImpl second = new ElementLocationImpl.con2(encoding);
+    expect(first == second, isTrue);
+  }
+
+  void test_equals_notEqual_differentLengths() {
+    ElementLocationImpl first = new ElementLocationImpl.con2("a;b;c");
+    ElementLocationImpl second = new ElementLocationImpl.con2("a;b;c;d");
+    expect(first == second, isFalse);
+  }
+
+  void test_equals_notEqual_notLocation() {
+    ElementLocationImpl first = new ElementLocationImpl.con2("a;b;c");
+    expect(first == "a;b;d", isFalse);
+  }
+
+  void test_equals_notEqual_sameLengths() {
+    ElementLocationImpl first = new ElementLocationImpl.con2("a;b;c");
+    ElementLocationImpl second = new ElementLocationImpl.con2("a;b;d");
+    expect(first == second, isFalse);
+  }
+
+  void test_getComponents() {
+    String encoding = "a;b;c";
+    ElementLocationImpl location = new ElementLocationImpl.con2(encoding);
+    List<String> components = location.components;
+    expect(components, hasLength(3));
+    expect(components[0], "a");
+    expect(components[1], "b");
+    expect(components[2], "c");
+  }
+
+  void test_getEncoding() {
+    String encoding = "a;b;c;;d";
+    ElementLocationImpl location = new ElementLocationImpl.con2(encoding);
+    expect(location.encoding, encoding);
+  }
+
+  void test_hashCode_equal() {
+    String encoding = "a;b;c";
+    ElementLocationImpl first = new ElementLocationImpl.con2(encoding);
+    ElementLocationImpl second = new ElementLocationImpl.con2(encoding);
+    expect(first.hashCode == second.hashCode, isTrue);
   }
 }
 

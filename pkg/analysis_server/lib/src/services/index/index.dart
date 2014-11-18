@@ -315,15 +315,10 @@ class LocationWithData<D> extends Location {
  * a concrete kind of this name - field, method or something else.
  */
 class NameElement extends ElementImpl {
-  NameElement(String name) : super('name:$name', -1);
+  NameElement(String name) : super("name:${name}", -1);
 
   @override
   ElementKind get kind => ElementKind.NAME;
-
-  @override
-  bool operator ==(Object other) {
-    return other is NameElement && other.name == name;
-  }
 
   @override
   accept(ElementVisitor visitor) => null;
