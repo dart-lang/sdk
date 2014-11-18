@@ -7,9 +7,11 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/options.dart';
 import 'package:analyzer/src/analyzer_impl.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:logging/logging.dart' as logger;
+import 'package:source_span/source_span.dart';
 
 import 'package:ddc/typechecker.dart';
 
@@ -74,13 +76,16 @@ void main(List argv) {
   logger.Logger.root.level = level;
   logger.Logger.root.onRecord.listen((logger.LogRecord rec) {
     AstNode node = rec.error;
-    var pos = '';
-    if (node != null) {
-      final root = node.root as CompilationUnit;
-      final info = root.lineInfo.getLocation(node.beginToken.offset);
-      pos = ' ${root.element}:${info.lineNumber}:${info.columnNumber}';
+    if (node == null) {
+      print('${rec.level.name}: ${rec.message}');
+      return;
     }
-    print('${rec.level.name}$pos: ${rec.message}');
+
+    final root = node.root as CompilationUnit;
+    final source = (root.element as CompilationUnitElementImpl).source;
+    final file = new SourceFile(source.contents.data, url: source.uri);
+    final span = file.span(node.beginToken.offset, node.endToken.end);
+    print(span.message(rec.message, color: true));
   });
 
   // Run dart analyzer.  We rely on it for resolution.

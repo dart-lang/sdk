@@ -22,15 +22,6 @@ abstract class StaticInfo {
 
   // Description / error message.
   String get message;
-
-  // File position.
-  String get position {
-    final root = node.root as CompilationUnit;
-    final info = root.lineInfo.getLocation(node.beginToken.offset);
-    return '${root.element}:${info.lineNumber}:${info.columnNumber}';
-  }
-
-  String get info => '$position: $message';
 }
 
 abstract class TypeMismatch extends StaticInfo {
@@ -919,7 +910,7 @@ class ProgramChecker extends RecursiveAstVisitor {
       if (!infoMap.containsKey(info.node))
         infoMap[info.node] = new List<StaticInfo>();
       infoMap[info.node].add(info);
-      log.log(info.level, info.info);
+      log.log(info.level, info.message, info.node);
       return true;
     }
     return false;
