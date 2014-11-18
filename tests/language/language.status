@@ -7,7 +7,6 @@
 
 [ $compiler == none ]
 built_in_identifier_prefix_test: Fail # Issue 6970
-enum_test: Fail # Issue 21416
 
 # These bugs refer currently ongoing language discussions.
 constructor_initializer_test/none: Fail # Issue 12633

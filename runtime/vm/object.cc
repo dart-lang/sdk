@@ -3405,6 +3405,11 @@ void Class::set_is_synthesized_class() const {
 }
 
 
+void Class::set_is_enum_class() const {
+  set_state_bits(EnumBit::update(true, raw_ptr()->state_bits_));
+}
+
+
 void Class::set_is_const() const {
   set_state_bits(ConstBit::update(true, raw_ptr()->state_bits_));
 }
@@ -6690,7 +6695,7 @@ bool Function::CheckSourceFingerprint(int32_t fp) const {
     if (recalculatingFingerprints) {
       // This output can be copied into a file, then used with sed
       // to replace the old values.
-      // sed -i .bak -f /tmp/newkeys runtime/vm/intrinsifier.h
+      // sed -i .bak -f /tmp/newkeys runtime/vm/method_recognizer.h
       // sed -i .bak -f /tmp/newkeys runtime/vm/intermediate_language.h
       // sed -i .bak -f /tmp/newkeys runtime/vm/flow_graph_builder.h
       OS::Print("s/%d/%d/\n", fp, SourceFingerprint());

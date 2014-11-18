@@ -31,6 +31,9 @@ class ObjectPointerVisitor;
   V(Current, "current")                                                        \
   V(MoveNext, "moveNext")                                                      \
   V(Value, "value")                                                            \
+  V(_EnumHelper, "_EnumHelper")                                                \
+  V(Values, "values")                                                          \
+  V(_EnumNames, "_enum_names")                                                 \
   V(ExprTemp, ":expr_temp")                                                    \
   V(AnonymousClosure, "<anonymous closure>")                                   \
   V(ClosureParameter, ":closure")                                              \
@@ -285,6 +288,7 @@ class ObjectPointerVisitor;
   V(SetterPrefix, "set:")                                                      \
   V(InitPrefix, "init:")                                                       \
   V(_New, "_new")                                                              \
+  V(Index, "index")                                                            \
   V(DartScheme, "dart:")                                                       \
   V(DartSchemePrivate, "dart:_")                                               \
   V(DartNativeWrappers, "dart:nativewrappers")                                 \

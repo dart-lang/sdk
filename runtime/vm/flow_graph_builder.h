@@ -32,21 +32,21 @@ class TestGraphVisitor;
 // (factory-name-symbol, result-cid, fingerprint).
 // TODO(srdjan): Store the values in the snapshot instead.
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
-  V(_ListFactory, kArrayCid, 1595327584)                                       \
-  V(_GrowableListWithData, kGrowableObjectArrayCid, 732923072)                 \
-  V(_GrowableListFactory, kGrowableObjectArrayCid, 1956565810)                 \
-  V(_Int8ArrayFactory, kTypedDataInt8ArrayCid, 1499010120)                     \
-  V(_Uint8ArrayFactory, kTypedDataUint8ArrayCid, 354210806)                    \
-  V(_Uint8ClampedArrayFactory, kTypedDataUint8ClampedArrayCid, 231626935)      \
-  V(_Int16ArrayFactory, kTypedDataInt16ArrayCid, 1044203454)                   \
-  V(_Uint16ArrayFactory, kTypedDataUint16ArrayCid, 616427808)                  \
-  V(_Int32ArrayFactory, kTypedDataInt32ArrayCid, 26656923)                     \
-  V(_Uint32ArrayFactory, kTypedDataUint32ArrayCid, 297463966)                  \
-  V(_Int64ArrayFactory, kTypedDataInt64ArrayCid, 105050331)                    \
-  V(_Uint64ArrayFactory, kTypedDataUint64ArrayCid, 1469861670)                 \
-  V(_Float64ArrayFactory, kTypedDataFloat64ArrayCid, 342242776)                \
-  V(_Float32ArrayFactory, kTypedDataFloat32ArrayCid, 105860920)                \
-  V(_Float32x4ArrayFactory, kTypedDataFloat32x4ArrayCid, 1217848993)           \
+  V(_ListFactory, kArrayCid, 335347617)                                        \
+  V(_GrowableListWithData, kGrowableObjectArrayCid, 536409567)                 \
+  V(_GrowableListFactory, kGrowableObjectArrayCid, 619206641)                  \
+  V(_Int8ArrayFactory, kTypedDataInt8ArrayCid, 1234236264)                     \
+  V(_Uint8ArrayFactory, kTypedDataUint8ArrayCid, 89436950)                     \
+  V(_Uint8ClampedArrayFactory, kTypedDataUint8ClampedArrayCid, 2114336727)     \
+  V(_Int16ArrayFactory, kTypedDataInt16ArrayCid, 779429598)                    \
+  V(_Uint16ArrayFactory, kTypedDataUint16ArrayCid, 351653952)                  \
+  V(_Int32ArrayFactory, kTypedDataInt32ArrayCid, 1909366715)                   \
+  V(_Uint32ArrayFactory, kTypedDataUint32ArrayCid, 32690110)                   \
+  V(_Int64ArrayFactory, kTypedDataInt64ArrayCid, 1987760123)                   \
+  V(_Uint64ArrayFactory, kTypedDataUint64ArrayCid, 1205087814)                 \
+  V(_Float64ArrayFactory, kTypedDataFloat64ArrayCid, 77468920)                 \
+  V(_Float32ArrayFactory, kTypedDataFloat32ArrayCid, 1988570712)               \
+  V(_Float32x4ArrayFactory, kTypedDataFloat32x4ArrayCid, 953075137)            \
 
 
 // Class that recognizes factories and returns corresponding result cid.

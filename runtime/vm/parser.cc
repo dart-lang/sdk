@@ -732,6 +732,14 @@ void Parser::ParseClass(const Class& cls) {
     const Library& lib = Library::Handle(isolate, cls.library());
     Parser parser(script, lib, cls.token_pos());
     parser.ParseClassDefinition(cls);
+  } else if (cls.is_enum_class()) {
+    Isolate* isolate = Isolate::Current();
+    TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
+    ASSERT(isolate->long_jump_base()->IsSafeToJump());
+    const Script& script = Script::Handle(isolate, cls.script());
+    const Library& lib = Library::Handle(isolate, cls.library());
+    Parser parser(script, lib, cls.token_pos());
+    parser.ParseEnumDefinition(cls);
   }
 }
 
@@ -1125,11 +1133,13 @@ SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
   // Receiver is local 0.
   LocalVariable* receiver = current_block_->scope->VariableAt(0);
   LoadLocalNode* load_receiver = new LoadLocalNode(ident_pos, receiver);
-  ASSERT(IsIdentifier());
-  const String& field_name = *CurrentLiteral();
+  String& field_name = String::Handle(I, func.name());
+  field_name = Field::NameFromGetter(field_name);
+
   const Class& field_class = Class::Handle(I, func.Owner());
   const Field& field =
       Field::ZoneHandle(I, field_class.LookupInstanceField(field_name));
+  ASSERT(!field.IsNull());
 
   LoadInstanceFieldNode* load_field =
       new LoadInstanceFieldNode(ident_pos, load_receiver, field);
@@ -3051,8 +3061,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   intptr_t end_token_pos = 0;
   if (CurrentToken() == Token::kLBRACE) {
     ConsumeToken();
-    if (String::Handle(I, func.name()).Equals(
-        Symbols::EqualOperator())) {
+    if (String::Handle(I, func.name()).Equals(Symbols::EqualOperator())) {
       const Class& owner = Class::Handle(I, func.Owner());
       if (!owner.IsObjectClass()) {
         AddEqualityNullCheck();
@@ -4002,6 +4011,54 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
 }
 
 
+void Parser::ParseEnumDeclaration(const GrowableObjectArray& pending_classes,
+                                  const Class& toplevel_class,
+                                  intptr_t metadata_pos) {
+  TRACE_PARSER("ParseEnumDeclaration");
+  ConsumeToken();
+  const intptr_t enum_pos = TokenPos();
+  String* enum_name =
+      ExpectUserDefinedTypeIdentifier("enum type name expected");
+  if (FLAG_trace_parser) {
+    OS::Print("TopLevel parsing enum '%s'\n", enum_name->ToCString());
+  }
+  ExpectToken(Token::kLBRACE);
+  if (!IsIdentifier()) {
+    ReportError("Enumeration must have at least one name");
+  }
+  while (IsIdentifier()) {
+    ConsumeToken();
+    if (CurrentToken() == Token::kCOMMA) {
+      ConsumeToken();
+      if (CurrentToken() == Token::kRBRACE) {
+        break;
+      }
+    } else if (CurrentToken() == Token::kRBRACE) {
+      break;
+    } else {
+      ReportError(", or } expected");
+    }
+  }
+  ExpectToken(Token::kRBRACE);
+
+  Object& obj = Object::Handle(I, library_.LookupLocalObject(*enum_name));
+  if (!obj.IsNull()) {
+    ReportError(enum_pos, "'%s' is already defined", enum_name->ToCString());
+  }
+  Class& cls = Class::Handle(I);
+  cls = Class::New(*enum_name, script_, enum_pos);
+  cls.set_library(library_);
+  library_.AddClass(cls);
+  cls.set_is_synthesized_class();
+  cls.set_is_enum_class();
+  if (metadata_pos >= 0) {
+    library_.AddClassMetadata(cls, toplevel_class, metadata_pos);
+  }
+  cls.set_super_type(Type::Handle(I, Type::ObjectType()));
+  pending_classes.Add(cls, Heap::kOld);
+}
+
+
 void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
                                    const Class& toplevel_class,
                                    intptr_t metadata_pos) {
@@ -4241,6 +4298,168 @@ void Parser::ParseClassDefinition(const Class& cls) {
       Report::LongJumpF(error, script_, class_pos, "applying patch failed");
     }
   }
+}
+
+
+void Parser::ParseEnumDefinition(const Class& cls) {
+  TRACE_PARSER("ParseEnumDefinition");
+  CompilerStats::num_classes_compiled++;
+
+  const String& enum_name = String::Handle(I, cls.Name());
+  ClassDesc enum_members(cls, enum_name, false, cls.token_pos());
+
+  // Add instance field 'final int index'.
+  Field& index_field = Field::ZoneHandle(I);
+  const Type& int_type = Type::Handle(I, Type::IntType());
+  const Type& dynamic_type = Type::Handle(Type::DynamicType());
+  index_field = Field::New(Symbols::Index(),
+                           false,  // Not static.
+                           true,  // Field is final.
+                           false,  // Not const.
+                           false,  // Not synthetic.
+                           cls,
+                           cls.token_pos());
+  index_field.set_type(int_type);
+  enum_members.AddField(index_field);
+
+  // Add implicit getter for index field.
+  const String& getter_name =
+      String::Handle(I, Field::GetterSymbol(Symbols::Index()));
+  Function& getter = Function::Handle(I);
+  getter = Function::New(getter_name,
+                         RawFunction::kImplicitGetter,
+                         /* is_static = */ false,
+                         /* is_const = */ true,
+                         /* is_abstract = */ false,
+                         /* is_external = */ false,
+                         /* is_native = */ false,
+                         cls,
+                         cls.token_pos());
+  getter.set_result_type(int_type);
+  ParamList params;
+  params.AddReceiver(&dynamic_type, cls.token_pos());
+  AddFormalParamsToFunction(&params, getter);
+  enum_members.AddFunction(getter);
+
+  GrowableObjectArray& enum_names = GrowableObjectArray::Handle(I,
+      GrowableObjectArray::New(8, Heap::kOld));
+  const String& name_prefix =
+      String::Handle(String::Concat(enum_name, Symbols::Dot()));
+
+  ASSERT(IsIdentifier());
+  ASSERT(CurrentLiteral()->raw() == cls.Name());
+
+  ConsumeToken();  // Enum type name.
+  ExpectToken(Token::kLBRACE);
+  Field& enum_value = Field::Handle(I);
+  String& enum_value_name = String::Handle(I);
+  intptr_t i = 0;
+  GrowableArray<String*> declared_names(8);
+
+  while (IsIdentifier()) {
+    String* enum_ident = CurrentLiteral();
+
+    // Check for name conflicts.
+    if (enum_ident->raw() == cls.Name()) {
+      ReportError("enum identifier '%s' cannot be equal to enum type name",
+          CurrentLiteral()->ToCString());
+    } else if (enum_ident->raw() == Symbols::Index().raw()) {
+      ReportError("enum identifier conflicts with "
+                  "implicit instance field 'index'");
+    } else if (enum_ident->raw() == Symbols::Values().raw()) {
+      ReportError("enum identifier conflicts with "
+                  "implicit static field 'values'");
+    } else if (enum_ident->raw() == Symbols::toString().raw()) {
+      ReportError("enum identifier conflicts with "
+                  "implicit instance method 'toString()'");
+    }
+    for (intptr_t i = 0; i < declared_names.length(); i++) {
+      if (enum_ident->Equals(*declared_names[i])) {
+        ReportError("Duplicate name '%s' in enum definition '%s'",
+                    enum_ident->ToCString(),
+                    enum_name.ToCString());
+      }
+    }
+    declared_names.Add(enum_ident);
+
+    // Create the static const field for the enumeration value.
+    enum_value = Field::New(*enum_ident,
+                            /* is_static = */ true,
+                            /* is_final = */ true,
+                            /* is_const = */ true,
+                            /* is_synthetic = */ false,
+                            cls,
+                            cls.token_pos());
+    enum_value.set_type(dynamic_type);
+    enum_value.set_has_initializer(false);
+    enum_members.AddField(enum_value);
+    // Initialize the field with the ordinal value. It will be patched
+    // later with the enum constant instance.
+    const Smi& ordinal_value = Smi::Handle(I, Smi::New(i));
+    enum_value.set_value(ordinal_value);
+    enum_value.RecordStore(ordinal_value);
+    i++;
+
+    // For the user-visible name of the enumeration value, we need to
+    // unmangle private names.
+    if (enum_ident->CharAt(0) == '_') {
+      *enum_ident = String::IdentifierPrettyName(*enum_ident);
+    }
+    enum_value_name = Symbols::FromConcat(name_prefix, *enum_ident);
+    enum_names.Add(enum_value_name, Heap::kOld);
+
+    ConsumeToken();  // Enum value name.
+    if (CurrentToken() == Token::kCOMMA) {
+      ConsumeToken();
+    }
+  }
+  ExpectToken(Token::kRBRACE);
+
+  const Class& helper_class =
+      Class::Handle(I, Library::LookupCoreClass(Symbols::_EnumHelper()));
+  ASSERT(!helper_class.IsNull());
+
+  // Add static field 'const List values'.
+  Field& values_field = Field::ZoneHandle(I);
+  values_field = Field::New(Symbols::Values(),
+                            /* is_static = */ true,
+                            /* is_final = */ true,
+                            /* is_const = */ true,
+                            /* is_synthetic = */ false,
+                            cls,
+                            cls.token_pos());
+  values_field.set_type(Type::Handle(I, Type::ArrayType()));
+  enum_members.AddField(values_field);
+
+  // Allocate the immutable array containing the enumeration values.
+  // The actual enum instance values will be patched in later.
+  const Array& values_array = Array::Handle(I, Array::New(i, Heap::kOld));
+  values_field.set_value(values_array);
+  values_field.RecordStore(values_array);
+
+  // Create a static field that contains the list of enumeration names.
+  // Clone the _enum_names field from the helper class.
+  Field& names_field = Field::Handle(I,
+      helper_class.LookupStaticField(Symbols::_EnumNames()));
+  ASSERT(!names_field.IsNull());
+  names_field = names_field.Clone(cls);
+  enum_members.AddField(names_field);
+  const Array& names_array = Array::Handle(Array::MakeArray(enum_names));
+  names_field.set_value(names_array);
+  names_field.RecordStore(names_array);
+
+  // Clone the toString() function from the helper class.
+  Function& to_string_func = Function::Handle(I,
+      helper_class.LookupDynamicFunctionAllowPrivate(Symbols::toString()));
+  ASSERT(!to_string_func.IsNull());
+  to_string_func = to_string_func.Clone(cls);
+  to_string_func.set_is_visible(false);
+  enum_members.AddFunction(to_string_func);
+
+  cls.AddFields(enum_members.fields());
+  const Array& functions =
+      Array::Handle(I, Array::MakeArray(enum_members.functions()));
+  cls.SetFunctions(functions);
 }
 
 
@@ -5426,6 +5645,8 @@ void Parser::ParseTopLevel() {
     intptr_t metadata_pos = SkipMetadata();
     if (CurrentToken() == Token::kCLASS) {
       ParseClassDeclaration(pending_classes, toplevel_class, metadata_pos);
+    } else if (CurrentToken() == Token::kENUM) {
+      ParseEnumDeclaration(pending_classes, toplevel_class, metadata_pos);
     } else if ((CurrentToken() == Token::kTYPEDEF) &&
                (LookaheadToken(1) != Token::kLPAREN)) {
       set_current_class(toplevel_class);
@@ -10986,6 +11207,12 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
             String::Handle(I, type.UserVisibleName()).ToCString() :
             "dynamic");
   }
+  // Attempting to instantiate an enum type is a compile-time error.
+  Class& type_class = Class::Handle(I, type.type_class());
+  if (type_class.is_enum_class()) {
+    ReportError(new_pos, "enum type '%s' can not be instantiated",
+                String::Handle(I, type_class.Name()).ToCString());
+  }
 
   // The grammar allows for an optional ('.' identifier)? after the type, which
   // is a named constructor. Note that we tell ParseType() above not to
@@ -11013,7 +11240,6 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   }
 
   // Resolve the type and optional identifier to a constructor or factory.
-  Class& type_class = Class::Handle(I, type.type_class());
   String& type_class_name = String::Handle(I, type_class.Name());
   TypeArguments& type_arguments =
       TypeArguments::ZoneHandle(I, type.arguments());

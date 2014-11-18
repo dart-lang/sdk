@@ -109,6 +109,7 @@ class ClassFinalizer : public AllStatic {
                              GrowableObjectArray* pending_types = NULL);
 
  private:
+  static void AllocateEnumValues(const Class& enum_cls);
   static bool IsSuperCycleFree(const Class& cls);
   static bool IsTypeCycleFree(const Class& cls,
                               const AbstractType& type,
