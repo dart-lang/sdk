@@ -167,10 +167,10 @@ abstract class TypeInformation {
 
   accept(TypeInformationVisitor visitor);
 
-  /// The [Element] where this [TypeInformation] was created. May be
+  /// The [Element] where this [TypeInformation] was created. May be `null`
   /// for some [TypeInformation] nodes, where we do not need to store
   /// the information.
-  Element get owner => null;
+  Element get owner => (context != null) ? context.element : null;
 
   /// Returns whether the type cannot change after it has been
   /// inferred.
@@ -472,8 +472,6 @@ class MemberTypeInformation extends ElementTypeInformation
     return visitor.visitMemberTypeInformation(this);
   }
 
-  Element get owner => element.outermostEnclosingMemberOrTopLevel;
-
   bool hasStableType(TypeGraphInferrerEngine inferrer) {
     // The number of assignments of non-final fields is
     // not stable. Therefore such a field cannot be stable.
@@ -639,8 +637,6 @@ abstract class CallSiteTypeInformation extends TypeInformation
 
   /// Return an iterable over the targets of this call.
   Iterable<Element> get callees;
-
-  Element get owner => caller;
 }
 
 class StaticCallSiteTypeInformation extends CallSiteTypeInformation {

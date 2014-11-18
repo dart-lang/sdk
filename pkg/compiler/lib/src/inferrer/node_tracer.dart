@@ -104,14 +104,22 @@ abstract class TracerVisitor<T extends TypeInformation>
     workList.add(info);
   }
 
+  bool _wouldBeTooManyUsers(Set users) {
+    int seenSoFar = analyzedElements.length;
+    if (seenSoFar + users.length <= MAX_ANALYSIS_COUNT) return false;
+    int actualWork = users
+        .where((TypeInformation user) => !analyzedElements.contains(user.owner))
+        .length;
+    return seenSoFar + actualWork > MAX_ANALYSIS_COUNT;
+  }
+
   void analyze() {
     // Collect the [TypeInformation] where the list can flow in,
     // as well as the operations done on all these [TypeInformation]s.
     addNewEscapeInformation(tracedType);
     while (!workList.isEmpty) {
       currentUser = workList.removeLast();
-      int expectedWork = analyzedElements.length + currentUser.users.length;
-      if (expectedWork > MAX_ANALYSIS_COUNT) {
+      if (_wouldBeTooManyUsers(currentUser.users)) {
         bailout('Too many users');
         break;
       }
