@@ -4,11 +4,46 @@
 
 library unittest.with_test_environment_test;
 
+import 'dart:async';
 import 'package:unittest/unittest.dart';
 
-void runUnittests(Function callback) {
-  unittestConfiguration = new SimpleConfiguration();
+class TestConfiguration extends SimpleConfiguration {
+  final Completer _completer = new Completer();
+  List<TestCase> _results;
+
+  TestConfiguration();
+
+  void onSummary(int passed, int failed, int errors, List<TestCase> results,
+                 String uncaughtError) {
+    super.onSummary(passed, failed, errors, results, uncaughtError);
+    _results = results;
+  }
+
+  Future get done => _completer.future;
+
+  onDone(success) {
+    new Future.sync(() {
+      super.onDone(success);
+    }).then((_) => _completer.complete(_))
+    .catchError((error, stack) => _completer.completeError(error, stack));
+  }
+
+  bool checkIfTestRan(String testName) {
+    for (final t in _results) {
+      if (t.description == testName) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+Future runUnittests(Function callback) {
+  var config = new TestConfiguration();
+  unittestConfiguration = config;
   callback();
+
+  return config.done;
 }
 
 void runTests() {
@@ -33,10 +68,23 @@ void main() {
     // expected, silently ignore.
   }
 
-  // Second test that we can run both when encapsulating in their own private
-  // test environment.
-  withTestEnvironment(() => runUnittests(runTests));
-  withTestEnvironment(() => runUnittests(runTests1));
+  // Test that we can run both when encapsulating in their own private test
+  // environment. Also test that the tests actually running are the ones
+  // scheduled in the runTests/runTests1 methods.
+  withTestEnvironment(() {
+    runUnittests(runTests).whenComplete(() {
+      TestConfiguration config = unittestConfiguration;
+      expect(config.checkIfTestRan('test'), true);
+      expect(config.checkIfTestRan('test1'), false);
+    });
+  });
+  withTestEnvironment(() {
+    runUnittests(runTests1).whenComplete(() {
+      TestConfiguration config = unittestConfiguration;
+      expect(config.checkIfTestRan('test'), false);
+      expect(config.checkIfTestRan('test1'), true);
+    });
+  });
 
   // Third test that we can run with two nested test environments.
   withTestEnvironment(() {

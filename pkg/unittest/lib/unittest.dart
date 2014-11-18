@@ -162,8 +162,7 @@ final _TestEnvironment _defaultEnvironment = new _TestEnvironment();
  */
 _TestEnvironment get _environment {
   var environment = Zone.current[_UNITTEST_ENVIRONMENT];
-  if (environment == null)
-    return _defaultEnvironment;
+  if (environment == null) return _defaultEnvironment;
   return environment;
 }
 
@@ -210,7 +209,7 @@ void logMessage(String message) =>
 String groupSep = ' ';
 
 /// Tests executed in this suite.
-final List<TestCase> testCases =
+List<TestCase> get testCases =>
     new UnmodifiableListView<TestCase>(_environment.testCases);
 
 /// Interval (in msecs) after which synchronous tests will insert an async

@@ -1,3 +1,8 @@
+##0.11.1+1
+
+* Fix bug in withTestEnvironment where test cases were not reinitialized if
+  called multiple times.
+
 ##0.11.1
 
 * Add `reason` named argument to `expectAsync` and `expectAsyncUntil`, which has

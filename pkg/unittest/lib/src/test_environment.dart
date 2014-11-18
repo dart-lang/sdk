@@ -21,9 +21,9 @@ class _TestEnvironment {
   /// The [currentTestCaseIndex] represents the index of the currently running
   /// test case.
   ///
-  /// == -1 implies the test system is not running.
-  /// == [number of test cases] is a short-lived state flagging that the last
-  ///    test has completed.
+  /// If this is -1 it implies the test system is not running.
+  /// It will be set to [number of test cases] as a short-lived state flagging
+  /// that the last test has completed.
   int currentTestCaseIndex = -1;
 
   /// The [initialized] variable specifies whether the framework
