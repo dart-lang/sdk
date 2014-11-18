@@ -1418,6 +1418,12 @@ abstract class MixinApplicationElement extends ClassElement {
   void addConstructor(FunctionElement constructor);
 }
 
+/// Enum declaration.
+abstract class EnumClassElement extends ClassElement {
+  /// The static fields implied by the enum values.
+  Iterable<FieldElement> get enumValues;
+}
+
 /// The label entity defined by a labeled statement.
 abstract class LabelDefinition extends Entity {
   Label get label;

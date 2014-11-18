@@ -228,6 +228,7 @@ class EnumCreator {
     constructor.functionSignatureCache = constructorSignature;
     enumClass.addMember(constructor, compiler);
 
+    List<FieldElement> enumValues = <FieldElement>[];
     VariableList variableList =
         new VariableList(builder.modifiers(isStatic: true, isConst: true));
     variableList.type = enumType;
@@ -256,6 +257,7 @@ class EnumCreator {
 
       EnumFieldElementX field = new EnumFieldElementX(
           name, enumClass, variableList, definition, initializer);
+      enumValues.add(field);
       enumClass.addMember(field, compiler);
       index++;
     }
@@ -297,5 +299,7 @@ class EnumCreator {
         type: new FunctionType(toString, stringType));
     toString.functionSignatureCache = toStringSignature;
     enumClass.addMember(toString, compiler);
+
+    enumClass.enumValues = enumValues;
   }
 }

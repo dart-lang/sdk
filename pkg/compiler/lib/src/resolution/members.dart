@@ -2909,11 +2909,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
         // Don't try to make constants of calls to type literals.
         if (!node.isCall) {
-          analyzeConstant(node);
+          analyzeConstantDeferred(node);
         } else {
           // The node itself is not a constant but we register the selector (the
           // identifier that refers to the class/typedef) as a constant.
-          analyzeConstant(node.selector);
+          analyzeConstantDeferred(node.selector);
         }
       }
       if (isPotentiallyMutableTarget(target)) {
@@ -3177,7 +3177,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           MessageKind.UNSUPPORTED_LITERAL_SYMBOL,
           {'value': node.slowNameString});
     }
-    analyzeConstant(node);
+    analyzeConstantDeferred(node);
   }
 
   visitStringJuxtaposition(StringJuxtaposition node) {
@@ -3428,7 +3428,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       compiler.mirrorUsageAnalyzerTask.validate(node, registry.mapping);
     }
     if (node.isConst) {
-      analyzeConstant(node);
+      analyzeConstantDeferred(node);
     }
 
     return null;
@@ -3452,34 +3452,38 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   void analyzeConstant(Node node) {
-    addDeferredAction(enclosingElement, () {
-      ConstantExpression constant =
-          compiler.resolver.constantCompiler.compileNode(
-              node, registry.mapping);
+    ConstantExpression constant =
+        compiler.resolver.constantCompiler.compileNode(
+            node, registry.mapping);
 
-      ConstantValue value = constant.value;
-      if (value.isMap) {
-        checkConstMapKeysDontOverrideEquals(node, value);
-      }
+    ConstantValue value = constant.value;
+    if (value.isMap) {
+      checkConstMapKeysDontOverrideEquals(node, value);
+    }
 
-      // The type constant that is an argument to JS_INTERCEPTOR_CONSTANT names
-      // a class that will be instantiated outside the program by attaching a
-      // native class dispatch record referencing the interceptor.
-      if (argumentsToJsInterceptorConstant != null &&
-          argumentsToJsInterceptorConstant.contains(node)) {
-        if (value.isType) {
-          TypeConstantValue typeConstant = value;
-          if (typeConstant.representedType is InterfaceType) {
-            registry.registerInstantiatedType(typeConstant.representedType);
-          } else {
-            compiler.reportError(node,
-                MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
-          }
+    // The type constant that is an argument to JS_INTERCEPTOR_CONSTANT names
+    // a class that will be instantiated outside the program by attaching a
+    // native class dispatch record referencing the interceptor.
+    if (argumentsToJsInterceptorConstant != null &&
+        argumentsToJsInterceptorConstant.contains(node)) {
+      if (value.isType) {
+        TypeConstantValue typeConstant = value;
+        if (typeConstant.representedType is InterfaceType) {
+          registry.registerInstantiatedType(typeConstant.representedType);
         } else {
           compiler.reportError(node,
               MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
         }
+      } else {
+        compiler.reportError(node,
+            MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
       }
+    }
+  }
+
+  void analyzeConstantDeferred(Node node) {
+    addDeferredAction(enclosingElement, () {
+      analyzeConstant(node);
     });
   }
 
@@ -3569,7 +3573,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     registry.registerRequiredType(listType, enclosingElement);
     visit(node.elements);
     if (node.isConst) {
-      analyzeConstant(node);
+      analyzeConstantDeferred(node);
     }
 
     sendIsMemberAccess = false;
@@ -3790,7 +3794,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     registry.registerRequiredType(mapType, enclosingElement);
     node.visitChildren(this);
     if (node.isConst) {
-      analyzeConstant(node);
+      analyzeConstantDeferred(node);
     }
 
     sendIsMemberAccess = false;
@@ -3900,7 +3904,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       for (Node labelOrCase in switchCase.labelsAndCases) {
         CaseMatch caseMatch = labelOrCase.asCaseMatch();
         if (caseMatch != null) {
-          analyzeConstant(caseMatch.expression);
+          analyzeConstantDeferred(caseMatch.expression);
           continue;
         }
         Label label = labelOrCase;
@@ -4360,6 +4364,12 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     element.supertype = compiler.objectClass.computeType(compiler);
     element.interfaces = const Link<DartType>();
     calculateAllSupertypes(element);
+
+    if (node.names.nodes.isEmpty) {
+      compiler.reportError(node,
+                           MessageKind.EMPTY_ENUM_DECLARATION,
+                           {'enumName': element.name});
+    }
 
     EnumCreator creator = new EnumCreator(compiler, element);
     creator.createMembers();
