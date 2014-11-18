@@ -1913,6 +1913,9 @@ class IncrementalParser {
       try {
         IncrementalParseDispatcher dispatcher =
             new IncrementalParseDispatcher(parser, oldNode);
+        IncrementalParseStateBuilder contextBuilder =
+            new IncrementalParseStateBuilder(parser);
+        contextBuilder.buildState(oldNode);
         newNode = parent.accept(dispatcher);
         //
         // Validate that the new node can replace the old node.
@@ -1979,6 +1982,100 @@ class IncrementalParser {
       firstToken = firstToken.previous;
     }
     return firstToken;
+  }
+}
+
+/**
+ * Visitor capable of inferring the correct parser state for incremental
+ * parsing.  This visitor visits each parent/child relationship in the chain of
+ * ancestors of the node to be replaced (starting with the root of the parse
+ * tree), updating the parser to the correct state for parsing the child of the
+ * given parent.  Once it has visited all of these relationships, the parser
+ * will be in the correct state for reparsing the node to be replaced.
+ *
+ * TODO(paulberry): add support for other pieces of parser state (_inAsync,
+ * _inGenerator, _inLoop, and _inSwitch).  Note that _inLoop and _inSwitch only
+ * affect error message generation.
+ */
+class IncrementalParseStateBuilder extends SimpleAstVisitor {
+  /**
+   * The parser whose state should be built.
+   */
+  final Parser _parser;
+
+  /**
+   * The child node in the parent/child relationship currently being visited.
+   * (The corresponding parent is the node passed to the visit...() function.)
+   */
+  AstNode _childNode;
+
+  /**
+   * Create an IncrementalParseStateBuilder which will build the correct state
+   * for [_parser].
+   */
+  IncrementalParseStateBuilder(this._parser);
+
+  /**
+   * Build the correct parser state for parsing a replacement for [node].
+   */
+  void buildState(AstNode node) {
+    List<AstNode> ancestors = <AstNode>[];
+    while (node != null) {
+      ancestors.add(node);
+      node = node.parent;
+    }
+    _parser._inInitializer = false;
+    for (int i = ancestors.length - 2; i >= 0; i--) {
+      _childNode = ancestors[i];
+      ancestors[i + 1].accept(this);
+    }
+  }
+
+  @override
+  void visitArgumentList(ArgumentList node) {
+    _parser._inInitializer = false;
+  }
+
+  @override
+  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    if (identical(_childNode, node.expression)) {
+      _parser._inInitializer = true;
+    }
+  }
+
+  @override
+  void visitIndexExpression(IndexExpression node) {
+    if (identical(_childNode, node.index)) {
+      _parser._inInitializer = false;
+    }
+  }
+
+  @override
+  void visitInterpolationExpression(InterpolationExpression node) {
+    if (identical(_childNode, node.expression)) {
+      _parser._inInitializer = false;
+    }
+  }
+
+  @override
+  void visitListLiteral(ListLiteral node) {
+    if (node.elements.contains(_childNode)) {
+      _parser._inInitializer = false;
+    }
+  }
+
+  @override
+  void visitMapLiteral(MapLiteral node) {
+    if (node.entries.contains(_childNode)) {
+      _parser._inInitializer = false;
+    }
+  }
+
+  @override
+  void visitParenthesizedExpression(ParenthesizedExpression node) {
+    if (identical(_childNode, node.expression)) {
+      _parser._inInitializer = false;
+    }
   }
 }
 

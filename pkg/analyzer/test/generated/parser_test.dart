@@ -2521,17 +2521,15 @@ class ErrorParserTest extends ParserTestCase {
 }
 
 class IncrementalParserTest extends EngineTestCase {
-  void fail_replace_identifier_with_functionLiteral_in_initializer() {
-    // Function literals aren't allowed inside initializers; incremental parsing
-    // needs to gather the appropriate context.
+  void fail_replace_identifier_with_functionLiteral_in_initializer_interp() {
+    // TODO(paulberry, brianwilkerson): broken due to incremental scanning bugs
+
+    // Function literals are allowed inside interpolation expressions in
+    // initializers.
     //
-    // "class A { var a; A(b) : a = b ? b : 0 { } }"
-    // "class A { var a; A(b) : a = b ? () {} : 0 { } }"
-    _assertParse(
-        "class A { var a; A(b) : a = b ? ",
-        "b",
-        "() {}",
-        " : 0 { } }");
+    // 'class A { var a; A(b) : a = "${b}";'
+    // 'class A { var a; A(b) : a = "${() {}}";'
+    _assertParse(r'class A { var a; A(b) : a = "${', 'b', '() {}', '}";');
   }
 
   void test_delete_everything() {
@@ -2720,6 +2718,51 @@ class IncrementalParserTest extends EngineTestCase {
     // "f() => first + b;"
     // "f() => frost + b;"
     _assertParse("f() => f", "ir", "ro", "st + b;");
+  }
+
+  void test_replace_identifier_with_functionLiteral_in_initializer() {
+    // Function literals aren't allowed inside initializers; incremental parsing
+    // needs to gather the appropriate context.
+    //
+    // "class A { var a; A(b) : a = b ? b : 0 { } }"
+    // "class A { var a; A(b) : a = b ? () {} : 0 { } }"
+    _assertParse(
+        "class A { var a; A(b) : a = b ? ",
+        "b",
+        "() {}",
+        " : 0 { } }");
+  }
+
+  void test_replace_identifier_with_functionLiteral_in_initializer_index() {
+    // Function literals are allowed inside index expressions in initializers.
+    //
+    // "class A { var a; A(b) : a = b[b];"
+    // "class A { var a; A(b) : a = b[() {}];"
+    _assertParse('class A { var a; A(b) : a = b[', 'b', '() {}', '];');
+  }
+
+  void test_replace_identifier_with_functionLiteral_in_initializer_list() {
+    // Function literals are allowed inside list literals in initializers.
+    //
+    // "class A { var a; A(b) : a = [b];"
+    // "class A { var a; A(b) : a = [() {}];"
+    _assertParse('class A { var a; A(b) : a = [', 'b', '() {}', '];');
+  }
+
+  void test_replace_identifier_with_functionLiteral_in_initializer_map() {
+    // Function literals are allowed inside map literals in initializers.
+    //
+    // "class A { var a; A(b) : a = {0: b};"
+    // "class A { var a; A(b) : a = {0: () {}};"
+    _assertParse('class A { var a; A(b) : a = {0: ', 'b', '() {}', '};');
+  }
+
+  void test_replace_identifier_with_functionLiteral_in_initializer_parens() {
+    // Function literals are allowed inside parentheses in initializers.
+    //
+    // "class A { var a; A(b) : a = (b);"
+    // "class A { var a; A(b) : a = (() {});"
+    _assertParse('class A { var a; A(b) : a = (', 'b', '() {}', ');');
   }
 
   void test_replace_multiple_partialFirstAndLast() {
