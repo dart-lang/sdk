@@ -675,6 +675,7 @@ class Assembler : public ValueObject {
   void cpuid();
 
   // Issue memory to memory move through a TMP register.
+  // TODO(koda): Assert that these are not used for heap objects.
   void MoveMemoryToMemory(const Address& dst, const Address& src) {
     movq(TMP, src);
     movq(dst, TMP);
@@ -707,6 +708,7 @@ class Assembler : public ValueObject {
   // the object pool when possible. Unless you are sure that the untagged object
   // pool pointer is in another register, or that it is not available at all,
   // PP should be passed for pp.
+  // TODO(koda): Assert that these are not used for heap objects.
   void AddImmediate(Register reg, const Immediate& imm, Register pp);
   void AddImmediate(const Address& address, const Immediate& imm, Register pp);
   void SubImmediate(Register reg, const Immediate& imm, Register pp);
@@ -728,7 +730,6 @@ class Assembler : public ValueObject {
 
   bool CanLoadImmediateFromPool(const Immediate& imm, Register pp);
   void LoadImmediate(Register reg, const Immediate& imm, Register pp);
-  void LoadImmediate(const Address& dst, const Immediate& imm, Register pp);
   void LoadIsolate(Register dst);
   void LoadObject(Register dst, const Object& obj, Register pp);
   void JmpPatchable(const ExternalLabel* label, Register pp);
@@ -736,6 +737,8 @@ class Assembler : public ValueObject {
   void J(Condition condition, const ExternalLabel* label, Register pp);
   void CallPatchable(const ExternalLabel* label);
   void Call(const ExternalLabel* label, Register pp);
+  // Unaware of write barrier (use StoreInto* methods for storing to objects).
+  // TODO(koda): Add StackAddress/HeapAddress types to prevent misuse.
   void StoreObject(const Address& dst, const Object& obj, Register pp);
   void PushObject(const Object& object, Register pp);
   void CompareObject(Register reg, const Object& object, Register pp);
@@ -749,6 +752,10 @@ class Assembler : public ValueObject {
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 Register value);
+  void StoreIntoObjectNoBarrier(Register object,
+                                const Address& dest,
+                                const Object& value,
+                                Register pp);
 
   // Stores a Smi value into a heap object field that always contains a Smi.
   void StoreIntoSmiField(const Address& dest, Register value);
@@ -1088,6 +1095,8 @@ class Assembler : public ValueObject {
   void VerifyHeapWord(const Address& address);
   // Analogous to VerifiedMemory::Write.
   void VerifiedWrite(const Address& dest, Register value);
+  // Unaware of write barrier (use StoreInto* methods for storing to objects).
+  void MoveImmediate(const Address& dst, const Immediate& imm, Register pp);
 
   void ComputeCounterAddressesForCid(intptr_t cid,
                                      Heap::Space space,

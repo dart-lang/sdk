@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // Test write barrier verification mode.
-// VMOptions=--verified_mem --verify_before_gc --verify_after_gc
+// VMOptions=--verified_mem --verify_before_gc --verify_after_gc --old_gen_growth_rate=1
 
 var a = [];
 

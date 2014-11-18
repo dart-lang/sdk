@@ -1253,7 +1253,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ StoreIntoObject(array, element_address, value);
       } else if (locs()->in(2).IsConstant()) {
         const Object& constant = locs()->in(2).constant();
-        __ StoreObject(element_address, constant, PP);
+        __ StoreIntoObjectNoBarrier(array, element_address, constant, PP);
       } else {
         Register value = locs()->in(2).reg();
         __ StoreIntoObjectNoBarrier(array, element_address, value);
@@ -1857,8 +1857,9 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                        CanValueBeSmi());
   } else {
     if (locs()->in(1).IsConstant()) {
-      __ StoreObject(FieldAddress(instance_reg, offset_in_bytes_),
-                     locs()->in(1).constant(), PP);
+      __ StoreIntoObjectNoBarrier(instance_reg,
+                                  FieldAddress(instance_reg, offset_in_bytes_),
+                                  locs()->in(1).constant(), PP);
     } else {
       Register value_reg = locs()->in(1).reg();
       __ StoreIntoObjectNoBarrier(instance_reg,

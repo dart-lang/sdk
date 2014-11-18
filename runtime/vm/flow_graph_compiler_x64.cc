@@ -1271,6 +1271,7 @@ void FlowGraphCompiler::EmitEdgeCounter() {
 #endif  // DEBUG
   __ IncrementSmiField(FieldAddress(RAX, Array::element_offset(0)), 1);
 #if defined(DEBUG)
+  // If the assertion below fails, update EdgeCounterIncrementSizeInBytes.
   intptr_t expected = EdgeCounterIncrementSizeInBytes();
   intptr_t actual = assembler_->CodeSize() - increment_start;
   if (actual != expected) {
@@ -1283,6 +1284,7 @@ void FlowGraphCompiler::EmitEdgeCounter() {
 
 
 int32_t FlowGraphCompiler::EdgeCounterIncrementSizeInBytes() {
+  // Used by CodePatcher; so must be constant across all code in an isolate.
   return VerifiedMemory::enabled() ? 73 : 5;
 }
 

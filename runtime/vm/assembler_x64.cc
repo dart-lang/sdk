@@ -2760,7 +2760,7 @@ void Assembler::StoreObject(const Address& dst, const Object& object,
     LoadObject(TMP, object, pp);
     movq(dst, TMP);
   } else {
-    LoadImmediate(dst, Immediate(reinterpret_cast<int64_t>(object.raw())), pp);
+    MoveImmediate(dst, Immediate(reinterpret_cast<int64_t>(object.raw())), pp);
   }
 }
 
@@ -2825,7 +2825,7 @@ void Assembler::LoadImmediate(Register reg, const Immediate& imm, Register pp) {
 }
 
 
-void Assembler::LoadImmediate(const Address& dst, const Immediate& imm,
+void Assembler::MoveImmediate(const Address& dst, const Immediate& imm,
                               Register pp) {
   if (CanLoadImmediateFromPool(imm, pp)) {
     LoadImmediate(TMP, imm, pp);
@@ -2949,6 +2949,25 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   popq(value);
 #endif  // defined(DEBUG)
   // No store buffer update.
+}
+
+
+void Assembler::StoreIntoObjectNoBarrier(Register object,
+                                         const Address& dest,
+                                         const Object& value,
+                                         Register pp) {
+  if (VerifiedMemory::enabled()) {
+    VerifyHeapWord(dest);
+    Register temp = (pp == RCX) ? RDX : RCX;
+    pushq(temp);
+    leaq(temp, dest);
+    StoreObject(Address(temp, 0), value, pp);
+    StoreObject(Address(temp, VerifiedMemory::offset()), value, pp);
+    popq(temp);
+  } else {
+    StoreObject(dest, value, pp);
+  }
+  // TODO(koda): Use 'object', verify that generational barrier's not needed.
 }
 
 
@@ -3428,7 +3447,7 @@ void Assembler::TryAllocate(const Class& cls,
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
-    LoadImmediate(FieldAddress(instance_reg, Object::tags_offset()),
+    MoveImmediate(FieldAddress(instance_reg, Object::tags_offset()),
                   Immediate(tags), pp);
   } else {
     jmp(failure);

@@ -315,3 +315,6 @@ profiler/metrics_num_test: Skip # Because of a int / double type test.
 
 [ $arch == simarm64 ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.
+
+[ $mode == debug && $arch == ia32 && $system == windows]
+convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification OOM
