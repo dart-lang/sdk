@@ -18,7 +18,7 @@ import 'package:ddc/typechecker.dart';
 final parser = new ArgParser();
 
 ArgResults parse(List argv) {
-  parser.addFlag('type-check', abbr: 't', help: 'Typecheck only', defaultsTo: false);
+  parser.addFlag('sdk-check', abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false);
   parser.addOption('log', abbr: 'l', help: 'Logging level', defaultsTo: 'severe');
   parser.addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null);
   parser.addOption('out', abbr: 'o', help: 'Output directory', defaultsTo: null);
@@ -111,7 +111,7 @@ void main(List argv) {
   TypeProvider provider = (context as AnalysisContextImpl).typeProvider;
   final source = analyzer.librarySource;
   final uri = new Uri.file(filename);
-  final visitor = new ProgramChecker(context, new StartRules(provider), uri, source);
+  final visitor = new ProgramChecker(context, new StartRules(provider), uri, source, args['sdk-check']);
   visitor.check();
   visitor.finalizeImports();
 

@@ -549,6 +549,7 @@ class ProgramChecker extends RecursiveAstVisitor {
   final AnalysisContext _context;
   final TypeRules _rules;
   final Uri _root;
+  final bool _checkSdk;
   final Map<Uri, CompilationUnit> _unitMap;
   final Map<Uri, Library> libraries;
   final List<Library> _stack;
@@ -591,8 +592,7 @@ class ProgramChecker extends RecursiveAstVisitor {
   }
 
   CompilationUnit load(Uri uri, Source source, bool isLibrary) {
-    if (uri.scheme == 'dart') {
-      // print('skipping $uri');
+    if (!_checkSdk && uri.scheme == 'dart') {
       return null;
     }
     if (_unitMap.containsKey(uri)) {
@@ -639,7 +639,7 @@ class ProgramChecker extends RecursiveAstVisitor {
     return _context.getResolvedCompilationUnit2(source, container);
   }
 
-  ProgramChecker(this._context, this._rules, this._root, Source source)
+  ProgramChecker(this._context, this._rules, this._root, Source source, this._checkSdk)
       : _unitMap = new Map<Uri, CompilationUnit>(),
         libraries = new Map<Uri, Library>(),
         _stack = new List<Library>() {
