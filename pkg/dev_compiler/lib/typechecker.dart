@@ -46,9 +46,11 @@ abstract class TypeMismatch extends StaticInfo {
 class StaticTypeError extends TypeMismatch {
   DartType expectedType;
 
-  StaticTypeError(TypeRules rules, Expression expression, this.expectedType) : super(rules, expression);
+  StaticTypeError(TypeRules rules, Expression expression, this.expectedType)
+      : super(rules, expression);
 
-  String get message => 'Type check failed: $expression ($baseType) is not of type $expectedType';
+  String get message =>
+      'Type check failed: $expression ($baseType) is not of type $expectedType';
 
   logger.Level get level => logger.Level.SEVERE;
 }
@@ -57,7 +59,8 @@ class StaticTypeError extends TypeMismatch {
 abstract class Conversion extends TypeMismatch {
   DartType _convertedType;
 
-  Conversion(TypeRules rules, Expression expression) : super(rules, expression) {
+  Conversion(TypeRules rules, Expression expression)
+      : super(rules, expression) {
     this._convertedType = _getConvertedType();
   }
 
@@ -87,7 +90,8 @@ class Box extends Conversion {
 class Unbox extends Conversion {
   DartType _unboxedType;
 
-  Unbox(TypeRules rules, Expression expression, this._unboxedType) : super(rules, expression) {
+  Unbox(TypeRules rules, Expression expression, this._unboxedType)
+      : super(rules, expression) {
     assert(rules.isBoxable(_unboxedType));
   }
 
@@ -96,36 +100,43 @@ class Unbox extends Conversion {
   // TODO(vsm): Could be safe for num->double and once we represent boxed int and boxed double.
   bool get safe => false;
 
-  String get message => '$expression ($baseType) must be unboxed to type $convertedType';
+  String get message =>
+      '$expression ($baseType) must be unboxed to type $convertedType';
 }
 
 class DownCast extends Conversion {
   DartType _newType;
 
-  DownCast(TypeRules rules, Expression expression, this._newType) : super(rules, expression) {
-    assert(_newType != baseType && (baseType.isDynamic || rules.isSubTypeOf(_newType, baseType)));
+  DownCast(TypeRules rules, Expression expression, this._newType)
+      : super(rules, expression) {
+    assert(_newType != baseType && (baseType.isDynamic || rules
+        .isSubTypeOf(_newType, baseType)));
   }
 
   DartType _getConvertedType() => _newType;
 
-  String get message => '$expression ($baseType) will need runtime check to cast to type $convertedType';
+  String get message =>
+      '$expression ($baseType) will need runtime check to cast to type $convertedType';
 
   // Differentiate between Function down cast and non-Function down cast?  The former seems less likely
   // to actually succeed.
-  logger.Level get level => (_newType is FunctionType) ? logger.Level.WARNING : super.level;
+  logger.Level get level =>
+      (_newType is FunctionType) ? logger.Level.WARNING : super.level;
 }
 
 class ClosureWrap extends Conversion {
   FunctionType _wrappedType;
 
-  ClosureWrap(TypeRules rules, Expression expression, this._wrappedType) : super(rules, expression) {
+  ClosureWrap(TypeRules rules, Expression expression, this._wrappedType)
+      : super(rules, expression) {
     assert(baseType is FunctionType);
     assert(!rules.isSubTypeOf(_wrappedType, baseType));
   }
 
   DartType _getConvertedType() => _wrappedType;
 
-  String get message => '$expression ($baseType) will need to be wrapped with a closure of type $convertedType';
+  String get message =>
+      '$expression ($baseType) will need to be wrapped with a closure of type $convertedType';
 
   logger.Level get level => logger.Level.WARNING;
 }
@@ -133,7 +144,8 @@ class ClosureWrap extends Conversion {
 class NumericConversion extends Conversion {
   // int to double only?
 
-  NumericConversion(TypeRules rules, Expression expression) : super(rules, expression) {
+  NumericConversion(TypeRules rules, Expression expression)
+      : super(rules, expression) {
     assert(baseType.displayName == rules.provider.intType);
   }
 
@@ -141,16 +153,18 @@ class NumericConversion extends Conversion {
 
   DartType _getConvertedType() => rules.provider.doubleType;
 
-  String get message => '$expression ($baseType) should be converted to type $convertedType';
+  String get message =>
+      '$expression ($baseType) should be converted to type $convertedType';
 }
 
 class DynamicInvoke extends Conversion {
-  DynamicInvoke(TypeRules rules, Expression expression) : super(rules, expression);
+  DynamicInvoke(TypeRules rules, Expression expression)
+      : super(rules, expression);
 
   DartType _getConvertedType() => rules.provider.dynamicType;
 
   String get message => '$expression requires dynamic invoke';
-  logger.Level get level  => logger.Level.WARNING;
+  logger.Level get level => logger.Level.WARNING;
 }
 
 class InvalidOverride extends StaticInfo {
@@ -162,14 +176,17 @@ class InvalidOverride extends StaticInfo {
   // TODO(vsm): Refactor to a different class.
   final bool fieldOverride;
 
-  InvalidOverride(this.node, this.element, this.base, this.methodType, this.baseType, [this.fieldOverride = false]);
+  InvalidOverride(this.node, this.element, this.base, this.methodType,
+      this.baseType, [this.fieldOverride = false]);
 
-  ClassDeclaration get parent => element.enclosingElement.node as ClassDeclaration;
+  ClassDeclaration get parent =>
+      element.enclosingElement.node as ClassDeclaration;
   String get message {
-    if (fieldOverride)
+    if (fieldOverride) {
       return 'Invalid field override for ${element.name} in ${parent.name} over $base';
-    else
+    } else {
       return 'Invalid override for ${element.name} in ${parent.name} over $base: $methodType does not subtype $baseType';
+    }
   }
 
   logger.Level get level => logger.Level.SEVERE;
@@ -259,34 +276,35 @@ class StartRules extends TypeRules {
 
   bool isDynamic(DartType t) {
     // Erasure
-    if (t is TypeParameterType)
-      return true;
-    if (t.isDartCoreFunction)
-      return true;
+    if (t is TypeParameterType) return true;
+    if (t.isDartCoreFunction) return true;
     return t.isDynamic;
   }
 
   bool canBeBoxedTo(DartType primitiveType, DartType boxedType) {
     assert(isPrimitive(primitiveType));
     // Any primitive can be boxed to Object or dynamic.
-    if (boxedType.isObject || boxedType.isDynamic || boxedType is TypeParameterType)
+    if (boxedType.isObject ||
+        boxedType.isDynamic ||
+        boxedType is TypeParameterType) {
       return true;
+    }
     // True iff a location with this type may be assigned a boxed
     // int or double.
-    if (primitiveType != provider.boolType)
-      if (!primitiveNum && boxedType.name == "num")
-        return true;
+    if (primitiveType !=
+        provider.boolType && !primitiveNum && boxedType.name == "num") {
+      return true;
+    }
     return false;
   }
 
   bool isPrimitive(DartType t) {
     // FIXME: Handle VoidType here?
-    if (t.isVoid)
-      return true;
-    if (t == provider.intType || t == provider.doubleType || t == provider.boolType)
-      return true;
-    if (primitiveNum && t.name == "num")
-      return true;
+    if (t.isVoid) return true;
+    if (t == provider.intType ||
+        t == provider.doubleType ||
+        t == provider.boolType) return true;
+    if (primitiveNum && t.name == "num") return true;
     return false;
   }
 
@@ -296,12 +314,11 @@ class StartRules extends TypeRules {
 
   DartType boxedType(DartType t) {
     assert(isBoxable(t));
-    if (t == provider.boolType)
-      return provider.objectType;
-    if (t == provider.intType || t == provider.doubleType)
+    if (t == provider.boolType) return provider.objectType;
+    if (t == provider.intType || t == provider.doubleType) {
       return primitiveNum ? provider.objectType : provider.numType;
-    if (primitiveNum && t == provider.numType)
-      return provider.objectType;
+    }
+    if (primitiveNum && t == provider.numType) return provider.objectType;
     assert(false);
     return null;
   }
@@ -346,7 +363,8 @@ class StartRules extends TypeRules {
     return false;
   }
 
-  bool isFunctionSubTypeOf(FunctionType f1, FunctionType f2, [bool wrap = false]) {
+  bool isFunctionSubTypeOf(
+      FunctionType f1, FunctionType f2, [bool wrap = false]) {
     final params1 = f1.parameters;
     final params2 = f2.parameters;
     final ret1 = f1.returnType;
@@ -373,22 +391,23 @@ class StartRules extends TypeRules {
       ParameterElement p2 = params2[i];
 
       // Contravariant parameter types.
-      if (!isSubTypeOf(p2.type, p1.type) && !(wrap && canAutoConvertTo(p2.type, p1.type)))
+      if (!isSubTypeOf(
+          p2.type, p1.type) && !(wrap && canAutoConvertTo(p2.type, p1.type))) {
         return false;
+      }
 
       // If the base param is optional, the sub param must be optional:
       // - either neither are named or
       // - both are named with the same name
       // If the base param is required, the sub may be optional, but not named.
       if (p2.parameterKind != ParameterKind.REQUIRED) {
-        if (p1.parameterKind == ParameterKind.REQUIRED)
+        if (p1.parameterKind == ParameterKind.REQUIRED) return false;
+        if (p2.parameterKind == ParameterKind.NAMED &&
+            (p1.parameterKind != ParameterKind.NAMED || p1.name != p2.name)) {
           return false;
-        if (p2.parameterKind == ParameterKind.NAMED)
-          if (p1.parameterKind != ParameterKind.NAMED || p1.name != p2.name)
-            return false;
+        }
       } else {
-        if (p1.parameterKind == ParameterKind.NAMED)
-          return false;
+        if (p1.parameterKind == ParameterKind.NAMED) return false;
       }
     }
     return true;
@@ -399,27 +418,21 @@ class StartRules extends TypeRules {
     // Note: this essentially applies erasure on generics
     // instead of Dart's covariance.
 
-    if (i1 == i2)
-      return true;
+    if (i1 == i2) return true;
 
-    if (i1.element == i2.element)
-      // Erasure!
-      return true;
+    // Erasure!
+    if (i1.element == i2.element) return true;
 
-    if (i1 == provider.objectType)
-      return false;
+    if (i1 == provider.objectType) return false;
 
-    if (isInterfaceSubTypeOf(i1.superclass, i2))
-      return true;
+    if (isInterfaceSubTypeOf(i1.superclass, i2)) return true;
 
     for (final parent in i1.interfaces) {
-      if (isInterfaceSubTypeOf(parent, i2))
-        return true;
+      if (isInterfaceSubTypeOf(parent, i2)) return true;
     }
 
     for (final parent in i1.mixins) {
-      if (isInterfaceSubTypeOf(parent, i2))
-        return true;
+      if (isInterfaceSubTypeOf(parent, i2)) return true;
     }
 
     return false;
@@ -428,37 +441,28 @@ class StartRules extends TypeRules {
   bool isSubTypeOf(DartType t1, DartType t2) {
     // Primitives are standalone types.  Unless boxed, they do not subtype
     // Object and are not subtyped by dynamic.
-    if (isPrimitive(t1) || isPrimitive(t2))
-      return isPrimitiveEquals(t1, t2);
+    if (isPrimitive(t1) || isPrimitive(t2)) return isPrimitiveEquals(t1, t2);
 
-    if (t1 is TypeParameterType)
-      t1 = provider.dynamicType;
-    if (t2 is TypeParameterType)
-      t2 = provider.dynamicType;
+    if (t1 is TypeParameterType) t1 = provider.dynamicType;
+    if (t2 is TypeParameterType) t2 = provider.dynamicType;
 
-    if (t1 == t2)
-      return true;
+    if (t1 == t2) return true;
 
     // Null can be assigned to anything else.
     // FIXME: Can this be anything besides null?
-    if (t1.isBottom)
-      return true;
+    if (t1.isBottom) return true;
 
     // Trivially true for non-primitives.
-    if (t2 == provider.objectType)
-      return true;
+    if (t2 == provider.objectType) return true;
 
     // Trivially false.
-    if (t1 == provider.objectType && t2 != provider.dynamicType)
-      return false;
+    if (t1 == provider.objectType && t2 != provider.dynamicType) return false;
 
     // How do we handle dynamic?  In Dart, dynamic subtypes everything.
     // This is somewhat counterintuitive - subtyping usually narrows.
     // Here we treat dynamic essentially as Object.
-    if (isDynamic(t1))
-      return false;
-    if (isDynamic(t2))
-      return true;
+    if (isDynamic(t1)) return false;
+    if (isDynamic(t2)) return true;
 
     // "Traditional" name-based subtype check.
     // FIXME: What happens with classes that implement Function?
@@ -469,8 +473,7 @@ class StartRules extends TypeRules {
       }
     }
 
-    if (t1 is! FunctionType || t2 is! FunctionType)
-      return false;
+    if (t1 is! FunctionType || t2 is! FunctionType) return false;
 
     // Functions
     // Note: it appears under the hood all Dart functions map to a class / hidden type
@@ -514,7 +517,9 @@ class StartRules extends TypeRules {
         assert(type == provider.doubleType);
         return new NumericConversion(this, expr);
       } else {
-        if (exprType is FunctionType && type is FunctionType && isWrappableFunctionType(exprType, type)) {
+        if (exprType is FunctionType &&
+            type is FunctionType &&
+            isWrappableFunctionType(exprType, type)) {
           return new ClosureWrap(this, expr, type);
         } else {
           return new StaticTypeError(this, expr, type);
@@ -579,8 +584,9 @@ class ProgramChecker extends RecursiveAstVisitor {
 
   void finalizeImports() {
     libraries.forEach((Uri uri, Library lib) {
-      for (Uri key in lib.imports.keys)
+      for (Uri key in lib.imports.keys) {
         lib.imports[key] = libraries[key];
+      }
     });
   }
 
@@ -634,9 +640,9 @@ class ProgramChecker extends RecursiveAstVisitor {
   }
 
   ProgramChecker(this._context, this._rules, this._root, Source source)
-      : _unitMap = new Map<Uri, CompilationUnit>()
-      , libraries = new Map<Uri, Library>()
-      , _stack = new List<Library>() {
+      : _unitMap = new Map<Uri, CompilationUnit>(),
+        libraries = new Map<Uri, Library>(),
+        _stack = new List<Library>() {
     add(_root, source, true);
   }
 
@@ -681,7 +687,8 @@ class ProgramChecker extends RecursiveAstVisitor {
   }
 
   // Check that member declarations soundly override any overridden declarations.
-  InvalidOverride findInvalidOverride(AstNode node, ExecutableElement element, InterfaceType type, [bool allowFieldOverride = null]) {
+  InvalidOverride findInvalidOverride(AstNode node, ExecutableElement element,
+      InterfaceType type, [bool allowFieldOverride = null]) {
     // FIXME: This can be done a lot more efficiently.
     assert(!element.isStatic);
 
@@ -719,8 +726,9 @@ class ProgramChecker extends RecursiveAstVisitor {
     if (baseMethod != null) {
       // TODO(vsm): Test for generic
       FunctionType baseType = _rules.elementType(baseMethod);
-      if (!_rules.isAssignable(subType, baseType))
+      if (!_rules.isAssignable(subType, baseType)) {
         return new InvalidOverride(node, element, type, subType, baseType);
+      }
 
       // Test that we're not overriding a field.
       if (allowFieldOverride == false) {
@@ -728,37 +736,38 @@ class ProgramChecker extends RecursiveAstVisitor {
           if (field.name == memberName) {
             // TODO(vsm): Is this the right test?
             bool syn = field.isSynthetic;
-            if (!syn)
-              return new InvalidOverride(node, element, type, subType, baseType, true);
+            if (!syn) {
+              return new InvalidOverride(
+                  node, element, type, subType, baseType, true);
+            }
           }
         }
       }
     }
 
-    if (type.isObject)
-      return null;
+    if (type.isObject) return null;
 
-    allowFieldOverride = allowFieldOverride == null ? false : allowFieldOverride;
-    InvalidOverride base = findInvalidOverride(node, element, type.superclass, allowFieldOverride);
-    if (base != null)
-      return base;
+    allowFieldOverride = allowFieldOverride == null ? false :
+        allowFieldOverride;
+    InvalidOverride base =
+        findInvalidOverride(node, element, type.superclass, allowFieldOverride);
+    if (base != null) return base;
 
     for (final parent in type.interfaces) {
       base = findInvalidOverride(node, element, parent, true);
-      if (base != null)
-        return base;
+      if (base != null) return base;
     }
 
     for (final parent in type.mixins) {
       base = findInvalidOverride(node, element, parent, true);
-      if (base != null)
-        return base;
+      if (base != null) return base;
     }
 
     return null;
   }
 
-  void checkInvalidOverride(AstNode node, ExecutableElement element, InterfaceType type) {
+  void checkInvalidOverride(
+      AstNode node, ExecutableElement element, InterfaceType type) {
     InvalidOverride invalid = findInvalidOverride(node, element, type);
     record(invalid);
   }
@@ -785,11 +794,9 @@ class ProgramChecker extends RecursiveAstVisitor {
       InterfaceType type = _rules.elementType(parent.element);
       for (VariableDeclaration decl in node.fields.variables) {
         final getter = type.getGetter(decl.name.name);
-        if (getter != null)
-          checkInvalidOverride(node, getter, type);
+        if (getter != null) checkInvalidOverride(node, getter, type);
         final setter = type.getSetter(decl.name.name);
-        if (setter != null)
-          checkInvalidOverride(node, setter, type);
+        if (setter != null) checkInvalidOverride(node, setter, type);
       }
     }
     return node;
@@ -807,15 +814,16 @@ class ProgramChecker extends RecursiveAstVisitor {
         // TODO(vsm): When can this happen?
         assert(element != null);
       }
-      DartType expectedType = _rules.mapGenericType(_rules.elementType(element));
-      if (expectedType == null)
-        expectedType = _rules.provider.dynamicType;
+      DartType expectedType = _rules
+          .mapGenericType(_rules.elementType(element));
+      if (expectedType == null) expectedType = _rules.provider.dynamicType;
       checkAssignment(arg, expectedType);
     }
     return true;
   }
 
-  void checkFunctionApplication(Expression node, Expression f, ArgumentList list) {
+  void checkFunctionApplication(
+      Expression node, Expression f, ArgumentList list) {
     DartType type = _rules.getStaticType(f);
     if (type.isDynamic || type.isDartCoreFunction) {
       record(new DynamicInvoke(_rules, node));
@@ -841,7 +849,8 @@ class ProgramChecker extends RecursiveAstVisitor {
     return node;
   }
 
-  AstNode visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+  AstNode visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
     bool checked = checkArgumentList(node.argumentList);
     assert(checked);
     node.visitChildren(this);
@@ -860,7 +869,7 @@ class ProgramChecker extends RecursiveAstVisitor {
     DartType receiverType = _rules.getStaticType(target);
     assert(receiverType != null);
     if (receiverType.isDynamic) {
-       record(new DynamicInvoke(_rules, node));
+      record(new DynamicInvoke(_rules, node));
     }
     node.visitChildren(this);
     return node;
@@ -871,7 +880,7 @@ class ProgramChecker extends RecursiveAstVisitor {
     DartType receiverType = _rules.getStaticType(target);
     assert(receiverType != null);
     if (receiverType.isDynamic) {
-       record(new DynamicInvoke(_rules, node));
+      record(new DynamicInvoke(_rules, node));
     }
     node.visitChildren(this);
     return node;
@@ -884,8 +893,7 @@ class ProgramChecker extends RecursiveAstVisitor {
       String name = variable.name.name;
       // print('Found variable $name of type $dartType');
       final initializer = variable.initializer;
-      if (initializer != null)
-        checkAssignment(initializer, dartType);
+      if (initializer != null) checkAssignment(initializer, dartType);
     }
     node.visitChildren(this);
     return node;
@@ -905,10 +913,10 @@ class ProgramChecker extends RecursiveAstVisitor {
 
   bool record(StaticInfo info) {
     if (info != null) {
-      if (info.level >= logger.Level.SEVERE)
-        failure = true;
-      if (!infoMap.containsKey(info.node))
+      if (info.level >= logger.Level.SEVERE) failure = true;
+      if (!infoMap.containsKey(info.node)) {
         infoMap[info.node] = new List<StaticInfo>();
+      }
       infoMap[info.node].add(info);
       log.log(info.level, info.message, info.node);
       return true;
