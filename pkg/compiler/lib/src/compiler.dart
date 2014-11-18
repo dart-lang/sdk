@@ -1381,8 +1381,8 @@ abstract class Compiler implements DiagnosticListener {
     // TODO(sigurdm,kmillikin): Support checked-mode checks.
     return const bool.fromEnvironment('USE_NEW_BACKEND') &&
         backend is DartBackend &&
-        enableTypeAssertions &&
-        enableConcreteTypeInference;
+        !enableTypeAssertions &&
+        !enableConcreteTypeInference;
   }
 
   void computeMain() {
