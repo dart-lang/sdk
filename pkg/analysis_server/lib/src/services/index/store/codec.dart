@@ -104,13 +104,35 @@ class ElementCodec {
    * file paths instead of [Element] location URIs.
    */
   int encode(Element element, bool forKey) {
-    List<int> path = _getLocationPath(element, forKey);
-    int index = _pathToIndex[path];
-    if (index == null) {
-      index = _indexToPath.length;
-      _pathToIndex[path] = index;
-      _indexToPath.add(path);
+    ElementLocationImpl location = element.location;
+    // check the location has a cached id
+    if (!identical(location.indexOwner, this)) {
+      location.indexKeyId = null;
+      location.indexLocationId = null;
     }
+    if (forKey) {
+      int id = location.indexKeyId;
+      if (id != null) {
+        return id;
+      }
+    } else {
+      int id = location.indexLocationId;
+      if (id != null) {
+        return id;
+      }
+    }
+    // prepare an id
+    List<int> path = _getLocationPath(element, location, forKey);
+    int index = _encodePath(path);
+    // put the id into the location
+    if (forKey) {
+      location.indexOwner = this;
+      location.indexKeyId = index;
+    } else {
+      location.indexOwner = this;
+      location.indexLocationId = index;
+    }
+    // done
     return index;
   }
 
@@ -119,6 +141,11 @@ class ElementCodec {
    */
   int encodeHash(Element element) {
     List<int> path = _getLocationPathLimited(element);
+    int index = _encodePath(path);
+    return index;
+  }
+
+  int _encodePath(List<int> path) {
     int index = _pathToIndex[path];
     if (index == null) {
       index = _indexToPath.length;
@@ -146,12 +173,14 @@ class ElementCodec {
   /**
    * If [usePath] is `true` then [Source] path should be used instead of URI.
    */
-  List<int> _getLocationPath(Element element, bool usePath) {
+  List<int> _getLocationPath(Element element, ElementLocation location,
+      bool usePath) {
     // prepare the location components
-    List<String> components = element.location.components;
+    List<String> components = location.components;
     if (usePath) {
       LibraryElement library = element.library;
       if (library != null) {
+        components = components.toList();
         components[0] = library.source.fullName;
         if (element.enclosingElement is CompilationUnitElement) {
           components[1] = library.definingCompilationUnit.source.fullName;

@@ -3454,6 +3454,11 @@ abstract class ElementImpl implements Element {
   int _cachedHashCode = 0;
 
   /**
+   * A cached copy of the calculated location for this element.
+   */
+  ElementLocation _cachedLocation;
+
+  /**
    * Initialize a newly created element to have the given name.
    *
    * @param name the name of this element
@@ -3559,7 +3564,12 @@ abstract class ElementImpl implements Element {
       getAncestor((element) => element is LibraryElement);
 
   @override
-  ElementLocation get location => new ElementLocationImpl.con1(this);
+  ElementLocation get location {
+    if (_cachedLocation == null) {
+      _cachedLocation = new ElementLocationImpl.con1(this);
+    }
+    return _cachedLocation;
+  }
 
   @override
   String get name => _name;
@@ -3947,6 +3957,21 @@ class ElementLocationImpl implements ElementLocation {
    * The path to the element whose location is represented by this object.
    */
   List<String> _components;
+
+  /**
+   * The object managing [indexKeyId] and [indexLocationId].
+   */
+  Object indexOwner;
+
+  /**
+   * A cached id of this location in index.
+   */
+  int indexKeyId;
+
+  /**
+   * A cached id of this location in index.
+   */
+  int indexLocationId;
 
   /**
    * Initialize a newly created location to represent the given element.
