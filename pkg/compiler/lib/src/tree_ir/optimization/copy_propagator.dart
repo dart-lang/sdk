@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library copy_propagator;
-
-import '../elements/elements.dart';
-import '../tree_ir/tree_ir_nodes.dart';
+part of tree_ir.optimization;
 
 /// Eliminates moving assignments, such as w := v, by assigning directly to w
 /// at the definition of v.
@@ -13,7 +10,7 @@ import '../tree_ir/tree_ir_nodes.dart';
 /// This compensates for suboptimal register allocation, and merges closure
 /// variables with local temporaries that were left behind when translating
 /// out of CPS (where closure variables live in a separate space).
-class CopyPropagator extends RecursiveVisitor {
+class CopyPropagator extends RecursiveVisitor implements Pass {
 
   /// After visitStatement returns, [move] maps a variable v to an
   /// assignment A of form w := v, under the following conditions:

@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library logical_rewriter;
-
-import '../constants/values.dart' as values;
-import '../tree_ir/tree_ir_nodes.dart';
+part of tree_ir.optimization;
 
 /// Rewrites logical expressions to be more compact in the Tree IR.
 ///
@@ -57,7 +54,7 @@ import '../tree_ir/tree_ir_nodes.dart';
 ///   x && !!y          (!!y validated by [isBooleanValued])
 ///   x && y            (double negation removed by [putInBooleanContext])
 ///
-class LogicalRewriter extends Visitor<Statement, Expression> {
+class LogicalRewriter extends Visitor<Statement, Expression> implements Pass {
 
   /// Statement to be executed next by natural fallthrough. Although fallthrough
   /// is not introduced in this phase, we need to reason about fallthrough when

@@ -24,12 +24,9 @@ import '../../tree_ir/tree_ir_builder.dart' as tree_builder;
 import '../../dart_backend/backend_ast_emitter.dart' as backend_ast_emitter;
 import '../../cps_ir/optimizers.dart';
 import '../../tracer.dart';
-import '../../dart_backend/statement_rewriter.dart';
-import '../../dart_backend/copy_propagator.dart';
-import '../../dart_backend/loop_rewriter.dart';
-import '../../dart_backend/logical_rewriter.dart';
 import '../../js_backend/codegen/codegen.dart';
 import '../../ssa/ssa.dart' as ssa;
+import '../../tree_ir/optimization/optimization.dart';
 
 class CspFunctionCompiler implements FunctionCompiler {
   final IrBuilderTask irBuilderTask;
