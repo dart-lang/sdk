@@ -15,6 +15,8 @@ indexeddb_1_test/functional: Skip # Issue 19512 (timing out)
 indexeddb_4_test: Skip # Issue 19726
 mouse_event_test: Fail # Issue 20437
 storage_quota_test/missingenumcheck: Fail
+worker_api_test: Fail # Issue 10223
+two_scripts_htmltest: Fail # Issue 16603
 
 [ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 datalistelement_test: Skip # Issue 20540
@@ -102,9 +104,6 @@ xhr_test: Pass, Fail # Issue 11884
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ContentShellOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
-worker_api_test: Fail # http://dartbug.com/10223
-
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows]
 websql_test: Skip # Issue 4941: stderr contains a backtrace.
 
@@ -125,6 +124,7 @@ canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not suppor
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
 no_linked_scripts_htmltest: Skip # Times out on IE.  Issue 21537
 scripts_htmltest: Skip # Times out on IE.  Issue 21537
+two_scripts_htmltest: Skip # Times out on IE.  Issue 21537
 
 [$runtime == ie10 ]
 # IE10 Feature support statuses-
