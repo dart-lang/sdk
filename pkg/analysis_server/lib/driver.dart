@@ -24,7 +24,7 @@ class Driver {
   /**
    * The name of the application that is used to start a server.
    */
-  static const BINARY_NAME = 'server';
+  static const BINARY_NAME = "server";
 
   /**
    * The name of the option used to enable instrumentation.
@@ -54,7 +54,12 @@ class Driver {
    * TODO(paulberry): get rid of this once the 'analysis.updateSdks' request is
    * operational.
    */
-  static const String SDK_OPTION = 'sdk';
+  static const String SDK_OPTION = "sdk";
+
+  /**
+   * The name of the option used to disable error notifications.
+   */
+  static const String NO_ERROR_NOTIFICATION = "no-error-notification";
 
   SocketServer socketServer;
 
@@ -85,6 +90,11 @@ class Driver {
         PORT_OPTION,
         help: "[port] the port on which the server will listen");
     parser.addOption(SDK_OPTION, help: "[path] the path to the sdk");
+    parser.addFlag(
+        NO_ERROR_NOTIFICATION,
+        help: "disable sending all analysis error notifications to the server (not yet implemented)",
+        defaultsTo: false,
+        negatable: false);
 
     ArgResults results = parser.parse(args);
     if (results[HELP_OPTION]) {
