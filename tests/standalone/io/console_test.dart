@@ -16,7 +16,12 @@ void main() {
                   print(result.stdout);
                   print(result.stderr);
     Expect.equals(1, result.exitCode);
-    Expect.equals('stdout\ntuodts\nABCDEFGHIJKLM\n', result.stdout);
-    Expect.equals('stderr\nrredts\nABCDEFGHIJKLM\n', result.stderr);
+    if (Platform.isWindows) {
+      Expect.equals('stdout\r\ntuodts\r\nABCDEFGHIJKLM\r\n', result.stdout);
+      Expect.equals('stderr\r\nrredts\r\nABCDEFGHIJKLM\r\n', result.stderr);
+    } else {
+      Expect.equals('stdout\ntuodts\nABCDEFGHIJKLM\n', result.stdout);
+      Expect.equals('stderr\nrredts\nABCDEFGHIJKLM\n', result.stderr);
+    }
   });
 }
