@@ -11,6 +11,7 @@ import 'ast_test.dart' as ast_test;
 import 'compile_time_error_code_test.dart' as compile_time_error_code_test;
 import 'element_test.dart' as element_test;
 import 'engine_test.dart' as engine_test;
+import 'incremental_resolver_test.dart' as incremental_resolver_test;
 import 'java_core_test.dart' as java_core_test;
 import 'java_io_test.dart' as java_io_test;
 import 'non_error_resolver_test.dart' as non_error_resolver_test;
@@ -30,6 +31,7 @@ main() {
     compile_time_error_code_test.main();
     element_test.main();
     engine_test.main();
+    incremental_resolver_test.main();
     java_core_test.main();
     java_io_test.main();
     non_error_resolver_test.main();
