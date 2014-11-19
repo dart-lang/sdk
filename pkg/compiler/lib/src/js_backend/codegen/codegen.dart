@@ -200,8 +200,8 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   js.Expression visitThis(tree_ir.This node) {
-    return giveup(node);
-    // TODO: implement visitThis
+    // TODO(sigurdm): Inside a js closure this will not work.
+    return new js.This();
   }
 
   @override
