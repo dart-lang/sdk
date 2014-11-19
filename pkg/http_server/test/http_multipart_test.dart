@@ -9,10 +9,16 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
 
+// Representation of a form field from a multipart/form-data form POST body.
 class FormField {
+  // Name of the form field specified in Content-Disposition.
   final String name;
+  // Value of the form field. This is either a String or a List<int> depending
+  // on the Content-Type.
   final value;
+  // Content-Type of the form field.
   final String contentType;
+  // Filename if specified in Content-Disposition.
   final String filename;
 
   FormField(String this.name,
@@ -32,6 +38,8 @@ class FormField {
            filename == other.filename;
   }
 
+  int get hashCode => name.hashCode;
+
   String toString() {
     return "FormField('$name', '$value', '$contentType', '$filename')";
   }
@@ -40,23 +48,21 @@ class FormField {
 void postDataTest(List<int> message,
                   String contentType,
                   String boundary,
-                  List<FormField> expectedFields) {
+                  List<FormField> expectedFields,
+                  {defaultEncoding: LATIN1}) {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       String boundary = request.headers.contentType.parameters['boundary'];
       request
           .transform(new MimeMultipartTransformer(boundary))
           .map((part) => HttpMultipartFormData.parse(
-              part, defaultEncoding: LATIN1))
+              part, defaultEncoding: defaultEncoding))
           .map((multipart) {
             var future;
             if (multipart.isText) {
-              future = multipart
-                  .fold(new StringBuffer(), (b, s) => b..write(s))
-                  .then((b) => b.toString());
+              future = multipart.join();
             } else {
-              future = multipart
-                  .fold([], (b, s) => b..addAll(s));
+              future = multipart.fold([], (b, s) => b..addAll(s));
             }
             return future
                 .then((data) {
@@ -72,7 +78,7 @@ void postDataTest(List<int> message,
                           multipart.contentDisposition.parameters['filename']);
                 });
           })
-          .fold([], (l, f) => l..add(f))
+          .toList()
           .then(Future.wait)
           .then((fields) {
             expect(fields, equals(expectedFields));
@@ -186,6 +192,9 @@ Content of file\r
                               contentType: 'application/octet-stream',
                               filename: 'VERSION')]);
 
+  // In Chrome, Safari and Firefox HTML entity encoding might be used for
+  // values in form fields. The HTML entity encoding for ひらがな is
+  // &#12402;&#12425;&#12364;&#12394;
   message = [
       45, 45, 45, 45, 45, 45, 87, 101, 98, 75, 105, 116, 70, 111, 114, 109, 66,
       111, 117, 110, 100, 97, 114, 121, 118, 65, 86, 122, 117, 103, 75, 77, 116,
@@ -201,7 +210,28 @@ Content of file\r
   postDataTest(message,
                'multipart/form-data',
                '----WebKitFormBoundaryvAVzugKMtZbyWoBG',
-               [new FormField('name', 'ひらがな')]);
+               [new FormField('name', '&#12402;&#12425;&#12364;&#12394;')],
+               defaultEncoding: UTF8);
+
+  // The UTF-8 encoding of ひらがな is
+  // [227, 129, 178, 227, 130, 137, 227, 129, 140, 227, 129, 170].
+  message = [
+      45, 45, 45, 45, 45, 45, 87, 101, 98, 75, 105, 116, 70, 111, 114, 109, 66,
+      111, 117, 110, 100, 97, 114, 121, 71, 88, 116, 66, 114, 99, 106, 120, 104,
+      101, 75, 101, 78, 54, 105, 48, 13, 10, 67, 111, 110, 116, 101, 110, 116,
+      45, 68, 105, 115, 112, 111, 115, 105, 116, 105, 111, 110, 58, 32, 102,
+      111, 114, 109, 45, 100, 97, 116, 97, 59, 32, 110, 97, 109, 101, 61, 34,
+      116, 101, 115, 116, 34, 13, 10, 13, 10, 227, 129, 178, 227, 130, 137, 227,
+      129, 140, 227, 129, 170, 13, 10, 45, 45, 45, 45, 45, 45, 87, 101, 98, 75,
+      105, 116, 70, 111, 114, 109, 66, 111, 117, 110, 100, 97, 114, 121, 71, 88,
+      116, 66, 114, 99, 106, 120, 104, 101, 75, 101, 78, 54, 105, 48, 45, 45,
+      13, 10];
+
+  postDataTest(message,
+               'multipart/form-data',
+               '----WebKitFormBoundaryGXtBrcjxheKeN6i0',
+               [new FormField('test', 'ひらがな')],
+               defaultEncoding: UTF8);
 
   message = [
       45, 45, 45, 45, 45, 45, 87, 101, 98, 75, 105, 116, 70, 111, 114, 109, 66,
