@@ -359,6 +359,7 @@ class OldEmitter implements Emitter {
   }
 
   List buildSplitOffAliases() {
+    if (backend.aliasedSuperMembers.isEmpty) return [];
     return [js(r'''
         var splitOffAliases = function(constructor) {
           var hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -536,7 +537,7 @@ class OldEmitter implements Emitter {
 
         // Process aliased members due to super calls. We have to do this early
         // to ensure that we also hit the object class.
-        splitOffAliases(constructor);
+        if (#) splitOffAliases(constructor);
 
         // The superclass is only false (empty string) for the Dart Object
         // class.  The minifier together with noSuchMethod can put methods on
@@ -602,6 +603,7 @@ class OldEmitter implements Emitter {
         }
       }
     }''', [finishedClassesAccess,
+           backend.aliasedSuperMembers.isNotEmpty,
            !nativeClasses.isEmpty,
            interceptorsByTagAccess,
            leafTagsAccess,
