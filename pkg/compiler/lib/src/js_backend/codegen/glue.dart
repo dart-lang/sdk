@@ -32,4 +32,8 @@ class Glue {
     return _namer.elementAccess(element);
   }
 
+  String safeVariableName(String name) {
+    return _namer.safeVariableName(name);
+  }
+
 }

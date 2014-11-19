@@ -27,8 +27,7 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   final Glue glue;
 
-  /// Variables to be hoisted at the top of the current function.
-  List<js.VariableDeclaration> variables = <js.VariableDeclaration>[];
+  ExecutableElement currentFunction;
 
   /// Maps variables to their name.
   Map<tree_ir.Variable, String> variableNames = <tree_ir.Variable, String>{};
@@ -37,11 +36,8 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   Maplet<VariableElement, String> constantNames =
       new Maplet<VariableElement, String>();
 
-  /// Variables that have had their declaration created.
-  Set<tree_ir.Variable> declaredVariables = new Set<tree_ir.Variable>();
-
   /// Variable names that have already been used. Used to avoid name clashes.
-  Set<String> usedVariableNames;
+  Set<String> usedVariableNames = new Set<String>();
 
   List<js.Parameter> parameters = new List<js.Parameter>();
   List<js.Statement> accumulator = new List<js.Statement>();
@@ -53,11 +49,61 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   CodeGenerator(this.glue, this.registry);
 
   void buildFunction(tree_ir.FunctionDefinition function) {
+    currentFunction = function.element;
     visitStatement(function.body);
     for (tree_ir.Variable parameter in function.parameters) {
-      parameters.add(new js.Parameter(variableNames[parameter]));
+      String name = getVariableName(parameter);
+      parameters.add(new js.Parameter(name));
+    }
+
+    List<js.VariableInitialization> jsVariables = <js.VariableInitialization>[];
+
+    for (tree_ir.Variable variable in variableNames.keys) {
+      String name = getVariableName(variable);
+      js.VariableInitialization jsVariable = new js.VariableInitialization(
+        new js.VariableDeclaration(name),
+        null);
+      jsVariables.add(jsVariable);
+    }
+
+    if (jsVariables.length > 0) {
+      // Would be nice to avoid inserting at the beginning of list.
+      accumulator.insert(0, new js.ExpressionStatement(
+          new js.VariableDeclarationList(jsVariables)));
     }
     body = new js.Block(accumulator);
+  }
+
+  /// Generates a name for the given variable. First trying with the name of
+  /// the [Variable.element] if it is non-null.
+  String getVariableName(tree_ir.Variable variable) {
+    // TODO(sigurdm): Handle case where the variable belongs to an enclosing
+    // function.
+    if (variable.host.element != currentFunction) giveup(variable);
+
+    // Get the name if we already have one.
+    String name = variableNames[variable];
+    if (name != null) {
+      return name;
+    }
+
+    // Synthesize a variable name that isn't used elsewhere.
+    // The [usedVariableNames] set is shared between nested emitters,
+    // so this also prevents clash with variables in an enclosing/inner scope.
+    // The renaming phase after codegen will further prefix local variables
+    // so they cannot clash with top-level variables or fields.
+    String prefix = variable.element == null ? 'v' : variable.element.name;
+    int counter = 0;
+    name = glue.safeVariableName(variable.element == null
+        ? '$prefix$counter'
+        : variable.element.name);
+    while (!usedVariableNames.add(name)) {
+      ++counter;
+      name = '$prefix$counter';
+    }
+    variableNames[variable] = name;
+
+    return name;
   }
 
   List<js.Expression> visitArguments(List<tree_ir.Expression> arguments) {
@@ -166,7 +212,7 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   js.Expression visitVariable(tree_ir.Variable node) {
-    return giveup(node);
+    return new js.VariableUse(getVariableName(node));
     // TODO: implement visitVariable
   }
 
@@ -203,8 +249,17 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   void visitAssign(tree_ir.Assign node) {
-    giveup(node);
-    // TODO: implement visitAssign
+
+    bool isFirstOccurrence = (variableNames[node.variable] == null);
+    bool isDeclaredHere = node.variable.host.element == currentFunction;
+    String name = getVariableName(node.variable);
+    tree_ir.Expression value = node.definition;
+    js.Expression definition = visitExpression(value);
+
+    accumulator.add(new js.ExpressionStatement(new js.Assignment(
+        visitVariable(node.variable),
+        definition)));
+    visitStatement(node.next);
   }
 
   @override
@@ -231,4 +286,7 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
       accumulator.add(new js.Return(visitExpression(node.value)));
     }
   }
+
+  bool isNullLiteral(js.Expression exp) => exp is js.LiteralNull;
+
 }
