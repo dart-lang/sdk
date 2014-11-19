@@ -287,9 +287,7 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   void visitReturn(tree_ir.Return node) {
-    if (node.value != null) {
-      accumulator.add(new js.Return(visitExpression(node.value)));
-    }
+    accumulator.add(new js.Return(visitExpression(node.value)));
   }
 
   bool isNullLiteral(js.Expression exp) => exp is js.LiteralNull;

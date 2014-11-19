@@ -64,6 +64,10 @@ main() { return foo(); }
 }"""),
   const TestEntry("main() {}"),
   const TestEntry("main() { return 42; }"),
+  const TestEntry("main() { return; }", """
+function() {
+  return null;
+}"""),
 ];
 
 String formatTest(Map test) {
