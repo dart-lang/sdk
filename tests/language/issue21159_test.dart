@@ -10,7 +10,8 @@ class C {
 
 // Recurs outside the try-block to avoid disabling inlining.
 foo() {
- new C()();
+ var c = new C();
+ c();
 }
 
 main() {
