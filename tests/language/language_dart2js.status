@@ -232,8 +232,6 @@ constructor5_test: Fail
 constructor6_test: Fail
 closure_in_initializer_test: Fail
 
-# Minified mode failures.
-
 new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
 new_expression_type_args_test/01: Fail # Wrongly reports compile-time error.
 
@@ -241,6 +239,7 @@ deferred*: skip # Issue 17523
 cha_deopt1_test: skip # Issue 17523
 cha_deopt2_test: skip # Issue 17523
 cha_deopt3_test: skip # Issue 17523
+issue_1751477_test: skip # Issue 17523
 
 [ $compiler == dart2dart && $minified ]
 cyclic_type_test/0*: Fail # Issue 12605.
