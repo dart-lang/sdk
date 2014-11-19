@@ -306,11 +306,9 @@ class OldEmitter implements Emitter {
   jsAst.Expression buildInheritFrom() {
     jsAst.Expression result = js(r'''
         function() {
-          function tmp() {}
           var hasOwnProperty = Object.prototype.hasOwnProperty;
           return function (constructor, superConstructor) {
-            tmp.prototype = superConstructor.prototype;
-            var object = new tmp();
+            var object = Object.create(superConstructor.prototype);
             var properties = constructor.prototype;
             for (var member in properties) {
               if (hasOwnProperty.call(properties, member)) {

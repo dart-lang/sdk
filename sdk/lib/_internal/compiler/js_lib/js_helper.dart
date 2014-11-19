@@ -1970,7 +1970,6 @@ abstract class Closure implements Function {
     // So we only use the new instance to access the constructor property and
     // use Object.create to create the desired prototype.
     var prototype = isStatic
-        // TODO(ahe): Safe to use Object.create?
         ? JS('TearOffClosure', 'Object.create(#.constructor.prototype)',
              new TearOffClosure())
         : JS('BoundClosure', 'Object.create(#.constructor.prototype)',
@@ -1986,7 +1985,8 @@ abstract class Closure implements Function {
                      '"this.\$initialize(a,b,c,d);"+#)',
                  functionCounter++);
 
-    // TODO(ahe): Is it necessary to set the constructor property?
+    // It is necessary to set the constructor property, otherwise it will be
+    // "Object".
     JS('', '#.constructor = #', prototype, constructor);
 
     JS('', '#.prototype = #', constructor, prototype);
