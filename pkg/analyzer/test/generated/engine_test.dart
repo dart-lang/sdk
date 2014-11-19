@@ -7,6 +7,7 @@
 
 library engine.engine_test;
 
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/src/generated/ast.dart';
@@ -27,9 +28,11 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/task/task_dart.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
+import 'package:watcher/src/utils.dart';
 
 import '../reflective_tests.dart';
 import 'all_the_rest.dart';
@@ -59,6 +62,7 @@ main() {
   runReflectiveTests(ResolveHtmlTaskTest);
   runReflectiveTests(ScanDartTaskTest);
   runReflectiveTests(SdkCachePartitionTest);
+  runReflectiveTests(SourcesChangedEventTest);
   runReflectiveTests(UniversalCachePartitionTest);
   runReflectiveTests(WorkManagerTest);
 }
@@ -224,10 +228,66 @@ class AnalysisContextImplTest extends EngineTestCase {
     super.tearDown();
   }
 
-  void test_applyChanges_add() {
+  Future test_applyChanges_add() {
+    SourcesChangedListener listener = new SourcesChangedListener();
+    _context.onSourcesChanged.listen(listener.onData);
     expect(_context.sourcesNeedingProcessing.isEmpty, isTrue);
-    Source source = _addSource("/test.dart", "main() {}");
+    Source source =
+        new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.addedSource(source);
+    _context.applyChanges(changeSet);
     expect(_context.sourcesNeedingProcessing.contains(source), isTrue);
+    return pumpEventQueue().then((_) {
+      listener.assertEvent(wereSourcesAdded: true);
+      listener.assertNoMoreEvents();
+    });
+  }
+
+  Future test_applyChanges_change() {
+    SourcesChangedListener listener = new SourcesChangedListener();
+    _context.onSourcesChanged.listen(listener.onData);
+    expect(_context.sourcesNeedingProcessing.isEmpty, isTrue);
+    Source source =
+        new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
+    ChangeSet changeSet1 = new ChangeSet();
+    changeSet1.addedSource(source);
+    _context.applyChanges(changeSet1);
+    expect(_context.sourcesNeedingProcessing.contains(source), isTrue);
+    Source source2 =
+        new FileBasedSource.con1(FileUtilities2.createFile("/test2.dart"));
+    ChangeSet changeSet2 = new ChangeSet();
+    changeSet2.addedSource(source2);
+    changeSet2.changedSource(source);
+    _context.applyChanges(changeSet2);
+    return pumpEventQueue().then((_) {
+      listener.assertEvent(wereSourcesAdded: true);
+      listener.assertEvent(wereSourcesAdded: true, changedSources: [source]);
+      listener.assertNoMoreEvents();
+    });
+  }
+
+  Future test_applyChanges_change_content() {
+    SourcesChangedListener listener = new SourcesChangedListener();
+    _context.onSourcesChanged.listen(listener.onData);
+    expect(_context.sourcesNeedingProcessing.isEmpty, isTrue);
+    Source source =
+        new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
+    ChangeSet changeSet1 = new ChangeSet();
+    changeSet1.addedSource(source);
+    _context.applyChanges(changeSet1);
+    expect(_context.sourcesNeedingProcessing.contains(source), isTrue);
+    Source source2 =
+        new FileBasedSource.con1(FileUtilities2.createFile("/test2.dart"));
+    ChangeSet changeSet2 = new ChangeSet();
+    changeSet2.addedSource(source2);
+    changeSet2.changedContent(source, 'library test;');
+    _context.applyChanges(changeSet2);
+    return pumpEventQueue().then((_) {
+      listener.assertEvent(wereSourcesAdded: true);
+      listener.assertEvent(wereSourcesAdded: true, changedSources: [source]);
+      listener.assertNoMoreEvents();
+    });
   }
 
   void test_applyChanges_change_flush_element() {
@@ -243,24 +303,30 @@ int aa = 0;''');
     expect(_context.getLibraryElement(librarySource), isNull);
   }
 
-  void test_applyChanges_change_multiple() {
+  Future test_applyChanges_change_multiple() {
     _context = AnalysisContextFactory.contextWithCore();
+    SourcesChangedListener listener = new SourcesChangedListener();
+    _context.onSourcesChanged.listen(listener.onData);
     _sourceFactory = _context.sourceFactory;
-    Source librarySource = _addSource("/lib.dart", r'''
+    String libraryContents1 = r'''
 library lib;
 part 'part.dart';
-int a = 0;''');
-    Source partSource = _addSource("/part.dart", r'''
+int a = 0;''';
+    Source librarySource = _addSource("/lib.dart", libraryContents1);
+    String partContents1 = r'''
 part of lib;
-int b = a;''');
+int b = a;''';
+    Source partSource = _addSource("/part.dart", partContents1);
     _context.computeLibraryElement(librarySource);
-    _context.setContents(librarySource, r'''
+    String libraryContents2 = r'''
 library lib;
 part 'part.dart';
-int aa = 0;''');
-    _context.setContents(partSource, r'''
+int aa = 0;''';
+    _context.setContents(librarySource, libraryContents2);
+    String partContents2 = r'''
 part of lib;
-int b = aa;''');
+int b = aa;''';
+    _context.setContents(partSource, partContents2);
     _context.computeLibraryElement(librarySource);
     CompilationUnit libraryUnit =
         _context.resolveCompilationUnit2(librarySource, librarySource);
@@ -276,6 +342,38 @@ int b = aa;''');
     expect(
         (useElement as PropertyAccessorElement).variable,
         same(declarationElement));
+    return pumpEventQueue().then((_) {
+      listener.assertEvent(wereSourcesAdded: true);
+      listener.assertEvent(changedSources: [librarySource]);
+      listener.assertEvent(wereSourcesAdded: true);
+      listener.assertEvent(changedSources: [partSource]);
+      listener.assertEvent(changedSources: [librarySource]);
+      listener.assertEvent(changedSources: [partSource]);
+      listener.assertNoMoreEvents();
+    });
+  }
+
+  Future test_applyChanges_change_range() {
+    SourcesChangedListener listener = new SourcesChangedListener();
+    _context.onSourcesChanged.listen(listener.onData);
+    expect(_context.sourcesNeedingProcessing.isEmpty, isTrue);
+    Source source =
+        new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
+    ChangeSet changeSet1 = new ChangeSet();
+    changeSet1.addedSource(source);
+    _context.applyChanges(changeSet1);
+    expect(_context.sourcesNeedingProcessing.contains(source), isTrue);
+    Source source2 =
+        new FileBasedSource.con1(FileUtilities2.createFile("/test2.dart"));
+    ChangeSet changeSet2 = new ChangeSet();
+    changeSet2.addedSource(source2);
+    changeSet2.changedRange(source, 'library test;', 0, 0, 13);
+    _context.applyChanges(changeSet2);
+    return pumpEventQueue().then((_) {
+      listener.assertEvent(wereSourcesAdded: true);
+      listener.assertEvent(wereSourcesAdded: true, changedSources: [source]);
+      listener.assertNoMoreEvents();
+    });
   }
 
   void test_applyChanges_empty() {
@@ -298,13 +396,17 @@ int b = aa;''');
     expect(_context.sourcesNeedingProcessing, hasLength(0));
   }
 
-  void test_applyChanges_remove() {
+  Future test_applyChanges_remove() {
     _context = AnalysisContextFactory.contextWithCore();
+    SourcesChangedListener listener = new SourcesChangedListener();
+    _context.onSourcesChanged.listen(listener.onData);
     _sourceFactory = _context.sourceFactory;
-    Source libA = _addSource("/libA.dart", r'''
+    String libAContents = r'''
 library libA;
-import 'libB.dart';''');
-    Source libB = _addSource("/libB.dart", "library libB;");
+import 'libB.dart';''';
+    Source libA = _addSource("/libA.dart", libAContents);
+    String libBContents = "library libB;";
+    Source libB = _addSource("/libB.dart", libBContents);
     LibraryElement libAElement = _context.computeLibraryElement(libA);
     List<LibraryElement> importedLibraries = libAElement.importedLibraries;
     expect(importedLibraries, hasLength(2));
@@ -319,26 +421,48 @@ import 'libB.dart';''');
     libAElement = _context.computeLibraryElement(libA);
     importedLibraries = libAElement.importedLibraries;
     expect(importedLibraries, hasLength(1));
+    return pumpEventQueue().then((_) {
+      listener.assertEvent(wereSourcesAdded: true);
+      listener.assertEvent(changedSources: [libA]);
+      listener.assertEvent(wereSourcesAdded: true);
+      listener.assertEvent(changedSources: [libB]);
+      listener.assertEvent(changedSources: [libB]);
+      listener.assertEvent(wereSourcesRemovedOrDeleted: true);
+      listener.assertNoMoreEvents();
+    });
   }
 
-  void test_applyChanges_removeContainer() {
+  Future test_applyChanges_removeContainer() {
     _context = AnalysisContextFactory.contextWithCore();
+    SourcesChangedListener listener = new SourcesChangedListener();
+    _context.onSourcesChanged.listen(listener.onData);
     _sourceFactory = _context.sourceFactory;
-    Source libA = _addSource("/libA.dart", r'''
+    String libAContents = r'''
 library libA;
-import 'libB.dart';''');
-    Source libB = _addSource("/libB.dart", "library libB;");
+import 'libB.dart';''';
+    Source libA = _addSource("/libA.dart", libAContents);
+    String libBContents = "library libB;";
+    Source libB = _addSource("/libB.dart", libBContents);
     _context.computeLibraryElement(libA);
     _context.computeErrors(libA);
     _context.computeErrors(libB);
     expect(_context.sourcesNeedingProcessing, hasLength(0));
     ChangeSet changeSet = new ChangeSet();
-    changeSet.removedContainer(
-        new _AnalysisContextImplTest_test_applyChanges_removeContainer(libB));
+    SourceContainer removedContainer =
+        new _AnalysisContextImplTest_test_applyChanges_removeContainer(libB);
+    changeSet.removedContainer(removedContainer);
     _context.applyChanges(changeSet);
     List<Source> sources = _context.sourcesNeedingProcessing;
     expect(sources, hasLength(1));
     expect(sources[0], same(libA));
+    return pumpEventQueue().then((_) {
+      listener.assertEvent(wereSourcesAdded: true);
+      listener.assertEvent(changedSources: [libA]);
+      listener.assertEvent(wereSourcesAdded: true);
+      listener.assertEvent(changedSources: [libB]);
+      listener.assertEvent(wereSourcesRemovedOrDeleted: true);
+      listener.assertNoMoreEvents();
+    });
   }
 
   void test_computeDocumentationComment_block() {
@@ -1625,19 +1749,22 @@ void g() { f(null); }''');
     _context.analysisPriorityOrder = sources;
   }
 
-  void test_setChangedContents_libraryWithPart() {
+  Future test_setChangedContents_libraryWithPart() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.incremental = true;
     _context = AnalysisContextFactory.contextWithCoreAndOptions(options);
+    SourcesChangedListener listener = new SourcesChangedListener();
+    _context.onSourcesChanged.listen(listener.onData);
     _sourceFactory = _context.sourceFactory;
     String oldCode = r'''
 library lib;
 part 'part.dart';
 int a = 0;''';
     Source librarySource = _addSource("/lib.dart", oldCode);
-    Source partSource = _addSource("/part.dart", r'''
+    String partContents = r'''
 part of lib;
-int b = a;''');
+int b = a;''';
+    Source partSource = _addSource("/part.dart", partContents);
     LibraryElement element = _context.computeLibraryElement(librarySource);
     CompilationUnit unit =
         _context.getResolvedCompilationUnit(librarySource, element);
@@ -1658,6 +1785,14 @@ int ya = 0;''';
         _context.getResolvedCompilationUnit2(partSource, librarySource),
         isNull);
     expect(incrementalCache.newContents, newCode);
+    return pumpEventQueue().then((_) {
+      listener.assertEvent(wereSourcesAdded: true);
+      listener.assertEvent(changedSources: [librarySource]);
+      listener.assertEvent(wereSourcesAdded: true);
+      listener.assertEvent(changedSources: [partSource]);
+      listener.assertEvent(changedSources: [librarySource]);
+      listener.assertNoMoreEvents();
+    });
   }
 
   void test_setChangedContents_notResolved() {
@@ -1680,16 +1815,20 @@ int ya = 0;''';
     expect(_getIncrementalAnalysisCache(_context), isNull);
   }
 
-  void test_setContents_libraryWithPart() {
+  Future test_setContents_libraryWithPart() {
     _context = AnalysisContextFactory.contextWithCore();
+    SourcesChangedListener listener = new SourcesChangedListener();
+    _context.onSourcesChanged.listen(listener.onData);
     _sourceFactory = _context.sourceFactory;
-    Source librarySource = _addSource("/lib.dart", r'''
+    String libraryContents1 = r'''
 library lib;
 part 'part.dart';
-int a = 0;''');
-    Source partSource = _addSource("/part.dart", r'''
+int a = 0;''';
+    Source librarySource = _addSource("/lib.dart", libraryContents1);
+    String partContents1 = r'''
 part of lib;
-int b = a;''');
+int b = a;''';
+    Source partSource = _addSource("/part.dart", partContents1);
     _context.computeLibraryElement(librarySource);
     IncrementalAnalysisCache incrementalCache = new IncrementalAnalysisCache(
         librarySource,
@@ -1702,14 +1841,23 @@ int b = a;''');
         0);
     _setIncrementalAnalysisCache(_context, incrementalCache);
     expect(_getIncrementalAnalysisCache(_context), same(incrementalCache));
-    _context.setContents(librarySource, r'''
+    String libraryContents2 = r'''
 library lib;
 part 'part.dart';
-int aa = 0;''');
+int aa = 0;''';
+    _context.setContents(librarySource, libraryContents2);
     expect(
         _context.getResolvedCompilationUnit2(partSource, librarySource),
         isNull);
     expect(_getIncrementalAnalysisCache(_context), isNull);
+    return pumpEventQueue().then((_) {
+      listener.assertEvent(wereSourcesAdded: true);
+      listener.assertEvent(changedSources: [librarySource]);
+      listener.assertEvent(wereSourcesAdded: true);
+      listener.assertEvent(changedSources: [partSource]);
+      listener.assertEvent(changedSources: [librarySource]);
+      listener.assertNoMoreEvents();
+    });
   }
 
   void test_setContents_null() {
@@ -6010,6 +6158,112 @@ class SdkCachePartitionTest extends EngineTestCase {
 }
 
 
+class SourcesChangedEventTest {
+
+  void test_added() {
+    var source = new StringSource('', '/test.dart');
+    var changeSet = new ChangeSet();
+    changeSet.addedSource(source);
+    var event = new SourcesChangedEvent(changeSet);
+    assertEvent(event, wereSourcesAdded: true);
+  }
+
+  void test_changedContent() {
+    var source = new StringSource('', '/test.dart');
+    var changeSet = new ChangeSet();
+    changeSet.changedContent(source, 'library A;');
+    var event = new SourcesChangedEvent(changeSet);
+    assertEvent(event, changedSources: [source]);
+  }
+
+  void test_changedContent2() {
+    var source = new StringSource('', '/test.dart');
+    var event = new SourcesChangedEvent.changedContent(source, 'library A;');
+    assertEvent(event, changedSources: [source]);
+  }
+
+  void test_changedRange() {
+    var source = new StringSource('', '/test.dart');
+    var changeSet = new ChangeSet();
+    changeSet.changedRange(source, 'library A;', 0, 0, 13);
+    var event = new SourcesChangedEvent(changeSet);
+    assertEvent(event, changedSources: [source]);
+  }
+
+  void test_changedRange2() {
+    var source = new StringSource('', '/test.dart');
+    var event = new SourcesChangedEvent.changedRange(
+        source, 'library A;', 0, 0, 13);
+    assertEvent(event, changedSources: [source]);
+  }
+
+  void test_changedSources() {
+    var source = new StringSource('', '/test.dart');
+    var changeSet = new ChangeSet();
+    changeSet.changedSource(source);
+    var event = new SourcesChangedEvent(changeSet);
+    assertEvent(event, changedSources: [source]);
+  }
+
+  void test_deleted() {
+    var source = new StringSource('', '/test.dart');
+    var changeSet = new ChangeSet();
+    changeSet.deletedSource(source);
+    var event = new SourcesChangedEvent(changeSet);
+    assertEvent(event, wereSourcesRemovedOrDeleted: true);
+  }
+
+  void test_empty() {
+    var changeSet = new ChangeSet();
+    var event = new SourcesChangedEvent(changeSet);
+    assertEvent(event);
+  }
+
+  void test_removed() {
+    var source = new StringSource('', '/test.dart');
+    var changeSet = new ChangeSet();
+    changeSet.removedSource(source);
+    var event = new SourcesChangedEvent(changeSet);
+    assertEvent(event, wereSourcesRemovedOrDeleted: true);
+  }
+
+  static void assertEvent(SourcesChangedEvent event, {bool wereSourcesAdded: false,
+    List<Source> changedSources: Source.EMPTY_ARRAY,
+    bool wereSourcesRemovedOrDeleted: false}) {
+    expect(event.wereSourcesAdded, wereSourcesAdded);
+    expect(event.changedSources, changedSources);
+    expect(event.wereSourcesRemovedOrDeleted, wereSourcesRemovedOrDeleted);
+  }
+}
+
+
+class SourcesChangedListener {
+  List<SourcesChangedEvent> actualEvents = [];
+
+  void assertEvent({bool wereSourcesAdded: false,
+      List<Source> changedSources: Source.EMPTY_ARRAY,
+      bool wereSourcesRemovedOrDeleted: false}) {
+    if (actualEvents.isEmpty) {
+      fail('Expected event but found none');
+    }
+    SourcesChangedEvent actual = actualEvents.removeAt(0);
+    SourcesChangedEventTest.assertEvent(
+        actual,
+        wereSourcesAdded: wereSourcesAdded,
+        changedSources: changedSources,
+        wereSourcesRemovedOrDeleted: wereSourcesRemovedOrDeleted);
+  }
+
+  void assertNoMoreEvents() {
+    expect(actualEvents, []);
+  }
+
+  void onData(SourcesChangedEvent event) {
+    actualEvents.add(event);
+  }
+}
+
+
 /**
  * Instances of the class `TestAnalysisContext` implement an analysis context in which every
  * method will cause a test to fail when invoked.
@@ -6056,6 +6310,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   List<Source> get librarySources {
     fail("Unexpected invocation of getLibrarySources");
+    return null;
+  }
+  @override
+  Stream<SourcesChangedEvent> get onSourcesChanged {
+    fail("Unexpected invocation of onSourcesChanged");
     return null;
   }
   @override

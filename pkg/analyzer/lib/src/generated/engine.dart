@@ -8,6 +8,7 @@
 library engine;
 
 import "dart:math" as math;
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/src/task/task_dart.dart';
@@ -378,6 +379,12 @@ abstract class AnalysisContext {
    *         library
    */
   List<Source> get librarySources;
+
+  /**
+   * The stream that is notified when sources have been added or removed,
+   * or the source's content has changed.
+   */
+  Stream<SourcesChangedEvent> get onSourcesChanged;
 
   /**
    * Return an array containing all of the sources known to this context and their resolution state
@@ -975,6 +982,17 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   Set<AngularApplication> _angularApplications = new Set();
 
   /**
+   * The controller for sending [SourcesChangedEvent]s.
+   */
+  StreamController<SourcesChangedEvent> _onSourcesChangedController;
+
+  /**
+   * The stream that is notified when sources have been added or removed,
+   * or the source's content has changed.
+   */
+  Stream<SourcesChangedEvent> _onSourcesChanged;
+
+  /**
    * The listeners that are to be notified when various analysis results are produced in this
    * context.
    */
@@ -990,6 +1008,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         AnalysisOptionsImpl.DEFAULT_CACHE_SIZE,
         new AnalysisContextImpl_ContextRetentionPolicy(this));
     _cache = createCacheFromSourceFactory(null);
+    _onSourcesChangedController = new StreamController<SourcesChangedEvent>();
+    _onSourcesChanged = _onSourcesChangedController.stream.asBroadcastStream();
   }
 
   @override
@@ -1217,6 +1237,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  Stream<SourcesChangedEvent> get onSourcesChanged => _onSourcesChanged;
+
+  @override
   List<Source> get prioritySources => _priorityOrder;
 
   @override
@@ -1385,11 +1408,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _sourceChanged(source);
     }
     changeSet.changedContents.forEach((Source key, String value) {
-      setContents(key, value);
+      _contentsChanged(key, value);
     });
     changeSet.changedRanges.forEach(
         (Source source, ChangeSet_ContentChange change) {
-      setChangedContents(
+      _contentRangeChanged(
           source,
           change.contents,
           change.offset,
@@ -1432,6 +1455,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         }
       }
     }
+    _onSourcesChangedController.add(new SourcesChangedEvent(changeSet));
   }
 
   @override
@@ -2279,54 +2303,18 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void setChangedContents(Source source, String contents, int offset,
       int oldLength, int newLength) {
-    String originalContents = _contentCache.setContents(source, contents);
-    if (contents != null) {
-      if (contents != originalContents) {
-        if (_options.incremental) {
-          _incrementalAnalysisCache = IncrementalAnalysisCache.update(
-              _incrementalAnalysisCache,
-              source,
-              originalContents,
-              contents,
-              offset,
-              oldLength,
-              newLength,
-              _getReadableSourceEntry(source));
-        }
-        _sourceChanged(source);
-        SourceEntry sourceEntry = _cache.get(source);
-        if (sourceEntry != null) {
-          sourceEntry.modificationTime =
-              _contentCache.getModificationStamp(source);
-          sourceEntry.setValue(SourceEntry.CONTENT, contents);
-        }
-      }
-    } else if (originalContents != null) {
-      _incrementalAnalysisCache =
-          IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
-      _sourceChanged(source);
+    if (_contentRangeChanged(source, contents, offset, oldLength, newLength)) {
+      _onSourcesChangedController.add(
+          new SourcesChangedEvent.changedRange(
+              source, contents, offset, oldLength, newLength));
     }
   }
 
   @override
   void setContents(Source source, String contents) {
-    String originalContents = _contentCache.setContents(source, contents);
-    if (contents != null) {
-      if (contents != originalContents) {
-        _incrementalAnalysisCache =
-            IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
-        _sourceChanged(source);
-        SourceEntry sourceEntry = _cache.get(source);
-        if (sourceEntry != null) {
-          sourceEntry.modificationTime =
-              _contentCache.getModificationStamp(source);
-          sourceEntry.setValue(SourceEntry.CONTENT, contents);
-        }
-      }
-    } else if (originalContents != null) {
-      _incrementalAnalysisCache =
-          IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
-      _sourceChanged(source);
+    if (_contentsChanged(source, contents)) {
+      _onSourcesChangedController.add(
+          new SourcesChangedEvent.changedContent(source, contents));
     }
   }
 
@@ -2859,6 +2847,73 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     return false;
+  }
+
+  /**
+   * Set the contents of the given source to the given contents and mark the source as having
+   * changed. The additional offset and length information is used by the context to determine what
+   * reanalysis is necessary. [setChangedContents] triggers a source changed event
+   * where as this method does not.
+   *
+   * @param source the source whose contents are being overridden
+   * @param contents the text to replace the range in the current contents
+   * @param offset the offset into the current contents
+   * @param oldLength the number of characters in the original contents that were replaced
+   * @param newLength the number of characters in the replacement text
+   */
+  bool _contentRangeChanged(Source source, String contents, int offset, int oldLength, int newLength) {
+    bool changed = false;
+    String originalContents = _contentCache.setContents(source, contents);
+    if (contents != null) {
+      if (contents != originalContents) {
+        if (_options.incremental) {
+          _incrementalAnalysisCache = IncrementalAnalysisCache.update(_incrementalAnalysisCache, source, originalContents, contents, offset, oldLength, newLength, _getReadableSourceEntry(source));
+        }
+        _sourceChanged(source);
+        changed = true;
+        SourceEntry sourceEntry = _cache.get(source);
+        if (sourceEntry != null) {
+          sourceEntry.modificationTime = _contentCache.getModificationStamp(source);
+          sourceEntry.setValue(SourceEntry.CONTENT, contents);
+        }
+      }
+    } else if (originalContents != null) {
+      _incrementalAnalysisCache = IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
+      _sourceChanged(source);
+      changed = true;
+    }
+    return changed;
+  }
+
+  /**
+   * Set the contents of the given source to the given contents and mark the source as having
+   * changed. This has the effect of overriding the default contents of the source. If the contents
+   * are `null` the override is removed so that the default contents will be returned.
+   * [setContents] triggers a source changed event where as this method does not.
+   *
+   * @param source the source whose contents are being overridden
+   * @param contents the new contents of the source
+   */
+  bool _contentsChanged(Source source, String contents) {
+    bool changed = false;
+    String originalContents = _contentCache.setContents(source, contents);
+    if (contents != null) {
+      if (contents != originalContents) {
+        _incrementalAnalysisCache = IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
+        _sourceChanged(source);
+        changed = true;
+        SourceEntry sourceEntry = _cache.get(source);
+        if (sourceEntry != null) {
+          sourceEntry.modificationTime = _contentCache.getModificationStamp(source);
+          sourceEntry.setValue(SourceEntry.CONTENT, contents);
+        }
+      }
+    } else if (originalContents != null) {
+      _incrementalAnalysisCache = IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
+      _sourceChanged(source);
+      changed = true;
+    }
+    return changed;
   }
 
   /**
@@ -8435,7 +8490,6 @@ class CycleBuilder_SourceEntryPair {
   }
 }
 
-
 /**
  * A `DartEntry` maintains the information cached by an analysis context about
  * an individual Dart file.
@@ -9307,6 +9361,7 @@ class DartEntry extends SourceEntry {
     _resolutionState._writeOn(buffer);
   }
 }
+
 
 /**
  * Instances of the class `DataDescriptor` are immutable constants representing data that can
@@ -10532,6 +10587,9 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
       instrumentation.log();
     }
   }
+
+  @override
+  Stream<SourcesChangedEvent> get onSourcesChanged => _basis.onSourcesChanged;
 
   @override
   List<Source> get prioritySources {
@@ -14395,6 +14453,65 @@ class SourcePriority extends Enum<SourcePriority> {
       HTML];
 
   const SourcePriority(String name, int ordinal) : super(name, ordinal);
+}
+
+/**
+ * [SourcesChangedEvent] indicates which sources have been added, removed,
+ * or whose contents have changed.
+ */
+class SourcesChangedEvent {
+
+  /**
+   * The internal representation of what has changed.
+   * Clients should not access this field directly.
+   */
+  final ChangeSet _changeSet;
+
+  /**
+   * Construct an instance representing the given changes.
+   */
+  SourcesChangedEvent(ChangeSet changeSet) : _changeSet = changeSet;
+
+  /**
+   * Construct an instance representing a source content change.
+   */
+  factory SourcesChangedEvent.changedContent(Source source, String contents) {
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.changedContent(source, contents);
+    return new SourcesChangedEvent(changeSet);
+  }
+
+  /**
+   * Construct an instance representing a source content change.
+   */
+  factory SourcesChangedEvent.changedRange(Source source, String contents,
+      int offset, int oldLength, int newLength) {
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.changedRange(source, contents, offset, oldLength, newLength);
+    return new SourcesChangedEvent(changeSet);
+  }
+
+  /**
+   * Return the collection of sources for which content has changed.
+   */
+  Iterable<Source> get changedSources {
+    List<Source> changedSources = new List.from(_changeSet.changedSources);
+    changedSources.addAll(_changeSet.changedContents.keys);
+    changedSources.addAll(_changeSet.changedRanges.keys);
+    return changedSources;
+  }
+
+  /**
+   * Return `true` if any sources were added.
+   */
+  bool get wereSourcesAdded => _changeSet.addedSources.length > 0;
+
+  /**
+   * Return `true` if any sources were removed or deleted.
+   */
+  bool get wereSourcesRemovedOrDeleted => _changeSet.removedSources.length > 0
+      || _changeSet.removedContainers.length > 0
+      || _changeSet.deletedSources.length > 0;
 }
 
 /**
