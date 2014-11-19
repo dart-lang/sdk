@@ -2598,6 +2598,10 @@ class IncrementalParserTest extends EngineTestCase {
     _assertParse("class A {}", "", " class B {}", "");
   }
 
+  void test_insert_final_before_field_declaration() {
+    _assertParse('class C { ', '', 'final ', 'int x; }');
+  }
+
   void test_insert_insideClassBody() {
     // "class C {C(); }"
     // "class C { C(); }"
@@ -2700,6 +2704,12 @@ class IncrementalParserTest extends EngineTestCase {
     // "f() => a + b;"
     // "f() => a  + b;"
     _assertParse("f() => a", "", " ", " + b;");
+  }
+
+  void test_replace_field_type_with_void() {
+    // Note: this produces an error, but we still need the parser to produce a
+    // consistent parse tree for it.
+    _assertParse('class C { ', 'int', 'void', ' x; }');
   }
 
   void test_replace_identifier_beginning() {

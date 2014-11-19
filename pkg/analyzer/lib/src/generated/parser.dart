@@ -1709,6 +1709,13 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
       throw new InsufficientContextException();
     } else if (node.metadata.contains(_oldNode)) {
       return _parser.parseAnnotation();
+    } else if (identical(_oldNode, node.type)) {
+      // There is not enough context to know whether we should reparse the type
+      // using parseReturnType() (which allows 'void') or parseTypeName()
+      // (which doesn't).  Note that even though the language disallows
+      // variables of type 'void', the parser sometimes accepts them in the
+      // course of error recovery (e.g. "class C { void v; }"
+      throw new InsufficientContextException();
     } else if (node.variables.contains(_oldNode)) {
       throw new InsufficientContextException();
     }
