@@ -23,17 +23,10 @@ String get rootDirectory {
   var scriptDir = path.absolute(path.dirname(Platform.script.toFilePath()));
   var root = scriptDir;
   var base = path.basename(root);
-  var found = false;
-  // When we find a version file or sdk we are one level below the root.
-  while (!found && base != 'sdk' && base != 'pkg') {
+  // When we find dart-sdk or sdk we are one level below the root.
+  while (base != 'dart-sdk' && base != 'sdk' && base != 'pkg') {
     root = path.dirname(root);
     base = path.basename(root);
-    // Look for something that looks like the dart-sdk directory, which we
-    // expect to be in the path above us and to have a 'version' file containing
-    // the same version as we are running.
-    if (hasMatchingVersionFile(root)) {
-      found = true;
-    }
     if (root == base) {
       // We have reached the root of the filesystem without finding anything.
       throw new FileSystemException("Cannot find SDK directory starting from ",
@@ -44,17 +37,6 @@ String get rootDirectory {
   return _rootDirectoryCache;
 }
 String _rootDirectoryCache;
-
-
-/// Does this directory contain a version file that has the same version as
-/// we do.
-bool hasMatchingVersionFile(String root) {
-  var versionFile = new File(path.join(root, 'version'));
-  if (!versionFile.existsSync()) return false;
-  var version = versionFile.readAsStringSync().trim();
-  var vmVersion = Platform.version;
-  return vmVersion.startsWith(version);
-}
 
 /// Given a LibraryMirror that is a library, return the name of the directory
 /// holding the package information for that library. If the library is not
