@@ -155,9 +155,9 @@ namespace dart {
 #define CORE_LIB_INTRINSIC_LIST(V)                                             \
   V(_Smi, ~, Smi_bitNegate, 134149043)                                         \
   V(_Smi, get:bitLength, Smi_bitLength, 869986288)                             \
-  V(_Bigint, set:_neg, Bigint_setNeg, 855560832)                               \
-  V(_Bigint, set:_used, Bigint_setUsed, 1792932615)                            \
-  V(_Bigint, _set_digits, Bigint_setDigits, 178162491)                         \
+  V(_Bigint, set:_neg, Bigint_setNeg, 1924982939)                              \
+  V(_Bigint, set:_used, Bigint_setUsed, 1574448752)                            \
+  V(_Bigint, _set_digits, Bigint_setDigits, 1865626071)                        \
   V(_Bigint, _absAdd, Bigint_absAdd, 97148049)                                 \
   V(_Bigint, _absSub, Bigint_absSub, 159012285)                                \
   V(_Bigint, _mulAdd, Bigint_mulAdd, 101252203)                                \
@@ -374,9 +374,12 @@ namespace dart {
   V(::, tan, MathTan, 982072809)                                               \
   V(Lists, copy, ListsCopy, 605584668)                                         \
   V(_Bigint, get:_neg, Bigint_getNeg, 1151543890)                              \
+  V(_Bigint, set:_neg, Bigint_setNeg, 1924982939)                              \
   V(_Bigint, get:_used, Bigint_getUsed, 1308559334)                            \
+  V(_Bigint, set:_used, Bigint_setUsed, 1574448752)                            \
   V(_Bigint, get:_digits, Bigint_getDigits, 1408092463)                        \
   V(_Bigint, set:_digits, Bigint_setDigits, 1625268649)                        \
+  V(_Bigint, _set_digits, Bigint_setDigits, 1865626071)                        \
 
 // A list of core function that should never be inlined.
 #define INLINE_BLACK_LIST(V)                                                   \

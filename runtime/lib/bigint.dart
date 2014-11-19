@@ -66,9 +66,9 @@ class _Bigint extends _IntegerImplementation implements int {
 
   // Internal data structure.
   bool get _neg native "Bigint_getNeg";
-  void set _neg(bool neg) native "Bigint_setNeg";
+  void set _neg(bool value) native "Bigint_setNeg";
   int get _used native "Bigint_getUsed";
-  void set _used(int used) native "Bigint_setUsed";
+  void set _used(int value) native "Bigint_setUsed";
   Uint32List get _digits native "Bigint_getDigits";
   void set _digits(Uint32List digits) {
     // The VM expects digits_ to be a Uint32List.
@@ -76,7 +76,7 @@ class _Bigint extends _IntegerImplementation implements int {
     _set_digits(digits);
   }
 
-  void _set_digits(Uint32List digits) native "Bigint_setDigits";
+  void _set_digits(Uint32List value) native "Bigint_setDigits";
 
   // Factory returning an instance initialized to value 0.
   factory _Bigint() native "Bigint_allocate";
