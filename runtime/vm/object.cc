@@ -16408,7 +16408,7 @@ RawBigint* Bigint::NewFromUint64(uint64_t value, Heap::Space space) {
 
 
 RawBigint* Bigint::NewFromShiftedInt64(int64_t value, intptr_t shift,
-                                         Heap::Space space) {
+                                       Heap::Space space) {
   ASSERT(kBitsPerDigit == 32);
   ASSERT(shift >= 0);
   const Bigint& result = Bigint::Handle(New(space));
@@ -16439,27 +16439,32 @@ RawBigint* Bigint::NewFromShiftedInt64(int64_t value, intptr_t shift,
 
 
 void Bigint::EnsureLength(intptr_t length, Heap::Space space) const {
-  ASSERT(length >= 0);
+  ASSERT(length > 0);
   TypedData& old_digits = TypedData::Handle(digits());
-  if ((length > 0) && (length > old_digits.Length())) {
+  if (length > old_digits.Length()) {
     TypedData& new_digits = TypedData::Handle(
         TypedData::New(kTypedDataUint32ArrayCid, length + kExtraDigits, space));
-    if (old_digits.Length() > 0) {
+    set_digits(new_digits);
+    if (Used() > 0) {
       TypedData::Copy(new_digits, TypedData::data_offset(),
                       old_digits, TypedData::data_offset(),
-                      old_digits.LengthInBytes());
+                      (Used() + 1)*kBytesPerDigit);  // Copy leading zero.
     }
-    set_digits(new_digits);
   }
 }
 
 
 void Bigint::Clamp() const {
   intptr_t used = Used();
-  while ((used > 0) && (DigitAt(used - 1) == 0)) {
-    --used;
+  if (used > 0) {
+    if (DigitAt(used - 1) == 0) {
+      do {
+        --used;
+      } while ((used > 0) && (DigitAt(used - 1) == 0));
+      SetUsed(used);
+    }
+    SetDigitAt(used, 0);  // Set leading zero for 64-bit processing.
   }
-  SetUsed(used);
 }
 
 

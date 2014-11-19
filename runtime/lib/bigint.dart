@@ -203,36 +203,52 @@ class _Bigint extends _IntegerImplementation implements int {
   _Bigint _toBigint() => this;
 
   // Make sure at least 'length' _digits are allocated.
-  // Copy existing _digits if reallocation is necessary.
-  // TODO(regis): Check that we are not preserving _digits unnecessarily.
+  // Copy existing and used _digits if reallocation is necessary.
+  // Avoid preserving _digits unnecessarily by calling this function with a
+  // meaningful _used field.
   void _ensureLength(int length) {
     var digits = _digits;
-    if (length > 0 && (length > digits.length)) {
+    if (length > digits.length) {
       var new_digits = new Uint32List(length + EXTRA_DIGITS);
-      for (var i = _used; --i >= 0; ) {
-        new_digits[i] = digits[i];
-      }
       _digits = new_digits;
+      if (_used > 0) {
+        var i = _used + 1;  // Copy leading zero for 64-bit processing.
+        while (--i >= 0) {
+          new_digits[i] = digits[i];
+        }
+      }
     }
   }
 
   // Clamp off excess high _digits.
   void _clamp() {
-    var digits = _digits;
-    while (_used > 0 && digits[_used - 1] == 0) {
-      --_used;
+    var used = _used;
+    if (used > 0) {
+      var digits = _digits;
+      if (digits[used - 1] == 0) {
+        do {
+          --used;
+        } while (used > 0 && digits[used - 1] == 0);
+        _used = used;
+      }
+      digits[used] = 0;  // Set leading zero for 64-bit processing.
     }
   }
 
   // Copy this to r.
   void _copyTo(_Bigint r) {
-    r._ensureLength(_used);
-    var digits = _digits;
-    var r_digits = r._digits;
-    for (var i = _used - 1; i >= 0; --i) {
-      r_digits[i] = digits[i];
+    var used = _used;
+    if (used > 0) {
+      r._used = 0;  // No digits to preserve.
+      r._ensureLength(used);
+      var digits = _digits;
+      var r_digits = r._digits;
+      var i = used + 1;  // Copy leading zero for 64-bit processing.
+      while (--i >= 0) {
+        r_digits[i] = digits[i];
+      }
     }
-    r._used = _used;
+    r._used = used;
     r._neg = _neg;
   }
 
@@ -249,14 +265,22 @@ class _Bigint extends _IntegerImplementation implements int {
 
   // r = this << n*DIGIT_BITS.
   void _dlShiftTo(int n, _Bigint r) {
-    var r_used = _used + n;
+    var used = _used;
+    if (used == 0) {
+      r._used = 0;
+      r._neg = false;
+      return;
+    }
+    var r_used = used + n;
     r._ensureLength(r_used);
     var digits = _digits;
     var r_digits = r._digits;
-    for (var i = _used - 1; i >= 0; --i) {
+    var i = used + 1;  // Copy leading zero for 64-bit processing.
+    while (--i >= 0) {
       r_digits[i + n] = digits[i];
     }
-    for (var i = n - 1; i >= 0; --i) {
+    i = n;
+    while (--i >= 0) {
       r_digits[i] = 0;
     }
     r._used = r_used;
@@ -265,14 +289,22 @@ class _Bigint extends _IntegerImplementation implements int {
 
   // r = this >> n*DIGIT_BITS.
   void _drShiftTo(int n, _Bigint r) {
-    var r_used = _used - n;
-    if (r_used < 0) {
+    var used = _used;
+    if (used == 0) {
+      r._used = 0;
+      r._neg = false;
+      return;
+    }
+    var r_used = used - n;
+    if (r_used <= 0) {
       if (_neg) {
         // Set r to -1.
-        r._neg = true;
+        r._used = 0;  // No digits to preserve.
         r._ensureLength(1);
+        r._neg = true;
         r._used = 1;
         r._digits[0] = 1;
+        r._digits[1] = 0;  // Set leading zero for 64-bit processing.
       } else {
         // Set r to 0.
         r._neg = false;
@@ -283,8 +315,7 @@ class _Bigint extends _IntegerImplementation implements int {
     r._ensureLength(r_used);
     var digits = _digits;
     var r_digits = r._digits;
-    var used = _used;
-    for (var i = n; i < used; ++i) {
+    for (var i = n; i < used + 1; i++) {  // Copy leading zero for 64-bit proc.
       r_digits[i - n] = digits[i];
     }
     r._used = r_used;
@@ -315,11 +346,13 @@ class _Bigint extends _IntegerImplementation implements int {
     var digits = _digits;
     var r_digits = r._digits;
     var c = 0;
-    for (var i = _used - 1; i >= 0; --i) {
+    var i = _used;
+    while (--i >= 0) {
       r_digits[i + ds + 1] = (digits[i] >> cbs) | c;
       c = (digits[i] & bm) << bs;
     }
-    for (var i = ds - 1; i >= 0; --i) {
+    i = ds;
+    while (--i >= 0) {
       r_digits[i] = 0;
     }
     r_digits[ds] = c;
@@ -341,9 +374,11 @@ class _Bigint extends _IntegerImplementation implements int {
       if (_neg) {
         // Set r to -1.
         r._neg = true;
+        r._used = 0;  // No digits to preserve.
         r._ensureLength(1);
         r._used = 1;
         r._digits[0] = 1;
+        r._digits[1] = 0;  // Set leading zero for 64-bit processing.
       } else {
         // Set r to 0.
         r._neg = false;
@@ -358,7 +393,7 @@ class _Bigint extends _IntegerImplementation implements int {
     var r_digits = r._digits;
     r_digits[0] = digits[ds] >> bs;
     var used = _used;
-    for (var i = ds + 1; i < used; ++i) {
+    for (var i = ds + 1; i < used; i++) {
       r_digits[i - ds - 1] |= (digits[i] & bm) << cbs;
       r_digits[i - ds] = digits[i] >> bs;
     }
@@ -867,13 +902,18 @@ class _Bigint extends _IntegerImplementation implements int {
     // TODO(regis): Use karatsuba multiplication when appropriate.
     var used = _used;
     var a_used = a._used;
+    if (used == 0 || a_used == 0) {
+      r._used = 0;
+      r._neg = false;
+      return;
+    }
     var r_used = used + a_used;
     r._ensureLength(r_used);
     var digits = _digits;
     var a_digits = a._digits;
     var r_digits = r._digits;
     r._used = r_used;
-    var i = r_used;
+    var i = r_used + 1;  // Set leading zero for 64-bit processing.
     while (--i >= 0) {
       r_digits[i] = 0;
     }
@@ -887,11 +927,16 @@ class _Bigint extends _IntegerImplementation implements int {
   // r = this^2, r != this.
   void _sqrTo(_Bigint r) {
     var used = _used;
+    if (used == 0) {
+      r._used = 0;
+      r._neg = false;
+      return;
+    }
     var r_used = 2 * used;
     r._ensureLength(r_used);
     var digits = _digits;
     var r_digits = r._digits;
-    var i = r_used;
+    var i = r_used + 1;  // Set leading zero for 64-bit processing.
     while (--i >= 0) {
       r_digits[i] = 0;
     }
@@ -970,6 +1015,7 @@ class _Bigint extends _IntegerImplementation implements int {
     var r_digits = r._digits;
     if (r._compareTo(t) >= 0) {
       r_digits[r._used++] = 1;
+      r_digits[r._used] = 0;  // Set leading zero for 64-bit processing.
       r._subTo(t, r);
     }
     ONE._dlShiftTo(y_used, t);
@@ -977,6 +1023,7 @@ class _Bigint extends _IntegerImplementation implements int {
     while (y._used < y_used) {
       y_digits[y._used++] = 0;
     }
+    y_digits[y._used] = 0;  // Set leading zero for 64-bit processing.
     Uint32List args = new Uint32List(2);
     args[_YT] = yt;
     while (--j >= 0) {
@@ -1419,9 +1466,10 @@ class _Montgomery implements _Reduction {
     while (x._used <= _mused2) {  // Pad x so _mulAdd has enough room later.
       x_digits[x._used++] = 0;
     }
+    x_digits[x._used] = 0;  // Set leading zero for 64-bit processing.
     var m_used = _m._used;
     var m_digits = _m._digits;
-    for (var i = 0; i < m_used; ++i) {
+    for (var i = 0; i < m_used; i++) {
       _mulMod(_rho_mu, x_digits, i);
       _Bigint._mulAdd(_rho_mu, _MU, m_digits, 0, x_digits, i, m_used);
     }

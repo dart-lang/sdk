@@ -714,6 +714,32 @@ ASSEMBLER_TEST_RUN(LongAddReg, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(LongAddImmediate, assembler) {
+  __ pushq(CallingConventions::kArg1Reg);
+  __ movl(RAX, Address(RSP, 0));  // left low.
+  __ movl(RDX, Address(RSP, 4));  // left high.
+  __ addl(RAX, Immediate(12));  // right low immediate.
+  __ adcl(RDX, Immediate(11));  // right high immediate.
+  // Result is in RAX/RDX.
+  __ movl(Address(RSP, 0), RAX);  // result low.
+  __ movl(Address(RSP, 4), RDX);  // result high.
+  __ popq(RAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LongAddImmediate, test) {
+  typedef int64_t (*LongAddImmediateCode)(int64_t a);
+  int64_t a = (13LL << 32) + 14;
+  int64_t b = (11LL << 32) + 12;
+  int64_t res = reinterpret_cast<LongAddImmediateCode>(test->entry())(a);
+  EXPECT_EQ((a + b), res);
+  a = (13LL << 32) - 1;
+  res = reinterpret_cast<LongAddImmediateCode>(test->entry())(a);
+  EXPECT_EQ((a + b), res);
+}
+
+
 ASSEMBLER_TEST_GENERATE(LongAddAddress, assembler) {
   __ pushq(CallingConventions::kArg2Reg);
   __ pushq(CallingConventions::kArg1Reg);
@@ -774,6 +800,32 @@ ASSEMBLER_TEST_RUN(LongSubReg, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(LongSubImmediate, assembler) {
+  __ pushq(CallingConventions::kArg1Reg);
+  __ movl(RAX, Address(RSP, 0));  // left low.
+  __ movl(RDX, Address(RSP, 4));  // left high.
+  __ subl(RAX, Immediate(12));  // right low immediate.
+  __ sbbl(RDX, Immediate(11));  // right high immediate.
+  // Result is in RAX/RDX.
+  __ movl(Address(RSP, 0), RAX);  // result low.
+  __ movl(Address(RSP, 4), RDX);  // result high.
+  __ popq(RAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LongSubImmediate, test) {
+  typedef int64_t (*LongSubImmediateCode)(int64_t a);
+  int64_t a = (13LL << 32) + 14;
+  int64_t b = (11LL << 32) + 12;
+  int64_t res = reinterpret_cast<LongSubImmediateCode>(test->entry())(a);
+  EXPECT_EQ((a - b), res);
+  a = (13LL << 32) + 10;
+  res = reinterpret_cast<LongSubImmediateCode>(test->entry())(a);
+  EXPECT_EQ((a - b), res);
+}
+
+
 ASSEMBLER_TEST_GENERATE(LongSubAddress, assembler) {
   __ pushq(CallingConventions::kArg2Reg);
   __ pushq(CallingConventions::kArg1Reg);
@@ -800,6 +852,158 @@ ASSEMBLER_TEST_RUN(LongSubAddress, test) {
   b = 2147483647;
   res = reinterpret_cast<LongSubAddressCode>(test->entry())(a, b);
   EXPECT_EQ((a - b), res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(AddReg, assembler) {
+  __ movq(R10, CallingConventions::kArg1Reg);  // al.
+  __ addq(R10, CallingConventions::kArg3Reg);  // bl.
+  __ movq(RAX, CallingConventions::kArg2Reg);  // ah.
+  __ adcq(RAX, CallingConventions::kArg4Reg);  // bh.
+  // RAX = high64(ah:al + bh:bl).
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AddReg, test) {
+  typedef int64_t (*AddRegCode)(int64_t al, int64_t ah, int64_t bl, int64_t bh);
+  int64_t al = 11;
+  int64_t ah = 12;
+  int64_t bl = 13;
+  int64_t bh = 14;
+  int64_t res = reinterpret_cast<AddRegCode>(test->entry())(al, ah, bl, bh);
+  EXPECT_EQ((ah + bh), res);
+  al = -1;
+  res = reinterpret_cast<AddRegCode>(test->entry())(al, ah, bl, bh);
+  EXPECT_EQ((ah + bh + 1), res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(AddImmediate, assembler) {
+  __ movq(R10, CallingConventions::kArg1Reg);  // al.
+  __ addq(R10, Immediate(13));  // bl.
+  __ movq(RAX, CallingConventions::kArg2Reg);  // ah.
+  __ adcq(RAX, Immediate(14));  // bh.
+  // RAX = high64(ah:al + bh:bl).
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AddImmediate, test) {
+  typedef int64_t (*AddImmediateCode)(int64_t al, int64_t ah);
+  int64_t al = 11;
+  int64_t ah = 12;
+  int64_t bh = 14;
+  int64_t res = reinterpret_cast<AddImmediateCode>(test->entry())(al, ah);
+  EXPECT_EQ((ah + bh), res);
+  al = -1;
+  res = reinterpret_cast<AddImmediateCode>(test->entry())(al, ah);
+  EXPECT_EQ((ah + bh + 1), res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(AddAddress, assembler) {
+  __ pushq(CallingConventions::kArg4Reg);
+  __ pushq(CallingConventions::kArg3Reg);
+  __ pushq(CallingConventions::kArg2Reg);
+  __ pushq(CallingConventions::kArg1Reg);
+  __ movq(R10, Address(RSP, 0 * kWordSize));  // al.
+  __ addq(R10, Address(RSP, 2 * kWordSize));  // bl.
+  __ movq(RAX, Address(RSP, 1 * kWordSize));  // ah.
+  __ adcq(RAX, Address(RSP, 3 * kWordSize));  // bh.
+  // RAX = high64(ah:al + bh:bl).
+  __ Drop(4);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AddAddress, test) {
+  typedef int64_t (*AddCode)(int64_t al, int64_t ah, int64_t bl, int64_t bh);
+  int64_t al = 11;
+  int64_t ah = 12;
+  int64_t bl = 13;
+  int64_t bh = 14;
+  int64_t res = reinterpret_cast<AddCode>(test->entry())(al, ah, bl, bh);
+  EXPECT_EQ((ah + bh), res);
+  al = -1;
+  res = reinterpret_cast<AddCode>(test->entry())(al, ah, bl, bh);
+  EXPECT_EQ((ah + bh + 1), res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(SubReg, assembler) {
+  __ movq(R10, CallingConventions::kArg1Reg);  // al.
+  __ subq(R10, CallingConventions::kArg3Reg);  // bl.
+  __ movq(RAX, CallingConventions::kArg2Reg);  // ah.
+  __ sbbq(RAX, CallingConventions::kArg4Reg);  // bh.
+  // RAX = high64(ah:al - bh:bl).
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(SubReg, test) {
+  typedef int64_t (*SubRegCode)(int64_t al, int64_t ah, int64_t bl, int64_t bh);
+  int64_t al = 14;
+  int64_t ah = 13;
+  int64_t bl = 12;
+  int64_t bh = 11;
+  int64_t res = reinterpret_cast<SubRegCode>(test->entry())(al, ah, bl, bh);
+  EXPECT_EQ((ah - bh), res);
+  al = 10;
+  res = reinterpret_cast<SubRegCode>(test->entry())(al, ah, bl, bh);
+  EXPECT_EQ((ah - bh - 1), res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(SubImmediate, assembler) {
+  __ movq(R10, CallingConventions::kArg1Reg);  // al.
+  __ subq(R10, Immediate(12));  // bl.
+  __ movq(RAX, CallingConventions::kArg2Reg);  // ah.
+  __ sbbq(RAX, Immediate(11));  // bh.
+  // RAX = high64(ah:al - bh:bl).
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(SubImmediate, test) {
+  typedef int64_t (*SubImmediateCode)(int64_t al, int64_t ah);
+  int64_t al = 14;
+  int64_t ah = 13;
+  int64_t bh = 11;
+  int64_t res = reinterpret_cast<SubImmediateCode>(test->entry())(al, ah);
+  EXPECT_EQ((ah - bh), res);
+  al = 10;
+  res = reinterpret_cast<SubImmediateCode>(test->entry())(al, ah);
+  EXPECT_EQ((ah - bh - 1), res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(SubAddress, assembler) {
+  __ pushq(CallingConventions::kArg4Reg);
+  __ pushq(CallingConventions::kArg3Reg);
+  __ pushq(CallingConventions::kArg2Reg);
+  __ pushq(CallingConventions::kArg1Reg);
+  __ movq(R10, Address(RSP, 0 * kWordSize));  // al.
+  __ subq(R10, Address(RSP, 2 * kWordSize));  // bl.
+  __ movq(RAX, Address(RSP, 1 * kWordSize));  // ah.
+  __ sbbq(RAX, Address(RSP, 3 * kWordSize));  // bh.
+  // RAX = high64(ah:al - bh:bl).
+  __ Drop(4);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(SubAddress, test) {
+  typedef int64_t (*SubCode)(int64_t al, int64_t ah, int64_t bl, int64_t bh);
+  int64_t al = 14;
+  int64_t ah = 13;
+  int64_t bl = 12;
+  int64_t bh = 11;
+  int64_t res = reinterpret_cast<SubCode>(test->entry())(al, ah, bl, bh);
+  EXPECT_EQ((ah - bh), res);
+  al = 10;
+  res = reinterpret_cast<SubCode>(test->entry())(al, ah, bl, bh);
+  EXPECT_EQ((ah - bh - 1), res);
 }
 
 

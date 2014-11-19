@@ -546,6 +546,7 @@ class Assembler : public ValueObject {
   void XorImmediate(Register dst, const Immediate& imm, Register pp);
 
   void addl(Register dst, Register src);
+  void addl(Register dst, const Immediate& imm);
   void addl(Register dst, const Address& address);
   void addl(const Address& address, Register src);
   void adcl(Register dst, Register src);
@@ -557,6 +558,9 @@ class Assembler : public ValueObject {
   void addq(Register dst, const Address& address);
   void addq(const Address& address, const Immediate& imm);
   void addq(const Address& address, Register src);
+  void adcq(Register dst, Register src);
+  void adcq(Register dst, const Immediate& imm);
+  void adcq(Register dst, const Address& address);
 
   void cdq();
   void cqo();
@@ -576,6 +580,7 @@ class Assembler : public ValueObject {
   void MulImmediate(Register reg, const Immediate& imm, Register pp);
 
   void subl(Register dst, Register src);
+  void subl(Register dst, const Immediate& imm);
   void subl(Register dst, const Address& address);
   void sbbl(Register dst, Register src);
   void sbbl(Register dst, const Immediate& imm);
@@ -586,6 +591,9 @@ class Assembler : public ValueObject {
   void subq(Register reg, const Address& address);
   void subq(const Address& address, Register reg);
   void subq(const Address& address, const Immediate& imm);
+  void sbbq(Register dst, Register src);
+  void sbbq(Register dst, const Immediate& imm);
+  void sbbq(Register dst, const Address& address);
 
   void shll(Register reg, const Immediate& imm);
   void shll(Register operand, Register shifter);
