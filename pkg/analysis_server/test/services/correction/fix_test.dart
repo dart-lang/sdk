@@ -442,6 +442,30 @@ main(A a) {
 ''');
   }
 
+  void test_createField_getter_qualified_instance_dynamicType() {
+    _indexTestUnit('''
+class A {
+  B b;
+  void f(Object p) {
+    p == b.test;
+  }
+}
+class B {
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  B b;
+  void f(Object p) {
+    p == b.test;
+  }
+}
+class B {
+  var test;
+}
+''');
+  }
+
   void test_createField_getter_unqualified_instance_asInvocationArgument() {
     _indexTestUnit('''
 class A {

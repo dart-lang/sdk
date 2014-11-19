@@ -627,11 +627,7 @@ class FixProcessor {
       // append type
       Expression fieldTypeNode = climbPropertyAccess(nameNode);
       DartType fieldType = _inferUndefinedExpressionType(fieldTypeNode);
-      if (fieldType != null) {
-        _appendType(sb, fieldType, 'TYPE');
-      } else {
-        sb.append('var ');
-      }
+      _appendType(sb, fieldType, groupId: 'TYPE', orVar: true);
       // append name
       {
         sb.startPosition('NAME');
@@ -741,11 +737,7 @@ class FixProcessor {
     {
       // append type
       DartType fieldType = _inferUndefinedExpressionType(node);
-      if (fieldType != null) {
-        _appendType(sb, fieldType, 'TYPE');
-      } else {
-        sb.append('var ');
-      }
+      _appendType(sb, fieldType, groupId: 'TYPE', orVar: true);
       // append name
       {
         sb.startPosition('NAME');
@@ -1274,7 +1266,7 @@ class FixProcessor {
       // append return type
       {
         DartType type = _inferUndefinedExpressionType(invocation);
-        _appendType(sb, type, 'RETURN_TYPE');
+        _appendType(sb, type, groupId: 'RETURN_TYPE');
       }
       // append name
       {
@@ -1374,10 +1366,10 @@ class FixProcessor {
           sb.append("static ");
         }
         // append return type
-        _appendType(
-            sb,
-            _inferUndefinedExpressionType(invocation),
-            'RETURN_TYPE');
+        {
+          DartType type = _inferUndefinedExpressionType(invocation);
+          _appendType(sb, type, groupId: 'RETURN_TYPE');
+        }
         // append name
         {
           sb.startPosition("NAME");
@@ -1585,7 +1577,7 @@ class FixProcessor {
         sb.append("static ");
       }
       // append return type
-      _appendType(sb, functionType.returnType, 'RETURN_TYPE');
+      _appendType(sb, functionType.returnType, groupId: 'RETURN_TYPE');
       // append name
       {
         sb.startPosition("NAME");
@@ -1765,7 +1757,8 @@ class FixProcessor {
     sb.append(parameterSource);
   }
 
-  void _appendType(SourceBuilder sb, DartType type, [String groupId]) {
+  void _appendType(SourceBuilder sb, DartType type, {String groupId, bool orVar:
+      false}) {
     if (type != null && !type.isDynamic) {
       Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
       // TODO(scheglov) use librariesToImport
@@ -1778,6 +1771,8 @@ class FixProcessor {
         sb.append(typeSource);
       }
       sb.append(' ');
+    } else if (orVar) {
+      sb.append('var ');
     }
   }
 
@@ -2097,6 +2092,14 @@ class FixProcessor {
       return suggestions;
     }
     return <String>["arg${index}"];
+  }
+
+  /**
+   * Checks if [type] is not `null` and not `dynamic`, so it is worth adding
+   * into the source.
+   */
+  static bool _isInterestingType(DartType type) {
+    return type != null && !type.isDynamic;
   }
 
   /**
