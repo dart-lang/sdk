@@ -51,14 +51,19 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   void buildFunction(tree_ir.FunctionDefinition function) {
     currentFunction = function.element;
     visitStatement(function.body);
+
+    Set<tree_ir.Variable> parameterSet = new Set<tree_ir.Variable>();
+
     for (tree_ir.Variable parameter in function.parameters) {
       String name = getVariableName(parameter);
       parameters.add(new js.Parameter(name));
+      parameterSet.add(parameter);
     }
 
     List<js.VariableInitialization> jsVariables = <js.VariableInitialization>[];
 
     for (tree_ir.Variable variable in variableNames.keys) {
+      if (parameterSet.contains(variable)) continue;
       String name = getVariableName(variable);
       js.VariableInitialization jsVariable = new js.VariableInitialization(
         new js.VariableDeclaration(name),
