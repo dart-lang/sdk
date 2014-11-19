@@ -23,24 +23,28 @@ import 'test_support.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ScopeBuilderTest);
   runReflectiveTests(DeclarationMatcherTest);
   runReflectiveTests(IncrementalResolverTest);
+  runReflectiveTests(ScopeBuilderTest);
 }
 
 
 class DeclarationMatcherTest extends ResolverTestCase {
-  void test_compilationUnitMatches_false_topLevelVariable() {
-    _assertCompilationUnitMatches(false, r'''
+  void fail_test_methodDeclarationMatches_false_localVariable() {
+    // TODO(scheglov) as I understand DeclarationMatcher, we care only
+    // about externally visible model changes. So, because we analyze (at least
+    // right now) incremental changes on method level, local variable can be
+    // ignored.
+    _assertMethodMatches(false, r'''
 class C {
   int m(int p) {
     return p + p;
   }
 }''', r'''
-const int ZERO = 0;
 class C {
   int m(int p) {
-    return p + p;
+    int product = p * p;
+    return product + product;
   }
 }''');
   }
@@ -69,19 +73,74 @@ class C {
     _assertCompilationUnitMatches(true, content, content);
   }
 
-  void test_methodDeclarationMatches_false_localVariable() {
-    _assertMethodMatches(false, r'''
-class C {
-  int m(int p) {
-    return p + p;
+  void test_false_topLevelVariable_list_add() {
+    _assertCompilationUnitMatches(false, r'''
+const int A = 1;
+const int C = 3;
+''', r'''
+const int A = 1;
+const int B = 2;
+const int C = 3;
+''');
   }
-}''', r'''
-class C {
-  int m(int p) {
-    int product = p * p;
-    return product + product;
+
+  void test_false_topLevelVariable_list_remove() {
+    _assertCompilationUnitMatches(false, r'''
+const int A = 1;
+const int B = 2;
+const int C = 3;
+''', r'''
+const int A = 1;
+const int C = 3;
+''');
   }
-}''');
+
+  void test_false_topLevelVariable_modifier_isConst() {
+    _assertCompilationUnitMatches(false, r'''
+final int A = 1;
+''', r'''
+const int A = 1;
+''');
+  }
+
+  void test_false_topLevelVariable_modifier_isFinal() {
+    _assertCompilationUnitMatches(false, r'''
+int A = 1;
+''', r'''
+final int A = 1;
+''');
+  }
+
+  void test_false_topLevelVariable_modifier_wasConst() {
+    _assertCompilationUnitMatches(false, r'''
+const int A = 1;
+''', r'''
+final int A = 1;
+''');
+  }
+
+  void test_false_topLevelVariable_modifier_wasFinal() {
+    _assertCompilationUnitMatches(false, r'''
+final int A = 1;
+''', r'''
+int A = 1;
+''');
+  }
+
+  void test_false_topLevelVariable_type_different() {
+    _assertCompilationUnitMatches(false, r'''
+int A;
+''', r'''
+String A;
+''');
+  }
+
+  void test_false_topLevelVariable_type_differentArgs() {
+    _assertCompilationUnitMatches(false, r'''
+List<int> A;
+''', r'''
+List<String> A;
+''');
   }
 
   void test_methodDeclarationMatches_false_parameter() {
@@ -120,6 +179,38 @@ class C {
   }
 }''';
     _assertMethodMatches(true, content, content);
+  }
+
+  void test_true_topLevelVariable_list_reorder() {
+    _assertCompilationUnitMatches(true, r'''
+const int A = 1;
+const int B = 2;
+const int C = 3;
+''', r'''
+const int C = 3;
+const int A = 1;
+const int B = 2;
+''');
+  }
+
+  void test_true_topLevelVariable_list_same() {
+    _assertCompilationUnitMatches(true, r'''
+const int A = 1;
+const int B = 2;
+const int C = 3;
+''', r'''
+const int A = 1;
+const int B = 2;
+const int C = 3;
+''');
+  }
+
+  void test_true_topLevelVariable_type_sameArgs() {
+    _assertCompilationUnitMatches(true, r'''
+Map<int, String> A;
+''', r'''
+Map<int, String> A;
+''');
   }
 
   void _assertCompilationUnitMatches(bool expectMatch, String oldContent,

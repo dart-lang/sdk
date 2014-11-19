@@ -49,6 +49,8 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
    */
   ParameterElement _enclosingParameter;
 
+  bool _inTopLevelVariableDeclaration = false;
+
   /**
    * A set containing all of the elements in the element model that were defined by the old AST node
    * corresponding to the AST node being visited.
@@ -79,17 +81,8 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     } on _DeclarationMismatchException catch (exception) {
       return false;
     }
+    print(_unmatchedElements.join('\n'));
     return _unmatchedElements.isEmpty;
-  }
-
-  void processElement(Element element) {
-    if (element == null) {
-      throw new _DeclarationMismatchException();
-    }
-    if (!_allElements.contains(element)) {
-      throw new _DeclarationMismatchException();
-    }
-    _unmatchedElements.remove(element);
   }
 
   @override
@@ -100,12 +93,12 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
           _enclosingExecutable.localVariables;
       LocalVariableElement exceptionElement =
           _findIdentifier(localVariables, exceptionParameter);
-      processElement(exceptionElement);
+      _processElement(exceptionElement);
       SimpleIdentifier stackTraceParameter = node.stackTraceParameter;
       if (stackTraceParameter != null) {
         LocalVariableElement stackTraceElement =
             _findIdentifier(localVariables, stackTraceParameter);
-        processElement(stackTraceElement);
+        _processElement(stackTraceElement);
       }
     }
     return super.visitCatchClause(node);
@@ -117,11 +110,11 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     try {
       SimpleIdentifier className = node.name;
       _enclosingClass = _findIdentifier(_enclosingUnit.types, className);
-      processElement(_enclosingClass);
+      _processElement(_enclosingClass);
       if (!_hasConstructor(node)) {
         ConstructorElement constructor = _enclosingClass.unnamedConstructor;
         if (constructor.isSynthetic) {
-          processElement(constructor);
+          _processElement(constructor);
         }
       }
       return super.visitClassDeclaration(node);
@@ -136,7 +129,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     try {
       SimpleIdentifier className = node.name;
       _enclosingClass = _findIdentifier(_enclosingUnit.types, className);
-      processElement(_enclosingClass);
+      _processElement(_enclosingClass);
       return super.visitClassTypeAlias(node);
     } finally {
       _enclosingClass = outerClass;
@@ -145,7 +138,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitCompilationUnit(CompilationUnit node) {
-    processElement(_enclosingUnit);
+    _processElement(_enclosingUnit);
     return super.visitCompilationUnit(node);
   }
 
@@ -160,7 +153,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
         _enclosingExecutable =
             _enclosingClass.getNamedConstructor(constructorName.name);
       }
-      processElement(_enclosingExecutable);
+      _processElement(_enclosingExecutable);
       return super.visitConstructorDeclaration(node);
     } finally {
       _enclosingExecutable = outerExecutable;
@@ -172,7 +165,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     SimpleIdentifier variableName = node.identifier;
     LocalVariableElement element =
         _findIdentifier(_enclosingExecutable.localVariables, variableName);
-    processElement(element);
+    _processElement(element);
     return super.visitDeclaredIdentifier(node);
   }
 
@@ -193,12 +186,12 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
       } finally {
         _enclosingExecutable = outerExecutable;
       }
-      processElement(_enclosingExecutable);
+      _processElement(_enclosingExecutable);
     }
     ParameterElement outerParameter = _enclosingParameter;
     try {
       _enclosingParameter = element;
-      processElement(_enclosingParameter);
+      _processElement(_enclosingParameter);
       return super.visitDefaultFormalParameter(node);
     } finally {
       _enclosingParameter = outerParameter;
@@ -209,11 +202,11 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
   Object visitEnumDeclaration(EnumDeclaration node) {
     ClassElement enclosingEnum =
         _findIdentifier(_enclosingUnit.enums, node.name);
-    processElement(enclosingEnum);
+    _processElement(enclosingEnum);
     List<FieldElement> constants = enclosingEnum.fields;
     for (EnumConstantDeclaration constant in node.constants) {
       FieldElement constantElement = _findIdentifier(constants, constant.name);
-      processElement(constantElement);
+      _processElement(constantElement);
     }
     return super.visitEnumDeclaration(node);
   }
@@ -226,7 +219,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
       ExportElement exportElement = _findExport(
           library.exports,
           _enclosingUnit.context.sourceFactory.resolveUri(_enclosingUnit.source, uri));
-      processElement(exportElement);
+      _processElement(exportElement);
     }
     return super.visitExportDirective(node);
   }
@@ -239,7 +232,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
       ParameterElement outerParameter = _enclosingParameter;
       try {
         _enclosingParameter = element;
-        processElement(_enclosingParameter);
+        _processElement(_enclosingParameter);
         return super.visitFieldFormalParameter(node);
       } finally {
         _enclosingParameter = outerParameter;
@@ -271,7 +264,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
         }
         _enclosingExecutable = accessor;
       }
-      processElement(_enclosingExecutable);
+      _processElement(_enclosingExecutable);
       return super.visitFunctionDeclaration(node);
     } finally {
       _enclosingExecutable = outerExecutable;
@@ -283,12 +276,12 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     if (node.parent is! FunctionDeclaration) {
       FunctionElement element =
           _findAtOffset(_enclosingExecutable.functions, node.beginToken.offset);
-      processElement(element);
+      _processElement(element);
     }
     ExecutableElement outerExecutable = _enclosingExecutable;
     try {
       _enclosingExecutable = node.element;
-      processElement(_enclosingExecutable);
+      _processElement(_enclosingExecutable);
       return super.visitFunctionExpression(node);
     } finally {
       _enclosingExecutable = outerExecutable;
@@ -302,7 +295,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
       SimpleIdentifier aliasName = node.name;
       _enclosingAlias =
           _findIdentifier(_enclosingUnit.functionTypeAliases, aliasName);
-      processElement(_enclosingAlias);
+      _processElement(_enclosingAlias);
       return super.visitFunctionTypeAlias(node);
     } finally {
       _enclosingAlias = outerAlias;
@@ -317,7 +310,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
       ParameterElement outerParameter = _enclosingParameter;
       try {
         _enclosingParameter = element;
-        processElement(_enclosingParameter);
+        _processElement(_enclosingParameter);
         return super.visitFunctionTypedFormalParameter(node);
       } finally {
         _enclosingParameter = outerParameter;
@@ -336,7 +329,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
           library.imports,
           _enclosingUnit.context.sourceFactory.resolveUri(_enclosingUnit.source, uri),
           node.prefix);
-      processElement(importElement);
+      _processElement(importElement);
     }
     return super.visitImportDirective(node);
   }
@@ -347,7 +340,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
       SimpleIdentifier labelName = label.label;
       LabelElement element =
           _findIdentifier(_enclosingExecutable.labels, labelName);
-      processElement(element);
+      _processElement(element);
     }
     return super.visitLabeledStatement(node);
   }
@@ -378,7 +371,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
         }
         _enclosingExecutable = accessor;
       }
-      processElement(_enclosingExecutable);
+      _processElement(_enclosingExecutable);
       return super.visitMethodDeclaration(node);
     } finally {
       _enclosingExecutable = outerExecutable;
@@ -393,7 +386,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
           _enclosingUnit.context.sourceFactory.resolveUri(_enclosingUnit.source, uri);
       CompilationUnitElement element =
           _findPart(_enclosingUnit.library.parts, partSource);
-      processElement(element);
+      _processElement(element);
     }
     return super.visitPartDirective(node);
   }
@@ -406,7 +399,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
       ParameterElement outerParameter = _enclosingParameter;
       try {
         _enclosingParameter = element;
-        processElement(_enclosingParameter);
+        _processElement(_enclosingParameter);
         return super.visitSimpleFormalParameter(node);
       } finally {
         _enclosingParameter = outerParameter;
@@ -422,7 +415,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
       SimpleIdentifier labelName = label.label;
       LabelElement element =
           _findIdentifier(_enclosingExecutable.labels, labelName);
-      processElement(element);
+      _processElement(element);
     }
     return super.visitSwitchCase(node);
   }
@@ -433,9 +426,19 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
       SimpleIdentifier labelName = label.label;
       LabelElement element =
           _findIdentifier(_enclosingExecutable.labels, labelName);
-      processElement(element);
+      _processElement(element);
     }
     return super.visitSwitchDefault(node);
+  }
+
+  @override
+  Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    _inTopLevelVariableDeclaration = true;
+    try {
+      return super.visitTopLevelVariableDeclaration(node);
+    } finally {
+      _inTopLevelVariableDeclaration = false;
+    }
   }
 
   @override
@@ -447,41 +450,80 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     } else if (_enclosingAlias != null) {
       element = _findIdentifier(_enclosingAlias.typeParameters, parameterName);
     }
-    processElement(element);
+    _processElement(element);
     return super.visitTypeParameter(node);
   }
 
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
-    VariableElement element = null;
-    SimpleIdentifier variableName = node.name;
+    String name = node.name.name;
+    if (_inTopLevelVariableDeclaration) {
+      TopLevelVariableElement variable =
+          _findElement(_enclosingUnit.topLevelVariables, name);
+      _assertNotNull(variable);
+      _assertFalse(variable.isSynthetic);
+      _assertEquals(node.isConst, variable.isConst);
+      _assertEquals(node.isFinal, variable.isFinal);
+      _assertSameType(
+          (node.parent as VariableDeclarationList).type,
+          variable.type);
+      _processElement(variable);
+      return null;
+    }
+    VariableElement element;
     if (_enclosingExecutable != null) {
-      element =
-          _findIdentifier(_enclosingExecutable.localVariables, variableName);
+      element = _findElement(_enclosingExecutable.localVariables, name);
     }
     if (element == null && _enclosingClass != null) {
-      element = _findIdentifier(_enclosingClass.fields, variableName);
-    }
-    if (element == null && _enclosingUnit != null) {
-      element = _findIdentifier(_enclosingUnit.topLevelVariables, variableName);
-    }
-    Expression initializer = node.initializer;
-    if (initializer != null) {
-      ExecutableElement outerExecutable = _enclosingExecutable;
-      try {
-        if (element == null) {
-          // TODO(brianwilkerson) Report this internal error.
-        } else {
-          _enclosingExecutable = element.initializer;
-        }
-        processElement(element);
-        processElement(_enclosingExecutable);
-        return super.visitVariableDeclaration(node);
-      } finally {
-        _enclosingExecutable = outerExecutable;
-      }
+      element = _findElement(_enclosingClass.fields, name);
     }
     return super.visitVariableDeclaration(node);
+  }
+
+  void _assertSameType(TypeName node, DartType type) {
+    String nodeName = node.name.name;
+    if (type is InterfaceType) {
+      _assertEquals(nodeName, type.name);
+      TypeArgumentList nodeArgumentList = node.typeArguments;
+      List<DartType> typeArguments = type.typeArguments;
+      if (nodeArgumentList == null) {
+        _assertTrue(typeArguments.isEmpty);
+      } else {
+        List<TypeName> nodeArguments = nodeArgumentList.arguments;
+        int numArguments = nodeArguments.length;
+        _assertEquals(numArguments, typeArguments.length);
+        for (int i = 0; i < numArguments; i++) {
+          _assertSameType(nodeArguments[i], typeArguments[i]);
+        }
+      }
+    } else {
+      // TODO(scheglov) support other types
+      _assertTrue(false);
+    }
+  }
+
+  void _assertFalse(bool condition) {
+    if (condition) {
+      throw new _DeclarationMismatchException();
+    }
+  }
+
+  void _assertNotNull(Element element) {
+    if (element == null) {
+      throw new _DeclarationMismatchException();
+    }
+  }
+
+  void _assertEquals(Object a, Object b) {
+    if (a != b) {
+      throw new _DeclarationMismatchException();
+    }
+  }
+
+  void _assertTrue(bool condition) {
+    if (!condition) {
+      throw new _DeclarationMismatchException();
+    }
   }
 
   /**
@@ -527,6 +569,18 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
    */
   Element _findAtOffset(List<Element> elements, int offset) =>
       _findWithNameAndOffset(elements, "", offset);
+
+  /**
+   * Return the [Element] in [elements] with the given [name].
+   */
+  Element _findElement(List<Element> elements, String name) {
+    for (Element element in elements) {
+      if (element.displayName == name) {
+        return element;
+      }
+    }
+    return null;
+  }
 
   /**
    * Return the export element from the given array whose library has the given source, or
@@ -680,6 +734,15 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
       }
     }
     return false;
+  }
+
+  void _processElement(Element element) {
+    _assertNotNull(element);
+    if (!_allElements.contains(element)) {
+      throw new _DeclarationMismatchException();
+    }
+    bool did = _unmatchedElements.remove(element);
+    print('remove: $element | $did');
   }
 }
 
@@ -987,8 +1050,39 @@ class _ElementsGatherer extends GeneralizingElementVisitor {
 
   @override
   visitElement(Element element) {
-    matcher._allElements.add(element);
-    matcher._unmatchedElements.add(element);
+    _addElement(element);
     super.visitElement(element);
+  }
+
+  @override
+  visitPropertyAccessorElement(PropertyAccessorElement element) {
+    if (!element.isSynthetic) {
+      _addElement(element);
+    }
+    // Don't visit children (such as a synthetic setter parameter).
+  }
+
+  @override
+  visitPropertyInducingElement(PropertyInducingElement element) {
+    // TODO(scheglov) should we remove synthetic variable initializer?
+//    _addElement(element);
+//    element.getter.accept(this);
+//    element.setter.accept(this);
+//    _addElement(element.getter);
+//    _addElement(element.setter);
+  }
+
+  @override
+  visitTopLevelVariableElement(TopLevelVariableElement element) {
+    if (!element.isSynthetic) {
+      _addElement(element);
+    }
+  }
+
+  void _addElement(Element element) {
+    if (element != null) {
+      matcher._allElements.add(element);
+      matcher._unmatchedElements.add(element);
+    }
   }
 }
