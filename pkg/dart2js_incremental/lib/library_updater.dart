@@ -44,8 +44,11 @@ import 'package:compiler/src/js/js.dart' show
 import 'package:compiler/src/js/js.dart' as jsAst;
 
 import 'package:compiler/src/js_emitter/js_emitter.dart' show
+    ClassBuilder,
+    ClassEmitter,
     CodeEmitterTask,
-    MemberInfo;
+    MemberInfo,
+    computeMixinClass;
 
 import 'package:_internal/compiler/js_lib/shared/embedded_names.dart'
     as embeddedNames;
@@ -410,31 +413,38 @@ class LibraryUpdater extends JsFeatures {
         new Set.from(compiler.codegenWorld.directlyInstantiatedClasses);
     newClasses.removeAll(existingClasses);
 
+    List<jsAst.Statement> inherits = <jsAst.Statement>[];
+
     for (ClassElementX cls in newClasses) {
-      jsAst.Node access = namer.elementAccess(cls);
+      jsAst.Node classAccess = namer.elementAccess(cls);
       String name = namer.getNameOfClass(cls);
 
-      // TODO(ahe): Compute arguments.
-      List<jsAst.Node> arguments = <jsAst.Node>[];
+      var descriptor = js('Object.create(null)');
 
-      // TODO(ahe): Compute statements, that is initializers.
-      List<jsAst.Statement> statements = <jsAst.Statement>[];
+      jsAst.Statement defineClass = js.statement(
+          r'''
+# = (new Function(
+    "$collectedClasses", "$desc",
+    self.$dart_unsafe_eval.defineClass(#, #) +"\n;return " + #))({#: #})
+''',
+          [classAccess,
+           js.string(name), js.stringArray(computeFields(cls)),
+           js.string(name),
+           js.string(name), descriptor]);
 
-      updates.add(
-          js.statement(
-              '# = function $name(#) {#}', [access, arguments, statements]));
+      updates.add(defineClass);
+
+      ClassElement superclass = cls.superclass;
+      if (superclass != null) {
+        jsAst.Node superAccess = namer.elementAccess(superclass);
+        inherits.add(
+            js.statement(
+                r'self.$dart_unsafe_eval.inheritFrom(#, #)',
+                [classAccess, superAccess]));
+      }
     }
 
-    for (ClassElementX cls in newClasses) {
-      if (cls.isObject) continue;
-      jsAst.Node classAccess = namer.elementAccess(cls);
-      jsAst.Node superAccess = namer.elementAccess(cls.superclass);
-
-      updates.add(
-          js.statement(
-              r'self.$dart_unsafe_eval.inheritFrom(#, #)',
-              [classAccess, superAccess]));
-    }
+    updates.addAll(inherits);
 
     for (Element element in compiler.enqueuer.codegen.newlyEnqueuedElements) {
       if (!element.isField) {
@@ -505,6 +515,10 @@ class LibraryUpdater extends JsFeatures {
     String callPrefix = namer.callPrefix;
     int parameterCount = element.functionSignature.parameterCount;
     return '$callPrefix\$$parameterCount';
+  }
+
+  List<String> computeFields(ClassElement cls) {
+    return new EmitterHelper(compiler).computeFields(cls);
   }
 }
 
@@ -753,4 +767,19 @@ abstract class JsFeatures {
   Namer get namer => backend.namer;
 
   CodeEmitterTask get emitter => backend.emitter;
+}
+
+class EmitterHelper extends JsFeatures {
+  final Compiler compiler;
+
+  EmitterHelper(this.compiler);
+
+  ClassEmitter get classEmitter => backend.emitter.oldEmitter.classEmitter;
+
+  List<String> computeFields(ClassElement cls) {
+    // TODO(ahe): Rewrite for new emitter.
+    ClassBuilder builder = new ClassBuilder(cls, namer);
+    classEmitter.emitFields(cls, builder, "");
+    return builder.fields;
+  }
 }

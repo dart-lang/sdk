@@ -56,15 +56,19 @@ Future<Compiler> reuseCompiler(
       }
     }
     oldTag.makeCurrent();
-    return new Future.value(
-        new Compiler(
-            inputProvider,
-            outputProvider,
-            diagnosticHandler,
-            libraryRoot,
-            packageRoot,
-            options,
-            environment));
+    compiler = new Compiler(
+        inputProvider,
+        outputProvider,
+        diagnosticHandler,
+        libraryRoot,
+        packageRoot,
+        options,
+        environment);
+    JavaScriptBackend backend = compiler.backend;
+    // Much like a scout, an incremental compiler is always prepared. For
+    // mixins, at least.
+    backend.emitter.oldEmitter.needsMixinSupport = true;
+    return new Future.value(compiler);
   } else {
     for (final task in compiler.tasks) {
       if (task.watch != null) {

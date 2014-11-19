@@ -267,27 +267,27 @@ class OldEmitter implements Emitter {
     //  },
     // });
 
-    var defineClass = js('''function(name, cls, fields) {
+    var defineClass = js('''function(name, fields) {
       var accessors = [];
 
-      var str = "function " + cls + "(";
+      var str = "function " + name + "(";
       var body = "";
 
       for (var i = 0; i < fields.length; i++) {
         if(i != 0) str += ", ";
 
-        var field = generateAccessor(fields[i], accessors, cls);
+        var field = generateAccessor(fields[i], accessors, name);
         var parameter = "parameter_" + field;
         str += parameter;
         body += ("this." + field + " = " + parameter + ";\\n");
       }
       str += ") {\\n" + body + "}\\n";
-      str += cls + ".builtin\$cls=\\"" + name + "\\";\\n";
-      str += "\$desc=\$collectedClasses." + cls + ";\\n";
+      str += name + ".builtin\$cls=\\"" + name + "\\";\\n";
+      str += "\$desc=\$collectedClasses." + name + ";\\n";
       str += "if(\$desc instanceof Array) \$desc = \$desc[1];\\n";
-      str += cls + ".prototype = \$desc;\\n";
+      str += name + ".prototype = \$desc;\\n";
       if (typeof defineClass.name != "string") {
-        str += cls + ".name=\\"" + cls + "\\";\\n";
+        str += name + ".name=\\"" + name + "\\";\\n";
       }
       str += accessors.join("");
 
@@ -295,11 +295,17 @@ class OldEmitter implements Emitter {
     }''');
     // Declare a function called "generateAccessor".  This is used in
     // defineClassFunction (it's a local declaration in init()).
+    List<jsAst.Node> saveDefineClass = [];
+    if (compiler.hasIncrementalSupport) {
+      saveDefineClass.add(
+          js(r'self.$dart_unsafe_eval.defineClass = defineClass'));
+    }
     return [
         generateAccessorFunction,
         js('$generateAccessorHolder = generateAccessor'),
         new jsAst.FunctionDeclaration(
-            new jsAst.VariableDeclaration('defineClass'), defineClass) ];
+            new jsAst.VariableDeclaration('defineClass'), defineClass) ]
+        ..addAll(saveDefineClass);
   }
 
   /** Needs defineClass to be defined. */
@@ -418,27 +424,16 @@ class OldEmitter implements Emitter {
           /* The 'fields' are either a constructor function or a
            * string encoding fields, constructor and superclass. Gets the
            * superclass and fields in the format
-           *   '[name/]Super;field1,field2'
+           *   'Super;field1,field2'
            * from the CLASS_DESCRIPTOR_PROPERTY property on the descriptor.
-           * The 'name/' is optional and contains the name that should be used
-           * when printing the runtime type string.  It is used, for example,
-           * to print the runtime type JSInt as 'int'.
            */
           var classData = desc["${namer.classDescriptorProperty}"],
-              supr, name = cls, fields = classData;
+              supr, fields = classData;
           if (#hasRetainedMetadata)
             if (typeof classData == "object" &&
                 classData instanceof Array) {
               classData = fields = classData[0];
             }
-          if (typeof classData == "string") {
-            var split = classData.split("/");
-            if (split.length == 2) {
-              name = split[0];
-              fields = split[1];
-            }
-          }
-
           var s = fields.split(";");
           fields = s[1] == "" ? [] : s[1].split(",");
           supr = s[0];
@@ -466,7 +461,7 @@ class OldEmitter implements Emitter {
             }
 
           if (typeof dart_precompiled != "function") {
-            combinedConstructorFunction += defineClass(name, cls, fields);
+            combinedConstructorFunction += defineClass(cls, fields);
             constructorsList.push(cls);
           }
           if (supr) pendingClasses[cls] = supr;

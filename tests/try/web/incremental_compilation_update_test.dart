@@ -536,6 +536,49 @@ main() {
 """,
             const <String>['Called B.m']),
     ],
+
+    // Test that fields of a newly instantiated class are handled.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class A {
+  var x;
+  A(this.x);
+}
+var instance;
+foo() {
+  if (instance != null) {
+    print(instance.x);
+  } else {
+    print('v1');
+  }
+}
+main() {
+  foo();
+}
+""",
+            const <String>['v1']),
+        const ProgramResult(
+            r"""
+class A {
+  var x;
+  A(this.x);
+}
+var instance;
+foo() {
+  if (instance != null) {
+    print(instance.x);
+  } else {
+    print('v1');
+  }
+}
+main() {
+  instance = new A('v2');
+  foo();
+}
+""",
+            const <String>['v2']),
+    ],
 ];
 
 void main() {
