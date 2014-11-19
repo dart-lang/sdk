@@ -19,7 +19,7 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_emitter/js_emitter.dart'
     show Emitter, CodeEmitterTask, ClassBuilder, MetadataEmitter;
-import '../library_loader.dart' show LibraryLoader;
+import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
 import '../ssa/ssa.dart';
 import '../tree/tree.dart';

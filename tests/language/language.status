@@ -7,6 +7,7 @@
 
 [ $compiler == none ]
 built_in_identifier_prefix_test: Fail # Issue 6970
+enum_test: Fail # Issue 21416
 
 # These bugs refer currently ongoing language discussions.
 constructor_initializer_test/none: Fail # Issue 12633
@@ -49,6 +50,7 @@ deferred_shadow_load_library_test: Fail # Issue 17523
 deferred_closurize_load_library_test: Fail  # Issue 17523
 deferred_inlined_test: Fail  # Issue 17523
 deferred_optimized_test: Fail  # Issue 17523
+enum_test: Crash # Issue 21416/21417
 
 override_inheritance_mixed_test/08: Fail # Issue 18124
 override_inheritance_mixed_test/09: Fail # Issue 18124

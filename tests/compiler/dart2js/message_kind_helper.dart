@@ -83,7 +83,8 @@ Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
     Compiler compiler = compilerFor(
         example,
         diagnosticHandler: collect,
-        options: ['--analyze-only']..addAll(kind.options),
+        options: ['--analyze-only',
+                  '--enable-experimental-mirrors']..addAll(kind.options),
         cachedCompiler: cachedCompiler);
 
     return compiler.run(Uri.parse('memory:main.dart')).then((_) {

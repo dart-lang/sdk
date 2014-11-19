@@ -6,6 +6,8 @@ library docgen.model_helpers;
 
 import 'dart:collection';
 
+import 'package:compiler/src/constants/expressions.dart';
+
 import '../exports/dart2js_mirrors.dart' as dart2js_mirrors;
 import '../exports/mirrors_util.dart' as dart2js_util;
 import '../exports/source_mirrors.dart';
@@ -53,20 +55,117 @@ String getDefaultValue(ParameterMirror mirror) {
   return '${mirror.defaultValue}';
 }
 
-// TODO(johnniwinther): Use the `ConstExp` classes instead of `ResolvedNode`.
 /// Returns a list of meta annotations assocated with a mirror.
 List<Annotation> createAnnotations(DeclarationMirror mirror,
     Library owningLibrary) {
   var annotations = [];
-  for (dart2js_mirrors.ResolvedNode node in
-      dart2js_mirrors.BackDoor.metadataSyntaxOf(mirror)) {
-    var docgenAnnotation = new Annotation(node, owningLibrary);
-    if (!_SKIPPED_ANNOTATIONS.contains(dart2js_util.qualifiedNameOf(
-        docgenAnnotation.mirror))) {
+  var info = new AnnotationInfo(mirror, owningLibrary);
+  for (var expr in dart2js_mirrors.BackDoor.metadataSyntaxOf(mirror)) {
+    var docgenAnnotation = expr.accept(const AnnotationCreator(), info);
+    if (docgenAnnotation != null &&
+        !_SKIPPED_ANNOTATIONS.contains(
+            dart2js_util.qualifiedNameOf(docgenAnnotation.mirror))) {
       annotations.add(docgenAnnotation);
     }
   }
   return annotations;
+}
+
+class AnnotationInfo {
+  final Mirror mirror;
+  final Library owningLibrary;
+
+  AnnotationInfo(this.mirror, this.owningLibrary);
+}
+
+class AnnotationCreator
+    extends ConstantExpressionVisitor<AnnotationInfo, Annotation> {
+
+  const AnnotationCreator();
+
+  Annotation createAnnotation(var element,
+                              AnnotationInfo context,
+                              [List<String> parameters = const <String>[]]) {
+    var mirror =
+        dart2js_mirrors.BackDoor.getMirrorFromElement(context.mirror, element);
+    if (mirror != null) {
+      return new Annotation(context.owningLibrary, mirror, parameters);
+    }
+    return null;
+  }
+
+  @override
+  Annotation visitBinary(BinaryConstantExpression exp,
+                         [AnnotationInfo context]) {
+    return null;
+  }
+
+  @override
+  Annotation visitConcatenate(ConcatenateConstantExpression exp,
+                              [AnnotationInfo context]) {
+    return null;
+  }
+
+  @override
+  Annotation visitConditional(ConditionalConstantExpression exp,
+                              [AnnotationInfo context]) {
+    return null;
+  }
+
+  @override
+  Annotation visitConstructed(ConstructedConstantExpresssion exp,
+                              [AnnotationInfo context]) {
+    return createAnnotation(exp.target, context,
+        exp.arguments.map((a) => a.getText()).toList());
+  }
+
+  @override
+  Annotation visitFunction(FunctionConstantExpression exp,
+                           [AnnotationInfo context]) {
+    return createAnnotation(exp.element, context);
+  }
+
+  @override
+  Annotation visitList(ListConstantExpression exp,
+                       [AnnotationInfo context]) {
+    return null;
+  }
+
+  @override
+  Annotation visitMap(MapConstantExpression exp,
+                      [AnnotationInfo context]) {
+    return null;
+  }
+
+  @override
+  Annotation visitPrimitive(PrimitiveConstantExpression exp,
+                            [AnnotationInfo context]) {
+    return null;
+  }
+
+  @override
+  Annotation visitSymbol(SymbolConstantExpression exp,
+                         [AnnotationInfo context]) {
+    return null;
+  }
+
+  @override
+  Annotation visitType(TypeConstantExpression exp,
+                       [AnnotationInfo context]) {
+    return null;
+  }
+
+  @override
+  Annotation visitUnary(UnaryConstantExpression exp,
+                        [AnnotationInfo context]) {
+    return null;
+  }
+
+  @override
+  Annotation visitVariable(VariableConstantExpression exp,
+                           [AnnotationInfo context]) {
+    return createAnnotation(exp.element, context);
+  }
 }
 
 /// A declaration is private if itself is private, or the owner is private.

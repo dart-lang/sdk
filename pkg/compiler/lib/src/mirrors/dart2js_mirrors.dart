@@ -448,19 +448,6 @@ class Dart2JsCompilationUnitMirror extends Dart2JsMirror with ContainerMixin {
   Uri get uri => _element.script.resourceUri;
 }
 
-class ResolvedNode {
-  final node;
-  final _elements;
-  final _mirrorSystem;
-  ResolvedNode(this.node, this._elements, this._mirrorSystem);
-
-  Mirror resolvedMirror(node) {
-    var element = _elements[node];
-    if (element == null) return null;
-    return _convertElementToDeclarationMirror(_mirrorSystem, element);
-  }
-}
-
 /**
  * Transitional class that allows access to features that have not yet
  * made it to the mirror API.
@@ -474,28 +461,25 @@ class BackDoor {
         (cu) => new Dart2JsCompilationUnitMirror(cu, library));
   }
 
-  static Iterable metadataSyntaxOf(Dart2JsElementMirror declaration) {
-    Compiler compiler = declaration.mirrorSystem.compiler;
-    return declaration._element.metadata.map((metadata) {
-      var node = metadata.parseNode(compiler);
-      var treeElements = metadata.annotatedElement.treeElements;
-      return new ResolvedNode(
-          node, treeElements, declaration.mirrorSystem);
-    });
+  static Iterable<ConstantExpression> metadataSyntaxOf(
+      Dart2JsElementMirror declaration) {
+    return declaration._element.metadata.map((metadata) => metadata.constant);
   }
 
-  static ResolvedNode initializerSyntaxOf(Dart2JsFieldMirror variable) {
-    var node = variable._variable.initializer;
-    if (node == null) return null;
-    return new ResolvedNode(
-        node, variable._variable.treeElements, variable.mirrorSystem);
+  static ConstantExpression initializerSyntaxOf(Dart2JsFieldMirror variable) {
+    Compiler compiler = variable.mirrorSystem.compiler;
+    return compiler.constants.getConstantForVariable(variable._variable);
   }
 
-  static ResolvedNode defaultValueSyntaxOf(Dart2JsParameterMirror parameter) {
+  static ConstantExpression defaultValueSyntaxOf(
+        Dart2JsParameterMirror parameter) {
     if (!parameter.hasDefaultValue) return null;
     ParameterElement parameterElement = parameter._element;
-    var node = parameterElement.initializer;
-    var treeElements = parameterElement.treeElements;
-    return new ResolvedNode(node, treeElements, parameter.mirrorSystem);
+    Compiler compiler = parameter.mirrorSystem.compiler;
+    return compiler.constants.getConstantForVariable(parameterElement);
+  }
+
+  static Mirror getMirrorFromElement(Dart2JsMirror mirror, Element element) {
+    return _convertElementToDeclarationMirror(mirror.mirrorSystem, element);
   }
 }

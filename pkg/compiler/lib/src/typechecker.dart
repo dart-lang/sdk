@@ -1736,11 +1736,16 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   visitSwitchStatement(SwitchStatement node) {
     // TODO(johnniwinther): Handle reachability based on reachability of
     // switch cases.
+    // TODO(johnniwinther): Provide hint of duplicate case constants.
 
     DartType expressionType = analyze(node.expression);
 
     // Check that all the case expressions are assignable to the expression.
+    bool hasDefaultCase = false;
     for (SwitchCase switchCase in node.cases) {
+      if (switchCase.isDefaultCase) {
+        hasDefaultCase = true;
+      }
       for (Node labelOrCase in switchCase.labelsAndCases) {
         CaseMatch caseMatch = labelOrCase.asCaseMatch();
         if (caseMatch == null) continue;
@@ -1750,6 +1755,44 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       }
 
       analyze(switchCase);
+    }
+
+    if (!hasDefaultCase && expressionType.isEnumType) {
+      compiler.enqueuer.resolution.addDeferredAction(
+          elements.analyzedElement, () {
+        Map<ConstantValue, FieldElement> enumValues =
+            <ConstantValue, FieldElement>{};
+        List<FieldElement> unreferencedFields = <FieldElement>[];
+        EnumClassElement enumClass = expressionType.element;
+        enumClass.enumValues.forEach((FieldElement field) {
+          ConstantExpression constantExpression =
+              compiler.constants.getConstantForVariable(field);
+          if (constantExpression == null) {
+            // The field might not have been resolved.
+            unreferencedFields.add(field);
+          } else {
+            enumValues[constantExpression.value] = field;
+          }
+        });
+
+        for (SwitchCase switchCase in node.cases) {
+          for (Node labelOrCase in switchCase.labelsAndCases) {
+            CaseMatch caseMatch = labelOrCase.asCaseMatch();
+            if (caseMatch != null) {
+              ConstantExpression caseConstant =
+                  compiler.resolver.constantCompiler.compileNode(
+                      caseMatch.expression, elements);
+              enumValues.remove(caseConstant.value);
+            }
+          }
+        }
+        unreferencedFields.addAll(enumValues.values);
+        if (!unreferencedFields.isEmpty) {
+          compiler.reportWarning(node, MessageKind.MISSING_ENUM_CASES,
+              {'enumType': expressionType,
+               'enumValues': unreferencedFields.map((e) => e.name).join(', ')});
+        }
+      });
     }
 
     return const StatementType();

@@ -249,6 +249,7 @@ class HideFilter extends CombinatorFilter {
  */
 class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   _LibraryLoaderTask(Compiler compiler) : super(compiler);
+
   String get name => 'LibraryLoader';
 
   final Map<Uri, LibraryElement> libraryCanonicalUriMap =
@@ -342,11 +343,8 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         return compiler.withCurrentElement(library, () {
           return measure(() {
             currentHandler.computeExports();
-            Map<Uri, LibraryElement> loadedLibraries = <Uri, LibraryElement>{};
-            currentHandler.loadedLibraries.forEach(
-                (LibraryElement loadedLibrary) {
-              loadedLibraries[loadedLibrary.canonicalUri] = loadedLibrary;
-            });
+            LoadedLibraries loadedLibraries =
+                new _LoadedLibraries(library, currentHandler.nodeMap, this);
             currentHandler = null;
             return compiler.onLibrariesLoaded(loadedLibraries)
                 .then((_) => library);
@@ -1030,5 +1028,121 @@ class LibraryDependencyHandler implements LibraryLoader {
 
   Future processLibraryTags(LibraryElement library) {
     return task.processLibraryTags(this, library);
+  }
+}
+
+/// Information on the bulk of newly loaded libraries through a call to
+/// [LibraryLoader.loadLibrary].
+abstract class LoadedLibraries {
+  /// The uri passed to [LibraryLoader.loadLibrary].
+  Uri get rootUri;
+
+  /// Returns `true` if a library with canonical [uri] was loaded in this bulk.
+  bool containsLibrary(Uri uri);
+
+  /// Returns the library with canonical [uri] that was loaded in this bulk.
+  LibraryElement getLibrary(Uri uri);
+
+  /// Applies all libraries in this bulk to [f].
+  void forEachLibrary(f(LibraryElement library));
+
+  /// Applies all imports chains of [uri] in this bulk to [callback].
+  ///
+  /// The argument [importChainReversed] to [callback] contains the chain of
+  /// imports uris that lead to importing [uri] starting in [uri] and ending in
+  /// [rootUri].
+  ///
+  /// [callback] is called once for each chain of imports leading to [uri] until
+  /// [callback] returns `false`.
+  void forEachImportChain(Uri uri,
+                          {bool callback(Link<Uri> importChainReversed)});
+}
+
+class _LoadedLibraries implements LoadedLibraries {
+  final _LibraryLoaderTask task;
+  final LibraryElement rootLibrary;
+  final Map<Uri, LibraryElement> loadedLibraries = <Uri, LibraryElement>{};
+  final Map<LibraryElement, LibraryDependencyNode> nodeMap;
+
+  _LoadedLibraries(this.rootLibrary, this.nodeMap, this.task) {
+    nodeMap.keys.forEach((LibraryElement loadedLibrary) {
+      loadedLibraries[loadedLibrary.canonicalUri] = loadedLibrary;
+    });
+  }
+
+  Uri get rootUri => rootLibrary.canonicalUri;
+
+  bool containsLibrary(Uri uri) => loadedLibraries.containsKey(uri);
+
+  LibraryElement getLibrary(Uri uri) => loadedLibraries[uri];
+
+  void forEachLibrary(f(LibraryElement library)) => nodeMap.keys.forEach(f);
+
+  void forEachImportChain(Uri targetUri,
+                          {bool callback(Link<Uri> importChainReversed)}) {
+    bool aborted = false;
+
+    /// Map from libraries to the set of (unreversed) paths to [uri].
+    Map<LibraryElement, Iterable<Link<Uri>>> suffixChainMap =
+        <LibraryElement, Iterable<Link<Uri>>>{};
+
+    /// Computes the set of (unreversed) paths to [targetUri].
+    ///
+    /// Finds all paths (suffixes) from the current library to [uri] and stores
+    /// it in [suffixChainMap].
+    ///
+    /// For every found suffix it prepends the given [prefix] and the canonical
+    /// uri of [library] and invokes the [callback] with the concatenated chain.
+    void computeSuffixes(LibraryElement library,
+                         Link<Uri> prefix) {
+      if (aborted) return;
+
+      Uri canonicalUri = library.canonicalUri;
+      prefix = prefix.prepend(canonicalUri);
+      if (suffixChainMap.containsKey(library)) return;
+      suffixChainMap[library] = const <Link<Uri>>[];
+      List<Link<Uri>> suffixes = [];
+      if (targetUri != canonicalUri) {
+        LibraryDependencyNode node = nodeMap[library];
+        for (ImportLink import in node.imports.reverse()) {
+          bool suffixesArePrecomputed =
+              suffixChainMap.containsKey(import.importedLibrary);
+
+          if (!suffixesArePrecomputed) {
+            computeSuffixes(import.importedLibrary, prefix);
+            if (aborted) return;
+          }
+
+          for (Link<Uri> suffix in suffixChainMap[import.importedLibrary]) {
+            suffixes.add(suffix.prepend(canonicalUri));
+
+            if (suffixesArePrecomputed) {
+              // Only report chains through [import] if the suffixes had already
+              // been computed, otherwise [computeSuffixes] have reported the
+              // paths through [prefix].
+              Link<Uri> chain = prefix;
+              while (!suffix.isEmpty) {
+                chain = chain.prepend(suffix.head);
+                suffix = suffix.tail;
+              }
+              if (!callback(chain)) {
+                aborted = true;
+                return;
+              }
+            }
+          }
+        }
+      } else { // Here `targetUri == canonicalUri`.
+        if (!callback(prefix)) {
+          aborted = true;
+          return;
+        }
+        suffixes.add(const Link<Uri>().prepend(canonicalUri));
+      }
+      suffixChainMap[library] = suffixes;
+      return;
+    }
+
+    computeSuffixes(rootLibrary, const Link<Uri>());
   }
 }

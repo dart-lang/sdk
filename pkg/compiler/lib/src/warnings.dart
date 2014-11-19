@@ -804,9 +804,9 @@ main() => new C();
       howToFix: "Try making '#{enumType}' a normal class or removing the "
         "'extends' clause.",
       examples: const ["""
-enum Enum {}
-class A extends Enum {}
-main() => new A();"""]);
+enum Enum { A }
+class B extends Enum {}
+main() => new B();"""]);
 
   static const MessageKind CANNOT_IMPLEMENT_ENUM = const MessageKind(
       "Class '#{className}' can't implement the type '#{enumType}' "
@@ -815,9 +815,9 @@ main() => new A();"""]);
       howToFix: "Try making '#{enumType}' a normal class or removing the "
         "type from the 'implements' clause.",
       examples: const ["""
-enum Enum {}
-class A implements Enum {}
-main() => new A();"""]);
+enum Enum { A }
+class B implements Enum {}
+main() => new B();"""]);
 
   static const MessageKind CANNOT_MIXIN_ENUM = const MessageKind(
       "Class '#{className}' can't mixin the type '#{enumType}' because it "
@@ -826,9 +826,9 @@ main() => new A();"""]);
       howToFix: "Try making '#{enumType}' a normal class or removing the "
         "type from the 'with' clause.",
       examples: const ["""
-enum Enum {}
-class A extends Object with Enum {}
-main() => new A();"""]);
+enum Enum { A }
+class B extends Object with Enum {}
+main() => new B();"""]);
 
   static const MessageKind CANNOT_INSTANTIATE_ENUM = const MessageKind(
       "Enum type '#{enumName}' cannot be instantiated.",
@@ -836,10 +836,37 @@ main() => new A();"""]);
       howToFix: "Try making '#{enumType}' a normal class or use an enum "
                 "constant.",
       examples: const ["""
+enum Enum { A }
+main() => new Enum(0);""", """
+enum Enum { A }
+main() => const Enum(0);"""]);
+
+  static const MessageKind EMPTY_ENUM_DECLARATION = const MessageKind(
+      "Enum '#{enumName}' must contain at least one value.",
+      options: const ['--enable-enum'],
+      howToFix: "Try adding an enum constant or making #{enumName} a "
+                "normal class.",
+      examples: const ["""
 enum Enum {}
-main() => new Enum(0, '');""", """
-enum Enum {}
-main() => const Enum(0, '');"""]);
+main() { Enum e; }"""]);
+
+  static const MessageKind MISSING_ENUM_CASES = const MessageKind(
+      "Missing enum constants in switch statement: #{enumValues}.",
+      options: const ['--enable-enum'],
+      howToFix: "Try adding the missing constants or a default case.",
+      examples: const ["""
+enum Enum { A, B }
+main() {
+  switch (Enum.A) {
+  case Enum.B: break;
+  }
+}""", """
+enum Enum { A, B, C }
+main() {
+  switch (Enum.A) {
+  case Enum.B: break;
+  }
+}"""]);
 
   static const MessageKind DUPLICATE_EXTENDS_IMPLEMENTS = const MessageKind(
       "'#{type}' can not be both extended and implemented.");
@@ -2225,6 +2252,30 @@ main() sync* {
   //////////////////////////////////////////////////////////////////////////////
   // Patch errors end.
   //////////////////////////////////////////////////////////////////////////////
+
+  static const String IMPORT_EXPERIMENTAL_MIRRORS_PADDING = '\n*   ';
+
+  static const MessageKind IMPORT_EXPERIMENTAL_MIRRORS =
+      const MessageKind(r'''
+
+****************************************************************
+* WARNING: dart:mirrors support in dart2js is experimental,
+*          and not recommended.
+*          This implementation of mirrors is incomplete,
+*          and often greatly increases the size of the generated
+*          JavaScript code.
+*
+* Your app imports dart:mirrors via:''''''
+$IMPORT_EXPERIMENTAL_MIRRORS_PADDING#{importChain}
+*
+* Starting with Dart 1.9, you must use the
+* --enable-experimental-mirrors command-line flag to opt-in.
+* You can begin using this flag now if mirrors support is critical.
+*
+* To learn what to do next, please visit:
+*    http://dartlang.org/dart2js-reflection
+****************************************************************
+''');
 
   static const MessageKind CALL_NOT_SUPPORTED_ON_NATIVE_CLASS =
       const MessageKind(

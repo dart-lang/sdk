@@ -817,20 +817,7 @@ Future testEnumDeclaration() {
       compiler.resolver.resolve(mainElement);
       Expect.equals(0, compiler.warnings.length,
                     'Unexpected warnings: ${compiler.warnings}');
-      Expect.equals(0, compiler.errors.length,
-                    'Unexpected errors: ${compiler.errors}');
-    }, enableEnums: true),
-
-    MockCompiler.create((MockCompiler compiler) {
-      compiler.parseScript("""enum Enum {}
-                              main() { Enum e = Enum.A; }""");
-      FunctionElement mainElement = compiler.mainApp.find(MAIN);
-      compiler.resolver.resolve(mainElement);
-      Expect.equals(1, compiler.warnings.length,
-                    'Unexpected warnings: ${compiler.warnings}');
-      Expect.equals(MessageKind.MEMBER_NOT_FOUND,
-                    compiler.warnings[0].message.kind);
-      Expect.equals(0, compiler.errors.length,
+      Expect.equals(1, compiler.errors.length,
                     'Unexpected errors: ${compiler.errors}');
     }, enableEnums: true),
 
@@ -870,7 +857,7 @@ Future testEnumDeclaration() {
     }, enableEnums: true),
 
     MockCompiler.create((MockCompiler compiler) {
-      compiler.parseScript("""enum Enum {}
+      compiler.parseScript("""enum Enum { A }
                               main() { new Enum(0, ''); }""");
       FunctionElement mainElement = compiler.mainApp.find(MAIN);
       compiler.resolver.resolve(mainElement);
@@ -883,7 +870,7 @@ Future testEnumDeclaration() {
     }, enableEnums: true),
 
     MockCompiler.create((MockCompiler compiler) {
-      compiler.parseScript("""enum Enum {}
+      compiler.parseScript("""enum Enum { A }
                               main() { const Enum(0, ''); }""");
       FunctionElement mainElement = compiler.mainApp.find(MAIN);
       compiler.resolver.resolve(mainElement);

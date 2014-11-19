@@ -29,6 +29,7 @@ main() {
                 testWhile,
                 testTry,
                 testSwitch,
+                testEnumSwitch,
                 testOperators,
                 testConstructorInvocationArgumentCount,
                 testConstructorInvocationArgumentTypes,
@@ -167,6 +168,89 @@ testSwitch(MockCompiler compiler) {
         warnings: [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
   check("switch (1.5) { case 1: break; case 2: break; }",
         warnings: [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
+}
+
+testEnumSwitch(MockCompiler compiler) {
+  String DECLARATIONS = """
+enum Enum { A, B, C }
+""";
+
+  check(String code, {warnings}) {
+    MockCompiler compiler = new MockCompiler.internal(enableEnums: true);
+    return compiler.init(DECLARATIONS).then((_) {
+      analyze(compiler, code, warnings: warnings, flushDeferred: true);
+    });
+  }
+
+  check("""
+switch (Enum.A) {
+default: break;
+}""");
+
+  check("""
+switch (Enum.A) {
+case Enum.A: break;
+default: break;
+}""");
+
+  check("""
+switch (Enum.A) {
+case Enum.A: break;
+case Enum.B: break;
+default: break;
+}""");
+
+  check("""
+switch (Enum.A) {
+case Enum.A: break;
+case Enum.B: break;
+case Enum.C: break;
+default: break;
+}""");
+
+  check("""
+switch (Enum.A) {
+case Enum.A: break;
+case Enum.B: break;
+case Enum.C: break;
+}""");
+
+  check("""
+switch (Enum.A) {
+case Enum.B: break;
+case Enum.C: break;
+}""", warnings: MessageKind.MISSING_ENUM_CASES);
+
+  check("""
+switch (Enum.A) {
+case Enum.A: break;
+case Enum.C: break;
+}""", warnings: MessageKind.MISSING_ENUM_CASES);
+
+  check("""
+switch (Enum.A) {
+case Enum.A: break;
+case Enum.B: break;
+}""", warnings: MessageKind.MISSING_ENUM_CASES);
+
+  check("""
+switch (Enum.A) {
+case Enum.A: break;
+}""", warnings: MessageKind.MISSING_ENUM_CASES);
+
+  check("""
+switch (Enum.A) {
+case Enum.B: break;
+}""", warnings: MessageKind.MISSING_ENUM_CASES);
+
+  check("""
+switch (Enum.A) {
+case Enum.C: break;
+}""", warnings: MessageKind.MISSING_ENUM_CASES);
+
+  check("""
+switch (Enum.A) {
+}""", warnings: MessageKind.MISSING_ENUM_CASES);
 }
 
 testOperators(MockCompiler compiler) {
@@ -2061,7 +2145,8 @@ analyzeTopLevel(String text, [expectedWarnings]) {
  */
 analyze(MockCompiler compiler,
         String text,
-        {errors, warnings, List hints, List infos}) {
+        {errors, warnings, List hints, List infos,
+         bool flushDeferred: false}) {
   if (warnings == null) warnings = [];
   if (warnings is !List) warnings = [warnings];
   if (errors == null) errors = [];
@@ -2078,10 +2163,14 @@ analyze(MockCompiler compiler,
     new CompilationUnitElementX(new Script(null, null, null), compiler.mainApp);
   Element function = new MockElement(compilationUnit);
   TreeElements elements = compiler.resolveNodeStatement(node, function);
+  compiler.enqueuer.resolution.emptyDeferredTaskQueue();
   TypeCheckerVisitor checker = new TypeCheckerVisitor(
       compiler, elements, compiler.types);
   compiler.clearMessages();
   checker.analyze(node);
+  if (flushDeferred) {
+    compiler.enqueuer.resolution.emptyDeferredTaskQueue();
+  }
   compareWarningKinds(text, warnings, compiler.warnings);
   compareWarningKinds(text, errors, compiler.errors);
   if (hints != null) compareWarningKinds(text, hints, compiler.hints);

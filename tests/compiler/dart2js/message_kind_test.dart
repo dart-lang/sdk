@@ -21,10 +21,14 @@ main(List<String> arguments) {
     VariableMirror variable = declaration;
     if (variable.isStatic) {
       var value = cls.getField(name).reflectee;
+      String variableName = MirrorSystem.getName(name);
+      if (variableName == 'IMPORT_EXPERIMENTAL_MIRRORS_PADDING') {
+        return;
+      }
       if (value is MessageKind) {
-        kinds[MirrorSystem.getName(name)] = value;
+        kinds[variableName] = value;
       } else {
-        Expect.fail("Weird static field: '${MirrorSystem.getName(name)}'.");
+        Expect.fail("Weird static field: '${variableName}'.");
       }
     }
   });
