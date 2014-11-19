@@ -1771,14 +1771,14 @@ class JavaScriptBackend extends Backend {
     });
   }
 
-  Future onLibrariesLoaded(Map<Uri, LibraryElement> loadedLibraries) {
-    if (!loadedLibraries.containsKey(Compiler.DART_CORE)) {
+  Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
+    if (!loadedLibraries.containsLibrary(Compiler.DART_CORE)) {
       return new Future.value();
     }
 
-    assert(loadedLibraries.containsKey(Compiler.DART_CORE));
-    assert(loadedLibraries.containsKey(DART_INTERCEPTORS));
-    assert(loadedLibraries.containsKey(DART_JS_HELPER));
+    assert(loadedLibraries.containsLibrary(Compiler.DART_CORE));
+    assert(loadedLibraries.containsLibrary(DART_INTERCEPTORS));
+    assert(loadedLibraries.containsLibrary(DART_JS_HELPER));
 
     if (jsInvocationMirrorClass != null) {
       jsInvocationMirrorClass.ensureResolved(compiler);

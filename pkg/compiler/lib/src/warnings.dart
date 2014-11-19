@@ -2253,6 +2253,30 @@ main() sync* {
   // Patch errors end.
   //////////////////////////////////////////////////////////////////////////////
 
+  static const String IMPORT_EXPERIMENTAL_MIRRORS_PADDING = '\n*   ';
+
+  static const MessageKind IMPORT_EXPERIMENTAL_MIRRORS =
+      const MessageKind(r'''
+
+****************************************************************
+* WARNING: dart:mirrors support in dart2js is experimental,
+*          and not recommended.
+*          This implementation of mirrors is incomplete,
+*          and often greatly increases the size of the generated
+*          JavaScript code.
+*
+* Your app imports dart:mirrors via:''''''
+$IMPORT_EXPERIMENTAL_MIRRORS_PADDING#{importChain}
+*
+* Starting with Dart 1.9, you must use the
+* --enable-experimental-mirrors command-line flag to opt-in.
+* You can begin using this flag now if mirrors support is critical.
+*
+* To learn what to do next, please visit:
+*    http://dartlang.org/dart2js-reflection
+****************************************************************
+''');
+
   static const MessageKind CALL_NOT_SUPPORTED_ON_NATIVE_CLASS =
       const MessageKind(
           "Non-supported 'call' member on a native class, or a "

@@ -7,16 +7,18 @@ library uri_extras;
 import 'dart:math';
 
 String relativize(Uri base, Uri uri, bool isWindows) {
-  if (!base.path.startsWith('/')) {
-    // Also throw an exception if [base] or base.path is null.
-    throw new ArgumentError('Expected absolute path: ${base.path}');
-  }
-  if (!uri.path.startsWith('/')) {
-    // Also throw an exception if [uri] or uri.path is null.
-    throw new ArgumentError('Expected absolute path: ${uri.path}');
-  }
   bool equalsNCS(String a, String b) {
     return a.toLowerCase() == b.toLowerCase();
+  }
+
+  if (!equalsNCS(base.scheme, uri.scheme) ||
+      equalsNCS(base.scheme, 'dart') ||
+      equalsNCS(base.scheme, 'package')) {
+    return uri.toString();
+  }
+
+  if (!equalsNCS(base.scheme, 'file')) {
+    isWindows = false;
   }
 
   String normalize(String path) {
@@ -27,14 +29,17 @@ String relativize(Uri base, Uri uri, bool isWindows) {
     }
   }
 
-  if (equalsNCS(base.scheme, 'file') &&
-      equalsNCS(base.scheme, uri.scheme) &&
-      base.userInfo == uri.userInfo &&
+  if (base.userInfo == uri.userInfo &&
       equalsNCS(base.host, uri.host) &&
       base.port == uri.port &&
       uri.query == "" && uri.fragment == "") {
     if (normalize(uri.path).startsWith(normalize(base.path))) {
       return uri.path.substring(base.path.lastIndexOf('/') + 1);
+    }
+
+    if (!base.path.startsWith('/') ||
+        !uri.path.startsWith('/')) {
+      return uri.toString();
     }
 
     List<String> uriParts = uri.path.split('/');

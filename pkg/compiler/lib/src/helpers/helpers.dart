@@ -67,7 +67,7 @@ DebugWrapPrint get debugWrapPrint {
 }
 
 /// Implementation of [debugWrapPrint].
-DebugWrapPrint _debugWrapPrint(s, f()) {
+_debugWrapPrint(s, f()) {
   debugPrint('start:$s');
   var result = _indentation.indentBlock(f);
   debugPrint('end:$s');
