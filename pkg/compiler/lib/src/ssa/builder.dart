@@ -4302,7 +4302,7 @@ class SsaBuilder extends ResolvedVisitor {
       push(foreign);
       TypesInferrer inferrer = compiler.typesTask.typesInferrer;
       if (inferrer.isFixedArrayCheckedForGrowable(send)) {
-        js.Template code = js.js.parseForeignJS(r'#.fixed$length = init');
+        js.Template code = js.js.parseForeignJS(r'#.fixed$length = Array');
         // We set the instruction as [canThrow] to avoid it being dead code.
         // We need a finer grained side effect.
         add(new HForeign(
