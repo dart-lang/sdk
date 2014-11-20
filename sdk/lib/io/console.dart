@@ -51,7 +51,7 @@ class ConsoleSink implements Sink<List<int>>, StringSink {
     _sink = new IOSink(new _ConsoleConsumer(fd));
   }
 
-  void call(Object message) => _sink.writeln(message);
+  void call([Object message = ""]) => _sink.writeln(message);
 
   void add(List<int> data) => _sink.add(data);
 

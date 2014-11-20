@@ -21,6 +21,8 @@ void test(ConsoleSink sink) {
 void main(List<String> arguments) {
   console.log('stdout');
   console.error('stderr');
+  console.log();
+  console.error();
   console.log(new Message('tuodts'));
   console.error(new Message('rredts'));
   test(console.log);
