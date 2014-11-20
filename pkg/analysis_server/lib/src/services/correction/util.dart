@@ -946,7 +946,7 @@ class CorrectionUtils {
       return source;
     }
     // check if imported
-    {
+    if (element.library != _library) {
       ImportElement importElement = _getImportElement(element);
       if (importElement != null) {
         if (importElement.prefix != null) {

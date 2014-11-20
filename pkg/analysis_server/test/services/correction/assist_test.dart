@@ -362,6 +362,23 @@ main() {
 ''');
   }
 
+  void test_addTypeAnnotation_local_OK_localType() {
+    _indexTestUnit('''
+class C {}
+C f() => null;
+main() {
+  var x = f();
+}
+''');
+    assertHasAssistAt('x =', AssistKind.ADD_TYPE_ANNOTATION, '''
+class C {}
+C f() => null;
+main() {
+  C x = f();
+}
+''');
+  }
+
   void test_addTypeAnnotation_local_OK_onInitializer() {
     _indexTestUnit('''
 main() {
