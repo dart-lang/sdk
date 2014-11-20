@@ -54,6 +54,28 @@ void testDirectConversions() {
         print(codec.encoder.convert(nonAsciiString));
       }, null, nonAsciiString);
     }
+
+    var encode = codec.encoder.convert;
+    Expect.listEquals([0x42, 0x43, 0x44], encode("ABCDE", 1, 4));
+    Expect.listEquals([0x42, 0x43, 0x44, 0x45], encode("ABCDE", 1));
+    Expect.listEquals([0x42, 0x43, 0x44], encode("\xffBCD\xff", 1, 4));
+    Expect.throws(() { encode("\xffBCD\xff", 0, 4); });
+    Expect.throws(() { encode("\xffBCD\xff", 1); });
+    Expect.throws(() { encode("\xffBCD\xff", 1, 5); });
+    Expect.throws(() { encode("\xffBCD\xff", -1, 4); });
+    Expect.throws(() { encode("\xffBCD\xff", 1, -1); });
+    Expect.throws(() { encode("\xffBCD\xff", 3, 2); });
+
+    var decode = codec.decoder.convert;
+    Expect.equals("BCD", decode([0x41, 0x42, 0x43, 0x44, 0x45], 1, 4));
+    Expect.equals("BCDE", decode([0x41, 0x42, 0x43, 0x44, 0x45], 1));
+    Expect.equals("BCD", decode([0xFF, 0x42, 0x43, 0x44, 0xFF], 1, 4));
+    Expect.throws(() { decode([0xFF, 0x42, 0x43, 0x44, 0xFF], 0, 4); });
+    Expect.throws(() { decode([0xFF, 0x42, 0x43, 0x44, 0xFF], 1); });
+    Expect.throws(() { decode([0xFF, 0x42, 0x43, 0x44, 0xFF], 1, 5); });
+    Expect.throws(() { decode([0xFF, 0x42, 0x43, 0x44, 0xFF], -1, 4); });
+    Expect.throws(() { decode([0xFF, 0x42, 0x43, 0x44, 0xFF], 1, -1); });
+    Expect.throws(() { decode([0xFF, 0x42, 0x43, 0x44, 0xFF], 3, 2); });
   }
 
   var allowInvalidCodec = new AsciiCodec(allowInvalid: true);

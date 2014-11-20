@@ -52,6 +52,28 @@ void testDirectConversions() {
         print(codec.encoder.convert(nonLatin1String));
       }, null, nonLatin1String);
     }
+
+    var encode = codec.encoder.convert;
+    Expect.listEquals([0x42, 0xff, 0x44], encode("AB\xffDE", 1, 4));
+    Expect.listEquals([0x42, 0xff, 0x44, 0x45], encode("AB\xffDE", 1));
+    Expect.listEquals([0x42, 0xff, 0x44], encode("\u3000B\xffD\u3000", 1, 4));
+    Expect.throws(() { encode("\u3000B\xffD\u3000", 0, 4); });
+    Expect.throws(() { encode("\u3000B\xffD\u3000", 1); });
+    Expect.throws(() { encode("\u3000B\xffD\u3000", 1, 5); });
+    Expect.throws(() { encode("\u3000B\xffD\u3000", -1, 4); });
+    Expect.throws(() { encode("\u3000B\xffD\u3000", 1, -1); });
+    Expect.throws(() { encode("\u3000B\xffD\u3000", 3, 2); });
+
+    var decode = codec.decoder.convert;
+    Expect.equals("B\xffD", decode([0x41, 0x42, 0xff, 0x44, 0x45], 1, 4));
+    Expect.equals("B\xffDE", decode([0x41, 0x42, 0xff, 0x44, 0x45], 1));
+    Expect.equals("B\xffD", decode([0xFF, 0x42, 0xff, 0x44, 0xFF], 1, 4));
+    Expect.throws(() { decode([0x3000, 0x42, 0xff, 0x44, 0x3000], 0, 4); });
+    Expect.throws(() { decode([0x3000, 0x42, 0xff, 0x44, 0x3000], 1); });
+    Expect.throws(() { decode([0x3000, 0x42, 0xff, 0x44, 0x3000], 1, 5); });
+    Expect.throws(() { decode([0x3000, 0x42, 0xff, 0x44, 0x3000], -1, 4); });
+    Expect.throws(() { decode([0x3000, 0x42, 0xff, 0x44, 0x3000], 1, -1); });
+    Expect.throws(() { decode([0x3000, 0x42, 0xff, 0x44, 0x3000], 3, 2); });
   }
 
   var allowInvalidCodec = new Latin1Codec(allowInvalid: true);

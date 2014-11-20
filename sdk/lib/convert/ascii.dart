@@ -60,9 +60,9 @@ class AsciiCodec extends Encoding {
     }
   }
 
-  Converter<String, List<int>> get encoder => const AsciiEncoder();
+  AsciiEncoder get encoder => const AsciiEncoder();
 
-  Converter<List<int>, String> get decoder =>
+  AsciiDecoder get decoder =>
       _allowInvalid ? const AsciiDecoder(allowInvalid: true)
                     : const AsciiDecoder(allowInvalid: false);
 }
@@ -74,10 +74,28 @@ class _UnicodeSubsetEncoder extends Converter<String, List<int>> {
 
   const _UnicodeSubsetEncoder(this._subsetMask);
 
-  List<int> convert(String string) {
-    List result = new Uint8List(string.length);
-    for (int i = 0; i < string.length; i++) {
-      var codeUnit = string.codeUnitAt(i);
+  /**
+   * Converts the [String] into a list of its code units.
+   *
+   * If [start] and [end] are provided, only the substring
+   * `string.substring(start, end)` is used as input to the conversion.
+   */
+  List<int> convert(String string, [int start = 0, int end]) {
+    int stringLength = string.length;
+    if (start < 0 || start > stringLength) {
+      throw new RangeError.range(start, 0, stringLength, "start");
+    }
+    if (end == null) {
+      end = stringLength;
+    } else {
+      if (end < start || end > stringLength) {
+        throw new RangeError.range(end, start, stringLength, "end");
+      }
+    }
+    int length = end - start;
+    List result = new Uint8List(length);
+    for (int i = 0; i < length; i++) {
+      var codeUnit = string.codeUnitAt(start + i);
       if ((codeUnit & ~_subsetMask) != 0) {
         throw new ArgumentError("String contains invalid characters.");
       }
@@ -172,23 +190,39 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
   /**
    * Converts the [bytes] (a list of unsigned 7- or 8-bit integers) to the
    * corresponding string.
+   *
+   * If [start] and [end] are provided, only the sub-list of bytes from
+   * `start` to `end` (`end` not inclusive) is used as input to the conversion.
    */
-  String convert(List<int> bytes) {
-    for (int i = 0; i < bytes.length; i++) {
+  String convert(List<int> bytes, [int start = 0, int end]) {
+    int byteCount = bytes.length;
+    if (start < 0 || start > byteCount) {
+      throw new RangeError.range(start, 0, byteCount, "start");
+    }
+    if (end == null) {
+      end = byteCount;
+    } else {
+      if (end < start || end > byteCount) {
+        throw new RangeError.range(end, start, byteCount, "end");
+      }
+    }
+    int length = end - start;
+
+    for (int i = start; i < end; i++) {
       int byte = bytes[i];
       if ((byte & ~_subsetMask) != 0) {
         if (!_allowInvalid) {
           throw new FormatException("Invalid value in input: $byte");
         }
-        return _convertInvalid(bytes);
+        return _convertInvalid(bytes, start, end);
       }
     }
-    return new String.fromCharCodes(bytes);
+    return new String.fromCharCodes(bytes, start, end);
   }
 
-  String _convertInvalid(List<int> bytes) {
+  String _convertInvalid(List<int> bytes, int start, int end) {
     StringBuffer buffer = new StringBuffer();
-    for (int i = 0; i < bytes.length; i++) {
+    for (int i = start; i < end; i++) {
       int value = bytes[i];
       if ((value & ~_subsetMask) != 0) value = 0xFFFD;
       buffer.writeCharCode(value);

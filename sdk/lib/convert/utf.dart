@@ -66,8 +66,8 @@ class Utf8Codec extends Encoding {
     return new Utf8Decoder(allowMalformed: allowMalformed).convert(codeUnits);
   }
 
-  Converter<String, List<int>> get encoder => new Utf8Encoder();
-  Converter<List<int>, String> get decoder {
+  Utf8Encoder get encoder => new Utf8Encoder();
+  Utf8Decoder get decoder {
     return new Utf8Decoder(allowMalformed: _allowMalformed);
   }
 }
@@ -83,15 +83,32 @@ class Utf8Encoder extends Converter<String, List<int>> {
   /**
    * Converts [string] to its UTF-8 code units (a list of
    * unsigned 8-bit integers).
+   *
+   * If [start] and [end] are provided, only the substring
+   * `string.substring(start, end)` is converted.
    */
-  List<int> convert(String string) {
+  List<int> convert(String string, [int start = 0, int end]) {
+    int stringLength = string.length;
+    if (start < 0 || start > stringLength) {
+      throw new RangeError.range(start, 0, stringLength, "start");
+    }
+    if (end == null) {
+      end = stringLength;
+    } else if (end < start || end > stringLength) {
+      throw new RangeError.range(end, start, stringLength, "end");
+    }
+    int length = end - start;
+    if (length == 0) return new Uint8List(0);
     // Create a new encoder with a length that is guaranteed to be big enough.
-    // A single code unit uses at most 3 bytes. Two code units at most 4.
-    _Utf8Encoder encoder = new _Utf8Encoder.withBufferSize(string.length * 3);
-    int endPosition = encoder._fillBuffer(string, 0, string.length);
-    assert(endPosition >= string.length - 1);
-    if (endPosition != string.length) {
-      int lastCodeUnit = string.codeUnitAt(string.length - 1);
+    // A single code unit uses at most 3 bytes, a surrogate pair at most 4.
+    _Utf8Encoder encoder = new _Utf8Encoder.withBufferSize(length * 3);
+    int endPosition = encoder._fillBuffer(string, start, end);
+    assert(endPosition >= end - 1);
+    if (endPosition != end) {
+      // Encoding skipped the last code unit.
+      // That can only happen if the last code unit is a leadsurrogate.
+      // Force encoding of the lead surrogate by itself.
+      int lastCodeUnit = string.codeUnitAt(end - 1);
       assert(_isLeadSurrogate(lastCodeUnit));
       // We use a non-surrogate as `nextUnit` so that _writeSurrogate just
       // writes the lead-surrogate.
@@ -313,13 +330,25 @@ class Utf8Decoder extends Converter<List<int>, String> {
    * Converts the UTF-8 [codeUnits] (a list of unsigned 8-bit integers) to the
    * corresponding string.
    *
+   * Uses the code units from [start] to, but no including, [end].
+   * If [end] is omitted, it defaults to `codeUnits.length`.
+   *
    * If the [codeUnits] start with a leading [UNICODE_BOM_CHARACTER_RUNE] this
    * character is discarded.
    */
-  String convert(List<int> codeUnits) {
+  String convert(List<int> codeUnits, [int start = 0, int end]) {
+    int length = codeUnits.length;
+    if (start < 0 || start > length) {
+      throw new RangeError.range(start, 0, length, "start");
+    }
+    if (end == null) {
+      end = length;
+    } else if (end < start || end > length) {
+      throw new RangeError.range(end, start, length, "end");
+    }
     StringBuffer buffer = new StringBuffer();
     _Utf8Decoder decoder = new _Utf8Decoder(buffer, _allowMalformed);
-    decoder.convert(codeUnits, 0, codeUnits.length);
+    decoder.convert(codeUnits, start, end);
     decoder.close();
     return buffer.toString();
   }
