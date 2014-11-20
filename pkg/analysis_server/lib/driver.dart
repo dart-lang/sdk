@@ -4,6 +4,7 @@
 
 library driver;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server/http_server.dart';
