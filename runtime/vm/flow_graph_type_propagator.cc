@@ -241,6 +241,11 @@ ConstrainedCompileType* FlowGraphTypePropagator::MarkNonNullable(
 
 void FlowGraphTypePropagator::VisitValue(Value* value) {
   CompileType* type = TypeOf(value->definition());
+  if (type == value->definition()->Type()) {
+    value->SetReachingType(NULL);
+    return;
+  }
+
   value->SetReachingType(type);
 
   if (FLAG_trace_type_propagation) {
@@ -641,7 +646,7 @@ bool CompileType::IsMoreSpecificThan(const AbstractType& other) {
 
 CompileType* Value::Type() {
   if (reaching_type_ == NULL) {
-    reaching_type_ = definition()->Type();
+    return definition()->Type();
   }
   return reaching_type_;
 }
