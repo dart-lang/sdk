@@ -144,6 +144,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
 
   @override
   visitConstructorDeclaration(ConstructorDeclaration node) {
+    _hasConstructor = true;
     ExecutableElement outerExecutable = _enclosingExecutable;
     try {
       SimpleIdentifier constructorName = node.name;
@@ -1038,24 +1039,15 @@ class _ElementsGatherer extends GeneralizingElementVisitor {
     if (!element.isSynthetic) {
       _addElement(element);
     }
-    // Don't visit children (such as a synthetic setter parameter).
+    // Don't visit children (such as synthetic setter parameters).
   }
 
   @override
   visitPropertyInducingElement(PropertyInducingElement element) {
-    // TODO(scheglov) should we remove synthetic variable initializer?
-//    _addElement(element);
-//    element.getter.accept(this);
-//    element.setter.accept(this);
-//    _addElement(element.getter);
-//    _addElement(element.setter);
-  }
-
-  @override
-  visitTopLevelVariableElement(TopLevelVariableElement element) {
     if (!element.isSynthetic) {
       _addElement(element);
     }
+    // Don't visit children (such as property accessors).
   }
 
   void _addElement(Element element) {

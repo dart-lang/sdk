@@ -74,6 +74,64 @@ class B {}
 ''');
   }
 
+  void test_false_constructor_parameters_list_add() {
+    _assertCompilationUnitMatches(false, r'''
+class A {
+  A();
+}
+''', r'''
+class A {
+  A(int p);
+}
+''');
+  }
+
+  void test_false_constructor_parameters_list_remove() {
+    _assertCompilationUnitMatches(false, r'''
+class A {
+  A(int p);
+}
+''', r'''
+class A {
+  A();
+}
+''');
+  }
+
+  void test_false_constructor_parameters_type_edit() {
+    _assertCompilationUnitMatches(false, r'''
+class A {
+  A(int p);
+}
+''', r'''
+class A {
+  A(String p);
+}
+''');
+  }
+
+  void test_false_constructor_unnamed_add_hadParameters() {
+    _assertCompilationUnitMatches(false, r'''
+class A {
+}
+''', r'''
+class A {
+  A(int p) {}
+}
+''');
+  }
+
+  void test_false_constructor_unnamed_remove_hadParameters() {
+    _assertCompilationUnitMatches(false, r'''
+class A {
+  A(int p) {}
+}
+''', r'''
+class A {
+}
+''');
+  }
+
   void test_false_extendsClause_add() {
     _assertCompilationUnitMatches(false, r'''
 class A {}
@@ -269,6 +327,52 @@ class C {}
 class A<T> {}
 ''', r'''
 class A<T> {}
+''');
+  }
+
+  void test_true_constructor_named_same() {
+    _assertCompilationUnitMatches(true, r'''
+class A {
+  A.name(int p);
+}
+''', r'''
+class A {
+  A.name(int p);
+}
+''');
+  }
+
+  void test_true_constructor_unnamed_add_noParameters() {
+    _assertCompilationUnitMatches(true, r'''
+class A {
+}
+''', r'''
+class A {
+  A() {}
+}
+''');
+  }
+
+  void test_true_constructor_unnamed_remove_noParameters() {
+    _assertCompilationUnitMatches(true, r'''
+class A {
+  A() {}
+}
+''', r'''
+class A {
+}
+''');
+  }
+
+  void test_true_constructor_unnamed_same() {
+    _assertCompilationUnitMatches(true, r'''
+class A {
+  A(int p);
+}
+''', r'''
+class A {
+  A(int p);
+}
 ''');
   }
 
