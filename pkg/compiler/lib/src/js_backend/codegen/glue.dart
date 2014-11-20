@@ -36,4 +36,6 @@ class Glue {
     return _namer.safeVariableName(name);
   }
 
+  ClassElement get listClass => _compiler.listClass;
+
 }

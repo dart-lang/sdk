@@ -175,8 +175,11 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   js.Expression visitLiteralList(tree_ir.LiteralList node) {
-    return giveup(node);
-    // TODO: implement visitLiteralList
+    registry.registerInstantiatedClass(glue.listClass);
+    int length = node.values.length;
+    List<js.ArrayElement> entries = new List<js.ArrayElement>.generate(length,
+        (int i) => new js.ArrayElement(i, visitExpression(node.values[i])));
+    return new js.ArrayInitializer(length, entries);
   }
 
   @override

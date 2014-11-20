@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=-DUSE_CPS_IR=true
 
-// Test that the CPS IR code generator is able to compile the provided
-// example programs.
+// Test that the CPS IR code generator compiles programs and produces the
+// the expected output.
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
@@ -14,61 +14,20 @@ import 'memory_compiler.dart';
 import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/common.dart' show Element;
 
+import 'js_backend_cps_ir_basic.dart' as basic;
+import 'js_backend_cps_ir_literals.dart' as literals;
 
 const String TEST_MAIN_FILE = 'test.dart';
+
+List<TestEntry> tests = <TestEntry>[]
+     ..addAll(basic.tests)
+     ..addAll(literals.tests);
 
 class TestEntry {
   final String source;
   final String expectation;
   const TestEntry(this.source, [this.expectation]);
 }
-
-/// The list of tests to run.
-const List<TestEntry> tests = const [
-  const TestEntry(
-  """
-foo(a) {
-  return a;
-}
-main() {
-  var a = 10;
-  var b = 1;
-  var t;
-  t = a;
-  a = b;
-  b = t;
-  print(a);
-  print(b);
-  print(b);
-  print(foo(a));
-}
-  """,
-  """
-function() {
-  var a, b;
-  a = 10;
-  b = 1;
-  P.print(b);
-  P.print(a);
-  P.print(a);
-  P.print(V.foo(b));
-  return null;
-}"""),
-  const TestEntry(
-  """
-foo() { return 42; }
-main() { return foo(); }
-  """,
-  """function() {
-  return V.foo();
-}"""),
-  const TestEntry("main() {}"),
-  const TestEntry("main() { return 42; }"),
-  const TestEntry("main() { return; }", """
-function() {
-  return null;
-}"""),
-];
 
 String formatTest(Map test) {
   return test[TEST_MAIN_FILE];
