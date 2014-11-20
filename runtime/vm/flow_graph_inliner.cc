@@ -28,7 +28,7 @@ DEFINE_FLAG(charp, inlining_filter, NULL, "Inline only in named function");
 // Flags for inlining heuristics.
 DEFINE_FLAG(int, inline_getters_setters_smaller_than, 10,
     "Always inline getters and setters that have fewer instructions");
-DEFINE_FLAG(int, inlining_depth_threshold, 5,
+DEFINE_FLAG(int, inlining_depth_threshold, 6,
     "Inline function calls up to threshold nesting depth");
 DEFINE_FLAG(int, inlining_size_threshold, 25,
     "Always inline functions that have threshold or fewer instructions");
@@ -47,7 +47,8 @@ DEFINE_FLAG(int, inlining_constant_arguments_size_threshold, 60,
 DEFINE_FLAG(int, inlining_hotness, 10,
     "Inline only hotter calls, in percents (0 .. 100); "
     "default 10%: calls above-equal 10% of max-count are inlined.");
-DEFINE_FLAG(bool, inline_recursive, false, "Inline recursive calls.");
+DEFINE_FLAG(int, inlining_recursion_depth_threshold, 1,
+    "Inline recursive function calls up to threshold recursion depth.");
 DEFINE_FLAG(int, max_inlined_per_depth, 500,
     "Max. number of inlined calls per depth");
 DEFINE_FLAG(bool, print_inlining_tree, false, "Print inlining tree");
@@ -476,7 +477,9 @@ class CallSiteInliner : public ValueObject {
         inlined_(false),
         initial_size_(flow_graph->InstructionCount()),
         inlined_size_(0),
+        inlined_recursive_call_(false),
         inlining_depth_(1),
+        inlining_recursion_depth_(0),
         collected_call_sites_(NULL),
         inlining_call_sites_(NULL),
         function_cache_(),
@@ -551,8 +554,12 @@ class CallSiteInliner : public ValueObject {
       InlineInstanceCalls();
       InlineStaticCalls();
       InlineClosureCalls();
-      // Increment the inlining depth. Checked before recursive inlining.
+      // Increment the inlining depths. Checked before subsequent inlining.
       ++inlining_depth_;
+      if (inlined_recursive_call_) {
+        ++inlining_recursion_depth_;
+        inlined_recursive_call_ = false;
+      }
     }
     collected_call_sites_ = NULL;
     inlining_call_sites_ = NULL;
@@ -641,7 +648,9 @@ class CallSiteInliner : public ValueObject {
 
     // Abort if this is a recursive occurrence.
     Definition* call = call_data->call;
-    if (!FLAG_inline_recursive && IsCallRecursive(unoptimized_code, call)) {
+    const bool is_recursive_call = IsCallRecursive(unoptimized_code, call);
+    if (is_recursive_call &&
+        inlining_recursion_depth_ >= FLAG_inlining_recursion_depth_threshold) {
       TRACE_INLINING(OS::Print("     Bailout: recursive function\n"));
       PRINT_INLINING_TREE("Recursive function",
           &call_data->caller, &function, call_data->call);
@@ -790,20 +799,12 @@ class CallSiteInliner : public ValueObject {
             &call_data->caller, &function, call_data->call);
         return false;
       }
-      if (function.IsInvokeFieldDispatcher() ||
-          function.IsNoSuchMethodDispatcher()) {
-        // Append call sites to the currently processed list so that dispatcher
-        // methods get inlined regardless of the current depth.
-        // Need a throttling mechanism for recursive inlining.
-        ASSERT(!FLAG_inline_recursive);
-        inlining_call_sites_->FindCallSites(callee_graph,
-                                            0,
-                                            &inlined_info_);
-      } else {
-        collected_call_sites_->FindCallSites(callee_graph,
-                                             inlining_depth_,
-                                             &inlined_info_);
-      }
+
+      // Inline dispatcher methods regardless of the current depth.
+      intptr_t depth =
+          (function.IsInvokeFieldDispatcher() ||
+           function.IsNoSuchMethodDispatcher()) ? 0 : inlining_depth_;
+      collected_call_sites_->FindCallSites(callee_graph, depth, &inlined_info_);
 
       // Add the function to the cache.
       if (!in_cache) {
@@ -813,6 +814,9 @@ class CallSiteInliner : public ValueObject {
       // Build succeeded so we restore the bailout jump.
       inlined_ = true;
       inlined_size_ += size;
+      if (is_recursive_call) {
+        inlined_recursive_call_ = true;
+      }
       isolate()->set_deopt_id(prev_deopt_id);
 
       call_data->callee_graph = callee_graph;
@@ -1220,7 +1224,9 @@ class CallSiteInliner : public ValueObject {
   bool inlined_;
   const intptr_t initial_size_;
   intptr_t inlined_size_;
+  bool inlined_recursive_call_;
   intptr_t inlining_depth_;
+  intptr_t inlining_recursion_depth_;
   CallSites* collected_call_sites_;
   CallSites* inlining_call_sites_;
   GrowableArray<ParsedFunction*> function_cache_;
