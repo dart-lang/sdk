@@ -4,10 +4,15 @@
 
 library domain.completion;
 
+import 'dart:async';
+
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 export 'package:analysis_server/src/services/completion/completion_manager.dart'
     show CompletionPerformance, OperationPerformance;
@@ -31,8 +36,12 @@ class CompletionDomainHandler implements RequestHandler {
    * Cached information from a prior completion operation.
    * The type of cached information depends upon the completion operation.
    */
-  // TODO (danrubel) clear cache if either source or context changes
   CompletionCache _cache;
+
+  /**
+   * The subscription for the cached context's source change stream.
+   */
+  StreamSubscription<SourcesChangedEvent> _sourcesChangedSubscription;
 
   /**
    * Code completion peformance for the last completion operation.
@@ -42,7 +51,34 @@ class CompletionDomainHandler implements RequestHandler {
   /**
    * Initialize a new request handler for the given [server].
    */
-  CompletionDomainHandler(this.server);
+  CompletionDomainHandler(this.server) {
+    server.onContextsChanged.listen(contextsChanged);
+  }
+
+  /**
+   * If the context associated with the cache has changed or been removed
+   * then discard the cache.
+   */
+  void contextsChanged(ContextsChangedEvent event) {
+    if (_cache != null) {
+      AnalysisContext context = _cache.context;
+      if (event.changed.contains(context) || event.removed.contains(context)) {
+        _discardCache();
+      }
+    }
+  }
+
+  CompletionManager createCompletionManager(AnalysisContext context,
+      Source source, int offset, SearchEngine searchEngine, CompletionCache cache,
+      CompletionPerformance performance) {
+    return new CompletionManager.create(
+        context,
+        source,
+        offset,
+        searchEngine,
+        cache,
+        performance);
+  }
 
   @override
   Response handleRequest(Request request) {
@@ -67,7 +103,7 @@ class CompletionDomainHandler implements RequestHandler {
         new CompletionGetSuggestionsParams.fromRequest(request);
     // schedule completion analysis
     String completionId = (_nextCompletionId++).toString();
-    CompletionManager manager = new CompletionManager.create(
+    CompletionManager manager = createCompletionManager(
         server.getAnalysisContext(params.file),
         server.getSource(params.file),
         params.offset,
@@ -83,7 +119,17 @@ class CompletionDomainHandler implements RequestHandler {
           result.last);
       if (result.last) {
         performance.complete();
-        _cache = manager.completionCache;
+        CompletionCache newCache = manager.completionCache;
+        if (_cache != newCache) {
+          if (_cache != null) {
+            _discardCache();
+          }
+          _cache = newCache;
+          if (_cache.context != null) {
+            _sourcesChangedSubscription =
+                _cache.context.onSourcesChanged.listen(sourcesChanged);
+          }
+        }
       }
     });
     // initial response without results
@@ -103,5 +149,39 @@ class CompletionDomainHandler implements RequestHandler {
             replacementLength,
             results,
             isLast).toNotification());
+  }
+
+  /**
+   * Discard the cache if a source other than the source referenced by
+   * the cache changes or if any source is added, removed, or deleted.
+   */
+  void sourcesChanged(SourcesChangedEvent event) {
+
+    bool shouldDiscardCache(SourcesChangedEvent event) {
+      if (_cache == null) {
+        return false;
+      }
+      if (event.wereSourcesAdded || event.wereSourcesRemovedOrDeleted) {
+        return true;
+      }
+      var changedSources = event.changedSources;
+      return changedSources.length > 2 ||
+          (changedSources.length == 1 && !changedSources.contains(_cache.source));
+    }
+
+    if (shouldDiscardCache(event)) {
+      _discardCache();
+    }
+  }
+
+  /**
+   * Discard the sourcesChanged subscription if any
+   */
+  void _discardCache() {
+    if (_sourcesChangedSubscription != null) {
+      _sourcesChangedSubscription.cancel();
+      _sourcesChangedSubscription = null;
+    }
+    _cache = null;
   }
 }
