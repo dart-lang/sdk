@@ -109,13 +109,12 @@ class ClassHeapStats {
   void UpdatePromotedAfterNewGC();
   void UpdateSize(intptr_t instance_size);
   void PrintToJSONObject(const Class& cls, JSONObject* obj) const;
+  void Verify();
 
  private:
   // Recent old at start of last new GC (used to compute promoted_*).
   intptr_t old_pre_new_gc_count_;
   intptr_t old_pre_new_gc_size_;
-
-  void Verify();
 };
 
 
