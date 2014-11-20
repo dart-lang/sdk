@@ -95,12 +95,6 @@ class EnumTest {
         ..check_explicit_values();
   }
 
-  void test_Keyword() {
-    new EnumTester<scanner.Keyword>(ignoreGetters: ['keywords'])
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
   void test_Modifier() {
     new EnumTester<Modifier>()
         ..check_getters()
@@ -125,12 +119,6 @@ class EnumTest {
         ..check_explicit_values();
   }
 
-  void test_scanner_TokenType() {
-    new EnumTester<scanner.TokenType>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
   void test_SourceKind() {
     new EnumTester<SourceKind>()
         ..check_getters()
@@ -139,12 +127,6 @@ class EnumTest {
 
   void test_SourcePriority() {
     new EnumTester<SourcePriority>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
-  void test_TokenClass() {
-    new EnumTester<scanner.TokenClass>()
         ..check_getters()
         ..check_explicit_values();
   }

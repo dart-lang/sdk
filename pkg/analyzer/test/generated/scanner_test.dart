@@ -73,6 +73,62 @@ class CharSequenceReaderTest {
   }
 }
 
+class CharacterRangeReaderTest extends EngineTestCase {
+  void test_advance() {
+    CharSequenceReader baseReader = new CharSequenceReader("xyzzy");
+    CharacterRangeReader reader = new CharacterRangeReader(baseReader, 1, 4);
+    expect(reader.advance(), 0x79);
+    expect(reader.advance(), 0x80);
+    expect(reader.advance(), 0x80);
+    expect(reader.advance(), -1);
+    expect(reader.advance(), -1);
+  }
+
+  void test_creation() {
+    CharSequenceReader baseReader = new CharSequenceReader("xyzzy");
+    CharacterRangeReader reader = new CharacterRangeReader(baseReader, 1, 4);
+    expect(reader, isNotNull);
+  }
+
+  void test_getOffset() {
+    CharSequenceReader baseReader = new CharSequenceReader("xyzzy");
+    CharacterRangeReader reader = new CharacterRangeReader(baseReader, 1, 2);
+    expect(reader.offset, 1);
+    reader.advance();
+    expect(reader.offset, 2);
+    reader.advance();
+    expect(reader.offset, 2);
+  }
+
+  void test_getString() {
+    CharSequenceReader baseReader = new CharSequenceReader("__xyzzy__");
+    CharacterRangeReader reader = new CharacterRangeReader(baseReader, 2, 7);
+    reader.offset = 5;
+    expect(reader.getString(3, 0), "yzz");
+    expect(reader.getString(4, 1), "zzy");
+  }
+
+  void test_peek() {
+    CharSequenceReader baseReader = new CharSequenceReader("xyzzy");
+    CharacterRangeReader reader = new CharacterRangeReader(baseReader, 1, 3);
+    expect(reader.peek(), 0x79);
+    expect(reader.peek(), 0x79);
+    reader.advance();
+    expect(reader.peek(), 0x80);
+    expect(reader.peek(), 0x80);
+    reader.advance();
+    expect(reader.peek(), -1);
+    expect(reader.peek(), -1);
+  }
+
+  void test_setOffset() {
+    CharSequenceReader baseReader = new CharSequenceReader("xyzzy");
+    CharacterRangeReader reader = new CharacterRangeReader(baseReader, 1, 4);
+    reader.offset = 2;
+    expect(reader.offset, 2);
+  }
+}
+
 class IncrementalScannerTest extends EngineTestCase {
   /**
    * The first token from the token stream resulting from parsing the original
@@ -104,9 +160,36 @@ class IncrementalScannerTest extends EngineTestCase {
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
+  void fail_insert_comment_afterIdentifier() {
+    // "a + b"
+    // "a /* TODO */ + b"
+    _scan("a", "", " /* TODO */", " + b");
+    _assertTokens(0, 1, ["a", "+", "b"]);
+    _assertComments(1, ["/* TODO */"]);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isFalse);
+  }
+
+  void fail_insert_comment_beforeIdentifier() {
+    // "a + b"
+    // "a + /* TODO */ b"
+    _scan("a + ", "", "/* TODO */ ", "b");
+    _assertTokens(1, 2, ["a", "+", "b"]);
+    _assertComments(2, ["/* TODO */"]);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isFalse);
+  }
+
+  void fail_insert_inComment() {
+    // "a /* TO */ b"
+    // "a /* TODO */ b"
+    _scan("a /* TO", "", "DO", " */ b");
+    _assertTokens(0, 1, ["a", "b"]);
+    _assertComments(1, ["/* TODO */"]);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isFalse);
+  }
+
   void test_delete_identifier_beginning() {
     // "abs + b;"
-    // "s + b;")
+    // "s + b;"
     _scan("", "ab", "", "s + b;");
     _assertTokens(-1, 1, ["s", "+", "b", ";"]);
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
@@ -114,7 +197,7 @@ class IncrementalScannerTest extends EngineTestCase {
 
   void test_delete_identifier_end() {
     // "abs + b;"
-    // "a + b;")
+    // "a + b;"
     _scan("a", "bs", "", " + b;");
     _assertTokens(-1, 1, ["a", "+", "b", ";"]);
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
@@ -122,7 +205,7 @@ class IncrementalScannerTest extends EngineTestCase {
 
   void test_delete_identifier_middle() {
     // "abs + b;"
-    // "as + b;")
+    // "as + b;"
     _scan("a", "b", "", "s + b;");
     _assertTokens(-1, 1, ["as", "+", "b", ";"]);
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
@@ -130,7 +213,7 @@ class IncrementalScannerTest extends EngineTestCase {
 
   void test_delete_mergeTokens() {
     // "a + b + c;"
-    // "ac;")
+    // "ac;"
     _scan("a", " + b + ", "", "c;");
     _assertTokens(-1, 1, ["ac", ";"]);
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
@@ -138,54 +221,13 @@ class IncrementalScannerTest extends EngineTestCase {
 
   void test_delete_whitespace() {
     // "a + b + c;"
-    // "a+ b + c;")
+    // "a+ b + c;"
     _scan("a", " ", "", "+ b + c;");
     _assertTokens(1, 2, ["a", "+", "b", "+", "c", ";"]);
     expect(_incrementalScanner.hasNonWhitespaceChange, isFalse);
   }
 
-  void test_insert_afterIdentifier_firstToken() {
-    // "a + b;"
-    // "abs + b;"
-    _scan("a", "", "bs", " + b;");
-    _assertTokens(-1, 1, ["abs", "+", "b", ";"]);
-    _assertReplaced(1, "+");
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_insert_afterIdentifier_lastToken() {
-    // "a + b"
-    // "a + bc")
-    _scan("a + b", "", "c", "");
-    _assertTokens(1, 3, ["a", "+", "bc"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_insert_afterIdentifier_middleToken() {
-    // "a + b;"
-    // "a + by;"
-    _scan("a + b", "", "y", ";");
-    _assertTokens(1, 3, ["a", "+", "by", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_insert_beforeIdentifier() {
-    // "a + b;"
-    // "a + xb;")
-    _scan("a + ", "", "x", "b;");
-    _assertTokens(1, 3, ["a", "+", "xb", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_insert_beforeIdentifier_firstToken() {
-    // "a + b;"
-    // "xa + b;"
-    _scan("", "", "x", "a + b;");
-    _assertTokens(-1, 1, ["xa", "+", "b", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_insert_convertOneFunctionToTwo() {
+  void test_insert_convertOneFunctionToTwo_noOverlap() {
     // "f() {}"
     // "f() => 0; g() {}"
     _scan("f()", "", " => 0; g()", " {}");
@@ -212,11 +254,67 @@ class IncrementalScannerTest extends EngineTestCase {
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
-  void test_insert_insideIdentifier() {
-    // "cob;"
-    // "cow.b;"
-    _scan("co", "", "w.", "b;");
-    _assertTokens(-1, 3, ["cow", ".", "b", ";"]);
+  void test_insert_identifierAndPeriod() {
+    // "a + b;"
+    // "a + x.b;"
+    _scan("a + ", "", "x.", "b;");
+    _assertTokens(1, 4, ["a", "+", "x", ".", "b", ";"]);
+  }
+
+  void test_insert_inIdentifier_left_firstToken() {
+    // "a + b;"
+    // "xa + b;"
+    _scan("", "", "x", "a + b;");
+    _assertTokens(-1, 1, ["xa", "+", "b", ";"]);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+  }
+
+  void test_insert_inIdentifier_left_lastToken() {
+    // "a + b"
+    // "a + xb"
+    _scan("a + ", "", "x", "b");
+    _assertTokens(1, 3, ["a", "+", "xb"]);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+  }
+
+  void test_insert_inIdentifier_left_middleToken() {
+    // "a + b;"
+    // "a + xb;"
+    _scan("a + ", "", "x", "b;");
+    _assertTokens(1, 3, ["a", "+", "xb", ";"]);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+  }
+
+  void test_insert_inIdentifier_middle() {
+    // "cat;"
+    // "cart;"
+    _scan("ca", "", "r", "t;");
+    _assertTokens(-1, 1, ["cart", ";"]);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+  }
+
+  void test_insert_inIdentifier_right_firstToken() {
+    // "a + b;"
+    // "abs + b;"
+    _scan("a", "", "bs", " + b;");
+    _assertTokens(-1, 1, ["abs", "+", "b", ";"]);
+    _assertReplaced(1, "+");
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+  }
+
+  void test_insert_inIdentifier_right_lastToken() {
+    // "a + b"
+    // "a + bc"
+    _scan("a + b", "", "c", "");
+    _assertTokens(1, 3, ["a", "+", "bc"]);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+  }
+
+  void test_insert_inIdentifier_right_middleToken() {
+    // "a + b;"
+    // "a + by;"
+    _scan("a + b", "", "y", ";");
+    _assertTokens(1, 3, ["a", "+", "by", ";"]);
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
@@ -237,7 +335,14 @@ class IncrementalScannerTest extends EngineTestCase {
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
-  void test_insert_period() {
+  void test_insert_periodAndIdentifier() {
+    // "a + b;"
+    // "a + b.x;"
+    _scan("a + b", "", ".x", ";");
+    _assertTokens(2, 5, ["a", "+", "b", ".", "x", ";"]);
+  }
+
+  void test_insert_period_afterIdentifier() {
     // "a + b;"
     // "a + b.;"
     _scan("a + b", "", ".", ";");
@@ -275,11 +380,12 @@ class IncrementalScannerTest extends EngineTestCase {
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
-  void test_insert_periodAndIdentifier() {
-    // "a + b;"
-    // "a + b.x;"
-    _scan("a + b", "", ".x", ";");
-    _assertTokens(2, 5, ["a", "+", "b", ".", "x", ";"]);
+  void test_insert_splitIdentifier() {
+    // "cob;"
+    // "cow.b;"
+    _scan("co", "", "w.", "b;");
+    _assertTokens(-1, 3, ["cow", ".", "b", ";"]);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
   void test_insert_whitespace_beginning_beforeToken() {
@@ -327,7 +433,7 @@ a''', "", " ", " + b;");
 
   void test_replace_identifier_beginning() {
     // "bell + b;"
-    // "fell + b;")
+    // "fell + b;"
     _scan("", "b", "f", "ell + b;");
     _assertTokens(-1, 1, ["fell", "+", "b", ";"]);
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
@@ -335,7 +441,7 @@ a''', "", " ", " + b;");
 
   void test_replace_identifier_end() {
     // "bell + b;"
-    // "belt + b;")
+    // "belt + b;"
     _scan("bel", "l", "t", " + b;");
     _assertTokens(-1, 1, ["belt", "+", "b", ";"]);
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
@@ -343,7 +449,7 @@ a''', "", " ", " + b;");
 
   void test_replace_identifier_middle() {
     // "first + b;"
-    // "frost + b;")
+    // "frost + b;"
     _scan("f", "ir", "ro", "st + b;");
     _assertTokens(-1, 1, ["frost", "+", "b", ";"]);
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
@@ -351,7 +457,7 @@ a''', "", " ", " + b;");
 
   void test_replace_multiple_partialFirstAndLast() {
     // "aa + bb;"
-    // "ab * ab;")
+    // "ab * ab;"
     _scan("a", "a + b", "b * a", "b;");
     _assertTokens(-1, 3, ["ab", "*", "ab", ";"]);
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
@@ -359,7 +465,7 @@ a''', "", " ", " + b;");
 
   void test_replace_operator_oneForMany() {
     // "a + b;"
-    // "a * c - b;")
+    // "a * c - b;"
     _scan("a ", "+", "* c -", " b;");
     _assertTokens(0, 4, ["a", "*", "c", "-", "b", ";"]);
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
@@ -367,26 +473,45 @@ a''', "", " ", " + b;");
 
   void test_replace_operator_oneForOne() {
     // "a + b;"
-    // "a * b;")
+    // "a * b;"
     _scan("a ", "+", "*", " b;");
     _assertTokens(0, 2, ["a", "*", "b", ";"]);
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
-  void test_tokenMap() {
-    // "main() {a + b;}"
-    // "main() { a + b;}"
-    _scan("main() {", "", " ", "a + b;}");
-    TokenMap tokenMap = _incrementalScanner.tokenMap;
-    Token oldToken = _originalTokens;
-    while (oldToken.type != TokenType.EOF) {
-      Token newToken = tokenMap.get(oldToken);
-      expect(newToken, isNot(same(oldToken)));
-      expect(newToken.type, same(oldToken.type));
-      expect(newToken.lexeme, oldToken.lexeme);
-      oldToken = oldToken.next;
+  /**
+   * Assert that the comments associated with the token at the given [index]
+   * have lexemes that match the given list of lexemes, both in number and in
+   * content.
+   */
+  void _assertComments(int index, List<String> lexemes) {
+    Token token = _incrementalTokens;
+    for (int i = 0; i < index; i++) {
+      token = token.next;
     }
-    expect(_incrementalScanner.hasNonWhitespaceChange, isFalse);
+    Token comment = token.precedingComments;
+    if (lexemes.isEmpty) {
+      expect(
+          comment,
+          isNull,
+          reason: "No comments expected but comments found");
+    }
+    int count = 0;
+    for (String lexeme in lexemes) {
+      if (comment == null) {
+        fail("Expected ${lexemes.length} comments but found $count");
+      }
+      expect(comment.lexeme, lexeme);
+      count++;
+      comment = comment.next;
+    }
+    if (comment != null) {
+      while (comment != null) {
+        count++;
+        comment = comment.next;
+      }
+      fail("Expected ${lexemes.length} comments but found $count");
+    }
   }
 
   /**
@@ -522,11 +647,13 @@ a''', "", " ", " + b;");
       expect(
           incrementalToken.offset,
           modifiedTokens.offset,
-          reason: "Wrong offset for token");
+          reason:
+              "Wrong offset for token (${incrementalToken.lexeme} != ${modifiedTokens.lexeme})");
       expect(
           incrementalToken.length,
           modifiedTokens.length,
-          reason: "Wrong length for token");
+          reason:
+              "Wrong length for token (${incrementalToken.lexeme} != ${modifiedTokens.lexeme})");
       expect(
           incrementalToken.lexeme,
           modifiedTokens.lexeme,
@@ -703,36 +830,36 @@ class ScannerTest {
     _assertComment(TokenType.SINGLE_LINE_COMMENT, "// comment");
   }
 
-  void test_double_both_e() {
-    _assertToken(TokenType.DOUBLE, "0.123e4");
-  }
-
   void test_double_both_E() {
     _assertToken(TokenType.DOUBLE, "0.123E4");
+  }
+
+  void test_double_both_e() {
+    _assertToken(TokenType.DOUBLE, "0.123e4");
   }
 
   void test_double_fraction() {
     _assertToken(TokenType.DOUBLE, ".123");
   }
 
-  void test_double_fraction_e() {
-    _assertToken(TokenType.DOUBLE, ".123e4");
-  }
-
   void test_double_fraction_E() {
     _assertToken(TokenType.DOUBLE, ".123E4");
+  }
+
+  void test_double_fraction_e() {
+    _assertToken(TokenType.DOUBLE, ".123e4");
   }
 
   void test_double_missingDigitInExponent() {
     _assertError(ScannerErrorCode.MISSING_DIGIT, 1, "1e");
   }
 
-  void test_double_whole_e() {
-    _assertToken(TokenType.DOUBLE, "12e4");
-  }
-
   void test_double_whole_E() {
     _assertToken(TokenType.DOUBLE, "12E4");
+  }
+
+  void test_double_whole_e() {
+    _assertToken(TokenType.DOUBLE, "12e4");
   }
 
   void test_eq() {
@@ -1067,6 +1194,10 @@ class ScannerTest {
     _assertToken(TokenType.MINUS_MINUS, "--");
   }
 
+  void test_openSquareBracket() {
+    _assertToken(TokenType.OPEN_SQUARE_BRACKET, "[");
+  }
+
   void test_open_curly_bracket() {
     _assertToken(TokenType.OPEN_CURLY_BRACKET, "{");
   }
@@ -1076,10 +1207,6 @@ class ScannerTest {
   }
 
   void test_open_square_bracket() {
-    _assertToken(TokenType.OPEN_SQUARE_BRACKET, "[");
-  }
-
-  void test_openSquareBracket() {
     _assertToken(TokenType.OPEN_SQUARE_BRACKET, "[");
   }
 
@@ -1093,14 +1220,6 @@ class ScannerTest {
 
   void test_period() {
     _assertToken(TokenType.PERIOD, ".");
-  }
-
-  void test_period_period() {
-    _assertToken(TokenType.PERIOD_PERIOD, "..");
-  }
-
-  void test_period_period_period() {
-    _assertToken(TokenType.PERIOD_PERIOD_PERIOD, "...");
   }
 
   void test_periodAfterNumberNotIncluded_identifier() {
@@ -1125,6 +1244,14 @@ class ScannerTest {
             new Token(TokenType.CLOSE_PAREN, 11)]);
   }
 
+  void test_period_period() {
+    _assertToken(TokenType.PERIOD_PERIOD, "..");
+  }
+
+  void test_period_period_period() {
+    _assertToken(TokenType.PERIOD_PERIOD_PERIOD, "...");
+  }
+
   void test_plus() {
     _assertToken(TokenType.PLUS, "+");
   }
@@ -1145,12 +1272,12 @@ class ScannerTest {
     _assertToken(TokenType.SCRIPT_TAG, "#!/bin/dart -debug");
   }
 
-  void test_scriptTag_withoutSpace() {
-    _assertToken(TokenType.SCRIPT_TAG, "#!/bin/dart");
-  }
-
   void test_scriptTag_withSpace() {
     _assertToken(TokenType.SCRIPT_TAG, "#! /bin/dart");
+  }
+
+  void test_scriptTag_withoutSpace() {
+    _assertToken(TokenType.SCRIPT_TAG, "#!/bin/dart");
   }
 
   void test_semicolon() {
