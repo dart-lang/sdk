@@ -1388,6 +1388,11 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (identical(_oldNode, node.body)) {
       //return parser.parseFunctionBody();
       throw new InsufficientContextException();
+    } else if (identical(_oldNode, node.parameters)) {
+      // TODO(paulberry): if we want errors to be correct, we'll need to also
+      // call _validateFormalParameterList, and sometimes
+      // _validateModifiersForGetterOrSetterOrMethod.
+      return _parser.parseFormalParameterList();
     }
     return _notAChild(node);
   }

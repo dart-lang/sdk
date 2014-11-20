@@ -2600,6 +2600,10 @@ class IncrementalParserTest extends EngineTestCase {
     _assertParse('class C { ', '', 'final ', 'int x; }');
   }
 
+  void test_insert_function_parameter() {
+    _assertParse('class C { void f(', '', 'arg', ') {} }');
+  }
+
   void test_insert_insideClassBody() {
     // "class C {C(); }"
     // "class C { C(); }"
