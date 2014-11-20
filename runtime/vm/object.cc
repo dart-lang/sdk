@@ -16408,7 +16408,7 @@ RawBigint* Bigint::NewFromUint64(uint64_t value, Heap::Space space) {
 
 
 RawBigint* Bigint::NewFromShiftedInt64(int64_t value, intptr_t shift,
-                                         Heap::Space space) {
+                                       Heap::Space space) {
   ASSERT(kBitsPerDigit == 32);
   ASSERT(shift >= 0);
   const Bigint& result = Bigint::Handle(New(space));
@@ -16440,26 +16440,32 @@ RawBigint* Bigint::NewFromShiftedInt64(int64_t value, intptr_t shift,
 
 void Bigint::EnsureLength(intptr_t length, Heap::Space space) const {
   ASSERT(length >= 0);
+  length++;  // Account for leading zero for 64-bit processing.
   TypedData& old_digits = TypedData::Handle(digits());
-  if ((length > 0) && (length > old_digits.Length())) {
+  if (length > old_digits.Length()) {
     TypedData& new_digits = TypedData::Handle(
         TypedData::New(kTypedDataUint32ArrayCid, length + kExtraDigits, space));
-    if (old_digits.Length() > 0) {
+    set_digits(new_digits);
+    if (Used() > 0) {
       TypedData::Copy(new_digits, TypedData::data_offset(),
                       old_digits, TypedData::data_offset(),
-                      old_digits.LengthInBytes());
+                      (Used() + 1)*kBytesPerDigit);  // Copy leading zero.
     }
-    set_digits(new_digits);
   }
 }
 
 
 void Bigint::Clamp() const {
   intptr_t used = Used();
-  while ((used > 0) && (DigitAt(used - 1) == 0)) {
-    --used;
+  if (used > 0) {
+    if (DigitAt(used - 1) == 0) {
+      do {
+        --used;
+      } while ((used > 0) && (DigitAt(used - 1) == 0));
+      SetUsed(used);
+    }
+    SetDigitAt(used, 0);  // Set leading zero for 64-bit processing.
   }
-  SetUsed(used);
 }
 
 
@@ -16471,17 +16477,10 @@ bool Bigint::IsClamped() const {
 
 RawBigint* Bigint::NewFromCString(const char* str, Heap::Space space) {
   ASSERT(str != NULL);
-  if (str[0] == '\0') {
-    return NewFromInt64(0, space);
-  }
-
   // If the string starts with '-' recursively restart the whole operation
   // without the character and then toggle the sign.
-  // This allows multiple leading '-' (which will cancel each other out), but
-  // we have added an assert, to make sure that the returned result of the
-  // recursive call is not negative.
-  // We don't catch leading '-'s for zero. Ex: "--0", or "---".
   if (str[0] == '-') {
+    ASSERT(str[1] != '-');
     const Bigint& result = Bigint::Handle(NewFromCString(&str[1], space));
     result.SetNeg(!result.Neg());  // Toggle sign.
     ASSERT(result.IsZero() || result.IsNegative());
@@ -16492,7 +16491,7 @@ RawBigint* Bigint::NewFromCString(const char* str, Heap::Space space) {
   // No overflow check needed since overflowing str_length implies that we take
   // the branch to NewFromDecCString() which contains a check itself.
   const intptr_t str_length = strlen(str);
-  if ((str_length > 2) &&
+  if ((str_length >= 2) &&
       (str[0] == '0') &&
       ((str[1] == 'x') || (str[1] == 'X'))) {
     const Bigint& result = Bigint::Handle(NewFromHexCString(&str[2], space));
@@ -16534,17 +16533,14 @@ RawBigint* Bigint::NewCanonical(const String& str) {
 
 
 RawBigint* Bigint::NewFromHexCString(const char* str, Heap::Space space) {
-  // TODO(regis): Do we need to check for max length?
   // If the string starts with '-' recursively restart the whole operation
   // without the character and then toggle the sign.
-  // This allows multiple leading '-' (which will cancel each other out), but
-  // we have added an assert, to make sure that the returned result of the
-  // recursive call is not negative.
-  // We don't catch leading '-'s for zero. Ex: "--0", or "---".
   if (str[0] == '-') {
+    ASSERT(str[1] != '-');
     const Bigint& result = Bigint::Handle(NewFromHexCString(&str[1], space));
-    result.SetNeg(!result.Neg());  // Toggle sign.
-    ASSERT(result.IsZero() || result.IsNegative());
+    if (!result.IsZero()) {
+      result.SetNeg(!result.Neg());  // Toggle sign.
+    }
     ASSERT(result.IsClamped());
     return result.raw();
   }
@@ -16553,6 +16549,9 @@ RawBigint* Bigint::NewFromHexCString(const char* str, Heap::Space space) {
   const int kHexDigitsPerDigit = 8;
   const int kBitsPerDigit = kBitsPerHexDigit * kHexDigitsPerDigit;
   intptr_t hex_i = strlen(str);  // Terminating byte excluded.
+  if ((hex_i <= 0) || (hex_i >= kMaxInt32)) {
+    FATAL("Fatal error in Bigint::NewFromHexCString: string too long or empty");
+  }
   result.EnsureLength((hex_i + kHexDigitsPerDigit - 1) / kHexDigitsPerDigit,
                       space);
   intptr_t used_ = 0;
@@ -16583,8 +16582,8 @@ RawBigint* Bigint::NewFromDecCString(const char* str, Heap::Space space) {
   ASSERT(kBitsPerDigit == 32);
 
   const intptr_t str_length = strlen(str);
-  if (str_length < 0) {  // TODO(regis): Pick a smaller limit.
-    FATAL("Fatal error in Bigint::NewFromDecCString: string too long");
+  if ((str_length <= 0) || (str_length >= kMaxInt32)) {
+    FATAL("Fatal error in Bigint::NewFromDecCString: string too long or empty");
   }
   intptr_t str_pos = 0;
 
@@ -16594,6 +16593,7 @@ RawBigint* Bigint::NewFromDecCString(const char* str, Heap::Space space) {
   // The extra digits allocated take care of variations (kExtraDigits).
   const int64_t kLog10Dividend = 33219281;
   const int64_t kLog10Divisor = 10000000;
+
   result.EnsureLength((kLog10Dividend * str_length) /
                       (kLog10Divisor * kBitsPerDigit) + 1, space);
 
@@ -19153,8 +19153,7 @@ class DefaultHashTraits {
     hash_code ^= Instance::Cast(obj).HashCode();
     if (hash_code.IsSmi()) {
       // May waste some bits on 64-bit, to ensure consistency with non-Smi case.
-      return static_cast<uword>(Smi::Cast(hash_code).Value() & 0xFFFFFFFF);
-      // TODO(regis): Same as Smi::AsTruncatedUint32Value(), simplify?
+      return static_cast<uword>(Smi::Cast(hash_code).AsTruncatedUint32Value());
     } else if (hash_code.IsInteger()) {
       return static_cast<uword>(
           Integer::Cast(hash_code).AsTruncatedUint32Value());

@@ -828,10 +828,12 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
 
   __ movq(RDI, Address(RSP, 5 * kWordSize));  // digits
   __ movq(R8, Address(RSP, 4 * kWordSize));  // used is Smi
-  __ SmiUntag(R8);  // used > 0.
+  __ addq(R8, Immediate(2));  // used > 0, Smi. R8 = used + 1, round up.
+  __ sarq(R8, Immediate(2));  // R8 = number of digit pairs to process.
   __ movq(RSI, Address(RSP, 3 * kWordSize));  // a_digits
   __ movq(RCX, Address(RSP, 2 * kWordSize));  // a_used is Smi
-  __ SmiUntag(RCX);  // a_used > 0.
+  __ addq(RCX, Immediate(2));  // a_used > 0, Smi. R8 = a_used + 1, round up.
+  __ sarq(RCX, Immediate(2));  // R8 = number of digit pairs to process.
   __ movq(RBX, Address(RSP, 1 * kWordSize));  // r_digits
 
   // Precompute 'used - a_used' now so that carry flag is not lost later.
@@ -841,10 +843,10 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   __ xorq(RDX, RDX);  // RDX = 0, carry flag = 0.
   Label add_loop;
   __ Bind(&add_loop);
-  // Loop a_used times, RCX = a_used, RCX > 0.
-  __ movl(RAX, FieldAddress(RDI, RDX, TIMES_4, TypedData::data_offset()));
-  __ adcl(RAX, FieldAddress(RSI, RDX, TIMES_4, TypedData::data_offset()));
-  __ movl(FieldAddress(RBX, RDX, TIMES_4, TypedData::data_offset()), RAX);
+  // Loop (a_used+1)/2 times, RCX > 0.
+  __ movq(RAX, FieldAddress(RDI, RDX, TIMES_8, TypedData::data_offset()));
+  __ adcq(RAX, FieldAddress(RSI, RDX, TIMES_8, TypedData::data_offset()));
+  __ movq(FieldAddress(RBX, RDX, TIMES_8, TypedData::data_offset()), RAX);
   __ incq(RDX);  // Does not affect carry flag.
   __ decq(RCX);  // Does not affect carry flag.
   __ j(NOT_ZERO, &add_loop, Assembler::kNearJump);
@@ -855,18 +857,18 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
 
   Label carry_loop;
   __ Bind(&carry_loop);
-  // Loop used - a_used times, R8 = used - a_used, R8 > 0.
-  __ movl(RAX, FieldAddress(RDI, RDX, TIMES_4, TypedData::data_offset()));
-  __ adcl(RAX, Immediate(0));
-  __ movl(FieldAddress(RBX, RDX, TIMES_4, TypedData::data_offset()), RAX);
+  // Loop (used+1)/2 - (a_used+1)/2 times, R8 > 0.
+  __ movq(RAX, FieldAddress(RDI, RDX, TIMES_8, TypedData::data_offset()));
+  __ adcq(RAX, Immediate(0));
+  __ movq(FieldAddress(RBX, RDX, TIMES_8, TypedData::data_offset()), RAX);
   __ incq(RDX);  // Does not affect carry flag.
   __ decq(R8);  // Does not affect carry flag.
   __ j(NOT_ZERO, &carry_loop, Assembler::kNearJump);
 
   __ Bind(&last_carry);
-  __ movl(RAX, Immediate(0));
-  __ adcl(RAX, Immediate(0));
-  __ movl(FieldAddress(RBX, RDX, TIMES_4, TypedData::data_offset()), RAX);
+  __ movq(RAX, Immediate(0));
+  __ adcq(RAX, Immediate(0));
+  __ movq(FieldAddress(RBX, RDX, TIMES_8, TypedData::data_offset()), RAX);
 
   // Returning Object::null() is not required, since this method is private.
   __ ret();
@@ -880,10 +882,12 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
 
   __ movq(RDI, Address(RSP, 5 * kWordSize));  // digits
   __ movq(R8, Address(RSP, 4 * kWordSize));  // used is Smi
-  __ SmiUntag(R8);  // used > 0.
+  __ addq(R8, Immediate(2));  // used > 0, Smi. R8 = used + 1, round up.
+  __ sarq(R8, Immediate(2));  // R8 = number of digit pairs to process.
   __ movq(RSI, Address(RSP, 3 * kWordSize));  // a_digits
   __ movq(RCX, Address(RSP, 2 * kWordSize));  // a_used is Smi
-  __ SmiUntag(RCX);  // a_used > 0.
+  __ addq(RCX, Immediate(2));  // a_used > 0, Smi. R8 = a_used + 1, round up.
+  __ sarq(RCX, Immediate(2));  // R8 = number of digit pairs to process.
   __ movq(RBX, Address(RSP, 1 * kWordSize));  // r_digits
 
   // Precompute 'used - a_used' now so that carry flag is not lost later.
@@ -893,10 +897,10 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
   __ xorq(RDX, RDX);  // RDX = 0, carry flag = 0.
   Label sub_loop;
   __ Bind(&sub_loop);
-  // Loop a_used times, RCX = a_used, RCX > 0.
-  __ movl(RAX, FieldAddress(RDI, RDX, TIMES_4, TypedData::data_offset()));
-  __ sbbl(RAX, FieldAddress(RSI, RDX, TIMES_4, TypedData::data_offset()));
-  __ movl(FieldAddress(RBX, RDX, TIMES_4, TypedData::data_offset()), RAX);
+  // Loop (a_used+1)/2 times, RCX > 0.
+  __ movq(RAX, FieldAddress(RDI, RDX, TIMES_8, TypedData::data_offset()));
+  __ sbbq(RAX, FieldAddress(RSI, RDX, TIMES_8, TypedData::data_offset()));
+  __ movq(FieldAddress(RBX, RDX, TIMES_8, TypedData::data_offset()), RAX);
   __ incq(RDX);  // Does not affect carry flag.
   __ decq(RCX);  // Does not affect carry flag.
   __ j(NOT_ZERO, &sub_loop, Assembler::kNearJump);
@@ -907,10 +911,10 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
 
   Label carry_loop;
   __ Bind(&carry_loop);
-  // Loop used - a_used times, R8 = used - a_used, R8 > 0.
-  __ movl(RAX, FieldAddress(RDI, RDX, TIMES_4, TypedData::data_offset()));
-  __ sbbl(RAX, Immediate(0));
-  __ movl(FieldAddress(RBX, RDX, TIMES_4, TypedData::data_offset()), RAX);
+  // Loop (used+1)/2 - (a_used+1)/2 times, R8 > 0.
+  __ movq(RAX, FieldAddress(RDI, RDX, TIMES_8, TypedData::data_offset()));
+  __ sbbq(RAX, Immediate(0));
+  __ movq(FieldAddress(RBX, RDX, TIMES_8, TypedData::data_offset()), RAX);
   __ incq(RDX);  // Does not affect carry flag.
   __ decq(R8);  // Does not affect carry flag.
   __ j(NOT_ZERO, &carry_loop, Assembler::kNearJump);
