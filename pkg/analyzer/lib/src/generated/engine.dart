@@ -19,6 +19,7 @@ import 'element.dart';
 import 'error.dart';
 import 'error_verifier.dart';
 import 'html.dart' as ht;
+import 'incremental_scanner.dart';
 import 'incremental_resolver.dart' show IncrementalResolver;
 import 'instrumentation.dart';
 import 'java_core.dart';
