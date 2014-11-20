@@ -1170,6 +1170,11 @@ class Class : public Object {
   }
   void set_is_synthesized_class() const;
 
+  bool is_enum_class() const {
+    return EnumBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_enum_class() const;
+
   bool is_finalized() const {
     return ClassFinalizedBits::decode(raw_ptr()->state_bits_)
         == RawClass::kFinalized;
@@ -1327,6 +1332,7 @@ class Class : public Object {
     kMixinTypeAppliedBit = 10,
     kFieldsMarkedNullableBit = 11,
     kCycleFreeBit = 12,
+    kEnumBit = 13,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
@@ -1342,6 +1348,7 @@ class Class : public Object {
   class FieldsMarkedNullableBit : public BitField<bool,
       kFieldsMarkedNullableBit, 1> {};  // NOLINT
   class CycleFreeBit : public BitField<bool, kCycleFreeBit, 1> {};
+  class EnumBit : public BitField<bool, kEnumBit, 1> {};
 
   void set_name(const String& value) const;
   void set_pretty_name(const String& value) const;

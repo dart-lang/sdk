@@ -152,6 +152,7 @@ namespace dart {
   KW(kDEFAULT, "default", 0, kKeyword)                                         \
   KW(kDO, "do", 0, kKeyword)                                                   \
   KW(kELSE, "else", 0, kKeyword)                                               \
+  KW(kENUM, "enum", 0, kKeyword)                                               \
   KW(kEXPORT, "export", 0, kPseudoKeyword)                                     \
   KW(kEXTENDS, "extends", 0, kKeyword)                                         \
   KW(kEXTERNAL, "external", 0, kPseudoKeyword)                                 \

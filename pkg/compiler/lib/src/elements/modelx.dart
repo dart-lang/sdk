@@ -2285,6 +2285,10 @@ abstract class BaseClassElementX extends ElementX
     backendMembers.forEach(f);
   }
 
+  bool implementsFunction(Compiler compiler) {
+    return asInstanceOf(compiler.functionClass) != null || callType != null;
+  }
+
   bool implementsInterface(ClassElement intrface) {
     for (DartType implementedInterfaceType in allSupertypes) {
       ClassElement implementedInterface = implementedInterfaceType.element;

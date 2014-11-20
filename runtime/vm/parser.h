@@ -388,6 +388,10 @@ class Parser : public ValueObject {
 
   // Support for parsing of scripts.
   void ParseTopLevel();
+  void ParseEnumDeclaration(const GrowableObjectArray& pending_classes,
+                            const Class& toplevel_class,
+                            intptr_t metadata_pos);
+  void ParseEnumDefinition(const Class& cls);
   void ParseClassDeclaration(const GrowableObjectArray& pending_classes,
                              const Class& toplevel_class,
                              intptr_t metadata_pos);

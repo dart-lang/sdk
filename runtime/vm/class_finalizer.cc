@@ -2346,6 +2346,50 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     CollectImmediateSuperInterfaces(cls, &cids);
     RemoveCHAOptimizedCode(cids);
   }
+  if (cls.is_enum_class()) {
+    AllocateEnumValues(cls);
+  }
+}
+
+
+// Allocate instances for each enumeration value, and populate the
+// static field 'values'.
+// By allocating the instances programmatically, we save an implicit final
+// getter function object for each enumeration value and for the
+// values field. We also don't have to generate the code for these getters
+// from thin air (no source code is available).
+void ClassFinalizer::AllocateEnumValues(const Class &enum_cls) {
+  const Field& index_field =
+      Field::Handle(enum_cls.LookupInstanceField(Symbols::Index()));
+  ASSERT(!index_field.IsNull());
+  const Field& values_field =
+      Field::Handle(enum_cls.LookupStaticField(Symbols::Values()));
+  ASSERT(!values_field.IsNull());
+  ASSERT(Instance::Handle(values_field.value()).IsArray());
+  Array& values_list = Array::Handle(Array::RawCast(values_field.value()));
+
+  const Array& fields = Array::Handle(enum_cls.fields());
+  Field& field = Field::Handle();
+  Instance& ordinal_value = Instance::Handle();
+  Instance& enum_value = Instance::Handle();
+
+  for (intptr_t i = 0; i < fields.Length(); i++) {
+    field = Field::RawCast(fields.At(i));
+    if (!field.is_static()) continue;
+    ordinal_value = field.value();
+    // The static fields that need to be initialized with enum instances
+    // contain the smi value of the ordinal number, which was stored in
+    // the field by the parser. Other fields contain non-smi values.
+    if (!ordinal_value.IsSmi()) continue;
+    enum_value = Instance::New(enum_cls, Heap::kOld);
+    enum_value.SetField(index_field, ordinal_value);
+    field.set_value(enum_value);
+    field.RecordStore(enum_value);
+    intptr_t ord = Smi::Cast(ordinal_value).Value();
+    ASSERT(ord < values_list.Length());
+    values_list.SetAt(ord, enum_value);
+  }
+  values_list.MakeImmutable();
 }
 
 
@@ -2726,7 +2770,13 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
                 "class '%s' may not extend function type alias '%s'",
                 String::Handle(isolate, cls.Name()).ToCString(),
                 String::Handle(isolate,
-                                  super_type.UserVisibleName()).ToCString());
+                               super_type.UserVisibleName()).ToCString());
+  }
+  if (interface_class.is_enum_class()) {
+    ReportError(cls, cls.token_pos(),
+                "class '%s' may not extend enum '%s'",
+                String::Handle(isolate, cls.Name()).ToCString(),
+                String::Handle(isolate, interface_class.Name()).ToCString());
   }
 
   // If cls belongs to core lib or to core lib's implementation, restrictions
@@ -2801,6 +2851,13 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
                                                     interface_class.Name());
       ReportError(cls, cls.token_pos(),
                   "function type alias '%s' may not be used as interface",
+                  interface_name.ToCString());
+    }
+    if (interface_class.is_enum_class()) {
+      const String& interface_name = String::Handle(isolate,
+                                                    interface_class.Name());
+      ReportError(cls, cls.token_pos(),
+                  "enum '%s' may not be used as interface",
                   interface_name.ToCString());
     }
     // Verify that unless cls belongs to core lib, it cannot extend, implement,
