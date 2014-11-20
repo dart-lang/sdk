@@ -164,6 +164,132 @@ class B {}
 ''');
   }
 
+  void test_false_field_list_add() {
+    _assertCompilationUnitMatches(false, r'''
+class T {
+  int A = 1;
+  int C = 3;
+}
+''', r'''
+class T {
+  int A = 1;
+  int B = 2;
+  int C = 3;
+}
+''');
+  }
+
+  void test_false_field_list_remove() {
+    _assertCompilationUnitMatches(false, r'''
+class T {
+  int A = 1;
+  int B = 2;
+  int C = 3;
+}
+''', r'''
+class T {
+  int A = 1;
+  int C = 3;
+}
+''');
+  }
+
+  void test_false_field_modifier_isConst() {
+    _assertCompilationUnitMatches(false, r'''
+class T {
+  static final A = 1;
+}
+''', r'''
+class T {
+  static const A = 1;
+}
+''');
+  }
+
+  void test_false_field_modifier_isFinal() {
+    _assertCompilationUnitMatches(false, r'''
+class T {
+  int A = 1;
+}
+''', r'''
+class T {
+  final int A = 1;
+}
+''');
+  }
+
+  void test_false_field_modifier_isStatic() {
+    _assertCompilationUnitMatches(false, r'''
+class T {
+  int A = 1;
+}
+''', r'''
+class T {
+  static int A = 1;
+}
+''');
+  }
+
+  void test_false_field_modifier_wasConst() {
+    _assertCompilationUnitMatches(false, r'''
+class T {
+  static const A = 1;
+}
+''', r'''
+class T {
+  static final A = 1;
+}
+''');
+  }
+
+  void test_false_field_modifier_wasFinal() {
+    _assertCompilationUnitMatches(false, r'''
+class T {
+  final int A = 1;
+}
+''', r'''
+class T {
+  int A = 1;
+}
+''');
+  }
+
+  void test_false_field_modifier_wasStatic() {
+    _assertCompilationUnitMatches(false, r'''
+class T {
+  static int A = 1;
+}
+''', r'''
+class T {
+  int A = 1;
+}
+''');
+  }
+
+  void test_false_field_type_differentArgs() {
+    _assertCompilationUnitMatches(false, r'''
+class T {
+  List<int> A;
+}
+''', r'''
+class T {
+  List<String> A;
+}
+''');
+  }
+
+  void test_false_final_type_different() {
+    _assertCompilationUnitMatches(false, r'''
+class T {
+  int A;
+}
+''', r'''
+class T {
+  String A;
+}
+''');
+  }
+
   void test_false_implementsClause_add() {
     _assertCompilationUnitMatches(false, r'''
 class A {}
@@ -247,6 +373,14 @@ final int A = 1;
 final int A = 1;
 ''', r'''
 int A = 1;
+''');
+  }
+
+  void test_false_topLevelVariable_synthetic_wasGetter() {
+    _assertCompilationUnitMatches(false, r'''
+int get A => 1;
+''', r'''
+final int A = 1;
 ''');
   }
 
@@ -376,6 +510,30 @@ class A {
 ''');
   }
 
+  void test_true_executable_same_hasLabel() {
+    _assertCompilationUnitMatches(true, r'''
+main() {
+  label: return 42;
+}
+''', r'''
+main() {
+  label: return 42;
+}
+''');
+  }
+
+  void test_true_executable_same_hasLocalVariable() {
+    _assertCompilationUnitMatches(true, r'''
+main() {
+  int a = 42;
+}
+''', r'''
+main() {
+  int a = 42;
+}
+''');
+  }
+
   void test_true_extendsClause_same() {
     _assertCompilationUnitMatches(true, r'''
 class A {}
@@ -383,6 +541,38 @@ class B extends A {}
 ''', r'''
 class A {}
 class B extends A {}
+''');
+  }
+
+  void test_true_field_list_reorder() {
+    _assertCompilationUnitMatches(true, r'''
+class T {
+  int A = 1;
+  int B = 2;
+  int C = 3;
+}
+''', r'''
+class T {
+  int C = 3;
+  int A = 1;
+  int B = 2;
+}
+''');
+  }
+
+  void test_true_field_list_same() {
+    _assertCompilationUnitMatches(true, r'''
+class T {
+  int A = 1;
+  int B = 2;
+  int C = 3;
+}
+''', r'''
+class T {
+  int A = 1;
+  int B = 2;
+  int C = 3;
+}
 ''');
   }
 

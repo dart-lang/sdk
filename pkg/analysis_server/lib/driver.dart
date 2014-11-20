@@ -92,7 +92,8 @@ class Driver {
     parser.addOption(SDK_OPTION, help: "[path] the path to the sdk");
     parser.addFlag(
         NO_ERROR_NOTIFICATION,
-        help: "disable sending all analysis error notifications to the server (not yet implemented)",
+        help:
+            "disable sending all analysis error notifications to the server (not yet implemented)",
         defaultsTo: false,
         negatable: false);
 
