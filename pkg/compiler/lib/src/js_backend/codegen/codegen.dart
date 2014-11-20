@@ -218,7 +218,6 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   @override
   js.Expression visitVariable(tree_ir.Variable node) {
     return new js.VariableUse(getVariableName(node));
-    // TODO: implement visitVariable
   }
 
   @override
@@ -254,10 +253,6 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   void visitAssign(tree_ir.Assign node) {
-
-    bool isFirstOccurrence = (variableNames[node.variable] == null);
-    bool isDeclaredHere = node.variable.host.element == currentFunction;
-    String name = getVariableName(node.variable);
     tree_ir.Expression value = node.definition;
     js.Expression definition = visitExpression(value);
 
