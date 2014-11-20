@@ -73,6 +73,92 @@ class C {
     _assertCompilationUnitMatches(true, content, content);
   }
 
+  void test_false_class_list_add() {
+    _assertCompilationUnitMatches(false, r'''
+class A {}
+class B {}
+''', r'''
+class A {}
+class B {}
+class C {}
+''');
+  }
+
+  void test_false_class_list_remove() {
+    _assertCompilationUnitMatches(false, r'''
+class A {}
+class B {}
+class C {}
+''', r'''
+class A {}
+class B {}
+''');
+  }
+
+  void test_false_extendsClause_add() {
+    _assertCompilationUnitMatches(false, r'''
+class A {}
+class B {}
+''', r'''
+class A {}
+class B extends A {}
+''');
+  }
+
+  void test_false_extendsClause_different() {
+    _assertCompilationUnitMatches(false, r'''
+class A {}
+class B {}
+class C extends A {}
+''', r'''
+class A {}
+class B {}
+class C extends B {}
+''');
+  }
+
+  void test_false_extendsClause_remove() {
+    _assertCompilationUnitMatches(false, r'''
+class A {}
+class B extends A{}
+''', r'''
+class A {}
+class B {}
+''');
+  }
+
+  void test_false_implementsClause_add() {
+    _assertCompilationUnitMatches(false, r'''
+class A {}
+class B {}
+''', r'''
+class A {}
+class B implements A {}
+''');
+  }
+
+  void test_false_implementsClause_remove() {
+    _assertCompilationUnitMatches(false, r'''
+class A {}
+class B implements A {}
+''', r'''
+class A {}
+class B {}
+''');
+  }
+
+  void test_false_implementsClause_reorder() {
+    _assertCompilationUnitMatches(false, r'''
+class A {}
+class B {}
+class C implements A, B {}
+''', r'''
+class A {}
+class B {}
+class C implements B, A {}
+''');
+  }
+
   void test_false_topLevelVariable_list_add() {
     _assertCompilationUnitMatches(false, r'''
 const int A = 1;
@@ -143,6 +229,38 @@ List<String> A;
 ''');
   }
 
+  void test_false_withClause_add() {
+    _assertCompilationUnitMatches(false, r'''
+class A {}
+class B {}
+''', r'''
+class A {}
+class B extends Object with A {}
+''');
+  }
+
+  void test_false_withClause_remove() {
+    _assertCompilationUnitMatches(false, r'''
+class A {}
+class B extends Object with A {}
+''', r'''
+class A {}
+class B {}
+''');
+  }
+
+  void test_false_withClause_reorder() {
+    _assertCompilationUnitMatches(false, r'''
+class A {}
+class B {}
+class C extends Object with A, B {}
+''', r'''
+class A {}
+class B {}
+class C extends Object with B, A {}
+''');
+  }
+
   void test_methodDeclarationMatches_false_parameter() {
     _assertMethodMatches(false, r'''
 class C {
@@ -181,6 +299,58 @@ class C {
     _assertMethodMatches(true, content, content);
   }
 
+  void test_true_class_list_reorder() {
+    _assertCompilationUnitMatches(true, r'''
+class A {}
+class B {}
+class C {}
+''', r'''
+class C {}
+class A {}
+class B {}
+''');
+  }
+
+  void test_true_class_list_same() {
+    _assertCompilationUnitMatches(true, r'''
+class A {}
+class B {}
+class C {}
+''', r'''
+class A {}
+class B {}
+class C {}
+''');
+  }
+
+  void test_true_class_typeParameters_same() {
+    _assertCompilationUnitMatches(true, r'''
+class A<T> {}
+''', r'''
+class A<T> {}
+''');
+  }
+
+  void test_true_extendsClause_same() {
+    _assertCompilationUnitMatches(true, r'''
+class A {}
+class B extends A {}
+''', r'''
+class A {}
+class B extends A {}
+''');
+  }
+
+  void test_true_implementsClause_same() {
+    _assertCompilationUnitMatches(true, r'''
+class A {}
+class B implements A {}
+''', r'''
+class A {}
+class B implements A {}
+''');
+  }
+
   void test_true_topLevelVariable_list_reorder() {
     _assertCompilationUnitMatches(true, r'''
 const int A = 1;
@@ -210,6 +380,16 @@ const int C = 3;
 Map<int, String> A;
 ''', r'''
 Map<int, String> A;
+''');
+  }
+
+  void test_true_withClause_same() {
+    _assertCompilationUnitMatches(true, r'''
+class A {}
+class B extends Object with A {}
+''', r'''
+class A {}
+class B extends Object with A {}
 ''');
   }
 

@@ -52,6 +52,11 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
   bool _inTopLevelVariableDeclaration = false;
 
   /**
+   * Is `true` if the current class declaration has a constructor.
+   */
+  bool _hasConstructor = false;
+
+  /**
    * A set containing all of the elements in the element model that were defined by the old AST node
    * corresponding to the AST node being visited.
    */
@@ -81,7 +86,6 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     } on _DeclarationMismatchException catch (exception) {
       return false;
     }
-    print(_unmatchedElements.join('\n'));
     return _unmatchedElements.isEmpty;
   }
 
@@ -106,21 +110,32 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
-    ClassElement outerClass = _enclosingClass;
-    try {
-      SimpleIdentifier className = node.name;
-      _enclosingClass = _findIdentifier(_enclosingUnit.types, className);
-      _processElement(_enclosingClass);
-      if (!_hasConstructor(node)) {
-        ConstructorElement constructor = _enclosingClass.unnamedConstructor;
-        if (constructor.isSynthetic) {
-          _processElement(constructor);
-        }
-      }
-      return super.visitClassDeclaration(node);
-    } finally {
-      _enclosingClass = outerClass;
+    String name = node.name.name;
+    ClassElement clazz = _findElement(_enclosingUnit.types, name);
+    _enclosingClass = clazz;
+    _processElement(clazz);
+    // check for missing clauses
+    if (node.extendsClause == null) {
+      _assertTrue(clazz.supertype.name == 'Object');
     }
+    if (node.implementsClause == null) {
+      _assertTrue(clazz.interfaces.isEmpty);
+    }
+    if (node.withClause == null) {
+      _assertTrue(clazz.mixins.isEmpty);
+    }
+    // process clauses and members
+    _hasConstructor = false;
+    super.visitClassDeclaration(node);
+    // process default constructor
+    if (!_hasConstructor) {
+      ConstructorElement constructor = clazz.unnamedConstructor;
+      _processElement(constructor);
+      if (!constructor.isSynthetic) {
+        _assertEquals(constructor.parameters.length, 0);
+      }
+    }
+    return null;
   }
 
   @override
@@ -225,6 +240,11 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  visitExtendsClause(ExtendsClause node) {
+    _assertSameType(node.superclass, _enclosingClass.supertype);
+  }
+
+  @override
   Object visitFieldFormalParameter(FieldFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
       SimpleIdentifier parameterName = node.identifier;
@@ -318,6 +338,13 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     } else {
       return super.visitFunctionTypedFormalParameter(node);
     }
+  }
+
+  @override
+  visitImplementsClause(ImplementsClause node) {
+    List<TypeName> nodes = node.interfaces;
+    List<InterfaceType> types = _enclosingClass.interfaces;
+    _assertSameTypes(nodes, types);
   }
 
   @override
@@ -480,25 +507,16 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     return super.visitVariableDeclaration(node);
   }
 
-  void _assertSameType(TypeName node, DartType type) {
-    String nodeName = node.name.name;
-    if (type is InterfaceType) {
-      _assertEquals(nodeName, type.name);
-      TypeArgumentList nodeArgumentList = node.typeArguments;
-      List<DartType> typeArguments = type.typeArguments;
-      if (nodeArgumentList == null) {
-        _assertTrue(typeArguments.isEmpty);
-      } else {
-        List<TypeName> nodeArguments = nodeArgumentList.arguments;
-        int numArguments = nodeArguments.length;
-        _assertEquals(numArguments, typeArguments.length);
-        for (int i = 0; i < numArguments; i++) {
-          _assertSameType(nodeArguments[i], typeArguments[i]);
-        }
-      }
-    } else {
-      // TODO(scheglov) support other types
-      _assertTrue(false);
+  @override
+  visitWithClause(WithClause node) {
+    List<TypeName> nodes = node.mixinTypes;
+    List<InterfaceType> types = _enclosingClass.mixins;
+    _assertSameTypes(nodes, types);
+  }
+
+  void _assertEquals(Object a, Object b) {
+    if (a != b) {
+      throw new _DeclarationMismatchException();
     }
   }
 
@@ -514,9 +532,30 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     }
   }
 
-  void _assertEquals(Object a, Object b) {
-    if (a != b) {
-      throw new _DeclarationMismatchException();
+  void _assertSameType(TypeName node, DartType type) {
+    String nodeName = node.name.name;
+    if (type is InterfaceType) {
+      _assertEquals(nodeName, type.name);
+      // check arguments
+      TypeArgumentList nodeArgumentList = node.typeArguments;
+      List<DartType> typeArguments = type.typeArguments;
+      if (nodeArgumentList == null) {
+        _assertTrue(typeArguments.isEmpty);
+      } else {
+        List<TypeName> nodeArguments = nodeArgumentList.arguments;
+        _assertSameTypes(nodeArguments, typeArguments);
+      }
+    } else {
+      // TODO(scheglov) support other types
+      _assertTrue(false);
+    }
+  }
+
+  void _assertSameTypes(List<TypeName> nodes, List<DartType> type) {
+    int length = nodes.length;
+    _assertEquals(length, type.length);
+    for (int i = 0; i < length; i++) {
+      _assertSameType(nodes[i], type[i]);
     }
   }
 
@@ -721,28 +760,12 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
     return literal.stringValue;
   }
 
-  /**
-   * Return `true` if the given class defines at least one constructor.
-   *
-   * @param node the class being tested
-   * @return `true` if the class defines at least one constructor
-   */
-  bool _hasConstructor(ClassDeclaration node) {
-    for (ClassMember member in node.members) {
-      if (member is ConstructorDeclaration) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   void _processElement(Element element) {
     _assertNotNull(element);
     if (!_allElements.contains(element)) {
       throw new _DeclarationMismatchException();
     }
-    bool did = _unmatchedElements.remove(element);
-    print('remove: $element | $did');
+    _unmatchedElements.remove(element);
   }
 }
 
