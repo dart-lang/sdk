@@ -2230,13 +2230,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
         current_offset += kWordSize;
       }
     } else {
-      Label init_loop;
-      __ Bind(&init_loop);
-      __ AddImmediate(R8, 2 * kWordSize);
-      __ cmp(R8, Operand(R3));
-      __ strd(R6, Address(R8, -2 * kWordSize), LS);
-      __ b(&init_loop, CC);
-      __ str(R6, Address(R8, -2 * kWordSize), HI);
+      __ InitializeFieldsNoBarrier(R0, R8, R3, R6, R7);
     }
   }
   __ b(done);

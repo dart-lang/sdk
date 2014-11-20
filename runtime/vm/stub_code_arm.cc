@@ -699,15 +699,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ LoadImmediate(R4, reinterpret_cast<intptr_t>(Object::null()));
   __ mov(R5, Operand(R4));
   __ AddImmediate(R6, R0, sizeof(RawArray) - kHeapObjectTag);
-
-  Label init_loop;
-  __ Bind(&init_loop);
-  __ AddImmediate(R6, 2 * kWordSize);
-  __ cmp(R6, Operand(R7));
-  __ strd(R4, Address(R6, -2 * kWordSize), LS);
-  __ b(&init_loop, CC);
-  __ str(R4, Address(R6, -2 * kWordSize), HI);
-
+  __ InitializeFieldsNoBarrier(R0, R6, R7, R4, R5);
   __ IncrementAllocationStatsWithSize(R3, R8, cid, space);
   __ Ret();  // Returns the newly allocated object in R0.
   // Unable to allocate the array using the fast inline code, just call
@@ -882,61 +874,61 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
 
     // Successfully allocated the object, now update top to point to
     // next object start and initialize the object.
-    // R0: new object.
+    // R0: new object start (untagged).
     // R1: number of context variables.
     // R2: object size.
     // R3: next object start.
     // R5: top address.
-    __ LoadAllocationStatsAddress(R4, cid, space);
+    __ LoadAllocationStatsAddress(R6, cid, space);
     __ str(R3, Address(R5, 0));
     __ add(R0, R0, Operand(kHeapObjectTag));
 
     // Calculate the size tag.
-    // R0: new object.
+    // R0: new object (tagged).
     // R1: number of context variables.
     // R2: object size.
-    // R4: allocation stats address.
+    // R3: next object start.
+    // R6: allocation stats address.
     const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
     __ CompareImmediate(R2, RawObject::SizeTag::kMaxSizeTag);
     // If no size tag overflow, shift R2 left, else set R2 to zero.
-    __ mov(R3, Operand(R2, LSL, shift), LS);
-    __ mov(R3, Operand(0), HI);
+    __ mov(R5, Operand(R2, LSL, shift), LS);
+    __ mov(R5, Operand(0), HI);
 
     // Get the class index and insert it into the tags.
-    // R3: size and bit tags.
+    // R5: size and bit tags.
     __ LoadImmediate(IP, RawObject::ClassIdTag::encode(cid));
-    __ orr(R3, R3, Operand(IP));
-    __ str(R3, FieldAddress(R0, Context::tags_offset()));
+    __ orr(R5, R5, Operand(IP));
+    __ str(R5, FieldAddress(R0, Context::tags_offset()));
 
     // Setup up number of context variables field.
     // R0: new object.
     // R1: number of context variables as integer value (not object).
     // R2: object size.
-    // R4: allocation stats address.
+    // R3: next object start.
+    // R6: allocation stats address.
     __ str(R1, FieldAddress(R0, Context::num_variables_offset()));
 
     // Setup the parent field.
     // R0: new object.
     // R1: number of context variables.
     // R2: object size.
-    // R4: allocation stats address.
-    __ LoadImmediate(R3, reinterpret_cast<intptr_t>(Object::null()));
-    __ str(R3, FieldAddress(R0, Context::parent_offset()));
+    // R3: next object start.
+    // R6: allocation stats address.
+    __ LoadImmediate(R4, reinterpret_cast<intptr_t>(Object::null()));
+    __ str(R4, FieldAddress(R0, Context::parent_offset()));
 
     // Initialize the context variables.
     // R0: new object.
     // R1: number of context variables.
     // R2: object size.
-    // R3: raw null.
-    // R4: allocation stats address.
+    // R3: next object start.
+    // R4, R5: raw null.
+    // R6: allocation stats address.
     Label loop;
-    __ AddImmediate(R5, R0, Context::variable_offset(0) - kHeapObjectTag);
-    __ Bind(&loop);
-    __ subs(R1, R1, Operand(1));
-    __ str(R3, Address(R5, R1, LSL, 2), PL);  // Store if R1 positive or zero.
-    __ b(&loop, NE);  // Loop if R1 not zero.
-
-    __ IncrementAllocationStatsWithSize(R4, R2, cid, space);
+    __ AddImmediate(R7, R0, Context::variable_offset(0) - kHeapObjectTag);
+    __ InitializeFieldsNoBarrier(R0, R7, R3, R4, R5);
+    __ IncrementAllocationStatsWithSize(R6, R2, cid, space);
 
     // Done allocating and initializing the context.
     // R0: new object.
@@ -1067,42 +1059,43 @@ void StubCode::GenerateAllocationStubForClass(
     Heap* heap = Isolate::Current()->heap();
     Heap::Space space = heap->SpaceForAllocation(cls.id());
     __ LoadImmediate(R5, heap->TopAddress(space));
-    __ ldr(R2, Address(R5, 0));
-    __ AddImmediate(R3, R2, instance_size);
+    __ ldr(R0, Address(R5, 0));
+    __ AddImmediate(R1, R0, instance_size);
     // Check if the allocation fits into the remaining space.
-    // R2: potential new object start.
-    // R3: potential next object start.
+    // R0: potential new object start.
+    // R1: potential next object start.
     __ LoadImmediate(IP, heap->EndAddress(space));
     __ ldr(IP, Address(IP, 0));
-    __ cmp(R3, Operand(IP));
+    __ cmp(R1, Operand(IP));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
       __ b(&slow_case, CS);  // Unsigned higher or equal.
     }
-    __ str(R3, Address(R5, 0));
+    __ str(R1, Address(R5, 0));
 
     // Load the address of the allocation stats table. We split up the load
     // and the increment so that the dependent load is not too nearby.
     __ LoadAllocationStatsAddress(R5, cls.id(), space);
 
-    // R2: new object start.
-    // R3: next object start.
+    // R0: new object start.
+    // R1: next object start.
     // R5: allocation stats table.
     // Set the tags.
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
-    __ LoadImmediate(R0, tags);
-    __ str(R0, Address(R2, Instance::tags_offset()));
+    __ LoadImmediate(R2, tags);
+    __ str(R2, Address(R0, Instance::tags_offset()));
+    __ add(R0, R0, Operand(kHeapObjectTag));
 
     // Initialize the remaining words of the object.
-    __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+    __ LoadImmediate(R2, reinterpret_cast<intptr_t>(Object::null()));
 
-    // R0: raw null.
-    // R2: new object start.
-    // R3: next object start.
+    // R2: raw null.
+    // R0: new object (tagged).
+    // R1: next object start.
     // R5: allocation stats table.
     // First try inlining the initialization without a loop.
     if (instance_size < (kInlineInstanceSize * kWordSize)) {
@@ -1111,51 +1104,45 @@ void StubCode::GenerateAllocationStubForClass(
       intptr_t current_offset = Instance::NextFieldOffset();
       // Write two nulls at a time.
       if (instance_size >= 2 * kWordSize) {
-        __ mov(R1, Operand(R0));
+        __ mov(R3, Operand(R2));
         while (current_offset + kWordSize < instance_size) {
-          __ StoreToOffset(kWordPair, R0, R2, current_offset);
+          __ StoreToOffset(kWordPair, R2, R0, current_offset - kHeapObjectTag);
           current_offset += 2 * kWordSize;
         }
       }
       // Write remainder.
       while (current_offset < instance_size) {
-        __ StoreToOffset(kWord, R0, R2, current_offset);
+        __ StoreToOffset(kWord, R2, R0, current_offset - kHeapObjectTag);
         current_offset += kWordSize;
       }
     } else {
       // There are more than kInlineInstanceSize(12) fields
-      __ add(R4, R2, Operand(Instance::NextFieldOffset()));
-      __ mov(R1, Operand(R0));
+      __ add(R4, R0, Operand(Instance::NextFieldOffset() - kHeapObjectTag));
+      __ mov(R3, Operand(R2));
       // Loop until the whole object is initialized.
-      // R0: raw null.
-      // R1: raw null.
-      // R2: new object.
-      // R3: next object start.
+      // R2: raw null.
+      // R3: raw null.
+      // R0: new object (tagged).
+      // R1: next object start.
       // R4: next word to be initialized.
       // R5: allocation stats table.
-      Label init_loop;
-      __ Bind(&init_loop);
-      __ AddImmediate(R4, 2 * kWordSize);
-      __ cmp(R4, Operand(R3));
-      __ strd(R0, Address(R4, -2 * kWordSize), LS);
-      __ b(&init_loop, CC);
-      __ str(R0, Address(R4, -2 * kWordSize), HI);
+      __ InitializeFieldsNoBarrier(R0, R4, R1, R2, R3);
     }
     if (is_cls_parameterized) {
       // Set the type arguments in the new object.
       __ ldr(R4, Address(SP, 0));
-      __ StoreToOffset(kWord, R4, R2, cls.type_arguments_field_offset());
+      __ StoreToOffset(kWord, R4,
+                       R0, cls.type_arguments_field_offset() - kHeapObjectTag);
     }
 
     // Done allocating and initializing the instance.
-    // R2: new object still missing its heap tag.
+    // R0: new object (tagged).
     // R5: allocation stats table.
-    __ add(R0, R2, Operand(kHeapObjectTag));
 
     // Update allocation stats.
     __ IncrementAllocationStats(R5, cls.id(), space);
 
-    // R0: new object.
+    // R0: new object (tagged).
     __ Ret();
 
     __ Bind(&slow_case);
