@@ -75,18 +75,22 @@ void main(List argv) {
   levelName = levelName.toUpperCase();
   logger.Level level = logger.Level.LEVELS.firstWhere((logger.Level l) => l.name == levelName);
   logger.Logger.root.level = level;
+  int total = 0;
   logger.Logger.root.onRecord.listen((logger.LogRecord rec) {
+    total++;
     AstNode node = rec.error;
     if (node == null) {
-      print('${rec.level.name}: ${rec.message}');
+      print('#$total: ${rec.level.name}: ${rec.message}');
       return;
     }
 
     final root = node.root as CompilationUnit;
     final source = (root.element as CompilationUnitElementImpl).source;
     final file = new SourceFile(source.contents.data, url: source.uri);
-    final span = file.span(node.beginToken.offset, node.endToken.end);
-    print(span.message(rec.message, color: true));
+    final begin = node is AnnotatedNode ?
+        node.firstTokenAfterCommentAndMetadata.offset : node.offset;
+    final span = file.span(begin, node.end);
+    print('#$total: ${span.message(rec.message, color: _color(rec.level))}');
   });
 
   // Run dart analyzer.  We rely on it for resolution.
@@ -130,4 +134,10 @@ void main(List argv) {
     log.shout('Program is valid');
 }
 
+const String _RED_COLOR = '\u001b[31m';
+const String _MAGENTA_COLOR = '\u001b[35m';
 
+String _color(logger.Level level) {
+  if (stdioType(stdout) != StdioType.TERMINAL) return null;
+  return level == logger.Level.SEVERE ? _RED_COLOR : _MAGENTA_COLOR;
+}
