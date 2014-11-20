@@ -21,8 +21,7 @@ class OutWriter {
   }
 
   void write(String string, [int indent = 0]) {
-    if (indent < 0)
-      inc(indent);
+    if (indent < 0) inc(indent);
     var lines = string.split('\n');
     var length = lines.length;
     for (var i = 0; i < length - 1; ++i) {
@@ -30,12 +29,12 @@ class OutWriter {
       _sink.write('$prefix${lines[i]}\n');
     }
     var last = lines.last;
-    if (last.isNotEmpty && (newline && length == 1 || length > 1))
+    if (last.isNotEmpty && (newline && length == 1 || length > 1)) {
       _sink.write(_prefix);
+    }
     _sink.write(last);
     newline = last.isEmpty;
-    if (indent > 0)
-      inc(indent);
+    if (indent > 0) inc(indent);
   }
 
   void inc([int n = 2]) {
@@ -63,8 +62,8 @@ class UnitGenerator extends GeneralizingAstVisitor {
   final Map<AstNode, List<StaticInfo>> infoMap;
   OutWriter out = null;
 
-  UnitGenerator(this.uri, this.unit, this.directory, this.libName,
-      this.infoMap);
+  UnitGenerator(
+      this.uri, this.unit, this.directory, this.libName, this.infoMap);
 
   DynamicInvoke checkDynamicInvoke(AstNode node) {
     DynamicInvoke result = null;
@@ -96,7 +95,7 @@ var $libName;
     out.write("""
 })($libName || ($libName = {}));
 """, -2);
-   out.close();
+    out.close();
   }
 
   bool isPublic(String name) => !name.startsWith('_');
@@ -154,8 +153,7 @@ var $name = (function () {
   return $name;
 })();
 """, -2);
-    if (isPublic(name))
-      out.write("$libName.$name = $name;\n");
+    if (isPublic(name)) out.write("$libName.$name = $name;\n");
     out.write("\n");
 
     return node;
@@ -171,8 +169,7 @@ var $name = (function () {
     out.write(") {\n", 2);
     node.functionExpression.body.accept(this);
     out.write("}\n", -2);
-    if (isPublic(name))
-      out.write("$libName.$name = $name;\n");
+    if (isPublic(name)) out.write("$libName.$name = $name;\n");
     out.write("\n");
     return node;
   }
@@ -230,8 +227,7 @@ var $name = (function () {
 
   AstNode visitBlockFunctionBody(BlockFunctionBody node) {
     var statements = node.block.statements;
-    for (var statement in statements)
-      statement.accept(this);
+    for (var statement in statements) statement.accept(this);
     return node;
   }
 
@@ -328,8 +324,8 @@ var $name = (function () {
       var library = element.enclosingElement.enclosingElement;
       assert(library is LibraryElement);
       var package = library.name;
-      var libname = _builtins.containsKey(package)
-          ? _builtins[package] : package;
+      var libname = _builtins
+          .containsKey(package) ? _builtins[package] : package;
       prefix = '$libname.';
     }
     return "$prefix$name";
@@ -354,7 +350,6 @@ class LibraryGenerator {
     library.parts.forEach((Uri uri, CompilationUnit unit) {
       generateUnit(uri, unit);
     });
-
   }
 }
 
@@ -368,13 +363,11 @@ class CodeGenerator {
 
   String _libName(Library lib) {
     for (var directive in lib.lib.directives) {
-      if (directive is LibraryDirective)
-        return directive.name.toString();
+      if (directive is LibraryDirective) return directive.name.toString();
     }
     // Fall back on the file name.
     var tail = lib.uri.pathSegments.last;
-    if (tail.endsWith('.dart'))
-      tail = tail.substring(0, tail.length - 5);
+    if (tail.endsWith('.dart')) tail = tail.substring(0, tail.length - 5);
     return tail;
   }
 
@@ -394,4 +387,3 @@ class CodeGenerator {
     });
   }
 }
-
