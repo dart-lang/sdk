@@ -60,6 +60,13 @@ class AllocStats {
     old_size = old_count * instance_size;
     new_size = new_count * instance_size;
   }
+
+  void Verify() {
+    ASSERT(new_count >= 0);
+    ASSERT(new_size >= 0);
+    ASSERT(old_count >= 0);
+    ASSERT(old_size >= 0);
+  }
 };
 
 class ClassHeapStats {
@@ -107,6 +114,8 @@ class ClassHeapStats {
   // Recent old at start of last new GC (used to compute promoted_*).
   intptr_t old_pre_new_gc_count_;
   intptr_t old_pre_new_gc_size_;
+
+  void Verify();
 };
 
 

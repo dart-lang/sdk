@@ -169,6 +169,46 @@ TEST_CASE(ClassHeapStats) {
 }
 
 
+TEST_CASE(ArrayHeapStats) {
+  const char* kScriptChars =
+  "List f(int len) {\n"
+  "  return new List(len);\n"
+  "}\n"
+  ""
+  "main() {\n"
+  "  return f(1234);\n"
+  "}\n";
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Isolate* isolate = Isolate::Current();
+  ClassTable* class_table = isolate->class_table();
+  intptr_t cid = kArrayCid;
+  ClassHeapStats* class_stats =
+      ClassHeapStatsTestHelper::GetHeapStatsForCid(class_table,
+                                                   cid);
+  Dart_EnterScope();
+  // Invoke 'main' twice, since initial compilation might trigger extra array
+  // allocations.
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(!Dart_IsNull(result));
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
+  EXPECT(!lib.IsNull());
+  intptr_t before = class_stats->recent.new_size;
+  Dart_Handle result2 = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result2);
+  EXPECT(!Dart_IsNull(result2));
+  intptr_t after = class_stats->recent.new_size;
+  const intptr_t expected_size = Array::InstanceSize(1234);
+  // Invoking the method might involve some additional tiny array allocations,
+  // so we allow slightly more than expected.
+  static const intptr_t kTolerance = 10 * kWordSize;
+  EXPECT_LE(expected_size, after - before);
+  EXPECT_GT(expected_size + kTolerance, after - before);
+  Dart_ExitScope();
+}
+
+
 class FindOnly : public FindObjectVisitor {
  public:
   FindOnly(Isolate* isolate, RawObject* target)

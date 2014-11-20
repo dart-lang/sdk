@@ -690,21 +690,23 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   // Initialize all array elements to raw_null.
   // R0: new object start as a tagged pointer.
   // R3: allocation stats address.
-  // R7: new object end address.
-  // R8: iterator which initially points to the start of the variable
-  // data area to be initialized.
   // R4, R5: null
+  // R6: iterator which initially points to the start of the variable
+  // data area to be initialized.
+  // R7: new object end address.
+  // R8: allocation size.
+
   __ LoadImmediate(R4, reinterpret_cast<intptr_t>(Object::null()));
   __ mov(R5, Operand(R4));
-  __ AddImmediate(R8, R0, sizeof(RawArray) - kHeapObjectTag);
+  __ AddImmediate(R6, R0, sizeof(RawArray) - kHeapObjectTag);
 
   Label init_loop;
   __ Bind(&init_loop);
-  __ AddImmediate(R8, 2 * kWordSize);
-  __ cmp(R8, Operand(R7));
-  __ strd(R4, Address(R8, -2 * kWordSize), LS);
+  __ AddImmediate(R6, 2 * kWordSize);
+  __ cmp(R6, Operand(R7));
+  __ strd(R4, Address(R6, -2 * kWordSize), LS);
   __ b(&init_loop, CC);
-  __ str(R4, Address(R8, -2 * kWordSize), HI);
+  __ str(R4, Address(R6, -2 * kWordSize), HI);
 
   __ IncrementAllocationStatsWithSize(R3, R8, cid, space);
   __ Ret();  // Returns the newly allocated object in R0.
