@@ -52,30 +52,6 @@ class C {
 }''');
   }
 
-  void test_compilationUnitMatches_true_different() {
-    _assertCompilationUnitMatches(true, r'''
-class C {
-  int m(int p) {
-    return p + p;
-  }
-}''', r'''
-class C {
-  int m(int p) {
-    return (p * p) + (p * p);
-  }
-}''');
-  }
-
-  void test_compilationUnitMatches_true_same() {
-    String content = r'''
-class C {
-  int m(int p) {
-    return p + p;
-  }
-}''';
-    _assertCompilationUnitMatches(true, content, content);
-  }
-
   void test_false_class_list_add() {
     _assertCompilationUnitMatches(false, r'''
 class A {}
@@ -262,44 +238,6 @@ class A {}
 class B {}
 class C extends Object with B, A {}
 ''');
-  }
-
-  void test_methodDeclarationMatches_false_parameter() {
-    _assertMethodMatches(false, r'''
-class C {
-  int m(int p) {
-    return p + p;
-  }
-}''', r'''
-class C {
-  int m(int p, int q) {
-    return (p * q) + (q * p);
-  }
-}''');
-  }
-
-  void test_methodDeclarationMatches_true_different() {
-    _assertMethodMatches(true, r'''
-class C {
-  int m(int p) {
-    return p + p;
-  }
-}''', r'''
-class C {
-  int m(int p) {
-    return (p * p) + (p * p);
-  }
-}''');
-  }
-
-  void test_methodDeclarationMatches_true_same() {
-    String content = r'''
-class C {
-  int m(int p) {
-    return p + p;
-  }
-}''';
-    _assertMethodMatches(true, content, content);
   }
 
   void test_true_class_list_reorder() {

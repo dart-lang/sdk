@@ -90,22 +90,8 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   }
 
   @override
-  visitCatchClause(CatchClause node) {
-    SimpleIdentifier exceptionParameter = node.exceptionParameter;
-    if (exceptionParameter != null) {
-      List<LocalVariableElement> localVariables =
-          _enclosingExecutable.localVariables;
-      LocalVariableElement exceptionElement =
-          _findIdentifier(localVariables, exceptionParameter);
-      _processElement(exceptionElement);
-      SimpleIdentifier stackTraceParameter = node.stackTraceParameter;
-      if (stackTraceParameter != null) {
-        LocalVariableElement stackTraceElement =
-            _findIdentifier(localVariables, stackTraceParameter);
-        _processElement(stackTraceElement);
-      }
-    }
-    super.visitCatchClause(node);
+  visitBlockFunctionBody(BlockFunctionBody node) {
+    // ignore bodies
   }
 
   @override
@@ -175,15 +161,6 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   }
 
   @override
-  visitDeclaredIdentifier(DeclaredIdentifier node) {
-    SimpleIdentifier variableName = node.identifier;
-    LocalVariableElement element =
-        _findIdentifier(_enclosingExecutable.localVariables, variableName);
-    _processElement(element);
-    super.visitDeclaredIdentifier(node);
-  }
-
-  @override
   visitDefaultFormalParameter(DefaultFormalParameter node) {
     SimpleIdentifier parameterName = node.parameter.identifier;
     ParameterElement element = _getElementForParameter(node, parameterName);
@@ -239,6 +216,11 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   }
 
   @override
+  visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    // ignore bodies
+  }
+
+  @override
   visitExtendsClause(ExtendsClause node) {
     _assertSameType(node.superclass, _enclosingClass.supertype);
   }
@@ -285,23 +267,6 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       }
       _processElement(_enclosingExecutable);
       super.visitFunctionDeclaration(node);
-    } finally {
-      _enclosingExecutable = outerExecutable;
-    }
-  }
-
-  @override
-  visitFunctionExpression(FunctionExpression node) {
-    if (node.parent is! FunctionDeclaration) {
-      FunctionElement element =
-          _findAtOffset(_enclosingExecutable.functions, node.beginToken.offset);
-      _processElement(element);
-    }
-    ExecutableElement outerExecutable = _enclosingExecutable;
-    try {
-      _enclosingExecutable = node.element;
-      _processElement(_enclosingExecutable);
-      super.visitFunctionExpression(node);
     } finally {
       _enclosingExecutable = outerExecutable;
     }
@@ -358,17 +323,6 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       _processElement(importElement);
     }
     super.visitImportDirective(node);
-  }
-
-  @override
-  visitLabeledStatement(LabeledStatement node) {
-    for (Label label in node.labels) {
-      SimpleIdentifier labelName = label.label;
-      LabelElement element =
-          _findIdentifier(_enclosingExecutable.labels, labelName);
-      _processElement(element);
-    }
-    super.visitLabeledStatement(node);
   }
 
   @override
@@ -433,28 +387,6 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     } else {
     }
     super.visitSimpleFormalParameter(node);
-  }
-
-  @override
-  visitSwitchCase(SwitchCase node) {
-    for (Label label in node.labels) {
-      SimpleIdentifier labelName = label.label;
-      LabelElement element =
-          _findIdentifier(_enclosingExecutable.labels, labelName);
-      _processElement(element);
-    }
-    super.visitSwitchCase(node);
-  }
-
-  @override
-  visitSwitchDefault(SwitchDefault node) {
-    for (Label label in node.labels) {
-      SimpleIdentifier labelName = label.label;
-      LabelElement element =
-          _findIdentifier(_enclosingExecutable.labels, labelName);
-      _processElement(element);
-    }
-    super.visitSwitchDefault(node);
   }
 
   @override
@@ -596,17 +528,6 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       parent = parent.enclosingElement;
     }
   }
-
-  /**
-   * Return the element in the given array of elements that was created for the declaration at the
-   * given offset. This method should only be used when there is no name
-   *
-   * @param elements the elements of the appropriate kind that exist in the current context
-   * @param offset the offset of the name of the element to be returned
-   * @return the element at the given offset
-   */
-  Element _findAtOffset(List<Element> elements, int offset) =>
-      _findWithNameAndOffset(elements, "", offset);
 
   /**
    * Return the [Element] in [elements] with the given [name].
@@ -836,7 +757,9 @@ class IncrementalResolver {
       throw new AnalysisException("Cannot resolve node: element model changed");
     }
     _definingUnit.accept(
-        new _ElementNameOffsetUpdater(_updateOffset, _updateNewLength - _updateOldLength));
+        new _ElementNameOffsetUpdater(
+            _updateOffset,
+            _updateNewLength - _updateOldLength));
     _resolveTypes(node, scope);
     _resolveVariables(node, scope);
     _resolveReferences(node, scope);
@@ -1082,6 +1005,23 @@ class _DeclarationMismatchException {
 }
 
 
+class _ElementNameOffsetUpdater extends GeneralizingElementVisitor {
+  final int updateOffset;
+  final int updateDelta;
+
+  _ElementNameOffsetUpdater(this.updateOffset, this.updateDelta);
+
+  @override
+  visitElement(Element element) {
+    int nameOffset = element.nameOffset;
+    if (nameOffset >= updateOffset) {
+      (element as ElementImpl).nameOffset = nameOffset + updateDelta;
+    }
+    super.visitElement(element);
+  }
+}
+
+
 class _ElementsGatherer extends GeneralizingElementVisitor {
   final DeclarationMatcher matcher;
 
@@ -1123,22 +1063,5 @@ class _ElementsGatherer extends GeneralizingElementVisitor {
       matcher._allElements.add(element);
       matcher._unmatchedElements.add(element);
     }
-  }
-}
-
-
-class _ElementNameOffsetUpdater extends GeneralizingElementVisitor {
-  final int updateOffset;
-  final int updateDelta;
-
-  _ElementNameOffsetUpdater(this.updateOffset, this.updateDelta);
-
-  @override
-  visitElement(Element element) {
-    int nameOffset = element.nameOffset;
-    if (nameOffset >= updateOffset) {
-      (element as ElementImpl).nameOffset = nameOffset + updateDelta;
-    }
-    super.visitElement(element);
   }
 }
