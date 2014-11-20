@@ -2383,6 +2383,13 @@ void ClassFinalizer::AllocateEnumValues(const Class &enum_cls) {
     if (!ordinal_value.IsSmi()) continue;
     enum_value = Instance::New(enum_cls, Heap::kOld);
     enum_value.SetField(index_field, ordinal_value);
+    const char* error_msg = "";
+    enum_value = enum_value.CheckAndCanonicalize(&error_msg);
+    if (enum_value.IsNull()) {
+      ReportError(enum_cls, enum_cls.token_pos(), "Failed finalizing values.");
+      UNREACHABLE();
+    }
+    ASSERT(enum_value.IsCanonical());
     field.set_value(enum_value);
     field.RecordStore(enum_value);
     intptr_t ord = Smi::Cast(ordinal_value).Value();

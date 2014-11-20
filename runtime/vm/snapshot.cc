@@ -981,7 +981,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
         offset += kWordSize;
       }
       result->SetCreatedFromSnapshot();
-    } else if (result->IsCanonical()) {
+    } else if (RawObject::IsCanonical(tags)) {
       *result = result->CheckAndCanonicalize(NULL);
       ASSERT(!result->IsNull());
     }
