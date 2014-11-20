@@ -13,6 +13,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:logging/logging.dart' as logger;
 import 'package:source_span/source_span.dart';
 
+import 'package:ddc/codegenerator.dart';
 import 'package:ddc/typechecker.dart';
 
 final parser = new ArgParser();
@@ -114,6 +115,14 @@ void main(List argv) {
   final visitor = new ProgramChecker(context, new StartRules(provider), uri, source, args['sdk-check']);
   visitor.check();
   visitor.finalizeImports();
+
+  // Generate code.
+  if (args['out'] != null) {
+    String outDir = args['out'];
+    final cg = new CodeGenerator(outDir, uri, visitor.libraries,
+        visitor.infoMap);
+    cg.generate();
+  }
 
   if (visitor.failure)
     log.shout('Program is not valid');

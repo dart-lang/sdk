@@ -927,9 +927,6 @@ class StartTypeWalker extends SimpleAstVisitor {
    */
   DartType getStaticType(Expression expression) {
     if (!_startTypes.containsKey(expression)) {
-      if (expression.toString() == "colors") {
-        print('colors');
-      }
       expression.accept(this);
       assert(_startTypes.containsKey(expression));
     }
