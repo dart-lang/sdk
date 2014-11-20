@@ -358,6 +358,25 @@ class OldEmitter implements Emitter {
             finishedClassesAccess]);
   }
 
+  List buildSplitOffAliases() {
+    if (backend.aliasedSuperMembers.isEmpty) return [];
+    return [js(r'''
+        var splitOffAliases = function(constructor) {
+          var hasOwnProperty = Object.prototype.hasOwnProperty;
+          var properties = constructor.prototype;
+          for (var member in properties) {
+            if (hasOwnProperty.call(properties, member)) {
+              var s = member.split(':');
+              if (s.length > 1) {
+                properties[s[0]] = properties[s[1]] = properties[member];
+                delete properties[member];
+              }
+            }
+          }
+        }
+      ''')];
+  }
+
   jsAst.Fun get finishClassesFunction {
     // Class descriptions are collected in a JS object.
     // 'finishClasses' takes all collected descriptions and sets up
@@ -514,6 +533,11 @@ class OldEmitter implements Emitter {
         finishedClasses[cls] = true;
 
         var superclass = pendingClasses[cls];
+        var constructor = allClasses[cls];
+
+        // Process aliased members due to super calls. We have to do this early
+        // to ensure that we also hit the object class.
+        if (#) splitOffAliases(constructor);
 
         // The superclass is only false (empty string) for the Dart Object
         // class.  The minifier together with noSuchMethod can put methods on
@@ -521,7 +545,6 @@ class OldEmitter implements Emitter {
         // that we have a string.
         if (!superclass || typeof superclass != "string") return;
         finishClass(superclass);
-        var constructor = allClasses[cls];
         var superConstructor = allClasses[superclass];
 
         if (!superConstructor)
@@ -580,6 +603,7 @@ class OldEmitter implements Emitter {
         }
       }
     }''', [finishedClassesAccess,
+           backend.aliasedSuperMembers.isNotEmpty,
            !nativeClasses.isEmpty,
            interceptorsByTagAccess,
            leafTagsAccess,
@@ -691,6 +715,7 @@ class OldEmitter implements Emitter {
     if (!needsDefineClass) return [];
     return defineClassFunction
     ..add(buildInheritFrom())
+    ..addAll(buildSplitOffAliases())
     ..add(js('$finishClassesName = #', finishClassesFunction))
     ..add(initFinishClasses);
   }

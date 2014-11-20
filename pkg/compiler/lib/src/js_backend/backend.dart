@@ -331,6 +331,12 @@ class JavaScriptBackend extends Backend {
    */
   final Set<ClassElement> specialOperatorEqClasses = new Set<ClassElement>();
 
+  /**
+   * A set of members that are called from subclasses via super.
+   */
+  final Set<FunctionElement> aliasedSuperMembers =
+      new Setlet<FunctionElement>();
+
   List<CompilerTask> get tasks {
     List<CompilerTask> result = functionCompiler.tasks;
     result.add(emitter);
@@ -536,6 +542,20 @@ class JavaScriptBackend extends Backend {
       oneShotInterceptors[name] = selector;
     }
     return name;
+  }
+
+  /**
+   * Record that [method] is called from a subclass via `super`.
+   */
+  void registerAliasedSuperMember(FunctionElement method) {
+    aliasedSuperMembers.add(method);
+  }
+
+  /**
+   * Returns `true` is [member] is called from a subclass via `super`.
+   */
+  bool isAliasedSuperMember(FunctionElement member) {
+    return aliasedSuperMembers.contains(member);
   }
 
   bool isInterceptedMethod(Element element) {
