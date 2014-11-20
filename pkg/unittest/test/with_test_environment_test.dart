@@ -22,19 +22,13 @@ class TestConfiguration extends SimpleConfiguration {
   Future get done => _completer.future;
 
   onDone(success) {
-    new Future.sync(() {
-      super.onDone(success);
-    }).then((_) => _completer.complete(_))
-    .catchError((error, stack) => _completer.completeError(error, stack));
+    new Future.sync(() => super.onDone(success))
+        .then(_completer.complete)
+        .catchError(_completer.completeError);
   }
 
   bool checkIfTestRan(String testName) {
-    for (final t in _results) {
-      if (t.description == testName) {
-        return true;
-      }
-    }
-    return false;
+    return _results.any((test) => test.description == testName);
   }
 }
 
