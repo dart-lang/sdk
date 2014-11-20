@@ -2308,7 +2308,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (_contentRangeChanged(source, contents, offset, oldLength, newLength)) {
       _onSourcesChangedController.add(
           new SourcesChangedEvent.changedRange(
-              source, contents, offset, oldLength, newLength));
+              source,
+              contents,
+              offset,
+              oldLength,
+              newLength));
     }
   }
 
@@ -2863,24 +2867,35 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @param oldLength the number of characters in the original contents that were replaced
    * @param newLength the number of characters in the replacement text
    */
-  bool _contentRangeChanged(Source source, String contents, int offset, int oldLength, int newLength) {
+  bool _contentRangeChanged(Source source, String contents, int offset,
+      int oldLength, int newLength) {
     bool changed = false;
     String originalContents = _contentCache.setContents(source, contents);
     if (contents != null) {
       if (contents != originalContents) {
         if (_options.incremental) {
-          _incrementalAnalysisCache = IncrementalAnalysisCache.update(_incrementalAnalysisCache, source, originalContents, contents, offset, oldLength, newLength, _getReadableSourceEntry(source));
+          _incrementalAnalysisCache = IncrementalAnalysisCache.update(
+              _incrementalAnalysisCache,
+              source,
+              originalContents,
+              contents,
+              offset,
+              oldLength,
+              newLength,
+              _getReadableSourceEntry(source));
         }
         _sourceChanged(source);
         changed = true;
         SourceEntry sourceEntry = _cache.get(source);
         if (sourceEntry != null) {
-          sourceEntry.modificationTime = _contentCache.getModificationStamp(source);
+          sourceEntry.modificationTime =
+              _contentCache.getModificationStamp(source);
           sourceEntry.setValue(SourceEntry.CONTENT, contents);
         }
       }
     } else if (originalContents != null) {
-      _incrementalAnalysisCache = IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
+      _incrementalAnalysisCache =
+          IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
       _sourceChanged(source);
       changed = true;
     }
@@ -2901,17 +2916,20 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     String originalContents = _contentCache.setContents(source, contents);
     if (contents != null) {
       if (contents != originalContents) {
-        _incrementalAnalysisCache = IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
+        _incrementalAnalysisCache =
+            IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
         _sourceChanged(source);
         changed = true;
         SourceEntry sourceEntry = _cache.get(source);
         if (sourceEntry != null) {
-          sourceEntry.modificationTime = _contentCache.getModificationStamp(source);
+          sourceEntry.modificationTime =
+              _contentCache.getModificationStamp(source);
           sourceEntry.setValue(SourceEntry.CONTENT, contents);
         }
       }
     } else if (originalContents != null) {
-      _incrementalAnalysisCache = IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
+      _incrementalAnalysisCache =
+          IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
       _sourceChanged(source);
       changed = true;
     }
@@ -10421,8 +10439,15 @@ class IncrementalAnalysisTask extends AnalysisTask {
       if (element != null) {
         LibraryElement library = element.library;
         if (library != null) {
-          IncrementalResolver resolver =
-              new IncrementalResolver(library, cache.source, typeProvider, errorListener);
+          IncrementalResolver resolver = new IncrementalResolver(
+              errorListener,
+              typeProvider,
+              library,
+              element,
+              cache.source,
+              cache.offset,
+              cache.oldLength,
+              cache.newLength);
           resolver.resolve(parser.updatedNode);
         }
       }
@@ -14511,9 +14536,10 @@ class SourcesChangedEvent {
   /**
    * Return `true` if any sources were removed or deleted.
    */
-  bool get wereSourcesRemovedOrDeleted => _changeSet.removedSources.length > 0
-      || _changeSet.removedContainers.length > 0
-      || _changeSet.deletedSources.length > 0;
+  bool get wereSourcesRemovedOrDeleted =>
+      _changeSet.removedSources.length > 0 ||
+          _changeSet.removedContainers.length > 0 ||
+          _changeSet.deletedSources.length > 0;
 }
 
 /**

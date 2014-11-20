@@ -463,6 +463,27 @@ main(int a, int b) {
     _resolve(_editString('+', '*'), _isStatement);
   }
 
+  void test_updateElementOffset() {
+    _resolveUnit(r'''
+class A {
+  int am(String ap) {
+    int av = 1;
+    return av;
+  }
+}
+main(int a, int b) {
+  return a + b;
+}
+class B {
+  int bm(String bp) {
+    int bv = 1;
+    return bv;
+  }
+}
+''');
+    _resolve(_editString('+', ' + '), _isStatement);
+  }
+
   _Edit _editString(String search, String replacement, [int length]) {
     int offset = code.indexOf(search);
     expect(offset, isNot(-1));
@@ -494,9 +515,15 @@ main(int a, int b) {
     expect(success, isTrue);
     // do incremental resolution
     GatheringErrorListener errorListener = new GatheringErrorListener();
-    // TODO(scheglov) use 'replacement' to update elements offsets
-    IncrementalResolver resolver =
-        new IncrementalResolver(library, source, typeProvider, errorListener);
+    IncrementalResolver resolver = new IncrementalResolver(
+        errorListener,
+        typeProvider,
+        library,
+        unit.element,
+        source,
+        edit.offset,
+        edit.length,
+        edit.replacement.length);
     resolver.resolve(newNode);
     // resolve "newCode" from scratch
     CompilationUnit fullNewUnit;
@@ -915,6 +942,7 @@ class _SameResolutionValidator implements AstVisitor {
   @override
   visitClassDeclaration(ClassDeclaration node) {
     ClassDeclaration other = this.other;
+    _visitDeclaration(node, other);
     _visitNode(node.name, other.name);
     _visitNode(node.typeParameters, other.typeParameters);
     _visitNode(node.extendsClause, other.extendsClause);
@@ -926,7 +954,7 @@ class _SameResolutionValidator implements AstVisitor {
   @override
   visitClassTypeAlias(ClassTypeAlias node) {
     ClassTypeAlias other = this.other;
-    _verifyElement(node.element, other.element);
+    _visitDeclaration(node, other);
     _visitNode(node.name, other.name);
     _visitNode(node.typeParameters, other.typeParameters);
     _visitNode(node.superclass, other.superclass);
@@ -965,7 +993,7 @@ class _SameResolutionValidator implements AstVisitor {
   @override
   visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorDeclaration other = this.other;
-    _verifyElement(node.element, other.element);
+    _visitDeclaration(node, other);
     _visitNode(node.returnType, other.returnType);
     _visitNode(node.name, other.name);
     _visitNode(node.parameters, other.parameters);
@@ -1071,6 +1099,7 @@ class _SameResolutionValidator implements AstVisitor {
   @override
   visitFieldDeclaration(FieldDeclaration node) {
     FieldDeclaration other = this.other;
+    _visitDeclaration(node, other);
     _visitNode(node.fields, other.fields);
   }
 
@@ -1279,6 +1308,7 @@ class _SameResolutionValidator implements AstVisitor {
   @override
   visitMethodDeclaration(MethodDeclaration node) {
     MethodDeclaration other = this.other;
+    _visitDeclaration(node, other);
     _visitNode(node.name, other.name);
     _visitNode(node.parameters, other.parameters);
     _visitNode(node.body, other.body);
@@ -1516,6 +1546,7 @@ class _SameResolutionValidator implements AstVisitor {
   @override
   visitVariableDeclaration(VariableDeclaration node) {
     VariableDeclaration other = this.other;
+    _visitDeclaration(node, other);
     _visitNode(node.name, other.name);
     _visitNode(node.initializer, other.initializer);
   }
@@ -1559,8 +1590,7 @@ class _SameResolutionValidator implements AstVisitor {
     if (a == null && b == null) {
       return;
     }
-    // TODO(scheglov) uncomment when implement elements shifting
-//    expect(a.nameOffset, b.nameOffset);
+    expect(a.nameOffset, b.nameOffset);
   }
 
   void _verifyType(DartType a, DartType b) {
@@ -1608,6 +1638,7 @@ class _SameResolutionValidator implements AstVisitor {
 
   void _visitNormalFormalParameter(NormalFormalParameter node,
       NormalFormalParameter other) {
+    _verifyElement(node.element, other.element);
     _visitNode(node.documentationComment, other.documentationComment);
     _visitList(node.metadata, other.metadata);
     _visitNode(node.identifier, other.identifier);

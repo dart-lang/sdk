@@ -3451,7 +3451,7 @@ abstract class ElementImpl implements Element {
   /**
    * A cached copy of the calculated hashCode for this element.
    */
-  int _cachedHashCode = 0;
+  int _cachedHashCode;
 
   /**
    * A cached copy of the calculated location for this element.
@@ -3504,7 +3504,7 @@ abstract class ElementImpl implements Element {
   int get hashCode {
     // TODO: We might want to re-visit this optimization in the future.
     // We cache the hash code value as this is a very frequently called method.
-    if (_cachedHashCode == 0) {
+    if (_cachedHashCode == null) {
       int hashIdentifier = identifier.hashCode;
       Element enclosing = enclosingElement;
       if (enclosing != null) {
@@ -8804,7 +8804,12 @@ class LocalVariableElementImpl extends VariableElementImpl implements
   LocalVariableElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
-  String get identifier => "${super.identifier}@$nameOffset";
+  String get identifier {
+    int enclosingOffset =
+        enclosingElement != null ? enclosingElement.nameOffset : 0;
+    int delta = nameOffset - enclosingOffset;
+    return '${super.identifier}@$delta';
+  }
 
   @override
   bool get isPotentiallyMutatedInClosure =>
@@ -11562,13 +11567,13 @@ class TypeImpl_TypePair {
 
   final DartType _secondType;
 
-  int _cachedHashCode = 0;
+  int _cachedHashCode;
 
   TypeImpl_TypePair(this._firstType, this._secondType);
 
   @override
   int get hashCode {
-    if (_cachedHashCode == 0) {
+    if (_cachedHashCode == null) {
       int firstHashCode = 0;
       if (_firstType != null) {
         Element firstElement = _firstType.element;

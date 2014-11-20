@@ -775,14 +775,10 @@ class DeclarationMatcher extends RecursiveAstVisitor {
  */
 class IncrementalResolver {
   /**
-   * The element for the library containing the compilation unit being visited.
+   * The error listener that will be informed of any errors that are found
+   * during resolution.
    */
-  final LibraryElement _definingLibrary;
-
-  /**
-   * The source representing the compilation unit being visited.
-   */
-  final Source _source;
+  final AnalysisErrorListener _errorListener;
 
   /**
    * The object used to access the types from the core library.
@@ -790,29 +786,48 @@ class IncrementalResolver {
   final TypeProvider _typeProvider;
 
   /**
-   * The error listener that will be informed of any errors that are found during resolution.
+   * The element for the library containing the compilation unit being resolved.
    */
-  final AnalysisErrorListener _errorListener;
+  final LibraryElement _definingLibrary;
 
   /**
-   * Initialize a newly created incremental resolver to resolve a node in the given source in the
-   * given library, reporting errors to the given error listener.
-   *
-   * @param definingLibrary the element for the library containing the compilation unit being
-   *          visited
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
-   * @param errorListener the error listener that will be informed of any errors that are found
-   *          during resolution
+   * The element of the compilation unit being resolved.
    */
-  IncrementalResolver(this._definingLibrary, this._source, this._typeProvider,
-      this._errorListener);
+  final CompilationUnitElement _definingUnit;
 
   /**
-   * Resolve the given node, reporting any errors or warnings to the given listener.
+   * The source representing the compilation unit being visited.
+   */
+  final Source _source;
+
+  /**
+   * The offset of the changed contents.
+   */
+  final int _updateOffset;
+
+  /**
+   * The number of characters in the original contents that were replaced.
+   */
+  final int _updateOldLength;
+
+  /**
+   * The number of characters in the replacement text.
+   */
+  final int _updateNewLength;
+
+  /**
+   * Initialize a newly created incremental resolver to resolve a node in the
+   * given source in the given library, reporting errors to the given error
+   * listener.
+   */
+  IncrementalResolver(this._errorListener, this._typeProvider,
+      this._definingLibrary, this._definingUnit, this._source, this._updateOffset,
+      this._updateOldLength, this._updateNewLength);
+
+  /**
+   * Resolve [node], reporting any errors or warnings to the given listener.
    *
-   * @param node the root of the AST structure to be resolved
-   * @throws AnalysisException if the node could not be resolved
+   * [node] - the root of the AST structure to be resolved.
    */
   void resolve(AstNode node) {
     AstNode rootNode = _findResolutionRoot(node);
@@ -820,18 +835,21 @@ class IncrementalResolver {
     if (_elementModelChanged(rootNode.parent)) {
       throw new AnalysisException("Cannot resolve node: element model changed");
     }
+    _definingUnit.accept(
+        new _ElementNameOffsetUpdater(_updateOffset, _updateNewLength - _updateOldLength));
     _resolveTypes(node, scope);
     _resolveVariables(node, scope);
     _resolveReferences(node, scope);
   }
 
   /**
-   * Return `true` if the given node can be resolved independently of any other nodes.
+   * Return `true` if the given node can be resolved independently of any other
+   * nodes.
    *
-   * <b>Note:</b> This method needs to be kept in sync with [ScopeBuilder.scopeForAstNode].
+   * *Note*: This method needs to be kept in sync with
+   * [ScopeBuilder.scopeForAstNode].
    *
-   * @param node the node being tested
-   * @return `true` if the given node can be resolved independently of any other nodes
+   * [node] - the node being tested.
    */
   bool _canBeResolved(AstNode node) =>
       node is ClassDeclaration ||
@@ -843,11 +861,13 @@ class IncrementalResolver {
           node is MethodDeclaration;
 
   /**
-   * Return `true` if the portion of the element model defined by the given node has changed.
+   * Return `true` if the portion of the element model defined by the given node
+   * has changed.
    *
-   * @param node the node defining the portion of the element model being tested
-   * @return `true` if the element model defined by the given node has changed
-   * @throws AnalysisException if the correctness of the element model cannot be determined
+   * [node] - the node defining the portion of the element model being tested.
+   *
+   * Throws [AnalysisException] if the correctness of the element model cannot
+   * be determined.
    */
   bool _elementModelChanged(AstNode node) {
     Element element = _getElement(node);
@@ -860,12 +880,12 @@ class IncrementalResolver {
   }
 
   /**
-   * Starting at the given node, find the smallest AST node that can be resolved independently of
-   * any other nodes. Return the node that was found.
+   * Starting at [node], find the smallest AST node that can be resolved
+   * independently of any other nodes. Return the node that was found.
    *
-   * @param node the node at which the search is to begin
-   * @return the smallest AST node that can be resolved independently of any other nodes
-   * @throws AnalysisException if there is no such node
+   * [node] - the node at which the search is to begin
+   *
+   * Throws [AnalysisException] if there is no such node.
    */
   AstNode _findResolutionRoot(AstNode node) {
     AstNode result = node;
@@ -881,11 +901,8 @@ class IncrementalResolver {
   }
 
   /**
-   * Return the element defined by the given node, or `null` if the node does not define an
-   * element.
-   *
-   * @param node the node defining the element to be returned
-   * @return the element defined by the given node
+   * Return the element defined by [node], or `null` if the node does not
+   * define an element.
    */
   Element _getElement(AstNode node) {
     if (node is Declaration) {
@@ -1106,5 +1123,22 @@ class _ElementsGatherer extends GeneralizingElementVisitor {
       matcher._allElements.add(element);
       matcher._unmatchedElements.add(element);
     }
+  }
+}
+
+
+class _ElementNameOffsetUpdater extends GeneralizingElementVisitor {
+  final int updateOffset;
+  final int updateDelta;
+
+  _ElementNameOffsetUpdater(this.updateOffset, this.updateDelta);
+
+  @override
+  visitElement(Element element) {
+    int nameOffset = element.nameOffset;
+    if (nameOffset >= updateOffset) {
+      (element as ElementImpl).nameOffset = nameOffset + updateDelta;
+    }
+    super.visitElement(element);
   }
 }
