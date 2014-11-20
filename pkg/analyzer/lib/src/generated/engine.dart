@@ -2917,19 +2917,19 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return changed;
   }
 
-  /**
-   * Create a [BuildUnitElementTask] for the given [source].
-   */
-  AnalysisContextImpl_TaskData _createBuildUnitElementTask(Source source,
-      DartEntry dartEntry, Source librarySource) {
-    CompilationUnit unit = dartEntry.resolvableCompilationUnit;
-    if (unit == null) {
-      return _createParseDartTask(source, dartEntry);
-    }
-    return new AnalysisContextImpl_TaskData(
-        new BuildUnitElementTask(this, source, librarySource, unit),
-        false);
-  }
+//  /**
+//   * Create a [BuildUnitElementTask] for the given [source].
+//   */
+//  AnalysisContextImpl_TaskData _createBuildUnitElementTask(Source source,
+//      DartEntry dartEntry, Source librarySource) {
+//    CompilationUnit unit = dartEntry.resolvableCompilationUnit;
+//    if (unit == null) {
+//      return _createParseDartTask(source, dartEntry);
+//    }
+//    return new AnalysisContextImpl_TaskData(
+//        new BuildUnitElementTask(this, source, librarySource, unit),
+//        false);
+//  }
 
   /**
    * Create a [GenerateDartErrorsTask] for the given source, marking the verification errors
@@ -4214,83 +4214,83 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
-  /**
-   * Notify all of the analysis listeners that the given source is no longer included in the set of
-   * sources that are being analyzed.
-   *
-   * @param source the source that is no longer being analyzed
-   */
-  void _notifyExcludedSource(Source source) {
-    int count = _listeners.length;
-    for (int i = 0; i < count; i++) {
-      _listeners[i].excludedSource(this, source);
-    }
-  }
+//  /**
+//   * Notify all of the analysis listeners that the given source is no longer included in the set of
+//   * sources that are being analyzed.
+//   *
+//   * @param source the source that is no longer being analyzed
+//   */
+//  void _notifyExcludedSource(Source source) {
+//    int count = _listeners.length;
+//    for (int i = 0; i < count; i++) {
+//      _listeners[i].excludedSource(this, source);
+//    }
+//  }
 
-  /**
-   * Notify all of the analysis listeners that the given source is now included in the set of
-   * sources that are being analyzed.
-   *
-   * @param source the source that is now being analyzed
-   */
-  void _notifyIncludedSource(Source source) {
-    int count = _listeners.length;
-    for (int i = 0; i < count; i++) {
-      _listeners[i].includedSource(this, source);
-    }
-  }
+//  /**
+//   * Notify all of the analysis listeners that the given source is now included in the set of
+//   * sources that are being analyzed.
+//   *
+//   * @param source the source that is now being analyzed
+//   */
+//  void _notifyIncludedSource(Source source) {
+//    int count = _listeners.length;
+//    for (int i = 0; i < count; i++) {
+//      _listeners[i].includedSource(this, source);
+//    }
+//  }
 
-  /**
-   * Notify all of the analysis listeners that the given Dart source was parsed.
-   *
-   * @param source the source that was parsed
-   * @param unit the result of parsing the source
-   */
-  void _notifyParsedDart(Source source, CompilationUnit unit) {
-    int count = _listeners.length;
-    for (int i = 0; i < count; i++) {
-      _listeners[i].parsedDart(this, source, unit);
-    }
-  }
+//  /**
+//   * Notify all of the analysis listeners that the given Dart source was parsed.
+//   *
+//   * @param source the source that was parsed
+//   * @param unit the result of parsing the source
+//   */
+//  void _notifyParsedDart(Source source, CompilationUnit unit) {
+//    int count = _listeners.length;
+//    for (int i = 0; i < count; i++) {
+//      _listeners[i].parsedDart(this, source, unit);
+//    }
+//  }
 
-  /**
-   * Notify all of the analysis listeners that the given HTML source was parsed.
-   *
-   * @param source the source that was parsed
-   * @param unit the result of parsing the source
-   */
-  void _notifyParsedHtml(Source source, ht.HtmlUnit unit) {
-    int count = _listeners.length;
-    for (int i = 0; i < count; i++) {
-      _listeners[i].parsedHtml(this, source, unit);
-    }
-  }
+//  /**
+//   * Notify all of the analysis listeners that the given HTML source was parsed.
+//   *
+//   * @param source the source that was parsed
+//   * @param unit the result of parsing the source
+//   */
+//  void _notifyParsedHtml(Source source, ht.HtmlUnit unit) {
+//    int count = _listeners.length;
+//    for (int i = 0; i < count; i++) {
+//      _listeners[i].parsedHtml(this, source, unit);
+//    }
+//  }
 
-  /**
-   * Notify all of the analysis listeners that the given Dart source was resolved.
-   *
-   * @param source the source that was resolved
-   * @param unit the result of resolving the source
-   */
-  void _notifyResolvedDart(Source source, CompilationUnit unit) {
-    int count = _listeners.length;
-    for (int i = 0; i < count; i++) {
-      _listeners[i].resolvedDart(this, source, unit);
-    }
-  }
+//  /**
+//   * Notify all of the analysis listeners that the given Dart source was resolved.
+//   *
+//   * @param source the source that was resolved
+//   * @param unit the result of resolving the source
+//   */
+//  void _notifyResolvedDart(Source source, CompilationUnit unit) {
+//    int count = _listeners.length;
+//    for (int i = 0; i < count; i++) {
+//      _listeners[i].resolvedDart(this, source, unit);
+//    }
+//  }
 
-  /**
-   * Notify all of the analysis listeners that the given HTML source was resolved.
-   *
-   * @param source the source that was resolved
-   * @param unit the result of resolving the source
-   */
-  void _notifyResolvedHtml(Source source, ht.HtmlUnit unit) {
-    int count = _listeners.length;
-    for (int i = 0; i < count; i++) {
-      _listeners[i].resolvedHtml(this, source, unit);
-    }
-  }
+//  /**
+//   * Notify all of the analysis listeners that the given HTML source was resolved.
+//   *
+//   * @param source the source that was resolved
+//   * @param unit the result of resolving the source
+//   */
+//  void _notifyResolvedHtml(Source source, ht.HtmlUnit unit) {
+//    int count = _listeners.length;
+//    for (int i = 0; i < count; i++) {
+//      _listeners[i].resolvedHtml(this, source, unit);
+//    }
+//  }
 
   /**
    * Updates [HtmlEntry]s that correspond to the previously known and new Angular application
@@ -6829,7 +6829,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
 
   final ht.HtmlUnit _unit;
 
-  List<AngularElement> _angularElements;
+//  List<AngularElement> _angularElements;
 
   List<NgProcessor> _processors = <NgProcessor>[];
 
@@ -7141,17 +7141,17 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
     _recordTypeLibraryInjected(variable);
   }
 
-  /**
-   * @return the [AngularElement] with the given name, maybe `null`.
-   */
-  AngularElement _findAngularElement(String name) {
-    for (AngularElement element in _angularElements) {
-      if (name == element.name) {
-        return element;
-      }
-    }
-    return null;
-  }
+//  /**
+//   * @return the [AngularElement] with the given name, maybe `null`.
+//   */
+//  AngularElement _findAngularElement(String name) {
+//    for (AngularElement element in _angularElements) {
+//      if (name == element.name) {
+//        return element;
+//      }
+//    }
+//    return null;
+//  }
 
   /**
    * Parses given [String] as an [AngularExpression] at the given offset.
@@ -7202,14 +7202,14 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
     return new AngularExpression(mainExpression, formatters);
   }
 
-  /**
-   * Parses given [String] as an [Expression] at the given offset.
-   */
-  Expression _parseDartExpression(String contents, int startIndex, int endIndex,
-      int offset) {
-    Token token = _scanDart(contents, startIndex, endIndex, offset);
-    return _parseDartExpressionInToken(token);
-  }
+//  /**
+//   * Parses given [String] as an [Expression] at the given offset.
+//   */
+//  Expression _parseDartExpression(String contents, int startIndex, int endIndex,
+//      int offset) {
+//    Token token = _scanDart(contents, startIndex, endIndex, offset);
+//    return _parseDartExpressionInToken(token);
+//  }
 
   Expression _parseDartExpressionInToken(Token token) {
     Parser parser = new Parser(_source, _errorListener);
@@ -7370,7 +7370,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
    */
   void _resolveInternal(List<AngularElement> angularElements,
       AngularComponentElement component) {
-    this._angularElements = angularElements;
+//    this._angularElements = angularElements;
     // add built-in processors
     _processors.add(NgModelProcessor.INSTANCE);
     // _processors.add(NgRepeatProcessor.INSTANCE);

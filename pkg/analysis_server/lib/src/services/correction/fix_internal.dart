@@ -2094,13 +2094,13 @@ class FixProcessor {
     return <String>["arg${index}"];
   }
 
-  /**
-   * Checks if [type] is not `null` and not `dynamic`, so it is worth adding
-   * into the source.
-   */
-  static bool _isInterestingType(DartType type) {
-    return type != null && !type.isDynamic;
-  }
+//  /**
+//   * Checks if [type] is not `null` and not `dynamic`, so it is worth adding
+//   * into the source.
+//   */
+//  static bool _isInterestingType(DartType type) {
+//    return type != null && !type.isDynamic;
+//  }
 
   /**
    * Returns `true` if [node] is a type name.

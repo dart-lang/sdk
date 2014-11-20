@@ -363,15 +363,6 @@ testUpdateContent() {
 }
 
 
-int _getSafeInt(Map<String, Object> json, String key, int defaultValue) {
-  Object value = json[key];
-  if (value is int) {
-    return value;
-  }
-  return defaultValue;
-}
-
-
 @ReflectiveTestCase()
 class AnalysisDomainTest extends AbstractAnalysisTest {
   Map<String, List<AnalysisError>> filesErrors = {};
