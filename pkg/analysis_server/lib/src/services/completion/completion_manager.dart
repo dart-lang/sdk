@@ -51,11 +51,12 @@ abstract class CompletionManager {
       CompletionPerformance performance) {
     if (context != null) {
       if (AnalysisEngine.isDartFileName(source.shortName)) {
-        return new DartCompletionManager(
+        return new DartCompletionManager.create(
             context,
             searchEngine,
             source,
             offset,
+            cache,
             performance);
       }
       if (AnalysisEngine.isHtmlFileName(source.shortName)) {

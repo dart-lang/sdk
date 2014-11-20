@@ -19,8 +19,7 @@ main() {
 class LocalComputerTest extends AbstractSelectorSuggestionTest {
 
   @override
-  void setUp() {
-    super.setUp();
+  void setUpComputer() {
     computer = new LocalComputer();
   }
 }

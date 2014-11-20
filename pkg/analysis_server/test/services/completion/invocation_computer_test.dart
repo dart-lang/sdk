@@ -20,8 +20,7 @@ main() {
 class InvocationComputerTest extends AbstractSelectorSuggestionTest {
 
   @override
-  void setUp() {
-    super.setUp();
+  void setUpComputer() {
     computer = new InvocationComputer();
   }
 }

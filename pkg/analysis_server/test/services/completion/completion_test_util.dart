@@ -24,7 +24,7 @@ import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
 
-class AbstractCompletionTest extends AbstractContextTest {
+abstract class AbstractCompletionTest extends AbstractContextTest {
   Index index;
   SearchEngineImpl searchEngine;
   DartCompletionComputer computer;
@@ -35,6 +35,7 @@ class AbstractCompletionTest extends AbstractContextTest {
   AstNode completionNode;
   bool _computeFastCalled = false;
   DartCompletionRequest request;
+  DartCompletionCache cache;
 
   void addResolvedUnit(String file, String code) {
     Source source = addSource(file, code);
@@ -51,8 +52,13 @@ class AbstractCompletionTest extends AbstractContextTest {
     content = content.substring(0, completionOffset) +
         content.substring(completionOffset + 1);
     testSource = addSource(testFile, content);
-    request =
-        new DartCompletionRequest(context, searchEngine, testSource, completionOffset);
+    cache = new DartCompletionCache(context, testSource);
+    request = new DartCompletionRequest(
+        context,
+        searchEngine,
+        testSource,
+        completionOffset,
+        cache);
   }
 
   void assertNoSuggestions({CompletionSuggestionKind kind: null}) {
@@ -409,7 +415,7 @@ class AbstractCompletionTest extends AbstractContextTest {
     return computer.computeFast(request);
   }
 
-  Future<bool> computeFull([bool fullAnalysis = false]) {
+  Future computeFull(assertFunction(bool result), {bool fullAnalysis: true}) {
     if (!_computeFastCalled) {
       expect(computeFast(), isFalse);
     }
@@ -456,7 +462,7 @@ class AbstractCompletionTest extends AbstractContextTest {
     if (!resolved) {
       fail('expected unit to be resolved');
     }
-    return computer.computeFull(request);
+    return computer.computeFull(request).then(assertFunction);
   }
 
   void failedCompletion(String message,
@@ -517,14 +523,25 @@ class AbstractCompletionTest extends AbstractContextTest {
     super.setUp();
     index = createLocalMemoryIndex();
     searchEngine = new SearchEngineImpl(index);
+    setUpComputer();
   }
+
+  void setUpComputer();
 }
 
 /**
  * Common tests for `ImportedTypeComputerTest`, `InvocationComputerTest`,
  * and `LocalComputerTest`.
  */
-class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
+abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
+
+  /**
+   * Assert that the ImportedComputer uses cached results to produce identical
+   * suggestions to the original set of suggestions.
+   */
+  void assertCachedCompute(_) {
+    // Subclasses override
+  }
 
   CompletionSuggestion assertLocalSuggestMethod(String name,
       String declaringType, String returnType, [CompletionRelevance relevance =
@@ -731,6 +748,12 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
+  Future computeFull(assertFunction(bool result), {bool fullAnalysis: true}) {
+    return super.computeFull(
+        assertFunction,
+        fullAnalysis: fullAnalysis).then(assertCachedCompute);
+  }
+
   test_ArgumentList() {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addSource('/libA.dart', '''
@@ -738,12 +761,12 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       bool hasLength(int expected) { }
       void baz() { }''');
     addTestSource('''
-      import '/libA.dart'
+      import '/libA.dart';
       class B { }
       String bar() => true;
       void main() {expect(^)}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
       assertSuggestLocalFunction('bar', 'String');
       assertSuggestImportedFunction('hasLength', 'bool');
@@ -769,7 +792,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       String bar() => true;
       void main() {expect(^)}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
       assertSuggestLocalFunction('bar', 'String');
       assertSuggestImportedFunction('hasLength', 'bool');
@@ -795,7 +818,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       String bar() => true;
       void main() {expect(^)}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
       assertSuggestLocalFunction('bar', 'String');
       assertSuggestImportedFunction('hasLength', 'bool');
@@ -821,7 +844,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
         void foo() {expect(^)}}
       String bar() => true;''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
       assertSuggestLocalFunction('bar', 'String');
       assertSuggestImportedFunction('hasLength', 'bool');
@@ -845,7 +868,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       String bar() => true;
       void main() {expect(foo: ^)}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestLocalFunction('bar', 'String');
       assertSuggestImportedFunction('hasLength', 'bool');
       assertNotSuggested('main');
@@ -857,7 +880,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // VariableDeclarationStatement  Block
     addTestSource('class A {} main() {int a; int ^b = 1;}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertNoSuggestions();
     });
   }
@@ -867,7 +890,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // VariableDeclarationStatement  Block
     addTestSource('class A {} main() {int a; int b = ^}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestLocalVariable('a', 'int');
       assertSuggestLocalFunction('main', null);
       assertSuggestLocalClass('A');
@@ -880,7 +903,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // VariableDeclarationStatement  Block
     addTestSource('class A {} main() {int a; int^ b = 1;}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestLocalClass('A');
       assertSuggestImportedClass('int');
       assertNotSuggested('a');
@@ -894,7 +917,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class A {int x; int y() => 0;}
       main(){A a; await ^}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestLocalVariable('a', 'A');
       assertSuggestLocalFunction('main', null);
       assertSuggestLocalClass('A');
@@ -907,7 +930,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // VariableDeclarationList  VariableDeclarationStatement
     addTestSource('main() {int a = 1, b = ^ + 2;}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestLocalVariable('a', 'int');
       assertSuggestImportedClass('Object');
       assertNotSuggested('b');
@@ -919,7 +942,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // VariableDeclarationList  VariableDeclarationStatement
     addTestSource('main() {int a = 1, b = 2 + ^;}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestLocalVariable('a', 'int');
       assertSuggestImportedClass('Object');
       assertNotSuggested('b');
@@ -958,7 +981,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class X {a() {var f; {var x;} ^ var r;} void b() { }}
       class Z { }''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
 
       assertSuggestLocalClass('X');
       assertSuggestLocalClass('Z');
@@ -1013,7 +1036,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       import "/testB.dart";
       class A extends E implements I with M {a() {^}}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestImportedGetter('e1', null);
       assertSuggestImportedGetter('f1', null);
       assertSuggestImportedGetter('i1', 'int');
@@ -1036,7 +1059,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class M { var m1; int m2() { } }
       class A extends E implements I with M {a() {^}}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestLocalGetter('e1', null);
       assertSuggestLocalGetter('f1', null);
       assertSuggestLocalGetter('i1', 'int');
@@ -1060,7 +1083,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       // but the user is trying to get completions for a non-cascade
       main() {A a; a.^.z}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestInvocationGetter('b', null);
       assertSuggestInvocationGetter('_c', 'X');
       assertNotSuggested('Object');
@@ -1082,7 +1105,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class X{}
       main() {A a; a..^z}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestInvocationGetter('b', null);
       assertSuggestInvocationGetter('_c', 'X');
       assertNotSuggested('Object');
@@ -1104,7 +1127,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class X{}
       main() {A a; a..^ return}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestInvocationGetter('b', null);
       assertSuggestInvocationGetter('_c', 'X');
       assertNotSuggested('Object');
@@ -1123,7 +1146,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class X{}
       main() {A a; a^..b}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertNotSuggested('b');
       assertNotSuggested('_c');
       assertSuggestLocalVariable('a', 'A');
@@ -1138,7 +1161,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // Block  CatchClause  TryStatement
     addTestSource('class A {a() {try{var x;} on E catch (e) {^}}}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestParameter('e', 'E');
       assertSuggestLocalMethod('a', 'A', null);
       assertSuggestImportedClass('Object');
@@ -1150,7 +1173,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // Block  CatchClause  TryStatement
     addTestSource('class A {a() {try{var x;} catch (e, s) {^}}}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestParameter('e', null);
       assertSuggestParameter('s', 'StackTrace');
       assertSuggestLocalMethod('a', 'A', null);
@@ -1169,7 +1192,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class _B {}
       A T;''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       CompletionSuggestion suggestionA =
           assertSuggestLocalClass('A', CompletionRelevance.LOW);
       if (suggestionA != null) {
@@ -1211,7 +1234,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       import "/testCD.dart";
       class X {}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertNoSuggestions();
     });
   }
@@ -1238,7 +1261,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       import "/testCD.dart";
       class X {}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertNoSuggestions();
     });
   }
@@ -1256,7 +1279,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       var m;
       main() {new X.^}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestNamedConstructor('c', 'X');
       assertNotSuggested('F1');
       assertNotSuggested('T1');
@@ -1275,7 +1298,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class X {X.c(); X._d(); z() {}}
       main() {new X.^}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestNamedConstructor('c', 'X');
       assertSuggestNamedConstructor('_d', 'X');
       assertNotSuggested('F1');
@@ -1297,7 +1320,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class Clz = Object with Object;
       class C {foo(){O^} void bar() {}}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestImportedClass('A');
       assertSuggestImportedFunction('F1', '_B', false);
       assertSuggestLocalClass('C');
@@ -1320,7 +1343,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       import "/testA.dart";
       class C {a() {C ^}}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertNoSuggestions();
     });
   }
@@ -1333,7 +1356,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       import "/testA.dart";
       class C {A ^}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertNoSuggestions();
     });
   }
@@ -1346,7 +1369,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       import "/testA.dart";
       class C {var ^}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertNoSuggestions();
     });
   }
@@ -1355,7 +1378,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // Block  ForEachStatement
     addTestSource('main(args) {for (int foo in bar) {^}}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestLocalVariable('foo', 'int');
       assertSuggestImportedClass('Object');
     });
@@ -1365,7 +1388,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // Block  ForEachStatement
     addTestSource('main(args) {for (foo in bar) {^}}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestLocalVariable('foo', null);
       assertSuggestImportedClass('Object');
     });
@@ -1378,7 +1401,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       void bar() { }
       class A {a(^) { }}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestLocalFunction('foo', null);
       assertSuggestLocalMethod('a', 'A', null);
       assertSuggestLocalClass('A');
@@ -1392,7 +1415,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // Block  ForStatement
     addTestSource('main(args) {for (int i; i < 10; ++i) {^}}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestLocalVariable('i', 'int');
       assertSuggestImportedClass('Object');
     });
@@ -1402,7 +1425,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // SimpleIdentifier  ForStatement
     addTestSource('main() {for (int index = 0; i^)}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestLocalVariable('index', 'int');
     });
   }
@@ -1411,7 +1434,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // SimpleIdentifier  ForStatement
     addTestSource('main() {List a; for (^)}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestLocalVariable('a', 'List');
       assertSuggestImportedClass('Object');
       assertSuggestImportedClass('int');
@@ -1422,7 +1445,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // SimpleIdentifier  ForStatement
     addTestSource('main() {for (int index = 0; index < 10; i^)}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestLocalVariable('index', 'int');
     });
   }
@@ -1433,7 +1456,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       void bar() { }
       main() {for (int index = 0; index < 10; ++i^)}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestLocalVariable('index', 'int');
       assertSuggestLocalFunction('main', null);
       assertNotSuggested('bar');
@@ -1446,7 +1469,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       void bar() { }
       String foo(List args) {x.then((R b) {^});}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       var f = assertSuggestLocalFunction('foo', 'String', false);
       if (f != null) {
         expect(f.element.isPrivate, isFalse);
@@ -1464,7 +1487,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class A {int x; int y() => 0;}
       main(){var a; if (^)}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestLocalVariable('a', null);
       assertSuggestLocalFunction('main', null);
       assertSuggestLocalClass('A');
@@ -1478,7 +1501,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       import "dart^";
       main() {}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertNoSuggestions();
     });
   }
@@ -1496,7 +1519,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class B {int x;}
       class C {foo(){var f; {var x;} new ^}}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestImportedClass('Object');
       assertSuggestImportedClass('A');
       assertSuggestLocalClass('B');
@@ -1515,7 +1538,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
     addTestSource('main() {String name; print("hello \$^");}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestLocalVariable('name', 'String');
       assertSuggestImportedClass('Object');
     });
@@ -1525,7 +1548,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
     addTestSource('main() {String name; print("hello \${n^}");}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestLocalVariable('name', 'String');
       assertSuggestImportedClass('Object');
     });
@@ -1535,7 +1558,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
     addTestSource('main() {String name; print("hello \${name.^}");}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestInvocationGetter('length', 'int');
       assertNotSuggested('name');
       assertNotSuggested('Object');
@@ -1547,7 +1570,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
     addTestSource('main() {String name; print("hello \${nam^e.length}");}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestLocalVariable('name', 'String');
       assertSuggestImportedClass('Object');
       assertNotSuggested('length');
@@ -1565,7 +1588,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class Y {Y.c(); Y._d(); z() {}}
       main() {var x; if (x is ^) { }}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestImportedClass('X');
       assertSuggestLocalClass('Y');
       assertNotSuggested('x');
@@ -1582,7 +1605,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class A {int x; int y() => 0;}
       main(){var a; if (^ is A)}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestLocalVariable('a', null);
       assertSuggestLocalFunction('main', null);
       assertSuggestLocalFunction('foo', null);
@@ -1598,7 +1621,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class A {int x; int y() => 0;}
       main(){var a; if (a is ^)}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertNotSuggested('a');
       assertNotSuggested('main');
       assertSuggestLocalClass('A');
@@ -1610,7 +1633,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // SimpleStringLiteral  ExpressionStatement  Block
     addTestSource('class A {a() {"hel^lo"}}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertNoSuggestions();
     });
   }
@@ -1619,7 +1642,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // Block  BlockFunctionBody  MethodDeclaration
     addTestSource('class A {@deprecated X get f => 0; Z a() {^} get _g => 1;}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       CompletionSuggestion methodA = assertSuggestLocalMethod('a', 'A', 'Z');
       if (methodA != null) {
         expect(methodA.element.isDeprecated, isFalse);
@@ -1643,7 +1666,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // Block  BlockFunctionBody  MethodDeclaration
     addTestSource('class A {@deprecated X f; Z _a() {^} var _g;}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       CompletionSuggestion methodA = assertSuggestLocalMethod('_a', 'A', 'Z');
       if (methodA != null) {
         expect(methodA.element.isDeprecated, isFalse);
@@ -1668,7 +1691,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // Block  BlockFunctionBody  MethodDeclaration
     addTestSource('class A {@deprecated Z a(X x, _, b, {y: boo}) {^}}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       CompletionSuggestion methodA =
           assertSuggestLocalMethod('a', 'A', 'Z', CompletionRelevance.LOW);
       if (methodA != null) {
@@ -1690,7 +1713,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       void bar() { }
       class A {Z a(X x, [int y=1]) {^}}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestLocalFunction('foo', null);
       assertSuggestLocalFunction('bar', 'void');
       assertSuggestLocalMethod('a', 'A', 'Z');
@@ -1713,7 +1736,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
         m(X x) {} I _n(X x) {}}
       class X{}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestInvocationGetter('f', 'X');
       assertSuggestInvocationGetter('_g', null);
       assertNotSuggested('b');
@@ -1754,7 +1777,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
         w() { }}
       main() {A.^}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestInvocationGetter('scA', 'String');
       assertSuggestInvocationGetter('scB', 'int');
       assertSuggestInvocationGetter('scI', null);
@@ -1793,7 +1816,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       import "/testB.dart";
       main() {A a; a.^}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestInvocationGetter('sc', 'int');
       assertSuggestInvocationGetter('b', null, isDeprecated: true);
       assertNotSuggested('_c');
@@ -1826,7 +1849,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
         m(X x) {} I _n(X x) {}}
       class X{}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestInvocationGetter('sc', 'int');
       assertSuggestInvocationGetter('b', null);
       assertSuggestInvocationGetter('_c', 'X');
@@ -1859,7 +1882,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class A { }
       main() {b.^}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestInvocationClass('X');
       assertSuggestInvocationClass('Y');
       assertSuggestInvocationTopLevelVar('T1', null);
@@ -1882,7 +1905,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       import "/testB.dart";
       foo(X x) {x.^}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestInvocationGetter('y', 'M');
       assertNotSuggested('_z');
       assertNotSuggested('==');
@@ -1898,7 +1921,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       import "/testA.dart";
       class X {foo(){A^.bar}}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestImportedClass('A');
       assertSuggestLocalClass('X');
       assertSuggestLocalMethod('foo', 'X', null);
@@ -1911,7 +1934,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // PrefixedIdentifier  ExpressionStatement  Block  BlockFunctionBody
     addTestSource('class A {String x; int get foo {x.^}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestInvocationGetter('isEmpty', 'bool');
       assertSuggestInvocationMethod('compareTo', 'Comparable', 'int');
     });
@@ -1921,7 +1944,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // SimpleIdentifier  MethodInvocation  PropertyAccess  ExpressionStatement
     addTestSource('class A {a() {"hello".to^String().length}}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestInvocationGetter('length', 'int');
       assertNotSuggested('A');
       assertNotSuggested('a');
@@ -1934,7 +1957,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement  Block
     addTestSource('class A {a() {"hello".length.^}}');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestInvocationGetter('isEven', 'bool');
       assertNotSuggested('A');
       assertNotSuggested('a');
@@ -1948,7 +1971,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // TopLevelVariableDeclaration
     addTestSource('class A {} B ^');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertNoSuggestions();
     });
   }
@@ -1958,7 +1981,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // TopLevelVariableDeclaration
     addTestSource('class A {} var ^');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertNoSuggestions();
     });
   }
@@ -1976,7 +1999,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class Y {Y.c(); Y._d(); z() {}}
       main() {var ^}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertNoSuggestions();
     });
   }
@@ -1994,7 +2017,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class Y {Y.c(); Y._d(); z() {}}
       class C {bar(){var f; {var x;} var e = ^}}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestImportedClass('X');
       assertNotSuggested('_B');
       assertSuggestLocalClass('Y');
@@ -2021,7 +2044,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class Y {Y.c(); Y._d(); z() {}}
       class C {bar(){var f; {var x;} var e = ^ var g}}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestImportedClass('X');
       assertSuggestImportedFunction('foo1', null);
       assertNotSuggested('bar1');
