@@ -196,6 +196,7 @@ type_variable_conflict2_test/10: MissingCompileTimeError # Issue 16180
 regress_13494_test: Fail # Issue 13494
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 21566
 reify_typevar_static_test/01: MissingCompileTimeError # Issue 21566
+enum_const_test: Crash # Issue 21681
 
 built_in_identifier_prefix_test: Fail # Issue 6972
 constructor_initializer_test/none: Fail # Issue 12633
