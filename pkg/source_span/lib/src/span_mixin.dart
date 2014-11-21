@@ -21,8 +21,8 @@ abstract class SourceSpanMixin implements SourceSpan {
   int get length => end.offset - start.offset;
 
   int compareTo(SourceSpan other) {
-    int d = start.compareTo(other.start);
-    return d == 0 ? end.compareTo(other.end) : d;
+    var result = start.compareTo(other.start);
+    return result == 0 ? end.compareTo(other.end) : result;
   }
 
   SourceSpan union(SourceSpan other) {
@@ -65,7 +65,7 @@ abstract class SourceSpanMixin implements SourceSpan {
     return buffer.toString();
   }
 
-  bool operator ==(SourceSpan other) =>
+  bool operator ==(other) => other is SourceSpan &&
       start == other.start && end == other.end;
 
   int get hashCode => start.hashCode + (31 * end.hashCode);

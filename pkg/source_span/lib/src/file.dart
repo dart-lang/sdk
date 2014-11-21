@@ -199,10 +199,11 @@ class FileSpan extends SourceSpanMixin {
   /// objects.
   final int _end;
 
+  Uri get sourceUrl => file.url;
+  int get length => _end - _start;
   FileLocation get start => new FileLocation._(file, _start);
   FileLocation get end => new FileLocation._(file, _end);
-
-  String get text => file.getText(start.offset, end.offset);
+  String get text => file.getText(_start, _end);
 
   FileSpan._(this.file, this._start, this._end) {
     if (_end < _start) {
@@ -215,19 +216,36 @@ class FileSpan extends SourceSpanMixin {
     }
   }
 
+  int compareTo(SourceSpan other) {
+    if (other is! FileSpan) return super.compareTo(other);
+
+    FileSpan otherFile = other;
+    var result = _start.compareTo(otherFile._start);
+    return result == 0 ? _end.compareTo(otherFile._end) : result;
+  }
+
   SourceSpan union(SourceSpan other) {
     if (other is! FileSpan) return super.union(other);
 
     var span = expand(other);
-    var beginSpan = span.start == this.start ? this : other;
-    var endSpan = span.end == this.end ? this : other;
+    var beginSpan = span._start == _start ? this : other;
+    var endSpan = span._end == _end ? this : other;
 
-    if (beginSpan.end.compareTo(endSpan.start) < 0) {
+    if (beginSpan._end < endSpan._start) {
       throw new ArgumentError("Spans $this and $other are disjoint.");
     }
 
     return span;
   }
+
+  bool operator ==(other) {
+    if (other is! FileSpan) return super == other;
+    return _start == other._start && _end == other._end &&
+        sourceUrl == other.sourceUrl;
+  }
+
+  int get hashCode => _start.hashCode + 5 * _end.hashCode +
+      7 * sourceUrl.hashCode;
 
   /// Returns a new span that covers both [this] and [other].
   ///
@@ -241,7 +259,7 @@ class FileSpan extends SourceSpanMixin {
 
     var start = math.min(this._start, other._start);
     var end = math.max(this._end, other._end);
-    return new FileSpan._(file, start, end);    
+    return new FileSpan._(file, start, end);
   }
 
   String message(String message, {color}) {
