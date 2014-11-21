@@ -12,7 +12,6 @@ import 'package:unittest/unittest.dart';
 import '../reflective_tests.dart';
 import 'test_support.dart';
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(IncrementalScannerTest);
@@ -187,7 +186,6 @@ class IncrementalScannerTest extends EngineTestCase {
     // "abs + b;"
     _scan("a", "", "bs", " + b;");
     _assertTokens(-1, 1, ["abs", "+", "b", ";"]);
-    _assertReplaced(1, "+");
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
@@ -212,7 +210,6 @@ class IncrementalScannerTest extends EngineTestCase {
     // "a;b c;"
     _scan("a;", "", "b", " c;");
     _assertTokens(1, 3, ["a", ";", "b", "c", ";"]);
-    _assertReplaced(1, ";");
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
@@ -310,10 +307,10 @@ class IncrementalScannerTest extends EngineTestCase {
   }
 
   void test_insert_whitespace_withMultipleComments() {
-    // "//comment", "//comment2", "a + b;"
-    // "//comment", "//comment2", "a  + b;"
+    // "//comment1", "//comment2", "a + b;"
+    // "//comment1", "//comment2", "a  + b;"
     _scan(r'''
-//comment
+//comment1
 //comment2
 a''', "", " ", " + b;");
     _assertTokens(1, 2, ["a", "+", "b", ";"]);
@@ -404,19 +401,19 @@ a''', "", " ", " + b;");
   }
 
   /**
-   * Assert that the token at the given [offset] was replaced with a new token
-   * having the given [lexeme].
+   * Assert that the [expected] token is equal to the [actual] token.
    */
-  void _assertReplaced(int offset, String lexeme) {
-    Token oldToken = _originalTokens;
-    for (int i = 0; i < offset; i++) {
-      oldToken = oldToken.next;
-    }
-    expect(oldToken.lexeme, lexeme);
-    Token newToken = _incrementalScanner.tokenMap.get(oldToken);
-    expect(newToken, isNotNull);
-    expect(newToken.lexeme, lexeme);
-    expect(newToken, isNot(same(oldToken)));
+  void _assertEqualTokens(Token actual, Token expected) {
+    expect(actual.type, same(expected.type), reason: "Wrong type for token");
+    expect(actual.lexeme, expected.lexeme, reason: "Wrong lexeme for token");
+    expect(
+        actual.offset,
+        expected.offset,
+        reason: "Wrong offset for token ('${actual.lexeme}' != '${expected.lexeme}')");
+    expect(
+        actual.length,
+        expected.length,
+        reason: "Wrong length for token ('${actual.lexeme}' != '${expected.lexeme}')");
   }
 
   /**
@@ -529,24 +526,22 @@ a''', "", " ", " + b;");
     expect(incrementalToken, isNotNull);
     while (incrementalToken.type != TokenType.EOF &&
         modifiedTokens.type != TokenType.EOF) {
+      _assertEqualTokens(incrementalToken, modifiedTokens);
+      Token incrementalComment = incrementalToken.precedingComments;
+      Token modifiedComment = modifiedTokens.precedingComments;
+      while (incrementalComment != null && modifiedComment != null) {
+        _assertEqualTokens(incrementalComment, modifiedComment);
+        incrementalComment = incrementalComment.next;
+        modifiedComment = modifiedComment.next;
+      }
       expect(
-          incrementalToken.type,
-          same(modifiedTokens.type),
-          reason: "Wrong type for token");
+          incrementalComment,
+          isNull,
+          reason: "Too many comment tokens preceeding '${incrementalToken.lexeme}'");
       expect(
-          incrementalToken.offset,
-          modifiedTokens.offset,
-          reason:
-              "Wrong offset for token (${incrementalToken.lexeme} != ${modifiedTokens.lexeme})");
-      expect(
-          incrementalToken.length,
-          modifiedTokens.length,
-          reason:
-              "Wrong length for token (${incrementalToken.lexeme} != ${modifiedTokens.lexeme})");
-      expect(
-          incrementalToken.lexeme,
-          modifiedTokens.lexeme,
-          reason: "Wrong lexeme for token");
+          modifiedComment,
+          isNull,
+          reason: "Not enough comment tokens preceeding '${incrementalToken.lexeme}'");
       incrementalToken = incrementalToken.next;
       modifiedTokens = modifiedTokens.next;
     }

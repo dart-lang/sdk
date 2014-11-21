@@ -405,6 +405,9 @@ class Keyword {
    */
   const Keyword(this.name, this.syntax, [this.isPseudoKeyword = false]);
 
+  @override
+  String toString() => name;
+
   /**
    * Create a table mapping the lexemes of keywords to the corresponding keyword
    * and return the table that was created.
@@ -2189,6 +2192,9 @@ class TokenClass {
   final int precedence;
 
   const TokenClass(this.name, [this.precedence = 0]);
+
+  @override
+  String toString() => name;
 }
 
 /**
@@ -2524,6 +2530,9 @@ class TokenType {
    * an operator.
    */
   int get precedence => _tokenClass.precedence;
+
+  @override
+  String toString() => name;
 }
 
 class TokenType_EOF extends TokenType {
