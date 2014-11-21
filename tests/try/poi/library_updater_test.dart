@@ -42,10 +42,16 @@ class LibraryUpdaterTestCase extends CompilerTestCase {
 
     Expect.setEquals(
         expectedUpdates.toSet(),
-        updater.updates.map((Update update) => update.before.name).toSet());
+        updater.updates.map(nameOfUpdate).toSet());
   });
 
   String toString() => 'Before:\n$source\n\n\nAfter:\n$newSource';
+}
+
+String nameOfUpdate(Update update) {
+  var element = update.before;
+  if (element == null) element = update.after;
+  return element.name;
 }
 
 void main() {
@@ -63,8 +69,8 @@ void main() {
           new LibraryUpdaterTestCase(
               before: 'main() { print("Hello, World!"); }',
               after: 'void main() { print("Hello, World!"); }',
-              canReuse: false,
-              updates: []),
+              canReuse: true,
+              updates: ['main']),
 
           // Only whitespace changes. Can be reused; no updates/patches needed.
           new LibraryUpdaterTestCase(

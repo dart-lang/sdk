@@ -28,6 +28,7 @@ import 'package:compiler/src/source_file_provider.dart' show
     FormattingDiagnosticHandler;
 
 Future testInteresting() {
+  poi.cachedCompiler = null;
   Uri script = Platform.script.resolve('data/interesting.dart');
   FormattingDiagnosticHandler handler = new FormattingDiagnosticHandler();
 
@@ -48,6 +49,7 @@ Future testInteresting() {
 }
 
 Future testSubclass(FormattingDiagnosticHandler handler) {
+  poi.cachedCompiler = null;
   int position = 506;
 
   Uri script = Platform.script.resolve('data/subclass.dart');
@@ -67,6 +69,7 @@ Future testSubclass(FormattingDiagnosticHandler handler) {
 }
 
 Future testAbstractField(FormattingDiagnosticHandler handler) {
+  poi.cachedCompiler = null;
   int position = 321;
 
   Uri script = Platform.script.resolve('data/abstract_field.dart');

@@ -64,6 +64,7 @@ import 'package:compiler/src/util/util.dart' show
 
 import 'package:compiler/src/elements/modelx.dart' show
     ClassElementX,
+    CompilationUnitElementX,
     DeclarationSite,
     ElementX,
     LibraryElementX;
@@ -238,7 +239,7 @@ class LibraryUpdater extends JsFeatures {
 
   void addFunction(
       PartialFunctionElement element,
-      ScopeContainerElement container) {
+      /* ScopeContainerElement */ container) {
     invalidateScopesAffectedBy(element, container);
 
     updates.add(new AddedFunctionUpdate(compiler, element, container));
@@ -288,7 +289,7 @@ class LibraryUpdater extends JsFeatures {
 
   void invalidateScopesAffectedBy(
       ElementX element,
-      ScopeContainerElement container) {
+      /* ScopeContainerElement */ container) {
     for (ScopeContainerElement scope in scopesAffectedBy(element, container)) {
       scanSites(scope, (Element member, DeclarationSite site) {
         // TODO(ahe): Cache qualifiedNamesIn to avoid quadratic behavior.
@@ -318,7 +319,7 @@ class LibraryUpdater extends JsFeatures {
   /// return all [ScopeContainerElement] that can see this change.
   List<ScopeContainerElement> scopesAffectedBy(
       Element element,
-      ScopeContainerElement container) {
+      /* ScopeContainerElement */ container) {
     // TODO(ahe): Use library export graph to compute this.
     // TODO(ahe): Should return all user-defined libraries and packages.
     LibraryElement library = container.library;
@@ -458,6 +459,9 @@ class LibraryUpdater extends JsFeatures {
     compiler.processQueue(compiler.enqueuer.resolution, null);
 
     compiler.phase = Compiler.PHASE_DONE_RESOLVING;
+
+    // TODO(ahe): Clean this up. Don't call this method in analyze-only mode.
+    if (compiler.analyzeOnly) return "/* analyze only */";
 
     Set<PartialClassElement> changedClasses = new Set<PartialClassElement>();
     for (Element element in updatedElements) {
@@ -837,7 +841,7 @@ class RemovedClassUpdate extends RemovalUpdate with JsFeatures {
 class AddedFunctionUpdate extends Update with JsFeatures {
   final PartialFunctionElement element;
 
-  final ScopeContainerElement container;
+  final /* ScopeContainerElement */ container;
 
   AddedFunctionUpdate(Compiler compiler, this.element, this.container)
       : super(compiler) {
@@ -874,7 +878,7 @@ class AddedClassUpdate extends Update with JsFeatures {
 
   PartialClassElement get after => element;
 
-  PartialFunctionElement apply() {
+  PartialClassElement apply() {
     // TODO(ahe): Reuse compilation unit of element instead?
     CompilationUnitElementX compilationUnit = library.compilationUnit;
     PartialClassElement copy = element.copyWithEnclosing(compilationUnit);
@@ -978,7 +982,7 @@ Set<String> qualifiedNamesIn(PartialElement element) {
 bool canNamesResolveStaticallyTo(
     Set<String> names,
     Element element,
-    ScopeContainerElement container) {
+    /* ScopeContainerElement */ container) {
   if (names.contains(element.name)) return true;
   if (container != null && container.isClass) {
     // [names] contains C.m, where C is the name of [container], and m is the
