@@ -334,6 +334,7 @@ class JavaScriptBackend extends Backend {
   List<CompilerTask> get tasks {
     List<CompilerTask> result = functionCompiler.tasks;
     result.add(emitter);
+    result.add(patchResolverTask);
     return result;
   }
 
@@ -441,6 +442,8 @@ class JavaScriptBackend extends Backend {
 
   JavaScriptResolutionCallbacks resolutionCallbacks;
 
+  PatchResolverTask patchResolverTask;
+
   JavaScriptBackend(Compiler compiler, bool generateSourceMap)
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<String, Selector>(),
@@ -453,6 +456,7 @@ class JavaScriptBackend extends Backend {
     customElementsAnalysis = new CustomElementsAnalysis(this);
     constantCompilerTask = new JavaScriptConstantTask(compiler);
     resolutionCallbacks = new JavaScriptResolutionCallbacks(this);
+    patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler = USE_CPS_IR
          ? new CspFunctionCompiler(compiler, this)
          : new SsaFunctionCompiler(this, generateSourceMap);
@@ -464,6 +468,12 @@ class JavaScriptBackend extends Backend {
   /// constants.
   JavaScriptConstantCompiler get constants {
     return constantCompilerTask.jsConstantCompiler;
+  }
+
+  FunctionElement resolveExternalFunction(FunctionElement element) {
+    return patchResolverTask.measure(() {
+      return patchResolverTask.resolveExternalFunction(element);
+    });
   }
 
   // TODO(karlklose): Split into findHelperFunction and findHelperClass and
@@ -1677,6 +1687,14 @@ class JavaScriptBackend extends Backend {
 
   Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
     return super.onLibraryScanned(library, loader).then((_) {
+      if (library.isPlatformLibrary && !library.isPatched) {
+        // Apply patch, if any.
+        Uri patchUri = compiler.resolvePatchUri(library.canonicalUri.path);
+        if (patchUri != null) {
+          return compiler.patchParser.patchLibrary(loader, patchUri, library);
+        }
+      }
+    }).then((_) {
       Uri uri = library.canonicalUri;
 
       VariableElement findVariable(String name) {

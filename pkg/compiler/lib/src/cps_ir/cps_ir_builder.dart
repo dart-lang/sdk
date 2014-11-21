@@ -540,12 +540,7 @@ class IrBuilder {
   ir.FunctionDefinition buildFunctionDefinition(
       FunctionElement element,
       List<ConstantExpression> defaults) {
-    if (!element.isAbstract) {
-      _ensureReturn();
-      return new ir.FunctionDefinition(
-          element, state.returnContinuation, _parameters, _root,
-          state.localConstants, defaults);
-    } else {
+    if (element.isAbstract || element.isExternal) {
       assert(invariant(element, _root == null,
           message: "Non-empty body for abstract method $element: $_root"));
       assert(invariant(element, state.localConstants.isEmpty,
@@ -553,6 +548,11 @@ class IrBuilder {
                    "${state.localConstants}"));
       return new ir.FunctionDefinition.abstract(
                 element, _parameters, defaults);
+    } else {
+      _ensureReturn();
+      return new ir.FunctionDefinition(
+          element, state.returnContinuation, _parameters, _root,
+          state.localConstants, defaults);
     }
   }
 

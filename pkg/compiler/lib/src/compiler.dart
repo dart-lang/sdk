@@ -218,6 +218,12 @@ abstract class Registry {
 
   bool get isForResolution;
 
+  void registerDynamicInvocation(Selector selector);
+
+  void registerDynamicGetter(Selector selector);
+
+  void registerDynamicSetter(Selector selector);
+
   void registerStaticInvocation(Element element);
 
   void registerInstantiation(InterfaceType type);
@@ -288,11 +294,16 @@ abstract class Backend {
                                 Element annotatedElement,
                                 Registry registry) {}
 
-  /// Called during resolution to notify to the backend that a class is
-  /// being instantiated.
+  /// Called to notify to the backend that a class is being instantiated.
+  // TODO(johnniwinther): Remove this. It's only called once for each [cls] and
+  // only with [Compiler.globalDependencies] as [registry].
   void registerInstantiatedClass(ClassElement cls,
                                  Enqueuer enqueuer,
                                  Registry registry) {}
+
+  /// Called to notify to the backend that an interface type has been
+  /// instantiated.
+  void registerInstantiatedType(InterfaceType type, Registry registry) {}
 
   /// Register an is check to the backend.
   void registerIsCheckForCodegen(DartType type,
@@ -389,6 +400,10 @@ abstract class Backend {
   /// backend has specialized handling for the element.
   bool isForeign(Element element) => false;
 
+  /// Processes [element] for resolution and returns the [FunctionElement] that
+  /// defines the implementation of [element].
+  FunctionElement resolveExternalFunction(FunctionElement element) => element;
+
   /// Returns `true` if [library] is a backend specific library whose members
   /// have special treatment, such as being allowed to extends blacklisted
   /// classes or member being eagerly resolved.
@@ -412,13 +427,6 @@ abstract class Backend {
   /// This method is called immediately after the [library] and its parts have
   /// been scanned.
   Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
-    if (library.isPlatformLibrary && !library.isPatched) {
-      // Apply patch, if any.
-      Uri patchUri = compiler.resolvePatchUri(library.canonicalUri.path);
-      if (patchUri != null) {
-        return compiler.patchParser.patchLibrary(loader, patchUri, library);
-      }
-    }
     if (library.canUseNative) {
       library.forEachLocalMember((Element element) {
         if (element.isClass) {

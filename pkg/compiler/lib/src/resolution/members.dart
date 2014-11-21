@@ -119,13 +119,6 @@ class TreeElementMapping implements TreeElements {
   TreeElementMapping(this.analyzedElement);
 
   operator []=(Node node, Element element) {
-    assert(invariant(node, () {
-      FunctionExpression functionExpression = node.asFunctionExpression();
-      if (functionExpression != null) {
-        return !functionExpression.modifiers.isExternal;
-      }
-      return true;
-    }));
     // TODO(johnniwinther): Simplify this invariant to use only declarations in
     // [TreeElements].
     assert(invariant(node, () {
@@ -498,124 +491,6 @@ class ResolverTask extends CompilerTask {
     }
   }
 
-  void checkMatchingPatchParameters(FunctionElement origin,
-                                    Link<Element> originParameters,
-                                    Link<Element> patchParameters) {
-    while (!originParameters.isEmpty) {
-      ParameterElementX originParameter = originParameters.head;
-      ParameterElementX patchParameter = patchParameters.head;
-      // TODO(johnniwinther): Remove the conditional patching when we never
-      // resolve the same method twice.
-      if (!originParameter.isPatched) {
-        originParameter.applyPatch(patchParameter);
-      } else {
-        assert(invariant(origin, originParameter.patch == patchParameter,
-               message: "Inconsistent repatch of $originParameter."));
-      }
-      DartType originParameterType = originParameter.computeType(compiler);
-      DartType patchParameterType = patchParameter.computeType(compiler);
-      if (originParameterType != patchParameterType) {
-        compiler.reportError(
-            originParameter.parseNode(compiler),
-            MessageKind.PATCH_PARAMETER_TYPE_MISMATCH,
-            {'methodName': origin.name,
-             'parameterName': originParameter.name,
-             'originParameterType': originParameterType,
-             'patchParameterType': patchParameterType});
-        compiler.reportInfo(patchParameter,
-            MessageKind.PATCH_POINT_TO_PARAMETER,
-            {'parameterName': patchParameter.name});
-      } else {
-        // Hack: Use unparser to test parameter equality. This only works
-        // because we are restricting patch uses and the approach cannot be used
-        // elsewhere.
-
-        // The node contains the type, so there is a potential overlap.
-        // Therefore we only check the text if the types are identical.
-        String originParameterText =
-            originParameter.parseNode(compiler).toString();
-        String patchParameterText =
-            patchParameter.parseNode(compiler).toString();
-        if (originParameterText != patchParameterText
-            // We special case the list constructor because of the
-            // optional parameter.
-            && origin != compiler.unnamedListConstructor) {
-          compiler.reportError(
-              originParameter.parseNode(compiler),
-              MessageKind.PATCH_PARAMETER_MISMATCH,
-              {'methodName': origin.name,
-               'originParameter': originParameterText,
-               'patchParameter': patchParameterText});
-          compiler.reportInfo(patchParameter,
-              MessageKind.PATCH_POINT_TO_PARAMETER,
-              {'parameterName': patchParameter.name});
-        }
-      }
-
-      originParameters = originParameters.tail;
-      patchParameters = patchParameters.tail;
-    }
-  }
-
-  void checkMatchingPatchSignatures(FunctionElement origin,
-                                    FunctionElement patch) {
-    // TODO(johnniwinther): Show both origin and patch locations on errors.
-    FunctionExpression originTree = origin.node;
-    FunctionSignature originSignature = origin.functionSignature;
-    FunctionExpression patchTree = patch.node;
-    FunctionSignature patchSignature = patch.functionSignature;
-
-    if (originSignature.type.returnType != patchSignature.type.returnType) {
-      compiler.withCurrentElement(patch, () {
-        Node errorNode =
-            patchTree.returnType != null ? patchTree.returnType : patchTree;
-        error(errorNode, MessageKind.PATCH_RETURN_TYPE_MISMATCH,
-              {'methodName': origin.name,
-               'originReturnType': originSignature.type.returnType,
-               'patchReturnType': patchSignature.type.returnType});
-      });
-    }
-    if (originSignature.requiredParameterCount !=
-        patchSignature.requiredParameterCount) {
-      compiler.withCurrentElement(patch, () {
-        error(patchTree,
-              MessageKind.PATCH_REQUIRED_PARAMETER_COUNT_MISMATCH,
-              {'methodName': origin.name,
-               'originParameterCount': originSignature.requiredParameterCount,
-               'patchParameterCount': patchSignature.requiredParameterCount});
-      });
-    } else {
-      checkMatchingPatchParameters(origin,
-                                   originSignature.requiredParameters,
-                                   patchSignature.requiredParameters);
-    }
-    if (originSignature.optionalParameterCount != 0 &&
-        patchSignature.optionalParameterCount != 0) {
-      if (originSignature.optionalParametersAreNamed !=
-          patchSignature.optionalParametersAreNamed) {
-        compiler.withCurrentElement(patch, () {
-          error(patchTree,
-                MessageKind.PATCH_OPTIONAL_PARAMETER_NAMED_MISMATCH,
-                {'methodName': origin.name});
-        });
-      }
-    }
-    if (originSignature.optionalParameterCount !=
-        patchSignature.optionalParameterCount) {
-      compiler.withCurrentElement(patch, () {
-        error(patchTree,
-              MessageKind.PATCH_OPTIONAL_PARAMETER_COUNT_MISMATCH,
-              {'methodName': origin.name,
-               'originParameterCount': originSignature.optionalParameterCount,
-               'patchParameterCount': patchSignature.optionalParameterCount});
-      });
-    } else {
-      checkMatchingPatchParameters(origin,
-                                   originSignature.optionalParameters,
-                                   patchSignature.optionalParameters);
-    }
-  }
-
   static void processAsyncMarker(Compiler compiler,
                                  BaseFunctionElementX element) {
     FunctionExpression functionExpression = element.node;
@@ -654,11 +529,73 @@ class ResolverTask extends CompilerTask {
     }
   }
 
+  TreeElements resolveMethodElementImplementation(
+      FunctionElement element, FunctionExpression tree) {
+    return compiler.withCurrentElement(element, () {
+      if (element.isExternal && tree.hasBody()) {
+        compiler.reportError(element,
+            MessageKind.EXTERNAL_WITH_BODY,
+            {'functionName': element.name});
+      }
+      if (element.isConstructor) {
+        if (tree.returnType != null) {
+          compiler.reportError(tree, MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE);
+        }
+        if (element.isConst &&
+            tree.hasBody() &&
+            !tree.isRedirectingFactory) {
+          compiler.reportError(tree, MessageKind.CONST_CONSTRUCTOR_HAS_BODY);
+        }
+      }
+
+      ResolverVisitor visitor = visitorFor(element);
+      ResolutionRegistry registry = visitor.registry;
+      registry.defineFunction(tree, element);
+      visitor.setupFunction(tree, element);
+
+      if (element.isGenerativeConstructor) {
+        // Even if there is no initializer list we still have to do the
+        // resolution in case there is an implicit super constructor call.
+        InitializerResolver resolver = new InitializerResolver(visitor);
+        FunctionElement redirection =
+            resolver.resolveInitializers(element, tree);
+        if (redirection != null) {
+          resolveRedirectingConstructor(resolver, tree, element, redirection);
+        }
+      } else if (tree.initializers != null) {
+        error(tree, MessageKind.FUNCTION_WITH_INITIALIZER);
+      }
+
+      if (!compiler.analyzeSignaturesOnly || tree.isRedirectingFactory) {
+        // We need to analyze the redirecting factory bodies to ensure that
+        // we can analyze compile-time constants.
+        visitor.visit(tree.body);
+      }
+
+      // Get the resolution tree and check that the resolved
+      // function doesn't use 'super' if it is mixed into another
+      // class. This is the part of the 'super' mixin check that
+      // happens when a function is resolved after the mixin
+      // application has been performed.
+      TreeElements resolutionTree = registry.mapping;
+      ClassElement enclosingClass = element.enclosingClass;
+      if (enclosingClass != null) {
+        // TODO(johnniwinther): Find another way to obtain mixin uses.
+        Iterable<MixinApplicationElement> mixinUses =
+            compiler.world.allMixinUsesOf(enclosingClass);
+        ClassElement mixin = enclosingClass;
+        for (MixinApplicationElement mixinApplication in mixinUses) {
+          checkMixinSuperUses(resolutionTree, mixinApplication, mixin);
+        }
+      }
+      return resolutionTree;
+    });
+
+  }
+
   TreeElements resolveMethodElement(FunctionElementX element) {
     assert(invariant(element, element.isDeclaration));
     return compiler.withCurrentElement(element, () {
-      bool isConstructor =
-          identical(element.kind, ElementKind.GENERATIVE_CONSTRUCTOR);
       if (compiler.enqueuer.resolution.hasBeenResolved(element)) {
         // TODO(karlklose): Remove the check for [isConstructor]. [elememts]
         // should never be non-null, not even for constructors.
@@ -668,7 +605,7 @@ class ResolverTask extends CompilerTask {
         return element.resolvedAst.elements;
       }
       if (element.isSynthesized) {
-        if (isConstructor) {
+        if (element.isGenerativeConstructor) {
           ResolutionRegistry registry =
               new ResolutionRegistry(compiler, element);
           ConstructorElement constructor = element.asFunctionElement();
@@ -686,81 +623,17 @@ class ResolverTask extends CompilerTask {
           assert(element.isDeferredLoaderGetter);
           return _ensureTreeElements(element);
         }
-      }
-      element.parseNode(compiler);
-      element.computeType(compiler);
-      processAsyncMarker(compiler, element);
-      if (element.isPatched) {
-        FunctionElementX patch = element.patch;
-        compiler.withCurrentElement(patch, () {
-          patch.parseNode(compiler);
-          patch.computeType(compiler);
-        });
-        checkMatchingPatchSignatures(element, patch);
-        element = patch;
+      } else {
+        element.parseNode(compiler);
+        element.computeType(compiler);
         processAsyncMarker(compiler, element);
+        FunctionElementX implementation = element;
+        if (element.isExternal) {
+          implementation = compiler.backend.resolveExternalFunction(element);
+        }
+        return resolveMethodElementImplementation(
+            implementation, implementation.node);
       }
-      return compiler.withCurrentElement(element, () {
-        FunctionExpression tree = element.node;
-        if (tree.modifiers.isExternal) {
-          error(tree, MessageKind.PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION);
-          return null;
-        }
-        if (isConstructor || element.isFactoryConstructor) {
-          if (tree.returnType != null) {
-            error(tree, MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE);
-          }
-          if (element.modifiers.isConst &&
-              tree.hasBody() &&
-              !tree.isRedirectingFactory) {
-            compiler.reportError(tree, MessageKind.CONST_CONSTRUCTOR_HAS_BODY);
-          }
-        }
-
-        ResolverVisitor visitor = visitorFor(element);
-        ResolutionRegistry registry = visitor.registry;
-        registry.defineFunction(tree, element);
-        visitor.setupFunction(tree, element);
-
-        if (isConstructor && !element.isForwardingConstructor) {
-          // Even if there is no initializer list we still have to do the
-          // resolution in case there is an implicit super constructor call.
-          InitializerResolver resolver = new InitializerResolver(visitor);
-          FunctionElement redirection =
-              resolver.resolveInitializers(element, tree);
-          if (redirection != null) {
-            resolveRedirectingConstructor(resolver, tree, element, redirection);
-          }
-        } else if (element.isForwardingConstructor) {
-          // Initializers will be checked on the original constructor.
-        } else if (tree.initializers != null) {
-          error(tree, MessageKind.FUNCTION_WITH_INITIALIZER);
-        }
-
-        if (!compiler.analyzeSignaturesOnly || tree.isRedirectingFactory) {
-          // We need to analyze the redirecting factory bodies to ensure that
-          // we can analyze compile-time constants.
-          visitor.visit(tree.body);
-        }
-
-        // Get the resolution tree and check that the resolved
-        // function doesn't use 'super' if it is mixed into another
-        // class. This is the part of the 'super' mixin check that
-        // happens when a function is resolved after the mixin
-        // application has been performed.
-        TreeElements resolutionTree = registry.mapping;
-        ClassElement enclosingClass = element.enclosingClass;
-        if (enclosingClass != null) {
-          // TODO(johnniwinther): Find another way to obtain mixin uses.
-          Iterable<MixinApplicationElement> mixinUses =
-              compiler.world.allMixinUsesOf(enclosingClass);
-          ClassElement mixin = enclosingClass;
-          for (MixinApplicationElement mixinApplication in mixinUses) {
-            checkMixinSuperUses(resolutionTree, mixinApplication, mixin);
-          }
-        }
-        return resolutionTree;
-      });
     });
   }
 

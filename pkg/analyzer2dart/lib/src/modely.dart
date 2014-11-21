@@ -140,9 +140,6 @@ class ElementY extends dart2js.Element {
   bool get isFactoryConstructor => unsupported('isFactoryConstructor');
 
   @override
-  bool get isForwardingConstructor => unsupported('isForwardingConstructor');
-
-  @override
   bool get isInjected => unsupported('isInjected');
 
   @override
@@ -347,6 +344,11 @@ abstract class TopLevelElementMixin implements ElementY {
 
 abstract class FunctionElementMixin
     implements ElementY, dart2js.FunctionElement {
+
+  // TODO(johnniwinther): Ensure the correct semantics of this.
+  @override
+  bool get isExternal => false;
+
   @override
   get abstractField => unsupported('abstractField');
 

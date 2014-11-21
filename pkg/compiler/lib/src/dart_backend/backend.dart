@@ -47,6 +47,11 @@ class DartBackend extends Backend {
 
   final Set<ClassElement> usedTypeLiterals = new Set<ClassElement>();
 
+  /// The set of visible platform classes that are implemented by instantiated
+  /// user classes.
+  final Set<ClassElement> _userImplementedPlatformClasses =
+      new Set<ClassElement>();
+
   /**
    * Tells whether it is safe to remove type declarations from variables,
    * functions parameters. It becomes not safe if:
@@ -261,6 +266,7 @@ class DartBackend extends Backend {
 
   log(String message) => compiler.log('[DartBackend] $message');
 
+  @override
   Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
     // All platform classes must be resolved to ensure that their member names
     // are preserved.
@@ -287,6 +293,7 @@ class DartBackend extends Backend {
     return new Future.value();
   }
 
+  @override
   void registerStaticUse(Element element, Enqueuer enqueuer) {
     if (element == compiler.mirrorSystemGetNameFunction) {
       FunctionElement getNameFunction = mirrorRenamer.getNameFunction;
@@ -294,6 +301,75 @@ class DartBackend extends Backend {
         enqueuer.addToWorkList(getNameFunction);
       }
     }
+  }
+
+  @override
+  void registerInstantiatedType(InterfaceType type, Registry registry) {
+    // Without patching, dart2dart has no way of performing sound tree-shaking
+    // in face external functions. Therefore we employ another scheme:
+    //
+    // Based on the assumption that the platform code only relies on the
+    // interfaces of it's own classes, we can approximate the semantics of
+    // external functions by eagerly registering dynamic invocation of instance
+    // members defined the platform interfaces.
+    //
+    // Since we only need to generate code for non-platform classes we can
+    // restrict this registration to platform interfaces implemented by
+    // instantiated non-platform classes.
+    //
+    // Consider for instance this program:
+    //
+    //     import 'dart:math' show Random;
+    //
+    //     class MyRandom implements Random {
+    //       int nextInt() => 0;
+    //     }
+    //
+    //     main() {
+    //       print([0, 1, 2].shuffle(new MyRandom()));
+    //     }
+    //
+    // Here `MyRandom` is a subtype if `Random` defined in 'dart:math'. By the
+    // assumption, all methods defined `Random` are potentially called, and
+    // therefore, though there are no visible call sites from the user node,
+    // dynamic invocation of for instance `nextInt` should be registered. In
+    // this case, `nextInt` is actually called by the standard implementation of
+    // `shuffle`.
+
+    ClassElement cls = type.element;
+    if (!cls.library.isPlatformLibrary) {
+      for (Link<DartType> link = cls.allSupertypes;
+           !link.isEmpty;
+           link = link.tail) {
+        InterfaceType supertype = link.head;
+        ClassElement superclass = supertype.element;
+        LibraryElement library = superclass.library;
+        if (library.isPlatformLibrary) {
+          if (_userImplementedPlatformClasses.add(superclass)) {
+            // Register selectors for all instance methods since these might
+            // be called on user classes from within the platform
+            // implementation.
+            superclass.forEachLocalMember((Element element) {
+              if (element.isConstructor || element.isStatic) return;
+
+              FunctionElement function = element.asFunctionElement();
+              if (function != null) {
+                function.computeSignature(compiler);
+              }
+              Selector selector = new Selector.fromElement(element);
+              if (selector.isGetter) {
+                registry.registerDynamicGetter(selector);
+              } else if (selector.isSetter) {
+                registry.registerDynamicSetter(selector);
+              } else {
+                registry.registerDynamicInvocation(selector);
+              }
+            });
+          }
+        }
+      }
+    }
+
   }
 }
 

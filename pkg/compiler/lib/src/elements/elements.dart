@@ -401,7 +401,6 @@ abstract class Element implements Entity {
   Element get origin;
 
   bool get isSynthesized;
-  bool get isForwardingConstructor;
   bool get isMixinApplication;
 
   bool get hasFixedBackendName;
@@ -1140,6 +1139,9 @@ abstract class FunctionElement extends Element
 
   /// The synchronous/asynchronous marker on this function.
   AsyncMarker get asyncMarker;
+
+  /// `true` if this function is external.
+  bool get isExternal;
 }
 
 /// Enum for the synchronous/asynchronous function body modifiers.

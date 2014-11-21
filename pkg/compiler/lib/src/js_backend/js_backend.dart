@@ -31,6 +31,7 @@ import '../util/util.dart';
 import '../elements/visitor.dart' show
     ElementVisitor;
 import '../js_backend/codegen/task.dart';
+import 'patch_resolver.dart';
 
 part 'backend.dart';
 part 'checked_mode_helpers.dart';

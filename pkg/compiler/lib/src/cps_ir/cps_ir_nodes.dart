@@ -568,7 +568,7 @@ class FunctionDefinition extends Node implements InteriorNode {
 
   accept(Visitor visitor) => visitor.visitFunctionDefinition(this);
 
-  /// Returns `true` if this function is abstract.
+  /// Returns `true` if this function is abstract or external.
   ///
   /// If `true`, [body] and [returnContinuation] are `null` and [localConstants]
   /// is empty.

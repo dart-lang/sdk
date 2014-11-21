@@ -933,13 +933,17 @@ class TreePrinter {
     return new tree.Modifiers(blankList());
   }
 
-  tree.Modifiers makeModifiers({bool isStatic: false,
+  tree.Modifiers makeModifiers({bool isExternal: false,
+                                bool isStatic: false,
                                 bool isAbstract: false,
                                 bool isFactory: false,
                                 bool isConst: false,
                                 bool isFinal: false,
                                 bool isVar: false}) {
     List<tree.Node> nodes = [];
+    if (isExternal) {
+      nodes.add(makeIdentifier('external'));
+    }
     if (isStatic) {
       nodes.add(makeIdentifier('static'));
     }
@@ -971,7 +975,8 @@ class TreePrinter {
 
   tree.Modifiers makeFunctionModifiers(FunctionExpression exp) {
     if (exp.element == null) return makeEmptyModifiers();
-    return makeModifiers(isStatic: exp.element.isStatic,
+    return makeModifiers(isExternal: exp.element.isExternal,
+                         isStatic: exp.element.isStatic,
                          isFactory: exp.element.isFactoryConstructor);
   }
 

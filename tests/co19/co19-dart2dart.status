@@ -22,6 +22,8 @@ Language/07_Classes/07_Classes_A13_t09: Fail # Missing CT error on member with s
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail # 13363
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: fail # 13363
 
+LibTest/core/Function/apply_A01_t01: RuntimeError # Issue 21673
+
 
 Language/13_Statements/04_Local_Function_Declaration_A04_t01: Fail, MissingCompileTimeError # co19-roll r607: Please triage this failure
 
@@ -40,7 +42,6 @@ Language/07_Classes/6_Constructors_A03_t03: Fail # Calling unresolved class cons
 
 Language/03_Overview/1_Scoping_A02_t05: Fail # Inherited from dart2js
 Language/03_Overview/1_Scoping_A02_t06: Fail # inherited from dart2js
-Language/06_Functions/4_External_Functions_A01_t01: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t01: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t02: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t07: Fail # inherited from VM

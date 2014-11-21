@@ -2249,6 +2249,18 @@ main() sync* {
       "Cannot patch non-function with function patch "
       "'#{functionName}'.");
 
+  static const MessageKind EXTERNAL_WITH_BODY = const MessageKind(
+      "External function '#{functionName}' cannot have a function body.",
+      options: const ["--output-type=dart"],
+      howToFix: "Try removing the 'external' modifier or the function body.",
+      examples: const ["""
+external foo() => 0;
+main() => foo();
+""", """
+external foo() {}
+main() => foo();
+"""]);
+
   //////////////////////////////////////////////////////////////////////////////
   // Patch errors end.
   //////////////////////////////////////////////////////////////////////////////

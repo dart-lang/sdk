@@ -153,7 +153,6 @@ string_case_test/03: Fail, OK  # Bug in dartium version of V8.
 [ $compiler == dart2dart ]
 compare_to2_test: Fail # inherited from VM
 unicode_test: Fail # inherited from VM
-string_split_test: RuntimeError # Issue 21441.
 
 [ $compiler == dart2dart && $minified ]
 error_stack_trace1_test: Fail # Fails in minified mode, test depends on method names.

@@ -118,8 +118,6 @@ abstract class ElementX extends Element {
 
   bool get isSynthesized => false;
 
-  bool get isForwardingConstructor => false;
-
   bool get isMixinApplication => false;
 
   bool get isLocal => false;
@@ -306,6 +304,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   get nestedClosures => unsupported();
   get memberContext => unsupported();
   get executableContext => unsupported();
+  get isExternal => unsupported();
 
   bool get isRedirectingFactory => unsupported();
 
@@ -1556,6 +1555,8 @@ abstract class BaseFunctionElementX
         _hasNoBody = hasNoBody {
     assert(modifiers != null);
   }
+
+  bool get isExternal => modifiers.isExternal;
 
   bool get hasNoBody => _hasNoBody;
 

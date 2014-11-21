@@ -141,7 +141,6 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     assert(invariant(element, element.isImplementation));
     ast.FunctionExpression function = element.node;
     assert(function != null);
-    assert(!function.modifiers.isExternal);
     assert(elements[function] != null);
 
     DetectClosureVariables closureLocals = new DetectClosureVariables(elements);
