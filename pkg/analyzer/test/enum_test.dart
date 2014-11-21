@@ -13,7 +13,6 @@ import 'package:analyzer/src/generated/html.dart' as html;
 import 'package:analyzer/src/generated/instrumentation.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart' as scanner;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:unittest/unittest.dart';
