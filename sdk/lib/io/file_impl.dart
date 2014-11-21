@@ -713,11 +713,7 @@ class _RandomAccessFile
   }
 
   static void _checkReadWriteListArguments(int length, int start, int end) {
-    if (start < 0) throw new RangeError.value(start);
-    if (end < start) throw new RangeError.value(end);
-    if (end > length) {
-      throw new RangeError.value(end);
-    }
+    RangeError.checkValidRange(start, end, length);
   }
 
   external static _readInto(int id, List<int> buffer, int start, int end);

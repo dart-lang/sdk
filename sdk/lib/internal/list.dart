@@ -238,9 +238,7 @@ class _ListIndicesIterable extends ListIterable<int> {
 
   int get length => _backedList.length;
   int elementAt(int index) {
-    if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this);
-    }
+    RangeError.checkValidIndex(index, this);
     return index;
   }
 }

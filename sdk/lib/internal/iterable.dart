@@ -237,15 +237,11 @@ class SubListIterable<E> extends ListIterable<E> {
   final int _endOrLength;
 
   SubListIterable(this._iterable, this._start, this._endOrLength) {
-    if (_start < 0) {
-      throw new RangeError.value(_start);
-    }
+    RangeError.checkNotNegative(_start, "start");
     if (_endOrLength != null) {
-      if (_endOrLength < 0) {
-        throw new RangeError.value(_endOrLength);
-      }
+      RangeError.checkNotNegative(_endOrLength, "end");
       if (_start > _endOrLength) {
-        throw new RangeError.range(_start, 0, _endOrLength);
+        throw new RangeError.range(_start, 0, _endOrLength, "start");
       }
     }
   }
@@ -274,13 +270,13 @@ class SubListIterable<E> extends ListIterable<E> {
   E elementAt(int index) {
     int realIndex = _startIndex + index;
     if (index < 0 || realIndex >= _endIndex) {
-      throw new RangeError.range(index, 0, length);
+      throw new RangeError.index(index, this, "index");
     }
     return _iterable.elementAt(realIndex);
   }
 
   Iterable<E> skip(int count) {
-    if (count < 0) throw new RangeError.value(count);
+    RangeError.checkNotNegative(count, "count");
     int newStart = _start + count;
     if (_endOrLength != null && newStart >= _endOrLength) {
       return new EmptyIterable<E>();
@@ -289,7 +285,7 @@ class SubListIterable<E> extends ListIterable<E> {
   }
 
   Iterable<E> take(int count) {
-    if (count < 0) throw new RangeError.value(count);
+    RangeError.checkNotNegative(count, "count");
     if (_endOrLength == null) {
       return new SubListIterable<E>(_iterable, _start, _start + count);
     } else {
@@ -586,24 +582,26 @@ class SkipIterable<E> extends IterableBase<E> {
   final Iterable<E> _iterable;
   final int _skipCount;
 
-  factory SkipIterable(Iterable<E> iterable, int skipCount) {
+  factory SkipIterable(Iterable<E> iterable, int count) {
     if (iterable is EfficientLength) {
-      return new EfficientLengthSkipIterable<E>(iterable, skipCount);
+      return new EfficientLengthSkipIterable<E>(iterable, count);
     }
-    return new SkipIterable<E>._(iterable, skipCount);
+    return new SkipIterable<E>._(iterable, count);
   }
 
   SkipIterable._(this._iterable, this._skipCount) {
-    if (_skipCount is! int || _skipCount < 0) {
-      throw new RangeError(_skipCount);
+    if (_skipCount is! int) {
+      throw new ArgumentError.value(_skipCount, "count is not an integer");
     }
+    RangeError.checkNotNegative(_skipCount, "count");
   }
 
-  Iterable<E> skip(int n) {
-    if (n is! int || n < 0) {
-      throw new RangeError.value(n);
+  Iterable<E> skip(int count) {
+    if (_skipCount is! int) {
+      throw new ArgumentError.value(_skipCount, "count is not an integer");
     }
-    return new SkipIterable<E>(_iterable, _skipCount + n);
+    RangeError.checkNotNegative(_skipCount, "count");
+    return new SkipIterable<E>._(_iterable, _skipCount + count);
   }
 
   Iterator<E> get iterator {
@@ -691,7 +689,7 @@ class EmptyIterable<E> extends IterableBase<E> implements EfficientLength {
 
   E get single { throw IterableElementError.noElement(); }
 
-  E elementAt(int index) { throw new RangeError.value(index); }
+  E elementAt(int index) { throw new RangeError.range(index, 0, 0, "index"); }
 
   bool contains(Object element) => false;
 
@@ -729,14 +727,14 @@ class EmptyIterable<E> extends IterableBase<E> implements EfficientLength {
   }
 
   Iterable<E> skip(int count) {
-    if (count < 0) throw new RangeError.value(count);
+    RangeError.checkNotNegative(count, "count");
     return this;
   }
 
   Iterable<E> skipWhile(bool test(E element)) => this;
 
   Iterable<E> take(int count) {
-    if (count < 0) throw new RangeError.value(count);
+    RangeError.checkNotNegative(count, "count");
     return this;
   }
 
@@ -924,14 +922,15 @@ class IterableMixinWorkaround<T> {
     throw IterableElementError.noElement();
   }
 
-  static dynamic elementAt(Iterable iterable, int index) {
-    if (index is! int || index < 0) throw new RangeError.value(index);
-    int remaining = index;
-    for (dynamic element in iterable) {
-      if (remaining == 0) return element;
-      remaining--;
+  static elementAt(Iterable iterable, int index) {
+    if (index is! int) throw new ArgumentError.notNull("index");
+    RangeError.checkNotNegative(index, "index");
+    int elementIndex = 0;
+    for (E element in iterable) {
+      if (index == elementIndex) return element;
+      elementIndex++;
     }
-    throw new RangeError.value(index);
+    throw new RangeError.index(index, iterable, "index", null, elementIndex);
   }
 
   static String join(Iterable iterable, [String separator]) {
@@ -1025,12 +1024,7 @@ class IterableMixinWorkaround<T> {
   }
 
   static void _rangeCheck(List list, int start, int end) {
-    if (start < 0 || start > list.length) {
-      throw new RangeError.range(start, 0, list.length);
-    }
-    if (end < start || end > list.length) {
-      throw new RangeError.range(end, start, list.length);
-    }
+    RangeError.checkValidRange(start, end, list.length);
   }
 
   Iterable<T> getRangeList(List list, int start, int end) {
@@ -1098,9 +1092,7 @@ class IterableMixinWorkaround<T> {
   }
 
   static void insertAllList(List list, int index, Iterable iterable) {
-    if (index < 0 || index > list.length) {
-      throw new RangeError.range(index, 0, list.length);
-    }
+    RangeError.checkValidIndex(index, list);
     if (iterable is! EfficientLength) {
       iterable = iterable.toList(growable: false);
     }
@@ -1113,9 +1105,7 @@ class IterableMixinWorkaround<T> {
   }
 
   static void setAllList(List list, int index, Iterable iterable) {
-    if (index < 0 || index > list.length) {
-      throw new RangeError.range(index, 0, list.length);
-    }
+    RangeError.checkValueInInterval(index, 0, list.length, "index");
     for (var element in iterable) {
       list[index++] = element;
     }

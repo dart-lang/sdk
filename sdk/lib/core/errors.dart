@@ -218,8 +218,9 @@ class RangeError extends ArgumentError {
   /**
    * Create a new [RangeError] with for an invalid value being outside a range.
    *
-   * The allowed range is from [start] to [end], inclusive.
-   * If `start` or `end` are `null`, the range is infinite in that direction.
+   * The allowed range is from [minValue] to [maxValue], inclusive.
+   * If `minValue` or `maxValue` are `null`, the range is infinite in
+   * that direction.
    *
    * For a range from 0 to the length of something, end exclusive, use
    * [RangeError.index].
@@ -228,9 +229,11 @@ class RangeError extends ArgumentError {
    * invalid value, and the [message] can override the default error
    * description.
    */
-  RangeError.range(num invalidValue, this.start, this.end,
+  RangeError.range(num invalidValue, int minValue, int maxValue,
                    [String name, String message])
-      : super.value(invalidValue, name,
+      : start = minValue,
+        end = maxValue,
+        super.value(invalidValue, name,
                     (message != null) ? message : "Invalid value");
 
   /**
@@ -248,6 +251,74 @@ class RangeError extends ArgumentError {
                            [String name,
                             String message,
                             int length]) = IndexError;
+
+  /**
+   * Check that a [value] lies in a specific interval.
+   *
+   * Throws if [value] is not in the interval.
+   * The interval is from [minValue] to [maxValue], both inclusive.
+   */
+  static void checkValueInInterval(int value, int minValue, int maxValue,
+                                   [String name, String message]) {
+    if (value < minValue || value > maxValue) {
+      throw new RangeError.range(value, minValue, maxValue, name, message);
+    }
+  }
+
+  /**
+   * Check that a value is a valid index into an indexable object.
+   *
+   * Throws if [index] is not a valid index into [indexable].
+   *
+   * An indexable object is one that has a `length` and a and index-operator
+   * `[]` that accepts an index if `0 <= index < length`.
+   *
+   * If [length] is provided, it is used as the length of the indexable object,
+   * otherwise the length is found as `idexable.length`.
+   */
+  static void checkValidIndex(int index, var indexable,
+                              [String name, int length, String message]) {
+    if (length == null) length = indexable.length;
+    if (index < 0 || index >= length) {
+      if (name == null) name = "index";
+      throw new RangeError.index(index, indexable, name, message, length);
+    }
+  }
+
+  /**
+   * Check that a range represents a slice of an indexable object.
+   *
+   * Throws if the range is not valid for an indexable object with
+   * the given [length].
+   * A range is valid for an indexable object with a given [length]
+   *
+   * if `0 <= [start] <= [end] <= [length]`.
+   * An `end` of `null` is considered equivalent to `length`.
+   *
+   * The [startName] and [endName] defaults to `"start"` and `"end"`,
+   * respectively.
+   */
+  static void checkValidRange(int start, int end, int length,
+                              [String startName, String endName,
+                               String message]) {
+    if (start < 0 || start > length) {
+      if (startName == null) startName = "start";
+      throw new RangeError.range(start, 0, length, startName, message);
+    }
+    if (end != null && (end < start || end > length)) {
+      if (endName == null) endName = "end";
+      throw new RangeError.range(end, start, length, endName, message);
+    }
+  }
+
+  /**
+   * Check that an integer value isn't negative.
+   *
+   * Throws if the value is negative.
+   */
+  static void checkNotNegative(int value, [String name, String message]) {
+    if (value < 0) throw new RangeError.range(value, 0, null, name, message);
+  }
 
   String toString() {
     if (!_hasValue) return "RangeError: $message";

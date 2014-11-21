@@ -89,14 +89,8 @@ class Utf8Encoder extends Converter<String, List<int>> {
    */
   List<int> convert(String string, [int start = 0, int end]) {
     int stringLength = string.length;
-    if (start < 0 || start > stringLength) {
-      throw new RangeError.range(start, 0, stringLength, "start");
-    }
-    if (end == null) {
-      end = stringLength;
-    } else if (end < start || end > stringLength) {
-      throw new RangeError.range(end, start, stringLength, "end");
-    }
+    RangeError.checkValidRange(start, end, stringLength);
+    if (end == null) end = stringLength;
     int length = end - start;
     if (length == 0) return new Uint8List(0);
     // Create a new encoder with a length that is guaranteed to be big enough.
@@ -338,14 +332,8 @@ class Utf8Decoder extends Converter<List<int>, String> {
    */
   String convert(List<int> codeUnits, [int start = 0, int end]) {
     int length = codeUnits.length;
-    if (start < 0 || start > length) {
-      throw new RangeError.range(start, 0, length, "start");
-    }
-    if (end == null) {
-      end = length;
-    } else if (end < start || end > length) {
-      throw new RangeError.range(end, start, length, "end");
-    }
+    RangeError.checkValidRange(start, end, length);
+    if (end == null) end = length;
     StringBuffer buffer = new StringBuffer();
     _Utf8Decoder decoder = new _Utf8Decoder(buffer, _allowMalformed);
     decoder.convert(codeUnits, start, end);

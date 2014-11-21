@@ -325,18 +325,10 @@ abstract class ListMixin<E> implements List<E> {
     return new ListMapView(this);
   }
 
-  void _rangeCheck(int start, int end) {
-    if (start < 0 || start > this.length) {
-      throw new RangeError.range(start, 0, this.length);
-    }
-    if (end < start || end > this.length) {
-      throw new RangeError.range(end, start, this.length);
-    }
-  }
-
   List<E> sublist(int start, [int end]) {
-    if (end == null) end = this.length;
-    _rangeCheck(start, end);
+    int listLength = this.length;
+    if (end == null) end = listLength;
+    RangeError.checkValidRange(start, end, listLength);
     int length = end - start;
     List<E> result = new List<E>()..length = length;
     for (int i = 0; i < length; i++) {
@@ -346,30 +338,29 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   Iterable<E> getRange(int start, int end) {
-    _rangeCheck(start, end);
+    RangeError.checkValidRange(start, end, this.length);
     return new SubListIterable<E>(this, start, end);
   }
 
   void removeRange(int start, int end) {
-    _rangeCheck(start, end);
+    RangeError.checkValidRange(start, end, this.length);
     int length = end - start;
     setRange(start, this.length - length, this, end);
     this.length -= length;
   }
 
   void fillRange(int start, int end, [E fill]) {
-    _rangeCheck(start, end);
+    RangeError.checkValidRange(start, end, this.length);
     for (int i = start; i < end; i++) {
       this[i] = fill;
     }
   }
 
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
-    _rangeCheck(start, end);
+    RangeError.checkValidRange(start, end, this.length);
     int length = end - start;
     if (length == 0) return;
-
-    if (skipCount < 0) throw new ArgumentError(skipCount);
+    RangeError.checkNotNegative(skipCount, "skipCount");
 
     List otherList;
     int otherStart;
@@ -397,7 +388,7 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   void replaceRange(int start, int end, Iterable<E> newContents) {
-    _rangeCheck(start, end);
+    RangeError.checkValidRange(start, end, this.length);
     if (newContents is! EfficientLength) {
       newContents = newContents.toList();
     }
@@ -462,9 +453,7 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   void insert(int index, E element) {
-    if (index < 0 || index > length) {
-      throw new RangeError.range(index, 0, length);
-    }
+    RangeError.checkValueInInterval(index, 0, length, "index");
     if (index == this.length) {
       add(element);
       return;
@@ -486,9 +475,7 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   void insertAll(int index, Iterable<E> iterable) {
-    if (index < 0 || index > length) {
-      throw new RangeError.range(index, 0, length);
-    }
+    RangeError.checkValueInInterval(index, 0, length, "index");
     if (iterable is EfficientLength) {
       iterable = iterable.toList();
     }

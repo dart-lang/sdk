@@ -186,14 +186,16 @@ abstract class IterableMixin<E> implements Iterable<E> {
   }
 
   E elementAt(int index) {
-    if (index is! int || index < 0) throw new RangeError.value(index);
-    int remaining = index;
+    if (index is! int) throw new ArgumentError.notNull("index");
+    RangeError.checkNotNegative(index, "index");
+    int elementIndex = 0;
     for (E element in this) {
-      if (remaining == 0) return element;
-      remaining--;
+      if (index == elementIndex) return element;
+      elementIndex++;
     }
-    throw new RangeError.value(index);
+    throw new RangeError.index(index, this, "index", null, elementIndex);
   }
+
 
   String toString() => IterableBase.iterableToShortString(this, '(', ')');
 }
@@ -380,13 +382,14 @@ abstract class IterableBase<E> implements Iterable<E> {
   }
 
   E elementAt(int index) {
-    if (index is! int || index < 0) throw new RangeError.value(index);
-    int remaining = index;
+    if (index is! int) throw new ArgumentError.notNull("index");
+    RangeError.checkNotNegative(index, "index");
+    int elementIndex = 0;
     for (E element in this) {
-      if (remaining == 0) return element;
-      remaining--;
+      if (index == elementIndex) return element;
+      elementIndex++;
     }
-    throw new RangeError.value(index);
+    throw new RangeError.index(index, this, "index", null, elementIndex);
   }
 
   /**

@@ -132,12 +132,7 @@ class _Latin1DecoderSink extends ByteConversionSinkBase {
   }
 
   void addSlice(List<int> source, int start, int end, bool isLast) {
-    if (start < 0 || start > source.length) {
-      throw new RangeError.range(start, 0, source.length);
-    }
-    if (end < start || end > source.length) {
-      throw new RangeError.range(end, start, source.length);
-    }
+    RangeError.checkValidRange(start, end, source.length);
     for (int i = start; i < end; i++) {
       int char = source[i];
       if (char > _LATIN1_MASK || char < 0) {
@@ -157,12 +152,7 @@ class _Latin1AllowInvalidDecoderSink extends _Latin1DecoderSink {
   _Latin1AllowInvalidDecoderSink(StringConversionSink sink): super(sink);
 
   void addSlice(List<int> source, int start, int end, bool isLast) {
-    if (start < 0 || start > source.length) {
-      throw new RangeError.range(start, 0, source.length);
-    }
-    if (end < start || end > source.length) {
-      throw new RangeError.range(end, start, source.length);
-    }
+    RangeError.checkValidRange(start, end, source.length);
     for (int i = start; i < end; i++) {
       int char = source[i];
       if (char > _LATIN1_MASK || char < 0) {
