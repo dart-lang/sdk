@@ -77,7 +77,8 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
 
     // Declare parameters.
     for (tree.Variable param in definition.parameters) {
-      getVariableName(param);
+      variableNames[param] = param.element.name;
+      usedVariableNames.add(param.element.name);
       declaredVariables.add(param);
     }
 
