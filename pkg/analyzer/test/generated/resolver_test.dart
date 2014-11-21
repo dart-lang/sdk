@@ -697,6 +697,20 @@ var v = const A(null);''');
     verify([source]);
   }
 
+  void test_fieldFormalParameterAssignableToField_typeSubstitution() {
+    // foo has the runtime type dynamic -> dynamic, so it should be assignable
+    // to A.f.
+    Source source = addSource(r'''
+class A<T> {
+  final T x;
+  const A(this.x);
+}
+var v = const A<int>(3);''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_fieldFormalParameterAssignableToField_typedef() {
     // foo has the runtime type dynamic -> dynamic, so it should be assignable
     // to A.f.
@@ -708,20 +722,6 @@ class A {
 }
 foo(x) => 1;
 var v = const A(foo);''');
-    resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  void test_fieldFormalParameterAssignableToField_typeSubstitution() {
-    // foo has the runtime type dynamic -> dynamic, so it should be assignable
-    // to A.f.
-    Source source = addSource(r'''
-class A<T> {
-  final T x;
-  const A(this.x);
-}
-var v = const A<int>(3);''');
     resolve(source);
     assertNoErrors(source);
     verify([source]);
@@ -1275,7 +1275,48 @@ class ElementResolverTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
-  void test_visitBinaryExpression() {
+  void test_visitBinaryExpression_bangEq() {
+    // String i;
+    // var j;
+    // i == j
+    InterfaceType stringType = _typeProvider.stringType;
+    SimpleIdentifier left = AstFactory.identifier3("i");
+    left.staticType = stringType;
+    BinaryExpression expression = AstFactory.binaryExpression(
+        left,
+        TokenType.BANG_EQ,
+        AstFactory.identifier3("j"));
+    _resolveNode(expression);
+    var stringElement = stringType.element;
+    expect(expression.staticElement, isNotNull);
+    expect(
+        expression.staticElement,
+        stringElement.lookUpMethod(TokenType.EQ_EQ.lexeme, stringElement.library));
+    expect(expression.propagatedElement, isNull);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitBinaryExpression_eq() {
+    // String i;
+    // var j;
+    // i == j
+    InterfaceType stringType = _typeProvider.stringType;
+    SimpleIdentifier left = AstFactory.identifier3("i");
+    left.staticType = stringType;
+    BinaryExpression expression = AstFactory.binaryExpression(
+        left,
+        TokenType.EQ_EQ,
+        AstFactory.identifier3("j"));
+    _resolveNode(expression);
+    var stringElement = stringType.element;
+    expect(
+        expression.staticElement,
+        stringElement.lookUpMethod(TokenType.EQ_EQ.lexeme, stringElement.library));
+    expect(expression.propagatedElement, isNull);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitBinaryExpression_plus() {
     // num i;
     // var j;
     // i + j
@@ -1290,7 +1331,7 @@ class ElementResolverTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
-  void test_visitBinaryExpression_propagatedElement() {
+  void test_visitBinaryExpression_plus_propagatedElement() {
     // var i = 1;
     // var j;
     // i + j
@@ -1569,6 +1610,17 @@ class ElementResolverTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
+  void test_visitPrefixExpression() {
+    InterfaceType numType = _typeProvider.numType;
+    SimpleIdentifier operand = AstFactory.identifier3("i");
+    operand.staticType = numType;
+    PrefixExpression expression =
+        AstFactory.prefixExpression(TokenType.PLUS_PLUS, operand);
+    _resolveNode(expression);
+    expect(expression.staticElement, getMethod(numType, "+"));
+    _listener.assertNoErrors();
+  }
+
   void test_visitPrefixedIdentifier_dynamic() {
     DartType dynamicType = _typeProvider.dynamicType;
     SimpleIdentifier target = AstFactory.identifier3("a");
@@ -1676,17 +1728,6 @@ class ElementResolverTest extends EngineTestCase {
     _resolveNode(identifier);
     expect(identifier.staticElement, same(setter));
     expect(identifier.identifier.staticElement, same(setter));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPrefixExpression() {
-    InterfaceType numType = _typeProvider.numType;
-    SimpleIdentifier operand = AstFactory.identifier3("i");
-    operand.staticType = numType;
-    PrefixExpression expression =
-        AstFactory.prefixExpression(TokenType.PLUS_PLUS, operand);
-    _resolveNode(expression);
-    expect(expression.staticElement, getMethod(numType, "+"));
     _listener.assertNoErrors();
   }
 
@@ -2620,6 +2661,18 @@ f() {
     verify([source]);
   }
 
+  void test_deprecatedAnnotationUse_Deprecated() {
+    Source source = addSource(r'''
+class A {
+  @Deprecated('0.9')
+  m() {}
+  n() {m();}
+}''');
+    resolve(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    verify([source]);
+  }
+
   void test_deprecatedAnnotationUse_assignment() {
     Source source = addSource(r'''
 class A {
@@ -2639,18 +2692,6 @@ f(A a) {
     Source source = addSource(r'''
 class A {
   @deprecated
-  m() {}
-  n() {m();}
-}''');
-    resolve(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  void test_deprecatedAnnotationUse_Deprecated() {
-    Source source = addSource(r'''
-class A {
-  @Deprecated('0.9')
   m() {}
   n() {m();}
 }''');
@@ -3564,20 +3605,6 @@ main() {
     verify([source]);
   }
 
-  void test_unusedElement_getter_isUsed_invocation_implicitThis() {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  get _g => null;
-  useGetter() {
-    var v = _g;
-  }
-}''');
-    resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   void test_unusedElement_getter_isUsed_invocation_PrefixedIdentifier() {
     enableUnusedElement = true;
     Source source = addSource(r'''
@@ -3608,6 +3635,20 @@ main() {
     verify([source]);
   }
 
+  void test_unusedElement_getter_isUsed_invocation_implicitThis() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  get _g => null;
+  useGetter() {
+    var v = _g;
+  }
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_unusedElement_getter_notUsed_noReference() {
     enableUnusedElement = true;
     Source source = addSource(r'''
@@ -3629,6 +3670,34 @@ class A {
 }''');
     resolve(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_method_isUsed_hasReference_PrefixedIdentifier() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  _m() {}
+}
+main(A a) {
+  a._m;
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_method_isUsed_hasReference_PropertyAccess() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  _m() {}
+}
+main() {
+  new A()._m;
+}''');
+    resolve(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -3667,28 +3736,14 @@ print(x) {}
     verify([source]);
   }
 
-  void test_unusedElement_method_isUsed_hasReference_PrefixedIdentifier() {
+  void test_unusedElement_method_isUsed_invocation_MemberElement() {
     enableUnusedElement = true;
     Source source = addSource(r'''
-class A {
-  _m() {}
+class A<T> {
+  _m(T t) {}
 }
-main(A a) {
-  a._m;
-}''');
-    resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  void test_unusedElement_method_isUsed_hasReference_PropertyAccess() {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  _m() {}
-}
-main() {
-  new A()._m;
+main(A<int> a) {
+  a._m(0);
 }''');
     resolve(source);
     assertNoErrors(source);
@@ -3720,20 +3775,6 @@ class A {
 }
 class B extends A {
   _m() {}
-}''');
-    resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  void test_unusedElement_method_isUsed_invocation_MemberElement() {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A<T> {
-  _m(T t) {}
-}
-main(A<int> a) {
-  a._m(0);
 }''');
     resolve(source);
     assertNoErrors(source);
@@ -3838,20 +3879,6 @@ class A {
     verify([source]);
   }
 
-  void test_unusedElement_setter_isUsed_invocation_implicitThis() {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  set _s(x) {}
-  useSetter() {
-    _s = 42;
-  }
-}''');
-    resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   void test_unusedElement_setter_isUsed_invocation_PrefixedIdentifier() {
     enableUnusedElement = true;
     Source source = addSource(r'''
@@ -3877,6 +3904,20 @@ main() {
   new A()._s = 42;
 }
 ''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unusedElement_setter_isUsed_invocation_implicitThis() {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  set _s(x) {}
+  useSetter() {
+    _s = 42;
+  }
+}''');
     resolve(source);
     assertNoErrors(source);
     verify([source]);
@@ -7438,17 +7479,6 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitPrefixedIdentifier(PrefixedIdentifier node) {
-    SimpleIdentifier prefix = node.prefix;
-    prefix.accept(this);
-    DartType prefixType = prefix.staticType;
-    if (prefixType == null || prefixType.isDynamic) {
-      return null;
-    }
-    return _checkResolved(node, node.staticElement, null);
-  }
-
-  @override
   Object visitPrefixExpression(PrefixExpression node) {
     node.visitChildren(this);
     if (!node.operator.isUserDefinableOperator) {
@@ -7462,6 +7492,17 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
         node,
         node.staticElement,
         (node) => node is MethodElement);
+  }
+
+  @override
+  Object visitPrefixedIdentifier(PrefixedIdentifier node) {
+    SimpleIdentifier prefix = node.prefix;
+    prefix.accept(this);
+    DartType prefixType = prefix.staticType;
+    if (prefixType == null || prefixType.isDynamic) {
+      return null;
+    }
+    return _checkResolved(node, node.staticElement, null);
   }
 
   @override
@@ -7870,34 +7911,6 @@ class ResolverTestCase extends EngineTestCase {
   }
 }
 
-class Scope_EnclosedScopeTest_test_define_duplicate extends Scope {
-  GatheringErrorListener listener;
-
-  Scope_EnclosedScopeTest_test_define_duplicate(this.listener) : super();
-
-  @override
-  AnalysisErrorListener get errorListener => listener;
-
-  @override
-  Element internalLookup(Identifier identifier, String name,
-      LibraryElement referencingLibrary) =>
-      null;
-}
-
-class Scope_EnclosedScopeTest_test_define_normal extends Scope {
-  GatheringErrorListener listener;
-
-  Scope_EnclosedScopeTest_test_define_normal(this.listener) : super();
-
-  @override
-  AnalysisErrorListener get errorListener => listener;
-
-  @override
-  Element internalLookup(Identifier identifier, String name,
-      LibraryElement referencingLibrary) =>
-      null;
-}
-
 class ScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
     GatheringErrorListener errorListener = new GatheringErrorListener();
@@ -7955,6 +7968,34 @@ class ScopeTest_TestScope extends Scope {
       localLookup(name, referencingLibrary);
 }
 
+class Scope_EnclosedScopeTest_test_define_duplicate extends Scope {
+  GatheringErrorListener listener;
+
+  Scope_EnclosedScopeTest_test_define_duplicate(this.listener) : super();
+
+  @override
+  AnalysisErrorListener get errorListener => listener;
+
+  @override
+  Element internalLookup(Identifier identifier, String name,
+      LibraryElement referencingLibrary) =>
+      null;
+}
+
+class Scope_EnclosedScopeTest_test_define_normal extends Scope {
+  GatheringErrorListener listener;
+
+  Scope_EnclosedScopeTest_test_define_normal(this.listener) : super();
+
+  @override
+  AnalysisErrorListener get errorListener => listener;
+
+  @override
+  Element internalLookup(Identifier identifier, String name,
+      LibraryElement referencingLibrary) =>
+      null;
+}
+
 class SimpleResolverTest extends ResolverTestCase {
   void fail_staticInvocation() {
     Source source = addSource(r'''
@@ -7969,39 +8010,6 @@ class B {
     resolve(source);
     assertNoErrors(source);
     verify([source]);
-  }
-
-  void test_argumentResolution_required_matching() {
-    Source source = addSource(r'''
-class A {
-  void f() {
-    g(1, 2, 3);
-  }
-  void g(a, b, c) {}
-}''');
-    _validateArgumentResolution(source, [0, 1, 2]);
-  }
-
-  void test_argumentResolution_required_tooFew() {
-    Source source = addSource(r'''
-class A {
-  void f() {
-    g(1, 2);
-  }
-  void g(a, b, c) {}
-}''');
-    _validateArgumentResolution(source, [0, 1]);
-  }
-
-  void test_argumentResolution_required_tooMany() {
-    Source source = addSource(r'''
-class A {
-  void f() {
-    g(1, 2, 3);
-  }
-  void g(a, b) {}
-}''');
-    _validateArgumentResolution(source, [0, 1, -1]);
   }
 
   void test_argumentResolution_requiredAndNamed_extra() {
@@ -8068,6 +8076,39 @@ class A {
   void g(a, b, [c]) {}
 }''');
     _validateArgumentResolution(source, [0, 1, 2, -1]);
+  }
+
+  void test_argumentResolution_required_matching() {
+    Source source = addSource(r'''
+class A {
+  void f() {
+    g(1, 2, 3);
+  }
+  void g(a, b, c) {}
+}''');
+    _validateArgumentResolution(source, [0, 1, 2]);
+  }
+
+  void test_argumentResolution_required_tooFew() {
+    Source source = addSource(r'''
+class A {
+  void f() {
+    g(1, 2);
+  }
+  void g(a, b, c) {}
+}''');
+    _validateArgumentResolution(source, [0, 1]);
+  }
+
+  void test_argumentResolution_required_tooMany() {
+    Source source = addSource(r'''
+class A {
+  void f() {
+    g(1, 2, 3);
+  }
+  void g(a, b) {}
+}''');
+    _validateArgumentResolution(source, [0, 1, -1]);
   }
 
   void test_argumentResolution_setter_propagated() {
@@ -8850,41 +8891,6 @@ const A = null;
     expect(actualElement, same(expectedElement));
   }
 
-  void test_method_fromMixin() {
-    Source source = addSource(r'''
-class B {
-  bar() => 1;
-}
-class A {
-  foo() => 2;
-}
-
-class C extends B with A {
-  bar() => super.bar();
-  foo() => super.foo();
-}''');
-    resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  void test_method_fromSuperclassMixin() {
-    Source source = addSource(r'''
-class A {
-  void m1() {}
-}
-class B extends Object with A {
-}
-class C extends B {
-}
-f(C c) {
-  c.m1();
-}''');
-    resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   void test_methodCascades() {
     Source source = addSource(r'''
 class A {
@@ -8916,6 +8922,41 @@ class A {
 }''');
     resolve(source);
     // failing with error code: INVOCATION_OF_NON_FUNCTION
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_method_fromMixin() {
+    Source source = addSource(r'''
+class B {
+  bar() => 1;
+}
+class A {
+  foo() => 2;
+}
+
+class C extends B with A {
+  bar() => super.bar();
+  foo() => super.foo();
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_method_fromSuperclassMixin() {
+    Source source = addSource(r'''
+class A {
+  void m1() {}
+}
+class B extends Object with A {
+}
+class C extends B {
+}
+f(C c) {
+  c.m1();
+}''');
+    resolve(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -9250,6 +9291,17 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
+  void test_visitBinaryExpression_starID() {
+    // 1 * 2.0
+    BinaryExpression node = AstFactory.binaryExpression(
+        _resolvedInteger(1),
+        TokenType.PLUS,
+        _resolvedDouble(2.0));
+    node.staticElement = getMethod(_typeProvider.numType, "*");
+    expect(_analyze(node), same(_typeProvider.doubleType));
+    _listener.assertNoErrors();
+  }
+
   void test_visitBinaryExpression_star_notSpecial() {
     // class A {
     //   A operator *(double value);
@@ -9268,17 +9320,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
         _resolvedDouble(2.0));
     node.staticElement = operator;
     expect(_analyze(node), same(typeA));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitBinaryExpression_starID() {
-    // 1 * 2.0
-    BinaryExpression node = AstFactory.binaryExpression(
-        _resolvedInteger(1),
-        TokenType.PLUS,
-        _resolvedDouble(2.0));
-    node.staticElement = getMethod(_typeProvider.numType, "*");
-    expect(_analyze(node), same(_typeProvider.doubleType));
     _listener.assertNoErrors();
   }
 
@@ -9384,47 +9425,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
-  void test_visitFunctionExpression_normal_block() {
-    // (p1, p2) {}
-    DartType dynamicType = _typeProvider.dynamicType;
-    FormalParameter p1 = AstFactory.simpleFormalParameter3("p1");
-    _setType(p1, dynamicType);
-    FormalParameter p2 = AstFactory.simpleFormalParameter3("p2");
-    _setType(p2, dynamicType);
-    FunctionExpression node = _resolvedFunctionExpression(
-        AstFactory.formalParameterList([p1, p2]),
-        AstFactory.blockFunctionBody2());
-    _analyze5(p1);
-    _analyze5(p2);
-    DartType resultType = _analyze(node);
-    _assertFunctionType(
-        dynamicType,
-        <DartType>[dynamicType, dynamicType],
-        null,
-        null,
-        resultType);
-    _listener.assertNoErrors();
-  }
-
-  void test_visitFunctionExpression_normal_expression() {
-    // (p1, p2) -> 0
-    DartType dynamicType = _typeProvider.dynamicType;
-    FormalParameter p = AstFactory.simpleFormalParameter3("p");
-    _setType(p, dynamicType);
-    FunctionExpression node = _resolvedFunctionExpression(
-        AstFactory.formalParameterList([p]),
-        AstFactory.expressionFunctionBody(_resolvedInteger(0)));
-    _analyze5(p);
-    DartType resultType = _analyze(node);
-    _assertFunctionType(
-        _typeProvider.intType,
-        <DartType>[dynamicType],
-        null,
-        null,
-        resultType);
-    _listener.assertNoErrors();
-  }
-
   void test_visitFunctionExpression_normalAndNamed_block() {
     // (p1, {p2 : 0}) {}
     DartType dynamicType = _typeProvider.dynamicType;
@@ -9518,6 +9518,47 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
         _typeProvider.intType,
         <DartType>[dynamicType],
         <DartType>[dynamicType],
+        null,
+        resultType);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitFunctionExpression_normal_block() {
+    // (p1, p2) {}
+    DartType dynamicType = _typeProvider.dynamicType;
+    FormalParameter p1 = AstFactory.simpleFormalParameter3("p1");
+    _setType(p1, dynamicType);
+    FormalParameter p2 = AstFactory.simpleFormalParameter3("p2");
+    _setType(p2, dynamicType);
+    FunctionExpression node = _resolvedFunctionExpression(
+        AstFactory.formalParameterList([p1, p2]),
+        AstFactory.blockFunctionBody2());
+    _analyze5(p1);
+    _analyze5(p2);
+    DartType resultType = _analyze(node);
+    _assertFunctionType(
+        dynamicType,
+        <DartType>[dynamicType, dynamicType],
+        null,
+        null,
+        resultType);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitFunctionExpression_normal_expression() {
+    // (p1, p2) -> 0
+    DartType dynamicType = _typeProvider.dynamicType;
+    FormalParameter p = AstFactory.simpleFormalParameter3("p");
+    _setType(p, dynamicType);
+    FunctionExpression node = _resolvedFunctionExpression(
+        AstFactory.formalParameterList([p]),
+        AstFactory.expressionFunctionBody(_resolvedInteger(0)));
+    _analyze5(p);
+    DartType resultType = _analyze(node);
+    _assertFunctionType(
+        _typeProvider.intType,
+        <DartType>[dynamicType],
+        null,
         null,
         resultType);
     _listener.assertNoErrors();
@@ -9817,36 +9858,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
-  void test_visitPrefixedIdentifier_getter() {
-    DartType boolType = _typeProvider.boolType;
-    PropertyAccessorElementImpl getter =
-        ElementFactory.getterElement("b", false, boolType);
-    PrefixedIdentifier node = AstFactory.identifier5("a", "b");
-    node.identifier.staticElement = getter;
-    expect(_analyze(node), same(boolType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPrefixedIdentifier_setter() {
-    DartType boolType = _typeProvider.boolType;
-    FieldElementImpl field =
-        ElementFactory.fieldElement("b", false, false, false, boolType);
-    PropertyAccessorElement setter = field.setter;
-    PrefixedIdentifier node = AstFactory.identifier5("a", "b");
-    node.identifier.staticElement = setter;
-    expect(_analyze(node), same(boolType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPrefixedIdentifier_variable() {
-    VariableElementImpl variable = ElementFactory.localVariableElement2("b");
-    variable.type = _typeProvider.boolType;
-    PrefixedIdentifier node = AstFactory.identifier5("a", "b");
-    node.identifier.staticElement = variable;
-    expect(_analyze(node), same(_typeProvider.boolType));
-    _listener.assertNoErrors();
-  }
-
   void test_visitPrefixExpression_bang() {
     // !0
     PrefixExpression node =
@@ -9900,6 +9911,36 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     MethodElement tildeMethod = getMethod(_typeProvider.intType, "~");
     node.staticElement = tildeMethod;
     expect(_analyze(node), same(_typeProvider.intType));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitPrefixedIdentifier_getter() {
+    DartType boolType = _typeProvider.boolType;
+    PropertyAccessorElementImpl getter =
+        ElementFactory.getterElement("b", false, boolType);
+    PrefixedIdentifier node = AstFactory.identifier5("a", "b");
+    node.identifier.staticElement = getter;
+    expect(_analyze(node), same(boolType));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitPrefixedIdentifier_setter() {
+    DartType boolType = _typeProvider.boolType;
+    FieldElementImpl field =
+        ElementFactory.fieldElement("b", false, false, false, boolType);
+    PropertyAccessorElement setter = field.setter;
+    PrefixedIdentifier node = AstFactory.identifier5("a", "b");
+    node.identifier.staticElement = setter;
+    expect(_analyze(node), same(boolType));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitPrefixedIdentifier_variable() {
+    VariableElementImpl variable = ElementFactory.localVariableElement2("b");
+    variable.type = _typeProvider.boolType;
+    PrefixedIdentifier node = AstFactory.identifier5("a", "b");
+    node.identifier.staticElement = variable;
+    expect(_analyze(node), same(_typeProvider.boolType));
     _listener.assertNoErrors();
   }
 
@@ -10001,16 +10042,16 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
-  void test_visitThrowExpression_withoutValue() {
-    // throw
-    Expression node = AstFactory.throwExpression();
+  void test_visitThrowExpression_withValue() {
+    // throw 0
+    Expression node = AstFactory.throwExpression2(_resolvedInteger(0));
     expect(_analyze(node), same(_typeProvider.bottomType));
     _listener.assertNoErrors();
   }
 
-  void test_visitThrowExpression_withValue() {
-    // throw 0
-    Expression node = AstFactory.throwExpression2(_resolvedInteger(0));
+  void test_visitThrowExpression_withoutValue() {
+    // throw
+    Expression node = AstFactory.throwExpression();
     expect(_analyze(node), same(_typeProvider.bottomType));
     _listener.assertNoErrors();
   }
@@ -11429,6 +11470,64 @@ main() {
         typeProvider.intType);
   }
 
+  void test_CanvasElement_getContext() {
+    String code = r'''
+import 'dart:html';
+main(CanvasElement canvas) {
+  var context = canvas.getContext('2d');
+}''';
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    SimpleIdentifier identifier = EngineTestCase.findNode(
+        unit,
+        code,
+        "context",
+        (node) => node is SimpleIdentifier);
+    expect(identifier.propagatedType.name, "CanvasRenderingContext2D");
+  }
+
+  void test_Future_then() {
+    String code = r'''
+import 'dart:async';
+main(Future<int> firstFuture) {
+  firstFuture.then((p1) {
+    return 1.0;
+  }).then((p2) {
+    return new Future<String>.value('str');
+  }).then((p3) {
+  });
+}''';
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    // p1
+    FormalParameter p1 = EngineTestCase.findNode(
+        unit,
+        code,
+        "p1) {",
+        (node) => node is SimpleFormalParameter);
+    expect(p1.identifier.propagatedType, same(typeProvider.intType));
+    // p2
+    FormalParameter p2 = EngineTestCase.findNode(
+        unit,
+        code,
+        "p2) {",
+        (node) => node is SimpleFormalParameter);
+    expect(p2.identifier.propagatedType, same(typeProvider.doubleType));
+    // p3
+    FormalParameter p3 = EngineTestCase.findNode(
+        unit,
+        code,
+        "p3) {",
+        (node) => node is SimpleFormalParameter);
+    expect(p3.identifier.propagatedType, same(typeProvider.stringType));
+  }
+
   void test_as() {
     Source source = addSource(r'''
 class A {
@@ -11558,25 +11657,6 @@ main() {
       expect(identifier.staticType, same(typeProvider.intType));
       expect(identifier.propagatedType, same(null));
     }
-  }
-
-  void test_CanvasElement_getContext() {
-    String code = r'''
-import 'dart:html';
-main(CanvasElement canvas) {
-  var context = canvas.getContext('2d');
-}''';
-    Source source = addSource(code);
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    SimpleIdentifier identifier = EngineTestCase.findNode(
-        unit,
-        code,
-        "context",
-        (node) => node is SimpleIdentifier);
-    expect(identifier.propagatedType.name, "CanvasRenderingContext2D");
   }
 
   void test_finalPropertyInducingVariable_classMember_instance() {
@@ -11890,45 +11970,6 @@ f(MyList<String> list) {
     expect(vIdentifier.propagatedType, same(stringType));
   }
 
-  void test_Future_then() {
-    String code = r'''
-import 'dart:async';
-main(Future<int> firstFuture) {
-  firstFuture.then((p1) {
-    return 1.0;
-  }).then((p2) {
-    return new Future<String>.value('str');
-  }).then((p3) {
-  });
-}''';
-    Source source = addSource(code);
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    // p1
-    FormalParameter p1 = EngineTestCase.findNode(
-        unit,
-        code,
-        "p1) {",
-        (node) => node is SimpleFormalParameter);
-    expect(p1.identifier.propagatedType, same(typeProvider.intType));
-    // p2
-    FormalParameter p2 = EngineTestCase.findNode(
-        unit,
-        code,
-        "p2) {",
-        (node) => node is SimpleFormalParameter);
-    expect(p2.identifier.propagatedType, same(typeProvider.doubleType));
-    // p3
-    FormalParameter p3 = EngineTestCase.findNode(
-        unit,
-        code,
-        "p3) {",
-        (node) => node is SimpleFormalParameter);
-    expect(p3.identifier.propagatedType, same(typeProvider.stringType));
-  }
-
   void test_initializer() {
     Source source = addSource(r'''
 f() {
@@ -12009,6 +12050,124 @@ main() {
       expect(identifier.staticType, same(typeProvider.intType));
       expect(identifier.propagatedType, same(null));
     }
+  }
+
+  void test_isNot_conditional() {
+    Source source = addSource(r'''
+class A {}
+A f(var p) {
+  return (p is! A) ? null : p;
+}''');
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
+    InterfaceType typeA = classA.element.type;
+    FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
+    BlockFunctionBody body =
+        function.functionExpression.body as BlockFunctionBody;
+    ReturnStatement statement = body.block.statements[0] as ReturnStatement;
+    ConditionalExpression conditional =
+        statement.expression as ConditionalExpression;
+    SimpleIdentifier variableName =
+        conditional.elseExpression as SimpleIdentifier;
+    expect(variableName.propagatedType, same(typeA));
+  }
+
+  void test_isNot_if() {
+    Source source = addSource(r'''
+class A {}
+A f(var p) {
+  if (p is! A) {
+    return null;
+  } else {
+    return p;
+  }
+}''');
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
+    InterfaceType typeA = classA.element.type;
+    FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
+    BlockFunctionBody body =
+        function.functionExpression.body as BlockFunctionBody;
+    IfStatement ifStatement = body.block.statements[0] as IfStatement;
+    ReturnStatement statement =
+        (ifStatement.elseStatement as Block).statements[0] as ReturnStatement;
+    SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
+    expect(variableName.propagatedType, same(typeA));
+  }
+
+  void test_isNot_if_logicalOr() {
+    Source source = addSource(r'''
+class A {}
+A f(var p) {
+  if (p is! A || null == p) {
+    return null;
+  } else {
+    return p;
+  }
+}''');
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
+    InterfaceType typeA = classA.element.type;
+    FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
+    BlockFunctionBody body =
+        function.functionExpression.body as BlockFunctionBody;
+    IfStatement ifStatement = body.block.statements[0] as IfStatement;
+    ReturnStatement statement =
+        (ifStatement.elseStatement as Block).statements[0] as ReturnStatement;
+    SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
+    expect(variableName.propagatedType, same(typeA));
+  }
+
+  void test_isNot_postConditional() {
+    Source source = addSource(r'''
+class A {}
+A f(var p) {
+  A a = (p is! A) ? throw null : p;
+  return p;
+}''');
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
+    InterfaceType typeA = classA.element.type;
+    FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
+    BlockFunctionBody body =
+        function.functionExpression.body as BlockFunctionBody;
+    ReturnStatement statement = body.block.statements[1] as ReturnStatement;
+    SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
+    expect(variableName.propagatedType, same(typeA));
+  }
+
+  void test_isNot_postIf() {
+    Source source = addSource(r'''
+class A {}
+A f(var p) {
+  if (p is! A) {
+    return null;
+  }
+  return p;
+}''');
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
+    InterfaceType typeA = classA.element.type;
+    FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
+    BlockFunctionBody body =
+        function.functionExpression.body as BlockFunctionBody;
+    ReturnStatement statement = body.block.statements[1] as ReturnStatement;
+    SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
+    expect(variableName.propagatedType, same(typeA));
   }
 
   void test_is_conditional() {
@@ -12204,124 +12363,6 @@ A f(var p) {
     WhileStatement whileStatement = body.block.statements[0] as WhileStatement;
     ReturnStatement statement =
         (whileStatement.body as Block).statements[0] as ReturnStatement;
-    SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
-    expect(variableName.propagatedType, same(typeA));
-  }
-
-  void test_isNot_conditional() {
-    Source source = addSource(r'''
-class A {}
-A f(var p) {
-  return (p is! A) ? null : p;
-}''');
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
-    InterfaceType typeA = classA.element.type;
-    FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body =
-        function.functionExpression.body as BlockFunctionBody;
-    ReturnStatement statement = body.block.statements[0] as ReturnStatement;
-    ConditionalExpression conditional =
-        statement.expression as ConditionalExpression;
-    SimpleIdentifier variableName =
-        conditional.elseExpression as SimpleIdentifier;
-    expect(variableName.propagatedType, same(typeA));
-  }
-
-  void test_isNot_if() {
-    Source source = addSource(r'''
-class A {}
-A f(var p) {
-  if (p is! A) {
-    return null;
-  } else {
-    return p;
-  }
-}''');
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
-    InterfaceType typeA = classA.element.type;
-    FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body =
-        function.functionExpression.body as BlockFunctionBody;
-    IfStatement ifStatement = body.block.statements[0] as IfStatement;
-    ReturnStatement statement =
-        (ifStatement.elseStatement as Block).statements[0] as ReturnStatement;
-    SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
-    expect(variableName.propagatedType, same(typeA));
-  }
-
-  void test_isNot_if_logicalOr() {
-    Source source = addSource(r'''
-class A {}
-A f(var p) {
-  if (p is! A || null == p) {
-    return null;
-  } else {
-    return p;
-  }
-}''');
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
-    InterfaceType typeA = classA.element.type;
-    FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body =
-        function.functionExpression.body as BlockFunctionBody;
-    IfStatement ifStatement = body.block.statements[0] as IfStatement;
-    ReturnStatement statement =
-        (ifStatement.elseStatement as Block).statements[0] as ReturnStatement;
-    SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
-    expect(variableName.propagatedType, same(typeA));
-  }
-
-  void test_isNot_postConditional() {
-    Source source = addSource(r'''
-class A {}
-A f(var p) {
-  A a = (p is! A) ? throw null : p;
-  return p;
-}''');
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
-    InterfaceType typeA = classA.element.type;
-    FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body =
-        function.functionExpression.body as BlockFunctionBody;
-    ReturnStatement statement = body.block.statements[1] as ReturnStatement;
-    SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
-    expect(variableName.propagatedType, same(typeA));
-  }
-
-  void test_isNot_postIf() {
-    Source source = addSource(r'''
-class A {}
-A f(var p) {
-  if (p is! A) {
-    return null;
-  }
-  return p;
-}''');
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
-    InterfaceType typeA = classA.element.type;
-    FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body =
-        function.functionExpression.body as BlockFunctionBody;
-    ReturnStatement statement = body.block.statements[1] as ReturnStatement;
     SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
     expect(variableName.propagatedType, same(typeA));
   }
