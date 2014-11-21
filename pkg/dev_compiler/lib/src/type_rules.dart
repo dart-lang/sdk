@@ -2,6 +2,8 @@ library ddc.src.type_rules;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 import 'type_walker.dart';
 import 'static_info.dart';

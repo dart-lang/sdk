@@ -2,7 +2,10 @@
 library ddc.src.static_info;
 
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:logging/logging.dart' show Level;
+
+import 'type_rules.dart';
 
 abstract class StaticInfo {
   // AST Node this info is attached to.
