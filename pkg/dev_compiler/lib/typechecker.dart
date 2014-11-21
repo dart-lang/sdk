@@ -3,15 +3,67 @@ library ddc.typechecker;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:logging/logging.dart' as logger;
 
+import 'src/resolver.dart';
 import 'src/static_info.dart';
 import 'src/type_rules.dart';
+import 'src/utils.dart';
 
-logger.Logger log;
+final log = new logger.Logger('ddc.checker');
 
+/// Runs the program checker using the restricted type rules on [fileUri].
+Results checkProgram(Uri fileUri, {String sdkDir,
+    Map<String, String> mockSdkSources, bool checkSdk: false,
+    bool useColors: true}) {
+
+  var resolver = mockSdkSources != null
+      ? new TypeResolver.fromMock(mockSdkSources)
+      : new TypeResolver.fromDir(sdkDir);
+
+  // Run the analyzer on the code.
+  resolver.resolve(fileUri);
+  List<AnalysisError> errors = resolver.getErrors(fileUri);
+  bool failure = false;
+  if (errors.isNotEmpty) {
+    log.info('analyzer found a total of ${errors.length} errors:');
+    for (var error in errors) {
+      var offset = error.offset;
+      var span = spanFor(error.source, offset, offset + error.length);
+      var severity = error.errorCode.errorSeverity;
+      var isError = severity == ErrorSeverity.ERROR;
+      if (isError) failure = true;
+      var level = isError ? logger.Level.SEVERE : logger.Level.WARNING;
+      log.log(level,
+          span.message(error.message, color: colorOf(severity.name)));
+    }
+  }
+
+  // Invoke the checker on the entry point.
+  log.info('running checker...');
+  TypeProvider provider = resolver.context.typeProvider;
+  final visitor = new ProgramChecker(
+      resolver, new RestrictedRules(provider), fileUri, checkSdk);
+  visitor.check();
+  visitor.finalizeImports();
+  return new Results(visitor.libraries, visitor.infoMap,
+      failure || visitor.failure);
+}
+
+/// Represents a summary of the results collected by running the program
+/// checker.
+class Results {
+  final Map<Uri, Library> libraries;
+  final Map<AstNode, List<StaticInfo>> infoMap;
+  final bool failure;
+
+  Results(this.libraries, this.infoMap, this.failure);
+}
+
+/// Holds information about a Dart library.
 class Library {
   final Uri uri;
   final Source source;
@@ -22,23 +74,23 @@ class Library {
   Library(this.uri, this.source, this.lib);
 }
 
-class WorkListItem {
+class _WorkListItem {
   final Uri uri;
   final Source source;
   final bool isLibrary;
-  WorkListItem(this.uri, this.source, this.isLibrary);
+  _WorkListItem(this.uri, this.source, this.isLibrary);
 }
 
 class ProgramChecker extends RecursiveAstVisitor {
-  final AnalysisContext _context;
+  final TypeResolver _resolver;
   final TypeRules _rules;
   final Uri _root;
   final bool _checkSdk;
-  final Map<Uri, CompilationUnit> _unitMap;
-  final Map<Uri, Library> libraries;
-  final List<Library> _stack;
-  final List<WorkListItem> workList = [];
-  final List<WorkListItem> partWorkList = [];
+  final Map<Uri, CompilationUnit> _unitMap = <Uri, CompilationUnit>{};
+  final Map<Uri, Library> libraries = <Uri, Library>{};
+  Library _currentLibrary;
+  final List<_WorkListItem> _workList = [];
+  final List<_WorkListItem> _partWorkList = [];
 
   Uri _uri = null;
 
@@ -49,21 +101,20 @@ class ProgramChecker extends RecursiveAstVisitor {
       string = 'packages/' + package;
       return _root.resolve(string);
     } else {
-      return _stack.last.uri.resolve(string);
+      return _currentLibrary.uri.resolve(string);
     }
   }
 
   void add(Uri uri, Source source, bool isLibrary) {
     if (isLibrary) {
-      workList.add(new WorkListItem(uri, source, isLibrary));
-      if (_stack.isNotEmpty) {
+      _workList.add(new _WorkListItem(uri, source, isLibrary));
+      if (_currentLibrary != null) {
         // This is an import / export.
         // Record the key.  Fill in the library later.
-        Library lib = _stack.last;
-        lib.imports[uri] = null;
+        _currentLibrary.imports[uri] = null;
       }
     } else {
-      partWorkList.add(new WorkListItem(uri, source, isLibrary));
+      _partWorkList.add(new _WorkListItem(uri, source, isLibrary));
     }
   }
 
@@ -88,25 +139,26 @@ class ProgramChecker extends RecursiveAstVisitor {
     final unit = getCompilationUnit(source, isLibrary);
     _rules.setCompilationUnit(unit);
     _unitMap[uri] = unit;
+    final last = _currentLibrary;
     if (isLibrary) {
       assert(!libraries.containsKey(uri));
-      Library lib = new Library(uri, source, unit);
+      var lib = new Library(uri, source, unit);
       libraries[uri] = lib;
-      _stack.add(lib);
+      _currentLibrary = lib;
     } else {
-      Library lib = _stack.last;
+      var lib = _currentLibrary;
       assert(!lib.parts.containsKey(uri));
       lib.parts[uri] = unit;
     }
     unit.visitChildren(this);
     if (isLibrary) {
-      while (partWorkList.isNotEmpty) {
-        WorkListItem item = partWorkList.removeAt(0);
+      while (_partWorkList.isNotEmpty) {
+        _WorkListItem item = _partWorkList.removeAt(0);
         assert(!item.isLibrary);
         load(item.uri, item.source, item.isLibrary);
       }
-      final last = _stack.removeLast();
-      assert(last.uri == uri);
+      assert(_currentLibrary.uri == uri);
+      _currentLibrary = last;
     }
     return unit;
   }
@@ -119,56 +171,41 @@ class ProgramChecker extends RecursiveAstVisitor {
   }
 
   CompilationUnit getCompilationUnit(Source source, bool isLibrary) {
-    Source container = isLibrary ? source : _stack.last.source;
-    return _context.getResolvedCompilationUnit2(source, container);
+    var container = isLibrary ? source : _currentLibrary.source;
+    return _resolver.context.getResolvedCompilationUnit2(source, container);
   }
 
-  ProgramChecker(this._context, this._rules, this._root, Source source,
-                 this._checkSdk)
-      : _unitMap = new Map<Uri, CompilationUnit>(),
-        libraries = new Map<Uri, Library>(),
-        _stack = new List<Library>() {
-    add(_root, source, true);
+  ProgramChecker(this._resolver, this._rules, this._root, this._checkSdk) {
+    add(_root, _resolver.findSource(_root), true);
   }
 
   void check() {
-    while (workList.isNotEmpty) {
-      WorkListItem item = workList.removeAt(0);
+    while (_workList.isNotEmpty) {
+      _WorkListItem item = _workList.removeAt(0);
       assert(item.isLibrary);
       load(item.uri, item.source, item.isLibrary);
     }
   }
 
-  AstNode visitExportDirective(ExportDirective node) {
+  visitExportDirective(ExportDirective node) {
     loadFromDirective(node, true);
     node.visitChildren(this);
-    return node;
   }
 
-  AstNode visitImportDirective(ImportDirective node) {
+  visitImportDirective(ImportDirective node) {
     loadFromDirective(node, true);
     node.visitChildren(this);
-    return node;
   }
 
-  AstNode visitPartDirective(PartDirective node) {
+  visitPartDirective(PartDirective node) {
     loadFromDirective(node, false);
     node.visitChildren(this);
-    return node;
   }
 
-  AstNode visitFunctionDeclaration(FunctionDeclaration node) {
-    String name = node.name.name;
-    // print('Found $name in ${_stack.last.uri}');
-    node.visitChildren(this);
-    return node;
-  }
-
-  AstNode visitAssignmentExpression(AssignmentExpression node) {
+  visitAssignmentExpression(AssignmentExpression node) {
     DartType staticType = _rules.getStaticType(node.leftHandSide);
     checkAssignment(node.rightHandSide, staticType);
     node.visitChildren(this);
-    return node;
   }
 
   // Check that member declarations soundly override any overridden declarations.
@@ -257,9 +294,9 @@ class ProgramChecker extends RecursiveAstVisitor {
     record(invalid);
   }
 
-  AstNode visitMethodDeclaration(MethodDeclaration node) {
+  visitMethodDeclaration(MethodDeclaration node) {
     node.visitChildren(this);
-    if (node.isStatic) return node;
+    if (node.isStatic) return;
     final parent = node.parent;
     if (parent is! ClassDeclaration) {
       throw 'Unexpected parent: $parent';
@@ -268,10 +305,9 @@ class ProgramChecker extends RecursiveAstVisitor {
     // TODO(vsm): Check for generic.
     InterfaceType type = _rules.elementType(cls.element);
     checkInvalidOverride(node, node.element, type);
-    return node;
   }
 
-  AstNode visitFieldDeclaration(FieldDeclaration node) {
+  visitFieldDeclaration(FieldDeclaration node) {
     node.visitChildren(this);
     // TODO(vsm): Is there always a corresponding synthetic method?  If not, we need to validate here.
     final parent = node.parent;
@@ -284,7 +320,6 @@ class ProgramChecker extends RecursiveAstVisitor {
         if (setter != null) checkInvalidOverride(node, setter, type);
       }
     }
-    return node;
   }
 
   // Check invocations
@@ -322,34 +357,30 @@ class ProgramChecker extends RecursiveAstVisitor {
     }
   }
 
-  AstNode visitMethodInvocation(MethodInvocation node) {
+  visitMethodInvocation(MethodInvocation node) {
     checkFunctionApplication(node, node.methodName, node.argumentList);
     node.visitChildren(this);
-    return node;
   }
 
-  AstNode visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+  visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     checkFunctionApplication(node, node.function, node.argumentList);
     node.visitChildren(this);
-    return node;
   }
 
-  AstNode visitRedirectingConstructorInvocation(
+  visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     bool checked = checkArgumentList(node.argumentList);
     assert(checked);
     node.visitChildren(this);
-    return node;
   }
 
-  AstNode visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+  visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     bool checked = checkArgumentList(node.argumentList);
     assert(checked);
     node.visitChildren(this);
-    return node;
   }
 
-  AstNode visitPropertyAccess(PropertyAccess node) {
+  visitPropertyAccess(PropertyAccess node) {
     final target = node.realTarget;
     DartType receiverType = _rules.getStaticType(target);
     assert(receiverType != null);
@@ -357,10 +388,9 @@ class ProgramChecker extends RecursiveAstVisitor {
       record(new DynamicInvoke(_rules, node));
     }
     node.visitChildren(this);
-    return node;
   }
 
-  AstNode visitPrefixedIdentifier(PrefixedIdentifier node) {
+  visitPrefixedIdentifier(PrefixedIdentifier node) {
     final target = node.prefix;
     DartType receiverType = _rules.getStaticType(target);
     assert(receiverType != null);
@@ -368,10 +398,9 @@ class ProgramChecker extends RecursiveAstVisitor {
       record(new DynamicInvoke(_rules, node));
     }
     node.visitChildren(this);
-    return node;
   }
 
-  AstNode visitVariableDeclarationList(VariableDeclarationList node) {
+  visitVariableDeclarationList(VariableDeclarationList node) {
     TypeName type = node.type;
     if (type == null) {
       // No checks are needed when the type is var, but we can infer from the
@@ -385,7 +414,6 @@ class ProgramChecker extends RecursiveAstVisitor {
       }
     }
     node.visitChildren(this);
-    return node;
   }
 
   DartType getType(TypeName name) {
