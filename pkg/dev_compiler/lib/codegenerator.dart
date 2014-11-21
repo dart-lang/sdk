@@ -6,6 +6,7 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
+import 'src/static_info.dart';
 import 'typechecker.dart';
 
 class OutWriter {
