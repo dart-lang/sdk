@@ -270,13 +270,13 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, arch,
       # Failed to obtain version information. Continue running tests.
       pass
 
+  unit_test_flags = [flag for flag in flags if flag.startswith('--shard')]
+  # Run the unit tests in checked mode (the VM's checked mode).
+  unit_test_flags.append('--checked')
   if runtime == 'd8':
     # The dart2js compiler isn't self-hosted (yet) so we run its
     # unit tests on the VM. We avoid doing this on the builders
     # that run the browser tests to cut down on the cycle time.
-    unit_test_flags = [flag for flag in flags if flag.startswith('--shard')]
-    # Run the unit tests in checked mode (the VM's checked mode).
-    unit_test_flags.append('--checked')
     TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js', 'try'],
              unit_test_flags, arch)
 
