@@ -926,7 +926,7 @@ class IterableMixinWorkaround<T> {
     if (index is! int) throw new ArgumentError.notNull("index");
     RangeError.checkNotNegative(index, "index");
     int elementIndex = 0;
-    for (E element in iterable) {
+    for (var element in iterable) {
       if (index == elementIndex) return element;
       elementIndex++;
     }
