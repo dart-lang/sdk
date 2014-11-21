@@ -2220,15 +2220,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
     __ mov(R7, Operand(R6));
     __ AddImmediate(R8, R0, sizeof(RawArray) - kHeapObjectTag);
     if (array_size < (kInlineArraySize * kWordSize)) {
-      intptr_t current_offset = 0;
-      while (current_offset + kWordSize < array_size) {
-        __ strd(R6, Address(R8, current_offset));
-        current_offset += 2*kWordSize;
-      }
-      while (current_offset < array_size) {
-        __ str(R6, Address(R8, current_offset));
-        current_offset += kWordSize;
-      }
+      __ InitializeFieldsNoBarrierUnrolled(R0, R8, num_elements, R6, R7);
     } else {
       __ InitializeFieldsNoBarrier(R0, R8, R3, R6, R7);
     }
