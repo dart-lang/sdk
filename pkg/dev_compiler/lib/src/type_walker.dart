@@ -36,9 +36,9 @@ class RestrictedTypeWalker extends SimpleAstVisitor {
   ///  A map of expressions to static start types.
   Map<Expression, DartType> _startTypes = new Map<Expression, DartType>();
 
-  RestrictedTypeWalker(this._typeProvider, this._libraryElement) {
-    _dynamicType = _typeProvider.dynamicType;
-  }
+  RestrictedTypeWalker(typeProvider, this._libraryElement)
+      : _typeProvider = typeProvider,
+        _dynamicType = typeProvider.dynamicType;
 
   @override
   Object visitAdjacentStrings(AdjacentStrings node) {
@@ -392,12 +392,12 @@ class RestrictedTypeWalker extends SimpleAstVisitor {
 
   @override
   Object visitSuperExpression(SuperExpression node) {
-    if (_thisType == null) {
+    if (thisType == null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
       // reported
       _recordStaticType(node, _dynamicType);
     } else {
-      _recordStaticType(node, _thisType);
+      _recordStaticType(node, thisType);
     }
     return null;
   }
@@ -410,12 +410,12 @@ class RestrictedTypeWalker extends SimpleAstVisitor {
 
   @override
   Object visitThisExpression(ThisExpression node) {
-    if (_thisType == null) {
+    if (thisType == null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
       // reported
       _recordStaticType(node, _dynamicType);
     } else {
-      _recordStaticType(node, _thisType);
+      _recordStaticType(node, thisType);
     }
     return null;
   }

@@ -38,7 +38,7 @@ class StaticTypeError extends TypeMismatch {
   String get message =>
       'Type check failed: $expression ($baseType) is not of type $expectedType';
 
-  Level get level => logger.Level.SEVERE;
+  Level get level => Level.SEVERE;
 }
 
 // Implicitly injected expression conversion.

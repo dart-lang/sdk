@@ -185,6 +185,7 @@ var $name = (function () {
     // TODO(vsm): Check for conversion.
     node.expression.accept(this);
     out.write(";\n");
+    return node;
   }
 
   AstNode visitMethodInvocation(MethodInvocation node) {
