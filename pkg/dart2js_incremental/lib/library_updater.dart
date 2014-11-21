@@ -21,6 +21,7 @@ import 'package:compiler/src/elements/elements.dart' show
     Element,
     FunctionElement,
     LibraryElement,
+    STATE_NOT_STARTED,
     ScopeContainerElement;
 
 import 'package:compiler/src/scanner/scannerlib.dart' show
@@ -373,9 +374,13 @@ class LibraryUpdater extends JsFeatures {
       return cannotReuse(after, "Class has no body.");
     }
     if (isTokenBetween(diffToken, node.beginToken, body.beginToken)) {
-      return cannotReuse(after, "Class header changed.");
+      logVerbose('Class header modified in ${after}');
+      updates.add(new ClassUpdate(compiler, before, after));
+      before.forEachLocalMember((ElementX member) {
+        // TODO(ahe): Quadratic.
+        invalidateScopesAffectedBy(member, before);
+      });
     }
-    logVerbose('Simple modification of ${after} detected');
     return canReuseScopeContainerElement(before, after);
   }
 
@@ -446,15 +451,20 @@ class LibraryUpdater extends JsFeatures {
     for (Element element in updatedElements) {
       if (!element.isClass) {
         compiler.enqueuer.resolution.addToWorkList(element);
+      } else {
+        element.ensureResolved(compiler);
       }
     }
     compiler.processQueue(compiler.enqueuer.resolution, null);
 
     compiler.phase = Compiler.PHASE_DONE_RESOLVING;
 
+    Set<PartialClassElement> changedClasses = new Set<PartialClassElement>();
     for (Element element in updatedElements) {
       if (!element.isClass) {
         compiler.enqueuer.codegen.addToWorkList(element);
+      } else {
+        changedClasses.add(element);
       }
     }
     compiler.processQueue(compiler.enqueuer.codegen, null);
@@ -497,6 +507,22 @@ class LibraryUpdater extends JsFeatures {
     }
 
     updates.addAll(inherits);
+
+    for (ClassElementX cls in changedClasses) {
+      ClassElement superclass = cls.superclass;
+      if (superclass != null) {
+        jsAst.Node classAccess = namer.elementAccess(cls);
+        jsAst.Node superAccess = namer.elementAccess(superclass);
+        updates.add(
+            js.statement(
+                r'#.prototype.__proto__ = #.prototype',
+                [classAccess, superAccess]));
+        updates.add(
+            js.statement(
+                r'#.prototype.constructor = #',
+                [classAccess, classAccess]));
+      }
+    }
 
     for (RemovedFunctionUpdate update in removals) {
       update.writeUpdateJsOn(updates);
@@ -854,6 +880,40 @@ class AddedClassUpdate extends Update with JsFeatures {
     PartialClassElement copy = element.copyWithEnclosing(compilationUnit);
     compilationUnit.addMember(copy, compiler);
     return copy;
+  }
+}
+
+class ClassUpdate extends Update with JsFeatures {
+  final PartialClassElement before;
+
+  final PartialClassElement after;
+
+  ClassUpdate(Compiler compiler, this.before, this.after)
+      : super(compiler);
+
+  PartialFunctionElement apply() {
+    patchElement();
+    reuseElement();
+    return before;
+  }
+
+  /// Destructively change the tokens in [before] to match those of [after].
+  void patchElement() {
+    before.cachedNode = after.cachedNode;
+    before.beginToken = after.beginToken;
+    before.endToken = after.endToken;
+  }
+
+  void reuseElement() {
+    before.supertype = null;
+    before.interfaces = null;
+    before.nativeTagInfo = null;
+    before.supertypeLoadState = STATE_NOT_STARTED;
+    before.resolutionState = STATE_NOT_STARTED;
+    before.isProxy = false;
+    before.hasIncompleteHierarchy = false;
+    before.backendMembers = const Link<Element>();
+    before.allSupertypesAndSelf = null;
   }
 }
 

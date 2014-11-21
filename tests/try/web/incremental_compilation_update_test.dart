@@ -846,6 +846,66 @@ main() {
 """,
             const <String>['v2']),
     ],
+
+    // Test that changing the supertype of a class.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class A {
+  m() {
+    print('v2');
+  }
+}
+class B extends A {
+  m() {
+    print('v1');
+  }
+}
+class C extends B {
+  m() {
+    super.m();
+  }
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    instance = new C();
+  }
+  instance.m();
+}
+""",
+            const <String>['v1']),
+        const ProgramResult(
+            r"""
+class A {
+  m() {
+    print('v2');
+  }
+}
+class B extends A {
+  m() {
+    print('v1');
+  }
+}
+class C extends A {
+  m() {
+    super.m();
+  }
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    instance = new C();
+  }
+  instance.m();
+}
+""",
+            const <String>['v2']),
+    ],
 ];
 
 void main() {
