@@ -224,6 +224,56 @@ enum E {A, B}
 ''');
   }
 
+  void test_false_export_hide_add() {
+    _assertCompilationUnitMatches(false, r'''
+export 'dart:async' hide Future;
+''', r'''
+export 'dart:async' hide Future, Stream;
+''');
+  }
+
+  void test_false_export_hide_remove() {
+    _assertCompilationUnitMatches(false, r'''
+export 'dart:async' hide Future, Stream;
+''', r'''
+export 'dart:async' hide Future;
+''');
+  }
+
+  void test_false_export_list_add() {
+    _assertCompilationUnitMatches(false, r'''
+export 'dart:async';
+''', r'''
+export 'dart:async';
+export 'dart:math';
+''');
+  }
+
+  void test_false_export_list_remove() {
+    _assertCompilationUnitMatches(false, r'''
+export 'dart:async';
+export 'dart:math';
+''', r'''
+export 'dart:async';
+''');
+  }
+
+  void test_false_export_show_add() {
+    _assertCompilationUnitMatches(false, r'''
+export 'dart:async' show Future;
+''', r'''
+export 'dart:async' show Future, Stream;
+''');
+  }
+
+  void test_false_export_show_remove() {
+    _assertCompilationUnitMatches(false, r'''
+export 'dart:async' show Future, Stream;
+''', r'''
+export 'dart:async' show Future;
+''');
+  }
+
   void test_false_extendsClause_add() {
     _assertCompilationUnitMatches(false, r'''
 class A {}
@@ -411,6 +461,106 @@ class C implements A, B {}
 class A {}
 class B {}
 class C implements B, A {}
+''');
+  }
+
+  void test_false_import_hide_add() {
+    _assertCompilationUnitMatches(false, r'''
+import 'dart:async' hide Future;
+''', r'''
+import 'dart:async' hide Future, Stream;
+''');
+  }
+
+  void test_false_import_hide_remove() {
+    _assertCompilationUnitMatches(false, r'''
+import 'dart:async' hide Future, Stream;
+''', r'''
+import 'dart:async' hide Future;
+''');
+  }
+
+  void test_false_import_list_add() {
+    _assertCompilationUnitMatches(false, r'''
+import 'dart:async';
+''', r'''
+import 'dart:async';
+import 'dart:math';
+''');
+  }
+
+  void test_false_import_list_remove() {
+    _assertCompilationUnitMatches(false, r'''
+import 'dart:async';
+import 'dart:math';
+''', r'''
+import 'dart:async';
+''');
+  }
+
+  void test_false_import_prefix_add() {
+    _assertCompilationUnitMatches(false, r'''
+import 'dart:async';
+''', r'''
+import 'dart:async' as async;
+''');
+  }
+
+  void test_false_import_prefix_edit() {
+    _assertCompilationUnitMatches(false, r'''
+import 'dart:async' as oldPrefix;
+''', r'''
+import 'dart:async' as newPrefix;
+''');
+  }
+
+  void test_false_import_prefix_remove() {
+    _assertCompilationUnitMatches(false, r'''
+import 'dart:async' as async;
+''', r'''
+import 'dart:async';
+''');
+  }
+
+  void test_false_import_show_add() {
+    _assertCompilationUnitMatches(false, r'''
+import 'dart:async' show Future;
+''', r'''
+import 'dart:async' show Future, Stream;
+''');
+  }
+
+  void test_false_import_show_remove() {
+    _assertCompilationUnitMatches(false, r'''
+import 'dart:async' show Future, Stream;
+''', r'''
+import 'dart:async' show Future;
+''');
+  }
+
+  void test_false_part_list_add() {
+    addNamedSource('/unitA.dart', 'part of lib; class A {}');
+    addNamedSource('/unitB.dart', 'part of lib; class B {}');
+    _assertCompilationUnitMatches(false, r'''
+library lib;
+part 'unitA.dart';
+''', r'''
+library lib;
+part 'unitA.dart';
+part 'unitB.dart';
+''');
+  }
+
+  void test_false_part_list_remove() {
+    addNamedSource('/unitA.dart', 'part of lib; class A {}');
+    addNamedSource('/unitB.dart', 'part of lib; class B {}');
+    _assertCompilationUnitMatches(false, r'''
+library lib;
+part 'unitA.dart';
+part 'unitB.dart';
+''', r'''
+library lib;
+part 'unitA.dart';
 ''');
   }
 
@@ -701,6 +851,42 @@ main() {
 ''');
   }
 
+  void test_true_export_hide_reorder() {
+    _assertCompilationUnitMatches(true, r'''
+export 'dart:async' hide Future, Stream;
+''', r'''
+export 'dart:async' hide Stream, Future;
+''');
+  }
+
+  void test_true_export_list_reorder() {
+    _assertCompilationUnitMatches(true, r'''
+export 'dart:async';
+export 'dart:math';
+''', r'''
+export 'dart:math';
+export 'dart:async';
+''');
+  }
+
+  void test_true_export_list_same() {
+    _assertCompilationUnitMatches(true, r'''
+export 'dart:async';
+export 'dart:math';
+''', r'''
+export 'dart:async';
+export 'dart:math';
+''');
+  }
+
+  void test_true_export_show_reorder() {
+    _assertCompilationUnitMatches(true, r'''
+export 'dart:async' show Future, Stream;
+''', r'''
+export 'dart:async' show Stream, Future;
+''');
+  }
+
   void test_true_extendsClause_same() {
     _assertCompilationUnitMatches(true, r'''
 class A {}
@@ -750,6 +936,78 @@ class B implements A {}
 ''', r'''
 class A {}
 class B implements A {}
+''');
+  }
+
+  void test_true_import_hide_reorder() {
+    _assertCompilationUnitMatches(true, r'''
+import 'dart:async' hide Future, Stream;
+''', r'''
+import 'dart:async' hide Stream, Future;
+''');
+  }
+
+  void test_true_import_list_reorder() {
+    _assertCompilationUnitMatches(true, r'''
+import 'dart:async';
+import 'dart:math';
+''', r'''
+import 'dart:math';
+import 'dart:async';
+''');
+  }
+
+  void test_true_import_list_same() {
+    _assertCompilationUnitMatches(true, r'''
+import 'dart:async';
+import 'dart:math';
+''', r'''
+import 'dart:async';
+import 'dart:math';
+''');
+  }
+
+  void test_true_import_prefix() {
+    _assertCompilationUnitMatches(true, r'''
+import 'dart:async' as async;
+''', r'''
+import 'dart:async' as async;
+''');
+  }
+
+  void test_true_import_show_reorder() {
+    _assertCompilationUnitMatches(true, r'''
+import 'dart:async' show Future, Stream;
+''', r'''
+import 'dart:async' show Stream, Future;
+''');
+  }
+
+  void test_true_part_list_reorder() {
+    addNamedSource('/unitA.dart', 'part of lib; class A {}');
+    addNamedSource('/unitB.dart', 'part of lib; class B {}');
+    _assertCompilationUnitMatches(true, r'''
+library lib;
+part 'unitA.dart';
+part 'unitB.dart';
+''', r'''
+library lib;
+part 'unitB.dart';
+part 'unitA.dart';
+''');
+  }
+
+  void test_true_part_list_same() {
+    addNamedSource('/unitA.dart', 'part of lib; class A {}');
+    addNamedSource('/unitB.dart', 'part of lib; class B {}');
+    _assertCompilationUnitMatches(true, r'''
+library lib;
+part 'unitA.dart';
+part 'unitB.dart';
+''', r'''
+library lib;
+part 'unitA.dart';
+part 'unitB.dart';
 ''');
   }
 
@@ -832,6 +1090,16 @@ class IncrementalResolverTest extends ResolverTestCase {
   LibraryElement library;
   CompilationUnit unit;
 
+  void fail_test_constructor_fieldInitializer_add() {
+    // TODO(scheglov) resolver uses "enclosingClass", which we don't set yet
+    _resolveUnit(r'''
+class A {
+  int f;
+  A(int a, int b);
+}''');
+    _resolve(_editString(');', ') : f = a + b;'), _isClassMember);
+  }
+
   void fail_test_functionBody_addLocalVariable() {
     // TODO(scheglov) this test fails, because we don't create element models
     // for new local variables
@@ -866,16 +1134,6 @@ class A {
   }
 }''');
     _resolve(_editString('+', '*'), _isExpression);
-  }
-
-  void fail_test_constructor_fieldInitializer_add() {
-    // TODO(scheglov) resolver uses "enclosingClass", which we don't set yet
-    _resolveUnit(r'''
-class A {
-  int f;
-  A(int a, int b);
-}''');
-    _resolve(_editString(');', ') : f = a + b;'), _isClassMember);
   }
 
   void test_constructor_superConstructorInvocation() {
@@ -1018,9 +1276,9 @@ class B {
 
   static bool _isBlock(AstNode node) => node is Block;
 
-  static bool _isExpression(AstNode node) => node is Expression;
-
   static bool _isClassMember(AstNode node) => node is ClassMember;
+
+  static bool _isExpression(AstNode node) => node is Expression;
 
   static bool _isFunctionBody(AstNode node) => node is FunctionBody;
 

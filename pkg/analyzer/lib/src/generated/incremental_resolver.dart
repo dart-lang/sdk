@@ -21,6 +21,11 @@ import 'source.dart';
  */
 class DeclarationMatcher extends RecursiveAstVisitor {
   /**
+   * The libary containing the AST nodes being visited.
+   */
+  LibraryElement _enclosingLibrary;
+
+  /**
    * The compilation unit containing the AST nodes being visited.
    */
   CompilationUnitElement _enclosingUnit;
@@ -146,6 +151,13 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   }
 
   @override
+  visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    String name = node.name.name;
+    FieldElement element = _findElement(_enclosingClass.fields, name);
+    _processElement(element);
+  }
+
+  @override
   visitEnumDeclaration(EnumDeclaration node) {
     String name = node.name.name;
     ClassElement element = _findElement(_enclosingUnit.enums, name);
@@ -156,23 +168,14 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   }
 
   @override
-  visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    String name = node.name.name;
-    FieldElement element = _findElement(_enclosingClass.fields, name);
-    _processElement(element);
-  }
-
-  @override
   visitExportDirective(ExportDirective node) {
     String uri = _getStringValue(node.uri);
     if (uri != null) {
-      LibraryElement library = _enclosingUnit.library;
-      ExportElement exportElement = _findExport(
-          library.exports,
-          _enclosingUnit.context.sourceFactory.resolveUri(_enclosingUnit.source, uri));
-      _processElement(exportElement);
+      ExportElement element =
+          _findUriReferencedElement(_enclosingLibrary.exports, uri);
+      _processElement(element);
+      _assertCombinators(node.combinators, element.combinators);
     }
-    super.visitExportDirective(node);
   }
 
   @override
@@ -245,14 +248,21 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   visitImportDirective(ImportDirective node) {
     String uri = _getStringValue(node.uri);
     if (uri != null) {
-      LibraryElement library = _enclosingUnit.library;
-      ImportElement importElement = _findImport(
-          library.imports,
-          _enclosingUnit.context.sourceFactory.resolveUri(_enclosingUnit.source, uri),
-          node.prefix);
-      _processElement(importElement);
+      ImportElement element =
+          _findUriReferencedElement(_enclosingLibrary.imports, uri);
+      _processElement(element);
+      // match the prefix
+      SimpleIdentifier prefixNode = node.prefix;
+      PrefixElement prefixElement = element.prefix;
+      if (prefixNode == null) {
+        _assertNull(prefixElement);
+      } else {
+        _assertNotNull(prefixElement);
+        _assertEquals(prefixNode.name, prefixElement.name);
+      }
+      // match combinators
+      _assertCombinators(node.combinators, element.combinators);
     }
-    super.visitImportDirective(node);
   }
 
   @override
@@ -288,10 +298,8 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   visitPartDirective(PartDirective node) {
     String uri = _getStringValue(node.uri);
     if (uri != null) {
-      Source partSource =
-          _enclosingUnit.context.sourceFactory.resolveUri(_enclosingUnit.source, uri);
       CompilationUnitElement element =
-          _findPart(_enclosingUnit.library.parts, partSource);
+          _findUriReferencedElement(_enclosingLibrary.parts, uri);
       _processElement(element);
     }
     super.visitPartDirective(node);
@@ -350,6 +358,36 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     _assertSameTypes(nodes, types);
   }
 
+  void _assertCombinators(List<Combinator> nodeCombinators,
+      List<NamespaceCombinator> elementCombinators) {
+    // prepare shown/hidden names in the element
+    Set<String> showNames = new Set<String>();
+    Set<String> hideNames = new Set<String>();
+    for (NamespaceCombinator combinator in elementCombinators) {
+      if (combinator is ShowElementCombinator) {
+        showNames.addAll(combinator.shownNames);
+      } else if (combinator is HideElementCombinator) {
+        hideNames.addAll(combinator.hiddenNames);
+      }
+    }
+    // match combinators with the node
+    for (Combinator combinator in nodeCombinators) {
+      if (combinator is ShowCombinator) {
+        for (SimpleIdentifier nameNode in combinator.shownNames) {
+          String name = nameNode.name;
+          _assertTrue(showNames.remove(name));
+        }
+      } else if (combinator is HideCombinator) {
+        for (SimpleIdentifier nameNode in combinator.hiddenNames) {
+          String name = nameNode.name;
+          _assertTrue(hideNames.remove(name));
+        }
+      }
+    }
+    _assertTrue(showNames.isEmpty);
+    _assertTrue(hideNames.isEmpty);
+  }
+
   void _assertCompatibleParameter(FormalParameter node,
       ParameterElement element) {
     if (node is SimpleFormalParameter) {
@@ -385,6 +423,12 @@ class DeclarationMatcher extends RecursiveAstVisitor {
 
   void _assertNotNull(Element element) {
     if (element == null) {
+      throw new _DeclarationMismatchException();
+    }
+  }
+
+  void _assertNull(Element element) {
+    if (element != null) {
       throw new _DeclarationMismatchException();
     }
   }
@@ -431,10 +475,8 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   }
 
   /**
-   * Given that the comparison is to begin with the given element, capture the enclosing elements
-   * that might be used while performing the comparison.
-   *
-   * @param element the element corresponding to the AST structure to be compared
+   * Given that the comparison is to begin with the given [element], capture
+   * the enclosing elements that might be used while performing the comparison.
    */
   void _captureEnclosingElements(Element element) {
     Element parent =
@@ -442,6 +484,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     while (parent != null) {
       if (parent is CompilationUnitElement) {
         _enclosingUnit = parent as CompilationUnitElement;
+        _enclosingLibrary = element.library;
       } else if (parent is ClassElement) {
         if (_enclosingClass == null) {
           _enclosingClass = parent as ClassElement;
@@ -472,24 +515,6 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   }
 
   /**
-   * Return the export element from the given array whose library has the given source, or
-   * `null` if there is no such export.
-   *
-   * @param exports the export elements being searched
-   * @param source the source of the library associated with the export element to being searched
-   *          for
-   * @return the export element whose library has the given source
-   */
-  ExportElement _findExport(List<ExportElement> exports, Source source) {
-    for (ExportElement export in exports) {
-      if (export.exportedLibrary.source == source) {
-        return export;
-      }
-    }
-    return null;
-  }
-
-  /**
    * Return the element in the given array of elements that was created for the declaration with the
    * given name.
    *
@@ -500,54 +525,6 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   Element _findIdentifier(List<Element> elements,
       SimpleIdentifier identifier) =>
       _findWithNameAndOffset(elements, identifier.name, identifier.offset);
-
-  /**
-   * Return the import element from the given array whose library has the given source and that has
-   * the given prefix, or `null` if there is no such import.
-   *
-   * @param imports the import elements being searched
-   * @param source the source of the library associated with the import element to being searched
-   *          for
-   * @param prefix the prefix with which the library was imported
-   * @return the import element whose library has the given source and prefix
-   */
-  ImportElement _findImport(List<ImportElement> imports, Source source,
-      SimpleIdentifier prefix) {
-    for (ImportElement element in imports) {
-      if (element.importedLibrary.source == source) {
-        PrefixElement prefixElement = element.prefix;
-        if (prefix == null) {
-          if (prefixElement == null) {
-            return element;
-          }
-        } else {
-          if (prefixElement != null &&
-              prefix.name == prefixElement.displayName) {
-            return element;
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Return the element for the part with the given source, or `null` if there is no element
-   * for the given source.
-   *
-   * @param parts the elements for the parts
-   * @param partSource the source for the part whose element is to be returned
-   * @return the element for the part with the given source
-   */
-  CompilationUnitElement _findPart(List<CompilationUnitElement> parts,
-      Source partSource) {
-    for (CompilationUnitElement part in parts) {
-      if (part.source == partSource) {
-        return part;
-      }
-    }
-    return null;
-  }
 
   /**
    * Return the element in the given array of elements that was created for the declaration with the
@@ -569,7 +546,14 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   }
 
   void _gatherElements(Element element) {
-    element.accept(new _ElementsGatherer(this));
+    _ElementsGatherer gatherer = new _ElementsGatherer(this);
+    element.accept(gatherer);
+    // TODO(scheglov) push into CompilationUnitElement
+    if (identical(_enclosingUnit, _enclosingLibrary.definingCompilationUnit)) {
+      gatherer.addElements(_enclosingLibrary.imports);
+      gatherer.addElements(_enclosingLibrary.exports);
+      gatherer.addElements(_enclosingLibrary.parts);
+    }
   }
 
   /**
@@ -592,6 +576,20 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       throw new _DeclarationMismatchException();
     }
     _unmatchedElements.remove(element);
+  }
+
+  /**
+   * Return the [UriReferencedElement] from [elements] with the given [uri], or
+   * `null` if there is no such element.
+   */
+  static UriReferencedElement
+      _findUriReferencedElement(List<UriReferencedElement> elements, String uri) {
+    for (UriReferencedElement element in elements) {
+      if (element.uri == uri) {
+        return element;
+      }
+    }
+    return null;
   }
 }
 
@@ -932,6 +930,14 @@ class _ElementsGatherer extends GeneralizingElementVisitor {
   final DeclarationMatcher matcher;
 
   _ElementsGatherer(this.matcher);
+
+  void addElements(List<Element> elements) {
+    for (Element element in elements) {
+      if (!element.isSynthetic) {
+        _addElement(element);
+      }
+    }
+  }
 
   @override
   visitElement(Element element) {
