@@ -1100,18 +1100,29 @@ class A {
     _resolve(_editString(');', ') : f = a + b;'), _isClassMember);
   }
 
-  void fail_test_functionBody_addLocalVariable() {
-    // TODO(scheglov) this test fails, because we don't create element models
-    // for new local variables
+  void fail_test_constructor_fieldInitializer_edit() {
+    // TODO(scheglov) resolver uses "enclosingClass", which we don't set yet
     _resolveUnit(r'''
-main(int a, int b) {
+class A {
+  int f;
+  A(int a, int b) : f = a + b {
+    int a = 42;
+  }
+}''');
+    _resolve(_editString('+', '*'), _isExpression);
+  }
+
+  void fail_test_topLevelFunction_parameter_rename() {
+    // TODO(scheglov) Decide if incremental parser keeps the element
+    // of the function. If so, we can resolve parameter renames.
+    _resolveUnit(r'''
+int main(int a, int b) {
   return a + b;
 }
 ''');
-    _resolve(_editString('  return a + b;', r'''
-  int res = a + b;
-  return res;
-'''), _isBlock);
+    _resolve(_editString(r'''(int a, int b) {
+  return a + b;''', r'''(int first, int b) {
+  return first + b;'''), _isDeclaration);
   }
 
   void test_constructor_body() {
@@ -1123,17 +1134,6 @@ class A {
   }
 }''');
     _resolve(_editString('+', '*'), _isFunctionBody);
-  }
-
-  void test_constructor_fieldInitializer_edit() {
-    _resolveUnit(r'''
-class A {
-  int f;
-  A(int a, int b) : f = a + b {
-    int a = 42;
-  }
-}''');
-    _resolve(_editString('+', '*'), _isExpression);
   }
 
   void test_constructor_superConstructorInvocation() {
@@ -1179,6 +1179,71 @@ class A {
   }
 }''');
     _resolve(_editString('+', '*'), _isFunctionBody);
+  }
+
+  void test_method_label_add() {
+    _resolveUnit(r'''
+class A {
+  int m(int a, int b) {
+    return a + b;
+  }
+}
+''');
+    _resolve(_editString('return', 'label: return'), _isBlock);
+  }
+
+  void test_method_localVariable_add() {
+    _resolveUnit(r'''
+class A {
+  int m(int a, int b) {
+    return a + b;
+  }
+}
+''');
+    _resolve(_editString('    return a + b;', r'''
+    int res = a + b;
+    return res;
+'''), _isBlock);
+  }
+
+  void test_topLevelFunction_label_add() {
+    _resolveUnit(r'''
+int main(int a, int b) {
+  return a + b;
+}
+''');
+    _resolve(_editString('  return', 'label: return a + b;'), _isBlock);
+  }
+
+  void test_topLevelFunction_label_remove() {
+    _resolveUnit(r'''
+int main(int a, int b) {
+  label: return a + b;
+}
+''');
+    _resolve(_editString('label: ', ''), _isBlock);
+  }
+
+  void test_topLevelFunction_localVariable_add() {
+    _resolveUnit(r'''
+int main(int a, int b) {
+  return a + b;
+}
+''');
+    _resolve(_editString('  return a + b;', r'''
+  int res = a + b;
+  return res;
+'''), _isBlock);
+  }
+
+  void test_topLevelFunction_localVariable_remove() {
+    _resolveUnit(r'''
+int main(int a, int b) {
+  int res = a * b;
+  return a + b;
+}
+''');
+    _resolve(_editString('int res = a * b;', ''), _isBlock);
   }
 
   void test_topLevelVariable_initializer() {
@@ -1277,6 +1342,8 @@ class B {
   static bool _isBlock(AstNode node) => node is Block;
 
   static bool _isClassMember(AstNode node) => node is ClassMember;
+
+  static bool _isDeclaration(AstNode node) => node is Declaration;
 
   static bool _isExpression(AstNode node) => node is Expression;
 

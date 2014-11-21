@@ -656,17 +656,20 @@ class IncrementalResolver {
    */
   void resolve(AstNode node) {
     AstNode rootNode = _findResolutionRoot(node);
-    Scope scope = ScopeBuilder.scopeFor(rootNode, _errorListener);
-    if (_elementModelChanged(rootNode.parent)) {
+    if (_elementModelChanged(rootNode)) {
       throw new AnalysisException("Cannot resolve node: element model changed");
     }
+    // update elements
     _definingUnit.accept(
         new _ElementNameOffsetUpdater(
             _updateOffset,
             _updateNewLength - _updateOldLength));
-    _resolveTypes(node, scope);
-    _resolveVariables(node, scope);
-    _resolveReferences(node, scope);
+    _updateElements(rootNode);
+    // resolve root in scope
+    Scope scope = ScopeBuilder.scopeFor(rootNode, _errorListener);
+    _resolveTypes(rootNode, scope);
+    _resolveVariables(rootNode, scope);
+    _resolveReferences(rootNode, scope);
   }
 
   /**
@@ -715,16 +718,13 @@ class IncrementalResolver {
    * Throws [AnalysisException] if there is no such node.
    */
   AstNode _findResolutionRoot(AstNode node) {
-    AstNode result = node;
-    AstNode parent = result.parent;
-    while (parent != null && !_canBeResolved(parent)) {
-      result = parent;
-      parent = result.parent;
+    while (node != null) {
+      if (_canBeResolved(node)) {
+        return node;
+      }
+      node = node.parent;
     }
-    if (parent == null) {
-      throw new AnalysisException("Cannot resolve node: no resolvable node");
-    }
-    return result;
+    throw new AnalysisException("Cannot resolve node: no resolvable node");
   }
 
   /**
@@ -768,6 +768,32 @@ class IncrementalResolver {
         scope,
         _errorListener);
     node.accept(visitor);
+  }
+
+  void _updateElements(AstNode node) {
+    // build elements in node
+    ElementHolder holder;
+    _ElementsRestorer elementsRestorer = new _ElementsRestorer(node);
+    try {
+      holder = new ElementHolder();
+      ElementBuilder builder = new ElementBuilder(holder);
+      node.accept(builder);
+    } finally {
+      elementsRestorer.restore();
+    }
+    // apply compatible changes to elements
+    if (node is FunctionDeclaration) {
+      FunctionElementImpl oldElement = node.element;
+      FunctionElementImpl newElement = holder.functions[0];
+      oldElement.labels = newElement.labels;
+      oldElement.localVariables = newElement.localVariables;
+    }
+    if (node is MethodDeclaration) {
+      MethodElementImpl oldElement = node.element;
+      MethodElementImpl newElement = holder.methods[0];
+      oldElement.labels = newElement.labels;
+      oldElement.localVariables = newElement.localVariables;
+    }
   }
 }
 
@@ -971,5 +997,56 @@ class _ElementsGatherer extends GeneralizingElementVisitor {
       matcher._allElements.add(element);
       matcher._unmatchedElements.add(element);
     }
+  }
+}
+
+
+/**
+ * [ElementBuilder] not just builds elements, it also applies them to nodes.
+ * But we want to keep externally visible (and referenced) elements instances.
+ * So, we need to remember them and restore.
+ */
+class _ElementsRestorer extends RecursiveAstVisitor {
+  final Map<AstNode, Element> _elements = <AstNode, Element>{};
+
+  _ElementsRestorer(AstNode root) {
+    root.accept(this);
+  }
+
+  void restore() {
+    _elements.forEach((AstNode node, Element element) {
+      if (node is ConstructorDeclaration) {
+        node.element = element;
+      } else if (node is FunctionExpression) {
+        node.element = element;
+      } else if (node is SimpleIdentifier) {
+        node.staticElement = element;
+      }
+    });
+  }
+
+  @override
+  visitBlockFunctionBody(BlockFunctionBody node) {
+  }
+
+  @override
+  visitConstructorDeclaration(ConstructorDeclaration node) {
+    _elements[node] = node.element;
+    super.visitConstructorDeclaration(node);
+  }
+
+  @override
+  visitExpressionFunctionBody(ExpressionFunctionBody node) {
+  }
+
+  @override
+  visitFunctionExpression(FunctionExpression node) {
+    _elements[node] = node.element;
+    super.visitFunctionExpression(node);
+  }
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    _elements[node] = node.staticElement;
   }
 }
