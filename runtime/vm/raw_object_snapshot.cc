@@ -1756,7 +1756,7 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (obj.raw()->to() - obj.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl();
     obj.StorePointer(obj.raw()->from() + i,
                      reader->PassiveObjectHandle()->raw());
   }
@@ -1796,7 +1796,7 @@ void RawBigint::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, false);
   visitor.VisitPointers(from(), to());
 }
 
@@ -2108,6 +2108,7 @@ RawArray* Array::ReadFrom(SnapshotReader* reader,
                                 NEW_OBJECT_WITH_LEN_SPACE(Array, len, kind)));
     reader->AddBackRef(object_id, array, kIsDeserialized);
   }
+  ASSERT(!RawObject::IsCanonical(tags));
   reader->ArrayReadFrom(*array, len, tags);
   return array->raw();
 }
@@ -2129,6 +2130,9 @@ RawImmutableArray* ImmutableArray::ReadFrom(SnapshotReader* reader,
     reader->AddBackRef(object_id, array, kIsDeserialized);
   }
   reader->ArrayReadFrom(*array, len, tags);
+  if (RawObject::IsCanonical(tags)) {
+    *array ^= array->CheckAndCanonicalize(NULL);
+  }
   return raw(*array);
 }
 
@@ -2136,6 +2140,7 @@ RawImmutableArray* ImmutableArray::ReadFrom(SnapshotReader* reader,
 void RawArray::WriteTo(SnapshotWriter* writer,
                        intptr_t object_id,
                        Snapshot::Kind kind) {
+  ASSERT(!RawObject::IsCanonical(writer->GetObjectTags(this)));
   writer->ArrayWriteTo(object_id,
                        kArrayCid,
                        writer->GetObjectTags(this),

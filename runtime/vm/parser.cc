@@ -10784,8 +10784,8 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
       }
       const_list.SetAt(i, elem->AsLiteralNode()->literal());
     }
-    const_list ^= TryCanonicalize(const_list, literal_pos);
     const_list.MakeImmutable();
+    const_list ^= TryCanonicalize(const_list, literal_pos);
     return new(I) LiteralNode(literal_pos, const_list);
   } else {
     // Factory call at runtime.
@@ -11009,8 +11009,8 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       }
       key_value_array.SetAt(i, arg->AsLiteralNode()->literal());
     }
-    key_value_array ^= TryCanonicalize(key_value_array, TokenPos());
     key_value_array.MakeImmutable();
+    key_value_array ^= TryCanonicalize(key_value_array, TokenPos());
 
     // Construct the map object.
     const Class& immutable_map_class = Class::Handle(I,

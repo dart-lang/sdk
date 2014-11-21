@@ -951,10 +951,11 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
     ASSERT(next_field_offset > 0);
     // Instance::NextFieldOffset() returns the offset of the first field in
     // a Dart object.
+    bool is_canonical = RawObject::IsCanonical(tags);
     intptr_t offset = Instance::NextFieldOffset();
     intptr_t result_cid = result->GetClassId();
     while (offset < next_field_offset) {
-      pobj_ = ReadObjectRef();
+      pobj_ = is_canonical ? ReadObjectImpl() : ReadObjectRef();
       result->SetFieldAtOffset(offset, pobj_);
       if ((offset != type_argument_field_offset) &&
           (kind_ == Snapshot::kMessage)) {
@@ -981,7 +982,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
         offset += kWordSize;
       }
       result->SetCreatedFromSnapshot();
-    } else if (false && RawObject::IsCanonical(tags)) {
+    } else if (RawObject::IsCanonical(tags)) {
       *result = result->CheckAndCanonicalize(NULL);
       ASSERT(!result->IsNull());
     }
@@ -1034,8 +1035,10 @@ void SnapshotReader::ArrayReadFrom(const Array& result,
   *TypeArgumentsHandle() ^= ReadObjectImpl();
   result.SetTypeArguments(*TypeArgumentsHandle());
 
+  bool is_canonical = RawObject::IsCanonical(tags);
+
   for (intptr_t i = 0; i < len; i++) {
-    *PassiveObjectHandle() = ReadObjectRef();
+    *PassiveObjectHandle() = is_canonical ? ReadObjectImpl() : ReadObjectRef();
     result.SetAt(i, *PassiveObjectHandle());
   }
 }
@@ -1593,8 +1596,13 @@ void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
   WriteObjectImpl(type_arguments);
 
   // Write out the individual object ids.
+  bool is_canonical = RawObject::IsCanonical(tags);
   for (intptr_t i = 0; i < len; i++) {
-    WriteObjectRef(data[i]);
+    if (is_canonical) {
+      WriteObjectImpl(data[i]);
+    } else {
+      WriteObjectRef(data[i]);
+    }
   }
 }
 
@@ -1652,10 +1660,16 @@ void SnapshotWriter::WriteInstance(intptr_t object_id,
   // Write out all the fields for the object.
   // Instance::NextFieldOffset() returns the offset of the first field in
   // a Dart object.
+  bool is_canonical = RawObject::IsCanonical(tags);
   intptr_t offset = Instance::NextFieldOffset();
   while (offset < next_field_offset) {
-    WriteObjectRef(*reinterpret_cast<RawObject**>(
-        reinterpret_cast<uword>(raw->ptr()) + offset));
+    RawObject* raw_obj = *reinterpret_cast<RawObject**>(
+        reinterpret_cast<uword>(raw->ptr()) + offset);
+    if (is_canonical) {
+      WriteObjectImpl(raw_obj);
+    } else {
+      WriteObjectRef(raw_obj);
+    }
     offset += kWordSize;
   }
   return;
