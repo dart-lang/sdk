@@ -152,7 +152,7 @@ class InvokeSuperMethod extends Expression implements Invoke {
   final Selector selector;
   final List<Expression> arguments;
 
-  InvokeSuperMethod(this.selector, this.arguments) ;
+  InvokeSuperMethod(this.selector, this.arguments);
 
   accept(ExpressionVisitor visitor) => visitor.visitInvokeSuperMethod(this);
 }

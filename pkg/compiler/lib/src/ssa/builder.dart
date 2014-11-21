@@ -1119,7 +1119,7 @@ class SsaBuilder extends ResolvedVisitor {
 
     bool isInstanceMember = function.isInstanceMember;
     // For static calls, [providedArguments] is complete, default arguments
-    // have been included if necessary, see [addStaticSendArgumentsToList].
+    // have been included if necessary, see [makeStaticArgumentList].
     if (!isInstanceMember
         || currentNode == null // In erroneous code, currentNode can be null.
         || providedArgumentsKnownToBeComplete(currentNode)
@@ -1847,12 +1847,10 @@ class SsaBuilder extends ResolvedVisitor {
           FunctionElement target = elements[call].implementation;
           Selector selector = elements.getSelector(call);
           Link<ast.Node> arguments = call.arguments;
-          List<HInstruction> compiledArguments = new List<HInstruction>();
+          List<HInstruction> compiledArguments;
           inlinedFrom(constructor, () {
-            addStaticSendArgumentsToList(selector,
-                                         arguments,
-                                         target,
-                                         compiledArguments);
+            compiledArguments =
+                makeStaticArgumentList(selector, arguments, target);
           });
           inlineSuperOrRedirect(target,
                                 compiledArguments,
@@ -1888,13 +1886,11 @@ class SsaBuilder extends ResolvedVisitor {
           compiler.internalError(superClass,
               "No default constructor available.");
         }
-        List<HInstruction> arguments = <HInstruction>[];
-        selector.addArgumentsToList(const Link<ast.Node>(),
-                                    arguments,
-                                    target.implementation,
-                                    null,
-                                    handleConstantForOptionalParameter,
-                                    compiler.world);
+        List<HInstruction> arguments =
+            selector.makeArgumentsList2(const Link<ast.Node>(),
+                                        target.implementation,
+                                        null,
+                                        handleConstantForOptionalParameter);
         inlineSuperOrRedirect(target,
                               arguments,
                               constructors,
@@ -3449,14 +3445,14 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   /**
-   * Returns true if the arguments were compatible with the function signature.
+   * Returns a list with the evaluated [arguments] in the normalized order.
    *
+   * Precondition: `this.applies(element, world)`.
    * Invariant: [element] must be an implementation element.
    */
-  bool addStaticSendArgumentsToList(Selector selector,
-                                    Link<ast.Node> arguments,
-                                    FunctionElement element,
-                                    List<HInstruction> list) {
+  List<HInstruction> makeStaticArgumentList(Selector selector,
+                                            Link<ast.Node> arguments,
+                                            FunctionElement element) {
     assert(invariant(element, element.isImplementation));
 
     HInstruction compileArgument(ast.Node argument) {
@@ -3464,12 +3460,10 @@ class SsaBuilder extends ResolvedVisitor {
       return pop();
     }
 
-    return selector.addArgumentsToList(arguments,
-                                       list,
+    return selector.makeArgumentsList2(arguments,
                                        element,
                                        compileArgument,
-                                       handleConstantForOptionalParameter,
-                                       compiler.world);
+                                       handleConstantForOptionalParameter);
   }
 
   void addGenericSendArgumentsToList(Link<ast.Node> link, List<HInstruction> list) {
@@ -3981,11 +3975,12 @@ class SsaBuilder extends ResolvedVisitor {
     } else if (element.isFunction || element.isGenerativeConstructor) {
       if (selector.applies(element, compiler.world)) {
         // TODO(5347): Try to avoid the need for calling [implementation] before
-        // calling [addStaticSendArgumentsToList].
+        // calling [makeStaticArgumentList].
         FunctionElement function = element.implementation;
-        bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
-                                                      function, inputs);
-        assert(succeeded);
+        assert(selector.applies(function, compiler.world));
+        inputs = makeStaticArgumentList(selector,
+                                        node.arguments,
+                                        function);
         push(buildInvokeSuper(selector, element, inputs));
       } else if (element.isGenerativeConstructor) {
         generateWrongArgumentCountError(node, element, node.arguments);
@@ -4263,14 +4258,14 @@ class SsaBuilder extends ResolvedVisitor {
       inputs.add(graph.addConstantNull(compiler));
     }
     // TODO(5347): Try to avoid the need for calling [implementation] before
-    // calling [addStaticSendArgumentsToList].
-    bool succeeded = addStaticSendArgumentsToList(selector, send.arguments,
-                                                  constructor.implementation,
-                                                  inputs);
-    if (!succeeded) {
+    // calling [makeStaticArgumentList].
+    if (!selector.applies(constructor.implementation, compiler.world)) {
       generateWrongArgumentCountError(send, constructor, send.arguments);
       return;
     }
+    inputs.addAll(makeStaticArgumentList(selector,
+                                         send.arguments,
+                                         constructor.implementation));
 
     if (constructor.isFactoryConstructor &&
         !expectedType.typeArguments.isEmpty) {
@@ -4452,16 +4447,17 @@ class SsaBuilder extends ResolvedVisitor {
     invariant(element, !element.isGenerativeConstructor);
     generateIsDeferredLoadedCheckIfNeeded(node);
     if (element.isFunction) {
-      var inputs = <HInstruction>[];
       // TODO(5347): Try to avoid the need for calling [implementation] before
-      // calling [addStaticSendArgumentsToList].
-      bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
-                                                    element.implementation,
-                                                    inputs);
-      if (!succeeded) {
+      // calling [makeStaticArgumentList].
+      if (!selector.applies(element.implementation, compiler.world)) {
         generateWrongArgumentCountError(node, element, node.arguments);
         return;
       }
+
+      List<HInstruction> inputs =
+          makeStaticArgumentList(selector,
+                                 node.arguments,
+                                 element.implementation);
 
       if (element == compiler.identicalFunction) {
         pushWithPosition(

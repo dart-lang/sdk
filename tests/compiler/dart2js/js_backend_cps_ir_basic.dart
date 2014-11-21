@@ -9,6 +9,28 @@ library basic_tests;
 import 'js_backend_cps_ir_test.dart';
 
 const List<TestEntry> tests = const [
+  const TestEntry("""
+foo(a, [b = "b"]) => b;
+bar(a, {b: "b", c: "c"}) => c;
+main() {
+  foo(0);
+  foo(0, 1);
+  bar(0);
+  bar(0, b: 1);
+  bar(0, c: 1);
+  bar(0, b: 1, c: 2);
+}
+""",
+"""
+function() {
+  V.foo(0, "b");
+  V.foo(0, 1);
+  V.bar(0, "b", "c");
+  V.bar(0, 1, "c");
+  V.bar(0, "b", 1);
+  V.bar(0, 1, 2);
+  return null;
+}"""),
   const TestEntry(
   """
 foo(a) {

@@ -643,20 +643,14 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       FunctionElement target,
       {AstConstant compileArgument(Node node)}) {
     assert(invariant(node, target.isImplementation));
-    List<AstConstant> compiledArguments = <AstConstant>[];
 
     AstConstant compileDefaultValue(VariableElement element) {
       ConstantExpression constant = handler.compileConstant(element);
       return new AstConstant.fromDefaultValue(element, constant);
     }
     target.computeSignature(compiler);
-    bool succeeded = selector.addArgumentsToList(arguments,
-                                                 compiledArguments,
-                                                 target,
-                                                 compileArgument,
-                                                 compileDefaultValue,
-                                                 compiler.world);
-    if (!succeeded) {
+
+    if (!selector.applies(target, compiler.world)) {
       String name = Elements.constructorNameForDiagnostics(
           target.enclosingClass.name, target.name);
       compiler.reportFatalError(
@@ -664,7 +658,10 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
           MessageKind.INVALID_CONSTRUCTOR_ARGUMENTS,
           {'constructorName': name});
     }
-    return compiledArguments;
+    return selector.makeArgumentsList2(arguments,
+                                       target,
+                                       compileArgument,
+                                       compileDefaultValue);
   }
 
   AstConstant visitNewExpression(NewExpression node) {

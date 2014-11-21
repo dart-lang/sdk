@@ -10,6 +10,7 @@ import '../../js_emitter/js_emitter.dart';
 import '../../js/js.dart' as js;
 import '../../constants/values.dart';
 import '../../elements/elements.dart';
+import '../../constants/expressions.dart';
 
 /// Encapsulates the dependencies of the function-compiler to the compiler,
 /// backend and emitter.
@@ -33,6 +34,10 @@ class Glue {
     _compiler.internalError(_compiler.currentElement, message);
   }
 
+  ConstantExpression getConstantForVariable(VariableElement variable) {
+    return _backend.constants.getConstantForVariable(variable);
+  }
+
   js.Expression elementAccess(Element element) {
     return _namer.elementAccess(element);
   }
@@ -41,5 +46,7 @@ class Glue {
     return _namer.safeVariableName(name);
   }
   ClassElement get listClass => _compiler.listClass;
+
+  FunctionElement get identicalFunction => _compiler.identicalFunction;
 
 }

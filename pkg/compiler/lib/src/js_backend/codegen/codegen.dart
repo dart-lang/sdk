@@ -142,11 +142,14 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
         visit(node.elseExpression));
   }
 
-  @override
-  js.Expression visitConstant(tree_ir.Constant node) {
-    ConstantValue constant = node.expression.value;
+  js.Expression buildConstant(ConstantValue constant) {
     registry.registerCompileTimeConstant(constant);
     return glue.constantReference(constant);
+  }
+
+  @override
+  js.Expression visitConstant(tree_ir.Constant node) {
+    return buildConstant(node.expression.value);
   }
 
   @override
@@ -171,10 +174,18 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   js.Expression visitInvokeStatic(tree_ir.InvokeStatic node) {
     Element element = node.target;
 
-    registry.registerStaticInvocation(element);
+    registry.registerStaticInvocation(element.declaration);
+
+    js.Expression compileConstant(ParameterElement parameter) {
+      return buildConstant(glue.getConstantForVariable(parameter).value);
+    }
 
     js.Expression elementAccess = glue.elementAccess(node.target);
-    return new js.Call(elementAccess, visitArguments(node.arguments));
+    List<js.Expression> arguments =
+      node.selector.makeArgumentsList(node.arguments, element.implementation,
+          visitExpression,
+          compileConstant);
+    return new js.Call(elementAccess, arguments);
   }
 
   @override

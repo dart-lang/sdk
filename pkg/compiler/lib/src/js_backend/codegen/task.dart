@@ -32,7 +32,9 @@ import '../../constants/expressions.dart';
 import '../../constants/values.dart';
 
 class JsBackendTreeBuilder extends tree_builder.Builder {
-  JsBackendTreeBuilder(Compiler compiler) : super(compiler);
+  final Glue glue;
+
+  JsBackendTreeBuilder(Compiler compiler, this.glue) : super(compiler);
 
   Selector get identicalSelector {
     return new Selector(SelectorKind.CALL, 'identical', null, 2);
@@ -57,7 +59,7 @@ class JsBackendTreeBuilder extends tree_builder.Builder {
     tree_ir.Expression value = getVariableReference(node.value);
     /// TODO(karlklose): implement the assert(v != null) check.
     return new tree_ir.InvokeStatic(
-        compiler.identicalFunction,
+        glue.identicalFunction,
         identicalSelector,
         <tree_ir.Expression>[value, constantTrue]);
   }
@@ -68,6 +70,7 @@ class CspFunctionCompiler implements FunctionCompiler {
   final IrBuilderTask irBuilderTask;
   final ConstantSystem constantSystem;
   final Compiler compiler;
+  final Glue glue;
 
   // TODO(karlklose,sigurm): remove and update dart-doc of [compile].
   final FunctionCompiler fallbackCompiler;
@@ -79,7 +82,8 @@ class CspFunctionCompiler implements FunctionCompiler {
       : irBuilderTask = new IrBuilderTask(compiler),
         fallbackCompiler = new ssa.SsaFunctionCompiler(backend, true),
         constantSystem = backend.constantSystem,
-        compiler = compiler;
+        compiler = compiler,
+        glue = new Glue(compiler);
 
   String get name => 'CPS Ir pipeline';
 
@@ -157,7 +161,7 @@ class CspFunctionCompiler implements FunctionCompiler {
   }
 
   tree_ir.FunctionDefinition compileToTreeIR(cps.FunctionDefinition cpsNode) {
-    tree_builder.Builder builder = new JsBackendTreeBuilder(compiler);
+    tree_builder.Builder builder = new JsBackendTreeBuilder(compiler, glue);
     tree_ir.FunctionDefinition treeNode = builder.build(cpsNode);
     assert(treeNode != null);
     traceGraph('Tree builder', treeNode);
@@ -182,8 +186,7 @@ class CspFunctionCompiler implements FunctionCompiler {
 
   js.Fun compileToJavaScript(CodegenWorkItem work,
                              tree_ir.FunctionDefinition definition) {
-    CodeGenerator codeGen =
-        new CodeGenerator(new Glue(compiler), work.registry);
+    CodeGenerator codeGen = new CodeGenerator(glue, work.registry);
 
     codeGen.buildFunction(definition);
     return buildJavaScriptFunction(work.element,
