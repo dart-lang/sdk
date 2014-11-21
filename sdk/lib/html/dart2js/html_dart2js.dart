@@ -7485,6 +7485,16 @@ class Document extends Node
   // To suppress missing implicit constructor warnings.
   factory Document._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('Document.pointerlockchangeEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> pointerLockChangeEvent = const EventStreamProvider<Event>('pointerlockchange');
+
+  @DomName('Document.pointerlockerrorEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> pointerLockErrorEvent = const EventStreamProvider<Event>('pointerlockerror');
+
   /**
    * Static factory designed to expose `readystatechange` events to event
    * handlers that are not necessarily instances of [Document].
@@ -8103,6 +8113,16 @@ class Document extends Node
   @DocsEditable()
   @Experimental() // untriaged
   Stream<Event> get onPlaying => Element.playingEvent.forTarget(this);
+
+  @DomName('Document.onpointerlockchange')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<Event> get onPointerLockChange => pointerLockChangeEvent.forTarget(this);
+
+  @DomName('Document.onpointerlockerror')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<Event> get onPointerLockError => pointerLockErrorEvent.forTarget(this);
 
   @DomName('Document.onratechange')
   @DocsEditable()
