@@ -31,6 +31,10 @@ import 'tree/tree.dart' as tree;
 import 'universe/universe.dart' as universe;
 import 'util/util.dart' as util;
 
+import 'scanner/scannerlib.dart' show
+    PartialClassElement,
+    PartialFunctionElement;
+
 class ElementVisitor extends elements_visitor.ElementVisitor {
   visitElement(e) {}
 }
@@ -53,7 +57,7 @@ void main(List<String> arguments) {
   useSsa(null);
   useCodeBuffer(null);
   usedByTests();
-  useElements(null, null, null);
+  useElements(null, null, null, null, null);
   useIr(null, null, null);
   useCompiler(null);
   useTypes();
@@ -119,6 +123,7 @@ void useNode(tree.Node node) {
 
 void useUtil(util.Link link) {
   link.reversePrependAll(link);
+  link.copyWithout(link);
   util.longestCommonPrefixLength(null, null);
   new util.Pair(null, null);
 }
@@ -205,11 +210,18 @@ usedByTests() {
   sourceFileProvider.readStringFromUri(null);
 }
 
-useElements(elements.ClassElement e, elements.Name n, modelx.FieldElementX f) {
+useElements(
+    elements.ClassElement e,
+    elements.Name n,
+    modelx.FieldElementX f,
+    PartialClassElement pce,
+    PartialFunctionElement pfe) {
   e.lookupClassMember(null);
   e.lookupInterfaceMember(null);
   n.isAccessibleFrom(null);
   f.reuseElement();
+  pce.copyWithEnclosing(null);
+  pfe.copyWithEnclosing(null);
 }
 
 useIr(cps_ir_nodes_sexpr.SExpressionStringifier stringifier,
