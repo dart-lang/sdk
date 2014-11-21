@@ -1297,11 +1297,6 @@ class Class : public Object {
   // Patch the signature function of a signature class allocated without it.
   void PatchSignatureFunction(const Function& signature_function) const;
 
-  // Return a class object corresponding to the specified kind. If
-  // a canonicalized version of it exists then that object is returned
-  // otherwise a new object is allocated and returned.
-  static RawClass* GetClass(intptr_t class_id, bool is_signature_class);
-
   // Register code that has used CHA for optimization.
   // TODO(srdjan): Also register kind of CHA optimization (e.g.: leaf class,
   // leaf method, ...).
