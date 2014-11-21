@@ -444,6 +444,8 @@ class DeoptInfoBuilder : public ValueObject {
   }
 
  private:
+  friend class CompilerDeoptInfo;  // For current_info_number_.
+
   class TrieNode;
 
   CpuRegisterSource ToCpuRegisterSource(const Location& loc);
