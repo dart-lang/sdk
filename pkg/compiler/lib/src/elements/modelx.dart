@@ -1260,6 +1260,11 @@ class FieldElementX extends VariableElementX
     super.reuseElement();
     nestedClosures.clear();
   }
+
+  FieldElementX copyWithEnclosing(Element enclosingElement) {
+    return new FieldElementX(
+        new Identifier(token), enclosingElement, variables);
+  }
 }
 
 /// [Element] for a parameter-like element.

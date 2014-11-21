@@ -906,6 +906,59 @@ main() {
 """,
             const <String>['v2']),
     ],
+
+    // Test adding a field to a class works.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class A {
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    instance = new A();
+  }
+  try {
+    instance.x = 'v2';
+  } catch(e) {
+    print('setter threw');
+  }
+  try {
+    print(instance.x);
+  } catch (e) {
+    print('getter threw');
+  }
+}
+""",
+            const <String>['setter threw', 'getter threw']),
+        const ProgramResult(
+            r"""
+class A {
+  var x;
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    instance = new A();
+  }
+  try {
+    instance.x = 'v2';
+  } catch(e) {
+    print('setter threw');
+  }
+  try {
+    print(instance.x);
+  } catch (e) {
+    print('getter threw');
+  }
+}
+""",
+            const <String>['v2']),
+    ],
 ];
 
 void main() {

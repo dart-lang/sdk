@@ -28,6 +28,7 @@ import 'package:compiler/src/scanner/scannerlib.dart' show
     EOF_TOKEN,
     PartialClassElement,
     PartialElement,
+    PartialFieldList,
     PartialFunctionElement,
     Token;
 
@@ -116,6 +117,9 @@ class LibraryUpdater extends JsFeatures {
 
   final Set<ElementX> _removedElements = new Set<ElementX>();
 
+  final Set<ClassElementX> _classesWithSchemaChanges =
+      new Set<ClassElementX>();
+
   LibraryUpdater(
       this.compiler,
       this.inputProvider,
@@ -185,7 +189,7 @@ class LibraryUpdater extends JsFeatures {
       logTime('Looking at difference: $difference');
 
       if (difference.before == null && difference.after is PartialElement) {
-        canReuseAddedElement(difference.after, element);
+        canReuseAddedElement(difference.after, element, newElement);
         continue;
       }
       if (difference.after == null && difference.before is PartialElement) {
@@ -226,15 +230,19 @@ class LibraryUpdater extends JsFeatures {
 
   bool canReuseAddedElement(
       PartialElement element,
-      ScopeContainerElement container) {
+      ScopeContainerElement container,
+      ScopeContainerElement syntheticContainer) {
     if (element is PartialFunctionElement) {
       addFunction(element, container);
       return true;
     } else if (element is PartialClassElement) {
       addClass(element, container);
       return true;
+    } else if (element is PartialFieldList) {
+      addFields(element, container, syntheticContainer);
+      return true;
     }
-    return cannotReuse(element, "Added element that isn't a function.");
+    return cannotReuse(element, "Adding ${element.runtimeType} not supported.");
   }
 
   void addFunction(
@@ -251,6 +259,45 @@ class LibraryUpdater extends JsFeatures {
     invalidateScopesAffectedBy(element, library);
 
     updates.add(new AddedClassUpdate(compiler, element, library));
+  }
+
+  /// Called when a field in [definition] has changed.
+  ///
+  /// There's no direct link from a [PartialFieldList] to its implied
+  /// [FieldElementX], so instead we use [syntheticContainer], the (synthetic)
+  /// container created by [canReuseLibrary], or [canReuseClass] (through
+  /// [PartialClassElement.parseNode]). This container is scanned looking for
+  /// fields whose declaration site is [definition].
+  // TODO(ahe): It would be nice if [computeDifference] returned this
+  // information directly.
+  void addFields(
+      PartialFieldList definition,
+      ScopeContainerElement container,
+      ScopeContainerElement syntheticContainer) {
+    List<FieldElementX> fields = <FieldElementX>[];
+    syntheticContainer.forEachLocalMember((ElementX member) {
+      if (member.declarationSite == definition) {
+        fields.add(member);
+      }
+    });
+    for (FieldElementX field in fields) {
+      addField(field, container);
+    }
+  }
+
+  void addField(FieldElementX element, ScopeContainerElement container) {
+    invalidateScopesAffectedBy(element, container);
+    if (!element.isInstanceMember) {
+      cannotReuse(element, "Not an instance field.");
+    } else {
+      addInstanceField(element, container);
+    }
+  }
+
+  void addInstanceField(FieldElementX element, ClassElementX cls) {
+    _classesWithSchemaChanges.add(cls);
+
+    updates.add(new AddedFieldUpdate(compiler, element, cls));
   }
 
   bool canReuseRemovedElement(PartialElement element) {
@@ -463,7 +510,8 @@ class LibraryUpdater extends JsFeatures {
     // TODO(ahe): Clean this up. Don't call this method in analyze-only mode.
     if (compiler.analyzeOnly) return "/* analyze only */";
 
-    Set<PartialClassElement> changedClasses = new Set<PartialClassElement>();
+    Set<PartialClassElement> changedClasses =
+        new Set<PartialClassElement>.from(_classesWithSchemaChanges);
     for (Element element in updatedElements) {
       if (!element.isClass) {
         compiler.enqueuer.codegen.addToWorkList(element);
@@ -886,6 +934,26 @@ class AddedClassUpdate extends Update with JsFeatures {
     return copy;
   }
 }
+
+class AddedFieldUpdate extends Update with JsFeatures {
+  final FieldElementX element;
+
+  final ScopeContainerElement container;
+
+  AddedFieldUpdate(Compiler compiler, this.element, this.container)
+      : super(compiler);
+
+  PartialFieldList get before => null;
+
+  PartialFieldList get after => element.declarationSite;
+
+  FieldElementX apply() {
+    FieldElementX copy = element.copyWithEnclosing(container);
+    container.addMember(copy, compiler);
+    return copy;
+  }
+}
+
 
 class ClassUpdate extends Update with JsFeatures {
   final PartialClassElement before;
