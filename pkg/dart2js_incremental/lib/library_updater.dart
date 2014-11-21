@@ -275,7 +275,7 @@ class LibraryUpdater extends JsFeatures {
   void removeClass(PartialClassElement element) {
     logVerbose("Removed class $element.");
 
-    invalidateScopesAffectedBy(element, element.enclosingElement);
+    invalidateScopesAffectedBy(element, element.library);
 
     _removedElements.add(element);
     element.forEachLocalMember((ElementX member) {
@@ -291,7 +291,7 @@ class LibraryUpdater extends JsFeatures {
     for (ScopeContainerElement scope in scopesAffectedBy(element, container)) {
       scanSites(scope, (Element member, DeclarationSite site) {
         // TODO(ahe): Cache qualifiedNamesIn to avoid quadratic behavior.
-        Map<String, List<String>> names = qualifiedNamesIn(site);
+        Set<String> names = qualifiedNamesIn(site);
         if (canNamesResolveStaticallyTo(names, element, container)) {
           _elementsToInvalidate.add(member);
         }
