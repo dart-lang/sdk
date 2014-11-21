@@ -1444,9 +1444,14 @@ class OldEmitter implements Emitter {
     mainBuffer.add('(function(${namer.currentIsolate})$_{\n');
     if (compiler.hasIncrementalSupport) {
       mainBuffer.add(
-          '(this.\$dart_unsafe_eval ='
-          ' this.\$dart_unsafe_eval || Object.create(null))'
-          '.patch = function(a) { eval(a) }$N');
+          'this.\$dart_unsafe_eval ='
+          ' this.\$dart_unsafe_eval || Object.create(null)$N');
+      mainBuffer.add(
+          'this.\$dart_unsafe_eval.patch = function(a) { eval(a) }$N');
+      String schemaChange =
+          jsAst.prettyPrint(buildSchemaChangeFunction(), compiler).getText();
+      mainBuffer.add(
+          'this.\$dart_unsafe_eval.schemaChange$_=$_$schemaChange$N');
     }
     if (isProgramSplit) {
       /// We collect all the global state of the, so it can be passed to the
@@ -1646,6 +1651,33 @@ class OldEmitter implements Emitter {
         ..add(assembledCode)
         ..close();
     compiler.assembledCode = assembledCode;
+  }
+
+  /// Used by incremental compilation to patch up the prototype of
+  /// [oldConstructor] for use as prototype of [newConstructor].
+  jsAst.Fun buildSchemaChangeFunction() {
+    return js('''
+function(newConstructor, oldConstructor, superclass) {
+  // Invariant: newConstructor.prototype has no interesting properties besides
+  // generated accessors. These are copied to oldPrototype which will be
+  // updated by other incremental changes.
+  if (superclass != null) {
+    this.inheritFrom(newConstructor, superclass);
+  }
+  var oldPrototype = oldConstructor.prototype;
+  var newPrototype = newConstructor.prototype;
+  var hasOwnProperty = Object.prototype.hasOwnProperty;
+  for (var property in newPrototype) {
+    if (hasOwnProperty.call(newPrototype, property)) {
+      // Copy generated accessors.
+      oldPrototype[property] = newPrototype[property];
+    }
+  }
+  oldPrototype.__proto__ = newConstructor.prototype.__proto__;
+  oldPrototype.constructor = newConstructor;
+  newConstructor.prototype = oldPrototype;
+  return newConstructor;
+}''');
   }
 
   /// Returns a map from OutputUnit to a hash of its content. The hash uniquely

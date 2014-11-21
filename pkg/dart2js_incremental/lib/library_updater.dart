@@ -481,20 +481,9 @@ class LibraryUpdater extends JsFeatures {
       jsAst.Node classAccess = namer.elementAccess(cls);
       String name = namer.getNameOfClass(cls);
 
-      var descriptor = js('Object.create(null)');
-
-      jsAst.Statement defineClass = js.statement(
-          r'''
-# = (new Function(
-    "$collectedClasses", "$desc",
-    self.$dart_unsafe_eval.defineClass(#, #) +"\n;return " + #))({#: #})
-''',
-          [classAccess,
-           js.string(name), js.stringArray(computeFields(cls)),
-           js.string(name),
-           js.string(name), descriptor]);
-
-      updates.add(defineClass);
+      updates.add(
+          js.statement(
+              r'# = #', [classAccess, invokeDefineClass(cls)]));
 
       ClassElement superclass = cls.superclass;
       if (superclass != null) {
@@ -506,22 +495,20 @@ class LibraryUpdater extends JsFeatures {
       }
     }
 
+    // Call inheritFrom after all classes have been created. This way we don't
+    // need to sort the classes by having superclasses defined before their
+    // subclasses.
     updates.addAll(inherits);
 
     for (ClassElementX cls in changedClasses) {
       ClassElement superclass = cls.superclass;
-      if (superclass != null) {
-        jsAst.Node classAccess = namer.elementAccess(cls);
-        jsAst.Node superAccess = namer.elementAccess(superclass);
-        updates.add(
-            js.statement(
-                r'#.prototype.__proto__ = #.prototype',
-                [classAccess, superAccess]));
-        updates.add(
-            js.statement(
-                r'#.prototype.constructor = #',
-                [classAccess, classAccess]));
-      }
+      jsAst.Node superAccess =
+          superclass == null ? js('null') : namer.elementAccess(superclass);
+      jsAst.Node classAccess = namer.elementAccess(cls);
+      updates.add(
+          js.statement(
+              r'# = self.$dart_unsafe_eval.schemaChange(#, #, #)',
+              [classAccess, invokeDefineClass(cls), classAccess, superAccess]));
     }
 
     for (RemovedFunctionUpdate update in removals) {
@@ -538,6 +525,19 @@ class LibraryUpdater extends JsFeatures {
     } else {
       return prettyPrintJs(js.statement('{#}', [updates]));
     }
+  }
+
+  jsAst.Expression invokeDefineClass(ClassElementX cls) {
+    String name = namer.getNameOfClass(cls);
+    var descriptor = js('Object.create(null)');
+    return js(
+        r'''
+(new Function(
+    "$collectedClasses", "$desc",
+    self.$dart_unsafe_eval.defineClass(#, #) +"\n;return " + #))({#: #})''',
+        [js.string(name), js.stringArray(computeFields(cls)),
+         js.string(name),
+         js.string(name), descriptor]);
   }
 
   jsAst.Node computeMemberUpdateJs(Element element) {
