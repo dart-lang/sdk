@@ -228,6 +228,9 @@ class LibraryUpdater extends JsFeatures {
     if (element is PartialFunctionElement) {
       addFunction(element, container);
       return true;
+    } else if (element is PartialClassElement) {
+      addClass(element, container);
+      return true;
     }
     return cannotReuse(element, "Added element that isn't a function.");
   }
@@ -238,6 +241,14 @@ class LibraryUpdater extends JsFeatures {
     invalidateScopesAffectedBy(element, container);
 
     updates.add(new AddedFunctionUpdate(compiler, element, container));
+  }
+
+  void addClass(
+      PartialClassElement element,
+      LibraryElementX library) {
+    invalidateScopesAffectedBy(element, library);
+
+    updates.add(new AddedClassUpdate(compiler, element, library));
   }
 
   bool canReuseRemovedElement(PartialElement element) {
@@ -417,14 +428,18 @@ class LibraryUpdater extends JsFeatures {
       compiler.progress.reset();
     }
     for (Element element in updatedElements) {
-      compiler.enqueuer.resolution.addToWorkList(element);
+      if (!element.isClass) {
+        compiler.enqueuer.resolution.addToWorkList(element);
+      }
     }
     compiler.processQueue(compiler.enqueuer.resolution, null);
 
     compiler.phase = Compiler.PHASE_DONE_RESOLVING;
 
     for (Element element in updatedElements) {
-      compiler.enqueuer.codegen.addToWorkList(element);
+      if (!element.isClass) {
+        compiler.enqueuer.codegen.addToWorkList(element);
+      }
     }
     compiler.processQueue(compiler.enqueuer.codegen, null);
 
@@ -651,6 +666,9 @@ class RemovedFunctionUpdate extends Update with JsFeatures, ReuseFunction {
   }
 
   void removeFromEnclosing() {
+    // TODO(ahe): Need to recompute duplicated elements logic again. Simplest
+    // solution is probably to remove all elements from enclosing scope and add
+    // them back.
     PartialClassElement cls = element.enclosingClass;
     if (cls == null) {
       removeFromLibrary(element.library);
@@ -720,16 +738,37 @@ class AddedFunctionUpdate extends Update with JsFeatures {
 
   PartialFunctionElement get before => null;
 
-  PartialElement get after => element;
+  PartialFunctionElement get after => element;
 
   PartialFunctionElement apply() {
     Element enclosing = container;
     if (enclosing.isLibrary) {
-      // TODO(ahe): Reuse compilation unit instead?
+      // TODO(ahe): Reuse compilation unit of element instead?
       enclosing = enclosing.compilationUnit;
     }
     PartialFunctionElement copy = element.copyWithEnclosing(enclosing);
     container.addMember(copy, compiler);
+    return copy;
+  }
+}
+
+class AddedClassUpdate extends Update with JsFeatures {
+  final PartialClassElement element;
+
+  final LibraryElementX library;
+
+  AddedClassUpdate(Compiler compiler, this.element, this.library)
+      : super(compiler);
+
+  PartialClassElement get before => null;
+
+  PartialClassElement get after => element;
+
+  PartialFunctionElement apply() {
+    // TODO(ahe): Reuse compilation unit of element instead?
+    CompilationUnitElementX compilationUnit = library.compilationUnit;
+    PartialClassElement copy = element.copyWithEnclosing(compilationUnit);
+    compilationUnit.addMember(copy, compiler);
     return copy;
   }
 }

@@ -73,6 +73,10 @@ class PartialClassElement extends ClassElementX with PartialElement {
       cachedNode != null ? cachedNode.modifiers : Modifiers.EMPTY;
 
   accept(ElementVisitor visitor) => visitor.visitClassElement(this);
+
+  PartialClassElement copyWithEnclosing(CompilationUnitElement enclosing) {
+    return new PartialClassElement(name, beginToken, endToken, enclosing, id);
+  }
 }
 
 class MemberListener extends NodeListener {

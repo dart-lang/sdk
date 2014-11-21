@@ -789,6 +789,30 @@ main() {
 """,
             const <String>['v2']),
     ],
+
+    // Test that adding a class is supported.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+main() {
+  print('v1');
+}
+""",
+            const <String>['v1']),
+        const ProgramResult(
+            r"""
+class C {
+  void foo() {
+    print('v2');
+  }
+}
+
+main() {
+  new C().foo();
+}
+""",
+            const <String>['v2']),
+    ],
 ];
 
 void main() {
