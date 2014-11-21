@@ -280,6 +280,11 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, arch,
     TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js', 'try'],
              unit_test_flags, arch)
 
+  if compiler == 'dart2js' and runtime == 'drt':
+    # Ensure that we run the "try" tests on Content Shell.
+    TestStep("incremental_compilation", mode, system, 'none', runtime,
+             ['try'], unit_test_flags, arch)
+
   if compiler == 'dart2js' and runtime in ['ie10', 'ie11']:
     TestStep(compiler, mode, system, compiler, runtime,
              ['html', 'pkg', 'samples'], flags, arch)
