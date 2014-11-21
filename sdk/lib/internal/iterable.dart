@@ -1092,7 +1092,7 @@ class IterableMixinWorkaround<T> {
   }
 
   static void insertAllList(List list, int index, Iterable iterable) {
-    RangeError.checkValidIndex(index, list);
+    RangeError.checkValueInInterval(index, 0, list.length, "index");
     if (iterable is! EfficientLength) {
       iterable = iterable.toList(growable: false);
     }
