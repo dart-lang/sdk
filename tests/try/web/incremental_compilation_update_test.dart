@@ -579,6 +579,216 @@ main() {
 """,
             const <String>['v2']),
     ],
+
+    // Test that top-level functions can be added.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+main() {
+  try {
+    foo();
+  } catch(e) {
+    print('v1');
+  }
+}
+""",
+            const <String>['v1']),
+        const ProgramResult(
+            r"""
+foo() {
+  print('v2');
+}
+
+main() {
+  try {
+    foo();
+  } catch(e) {
+    print('v1');
+  }
+}
+""",
+            const <String>['v2']),
+    ],
+
+    // Test that static methods can be added.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class C {
+}
+
+main() {
+  try {
+    C.foo();
+  } catch(e) {
+    print('v1');
+  }
+}
+""",
+            const <String>['v1']),
+        const ProgramResult(
+            r"""
+class C {
+  static foo() {
+    print('v2');
+  }
+}
+
+main() {
+  try {
+    C.foo();
+  } catch(e) {
+    print('v1');
+  }
+}
+""",
+            const <String>['v2']),
+    ],
+
+    // Test that instance methods can be added.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class C {
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    instance = new C();
+  }
+
+  try {
+    instance.foo();
+  } catch(e) {
+    print('v1');
+  }
+}
+""",
+            const <String>['v1']),
+        const ProgramResult(
+            r"""
+class C {
+  foo() {
+    print('v2');
+  }
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    instance = new C();
+  }
+
+  try {
+    instance.foo();
+  } catch(e) {
+    print('v1');
+  }
+}
+""",
+            const <String>['v2']),
+    ],
+
+    // Test that top-level functions can have signature changed.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+foo() {
+  print('v1');
+}
+
+main() {
+  foo();
+}
+""",
+            const <String>['v1']),
+        const ProgramResult(
+            r"""
+void foo() {
+  print('v2');
+}
+
+main() {
+  foo();
+}
+""",
+            const <String>['v2']),
+    ],
+
+    // Test that static methods can have signature changed.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class C {
+  static foo() {
+    print('v1');
+  }
+}
+
+main() {
+  C.foo();
+}
+""",
+            const <String>['v1']),
+        const ProgramResult(
+            r"""
+class C {
+  static void foo() {
+    print('v2');
+  }
+}
+
+main() {
+  C.foo();
+}
+""",
+            const <String>['v2']),
+    ],
+
+    // Test that instance methods can have signature changed.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class C {
+  foo() {
+    print('v1');
+  }
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    instance = new C();
+  }
+
+  instance.foo();
+}
+""",
+            const <String>['v1']),
+        const ProgramResult(
+            r"""
+class C {
+  void foo() {
+    print('v2');
+  }
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    instance = new C();
+  }
+
+  instance.foo();
+}
+""",
+            const <String>['v2']),
+    ],
 ];
 
 void main() {

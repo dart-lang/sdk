@@ -1557,6 +1557,8 @@ abstract class BaseFunctionElementX
     assert(modifiers != null);
   }
 
+  bool get hasNoBody => _hasNoBody;
+
   bool get isInstanceMember {
     return isClassMember
            && !isConstructor

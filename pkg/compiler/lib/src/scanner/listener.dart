@@ -2359,6 +2359,12 @@ class PartialFunctionElement extends FunctionElementX
     super.reuseElement();
     reusePartialFunctionMixin();
   }
+
+  PartialFunctionElement copyWithEnclosing(Element enclosing) {
+    return new PartialFunctionElement(
+        name, beginToken, getOrSet, endToken, kind, modifiers, enclosing,
+        hasNoBody);
+  }
 }
 
 class PartialConstructorElement extends ConstructorElementX

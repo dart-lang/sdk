@@ -62,8 +62,10 @@ import 'package:compiler/src/util/util.dart' show
     LinkBuilder;
 
 import 'package:compiler/src/elements/modelx.dart' show
+    ClassElementX,
     DeclarationSite,
-    ElementX;
+    ElementX,
+    LibraryElementX;
 
 import 'diff.dart' show
     Difference,
@@ -181,7 +183,7 @@ class LibraryUpdater extends JsFeatures {
       logTime('Looking at difference: $difference');
 
       if (difference.before == null && difference.after is PartialElement) {
-        canReuseAddedElement(difference.after);
+        canReuseAddedElement(difference.after, element);
         continue;
       }
       if (difference.after == null && difference.before is PartialElement) {
@@ -220,22 +222,45 @@ class LibraryUpdater extends JsFeatures {
     return _failedUpdates.isEmpty;
   }
 
-  bool canReuseAddedElement(PartialElement element) {
-    return cannotReuse(element, "Scope changed, element added.");
+  bool canReuseAddedElement(
+      PartialElement element,
+      ScopeContainerElement container) {
+    if (element is PartialFunctionElement) {
+      addFunction(element, container);
+      return true;
+    }
+    return cannotReuse(element, "Added element that isn't a function.");
+  }
+
+  void addFunction(
+      PartialFunctionElement element,
+      ScopeContainerElement container) {
+    invalidateScopesAffectedBy(element, container);
+
+    updates.add(new AddedFunctionUpdate(compiler, element, container));
   }
 
   bool canReuseRemovedElement(PartialElement element) {
     if (element is PartialFunctionElement) {
-      return canReuseRemovedFunction(element);
+      removeFunction(element);
+      return true;
     }
-    return cannotReuse(
-        element, "Removed element that isn't a method.");
+    return cannotReuse(element, "Removed element that isn't a function.");
   }
 
-  bool canReuseRemovedFunction(PartialFunctionElement element) {
+  void removeFunction(PartialFunctionElement element) {
     logVerbose("Removed method $element.");
 
-    ScopeContainerElement container = element.enclosingElement;
+    invalidateScopesAffectedBy(element, element.enclosingElement);
+
+    _removedElements.add(element);
+
+    updates.add(new RemovedFunctionUpdate(compiler, element));
+  }
+
+  void invalidateScopesAffectedBy(
+      ElementX element,
+      ScopeContainerElement container) {
     for (ScopeContainerElement scope in scopesAffectedBy(element, container)) {
       scanSites(scope, (Element member, DeclarationSite site) {
         // TODO(ahe): Cache qualifiedNamesIn to avoid quadratic behavior.
@@ -245,12 +270,6 @@ class LibraryUpdater extends JsFeatures {
         }
       });
     }
-
-    _removedElements.add(element);
-
-    updates.add(new RemovedFunctionUpdate(compiler, element));
-
-    return true;
   }
 
   /// Invoke [f] on each [DeclarationSite] in [element]. If [element] is a
@@ -305,7 +324,9 @@ class LibraryUpdater extends JsFeatures {
       last = node.body.getBeginToken();
     }
     if (isTokenBetween(diffToken, after.beginToken, last)) {
-      return cannotReuse(after, 'Signature changed.');
+      removeFunction(before);
+      addFunction(after, before.enclosingElement);
+      return true;
     }
     logVerbose('Simple modification of ${after} detected');
     updates.add(new FunctionUpdate(compiler, before, after));
@@ -446,13 +467,13 @@ class LibraryUpdater extends JsFeatures {
 
     updates.addAll(inherits);
 
+    for (RemovedFunctionUpdate update in removals) {
+      update.writeUpdateJsOn(updates);
+    }
     for (Element element in compiler.enqueuer.codegen.newlyEnqueuedElements) {
       if (!element.isField) {
         updates.add(computeMemberUpdateJs(element));
       }
-    }
-    for (RemovedFunctionUpdate update in removals) {
-      update.writeUpdateJsOn(updates);
     }
 
     if (updates.length == 1) {
@@ -534,7 +555,7 @@ abstract class Update {
   Update(this.compiler);
 
   /// Applies the update to [before] and returns that element.
-  PartialElement apply();
+  Element apply();
 
   bool get isRemoval => false;
 
@@ -568,6 +589,8 @@ class FunctionUpdate extends Update with ReuseFunction {
 }
 
 abstract class ReuseFunction {
+  Compiler get compiler;
+
   PartialFunctionElement get before;
 
   /// Reset various caches and remove this element from the compiler's internal
@@ -620,7 +643,7 @@ class RemovedFunctionUpdate extends Update with JsFeatures, ReuseFunction {
     wasStateCaptured = true;
   }
 
-  PartialElement apply() {
+  PartialFunctionElement apply() {
     if (!wasStateCaptured) throw "captureState must be called before apply.";
     removeFromEnclosing();
     reuseElement();
@@ -680,6 +703,34 @@ class RemovedFunctionUpdate extends Update with JsFeatures, ReuseFunction {
     } else {
       updates.add(js.statement('delete #', [elementAccess]));
     }
+  }
+}
+
+class AddedFunctionUpdate extends Update with JsFeatures {
+  final PartialFunctionElement element;
+
+  final ScopeContainerElement container;
+
+  AddedFunctionUpdate(Compiler compiler, this.element, this.container)
+      : super(compiler) {
+    if (container == null) {
+      throw "container is null";
+    }
+  }
+
+  PartialFunctionElement get before => null;
+
+  PartialElement get after => element;
+
+  PartialFunctionElement apply() {
+    Element enclosing = container;
+    if (enclosing.isLibrary) {
+      // TODO(ahe): Reuse compilation unit instead?
+      enclosing = enclosing.compilationUnit;
+    }
+    PartialFunctionElement copy = element.copyWithEnclosing(enclosing);
+    container.addMember(copy, compiler);
+    return copy;
   }
 }
 
