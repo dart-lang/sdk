@@ -378,6 +378,7 @@ var $name = (function () {
   AstNode visitNode(AstNode node) {
     _reportUnimplementedConversions(node);
     out.write('/* Unimplemented ${node.runtimeType}: $node */');
+    return node;
   }
 
   static const Map<String, String> _builtins = const <String, String>{
