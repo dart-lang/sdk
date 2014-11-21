@@ -814,9 +814,7 @@ main() {
             const <String>['v2']),
     ],
 
-    // Test that removing a class is supported.
-    // TODO(ahe): There should be a warning from second program, but there
-    // isn't. Investigate and write test.
+    // Test that removing a class is supported, using constructor.
     const <ProgramResult>[
         const ProgramResult(
             r"""
@@ -839,6 +837,45 @@ main() {
   try {
     new C();
     print('v1');
+  } catch (e) {
+    print('v2');
+  }
+}
+""",
+            const <String>['v2']),
+    ],
+
+    // Test that removing a class is supported, using a static method.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class C {
+  static m() {
+    print('v1');
+  }
+}
+
+main() {
+  try {
+    // TODO(ahe): Incremental compiler can't handle new noSuchMethod
+    // situations, crashes when compiling a constructor which uses type
+    // arguments.
+    C.missing();
+  } catch (e) {
+  }
+  try {
+    C.m();
+  } catch (e) {
+    print('v2');
+  }
+}
+""",
+            const <String>['v1']),
+        const ProgramResult(
+            r"""
+main() {
+  try {
+    C.m();
   } catch (e) {
     print('v2');
   }
