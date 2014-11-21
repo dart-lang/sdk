@@ -580,6 +580,8 @@ List<Reference<Primitive>> _referenceList(Iterable<Primitive> definitions) {
 }
 
 abstract class Visitor<T> {
+  const Visitor();
+
   T visit(Node node) => node.accept(this);
   // Abstract classes.
   T visitNode(Node node) => null;
@@ -623,6 +625,8 @@ abstract class Visitor<T> {
 /// Recursively visits the entire CPS term, and calls abstract `process*`
 /// (i.e. `processLetPrim`) functions in pre-order.
 abstract class RecursiveVisitor extends Visitor {
+  const RecursiveVisitor();
+
   // Ensures that RecursiveVisitor contains overrides for all relevant nodes.
   // As a rule of thumb, nodes with structure to traverse should be overridden
   // with the appropriate visits in this class (for example, visitLetCont),

@@ -19,6 +19,7 @@ class Glue {
   final Compiler _compiler;
 
   JavaScriptBackend get _backend => _compiler.backend;
+
   CodeEmitterTask get _emitter => _backend.emitter;
   Namer get _namer => _backend.namer;
 
@@ -28,6 +29,10 @@ class Glue {
     return _emitter.constantReference(value);
   }
 
+  reportInternalError(String message) {
+    _compiler.internalError(_compiler.currentElement, message);
+  }
+
   js.Expression elementAccess(Element element) {
     return _namer.elementAccess(element);
   }
@@ -35,7 +40,6 @@ class Glue {
   String safeVariableName(String name) {
     return _namer.safeVariableName(name);
   }
-
   ClassElement get listClass => _compiler.listClass;
 
 }

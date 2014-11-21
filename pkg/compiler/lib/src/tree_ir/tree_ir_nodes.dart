@@ -542,8 +542,8 @@ abstract class StatementVisitor<S> {
   S visitExpressionStatement(ExpressionStatement node);
 }
 
-abstract class Visitor<S,E> implements ExpressionVisitor<E>,
-                                       StatementVisitor<S> {
+abstract class Visitor<S, E> implements ExpressionVisitor<E>,
+                                        StatementVisitor<S> {
    E visitExpression(Expression e) => e.accept(this);
    S visitStatement(Statement s) => s.accept(this);
 }

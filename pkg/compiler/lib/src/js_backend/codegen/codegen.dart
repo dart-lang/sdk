@@ -79,6 +79,14 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
     body = new js.Block(accumulator);
   }
 
+  js.Expression visit(tree_ir.Expression node) {
+    js.Expression result = node.accept(this);
+    if (result == null) {
+      glue.reportInternalError('$node did not produce code.');
+    }
+    return result;
+  }
+
   /// Generates a name for the given variable. First trying with the name of
   /// the [Variable.element] if it is non-null.
   String getVariableName(tree_ir.Variable variable) {
@@ -128,8 +136,10 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   js.Expression visitConditional(tree_ir.Conditional node) {
-    return giveup(node);
-    // TODO: implement visitConditional
+    return new js.Conditional(
+        visit(node.condition),
+        visit(node.thenExpression),
+        visit(node.elseExpression));
   }
 
   @override
@@ -190,8 +200,7 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   js.Expression visitLogicalOperator(tree_ir.LogicalOperator node) {
-    return giveup(node);
-    // TODO: implement visitLogicalOperator
+    return new js.Binary(node.operator, visit(node.left), visit(node.right));
   }
 
   @override

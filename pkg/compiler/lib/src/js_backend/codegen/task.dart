@@ -27,6 +27,42 @@ import '../../tracer.dart';
 import '../../js_backend/codegen/codegen.dart';
 import '../../ssa/ssa.dart' as ssa;
 import '../../tree_ir/optimization/optimization.dart';
+import '../../common.dart' show SelectorKind;
+import '../../constants/expressions.dart';
+import '../../constants/values.dart';
+
+class JsBackendTreeBuilder extends tree_builder.Builder {
+  JsBackendTreeBuilder(Compiler compiler) : super(compiler);
+
+  Selector get identicalSelector {
+    return new Selector(SelectorKind.CALL, 'identical', null, 2);
+  }
+
+  /// TOOD(karlklose): cache this?
+  tree_ir.Constant get constantTrue {
+    ConstantExpression trueValue =
+        new PrimitiveConstantExpression(new TrueConstantValue());
+    return new tree_ir.Constant(trueValue);
+  }
+
+  /**
+   * Boolean conversion maps any object o into a boolean. Boolean conversion is
+   * defined by the function application
+   *   (bool v){
+   *     assert(v != null);
+   *     return identical(v, true);
+   *   }(o)
+   */
+  tree_ir.Expression visitIsTrue(cps.IsTrue node) {
+    tree_ir.Expression value = getVariableReference(node.value);
+    /// TODO(karlklose): implement the assert(v != null) check.
+    return new tree_ir.InvokeStatic(
+        compiler.identicalFunction,
+        identicalSelector,
+        <tree_ir.Expression>[value, constantTrue]);
+  }
+
+}
 
 class CspFunctionCompiler implements FunctionCompiler {
   final IrBuilderTask irBuilderTask;
@@ -121,7 +157,7 @@ class CspFunctionCompiler implements FunctionCompiler {
   }
 
   tree_ir.FunctionDefinition compileToTreeIR(cps.FunctionDefinition cpsNode) {
-    tree_builder.Builder builder = new tree_builder.Builder(compiler);
+    tree_builder.Builder builder = new JsBackendTreeBuilder(compiler);
     tree_ir.FunctionDefinition treeNode = builder.build(cpsNode);
     assert(treeNode != null);
     traceGraph('Tree builder', treeNode);
