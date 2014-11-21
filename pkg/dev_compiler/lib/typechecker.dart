@@ -373,12 +373,16 @@ class ProgramChecker extends RecursiveAstVisitor {
 
   AstNode visitVariableDeclarationList(VariableDeclarationList node) {
     TypeName type = node.type;
-    final dartType = getType(type);
-    for (VariableDeclaration variable in node.variables) {
-      String name = variable.name.name;
-      // print('Found variable $name of type $dartType');
-      final initializer = variable.initializer;
-      if (initializer != null) checkAssignment(initializer, dartType);
+    if (type == null) {
+      // No checks are needed when the type is var, but we can infer from the
+      // RHS a more precise type for the variable declaration.
+      node.variables.forEach(_rules.inferType);
+    } else {
+      var dartType = getType(type);
+      for (VariableDeclaration variable in node.variables) {
+        var initializer = variable.initializer;
+        if (initializer != null) checkAssignment(initializer, dartType);
+      }
     }
     node.visitChildren(this);
     return node;

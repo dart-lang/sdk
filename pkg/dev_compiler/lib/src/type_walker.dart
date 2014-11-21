@@ -429,12 +429,10 @@ class RestrictedTypeWalker extends SimpleAstVisitor {
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     Expression initializer = node.initializer;
-    // FIXME(vsm): Need this?
-    if (initializer != null) {
-      DartType type = getStaticType(initializer);
-      VariableElement element = node.element;
-      if (element.type == _dynamicType) _setVariableType(element, type);
-    }
+    if (initializer == null) return null;
+    VariableElement element = node.element;
+    if (element.type != _dynamicType) return null;
+    _setVariableType(element, getStaticType(initializer));
     return null;
   }
 

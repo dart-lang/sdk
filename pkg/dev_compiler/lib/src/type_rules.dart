@@ -20,6 +20,7 @@ abstract class TypeRules {
   bool isBoxable(DartType t) => false;
   DartType boxedType(DartType t) => throw "Unreachable";
 
+  void inferType(VariableDeclaration decl);
   TypeMismatch checkAssignment(Expression expr, DartType t);
 
   void setCompilationUnit(CompilationUnit unit) {}
@@ -40,6 +41,8 @@ class DartRules extends TypeRules {
   bool isAssignable(DartType t1, DartType t2) {
     return t1.isAssignableTo(t2);
   }
+
+  void inferType(VariableDeclaration decl) {}
 
   TypeMismatch checkAssignment(Expression expr, DartType toType) {
     final fromType = getStaticType(expr);
@@ -78,6 +81,10 @@ class RestrictedRules extends TypeRules {
   DartType getStaticType(Expression expr) {
     return _typeWalker.getStaticType(expr);
     //return super.getStaticType(expr);
+  }
+
+  void inferType(VariableDeclaration decl) {
+    decl.accept(_typeWalker);
   }
 
   bool isDynamic(DartType t) {
