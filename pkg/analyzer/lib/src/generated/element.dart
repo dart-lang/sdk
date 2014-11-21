@@ -2399,6 +2399,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl implements
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(_accessors, visitor);
+    safelyVisitChildren(_enums, visitor);
     safelyVisitChildren(_functions, visitor);
     safelyVisitChildren(_typeAliases, visitor);
     safelyVisitChildren(_types, visitor);

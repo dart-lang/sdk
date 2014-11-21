@@ -74,6 +74,80 @@ class B {}
 ''');
   }
 
+  void test_false_class_typeParameters_bounds_add() {
+    _assertCompilationUnitMatches(false, r'''
+class A {}
+class B<T> {
+  T f;
+}
+''', r'''
+class A {}
+class B<T extends A> {
+  T f;
+}
+''');
+  }
+
+  void test_false_class_typeParameters_bounds_remove() {
+    _assertCompilationUnitMatches(false, r'''
+class A {}
+class B<T extends A> {
+  T f;
+}
+''', r'''
+class A {}
+class B<T> {
+  T f;
+}
+''');
+  }
+
+  void test_false_classTypeAlias_list_add() {
+    _assertCompilationUnitMatches(false, r'''
+class M {}
+class A = Object with M;
+''', r'''
+class M {}
+class A = Object with M;
+class B = Object with M;
+''');
+  }
+
+  void test_false_classTypeAlias_list_remove() {
+    _assertCompilationUnitMatches(false, r'''
+class M {}
+class A = Object with M;
+class B = Object with M;
+''', r'''
+class M {}
+class A = Object with M;
+''');
+  }
+
+  void test_false_classTypeAlias_typeParameters_bounds_add() {
+    _assertCompilationUnitMatches(false, r'''
+class M<T> {}
+class A {}
+class B<T> = Object with M<T>;
+''', r'''
+class M<T> {}
+class A {}
+class B<T extends A> = Object with M<T>;
+''');
+  }
+
+  void test_false_classTypeAlias_typeParameters_bounds_remove() {
+    _assertCompilationUnitMatches(false, r'''
+class M<T> {}
+class A {}
+class B<T extends A> = Object with M<T>;
+''', r'''
+class M<T> {}
+class A {}
+class B<T> = Object with M<T>;
+''');
+  }
+
   void test_false_constructor_parameters_list_add() {
     _assertCompilationUnitMatches(false, r'''
 class A {
@@ -129,6 +203,24 @@ class A {
 ''', r'''
 class A {
 }
+''');
+  }
+
+  void test_false_enum_constants_add() {
+    resetWithEnum();
+    _assertCompilationUnitMatches(false, r'''
+enum E {A, B}
+''', r'''
+enum E {A, B, C}
+''');
+  }
+
+  void test_false_enum_constants_remove() {
+    resetWithEnum();
+    _assertCompilationUnitMatches(false, r'''
+enum E {A, B, C}
+''', r'''
+enum E {A, B}
 ''');
   }
 
@@ -464,6 +556,46 @@ class A<T> {}
 ''');
   }
 
+  void test_true_classTypeAlias_list_reorder() {
+    _assertCompilationUnitMatches(true, r'''
+class M {}
+class A = Object with M;
+class B = Object with M;
+class C = Object with M;
+''', r'''
+class M {}
+class C = Object with M;
+class A = Object with M;
+class B = Object with M;
+''');
+  }
+
+  void test_true_classTypeAlias_list_same() {
+    _assertCompilationUnitMatches(true, r'''
+class M {}
+class A = Object with M;
+class B = Object with M;
+class C = Object with M;
+''', r'''
+class M {}
+class A = Object with M;
+class B = Object with M;
+class C = Object with M;
+''');
+  }
+
+  void test_true_classTypeAlias_typeParameters_same() {
+    _assertCompilationUnitMatches(true, r'''
+class M<T> {}
+class A<T> {}
+class B<T> = A<T> with M<T>;
+''', r'''
+class M<T> {}
+class A<T> {}
+class B<T> = A<T> with M<T>;
+''');
+  }
+
   void test_true_constructor_named_same() {
     _assertCompilationUnitMatches(true, r'''
 class A {
@@ -507,6 +639,41 @@ class A {
 class A {
   A(int p);
 }
+''');
+  }
+
+  void test_true_enum_constants_reorder() {
+    resetWithEnum();
+    _assertCompilationUnitMatches(true, r'''
+enum E {A, B, C}
+''', r'''
+enum E {C, A, B}
+''');
+  }
+
+  void test_true_enum_list_reorder() {
+    resetWithEnum();
+    _assertCompilationUnitMatches(true, r'''
+enum A {A1, A2, A3}
+enum B {B1, B2, B3}
+enum C {C1, C2, C3}
+''', r'''
+enum C {C1, C2, C3}
+enum A {A1, A2, A3}
+enum B {B1, B2, B3}
+''');
+  }
+
+  void test_true_enum_list_same() {
+    resetWithEnum();
+    _assertCompilationUnitMatches(true, r'''
+enum A {A1, A2, A3}
+enum B {B1, B2, B3}
+enum C {C1, C2, C3}
+''', r'''
+enum A {A1, A2, A3}
+enum B {B1, B2, B3}
+enum C {C1, C2, C3}
 ''');
   }
 

@@ -7746,6 +7746,15 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   /**
+   * Reset the analysis context to have the 'enableEnum' option set to true.
+   */
+  void resetWithEnum() {
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.enableEnum = true;
+    resetWithOptions(analysisOptions);
+  }
+
+  /**
    * Reset the analysis context to have the given options applied.
    *
    * @param options the analysis options to be applied to the context

@@ -2597,9 +2597,7 @@ set x(v) {}''');
   }
 
   void test_missingEnumConstantInSwitch_all() {
-    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
-    analysisOptions.enableEnum = true;
-    resetWithOptions(analysisOptions);
+    resetWithEnum();
     Source source = addSource(r'''
 enum E { A, B, C }
 
@@ -2616,9 +2614,7 @@ f(E e) {
   }
 
   void test_missingEnumConstantInSwitch_default() {
-    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
-    analysisOptions.enableEnum = true;
-    resetWithOptions(analysisOptions);
+    resetWithEnum();
     Source source = addSource(r'''
 enum E { A, B, C }
 

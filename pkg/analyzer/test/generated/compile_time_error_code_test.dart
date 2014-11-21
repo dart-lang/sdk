@@ -201,9 +201,7 @@ f() {
   }
 
   void test_accessPrivateEnumField() {
-    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
-    analysisOptions.enableEnum = true;
-    resetWithOptions(analysisOptions);
+    resetWithEnum();
     Source source = addSource(r'''
 enum E { ONE }
 String name(E e) {
@@ -1582,9 +1580,7 @@ class C = String with M;''');
   }
 
   void test_extendsEnum() {
-    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
-    analysisOptions.enableEnum = true;
-    resetWithOptions(analysisOptions);
+    resetWithEnum();
     Source source = addSource(r'''
 enum E { ONE }
 class A extends E {}''');
@@ -2052,9 +2048,7 @@ class C = A with M implements String, num;''');
   }
 
   void test_implementsEnum() {
-    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
-    analysisOptions.enableEnum = true;
-    resetWithOptions(analysisOptions);
+    resetWithEnum();
     Source source = addSource(r'''
 enum E { ONE }
 class A implements E {}''');
@@ -2496,9 +2490,7 @@ class A {
   }
 
   void test_instantiateEnum_const() {
-    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
-    analysisOptions.enableEnum = true;
-    resetWithOptions(analysisOptions);
+    resetWithEnum();
     Source source = addSource(r'''
 enum E { ONE }
 E e(String name) {
@@ -2510,9 +2502,7 @@ E e(String name) {
   }
 
   void test_instantiateEnum_new() {
-    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
-    analysisOptions.enableEnum = true;
-    resetWithOptions(analysisOptions);
+    resetWithEnum();
     Source source = addSource(r'''
 enum E { ONE }
 E e(String name) {
@@ -3082,9 +3072,7 @@ class A {
   }
 
   void test_missingEnumConstantInSwitch() {
-    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
-    analysisOptions.enableEnum = true;
-    resetWithOptions(analysisOptions);
+    resetWithEnum();
     Source source = addSource(r'''
 enum E { ONE, TWO, THREE, FOUR }
 bool odd(E e) {
@@ -3385,9 +3373,7 @@ class C = A with String, num;''');
   }
 
   void test_mixinOfEnum() {
-    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
-    analysisOptions.enableEnum = true;
-    resetWithOptions(analysisOptions);
+    resetWithEnum();
     Source source = addSource(r'''
 enum E { ONE }
 class A extends Object with E {}''');

@@ -92,25 +92,25 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   @override
   visitClassDeclaration(ClassDeclaration node) {
     String name = node.name.name;
-    ClassElement clazz = _findElement(_enclosingUnit.types, name);
-    _enclosingClass = clazz;
-    _processElement(clazz);
+    ClassElement element = _findElement(_enclosingUnit.types, name);
+    _enclosingClass = element;
+    _processElement(element);
     // check for missing clauses
     if (node.extendsClause == null) {
-      _assertTrue(clazz.supertype.name == 'Object');
+      _assertTrue(element.supertype.name == 'Object');
     }
     if (node.implementsClause == null) {
-      _assertTrue(clazz.interfaces.isEmpty);
+      _assertTrue(element.interfaces.isEmpty);
     }
     if (node.withClause == null) {
-      _assertTrue(clazz.mixins.isEmpty);
+      _assertTrue(element.mixins.isEmpty);
     }
     // process clauses and members
     _hasConstructor = false;
     super.visitClassDeclaration(node);
     // process default constructor
     if (!_hasConstructor) {
-      ConstructorElement constructor = clazz.unnamedConstructor;
+      ConstructorElement constructor = element.unnamedConstructor;
       _processElement(constructor);
       if (!constructor.isSynthetic) {
         _assertEquals(constructor.parameters.length, 0);
@@ -120,15 +120,12 @@ class DeclarationMatcher extends RecursiveAstVisitor {
 
   @override
   visitClassTypeAlias(ClassTypeAlias node) {
-    ClassElement outerClass = _enclosingClass;
-    try {
-      SimpleIdentifier className = node.name;
-      _enclosingClass = _findIdentifier(_enclosingUnit.types, className);
-      _processElement(_enclosingClass);
-      super.visitClassTypeAlias(node);
-    } finally {
-      _enclosingClass = outerClass;
-    }
+    String name = node.name.name;
+    ClassElement element = _findElement(_enclosingUnit.types, name);
+    _enclosingClass = element;
+    _processElement(element);
+    _processElement(element.unnamedConstructor);
+    super.visitClassTypeAlias(node);
   }
 
   @override
@@ -150,15 +147,19 @@ class DeclarationMatcher extends RecursiveAstVisitor {
 
   @override
   visitEnumDeclaration(EnumDeclaration node) {
-    ClassElement enclosingEnum =
-        _findIdentifier(_enclosingUnit.enums, node.name);
-    _processElement(enclosingEnum);
-    List<FieldElement> constants = enclosingEnum.fields;
-    for (EnumConstantDeclaration constant in node.constants) {
-      FieldElement constantElement = _findIdentifier(constants, constant.name);
-      _processElement(constantElement);
-    }
+    String name = node.name.name;
+    ClassElement element = _findElement(_enclosingUnit.enums, name);
+    _enclosingClass = element;
+    _processElement(element);
+    _assertTrue(element.isEnum);
     super.visitEnumDeclaration(node);
+  }
+
+  @override
+  visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    String name = node.name.name;
+    FieldElement element = _findElement(_enclosingClass.fields, name);
+    _processElement(element);
   }
 
   @override
@@ -308,38 +309,38 @@ class DeclarationMatcher extends RecursiveAstVisitor {
 
   @override
   visitTypeParameter(TypeParameter node) {
-    SimpleIdentifier parameterName = node.name;
+    String name = node.name.name;
     TypeParameterElement element = null;
     if (_enclosingClass != null) {
-      element = _findIdentifier(_enclosingClass.typeParameters, parameterName);
+      element = _findElement(_enclosingClass.typeParameters, name);
     } else if (_enclosingAlias != null) {
-      element = _findIdentifier(_enclosingAlias.typeParameters, parameterName);
+      element = _findElement(_enclosingAlias.typeParameters, name);
     }
     _processElement(element);
-    super.visitTypeParameter(node);
+    _assertSameType(node.bound, element.bound);
   }
 
   @override
   visitVariableDeclaration(VariableDeclaration node) {
     // prepare variable
     String name = node.name.name;
-    PropertyInducingElement variable;
+    PropertyInducingElement element;
     if (_inTopLevelVariableDeclaration) {
-      variable = _findElement(_enclosingUnit.topLevelVariables, name);
+      element = _findElement(_enclosingUnit.topLevelVariables, name);
     } else {
-      variable = _findElement(_enclosingClass.fields, name);
+      element = _findElement(_enclosingClass.fields, name);
     }
     // verify
-    _assertNotNull(variable);
-    _processElement(variable);
-    _assertEquals(node.isConst, variable.isConst);
-    _assertEquals(node.isFinal, variable.isFinal);
+    _assertNotNull(element);
+    _processElement(element);
+    _assertEquals(node.isConst, element.isConst);
+    _assertEquals(node.isFinal, element.isFinal);
     if (_enclosingFieldNode != null) {
-      _assertEquals(_enclosingFieldNode.isStatic, variable.isStatic);
+      _assertEquals(_enclosingFieldNode.isStatic, element.isStatic);
     }
     _assertSameType(
         (node.parent as VariableDeclarationList).type,
-        variable.type);
+        element.type);
   }
 
   @override
@@ -391,7 +392,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   void _assertSameType(TypeName node, DartType type) {
     // no return type == dynamic
     if (node == null) {
-      return _assertTrue(type.isDynamic);
+      return _assertTrue(type == null || type.isDynamic);
     }
     // check specific type kinds
     String nodeName = node.name.name;
@@ -406,6 +407,9 @@ class DeclarationMatcher extends RecursiveAstVisitor {
         List<TypeName> nodeArguments = nodeArgumentList.arguments;
         _assertSameTypes(nodeArguments, typeArguments);
       }
+    } else if (type is TypeParameterType) {
+      _assertEquals(nodeName, type.name);
+      // TODO(scheglov) it should be possible to rename type parameters
     } else {
       // TODO(scheglov) support other types
       _assertTrue(false);
