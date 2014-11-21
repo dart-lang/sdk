@@ -403,18 +403,19 @@ static void PushArgumentsArray(Assembler* assembler) {
   // R0: newly allocated array.
   // R2: smi-tagged argument count, may be zero (was preserved by the stub).
   __ Push(R0);  // Array is in R0 and on top of stack.
-  __ add(R1, FP, Operand(R2, LSL, 1));
-  __ AddImmediate(R1, kParamEndSlotFromFp * kWordSize);
+  __ AddImmediate(R1, FP, kParamEndSlotFromFp * kWordSize);
   __ AddImmediate(R3, R0, Array::data_offset() - kHeapObjectTag);
-  // R1: address of first argument on stack.
+  // Copy arguments from stack to array (starting at the end).
+  // R1: address just beyond last argument on stack.
   // R3: address of first argument in array.
+  Label enter;
+  __ b(&enter);
   Label loop;
   __ Bind(&loop);
+  __ ldr(IP, Address(R1, kWordSize, Address::PreIndex));
+  __ StoreIntoObjectNoBarrier(R0, Address(R3, R2, LSL, 1), IP);
+  __ Bind(&enter);
   __ subs(R2, R2, Operand(Smi::RawValue(1)));  // R2 is Smi.
-  __ ldr(IP, Address(R1, 0), PL);
-  __ str(IP, Address(R3, 0), PL);
-  __ AddImmediate(R1, -kWordSize, PL);
-  __ AddImmediate(R3, kWordSize, PL);
   __ b(&loop, PL);
 }
 
