@@ -813,6 +813,39 @@ main() {
 """,
             const <String>['v2']),
     ],
+
+    // Test that removing a class is supported.
+    // TODO(ahe): There should be a warning from second program, but there
+    // isn't. Investigate and write test.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class C {
+}
+
+main() {
+  try {
+    new C();
+    print('v1');
+  } catch (e) {
+    print('v2');
+  }
+}
+""",
+            const <String>['v1']),
+        const ProgramResult(
+            r"""
+main() {
+  try {
+    new C();
+    print('v1');
+  } catch (e) {
+    print('v2');
+  }
+}
+""",
+            const <String>['v2']),
+    ],
 ];
 
 void main() {

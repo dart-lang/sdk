@@ -255,6 +255,9 @@ class LibraryUpdater extends JsFeatures {
     if (element is PartialFunctionElement) {
       removeFunction(element);
       return true;
+    } else if (element is PartialClassElement) {
+      removeClass(element);
+      return true;
     }
     return cannotReuse(element, "Removed element that isn't a function.");
   }
@@ -267,6 +270,19 @@ class LibraryUpdater extends JsFeatures {
     _removedElements.add(element);
 
     updates.add(new RemovedFunctionUpdate(compiler, element));
+  }
+
+  void removeClass(PartialClassElement element) {
+    logVerbose("Removed class $element.");
+
+    invalidateScopesAffectedBy(element, element.enclosingElement);
+
+    _removedElements.add(element);
+    element.forEachLocalMember((ElementX member) {
+      _removedElements.add(member);
+    });
+
+    updates.add(new RemovedClassUpdate(compiler, element));
   }
 
   void invalidateScopesAffectedBy(
@@ -616,54 +632,15 @@ abstract class ReuseFunction {
   }
 }
 
-class RemovedFunctionUpdate extends Update with JsFeatures, ReuseFunction {
-  final PartialFunctionElement element;
+class RemovalUpdate extends Update {
+  ElementX get element;
 
-  /// Name of property to remove using JavaScript "delete". Null for
-  /// non-instance methods.
-  String name;
-
-  /// Name of super-alias property to remove using JavaScript "delete".  Null
-  /// for methods that aren't "super aliased", and non-instance methods.
-  String superName;
-
-  /// For instance methods, access to class object. Otherwise, access to the
-  /// method itself.
-  jsAst.Node elementAccess;
-
-  bool wasStateCaptured = false;
-
-  RemovedFunctionUpdate(Compiler compiler, this.element)
+  RemovalUpdate(Compiler compiler)
       : super(compiler);
-
-  PartialFunctionElement get before => element;
-
-  PartialElement get after => null;
 
   bool get isRemoval => true;
 
-  void captureState() {
-    if (wasStateCaptured) throw "captureState was called twice.";
-
-    if (element.isInstanceMember) {
-      elementAccess = namer.elementAccess(element.enclosingClass);
-      name = namer.getNameOfMember(element);
-      if (backend.isAliasedSuperMember(element)) {
-        superName = namer.getNameOfAliasedSuperMember(element);
-      }
-    } else {
-      elementAccess = namer.elementAccess(element);
-    }
-
-    wasStateCaptured = true;
-  }
-
-  PartialFunctionElement apply() {
-    if (!wasStateCaptured) throw "captureState must be called before apply.";
-    removeFromEnclosing();
-    reuseElement();
-    return null;
-  }
+  void writeUpdateJsOn(List<jsAst.Statement> updates);
 
   void removeFromEnclosing() {
     // TODO(ahe): Need to recompute duplicated elements logic again. Simplest
@@ -701,6 +678,54 @@ class RemovedFunctionUpdate extends Update with JsFeatures, ReuseFunction {
 
     return copy.toLink(link);
   }
+}
+
+class RemovedFunctionUpdate extends RemovalUpdate
+    with JsFeatures, ReuseFunction {
+  final PartialFunctionElement element;
+
+  /// Name of property to remove using JavaScript "delete". Null for
+  /// non-instance methods.
+  String name;
+
+  /// Name of super-alias property to remove using JavaScript "delete".  Null
+  /// for methods that aren't "super aliased", and non-instance methods.
+  String superName;
+
+  /// For instance methods, access to class object. Otherwise, access to the
+  /// method itself.
+  jsAst.Node elementAccess;
+
+  bool wasStateCaptured = false;
+
+  RemovedFunctionUpdate(Compiler compiler, this.element)
+      : super(compiler);
+
+  PartialFunctionElement get before => element;
+
+  PartialFunctionElement get after => null;
+
+  void captureState() {
+    if (wasStateCaptured) throw "captureState was called twice.";
+    wasStateCaptured = true;
+
+    if (element.isInstanceMember) {
+      elementAccess = namer.elementAccess(element.enclosingClass);
+      name = namer.getNameOfMember(element);
+      if (backend.isAliasedSuperMember(element)) {
+        superName = namer.getNameOfAliasedSuperMember(element);
+      }
+    } else {
+      elementAccess = namer.elementAccess(element);
+    }
+  }
+
+  PartialFunctionElement apply() {
+    if (!wasStateCaptured) throw "captureState must be called before apply.";
+    removeFromEnclosing();
+    reuseElement();
+    return null;
+  }
 
   void writeUpdateJsOn(List<jsAst.Statement> updates) {
     if (elementAccess == null) {
@@ -720,6 +745,65 @@ class RemovedFunctionUpdate extends Update with JsFeatures, ReuseFunction {
       }
     } else {
       updates.add(js.statement('delete #', [elementAccess]));
+    }
+  }
+}
+
+class RemovedClassUpdate extends RemovalUpdate with JsFeatures {
+  final PartialClassElement element;
+
+  bool wasStateCaptured = false;
+
+  final List<jsAst.Node> accessToStatics = <jsAst.Node>[];
+
+  RemovedClassUpdate(Compiler compiler, this.element)
+      : super(compiler);
+
+  PartialClassElement get before => element;
+
+  PartialClassElement get after => null;
+
+  bool get isRemoval => true;
+
+  void captureState() {
+    if (wasStateCaptured) throw "captureState was called twice.";
+    wasStateCaptured = true;
+
+    accessToStatics.add(namer.elementAccess(element));
+
+    element.forEachLocalMember((ElementX member) {
+      if (!member.isInstanceMember) {
+        accessToStatics.add(namer.elementAccess(member));
+      }
+    });
+  }
+
+  PartialClassElement apply() {
+    if (!wasStateCaptured) {
+      throw new StateError("captureState must be called before apply.");
+    }
+
+    removeFromEnclosing();
+
+    element.forEachLocalMember((ElementX member) {
+      compiler.forgetElement(before);
+      member.reuseElement();
+    });
+
+    compiler.forgetElement(element);
+    element.reuseElement();
+
+    return null;
+  }
+
+  void writeUpdateJsOn(List<jsAst.Statement> updates) {
+    if (accessToStatics.isEmpty) {
+      throw
+          new StateError("captureState must be called before writeUpdateJsOn.");
+    }
+
+    for (jsAst.Node access in accessToStatics) {
+      updates.add(js.statement('delete #', [access]));
     }
   }
 }
