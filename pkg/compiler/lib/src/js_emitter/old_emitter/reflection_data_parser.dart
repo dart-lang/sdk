@@ -141,16 +141,11 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
    * [array].
    */
   jsAst.Statement addStubs = js.statement('''
-  function addStubs(descriptor, array, nameTag, isStatic,
+  function addStubs(descriptor, array, name, isStatic,
                     originalDescriptor, functions) {
-    // The name could be an aliased method, which is only resolved later in
-    // finishClasses. We need to use the actual name for the generated stubs.
-    // Note that no getter for the alias is needed, as getter sends via super
-    // are handled via the prototype chain and not using the alias.
-    var name = nameTag.split(':')[0];
     var f, funcs =
-        [originalDescriptor[nameTag] =
-        descriptor[nameTag] = f = ${readFunction("array", "$FUNCTION_INDEX")}];
+        [originalDescriptor[name] =
+        descriptor[name] = f = ${readFunction("array", "$FUNCTION_INDEX")}];
     f.\$stubName = name;
     functions.push(name);
     for (var index = $FUNCTION_INDEX; index < array.length; index += 2) {
@@ -184,7 +179,7 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
 
     if (getterStubName) {
       f = tearOff(funcs, array, isStatic, name, isIntercepted);
-      descriptor[nameTag].\$getter = f;
+      descriptor[name].\$getter = f;
       f.\$getterStub = true;
       // Used to create an isolate using spawnFunction.
       if (isStatic) #[name] = f;  // embedded globalFunctions.
