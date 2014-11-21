@@ -66,7 +66,7 @@ class UnitGenerator extends GeneralizingAstVisitor {
   UnitGenerator(
       this.uri, this.unit, this.directory, this.libName, this.infoMap);
 
-  DynamicInvoke checkDynamicInvoke(AstNode node) {
+  DynamicInvoke _processDynamicInvoke(AstNode node) {
     DynamicInvoke result = null;
     if (infoMap.containsKey(node)) {
       var infos = infoMap[node];
@@ -76,8 +76,20 @@ class UnitGenerator extends GeneralizingAstVisitor {
           result = info;
         }
       }
+      if (result != null) infos.remove(result);
     }
     return result;
+  }
+
+  void _reportUnimplementedConversions(AstNode node) {
+    if (infoMap.containsKey(node) && infoMap[node].isNotEmpty) {
+      out.write('/* Unimplemented: [ ');
+      for (var info in infoMap[node]) {
+        assert(info is Conversion);
+        out.write('${info.description}');
+      }
+      out.write('] */ ');
+    }
   }
 
   String path() {
@@ -100,6 +112,13 @@ var $libName;
   }
 
   bool isPublic(String name) => !name.startsWith('_');
+
+  visitFunctionTypeAlias(FunctionTypeAlias node) {
+    // TODO(vsm): Do we need to record type info the generated code for a
+    // typedef?
+    _reportUnimplementedConversions(node);
+    return node;
+  }
 
   void generateInitializer(ClassDeclaration node) {
     // TODO(vsm): Generate one per constructor?
@@ -139,6 +158,8 @@ function $name() {
   }
 
   AstNode visitClassDeclaration(ClassDeclaration node) {
+    _reportUnimplementedConversions(node);
+
     var name = node.name.name;
     out.write("""
 // Class $name
@@ -161,9 +182,10 @@ var $name = (function () {
   }
 
   AstNode visitFunctionDeclaration(FunctionDeclaration node) {
+    _reportUnimplementedConversions(node);
+
     var name = node.name.name;
     assert(node.parent is CompilationUnit);
-    var args = "";
     out.write("// Function $name: ${node.element.type}\n");
     out.write("function $name(");
     node.functionExpression.parameters.accept(this);
@@ -175,12 +197,30 @@ var $name = (function () {
     return node;
   }
 
+  AstNode visitFunctionExpression(FunctionExpression node) {
+    _reportUnimplementedConversions(node);
+
+    // Bind all free variables.
+    out.write('/* Unimplemented: bind any free variables. */');
+
+    out.write("function (");
+    node.parameters.accept(this);
+    out.write(") {\n", 2);
+    node.body.accept(this);
+    out.write("}\n", -2);
+    return node;
+  }
+
   AstNode visitSimpleIdentifier(SimpleIdentifier node) {
+    _reportUnimplementedConversions(node);
+
     out.write(node.name);
     return node;
   }
 
   AstNode visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    _reportUnimplementedConversions(node);
+
     out.write("return ");
     // TODO(vsm): Check for conversion.
     node.expression.accept(this);
@@ -190,14 +230,18 @@ var $name = (function () {
 
   AstNode visitMethodInvocation(MethodInvocation node) {
     // TODO(vsm): Check dynamic.
-    var name = qualifiedName(node.methodName);
-    out.write('$name(');
+    _reportUnimplementedConversions(node);
+
+    writeQualifiedName(node.target, node.methodName);
+    out.write('(');
     node.argumentList.accept(this);
     out.write(')');
     return node;
   }
 
   AstNode visitArgumentList(ArgumentList node) {
+    _reportUnimplementedConversions(node);
+
     // TODO(vsm): Optional parameters.
     var arguments = node.arguments;
     var length = arguments.length;
@@ -214,6 +258,8 @@ var $name = (function () {
   }
 
   AstNode visitFormalParameterList(FormalParameterList node) {
+    _reportUnimplementedConversions(node);
+
     // TODO(vsm): Optional parameters.
     var arguments = node.parameters;
     var length = arguments.length;
@@ -228,18 +274,24 @@ var $name = (function () {
   }
 
   AstNode visitBlockFunctionBody(BlockFunctionBody node) {
+    _reportUnimplementedConversions(node);
+
     var statements = node.block.statements;
     for (var statement in statements) statement.accept(this);
     return node;
   }
 
   AstNode visitExpressionStatement(ExpressionStatement node) {
+    _reportUnimplementedConversions(node);
+
     node.expression.accept(this);
     out.write(';\n');
     return node;
   }
 
   AstNode visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    _reportUnimplementedConversions(node);
+
     var declarations = node.variables.variables;
     for (var declaration in declarations) {
       var name = declaration.name.name;
@@ -257,6 +309,8 @@ var $name = (function () {
   }
 
   AstNode visitConstructorName(ConstructorName node) {
+    _reportUnimplementedConversions(node);
+
     node.type.name.accept(this);
     if (node.name != null) {
       out.write('.');
@@ -266,6 +320,8 @@ var $name = (function () {
   }
 
   AstNode visitInstanceCreationExpression(InstanceCreationExpression node) {
+    _reportUnimplementedConversions(node);
+
     out.write('new ');
     node.constructorName.accept(this);
     out.write('(');
@@ -275,13 +331,17 @@ var $name = (function () {
   }
 
   AstNode visitSimpleFormalParameter(SimpleFormalParameter node) {
+    _reportUnimplementedConversions(node);
+
     node.identifier.accept(this);
     return node;
   }
 
   AstNode visitPrefixedIdentifier(PrefixedIdentifier node) {
-    var info = checkDynamicInvoke(node);
-    if (info != null) {
+    var dynamicInvoke = _processDynamicInvoke(node);
+    _reportUnimplementedConversions(node);
+
+    if (dynamicInvoke != null) {
       out.write('dart_runtime.dload(');
       node.prefix.accept(this);
       out.write(', "');
@@ -296,41 +356,51 @@ var $name = (function () {
   }
 
   AstNode visitIntegerLiteral(IntegerLiteral node) {
+    _reportUnimplementedConversions(node);
+
     out.write('${node.value}');
     return node;
   }
 
   AstNode visitStringLiteral(StringLiteral node) {
+    _reportUnimplementedConversions(node);
+
     out.write('"${node.stringValue}"');
     return node;
   }
 
-  AstNode visitLibraryDirective(LibraryDirective node) {
+  AstNode visitDirective(Directive node) {
+    _reportUnimplementedConversions(node);
+
     return node;
   }
 
   AstNode visitNode(AstNode node) {
-    out.write('/* Unimplemented: $node */');
-    return node;
+    _reportUnimplementedConversions(node);
+    out.write('/* Unimplemented ${node.runtimeType}: $node */');
   }
 
   static const Map<String, String> _builtins = const <String, String>{
     'dart.core': 'dart_core',
   };
 
-  String qualifiedName(SimpleIdentifier id) {
+  void writeQualifiedName(Expression target, SimpleIdentifier id) {
     var prefix = "";
-    var name = id.name;
-    var element = id.staticElement;
-    if (element.enclosingElement is CompilationUnitElement) {
-      var library = element.enclosingElement.enclosingElement;
-      assert(library is LibraryElement);
-      var package = library.name;
-      var libname = _builtins
-          .containsKey(package) ? _builtins[package] : package;
-      prefix = '$libname.';
+    if (target != null) {
+      target.accept(this);
+      out.write('.');
+    } else {
+      var element = id.staticElement;
+      if (element.enclosingElement is CompilationUnitElement) {
+        var library = element.enclosingElement.enclosingElement;
+        assert(library is LibraryElement);
+        var package = library.name;
+        var libname = _builtins.containsKey(package) ?
+            _builtins[package] : package;
+        out.write('$libname.');
+      }
     }
-    return "$prefix$name";
+    id.accept(this);
   }
 }
 

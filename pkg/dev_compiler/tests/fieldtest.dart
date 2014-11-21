@@ -13,7 +13,7 @@ void bar(a) {
 }
 
 void main() {
-  A a = new A();
+  var a = new A();
   foo(a);
   bar(a);
 }

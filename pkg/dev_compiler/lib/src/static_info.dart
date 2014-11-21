@@ -58,6 +58,9 @@ abstract class Conversion extends TypeMismatch {
   bool get safe => false;
 
   Level get level => safe ? Level.CONFIG : Level.INFO;
+
+  String get description =>
+      '${this.runtimeType}: $baseType to $convertedType';
 }
 
 class Box extends Conversion {
