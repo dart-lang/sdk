@@ -2051,15 +2051,8 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
       if ((representation() == kUnboxedInt32) && !CanDeoptimize()) {
         converter->mark_truncating();
       }
-      // Only replace if the replacement has CanDeoptimize consistent with
-      // the original instructions. We may have removed environments already.
-      // Due to the way type propagation works currently, the CompileType of the
-      // converter input may not be the same (more general) than the information
-      // about the input of this unboxing instructions.
-      if (CanDeoptimize() == converter->CanDeoptimize()) {
-        flow_graph->InsertBefore(this, converter, env(), FlowGraph::kValue);
-        return converter;
-      }
+      flow_graph->InsertBefore(this, converter, env(), FlowGraph::kValue);
+      return converter;
     }
   }
 

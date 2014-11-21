@@ -537,12 +537,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           // TODO(fschneider): Support allocation sinking with try-catch.
           sinking = new AllocationSinking(flow_graph);
           sinking->Optimize();
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
-
-        // Recompute types after load elimination to ensure correct
-        // types for created phi-instructions.
-        FlowGraphTypePropagator::Propagate(flow_graph);
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Ensure that all phis inserted by optimization passes have consistent
