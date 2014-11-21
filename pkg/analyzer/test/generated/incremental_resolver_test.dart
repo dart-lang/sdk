@@ -846,6 +846,50 @@ main(int a, int b) {
 '''), _isBlock);
   }
 
+  void test_constructor_body() {
+    _resolveUnit(r'''
+class A {
+  int f;
+  A(int a, int b) {
+    f = a + b;
+  }
+}''');
+    _resolve(_editString('+', '*'), _isFunctionBody);
+  }
+
+  void test_constructor_fieldInitializer_edit() {
+    _resolveUnit(r'''
+class A {
+  int f;
+  A(int a, int b) : f = a + b {
+    int a = 42;
+  }
+}''');
+    _resolve(_editString('+', '*'), _isExpression);
+  }
+
+  void fail_test_constructor_fieldInitializer_add() {
+    // TODO(scheglov) resolver uses "enclosingClass", which we don't set yet
+    _resolveUnit(r'''
+class A {
+  int f;
+  A(int a, int b);
+}''');
+    _resolve(_editString(');', ') : f = a + b;'), _isClassMember);
+  }
+
+  void test_constructor_superConstructorInvocation() {
+    _resolveUnit(r'''
+class A {
+  A(int p);
+}
+class A {
+  A(int a, int b) : super(a + b);
+}
+''');
+    _resolve(_editString('+', '*'), _isExpression);
+  }
+
   void test_functionBody_body() {
     _resolveUnit(r'''
 main(int a, int b) {
@@ -854,12 +898,36 @@ main(int a, int b) {
     _resolve(_editString('+', '*'), _isFunctionBody);
   }
 
+  void test_functionBody_expression() {
+    _resolveUnit(r'''
+main(int a, int b) => a + b;
+''');
+    _resolve(_editString('+', '*'), _isExpression);
+  }
+
   void test_functionBody_statement() {
     _resolveUnit(r'''
 main(int a, int b) {
   return a + b;
 }''');
     _resolve(_editString('+', '*'), _isStatement);
+  }
+
+  void test_method_body() {
+    _resolveUnit(r'''
+class A {
+  m(int a, int b) {
+    return a + b;
+  }
+}''');
+    _resolve(_editString('+', '*'), _isFunctionBody);
+  }
+
+  void test_topLevelVariable_initializer() {
+    _resolveUnit(r'''
+int C = 1 + 2;
+''');
+    _resolve(_editString('+', '*'), _isExpression);
   }
 
   void test_updateElementOffset() {
@@ -949,6 +1017,10 @@ class B {
   }
 
   static bool _isBlock(AstNode node) => node is Block;
+
+  static bool _isExpression(AstNode node) => node is Expression;
+
+  static bool _isClassMember(AstNode node) => node is ClassMember;
 
   static bool _isFunctionBody(AstNode node) => node is FunctionBody;
 
