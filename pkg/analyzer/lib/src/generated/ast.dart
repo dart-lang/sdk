@@ -7783,6 +7783,14 @@ class ForEachStatement extends Statement {
   Expression get iterable => _iterable;
 
   /**
+   * Return the expression evaluated to produce the iterator.
+   *
+   * Deprecated, use [iterable] instead.
+   */
+  @deprecated
+  Expression get iterator => iterable;
+
+  /**
    * Set the expression evaluated to produce the iterator to the given expression.
    *
    * @param expression the expression evaluated to produce the iterator
