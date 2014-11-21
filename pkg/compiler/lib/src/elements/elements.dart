@@ -884,7 +884,6 @@ abstract class LibraryElement extends Element
   bool get exportsHandled;
 
   // TODO(kasperl): We should try to get rid of these.
-  void set canUseNative(bool value);
   void set libraryTag(LibraryName value);
 
   LibraryElement get implementation;

@@ -742,6 +742,9 @@ abstract class Compiler implements DiagnosticListener {
   /// Incremental compilation is basically calling [run] more than once.
   final bool hasIncrementalSupport;
 
+  /// If `true` native extension syntax is supported by the frontend.
+  final bool allowNativeExtensions;
+
   api.CompilerOutputProvider outputProvider;
 
   bool disableInlining = false;
@@ -985,6 +988,7 @@ abstract class Compiler implements DiagnosticListener {
             this.enableExperimentalMirrors: false,
             this.enableAsyncAwait: false,
             this.enableEnums: false,
+            this.allowNativeExtensions: false,
             api.CompilerOutputProvider outputProvider,
             List<String> strips: const []})
       : this.disableTypeInferenceFlag =
@@ -1989,6 +1993,7 @@ abstract class Compiler implements DiagnosticListener {
 
   void reportUnusedCode() {
     void checkLive(member) {
+      if (member.isErroneous) return;
       if (member.isFunction) {
         if (!enqueuer.resolution.hasBeenResolved(member)) {
           reportHint(member, MessageKind.UNUSED_METHOD,

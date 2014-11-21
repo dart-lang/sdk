@@ -2160,6 +2160,24 @@ main() sync* {
  var yield;
 }"""]);
 
+  static const MessageKind NATIVE_NOT_SUPPORTED = const MessageKind(
+      "'native' modifier is not supported.",
+      howToFix: "Try removing the 'native' implementation or analyzing the "
+                "code with the --allow-native-extensions option.",
+      examples: const ["""
+main() native "Main";
+"""]);
+
+  static const MessageKind DART_EXT_NOT_SUPPORTED = const MessageKind(
+      "The 'dart-ext' scheme is not supported.",
+      howToFix: "Try analyzing the code with the --allow-native-extensions "
+                "option.",
+      examples: const ["""
+import 'dart-ext:main';
+
+main() {}
+"""]);
+
   //////////////////////////////////////////////////////////////////////////////
   // Patch errors start.
   //////////////////////////////////////////////////////////////////////////////

@@ -83,7 +83,9 @@ class Compiler extends leg.Compiler {
             enableExperimentalMirrors:
                 hasOption(options, '--enable-experimental-mirrors'),
             enableAsyncAwait: hasOption(options, '--enable-async'),
-            enableEnums: hasOption(options, '--enable-enum')) {
+            enableEnums: hasOption(options, '--enable-enum'),
+            allowNativeExtensions:
+                hasOption(options, '--allow-native-extensions')) {
     tasks.addAll([
         userHandlerTask = new leg.GenericTask('Diagnostic handler', this),
         userProviderTask = new leg.GenericTask('Input provider', this),
@@ -94,9 +96,16 @@ class Compiler extends leg.Compiler {
     if (packageRoot != null && !packageRoot.path.endsWith("/")) {
       throw new ArgumentError("packageRoot must end with a /");
     }
-    if (enableAsyncAwait && !analyzeOnly) {
-      throw new ArgumentError(
-          "--enable-async is currently only supported with --analyze-only");
+    if (!analyzeOnly) {
+      if (enableAsyncAwait) {
+        throw new ArgumentError(
+            "--enable-async is currently only supported with --analyze-only");
+      }
+      if (allowNativeExtensions) {
+        throw new ArgumentError(
+            "--allow-native-extensions is only supported in combination with "
+            "--analyze-only");
+      }
     }
   }
 
@@ -199,12 +208,23 @@ class Compiler extends leg.Compiler {
     }
 
     Uri resourceUri = translateUri(node, readableUri);
+    String resourceUriString = resourceUri.toString();
+    if (resourceUri.scheme == 'dart-ext') {
+      if (!allowNativeExtensions) {
+        withCurrentElement(element, () {
+          reportError(node, leg.MessageKind.DART_EXT_NOT_SUPPORTED);
+        });
+      }
+      return new Future.value(new leg.Script(readableUri, resourceUri,
+          new StringSourceFile(resourceUriString,
+              "// Synthetic source file generated for '$readableUri'.")));
+    }
+
     // TODO(johnniwinther): Wrap the result from [provider] in a specialized
     // [Future] to ensure that we never execute an asynchronous action without
     // setting up the current element of the compiler.
     return new Future.sync(() => callUserProvider(resourceUri)).then((data) {
       SourceFile sourceFile;
-      String resourceUriString = resourceUri.toString();
       if (data is List<int>) {
         sourceFile = new Utf8BytesSourceFile(resourceUriString, data);
       } else if (data is String) {
