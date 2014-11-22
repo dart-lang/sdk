@@ -380,6 +380,30 @@ class ProgramChecker extends RecursiveAstVisitor {
     node.visitChildren(this);
   }
 
+  void _checkReturn(Expression expression, AstNode node) {
+    var parent = node.parent;
+    while (parent is! FunctionExpression) {
+      parent = parent.parent;
+    }
+    assert(parent is FunctionExpression);
+    FunctionType functionType = _rules.getStaticType(parent);
+    var type = functionType.returnType;
+    // TODO(vsm): Enforce void or dynamic (to void?) when expression is null.
+    if (expression != null) {
+      checkAssignment(expression, type);
+    }
+  }
+
+  visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    _checkReturn(node.expression, node);
+    node.visitChildren(this);
+  }
+
+  visitReturnStatement(ReturnStatement node) {
+    _checkReturn(node.expression, node);
+    node.visitChildren(this);
+  }
+
   visitPropertyAccess(PropertyAccess node) {
     final target = node.realTarget;
     DartType receiverType = _rules.getStaticType(target);
