@@ -220,7 +220,6 @@ class Namer implements ClosureNamer {
   final String currentIsolate = r'$';
   final String getterPrefix = r'get$';
   final String setterPrefix = r'set$';
-  final String superPrefix = r'super$';
   final String metadataField = '@';
   final String callPrefix = 'call';
   final String callCatchAllName = r'call$catchAll';
@@ -809,14 +808,6 @@ class Namer implements ClosureNamer {
 
   // TODO(ahe): Remove this method. Use get getNameOfMember instead.
   String getNameOfInstanceMember(Element member) => getNameX(member);
-
-  String getNameOfAliasedSuperMember(Element member) {
-    ClassElement superClass = member.enclosingClass;
-    String className = getNameOfClass(superClass);
-    String memberName = getNameOfMember(member);
-    String proposal = "$superPrefix$className\$$memberName";
-    return getMappedInstanceName(proposal);
-  }
 
   String getNameOfMember(Element member) => getNameX(member);
 

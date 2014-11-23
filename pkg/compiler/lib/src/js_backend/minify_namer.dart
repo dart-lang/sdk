@@ -18,7 +18,6 @@ class MinifyNamer extends Namer {
 
   final String getterPrefix = 'g';
   final String setterPrefix = 's';
-  final String superPrefix = r's$';
   final String callPrefix = ''; // this will create function names $<n>
 
   static const ALPHABET_CHARACTERS = 52;  // a-zA-Z.
