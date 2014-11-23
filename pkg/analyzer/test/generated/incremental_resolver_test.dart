@@ -28,7 +28,7 @@ main() {
   groupSep = ' | ';
   runReflectiveTests(DeclarationMatcherTest);
   runReflectiveTests(IncrementalResolverTest);
-  runReflectiveTests(ScopeBuilderTest);
+  runReflectiveTests(ResolutionContextBuilderTest);
 }
 
 
@@ -1100,18 +1100,6 @@ class A {
     _resolve(_editString(');', ') : f = a + b;'), _isClassMember);
   }
 
-  void fail_test_constructor_fieldInitializer_edit() {
-    // TODO(scheglov) resolver uses "enclosingClass", which we don't set yet
-    _resolveUnit(r'''
-class A {
-  int f;
-  A(int a, int b) : f = a + b {
-    int a = 42;
-  }
-}''');
-    _resolve(_editString('+', '*'), _isExpression);
-  }
-
   void fail_test_topLevelFunction_parameter_rename() {
     // TODO(scheglov) Decide if incremental parser keeps the element
     // of the function. If so, we can resolve parameter renames.
@@ -1134,6 +1122,17 @@ class A {
   }
 }''');
     _resolve(_editString('+', '*'), _isFunctionBody);
+  }
+
+  void test_constructor_fieldInitializer_edit() {
+    _resolveUnit(r'''
+class A {
+  int f;
+  A(int a, int b) : f = a + b {
+    int a = 42;
+  }
+}''');
+    _resolve(_editString('+', '*'), _isExpression);
   }
 
   void test_constructor_superConstructorInvocation() {
@@ -1362,11 +1361,11 @@ class B {
 }
 
 
-class ScopeBuilderTest extends EngineTestCase {
+class ResolutionContextBuilderTest extends EngineTestCase {
+  GatheringErrorListener listener = new GatheringErrorListener();
+
   void test_scopeFor_ClassDeclaration() {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Scope scope =
-        ScopeBuilder.scopeFor(_createResolvedClassDeclaration(), listener);
+    Scope scope = _scopeFor(_createResolvedClassDeclaration());
     EngineTestCase.assertInstanceOf(
         (obj) => obj is LibraryScope,
         LibraryScope,
@@ -1374,9 +1373,7 @@ class ScopeBuilderTest extends EngineTestCase {
   }
 
   void test_scopeFor_ClassTypeAlias() {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Scope scope =
-        ScopeBuilder.scopeFor(_createResolvedClassTypeAlias(), listener);
+    Scope scope = _scopeFor(_createResolvedClassTypeAlias());
     EngineTestCase.assertInstanceOf(
         (obj) => obj is LibraryScope,
         LibraryScope,
@@ -1384,9 +1381,7 @@ class ScopeBuilderTest extends EngineTestCase {
   }
 
   void test_scopeFor_CompilationUnit() {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Scope scope =
-        ScopeBuilder.scopeFor(_createResolvedCompilationUnit(), listener);
+    Scope scope = _scopeFor(_createResolvedCompilationUnit());
     EngineTestCase.assertInstanceOf(
         (obj) => obj is LibraryScope,
         LibraryScope,
@@ -1394,9 +1389,7 @@ class ScopeBuilderTest extends EngineTestCase {
   }
 
   void test_scopeFor_ConstructorDeclaration() {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Scope scope =
-        ScopeBuilder.scopeFor(_createResolvedConstructorDeclaration(), listener);
+    Scope scope = _scopeFor(_createResolvedConstructorDeclaration());
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ClassScope,
         ClassScope,
@@ -1404,10 +1397,7 @@ class ScopeBuilderTest extends EngineTestCase {
   }
 
   void test_scopeFor_ConstructorDeclaration_parameters() {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Scope scope = ScopeBuilder.scopeFor(
-        _createResolvedConstructorDeclaration().parameters,
-        listener);
+    Scope scope = _scopeFor(_createResolvedConstructorDeclaration().parameters);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is FunctionScope,
         FunctionScope,
@@ -1415,9 +1405,7 @@ class ScopeBuilderTest extends EngineTestCase {
   }
 
   void test_scopeFor_FunctionDeclaration() {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Scope scope =
-        ScopeBuilder.scopeFor(_createResolvedFunctionDeclaration(), listener);
+    Scope scope = _scopeFor(_createResolvedFunctionDeclaration());
     EngineTestCase.assertInstanceOf(
         (obj) => obj is LibraryScope,
         LibraryScope,
@@ -1425,10 +1413,8 @@ class ScopeBuilderTest extends EngineTestCase {
   }
 
   void test_scopeFor_FunctionDeclaration_parameters() {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Scope scope = ScopeBuilder.scopeFor(
-        _createResolvedFunctionDeclaration().functionExpression.parameters,
-        listener);
+    Scope scope =
+        _scopeFor(_createResolvedFunctionDeclaration().functionExpression.parameters);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is FunctionScope,
         FunctionScope,
@@ -1436,9 +1422,7 @@ class ScopeBuilderTest extends EngineTestCase {
   }
 
   void test_scopeFor_FunctionTypeAlias() {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Scope scope =
-        ScopeBuilder.scopeFor(_createResolvedFunctionTypeAlias(), listener);
+    Scope scope = _scopeFor(_createResolvedFunctionTypeAlias());
     EngineTestCase.assertInstanceOf(
         (obj) => obj is LibraryScope,
         LibraryScope,
@@ -1446,9 +1430,7 @@ class ScopeBuilderTest extends EngineTestCase {
   }
 
   void test_scopeFor_FunctionTypeAlias_parameters() {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Scope scope =
-        ScopeBuilder.scopeFor(_createResolvedFunctionTypeAlias().parameters, listener);
+    Scope scope = _scopeFor(_createResolvedFunctionTypeAlias().parameters);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is FunctionTypeScope,
         FunctionTypeScope,
@@ -1456,9 +1438,7 @@ class ScopeBuilderTest extends EngineTestCase {
   }
 
   void test_scopeFor_MethodDeclaration() {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Scope scope =
-        ScopeBuilder.scopeFor(_createResolvedMethodDeclaration(), listener);
+    Scope scope = _scopeFor(_createResolvedMethodDeclaration());
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ClassScope,
         ClassScope,
@@ -1466,9 +1446,7 @@ class ScopeBuilderTest extends EngineTestCase {
   }
 
   void test_scopeFor_MethodDeclaration_body() {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Scope scope =
-        ScopeBuilder.scopeFor(_createResolvedMethodDeclaration().body, listener);
+    Scope scope = _scopeFor(_createResolvedMethodDeclaration().body);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is FunctionScope,
         FunctionScope,
@@ -1476,9 +1454,8 @@ class ScopeBuilderTest extends EngineTestCase {
   }
 
   void test_scopeFor_notInCompilationUnit() {
-    GatheringErrorListener listener = new GatheringErrorListener();
     try {
-      ScopeBuilder.scopeFor(AstFactory.identifier3("x"), listener);
+      _scopeFor(AstFactory.identifier3("x"));
       fail("Expected AnalysisException");
     } on AnalysisException catch (exception) {
       // Expected
@@ -1486,9 +1463,8 @@ class ScopeBuilderTest extends EngineTestCase {
   }
 
   void test_scopeFor_null() {
-    GatheringErrorListener listener = new GatheringErrorListener();
     try {
-      ScopeBuilder.scopeFor(null, listener);
+      _scopeFor(null);
       fail("Expected AnalysisException");
     } on AnalysisException catch (exception) {
       // Expected
@@ -1496,9 +1472,8 @@ class ScopeBuilderTest extends EngineTestCase {
   }
 
   void test_scopeFor_unresolved() {
-    GatheringErrorListener listener = new GatheringErrorListener();
     try {
-      ScopeBuilder.scopeFor(AstFactory.compilationUnit(), listener);
+      _scopeFor(AstFactory.compilationUnit());
       fail("Expected AnalysisException");
     } on AnalysisException catch (exception) {
       // Expected
@@ -1617,6 +1592,10 @@ class ScopeBuilderTest extends EngineTestCase {
     (classNode.element as ClassElementImpl).methods =
         <MethodElement>[methodElement];
     return methodNode;
+  }
+
+  Scope _scopeFor(AstNode node) {
+    return ResolutionContextBuilder.contextFor(node, listener).scope;
   }
 }
 

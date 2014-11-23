@@ -11016,10 +11016,10 @@ class ResolverVisitor extends ScopedVisitor {
   StaticTypeAnalyzer _typeAnalyzer;
 
   /**
-   * The class element representing the class containing the current node, or `null` if the
-   * current node is not contained in a class.
+   * The class element representing the class containing the current node,
+   * or `null` if the current node is not contained in a class.
    */
-  ClassElement _enclosingClass = null;
+  ClassElement enclosingClass = null;
 
   /**
    * The class declaration representing the class containing the current node, or `null` if
@@ -11130,18 +11130,6 @@ class ResolverVisitor extends ScopedVisitor {
   get elementResolver_J2DAccessor => _elementResolver;
 
   set elementResolver_J2DAccessor(__v) => _elementResolver = __v;
-
-  /**
-   * Return the class element representing the class containing the current node, or `null` if
-   * the current node is not contained in a class.
-   *
-   * @return the class element representing the class containing the current node
-   */
-  ClassElement get enclosingClass => _enclosingClass;
-
-  get enclosingClass_J2DAccessor => _enclosingClass;
-
-  set enclosingClass_J2DAccessor(__v) => _enclosingClass = __v;
 
   /**
    * Return the element representing the function containing the current node, or `null` if
@@ -11433,17 +11421,17 @@ class ResolverVisitor extends ScopedVisitor {
     //
     // Continue the class resolution.
     //
-    ClassElement outerType = _enclosingClass;
+    ClassElement outerType = enclosingClass;
     try {
-      _enclosingClass = node.element;
+      enclosingClass = node.element;
       _typeAnalyzer.thisType =
-          _enclosingClass == null ? null : _enclosingClass.type;
+          enclosingClass == null ? null : enclosingClass.type;
       super.visitClassDeclaration(node);
       node.accept(_elementResolver);
       node.accept(_typeAnalyzer);
     } finally {
       _typeAnalyzer.thisType = outerType == null ? null : outerType.type;
-      _enclosingClass = outerType;
+      enclosingClass = outerType;
       _enclosingClassDeclaration = null;
     }
     return null;
@@ -12637,7 +12625,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * The class containing the AST nodes being visited,
    * or `null` if we are not in the scope of a class.
    */
-  ClassElement _enclosingClass;
+  ClassElement enclosingClass;
 
   /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
@@ -12848,15 +12836,15 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
             new CaughtException(new AnalysisException(), null));
         super.visitClassDeclaration(node);
       } else {
-        ClassElement outerClass = _enclosingClass;
+        ClassElement outerClass = enclosingClass;
         try {
-          _enclosingClass = node.element;
+          enclosingClass = node.element;
           _nameScope = new TypeParameterScope(_nameScope, classElement);
           visitClassDeclarationInScope(node);
           _nameScope = new ClassScope(_nameScope, classElement);
           visitClassMembersInScope(node);
         } finally {
-          _enclosingClass = outerClass;
+          enclosingClass = outerClass;
         }
       }
     } finally {

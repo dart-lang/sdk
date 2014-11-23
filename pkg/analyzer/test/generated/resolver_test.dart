@@ -1962,14 +1962,14 @@ class ElementResolverTest extends EngineTestCase {
     try {
       Scope outerScope = _visitor.nameScope_J2DAccessor as Scope;
       try {
-        _visitor.enclosingClass_J2DAccessor = enclosingClass;
+        _visitor.enclosingClass = enclosingClass;
         EnclosedScope innerScope = new ClassScope(
             new TypeParameterScope(outerScope, enclosingClass),
             enclosingClass);
         _visitor.nameScope_J2DAccessor = innerScope;
         node.accept(_resolver);
       } finally {
-        _visitor.enclosingClass_J2DAccessor = null;
+        _visitor.enclosingClass = null;
         _visitor.nameScope_J2DAccessor = outerScope;
       }
     } catch (exception) {

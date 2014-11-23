@@ -37,8 +37,8 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   FunctionTypeAliasElement _enclosingAlias;
 
   /**
-   * The class containing the AST nodes being visited, or `null` if we are not in the scope of
-   * a class.
+   * The class containing the AST nodes being visited, or `null` if we are not
+   * in the scope of a class.
    */
   ClassElement _enclosingClass;
 
@@ -656,20 +656,22 @@ class IncrementalResolver {
    */
   void resolve(AstNode node) {
     AstNode rootNode = _findResolutionRoot(node);
-    if (_elementModelChanged(rootNode)) {
-      throw new AnalysisException("Cannot resolve node: element model changed");
-    }
     // update elements
     _definingUnit.accept(
         new _ElementNameOffsetUpdater(
             _updateOffset,
             _updateNewLength - _updateOldLength));
     _updateElements(rootNode);
+    if (_elementModelChanged(rootNode)) {
+      throw new AnalysisException("Cannot resolve node: element model changed");
+    }
     // resolve root in scope
-    Scope scope = ScopeBuilder.scopeFor(rootNode, _errorListener);
+    ResolutionContext context =
+        ResolutionContextBuilder.contextFor(rootNode, _errorListener);
+    Scope scope = context.scope;
     _resolveTypes(rootNode, scope);
     _resolveVariables(rootNode, scope);
-    _resolveReferences(rootNode, scope);
+    _resolveReferences(rootNode, context);
   }
 
   /**
@@ -677,7 +679,7 @@ class IncrementalResolver {
    * nodes.
    *
    * *Note*: This method needs to be kept in sync with
-   * [ScopeBuilder.scopeForAstNode].
+   * [ScopeBuilder.ContextBuilder].
    *
    * [node] - the node being tested.
    */
@@ -740,13 +742,14 @@ class IncrementalResolver {
     return null;
   }
 
-  void _resolveReferences(AstNode node, Scope scope) {
+  void _resolveReferences(AstNode node, ResolutionContext context) {
     ResolverVisitor visitor = new ResolverVisitor.con3(
         _definingLibrary,
         _source,
         _typeProvider,
-        scope,
+        context.scope,
         _errorListener);
+    visitor.enclosingClass = context.enclosingClass;
     node.accept(visitor);
   }
 
@@ -799,34 +802,59 @@ class IncrementalResolver {
 
 
 /**
- * Instances of the class [ScopeBuilder] build the scope for a given node in an
- * AST structure. At the moment, this class only handles top-level and
- * class-level declarations.
+ * The context to resolve an [AstNode] in.
  */
-class ScopeBuilder {
+class ResolutionContext {
+  ClassElement enclosingClass;
+  Scope scope;
+}
+
+
+/**
+ * Instances of the class [ResolutionContextBuilder] build the context for a
+ * given node in an AST structure. At the moment, this class only handles
+ * top-level and class-level declarations.
+ */
+class ResolutionContextBuilder {
   /**
    * The listener to which analysis errors will be reported.
    */
   final AnalysisErrorListener _errorListener;
 
   /**
-   * Initialize a newly created scope builder to generate a scope that will report errors to the
-   * given listener.
-   *
-   * @param errorListener the listener to which analysis errors will be reported
+   * The class containing the AST nodes being visited, or `null` if we are not
+   * in the scope of a class.
    */
-  ScopeBuilder(this._errorListener);
+  ClassElement _enclosingClass;
+
+  /**
+   * Initialize a newly created scope builder to generate a scope that will
+   * report errors to the given listener.
+   */
+  ResolutionContextBuilder(this._errorListener);
+
+  Scope _scopeFor(AstNode node) {
+    if (node is CompilationUnit) {
+      return _scopeForAstNode(node);
+    }
+    AstNode parent = node.parent;
+    if (parent == null) {
+      throw new AnalysisException(
+          "Cannot create scope: node is not part of a CompilationUnit");
+    }
+    return _scopeForAstNode(parent);
+  }
 
   /**
    * Return the scope in which the given AST structure should be resolved.
    *
-   * <b>Note:</b> This method needs to be kept in sync with
+   * *Note:* This method needs to be kept in sync with
    * [IncrementalResolver.canBeResolved].
    *
-   * @param node the root of the AST structure to be resolved
-   * @return the scope in which the given AST structure should be resolved
-   * @throws AnalysisException if the AST structure has not been resolved or is not part of a
-   *           [CompilationUnit]
+   * [node] - the root of the AST structure to be resolved.
+   *
+   * Throws [AnalysisException] if the AST structure has not been resolved or
+   * is not part of a [CompilationUnit]
    */
   Scope _scopeForAstNode(AstNode node) {
     if (node is CompilationUnit) {
@@ -839,12 +867,14 @@ class ScopeBuilder {
     }
     Scope scope = _scopeForAstNode(parent);
     if (node is ClassDeclaration) {
-      ClassElement element = node.element;
-      if (element == null) {
+      _enclosingClass = node.element;
+      if (_enclosingClass == null) {
         throw new AnalysisException(
             "Cannot build a scope for an unresolved class");
       }
-      scope = new ClassScope(new TypeParameterScope(scope, element), element);
+      scope = new ClassScope(
+          new TypeParameterScope(scope, _enclosingClass),
+          _enclosingClass);
     } else if (node is ClassTypeAlias) {
       ClassElement element = node.element;
       if (element == null) {
@@ -900,28 +930,28 @@ class ScopeBuilder {
   }
 
   /**
-   * Return the scope in which the given AST structure should be resolved.
+   * Return the context in which the given AST structure should be resolved.
    *
-   * @param node the root of the AST structure to be resolved
-   * @param errorListener the listener to which analysis errors will be reported
-   * @return the scope in which the given AST structure should be resolved
-   * @throws AnalysisException if the AST structure has not been resolved or is not part of a
-   *           [CompilationUnit]
+   * [node] - the root of the AST structure to be resolved.
+   * [errorListener] - the listener to which analysis errors will be reported.
+   *
+   * Throws [AnalysisException] if the AST structure has not been resolved or
+   * is not part of a [CompilationUnit]
    */
-  static Scope scopeFor(AstNode node, AnalysisErrorListener errorListener) {
+  static ResolutionContext contextFor(AstNode node,
+      AnalysisErrorListener errorListener) {
     if (node == null) {
-      throw new AnalysisException("Cannot create scope: node is null");
-    } else if (node is CompilationUnit) {
-      ScopeBuilder builder = new ScopeBuilder(errorListener);
-      return builder._scopeForAstNode(node);
+      throw new AnalysisException("Cannot create context: node is null");
     }
-    AstNode parent = node.parent;
-    if (parent == null) {
-      throw new AnalysisException(
-          "Cannot create scope: node is not part of a CompilationUnit");
-    }
-    ScopeBuilder builder = new ScopeBuilder(errorListener);
-    return builder._scopeForAstNode(parent);
+    // build scope
+    ResolutionContextBuilder builder =
+        new ResolutionContextBuilder(errorListener);
+    Scope scope = builder._scopeFor(node);
+    // prepare context
+    ResolutionContext context = new ResolutionContext();
+    context.scope = scope;
+    context.enclosingClass = builder._enclosingClass;
+    return context;
   }
 }
 
