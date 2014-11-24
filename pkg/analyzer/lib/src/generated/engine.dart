@@ -990,12 +990,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   StreamController<SourcesChangedEvent> _onSourcesChangedController;
 
   /**
-   * The stream that is notified when sources have been added or removed,
-   * or the source's content has changed.
-   */
-  Stream<SourcesChangedEvent> _onSourcesChanged;
-
-  /**
    * The listeners that are to be notified when various analysis results are produced in this
    * context.
    */
@@ -1011,8 +1005,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         AnalysisOptionsImpl.DEFAULT_CACHE_SIZE,
         new AnalysisContextImpl_ContextRetentionPolicy(this));
     _cache = createCacheFromSourceFactory(null);
-    _onSourcesChangedController = new StreamController<SourcesChangedEvent>();
-    _onSourcesChanged = _onSourcesChangedController.stream.asBroadcastStream();
+    _onSourcesChangedController =
+        new StreamController<SourcesChangedEvent>.broadcast();
   }
 
   @override
@@ -1240,7 +1234,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  Stream<SourcesChangedEvent> get onSourcesChanged => _onSourcesChanged;
+  Stream<SourcesChangedEvent> get onSourcesChanged =>
+      _onSourcesChangedController.stream;
 
   @override
   List<Source> get prioritySources => _priorityOrder;

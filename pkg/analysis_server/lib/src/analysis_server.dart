@@ -174,11 +174,6 @@ class AnalysisServer {
   bool rethrowExceptions;
 
   /**
-   * The stream that is notified when contexts are added or removed.
-   */
-  Stream<ContextsChangedEvent> onContextsChanged;
-
-  /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    *
@@ -194,8 +189,6 @@ class AnalysisServer {
     operationQueue = new ServerOperationQueue(this);
     contextDirectoryManager =
         new ServerContextManager(this, resourceProvider, packageMapProvider);
-    onContextsChanged =
-        contextDirectoryManager.onContextsChanged.asBroadcastStream();
     AnalysisEngine.instance.logger = new AnalysisLogger();
     _onAnalysisStartedController = new StreamController.broadcast();
     _onAnalysisCompleteController = new StreamController.broadcast();
@@ -219,6 +212,12 @@ class AnalysisServer {
   Stream<AnalysisContext> get onAnalysisStarted {
     return _onAnalysisStartedController.stream;
   }
+
+  /**
+   * The stream that is notified when contexts are added or removed.
+   */
+  Stream<ContextsChangedEvent> get onContextsChanged =>
+      contextDirectoryManager.onContextsChanged;
 
   /**
    * The stream that is notified when a single file has been analyzed.
@@ -394,6 +393,32 @@ class AnalysisServer {
   }
 
   /**
+   * Returns resolved [CompilationUnit]s of the Dart file with the given [path].
+   *
+   * May be empty, but not `null`.
+   */
+  List<CompilationUnit> getResolvedCompilationUnits(String path) {
+    List<CompilationUnit> units = <CompilationUnit>[];
+    // prepare AnalysisContext
+    AnalysisContext context = getAnalysisContext(path);
+    if (context == null) {
+      return units;
+    }
+    // add a unit for each unit/library combination
+    Source unitSource = getSource(path);
+    List<Source> librarySources = context.getLibrariesContaining(unitSource);
+    for (Source librarySource in librarySources) {
+      CompilationUnit unit =
+          context.resolveCompilationUnit2(unitSource, librarySource);
+      if (unit != null) {
+        units.add(unit);
+      }
+    }
+    // done
+    return units;
+  }
+
+  /**
    * Returns the [CompilationUnit] of the Dart file with the given [path] that
    * should be used to resend notifications for already resolved unit.
    * Returns `null` if the file is not a part of any context, library has not
@@ -418,32 +443,6 @@ class AnalysisServer {
     }
     // if library has been already resolved, resolve unit
     return context.resolveCompilationUnit2(unitSource, librarySource);
-  }
-
-  /**
-   * Returns resolved [CompilationUnit]s of the Dart file with the given [path].
-   *
-   * May be empty, but not `null`.
-   */
-  List<CompilationUnit> getResolvedCompilationUnits(String path) {
-    List<CompilationUnit> units = <CompilationUnit>[];
-    // prepare AnalysisContext
-    AnalysisContext context = getAnalysisContext(path);
-    if (context == null) {
-      return units;
-    }
-    // add a unit for each unit/library combination
-    Source unitSource = getSource(path);
-    List<Source> librarySources = context.getLibrariesContaining(unitSource);
-    for (Source librarySource in librarySources) {
-      CompilationUnit unit =
-          context.resolveCompilationUnit2(unitSource, librarySource);
-      if (unit != null) {
-        units.add(unit);
-      }
-    }
-    // done
-    return units;
   }
 
   /**
@@ -942,8 +941,7 @@ class ContextsChangedEvent {
 }
 
 /**
- * A [PriorityChangeEvent] indicates which sources are currently prioritized
- * and should be analyzed before other sources.
+ * A [PriorityChangeEvent] indicates the set the priority files has changed.
  */
 class PriorityChangeEvent {
   final Source firstSource;
@@ -967,7 +965,8 @@ class ServerContextManager extends ContextManager {
   ServerContextManager(this.analysisServer, ResourceProvider resourceProvider,
       PackageMapProvider packageMapProvider)
       : super(resourceProvider, packageMapProvider) {
-    _onContextsChangedController = new StreamController<ContextsChangedEvent>();
+    _onContextsChangedController =
+        new StreamController<ContextsChangedEvent>.broadcast();
   }
 
   /**
