@@ -249,6 +249,12 @@ abstract class Browser {
 
   String toString();
 
+  /**
+   * Identifies the device the browser is running on.
+   * Used for testing on android devices.
+   */
+  String get deviceIdMessage => "";
+
   /** Starts the browser loading the given url */
   Future<bool> start(String url);
 }
@@ -621,6 +627,9 @@ class AndroidBrowser extends Browser {
   }
 
   String toString() => _config.name;
+
+  String get deviceIdMessage =>
+      'Android device id: ${_adbDevice.deviceId}\n';
 }
 
 
@@ -688,6 +697,9 @@ class AndroidChrome extends Browser {
   }
 
   String toString() => "chromeOnAndroid";
+
+  String get deviceIdMessage =>
+      'Android device id: ${_adbDevice.deviceId}\n';
 }
 
 
@@ -988,7 +1000,7 @@ class BrowserTestRunner {
       var browserTestOutput = new BrowserTestOutput(
           status.currentTest.delayUntilTestStarted,
           status.currentTest.stopwatch.elapsed,
-          output,
+          status.browser.deviceIdMessage + output,
           status.browser.testBrowserOutput);
       status.currentTest.doneCallback(browserTestOutput);
 
@@ -1040,6 +1052,7 @@ class BrowserTestRunner {
     status.timeout = true;
     timedOut.add(status.currentTest.url);
     var id = status.browser.id;
+    String deviceMessage = status.browser.deviceIdMessage;
 
     status.currentTest.stopwatch.stop();
     status.browser.close().then((_) {
@@ -1054,7 +1067,7 @@ class BrowserTestRunner {
       var browserTestOutput = new BrowserTestOutput(
           status.currentTest.delayUntilTestStarted,
           status.currentTest.stopwatch.elapsed,
-          lastKnownMessage,
+          deviceMessage + lastKnownMessage,
           status.browser.testBrowserOutput,
           didTimeout: true);
       status.currentTest.doneCallback(browserTestOutput);

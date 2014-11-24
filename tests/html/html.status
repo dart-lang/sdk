@@ -65,6 +65,7 @@ request_animation_frame_test: Skip # Times out, and also passes while taking 4.0
 fileapi_test/fileEntry: Pass, RuntimeError # Issue 20488
 fileapi_test/getFile: Pass, RuntimeError # Issue 20488
 indexeddb_5_test: Pass, RuntimeError # Issue 21262
+native_gc_test: Pass, Slow
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.

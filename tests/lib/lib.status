@@ -254,6 +254,7 @@ async/timer_cancel2_test: Pass, Timeout # Issue 13719: Please triage this failur
 
 [$compiler == none && $runtime == ContentShellOnAndroid ]
 async/stream_timeout_test: RuntimeError, Pass # Issue 19127
+async/slow_consumer2_test: Skip # Times out flakily. Issue 20956
 async/slow_consumer3_test: Skip # Times out flakily. Issue 20956
 convert/streamed_conversion_utf8_encode_test: Skip # Times out or passes. Issue 19127
 convert/streamed_conversion_utf8_decode_test: Skip # Times out or passes. Issue 19127
