@@ -296,7 +296,7 @@ class FixProcessor {
       }
       // insert source
       _insertBuilder(sb);
-      _addLinkedPosition("NAME", rf.rangeNode(node));
+      _addLinkedPosition("NAME", sb, rf.rangeNode(node));
       // add proposal
       _addFix(FixKind.CREATE_CLASS, [name]);
     }
@@ -427,7 +427,7 @@ class FixProcessor {
     // insert source
     _insertBuilder(sb);
     if (targetFile == file) {
-      _addLinkedPosition("NAME", rf.rangeNode(name));
+      _addLinkedPosition("NAME", sb, rf.rangeNode(name));
     }
     // add proposal
     _addFixToElement(
@@ -641,7 +641,7 @@ class FixProcessor {
     _insertBuilder(sb);
     // add linked positions
     if (targetFile == file) {
-      _addLinkedPosition3('NAME', sb, rf.rangeNode(node));
+      _addLinkedPosition('NAME', sb, rf.rangeNode(node));
     }
     // add proposal
     _addFixToElement(FixKind.CREATE_FIELD, [name], targetClassElement);
@@ -751,7 +751,7 @@ class FixProcessor {
     // insert source
     _insertBuilder(sb);
     // add linked positions
-    _addLinkedPosition3('NAME', sb, rf.rangeNode(node));
+    _addLinkedPosition('NAME', sb, rf.rangeNode(node));
     // add proposal
     _addFix(FixKind.CREATE_LOCAL_VARIABLE, [name]);
   }
@@ -1279,7 +1279,7 @@ class FixProcessor {
     }
     // insert source
     _insertBuilder(sb);
-    _addLinkedPosition3('NAME', sb, rf.rangeNode(node));
+    _addLinkedPosition('NAME', sb, rf.rangeNode(node));
     // add proposal
     _addFix(FixKind.CREATE_FUNCTION, [name]);
   }
@@ -1384,7 +1384,7 @@ class FixProcessor {
       _insertBuilder(sb);
       // add linked positions
       if (targetFile == file) {
-        _addLinkedPosition3('NAME', sb, rf.rangeNode(node));
+        _addLinkedPosition('NAME', sb, rf.rangeNode(node));
       }
       // add proposal
       _addFixToElement(FixKind.CREATE_METHOD, [name], targetElement);
@@ -1542,22 +1542,18 @@ class FixProcessor {
   /**
    * Adds a single linked position to [groupId].
    */
-  void _addLinkedPosition(String groupId, SourceRange range) {
-    Position position = new Position(file, range.offset);
-    LinkedEditGroup group = _getLinkedPosition(groupId);
-    group.addPosition(position, range.length);
-  }
-
-  /**
-   * Adds a single linked position to [groupId].
-   */
-  void _addLinkedPosition3(String groupId, SourceBuilder sb,
-      SourceRange range) {
-    if (sb.offset < range.offset) {
+  void _addLinkedPosition(String groupId, SourceBuilder sb, SourceRange range) {
+    // prepare offset
+    int offset = range.offset;
+    if (sb.offset < offset) {
       int delta = sb.length;
-      range = range.getTranslated(delta);
+      offset += delta;
     }
-    _addLinkedPosition(groupId, range);
+    // prepare group
+    LinkedEditGroup group = _getLinkedPosition(groupId);
+    // add position
+    Position position = new Position(file, offset);
+    group.addPosition(position, range.length);
   }
 
   /**
@@ -1623,7 +1619,7 @@ class FixProcessor {
     _insertBuilder(sb);
     // add linked positions
     if (targetSource == unitSource) {
-      _addLinkedPosition3("NAME", sb, rf.rangeNode(node));
+      _addLinkedPosition("NAME", sb, rf.rangeNode(node));
     }
   }
 
@@ -2093,14 +2089,6 @@ class FixProcessor {
     }
     return <String>["arg${index}"];
   }
-
-//  /**
-//   * Checks if [type] is not `null` and not `dynamic`, so it is worth adding
-//   * into the source.
-//   */
-//  static bool _isInterestingType(DartType type) {
-//    return type != null && !type.isDynamic;
-//  }
 
   /**
    * Returns `true` if [node] is a type name.

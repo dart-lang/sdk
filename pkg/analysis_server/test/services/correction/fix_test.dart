@@ -233,6 +233,9 @@ main() {
   new A.named(1, 2.0);
 }
 ''');
+    _assertLinkedGroup(
+        change.linkedEditGroups[0],
+        ['named(int ', 'named(1']);
   }
 
   void test_createConstructorSuperExplicit() {
