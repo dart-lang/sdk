@@ -1,3 +1,7 @@
+# 0.9.5+1
+
+* Updated the layout of package contents.
+
 # 0.9.5
 
 * Removed the decoding of HTML entity values (in the form &#xxxxx;) for

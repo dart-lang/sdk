@@ -2,8 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of http_server;
+library http_server.virtual_directory;
 
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:mime/mime.dart';
+import 'package:path/path.dart';
 
 // Used for signal a directory redirecting, where a tailing slash is missing.
 class _DirectoryRedirect {

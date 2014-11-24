@@ -2,10 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of http_server;
+library http_server.http_multipart_form_data_impl;
 
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
-class _HttpMultipartFormData extends Stream implements HttpMultipartFormData {
+import 'package:mime/mime.dart';
+
+import 'http_multipart_form_data.dart';
+
+class HttpMultipartFormDataImpl extends Stream
+    implements HttpMultipartFormData {
   final ContentType contentType;
   final HeaderValue contentDisposition;
   final HeaderValue contentTransferEncoding;
@@ -16,7 +24,7 @@ class _HttpMultipartFormData extends Stream implements HttpMultipartFormData {
 
   Stream _stream;
 
-  _HttpMultipartFormData(ContentType this.contentType,
+  HttpMultipartFormDataImpl(ContentType this.contentType,
                          HeaderValue this.contentDisposition,
                          HeaderValue this.contentTransferEncoding,
                          MimeMultipart this._mimeMultipart,
@@ -74,7 +82,7 @@ class _HttpMultipartFormData extends Stream implements HttpMultipartFormData {
       throw new HttpException(
           "Mime Multipart doesn't contain a Content-Disposition header value");
     }
-    return new _HttpMultipartFormData(
+    return new HttpMultipartFormDataImpl(
         type, disposition, encoding, multipart, defaultEncoding);
   }
 
