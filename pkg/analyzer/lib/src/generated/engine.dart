@@ -20,7 +20,8 @@ import 'error.dart';
 import 'error_verifier.dart';
 import 'html.dart' as ht;
 import 'incremental_scanner.dart';
-import 'incremental_resolver.dart' show IncrementalResolver;
+import 'incremental_resolver.dart' show IncrementalResolver,
+    poorMansIncrementalResolution;
 import 'instrumentation.dart';
 import 'java_core.dart';
 import 'java_engine.dart';
@@ -2918,7 +2919,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (contents != originalContents) {
         _incrementalAnalysisCache =
             IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
-        _sourceChanged(source);
+        if (!analysisOptions.incremental ||
+            !_tryPoorMansIncrementalResolution(source, contents)) {
+          _sourceChanged(source);
+        }
         changed = true;
         SourceEntry sourceEntry = _cache.get(source);
         if (sourceEntry != null) {
@@ -4919,6 +4923,31 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     _workManager.remove(source);
     _removeFromPriorityOrder(source);
+  }
+
+  /**
+   * TODO(scheglov) A hackish, limited incremental resolution implementation.
+   */
+  bool _tryPoorMansIncrementalResolution(Source unitSource, String newCode) {
+    List<Source> librarySources = getLibrariesContaining(unitSource);
+    if (librarySources.length != 1) {
+      return false;
+    }
+    CompilationUnit oldUnit =
+        getResolvedCompilationUnit2(unitSource, librarySources[0]);
+    bool success = poorMansIncrementalResolution(typeProvider, oldUnit, newCode);
+    if (!success) {
+      return false;
+    }
+    ChangeNoticeImpl notice = _getNotice(unitSource);
+    notice.compilationUnit = oldUnit;
+    // TODO(scheglov) apply updated errors
+    {
+      LineInfo lineInfo = getLineInfo(unitSource);
+      DartEntry dartEntry = _cache.get(unitSource);
+      notice.setErrors(dartEntry.allErrors, lineInfo);
+    }
+    return true;
   }
 
   /**

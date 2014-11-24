@@ -5,6 +5,7 @@
 library engine.incremental_resolver;
 
 import 'dart:collection';
+import 'dart:math' as math;
 
 import 'ast.dart';
 import 'element.dart';
@@ -13,6 +14,172 @@ import 'java_engine.dart';
 import 'resolver.dart';
 import 'scanner.dart';
 import 'source.dart';
+import 'parser.dart';
+
+
+/**
+ * Attempts to update [oldUnit] to the state that would correspond to [newCode].
+ * Returns `true` if success, or `false` otherwise.
+ * The [oldUnit] might be damaged.
+ */
+bool poorMansIncrementalResolution(TypeProvider typeProvider,
+    CompilationUnit oldUnit, String newCode) {
+  try {
+    CompilationUnit newUnit = _parseUnit(newCode);
+    _TokenPair firstPair =
+        _findFirstDifferentToken(oldUnit.beginToken, newUnit.beginToken);
+    _TokenPair lastPair =
+        _findLastDifferentToken(oldUnit.endToken, newUnit.endToken);
+    if (firstPair != null && lastPair != null) {
+      // Prepare the "old" token range.
+      Token oldBeginToken;
+      Token oldEndToken;
+      if (firstPair.oldToken.offset < lastPair.oldToken.offset) {
+        oldBeginToken = firstPair.oldToken;
+        oldEndToken = lastPair.oldToken;
+      } else {
+        oldBeginToken = lastPair.oldToken;
+        oldEndToken = firstPair.oldToken;
+      }
+      // Prepare the "old" token tange.
+      Token newBeginToken;
+      Token newEndToken;
+      if (firstPair.newToken.offset < lastPair.newToken.offset) {
+        newBeginToken = firstPair.newToken;
+        newEndToken = lastPair.newToken;
+      } else {
+        newBeginToken = lastPair.newToken;
+        newEndToken = firstPair.newToken;
+      }
+      // Find nodes covering the "old" and "new" token ranges.
+      AstNode oldNode =
+          _findNodeWithTokens(oldUnit, oldBeginToken, oldEndToken);
+      AstNode newNode =
+          _findNodeWithTokens(newUnit, newBeginToken, newEndToken);
+      // Try to find the smallest common node, a FunctionBody currently.
+      {
+        List<AstNode> oldParents = _getParents(oldNode);
+        List<AstNode> newParents = _getParents(newNode);
+        int length = math.min(oldParents.length, newParents.length);
+        bool found = false;
+        for (int i = 0; i < length; i++) {
+          AstNode oldParent = oldParents[i];
+          AstNode newParent = newParents[i];
+          if (oldParent is FunctionBody && newParent is FunctionBody) {
+            oldNode = oldParent;
+            newNode = newParent;
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          return false;
+        }
+      }
+      // replace node
+      NodeReplacer.replace(oldNode, newNode);
+      // update token references
+      oldNode.beginToken.previous.setNext(newNode.beginToken);
+      oldNode.endToken.setNext(oldNode.endToken.next);
+      // perform incremental resolution
+      // TODO(scheglov) update errors
+      AnalysisErrorListener errorListener = new BooleanErrorListener();
+      CompilationUnitElement oldUnitElement = oldUnit.element;
+      IncrementalResolver incrementalResolver = new IncrementalResolver(
+          errorListener,
+          typeProvider,
+          oldUnitElement.library,
+          oldUnitElement,
+          oldUnitElement.source,
+          oldNode.offset,
+          oldNode.length,
+          newNode.length);
+      incrementalResolver.resolve(newNode);
+      return true;
+    }
+  } catch (e) {
+    // TODO(scheglov) find a way to log these exceptions
+  }
+  return false;
+}
+
+
+List<AstNode> _getParents(AstNode node) {
+  List<AstNode> parents = <AstNode>[];
+  while (node != null) {
+    parents.insert(0, node);
+    node = node.parent;
+  }
+  return parents;
+}
+
+AstNode _findNodeWithTokens(AstNode root, Token first, Token last) {
+  int offset = first.offset;
+  int end = last.end;
+  NodeLocator nodeLocator = new NodeLocator.con2(offset, end);
+  return nodeLocator.searchWithin(root);
+}
+
+
+class _TokenPair {
+  final Token oldToken;
+  final Token newToken;
+  _TokenPair(this.oldToken, this.newToken);
+}
+
+
+_TokenPair _findFirstDifferentToken(Token oldToken, Token newToken) {
+//  print('first ------------');
+  while (oldToken.type != TokenType.EOF && newToken.type != TokenType.EOF) {
+//    print('old: $oldToken @ ${oldToken.offset}');
+//    print('new: $newToken @ ${newToken.offset}');
+    if (!_equalToken(oldToken, newToken, 0)) {
+      return new _TokenPair(oldToken, newToken);
+    }
+    oldToken = oldToken.next;
+    newToken = newToken.next;
+  }
+  return null;
+}
+
+
+_TokenPair _findLastDifferentToken(Token oldToken, Token newToken) {
+//  print('last ------------');
+  int delta = newToken.offset - oldToken.offset;
+  while (oldToken.previous != oldToken && newToken.previous != newToken) {
+//    print('old: $oldToken @ ${oldToken.offset}');
+//    print('new: $newToken @ ${newToken.offset}');
+    if (!_equalToken(oldToken, newToken, delta)) {
+      return new _TokenPair(oldToken.next, newToken.next);
+    }
+    oldToken.offset += delta;
+    oldToken = oldToken.previous;
+    newToken = newToken.previous;
+  }
+  return null;
+}
+
+
+bool _equalToken(Token a, Token b, int delta) {
+  if (a.type != b.type) {
+    return false;
+  }
+  if (b.offset - a.offset != delta) {
+    return false;
+  }
+  return a.lexeme == b.lexeme;
+}
+
+
+CompilationUnit _parseUnit(String code) {
+  // TODO(scheglov) remember and update errors
+  var errorListener = new BooleanErrorListener();
+  var reader = new CharSequenceReader(code);
+  var scanner = new Scanner(null, reader, errorListener);
+  var token = scanner.tokenize();
+  var parser = new Parser(null, errorListener);
+  return parser.parseCompilationUnit(token);
+}
 
 
 /**
@@ -390,7 +557,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     if (node is SimpleFormalParameter) {
       _assertSameType(node.type, element.type);
       node.identifier.staticElement = element;
-      element.nameOffset = node.identifier.offset;
+      (element as ElementImpl).nameOffset = node.identifier.offset;
       (element as ElementImpl).name = node.identifier.name;
     } else {
       // TODO(scheglov) support other parameter types
@@ -457,8 +624,12 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     } else if (type is TypeParameterType) {
       _assertEquals(nodeName, type.name);
       // TODO(scheglov) it should be possible to rename type parameters
+    } else if (type is VoidType) {
+      _assertEquals(nodeName, 'void');
+      // TODO(scheglov) add test for "void"
     } else {
       // TODO(scheglov) support other types
+//      print('node: $node type: $type  type.type: ${type.runtimeType}');
       _assertTrue(false);
     }
   }
@@ -551,8 +722,8 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   void _gatherElements(Element element) {
     _ElementsGatherer gatherer = new _ElementsGatherer(this);
     element.accept(gatherer);
-    // TODO(scheglov) push into CompilationUnitElement
-    if (identical(_enclosingUnit, _enclosingLibrary.definingCompilationUnit)) {
+    // TODO(scheglov) what if a change in a directive?
+    if (identical(element, _enclosingLibrary.definingCompilationUnit)) {
       gatherer.addElements(_enclosingLibrary.imports);
       gatherer.addElements(_enclosingLibrary.exports);
       gatherer.addElements(_enclosingLibrary.parts);

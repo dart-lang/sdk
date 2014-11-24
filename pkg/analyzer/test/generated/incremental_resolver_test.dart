@@ -28,6 +28,7 @@ main() {
   groupSep = ' | ';
   runReflectiveTests(DeclarationMatcherTest);
   runReflectiveTests(IncrementalResolverTest);
+  runReflectiveTests(PoorMansIncrementalResolutionTest);
   runReflectiveTests(ResolutionContextBuilderTest);
 }
 
@@ -1709,6 +1710,196 @@ class B {
       }
       token = token.next;
     }
+  }
+}
+
+
+/**
+ * The test for [poorMansIncrementalResolution] function and its integration
+ * into [AnalysisContext].
+ */
+class PoorMansIncrementalResolutionTest extends ResolverTestCase {
+  Source source;
+  String code;
+  LibraryElement oldLibrary;
+  CompilationUnit oldUnit;
+  CompilationUnitElement oldUnitElement;
+
+  void setUp() {
+    super.setUp();
+    _resetWithIncremental(true);
+  }
+
+  void test_inBody_expression() {
+    _resolveUnit(r'''
+class A {
+  m() {
+    print(1);
+  }
+}
+''');
+    _updateAndValidate(r'''
+class A {
+  m() {
+    print(2 + 3);
+  }
+}
+''');
+  }
+
+  void test_inBody_insertStatement() {
+    _resolveUnit(r'''
+main() {
+  print(1);
+}
+''');
+    _updateAndValidate(r'''
+main() {
+  print(0);
+  print(1);
+}
+''');
+  }
+
+  void test_inBody_tokenToNode() {
+    _resolveUnit(r'''
+main() {
+  var v = 42;
+}
+''');
+    _updateAndValidate(r'''
+main() {
+  int v = 42;
+}
+''');
+  }
+
+  void test_twice() {
+    _resolveUnit(r'''
+main() {
+  print(1);
+}''');
+    _updateAndValidate(r'''
+main() {
+  print(12);
+}''', false);
+    _updateAndValidate(r'''
+main() {
+  print(1);
+}''', false);
+  }
+
+  void test_twice2() {
+    _resolveUnit(r'''
+class A {
+  m() {
+    int vvvvvvvv = 42;
+    print(vvvvvvvv);
+  }
+}''');
+    _updateAndValidate(r'''
+class A {
+  m() {
+    int vvvvvvvv2 = 42;
+    print(vvvvvvvv2);
+  }
+}''', false);
+    _updateAndValidate(r'''
+class A {
+  m() {
+    int vvvvvvvv = 42;
+    print(vvvvvvvv);
+  }
+}''', false);
+  }
+
+  void test_withImport() {
+    _resolveUnit(r'''
+import 'dart:async';
+import 'dart:math';
+main() {
+  print(1);
+}
+''');
+    _updateAndValidate(r'''
+import 'dart:async';
+import 'dart:math';
+main() {
+  print(2 + 3);
+}
+''');
+  }
+
+  /**
+   * Reset the analysis context to have the 'incremental' option set to the
+   * given value.
+   */
+  void _resetWithIncremental(bool enable) {
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.incremental = enable;
+    analysisContext2.analysisOptions = analysisOptions;
+  }
+
+  void _resolveUnit(String code) {
+    this.code = code;
+    source = addSource(code);
+    oldLibrary = resolve(source);
+    oldUnit = resolveCompilationUnit(source, oldLibrary);
+    oldUnitElement = oldUnit.element;
+  }
+
+  void _runTasks() {
+    AnalysisResult result = analysisContext.performAnalysisTask();
+    while (result.changeNotices != null) {
+      result = analysisContext.performAnalysisTask();
+    }
+  }
+
+  void _updateAndValidate(String newCode, [bool compareWithFull = true]) {
+    // Run any pending tasks tasks.
+    _runTasks();
+    // Update the source - currently this may cause incremental resolution.
+    // Then request the updated resolved unit.
+    _resetWithIncremental(true);
+    analysisContext2.setContents(source, newCode);
+    CompilationUnit newUnit = resolveCompilationUnit(source, oldLibrary);
+    // The existing CompilationUnitElement should be updated.
+    expect(newUnit.element, same(oldUnitElement));
+    // The only expected pending task should return the same resolved
+    // "newUnit", so all clients will get it using the usual way.
+    AnalysisResult analysisResult = analysisContext.performAnalysisTask();
+    ChangeNotice notice = analysisResult.changeNotices[0];
+    expect(notice.compilationUnit, same(newUnit));
+    // Resolve "newCode" from scratch.
+    if (compareWithFull) {
+      _resetWithIncremental(false);
+      source = addSource(newCode);
+      LibraryElement library = resolve(source);
+      CompilationUnit fullNewUnit = resolveCompilationUnit(source, library);
+      // Validate that "incremental" and "full" units have the same resolution.
+      _SameResolutionValidator.assertSameResolution(newUnit, fullNewUnit);
+      _assertEqualsTokens(newUnit, fullNewUnit);
+    }
+  }
+
+  static void _assertEqualsTokens(CompilationUnit incrUnit,
+      CompilationUnit fullUnit) {
+    Token incrToken = incrUnit.beginToken;
+    Token fullToken = fullUnit.beginToken;
+    while (incrToken.type != TokenType.EOF && fullToken.type != TokenType.EOF) {
+//      print('$incrToken @ ${incrToken.offset}');
+//      print('$fullToken @ ${fullToken.offset}');
+      _assertEqualsToken(incrToken, fullToken);
+      incrToken = incrToken.next;
+      fullToken = fullToken.next;
+    }
+  }
+
+  static void _assertEqualsToken(Token incrToken, Token fullToken) {
+    expect(incrToken.type, fullToken.type);
+    expect(incrToken.offset, fullToken.offset);
+    expect(incrToken.length, fullToken.length);
+    expect(incrToken.lexeme, fullToken.lexeme);
   }
 }
 
