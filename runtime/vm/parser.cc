@@ -99,6 +99,21 @@ int TraceParser::indent_ = 0;
 #endif  // DEBUG
 
 
+class BoolScope : public ValueObject {
+ public:
+  BoolScope(bool* addr, bool new_value) : _addr(addr), _saved_value(*addr) {
+    *_addr = new_value;
+  }
+  ~BoolScope() {
+    *_addr = _saved_value;
+  }
+
+ private:
+  bool* _addr;
+  bool _saved_value;
+};
+
+
 static RawTypeArguments* NewTypeArguments(const GrowableObjectArray& objs) {
   const TypeArguments& a =
       TypeArguments::Handle(TypeArguments::New(objs.Length()));
@@ -3055,9 +3070,8 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     OpenAsyncClosure();
   }
 
-  bool saved_await_is_keyword = await_is_keyword_;
-  await_is_keyword_ = func.IsAsyncFunction() || func.is_async_closure();
-
+  BoolScope allow_await(&this->await_is_keyword_,
+                        func.IsAsyncFunction() || func.is_async_closure());
   intptr_t end_token_pos = 0;
   if (CurrentToken() == Token::kLBRACE) {
     ConsumeToken();
@@ -3080,7 +3094,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
       }
     }
     const intptr_t expr_pos = TokenPos();
-    AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
+    AstNode* expr = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
     ASSERT(expr != NULL);
     current_block_->statements->Add(new ReturnNode(expr_pos, expr));
     end_token_pos = TokenPos();
@@ -3126,7 +3140,6 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   current_block_->statements->Add(body);
   innermost_function_ = saved_innermost_function.raw();
   last_used_try_index_ = saved_try_index;
-  await_is_keyword_ = saved_await_is_keyword;
   async_temp_scope_ = saved_async_temp_scope;
   parsed_function()->set_saved_try_ctx(saved_saved_try_ctx);
   parsed_function()->set_async_saved_try_ctx_name(
@@ -3482,6 +3495,8 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       ExpectToken(Token::kRBRACE);
     } else {
       ConsumeToken();
+      BoolScope allow_await(&this->await_is_keyword_,
+                            async_modifier != RawFunction::kNoModifier);
       SkipExpr();
       method_end_pos = TokenPos();
       ExpectSemicolon();
@@ -5156,6 +5171,8 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
     ExpectToken(Token::kRBRACE);
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
+    BoolScope allow_await(&this->await_is_keyword_,
+                          func_modifier != RawFunction::kNoModifier);
     SkipExpr();
     function_end_pos = TokenPos();
     ExpectSemicolon();
@@ -11803,7 +11820,9 @@ void Parser::SkipFunctionLiteral() {
     params.skipped = true;
     ParseFormalParameterList(allow_explicit_default_values, false, &params);
   }
-  ParseFunctionModifier();
+  RawFunction::AsyncModifier async_modifier = ParseFunctionModifier();
+  BoolScope allow_await(&this->await_is_keyword_,
+                        async_modifier != RawFunction::kNoModifier);
   if (CurrentToken() == Token::kLBRACE) {
     SkipBlock();
     ExpectToken(Token::kRBRACE);
@@ -12050,7 +12069,8 @@ void Parser::SkipPostfixExpr() {
 
 void Parser::SkipUnaryExpr() {
   if (IsPrefixOperator(CurrentToken()) ||
-      IsIncrementOperator(CurrentToken())) {
+      IsIncrementOperator(CurrentToken()) ||
+      IsAwaitKeyword()) {
     ConsumeToken();
     SkipUnaryExpr();
   } else {
