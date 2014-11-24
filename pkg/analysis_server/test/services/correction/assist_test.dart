@@ -1006,6 +1006,27 @@ main(A a) {
     assertNoAssistAt('isEmpty;', AssistKind.CONVERT_INTO_IS_NOT_EMPTY);
   }
 
+  void test_exchangeBinaryExpressionArguments_OK_compare() {
+    Map<String, String> operatorMap = {
+      '<': '>=',
+      '<=': '>',
+      '>': '<=',
+      '>=': '<'
+    };
+    operatorMap.forEach((initialOperator, resultOperator) {
+      _indexTestUnit('''
+bool main(int a, int b) {
+  return a $initialOperator b;
+}
+''');
+      assertHasAssistAt(initialOperator, AssistKind.EXCHANGE_OPERANDS, '''
+bool main(int a, int b) {
+  return b $resultOperator a;
+}
+''');
+    });
+  }
+
   void test_exchangeBinaryExpressionArguments_OK_extended_mixOperator_1() {
     _indexTestUnit('''
 main() {
