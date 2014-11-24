@@ -224,7 +224,7 @@ class ResponseTest {
 
   void test_create_unanalyzedPriorityFiles() {
     Response response =
-        new Response.unanalyzedPriorityFiles(new Request('0', ''), 'file list');
+        new Response.unanalyzedPriorityFiles('0', 'file list');
     expect(response.id, equals('0'));
     expect(response.error, isNotNull);
     expect(response.toJson(), equals({

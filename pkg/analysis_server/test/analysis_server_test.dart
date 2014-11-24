@@ -154,6 +154,41 @@ main() {
         expect(wasRemoved, isTrue);
       });
     });
+
+    test('priority sources changed event', () {
+      AnalysisServerTestHelper helper = new AnalysisServerTestHelper();
+      helper.resourceProvider.newFolder('/foo');
+
+      int eventCount = 0;
+      Source firstSource = null;
+      helper.server.onPriorityChange.listen((PriorityChangeEvent event) {
+        ++eventCount;
+        firstSource = event.firstSource;
+      });
+
+      helper.server.setAnalysisRoots('0', ['/foo'], [], {});
+      return pumpEventQueue().then((_) {
+        expect(eventCount, 0);
+
+        helper.server.setPriorityFiles('1', ['/foo/bar.dart']);
+        return pumpEventQueue();
+      }).then((_) {
+        expect(eventCount, 1);
+        expect(firstSource.fullName, '/foo/bar.dart');
+
+        helper.server.setPriorityFiles('2', ['/foo/b1.dart', '/foo/b2.dart']);
+        return pumpEventQueue();
+      }).then((_) {
+        expect(eventCount, 2);
+        expect(firstSource.fullName, '/foo/b1.dart');
+
+        helper.server.setPriorityFiles('17', []);
+        return pumpEventQueue();
+      }).then((_) {
+        expect(eventCount, 3);
+        expect(firstSource, isNull);
+      });
+    });
   });
 }
 

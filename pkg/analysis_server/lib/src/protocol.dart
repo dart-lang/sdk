@@ -777,9 +777,9 @@ class Response {
    * by a `analysis.setPriorityFiles` [request] that includes one or more files
    * that are not being analyzed.
    */
-  Response.unanalyzedPriorityFiles(Request request, String fileNames)
+  Response.unanalyzedPriorityFiles(String requestId, String fileNames)
       : this(
-          request.id,
+          requestId,
           error: new RequestError(
               RequestErrorCode.UNANALYZED_PRIORITY_FILES,
               "Unanalyzed files cannot be a priority: '$fileNames'"));

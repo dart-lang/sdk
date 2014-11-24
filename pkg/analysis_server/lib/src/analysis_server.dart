@@ -163,6 +163,11 @@ class AnalysisServer {
   StreamController<ChangeNotice> _onFileAnalyzedController;
 
   /**
+   * The controller used to notify others when priority sources change.
+   */
+  StreamController<PriorityChangeEvent> _onPriorityChangeController;
+
+  /**
    * True if any exceptions thrown by analysis should be propagated up the call
    * stack.
    */
@@ -195,6 +200,8 @@ class AnalysisServer {
     _onAnalysisStartedController = new StreamController.broadcast();
     _onAnalysisCompleteController = new StreamController.broadcast();
     _onFileAnalyzedController = new StreamController.broadcast();
+    _onPriorityChangeController =
+        new StreamController<PriorityChangeEvent>.broadcast();
     running = true;
     Notification notification = new ServerConnectedParams().toNotification();
     channel.sendNotification(notification);
@@ -217,6 +224,12 @@ class AnalysisServer {
    * The stream that is notified when a single file has been analyzed.
    */
   Stream get onFileAnalyzed => _onFileAnalyzedController.stream;
+
+  /**
+   * The stream that is notified when priority sources change.
+   */
+  Stream<PriorityChangeEvent> get onPriorityChange =>
+      _onPriorityChangeController.stream;
 
   /**
    * Adds the given [ServerOperation] to the queue, but does not schedule
@@ -346,23 +359,6 @@ class AnalysisServer {
     return context.getErrors(source);
   }
 
-  /**
-   * Returns resolved [AstNode]s at the given [offset] of the given [file].
-   *
-   * May be empty, but not `null`.
-   */
-  List<AstNode> getNodesAtOffset(String file, int offset) {
-    List<CompilationUnit> units = getResolvedCompilationUnits(file);
-    List<AstNode> nodes = <AstNode>[];
-    for (CompilationUnit unit in units) {
-      AstNode node = new NodeLocator.con1(offset).searchWithin(unit);
-      if (node != null) {
-        nodes.add(node);
-      }
-    }
-    return nodes;
-  }
-
 // TODO(brianwilkerson) Add the following method after 'prioritySources' has
 // been added to InternalAnalysisContext.
 //  /**
@@ -381,29 +377,20 @@ class AnalysisServer {
 //  }
 
   /**
-   * Returns resolved [CompilationUnit]s of the Dart file with the given [path].
+   * Returns resolved [AstNode]s at the given [offset] of the given [file].
    *
    * May be empty, but not `null`.
    */
-  List<CompilationUnit> getResolvedCompilationUnits(String path) {
-    List<CompilationUnit> units = <CompilationUnit>[];
-    // prepare AnalysisContext
-    AnalysisContext context = getAnalysisContext(path);
-    if (context == null) {
-      return units;
-    }
-    // add a unit for each unit/library combination
-    Source unitSource = getSource(path);
-    List<Source> librarySources = context.getLibrariesContaining(unitSource);
-    for (Source librarySource in librarySources) {
-      CompilationUnit unit =
-          context.resolveCompilationUnit2(unitSource, librarySource);
-      if (unit != null) {
-        units.add(unit);
+  List<AstNode> getNodesAtOffset(String file, int offset) {
+    List<CompilationUnit> units = getResolvedCompilationUnits(file);
+    List<AstNode> nodes = <AstNode>[];
+    for (CompilationUnit unit in units) {
+      AstNode node = new NodeLocator.con1(offset).searchWithin(unit);
+      if (node != null) {
+        nodes.add(node);
       }
     }
-    // done
-    return units;
+    return nodes;
   }
 
   /**
@@ -431,6 +418,32 @@ class AnalysisServer {
     }
     // if library has been already resolved, resolve unit
     return context.resolveCompilationUnit2(unitSource, librarySource);
+  }
+
+  /**
+   * Returns resolved [CompilationUnit]s of the Dart file with the given [path].
+   *
+   * May be empty, but not `null`.
+   */
+  List<CompilationUnit> getResolvedCompilationUnits(String path) {
+    List<CompilationUnit> units = <CompilationUnit>[];
+    // prepare AnalysisContext
+    AnalysisContext context = getAnalysisContext(path);
+    if (context == null) {
+      return units;
+    }
+    // add a unit for each unit/library combination
+    Source unitSource = getSource(path);
+    List<Source> librarySources = context.getLibrariesContaining(unitSource);
+    for (Source librarySource in librarySources) {
+      CompilationUnit unit =
+          context.resolveCompilationUnit2(unitSource, librarySource);
+      if (unit != null) {
+        units.add(unit);
+      }
+    }
+    // done
+    return units;
   }
 
   /**
@@ -741,7 +754,7 @@ class AnalysisServer {
   /**
    * Set the priority files to the given [files].
    */
-  void setPriorityFiles(Request request, List<String> files) {
+  void setPriorityFiles(String requestId, List<String> files) {
     Map<AnalysisContext, List<Source>> sourceMap =
         new HashMap<AnalysisContext, List<Source>>();
     List<String> unanalyzed = new List<String>();
@@ -762,7 +775,7 @@ class AnalysisServer {
       StringBuffer buffer = new StringBuffer();
       buffer.writeAll(unanalyzed, ', ');
       throw new RequestFailure(
-          new Response.unanalyzedPriorityFiles(request, buffer.toString()));
+          new Response.unanalyzedPriorityFiles(requestId, buffer.toString()));
     }
     folderMap.forEach((Folder folder, AnalysisContext context) {
       List<Source> sourceList = sourceMap[context];
@@ -771,6 +784,8 @@ class AnalysisServer {
       }
       context.analysisPriorityOrder = sourceList;
     });
+    Source firstSource = files.length > 0 ? getSource(files[0]) : null;
+    _onPriorityChangeController.add(new PriorityChangeEvent(firstSource));
   }
 
   /**
@@ -924,6 +939,16 @@ class ContextsChangedEvent {
 
   ContextsChangedEvent({this.added: AnalysisContext.EMPTY_LIST, this.changed:
       AnalysisContext.EMPTY_LIST, this.removed: AnalysisContext.EMPTY_LIST});
+}
+
+/**
+ * A [PriorityChangeEvent] indicates which sources are currently prioritized
+ * and should be analyzed before other sources.
+ */
+class PriorityChangeEvent {
+  final Source firstSource;
+
+  PriorityChangeEvent(this.firstSource);
 }
 
 class ServerContextManager extends ContextManager {
