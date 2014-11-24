@@ -648,7 +648,8 @@ class CallSiteInliner : public ValueObject {
 
     // Abort if this is a recursive occurrence.
     Definition* call = call_data->call;
-    const bool is_recursive_call = IsCallRecursive(unoptimized_code, call);
+    // Added 'volatile' works around a possible GCC 4.9 compiler bug.
+    volatile bool is_recursive_call = IsCallRecursive(unoptimized_code, call);
     if (is_recursive_call &&
         inlining_recursion_depth_ >= FLAG_inlining_recursion_depth_threshold) {
       TRACE_INLINING(OS::Print("     Bailout: recursive function\n"));
