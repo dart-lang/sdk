@@ -4468,7 +4468,6 @@ void Parser::ParseEnumDefinition(const Class& cls) {
       helper_class.LookupDynamicFunctionAllowPrivate(Symbols::toString()));
   ASSERT(!to_string_func.IsNull());
   to_string_func = to_string_func.Clone(cls);
-  to_string_func.set_is_visible(false);
   enum_members.AddFunction(to_string_func);
 
   cls.AddFields(enum_members.fields());
