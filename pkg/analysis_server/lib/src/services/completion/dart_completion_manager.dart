@@ -10,6 +10,7 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/arglist_computer.dart';
 import 'package:analysis_server/src/services/completion/combinator_computer.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/imported_computer.dart';
 import 'package:analysis_server/src/services/completion/invocation_computer.dart';
 import 'package:analysis_server/src/services/completion/keyword_computer.dart';
@@ -19,45 +20,6 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-
-/**
- * The `DartCompletionCache` contains cached information from a prior code
- * completion operation.
- */
-class DartCompletionCache extends CompletionCache {
-
-  /**
-   * A hash of the import directives.
-   */
-  String importKey;
-
-  /**
-   * Library prefix suggestions based upon imports,
-   * or `null` if nothing has been cached.
-   */
-  List<CompletionSuggestion> libraryPrefixSuggestions;
-
-  /**
-   * Type suggestions based upon imports,
-   * or `null` if nothing has been cached.
-   */
-  List<CompletionSuggestion> importedTypeSuggestions;
-
-  /**
-   * Suggestions for methods and functions that have void return type,
-   * or `null` if nothing has been cached.
-   */
-  List<CompletionSuggestion> importedVoidReturnSuggestions;
-
-  /**
-   * Other suggestions based upon imports,
-   * or `null` if nothing has been cached.
-   */
-  List<CompletionSuggestion> otherImportedSuggestions;
-
-  DartCompletionCache(AnalysisContext context, Source source)
-      : super(context, source);
-}
 
 /**
  * The base class for computing code completion suggestions.

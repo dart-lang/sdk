@@ -9,14 +9,12 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element,
     ElementKind;
+import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /**
  * A computer for calculating imported class and top level variable
@@ -29,7 +27,7 @@ class ImportedComputer extends DartCompletionComputer {
   bool computeFast(DartCompletionRequest request) {
     builder = request.node.accept(new _ImportedAstVisitor(request));
     if (builder != null) {
-      return builder.computeFast();
+      return builder.computeFast(request.node);
     }
     return true;
   }
@@ -212,13 +210,11 @@ class _ImportedAstVisitor extends
  * [_ImportedSuggestionBuilder] traverses the imports and builds suggestions
  * based upon imported elements.
  */
-class _ImportedSuggestionBuilder {
+class _ImportedSuggestionBuilder implements SuggestionBuilder {
   final DartCompletionRequest request;
   final bool typesOnly;
   final bool excludeVoidReturn;
-  final HashSet<String> completions = new HashSet();
   DartCompletionCache cache;
-  String importKey;
 
   _ImportedSuggestionBuilder(this.request, {this.typesOnly: false,
       this.excludeVoidReturn: false}) {
@@ -226,22 +222,91 @@ class _ImportedSuggestionBuilder {
   }
 
   /**
-   * Compute a hash of the import directives.
+   * If the needed information is cached, then add suggestions and return `true`
+   * else return `false` indicating that additional work is necessary.
    */
-  String get computeImportKey {
-    if (importKey == null) {
-      StringBuffer sb = new StringBuffer();
-      request.unit.directives.forEach((Directive directive) {
-        if (directive is ImportDirective) {
-          sb.write(directive.toSource());
-        }
-      });
-      importKey = sb.toString();
+  bool computeFast(AstNode node) {
+    CompilationUnit unit = request.unit;
+    if (cache.isImportInfoCached(unit)) {
+      _addInheritedSuggestions(node);
+      _addTopLevelSuggestions();
+      return true;
     }
-    return importKey;
+    return false;
   }
 
-  void addCachedSuggestions() {
+  /**
+   * Compute suggested based upon imported elements.
+   */
+  Future<bool> computeFull(AstNode node) {
+    return cache.computeImportInfo(
+        request.unit,
+        request.searchEngine).then((_) {
+      _addInheritedSuggestions(node);
+      _addTopLevelSuggestions();
+      return true;
+    });
+  }
+
+  /**
+   * Add imported element suggestions.
+   */
+  void _addElementSuggestions(List<Element> elements) {
+    elements.forEach((Element elem) {
+      if (elem is! ClassElement) {
+        if (typesOnly) {
+          return;
+        }
+        if (elem is ExecutableElement) {
+          if (elem.isOperator) {
+            return;
+          }
+          DartType returnType = elem.returnType;
+          if (returnType != null && returnType.isVoid) {
+            if (excludeVoidReturn) {
+              return;
+            }
+          }
+        }
+      }
+      request.suggestions.add(
+          createElementSuggestion(elem, relevance: CompletionRelevance.DEFAULT));
+    });
+  }
+
+  /**
+   * Add suggestions for any inherited imported members.
+   */
+  void _addInheritedSuggestions(AstNode node) {
+    var classDecl = node.getAncestor((p) => p is ClassDeclaration);
+    if (classDecl is ClassDeclaration) {
+      // Build a list of inherited types that are imported
+      // and include any inherited imported members
+      List<String> inheritedTypes = new List<String>();
+      visitInheritedTypes(classDecl, (_) {
+        // local declarations are handled by the local computer
+      }, (String typeName) {
+        inheritedTypes.add(typeName);
+      });
+      HashSet<String> visited = new HashSet<String>();
+      while (inheritedTypes.length > 0) {
+        String name = inheritedTypes.removeLast();
+        ClassElement elem = cache.importedClassMap[name];
+        if (visited.add(name) && elem != null) {
+          _addElementSuggestions(elem.accessors);
+          _addElementSuggestions(elem.methods);
+          elem.allSupertypes.forEach((InterfaceType type) {
+            if (visited.add(type.name)) {
+              _addElementSuggestions(type.accessors);
+              _addElementSuggestions(type.methods);
+            }
+          });
+        }
+      }
+    }
+  }
+
+  void _addTopLevelSuggestions() {
     DartCompletionCache cache = request.cache;
     request.suggestions
         ..addAll(cache.importedTypeSuggestions)
@@ -252,193 +317,5 @@ class _ImportedSuggestionBuilder {
         request.suggestions.addAll(cache.importedVoidReturnSuggestions);
       }
     }
-  }
-
-  void addLibraryPrefixSuggestion(ImportElement importElem) {
-    CompletionSuggestion suggestion = null;
-    String completion = importElem.prefix.displayName;
-    if (completion != null && completion.length > 0) {
-      suggestion = new CompletionSuggestion(
-          CompletionSuggestionKind.INVOCATION,
-          CompletionRelevance.DEFAULT,
-          completion,
-          completion.length,
-          0,
-          importElem.isDeprecated,
-          false);
-      LibraryElement lib = importElem.importedLibrary;
-      if (lib != null) {
-        suggestion.element = newElement_fromEngine(lib);
-      }
-      cache.libraryPrefixSuggestions.add(suggestion);
-      completions.add(suggestion.completion);
-    }
-  }
-
-  void addSuggestion(Element element, CompletionRelevance relevance) {
-
-    if (element is ExecutableElement) {
-      if (element.isOperator) {
-        return;
-      }
-    }
-
-    String completion = element.displayName;
-    CompletionSuggestion suggestion = new CompletionSuggestion(
-        CompletionSuggestionKind.INVOCATION,
-        element.isDeprecated ? CompletionRelevance.LOW : relevance,
-        completion,
-        completion.length,
-        0,
-        element.isDeprecated,
-        false);
-
-    suggestion.element = newElement_fromEngine(element);
-
-    DartType type;
-    if (element is FunctionElement) {
-      type = element.returnType;
-    } else if (element is PropertyAccessorElement && element.isGetter) {
-      type = element.returnType;
-    } else if (element is TopLevelVariableElement) {
-      type = element.type;
-    }
-    if (type != null) {
-      String name = type.displayName;
-      if (name != null && name.length > 0 && name != 'dynamic') {
-        suggestion.returnType = name;
-      }
-    }
-
-    if (element is ExecutableElement) {
-      DartType returnType = element.returnType;
-      if (returnType != null && returnType.isVoid) {
-        cache.importedVoidReturnSuggestions.add(suggestion);
-      } else {
-        cache.otherImportedSuggestions.add(suggestion);
-      }
-    } else if (element is ClassElement) {
-      cache.importedTypeSuggestions.add(suggestion);
-    } else {
-      cache.otherImportedSuggestions.add(suggestion);
-    }
-    completions.add(suggestion.completion);
-  }
-
-  void addSuggestions(List<Element> elements) {
-    elements.forEach((Element elem) {
-      addSuggestion(elem, CompletionRelevance.DEFAULT);
-    });
-  }
-
-  /**
-   * If the needed information is cached, then add suggestions and return `true`
-   * else return `false` indicating that additional work is necessary.
-   */
-  bool computeFast() {
-    if (cache.importKey == computeImportKey) {
-      addCachedSuggestions();
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Compute suggested based upon imported elements.
-   */
-  computeFull(AstNode node) {
-    CompilationUnit unit = node.getAncestor((p) => p is CompilationUnit);
-    cache.importedTypeSuggestions = <CompletionSuggestion>[];
-    cache.libraryPrefixSuggestions = <CompletionSuggestion>[];
-    cache.otherImportedSuggestions = <CompletionSuggestion>[];
-    cache.importedVoidReturnSuggestions = <CompletionSuggestion>[];
-
-    // Exclude elements from local library
-    // because they are provided by LocalComputer
-    Set<LibraryElement> excludedLibs = new Set<LibraryElement>();
-    excludedLibs.add(unit.element.enclosingElement);
-
-    // Include explicitly imported elements
-    Map<String, ClassElement> classMap = new Map<String, ClassElement>();
-    unit.directives.forEach((Directive directive) {
-      if (directive is ImportDirective) {
-        ImportElement importElem = directive.element;
-        if (importElem != null && importElem.importedLibrary != null) {
-          if (directive.prefix == null) {
-            Namespace importNamespace =
-                new NamespaceBuilder().createImportNamespaceForDirective(importElem);
-            // Include top level elements
-            importNamespace.definedNames.forEach((String name, Element elem) {
-              if (elem is ClassElement) {
-                classMap[name] = elem;
-              }
-              addSuggestion(elem, CompletionRelevance.DEFAULT);
-            });
-          } else {
-            // Exclude elements from prefixed imports
-            // because they are provided by InvocationComputer
-            excludedLibs.add(importElem.importedLibrary);
-            addLibraryPrefixSuggestion(importElem);
-          }
-        }
-      }
-    });
-
-    // Include implicitly imported dart:core elements
-    Source coreUri = request.context.sourceFactory.forUri('dart:core');
-    LibraryElement coreLib = request.context.getLibraryElement(coreUri);
-    Namespace coreNamespace =
-        new NamespaceBuilder().createPublicNamespaceForLibrary(coreLib);
-    coreNamespace.definedNames.forEach((String name, Element elem) {
-      if (elem is ClassElement) {
-        classMap[name] = elem;
-      }
-      addSuggestion(elem, CompletionRelevance.DEFAULT);
-    });
-
-    // Build a list of inherited types that are imported
-    // and include any inherited imported members
-    var classDecl = node.getAncestor((p) => p is ClassDeclaration);
-    if (classDecl is ClassDeclaration) {
-      List<String> inheritedTypes = new List<String>();
-      visitInheritedTypes(classDecl, (ClassDeclaration classDecl) {
-        // ignored
-      }, (String typeName) {
-        inheritedTypes.add(typeName);
-      });
-      Set<String> visited = new Set<String>();
-      while (inheritedTypes.length > 0) {
-        String name = inheritedTypes.removeLast();
-        ClassElement elem = classMap[name];
-        if (visited.add(name) && elem != null) {
-          addSuggestions(elem.accessors);
-          addSuggestions(elem.methods);
-          elem.allSupertypes.forEach((InterfaceType type) {
-            if (visited.add(type.name)) {
-              addSuggestions(type.accessors);
-              addSuggestions(type.methods);
-            }
-          });
-        }
-      }
-    }
-
-    // Add non-imported elements as low relevance
-    var future = request.searchEngine.searchTopLevelDeclarations('');
-    return future.then((List<SearchMatch> matches) {
-      matches.forEach((SearchMatch match) {
-        if (match.kind == MatchKind.DECLARATION) {
-          Element element = match.element;
-          if (element.isPublic &&
-              !excludedLibs.contains(element.library) &&
-              !completions.contains(element.displayName)) {
-            addSuggestion(element, CompletionRelevance.LOW);
-          }
-        }
-      });
-      cache.importKey = computeImportKey;
-      addCachedSuggestions();
-      return true;
-    });
   }
 }

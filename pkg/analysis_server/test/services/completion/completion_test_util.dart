@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/src/protocol.dart' as protocol show Element,
     ElementKind;
 import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
+import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/imported_computer.dart';
 import 'package:analysis_server/src/services/completion/invocation_computer.dart';
@@ -23,6 +24,12 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
+
+int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
+  String c1 = s1.completion.toLowerCase();
+  String c2 = s2.completion.toLowerCase();
+  return c1.compareTo(c2);
+}
 
 abstract class AbstractCompletionTest extends AbstractContextTest {
   Index index;
@@ -471,11 +478,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     if (completions != null) {
       sb.write('\n  found');
       completions.toList()
-          ..sort((CompletionSuggestion s1, CompletionSuggestion s2) {
-            String c1 = s1.completion.toLowerCase();
-            String c2 = s2.completion.toLowerCase();
-            return c1.compareTo(c2);
-          })
+          ..sort(suggestionComparator)
           ..forEach((CompletionSuggestion suggestion) {
             sb.write('\n    ${suggestion.completion} -> $suggestion');
           });

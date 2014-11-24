@@ -14,6 +14,40 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
 /**
+ * Create a suggestion based upon the given imported element.
+ */
+CompletionSuggestion createElementSuggestion(Element element,
+    {CompletionRelevance relevance: CompletionRelevance.DEFAULT}) {
+  String completion = element.displayName;
+  CompletionSuggestion suggestion = new CompletionSuggestion(
+      CompletionSuggestionKind.INVOCATION,
+      element.isDeprecated ? CompletionRelevance.LOW : relevance,
+      completion,
+      completion.length,
+      0,
+      element.isDeprecated,
+      false);
+
+  suggestion.element = newElement_fromEngine(element);
+
+  DartType type;
+  if (element is FunctionElement) {
+    type = element.returnType;
+  } else if (element is PropertyAccessorElement && element.isGetter) {
+    type = element.returnType;
+  } else if (element is TopLevelVariableElement) {
+    type = element.type;
+  }
+  if (type != null) {
+    String name = type.displayName;
+    if (name != null && name.length > 0 && name != 'dynamic') {
+      suggestion.returnType = name;
+    }
+  }
+  return suggestion;
+}
+
+/**
  * Call the given function with each non-null non-empty inherited type name
  * that is defined in the given class.
  */
@@ -56,9 +90,11 @@ visitInheritedTypeNames(ClassDeclaration node, void inherited(String name)) {
 }
 
 /**
- * Call the given functions with each non-null non-empty inherited class
- * declaration, if the class is defined locally, or type name if it is not
- * defined locally.
+ * Starting with the given class node, traverse the inheritence hierarchy
+ * calling the given functions with each non-null non-empty inherited class
+ * declaration. For each locally defined class declaration, call [local].
+ * For each class identifier in the hierarchy that is not defined locally,
+ * call the [imported] function.
  */
 void visitInheritedTypes(ClassDeclaration node, void
     local(ClassDeclaration classNode), void imported(String typeName)) {
