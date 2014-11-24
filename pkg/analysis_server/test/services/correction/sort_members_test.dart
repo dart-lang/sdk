@@ -478,6 +478,29 @@ typedef FC();
 ''');
   }
 
+  void test_unitMembers_importsAndDeclarations() {
+    _parseTestUnit(r'''
+import 'dart:a';
+import 'package:b';
+
+main() {
+}
+
+f() => null;
+''');
+    // validate change
+    _assertSort(r'''
+import 'dart:a';
+
+import 'package:b';
+
+f() => null;
+
+main() {
+}
+''');
+  }
+
   void test_unitMembers_mix() {
     _parseTestUnit(r'''
 _mmm() {}

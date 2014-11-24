@@ -61,8 +61,10 @@ class MemberSorter {
    */
   List<SourceEdit> sort() {
     _sortClassesMembers();
-    _sortUnitDirectives();
     _sortUnitMembers();
+    // Must sort unit directives last because it may insert newlines, which
+    // would confuse the offsets used by the other sort functions.
+    _sortUnitDirectives();
     // prepare edits
     List<SourceEdit> edits = <SourceEdit>[];
     if (code != initialCode) {
