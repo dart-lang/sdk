@@ -1071,6 +1071,7 @@ main() {
     addTestFile('''
 class A {
   var test = 0;
+  A(this.test);
   main() {
     print(test);
   }
@@ -1081,9 +1082,56 @@ class A {
     }, '''
 class A {
   var newName = 0;
+  A(this.newName);
   main() {
     print(newName);
   }
+}
+''');
+  }
+
+  test_classMember_field_onFieldFormalParameter() {
+    addTestFile('''
+class A {
+  var test = 0;
+  A(this.test);
+  main() {
+    print(test);
+  }
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test);', 'newName');
+    }, '''
+class A {
+  var newName = 0;
+  A(this.newName);
+  main() {
+    print(newName);
+  }
+}
+''');
+  }
+
+  test_classMember_field_onFieldFormalParameter_named() {
+    addTestFile('''
+class A {
+  final int test;
+  A({this.test: 0});
+}
+main() {
+  new A(test: 42);
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test: 42', 'newName');
+    }, '''
+class A {
+  final int newName;
+  A({this.newName: 0});
+}
+main() {
+  new A(newName: 42);
 }
 ''');
   }

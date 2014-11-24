@@ -409,6 +409,33 @@ class A {
 ''');
   }
 
+  test_createChange_FieldElement_fieldFormalParameter_named() {
+    indexTestUnit('''
+class A {
+  final test;
+  A({this.test});
+}
+main() {
+  new A(test: 42);
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test;');
+    expect(refactoring.refactoringName, 'Rename Field');
+    expect(refactoring.oldName, 'test');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class A {
+  final newName;
+  A({this.newName});
+}
+main() {
+  new A(newName: 42);
+}
+''');
+  }
+
   test_createChange_FieldElement_invocation() {
     indexTestUnit('''
 typedef F(a);
