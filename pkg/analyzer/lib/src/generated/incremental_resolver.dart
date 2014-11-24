@@ -11,10 +11,10 @@ import 'ast.dart';
 import 'element.dart';
 import 'error.dart';
 import 'java_engine.dart';
+import 'parser.dart';
 import 'resolver.dart';
 import 'scanner.dart';
 import 'source.dart';
-import 'parser.dart';
 
 
 /**
@@ -104,27 +104,14 @@ bool poorMansIncrementalResolution(TypeProvider typeProvider,
 }
 
 
-List<AstNode> _getParents(AstNode node) {
-  List<AstNode> parents = <AstNode>[];
-  while (node != null) {
-    parents.insert(0, node);
-    node = node.parent;
+bool _equalToken(Token oldToken, Token newToken, int delta) {
+  if (oldToken.type != newToken.type) {
+    return false;
   }
-  return parents;
-}
-
-AstNode _findNodeWithTokens(AstNode root, Token first, Token last) {
-  int offset = first.offset;
-  int end = last.end;
-  NodeLocator nodeLocator = new NodeLocator.con2(offset, end);
-  return nodeLocator.searchWithin(root);
-}
-
-
-class _TokenPair {
-  final Token oldToken;
-  final Token newToken;
-  _TokenPair(this.oldToken, this.newToken);
+  if (newToken.offset - oldToken.offset != delta) {
+    return false;
+  }
+  return oldToken.lexeme == newToken.lexeme;
 }
 
 
@@ -160,14 +147,21 @@ _TokenPair _findLastDifferentToken(Token oldToken, Token newToken) {
 }
 
 
-bool _equalToken(Token a, Token b, int delta) {
-  if (a.type != b.type) {
-    return false;
+AstNode _findNodeWithTokens(AstNode root, Token first, Token last) {
+  int offset = first.offset;
+  int end = last.end;
+  NodeLocator nodeLocator = new NodeLocator.con2(offset, end);
+  return nodeLocator.searchWithin(root);
+}
+
+
+List<AstNode> _getParents(AstNode node) {
+  List<AstNode> parents = <AstNode>[];
+  while (node != null) {
+    parents.insert(0, node);
+    node = node.parent;
   }
-  if (b.offset - a.offset != delta) {
-    return false;
-  }
-  return a.lexeme == b.lexeme;
+  return parents;
 }
 
 
@@ -554,13 +548,19 @@ class DeclarationMatcher extends RecursiveAstVisitor {
 
   void _assertCompatibleParameter(FormalParameter node,
       ParameterElement element) {
-    if (node is SimpleFormalParameter) {
+    if (node is DefaultFormalParameter) {
+      _assertTrue(element.isInitializingFormal);
+      // TODO(scheglov) check default value
+    } else if (node is FieldFormalParameter) {
+      _assertTrue(element.isInitializingFormal);
+    } else if (node is SimpleFormalParameter) {
       _assertSameType(node.type, element.type);
       node.identifier.staticElement = element;
       (element as ElementImpl).nameOffset = node.identifier.offset;
       (element as ElementImpl).name = node.identifier.name;
     } else {
       // TODO(scheglov) support other parameter types
+//      print('node: $node  element: $element  ${element.runtimeType}');
       _assertTrue(false);
     }
     // TODO(scheglov) check names of named parameters
@@ -608,6 +608,9 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     if (node == null) {
       return _assertTrue(type == null || type.isDynamic);
     }
+    if (type == null) {
+      return _assertTrue(false);
+    }
     // check specific type kinds
     String nodeName = node.name.name;
     if (type is InterfaceType) {
@@ -616,7 +619,11 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       TypeArgumentList nodeArgumentList = node.typeArguments;
       List<DartType> typeArguments = type.typeArguments;
       if (nodeArgumentList == null) {
-        _assertTrue(typeArguments.isEmpty);
+        // Node doesn't have type arguments, so all type argument of the
+        // element must be "dynamic".
+        for (DartType typeArgument in typeArguments) {
+          _assertTrue(typeArgument.isDynamic);
+        }
       } else {
         List<TypeName> nodeArguments = nodeArgumentList.arguments;
         _assertSameTypes(nodeArguments, typeArguments);
@@ -624,9 +631,10 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     } else if (type is TypeParameterType) {
       _assertEquals(nodeName, type.name);
       // TODO(scheglov) it should be possible to rename type parameters
-    } else if (type is VoidType) {
+    } else if (type.isVoid) {
       _assertEquals(nodeName, 'void');
-      // TODO(scheglov) add test for "void"
+    } else if (type.isDynamic) {
+      _assertEquals(nodeName, 'dynamic');
     } else {
       // TODO(scheglov) support other types
 //      print('node: $node type: $type  type.type: ${type.runtimeType}');
@@ -1259,4 +1267,11 @@ class _ElementsRestorer extends RecursiveAstVisitor {
   visitSimpleIdentifier(SimpleIdentifier node) {
     _elements[node] = node.staticElement;
   }
+}
+
+
+class _TokenPair {
+  final Token oldToken;
+  final Token newToken;
+  _TokenPair(this.oldToken, this.newToken);
 }

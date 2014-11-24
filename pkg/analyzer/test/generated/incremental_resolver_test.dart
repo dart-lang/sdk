@@ -266,6 +266,20 @@ class A {
 ''');
   }
 
+  void test_false_defaultFieldFormalParameterElement_wasSimple() {
+    _assertCompilationUnitMatches(false, r'''
+class A {
+  int field;
+  A(int field);
+}
+''', r'''
+class A {
+  int field;
+  A([this.field = 0]);
+}
+''');
+  }
+
   void test_false_enum_constants_add() {
     resetWithEnum();
     _assertCompilationUnitMatches(false, r'''
@@ -476,6 +490,20 @@ class T {
 ''', r'''
 class T {
   List<String> A;
+}
+''');
+  }
+
+  void test_false_fieldFormalParameterElement_wasSimple() {
+    _assertCompilationUnitMatches(false, r'''
+class A {
+  int field;
+  A(int field);
+}
+''', r'''
+class A {
+  int field;
+  A(this.field);
 }
 ''');
   }
@@ -842,6 +870,18 @@ List<String> A;
 ''');
   }
 
+  void test_false_type_noTypeArguments_hadTypeArguments() {
+    _assertCompilationUnitMatches(false, r'''
+class A<T> {}
+A<int> main() {
+}
+''', r'''
+class A<T> {}
+A main() {
+}
+''');
+  }
+
   void test_false_withClause_add() {
     _assertCompilationUnitMatches(false, r'''
 class A {}
@@ -1024,6 +1064,20 @@ class A {
 ''');
   }
 
+  void test_true_defaultFieldFormalParameterElement() {
+    _assertCompilationUnitMatches(true, r'''
+class A {
+  int field;
+  A([this.field = 0]);
+}
+''', r'''
+class A {
+  int field;
+  A([this.field = 0]);
+}
+''');
+  }
+
   void test_true_enum_constants_reorder() {
     resetWithEnum();
     _assertCompilationUnitMatches(true, r'''
@@ -1157,6 +1211,20 @@ class T {
   int A = 1;
   int B = 2;
   int C = 3;
+}
+''');
+  }
+
+  void test_true_fieldFormalParameterElement() {
+    _assertCompilationUnitMatches(true, r'''
+class A {
+  int field;
+  A(this.field);
+}
+''', r'''
+class A {
+  int field;
+  A(this.field);
 }
 ''');
   }
@@ -1388,6 +1456,34 @@ const int C = 3;
 Map<int, String> A;
 ''', r'''
 Map<int, String> A;
+''');
+  }
+
+  void test_true_type_dynamic() {
+    _assertCompilationUnitMatches(true, r'''
+dynamic a() {}
+''', r'''
+dynamic a() {}
+''');
+  }
+
+  void test_true_type_noTypeArguments_implyAllDynamic() {
+    _assertCompilationUnitMatches(true, r'''
+class A<T> {}
+A main() {
+}
+''', r'''
+class A<T> {}
+A main() {
+}
+''');
+  }
+
+  void test_true_type_void() {
+    _assertCompilationUnitMatches(true, r'''
+void a() {}
+''', r'''
+void a() {}
 ''');
   }
 
@@ -1882,6 +1978,13 @@ main() {
     }
   }
 
+  static void _assertEqualsToken(Token incrToken, Token fullToken) {
+    expect(incrToken.type, fullToken.type);
+    expect(incrToken.offset, fullToken.offset);
+    expect(incrToken.length, fullToken.length);
+    expect(incrToken.lexeme, fullToken.lexeme);
+  }
+
   static void _assertEqualsTokens(CompilationUnit incrUnit,
       CompilationUnit fullUnit) {
     Token incrToken = incrUnit.beginToken;
@@ -1893,13 +1996,6 @@ main() {
       incrToken = incrToken.next;
       fullToken = fullToken.next;
     }
-  }
-
-  static void _assertEqualsToken(Token incrToken, Token fullToken) {
-    expect(incrToken.type, fullToken.type);
-    expect(incrToken.offset, fullToken.offset);
-    expect(incrToken.length, fullToken.length);
-    expect(incrToken.lexeme, fullToken.lexeme);
   }
 }
 
