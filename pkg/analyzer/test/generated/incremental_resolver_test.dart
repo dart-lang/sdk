@@ -102,6 +102,84 @@ class B<T> {
 ''');
   }
 
+  void test_false_classMemberAccessor_list_add() {
+    _assertCompilationUnitMatches(false, r'''
+class A {
+  get a => 1;
+  get b => 2;
+}
+''', r'''
+class A {
+  get a => 1;
+  get b => 2;
+  get c => 3;
+}
+''');
+  }
+
+  void test_false_classMemberAccessor_list_remove() {
+    _assertCompilationUnitMatches(false, r'''
+class A {
+  get a => 1;
+  get b => 2;
+  get c => 3;
+}
+''', r'''
+class A {
+  get a => 1;
+  get b => 2;
+}
+''');
+  }
+
+  void test_false_classMemberAccessor_wasGetter() {
+    _assertCompilationUnitMatches(false, r'''
+class A {
+  get a => 1;
+}
+''', r'''
+class A {
+  set a(x) {}
+}
+''');
+  }
+
+  void test_false_classMemberAccessor_wasInstance() {
+    _assertCompilationUnitMatches(false, r'''
+class A {
+  get a => 1;
+}
+''', r'''
+class A {
+  static get a => 1;
+}
+''');
+  }
+
+  void test_false_classMemberAccessor_wasSetter() {
+    _assertCompilationUnitMatches(false, r'''
+class A {
+  set a(x) {}
+}
+''', r'''
+class A {
+  get a => 1;
+}
+''');
+  }
+
+  void test_false_classMemberAccessor_wasStatic() {
+    _assertCompilationUnitMatches(false, r'''
+class A {
+  static get a => 1;
+}
+''', r'''
+class A {
+  get a => 1;
+}
+''');
+  }
+
   void test_false_classTypeAlias_list_add() {
     _assertCompilationUnitMatches(false, r'''
 class M {}
@@ -538,6 +616,48 @@ import 'dart:async' show Future;
 ''');
   }
 
+  void test_false_method_list_add() {
+    _assertCompilationUnitMatches(false, r'''
+class A {
+  a() {}
+  b() {}
+}
+''', r'''
+class A {
+  a() {}
+  b() {}
+  c() {}
+}
+''');
+  }
+
+  void test_false_method_list_remove() {
+    _assertCompilationUnitMatches(false, r'''
+class A {
+  a() {}
+  b() {}
+  c() {}
+}
+''', r'''
+class A {
+  a() {}
+  b() {}
+}
+''');
+  }
+
+  void test_false_method_returnType_edit() {
+    _assertCompilationUnitMatches(false, r'''
+class A {
+  int m() {}
+}
+''', r'''
+class A {
+  String m() {}
+}
+''');
+  }
+
   void test_false_part_list_add() {
     addNamedSource('/unitA.dart', 'part of lib; class A {}');
     addNamedSource('/unitB.dart', 'part of lib; class B {}');
@@ -561,6 +681,104 @@ part 'unitB.dart';
 ''', r'''
 library lib;
 part 'unitA.dart';
+''');
+  }
+
+  void test_false_topLevelAccessor_list_add() {
+    _assertCompilationUnitMatches(false, r'''
+get a => 1;
+get b => 2;
+''', r'''
+get a => 1;
+get b => 2;
+get c => 3;
+''');
+  }
+
+  void test_false_topLevelAccessor_list_remove() {
+    _assertCompilationUnitMatches(false, r'''
+get a => 1;
+get b => 2;
+get c => 3;
+''', r'''
+get a => 1;
+get b => 2;
+''');
+  }
+
+  void test_false_topLevelAccessor_wasGetter() {
+    _assertCompilationUnitMatches(false, r'''
+get a => 1;
+''', r'''
+set a(x) {}
+''');
+  }
+
+  void test_false_topLevelAccessor_wasSetter() {
+    _assertCompilationUnitMatches(false, r'''
+set a(x) {}
+''', r'''
+get a => 1;
+''');
+  }
+
+  void test_false_topLevelFunction_list_add() {
+    _assertCompilationUnitMatches(false, r'''
+a() {}
+b() {}
+''', r'''
+a() {}
+b() {}
+c() {}
+''');
+  }
+
+  void test_false_topLevelFunction_list_remove() {
+    _assertCompilationUnitMatches(false, r'''
+a() {}
+b() {}
+c() {}
+''', r'''
+a() {}
+b() {}
+''');
+  }
+
+  void test_false_topLevelFunction_parameters_list_add() {
+    _assertCompilationUnitMatches(false, r'''
+main(int a, int b) {
+}
+''', r'''
+main(int a, int b, int c) {
+}
+''');
+  }
+
+  void test_false_topLevelFunction_parameters_list_remove() {
+    _assertCompilationUnitMatches(false, r'''
+main(int a, int b, int c) {
+}
+''', r'''
+main(int a, int b) {
+}
+''');
+  }
+
+  void test_false_topLevelFunction_parameters_type_edit() {
+    _assertCompilationUnitMatches(false, r'''
+main(int a, int b, int c) {
+}
+''', r'''
+main(int a, String b, int c) {
+}
+''');
+  }
+
+  void test_false_topLevelFunction_returnType_edit() {
+    _assertCompilationUnitMatches(false, r'''
+int a() {}
+''', r'''
+String a() {}
 ''');
   }
 
@@ -703,6 +921,38 @@ class C {}
 class A<T> {}
 ''', r'''
 class A<T> {}
+''');
+  }
+
+  void test_true_classMemberAccessor_list_reorder() {
+    _assertCompilationUnitMatches(true, r'''
+class A {
+  get a => 1;
+  get b => 2;
+  get c => 3;
+}
+''', r'''
+class A {
+  get c => 3;
+  get a => 1;
+  get b => 2;
+}
+''');
+  }
+
+  void test_true_classMemberAccessor_list_same() {
+    _assertCompilationUnitMatches(true, r'''
+class A {
+  get a => 1;
+  get b => 2;
+  get c => 3;
+}
+''', r'''
+class A {
+  get a => 1;
+  get b => 2;
+  get c => 3;
+}
 ''');
   }
 
@@ -983,6 +1233,74 @@ import 'dart:async' show Stream, Future;
 ''');
   }
 
+  void test_true_method_list_reorder() {
+    _assertCompilationUnitMatches(true, r'''
+class A {
+  a() {}
+  b() {}
+  c() {}
+}
+''', r'''
+class A {
+  c() {}
+  a() {}
+  b() {}
+}
+''');
+  }
+
+  void test_true_method_list_same() {
+    _assertCompilationUnitMatches(true, r'''
+class A {
+  a() {}
+  b() {}
+  c() {}
+}
+''', r'''
+class A {
+  a() {}
+  b() {}
+  c() {}
+}
+''');
+  }
+
+  void test_true_method_operator_minus() {
+    _assertCompilationUnitMatches(true, r'''
+class A {
+  operator -(other) {}
+}
+''', r'''
+class A {
+  operator -(other) {}
+}
+''');
+  }
+
+  void test_true_method_operator_minusUnary() {
+    _assertCompilationUnitMatches(true, r'''
+class A {
+  operator -() {}
+}
+''', r'''
+class A {
+  operator -() {}
+}
+''');
+  }
+
+  void test_true_method_operator_plus() {
+    _assertCompilationUnitMatches(true, r'''
+class A {
+  operator +(other) {}
+}
+''', r'''
+class A {
+  operator +(other) {}
+}
+''');
+  }
+
   void test_true_part_list_reorder() {
     addNamedSource('/unitA.dart', 'part of lib; class A {}');
     addNamedSource('/unitB.dart', 'part of lib; class B {}');
@@ -1008,6 +1326,54 @@ part 'unitB.dart';
 library lib;
 part 'unitA.dart';
 part 'unitB.dart';
+''');
+  }
+
+  void test_true_topLevelAccessor_list_reorder() {
+    _assertCompilationUnitMatches(true, r'''
+set a(x) {}
+set b(x) {}
+set c(x) {}
+''', r'''
+set c(x) {}
+set a(x) {}
+set b(x) {}
+''');
+  }
+
+  void test_true_topLevelAccessor_list_same() {
+    _assertCompilationUnitMatches(true, r'''
+get a => 1;
+get b => 2;
+get c => 3;
+''', r'''
+get a => 1;
+get b => 2;
+get c => 3;
+''');
+  }
+
+  void test_true_topLevelFunction_list_reorder() {
+    _assertCompilationUnitMatches(true, r'''
+a() {}
+b() {}
+c() {}
+''', r'''
+c() {}
+a() {}
+b() {}
+''');
+  }
+
+  void test_true_topLevelFunction_list_same() {
+    _assertCompilationUnitMatches(true, r'''
+a() {}
+b() {}
+c() {}
+''', r'''
+a() {}
+b() {}
+c() {}
 ''');
   }
 

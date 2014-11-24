@@ -200,23 +200,22 @@ class DeclarationMatcher extends RecursiveAstVisitor {
 
   @override
   visitFunctionDeclaration(FunctionDeclaration node) {
+    // prepare element name
     String name = node.name.name;
+    if (node.isSetter) {
+      name += '=';
+    }
+    // prepare element
     Token property = node.propertyKeyword;
     ExecutableElement element;
     if (property == null) {
       element = _findElement(_enclosingUnit.functions, name);
-      _processElement(element);
     } else {
-      PropertyAccessorElement accessor =
-          _findElement(_enclosingUnit.accessors, name);
-      _assertNotNull(accessor);
-      _assertFalse(element.isSynthetic);
-      _assertEquals(node.isGetter, accessor.isGetter);
-      _assertEquals(node.isSetter, accessor.isSetter);
-      element = accessor;
+      element = _findElement(_enclosingUnit.accessors, name);
     }
+    // process element
     _processElement(element);
-    // TODO(scheglov) test returnType
+    _assertFalse(element.isSynthetic);
     _assertSameType(node.returnType, element.returnType);
     _assertCompatibleParameters(
         node.functionExpression.parameters,
@@ -279,17 +278,12 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     if (property == null) {
       element = _findElement(_enclosingClass.methods, name);
     } else {
-      PropertyAccessorElement accessor =
-          _findElement(_enclosingClass.accessors, name);
-      _assertNotNull(accessor);
-      _assertFalse(element.isSynthetic);
-      _assertEquals(node.isGetter, accessor.isGetter);
-      _assertEquals(node.isSetter, accessor.isSetter);
-      element = accessor;
+      element = _findElement(_enclosingClass.accessors, name);
     }
     // process element
     _processElement(element);
-    // TODO(scheglov) test returnType
+    _assertFalse(element.isSynthetic);
+    _assertEquals(node.isStatic, element.isStatic);
     _assertSameType(node.returnType, element.returnType);
     _assertCompatibleParameters(node.parameters, element.parameters);
   }
@@ -401,6 +395,9 @@ class DeclarationMatcher extends RecursiveAstVisitor {
 
   void _assertCompatibleParameters(FormalParameterList nodes,
       List<ParameterElement> elements) {
+    if (nodes == null) {
+      return _assertEquals(elements.length, 0);
+    }
     List<FormalParameter> parameters = nodes.parameters;
     int length = parameters.length;
     _assertEquals(length, elements.length);
@@ -507,7 +504,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
    */
   Element _findElement(List<Element> elements, String name) {
     for (Element element in elements) {
-      if (element.displayName == name) {
+      if (element.name == name) {
         return element;
       }
     }
