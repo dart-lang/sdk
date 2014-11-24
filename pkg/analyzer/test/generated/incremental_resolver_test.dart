@@ -33,25 +33,6 @@ main() {
 
 
 class DeclarationMatcherTest extends ResolverTestCase {
-  void fail_test_methodDeclarationMatches_false_localVariable() {
-    // TODO(scheglov) as I understand DeclarationMatcher, we care only
-    // about externally visible model changes. So, because we analyze (at least
-    // right now) incremental changes on method level, local variable can be
-    // ignored.
-    _assertMethodMatches(false, r'''
-class C {
-  int m(int p) {
-    return p + p;
-  }
-}''', r'''
-class C {
-  int m(int p) {
-    int product = p * p;
-    return product + product;
-  }
-}''');
-  }
-
   void test_false_class_list_add() {
     _assertCompilationUnitMatches(false, r'''
 class A {}
@@ -1428,25 +1409,6 @@ class B extends Object with A {}
     DeclarationMatcher matcher = new DeclarationMatcher();
     expect(matcher.matches(newUnit, oldUnit.element), expectMatch);
   }
-
-  void _assertMethodMatches(bool expectMatch, String oldContent,
-      String newContent) {
-    Source source = addSource(oldContent);
-    LibraryElement library = resolve(source);
-    CompilationUnit oldUnit = resolveCompilationUnit(source, library);
-    MethodElement element = _getFirstMethod(oldUnit).element as MethodElement;
-    AnalysisContext context = analysisContext;
-    context.setContents(source, newContent);
-    CompilationUnit newUnit = context.parseCompilationUnit(source);
-    MethodDeclaration newMethod = _getFirstMethod(newUnit);
-    DeclarationMatcher matcher = new DeclarationMatcher();
-    expect(matcher.matches(newMethod, element), expectMatch);
-  }
-
-  MethodDeclaration _getFirstMethod(CompilationUnit unit) {
-    ClassDeclaration classNode = unit.declarations[0] as ClassDeclaration;
-    return classNode.members[0] as MethodDeclaration;
-  }
 }
 
 
@@ -1455,29 +1417,6 @@ class IncrementalResolverTest extends ResolverTestCase {
   String code;
   LibraryElement library;
   CompilationUnit unit;
-
-  void fail_test_constructor_fieldInitializer_add() {
-    // TODO(scheglov) resolver uses "enclosingClass", which we don't set yet
-    _resolveUnit(r'''
-class A {
-  int f;
-  A(int a, int b);
-}''');
-    _resolve(_editString(');', ') : f = a + b;'), _isClassMember);
-  }
-
-  void fail_test_topLevelFunction_parameter_rename() {
-    // TODO(scheglov) Decide if incremental parser keeps the element
-    // of the function. If so, we can resolve parameter renames.
-    _resolveUnit(r'''
-int main(int a, int b) {
-  return a + b;
-}
-''');
-    _resolve(_editString(r'''(int a, int b) {
-  return a + b;''', r'''(int first, int b) {
-  return first + b;'''), _isDeclaration);
-  }
 
   void test_constructor_body() {
     _resolveUnit(r'''
@@ -1488,6 +1427,15 @@ class A {
   }
 }''');
     _resolve(_editString('+', '*'), _isFunctionBody);
+  }
+
+  void test_constructor_fieldInitializer_add() {
+    _resolveUnit(r'''
+class A {
+  int f;
+  A(int a, int b);
+}''');
+    _resolve(_editString(');', ') : f = a + b;'), _isClassMember);
   }
 
   void test_constructor_fieldInitializer_edit() {
@@ -1506,8 +1454,8 @@ class A {
 class A {
   A(int p);
 }
-class A {
-  A(int a, int b) : super(a + b);
+class B extends A {
+  B(int a, int b) : super(a + b);
 }
 ''');
     _resolve(_editString('+', '*'), _isExpression);
@@ -1571,6 +1519,19 @@ class A {
 '''), _isBlock);
   }
 
+  void test_method_parameter_rename() {
+    _resolveUnit(r'''
+class A {
+  int m(int a, int b, int c) {
+    return a + b + c;
+  }
+}
+''');
+    _resolve(_editString(r'''(int a, int b, int c) {
+    return a + b + c;''', r'''(int a, int second, int c) {
+    return a + second + c;'''), _isDeclaration);
+  }
+
   void test_topLevelFunction_label_add() {
     _resolveUnit(r'''
 int main(int a, int b) {
@@ -1609,6 +1570,17 @@ int main(int a, int b) {
 }
 ''');
     _resolve(_editString('int res = a * b;', ''), _isBlock);
+  }
+
+  void test_topLevelFunction_parameter_rename() {
+    _resolveUnit(r'''
+int main(int a, int b) {
+  return a + b;
+}
+''');
+    _resolve(_editString(r'''(int a, int b) {
+  return a + b;''', r'''(int first, int b) {
+  return first + b;'''), _isDeclaration);
   }
 
   void test_topLevelVariable_initializer() {
@@ -1663,6 +1635,11 @@ class B {
         edit.replacement +
         code.substring(offset + edit.length);
     CompilationUnit newUnit = _parseUnit(newCode);
+    // update tokens
+    {
+      int delta = edit.replacement.length - edit.length;
+      _shiftTokens(unit.beginToken, offset, delta);
+    }
     // replace the node
     AstNode oldNode = _findNodeAt(unit, offset, predicate);
     AstNode newNode = _findNodeAt(newUnit, offset, predicate);
@@ -1723,6 +1700,15 @@ class B {
     var token = scanner.tokenize();
     var parser = new Parser(null, errorListener);
     return parser.parseCompilationUnit(token);
+  }
+
+  static void _shiftTokens(Token token, int afterOffset, int delta) {
+    while (token.type != TokenType.EOF) {
+      if (token.offset >= afterOffset) {
+        token.applyDelta(delta);
+      }
+      token = token.next;
+    }
   }
 }
 
@@ -2731,7 +2717,9 @@ class _SameResolutionValidator implements AstVisitor {
     if (a == null && b == null) {
       return;
     }
-    expect(a.nameOffset, b.nameOffset);
+    if (a.nameOffset != b.nameOffset) {
+      fail('Expected: ${b.nameOffset}\n  Actual: ${a.nameOffset}');
+    }
   }
 
   void _verifyType(DartType a, DartType b) {

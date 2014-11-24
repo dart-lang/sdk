@@ -147,6 +147,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
         _enclosingClass.unnamedConstructor :
         _enclosingClass.getNamedConstructor(constructorName.name);
     _processElement(element);
+    node.element = element;
     _assertCompatibleParameters(node.parameters, element.parameters);
   }
 
@@ -215,6 +216,8 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     }
     // process element
     _processElement(element);
+    node.name.staticElement = element;
+    node.functionExpression.element = element;
     _assertFalse(element.isSynthetic);
     _assertSameType(node.returnType, element.returnType);
     _assertCompatibleParameters(
@@ -282,8 +285,8 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     }
     // process element
     _processElement(element);
-    _assertFalse(element.isSynthetic);
     _assertEquals(node.isStatic, element.isStatic);
+    node.name.staticElement = element;
     _assertSameType(node.returnType, element.returnType);
     _assertCompatibleParameters(node.parameters, element.parameters);
   }
@@ -386,6 +389,9 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       ParameterElement element) {
     if (node is SimpleFormalParameter) {
       _assertSameType(node.type, element.type);
+      node.identifier.staticElement = element;
+      element.nameOffset = node.identifier.offset;
+      (element as ElementImpl).name = node.identifier.name;
     } else {
       // TODO(scheglov) support other parameter types
       _assertTrue(false);
@@ -658,10 +664,10 @@ class IncrementalResolver {
         new _ElementNameOffsetUpdater(
             _updateOffset,
             _updateNewLength - _updateOldLength));
-    _updateElements(rootNode);
     if (_elementModelChanged(rootNode)) {
       throw new AnalysisException("Cannot resolve node: element model changed");
     }
+    _updateElements(rootNode);
     // resolve root in scope
     ResolutionContext context =
         ResolutionContextBuilder.contextFor(rootNode, _errorListener);
@@ -699,6 +705,12 @@ class IncrementalResolver {
    * be determined.
    */
   bool _elementModelChanged(AstNode node) {
+    // If we are replacing the whole declaration (e.g. rename a parameter), we
+    // can try to find the corresponding Element in the enclosing one, see if it
+    // is compatible, and if 'yes', then restore and update it.
+    if (node is Declaration) {
+      node = node.parent;
+    }
     Element element = _getElement(node);
     if (element == null) {
       throw new AnalysisException(

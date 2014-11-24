@@ -3575,6 +3575,12 @@ abstract class ElementImpl implements Element {
   @override
   String get name => _name;
 
+  void set name(String name) {
+    this._name = name;
+    _cachedLocation = null;
+    _cachedHashCode = null;
+  }
+
   @override
   AstNode get node => getNodeMatching((node) => node is AstNode);
 
