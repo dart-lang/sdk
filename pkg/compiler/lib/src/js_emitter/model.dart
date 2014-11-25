@@ -135,12 +135,15 @@ class Class {
   Class superclass;
   final List<Method> methods;
   final List<InstanceField> fields;
+  final bool onlyForRti;
 
   /// Whether the class must be evaluated eagerly.
   bool isEager = false;
 
   Class(this.name, this.holder, this.methods, this.fields,
-        { this.isEager: false });
+        { this.onlyForRti }) {
+    assert(onlyForRti != null);
+  }
 
   void setSuperclass(Class superclass) {
     this.superclass = superclass;

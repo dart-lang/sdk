@@ -264,7 +264,10 @@ class ProgramBuilder {
     String name = namer.getNameOfClass(element);
     String holderName = namer.globalObjectFor(element);
     Holder holder = _registry.registerHolder(holderName);
-    Class result = new Class(name, holder, methods, fields);
+    bool onlyForRti =
+        _task.typeTestEmitter.rtiNeededClasses.contains(element);
+    Class result = new Class(name, holder, methods, fields,
+                             onlyForRti: onlyForRti);
     _classes[element] = result;
     return result;
   }
