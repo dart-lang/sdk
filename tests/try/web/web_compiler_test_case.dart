@@ -81,6 +81,8 @@ class WebInputProvider {
 
   final Map<Uri, Future> cachedSources = new Map<Uri, Future>();
 
+  static final Map<String, Future> cachedRequests = new Map<String, Future>();
+
   WebInputProvider(
       this.source, this.mainUri, this.libraryRoot, this.packageRoot);
 
@@ -88,11 +90,15 @@ class WebInputProvider {
     return cachedSources.putIfAbsent(uri, () {
       if (uri == mainUri) return new Future.value(source);
       if (uri.scheme == WEB_SCHEME) {
-        return HttpRequest.getString('/root_dart${uri.path}');
+        return cachedHttpRequest('/root_dart${uri.path}');
       } else {
-        return HttpRequest.getString('$uri');
+        return cachedHttpRequest('$uri');
       }
     });
+  }
+
+  static Future cachedHttpRequest(String uri) {
+    return cachedRequests.putIfAbsent(uri, () => HttpRequest.getString(uri));
   }
 }
 
