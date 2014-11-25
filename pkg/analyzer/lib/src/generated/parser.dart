@@ -10751,10 +10751,14 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitBreakStatement(BreakStatement node) {
     BreakStatement toNode = this._toNode as BreakStatement;
-    return _and(
+    if (_and(
         _isEqualTokens(node.keyword, toNode.keyword),
         _isEqualNodes(node.label, toNode.label),
-        _isEqualTokens(node.semicolon, toNode.semicolon));
+        _isEqualTokens(node.semicolon, toNode.semicolon))) {
+      // TODO(paulberry): map node.target to toNode.target.
+      return true;
+    }
+    return false;
   }
 
   @override
@@ -10916,10 +10920,14 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitContinueStatement(ContinueStatement node) {
     ContinueStatement toNode = this._toNode as ContinueStatement;
-    return _and(
+    if (_and(
         _isEqualTokens(node.keyword, toNode.keyword),
         _isEqualNodes(node.label, toNode.label),
-        _isEqualTokens(node.semicolon, toNode.semicolon));
+        _isEqualTokens(node.semicolon, toNode.semicolon))) {
+      // TODO(paulberry): map node.target to toNode.target.
+      return true;
+    }
+    return false;
   }
 
   @override

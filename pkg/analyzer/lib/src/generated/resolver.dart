@@ -7233,18 +7233,6 @@ class INIT_STATE extends Enum<INIT_STATE> {
  */
 class LabelScope {
   /**
-   * The marker used to look up a label element for an unlabeled `break` or `continue`.
-   */
-  static String EMPTY_LABEL = "";
-
-  /**
-   * The label element returned for scopes that can be the target of an unlabeled `break` or
-   * `continue`.
-   */
-  static SimpleIdentifier _EMPTY_LABEL_IDENTIFIER =
-      new SimpleIdentifier(new sc.StringToken(sc.TokenType.IDENTIFIER, "", 0));
-
-  /**
    * The label scope enclosing this label scope.
    */
   final LabelScope _outerScope;
@@ -7257,46 +7245,28 @@ class LabelScope {
   /**
    * The element to which the label resolves.
    */
-  final LabelElement _element;
+  final LabelElement element;
 
   /**
-   * Initialize a newly created scope to represent the potential target of an unlabeled
-   * `break` or `continue`.
-   *
-   * @param outerScope the label scope enclosing the new label scope
-   * @param onSwitchStatement `true` if this label is associated with a `switch`
-   *          statement
-   * @param onSwitchMember `true` if this label is associated with a `switch` member
+   * The AST node to which the label resolves.
    */
-  LabelScope.con1(LabelScope outerScope, bool onSwitchStatement,
-      bool onSwitchMember)
-      : this.con2(
-          outerScope,
-          EMPTY_LABEL,
-          new LabelElementImpl(
-              _EMPTY_LABEL_IDENTIFIER,
-              onSwitchStatement,
-              onSwitchMember));
+  final AstNode node;
 
   /**
-   * Initialize a newly created scope to represent the given label.
-   *
-   * @param outerScope the label scope enclosing the new label scope
-   * @param label the label defined in this scope
-   * @param element the element to which the label resolves
+   * Initialize a newly created scope to represent the label [_label].
+   * [_outerScope] is the scope enclosing the new label scope.  [node] is the
+   * AST node the label resolves to.  [element] is the element the label
+   * resolves to.
    */
-  LabelScope.con2(this._outerScope, this._label, this._element);
+  LabelScope(this._outerScope, this._label, this.node, this.element);
 
   /**
-   * Return the label element corresponding to the given label, or `null` if the given label
-   * is not defined in this scope.
-   *
-   * @param targetLabel the label being looked up
-   * @return the label element corresponding to the given label
+   * Return the LabelScope which defines [targetLabel], or `null` if it is not
+   * defined in this scope.
    */
-  LabelElement lookup(String targetLabel) {
+  LabelScope lookup(String targetLabel) {
     if (_label == targetLabel) {
-      return _element;
+      return this;
     } else if (_outerScope != null) {
       return _outerScope.lookup(targetLabel);
     } else {
@@ -11056,6 +11026,20 @@ class ResolverVisitor extends ScopedVisitor {
   TypePromotionManager _promoteManager = new TypePromotionManager();
 
   /**
+   * The AST node representing the innermost enclosing statement that can be
+   * the target of an unlabeled "break" statement, or `null` if there is no
+   * such statement.
+   */
+  Statement _unlabeledBreakTarget;
+
+  /**
+   * The AST node representing the innermost enclosing statement that can be
+   * the target of an unlabeled "continue" statement, or `null` if there is no
+   * such statement.
+   */
+  Statement _unlabeledContinueTarget;
+
+  /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
    *
    * @param library the library containing the compilation unit being resolved
@@ -11238,6 +11222,14 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  AstNode getUnlabeledBreakOrContinueTarget(bool isContinue) {
+    if (isContinue) {
+      return _unlabeledContinueTarget;
+    } else {
+      return _unlabeledBreakTarget;
+    }
+  }
+
   /**
    * If it is appropriate to do so, override the current type of the static and propagated elements
    * associated with the given expression with the given type. Generally speaking, it is appropriate
@@ -11390,10 +11382,16 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitBlockFunctionBody(BlockFunctionBody node) {
     safelyVisit(_commentBeforeFunction);
     _overrideManager.enterScope();
+    Statement previousUnlabeledBreakTarget = _unlabeledBreakTarget;
+    Statement previousUnlabeledContinueTarget = _unlabeledContinueTarget;
     try {
+      _unlabeledBreakTarget = null;
+      _unlabeledContinueTarget = null;
       super.visitBlockFunctionBody(node);
     } finally {
       _overrideManager.exitScope();
+      _unlabeledBreakTarget = previousUnlabeledBreakTarget;
+      _unlabeledContinueTarget = previousUnlabeledContinueTarget;
     }
     return null;
   }
@@ -11602,11 +11600,17 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitDoStatement(DoStatement node) {
+    Statement previousUnlabeledBreakTarget = _unlabeledBreakTarget;
+    Statement previousUnlabeledContinueTarget = _unlabeledContinueTarget;
     _overrideManager.enterScope();
     try {
+      _unlabeledBreakTarget = node;
+      _unlabeledContinueTarget = node;
       super.visitDoStatement(node);
     } finally {
       _overrideManager.exitScope();
+      _unlabeledBreakTarget = previousUnlabeledBreakTarget;
+      _unlabeledContinueTarget = previousUnlabeledContinueTarget;
     }
     // TODO(brianwilkerson) If the loop can only be exited because the condition
     // is false, then propagateFalseState(node.getCondition());
@@ -11662,11 +11666,17 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitForEachStatement(ForEachStatement node) {
+    Statement previousUnlabeledBreakTarget = _unlabeledBreakTarget;
+    Statement previousUnlabeledContinueTarget = _unlabeledContinueTarget;
     _overrideManager.enterScope();
     try {
+      _unlabeledBreakTarget = node;
+      _unlabeledContinueTarget = node;
       super.visitForEachStatement(node);
     } finally {
       _overrideManager.exitScope();
+      _unlabeledBreakTarget = previousUnlabeledBreakTarget;
+      _unlabeledContinueTarget = previousUnlabeledContinueTarget;
     }
     return null;
   }
@@ -11713,11 +11723,17 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitForStatement(ForStatement node) {
+    Statement previousUnlabeledBreakTarget = _unlabeledBreakTarget;
+    Statement previousUnlabeledContinueTarget = _unlabeledContinueTarget;
     _overrideManager.enterScope();
     try {
+      _unlabeledBreakTarget = node;
+      _unlabeledContinueTarget = node;
       super.visitForStatement(node);
     } finally {
       _overrideManager.exitScope();
+      _unlabeledBreakTarget = previousUnlabeledBreakTarget;
+      _unlabeledContinueTarget = previousUnlabeledContinueTarget;
     }
     return null;
   }
@@ -11979,6 +11995,18 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  Object visitSwitchStatement(SwitchStatement node) {
+    Statement previousUnlabeledBreakTarget = _unlabeledBreakTarget;
+    try {
+      _unlabeledBreakTarget = node;
+      super.visitSwitchStatement(node);
+    } finally {
+      _unlabeledBreakTarget = previousUnlabeledBreakTarget;
+    }
+    return null;
+  }
+
+  @override
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _overrideManager.enterScope();
     try {
@@ -12001,12 +12029,18 @@ class ResolverVisitor extends ScopedVisitor {
     safelyVisit(condition);
     Statement body = node.body;
     if (body != null) {
+      Statement previousUnlabeledBreakTarget = _unlabeledBreakTarget;
+      Statement previousUnlabeledContinueTarget = _unlabeledContinueTarget;
       _overrideManager.enterScope();
       try {
+        _unlabeledBreakTarget = node;
+        _unlabeledContinueTarget = node;
         _propagateTrueState(condition);
         visitStatementInScope(body);
       } finally {
         _overrideManager.exitScope();
+        _unlabeledBreakTarget = previousUnlabeledBreakTarget;
+        _unlabeledContinueTarget = previousUnlabeledContinueTarget;
       }
     }
     // TODO(brianwilkerson) If the loop can only be exited because the condition
@@ -12922,27 +12956,18 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
 
   @override
   Object visitDoStatement(DoStatement node) {
-    LabelScope outerLabelScope = _labelScope;
-    try {
-      _labelScope = new LabelScope.con1(_labelScope, false, false);
-      visitStatementInScope(node.body);
-      safelyVisit(node.condition);
-    } finally {
-      _labelScope = outerLabelScope;
-    }
+    visitStatementInScope(node.body);
+    safelyVisit(node.condition);
     return null;
   }
 
   @override
   Object visitForEachStatement(ForEachStatement node) {
     Scope outerNameScope = _nameScope;
-    LabelScope outerLabelScope = _labelScope;
     try {
       _nameScope = new EnclosedScope(_nameScope);
-      _labelScope = new LabelScope.con1(outerLabelScope, false, false);
       visitForEachStatementInScope(node);
     } finally {
-      _labelScope = outerLabelScope;
       _nameScope = outerNameScope;
     }
     return null;
@@ -12983,13 +13008,10 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   @override
   Object visitForStatement(ForStatement node) {
     Scope outerNameScope = _nameScope;
-    LabelScope outerLabelScope = _labelScope;
     try {
       _nameScope = new EnclosedScope(_nameScope);
-      _labelScope = new LabelScope.con1(outerLabelScope, false, false);
       visitForStatementInScope(node);
     } finally {
-      _labelScope = outerLabelScope;
       _nameScope = outerNameScope;
     }
     return null;
@@ -13092,7 +13114,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
 
   @override
   Object visitLabeledStatement(LabeledStatement node) {
-    LabelScope outerScope = _addScopesFor(node.labels);
+    LabelScope outerScope = _addScopesFor(node.labels, node.unlabeled);
     try {
       super.visitLabeledStatement(node);
     } finally {
@@ -13171,13 +13193,12 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   Object visitSwitchStatement(SwitchStatement node) {
     LabelScope outerScope = _labelScope;
     try {
-      _labelScope = new LabelScope.con1(outerScope, true, false);
       for (SwitchMember member in node.members) {
         for (Label label in member.labels) {
           SimpleIdentifier labelName = label.label;
           LabelElement labelElement = labelName.staticElement as LabelElement;
           _labelScope =
-              new LabelScope.con2(_labelScope, labelName.name, labelElement);
+              new LabelScope(_labelScope, labelName.name, member, labelElement);
         }
       }
       super.visitSwitchStatement(node);
@@ -13202,14 +13223,8 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
 
   @override
   Object visitWhileStatement(WhileStatement node) {
-    LabelScope outerScope = _labelScope;
-    try {
-      _labelScope = new LabelScope.con1(outerScope, false, false);
-      safelyVisit(node.condition);
-      visitStatementInScope(node.body);
-    } finally {
-      _labelScope = outerScope;
-    }
+    safelyVisit(node.condition);
+    visitStatementInScope(node.body);
     return null;
   }
 
@@ -13219,13 +13234,13 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * @param labels the labels for which new scopes are to be added
    * @return the scope that was in effect before the new scopes were added
    */
-  LabelScope _addScopesFor(NodeList<Label> labels) {
+  LabelScope _addScopesFor(NodeList<Label> labels, AstNode node) {
     LabelScope outerScope = _labelScope;
     for (Label label in labels) {
       SimpleIdentifier labelNameNode = label.label;
       String labelName = labelNameNode.name;
       LabelElement labelElement = labelNameNode.staticElement as LabelElement;
-      _labelScope = new LabelScope.con2(_labelScope, labelName, labelElement);
+      _labelScope = new LabelScope(_labelScope, labelName, node, labelElement);
     }
     return outerScope;
   }

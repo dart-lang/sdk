@@ -3855,6 +3855,17 @@ class BreakStatement extends Statement {
   Token semicolon;
 
   /**
+   * The AstNode which this break statement is breaking from.  This will be
+   * either a Statement (in the case of breaking out of a loop) or a
+   * SwitchMember (in the case of a labeled break statement whose label matches
+   * a label on a switch case in an enclosing switch statement).  Null if the
+   * AST has not yet been resolved or if the target could not be resolved.
+   * Note that if the source code has errors, the target may be invalid (e.g.
+   * trying to break to a switch case).
+   */
+  AstNode target;
+
+  /**
    * Initialize a newly created break statement.
    *
    * @param keyword the token representing the 'break' keyword
@@ -6091,6 +6102,16 @@ class ContinueStatement extends Statement {
   Token semicolon;
 
   /**
+   * The AstNode which this continue statement is continuing to.  This will be
+   * either a Statement (in the case of continuing a loop) or a SwitchMember
+   * (in the case of continuing from one switch case to another).  Null if the
+   * AST has not yet been resolved or if the target could not be resolved.
+   * Note that if the source code has errors, the target may be invalid (e.g.
+   * the target may be in an enclosing function).
+   */
+  AstNode target;
+
+  /**
    * Initialize a newly created continue statement.
    *
    * @param keyword the token representing the 'continue' keyword
@@ -7783,14 +7804,6 @@ class ForEachStatement extends Statement {
   Expression get iterable => _iterable;
 
   /**
-   * Return the expression evaluated to produce the iterator.
-   *
-   * Deprecated, use [iterable] instead.
-   */
-  @deprecated
-  Expression get iterator => iterable;
-
-  /**
    * Set the expression evaluated to produce the iterator to the given expression.
    *
    * @param expression the expression evaluated to produce the iterator
@@ -7798,6 +7811,14 @@ class ForEachStatement extends Statement {
   void set iterable(Expression expression) {
     _iterable = becomeParentOf(expression);
   }
+
+  /**
+   * Return the expression evaluated to produce the iterator.
+   *
+   * Deprecated, use [iterable] instead.
+   */
+  @deprecated
+  Expression get iterator => iterable;
 
   /**
    * Return the declaration of the loop variable, or `null` if the loop variable is a simple
@@ -11729,6 +11750,9 @@ class LabeledStatement extends Statement {
   void set statement(Statement statement) {
     _statement = becomeParentOf(statement);
   }
+
+  @override
+  Statement get unlabeled => _statement.unlabeled;
 
   @override
   accept(AstVisitor visitor) => visitor.visitLabeledStatement(this);
@@ -17225,6 +17249,11 @@ abstract class SingleStringLiteral extends StringLiteral {
  * </pre>
  */
 abstract class Statement extends AstNode {
+  /**
+   * If this is a labeled statement, return the unlabeled portion of the
+   * statement.  Otherwise return the statement itself.
+   */
+  Statement get unlabeled => this;
 }
 
 /**

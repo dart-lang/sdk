@@ -176,7 +176,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitBreakStatement(BreakStatement node) {
-    _lookupLabel(node, node.label);
+    node.target = _lookupBreakOrContinueTarget(node, node.label, false);
     return null;
   }
 
@@ -367,7 +367,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitContinueStatement(ContinueStatement node) {
-    _lookupLabel(node, node.label);
+    node.target = _lookupBreakOrContinueTarget(node, node.label, true);
     return null;
   }
 
@@ -802,42 +802,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   @override
-  Object visitPrefixExpression(PrefixExpression node) {
-    sc.Token operator = node.operator;
-    sc.TokenType operatorType = operator.type;
-    if (operatorType.isUserDefinableOperator ||
-        operatorType == sc.TokenType.PLUS_PLUS ||
-        operatorType == sc.TokenType.MINUS_MINUS) {
-      Expression operand = node.operand;
-      String methodName = _getPrefixOperator(node);
-      DartType staticType = _getStaticType(operand);
-      MethodElement staticMethod =
-          _lookUpMethod(operand, staticType, methodName);
-      node.staticElement = staticMethod;
-      DartType propagatedType = _getPropagatedType(operand);
-      MethodElement propagatedMethod =
-          _lookUpMethod(operand, propagatedType, methodName);
-      node.propagatedElement = propagatedMethod;
-      if (_shouldReportMissingMember(staticType, staticMethod)) {
-        _recordUndefinedToken(
-            staticType.element,
-            StaticTypeWarningCode.UNDEFINED_OPERATOR,
-            operator,
-            [methodName, staticType.displayName]);
-      } else if (_enableHints &&
-          _shouldReportMissingMember(propagatedType, propagatedMethod) &&
-          !_memberFoundInSubclass(propagatedType.element, methodName, true, false)) {
-        _recordUndefinedToken(
-            propagatedType.element,
-            HintCode.UNDEFINED_OPERATOR,
-            operator,
-            [methodName, propagatedType.displayName]);
-      }
-    }
-    return null;
-  }
-
-  @override
   Object visitPrefixedIdentifier(PrefixedIdentifier node) {
     SimpleIdentifier prefix = node.prefix;
     SimpleIdentifier identifier = node.identifier;
@@ -912,6 +876,42 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     // identifier and this is really equivalent to a property access node.
     //
     _resolvePropertyAccess(prefix, identifier);
+    return null;
+  }
+
+  @override
+  Object visitPrefixExpression(PrefixExpression node) {
+    sc.Token operator = node.operator;
+    sc.TokenType operatorType = operator.type;
+    if (operatorType.isUserDefinableOperator ||
+        operatorType == sc.TokenType.PLUS_PLUS ||
+        operatorType == sc.TokenType.MINUS_MINUS) {
+      Expression operand = node.operand;
+      String methodName = _getPrefixOperator(node);
+      DartType staticType = _getStaticType(operand);
+      MethodElement staticMethod =
+          _lookUpMethod(operand, staticType, methodName);
+      node.staticElement = staticMethod;
+      DartType propagatedType = _getPropagatedType(operand);
+      MethodElement propagatedMethod =
+          _lookUpMethod(operand, propagatedType, methodName);
+      node.propagatedElement = propagatedMethod;
+      if (_shouldReportMissingMember(staticType, staticMethod)) {
+        _recordUndefinedToken(
+            staticType.element,
+            StaticTypeWarningCode.UNDEFINED_OPERATOR,
+            operator,
+            [methodName, staticType.displayName]);
+      } else if (_enableHints &&
+          _shouldReportMissingMember(propagatedType, propagatedMethod) &&
+          !_memberFoundInSubclass(propagatedType.element, methodName, true, false)) {
+        _recordUndefinedToken(
+            propagatedType.element,
+            HintCode.UNDEFINED_OPERATOR,
+            operator,
+            [methodName, propagatedType.displayName]);
+      }
+    }
     return null;
   }
 
@@ -1574,6 +1574,52 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
+   * Return the target of a break or continue statement, and update the static
+   * element of its label (if any).  [parentNode] is the AST node of the break
+   * or continue statement, [labelNode] is the label contained in that
+   * statement (if any), and [isContinue] is true if the node being visited is
+   * a continue statement.
+   */
+  AstNode _lookupBreakOrContinueTarget(AstNode parentNode,
+      SimpleIdentifier labelNode, bool isContinue) {
+    if (labelNode == null) {
+      return _resolver.getUnlabeledBreakOrContinueTarget(isContinue);
+    } else {
+      LabelScope labelScope = _resolver.labelScope;
+      if (labelScope == null) {
+        // There are no labels in scope, so by definition the label is
+        // undefined.
+        _resolver.reportErrorForNode(
+            CompileTimeErrorCode.LABEL_UNDEFINED,
+            labelNode,
+            [labelNode.name]);
+        return null;
+      }
+      LabelScope definingScope = labelScope.lookup(labelNode.name);
+      if (definingScope == null) {
+        // No definition of the given label name could be found in any
+        // enclosing scope.
+        _resolver.reportErrorForNode(
+            CompileTimeErrorCode.LABEL_UNDEFINED,
+            labelNode,
+            [labelNode.name]);
+        return null;
+      }
+      // The target has been found.
+      labelNode.staticElement = definingScope.element;
+      ExecutableElement labelContainer =
+          definingScope.element.getAncestor((element) => element is ExecutableElement);
+      if (!identical(labelContainer, _resolver.enclosingFunction)) {
+        _resolver.reportErrorForNode(
+            CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
+            labelNode,
+            [labelNode.name]);
+      }
+      return definingScope.node;
+    }
+  }
+
+  /**
    * Look up the getter with the given name in the given type. Return the element representing the
    * getter that was found, or `null` if there is no getter with the given name.
    *
@@ -1659,6 +1705,37 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         true,
         getterName,
         visitedInterfaces);
+  }
+
+  /**
+   * Look up the method or getter with the given name in the given type. Return the element
+   * representing the method or getter that was found, or `null` if there is no method or
+   * getter with the given name.
+   *
+   * @param type the type in which the method or getter is defined
+   * @param memberName the name of the method or getter being looked up
+   * @return the element representing the method or getter that was found
+   */
+  ExecutableElement _lookupGetterOrMethod(DartType type, String memberName) {
+    type = _resolveTypeParameter(type);
+    if (type is InterfaceType) {
+      InterfaceType interfaceType = type;
+      ExecutableElement member =
+          interfaceType.lookUpMethod(memberName, _definingLibrary);
+      if (member != null) {
+        return member;
+      }
+      member = interfaceType.lookUpGetter(memberName, _definingLibrary);
+      if (member != null) {
+        return member;
+      }
+      return _lookUpGetterOrMethodInInterfaces(
+          interfaceType,
+          false,
+          memberName,
+          new HashSet<ClassElement>());
+    }
+    return null;
   }
 
   /**
@@ -1822,6 +1899,39 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
+   * Look up all methods of a given name defined on a union type.
+   *
+   * @param target
+   * @param type
+   * @param methodName
+   * @return all methods named `methodName` defined on the union type `type`.
+   */
+  Set<ExecutableElement> _lookupMethods(Expression target, UnionType type,
+      String methodName) {
+    Set<ExecutableElement> methods = new HashSet<ExecutableElement>();
+    bool allElementsHaveMethod = true;
+    for (DartType t in type.elements) {
+      MethodElement m = _lookUpMethod(target, t, methodName);
+      if (m != null) {
+        methods.add(m);
+      } else {
+        allElementsHaveMethod = false;
+      }
+    }
+    // For strict union types we require that all types in the union define the
+    // method.
+    if (AnalysisEngine.instance.strictUnionTypes) {
+      if (allElementsHaveMethod) {
+        return methods;
+      } else {
+        return new Set<ExecutableElement>();
+      }
+    } else {
+      return methods;
+    }
+  }
+
+  /**
    * Look up the setter with the given name in the given type. Return the element representing the
    * setter that was found, or `null` if there is no setter with the given name.
    *
@@ -1907,132 +2017,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         true,
         setterName,
         visitedInterfaces);
-  }
-
-  /**
-   * Look up the method or getter with the given name in the given type. Return the element
-   * representing the method or getter that was found, or `null` if there is no method or
-   * getter with the given name.
-   *
-   * @param type the type in which the method or getter is defined
-   * @param memberName the name of the method or getter being looked up
-   * @return the element representing the method or getter that was found
-   */
-  ExecutableElement _lookupGetterOrMethod(DartType type, String memberName) {
-    type = _resolveTypeParameter(type);
-    if (type is InterfaceType) {
-      InterfaceType interfaceType = type;
-      ExecutableElement member =
-          interfaceType.lookUpMethod(memberName, _definingLibrary);
-      if (member != null) {
-        return member;
-      }
-      member = interfaceType.lookUpGetter(memberName, _definingLibrary);
-      if (member != null) {
-        return member;
-      }
-      return _lookUpGetterOrMethodInInterfaces(
-          interfaceType,
-          false,
-          memberName,
-          new HashSet<ClassElement>());
-    }
-    return null;
-  }
-
-  /**
-   * Find the element corresponding to the given label node in the current label scope.
-   *
-   * @param parentNode the node containing the given label
-   * @param labelNode the node representing the label being looked up
-   * @return the element corresponding to the given label node in the current scope
-   */
-  LabelElementImpl _lookupLabel(AstNode parentNode,
-      SimpleIdentifier labelNode) {
-    LabelScope labelScope = _resolver.labelScope;
-    LabelElementImpl labelElement = null;
-    if (labelNode == null) {
-      if (labelScope == null) {
-        // TODO(brianwilkerson) Do we need to report this error, or is this
-        // condition always caught in the parser?
-        // reportError(ResolverErrorCode.BREAK_OUTSIDE_LOOP);
-      } else {
-        labelElement =
-            labelScope.lookup(LabelScope.EMPTY_LABEL) as LabelElementImpl;
-        if (labelElement == null) {
-          // TODO(brianwilkerson) Do we need to report this error, or is this
-          // condition always caught in the parser?
-          // reportError(ResolverErrorCode.BREAK_OUTSIDE_LOOP);
-        }
-        //
-        // The label element that was returned was a marker for look-up and
-        // isn't stored in the element model.
-        //
-        labelElement = null;
-      }
-    } else {
-      if (labelScope == null) {
-        _resolver.reportErrorForNode(
-            CompileTimeErrorCode.LABEL_UNDEFINED,
-            labelNode,
-            [labelNode.name]);
-      } else {
-        labelElement = labelScope.lookup(labelNode.name) as LabelElementImpl;
-        if (labelElement == null) {
-          _resolver.reportErrorForNode(
-              CompileTimeErrorCode.LABEL_UNDEFINED,
-              labelNode,
-              [labelNode.name]);
-        } else {
-          labelNode.staticElement = labelElement;
-        }
-      }
-    }
-    if (labelElement != null) {
-      ExecutableElement labelContainer =
-          labelElement.getAncestor((element) => element is ExecutableElement);
-      if (!identical(labelContainer, _resolver.enclosingFunction)) {
-        _resolver.reportErrorForNode(
-            CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
-            labelNode,
-            [labelNode.name]);
-        labelElement = null;
-      }
-    }
-    return labelElement;
-  }
-
-  /**
-   * Look up all methods of a given name defined on a union type.
-   *
-   * @param target
-   * @param type
-   * @param methodName
-   * @return all methods named `methodName` defined on the union type `type`.
-   */
-  Set<ExecutableElement> _lookupMethods(Expression target, UnionType type,
-      String methodName) {
-    Set<ExecutableElement> methods = new HashSet<ExecutableElement>();
-    bool allElementsHaveMethod = true;
-    for (DartType t in type.elements) {
-      MethodElement m = _lookUpMethod(target, t, methodName);
-      if (m != null) {
-        methods.add(m);
-      } else {
-        allElementsHaveMethod = false;
-      }
-    }
-    // For strict union types we require that all types in the union define the
-    // method.
-    if (AnalysisEngine.instance.strictUnionTypes) {
-      if (allElementsHaveMethod) {
-        return methods;
-      } else {
-        return new Set<ExecutableElement>();
-      }
-    } else {
-      return methods;
-    }
   }
 
   /**

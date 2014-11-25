@@ -19,9 +19,9 @@ import 'element.dart';
 import 'error.dart';
 import 'error_verifier.dart';
 import 'html.dart' as ht;
-import 'incremental_scanner.dart';
 import 'incremental_resolver.dart' show IncrementalResolver,
     poorMansIncrementalResolution;
+import 'incremental_scanner.dart';
 import 'instrumentation.dart';
 import 'java_core.dart';
 import 'java_engine.dart';
@@ -4921,31 +4921,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * TODO(scheglov) A hackish, limited incremental resolution implementation.
-   */
-  bool _tryPoorMansIncrementalResolution(Source unitSource, String newCode) {
-    List<Source> librarySources = getLibrariesContaining(unitSource);
-    if (librarySources.length != 1) {
-      return false;
-    }
-    CompilationUnit oldUnit =
-        getResolvedCompilationUnit2(unitSource, librarySources[0]);
-    bool success = poorMansIncrementalResolution(typeProvider, oldUnit, newCode);
-    if (!success) {
-      return false;
-    }
-    ChangeNoticeImpl notice = _getNotice(unitSource);
-    notice.compilationUnit = oldUnit;
-    // TODO(scheglov) apply updated errors
-    {
-      LineInfo lineInfo = getLineInfo(unitSource);
-      DartEntry dartEntry = _cache.get(unitSource);
-      notice.setErrors(dartEntry.allErrors, lineInfo);
-    }
-    return true;
-  }
-
-  /**
    * <b>Note:</b> This method must only be invoked while we are synchronized on [cacheLock].
    *
    * @param source the source that has been removed
@@ -4970,6 +4945,32 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     _cache.remove(source);
     _workManager.remove(source);
     _removeFromPriorityOrder(source);
+  }
+
+  /**
+   * TODO(scheglov) A hackish, limited incremental resolution implementation.
+   */
+  bool _tryPoorMansIncrementalResolution(Source unitSource, String newCode) {
+    List<Source> librarySources = getLibrariesContaining(unitSource);
+    if (librarySources.length != 1) {
+      return false;
+    }
+    CompilationUnit oldUnit =
+        getResolvedCompilationUnit2(unitSource, librarySources[0]);
+    bool success =
+        poorMansIncrementalResolution(typeProvider, oldUnit, newCode);
+    if (!success) {
+      return false;
+    }
+    ChangeNoticeImpl notice = _getNotice(unitSource);
+    notice.compilationUnit = oldUnit;
+    // TODO(scheglov) apply updated errors
+    {
+      LineInfo lineInfo = getLineInfo(unitSource);
+      DartEntry dartEntry = _cache.get(unitSource);
+      notice.setErrors(dartEntry.allErrors, lineInfo);
+    }
+    return true;
   }
 
   /**
@@ -12986,6 +12987,12 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
   }
 
   @override
+  Object visitBreakStatement(BreakStatement node) {
+    node.target = null;
+    return super.visitBreakStatement(node);
+  }
+
+  @override
   Object visitCompilationUnit(CompilationUnit node) {
     node.element = null;
     return super.visitCompilationUnit(node);
@@ -13001,6 +13008,12 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
   Object visitConstructorName(ConstructorName node) {
     node.staticElement = null;
     return super.visitConstructorName(node);
+  }
+
+  @override
+  Object visitContinueStatement(ContinueStatement node) {
+    node.target = null;
+    return super.visitContinueStatement(node);
   }
 
   @override
