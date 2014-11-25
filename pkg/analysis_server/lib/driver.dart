@@ -51,6 +51,13 @@ class Driver {
       "instrumentation-log-file";
 
   /**
+   * The name of the option used to specify if [print] should print to the
+   * console instead of being intercepted.
+   */
+  static const String INTERNAL_PRINT_TO_CONSOLE =
+      "internal-print-to-console";
+
+  /**
    * The name of the option used to specify the port to which the server will
    * connect.
    */
@@ -98,6 +105,11 @@ class Driver {
     parser.addOption(
         INSTRUMENTATION_LOG_FILE_OPTION,
         help: "[path] the file to which instrumentation data will be logged");
+    parser.addFlag(
+        INTERNAL_PRINT_TO_CONSOLE,
+        help: "enable sending `print` output to the console",
+        defaultsTo: false,
+        negatable: false);
     parser.addOption(
         PORT_OPTION,
         help: "[port] the port on which the server will listen");
@@ -159,14 +171,24 @@ class Driver {
     if (serve_http) {
       httpServer.serveHttp(port);
     }
-    _capturePrints(() {
+
+    if (results[INTERNAL_PRINT_TO_CONSOLE]) {
       stdioServer.serveStdio().then((_) {
         if (serve_http) {
           httpServer.close();
         }
         exit(0);
       });
-    }, httpServer.recordPrint);
+    } else {
+      _capturePrints(() {
+        stdioServer.serveStdio().then((_) {
+          if (serve_http) {
+            httpServer.close();
+          }
+          exit(0);
+        });
+      }, httpServer.recordPrint);
+    }
   }
 
   /**
