@@ -205,6 +205,7 @@ class AnalysisServerTestHelper {
         resourceProvider,
         new MockPackageMapProvider(),
         null,
+        new AnalysisServerOptions(),
         new MockSdk(),
         rethrowExceptions: rethrowExceptions);
   }

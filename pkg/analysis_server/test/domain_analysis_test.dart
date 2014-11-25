@@ -38,6 +38,7 @@ main() {
         resourceProvider,
         new MockPackageMapProvider(),
         null,
+        new AnalysisServerOptions(),
         new MockSdk());
     handler = new AnalysisDomainHandler(server);
   });
@@ -459,6 +460,7 @@ class AnalysisTestHelper {
         resourceProvider,
         new MockPackageMapProvider(),
         null,
+        new AnalysisServerOptions(),
         new MockSdk());
     handler = new AnalysisDomainHandler(server);
     // listen for notifications

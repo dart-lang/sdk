@@ -37,15 +37,16 @@ Index _createIndex() {
  * encode and decode the JSON messages exchanged with the client.
  */
 class SocketServer {
+  final AnalysisServerOptions analysisServerOptions;
+  final DirectoryBasedDartSdk defaultSdk;
+
   /**
    * The analysis server that was created when a client established a
    * connection, or `null` if no such connection has yet been established.
    */
   AnalysisServer analysisServer;
 
-  final DirectoryBasedDartSdk defaultSdk;
-
-  SocketServer(this.defaultSdk);
+  SocketServer(this.analysisServerOptions, this.defaultSdk);
 
   /**
    * Create an analysis server which will communicate with the client using the
@@ -69,6 +70,7 @@ class SocketServer {
         resourceProvider,
         new PubPackageMapProvider(resourceProvider, defaultSdk),
         _createIndex(),
+        analysisServerOptions,
         defaultSdk,
         rethrowExceptions: false);
     _initializeHandlers(analysisServer);

@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server/http_server.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/stdio_server.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -25,6 +26,12 @@ class Driver {
    * The name of the application that is used to start a server.
    */
   static const BINARY_NAME = "server";
+
+  /**
+   * The name of the option used to enable incremental resolution.
+   */
+  static const String ENABLE_INCREMENTAL_RESOLUTION =
+      "enable-incremental-resolution";
 
   /**
    * The name of the option used to enable instrumentation.
@@ -74,6 +81,11 @@ class Driver {
   void start(List<String> args) {
     ArgParser parser = new ArgParser();
     parser.addFlag(
+        ENABLE_INCREMENTAL_RESOLUTION,
+        help: "enable using incremental resolution",
+        defaultsTo: false,
+        negatable: false);
+    parser.addFlag(
         ENABLE_INSTRUMENTATION_OPTION,
         help: "enable sending instrumentation information to a server",
         defaultsTo: false,
@@ -111,6 +123,7 @@ class Driver {
         // logging.
       }
     }
+
     int port;
     bool serve_http = false;
     if (results[PORT_OPTION] != null) {
@@ -125,6 +138,11 @@ class Driver {
         return;
       }
     }
+
+    AnalysisServerOptions analysisServerOptions = new AnalysisServerOptions();
+    analysisServerOptions.enableIncrementalResolution =
+        results[ENABLE_INCREMENTAL_RESOLUTION];
+
     DartSdk defaultSdk;
     if (results[SDK_OPTION] != null) {
       defaultSdk = new DirectoryBasedDartSdk(new JavaFile(results[SDK_OPTION]));
@@ -134,7 +152,7 @@ class Driver {
       defaultSdk = DirectoryBasedDartSdk.defaultSdk;
     }
 
-    socketServer = new SocketServer(defaultSdk);
+    socketServer = new SocketServer(analysisServerOptions, defaultSdk);
     httpServer = new HttpAnalysisServer(socketServer);
     stdioServer = new StdioAnalysisServer(socketServer);
 

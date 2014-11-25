@@ -26,6 +26,7 @@ main() {
         resourceProvider,
         new MockPackageMapProvider(),
         null,
+        new AnalysisServerOptions(),
         new MockSdk());
     handler = new ServerDomainHandler(server);
   });

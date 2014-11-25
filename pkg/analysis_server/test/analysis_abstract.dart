@@ -232,6 +232,7 @@ class AbstractAnalysisTest {
         resourceProvider,
         packageMapProvider,
         index,
+        new AnalysisServerOptions(),
         new MockSdk());
     server.contextDirectoryManager.defaultOptions.enableAsync = true;
     server.contextDirectoryManager.defaultOptions.enableEnum = true;

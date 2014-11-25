@@ -183,12 +183,15 @@ class AnalysisServer {
    * running a full analysis server.
    */
   AnalysisServer(this.channel, this.resourceProvider,
-      PackageMapProvider packageMapProvider, this.index, this.defaultSdk,
+      PackageMapProvider packageMapProvider, this.index,
+      AnalysisServerOptions analysisServerOptions, this.defaultSdk,
       {this.rethrowExceptions: true}) {
     searchEngine = createSearchEngine(index);
     operationQueue = new ServerOperationQueue(this);
     contextDirectoryManager =
         new ServerContextManager(this, resourceProvider, packageMapProvider);
+    contextDirectoryManager.defaultOptions.incremental =
+        analysisServerOptions.enableIncrementalResolution;
     AnalysisEngine.instance.logger = new AnalysisLogger();
     _onAnalysisStartedController = new StreamController.broadcast();
     _onAnalysisCompleteController = new StreamController.broadcast();
@@ -913,6 +916,10 @@ class AnalysisServer {
 }
 
 
+class AnalysisServerOptions {
+  bool enableIncrementalResolution = false;
+}
+
 /**
  * A [ContextsChangedEvent] indicate what contexts were added or removed.
  *
@@ -948,6 +955,7 @@ class PriorityChangeEvent {
 
   PriorityChangeEvent(this.firstSource);
 }
+
 
 class ServerContextManager extends ContextManager {
   final AnalysisServer analysisServer;
