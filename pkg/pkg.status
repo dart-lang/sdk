@@ -156,6 +156,7 @@ analysis_server/test/analysis_notification_highlights_test: Pass, Slow # 16473, 
 analysis_server/test/search/top_level_declarations_test: Pass, Slow # 16473, 19756
 analysis_server/test/socket_server_test: Pass, Slow # Issue 16473, 19756
 analyzer/test/generated/element_test: Pass, Slow # Issue 16473
+analyzer/test/generated/incremental_resolver_test: Pass, Slow # Issue 16473
 
 [ $runtime == d8 || $runtime == jsshell ]
 stack_trace/test/chain_test: Fail # Issues 15171 and 15105
