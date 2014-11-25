@@ -65,6 +65,7 @@ request_animation_frame_test: Skip # Times out, and also passes while taking 4.0
 fileapi_test/fileEntry: Pass, RuntimeError # Issue 20488
 fileapi_test/getFile: Pass, RuntimeError # Issue 20488
 indexeddb_5_test: Pass, RuntimeError # Issue 21262
+native_gc_test: Pass, Slow
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
@@ -354,6 +355,10 @@ postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (tim
 
 [ $compiler == dart2js && ($runtime == drt || $runtime ==chrome) ]
 wheelevent_test: Fail # http://dartbug.com/12958
+
+[ $compiler == dart2js &&  $runtime == chrome && $system == windows ]
+css_test/functional: Fail # Issue 21710
+css_test/supportsPointConversions: Fail # Issue 21710
 
 [ $runtime == dartium && ($system == macos || $system == windows || $system == linux)]
 # Desktop operation systems do not support touch events on chrome 34 dartium.
