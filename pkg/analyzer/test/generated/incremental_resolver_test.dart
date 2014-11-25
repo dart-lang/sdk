@@ -520,6 +520,107 @@ class T {
 ''');
   }
 
+  void test_false_functionTypeAlias_list_add() {
+    _assertCompilationUnitMatches(false, r'''
+typedef A(int pa);
+typedef B(String pb);
+''', r'''
+typedef A(int pa);
+typedef B(String pb);
+typedef C(pc);
+''');
+  }
+
+  void test_false_functionTypeAlias_list_remove() {
+    _assertCompilationUnitMatches(false, r'''
+typedef A(int pa);
+typedef B(String pb);
+typedef C(pc);
+''', r'''
+typedef A(int pa);
+typedef B(String pb);
+''');
+  }
+
+  void test_false_functionTypeAlias_parameters_list_add() {
+    _assertCompilationUnitMatches(false, r'''
+typedef A(a);
+''', r'''
+typedef A(a, b);
+''');
+  }
+
+  void test_false_functionTypeAlias_parameters_list_remove() {
+    _assertCompilationUnitMatches(false, r'''
+typedef A(a, b);
+''', r'''
+typedef A(a);
+''');
+  }
+
+  void test_false_functionTypeAlias_parameters_type_edit() {
+    _assertCompilationUnitMatches(false, r'''
+typedef A(int p);
+''', r'''
+typedef A(String p);
+''');
+  }
+
+  void test_false_functionTypeAlias_returnType_edit() {
+    _assertCompilationUnitMatches(false, r'''
+typedef int A();
+''', r'''
+typedef String A();
+''');
+  }
+
+  void test_false_functionTypeAlias_typeParameters_bounds_add() {
+    _assertCompilationUnitMatches(false, r'''
+class A {}
+typedef F<T>();
+''', r'''
+class A {}
+typedef F<T extends A>();
+''');
+  }
+
+  void test_false_functionTypeAlias_typeParameters_bounds_edit() {
+    _assertCompilationUnitMatches(false, r'''
+class A {}
+class B {}
+typedef F<T extends A>();
+''', r'''
+class A {}
+typedef F<T extends B>();
+''');
+  }
+
+  void test_false_functionTypeAlias_typeParameters_bounds_remove() {
+    _assertCompilationUnitMatches(false, r'''
+class A {}
+typedef F<T extends A>();
+''', r'''
+class A {}
+typedef F<T>();
+''');
+  }
+
+  void test_false_functionTypeAlias_typeParameters_list_add() {
+    _assertCompilationUnitMatches(false, r'''
+typedef F<A>();
+''', r'''
+typedef F<A, B>();
+''');
+  }
+
+  void test_false_functionTypeAlias_typeParameters_list_remove() {
+    _assertCompilationUnitMatches(false, r'''
+typedef F<A, B>();
+''', r'''
+typedef F<A>();
+''');
+  }
+
   void test_false_implementsClause_add() {
     _assertCompilationUnitMatches(false, r'''
 class A {}
@@ -1226,6 +1327,38 @@ class A {
   int field;
   A(this.field);
 }
+''');
+  }
+
+  void test_true_functionTypeAlias_list_reorder() {
+    _assertCompilationUnitMatches(true, r'''
+typedef A(int pa);
+typedef B(String pb);
+typedef C(pc);
+''', r'''
+typedef C(pc);
+typedef A(int pa);
+typedef B(String pb);
+''');
+  }
+
+  void test_true_functionTypeAlias_list_same() {
+    _assertCompilationUnitMatches(true, r'''
+typedef String A(int pa);
+typedef int B(String pb);
+typedef C(pc);
+''', r'''
+typedef String A(int pa);
+typedef int B(String pb);
+typedef C(pc);
+''');
+  }
+
+  void test_true_functionTypeAlias_typeParameters_list_same() {
+    _assertCompilationUnitMatches(true, r'''
+typedef F<A, B, C>();
+''', r'''
+typedef F<A, B, C>();
 ''');
   }
 

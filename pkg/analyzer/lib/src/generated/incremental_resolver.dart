@@ -105,6 +105,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     ClassElement element = _findElement(_enclosingUnit.types, name);
     _enclosingClass = element;
     _processElement(element);
+    _assertSameTypeParameters(node.typeParameters, element.typeParameters);
     // check for missing clauses
     if (node.extendsClause == null) {
       _assertTrue(element.supertype.name == 'Object');
@@ -134,6 +135,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     ClassElement element = _findElement(_enclosingUnit.types, name);
     _enclosingClass = element;
     _processElement(element);
+    _assertSameTypeParameters(node.typeParameters, element.typeParameters);
     _processElement(element.unnamedConstructor);
     super.visitClassTypeAlias(node);
   }
@@ -232,16 +234,13 @@ class DeclarationMatcher extends RecursiveAstVisitor {
 
   @override
   visitFunctionTypeAlias(FunctionTypeAlias node) {
-    FunctionTypeAliasElement outerAlias = _enclosingAlias;
-    try {
-      SimpleIdentifier aliasName = node.name;
-      _enclosingAlias =
-          _findIdentifier(_enclosingUnit.functionTypeAliases, aliasName);
-      _processElement(_enclosingAlias);
-      super.visitFunctionTypeAlias(node);
-    } finally {
-      _enclosingAlias = outerAlias;
-    }
+    String name = node.name.name;
+    FunctionTypeAliasElement element =
+        _findElement(_enclosingUnit.functionTypeAliases, name);
+    _processElement(element);
+    _assertSameTypeParameters(node.typeParameters, element.typeParameters);
+    _assertSameType(node.returnType, element.returnType);
+    _assertCompatibleParameters(node.parameters, element.parameters);
   }
 
   @override
@@ -315,19 +314,6 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     } finally {
       _inTopLevelVariableDeclaration = false;
     }
-  }
-
-  @override
-  visitTypeParameter(TypeParameter node) {
-    String name = node.name.name;
-    TypeParameterElement element = null;
-    if (_enclosingClass != null) {
-      element = _findElement(_enclosingClass.typeParameters, name);
-    } else if (_enclosingAlias != null) {
-      element = _findElement(_enclosingAlias.typeParameters, name);
-    }
-    _processElement(element);
-    _assertSameType(node.bound, element.bound);
   }
 
   @override
@@ -486,6 +472,24 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     }
   }
 
+  void _assertSameTypeParameter(TypeParameter node,
+      TypeParameterElement element) {
+    _assertSameType(node.bound, element.bound);
+  }
+
+  void _assertSameTypeParameters(TypeParameterList nodesList,
+      List<TypeParameterElement> elements) {
+    if (nodesList == null) {
+      return _assertEquals(elements.length, 0);
+    }
+    List<TypeParameter> nodes = nodesList.typeParameters;
+    int length = nodes.length;
+    _assertEquals(length, elements.length);
+    for (int i = 0; i < length; i++) {
+      _assertSameTypeParameter(nodes[i], elements[i]);
+    }
+  }
+
   void _assertSameTypes(List<TypeName> nodes, List<DartType> types) {
     int length = nodes.length;
     _assertEquals(length, types.length);
@@ -528,49 +532,6 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     }
   }
 
-  /**
-   * Return the [Element] in [elements] with the given [name].
-   */
-  Element _findElement(List<Element> elements, String name) {
-    for (Element element in elements) {
-      if (element.name == name) {
-        return element;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Return the element in the given array of elements that was created for the declaration with the
-   * given name.
-   *
-   * @param elements the elements of the appropriate kind that exist in the current context
-   * @param identifier the name node in the declaration of the element to be returned
-   * @return the element created for the declaration with the given name
-   */
-  Element _findIdentifier(List<Element> elements,
-      SimpleIdentifier identifier) =>
-      _findWithNameAndOffset(elements, identifier.name, identifier.offset);
-
-  /**
-   * Return the element in the given array of elements that was created for the declaration with the
-   * given name at the given offset.
-   *
-   * @param elements the elements of the appropriate kind that exist in the current context
-   * @param name the name of the element to be returned
-   * @param offset the offset of the name of the element to be returned
-   * @return the element with the given name and offset
-   */
-  Element _findWithNameAndOffset(List<Element> elements, String name,
-      int offset) {
-    for (Element element in elements) {
-      if (element.displayName == name && element.nameOffset == offset) {
-        return element;
-      }
-    }
-    return null;
-  }
-
   void _gatherElements(Element element) {
     _ElementsGatherer gatherer = new _ElementsGatherer(this);
     element.accept(gatherer);
@@ -582,26 +543,24 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     }
   }
 
-  /**
-   * Return the value of the given string literal, or `null` if the string is not a constant
-   * string without any string interpolation.
-   *
-   * @param literal the string literal whose value is to be returned
-   * @return the value of the given string literal
-   */
-  String _getStringValue(StringLiteral literal) {
-    if (literal is StringInterpolation) {
-      return null;
-    }
-    return literal.stringValue;
-  }
-
   void _processElement(Element element) {
     _assertNotNull(element);
     if (!_allElements.contains(element)) {
       throw new _DeclarationMismatchException();
     }
     _unmatchedElements.remove(element);
+  }
+
+  /**
+   * Return the [Element] in [elements] with the given [name].
+   */
+  static Element _findElement(List<Element> elements, String name) {
+    for (Element element in elements) {
+      if (element.name == name) {
+        return element;
+      }
+    }
+    return null;
   }
 
   /**
@@ -616,6 +575,17 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       }
     }
     return null;
+  }
+
+  /**
+   * Return the value of [literal], or `null` if the string is not a constant
+   * string without any string interpolation.
+   */
+  static String _getStringValue(StringLiteral literal) {
+    if (literal is StringInterpolation) {
+      return null;
+    }
+    return literal.stringValue;
   }
 }
 
@@ -1324,6 +1294,10 @@ class _ElementsGatherer extends GeneralizingElementVisitor {
   }
 
   @override
+  visitParameterElement(ParameterElement element) {
+  }
+
+  @override
   visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (!element.isSynthetic) {
       _addElement(element);
@@ -1337,6 +1311,10 @@ class _ElementsGatherer extends GeneralizingElementVisitor {
       _addElement(element);
     }
     // Don't visit children (such as property accessors).
+  }
+
+  @override
+  visitTypeParameterElement(TypeParameterElement element) {
   }
 
   void _addElement(Element element) {
