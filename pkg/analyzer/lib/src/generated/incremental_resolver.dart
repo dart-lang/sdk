@@ -899,31 +899,23 @@ class PoorMansIncrementalResolver {
       _TokenPair lastPair =
           _findLastDifferentToken(oldUnit.endToken, newUnit.endToken);
       if (firstPair != null && lastPair != null) {
-        // Prepare the "old" token range.
-        Token oldBeginToken;
-        Token oldEndToken;
-        if (firstPair.oldToken.offset < lastPair.oldToken.offset) {
-          oldBeginToken = firstPair.oldToken;
-          oldEndToken = lastPair.oldToken;
-        } else {
-          oldBeginToken = lastPair.oldToken;
-          oldEndToken = firstPair.oldToken;
-        }
-        // Prepare the "old" token tange.
-        Token newBeginToken;
-        Token newEndToken;
-        if (firstPair.newToken.offset < lastPair.newToken.offset) {
-          newBeginToken = firstPair.newToken;
-          newEndToken = lastPair.newToken;
-        } else {
-          newBeginToken = lastPair.newToken;
-          newEndToken = firstPair.newToken;
-        }
+        int firstOffsetOld = firstPair.oldToken.offset;
+        int firstOffsetNew = firstPair.newToken.offset;
+        int lastOffsetOld = lastPair.oldToken.end;
+        int lastOffsetNew = lastPair.newToken.end;
+        int beginOffsetOld = math.min(firstOffsetOld, lastOffsetOld);
+        int endOffsetOld = math.max(firstOffsetOld, lastOffsetOld);
+        int beginOffsetNew = math.min(firstOffsetNew, lastOffsetNew);
+        int endOffsetNew = math.max(firstOffsetNew, lastOffsetNew);
+//        print('beginOffsetOld: $beginOffsetOld endOffsetOld: $endOffsetOld');
+//        print('beginOffsetNew: $beginOffsetNew endOffsetNew: $endOffsetNew');
         // Find nodes covering the "old" and "new" token ranges.
         AstNode oldNode =
-            _findNodeWithTokens(oldUnit, oldBeginToken, oldEndToken);
+            _findNodeCovering(oldUnit, beginOffsetOld, endOffsetOld);
         AstNode newNode =
-            _findNodeWithTokens(newUnit, newBeginToken, newEndToken);
+            _findNodeCovering(newUnit, beginOffsetNew, endOffsetNew);
+//        print('oldNode: $oldNode');
+//        print('newNode: $newNode');
         // Try to find the smallest common node, a FunctionBody currently.
         {
           List<AstNode> oldParents = _getParents(oldNode);
@@ -944,16 +936,18 @@ class PoorMansIncrementalResolver {
             return false;
           }
         }
+        // prepare update range
+        _updateOffset = oldNode.offset;
+        _updateEndOld = oldNode.end;
+        _updateEndNew = newNode.end;
+        _updateDelta = _updateEndNew - _updateEndOld;
+//        _updateDelta = lastPair.delta;
         // replace node
         NodeReplacer.replace(oldNode, newNode);
         // update token references
         oldNode.beginToken.previous.setNext(newNode.beginToken);
-        oldNode.endToken.setNext(oldNode.endToken.next);
-        // prepare update range
-        _updateOffset = oldNode.offset;
-        _updateDelta = lastPair.delta;
-        _updateEndOld = oldNode.end;
-        _updateEndNew = newNode.end;
+        newNode.endToken.setNext(oldNode.endToken.next);
+        _shiftTokens(oldNode.endToken.next, _updateDelta);
         // perform incremental resolution
         CompilationUnitElement oldUnitElement = oldUnit.element;
         IncrementalResolver incrementalResolver = new IncrementalResolver(
@@ -963,7 +957,7 @@ class PoorMansIncrementalResolver {
             oldUnitElement.source,
             _updateOffset,
             oldNode.length,
-            newNode.length + _updateDelta);
+            newNode.length);
         incrementalResolver.resolve(newNode);
         _newResolveErrors = incrementalResolver._resolveErrors;
         _newVerifyErrors = incrementalResolver._verifyErrors;
@@ -1061,12 +1055,12 @@ class PoorMansIncrementalResolver {
   }
 
   static _TokenPair _findFirstDifferentToken(Token oldToken, Token newToken) {
-    //  print('first ------------');
+//    print('first ------------');
     while (oldToken.type != TokenType.EOF && newToken.type != TokenType.EOF) {
-      //    print('old: $oldToken @ ${oldToken.offset}');
-      //    print('new: $newToken @ ${newToken.offset}');
+//      print('old: $oldToken @ ${oldToken.offset}');
+//      print('new: $newToken @ ${newToken.offset}');
       if (!_equalToken(oldToken, newToken, 0)) {
-        return new _TokenPair(oldToken, newToken, 0);
+        return new _TokenPair(oldToken, newToken);
       }
       oldToken = oldToken.next;
       newToken = newToken.next;
@@ -1075,24 +1069,21 @@ class PoorMansIncrementalResolver {
   }
 
   static _TokenPair _findLastDifferentToken(Token oldToken, Token newToken) {
-    //  print('last ------------');
+//    print('last ------------');
     int delta = newToken.offset - oldToken.offset;
     while (oldToken.previous != oldToken && newToken.previous != newToken) {
-      //    print('old: $oldToken @ ${oldToken.offset}');
-      //    print('new: $newToken @ ${newToken.offset}');
+//      print('old: $oldToken @ ${oldToken.offset}');
+//      print('new: $newToken @ ${newToken.offset}');
       if (!_equalToken(oldToken, newToken, delta)) {
-        return new _TokenPair(oldToken.next, newToken.next, delta);
+        return new _TokenPair(oldToken, newToken);
       }
-      oldToken.offset += delta;
       oldToken = oldToken.previous;
       newToken = newToken.previous;
     }
     return null;
   }
 
-  static AstNode _findNodeWithTokens(AstNode root, Token first, Token last) {
-    int offset = first.offset;
-    int end = last.end;
+  static AstNode _findNodeCovering(AstNode root, int offset, int end) {
     NodeLocator nodeLocator = new NodeLocator.con2(offset, end);
     return nodeLocator.searchWithin(root);
   }
@@ -1104,6 +1095,16 @@ class PoorMansIncrementalResolver {
       node = node.parent;
     }
     return parents;
+  }
+
+  static void _shiftTokens(Token token, int delta) {
+    while (true) {
+      token.offset += delta;
+      if (token.type == TokenType.EOF) {
+        break;
+      }
+      token = token.next;
+    }
   }
 }
 
@@ -1401,6 +1402,5 @@ class _ElementsRestorer extends RecursiveAstVisitor {
 class _TokenPair {
   final Token oldToken;
   final Token newToken;
-  final int delta;
-  _TokenPair(this.oldToken, this.newToken, this.delta);
+  _TokenPair(this.oldToken, this.newToken);
 }

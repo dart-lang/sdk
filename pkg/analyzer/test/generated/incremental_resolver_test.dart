@@ -1870,43 +1870,51 @@ main() {
 ''');
   }
 
-  void test_twice() {
+  void test_multiple_emptyLine() {
+    _resolveUnit(r'''
+class A {
+  m() {
+    return true;
+  }
+}''');
+    for (int i = 0; i < 6; i++) {
+      if (i.isEven) {
+        _updateAndValidate(r'''
+class A {
+  m() {
+    return true;
+
+  }
+}''', false);
+      } else {
+        _updateAndValidate(r'''
+class A {
+  m() {
+    return true;
+  }
+}''', false);
+      }
+    }
+  }
+
+  void test_multiple_expression() {
     _resolveUnit(r'''
 main() {
   print(1);
 }''');
-    _updateAndValidate(r'''
+    for (int i = 0; i < 6; i++) {
+      if (i.isEven) {
+        _updateAndValidate(r'''
 main() {
   print(12);
 }''', false);
-    _updateAndValidate(r'''
+      } else {
+        _updateAndValidate(r'''
 main() {
   print(1);
 }''', false);
-  }
-
-  void test_twice2() {
-    _resolveUnit(r'''
-class A {
-  m() {
-    int vvvvvvvv = 42;
-    print(vvvvvvvv);
-  }
-}''');
-    _updateAndValidate(r'''
-class A {
-  m() {
-    int vvvvvvvv2 = 42;
-    print(vvvvvvvv2);
-  }
-}''', false);
-    _updateAndValidate(r'''
-class A {
-  m() {
-    int vvvvvvvv = 42;
-    print(vvvvvvvv);
-  }
-}''', false);
+      }
+    }
   }
 
   void test_updateErrors_addNew_hints() {
@@ -1914,15 +1922,11 @@ class A {
 main() {
   int v = 0;
   print(v);
-  print(42);
 }
 ''');
-    // TODO(scheglov) "print(42)" is here because it seems we have bug with
-    // incremental analysis and the end of a function body.
     _updateAndValidate(r'''
 main() {
   int v = 0;
-  print(42);
 }
 ''');
   }
