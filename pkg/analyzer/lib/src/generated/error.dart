@@ -4839,9 +4839,17 @@ class StaticWarningCode extends ErrorCode {
    * 12.31 Type Test: It is a static warning if <i>T</i> does not denote a type
    * available in the current lexical scope.
    */
-  static const StaticWarningCode TYPE_TEST_NON_TYPE = const StaticWarningCode(
-      'TYPE_TEST_NON_TYPE',
+  static const StaticWarningCode TYPE_TEST_WITH_NON_TYPE = const StaticWarningCode(
+      'TYPE_TEST_WITH_NON_TYPE',
       "The name '{0}' is not a type and cannot be used in an 'is' expression");
+
+  /**
+   * 12.31 Type Test: It is a static warning if <i>T</i> does not denote a type
+   * available in the current lexical scope.
+   */
+  static const StaticWarningCode TYPE_TEST_WITH_UNDEFINED_NAME = const StaticWarningCode(
+      'TYPE_TEST_WITH_UNDEFINED_NAME',
+      "The name '{0}' is not defined and cannot be used in an 'is' expression");
 
   /**
    * 10 Generics: However, a type parameter is considered to be a malformed type

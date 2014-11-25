@@ -3308,7 +3308,18 @@ f(var p) {
   }
 }''');
     resolve(source);
-    assertErrors(source, [StaticWarningCode.TYPE_TEST_NON_TYPE]);
+    assertErrors(source, [StaticWarningCode.TYPE_TEST_WITH_NON_TYPE]);
+    verify([source]);
+  }
+
+  void test_typeTestWithUndefinedName() {
+    Source source = addSource(r'''
+f(var p) {
+  if (p is A) {
+  }
+}''');
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME]);
     verify([source]);
   }
 

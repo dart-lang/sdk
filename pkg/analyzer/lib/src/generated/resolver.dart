@@ -14867,7 +14867,7 @@ class TypeResolverVisitor extends ScopedVisitor {
             [typeName.name]);
       } else if (_isTypeNameInIsExpression(node)) {
         reportErrorForNode(
-            StaticWarningCode.TYPE_TEST_NON_TYPE,
+            StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME,
             typeName,
             [typeName.name]);
       } else if ((redirectingConstructorKind =
@@ -14937,7 +14937,7 @@ class TypeResolverVisitor extends ScopedVisitor {
             [typeName.name]);
       } else if (_isTypeNameInIsExpression(node)) {
         reportErrorForNode(
-            StaticWarningCode.TYPE_TEST_NON_TYPE,
+            StaticWarningCode.TYPE_TEST_WITH_NON_TYPE,
             typeName,
             [typeName.name]);
       } else if ((redirectingConstructorKind =
