@@ -4,7 +4,7 @@
 //
 // VMOptions=--enable_async
 //
-// Regression test for issue 21536.
+
 
 import 'dart:async';
 import 'package:expect/expect.dart';
@@ -13,10 +13,26 @@ later(vodka) => new Future.value(vodka);
 
 manana(tequila) async => tequila;
 
-main() async {
+// Regression test for issue 21536.
+testNestedFunctions() async {
   var a = await later('Asterix').then((tonic) {
     return later(tonic);
   });
   var o = await manana('Obelix').then(manana);
   Expect.equals("$a and $o", "Asterix and Obelix");
+}
+
+addLater({a, b}) => new Future.value(a + b);
+
+// Regression test for issue 21480.
+testNamedArguments() async {
+  var sum = await addLater(a:5, b:10);
+  Expect.equals(sum, 15);
+  sum = await addLater(b:11, a:-11);
+  Expect.equals(sum, 0);
+}
+
+main() async {
+  testNestedFunctions();
+  testNamedArguments();
 }

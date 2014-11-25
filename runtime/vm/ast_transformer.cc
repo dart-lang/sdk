@@ -380,6 +380,7 @@ void AwaitTransformer::VisitArgumentListNode(ArgumentListNode* node) {
   for (intptr_t i = 0; i < node->length(); i++) {
     new_args->Add(Transform(node->NodeAt(i)));
   }
+  new_args->set_names(node->names());
   result_ = new_args;
 }
 
