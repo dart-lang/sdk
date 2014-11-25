@@ -188,10 +188,7 @@ class CspFunctionCompiler implements FunctionCompiler {
                              tree_ir.FunctionDefinition definition) {
     CodeGenerator codeGen = new CodeGenerator(glue, work.registry);
 
-    codeGen.buildFunction(definition);
-    return buildJavaScriptFunction(work.element,
-                                   codeGen.parameters,
-                                   codeGen.body);
+    return attachPosition(codeGen.buildFunction(definition), work.element);
   }
 
   Iterable<CompilerTask> get tasks {
@@ -233,9 +230,4 @@ class CspFunctionCompiler implements FunctionCompiler {
     return element.implementation.compilationUnit.script.file;
   }
 
-  js.Fun buildJavaScriptFunction(FunctionElement element,
-                                 List<js.Parameter> parameters,
-                                 js.Block body) {
-    return attachPosition(new js.Fun(parameters, body), element);
-  }
 }

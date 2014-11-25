@@ -39,19 +39,23 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   /// Variable names that have already been used. Used to avoid name clashes.
   Set<String> usedVariableNames = new Set<String>();
 
-  List<js.Parameter> parameters = new List<js.Parameter>();
+  /// Input to [visitStatement]. Denotes the statement that will execute next
+  /// if the statements produced by [visitStatement] complete normally.
+  /// Set to null if control will fall over the end of the method.
+  tree_ir.Statement fallthrough = null;
+
+  Set<tree_ir.Label> usedLabels = new Set<tree_ir.Label>();
+
   List<js.Statement> accumulator = new List<js.Statement>();
 
-  js.Block body;
-
-  /// Generates JavaScript code for the body of [function].
-  /// The code will be in [body] and the parameters will be in [parameters].
   CodeGenerator(this.glue, this.registry);
 
-  void buildFunction(tree_ir.FunctionDefinition function) {
+  /// Generates JavaScript code for the body of [function].
+  js.Fun buildFunction(tree_ir.FunctionDefinition function) {
     currentFunction = function.element;
     visitStatement(function.body);
 
+    List<js.Parameter> parameters = new List<js.Parameter>();
     Set<tree_ir.Variable> parameterSet = new Set<tree_ir.Variable>();
 
     for (tree_ir.Variable parameter in function.parameters) {
@@ -76,7 +80,7 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
       accumulator.insert(0, new js.ExpressionStatement(
           new js.VariableDeclarationList(jsVariables)));
     }
-    body = new js.Block(accumulator);
+    return new js.Fun(parameters, new js.Block(accumulator));
   }
 
   js.Expression visit(tree_ir.Expression node) {
@@ -216,8 +220,7 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   js.Expression visitNot(tree_ir.Not node) {
-    return giveup(node);
-    // TODO: implement visitNot
+    return new js.Prefix("!", visitExpression(node.operand));
   }
 
   @override
@@ -245,8 +248,16 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   void visitContinue(tree_ir.Continue node) {
-    return giveup(node);
-    // TODO: implement visitContinue
+    tree_ir.Statement fallthrough = this.fallthrough;
+    if (node.target.binding == fallthrough) {
+      // Fall through to continue target
+    } else if (fallthrough is tree_ir.Continue &&
+               fallthrough.target == node.target) {
+      // Fall through to equivalent continue
+    } else {
+      usedLabels.add(node.target);
+      accumulator.add(new js.Continue(node.target.name));
+    }
   }
 
   @override
@@ -264,14 +275,30 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   void visitIf(tree_ir.If node) {
-    giveup(node);
-    // TODO: implement visitIf
+    accumulator.add(new js.If(visitExpression(node.condition),
+                              buildBody(node.thenStatement),
+                              buildBody(node.elseStatement)));
   }
 
   @override
   void visitLabeledStatement(tree_ir.LabeledStatement node) {
-    giveup(node);
-    // TODO: implement visitLabeledStatement
+    accumulator.add(buildLabeled(() => buildBody(node.body),
+                                 node.label,
+                                 node.next));
+    visitStatement(node.next);
+  }
+
+  js.Statement buildLabeled(js.Statement buildBody(),
+                tree_ir.Label label,
+                tree_ir.Statement fallthroughStatement) {
+    tree_ir.Statement savedFallthrough = fallthrough;
+    fallthrough = fallthroughStatement;
+    js.Statement result = buildBody();
+    if (usedLabels.remove(label)) {
+      result = new js.LabeledStatement(label.name, result);
+    }
+    fallthrough = savedFallthrough;
+    return result;
   }
 
   @override
@@ -287,27 +314,67 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   void visitBreak(tree_ir.Break node) {
-    giveup(node);
-    // TODO: implement visitBreak
+    tree_ir.Statement fallthrough = this.fallthrough;
+    if (node.target.binding.next == fallthrough) {
+      // Fall through to break target
+    } else if (fallthrough is tree_ir.Break &&
+               fallthrough.target == node.target) {
+      // Fall through to equivalent break
+    } else {
+      usedLabels.add(node.target);
+      accumulator.add(new js.Break(node.target.name));
+    }
+  }
+
+  /// Returns the current [accumulator] wrapped in a block if neccessary.
+  js.Statement _bodyAsStatement() {
+    if (accumulator.length == 0) {
+      return new js.EmptyStatement();
+    }
+    if (accumulator.length == 1) {
+      return accumulator.single;
+    }
+    return new js.Block(accumulator);
+  }
+
+  /// Builds a nested statement.
+  js.Statement buildBody(tree_ir.Statement statement) {
+    List<js.Statement> savedAccumulator = accumulator;
+    accumulator = new List<js.Statement>();
+    visitStatement(statement);
+    js.Statement result = _bodyAsStatement();
+    accumulator = savedAccumulator;
+    return result;
+  }
+
+  js.Statement buildWhile(js.Expression condition,
+                          tree_ir.Statement body,
+                          tree_ir.Label label,
+                          tree_ir.Statement fallthroughStatement) {
+    return buildLabeled(() => new js.While(condition, buildBody(body)),
+                        label,
+                        fallthroughStatement);
   }
 
   @override
   void visitWhileCondition(tree_ir.WhileCondition node) {
-    giveup(node);
-    // TODO: implement visitWhileCondition
+    accumulator.add(
+        buildWhile(visitExpression(node.condition),
+                   node.body,
+                   node.label,
+                   node));
+    visitStatement(node.next);
   }
 
   @override
   void visitWhileTrue(tree_ir.WhileTrue node) {
-    giveup(node);
-    // TODO: implement visitWhileTrue
+    accumulator.add(
+        buildWhile(new js.LiteralBool(true), node.body, node.label, node));
   }
 
   @override
   void visitReturn(tree_ir.Return node) {
     accumulator.add(new js.Return(visitExpression(node.value)));
   }
-
-  bool isNullLiteral(js.Expression exp) => exp is js.LiteralNull;
 
 }
