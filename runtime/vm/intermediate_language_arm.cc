@@ -1863,116 +1863,6 @@ class BoxAllocationSlowPath : public SlowPathCode {
 };
 
 
-
-
-LocationSummary* LoadCodeUnitsInstr::MakeLocationSummary(Isolate* isolate,
-                                                         bool opt) const {
-  const bool might_box = (representation() == kTagged) && !can_pack_into_smi();
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = might_box ? 1 : 0;
-  LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, kNumInputs, kNumTemps,
-      might_box ? LocationSummary::kCallOnSlowPath : LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RequiresRegister());
-
-  if (might_box) {
-    summary->set_temp(0, Location::RequiresRegister());
-  }
-
-  if (representation() == kUnboxedMint) {
-    summary->set_out(0, Location::Pair(Location::RequiresRegister(),
-                                       Location::RequiresRegister()));
-  } else {
-    ASSERT(representation() == kTagged);
-    summary->set_out(0, Location::RequiresRegister());
-  }
-
-  return summary;
-}
-
-
-void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register array = locs()->in(0).reg();
-  const Location index = locs()->in(1);
-
-  Address element_address = __ ElementAddressForRegIndex(
-        true,  IsExternal(), class_id(), index_scale(), array, index.reg());
-  // Warning: element_address may use register IP as base.
-
-  if (representation() == kUnboxedMint) {
-    ASSERT(compiler->is_optimizing());
-    ASSERT(locs()->out(0).IsPairLocation());
-    PairLocation* result_pair = locs()->out(0).AsPairLocation();
-    Register result1 = result_pair->At(0).reg();
-    Register result2 = result_pair->At(1).reg();
-    switch (class_id()) {
-      case kOneByteStringCid:
-      case kExternalOneByteStringCid:
-        ASSERT(element_count() == 4);
-        __ ldr(result1, element_address);
-        __ eor(result2, result2, Operand(result2));
-        break;
-      case kTwoByteStringCid:
-      case kExternalTwoByteStringCid:
-        ASSERT(element_count() == 2);
-        __ ldr(result1, element_address);
-        __ eor(result2, result2, Operand(result2));
-        break;
-      default:
-        UNREACHABLE();
-    }
-  } else {
-    ASSERT(representation() == kTagged);
-    Register result = locs()->out(0).reg();
-    switch (class_id()) {
-      case kOneByteStringCid:
-      case kExternalOneByteStringCid:
-        switch (element_count()) {
-          case 1: __ ldrb(result, element_address); break;
-          case 2: __ ldrh(result, element_address); break;
-          case 4: __ ldr(result, element_address); break;
-          default: UNREACHABLE();
-        }
-        break;
-      case kTwoByteStringCid:
-      case kExternalTwoByteStringCid:
-        switch (element_count()) {
-          case 1: __ ldrh(result, element_address); break;
-          case 2: __ ldr(result, element_address); break;
-          default: UNREACHABLE();
-        }
-        break;
-      default:
-        UNREACHABLE();
-        break;
-    }
-    if (can_pack_into_smi()) {
-      __ SmiTag(result);
-    } else {
-      // If the value cannot fit in a smi then allocate a mint box for it.
-      Register value = locs()->temp(0).reg();
-      Register temp = locs()->temp(1).reg();
-      ASSERT(result != value);
-      __ MoveRegister(value, result);
-      __ SmiTag(result);
-
-      Label done;
-      __ TestImmediate(value, 0xC0000000);
-      __ b(&done, EQ);
-      BoxAllocationSlowPath::Allocate(
-          compiler, this, compiler->mint_class(), result, temp);
-      __ eor(temp, temp, Operand(temp));
-      __ StoreToOffset(kWord, value, result,
-                       Mint::value_offset() - kHeapObjectTag);
-      __ StoreToOffset(kWord, temp, result,
-                       Mint::value_offset() - kHeapObjectTag + kWordSize);
-      __ Bind(&done);
-    }
-  }
-}
-
-
 LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Isolate* isolate,
                                                               bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -5236,28 +5126,6 @@ void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* CaseInsensitiveCompareUC16Instr::MakeLocationSummary(
-    Isolate* isolate, bool opt) const {
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, InputCount(), kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(R0));
-  summary->set_in(1, Location::RegisterLocation(R1));
-  summary->set_in(2, Location::RegisterLocation(R2));
-  summary->set_in(3, Location::RegisterLocation(R3));
-  summary->set_out(0, Location::RegisterLocation(R0));
-  return summary;
-}
-
-
-void CaseInsensitiveCompareUC16Instr::EmitNativeCode(
-    FlowGraphCompiler* compiler) {
-
-  // Call the function.
-  __ CallRuntime(TargetFunction(), TargetFunction().argument_count());
-}
-
-
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Isolate* isolate,
                                                       bool opt) const {
   if (result_cid() == kDoubleCid) {
@@ -6730,38 +6598,6 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->CanFallThroughTo(successor())) {
     __ b(compiler->GetJumpLabel(successor()));
   }
-}
-
-
-LocationSummary* IndirectGotoInstr::MakeLocationSummary(Isolate* isolate,
-                                                        bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
-
-  LocationSummary* summary = new(isolate) LocationSummary(
-        isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_temp(0, Location::RequiresRegister());
-
-  return summary;
-}
-
-
-void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register target_address_reg = locs()->temp_slot(0)->reg();
-
-  // Load from [current frame pointer] + kPcMarkerSlotFromFp.
-  __ ldr(target_address_reg, Address(FP, kPcMarkerSlotFromFp * kWordSize));
-
-  // Add the offset.
-  Register offset_reg = locs()->in(0).reg();
-  __ add(target_address_reg,
-         target_address_reg,
-         Operand(offset_reg, ASR, kSmiTagSize));
-
-  // Jump to the absolute address.
-  __ bx(target_address_reg);
 }
 
 

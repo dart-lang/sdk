@@ -14,12 +14,11 @@
 #include "vm/intrinsifier.h"
 
 #include "vm/assembler.h"
-#include "vm/dart_entry.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
-#include "vm/regexp_assembler.h"
+#include "vm/stub_code.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -2047,40 +2046,6 @@ void Intrinsifier::OneByteString_equality(Assembler* assembler) {
 
 void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
   StringEquality(assembler, kTwoByteStringCid);
-}
-
-
-void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
-  if (FLAG_use_jscre) {
-    return;
-  }
-  static const intptr_t kRegExpParamOffset = 3 * kWordSize;
-  static const intptr_t kStringParamOffset = 2 * kWordSize;
-  // start_index smi is located at offset 1.
-
-  // Incoming registers:
-  // EAX: Function. (Will be loaded with the specialized matcher function.)
-  // ECX: IC-Data. (Will be preserved.)
-  // EDX: Arguments descriptor. (Will be preserved.)
-
-  // Load the specialized function pointer into EAX. Leverage the fact the
-  // string CIDs as well as stored function pointers are in sequence.
-  __ movl(EBX, Address(ESP, kRegExpParamOffset));
-  __ movl(EDI, Address(ESP, kStringParamOffset));
-  __ LoadClassId(EDI, EDI);
-  __ SubImmediate(EDI, Immediate(kOneByteStringCid));
-  __ movl(EAX, FieldAddress(EBX, EDI, TIMES_4,
-                            JSRegExp::function_offset(kOneByteStringCid)));
-
-  // Registers are now set up for the lazy compile stub. It expects the function
-  // in EAX, the argument descriptor in EDX, and IC-Data in ECX.
-  static const intptr_t arg_count = RegExpMacroAssembler::kParamCount;
-  __ LoadObject(EDX, Array::Handle(ArgumentsDescriptor::New(arg_count)));
-
-  // Tail-call the function.
-  __ movl(EDI, FieldAddress(EAX, Function::instructions_offset()));
-  __ addl(EDI, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ jmp(EDI);
 }
 
 

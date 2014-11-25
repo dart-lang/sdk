@@ -19,7 +19,6 @@
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
-#include "vm/raw_object.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
@@ -229,8 +228,7 @@ static bool IsEmptyBlock(BlockEntryInstr* block) {
   return !block->IsCatchBlockEntry() &&
          !block->HasNonRedundantParallelMove() &&
          block->next()->IsGoto() &&
-         !block->next()->AsGoto()->HasNonRedundantParallelMove() &&
-         !block->IsIndirectEntry();
+         !block->next()->AsGoto()->HasNonRedundantParallelMove();
 }
 
 
@@ -357,7 +355,6 @@ void FlowGraphCompiler::VisitBlocks() {
 
     LoopInfoComment(assembler(), *entry, *loop_headers);
 
-    entry->set_offset(assembler()->CodeSize());
     entry->EmitNativeCode(this);
     // Compile all successors until an exit, branch, or a block entry.
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
@@ -830,22 +827,9 @@ void FlowGraphCompiler::FinalizeStackmaps(const Code& code) {
 
 
 void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
-  LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle();
-  if (parsed_function().node_sequence() == NULL) {
-    ASSERT(flow_graph().IsIrregexpFunction());
-    var_descs = LocalVarDescriptors::New(1);
-    RawLocalVarDescriptors::VarInfo info;
-    info.set_kind(RawLocalVarDescriptors::kSavedCurrentContext);
-    info.scope_id = 0;
-    info.begin_pos = 0;
-    info.end_pos = 0;
-    info.set_index(parsed_function().current_context_var()->index());
-    var_descs.SetVar(0, Symbols::CurrentContextVar(), &info);
-  } else {
-    var_descs =
-        parsed_function_.node_sequence()->scope()->GetVarDescriptors(
-            parsed_function_.function());
-  }
+  const LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle(
+          parsed_function_.node_sequence()->scope()->GetVarDescriptors(
+              parsed_function_.function()));
   code.set_var_descriptors(var_descs);
 }
 

@@ -7,7 +7,6 @@
 #include "vm/cha.h"
 #include "vm/bit_vector.h"
 #include "vm/il_printer.h"
-#include "vm/regexp_assembler.h"
 
 namespace dart {
 
@@ -710,21 +709,6 @@ CompileType ParameterInstr::ComputeType() const {
   }
 
   const Function& function = graph_entry->parsed_function().function();
-  if (function.IsIrregexpFunction()) {
-    // In irregexp functions, types of input parameters are known and immutable.
-    // Set parameter types here in order to prevent unnecessary CheckClassInstr
-    // from being generated.
-    switch (index()) {
-      case RegExpMacroAssembler::kParamStringIndex:
-        return CompileType::FromCid(function.regexp_cid());
-      case RegExpMacroAssembler::kParamStartOffsetIndex:
-        return CompileType::FromCid(kSmiCid);
-      default: UNREACHABLE();
-    }
-    UNREACHABLE();
-    return CompileType::Dynamic();
-  }
-
   LocalScope* scope = graph_entry->parsed_function().node_sequence()->scope();
   const AbstractType& type = scope->VariableAt(index())->type();
 
@@ -1011,21 +995,6 @@ CompileType LoadFieldInstr::ComputeType() const {
 }
 
 
-CompileType LoadCodeUnitsInstr::ComputeType() const {
-  switch (class_id()) {
-    case kOneByteStringCid:
-    case kExternalOneByteStringCid:
-    case kTwoByteStringCid:
-    case kExternalTwoByteStringCid:
-      return can_pack_into_smi() ? CompileType::FromCid(kSmiCid)
-                                 : CompileType::Int();
-    default:
-      UNIMPLEMENTED();
-      return CompileType::Dynamic();
-  }
-}
-
-
 CompileType BinaryInt32OpInstr::ComputeType() const {
   // TODO(vegorov): range analysis information shall be used here.
   return CompileType::Int();
@@ -1282,11 +1251,6 @@ CompileType MathUnaryInstr::ComputeType() const {
 
 CompileType MathMinMaxInstr::ComputeType() const {
   return CompileType::FromCid(result_cid_);
-}
-
-
-CompileType CaseInsensitiveCompareUC16Instr::ComputeType() const {
-  return CompileType::FromCid(kBoolCid);
 }
 
 

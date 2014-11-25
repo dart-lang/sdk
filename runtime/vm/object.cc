@@ -5388,9 +5388,6 @@ const char* Function::KindToCString(RawFunction::Kind kind) {
     case RawFunction::kInvokeFieldDispatcher:
       return "kInvokeFieldDispatcher";
       break;
-    case RawFunction::kIrregexpFunction:
-      return "kIrregexpFunction";
-      break;
     default:
       UNREACHABLE();
       return NULL;
@@ -5473,29 +5470,6 @@ void Function::set_name(const String& value) const {
 void Function::set_owner(const Object& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->owner_, value.raw());
-}
-
-
-RawJSRegExp* Function::regexp() const {
-  ASSERT(kind() == RawFunction::kIrregexpFunction);
-  const Object& obj = Object::Handle(raw_ptr()->data_);
-  return JSRegExp::Cast(obj).raw();
-}
-
-
-void Function::set_regexp(const JSRegExp& value) const {
-  ASSERT(kind() == RawFunction::kIrregexpFunction);
-  ASSERT(raw_ptr()->data_ == Object::null());
-  set_data(value);
-}
-
-
-void Function::set_regexp_cid(intptr_t regexp_cid) const {
-    ASSERT((regexp_cid == kIllegalCid) ||
-           (kind() == RawFunction::kIrregexpFunction));
-    ASSERT((regexp_cid == kIllegalCid) ||
-           RawObject::IsStringClassId(regexp_cid));
-    StoreNonPointer(&raw_ptr()->regexp_cid_, regexp_cid);
 }
 
 
@@ -6179,7 +6153,6 @@ RawFunction* Function::New(const String& name,
   result.set_num_optional_parameters(0);
   result.set_usage_counter(0);
   result.set_deoptimization_counter(0);
-  result.set_regexp_cid(kIllegalCid);
   result.set_optimized_instruction_count(0);
   result.set_optimized_call_site_count(0);
   result.set_is_optimizable(is_native ? false : true);
@@ -6208,7 +6181,6 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   clone.ClearCode();
   clone.set_usage_counter(0);
   clone.set_deoptimization_counter(0);
-  clone.set_regexp_cid(kIllegalCid);
   clone.set_optimized_instruction_count(0);
   clone.set_optimized_call_site_count(0);
   clone.set_ic_data_array(Array::Handle());
@@ -6775,9 +6747,6 @@ const char* Function::ToCString() const {
       break;
     case RawFunction::kInvokeFieldDispatcher:
       kind_str = "invoke-field-dispatcher";
-      break;
-    case RawFunction::kIrregexpFunction:
-      kind_str = "irregexp-function";
       break;
     default:
       UNREACHABLE();
@@ -20119,11 +20088,6 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
 
 void JSRegExp::set_pattern(const String& pattern) const {
   StorePointer(&raw_ptr()->pattern_, pattern.raw());
-}
-
-
-void JSRegExp::set_function(intptr_t cid, const Function& value) const {
-  StorePointer(FunctionAddr(cid), value.raw());
 }
 
 

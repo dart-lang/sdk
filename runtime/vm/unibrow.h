@@ -7,7 +7,7 @@
 
 #include <sys/types.h>
 
-#include "vm/globals.h"
+// SNIP
 
 /**
  * \file
@@ -16,55 +16,59 @@
 
 namespace unibrow {
 
+// SNIP
+
 // A cache used in case conversion.  It caches the value for characters
 // that either have no mapping or map to a single character independent
 // of context.  Characters that map to more than one character or that
 // map differently depending on context are always looked up.
-template <class T, intptr_t size = 256>
+template <class T, int size = 256>
 class Mapping {
  public:
   inline Mapping() { }
-  inline intptr_t get(int32_t c, int32_t n, int32_t* result);
+  inline int get(uchar c, uchar n, uchar* result);
  private:
   friend class Test;
-  intptr_t CalculateValue(int32_t c, int32_t n, int32_t* result);
+  int CalculateValue(uchar c, uchar n, uchar* result);
   struct CacheEntry {
     inline CacheEntry() : code_point_(kNoChar), offset_(0) { }
-    inline CacheEntry(int32_t code_point, signed offset)
+    inline CacheEntry(uchar code_point, signed offset)
       : code_point_(code_point),
         offset_(offset) { }
-    int32_t code_point_;
+    uchar code_point_;
     signed offset_;
-    static const intptr_t kNoChar = (1 << 21) - 1;
+    static const int kNoChar = (1 << 21) - 1;
   };
-  static const intptr_t kSize = size;
-  static const intptr_t kMask = kSize - 1;
+  static const int kSize = size;
+  static const int kMask = kSize - 1;
   CacheEntry entries_[kSize];
 };
 
+// SNIP
+
 struct Letter {
-  static bool Is(int32_t c);
+  static bool Is(uchar c);
 };
 struct Ecma262Canonicalize {
-  static const intptr_t kMaxWidth = 1;
-  static intptr_t Convert(int32_t c,
-                          int32_t n,
-                          int32_t* result,
-                          bool* allow_caching_ptr);
+  static const int kMaxWidth = 1;
+  static int Convert(uchar c,
+                     uchar n,
+                     uchar* result,
+                     bool* allow_caching_ptr);
 };
 struct Ecma262UnCanonicalize {
-  static const intptr_t kMaxWidth = 4;
-  static intptr_t Convert(int32_t c,
-                          int32_t n,
-                          int32_t* result,
-                          bool* allow_caching_ptr);
+  static const int kMaxWidth = 4;
+  static int Convert(uchar c,
+                     uchar n,
+                     uchar* result,
+                     bool* allow_caching_ptr);
 };
 struct CanonicalizationRange {
-  static const intptr_t kMaxWidth = 1;
-  static intptr_t Convert(int32_t c,
-                          int32_t n,
-                          int32_t* result,
-                          bool* allow_caching_ptr);
+  static const int kMaxWidth = 1;
+  static int Convert(uchar c,
+                     uchar n,
+                     uchar* result,
+                     bool* allow_caching_ptr);
 };
 
 }  // namespace unibrow

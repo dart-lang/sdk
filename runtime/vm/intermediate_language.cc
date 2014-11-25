@@ -17,7 +17,6 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
-#include "vm/regexp_assembler.h"
 #include "vm/resolver.h"
 #include "vm/scopes.h"
 #include "vm/stub_code.h"
@@ -452,7 +451,6 @@ GraphEntryInstr::GraphEntryInstr(const ParsedFunction* parsed_function,
       parsed_function_(parsed_function),
       normal_entry_(normal_entry),
       catch_entries_(),
-      indirect_entries_(),
       initial_definitions_(),
       osr_id_(osr_id),
       entry_count_(0),
@@ -2551,52 +2549,6 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-void IndirectGotoInstr::ComputeOffsetTable(Isolate* isolate) {
-  if (GetBlock()->offset() < 0) {
-    // Don't generate a table when contained in an unreachable block.
-    return;
-  }
-  ASSERT(SuccessorCount() == offsets_.Capacity());
-  offsets_.SetLength(SuccessorCount());
-  for (intptr_t i = 0; i < SuccessorCount(); i++) {
-    TargetEntryInstr* target = SuccessorAt(i);
-    intptr_t offset = target->offset();
-
-    // The intermediate block might be compacted, if so, use the indirect entry.
-    if (offset < 0) {
-      // Optimizations might have modified the immediate target block, but it
-      // must end with a goto to the indirect entry. Also, we can't use
-      // last_instruction because 'target' is compacted/unreachable.
-      Instruction* last = target->next();
-      while (last != NULL && !last->IsGoto()) {
-        last = last->next();
-      }
-      ASSERT(last);
-      IndirectEntryInstr* ientry =
-          last->AsGoto()->successor()->AsIndirectEntry();
-      ASSERT(ientry != NULL);
-      ASSERT(ientry->indirect_id() == i);
-      offset = ientry->offset();
-    }
-
-    ASSERT(offset > 0);
-    offset -= Assembler::EntryPointToPcMarkerOffset();
-    offsets_.SetAt(i, Smi::ZoneHandle(isolate, Smi::New(offset)));
-  }
-}
-
-
-LocationSummary* IndirectEntryInstr::MakeLocationSummary(
-    Isolate* isolate, bool optimizing) const {
-  return JoinEntryInstr::MakeLocationSummary(isolate, optimizing);
-}
-
-
-void IndirectEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  JoinEntryInstr::EmitNativeCode(compiler);
-}
-
-
 LocationSummary* PhiInstr::MakeLocationSummary(Isolate* isolate,
                                                bool optimizing) const {
   UNREACHABLE();
@@ -3385,23 +3337,6 @@ const char* MathUnaryInstr::KindToCString(MathUnaryKind kind) {
   }
   UNREACHABLE();
   return "";
-}
-
-typedef RawBool* (*CaseInsensitiveCompareUC16Function) (
-    RawString* string_raw,
-    RawSmi* lhs_index_raw,
-    RawSmi* rhs_index_raw,
-    RawSmi* length_raw);
-
-
-extern const RuntimeEntry kCaseInsensitiveCompareUC16RuntimeEntry(
-    "CaseInsensitiveCompareUC16", reinterpret_cast<RuntimeFunction>(
-        static_cast<CaseInsensitiveCompareUC16Function>(
-        &IRRegExpMacroAssembler::CaseInsensitiveCompareUC16)), 4, true, false);
-
-
-const RuntimeEntry& CaseInsensitiveCompareUC16Instr::TargetFunction() const {
-  return kCaseInsensitiveCompareUC16RuntimeEntry;
 }
 
 

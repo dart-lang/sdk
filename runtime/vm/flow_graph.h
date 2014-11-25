@@ -110,9 +110,6 @@ class FlowGraph : public ZoneAllocated {
   intptr_t num_non_copied_params() const {
     return num_non_copied_params_;
   }
-  bool IsIrregexpFunction() const {
-    return parsed_function().function().IsIrregexpFunction();
-  }
 
   LocalVariable* CurrentContextVar() const {
     return parsed_function().current_context_var();

@@ -672,7 +672,6 @@ class RawFunction : public RawObject {
     kMethodExtractor,  // converts method into implicit closure on the receiver.
     kNoSuchMethodDispatcher,  // invokes noSuchMethod.
     kInvokeFieldDispatcher,  // invokes a field as a closure.
-    kIrregexpFunction,   // represents a generated irregexp matcher function.
   };
 
   enum AsyncModifier {
@@ -715,7 +714,6 @@ class RawFunction : public RawObject {
   int16_t num_fixed_parameters_;
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
   int16_t deoptimization_counter_;
-  int16_t regexp_cid_;
   uint32_t kind_tag_;  // See Function::KindTagBits.
   uint16_t optimized_instruction_count_;
   uint16_t optimized_call_site_count_;
@@ -1831,12 +1829,8 @@ class RawJSRegExp : public RawInstance {
   RawSmi* data_length_;
   RawSmi* num_bracket_expressions_;
   RawString* pattern_;  // Pattern to be used for matching.
-  RawFunction* one_byte_function_;
-  RawFunction* two_byte_function_;
-  RawFunction* external_one_byte_function_;
-  RawFunction* external_two_byte_function_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->external_two_byte_function_);
+    return reinterpret_cast<RawObject**>(&ptr()->pattern_);
   }
 
   // A bitfield with two fields:

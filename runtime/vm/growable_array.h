@@ -60,10 +60,6 @@ class BaseGrowableArray : public B {
     return data_[index];
   }
 
-  const T& At(intptr_t index) const {
-    return operator[](index);
-  }
-
   T& Last() const {
     ASSERT(length_ > 0);
     return operator[](length_ - 1);

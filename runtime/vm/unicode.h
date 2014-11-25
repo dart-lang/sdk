@@ -154,9 +154,9 @@ class Utf16 : AllStatic {
   // Encodes a single code point.
   static void Encode(int32_t codepoint, uint16_t* dst);
 
+ private:
   static const int32_t kMaxCodeUnit = 0xFFFF;
 
- private:
   static const int32_t kLeadSurrogateOffset = (0xD800 - (0x10000 >> 10));
 
   static const int32_t kSurrogateOffset = (0x10000 - (0xD800 << 10) - 0xDC00);

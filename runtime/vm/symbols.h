@@ -18,9 +18,6 @@ class ObjectPointerVisitor;
 #define PREDEFINED_SYMBOLS_LIST(V)                                             \
   V(Empty, "")                                                                 \
   V(EqualOperator, "==")                                                       \
-  V(GreaterEqualOperator, ">=")                                                \
-  V(LessEqualOperator, "<=")                                                   \
-  V(UnaryMinus, "unary-")                                                      \
   V(Identical, "identical")                                                    \
   V(Length, "length")                                                          \
   V(IndexToken, "[]")                                                          \
@@ -166,8 +163,6 @@ class ObjectPointerVisitor;
   V(_SendPortImpl, "_SendPortImpl")                                            \
   V(StackTrace, "StackTrace")                                                  \
   V(JSSyntaxRegExp, "_JSSyntaxRegExp")                                         \
-  V(RegExp, "RegExp")                                                          \
-  V(IrregExp, ":irregexp")                                                     \
   V(Object, "Object")                                                          \
   V(Int, "int")                                                                \
   V(Double, "double")                                                          \
@@ -336,27 +331,6 @@ class ObjectPointerVisitor;
   V(StubPrefix, "[Stub] ")                                                     \
   V(ClassID, "ClassID")                                                        \
   V(DartIsVM, "dart.isVM")                                                     \
-  V(stack, ":stack")                                                           \
-  V(current_character, ":current_character")                                   \
-  V(current_position, ":current_position")                                     \
-  V(string_param_length, ":string_param_length")                               \
-  V(capture_length, ":capture_length")                                         \
-  V(word_character_map, ":word_character_map")                                 \
-  V(match_start_index, ":match_start_index")                                   \
-  V(capture_start_index, ":capture_start_index")                               \
-  V(match_end_index, ":match_end_index")                                       \
-  V(char_in_capture, ":char_in_capture")                                       \
-  V(char_in_match, ":char_in_match")                                           \
-  V(result, ":result")                                                         \
-  V(position_registers, ":position_registers")                                 \
-  V(string_param, ":string_param")                                             \
-  V(start_index_param, ":start_index_param")                                   \
-  V(clear, "clear")                                                            \
-  V(_wordCharacterMap, "_wordCharacterMap")                                    \
-  V(print, "print")                                                            \
-  V(last, "last")                                                              \
-  V(removeLast, "removeLast")                                                  \
-  V(add, "add")                                                                \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This
@@ -399,18 +373,6 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
   }
   static const String& Equals() {
     return *(symbol_handles_[kNullCharId + '=']);
-  }
-  static const String& Plus() {
-    return *(symbol_handles_[kNullCharId + '+']);
-  }
-  static const String& Minus() {
-    return *(symbol_handles_[kNullCharId + '-']);
-  }
-  static const String& BitOr() {
-    return *(symbol_handles_[kNullCharId + '|']);
-  }
-  static const String& BitAnd() {
-    return *(symbol_handles_[kNullCharId + '&']);
   }
   static const String& LAngleBracket() {
     return *(symbol_handles_[kNullCharId + '<']);

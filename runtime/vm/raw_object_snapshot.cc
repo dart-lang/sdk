@@ -698,7 +698,6 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   func.set_num_fixed_parameters(reader->Read<int16_t>());
   func.set_num_optional_parameters(reader->Read<int16_t>());
   func.set_deoptimization_counter(reader->Read<int16_t>());
-  func.set_regexp_cid(reader->Read<int16_t>());
   func.set_kind_tag(reader->Read<uint32_t>());
   func.set_optimized_instruction_count(reader->Read<uint16_t>());
   func.set_optimized_call_site_count(reader->Read<uint16_t>());
@@ -742,7 +741,6 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   writer->Write<int16_t>(ptr()->num_fixed_parameters_);
   writer->Write<int16_t>(ptr()->num_optional_parameters_);
   writer->Write<int16_t>(ptr()->deoptimization_counter_);
-  writer->Write<int16_t>(ptr()->regexp_cid_);
   writer->Write<uint32_t>(ptr()->kind_tag_);
   writer->Write<uint16_t>(ptr()->optimized_instruction_count_);
   writer->Write<uint16_t>(ptr()->optimized_call_site_count_);

@@ -1600,7 +1600,6 @@ static bool IsDebuggableFunctionKind(const Function& func) {
       (kind == RawFunction::kMethodExtractor) ||
       (kind == RawFunction::kNoSuchMethodDispatcher) ||
       (kind == RawFunction::kInvokeFieldDispatcher) ||
-      (kind == RawFunction::kIrregexpFunction) ||
       func.IsImplicitConstructor()) {
     return false;
   }

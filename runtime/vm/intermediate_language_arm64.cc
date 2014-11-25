@@ -1135,55 +1135,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* LoadCodeUnitsInstr::MakeLocationSummary(Isolate* isolate,
-                                                         bool opt) const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RequiresRegister());
-  summary->set_out(0, Location::RequiresRegister());
-  return summary;
-}
-
-
-void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register array = locs()->in(0).reg();
-  const Location index = locs()->in(1);
-
-  Address element_address = __ ElementAddressForRegIndex(
-        true,  IsExternal(), class_id(), index_scale(), array, index.reg());
-  // Warning: element_address may use register TMP as base.
-
-  Register result = locs()->out(0).reg();
-  switch (class_id()) {
-    case kOneByteStringCid:
-    case kExternalOneByteStringCid:
-      switch (element_count()) {
-        case 1: __ ldr(result, element_address, kUnsignedByte); break;
-        case 2: __ ldr(result, element_address, kUnsignedHalfword); break;
-        case 4: __ ldr(result, element_address, kUnsignedWord); break;
-        default: UNREACHABLE();
-      }
-      __ SmiTag(result);
-      break;
-    case kTwoByteStringCid:
-    case kExternalTwoByteStringCid:
-      switch (element_count()) {
-        case 1: __ ldr(result, element_address, kUnsignedHalfword); break;
-        case 2: __ ldr(result, element_address, kUnsignedWord); break;
-        default: UNREACHABLE();
-      }
-      __ SmiTag(result);
-      break;
-    default:
-      UNREACHABLE();
-      break;
-  }
-}
-
-
 Representation StoreIndexedInstr::RequiredInputRepresentation(
     intptr_t idx) const {
   // Array can be a Dart object or a pointer to external data.
@@ -4370,28 +4321,6 @@ void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* CaseInsensitiveCompareUC16Instr::MakeLocationSummary(
-    Isolate* isolate, bool opt) const {
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, InputCount(), kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(R0));
-  summary->set_in(1, Location::RegisterLocation(R1));
-  summary->set_in(2, Location::RegisterLocation(R2));
-  summary->set_in(3, Location::RegisterLocation(R3));
-  summary->set_out(0, Location::RegisterLocation(R0));
-  return summary;
-}
-
-
-void CaseInsensitiveCompareUC16Instr::EmitNativeCode(
-    FlowGraphCompiler* compiler) {
-
-  // Call the function.
-  __ CallRuntime(TargetFunction(), TargetFunction().argument_count());
-}
-
-
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Isolate* isolate,
                                                       bool opt) const {
   if (result_cid() == kDoubleCid) {
@@ -5421,38 +5350,6 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->CanFallThroughTo(successor())) {
     __ b(compiler->GetJumpLabel(successor()));
   }
-}
-
-
-LocationSummary* IndirectGotoInstr::MakeLocationSummary(Isolate* isolate,
-                                                        bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
-
-  LocationSummary* summary = new(isolate) LocationSummary(
-        isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_temp(0, Location::RequiresRegister());
-
-  return summary;
-}
-
-
-void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register target_address_reg = locs()->temp_slot(0)->reg();
-
-  // Load from [current frame pointer] + kPcMarkerSlotFromFp.
-  __ ldr(target_address_reg, Address(FP, kPcMarkerSlotFromFp * kWordSize));
-
-  // Add the offset.
-  Register offset_reg = locs()->in(0).reg();
-  __ add(target_address_reg,
-         target_address_reg,
-         Operand(offset_reg, ASR, kSmiTagSize));
-
-  // Jump to the absolute address.
-  __ br(target_address_reg);
 }
 
 

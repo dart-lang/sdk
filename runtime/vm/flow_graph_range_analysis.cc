@@ -2903,22 +2903,6 @@ void LoadIndexedInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 }
 
 
-void LoadCodeUnitsInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  ASSERT(class_id() == kOneByteStringCid ||
-         class_id() == kTwoByteStringCid);
-  switch (class_id()) {
-    case kOneByteStringCid:
-    case kTwoByteStringCid:
-      *range = Range(RangeBoundary::FromConstant(0),
-                     RangeBoundary::FromConstant(kMaxUint32));
-      break;
-    default:
-      UNREACHABLE();
-      break;
-  }
-}
-
-
 void IfThenElseInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   const intptr_t min = Utils::Minimum(if_true_, if_false_);
   const intptr_t max = Utils::Maximum(if_true_, if_false_);

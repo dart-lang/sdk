@@ -24,7 +24,6 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
-#include "vm/regexp_assembler.h"
 #include "vm/report.h"
 #include "vm/resolver.h"
 #include "vm/scanner.h"
@@ -164,14 +163,6 @@ void ParsedFunction::SetNodeSequence(SequenceNode* node_sequence) {
 }
 
 
-void ParsedFunction::SetRegExpCompileData(
-    RegExpCompileData* regexp_compile_data) {
-  ASSERT(regexp_compile_data_ == NULL);
-  ASSERT(regexp_compile_data != NULL);
-  regexp_compile_data_ = regexp_compile_data;
-}
-
-
 void ParsedFunction::AddDeferredPrefix(const LibraryPrefix& prefix) {
   ASSERT(prefix.is_deferred_load());
   ASSERT(!prefix.is_loaded());
@@ -185,7 +176,6 @@ void ParsedFunction::AddDeferredPrefix(const LibraryPrefix& prefix) {
 
 
 void ParsedFunction::AllocateVariables() {
-  ASSERT(!function().IsIrregexpFunction());
   LocalScope* scope = node_sequence()->scope();
   const intptr_t num_fixed_params = function().num_fixed_parameters();
   const intptr_t num_opt_params = function().NumOptionalParameters();
@@ -232,24 +222,6 @@ struct CatchParamDesc {
   const String* name;
   LocalVariable* var;
 };
-
-
-void ParsedFunction::AllocateIrregexpVariables(intptr_t num_stack_locals) {
-  ASSERT(function().IsIrregexpFunction());
-  ASSERT(function().NumOptionalParameters() == 0);
-  const intptr_t num_params = function().num_fixed_parameters();
-  ASSERT(num_params == RegExpMacroAssembler::kParamCount);
-  // Compute start indices to parameters and locals, and the number of
-  // parameters to copy.
-  // Parameter i will be at fp[kParamEndSlotFromFp + num_params - i] and
-  // local variable j will be at fp[kFirstLocalSlotFromFp - j].
-  first_parameter_index_ = kParamEndSlotFromFp + num_params;
-  first_stack_local_index_ = kFirstLocalSlotFromFp;
-  num_copied_params_ = 0;
-
-  // Frame indices are relative to the frame pointer and are decreasing.
-  num_stack_locals_ = num_stack_locals;
-}
 
 
 struct Parser::Block : public ZoneAllocated {
@@ -880,8 +852,6 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       node_sequence =
           parser.ParseInvokeFieldDispatcher(func, &default_parameter_values);
       break;
-    case RawFunction::kIrregexpFunction:
-      UNREACHABLE();  // Irregexp functions have their own parser.
     default:
       UNREACHABLE();
   }
