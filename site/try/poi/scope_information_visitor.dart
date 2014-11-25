@@ -779,8 +779,6 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
     List<Element> result = new List<Element>.from(elements);
     if (sortMembers) {
       result.sort((Element a, Element b) => a.name.compareTo(b.name));
-    } else {
-      throw "Not sorting result";
     }
     return result;
   }
