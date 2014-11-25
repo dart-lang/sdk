@@ -75,6 +75,10 @@ class IncrementalCompiler {
     }
   }
 
+  LibraryElement get mainApp => _compiler.mainApp;
+
+  Compiler get compiler => _compiler;
+
   Future<bool> compile(Uri script) {
     return _reuseCompiler(null).then((Compiler compiler) {
       _compiler = compiler;

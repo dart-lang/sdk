@@ -545,7 +545,7 @@ class LibraryUpdater extends JsFeatures {
       if (!element.isClass) {
         compiler.enqueuer.resolution.addToWorkList(element);
       } else {
-        element.ensureResolved(compiler);
+        NO_WARN(element).ensureResolved(compiler);
       }
     }
     compiler.processQueue(compiler.enqueuer.resolution, null);
@@ -756,7 +756,7 @@ abstract class ReuseFunction {
   }
 }
 
-class RemovalUpdate extends Update {
+abstract class RemovalUpdate extends Update {
   ElementX get element;
 
   RemovalUpdate(Compiler compiler)
@@ -919,7 +919,7 @@ class RemovedClassUpdate extends RemovalUpdate with JsFeatures {
 class RemovedFieldUpdate extends RemovalUpdate with JsFeatures {
   final FieldElementX element;
 
-  bool wasStateCaptured;
+  bool wasStateCaptured = false;
 
   jsAst.Node elementAccess;
 
@@ -929,6 +929,10 @@ class RemovedFieldUpdate extends RemovalUpdate with JsFeatures {
 
   RemovedFieldUpdate(Compiler compiler, this.element)
       : super(compiler);
+
+  PartialFieldList get before => element.declarationSite;
+
+  PartialFieldList get after => null;
 
   void captureState() {
     if (wasStateCaptured) throw "captureState was called twice.";
@@ -985,7 +989,7 @@ class AddedFunctionUpdate extends Update with JsFeatures {
       enclosing = enclosing.compilationUnit;
     }
     PartialFunctionElement copy = element.copyWithEnclosing(enclosing);
-    container.addMember(copy, compiler);
+    NO_WARN(container).addMember(copy, compiler);
     return copy;
   }
 }
@@ -1025,7 +1029,7 @@ class AddedFieldUpdate extends Update with JsFeatures {
 
   FieldElementX apply() {
     FieldElementX copy = element.copyWithEnclosing(container);
-    container.addMember(copy, compiler);
+    NO_WARN(container).addMember(copy, compiler);
     return copy;
   }
 }
@@ -1165,3 +1169,6 @@ class EmitterHelper extends JsFeatures {
     return builder.fields;
   }
 }
+
+// TODO(ahe): Remove this method.
+NO_WARN(x) => x;

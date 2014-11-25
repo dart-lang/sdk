@@ -4,7 +4,8 @@
 
 library trydart.incremental_compilation_update_test;
 
-import 'dart:html';
+import 'dart:html' hide
+    Element;
 
 import 'dart:async' show
     Future;
@@ -12,8 +13,14 @@ import 'dart:async' show
 import 'package:async_helper/async_helper.dart' show
     asyncTest;
 
+import 'package:expect/expect.dart' show
+    Expect;
+
 import 'package:try/src/interaction_manager.dart' show
     splitLines;
+
+import 'package:try/poi/scope_information_visitor.dart' show
+    ScopeInformationVisitor;
 
 import 'sandbox.dart' show
     appendIFrame,
@@ -22,6 +29,16 @@ import 'sandbox.dart' show
 import 'web_compiler_test_case.dart' show
     WebCompilerTestCase,
     WebInputProvider;
+
+import '../poi/compiler_test_case.dart' show
+    CompilerTestCase;
+
+import 'package:compiler/src/elements/elements.dart' show
+    Element,
+    LibraryElement;
+
+import 'package:compiler/src/dart2jslib.dart' show
+    Compiler;
 
 import 'program_result.dart';
 
@@ -1110,7 +1127,12 @@ Future compileAndRun(List<ProgramResult> programs) {
             iframe.contentWindow.postMessage(['apply-update', update], '*');
 
             return listener.expect(
-                program.messagesWith('iframe-dart-updated-main-done'));
+                program.messagesWith('iframe-dart-updated-main-done'))
+                .then((_) {
+                  return new SerializeScopeTestCase(
+                      program.code, test.incrementalCompiler.mainApp,
+                      test.incrementalCompiler.compiler).run();
+                });
           });
         });
       });
@@ -1123,6 +1145,46 @@ Future compileAndRun(List<ProgramResult> programs) {
   });
 }
 
+class SerializeScopeTestCase extends CompilerTestCase {
+  final String scopeInfo;
+
+  SerializeScopeTestCase(
+      String source,
+      LibraryElement library,
+      Compiler compiler)
+      : scopeInfo = computeScopeInfo(compiler, library),
+        super(source, '${library.canonicalUri}');
+
+  Future run() => mainApp.then(checkScopes);
+
+  void checkScopes(LibraryElement library) {
+    Expect.stringEquals(computeScopeInfo(compiler, library), scopeInfo);
+  }
+
+  static String computeScopeInfo(Compiler compiler, LibraryElement library) {
+    ScopeInformationVisitor visitor =
+        new ScopeInformationVisitor(compiler, library, 0);
+
+    visitor.ignoreImports = true;
+    visitor.sortMembers = true;
+    visitor.indented.write('[\n');
+    visitor.indentationLevel++;
+    visitor.indented;
+    library.accept(visitor);
+    library.forEachLocalMember((Element member) {
+      if (member.isClass) {
+        visitor.buffer.write(',\n');
+        visitor.indented;
+        member.accept(visitor);
+      }
+    });
+    visitor.buffer.write('\n');
+    visitor.indentationLevel--;
+    visitor.indented.write(']');
+    return '${visitor.buffer}';
+  }
+}
+
 void logger(x) {
   print(x);
   bool isCheckedMode = false;
@@ -1133,12 +1195,12 @@ void logger(x) {
   }
 }
 
-Element numberedLines(String code) {
+DivElement numberedLines(String code) {
   DivElement result = new DivElement();
   result.classes.add("output");
 
   for (String text in splitLines(code)) {
-    Element line = new PreElement()
+    PreElement line = new PreElement()
         ..appendText(text.trimRight())
         ..classes.add("line");
     result.append(line);
