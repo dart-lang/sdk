@@ -194,7 +194,7 @@ class LibraryUpdater extends JsFeatures {
         continue;
       }
       if (difference.after == null && difference.before is PartialElement) {
-        canReuseRemovedElement(difference.before);
+        canReuseRemovedElement(difference.before, element);
         continue;
       }
       Token diffToken = difference.token;
@@ -282,6 +282,8 @@ class LibraryUpdater extends JsFeatures {
       }
     });
     for (FieldElementX field in fields) {
+      // TODO(ahe): This only works when there's one field per
+      // PartialFieldList.
       addField(field, container);
     }
   }
@@ -301,15 +303,21 @@ class LibraryUpdater extends JsFeatures {
     updates.add(new AddedFieldUpdate(compiler, element, cls));
   }
 
-  bool canReuseRemovedElement(PartialElement element) {
+  bool canReuseRemovedElement(
+      PartialElement element,
+      ScopeContainerElement container) {
     if (element is PartialFunctionElement) {
       removeFunction(element);
       return true;
     } else if (element is PartialClassElement) {
       removeClass(element);
       return true;
+    } else if (element is PartialFieldList) {
+      removeFields(element, container);
+      return true;
     }
-    return cannotReuse(element, "Removed element that isn't a function.");
+    return cannotReuse(
+        element, "Removing ${element.runtimeType} not supported.");
   }
 
   void removeFunction(PartialFunctionElement element) {
@@ -333,6 +341,42 @@ class LibraryUpdater extends JsFeatures {
     });
 
     updates.add(new RemovedClassUpdate(compiler, element));
+  }
+
+  void removeFields(
+      PartialFieldList definition,
+      ScopeContainerElement container) {
+    List<FieldElementX> fields = <FieldElementX>[];
+    container.forEachLocalMember((ElementX member) {
+      if (member.declarationSite == definition) {
+        fields.add(member);
+      }
+    });
+    for (FieldElementX field in fields) {
+      // TODO(ahe): This only works when there's one field per
+      // PartialFieldList.
+      removeField(field);
+    }
+  }
+
+  void removeField(FieldElementX element) {
+    logVerbose("Removed field $element.");
+    if (!element.isInstanceMember) {
+      cannotReuse(element, "Not an instance field.");
+    } else {
+      removeInstanceField(element);
+    }
+  }
+
+  void removeInstanceField(FieldElementX element) {
+    PartialClassElement cls = element.enclosingClass;
+
+    _classesWithSchemaChanges.add(cls);
+    invalidateScopesAffectedBy(element, cls);
+
+    _removedElements.add(element);
+
+    updates.add(new RemovedFieldUpdate(compiler, element));
   }
 
   void invalidateScopesAffectedBy(
@@ -869,6 +913,52 @@ class RemovedClassUpdate extends RemovalUpdate with JsFeatures {
     for (jsAst.Node access in accessToStatics) {
       updates.add(js.statement('delete #', [access]));
     }
+  }
+}
+
+class RemovedFieldUpdate extends RemovalUpdate with JsFeatures {
+  final FieldElementX element;
+
+  bool wasStateCaptured;
+
+  jsAst.Node elementAccess;
+
+  String getterName;
+
+  String setterName;
+
+  RemovedFieldUpdate(Compiler compiler, this.element)
+      : super(compiler);
+
+  void captureState() {
+    if (wasStateCaptured) throw "captureState was called twice.";
+    wasStateCaptured = true;
+
+    elementAccess = namer.elementAccess(element.enclosingClass);
+    getterName = namer.getterName(element);
+    setterName = namer.setterName(element);
+  }
+
+  FieldElementX apply() {
+    if (!wasStateCaptured) {
+      throw new StateError("captureState must be called before apply.");
+    }
+
+    removeFromEnclosing();
+
+    return element;
+  }
+
+  void writeUpdateJsOn(List<jsAst.Statement> updates) {
+    if (!wasStateCaptured) {
+      throw new StateError(
+          "captureState must be called before writeUpdateJsOn.");
+    }
+
+    updates.add(
+        js.statement('delete #.prototype.#', [elementAccess, getterName]));
+    updates.add(
+        js.statement('delete #.prototype.#', [elementAccess, setterName]));
   }
 }
 

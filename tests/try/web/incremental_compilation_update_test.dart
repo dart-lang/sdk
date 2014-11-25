@@ -996,6 +996,61 @@ main() {
 """,
             const <String>['v2']),
     ],
+
+    // Test removing a field from a class works.
+    // TODO(ahe): The emitter still see the field, and we need to ensure that
+    // old names aren't used again.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class A {
+  var x;
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    instance = new A();
+  }
+  try {
+    instance.x = 'v1';
+  } catch(e) {
+    print('setter threw');
+  }
+  try {
+    print(instance.x);
+  } catch (e) {
+    print('getter threw');
+  }
+}
+""",
+            const <String>['v1']),
+        const ProgramResult(
+            r"""
+class A {
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    instance = new A();
+  }
+  try {
+    instance.x = 'v1';
+  } catch(e) {
+    print('setter threw');
+  }
+  try {
+    print(instance.x);
+  } catch (e) {
+    print('getter threw');
+  }
+}
+""",
+            const <String>['setter threw', 'getter threw']),
+    ],
 ];
 
 void main() {
@@ -1021,7 +1076,6 @@ Future compileAndRun(List<ProgramResult> programs) {
 
   return listener.expect('iframe-ready').then((_) {
     ProgramResult program = programs.first;
-
 
     status.append(
         new HeadingElement.h2()
