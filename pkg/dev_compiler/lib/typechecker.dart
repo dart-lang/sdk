@@ -3,7 +3,6 @@ library ddc.typechecker;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:logging/logging.dart' as logger;
@@ -11,7 +10,6 @@ import 'package:logging/logging.dart' as logger;
 import 'src/resolver.dart';
 import 'src/static_info.dart';
 import 'src/type_rules.dart';
-import 'src/utils.dart';
 
 final _log = new logger.Logger('ddc.checker');
 
@@ -115,9 +113,7 @@ class ProgramChecker extends RecursiveAstVisitor {
       assert(isLibrary);
       return _unitMap[uri];
     }
-    // print(' loading $uri');
     _uri = uri;
-    if (isLibrary) failure = _resolver.resolve(source) || failure;
     final unit = getCompilationUnit(source, isLibrary);
     _rules.setCompilationUnit(unit);
     _unitMap[uri] = unit;
@@ -154,7 +150,9 @@ class ProgramChecker extends RecursiveAstVisitor {
 
   CompilationUnit getCompilationUnit(Source source, bool isLibrary) {
     var container = isLibrary ? source : _currentLibrary.source;
-    return _resolver.context.getResolvedCompilationUnit2(source, container);
+    var res = _resolver.context.resolveCompilationUnit2(source, container);
+    failure = _resolver.logErrors(source) || failure;
+    return res;
   }
 
   ProgramChecker(this._resolver, this._rules, this._root, this._checkSdk) {

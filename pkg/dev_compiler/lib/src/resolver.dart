@@ -1,6 +1,5 @@
 library ddc.src.resolver;
 
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
@@ -51,10 +50,9 @@ class TypeResolver {
     return _sources[uri] = context.sourceFactory.forUri('$uri');
   }
 
-  /// Resolve [source] and return whether any errors were found during
-  /// resolution.
-  bool resolve(Source source) {
-    context.computeLibraryElement(source);
+  /// Log any errors encountered when resolving [source] and return whether any
+  /// errors were found.
+  bool logErrors(Source source) {
     List<AnalysisError> errors = context.getErrors(source).errors;
     bool failure = false;
     if (errors.isNotEmpty) {
