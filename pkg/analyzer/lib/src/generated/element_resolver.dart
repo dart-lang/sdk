@@ -1583,7 +1583,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   AstNode _lookupBreakOrContinueTarget(AstNode parentNode,
       SimpleIdentifier labelNode, bool isContinue) {
     if (labelNode == null) {
-      return _resolver.getUnlabeledBreakOrContinueTarget(isContinue);
+      return _resolver.implicitLabelScope.getTarget(isContinue);
     } else {
       LabelScope labelScope = _resolver.labelScope;
       if (labelScope == null) {

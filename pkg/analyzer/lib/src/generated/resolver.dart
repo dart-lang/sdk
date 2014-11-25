@@ -5773,6 +5773,57 @@ class ImplicitConstructorBuilder extends ScopedVisitor {
 }
 
 /**
+ * Instances of the class `ImplicitLabelScope` represent the scope statements
+ * that can be the target of unlabeled break and continue statements.
+ */
+class ImplicitLabelScope {
+  /**
+   * The implicit label scope associated with the top level of a function.
+   */
+  static const ImplicitLabelScope ROOT = const ImplicitLabelScope._(null, null);
+
+  /**
+   * The implicit label scope enclosing this implicit label scope.
+   */
+  final ImplicitLabelScope outerScope;
+
+  /**
+   * The statement that acts as a target for break and/or continue statements
+   * at this scoping level.
+   */
+  final Statement statement;
+
+  /**
+   * Private constructor.
+   */
+  const ImplicitLabelScope._(this.outerScope, this.statement);
+
+  /**
+   * Get the statement which should be the target of an unlabeled `break` or
+   * `continue` statement, or `null` if there is no appropriate target.
+   */
+  Statement getTarget(bool isContinue) {
+    if (outerScope == null) {
+      // This scope represents the toplevel of a function body, so it doesn't
+      // match either break or continue.
+      return null;
+    }
+    if (isContinue && statement is SwitchStatement) {
+      return outerScope.getTarget(isContinue);
+    }
+    return statement;
+  }
+
+  /**
+   * Initialize a newly created scope to represent a switch statement or loop
+   * nested within the current scope.  [statement] is the statement associated
+   * with the newly created scope.
+   */
+  ImplicitLabelScope nest(Statement statement) =>
+      new ImplicitLabelScope._(this, statement);
+}
+
+/**
  * Instances of the class `ImportsVerifier` visit all of the referenced libraries in the
  * source code verifying that all of the imports are used, otherwise a
  * [HintCode.UNUSED_IMPORT] is generated with
@@ -11026,20 +11077,6 @@ class ResolverVisitor extends ScopedVisitor {
   TypePromotionManager _promoteManager = new TypePromotionManager();
 
   /**
-   * The AST node representing the innermost enclosing statement that can be
-   * the target of an unlabeled "break" statement, or `null` if there is no
-   * such statement.
-   */
-  Statement _unlabeledBreakTarget;
-
-  /**
-   * The AST node representing the innermost enclosing statement that can be
-   * the target of an unlabeled "continue" statement, or `null` if there is no
-   * such statement.
-   */
-  Statement _unlabeledContinueTarget;
-
-  /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
    *
    * @param library the library containing the compilation unit being resolved
@@ -11222,14 +11259,6 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
-  AstNode getUnlabeledBreakOrContinueTarget(bool isContinue) {
-    if (isContinue) {
-      return _unlabeledContinueTarget;
-    } else {
-      return _unlabeledBreakTarget;
-    }
-  }
-
   /**
    * If it is appropriate to do so, override the current type of the static and propagated elements
    * associated with the given expression with the given type. Generally speaking, it is appropriate
@@ -11382,16 +11411,10 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitBlockFunctionBody(BlockFunctionBody node) {
     safelyVisit(_commentBeforeFunction);
     _overrideManager.enterScope();
-    Statement previousUnlabeledBreakTarget = _unlabeledBreakTarget;
-    Statement previousUnlabeledContinueTarget = _unlabeledContinueTarget;
     try {
-      _unlabeledBreakTarget = null;
-      _unlabeledContinueTarget = null;
       super.visitBlockFunctionBody(node);
     } finally {
       _overrideManager.exitScope();
-      _unlabeledBreakTarget = previousUnlabeledBreakTarget;
-      _unlabeledContinueTarget = previousUnlabeledContinueTarget;
     }
     return null;
   }
@@ -11600,17 +11623,11 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitDoStatement(DoStatement node) {
-    Statement previousUnlabeledBreakTarget = _unlabeledBreakTarget;
-    Statement previousUnlabeledContinueTarget = _unlabeledContinueTarget;
     _overrideManager.enterScope();
     try {
-      _unlabeledBreakTarget = node;
-      _unlabeledContinueTarget = node;
       super.visitDoStatement(node);
     } finally {
       _overrideManager.exitScope();
-      _unlabeledBreakTarget = previousUnlabeledBreakTarget;
-      _unlabeledContinueTarget = previousUnlabeledContinueTarget;
     }
     // TODO(brianwilkerson) If the loop can only be exited because the condition
     // is false, then propagateFalseState(node.getCondition());
@@ -11666,17 +11683,11 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitForEachStatement(ForEachStatement node) {
-    Statement previousUnlabeledBreakTarget = _unlabeledBreakTarget;
-    Statement previousUnlabeledContinueTarget = _unlabeledContinueTarget;
     _overrideManager.enterScope();
     try {
-      _unlabeledBreakTarget = node;
-      _unlabeledContinueTarget = node;
       super.visitForEachStatement(node);
     } finally {
       _overrideManager.exitScope();
-      _unlabeledBreakTarget = previousUnlabeledBreakTarget;
-      _unlabeledContinueTarget = previousUnlabeledContinueTarget;
     }
     return null;
   }
@@ -11723,17 +11734,11 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitForStatement(ForStatement node) {
-    Statement previousUnlabeledBreakTarget = _unlabeledBreakTarget;
-    Statement previousUnlabeledContinueTarget = _unlabeledContinueTarget;
     _overrideManager.enterScope();
     try {
-      _unlabeledBreakTarget = node;
-      _unlabeledContinueTarget = node;
       super.visitForStatement(node);
     } finally {
       _overrideManager.exitScope();
-      _unlabeledBreakTarget = previousUnlabeledBreakTarget;
-      _unlabeledContinueTarget = previousUnlabeledContinueTarget;
     }
     return null;
   }
@@ -11995,18 +12000,6 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  Object visitSwitchStatement(SwitchStatement node) {
-    Statement previousUnlabeledBreakTarget = _unlabeledBreakTarget;
-    try {
-      _unlabeledBreakTarget = node;
-      super.visitSwitchStatement(node);
-    } finally {
-      _unlabeledBreakTarget = previousUnlabeledBreakTarget;
-    }
-    return null;
-  }
-
-  @override
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _overrideManager.enterScope();
     try {
@@ -12025,23 +12018,25 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitWhileStatement(WhileStatement node) {
-    Expression condition = node.condition;
-    safelyVisit(condition);
-    Statement body = node.body;
-    if (body != null) {
-      Statement previousUnlabeledBreakTarget = _unlabeledBreakTarget;
-      Statement previousUnlabeledContinueTarget = _unlabeledContinueTarget;
-      _overrideManager.enterScope();
-      try {
-        _unlabeledBreakTarget = node;
-        _unlabeledContinueTarget = node;
-        _propagateTrueState(condition);
-        visitStatementInScope(body);
-      } finally {
-        _overrideManager.exitScope();
-        _unlabeledBreakTarget = previousUnlabeledBreakTarget;
-        _unlabeledContinueTarget = previousUnlabeledContinueTarget;
+    // Note: since we don't call the base class, we have to maintain
+    // _implicitLabelScope ourselves.
+    ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
+    try {
+      _implicitLabelScope = _implicitLabelScope.nest(node);
+      Expression condition = node.condition;
+      safelyVisit(condition);
+      Statement body = node.body;
+      if (body != null) {
+        _overrideManager.enterScope();
+        try {
+          _propagateTrueState(condition);
+          visitStatementInScope(body);
+        } finally {
+          _overrideManager.exitScope();
+        }
       }
+    } finally {
+      _implicitLabelScope = outerImplicitScope;
     }
     // TODO(brianwilkerson) If the loop can only be exited because the condition
     // is false, then propagateFalseState(condition);
@@ -12650,6 +12645,11 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   final TypeProvider typeProvider;
 
   /**
+   * The scope used to resolve unlabeled `break` and `continue` statements.
+   */
+  ImplicitLabelScope _implicitLabelScope = ImplicitLabelScope.ROOT;
+
+  /**
    * The scope used to resolve labels for `break` and `continue` statements, or
    * `null` if no labels have been defined in the current context.
    */
@@ -12731,6 +12731,12 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * @return the library element for the library containing the compilation unit being resolved
    */
   LibraryElement get definingLibrary => _definingLibrary;
+
+  /**
+   * Return the implicit label scope in which the current node is being
+   * resolved.
+   */
+  ImplicitLabelScope get implicitLabelScope => _implicitLabelScope;
 
   /**
    * Return the label scope in which the current node is being resolved.
@@ -12833,6 +12839,18 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       super.visitBlock(node);
     } finally {
       _nameScope = outerScope;
+    }
+    return null;
+  }
+
+  @override
+  Object visitBlockFunctionBody(BlockFunctionBody node) {
+    ImplicitLabelScope implicitOuterScope = _implicitLabelScope;
+    try {
+      _implicitLabelScope = ImplicitLabelScope.ROOT;
+      super.visitBlockFunctionBody(node);
+    } finally {
+      _implicitLabelScope = implicitOuterScope;
     }
     return null;
   }
@@ -12956,19 +12974,28 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
 
   @override
   Object visitDoStatement(DoStatement node) {
-    visitStatementInScope(node.body);
-    safelyVisit(node.condition);
+    ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
+    try {
+      _implicitLabelScope = _implicitLabelScope.nest(node);
+      visitStatementInScope(node.body);
+      safelyVisit(node.condition);
+    } finally {
+      _implicitLabelScope = outerImplicitScope;
+    }
     return null;
   }
 
   @override
   Object visitForEachStatement(ForEachStatement node) {
     Scope outerNameScope = _nameScope;
+    ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
     try {
       _nameScope = new EnclosedScope(_nameScope);
+      _implicitLabelScope = _implicitLabelScope.nest(node);
       visitForEachStatementInScope(node);
     } finally {
       _nameScope = outerNameScope;
+      _implicitLabelScope = outerImplicitScope;
     }
     return null;
   }
@@ -13008,11 +13035,14 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   @override
   Object visitForStatement(ForStatement node) {
     Scope outerNameScope = _nameScope;
+    ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
     try {
       _nameScope = new EnclosedScope(_nameScope);
+      _implicitLabelScope = _implicitLabelScope.nest(node);
       visitForStatementInScope(node);
     } finally {
       _nameScope = outerNameScope;
+      _implicitLabelScope = outerImplicitScope;
     }
     return null;
   }
@@ -13192,7 +13222,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   @override
   Object visitSwitchStatement(SwitchStatement node) {
     LabelScope outerScope = _labelScope;
+    ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
     try {
+      _implicitLabelScope = _implicitLabelScope.nest(node);
       for (SwitchMember member in node.members) {
         for (Label label in member.labels) {
           SimpleIdentifier labelName = label.label;
@@ -13204,6 +13236,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       super.visitSwitchStatement(node);
     } finally {
       _labelScope = outerScope;
+      _implicitLabelScope = outerImplicitScope;
     }
     return null;
   }
@@ -13224,7 +13257,13 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   @override
   Object visitWhileStatement(WhileStatement node) {
     safelyVisit(node.condition);
-    visitStatementInScope(node.body);
+    ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
+    try {
+      _implicitLabelScope = _implicitLabelScope.nest(node);
+      visitStatementInScope(node.body);
+    } finally {
+      _implicitLabelScope = outerImplicitScope;
+    }
     return null;
   }
 
