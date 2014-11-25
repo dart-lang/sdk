@@ -68,6 +68,7 @@ import 'package:compiler/src/elements/modelx.dart' show
     CompilationUnitElementX,
     DeclarationSite,
     ElementX,
+    FieldElementX,
     LibraryElementX;
 
 import 'diff.dart' show
@@ -510,8 +511,8 @@ class LibraryUpdater extends JsFeatures {
     // TODO(ahe): Clean this up. Don't call this method in analyze-only mode.
     if (compiler.analyzeOnly) return "/* analyze only */";
 
-    Set<PartialClassElement> changedClasses =
-        new Set<PartialClassElement>.from(_classesWithSchemaChanges);
+    Set<ClassElementX> changedClasses =
+        new Set<ClassElementX>.from(_classesWithSchemaChanges);
     for (Element element in updatedElements) {
       if (!element.isClass) {
         compiler.enqueuer.codegen.addToWorkList(element);
@@ -563,7 +564,7 @@ class LibraryUpdater extends JsFeatures {
               [classAccess, invokeDefineClass(cls), classAccess, superAccess]));
     }
 
-    for (RemovedFunctionUpdate update in removals) {
+    for (RemovalUpdate update in removals) {
       update.writeUpdateJsOn(updates);
     }
     for (Element element in compiler.enqueuer.codegen.newlyEnqueuedElements) {
@@ -725,37 +726,22 @@ class RemovalUpdate extends Update {
     // TODO(ahe): Need to recompute duplicated elements logic again. Simplest
     // solution is probably to remove all elements from enclosing scope and add
     // them back.
-    PartialClassElement cls = element.enclosingClass;
-    if (cls == null) {
+    if (element.isTopLevel) {
       removeFromLibrary(element.library);
     } else {
-      removeFromEnclosingClass(cls);
+      removeFromEnclosingClass(element.enclosingClass);
     }
   }
 
   void removeFromEnclosingClass(PartialClassElement cls) {
     cls.localMembersCache = null;
-    cls.localMembersReversed =
-        copyLinkWithout(element, cls.localMembersReversed);
+    cls.localMembersReversed = cls.localMembersReversed.copyWithout(element);
     cls.localScope.contents.remove(element.name);
   }
 
   void removeFromLibrary(LibraryElementX library) {
-    library.localMembers = copyLinkWithout(element, library.localMembers);
+    library.localMembers = library.localMembers.copyWithout(element);
     library.localScope.contents.remove(element.name);
-  }
-
-  Link copyLinkWithout(e, Link link) {
-    // TODO(ahe): Consider adding to [Link].
-    LinkBuilder copy = new LinkBuilder();
-
-    for (; !link.isEmpty; link = link.tail) {
-      if (link.head != e) {
-        copy.addLast(e);
-      }
-    }
-
-    return copy.toLink(link);
   }
 }
 
@@ -864,7 +850,7 @@ class RemovedClassUpdate extends RemovalUpdate with JsFeatures {
     removeFromEnclosing();
 
     element.forEachLocalMember((ElementX member) {
-      compiler.forgetElement(before);
+      compiler.forgetElement(member);
       member.reuseElement();
     });
 
@@ -963,7 +949,7 @@ class ClassUpdate extends Update with JsFeatures {
   ClassUpdate(Compiler compiler, this.before, this.after)
       : super(compiler);
 
-  PartialFunctionElement apply() {
+  PartialClassElement apply() {
     patchElement();
     reuseElement();
     return before;

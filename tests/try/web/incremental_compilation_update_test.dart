@@ -1006,6 +1006,8 @@ void main() {
   return asyncTest(() => Future.forEach(tests, compileAndRun));
 }
 
+int testCount = 1;
+
 Future compileAndRun(List<ProgramResult> programs) {
   var status = new DivElement();
   document.body.append(status);
@@ -1021,7 +1023,9 @@ Future compileAndRun(List<ProgramResult> programs) {
     ProgramResult program = programs.first;
 
 
-    status.append(new HeadingElement.h2()..appendText("Full program:"));
+    status.append(
+        new HeadingElement.h2()
+            ..appendText("Full program #${testCount++}:"));
     status.append(numberedLines(program.code));
 
     status.style.color = 'orange';
