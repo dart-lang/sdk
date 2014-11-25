@@ -19449,11 +19449,6 @@ class MediaElement extends HtmlElement {
   @Experimental()
   TextTrack addTextTrack(String kind, [String label, String language]) native;
 
-  @DomName('HTMLMediaElement.canPlayType')
-  @DocsEditable()
-  @Unstable()
-  String canPlayType(String type, [String keySystem]) native;
-
   @DomName('HTMLMediaElement.load')
   @DocsEditable()
   void load() native;
@@ -19525,6 +19520,11 @@ class MediaElement extends HtmlElement {
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   @Experimental()
   ElementStream<MediaKeyEvent> get onNeedKey => needKeyEvent.forElement(this);
+
+  @DomName('HTMLMediaElement.canPlayType')
+  @DocsEditable()
+  @Unstable()
+  String canPlayType(String type, [String keySystem]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

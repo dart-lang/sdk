@@ -21059,8 +21059,6 @@ typedef void MediaDeviceInfoCallback(List<MediaDeviceInfo> devices);
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 @DocsEditable()
 @DomName('HTMLMediaElement')
@@ -21383,13 +21381,6 @@ class MediaElement extends HtmlElement {
     return _blink.BlinkHTMLMediaElement.instance.addTextTrack_Callback_1_(this, kind);
   }
 
-  String canPlayType(String type, [String keySystem]) {
-    if (keySystem != null) {
-      return _blink.BlinkHTMLMediaElement.instance.canPlayType_Callback_2_(this, type, keySystem);
-    }
-    return _blink.BlinkHTMLMediaElement.instance.canPlayType_Callback_1_(this, type);
-  }
-
   @DomName('HTMLMediaElement.load')
   @DocsEditable()
   void load() => _blink.BlinkHTMLMediaElement.instance.load_Callback_0_(this);
@@ -21461,6 +21452,15 @@ class MediaElement extends HtmlElement {
   @Experimental()
   ElementStream<MediaKeyEvent> get onNeedKey => needKeyEvent.forElement(this);
 
+  @DomName('HTMLMediaElement.canPlayType')
+  @DocsEditable()
+  @Unstable()
+  String canPlayType(String type, [String keySystem]) {
+    if (keySystem != null) {
+      return _blink.BlinkHTMLMediaElement.instance.canPlayType_Callback_2_(this, type, keySystem);
+    }
+    return _blink.BlinkHTMLMediaElement.instance.canPlayType_Callback_2_(this, type, null);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31426,10 +31426,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");

@@ -18,4 +18,11 @@ main() {
       expect(audio is AudioElement, isTrue);
       expect(audio.src, contains('IntentionallyMissingFileURL'));
     });
+
+  test('canPlayTypeTest', () {
+      var audio = new AudioElement();
+      var canPlay = audio.canPlayType("audio/mp4");
+      expect(canPlay, isNotNull);
+      expect(canPlay is String, isTrue);
+    });
 }
