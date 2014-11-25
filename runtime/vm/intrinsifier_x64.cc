@@ -8,9 +8,11 @@
 #include "vm/intrinsifier.h"
 
 #include "vm/assembler.h"
+#include "vm/dart_entry.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
+#include "vm/regexp_assembler.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -1914,6 +1916,40 @@ void Intrinsifier::OneByteString_equality(Assembler* assembler) {
 
 void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
   StringEquality(assembler, kTwoByteStringCid);
+}
+
+
+void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
+  if (FLAG_use_jscre) {
+    return;
+  }
+  static const intptr_t kRegExpParamOffset = 3 * kWordSize;
+  static const intptr_t kStringParamOffset = 2 * kWordSize;
+  // start_index smi is located at offset 1.
+
+  // Incoming registers:
+  // RAX: Function. (Will be loaded with the specialized matcher function.)
+  // RCX: IC-Data. (Will be preserved.)
+  // R10: Arguments descriptor. (Will be preserved.)
+
+  // Load the specialized function pointer into RAX. Leverage the fact the
+  // string CIDs as well as stored function pointers are in sequence.
+  __ movq(RBX, Address(RSP, kRegExpParamOffset));
+  __ movq(RDI, Address(RSP, kStringParamOffset));
+  __ LoadClassId(RDI, RDI);
+  __ SubImmediate(RDI, Immediate(kOneByteStringCid), PP);
+  __ movq(RAX, FieldAddress(RBX, RDI, TIMES_8,
+                            JSRegExp::function_offset(kOneByteStringCid)));
+
+  // Registers are now set up for the lazy compile stub. It expects the function
+  // in RAX, the argument descriptor in R10, and IC-Data in RCX.
+  static const intptr_t arg_count = RegExpMacroAssembler::kParamCount;
+  __ LoadObject(R10, Array::Handle(ArgumentsDescriptor::New(arg_count)), PP);
+
+  // Tail-call the function.
+  __ movq(RDI, FieldAddress(RAX, Function::instructions_offset()));
+  __ addq(RDI, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(RDI);
 }
 
 

@@ -1131,6 +1131,60 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* LoadCodeUnitsInstr::MakeLocationSummary(Isolate* isolate,
+                                                         bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  // The smi index is either untagged (element size == 1), or it is left smi
+  // tagged (for all element sizes > 1).
+  summary->set_in(1, index_scale() == 1 ? Location::WritableRegister()
+                                        : Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+
+void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register array = locs()->in(0).reg();
+  const Location index = locs()->in(1);
+
+  Address element_address = Assembler::ElementAddressForRegIndex(
+        IsExternal(), class_id(), index_scale(), array, index.reg());
+
+  if ((index_scale() == 1)) {
+    __ SmiUntag(index.reg());
+  }
+  Register result = locs()->out(0).reg();
+  switch (class_id()) {
+    case kOneByteStringCid:
+    case kExternalOneByteStringCid:
+      switch (element_count()) {
+        case 1: __ movzxb(result, element_address); break;
+        case 2: __ movzxw(result, element_address); break;
+        case 4: __ movl(result, element_address); break;
+        default: UNREACHABLE();
+      }
+      __ SmiTag(result);
+      break;
+    case kTwoByteStringCid:
+    case kExternalTwoByteStringCid:
+      switch (element_count()) {
+        case 1: __ movzxw(result, element_address); break;
+        case 2: __ movl(result, element_address); break;
+        default: UNREACHABLE();
+      }
+      __ SmiTag(result);
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
+
 Representation StoreIndexedInstr::RequiredInputRepresentation(
     intptr_t idx) const {
   if (idx == 0) return kNoRepresentation;
@@ -4562,6 +4616,37 @@ void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* CaseInsensitiveCompareUC16Instr::MakeLocationSummary(
+    Isolate* isolate, bool opt) const {
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, InputCount(), kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(CallingConventions::kArg1Reg));
+  summary->set_in(1, Location::RegisterLocation(CallingConventions::kArg2Reg));
+  summary->set_in(2, Location::RegisterLocation(CallingConventions::kArg3Reg));
+  summary->set_in(3, Location::RegisterLocation(CallingConventions::kArg4Reg));
+  summary->set_out(0, Location::RegisterLocation(RAX));
+  return summary;
+}
+
+
+void CaseInsensitiveCompareUC16Instr::EmitNativeCode(
+    FlowGraphCompiler* compiler) {
+
+  // Save RSP. R13 is chosen because it is callee saved so we do not need to
+  // back it up before calling into the runtime.
+  static const Register kSavedSPReg = R13;
+  __ movq(kSavedSPReg, RSP);
+  __ ReserveAlignedFrameSpace(0);
+
+  // Call the function. Parameters are already in their correct spots.
+  __ CallRuntime(TargetFunction(), TargetFunction().argument_count());
+
+  // Restore RSP.
+  __ movq(RSP, kSavedSPReg);
+}
+
+
 LocationSummary* UnarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
                                                       bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -6084,6 +6169,36 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+
+LocationSummary* IndirectGotoInstr::MakeLocationSummary(Isolate* isolate,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+
+  LocationSummary* summary = new(isolate) LocationSummary(
+        isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_temp(0, Location::RequiresRegister());
+
+  return summary;
+}
+
+
+void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register offset_reg = locs()->in(0).reg();
+  Register target_address_reg = locs()->temp_slot(0)->reg();
+
+  // Load from [current frame pointer] + kPcMarkerSlotFromFp.
+  __ movq(target_address_reg, Address(RBP, kPcMarkerSlotFromFp * kWordSize));
+
+  // Calculate the final absolute address.
+  __ SmiUntag(offset_reg);
+  __ addq(target_address_reg, offset_reg);
+
+  // Jump to the absolute address.
+  __ jmp(target_address_reg);
+}
 
 LocationSummary* StrictCompareInstr::MakeLocationSummary(Isolate* isolate,
                                                          bool opt) const {

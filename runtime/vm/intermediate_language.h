@@ -430,6 +430,7 @@ class EmbeddedArray<T, 0> {
   M(GraphEntry)                                                                \
   M(JoinEntry)                                                                 \
   M(TargetEntry)                                                               \
+  M(IndirectEntry)                                                             \
   M(CatchBlockEntry)                                                           \
   M(Phi)                                                                       \
   M(Redefinition)                                                              \
@@ -440,6 +441,7 @@ class EmbeddedArray<T, 0> {
   M(Throw)                                                                     \
   M(ReThrow)                                                                   \
   M(Goto)                                                                      \
+  M(IndirectGoto)                                                              \
   M(Branch)                                                                    \
   M(AssertAssignable)                                                          \
   M(AssertBoolean)                                                             \
@@ -458,6 +460,7 @@ class EmbeddedArray<T, 0> {
   M(NativeCall)                                                                \
   M(DebugStepCheck)                                                            \
   M(LoadIndexed)                                                               \
+  M(LoadCodeUnits)                                                             \
   M(StoreIndexed)                                                              \
   M(StoreInstanceField)                                                        \
   M(InitStaticField)                                                           \
@@ -501,6 +504,7 @@ class EmbeddedArray<T, 0> {
   M(Unbox)                                                                     \
   M(BoxInt64)                                                                  \
   M(UnboxInt64)                                                                \
+  M(CaseInsensitiveCompareUC16)                                                \
   M(BinaryMintOp)                                                              \
   M(ShiftMintOp)                                                               \
   M(UnaryMintOp)                                                               \
@@ -1167,6 +1171,9 @@ class BlockEntryInstr : public Instruction {
 
   void set_block_id(intptr_t block_id) { block_id_ = block_id; }
 
+  intptr_t offset() const { return offset_; }
+  void set_offset(intptr_t offset) { offset_ = offset; }
+
   // For all instruction in this block: Remove all inputs (including in the
   // environment) from their definition's use lists for all instructions.
   void ClearAllInstructions();
@@ -1183,6 +1190,7 @@ class BlockEntryInstr : public Instruction {
         dominator_(NULL),
         dominated_blocks_(1),
         last_instruction_(NULL),
+        offset_(-1),
         parallel_move_(NULL),
         loop_info_(NULL) {
   }
@@ -1207,6 +1215,9 @@ class BlockEntryInstr : public Instruction {
   // TODO(fschneider): Optimize the case of one child to save space.
   GrowableArray<BlockEntryInstr*> dominated_blocks_;
   Instruction* last_instruction_;
+
+  // Offset of this block from the start of the emitted code.
+  intptr_t offset_;
 
   // Parallel move that will be used by linear scan register allocator to
   // connect live ranges at the start of the block.
@@ -1288,6 +1299,10 @@ class GraphEntryInstr : public BlockEntryInstr {
 
   CatchBlockEntryInstr* GetCatchEntry(intptr_t index);
 
+  void AddIndirectEntry(IndirectEntryInstr* entry) {
+    indirect_entries_.Add(entry);
+  }
+
   GrowableArray<Definition*>* initial_definitions() {
     return &initial_definitions_;
   }
@@ -1322,6 +1337,10 @@ class GraphEntryInstr : public BlockEntryInstr {
     return catch_entries_;
   }
 
+  const GrowableArray<IndirectEntryInstr*>& indirect_entries() const {
+    return indirect_entries_;
+  }
+
   virtual void PrintTo(BufferFormatter* f) const;
 
  private:
@@ -1331,6 +1350,8 @@ class GraphEntryInstr : public BlockEntryInstr {
   const ParsedFunction* parsed_function_;
   TargetEntryInstr* normal_entry_;
   GrowableArray<CatchBlockEntryInstr*> catch_entries_;
+  // Indirect targets are blocks reachable only through indirect gotos.
+  GrowableArray<IndirectEntryInstr*> indirect_entries_;
   GrowableArray<Definition*> initial_definitions_;
   const intptr_t osr_id_;
   intptr_t entry_count_;
@@ -1376,6 +1397,7 @@ class JoinEntryInstr : public BlockEntryInstr {
   friend class BlockEntryInstr;
   friend class InlineExitCollector;
   friend class PolymorphicInliner;
+  friend class IndirectEntryInstr;  // Access in il_printer.cc.
 
   // Direct access to phis_ in order to resize it due to phi elimination.
   friend class ConstantPropagator;
@@ -1451,6 +1473,25 @@ class TargetEntryInstr : public BlockEntryInstr {
   double edge_weight_;
 
   DISALLOW_COPY_AND_ASSIGN(TargetEntryInstr);
+};
+
+
+class IndirectEntryInstr : public JoinEntryInstr {
+ public:
+  IndirectEntryInstr(intptr_t block_id,
+                     intptr_t indirect_id,
+                     intptr_t try_index)
+      : JoinEntryInstr(block_id, try_index),
+        indirect_id_(indirect_id) { }
+
+  DECLARE_INSTRUCTION(IndirectEntry)
+
+  virtual void PrintTo(BufferFormatter* f) const;
+
+  intptr_t indirect_id() const { return indirect_id_; }
+
+ private:
+  const intptr_t indirect_id_;
 };
 
 
@@ -2123,6 +2164,58 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
   // Parallel move that will be used by linear scan register allocator to
   // connect live ranges at the end of the block and resolve phis.
   ParallelMoveInstr* parallel_move_;
+};
+
+
+// IndirectGotoInstr represents a dynamically computed jump. Only
+// IndirectEntryInstr targets are valid targets of an indirect goto. The
+// concrete target to jump to is given as a parameter to the indirect goto.
+//
+// In order to preserve split-edge form, an indirect goto does not itself point
+// to its targets. Instead, for each possible target, the successors_ field
+// will contain an ordinary goto instruction that jumps to the target.
+// TODO(zerny): Implement direct support instead of embedding gotos.
+//
+// Byte offsets of all possible targets are stored in the offsets_ array. The
+// desired offset is looked up while the generated code is executing, and passed
+// to IndirectGoto as an input.
+class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
+ public:
+  IndirectGotoInstr(GrowableObjectArray* offsets,
+                    Value* offset_from_start)
+    : offsets_(*offsets) {
+    SetInputAt(0, offset_from_start);
+  }
+
+  DECLARE_INSTRUCTION(IndirectGoto)
+
+  virtual intptr_t ArgumentCount() const { return 0; }
+
+  void AddSuccessor(TargetEntryInstr* successor) {
+    ASSERT(successor->next()->IsGoto());
+    ASSERT(successor->next()->AsGoto()->successor()->IsIndirectEntry());
+    successors_.Add(successor);
+  }
+
+  virtual intptr_t SuccessorCount() const { return successors_.length(); }
+  virtual TargetEntryInstr* SuccessorAt(intptr_t index) const {
+    ASSERT(index < SuccessorCount());
+    return successors_[index];
+  }
+
+  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanBecomeDeoptimizationTarget() const { return false; }
+
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  virtual void PrintTo(BufferFormatter* f) const;
+
+  const GrowableObjectArray& offsets() const { return offsets_; }
+  void ComputeOffsetTable(Isolate* isolate);
+
+ private:
+  GrowableArray<TargetEntryInstr*> successors_;
+  GrowableObjectArray& offsets_;
 };
 
 
@@ -3583,6 +3676,67 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
 };
 
 
+// Loads the specified number of code units from the given string, packing
+// multiple code units into a single datatype. In essence, this is a specialized
+// version of LoadIndexedInstr which accepts only string targets and can load
+// multiple elements at once. The result datatype differs depending on the
+// string type, element count, and architecture; if possible, the result is
+// packed into a Smi, falling back to a Mint otherwise.
+// TODO(zerny): Add support for loading into UnboxedInt32x4.
+class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
+ public:
+  LoadCodeUnitsInstr(Value* str,
+                     Value* index,
+                     intptr_t element_count,
+                     intptr_t class_id,
+                     intptr_t token_pos)
+      : class_id_(class_id),
+        token_pos_(token_pos),
+        element_count_(element_count),
+        representation_(kTagged) {
+    ASSERT(element_count == 1 || element_count == 2 || element_count == 4);
+    ASSERT(class_id == kOneByteStringCid || class_id == kTwoByteStringCid);
+    SetInputAt(0, str);
+    SetInputAt(1, index);
+  }
+
+  intptr_t token_pos() const { return token_pos_; }
+
+  DECLARE_INSTRUCTION(LoadCodeUnits)
+  virtual CompileType ComputeType() const;
+
+  bool IsExternal() const {
+    return array()->definition()->representation() == kUntagged;
+  }
+
+  Value* array() const { return inputs_[0]; }
+  Value* index() const { return inputs_[1]; }
+  intptr_t index_scale() const { return Instance::ElementSizeFor(class_id_); }
+  intptr_t class_id() const { return class_id_; }
+  intptr_t element_count() const { return element_count_; }
+
+  bool can_pack_into_smi() const {
+    return element_count() <= kSmiBits / (index_scale() * kBitsPerByte);
+  }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const { return representation_; }
+  void set_representation(Representation repr) { representation_ = repr; }
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
+
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+
+ private:
+  const intptr_t class_id_;
+  const intptr_t token_pos_;
+  const intptr_t element_count_;
+  Representation representation_;
+
+  DISALLOW_COPY_AND_ASSIGN(LoadCodeUnitsInstr);
+};
+
+
 class StringFromCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   StringFromCharCodeInstr(Value* char_code, intptr_t cid) : cid_(cid) {
@@ -4784,6 +4938,60 @@ class MathUnaryInstr : public TemplateDefinition<1, NoThrow, Pure> {
   const MathUnaryKind kind_;
 
   DISALLOW_COPY_AND_ASSIGN(MathUnaryInstr);
+};
+
+
+// Calls into the runtime and performs a case-insensitive comparison of the
+// UTF16 strings (i.e. TwoByteString or ExternalTwoByteString) located at
+// str[lhs_index:lhs_index + length] and str[rhs_index:rhs_index + length].
+//
+// TODO(zerny): Remove this once (if) functions inherited from unibrow
+// are moved to dart code.
+class CaseInsensitiveCompareUC16Instr
+    : public TemplateDefinition<4, NoThrow, Pure> {
+ public:
+  CaseInsensitiveCompareUC16Instr(
+      Value* str,
+      Value* lhs_index,
+      Value* rhs_index,
+      Value* length,
+      intptr_t cid)
+    : cid_(cid) {
+    ASSERT(cid == kTwoByteStringCid || cid == kExternalTwoByteStringCid);
+    ASSERT(index_scale() == 2);
+    SetInputAt(0, str);
+    SetInputAt(1, lhs_index);
+    SetInputAt(2, rhs_index);
+    SetInputAt(3, length);
+  }
+
+  Value* str() const { return inputs_[0]; }
+  Value* lhs_index() const { return inputs_[1]; }
+  Value* rhs_index() const { return inputs_[2]; }
+  Value* length() const { return inputs_[3]; }
+
+  const RuntimeEntry& TargetFunction() const;
+  bool IsExternal() const { return cid_ == kExternalTwoByteStringCid; }
+  intptr_t class_id() const { return cid_; }
+  intptr_t index_scale() const { return Instance::ElementSizeFor(cid_); }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kTagged;
+  }
+
+  DECLARE_INSTRUCTION(CaseInsensitiveCompareUC16)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->AsCaseInsensitiveCompareUC16()->cid_ == cid_;
+  }
+
+ private:
+  const intptr_t cid_;
+
+  DISALLOW_COPY_AND_ASSIGN(CaseInsensitiveCompareUC16Instr);
 };
 
 

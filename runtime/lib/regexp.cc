@@ -7,10 +7,15 @@
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/regexp_parser.h"
 
 #include "lib/regexp_jsc.h"
 
 namespace dart {
+
+DECLARE_FLAG(bool, trace_irregexp);
+DEFINE_FLAG(bool, use_jscre, false, "Use the JSCRE regular expression engine");
+
 
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_factory, 4) {
   ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
@@ -21,7 +26,23 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_factory, 4) {
       Instance, handle_case_sensitive, arguments->NativeArgAt(3));
   bool ignore_case = handle_case_sensitive.raw() != Bool::True().raw();
   bool multi_line = handle_multi_line.raw() == Bool::True().raw();
-  return Jscre::Compile(pattern, multi_line, ignore_case);
+
+  if (FLAG_use_jscre) {
+    return Jscre::Compile(pattern, multi_line, ignore_case);
+  }
+  // Parse the pattern once in order to throw any format exceptions within
+  // the factory constructor. It is parsed again upon compilation.
+  RegExpCompileData compileData;
+  if (!RegExpParser::ParseRegExp(pattern, multi_line, &compileData)) {
+    // Parsing failures throw an exception.
+    UNREACHABLE();
+  }
+
+  // Create a JSRegExp object containing only the initial parameters.
+  return RegExpEngine::CreateJSRegExp(isolate,
+                                      pattern,
+                                      multi_line,
+                                      ignore_case);
 }
 
 
@@ -68,7 +89,20 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_ExecuteMatch, 3) {
   ASSERT(!regexp.IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(String, str, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_index, arguments->NativeArgAt(2));
-  return Jscre::Execute(regexp, str, start_index.Value());
+
+  if (FLAG_use_jscre) {
+    return Jscre::Execute(regexp, str, start_index.Value());
+  }
+
+  // This function is intrinsified. See Intrinsifier::JSRegExp_ExecuteMatch.
+  const intptr_t cid = str.GetClassId();
+
+  // Retrieve the cached function.
+  const Function& fn = Function::Handle(regexp.function(cid));
+  ASSERT(!fn.IsNull());
+
+  // And finally call the generated code.
+  return IRRegExpMacroAssembler::Execute(fn, str, start_index, isolate);
 }
 
 }  // namespace dart
