@@ -27,6 +27,7 @@ class LocalScope;
 class LocalVariable;
 class SourceLabel;
 template <typename T> class GrowableArray;
+class Parser;
 
 struct CatchParamDesc;
 class ClassDesc;
@@ -131,10 +132,7 @@ class ParsedFunction : public ZoneAllocated {
 
   void AllocateVariables();
 
-  void record_await() {
-    have_seen_await_expr_ = true;
-  }
-  void reset_have_seen_await() { have_seen_await_expr_ = false; }
+  void record_await() { have_seen_await_expr_ = true; }
   bool have_seen_await() const { return have_seen_await_expr_; }
 
   void set_saved_try_ctx(LocalVariable* saved_try_ctx) {
@@ -178,6 +176,7 @@ class ParsedFunction : public ZoneAllocated {
 
   Isolate* isolate_;
 
+  friend class Parser;
   DISALLOW_COPY_AND_ASSIGN(ParsedFunction);
 };
 
