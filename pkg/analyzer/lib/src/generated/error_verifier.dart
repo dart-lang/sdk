@@ -271,6 +271,27 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _typeProvider.stringType];
   }
 
+  /**
+   * Initialize this instance with the given [ClassDeclaration].
+   */
+  void initClassDeclaration(ClassDeclaration node) {
+    _isInNativeClass = node.nativeClause != null;
+    _enclosingClass = node.element;
+    // initialize initialFieldElementsMap
+    if (_enclosingClass != null) {
+      List<FieldElement> fieldElements = _enclosingClass.fields;
+      _initialFieldElementsMap = new HashMap<FieldElement, INIT_STATE>();
+      for (FieldElement fieldElement in fieldElements) {
+        if (!fieldElement.isSynthetic) {
+          _initialFieldElementsMap[fieldElement] =
+              fieldElement.initializer == null ?
+                  INIT_STATE.NOT_INIT :
+                  INIT_STATE.INIT_IN_DECLARATION;
+        }
+      }
+    }
+  }
+
   @override
   Object visitAnnotation(Annotation node) {
     _checkForInvalidAnnotationFromDeferredLibrary(node);
@@ -430,19 +451,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           _checkImplementsFunctionWithoutCall(node);
         }
       }
-      // initialize initialFieldElementsMap
-      if (_enclosingClass != null) {
-        List<FieldElement> fieldElements = _enclosingClass.fields;
-        _initialFieldElementsMap = new HashMap<FieldElement, INIT_STATE>();
-        for (FieldElement fieldElement in fieldElements) {
-          if (!fieldElement.isSynthetic) {
-            _initialFieldElementsMap[fieldElement] =
-                fieldElement.initializer == null ?
-                    INIT_STATE.NOT_INIT :
-                    INIT_STATE.INIT_IN_DECLARATION;
-          }
-        }
-      }
+      initClassDeclaration(node);
       _checkForFinalNotInitializedInClass(node);
       _checkForDuplicateDefinitionInheritance();
       _checkForConflictingInstanceMethodSetter(node);

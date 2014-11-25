@@ -140,6 +140,11 @@ class AnalysisContextFactory {
             "identical",
             provider.boolType.element,
             <ClassElement>[provider.objectType.element, provider.objectType.element],
+            null),
+        ElementFactory.functionElement3(
+            "print",
+            VoidTypeImpl.instance.element,
+            <ClassElement>[provider.objectType.element],
             null)];
     TopLevelVariableElement proxyTopLevelVariableElt =
         ElementFactory.topLevelVariableElement3(

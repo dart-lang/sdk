@@ -1743,9 +1743,7 @@ class B {
     bool success = NodeReplacer.replace(oldNode, newNode);
     expect(success, isTrue);
     // do incremental resolution
-    GatheringErrorListener errorListener = new GatheringErrorListener();
     IncrementalResolver resolver = new IncrementalResolver(
-        errorListener,
         typeProvider,
         library,
         unit.element,
@@ -1861,11 +1859,13 @@ main() {
     _resolveUnit(r'''
 main() {
   var v = 42;
+  print(v);
 }
 ''');
     _updateAndValidate(r'''
 main() {
   int v = 42;
+  print(v);
 }
 ''');
   }
@@ -1909,19 +1909,126 @@ class A {
 }''', false);
   }
 
-  void test_withImport() {
+  void test_updateErrors_addNew_hints() {
     _resolveUnit(r'''
-import 'dart:async';
-import 'dart:math';
 main() {
-  print(1);
+  int v = 0;
+  print(v);
+  print(42);
+}
+''');
+    // TODO(scheglov) "print(42)" is here because it seems we have bug with
+    // incremental analysis and the end of a function body.
+    _updateAndValidate(r'''
+main() {
+  int v = 0;
+  print(42);
+}
+''');
+  }
+
+  void test_updateErrors_addNew_parse() {
+    _resolveUnit(r'''
+main() {
+  print(42);
 }
 ''');
     _updateAndValidate(r'''
-import 'dart:async';
-import 'dart:math';
 main() {
-  print(2 + 3);
+  print(42)
+}
+''');
+  }
+
+  void test_updateErrors_addNew_resolve() {
+    _resolveUnit(r'''
+main() {
+  foo();
+}
+foo() {}
+''');
+    _updateAndValidate(r'''
+main() {
+  bar();
+}
+foo() {}
+''');
+  }
+
+  void test_updateErrors_addNew_scan() {
+    _resolveUnit(r'''
+main() {
+  1;
+}
+''');
+    _updateAndValidate(r'''
+main() {
+  1e;
+}
+''');
+  }
+
+  void test_updateErrors_addNew_verify() {
+    _resolveUnit(r'''
+main() {
+  foo(0);
+}
+foo(int p) {}
+''');
+    _updateAndValidate(r'''
+main() {
+  foo('abc');
+}
+foo(int p) {}
+''');
+  }
+
+  void test_updateErrors_removeExisting() {
+    _resolveUnit(r'''
+f1() {
+  print(1)
+}
+f2() {
+  print(22)
+}
+f3() {
+  print(333)
+}
+''');
+    _updateAndValidate(r'''
+f1() {
+  print(1)
+}
+f2() {
+  print(22);
+}
+f3() {
+  print(333)
+}
+''');
+  }
+
+  void test_updateErrors_shiftExisting() {
+    _resolveUnit(r'''
+f1() {
+  print(1)
+}
+f2() {
+  print(2);
+}
+f3() {
+  print(333)
+}
+''');
+    _updateAndValidate(r'''
+f1() {
+  print(1)
+}
+f2() {
+  print(22);
+}
+f3() {
+  print(333)
 }
 ''');
   }
@@ -1959,6 +2066,7 @@ main() {
     _resetWithIncremental(true);
     analysisContext2.setContents(source, newCode);
     CompilationUnit newUnit = resolveCompilationUnit(source, oldLibrary);
+    List<AnalysisError> newErrors = analysisContext.getErrors(source).errors;
     // The existing CompilationUnitElement should be updated.
     expect(newUnit.element, same(oldUnitElement));
     // The only expected pending task should return the same resolved
@@ -1970,29 +2078,60 @@ main() {
     if (compareWithFull) {
       _resetWithIncremental(false);
       source = addSource(newCode);
+      _runTasks();
       LibraryElement library = resolve(source);
       CompilationUnit fullNewUnit = resolveCompilationUnit(source, library);
       // Validate that "incremental" and "full" units have the same resolution.
       _SameResolutionValidator.assertSameResolution(newUnit, fullNewUnit);
-      _assertEqualsTokens(newUnit, fullNewUnit);
+      _assertEqualTokens(newUnit, fullNewUnit);
+      List<AnalysisError> newFullErrors =
+          analysisContext.getErrors(source).errors;
+      _assertEqualErrors(newErrors, newFullErrors);
+      // TODO(scheglov) check line info
     }
   }
 
-  static void _assertEqualsToken(Token incrToken, Token fullToken) {
+  static void _assertEqualError(AnalysisError incrError,
+      AnalysisError fullError) {
+    expect(incrError.errorCode, same(fullError.errorCode));
+    expect(incrError.source, fullError.source);
+    expect(incrError.offset, fullError.offset);
+    expect(incrError.length, fullError.length);
+    expect(incrError.message, fullError.message);
+  }
+
+  static void _assertEqualErrors(List<AnalysisError> incrErrors,
+      List<AnalysisError> fullErrors) {
+    expect(incrErrors, hasLength(fullErrors.length));
+    if (incrErrors.isNotEmpty) {
+      incrErrors.sort((a, b) => a.offset - b.offset);
+    }
+    if (fullErrors.isNotEmpty) {
+      fullErrors.sort((a, b) => a.offset - b.offset);
+    }
+    int length = incrErrors.length;
+    for (int i = 0; i < length; i++) {
+      AnalysisError incrError = incrErrors[i];
+      AnalysisError fullError = fullErrors[i];
+      _assertEqualError(incrError, fullError);
+    }
+  }
+
+  static void _assertEqualToken(Token incrToken, Token fullToken) {
     expect(incrToken.type, fullToken.type);
     expect(incrToken.offset, fullToken.offset);
     expect(incrToken.length, fullToken.length);
     expect(incrToken.lexeme, fullToken.lexeme);
   }
 
-  static void _assertEqualsTokens(CompilationUnit incrUnit,
+  static void _assertEqualTokens(CompilationUnit incrUnit,
       CompilationUnit fullUnit) {
     Token incrToken = incrUnit.beginToken;
     Token fullToken = fullUnit.beginToken;
     while (incrToken.type != TokenType.EOF && fullToken.type != TokenType.EOF) {
 //      print('$incrToken @ ${incrToken.offset}');
 //      print('$fullToken @ ${fullToken.offset}');
-      _assertEqualsToken(incrToken, fullToken);
+      _assertEqualToken(incrToken, fullToken);
       incrToken = incrToken.next;
       fullToken = fullToken.next;
     }

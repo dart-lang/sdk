@@ -73,9 +73,10 @@ class AnalysisError {
   Source source;
 
   /**
-   * The character offset from the beginning of the source (zero based) where the error occurred.
+   * The character offset from the beginning of the source (zero based) where
+   * the error occurred.
    */
-  int _offset = 0;
+  int offset = 0;
 
   /**
    * The number of characters from the offset to the end of the source which encompasses the
@@ -110,9 +111,8 @@ class AnalysisError {
    * @param errorCode the error code to be associated with this error
    * @param arguments the arguments used to build the error message
    */
-  AnalysisError.con2(this.source, int offset, int length, this.errorCode,
+  AnalysisError.con2(this.source, this.offset, int length, this.errorCode,
       [List<Object> arguments]) {
-    this._offset = offset;
     this._length = length;
     this._message = formatList(errorCode.message, arguments);
     String correctionTemplate = errorCode.correction;
@@ -131,7 +131,7 @@ class AnalysisError {
 
   @override
   int get hashCode {
-    int hashCode = _offset;
+    int hashCode = offset;
     hashCode ^= (_message != null) ? _message.hashCode : 0;
     hashCode ^= (source != null) ? source.hashCode : 0;
     return hashCode;
@@ -153,14 +153,6 @@ class AnalysisError {
    */
   String get message => _message;
 
-  /**
-   * Return the character offset from the beginning of the source (zero based) where the error
-   * occurred.
-   *
-   * @return the offset to the start of the error location
-   */
-  int get offset => _offset;
-
   @override
   bool operator ==(Object obj) {
     if (identical(obj, this)) {
@@ -175,7 +167,7 @@ class AnalysisError {
     if (!identical(errorCode, other.errorCode)) {
       return false;
     }
-    if (_offset != other._offset || _length != other._length) {
+    if (offset != other.offset || _length != other._length) {
       return false;
     }
     if (isStaticOnly != other.isStaticOnly) {
@@ -206,9 +198,9 @@ class AnalysisError {
     StringBuffer buffer = new StringBuffer();
     buffer.write((source != null) ? source.fullName : "<unknown source>");
     buffer.write("(");
-    buffer.write(_offset);
+    buffer.write(offset);
     buffer.write("..");
-    buffer.write(_offset + _length - 1);
+    buffer.write(offset + _length - 1);
     buffer.write("): ");
     //buffer.write("(" + lineNumber + ":" + columnNumber + "): ");
     buffer.write(_message);

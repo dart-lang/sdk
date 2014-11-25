@@ -7,173 +7,17 @@ library engine.incremental_resolver;
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:analyzer/src/generated/error_verifier.dart';
+
 import 'ast.dart';
 import 'element.dart';
+import 'engine.dart';
 import 'error.dart';
 import 'java_engine.dart';
 import 'parser.dart';
 import 'resolver.dart';
 import 'scanner.dart';
 import 'source.dart';
-
-
-/**
- * Attempts to update [oldUnit] to the state that would correspond to [newCode].
- * Returns `true` if success, or `false` otherwise.
- * The [oldUnit] might be damaged.
- */
-bool poorMansIncrementalResolution(TypeProvider typeProvider,
-    CompilationUnit oldUnit, String newCode) {
-  try {
-    CompilationUnit newUnit = _parseUnit(newCode);
-    _TokenPair firstPair =
-        _findFirstDifferentToken(oldUnit.beginToken, newUnit.beginToken);
-    _TokenPair lastPair =
-        _findLastDifferentToken(oldUnit.endToken, newUnit.endToken);
-    if (firstPair != null && lastPair != null) {
-      // Prepare the "old" token range.
-      Token oldBeginToken;
-      Token oldEndToken;
-      if (firstPair.oldToken.offset < lastPair.oldToken.offset) {
-        oldBeginToken = firstPair.oldToken;
-        oldEndToken = lastPair.oldToken;
-      } else {
-        oldBeginToken = lastPair.oldToken;
-        oldEndToken = firstPair.oldToken;
-      }
-      // Prepare the "old" token tange.
-      Token newBeginToken;
-      Token newEndToken;
-      if (firstPair.newToken.offset < lastPair.newToken.offset) {
-        newBeginToken = firstPair.newToken;
-        newEndToken = lastPair.newToken;
-      } else {
-        newBeginToken = lastPair.newToken;
-        newEndToken = firstPair.newToken;
-      }
-      // Find nodes covering the "old" and "new" token ranges.
-      AstNode oldNode =
-          _findNodeWithTokens(oldUnit, oldBeginToken, oldEndToken);
-      AstNode newNode =
-          _findNodeWithTokens(newUnit, newBeginToken, newEndToken);
-      // Try to find the smallest common node, a FunctionBody currently.
-      {
-        List<AstNode> oldParents = _getParents(oldNode);
-        List<AstNode> newParents = _getParents(newNode);
-        int length = math.min(oldParents.length, newParents.length);
-        bool found = false;
-        for (int i = 0; i < length; i++) {
-          AstNode oldParent = oldParents[i];
-          AstNode newParent = newParents[i];
-          if (oldParent is FunctionBody && newParent is FunctionBody) {
-            oldNode = oldParent;
-            newNode = newParent;
-            found = true;
-            break;
-          }
-        }
-        if (!found) {
-          return false;
-        }
-      }
-      // replace node
-      NodeReplacer.replace(oldNode, newNode);
-      // update token references
-      oldNode.beginToken.previous.setNext(newNode.beginToken);
-      oldNode.endToken.setNext(oldNode.endToken.next);
-      // perform incremental resolution
-      // TODO(scheglov) update errors
-      AnalysisErrorListener errorListener = new BooleanErrorListener();
-      CompilationUnitElement oldUnitElement = oldUnit.element;
-      IncrementalResolver incrementalResolver = new IncrementalResolver(
-          errorListener,
-          typeProvider,
-          oldUnitElement.library,
-          oldUnitElement,
-          oldUnitElement.source,
-          oldNode.offset,
-          oldNode.length,
-          newNode.length);
-      incrementalResolver.resolve(newNode);
-      return true;
-    }
-  } catch (e) {
-    // TODO(scheglov) find a way to log these exceptions
-  }
-  return false;
-}
-
-
-bool _equalToken(Token oldToken, Token newToken, int delta) {
-  if (oldToken.type != newToken.type) {
-    return false;
-  }
-  if (newToken.offset - oldToken.offset != delta) {
-    return false;
-  }
-  return oldToken.lexeme == newToken.lexeme;
-}
-
-
-_TokenPair _findFirstDifferentToken(Token oldToken, Token newToken) {
-//  print('first ------------');
-  while (oldToken.type != TokenType.EOF && newToken.type != TokenType.EOF) {
-//    print('old: $oldToken @ ${oldToken.offset}');
-//    print('new: $newToken @ ${newToken.offset}');
-    if (!_equalToken(oldToken, newToken, 0)) {
-      return new _TokenPair(oldToken, newToken);
-    }
-    oldToken = oldToken.next;
-    newToken = newToken.next;
-  }
-  return null;
-}
-
-
-_TokenPair _findLastDifferentToken(Token oldToken, Token newToken) {
-//  print('last ------------');
-  int delta = newToken.offset - oldToken.offset;
-  while (oldToken.previous != oldToken && newToken.previous != newToken) {
-//    print('old: $oldToken @ ${oldToken.offset}');
-//    print('new: $newToken @ ${newToken.offset}');
-    if (!_equalToken(oldToken, newToken, delta)) {
-      return new _TokenPair(oldToken.next, newToken.next);
-    }
-    oldToken.offset += delta;
-    oldToken = oldToken.previous;
-    newToken = newToken.previous;
-  }
-  return null;
-}
-
-
-AstNode _findNodeWithTokens(AstNode root, Token first, Token last) {
-  int offset = first.offset;
-  int end = last.end;
-  NodeLocator nodeLocator = new NodeLocator.con2(offset, end);
-  return nodeLocator.searchWithin(root);
-}
-
-
-List<AstNode> _getParents(AstNode node) {
-  List<AstNode> parents = <AstNode>[];
-  while (node != null) {
-    parents.insert(0, node);
-    node = node.parent;
-  }
-  return parents;
-}
-
-
-CompilationUnit _parseUnit(String code) {
-  // TODO(scheglov) remember and update errors
-  var errorListener = new BooleanErrorListener();
-  var reader = new CharSequenceReader(code);
-  var scanner = new Scanner(null, reader, errorListener);
-  var token = scanner.tokenize();
-  var parser = new Parser(null, errorListener);
-  return parser.parseCompilationUnit(token);
-}
 
 
 /**
@@ -782,12 +626,6 @@ class DeclarationMatcher extends RecursiveAstVisitor {
  */
 class IncrementalResolver {
   /**
-   * The error listener that will be informed of any errors that are found
-   * during resolution.
-   */
-  final AnalysisErrorListener _errorListener;
-
-  /**
    * The object used to access the types from the core library.
    */
   final TypeProvider _typeProvider;
@@ -822,14 +660,19 @@ class IncrementalResolver {
    */
   final int _updateNewLength;
 
+  ResolutionContext _resolutionContext;
+
+  List<AnalysisError> _resolveErrors = AnalysisError.NO_ERRORS;
+  List<AnalysisError> _verifyErrors = AnalysisError.NO_ERRORS;
+  List<AnalysisError> _hints = AnalysisError.NO_ERRORS;
+
   /**
    * Initialize a newly created incremental resolver to resolve a node in the
-   * given source in the given library, reporting errors to the given error
-   * listener.
+   * given source in the given library.
    */
-  IncrementalResolver(this._errorListener, this._typeProvider,
-      this._definingLibrary, this._definingUnit, this._source, this._updateOffset,
-      this._updateOldLength, this._updateNewLength);
+  IncrementalResolver(this._typeProvider, this._definingLibrary,
+      this._definingUnit, this._source, this._updateOffset, this._updateOldLength,
+      this._updateNewLength);
 
   /**
    * Resolve [node], reporting any errors or warnings to the given listener.
@@ -847,13 +690,11 @@ class IncrementalResolver {
       throw new AnalysisException("Cannot resolve node: element model changed");
     }
     _updateElements(rootNode);
-    // resolve root in scope
-    ResolutionContext context =
-        ResolutionContextBuilder.contextFor(rootNode, _errorListener);
-    Scope scope = context.scope;
-    _resolveTypes(rootNode, scope);
-    _resolveVariables(rootNode, scope);
-    _resolveReferences(rootNode, context);
+    // resolve
+    _resolveReferences(rootNode);
+    // verify
+    _verify(rootNode);
+    _generateHints(rootNode);
   }
 
   /**
@@ -917,6 +758,16 @@ class IncrementalResolver {
     throw new AnalysisException("Cannot resolve node: no resolvable node");
   }
 
+  void _generateHints(AstNode node) {
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    CompilationUnit unit = node.getAncestor((n) => n is CompilationUnit);
+    AnalysisContext analysisContext = _definingLibrary.context;
+    HintGenerator hintGenerator =
+        new HintGenerator(<CompilationUnit>[unit], analysisContext, errorListener);
+    hintGenerator.generateForLibrary();
+    _hints = errorListener.getErrorsForSource(_source);
+  }
+
   /**
    * Return the element defined by [node], or `null` if the node does not
    * define an element.
@@ -930,35 +781,45 @@ class IncrementalResolver {
     return null;
   }
 
-  void _resolveReferences(AstNode node, ResolutionContext context) {
-    ResolverVisitor visitor = new ResolverVisitor.con3(
-        _definingLibrary,
-        _source,
-        _typeProvider,
-        context.scope,
-        _errorListener);
-    visitor.enclosingClass = context.enclosingClass;
-    node.accept(visitor);
-  }
-
-  void _resolveTypes(AstNode node, Scope scope) {
-    TypeResolverVisitor visitor = new TypeResolverVisitor.con3(
-        _definingLibrary,
-        _source,
-        _typeProvider,
-        scope,
-        _errorListener);
-    node.accept(visitor);
-  }
-
-  void _resolveVariables(AstNode node, Scope scope) {
-    VariableResolverVisitor visitor = new VariableResolverVisitor.con2(
-        _definingLibrary,
-        _source,
-        _typeProvider,
-        scope,
-        _errorListener);
-    node.accept(visitor);
+  _resolveReferences(AstNode node) {
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    // prepare context
+    _resolutionContext =
+        ResolutionContextBuilder.contextFor(node, errorListener);
+    Scope scope = _resolutionContext.scope;
+    // resolve types
+    {
+      TypeResolverVisitor visitor = new TypeResolverVisitor.con3(
+          _definingLibrary,
+          _source,
+          _typeProvider,
+          scope,
+          errorListener);
+      node.accept(visitor);
+    }
+    // resolve variables
+    {
+      VariableResolverVisitor visitor = new VariableResolverVisitor.con2(
+          _definingLibrary,
+          _source,
+          _typeProvider,
+          scope,
+          errorListener);
+      node.accept(visitor);
+    }
+    // resolve references
+    {
+      ResolverVisitor visitor = new ResolverVisitor.con3(
+          _definingLibrary,
+          _source,
+          _typeProvider,
+          _resolutionContext.scope,
+          errorListener);
+      visitor.enclosingClass = _resolutionContext.enclosingClass;
+      node.accept(visitor);
+    }
+    // remember errors
+    _resolveErrors = errorListener.getErrorsForSource(_source);
   }
 
   void _updateElements(AstNode node) {
@@ -986,6 +847,264 @@ class IncrementalResolver {
       oldElement.localVariables = newElement.localVariables;
     }
   }
+
+  void _verify(AstNode node) {
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
+    ErrorVerifier errorVerifier = new ErrorVerifier(
+        errorReporter,
+        _definingLibrary,
+        _typeProvider,
+        new InheritanceManager(_definingLibrary));
+    if (_resolutionContext.enclosingClassDeclaration != null) {
+      errorVerifier.initClassDeclaration(
+          _resolutionContext.enclosingClassDeclaration);
+    }
+    node.accept(errorVerifier);
+    _verifyErrors = errorListener.getErrorsForSource(_source);
+  }
+}
+
+
+class PoorMansIncrementalResolver {
+  final TypeProvider _typeProvider;
+  final Source _unitSource;
+  final Source _librarySource;
+  final DartEntry _entry;
+
+  int _updateOffset;
+  int _updateDelta;
+  int _updateEndOld;
+  int _updateEndNew;
+
+  List<AnalysisError> _newScanErrors = <AnalysisError>[];
+  List<AnalysisError> _newParseErrors = <AnalysisError>[];
+  List<AnalysisError> _newResolveErrors = <AnalysisError>[];
+  List<AnalysisError> _newVerifyErrors = <AnalysisError>[];
+  List<AnalysisError> _newHints = <AnalysisError>[];
+
+  PoorMansIncrementalResolver(this._typeProvider, this._unitSource,
+      this._librarySource, this._entry);
+
+  /**
+   * Attempts to update [oldUnit] to the state corresponding to [newCode].
+   * Returns `true` if success, or `false` otherwise.
+   * The [oldUnit] might be damaged.
+   */
+  bool resolve(CompilationUnit oldUnit, String newCode) {
+    try {
+      CompilationUnit newUnit = _parseUnit(newCode);
+      _TokenPair firstPair =
+          _findFirstDifferentToken(oldUnit.beginToken, newUnit.beginToken);
+      _TokenPair lastPair =
+          _findLastDifferentToken(oldUnit.endToken, newUnit.endToken);
+      if (firstPair != null && lastPair != null) {
+        // Prepare the "old" token range.
+        Token oldBeginToken;
+        Token oldEndToken;
+        if (firstPair.oldToken.offset < lastPair.oldToken.offset) {
+          oldBeginToken = firstPair.oldToken;
+          oldEndToken = lastPair.oldToken;
+        } else {
+          oldBeginToken = lastPair.oldToken;
+          oldEndToken = firstPair.oldToken;
+        }
+        // Prepare the "old" token tange.
+        Token newBeginToken;
+        Token newEndToken;
+        if (firstPair.newToken.offset < lastPair.newToken.offset) {
+          newBeginToken = firstPair.newToken;
+          newEndToken = lastPair.newToken;
+        } else {
+          newBeginToken = lastPair.newToken;
+          newEndToken = firstPair.newToken;
+        }
+        // Find nodes covering the "old" and "new" token ranges.
+        AstNode oldNode =
+            _findNodeWithTokens(oldUnit, oldBeginToken, oldEndToken);
+        AstNode newNode =
+            _findNodeWithTokens(newUnit, newBeginToken, newEndToken);
+        // Try to find the smallest common node, a FunctionBody currently.
+        {
+          List<AstNode> oldParents = _getParents(oldNode);
+          List<AstNode> newParents = _getParents(newNode);
+          int length = math.min(oldParents.length, newParents.length);
+          bool found = false;
+          for (int i = 0; i < length; i++) {
+            AstNode oldParent = oldParents[i];
+            AstNode newParent = newParents[i];
+            if (oldParent is FunctionBody && newParent is FunctionBody) {
+              oldNode = oldParent;
+              newNode = newParent;
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            return false;
+          }
+        }
+        // replace node
+        NodeReplacer.replace(oldNode, newNode);
+        // update token references
+        oldNode.beginToken.previous.setNext(newNode.beginToken);
+        oldNode.endToken.setNext(oldNode.endToken.next);
+        // prepare update range
+        _updateOffset = oldNode.offset;
+        _updateDelta = lastPair.delta;
+        _updateEndOld = oldNode.end;
+        _updateEndNew = newNode.end;
+        // perform incremental resolution
+        CompilationUnitElement oldUnitElement = oldUnit.element;
+        IncrementalResolver incrementalResolver = new IncrementalResolver(
+            _typeProvider,
+            oldUnitElement.library,
+            oldUnitElement,
+            oldUnitElement.source,
+            _updateOffset,
+            oldNode.length,
+            newNode.length + _updateDelta);
+        incrementalResolver.resolve(newNode);
+        _newResolveErrors = incrementalResolver._resolveErrors;
+        _newVerifyErrors = incrementalResolver._verifyErrors;
+        _newHints = incrementalResolver._hints;
+        _updateEntry();
+        return true;
+      }
+    } catch (e, st) {
+      // TODO(scheglov) find a way to log these exceptions
+      print(e);
+      print(st);
+    }
+    return false;
+  }
+
+  CompilationUnit _parseUnit(String code) {
+    Token token = _scan(code);
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    Parser parser = new Parser(_unitSource, errorListener);
+    CompilationUnit unit = parser.parseCompilationUnit(token);
+    _newParseErrors = errorListener.errors;
+    return unit;
+  }
+
+  Token _scan(String code) {
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    CharSequenceReader reader = new CharSequenceReader(code);
+    Scanner scanner = new Scanner(_unitSource, reader, errorListener);
+    Token token = scanner.tokenize();
+    _newScanErrors = errorListener.errors;
+    return token;
+  }
+
+  void _updateEntry() {
+    _entry.setValue(DartEntry.SCAN_ERRORS, _newScanErrors);
+    _entry.setValue(DartEntry.PARSE_ERRORS, _newParseErrors);
+    {
+      List<AnalysisError> oldErrors =
+          _entry.getValueInLibrary(DartEntry.RESOLUTION_ERRORS, _librarySource);
+      List<AnalysisError> errors = _updateErrors(oldErrors, _newResolveErrors);
+      _entry.setValueInLibrary(
+          DartEntry.RESOLUTION_ERRORS,
+          _librarySource,
+          errors);
+    }
+    {
+      List<AnalysisError> oldErrors =
+          _entry.getValueInLibrary(DartEntry.VERIFICATION_ERRORS, _librarySource);
+      List<AnalysisError> errors = _updateErrors(oldErrors, _newVerifyErrors);
+      _entry.setValueInLibrary(
+          DartEntry.VERIFICATION_ERRORS,
+          _librarySource,
+          errors);
+    }
+    {
+      List<AnalysisError> oldErrors =
+          _entry.getValueInLibrary(DartEntry.HINTS, _librarySource);
+      List<AnalysisError> errors = _updateErrors(oldErrors, _newHints);
+      _entry.setValueInLibrary(DartEntry.HINTS, _librarySource, errors);
+    }
+  }
+
+  List<AnalysisError> _updateErrors(List<AnalysisError> oldErrors,
+      List<AnalysisError> newErrors) {
+    List<AnalysisError> errors = new List<AnalysisError>();
+    // add updated old errors
+    for (AnalysisError error in oldErrors) {
+      int errorOffset = error.offset;
+      if (errorOffset < _updateOffset) {
+        errors.add(error);
+      } else if (errorOffset > _updateEndOld) {
+        error.offset += _updateDelta;
+        errors.add(error);
+      }
+    }
+    // add new errors
+    for (AnalysisError error in newErrors) {
+      int errorOffset = error.offset;
+      if (errorOffset > _updateOffset && errorOffset < _updateEndNew) {
+        errors.add(error);
+      }
+    }
+    // done
+    return errors;
+  }
+
+  static bool _equalToken(Token oldToken, Token newToken, int delta) {
+    if (oldToken.type != newToken.type) {
+      return false;
+    }
+    if (newToken.offset - oldToken.offset != delta) {
+      return false;
+    }
+    return oldToken.lexeme == newToken.lexeme;
+  }
+
+  static _TokenPair _findFirstDifferentToken(Token oldToken, Token newToken) {
+    //  print('first ------------');
+    while (oldToken.type != TokenType.EOF && newToken.type != TokenType.EOF) {
+      //    print('old: $oldToken @ ${oldToken.offset}');
+      //    print('new: $newToken @ ${newToken.offset}');
+      if (!_equalToken(oldToken, newToken, 0)) {
+        return new _TokenPair(oldToken, newToken, 0);
+      }
+      oldToken = oldToken.next;
+      newToken = newToken.next;
+    }
+    return null;
+  }
+
+  static _TokenPair _findLastDifferentToken(Token oldToken, Token newToken) {
+    //  print('last ------------');
+    int delta = newToken.offset - oldToken.offset;
+    while (oldToken.previous != oldToken && newToken.previous != newToken) {
+      //    print('old: $oldToken @ ${oldToken.offset}');
+      //    print('new: $newToken @ ${newToken.offset}');
+      if (!_equalToken(oldToken, newToken, delta)) {
+        return new _TokenPair(oldToken.next, newToken.next, delta);
+      }
+      oldToken.offset += delta;
+      oldToken = oldToken.previous;
+      newToken = newToken.previous;
+    }
+    return null;
+  }
+
+  static AstNode _findNodeWithTokens(AstNode root, Token first, Token last) {
+    int offset = first.offset;
+    int end = last.end;
+    NodeLocator nodeLocator = new NodeLocator.con2(offset, end);
+    return nodeLocator.searchWithin(root);
+  }
+
+  static List<AstNode> _getParents(AstNode node) {
+    List<AstNode> parents = <AstNode>[];
+    while (node != null) {
+      parents.insert(0, node);
+      node = node.parent;
+    }
+    return parents;
+  }
 }
 
 
@@ -993,6 +1112,7 @@ class IncrementalResolver {
  * The context to resolve an [AstNode] in.
  */
 class ResolutionContext {
+  ClassDeclaration enclosingClassDeclaration;
   ClassElement enclosingClass;
   Scope scope;
 }
@@ -1010,7 +1130,13 @@ class ResolutionContextBuilder {
   final AnalysisErrorListener _errorListener;
 
   /**
-   * The class containing the AST nodes being visited, or `null` if we are not
+   * The class containing the enclosing [ClassDeclaration], or `null` if we are
+   * not in the scope of a class.
+   */
+  ClassDeclaration _enclosingClassDeclaration;
+
+  /**
+   * The class containing the enclosing [ClassElement], or `null` if we are not
    * in the scope of a class.
    */
   ClassElement _enclosingClass;
@@ -1055,6 +1181,7 @@ class ResolutionContextBuilder {
     }
     Scope scope = _scopeForAstNode(parent);
     if (node is ClassDeclaration) {
+      _enclosingClassDeclaration = node;
       _enclosingClass = node.element;
       if (_enclosingClass == null) {
         throw new AnalysisException(
@@ -1138,6 +1265,7 @@ class ResolutionContextBuilder {
     // prepare context
     ResolutionContext context = new ResolutionContext();
     context.scope = scope;
+    context.enclosingClassDeclaration = builder._enclosingClassDeclaration;
     context.enclosingClass = builder._enclosingClass;
     return context;
   }
@@ -1273,5 +1401,6 @@ class _ElementsRestorer extends RecursiveAstVisitor {
 class _TokenPair {
   final Token oldToken;
   final Token newToken;
-  _TokenPair(this.oldToken, this.newToken);
+  final int delta;
+  _TokenPair(this.oldToken, this.newToken, this.delta);
 }
