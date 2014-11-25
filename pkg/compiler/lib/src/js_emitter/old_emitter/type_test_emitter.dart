@@ -27,6 +27,9 @@ class TypeTestEmitter extends CodeEmitterHelper {
   Set<FunctionType> checkedNonGenericFunctionTypes =
       new Set<FunctionType>();
 
+  /// Initially contains all classes that need RTI. After
+  /// [computeNeededClasses]
+  /// this set only contains classes that are only used for RTI.
   final Set<ClassElement> rtiNeededClasses = new Set<ClassElement>();
 
   Iterable<ClassElement> cachedClassesUsingTypeVariableTests;

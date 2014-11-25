@@ -249,6 +249,9 @@ class CodeEmitterTask extends CompilerTask {
     // to identify them later and make sure we only emit "empty shells" without
     // fields, etc.
     typeTestEmitter.computeRtiNeededClasses();
+
+    // TODO(floitsch): either change the name, or get the rti-classes
+    // differently.
     typeTestEmitter.rtiNeededClasses.removeAll(neededClasses);
     // rtiNeededClasses now contains only the "empty shells".
     neededClasses.addAll(typeTestEmitter.rtiNeededClasses);
