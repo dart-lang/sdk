@@ -156,6 +156,19 @@ class DynamicInvoke extends Conversion {
   Level get level => Level.WARNING;
 }
 
+class InvalidRuntimeCheckError extends StaticInfo {
+  final AstNode node;
+  final DartType type;
+
+  InvalidRuntimeCheckError(this.node, this.type) {
+    assert(node is IsExpression || node is AsExpression);
+  }
+
+  String get message => "Invalid runtime check on non-ground type $type";
+
+  Level get level => Level.SEVERE;
+}
+
 class InvalidOverride extends StaticInfo {
   final AstNode node;
   final ExecutableElement element;

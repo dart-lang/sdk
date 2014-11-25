@@ -117,6 +117,19 @@ class RestrictedTypeWalker extends SimpleAstVisitor {
   }
 
   @override
+  Object visitFunctionDeclaration(FunctionDeclaration node) {
+    FunctionExpression function = node.functionExpression;
+    ExecutableElementImpl functionElement =
+        node.element as ExecutableElementImpl;
+    // TODO(vsm): Should we ever use the expression type in a (...) => expr or
+    // just the written type?
+    functionElement.returnType =
+        _computeStaticReturnTypeOfFunctionDeclaration(node);
+    _recordStaticType(function, functionElement.type);
+    return null;
+  }
+
+  @override
   Object visitFunctionExpression(FunctionExpression node) {
     if (node.parent is FunctionDeclaration) {
       var parent = node.parent;

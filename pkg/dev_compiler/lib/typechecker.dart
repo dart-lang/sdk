@@ -385,7 +385,7 @@ class ProgramChecker extends RecursiveAstVisitor {
     while (parent is! FunctionExpression && parent is! MethodDeclaration) {
       parent = parent.parent;
     }
-    FunctionType functionType;
+    FunctionType functionType = null;
     if (parent is MethodDeclaration) {
       functionType = _rules.elementType(parent.element);
     } else {
@@ -446,6 +446,23 @@ class ProgramChecker extends RecursiveAstVisitor {
         if (initializer != null) checkAssignment(initializer, dartType);
       }
     }
+    node.visitChildren(this);
+  }
+
+  void _checkRuntimeTypeCheck(AstNode node, TypeName typeName) {
+    var type = getType(typeName);
+    if (!_rules.isGroundType(type)) {
+      record(new InvalidRuntimeCheckError(node, type));
+    }
+  }
+
+  visitAsExpression(AsExpression node) {
+    _checkRuntimeTypeCheck(node, node.type);
+    node.visitChildren(this);
+  }
+
+  visitIsExpression(IsExpression node) {
+    _checkRuntimeTypeCheck(node, node.type);
     node.visitChildren(this);
   }
 

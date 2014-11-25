@@ -20,6 +20,8 @@ abstract class TypeRules {
   bool isBoxable(DartType t) => false;
   DartType boxedType(DartType t) => throw "Unreachable";
 
+  bool isGroundType(DartType t) => true;
+
   void inferType(VariableDeclaration decl);
   TypeMismatch checkAssignment(Expression expr, DartType t);
 
@@ -143,6 +145,19 @@ class RestrictedRules extends TypeRules {
       t2 = (t2.name == "num") ? provider.doubleType : t2;
     }
     return t1 == t2;
+  }
+
+  bool isGroundType(DartType t) {
+    if (t is FunctionType) return false;
+    if (t is TypeParameterType) return false;
+
+    // t must be an InterfacetType.
+    var typeArguments = (t as InterfaceType).typeArguments;
+    for (var typeArgument in typeArguments) {
+      if (!typeArgument.isDynamic) return false;
+    }
+
+    return true;
   }
 
   bool isWrappableFunctionType(FunctionType f1, FunctionType f2) {
