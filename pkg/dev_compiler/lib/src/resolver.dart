@@ -7,8 +7,12 @@ import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:logging/logging.dart' as logger;
 
 import 'dart_sdk.dart';
+import 'utils.dart';
+
+final _log = new logger.Logger('ddc.src.resolver');
 
 /// Encapsulates a resolver from the analyzer package.
 class TypeResolver {
@@ -47,12 +51,25 @@ class TypeResolver {
     return _sources[uri] = context.sourceFactory.forUri('$uri');
   }
 
-  /// Get any analyzer errors found when resolving [uri]'s source.
-  List<AnalysisError> getErrors(Uri uri) =>
-      context.getErrors(findSource(uri)).errors;
-
-  /// Resolve the source at the given [uri] and return the corresponding library
-  /// element.
-  LibraryElement resolve(Uri uri) =>
-      context.computeLibraryElement(findSource(uri));
+  /// Resolve [source] and return whether any errors were found during
+  /// resolution.
+  bool resolve(Source source) {
+    context.computeLibraryElement(source);
+    List<AnalysisError> errors = context.getErrors(source).errors;
+    bool failure = false;
+    if (errors.isNotEmpty) {
+      _log.info('analyzer found a total of ${errors.length} errors:');
+      for (var error in errors) {
+        var offset = error.offset;
+        var span = spanFor(error.source, offset, offset + error.length);
+        var severity = error.errorCode.errorSeverity;
+        var isError = severity == ErrorSeverity.ERROR;
+        if (isError) failure = true;
+        var level = isError ? logger.Level.SEVERE : logger.Level.WARNING;
+        _log.log(level,
+            span.message(error.message, color: colorOf(severity.name)));
+      }
+    }
+    return failure;
+  }
 }

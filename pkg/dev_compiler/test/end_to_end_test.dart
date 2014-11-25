@@ -12,4 +12,9 @@ main() {
     checkProgram(new Uri.file(path.absolute('test/inferred_type.dart')),
           mockSdkSources: mockSdkSources);
   });
+
+  test('checker accepts files with imports', () {
+    checkProgram(new Uri.file(path.absolute('test/import_test.dart')),
+          mockSdkSources: mockSdkSources);
+  });
 }

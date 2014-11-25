@@ -90,9 +90,11 @@ void main(List argv) {
   }
 
   if (results.failure) {
-    log.shout('Program is not valid');
+    _log.shout('Program is not valid');
   } else {
-    log.shout('Program is valid');
+    _log.shout('Program is valid');
   }
 }
 
+
+final _log = new logger.Logger('ddc.bin.checker');

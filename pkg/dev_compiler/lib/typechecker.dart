@@ -13,7 +13,7 @@ import 'src/static_info.dart';
 import 'src/type_rules.dart';
 import 'src/utils.dart';
 
-final log = new logger.Logger('ddc.checker');
+final _log = new logger.Logger('ddc.checker');
 
 /// Runs the program checker using the restricted type rules on [fileUri].
 Results checkProgram(Uri fileUri, {String sdkDir,
@@ -24,33 +24,14 @@ Results checkProgram(Uri fileUri, {String sdkDir,
       ? new TypeResolver.fromMock(mockSdkSources)
       : new TypeResolver.fromDir(sdkDir);
 
-  // Run the analyzer on the code.
-  resolver.resolve(fileUri);
-  List<AnalysisError> errors = resolver.getErrors(fileUri);
-  bool failure = false;
-  if (errors.isNotEmpty) {
-    log.info('analyzer found a total of ${errors.length} errors:');
-    for (var error in errors) {
-      var offset = error.offset;
-      var span = spanFor(error.source, offset, offset + error.length);
-      var severity = error.errorCode.errorSeverity;
-      var isError = severity == ErrorSeverity.ERROR;
-      if (isError) failure = true;
-      var level = isError ? logger.Level.SEVERE : logger.Level.WARNING;
-      log.log(level,
-          span.message(error.message, color: colorOf(severity.name)));
-    }
-  }
-
   // Invoke the checker on the entry point.
-  log.info('running checker...');
+  _log.info('running checker...');
   TypeProvider provider = resolver.context.typeProvider;
   final visitor = new ProgramChecker(
       resolver, new RestrictedRules(provider), fileUri, checkSdk);
   visitor.check();
   visitor.finalizeImports();
-  return new Results(visitor.libraries, visitor.infoMap,
-      failure || visitor.failure);
+  return new Results(visitor.libraries, visitor.infoMap, visitor.failure);
 }
 
 /// Represents a summary of the results collected by running the program
@@ -136,6 +117,7 @@ class ProgramChecker extends RecursiveAstVisitor {
     }
     // print(' loading $uri');
     _uri = uri;
+    if (isLibrary) failure = _resolver.resolve(source) || failure;
     final unit = getCompilationUnit(source, isLibrary);
     _rules.setCompilationUnit(unit);
     _unitMap[uri] = unit;
@@ -485,7 +467,7 @@ class ProgramChecker extends RecursiveAstVisitor {
         infoMap[info.node] = new List<StaticInfo>();
       }
       infoMap[info.node].add(info);
-      log.log(info.level, info.message, info.node);
+      _log.log(info.level, info.message, info.node);
       return true;
     }
     return false;
