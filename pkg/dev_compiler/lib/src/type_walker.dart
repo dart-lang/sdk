@@ -117,25 +117,19 @@ class RestrictedTypeWalker extends SimpleAstVisitor {
   }
 
   @override
-  Object visitFunctionDeclaration(FunctionDeclaration node) {
-    FunctionExpression function = node.functionExpression;
-    ExecutableElementImpl functionElement =
-        node.element as ExecutableElementImpl;
-    // TODO(vsm): Should we ever use the expression type in a (...) => expr or
-    // just the written type?
-    functionElement.returnType =
-        _computeStaticReturnTypeOfFunctionDeclaration(node);
-    _recordStaticType(function, functionElement.type);
-    return null;
-  }
-
-  @override
   Object visitFunctionExpression(FunctionExpression node) {
     if (node.parent is FunctionDeclaration) {
-      // The function type will be resolved and set when we visit the parent
-      // node.
+      var parent = node.parent;
+      ExecutableElementImpl functionElement =
+          parent.element as ExecutableElementImpl;
+      // TODO(vsm): Should we ever use the expression type in a (...) => expr or
+      // just the written type?
+      functionElement.returnType =
+          _computeStaticReturnTypeOfFunctionDeclaration(parent);
+      _recordStaticType(node, functionElement.type);
       return null;
     }
+
     ExecutableElementImpl functionElement =
         node.element as ExecutableElementImpl;
     functionElement.returnType =
@@ -172,10 +166,6 @@ class RestrictedTypeWalker extends SimpleAstVisitor {
     FunctionType staticType = baseElementType(node.staticElement);
     _recordStaticType(
         node, staticType.returnType /*node.constructorName.type.type*/);
-    ConstructorElement element = node.staticElement;
-    if (element != null && "Element" == element.enclosingElement.name) {
-      LibraryElement library = element.library;
-    }
     return null;
   }
 
@@ -370,6 +360,7 @@ class RestrictedTypeWalker extends SimpleAstVisitor {
       // staticType = _promoteManager.getStaticType(variable);
       staticType = variableType(variable);
     } else if (element is PrefixElement) {
+      assert(false);
       return null;
     } else {
       staticType = _dynamicType;

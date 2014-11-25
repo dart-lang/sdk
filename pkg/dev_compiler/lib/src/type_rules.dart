@@ -317,11 +317,11 @@ class RestrictedRules extends TypeRules {
   TypeMismatch checkAssignment(Expression expr, DartType type) {
     final exprType = getStaticType(expr);
     if (!isAssignable(exprType, type)) {
-      if (isPrimitive(type) && canBeBoxedTo(type, exprType)) {
+      if (isBoxable(type) && canBeBoxedTo(type, exprType)) {
         return new Unbox(this, expr, type);
       } else if (isDynamic(exprType)) {
         return new DownCast(this, expr, type);
-      } else if (isPrimitive(exprType) && canBeBoxedTo(exprType, type)) {
+      } else if (isBoxable(exprType) && canBeBoxedTo(exprType, type)) {
         return new Box(this, expr);
       } else if (isSubTypeOf(type, exprType)) {
         return new DownCast(this, expr, type);

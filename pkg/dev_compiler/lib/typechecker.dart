@@ -382,11 +382,16 @@ class ProgramChecker extends RecursiveAstVisitor {
 
   void _checkReturn(Expression expression, AstNode node) {
     var parent = node.parent;
-    while (parent is! FunctionExpression) {
+    while (parent is! FunctionExpression && parent is! MethodDeclaration) {
       parent = parent.parent;
     }
-    assert(parent is FunctionExpression);
-    FunctionType functionType = _rules.getStaticType(parent);
+    FunctionType functionType;
+    if (parent is MethodDeclaration) {
+      functionType = _rules.elementType(parent.element);
+    } else {
+      assert(parent is FunctionExpression);
+      functionType = _rules.getStaticType(parent);
+    }
     var type = functionType.returnType;
     // TODO(vsm): Enforce void or dynamic (to void?) when expression is null.
     if (expression != null) {
@@ -416,10 +421,14 @@ class ProgramChecker extends RecursiveAstVisitor {
 
   visitPrefixedIdentifier(PrefixedIdentifier node) {
     final target = node.prefix;
-    DartType receiverType = _rules.getStaticType(target);
-    assert(receiverType != null);
-    if (receiverType.isDynamic) {
-      record(new DynamicInvoke(_rules, node));
+    // Check if the prefix is a library - PrefixElement denotes a library
+    // access.
+    if (target.staticElement is! PrefixElement) {
+      DartType receiverType = _rules.getStaticType(target);
+      assert(receiverType != null);
+      if (receiverType.isDynamic) {
+        record(new DynamicInvoke(_rules, node));
+      }
     }
     node.visitChildren(this);
   }
