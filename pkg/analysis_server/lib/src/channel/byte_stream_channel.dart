@@ -49,7 +49,7 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
   @override
   Future<Response> sendRequest(Request request) {
     String id = request.id;
-    output.writeln(JSON.encode(request.toJson()));
+    output.write(JSON.encode(request.toJson()) + '\n');
     return responseStream.firstWhere((Response response) => response.id == id);
   }
 }
@@ -110,7 +110,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     ServerCommunicationChannel.ToJson.start();
     String jsonEncoding = JSON.encode(notification.toJson());
     ServerCommunicationChannel.ToJson.stop();
-    output.writeln(jsonEncoding);
+    output.write(jsonEncoding + '\n');
   }
 
   @override
@@ -123,7 +123,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     ServerCommunicationChannel.ToJson.start();
     String jsonEncoding = JSON.encode(response.toJson());
     ServerCommunicationChannel.ToJson.stop();
-    output.writeln(jsonEncoding);
+    output.write(jsonEncoding + '\n');
   }
 
   /**
