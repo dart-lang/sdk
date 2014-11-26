@@ -7684,7 +7684,6 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
            (to == kUnboxedUint32) ||
            (to == kUnboxedInt32));
     SetInputAt(0, value);
-    ASSERT(!CanDeoptimize() || (deopt_id != Isolate::kNoDeoptId));
   }
 
   Value* value() const { return inputs_[0]; }
