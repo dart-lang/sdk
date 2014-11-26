@@ -7,6 +7,7 @@ library code_generator_task;
 
 import 'glue.dart';
 import 'codegen.dart';
+import 'unsugar.dart';
 
 import '../js_backend.dart';
 import '../../dart2jslib.dart';
@@ -27,44 +28,6 @@ import '../../tracer.dart';
 import '../../js_backend/codegen/codegen.dart';
 import '../../ssa/ssa.dart' as ssa;
 import '../../tree_ir/optimization/optimization.dart';
-import '../../common.dart' show SelectorKind;
-import '../../constants/expressions.dart';
-import '../../constants/values.dart';
-
-class JsBackendTreeBuilder extends tree_builder.Builder {
-  final Glue glue;
-
-  JsBackendTreeBuilder(Compiler compiler, this.glue) : super(compiler);
-
-  Selector get identicalSelector {
-    return new Selector(SelectorKind.CALL, 'identical', null, 2);
-  }
-
-  /// TOOD(karlklose): cache this?
-  tree_ir.Constant get constantTrue {
-    ConstantExpression trueValue =
-        new PrimitiveConstantExpression(new TrueConstantValue());
-    return new tree_ir.Constant(trueValue);
-  }
-
-  /**
-   * Boolean conversion maps any object o into a boolean. Boolean conversion is
-   * defined by the function application
-   *   (bool v){
-   *     assert(v != null);
-   *     return identical(v, true);
-   *   }(o)
-   */
-  tree_ir.Expression visitIsTrue(cps.IsTrue node) {
-    tree_ir.Expression value = getVariableReference(node.value);
-    /// TODO(karlklose): implement the assert(v != null) check.
-    return new tree_ir.InvokeStatic(
-        glue.identicalFunction,
-        identicalSelector,
-        <tree_ir.Expression>[value, constantTrue]);
-  }
-
-}
 
 class CspFunctionCompiler implements FunctionCompiler {
   final IrBuilderTask irBuilderTask;
@@ -139,6 +102,7 @@ class CspFunctionCompiler implements FunctionCompiler {
     if (cpsNode == null) {
       giveUp('unable to build cps definition of $element');
     }
+    const UnsugarVisitor().rewrite(cpsNode);
     return cpsNode;
   }
 
@@ -161,7 +125,7 @@ class CspFunctionCompiler implements FunctionCompiler {
   }
 
   tree_ir.FunctionDefinition compileToTreeIR(cps.FunctionDefinition cpsNode) {
-    tree_builder.Builder builder = new JsBackendTreeBuilder(compiler, glue);
+    tree_builder.Builder builder = new tree_builder.Builder(compiler);
     tree_ir.FunctionDefinition treeNode = builder.build(cpsNode);
     assert(treeNode != null);
     traceGraph('Tree builder', treeNode);

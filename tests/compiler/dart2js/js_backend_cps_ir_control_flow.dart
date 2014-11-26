@@ -15,8 +15,9 @@ main() {
 }
 """, """
 function() {
-  while (true)
+  while (P.identical(true, true))
     ;
+  return null;
 }"""),
   const TestEntry("""
 foo(a) => a;
@@ -34,16 +35,24 @@ main() {
 }
 """, """
 function() {
-  L0:
-    while (true)
-      while (true) {
-        while (P.identical(V.foo(true), true))
-          if (P.identical(V.foo(false), true)) {
-            P.print(2);
-            continue L0;
-          }
-        P.print(1);
-      }
+  L2:
+    while (P.identical(true, true))
+      L1:
+        while (true) {
+          L0:
+            if (P.identical(true, true)) {
+              while (P.identical(V.foo(true), true))
+                if (!P.identical(V.foo(false), true))
+                  ;
+                else
+                  break L0;
+              P.print(1);
+              continue L1;
+            }
+          P.print(2);
+          continue L2;
+        }
+  return null;
 }"""),
   const TestEntry("""
 foo(a) => a;
@@ -58,13 +67,13 @@ main() {
 function() {
   var i;
   i = 0;
-  L1:
+  L3:
     while (true) {
       if (P.identical(V.foo(true), true)) {
         P.print(1);
         if (!P.identical(V.foo(false), true)) {
           i = V.foo(i);
-          continue L1;
+          continue L3;
         }
       }
       P.print(2);

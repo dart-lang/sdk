@@ -195,4 +195,10 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
     String value = names[node.value.definition];
     return '(IsTrue $value)';
   }
+
+  String visitIdentical(Identical node) {
+    String left = names[node.left.definition];
+    String right = names[node.right.definition];
+    return '(Identical $left $right)';
+  }
 }

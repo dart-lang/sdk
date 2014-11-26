@@ -28,7 +28,7 @@ class ConstantPropagator implements Pass {
 
     // Set all parent pointers.
 
-    new _ParentVisitor().visit(root);
+    new ParentVisitor().visit(root);
 
     // Analyze. In this phase, the entire term is analyzed for reachability
     // and the constant status of each expression.
@@ -602,6 +602,12 @@ class _ConstPropagationVisitor extends Visitor {
   void visitIsTrue(IsTrue node) {
     Branch branch = node.parent;
     visitBranch(branch);
+  }
+
+  // JavaScript specific nodes.
+
+  void visitIdentical(Identical node) {
+    setValue(node, _ConstnessLattice.NonConst);
   }
 }
 

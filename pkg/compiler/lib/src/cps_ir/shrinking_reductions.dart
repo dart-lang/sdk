@@ -22,7 +22,7 @@ class ShrinkingReducer implements Pass {
     _redexVisitor = new _RedexVisitor(_worklist);
 
     // Set all parent pointers.
-    new _ParentVisitor().visit(root);
+    new ParentVisitor().visit(root);
 
     // Sweep over the term, collecting redexes into the worklist.
     _redexVisitor.visitFunctionDefinition(root);
@@ -293,7 +293,7 @@ class _RemovalRedexVisitor extends _RedexVisitor {
 }
 
 /// Traverses the CPS term and sets node.parent for each visited node.
-class _ParentVisitor extends RecursiveVisitor {
+class ParentVisitor extends RecursiveVisitor {
 
   processFunctionDefinition(FunctionDefinition node) {
     node.body.parent = node;
@@ -390,6 +390,13 @@ class _ParentVisitor extends RecursiveVisitor {
 
   processIsTrue(IsTrue node) {
     node.value.parent = node;
+  }
+
+  // JavaScript specific nodes.
+
+  processIdentical(Identical node) {
+    node.left.parent = node;
+    node.right.parent = node;
   }
 }
 

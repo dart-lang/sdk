@@ -112,9 +112,9 @@ class Reference<T extends Definition<T>> {
 /// represent one-level context 'let val x = V in []'.
 class LetPrim extends Expression implements InteriorNode {
   final Primitive primitive;
-  Expression body = null;
+  Expression body;
 
-  LetPrim(this.primitive);
+  LetPrim(this.primitive, [this.body = null]);
 
   Expression plug(Expression expr) {
     assert(body == null);
@@ -451,6 +451,15 @@ class Branch extends Expression {
   accept(Visitor visitor) => visitor.visitBranch(this);
 }
 
+class Identical extends Primitive {
+  final Reference<Primitive> left;
+  final Reference<Primitive> right;
+  Identical(Primitive left, Primitive right)
+      : left = new Reference<Primitive>(left),
+        right = new Reference<Primitive>(right);
+  accept(Visitor visitor) => visitor.visitIdentical(this);
+}
+
 class Constant extends Primitive {
   final ConstantExpression expression;
 
@@ -620,6 +629,9 @@ abstract class Visitor<T> {
 
   // Conditions.
   T visitIsTrue(IsTrue node) => visitCondition(node);
+
+  // JavaScript specific nodes.
+  T visitIdentical(Identical node) => visitPrimitive(node);
 }
 
 /// Recursively visits the entire CPS term, and calls abstract `process*`
@@ -785,6 +797,14 @@ abstract class RecursiveVisitor extends Visitor {
   visitIsTrue(IsTrue node) {
     processIsTrue(node);
     processReference(node.value);
+  }
+
+  // JavaScript specific nodes.
+  processIdentical(Identical node) {}
+  visitIdentical(Identical node) {
+    processIdentical(node);
+    processReference(node.left);
+    processReference(node.right);
   }
 }
 
@@ -954,5 +974,11 @@ class RegisterAllocator extends Visitor {
     visitReference(node.value);
   }
 
+  // JavaScript specific nodes.
+
+  void visitIdentical(Identical node) {
+    visitReference(node.left);
+    visitReference(node.right);
+  }
 }
 

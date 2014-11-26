@@ -229,6 +229,12 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return "IsTrue(${names.name(node.value.definition)})";
   }
 
+  visitIdentical(cps_ir.Identical node) {
+    String left = formatReference(node.left);
+    String right = formatReference(node.right);
+    return "Identical($left, $right)";
+  }
+
   visitThis(cps_ir.This node) {
     return "This";
   }

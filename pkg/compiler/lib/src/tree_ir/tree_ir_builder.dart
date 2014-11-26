@@ -473,5 +473,17 @@ class Builder extends cps_ir.Visitor<Node> {
   Expression visitIsTrue(cps_ir.IsTrue node) {
     return getVariableReference(node.value);
   }
+
+  dart2js.Selector get identicalSelector {
+    return new dart2js.Selector.call('identical', null, 2);
+  }
+
+  Expression visitIdentical(cps_ir.Identical node) {
+    return new InvokeStatic(
+        compiler.identicalFunction,
+        identicalSelector,
+        <Expression>[getVariableReference(node.left),
+                     getVariableReference(node.right)]);
+  }
 }
 
