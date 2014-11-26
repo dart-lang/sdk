@@ -1678,6 +1678,16 @@ class IncrementalResolverTest extends ResolverTestCase {
   LibraryElement library;
   CompilationUnit unit;
 
+  void test_classMemberAccessor_body() {
+    _resolveUnit(r'''
+class A {
+  int get test {
+    return 1 + 2;
+  }
+}''');
+    _resolve(_editString('+', '*'), _isFunctionBody);
+  }
+
   void test_constructor_body() {
     _resolveUnit(r'''
 class A {
@@ -1801,6 +1811,14 @@ class B extends A {
   bar() {
     super.foo(1 + 2);
   }
+}''');
+    _resolve(_editString('+', '*'), _isFunctionBody);
+  }
+
+  void test_topLevelAccessor_body() {
+    _resolveUnit(r'''
+int get test {
+  return 1 + 2;
 }''');
     _resolve(_editString('+', '*'), _isFunctionBody);
   }

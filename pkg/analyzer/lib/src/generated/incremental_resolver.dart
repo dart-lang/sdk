@@ -818,14 +818,36 @@ class IncrementalResolver {
     }
     // apply compatible changes to elements
     if (node is FunctionDeclaration) {
-      FunctionElementImpl oldElement = node.element;
-      FunctionElementImpl newElement = holder.functions[0];
+      ExecutableElementImpl oldElement = node.element;
+      // prepare the new element
+      ExecutableElement newElement;
+      {
+        List<FunctionElement> holderFunctions = holder.functions;
+        List<PropertyAccessorElement> holderAccessors = holder.accessors;
+        if (holderFunctions.isNotEmpty) {
+          newElement = holderFunctions[0];
+        } else if (holderAccessors.isNotEmpty) {
+          newElement = holderAccessors[0];
+        }
+      }
+      // update the old Element
       oldElement.labels = newElement.labels;
       oldElement.localVariables = newElement.localVariables;
     }
     if (node is MethodDeclaration) {
-      MethodElementImpl oldElement = node.element;
-      MethodElementImpl newElement = holder.methods[0];
+      ExecutableElementImpl oldElement = node.element;
+      // prepare the new element
+      ExecutableElement newElement;
+      {
+        List<MethodElement> holderMethods = holder.methods;
+        List<PropertyAccessorElement> holderAccessors = holder.accessors;
+        if (holderMethods.isNotEmpty) {
+          newElement = holderMethods[0];
+        } else if (holderAccessors.isNotEmpty) {
+          newElement = holderAccessors[0];
+        }
+      }
+      // update the old Element
       oldElement.labels = newElement.labels;
       oldElement.localVariables = newElement.localVariables;
     }
@@ -962,6 +984,7 @@ class PoorMansIncrementalResolver {
         _newVerifyErrors = incrementalResolver._verifyErrors;
         _newHints = incrementalResolver._hints;
         _updateEntry();
+//        print('Successfully incrementally resolved.');
         return true;
       }
     } catch (e, st) {
