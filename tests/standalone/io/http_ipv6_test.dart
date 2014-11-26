@@ -7,25 +7,27 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
 import "dart:async";
-import "dart:isolate";
 import "dart:io";
+
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
 // Client makes a HTTP 1.0 request without connection keep alive. The
 // server sets a content length but still needs to close the
 // connection as there is no keep alive.
 void testHttpIPv6() {
+  asyncStart();
   HttpServer.bind("::", 0).then((server) {
     server.listen((HttpRequest request) {
-      Expect.equals(request.headers["host"][0], "[::]:${server.port}");
-      Expect.equals(request.requestedUri.host, "::");
+      Expect.equals(request.headers["host"][0], "[::1]:${server.port}");
+      Expect.equals(request.requestedUri.host, "::1");
       request.response.close();
     });
 
     var client = new HttpClient();
-    var url = Uri.parse('http://[::]:${server.port}/xxx');
-    Expect.equals(url.host, '::');
+    var url = Uri.parse('http://[::1]:${server.port}/xxx');
+    Expect.equals(url.host, '::1');
     client.openUrl('GET', url)
         .then((request) => request.close())
         .then((response) {
@@ -33,6 +35,7 @@ void testHttpIPv6() {
         }).whenComplete(() {
           server.close();
           client.close();
+          asyncEnd();
         });
   });
 }
