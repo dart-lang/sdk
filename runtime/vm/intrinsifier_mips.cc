@@ -8,9 +8,11 @@
 #include "vm/intrinsifier.h"
 
 #include "vm/assembler.h"
+#include "vm/dart_entry.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/regexp_assembler.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -2065,6 +2067,42 @@ void Intrinsifier::OneByteString_equality(Assembler* assembler) {
 void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
   StringEquality(assembler, kTwoByteStringCid);
 }
+
+
+void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
+  if (FLAG_use_jscre) {
+    return;
+  }
+  static const intptr_t kRegExpParamOffset = 2 * kWordSize;
+  static const intptr_t kStringParamOffset = 1 * kWordSize;
+  // start_index smi is located at 0.
+
+  // Incoming registers:
+  // T0: Function. (Will be reloaded with the specialized matcher function.)
+  // S4: Arguments descriptor. (Will be preserved.)
+  // S5: IC-Data. (Will be preserved.)
+
+  // Load the specialized function pointer into T0. Leverage the fact the
+  // string CIDs as well as stored function pointers are in sequence.
+  __ lw(T1, Address(SP, kRegExpParamOffset));
+  __ lw(T3, Address(SP, kStringParamOffset));
+  __ LoadClassId(T2, T3);
+  __ AddImmediate(T2, -kOneByteStringCid);
+  __ sll(T2, T2, kWordSizeLog2);
+  __ addu(T2, T2, T1);
+  __ lw(T0, FieldAddress(T2, JSRegExp::function_offset(kOneByteStringCid)));
+
+  // Registers are now set up for the lazy compile stub. It expects the function
+  // in T0, the argument descriptor in S4, and IC-Data in S5.
+  static const intptr_t arg_count = RegExpMacroAssembler::kParamCount;
+  __ LoadObject(S4, Array::Handle(ArgumentsDescriptor::New(arg_count)));
+
+  // Tail-call the function.
+  __ lw(T3, FieldAddress(T0, Function::instructions_offset()));
+  __ AddImmediate(T3, Instructions::HeaderSize() - kHeapObjectTag);
+  __ jr(T3);
+}
+
 
 // On stack: user tag (+0).
 void Intrinsifier::UserTag_makeCurrent(Assembler* assembler) {

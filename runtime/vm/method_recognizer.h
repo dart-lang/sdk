@@ -184,6 +184,7 @@ namespace dart {
   V(_GrowableList, _setLength, GrowableArraySetLength, 1832199634)             \
   V(_GrowableList, _setData, GrowableArraySetData, 1722254196)                 \
   V(_GrowableList, add, GrowableArray_add, 422087403)                          \
+  V(_JSSyntaxRegExp, _ExecuteMatch, JSRegExp_ExecuteMatch, 1654250896)         \
   V(Object, ==, ObjectEquals, 1955975370)                                      \
   V(_StringBase, get:hashCode, String_getHashCode, 2102936032)                 \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, 769493198)                    \
@@ -320,6 +321,8 @@ namespace dart {
   V(_ImmutableList, get:length, ImmutableArrayLength, 274947518)               \
   V(_TypedList, get:length, TypedDataLength, 522595148)                        \
   V(_GrowableList, get:length, GrowableArrayLength, 778534898)                 \
+  V(_GrowableList, add, GrowableListAdd, 422087403)                            \
+  V(_GrowableList, removeLast, GrowableListRemoveLast, 1285719639)             \
   V(_StringBase, get:length, StringBaseLength, 784429419)                      \
   V(ListIterator, moveNext, ListIteratorMoveNext, 1001265875)                  \
   V(_FixedSizeArrayIterator, moveNext, FixedListIteratorMoveNext, 890839431)   \

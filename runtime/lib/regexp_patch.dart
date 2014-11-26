@@ -2,15 +2,85 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:collection" show LinkedList, LinkedListEntry;
+
 patch class RegExp {
   /* patch */ factory RegExp(String source,
                              {bool multiLine: false,
                               bool caseSensitive: true}) {
-    return new _JSSyntaxRegExp(source,
-                               multiLine: multiLine,
-                               caseSensitive: caseSensitive);
+    _JSSyntaxRegExpHashKey key = new _JSSyntaxRegExpHashKey(
+        source, multiLine, caseSensitive);
+    _JSSyntaxRegExpHashValue value = _cache[key];
+
+    if (value == null) {
+      if (_cache.length > _MAX_CACHE_SIZE) {
+        _JSSyntaxRegExpHashKey lastKey = _recentlyUsed.last;
+        lastKey.unlink();
+        _cache.remove(lastKey);
+      }
+
+      value = new _JSSyntaxRegExpHashValue(
+          new _JSSyntaxRegExp(source,
+                              multiLine: multiLine,
+                              caseSensitive: caseSensitive),
+          key);
+      _cache[key] = value;
+    } else {
+      value.key.unlink();
+    }
+
+    assert(value != null);
+
+    _recentlyUsed.addFirst(value.key);
+    assert(_recentlyUsed.length == _cache.length);
+
+    // TODO(zerny): We might not want to canonicalize regexp objects.
+    return value.regexp;
+  }
+
+  // Regular expression objects are stored in a cache of up to _MAX_CACHE_SIZE
+  // elements using an LRU eviction strategy.
+  // TODO(zerny): Do not impose a fixed limit on the number of cached objects.
+  // Other possibilities could be limiting by the size of the regexp objects,
+  // or imposing a lower time bound for the most recent use under which a regexp
+  // may not be removed from the cache.
+  // TODO(zerny): Use self-sizing cache similar to _AccessorCache in
+  // mirrors_impl.dart.
+  static const int _MAX_CACHE_SIZE = 256;
+  static final Map<_JSSyntaxRegExpHashKey, _JSSyntaxRegExp> _cache =
+      new HashMap<_JSSyntaxRegExpHashKey, _JSSyntaxRegExpValue>();
+  static final LinkedList<_JSSyntaxRegExpHashKey> _recentlyUsed =
+      new LinkedList<_JSSyntaxRegExpHashKey>();
+}
+
+
+// Represents both a key in the regular expression cache as well as its
+// corresponding entry in the LRU list.
+class _JSSyntaxRegExpHashKey extends LinkedListEntry<_JSSyntaxRegExpHashKey> {
+  final String pattern;
+  final bool multiLine;
+  final bool caseSensitive;
+
+  _JSSyntaxRegExpHashKey(this.pattern, this.multiLine, this.caseSensitive);
+
+  int get hashCode => pattern.hashCode;
+  bool operator==(_JSSyntaxRegExpHashKey that) {
+    return (this.pattern == that.pattern) &&
+           (this.multiLine == that.multiLine) &&
+           (this.caseSensitive == that.caseSensitive);
   }
 }
+
+
+// Represents a value in the regular expression cache. Contains a pointer
+// back to the key in order to access the corresponding LRU entry.
+class _JSSyntaxRegExpHashValue {
+  final _JSSyntaxRegExp regexp;
+  final _JSSyntaxRegExpHashKey key;
+
+  _JSSyntaxRegExpHashValue(this.regexp, this.key);
+}
+
 
 class _JSRegExpMatch implements Match {
   _JSRegExpMatch(this._regexp, this.input, this._match);
@@ -69,6 +139,7 @@ class _JSSyntaxRegExp implements RegExp {
        bool caseSensitive: true}) native "JSSyntaxRegExp_factory";
 
   Match firstMatch(String str) {
+    if (str is! String) throw new ArgumentError(str);
     List match = _ExecuteMatch(str, 0);
     if (match == null) {
       return null;
@@ -86,6 +157,8 @@ class _JSSyntaxRegExp implements RegExp {
   }
 
   Match matchAsPrefix(String string, [int start = 0]) {
+    if (string is! String) throw new ArgumentError(string);
+    if (start is! int) throw new ArgumentError(start);
     if (start < 0 || start > string.length) {
       throw new RangeError.range(start, 0, string.length);
     }
@@ -98,11 +171,13 @@ class _JSSyntaxRegExp implements RegExp {
   }
 
   bool hasMatch(String str) {
+    if (str is! String) throw new ArgumentError(str);
     List match = _ExecuteMatch(str, 0);
     return (match == null) ? false : true;
   }
 
   String stringMatch(String str) {
+    if (str is! String) throw new ArgumentError(str);
     List match = _ExecuteMatch(str, 0);
     if (match == null) {
       return null;
@@ -117,6 +192,51 @@ class _JSSyntaxRegExp implements RegExp {
   bool get isCaseSensitive native "JSSyntaxRegExp_getIsCaseSensitive";
 
   int get _groupCount native "JSSyntaxRegExp_getGroupCount";
+
+  // Byte map of one byte characters with a 0xff if the character is a word
+  // character (digit, letter or underscore) and 0x00 otherwise.
+  // Used by generated RegExp code.
+  static const List<int> _wordCharacterMap = const <int>[
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,  // '0' - '7'
+    0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // '8' - '9'
+
+    0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,  // 'A' - 'G'
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,  // 'H' - 'O'
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,  // 'P' - 'W'
+    0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0xff,  // 'X' - 'Z', '_'
+
+    0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,  // 'a' - 'g'
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,  // 'h' - 'o'
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,  // 'p' - 'w'
+    0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00,  // 'x' - 'z'
+    // Latin-1 range
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  ];
 
   List _ExecuteMatch(String str, int start_index)
       native "JSSyntaxRegExp_ExecuteMatch";

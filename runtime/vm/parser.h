@@ -25,6 +25,7 @@ class ArgumentsDescriptor;
 class Isolate;
 class LocalScope;
 class LocalVariable;
+struct RegExpCompileData;
 class SourceLabel;
 template <typename T> class GrowableArray;
 class Parser;
@@ -43,6 +44,7 @@ class ParsedFunction : public ZoneAllocated {
       : function_(function),
         code_(Code::Handle(isolate, function.unoptimized_code())),
         node_sequence_(NULL),
+        regexp_compile_data_(NULL),
         instantiator_(NULL),
         default_parameter_values_(Array::ZoneHandle(isolate, Array::null())),
         current_context_var_(NULL),
@@ -72,6 +74,11 @@ class ParsedFunction : public ZoneAllocated {
 
   SequenceNode* node_sequence() const { return node_sequence_; }
   void SetNodeSequence(SequenceNode* node_sequence);
+
+  RegExpCompileData* regexp_compile_data() const {
+    return regexp_compile_data_;
+  }
+  void SetRegExpCompileData(RegExpCompileData* regexp_compile_data);
 
   LocalVariable* instantiator() const { return instantiator_; }
   void set_instantiator(LocalVariable* instantiator) {
@@ -131,6 +138,7 @@ class ParsedFunction : public ZoneAllocated {
   int num_stack_locals() const { return num_stack_locals_; }
 
   void AllocateVariables();
+  void AllocateIrregexpVariables(intptr_t num_stack_locals);
 
   void record_await() { have_seen_await_expr_ = true; }
   bool have_seen_await() const { return have_seen_await_expr_; }
@@ -159,6 +167,7 @@ class ParsedFunction : public ZoneAllocated {
   const Function& function_;
   Code& code_;
   SequenceNode* node_sequence_;
+  RegExpCompileData* regexp_compile_data_;
   LocalVariable* instantiator_;
   Array& default_parameter_values_;
   LocalVariable* current_context_var_;

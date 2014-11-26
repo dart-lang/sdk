@@ -4567,6 +4567,15 @@ void FlowGraphOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
 }
 
 
+void FlowGraphOptimizer::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
+  // TODO(zerny): Use kUnboxedUint32 once it is fully supported/optimized.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
+  if (!instr->can_pack_into_smi())
+    instr->set_representation(kUnboxedMint);
+#endif
+}
+
+
 bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
                                                  const ICData& unary_ic_data) {
   ASSERT((unary_ic_data.NumberOfChecks() > 0) &&
@@ -7590,6 +7599,13 @@ void ConstantPropagator::VisitTargetEntry(TargetEntryInstr* block) {
 }
 
 
+void ConstantPropagator::VisitIndirectEntry(IndirectEntryInstr* block) {
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    it.Current()->Accept(this);
+  }
+}
+
+
 void ConstantPropagator::VisitCatchBlockEntry(CatchBlockEntryInstr* block) {
   const GrowableArray<Definition*>& defs = *block->initial_definitions();
   for (intptr_t i = 0; i < defs.length(); ++i) {
@@ -7633,6 +7649,13 @@ void ConstantPropagator::VisitGoto(GotoInstr* instr) {
   // to revisit phis every time a predecessor becomes reachable.
   for (PhiIterator it(instr->successor()); !it.Done(); it.Advance()) {
     it.Current()->Accept(this);
+  }
+}
+
+
+void ConstantPropagator::VisitIndirectGoto(IndirectGotoInstr* instr) {
+  for (intptr_t i = 0; i < instr->SuccessorCount(); i++) {
+    SetReachable(instr->SuccessorAt(i));
   }
 }
 
@@ -8096,6 +8119,12 @@ void ConstantPropagator::VisitLoadIndexed(LoadIndexedInstr* instr) {
     }
     SetValue(instr, non_constant_);
   }
+}
+
+
+void ConstantPropagator::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
+  // TODO(zerny): Implement constant propagation.
+  SetValue(instr, non_constant_);
 }
 
 
@@ -8741,6 +8770,12 @@ void ConstantPropagator::VisitMathMinMax(MathMinMaxInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitCaseInsensitiveCompareUC16(
+    CaseInsensitiveCompareUC16Instr *instr) {
+  SetValue(instr, non_constant_);
+}
+
+
 void ConstantPropagator::VisitUnbox(UnboxInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {
@@ -8823,7 +8858,8 @@ void ConstantPropagator::Analyze() {
 
 static bool IsEmptyBlock(BlockEntryInstr* block) {
   return block->next()->IsGoto() &&
-      (!block->IsJoinEntry() || (block->AsJoinEntry()->phis() == NULL));
+      (!block->IsJoinEntry() || (block->AsJoinEntry()->phis() == NULL)) &&
+      !block->IsIndirectEntry();
 }
 
 

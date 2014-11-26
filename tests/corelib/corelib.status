@@ -221,7 +221,9 @@ num_parse_test/01: RuntimeError  # Issue 15316
 [ $system == windows && $arch == x64 ]
 stopwatch_test: Skip  # Flaky test due to expected performance behaviour.
 
-[ $runtime != d8 ]
-# JSCRE does not pass all of the tests ported for irregexp.
-# Ignore all of the tests until irregexp is fully ported.
+[ $runtime != d8 && $runtime != vm ]
+# The regexp tests are not verified to work on non d8/vm platforms yet.
 regexp/*: Skip
+
+[ $runtime == vm && $checked ]
+regexp/global_test: Skip # Issue 21709 and 21708
