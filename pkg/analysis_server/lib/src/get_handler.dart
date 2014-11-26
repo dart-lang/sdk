@@ -28,15 +28,21 @@ class GetHandler {
   static const String STATUS_PATH = '/status';
 
   /**
-   * The path used to request code completion information.
+   * The path used to request information about the cache entry corresponding
+   * to a single file.
    */
-  static const String COMPLETION_PATH = '/completion';
+  static const String CACHE_ENTRY_PATH = '/cache_entry';
 
   /**
    * The path used to request the list of source files in a certain cache
    * state.
    */
   static const String CACHE_STATE_PATH = '/cache_state';
+
+  /**
+   * The path used to request code completion information.
+   */
+  static const String COMPLETION_PATH = '/completion';
 
   /**
    * Query parameter used to represent the cache state to search for, when
@@ -46,7 +52,7 @@ class GetHandler {
 
   /**
    * Query parameter used to represent the context to search for, when
-   * accessing [CACHE_STATE_PATH].
+   * accessing [CACHE_ENTRY_PATH] or [CACHE_STATE_PATH].
    */
   static const String CONTEXT_QUERY_PARAM = 'context';
 
@@ -55,6 +61,12 @@ class GetHandler {
    * accessing [CACHE_STATE_PATH].
    */
   static const String DESCRIPTOR_QUERY_PARAM = 'descriptor';
+
+  /**
+   * Query parameter used to represent the source to search for, when accessing
+   * [CACHE_ENTRY_PATH].
+   */
+  static const String SOURCE_QUERY_PARAM = 'entry';
 
   /**
    * The socket server whose status is to be reported on.
@@ -80,6 +92,8 @@ class GetHandler {
       _returnServerStatus(request);
     } else if (path == CACHE_STATE_PATH) {
       _returnCacheState(request);
+    } else if (path == CACHE_ENTRY_PATH) {
+      _returnCacheEntry(request);
     } else if (path == COMPLETION_PATH) {
       _returnCompletionInfo(request);
     } else {
@@ -94,6 +108,132 @@ class GetHandler {
   String _makeLink(String path, Map<String, String> params, String innerHtml) {
     Uri uri = new Uri(path: path, queryParameters: params);
     return '<a href="${HTML_ESCAPE.convert(uri.toString())}">$innerHtml</a>';
+  }
+
+  /**
+   * Generate a table showing the cache values corresponding to the given
+   * [descriptors], using [getState] to get the cache state corresponding to
+   * each descriptor, and [getValue] to get the cached value corresponding to
+   * each descriptor.  Append the resulting HTML to [response].
+   */
+  void _outputDescriptorTable(HttpResponse response,
+      List<DataDescriptor> descriptors, CacheState getState(DataDescriptor), dynamic
+      getValue(DataDescriptor)) {
+    response.write('<dl>');
+    for (DataDescriptor descriptor in descriptors) {
+      String descriptorName = HTML_ESCAPE.convert(descriptor.toString());
+      String descriptorState =
+          HTML_ESCAPE.convert(getState(descriptor).toString());
+      response.write('<dt>$descriptorName ($descriptorState)</dt><dd>');
+      try {
+        _outputValueAsHtml(response, getValue(descriptor));
+      } catch (exception) {
+        response.write('(${HTML_ESCAPE.convert(exception.toString())})');
+      }
+      response.write('</dd>');
+    }
+    response.write('</dl>');
+  }
+
+  /**
+   * Render the given [value] as HTML and append it to [response].
+   */
+  void _outputValueAsHtml(HttpResponse response, dynamic value) {
+    if (value == null) {
+      response.write('<i>null</i>');
+    } else if (value is String) {
+      response.write('<pre>${HTML_ESCAPE.convert(value)}</pre>');
+    } else if (value is List) {
+      response.write('${value.length} entries');
+      response.write('<ul>');
+      for (var entry in value) {
+        response.write('<li>');
+        _outputValueAsHtml(response, entry);
+        response.write('</li>');
+      }
+      response.write('</ul>');
+    } else {
+      response.write(HTML_ESCAPE.convert(value.toString()));
+      response.write(
+          ' <i>(${HTML_ESCAPE.convert(value.runtimeType.toString())})</i>');
+    }
+  }
+
+  /**
+   * Return a response containing information about a single source file in the
+   * cache.
+   */
+  void _returnCacheEntry(HttpRequest request) {
+    // Figure out which context is being searched for.
+    String contextFilter = request.uri.queryParameters[CONTEXT_QUERY_PARAM];
+    if (contextFilter == null) {
+      return _returnFailure(
+          request,
+          'Query parameter $CONTEXT_QUERY_PARAM required');
+    }
+
+    // Figure out which CacheEntry is being searched for.
+    String sourceUri = request.uri.queryParameters[SOURCE_QUERY_PARAM];
+    if (sourceUri == null) {
+      return _returnFailure(
+          request,
+          'Query parameter $SOURCE_QUERY_PARAM required');
+    }
+
+    AnalysisServer analysisServer = _server.analysisServer;
+    if (analysisServer == null) {
+      return _returnFailure(request, 'Analysis server not running');
+    }
+    HttpResponse response = request.response;
+    response.statusCode = HttpStatus.OK;
+    response.headers.add(HttpHeaders.CONTENT_TYPE, "text/html");
+    response.write('<html>');
+    response.write('<head>');
+    response.write('<title>Dart Analysis Server - Search result</title>');
+    response.write('</head>');
+    response.write('<body>');
+    response.write('<h1>');
+    response.write('File ${HTML_ESCAPE.convert(sourceUri)}');
+    response.write(' in context ${HTML_ESCAPE.convert(contextFilter)}');
+    response.write('</h1>');
+    analysisServer.folderMap.forEach(
+        (Folder folder, AnalysisContextImpl context) {
+      if (folder.path != contextFilter) {
+        return;
+      }
+      Source source = context.sourceFactory.forUri(sourceUri);
+      if (source == null) {
+        response.write('<p>Not found.</p>');
+        return;
+      }
+      SourceEntry entry = context.getReadableSourceEntryOrNull(source);
+      if (entry == null) {
+        response.write('<p>Not found.</p>');
+        return;
+      }
+      response.write('<h2>File info:</h2><dl>');
+      _outputDescriptorTable(
+          response,
+          entry.descriptors,
+          entry.getState,
+          entry.getValue);
+      if (entry is DartEntry) {
+        for (Source librarySource in entry.containingLibraries) {
+          String libraryName = HTML_ESCAPE.convert(librarySource.fullName);
+          response.write('<h2>In library $libraryName:</h2>');
+          _outputDescriptorTable(
+              response,
+              entry.libraryDescriptors,
+              (DataDescriptor descriptor) =>
+                  entry.getStateInLibrary(descriptor, librarySource),
+              (DataDescriptor descriptor) =>
+                  entry.getValueInLibrary(descriptor, librarySource));
+        }
+      }
+    });
+    response.write('</body>');
+    response.write('</html>');
+    response.close();
   }
 
   /**
@@ -167,7 +307,11 @@ class GetHandler {
         if (state != stateFilter || rowDesc.toString() != descriptorFilter) {
           return;
         }
-        response.write('<li>${HTML_ESCAPE.convert(source.fullName)}</li>');
+        String link = _makeLink(CACHE_ENTRY_PATH, {
+          CONTEXT_QUERY_PARAM: folder.path,
+          SOURCE_QUERY_PARAM: source.uri.toString()
+        }, HTML_ESCAPE.convert(source.fullName));
+        response.write('<li>$link</li>');
         count++;
       });
     });
