@@ -385,12 +385,6 @@ String readInt(String array, String index) {
       'int');
 }
 
-String readFunction(String array, String index) {
-  return readChecked(
-      array, index, 'result != null && typeof result != "function"',
-      'function');
-}
-
 String readFunctionType(String array, String index) {
   return readChecked(
       array, index,
