@@ -1155,7 +1155,7 @@ class SerializeScopeTestCase extends CompilerTestCase {
       : scopeInfo = computeScopeInfo(compiler, library),
         super(source, '${library.canonicalUri}');
 
-  Future run() => mainApp.then(checkScopes);
+  Future run() => loadMainApp().then(checkScopes);
 
   void checkScopes(LibraryElement library) {
     Expect.stringEquals(computeScopeInfo(compiler, library), scopeInfo);

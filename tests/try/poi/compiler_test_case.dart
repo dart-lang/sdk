@@ -59,7 +59,7 @@ abstract class CompilerTestCase {
   CompilerTestCase(String source, [String path])
       : this.intermediate(source, customUri(path == null ? 'main.dart' : path));
 
-  Future<LibraryElement> get mainApp {
+  Future<LibraryElement> loadMainApp() {
     return compiler.libraryLoader.loadLibrary(scriptUri)
         .then((LibraryElement library) {
           if (compiler.mainApp == null) {
@@ -77,7 +77,7 @@ abstract class CompilerTestCase {
 
   /// Returns a future for the mainApp after running the compiler.
   Future<LibraryElement> compile() {
-    return mainApp.then((LibraryElement library) {
+    return loadMainApp().then((LibraryElement library) {
       return compiler.runCompiler(scriptUri).then((_) => library);
     });
   }

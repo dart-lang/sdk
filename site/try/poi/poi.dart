@@ -14,6 +14,7 @@ import 'dart:convert' show
     UTF8;
 
 import 'package:dart2js_incremental/dart2js_incremental.dart' show
+    INCREMENTAL_OPTIONS,
     reuseCompiler;
 
 import 'package:dart2js_incremental/library_updater.dart' show
@@ -385,12 +386,10 @@ Future<Element> runPoi(
 
   var options = [
       '--analyze-main',
-      '--no-source-maps',
       '--verbose',
       '--categories=Client,Server',
-      '--incremental-support',
-      '--disable-type-inference',
   ];
+  options.addAll(INCREMENTAL_OPTIONS);
 
   if (!isCompiler) {
     options.add('--analyze-only');

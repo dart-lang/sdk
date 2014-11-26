@@ -33,7 +33,7 @@ class LibraryUpdaterTestCase extends CompilerTestCase {
         this.expectedUpdates = updates,
         super(before);
 
-  Future run() => mainApp.then((LibraryElement library) {
+  Future run() => loadMainApp().then((LibraryElement library) {
     LibraryUpdater updater =
         new LibraryUpdater(this.compiler, null, scriptUri, nolog, nolog);
     bool actualCanReuse =

@@ -19,7 +19,7 @@ class NameTestCase extends CompilerTestCase {
   NameTestCase(String source, this.check)
       : super(source);
 
-  Future run() => mainApp.then(check);
+  Future run() => loadMainApp().then(check);
 }
 
 main() {
