@@ -670,10 +670,10 @@ class IncrementalResolver {
   void resolve(AstNode node) {
     AstNode rootNode = _findResolutionRoot(node);
     // update elements
-    _definingUnit.accept(
-        new _ElementNameOffsetUpdater(
-            _updateOffset,
-            _updateNewLength - _updateOldLength));
+    _updateElementNameOffsets(
+        _definingUnit,
+        _updateOffset,
+        _updateNewLength - _updateOldLength);
     if (_elementModelChanged(rootNode)) {
       throw new AnalysisException("Cannot resolve node: element model changed");
     }
@@ -878,6 +878,10 @@ class IncrementalResolver {
     node.accept(errorVerifier);
     _verifyErrors = errorListener.getErrorsForSource(_source);
   }
+
+  static void _updateElementNameOffsets(Element root, int offset, int delta) {
+    root.accept(new _ElementNameOffsetUpdater(offset, delta));
+  }
 }
 
 
@@ -922,6 +926,20 @@ class PoorMansIncrementalResolver {
         int endOffsetOld = math.max(firstOffsetOld, lastOffsetOld);
         int beginOffsetNew = math.min(firstOffsetNew, lastOffsetNew);
         int endOffsetNew = math.max(firstOffsetNew, lastOffsetNew);
+        // check for a whitespace only change
+        if (identical(lastPair.oldToken, firstPair.oldToken) &&
+            identical(lastPair.newToken, firstPair.newToken)) {
+          _updateOffset = beginOffsetOld - 1;
+          _updateEndOld = endOffsetOld;
+          _updateDelta = newUnit.length - oldUnit.length;
+          _shiftTokens(firstPair.oldToken, _updateDelta);
+          IncrementalResolver._updateElementNameOffsets(
+              oldUnit.element,
+              _updateOffset,
+              _updateDelta);
+          _updateEntry();
+          return true;
+        }
 //        print('beginOffsetOld: $beginOffsetOld endOffsetOld: $endOffsetOld');
 //        print('beginOffsetNew: $beginOffsetNew endOffsetNew: $endOffsetNew');
         // Find nodes covering the "old" and "new" token ranges.
@@ -997,10 +1015,10 @@ class PoorMansIncrementalResolver {
 //        print('Successfully incrementally resolved.');
         return true;
       }
-    } catch (e, st) {
+    } catch (e) {
       // TODO(scheglov) find a way to log these exceptions
-      print(e);
-      print(st);
+//      print(e);
+//      print(st);
     }
     return false;
   }
@@ -1107,7 +1125,7 @@ class PoorMansIncrementalResolver {
 //      print('old: $oldToken @ ${oldToken.offset}');
 //      print('new: $newToken @ ${newToken.offset}');
       if (!_equalToken(oldToken, newToken, delta)) {
-        return new _TokenPair(oldToken, newToken);
+        return new _TokenPair(oldToken.next, newToken.next);
       }
       oldToken = oldToken.previous;
       newToken = newToken.previous;

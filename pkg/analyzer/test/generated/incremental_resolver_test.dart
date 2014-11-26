@@ -2178,6 +2178,17 @@ class PoorMansIncrementalResolutionTest extends ResolverTestCase {
     _resetWithIncremental(true);
   }
 
+  void test_false_topLevelFunction_name() {
+    _resolveUnit(r'''
+a() {}
+b() {}
+''');
+    _updateAndValidate(r'''
+a() {}
+bb() {}
+''', expectedSuccess: false);
+  }
+
   void test_inBody_expression() {
     _resolveUnit(r'''
 class A {
@@ -2239,14 +2250,14 @@ class A {
     return true;
 
   }
-}''', false);
+}''', compareWithFull: false);
       } else {
         _updateAndValidate(r'''
 class A {
   m() {
     return true;
   }
-}''', false);
+}''', compareWithFull: false);
       }
     }
   }
@@ -2261,14 +2272,80 @@ main() {
         _updateAndValidate(r'''
 main() {
   print(12);
-}''', false);
+}''', compareWithFull: false);
       } else {
         _updateAndValidate(r'''
 main() {
   print(1);
-}''', false);
+}''', compareWithFull: false);
       }
     }
+  }
+
+  void test_true_emptyLine_betweenClassMembers_insert() {
+    _resolveUnit(r'''
+class A {
+  a() {}
+  b() {}
+}
+''');
+    _updateAndValidate(r'''
+class A {
+  a() {}
+
+  b() {}
+}
+''');
+  }
+
+  void test_true_emptyLine_betweenClassMembers_remove() {
+    _resolveUnit(r'''
+class A {
+  a() {}
+
+  b() {}
+}
+''');
+    _updateAndValidate(r'''
+class A {
+  a() {}
+  b() {}
+}
+''');
+  }
+
+  void test_true_emptyLine_betweenCompilationUnitMembers_insert() {
+    _resolveUnit(r'''
+a() {}
+b() {}
+''');
+    _updateAndValidate(r'''
+a() {}
+
+b() {}
+''');
+  }
+
+  void test_true_emptyLine_betweenCompilationUnitMembers_remove() {
+    _resolveUnit(r'''
+a() {
+  print(1)
+}
+
+b() {
+  foo(42);
+}
+foo(String p) {};
+''');
+    _updateAndValidate(r'''
+a() {
+  print(1)
+}
+b() {
+  foo(42);
+}
+foo(String p) {};
+''');
   }
 
   void test_true_wholeConstructor() {
@@ -2493,7 +2570,8 @@ f3() {
     }
   }
 
-  void _updateAndValidate(String newCode, [bool compareWithFull = true]) {
+  void _updateAndValidate(String newCode, {bool expectedSuccess: true,
+      bool compareWithFull: true}) {
     // Run any pending tasks tasks.
     _runTasks();
     // Update the source - currently this may cause incremental resolution.
@@ -2502,6 +2580,11 @@ f3() {
     analysisContext2.setContents(source, newCode);
     CompilationUnit newUnit = resolveCompilationUnit(source, oldLibrary);
     List<AnalysisError> newErrors = analysisContext.getErrors(source).errors;
+    // check for expected failure
+    if (!expectedSuccess) {
+      expect(newUnit.element, isNot(same(oldUnitElement)));
+      return;
+    }
     // The existing CompilationUnitElement should be updated.
     expect(newUnit.element, same(oldUnitElement));
     // The only expected pending task should return the same resolved
