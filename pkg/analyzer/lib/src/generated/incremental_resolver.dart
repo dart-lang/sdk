@@ -895,6 +895,14 @@ class PoorMansIncrementalResolver {
           for (int i = 0; i < length; i++) {
             AstNode oldParent = oldParents[i];
             AstNode newParent = newParents[i];
+            if (oldParent is FunctionDeclaration &&
+                newParent is FunctionDeclaration ||
+                oldParent is MethodDeclaration && newParent is MethodDeclaration ||
+                oldParent is ConstructorDeclaration && newParent is ConstructorDeclaration) {
+              oldNode = oldParent;
+              newNode = newParent;
+              found = true;
+            }
             if (oldParent is FunctionBody && newParent is FunctionBody) {
               oldNode = oldParent;
               newNode = newParent;
@@ -911,13 +919,19 @@ class PoorMansIncrementalResolver {
         _updateEndOld = oldNode.end;
         _updateEndNew = newNode.end;
         _updateDelta = _updateEndNew - _updateEndOld;
-//        _updateDelta = lastPair.delta;
         // replace node
         NodeReplacer.replace(oldNode, newNode);
         // update token references
-        oldNode.beginToken.previous.setNext(newNode.beginToken);
-        newNode.endToken.setNext(oldNode.endToken.next);
-        _shiftTokens(oldNode.endToken.next, _updateDelta);
+        {
+          Token oldBeginToken = oldNode.beginToken;
+          if (oldBeginToken.previous.type == TokenType.EOF) {
+            oldUnit.beginToken = newNode.beginToken;
+          } else {
+            oldBeginToken.previous.setNext(newNode.beginToken);
+          }
+          newNode.endToken.setNext(oldNode.endToken.next);
+          _shiftTokens(oldNode.endToken.next, _updateDelta);
+        }
         // perform incremental resolution
         CompilationUnitElement oldUnitElement = oldUnit.element;
         IncrementalResolver incrementalResolver = new IncrementalResolver(
@@ -1261,7 +1275,7 @@ class _ElementNameOffsetUpdater extends GeneralizingElementVisitor {
   @override
   visitElement(Element element) {
     int nameOffset = element.nameOffset;
-    if (nameOffset >= updateOffset) {
+    if (nameOffset > updateOffset) {
       (element as ElementImpl).nameOffset = nameOffset + updateDelta;
     }
     super.visitElement(element);

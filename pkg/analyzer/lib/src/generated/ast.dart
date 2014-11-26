@@ -4948,7 +4948,7 @@ class CompilationUnit extends AstNode {
   /**
    * The first token in the token stream that was parsed to form this compilation unit.
    */
-  final Token beginToken;
+  Token beginToken;
 
   /**
    * The script tag at the beginning of the compilation unit, or `null` if there is no script

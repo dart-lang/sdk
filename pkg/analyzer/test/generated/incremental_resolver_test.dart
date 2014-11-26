@@ -2050,6 +2050,83 @@ main() {
     }
   }
 
+  void test_true_wholeConstructor() {
+    _resolveUnit(r'''
+class A {
+  A(int a) {
+    print(a);
+  }
+}
+''');
+    _updateAndValidate(r'''
+class A {
+  A(int b) {
+    print(b);
+  }
+}
+''');
+  }
+
+  void test_true_wholeConstructor_addInitializer() {
+    _resolveUnit(r'''
+class A {
+  int field;
+  A();
+}
+''');
+    _updateAndValidate(r'''
+class A {
+  int field;
+  A() : field = 5;
+}
+''');
+  }
+
+  void test_true_wholeFunction() {
+    _resolveUnit(r'''
+foo() {}
+main(int a) {
+  print(a);
+}
+''');
+    _updateAndValidate(r'''
+foo() {}
+main(int b) {
+  print(b);
+}
+''');
+  }
+
+  void test_true_wholeFunction_firstTokenInUnit() {
+    _resolveUnit(r'''
+main(int a) {
+  print(a);
+}
+''');
+    _updateAndValidate(r'''
+main(int b) {
+  print(b);
+}
+''');
+  }
+
+  void test_true_wholeMethod() {
+    _resolveUnit(r'''
+class A {
+  main(int a) {
+    print(a);
+  }
+}
+''');
+    _updateAndValidate(r'''
+class A {
+  main(int b) {
+    print(b);
+  }
+}
+''');
+  }
+
   void test_updateErrors_addNew_hints() {
     _resolveUnit(r'''
 main() {
