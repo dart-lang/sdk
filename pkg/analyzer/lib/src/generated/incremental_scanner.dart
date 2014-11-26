@@ -136,8 +136,8 @@ class IncrementalScanner {
     // If the index is within an existing token, then we need to start at the
     // beginning of the token.
     //
-    int scanStart = math.max(oldFirst.previous.end, 0);
-    int scanEnd = oldLast.end + delta;
+    int scanStart = math.max(oldLeftToken.end, 0);
+    int scanEnd = oldRightToken.offset + delta;
     //
     // Rescan the characters that need to be rescanned.
     //

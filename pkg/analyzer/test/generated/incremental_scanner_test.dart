@@ -274,6 +274,14 @@ class IncrementalScannerTest extends EngineTestCase {
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
+  void test_insert_tokens_within_whitespace() {
+    // "a      ;"
+    // "a   +b   ;"
+    _scan("a   ", "", "+b", "   ;");
+    _assertTokens(0, 3, ["a", "+", "b", ";"]);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+  }
+
   void test_insert_whitespace_beginning_beforeToken() {
     // "a + b;"
     // " a + b;"

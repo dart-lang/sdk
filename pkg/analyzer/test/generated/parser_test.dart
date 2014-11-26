@@ -2694,6 +2694,23 @@ class IncrementalParserTest extends EngineTestCase {
         "; }");
   }
 
+  void test_insert_statement_in_method_with_mismatched_braces() {
+    _assertParse('''
+class C {
+  void f() {
+''', '', 'g();', '''
+    if (b) {
+
+
+  }
+
+  void g() {
+    h((x) {});
+  }
+}
+''');
+  }
+
   void test_insert_whitespace_end() {
     // "f() => a + b;"
     // "f() => a + b; "
