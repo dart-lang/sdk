@@ -554,16 +554,16 @@ static Condition EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
                                            Token::Kind kind) {
   ASSERT(Token::IsEqualityOperator(kind));
   PairLocation* left_pair = locs->in(0).AsPairLocation();
-  Register left1 = left_pair->At(0).reg();
-  Register left2 = left_pair->At(1).reg();
+  Register left_lo = left_pair->At(0).reg();
+  Register left_hi = left_pair->At(1).reg();
   PairLocation* right_pair = locs->in(1).AsPairLocation();
-  Register right1 = right_pair->At(0).reg();
-  Register right2 = right_pair->At(1).reg();
+  Register right_lo = right_pair->At(0).reg();
+  Register right_hi = right_pair->At(1).reg();
 
   // Compare lower.
-  __ cmp(left1, Operand(right1));
+  __ cmp(left_lo, Operand(right_lo));
   // Compare upper if lower is equal.
-  __ cmp(left2, Operand(right2), EQ);
+  __ cmp(left_hi, Operand(right_hi), EQ);
   return TokenKindToMintCondition(kind);
 }
 
@@ -572,11 +572,11 @@ static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
                                              LocationSummary* locs,
                                              Token::Kind kind) {
   PairLocation* left_pair = locs->in(0).AsPairLocation();
-  Register left1 = left_pair->At(0).reg();
-  Register left2 = left_pair->At(1).reg();
+  Register left_lo = left_pair->At(0).reg();
+  Register left_hi = left_pair->At(1).reg();
   PairLocation* right_pair = locs->in(1).AsPairLocation();
-  Register right1 = right_pair->At(0).reg();
-  Register right2 = right_pair->At(1).reg();
+  Register right_lo = right_pair->At(0).reg();
+  Register right_hi = right_pair->At(1).reg();
 
   Register out = locs->temp(0).reg();
 
@@ -600,15 +600,15 @@ static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
       hi_true_cond = hi_false_cond = lo_false_cond = VS;
   }
 
-  Label is_true, is_false, done;
+  Label done;
   // Compare upper halves first.
-  __ cmp(left2, Operand(right2));
+  __ cmp(left_hi, Operand(right_hi));
   __ LoadImmediate(out, 0, hi_false_cond);
   __ LoadImmediate(out, 1, hi_true_cond);
   // If higher words aren't equal, skip comparing lower words.
   __ b(&done, NE);
 
-  __ cmp(left1, Operand(right1));
+  __ cmp(left_lo, Operand(right_lo));
   __ LoadImmediate(out, 1);
   __ LoadImmediate(out, 0, lo_false_cond);
   __ Bind(&done);
@@ -829,7 +829,7 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(Isolate* isolate,
                                    Location::RequiresRegister()));
     locs->set_in(1, Location::Pair(Location::RequiresRegister(),
                                    Location::RequiresRegister()));
-    locs->set_temp(0, Location::RequiresRegister());
+    locs->set_temp(0, Location::RequiresRegister());  // TODO(regis): Improve.
     locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
@@ -903,7 +903,7 @@ void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   if (operation_cid() == kSmiCid) {
     EmitBranchOnCondition(compiler, true_condition, labels);
   } else if (operation_cid() == kMintCid) {
-    const Register result = locs()->temp(0).reg();
+    const Register result = locs()->temp(0).reg();  // TODO(regis): Improve.
     __ CompareImmediate(result, 1);
     __ b(labels.true_label, EQ);
     __ b(labels.false_label, NE);
@@ -3882,7 +3882,7 @@ void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* BoxInt64Instr::MakeLocationSummary(Isolate* isolate,
-                                                      bool opt) const {
+                                                    bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
   LocationSummary* summary = new(isolate) LocationSummary(
@@ -6325,8 +6325,13 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         // Check for overflow.
         if (can_overflow()) {
           // Compare high word from input with shifted high word from output.
-          if (shift > 31) {
-            __ cmp(left_hi, Operand(out_hi));
+          // If shift > 32, also compare low word from input with high word from
+          // output shifted back shift - 32.
+          if (shift > 32) {
+            __ cmp(left_lo, Operand(out_hi, ASR, shift - 32));
+            __ cmp(left_hi, Operand(out_hi, ASR, 31), EQ);
+          } else if (shift == 32) {
+            __ cmp(left_hi, Operand(out_hi, ASR, 31));
           } else {
             __ cmp(left_hi, Operand(out_hi, ASR, shift));
           }
@@ -6351,35 +6356,33 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ b(deopt, HI);
     }
 
-    __ mov(out_lo, Operand(left_lo));
-    __ mov(out_hi, Operand(left_hi));
-
     switch (op_kind()) {
       case Token::kSHR: {
-        __ cmp(shift, Operand(32));
-
-        __ mov(out_lo, Operand(out_hi), HI);
-        __ Asr(out_hi, out_hi, Operand(31), HI);
-        __ sub(shift, shift, Operand(32), HI);
-
-        __ rsb(IP, shift, Operand(32));
-        __ mov(IP, Operand(out_hi, LSL, IP));
-        __ orr(out_lo, IP, Operand(out_lo, LSR, shift));
-        __ Asr(out_hi, out_hi, shift);
+        __ rsbs(IP, shift, Operand(32));
+        __ sub(IP, shift, Operand(32), MI);
+        __ mov(out_lo, Operand(left_hi, ASR, IP), MI);
+        __ mov(out_lo, Operand(left_lo, LSR, shift), PL);
+        __ orr(out_lo, out_lo, Operand(left_hi, LSL, IP), PL);
+        __ mov(out_hi, Operand(left_hi, ASR, shift));
         break;
       }
       case Token::kSHL: {
         __ rsbs(IP, shift, Operand(32));
         __ sub(IP, shift, Operand(32), MI);
-        __ mov(out_hi, Operand(out_lo, LSL, IP), MI);
-        __ mov(out_hi, Operand(out_hi, LSL, shift), PL);
-        __ orr(out_hi, out_hi, Operand(out_lo, LSR, IP), PL);
-        __ mov(out_lo, Operand(out_lo, LSL, shift));
+        __ mov(out_hi, Operand(left_lo, LSL, IP), MI);
+        __ mov(out_hi, Operand(left_hi, LSL, shift), PL);
+        __ orr(out_hi, out_hi, Operand(left_lo, LSR, IP), PL);
+        __ mov(out_lo, Operand(left_lo, LSL, shift));
 
         // Check for overflow.
         if (can_overflow()) {
+          // If shift > 32, compare low word from input with high word from
+          // output shifted back shift - 32.
+          __ mov(IP, Operand(out_hi, ASR, IP), MI);
+          __ mov(IP, Operand(left_lo), PL);  // No test if shift <= 32.
+          __ cmp(left_lo, Operand(IP));
           // Compare high word from input with shifted high word from output.
-          __ cmp(left_hi, Operand(out_hi, ASR, shift));
+          __ cmp(left_hi, Operand(out_hi, ASR, shift), EQ);
           // Overflow if they aren't equal.
           __ b(deopt, NE);
         }

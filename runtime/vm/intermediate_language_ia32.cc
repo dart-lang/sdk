@@ -6068,7 +6068,6 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ movl(temp1, left_hi);  // Preserve high 32 bits.
           if (shift > 31) {
             __ movl(left_hi, left_lo);  // Shift by 32.
-            __ xorl(left_lo, left_lo);  // Zero left_lo.
             if (shift > 32) {
               __ shll(left_hi, Immediate(shift - 32));
             }
@@ -6078,6 +6077,15 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             __ sarl(temp2, Immediate(31));
             __ cmpl(temp1, temp2);
             __ j(NOT_EQUAL, deopt);
+            if (shift > 32) {
+              // Also compare low word from input with high word from
+              // output shifted back shift - 32.
+              __ movl(temp2, left_hi);
+              __ sarl(temp2, Immediate(shift - 32));
+              __ cmpl(left_lo, temp2);
+              __ j(NOT_EQUAL, deopt);
+            }
+            __ xorl(left_lo, left_lo);  // Zero left_lo.
           } else {
             __ shldl(left_hi, left_lo, Immediate(shift));
             __ shll(left_lo, Immediate(shift));
@@ -6153,7 +6161,6 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ Bind(&large_shift);
           // No need to subtract 32 from CL, only 5 bits used by shll.
           __ movl(left_hi, left_lo);  // Shift by 32.
-          __ xorl(left_lo, left_lo);  // Zero left_lo.
           __ shll(left_hi, ECX);  // Shift count: CL % 32.
           // Check for overflow by sign extending the high 32 bits
           // and comparing with the input.
@@ -6161,6 +6168,13 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ sarl(temp2, Immediate(31));
           __ cmpl(temp1, temp2);
           __ j(NOT_EQUAL, deopt);
+          // Also compare low word from input with high word from
+          // output shifted back shift - 32.
+          __ movl(temp2, left_hi);
+          __ sarl(temp2, ECX);  // Shift count: CL % 32.
+          __ cmpl(left_lo, temp2);
+          __ j(NOT_EQUAL, deopt);
+          __ xorl(left_lo, left_lo);  // Zero left_lo.
         } else {
           __ cmpl(ECX, Immediate(31));
           __ j(ABOVE, &large_shift);

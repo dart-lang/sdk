@@ -3471,7 +3471,7 @@ void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* BoxInt64Instr::MakeLocationSummary(Isolate* isolate,
-                                                      bool opt) const {
+                                                    bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(isolate) LocationSummary(
