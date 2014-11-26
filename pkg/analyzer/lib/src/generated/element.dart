@@ -5468,6 +5468,9 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements
     if (type != null) {
       buffer.write(Element.RIGHT_ARROW);
       buffer.write(type.returnType);
+    } else if (returnType != null) {
+      buffer.write(Element.RIGHT_ARROW);
+      buffer.write(returnType);
     }
   }
 

@@ -8,6 +8,7 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:analyzer/src/generated/error_verifier.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 import 'ast.dart';
 import 'element.dart';
@@ -381,22 +382,31 @@ class DeclarationMatcher extends RecursiveAstVisitor {
 
   void _assertCompatibleParameter(FormalParameter node,
       ParameterElement element) {
+    _assertEquals(node.kind, element.parameterKind);
+    if (node.kind == ParameterKind.NAMED) {
+      _assertEquals(node.identifier.name, element.name);
+    }
+    // check parameter type specific properties
     if (node is DefaultFormalParameter) {
-      _assertTrue(element.isInitializingFormal);
-      // TODO(scheglov) check default value
+      Expression nodeDefault = node.defaultValue;
+      if (nodeDefault == null) {
+        _assertNull(element.defaultValueCode);
+      } else {
+        _assertEquals(nodeDefault.toSource(), element.defaultValueCode);
+      }
     } else if (node is FieldFormalParameter) {
       _assertTrue(element.isInitializingFormal);
+    } else if (node is FunctionTypedFormalParameter) {
+      _assertTrue(element.type is FunctionType);
+      FunctionType elementType = element.type;
+      _assertCompatibleParameters(node.parameters, element.parameters);
+      _assertSameType(node.returnType, elementType.returnType);
     } else if (node is SimpleFormalParameter) {
       _assertSameType(node.type, element.type);
       node.identifier.staticElement = element;
       (element as ElementImpl).nameOffset = node.identifier.offset;
       (element as ElementImpl).name = node.identifier.name;
-    } else {
-      // TODO(scheglov) support other parameter types
-//      print('node: $node  element: $element  ${element.runtimeType}');
-      _assertTrue(false);
     }
-    // TODO(scheglov) check names of named parameters
   }
 
   void _assertCompatibleParameters(FormalParameterList nodes,
@@ -424,14 +434,14 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     }
   }
 
-  void _assertNotNull(Element element) {
-    if (element == null) {
+  void _assertNotNull(Object object) {
+    if (object == null) {
       throw new _DeclarationMismatchException();
     }
   }
 
-  void _assertNull(Element element) {
-    if (element != null) {
+  void _assertNull(Object object) {
+    if (object != null) {
       throw new _DeclarationMismatchException();
     }
   }

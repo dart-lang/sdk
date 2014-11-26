@@ -621,6 +621,56 @@ typedef F<A>();
 ''');
   }
 
+  void test_false_FunctionTypedFormalParameter_parameters_list_add() {
+    _assertCompilationUnitMatches(false, r'''
+main(int callback(int a)) {
+}
+''', r'''
+main(int callback(int a, String b)) {
+}
+''');
+  }
+
+  void test_false_FunctionTypedFormalParameter_parameters_list_remove() {
+    _assertCompilationUnitMatches(false, r'''
+main(int callback(int a, String b)) {
+}
+''', r'''
+main(int callback(int a)) {
+}
+''');
+  }
+
+  void test_false_FunctionTypedFormalParameter_parameterType() {
+    _assertCompilationUnitMatches(false, r'''
+main(int callback(int p)) {
+}
+''', r'''
+main(int callback(String p)) {
+}
+''');
+  }
+
+  void test_false_FunctionTypedFormalParameter_returnType() {
+    _assertCompilationUnitMatches(false, r'''
+main(int callback()) {
+}
+''', r'''
+main(String callback()) {
+}
+''');
+  }
+
+  void test_false_FunctionTypedFormalParameter_wasSimple() {
+    _assertCompilationUnitMatches(false, r'''
+main(int callback) {
+}
+''', r'''
+main(int callback(int a, String b)) {
+}
+''');
+  }
+
   void test_false_implementsClause_add() {
     _assertCompilationUnitMatches(false, r'''
 class A {}
@@ -792,6 +842,76 @@ part 'unitB.dart';
 ''', r'''
 library lib;
 part 'unitA.dart';
+''');
+  }
+
+  void test_false_SimpleFormalParameter_named_differentName() {
+    _assertCompilationUnitMatches(false, r'''
+main({int oldName}) {
+}
+''', r'''
+main({int newName}) {
+}
+''');
+  }
+
+  void test_false_SimpleFormalParameter_namedDefault_addValue() {
+    _assertCompilationUnitMatches(false, r'''
+main({int p}) {
+}
+''', r'''
+main({int p: 2}) {
+}
+''');
+  }
+
+  void test_false_SimpleFormalParameter_namedDefault_differentValue() {
+    _assertCompilationUnitMatches(false, r'''
+main({int p: 1}) {
+}
+''', r'''
+main({int p: 2}) {
+}
+''');
+  }
+
+  void test_false_SimpleFormalParameter_namedDefault_removeValue() {
+    _assertCompilationUnitMatches(false, r'''
+main({int p: 1}) {
+}
+''', r'''
+main({int p}) {
+}
+''');
+  }
+
+  void test_false_SimpleFormalParameter_optionalDefault_addValue() {
+    _assertCompilationUnitMatches(false, r'''
+main([int p]) {
+}
+''', r'''
+main([int p = 2]) {
+}
+''');
+  }
+
+  void test_false_SimpleFormalParameter_optionalDefault_differentValue() {
+    _assertCompilationUnitMatches(false, r'''
+main([int p = 1]) {
+}
+''', r'''
+main([int p = 2]) {
+}
+''');
+  }
+
+  void test_false_SimpleFormalParameter_optionalDefault_removeValue() {
+    _assertCompilationUnitMatches(false, r'''
+main([int p = 1]) {
+}
+''', r'''
+main([int p]) {
+}
 ''');
   }
 
@@ -1336,7 +1456,7 @@ class T {
 ''');
   }
 
-  void test_true_fieldFormalParameterElement() {
+  void test_true_fieldFormalParameter() {
     _assertCompilationUnitMatches(true, r'''
 class A {
   int field;
@@ -1379,6 +1499,16 @@ typedef C(pc);
 typedef F<A, B, C>();
 ''', r'''
 typedef F<A, B, C>();
+''');
+  }
+
+  void test_true_FunctionTypedFormalParameter() {
+    _assertCompilationUnitMatches(true, r'''
+main(int callback(int a, String b)) {
+}
+''', r'''
+main(int callback(int a, String b)) {
+}
 ''');
   }
 
@@ -1529,6 +1659,36 @@ part 'unitB.dart';
 library lib;
 part 'unitA.dart';
 part 'unitB.dart';
+''');
+  }
+
+  void test_true_SimpleFormalParameter_optional_differentName() {
+    _assertCompilationUnitMatches(true, r'''
+main([int oldName]) {
+}
+''', r'''
+main([int newName]) {
+}
+''');
+  }
+
+  void test_true_SimpleFormalParameter_optionalDefault_differentName() {
+    _assertCompilationUnitMatches(true, r'''
+main([int oldName = 1]) {
+}
+''', r'''
+main([int newName = 1]) {
+}
+''');
+  }
+
+  void test_true_SimpleFormalParameter_required_differentName() {
+    _assertCompilationUnitMatches(true, r'''
+main(int oldName) {
+}
+''', r'''
+main(int newName) {
+}
 ''');
   }
 
