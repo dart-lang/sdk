@@ -2805,6 +2805,12 @@ class IncrementalParserTest extends EngineTestCase {
     _assertParse("f() => a ", "+", "*", " b;");
   }
 
+  void test_split_combinator() {
+    // "import 'foo.dart' show A;"
+    // "import 'foo.dart' show B hide A;"
+    _assertParse("import 'foo.dart' show ", "", "B hide ", "A;");
+  }
+
   /**
    * Given a description of the original and modified contents, perform an incremental scan of the
    * two pieces of text.
