@@ -47,7 +47,7 @@ patch class RegExp {
   // TODO(zerny): Use self-sizing cache similar to _AccessorCache in
   // mirrors_impl.dart.
   static const int _MAX_CACHE_SIZE = 256;
-  static final Map<_JSSyntaxRegExpHashKey, _JSSyntaxRegExp> _cache =
+  static final Map<_JSSyntaxRegExpHashKey, _JSSyntaxRegExpHashValue> _cache =
       new HashMap<_JSSyntaxRegExpHashKey, _JSSyntaxRegExpHashValue>();
   static final LinkedList<_JSSyntaxRegExpHashKey> _recentlyUsed =
       new LinkedList<_JSSyntaxRegExpHashKey>();
