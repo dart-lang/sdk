@@ -10,6 +10,7 @@ part of js_backend;
 class MinifyNamer extends Namer {
   MinifyNamer(Compiler compiler) : super(compiler) {
     reserveBackendNames();
+    fieldRegistry = new _FieldNamingRegistry(this);
   }
 
   String get isolateName => 'I';
@@ -20,8 +21,10 @@ class MinifyNamer extends Namer {
   final String setterPrefix = 's';
   final String callPrefix = ''; // this will create function names $<n>
 
-  static const ALPHABET_CHARACTERS = 52;  // a-zA-Z.
-  static const ALPHANUMERIC_CHARACTERS = 62;  // a-zA-Z0-9.
+  final ALPHABET_CHARACTERS = 52;  // a-zA-Z.
+  final ALPHANUMERIC_CHARACTERS = 62;  // a-zA-Z0-9.
+
+  _FieldNamingRegistry fieldRegistry;
 
   // You can pass an invalid identifier to this and unlike its non-minifying
   // counterpart it will never return the proposedName as the new fresh name.
@@ -48,34 +51,36 @@ class MinifyNamer extends Namer {
     return "${getMappedInstanceName('closure')}_$id";
   }
 
-  void reserveBackendNames() {
-    // From issue 7554.  These should not be used on objects (as instance
-    // variables) because they clash with names from the DOM.
-    const reservedNativeProperties = const <String>[
-        'Q', 'a', 'b', 'c', 'd', 'e', 'f', 'r', 'x', 'y', 'z',
-        // 2-letter:
-        'ch', 'cx', 'cy', 'db', 'dx', 'dy', 'fr', 'fx', 'fy', 'go', 'id', 'k1',
-        'k2', 'k3', 'k4', 'r1', 'r2', 'rx', 'ry', 'x1', 'x2', 'y1', 'y2',
-        // 3-letter:
-        'add', 'all', 'alt', 'arc', 'CCW', 'cmp', 'dir', 'end', 'get', 'in1',
-        'in2', 'INT', 'key', 'log', 'low', 'm11', 'm12', 'm13', 'm14', 'm21',
-        'm22', 'm23', 'm24', 'm31', 'm32', 'm33', 'm34', 'm41', 'm42', 'm43',
-        'm44', 'max', 'min', 'now', 'ONE', 'put', 'red', 'rel', 'rev', 'RGB',
-        'sdp', 'set', 'src', 'tag', 'top', 'uid', 'uri', 'url', 'URL',
-        // 4-letter:
-        'abbr', 'atob', 'Attr', 'axes', 'axis', 'back', 'BACK', 'beta', 'bias',
-        'Blob', 'blue', 'blur', 'BLUR', 'body', 'BOOL', 'BOTH', 'btoa', 'BYTE',
-        'cite', 'clip', 'code', 'cols', 'cues', 'data', 'DECR', 'DONE', 'face',
-        'file', 'File', 'fill', 'find', 'font', 'form', 'gain', 'hash', 'head',
-        'high', 'hint', 'host', 'href', 'HRTF', 'IDLE', 'INCR', 'info', 'INIT',
-        'isId', 'item', 'KEEP', 'kind', 'knee', 'lang', 'left', 'LESS', 'line',
-        'link', 'list', 'load', 'loop', 'mode', 'name', 'Node', 'None', 'NONE',
-        'only', 'open', 'OPEN', 'ping', 'play', 'port', 'rect', 'Rect', 'refX',
-        'refY', 'RGBA', 'root', 'rows', 'save', 'seed', 'seek', 'self', 'send',
-        'show', 'SINE', 'size', 'span', 'stat', 'step', 'stop', 'tags', 'text',
-        'Text', 'time', 'type', 'view', 'warn', 'wrap', 'ZERO'];
+  // From issue 7554.  These should not be used on objects (as instance
+  // variables) because they clash with names from the DOM. However, it is
+  // OK to use them as fields, as we only access fields directly if we know
+  // the receiver type.
+  static const _reservedNativeProperties = const <String>[
+      'Q', 'a', 'b', 'c', 'd', 'e', 'f', 'r', 'x', 'y', 'z',
+      // 2-letter:
+      'ch', 'cx', 'cy', 'db', 'dx', 'dy', 'fr', 'fx', 'fy', 'go', 'id', 'k1',
+      'k2', 'k3', 'k4', 'r1', 'r2', 'rx', 'ry', 'x1', 'x2', 'y1', 'y2',
+      // 3-letter:
+      'add', 'all', 'alt', 'arc', 'CCW', 'cmp', 'dir', 'end', 'get', 'in1',
+      'in2', 'INT', 'key', 'log', 'low', 'm11', 'm12', 'm13', 'm14', 'm21',
+      'm22', 'm23', 'm24', 'm31', 'm32', 'm33', 'm34', 'm41', 'm42', 'm43',
+      'm44', 'max', 'min', 'now', 'ONE', 'put', 'red', 'rel', 'rev', 'RGB',
+      'sdp', 'set', 'src', 'tag', 'top', 'uid', 'uri', 'url', 'URL',
+      // 4-letter:
+      'abbr', 'atob', 'Attr', 'axes', 'axis', 'back', 'BACK', 'beta', 'bias',
+      'Blob', 'blue', 'blur', 'BLUR', 'body', 'BOOL', 'BOTH', 'btoa', 'BYTE',
+      'cite', 'clip', 'code', 'cols', 'cues', 'data', 'DECR', 'DONE', 'face',
+      'file', 'File', 'fill', 'find', 'font', 'form', 'gain', 'hash', 'head',
+      'high', 'hint', 'host', 'href', 'HRTF', 'IDLE', 'INCR', 'info', 'INIT',
+      'isId', 'item', 'KEEP', 'kind', 'knee', 'lang', 'left', 'LESS', 'line',
+      'link', 'list', 'load', 'loop', 'mode', 'name', 'Node', 'None', 'NONE',
+      'only', 'open', 'OPEN', 'ping', 'play', 'port', 'rect', 'Rect', 'refX',
+      'refY', 'RGBA', 'root', 'rows', 'save', 'seed', 'seek', 'self', 'send',
+      'show', 'SINE', 'size', 'span', 'stat', 'step', 'stop', 'tags', 'text',
+      'Text', 'time', 'type', 'view', 'warn', 'wrap', 'ZERO'];
 
-    for (var name in reservedNativeProperties) {
+  void reserveBackendNames() {
+    for (var name in _reservedNativeProperties) {
       if (name.length < 2) {
         instanceNameMap[name] = name;
       }
@@ -233,4 +238,209 @@ class MinifyNamer extends Namer {
     return $0 + x - 52;
   }
 
+  String instanceFieldPropertyName(Element element) {
+    if (element.hasFixedBackendName) {
+      return element.fixedBackendName;
+    }
+
+    _FieldNamingScope names;
+    if (element is BoxFieldElement) {
+      names = new _FieldNamingScope.forBox(element.box, fieldRegistry);
+    } else {
+      ClassElement cls = element is ClosureFieldElement
+          ? element.closureClass : element.enclosingClass;
+      names = new _FieldNamingScope.forClass(cls, compiler.world,
+          fieldRegistry);
+    }
+
+    // The inheritance scope based naming did not yield a name. For instance,
+    // this could be because the field belongs to a mixin.
+    if (!names.containsField(element)) {
+      return super.instanceFieldPropertyName(element);
+    }
+
+    return names[element];
+  }
+}
+
+/**
+ * Encapsulates the global state of field naming.
+ */
+class _FieldNamingRegistry {
+  final MinifyNamer namer;
+
+  final Map<Entity, _FieldNamingScope> scopes =
+      new Map<Entity, _FieldNamingScope>();
+
+  final Map<Entity, String> globalNames = new Map<Entity, String>();
+
+  int globalCount = 0;
+
+  final List<String> nameStore = new List<String>();
+
+  _FieldNamingRegistry(this.namer);
+
+  String getName(int count) {
+    if (count >= nameStore.length) {
+      // The namer usually does not use certain names as they clash with
+      // existing properties on JS objects (see [_reservedNativeProperties]).
+      // However, some of them are really short and safe to use for fields.
+      // Thus, we shortcut the namer to use those first.
+      if (count < MinifyNamer._reservedNativeProperties.length &&
+          MinifyNamer._reservedNativeProperties[count].length <= 2) {
+        nameStore.add(MinifyNamer._reservedNativeProperties[count]);
+      } else {
+        nameStore.add(namer.getFreshName("field$count",
+            namer.usedInstanceNames, namer.suggestedInstanceNames,
+            ensureSafe: true));
+      }
+    }
+
+    return nameStore[count];
+  }
+}
+
+/**
+ * A [_FieldNamingScope] encodes a node in the inheritance tree of the current
+ * class hierarchy. The root node typically is the node corresponding to the
+ * `Object` class. It is used to assign a unique name to each field of a class.
+ * Unique here means unique wrt. all fields along the path back to the root.
+ * This is achieved at construction time via the [_fieldNameCounter] field that counts the
+ * number of fields on the path to the root node that have been encountered so
+ * far.
+ *
+ * Obviously, this only works if no fields are added to a parent node after its
+ * children have added their first field.
+ */
+class _FieldNamingScope {
+  final _FieldNamingScope superScope;
+  final Entity container;
+  final Map<Element, String> names = new Maplet<Element, String>();
+  final _FieldNamingRegistry registry;
+
+  /// Naming counter used for fields of ordinary classes.
+  int _fieldNameCounter;
+
+  /// The number of fields along the superclass chain that use inheritance
+  /// based naming, including the ones allocated for this scope.
+  int get inheritanceBasedFieldNameCounter => _fieldNameCounter;
+
+  /// The number of locally used fields. Depending on the naming source
+  /// (e.g. inheritance based or globally unique for mixixns) this
+  /// might be different from [inheritanceBasedFieldNameCounter].
+  int get _localFieldNameCounter => _fieldNameCounter;
+  void set _localFieldNameCounter(int val) { _fieldNameCounter = val; }
+
+  factory _FieldNamingScope.forClass(ClassElement cls, ClassWorld world,
+      _FieldNamingRegistry registry) {
+    _FieldNamingScope result = registry.scopes[cls];
+    if (result != null) return result;
+
+    if (world.isUsedAsMixin(cls)) {
+      result = new _MixinFieldNamingScope.mixin(cls, registry);
+    } else {
+      if (cls.superclass == null) {
+        result = new _FieldNamingScope.rootScope(cls, registry);
+      } else {
+        _FieldNamingScope superScope = new _FieldNamingScope.forClass(
+            cls.superclass, world, registry);
+        if (cls.isMixinApplication) {
+          result = new _MixinFieldNamingScope.mixedIn(cls, superScope,
+              registry);
+        } else {
+          result = new _FieldNamingScope.inherit(cls, superScope, registry);
+        }
+      }
+    }
+
+    cls.forEachInstanceField((cls, field) => result.add(field));
+
+    registry.scopes[cls] = result;
+    return result;
+  }
+
+  factory _FieldNamingScope.forBox(Local box, _FieldNamingRegistry registry) {
+    return registry.scopes.putIfAbsent(box,
+        () => new _BoxFieldNamingScope(box, registry));
+  }
+
+  _FieldNamingScope.rootScope(this.container, this.registry)
+    : superScope = null,
+      _fieldNameCounter = 0;
+
+  _FieldNamingScope.inherit(this.container, this.superScope, this.registry) {
+    _fieldNameCounter = superScope.inheritanceBasedFieldNameCounter;
+  }
+
+  /**
+   * Checks whether [name] is already used in the current scope chain.
+   */
+  _isNameUnused(String name) {
+    return !names.values.contains(name) &&
+        ((superScope == null) || superScope._isNameUnused(name));
+  }
+
+  String _nextName() => registry.getName(_localFieldNameCounter++);
+
+  String operator[](Element field) {
+    String name = names[field];
+    if (name == null && superScope != null) return superScope[field];
+    return name;
+  }
+
+  void add(Element field) {
+    if (names.containsKey(field)) return;
+
+    String value = _nextName();
+    assert(invariant(field, _isNameUnused(value)));
+    names[field] = value;
+  }
+
+  bool containsField(Element field) => names.containsKey(field);
+}
+
+/**
+ * Field names for mixins have two constraints: They need to be unique in the
+ * hierarchy of each application of a mixin and they need to be the same for
+ * all applications of a mixin. To achieve this, we use global naming for
+ * mixins from the same name pool as fields and add a `$` at the end to ensure
+ * they do not collide with normal field names. The `$` sign is typically used
+ * as a separator between method names and argument counts and does not appear
+ * in generated names themselves.
+ */
+class _MixinFieldNamingScope extends _FieldNamingScope {
+  int get _localFieldNameCounter => registry.globalCount;
+  void set _localFieldNameCounter(int val) { registry.globalCount = val; }
+
+  Map<Element, String> get names => registry.globalNames;
+
+  _MixinFieldNamingScope.mixin(ClassElement cls, _FieldNamingRegistry registry)
+    : super.rootScope(cls, registry);
+
+  _MixinFieldNamingScope.mixedIn(MixinApplicationElement container,
+      _FieldNamingScope superScope, _FieldNamingRegistry registry)
+    : super.inherit(container, superScope, registry);
+
+  String _nextName() {
+    var proposed = super._nextName();
+    return proposed + r'$';
+  }
+}
+
+/**
+ * [BoxFieldElement] fields work differently in that they do not belong to an
+ * actual class but an anonymous box associated to a [Local]. As there is no
+ * inheritance chain, we do not need to compute fields a priori but can assign
+ * names on the fly.
+ */
+class _BoxFieldNamingScope extends _FieldNamingScope {
+  _BoxFieldNamingScope(Local box, _FieldNamingRegistry registry) :
+    super.rootScope(box, registry);
+
+  bool containsField(_) => true;
+
+  String operator[](Element field) {
+    if (!names.containsKey(field)) add(field);
+    return names[field];
+  }
 }
