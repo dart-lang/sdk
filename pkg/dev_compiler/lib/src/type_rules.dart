@@ -290,6 +290,7 @@ class RestrictedRules extends TypeRules {
     // How do we handle dynamic?  In Dart, dynamic subtypes everything.
     // This is somewhat counterintuitive - subtyping usually narrows.
     // Here we treat dynamic essentially as Object.
+    if (t1.isDartCoreFunction && isDynamic(t2)) return true;
     if (isDynamic(t1)) return false;
     if (isDynamic(t2)) return true;
 

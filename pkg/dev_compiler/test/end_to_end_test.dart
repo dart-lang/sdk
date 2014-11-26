@@ -16,6 +16,11 @@ main() {
     checkProgram(_uri('import_test'), mockSdkSources: mockSdkSources);
   });
 
+  test('checker tests function types', () {
+    // TODO(vsm): Check for correct down casts.
+    checkProgram(_uri('function_type_test'), mockSdkSources: mockSdkSources);
+  });
+
   test('checker tests runtime checks', () {
     // TODO(sigmund,vsm): Check output for invalid checks.
     checkProgram(_uri('runtimetypechecktest'), mockSdkSources: mockSdkSources);
@@ -27,10 +32,7 @@ main() {
   });
 
   test('checker can run on itself ', () {
-    // TODO(sigmund,vsm): this test breaks an assertion in the checker, need to
-    // investigate.
-    expect(() => checkProgram(_uri('all_tests'), sdkDir: dartSdkDirectory),
-        throwsA(predicate((e) => '$e'.contains('_newType != baseType'))));
+    checkProgram(_uri('all_tests'), sdkDir: dartSdkDirectory);
   });
 }
 
