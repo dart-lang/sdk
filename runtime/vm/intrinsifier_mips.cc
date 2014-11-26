@@ -2080,7 +2080,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   // Incoming registers:
   // T0: Function. (Will be reloaded with the specialized matcher function.)
   // S4: Arguments descriptor. (Will be preserved.)
-  // S5: IC-Data. (Will be preserved.)
+  // S5: Unknown. (Must be GC safe on tail call.)
 
   // Load the specialized function pointer into T0. Leverage the fact the
   // string CIDs as well as stored function pointers are in sequence.
@@ -2096,6 +2096,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   // in T0, the argument descriptor in S4, and IC-Data in S5.
   static const intptr_t arg_count = RegExpMacroAssembler::kParamCount;
   __ LoadObject(S4, Array::Handle(ArgumentsDescriptor::New(arg_count)));
+  __ mov(S5, ZR);
 
   // Tail-call the function.
   __ lw(T3, FieldAddress(T0, Function::instructions_offset()));

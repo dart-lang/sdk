@@ -1929,7 +1929,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
 
   // Incoming registers:
   // RAX: Function. (Will be loaded with the specialized matcher function.)
-  // RCX: IC-Data. (Will be preserved.)
+  // RCX: Unknown. (Must be GC safe on tail call.)
   // R10: Arguments descriptor. (Will be preserved.)
 
   // Load the specialized function pointer into RAX. Leverage the fact the
@@ -1945,6 +1945,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   // in RAX, the argument descriptor in R10, and IC-Data in RCX.
   static const intptr_t arg_count = RegExpMacroAssembler::kParamCount;
   __ LoadObject(R10, Array::Handle(ArgumentsDescriptor::New(arg_count)), PP);
+  __ xorq(RCX, RCX);
 
   // Tail-call the function.
   __ movq(RDI, FieldAddress(RAX, Function::instructions_offset()));
