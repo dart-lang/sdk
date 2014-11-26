@@ -2604,6 +2604,10 @@ class IncrementalParserTest extends EngineTestCase {
     _assertParse('class C { void f(', '', 'arg', ') {} }');
   }
 
+  void test_insert_identifier_inCombinator() {
+    _assertParse("import 'foo.dart' show x", "", ", y", ";");
+  }
+
   void test_insert_insideClassBody() {
     // "class C {C(); }"
     // "class C { C(); }"
@@ -6501,6 +6505,22 @@ class SimpleParserTest extends ParserTestCase {
     expect(classTypeAlias.withClause, isNotNull);
     expect(classTypeAlias.implementsClause, isNotNull);
     expect(classTypeAlias.semicolon, isNotNull);
+  }
+
+  void test_parseCombinator_hide() {
+    HideCombinator combinator =
+        ParserTestCase.parse4('parseCombinator', 'hide a;');
+    expect(combinator, new isInstanceOf<HideCombinator>());
+    expect(combinator.keyword, isNotNull);
+    expect(combinator.hiddenNames, hasLength(1));
+  }
+
+  void test_parseCombinator_show() {
+    ShowCombinator combinator =
+        ParserTestCase.parse4('parseCombinator', 'show a;');
+    expect(combinator, new isInstanceOf<ShowCombinator>());
+    expect(combinator.keyword, isNotNull);
+    expect(combinator.shownNames, hasLength(1));
   }
 
   void test_parseCombinators_h() {

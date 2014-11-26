@@ -261,6 +261,9 @@ Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline>{
       3,
       (Parser target, arg0, arg1, arg2) =>
           target._parseClassTypeAlias(arg0, arg1, arg2)),
+  'parseCombinator_0': new MethodTrampoline(
+      0,
+      (Parser target) => target.parseCombinator()),
   'parseCombinators_0': new MethodTrampoline(
       0,
       (Parser target) => target._parseCombinators()),
@@ -1246,8 +1249,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (identical(_oldNode, node.prefix)) {
       return _parser.parseSimpleIdentifier();
     } else if (node.combinators.contains(_oldNode)) {
-      throw new IncrementalParseException();
-      //return parser.parseCombinator();
+      return _parser.parseCombinator();
     }
     return _notAChild(node);
   }
@@ -1934,6 +1936,7 @@ class IncrementalParser {
         //
         Token mappedToken = _tokenMap.get(oldNode.endToken.next);
         if (mappedToken == null ||
+            newNode == null ||
             mappedToken.offset != newNode.endToken.next.offset ||
             newNode.offset != oldNode.offset) {
           advanceToParent = true;
@@ -2883,6 +2886,29 @@ class Parser {
         modifiers.staticKeyword,
         _validateModifiersForField(modifiers),
         type);
+  }
+
+  /**
+   * Parse a single import combinator.  If no combinator is found, return
+   * `null`.
+   *
+   * <pre>
+   * combinator ::=
+   *     'show' identifier (',' identifier)*
+   *   | 'hide' identifier (',' identifier)*
+   * </pre>
+   */
+  Combinator parseCombinator() {
+    if (_matchesString(_SHOW) || _matchesString(_HIDE)) {
+      Token keyword = andAdvance;
+      List<SimpleIdentifier> names = _parseIdentifierList();
+      if (keyword.lexeme == _SHOW) {
+        return new ShowCombinator(keyword, names);
+      } else {
+        return new HideCombinator(keyword, names);
+      }
+    }
+    return null;
   }
 
   /**
@@ -5306,15 +5332,12 @@ class Parser {
    */
   List<Combinator> _parseCombinators() {
     List<Combinator> combinators = new List<Combinator>();
-    while (_matchesString(_SHOW) || _matchesString(_HIDE)) {
-      Token keyword = _expect(TokenType.IDENTIFIER);
-      if (keyword.lexeme == _SHOW) {
-        List<SimpleIdentifier> shownNames = _parseIdentifierList();
-        combinators.add(new ShowCombinator(keyword, shownNames));
-      } else {
-        List<SimpleIdentifier> hiddenNames = _parseIdentifierList();
-        combinators.add(new HideCombinator(keyword, hiddenNames));
+    while (true) {
+      Combinator combinator = parseCombinator();
+      if (combinator == null) {
+        break;
       }
+      combinators.add(combinator);
     }
     return combinators;
   }
