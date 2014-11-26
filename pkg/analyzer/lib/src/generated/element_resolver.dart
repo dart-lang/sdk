@@ -784,11 +784,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         _lookUpMethod(operand, propagatedType, methodName);
     node.propagatedElement = propagatedMethod;
     if (_shouldReportMissingMember(staticType, staticMethod)) {
-      _recordUndefinedToken(
-          staticType.element,
-          StaticTypeWarningCode.UNDEFINED_OPERATOR,
-          node.operator,
-          [methodName, staticType.displayName]);
+      if (operand is SuperExpression) {
+        _recordUndefinedToken(
+            staticType.element,
+            StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
+            node.operator,
+            [methodName, staticType.displayName]);
+      } else {
+        _recordUndefinedToken(
+            staticType.element,
+            StaticTypeWarningCode.UNDEFINED_OPERATOR,
+            node.operator,
+            [methodName, staticType.displayName]);
+      }
     } else if (_enableHints &&
         _shouldReportMissingMember(propagatedType, propagatedMethod) &&
         !_memberFoundInSubclass(propagatedType.element, methodName, true, false)) {
@@ -897,11 +905,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           _lookUpMethod(operand, propagatedType, methodName);
       node.propagatedElement = propagatedMethod;
       if (_shouldReportMissingMember(staticType, staticMethod)) {
-        _recordUndefinedToken(
-            staticType.element,
-            StaticTypeWarningCode.UNDEFINED_OPERATOR,
-            operator,
-            [methodName, staticType.displayName]);
+        if (operand is SuperExpression) {
+          _recordUndefinedToken(
+              staticType.element,
+              StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
+              operator,
+              [methodName, staticType.displayName]);
+        } else {
+          _recordUndefinedToken(
+              staticType.element,
+              StaticTypeWarningCode.UNDEFINED_OPERATOR,
+              operator,
+              [methodName, staticType.displayName]);
+        }
       } else if (_enableHints &&
           _shouldReportMissingMember(propagatedType, propagatedMethod) &&
           !_memberFoundInSubclass(propagatedType.element, methodName, true, false)) {
@@ -1255,32 +1271,33 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         shouldReportMissingMember_propagated) {
       sc.Token leftBracket = node.leftBracket;
       sc.Token rightBracket = node.rightBracket;
-      ErrorCode errorCode = (shouldReportMissingMember_static ?
-          StaticTypeWarningCode.UNDEFINED_OPERATOR :
-          HintCode.UNDEFINED_OPERATOR);
+      ErrorCode errorCode;
+      if (shouldReportMissingMember_static) {
+        if (target is SuperExpression) {
+          errorCode = StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR;
+        } else {
+          errorCode = StaticTypeWarningCode.UNDEFINED_OPERATOR;
+        }
+      } else {
+        errorCode = HintCode.UNDEFINED_OPERATOR;
+      }
+      DartType type =
+          shouldReportMissingMember_static ? staticType : propagatedType;
       if (leftBracket == null || rightBracket == null) {
         _recordUndefinedNode(
-            shouldReportMissingMember_static ? staticType.element : propagatedType.element,
+            type.element,
             errorCode,
             node,
-            [
-                methodName,
-                shouldReportMissingMember_static ?
-                    staticType.displayName :
-                    propagatedType.displayName]);
+            [methodName, type.displayName]);
       } else {
         int offset = leftBracket.offset;
         int length = rightBracket.offset - offset + 1;
         _recordUndefinedOffset(
-            shouldReportMissingMember_static ? staticType.element : propagatedType.element,
+            type.element,
             errorCode,
             offset,
             length,
-            [
-                methodName,
-                shouldReportMissingMember_static ?
-                    staticType.displayName :
-                    propagatedType.displayName]);
+            [methodName, type.displayName]);
       }
       return true;
     }
@@ -2408,11 +2425,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           _lookUpMethod(leftOperand, propagatedType, methodName);
       node.propagatedElement = propagatedMethod;
       if (_shouldReportMissingMember(staticType, staticMethod)) {
-        _recordUndefinedToken(
-            staticType.element,
-            StaticTypeWarningCode.UNDEFINED_OPERATOR,
-            node.operator,
-            [methodName, staticType.displayName]);
+        if (leftOperand is SuperExpression) {
+          _recordUndefinedToken(
+              staticType.element,
+              StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
+              node.operator,
+              [methodName, staticType.displayName]);
+        } else {
+          _recordUndefinedToken(
+              staticType.element,
+              StaticTypeWarningCode.UNDEFINED_OPERATOR,
+              node.operator,
+              [methodName, staticType.displayName]);
+        }
       } else if (_enableHints &&
           _shouldReportMissingMember(propagatedType, propagatedMethod) &&
           !_memberFoundInSubclass(propagatedType.element, methodName, true, false)) {
@@ -2646,12 +2671,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     }
     if (shouldReportMissingMember_static ||
         shouldReportMissingMember_propagated) {
-      Element staticOrPropagatedEnclosingElt =
-          shouldReportMissingMember_static ? staticType.element : propagatedType.element;
+      DartType staticOrPropagatedType =
+          shouldReportMissingMember_static ? staticType : propagatedType;
+      Element staticOrPropagatedEnclosingElt = staticOrPropagatedType.element;
       bool isStaticProperty = _isStatic(staticOrPropagatedEnclosingElt);
-      String displayName = staticOrPropagatedEnclosingElt != null ?
-          staticOrPropagatedEnclosingElt.displayName :
-          propagatedType != null ? propagatedType.displayName : staticType.displayName;
+      DartType displayType = staticOrPropagatedType != null ?
+          staticOrPropagatedType :
+          propagatedType != null ? propagatedType : staticType;
       // Special getter cases.
       if (propertyName.inGetterContext()) {
         if (!isStaticProperty &&
@@ -2677,27 +2703,53 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       Element declaringElement =
           staticType.isVoid ? null : staticOrPropagatedEnclosingElt;
       if (propertyName.inSetterContext()) {
-        ErrorCode staticErrorCode = (isStaticProperty && !staticType.isVoid ?
-            StaticWarningCode.UNDEFINED_SETTER :
-            StaticTypeWarningCode.UNDEFINED_SETTER);
-        ErrorCode errorCode =
-            shouldReportMissingMember_static ? staticErrorCode : HintCode.UNDEFINED_SETTER;
+        ErrorCode errorCode;
+        if (shouldReportMissingMember_static) {
+          if (target is SuperExpression) {
+            if (isStaticProperty && !staticType.isVoid) {
+              errorCode = StaticWarningCode.UNDEFINED_SUPER_SETTER;
+            } else {
+              errorCode = StaticTypeWarningCode.UNDEFINED_SUPER_SETTER;
+            }
+          } else {
+            if (isStaticProperty && !staticType.isVoid) {
+              errorCode = StaticWarningCode.UNDEFINED_SETTER;
+            } else {
+              errorCode = StaticTypeWarningCode.UNDEFINED_SETTER;
+            }
+          }
+        } else {
+          errorCode = HintCode.UNDEFINED_SETTER;
+        }
         _recordUndefinedNode(
             declaringElement,
             errorCode,
             propertyName,
-            [propertyName.name, displayName]);
+            [propertyName.name, displayType.displayName]);
       } else if (propertyName.inGetterContext()) {
-        ErrorCode staticErrorCode = (isStaticProperty && !staticType.isVoid ?
-            StaticWarningCode.UNDEFINED_GETTER :
-            StaticTypeWarningCode.UNDEFINED_GETTER);
-        ErrorCode errorCode =
-            shouldReportMissingMember_static ? staticErrorCode : HintCode.UNDEFINED_GETTER;
+        ErrorCode errorCode;
+        if (shouldReportMissingMember_static) {
+          if (target is SuperExpression) {
+            if (isStaticProperty && !staticType.isVoid) {
+              errorCode = StaticWarningCode.UNDEFINED_SUPER_GETTER;
+            } else {
+              errorCode = StaticTypeWarningCode.UNDEFINED_SUPER_GETTER;
+            }
+          } else {
+            if (isStaticProperty && !staticType.isVoid) {
+              errorCode = StaticWarningCode.UNDEFINED_GETTER;
+            } else {
+              errorCode = StaticTypeWarningCode.UNDEFINED_GETTER;
+            }
+          }
+        } else {
+          errorCode = HintCode.UNDEFINED_GETTER;
+        }
         _recordUndefinedNode(
             declaringElement,
             errorCode,
             propertyName,
-            [propertyName.name, displayName]);
+            [propertyName.name, displayType.displayName]);
       } else {
         _recordUndefinedNode(
             declaringElement,

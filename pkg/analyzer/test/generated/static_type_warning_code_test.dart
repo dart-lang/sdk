@@ -1423,6 +1423,18 @@ f(T e) { e.m().f = 0; }''');
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
   }
 
+  void test_undefinedSuperGetter() {
+    Source source = addSource(r'''
+class A {}
+class B extends A {
+  get g {
+    return super.g;
+  }
+}''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SUPER_GETTER]);
+  }
+
   void test_undefinedSuperMethod() {
     Source source = addSource(r'''
 class A {}
@@ -1431,6 +1443,66 @@ class B extends A {
 }''');
     resolve(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SUPER_METHOD]);
+  }
+
+  void test_undefinedSuperOperator_binaryExpression() {
+    Source source = addSource(r'''
+class A {}
+class B extends A {
+  operator +(value) {
+    return super + value;
+  }
+}''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
+  }
+
+  void test_undefinedSuperOperator_indexBoth() {
+    Source source = addSource(r'''
+class A {}
+class B extends A {
+  operator [](index) {
+    return super[index]++;
+  }
+}''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
+  }
+
+  void test_undefinedSuperOperator_indexGetter() {
+    Source source = addSource(r'''
+class A {}
+class B extends A {
+  operator [](index) {
+    return super[index + 1];
+  }
+}''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
+  }
+
+  void test_undefinedSuperOperator_indexSetter() {
+    Source source = addSource(r'''
+class A {}
+class B extends A {
+  operator []=(index, value) {
+    return super[index] = 0;
+  }
+}''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
+  }
+
+  void test_undefinedSuperSetter() {
+    Source source = addSource(r'''
+class A {}
+class B extends A {
+  f() {
+    super.m = 0;
+  }
+}''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SUPER_SETTER]);
   }
 
   void test_unqualifiedReferenceToNonLocalStaticMember_getter() {

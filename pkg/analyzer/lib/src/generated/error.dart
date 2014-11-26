@@ -3053,7 +3053,6 @@ class HintCode extends ErrorCode {
    *
    * @param rhsTypeName the name of the right hand side type
    * @param lhsTypeName the name of the left hand side type
-   * See [StaticTypeWarningCode.INVALID_ASSIGNMENT].
    */
   static const HintCode INVALID_ASSIGNMENT = const HintCode(
       'INVALID_ASSIGNMENT',
@@ -3125,11 +3124,10 @@ class HintCode extends ErrorCode {
    * @param getterName the name of the getter
    * @param enclosingType the name of the enclosing type where the getter is
    *        being looked for
-   * See [StaticTypeWarningCode.UNDEFINED_GETTER], and
-   * [StaticWarningCode.UNDEFINED_GETTER].
    */
-  static const HintCode UNDEFINED_GETTER =
-      const HintCode('UNDEFINED_GETTER', "There is no such getter '{0}' in '{1}'");
+  static const HintCode UNDEFINED_GETTER = const HintCode(
+      'UNDEFINED_GETTER',
+      "The getter '{0}' is not defined for the class '{1}'");
 
   /**
    * This hint is generated anywhere where the
@@ -3139,7 +3137,6 @@ class HintCode extends ErrorCode {
    * @param methodName the name of the method that is undefined
    * @param typeName the resolved type name that the method lookup is happening
    *        on
-   * See [StaticTypeWarningCode.UNDEFINED_METHOD].
    */
   static const HintCode UNDEFINED_METHOD = const HintCode(
       'UNDEFINED_METHOD',
@@ -3153,11 +3150,10 @@ class HintCode extends ErrorCode {
    * @param operator the name of the operator
    * @param enclosingType the name of the enclosing type where the operator is
    *        being looked for
-   * See [StaticTypeWarningCode.UNDEFINED_OPERATOR].
    */
   static const HintCode UNDEFINED_OPERATOR = const HintCode(
       'UNDEFINED_OPERATOR',
-      "There is no such operator '{0}' in '{1}'");
+      "The operator '{0}' is not defined for the class '{1}'");
 
   /**
    * This hint is generated anywhere where the
@@ -3168,11 +3164,10 @@ class HintCode extends ErrorCode {
    * @param setterName the name of the setter
    * @param enclosingType the name of the enclosing type where the setter is
    *        being looked for
-   * See [StaticTypeWarningCode.UNDEFINED_SETTER], and
-   * [StaticWarningCode.UNDEFINED_SETTER].
    */
-  static const HintCode UNDEFINED_SETTER =
-      const HintCode('UNDEFINED_SETTER', "There is no such setter '{0}' in '{1}'");
+  static const HintCode UNDEFINED_SETTER = const HintCode(
+      'UNDEFINED_SETTER',
+      "The setter '{0}' is not defined for the class '{1}'");
 
   /**
    * Unnecessary cast.
@@ -3678,7 +3673,7 @@ class StaticTypeWarningCode extends ErrorCode {
   static const StaticTypeWarningCode UNDEFINED_GETTER =
       const StaticTypeWarningCode(
           'UNDEFINED_GETTER',
-          "There is no such getter '{0}' in '{1}'");
+          "The getter '{0}' is not defined for the class '{1}'");
 
   /**
    * 12.15.1 Ordinary Invocation: Let <i>T</i> be the static type of <i>o</i>.
@@ -3717,7 +3712,7 @@ class StaticTypeWarningCode extends ErrorCode {
   static const StaticTypeWarningCode UNDEFINED_OPERATOR =
       const StaticTypeWarningCode(
           'UNDEFINED_OPERATOR',
-          "There is no such operator '{0}' in '{1}'");
+          "The operator '{0}' is not defined for the class '{1}'");
 
   /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>.
@@ -3732,7 +3727,20 @@ class StaticTypeWarningCode extends ErrorCode {
   static const StaticTypeWarningCode UNDEFINED_SETTER =
       const StaticTypeWarningCode(
           'UNDEFINED_SETTER',
-          "There is no such setter '{0}' in '{1}'");
+          "The setter '{0}' is not defined for the class '{1}'");
+
+  /**
+   * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is
+   * a static type warning if <i>T</i> does not have a getter named <i>m</i>.
+   *
+   * @param getterName the name of the getter
+   * @param enclosingType the name of the enclosing type where the getter is
+   *        being looked for
+   */
+  static const StaticTypeWarningCode UNDEFINED_SUPER_GETTER =
+      const StaticTypeWarningCode(
+          'UNDEFINED_SUPER_GETTER',
+          "The getter '{0}' is not defined in a superclass of '{1}'");
 
   /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
@@ -3748,7 +3756,47 @@ class StaticTypeWarningCode extends ErrorCode {
   static const StaticTypeWarningCode UNDEFINED_SUPER_METHOD =
       const StaticTypeWarningCode(
           'UNDEFINED_SUPER_METHOD',
-          "There is no such method '{0}' in '{1}'");
+          "The method '{0}' is not defined in a superclass of '{1}'");
+
+  /**
+   * 12.18 Assignment: Evaluation of an assignment of the form
+   * <i>e<sub>1</sub></i>[<i>e<sub>2</sub></i>] = <i>e<sub>3</sub></i> is
+   * equivalent to the evaluation of the expression (a, i, e){a.[]=(i, e);
+   * return e;} (<i>e<sub>1</sub></i>, <i>e<sub>2</sub></i>,
+   * <i>e<sub>2</sub></i>).
+   *
+   * 12.29 Assignable Expressions: An assignable expression of the form
+   * <i>e<sub>1</sub></i>[<i>e<sub>2</sub></i>] is evaluated as a method
+   * invocation of the operator method [] on <i>e<sub>1</sub></i> with argument
+   * <i>e<sub>2</sub></i>.
+   *
+   * 12.15.1 Ordinary Invocation: Let <i>T</i> be the static type of <i>o</i>.
+   * It is a static type warning if <i>T</i> does not have an accessible
+   * instance member named <i>m</i>.
+   *
+   * @param operator the name of the operator
+   * @param enclosingType the name of the enclosing type where the operator is
+   *        being looked for
+   */
+  static const StaticTypeWarningCode UNDEFINED_SUPER_OPERATOR =
+      const StaticTypeWarningCode(
+          'UNDEFINED_SUPER_OPERATOR',
+          "The operator '{0}' is not defined in a superclass of '{1}'");
+
+  /**
+   * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>.
+   * It is a static type warning if <i>T</i> does not have an accessible
+   * instance setter named <i>v=</i>.
+   *
+   * @param setterName the name of the setter
+   * @param enclosingType the name of the enclosing type where the setter is
+   *        being looked for
+   * See [INACCESSIBLE_SETTER].
+   */
+  static const StaticTypeWarningCode UNDEFINED_SUPER_SETTER =
+      const StaticTypeWarningCode(
+          'UNDEFINED_SUPER_SETTER',
+          "The setter '{0}' is not defined in a superclass of '{1}'");
 
   /**
    * 12.15.1 Ordinary Invocation: It is a static type warning if <i>T</i> does
@@ -4839,17 +4887,19 @@ class StaticWarningCode extends ErrorCode {
    * 12.31 Type Test: It is a static warning if <i>T</i> does not denote a type
    * available in the current lexical scope.
    */
-  static const StaticWarningCode TYPE_TEST_WITH_NON_TYPE = const StaticWarningCode(
-      'TYPE_TEST_WITH_NON_TYPE',
-      "The name '{0}' is not a type and cannot be used in an 'is' expression");
+  static const StaticWarningCode TYPE_TEST_WITH_NON_TYPE =
+      const StaticWarningCode(
+          'TYPE_TEST_WITH_NON_TYPE',
+          "The name '{0}' is not a type and cannot be used in an 'is' expression");
 
   /**
    * 12.31 Type Test: It is a static warning if <i>T</i> does not denote a type
    * available in the current lexical scope.
    */
-  static const StaticWarningCode TYPE_TEST_WITH_UNDEFINED_NAME = const StaticWarningCode(
-      'TYPE_TEST_WITH_UNDEFINED_NAME',
-      "The name '{0}' is not defined and cannot be used in an 'is' expression");
+  static const StaticWarningCode TYPE_TEST_WITH_UNDEFINED_NAME =
+      const StaticWarningCode(
+          'TYPE_TEST_WITH_UNDEFINED_NAME',
+          "The name '{0}' is not defined and cannot be used in an 'is' expression");
 
   /**
    * 10 Generics: However, a type parameter is considered to be a malformed type
@@ -4894,7 +4944,7 @@ class StaticWarningCode extends ErrorCode {
    */
   static const StaticWarningCode UNDEFINED_GETTER = const StaticWarningCode(
       'UNDEFINED_GETTER',
-      "There is no such getter '{0}' in '{1}'");
+      "The getter '{0}' is not defined for the class '{1}'");
 
   /**
    * 12.30 Identifier Reference: It is as static warning if an identifier
@@ -4938,7 +4988,7 @@ class StaticWarningCode extends ErrorCode {
    */
   static const StaticWarningCode UNDEFINED_SETTER = const StaticWarningCode(
       'UNDEFINED_SETTER',
-      "There is no such setter '{0}' in '{1}'");
+      "The setter '{0}' is not defined for the class '{1}'");
 
   /**
    * 12.16.3 Static Invocation: It is a static warning if <i>C</i> does not
@@ -4951,7 +5001,41 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode UNDEFINED_STATIC_METHOD_OR_GETTER =
       const StaticWarningCode(
           'UNDEFINED_STATIC_METHOD_OR_GETTER',
-          "There is no such static method, getter or setter '{0}' in '{1}'");
+          "The static method, getter or setter '{0}' is not defined for the class '{1}'");
+
+  /**
+   * 12.17 Getter Invocation: It is a static warning if there is no class
+   * <i>C</i> in the enclosing lexical scope of <i>i</i>, or if <i>C</i> does
+   * not declare, implicitly or explicitly, a getter named <i>m</i>.
+   *
+   * @param getterName the name of the getter
+   * @param enclosingType the name of the enclosing type where the getter is
+   *        being looked for
+   */
+  static const StaticWarningCode UNDEFINED_SUPER_GETTER =
+      const StaticWarningCode(
+          'UNDEFINED_SUPER_GETTER',
+          "The getter '{0}' is not defined in a superclass of '{1}'");
+
+  /**
+   * 12.18 Assignment: It is as static warning if an assignment of the form
+   * <i>v = e</i> occurs inside a top level or static function (be it function,
+   * method, getter, or setter) or variable initializer and there is no
+   * declaration <i>d</i> with name <i>v=</i> in the lexical scope enclosing the
+   * assignment.
+   *
+   * 12.18 Assignment: It is a static warning if there is no class <i>C</i> in
+   * the enclosing lexical scope of the assignment, or if <i>C</i> does not
+   * declare, implicitly or explicitly, a setter <i>v=</i>.
+   *
+   * @param setterName the name of the getter
+   * @param enclosingType the name of the enclosing type where the setter is
+   *        being looked for
+   */
+  static const StaticWarningCode UNDEFINED_SUPER_SETTER =
+      const StaticWarningCode(
+          'UNDEFINED_SUPER_SETTER',
+          "The setter '{0}' is not defined in a superclass of '{1}'");
 
   /**
    * 7.2 Getters: It is a static warning if the return type of a getter is void.
