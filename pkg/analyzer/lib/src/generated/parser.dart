@@ -842,7 +842,9 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (node.metadata.contains(_oldNode)) {
       return _parser.parseAnnotation();
     } else if (identical(_oldNode, node.name)) {
-      return _parser.parseSimpleIdentifier();
+      // Changing the class name changes whether a member is interpreted as a
+      // constructor or not, so we'll just have to re-parse the entire class.
+      throw new InsufficientContextException();
     } else if (identical(_oldNode, node.typeParameters)) {
       return _parser.parseTypeParameterList();
     } else if (identical(_oldNode, node.extendsClause)) {

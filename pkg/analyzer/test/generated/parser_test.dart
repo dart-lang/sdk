@@ -2712,6 +2712,12 @@ class IncrementalParserTest extends EngineTestCase {
     _assertParse("f() => a", "", " ", " + b;");
   }
 
+  void test_rename_class_withConstructor() {
+    // "class C { C() {} }"
+    // "class D { C() {} }"
+    _assertParse('class ', 'C', 'D', ' { C() {} }');
+  }
+
   void test_replace_field_type_with_void() {
     // Note: this produces an error, but we still need the parser to produce a
     // consistent parse tree for it.
