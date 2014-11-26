@@ -21,6 +21,11 @@ main() {
     checkProgram(_uri('runtimetypechecktest'), mockSdkSources: mockSdkSources);
   });
 
+  test('checker tests return values', () {
+    // TODO(vsm): Check for conversions.
+    checkProgram(_uri('return_test'), mockSdkSources: mockSdkSources);
+  });
+
   test('checker can run on itself ', () {
     // TODO(sigmund,vsm): this test breaks an assertion in the checker, need to
     // investigate.
