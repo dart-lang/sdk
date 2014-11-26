@@ -150,6 +150,7 @@ class RestrictedRules extends TypeRules {
   bool isGroundType(DartType t) {
     if (t is FunctionType) return false;
     if (t is TypeParameterType) return false;
+    if (t.isDynamic) return true;
 
     // t must be an InterfacetType.
     var typeArguments = (t as InterfaceType).typeArguments;

@@ -16,6 +16,11 @@ main() {
     checkProgram(_uri('import_test'), mockSdkSources: mockSdkSources);
   });
 
+  test('checker tests runtime checks', () {
+    // TODO(sigmund,vsm): Check output for invalid checks.
+    checkProgram(_uri('runtimetypechecktest'), mockSdkSources: mockSdkSources);
+  });
+
   test('checker can run on itself ', () {
     // TODO(sigmund,vsm): this test breaks an assertion in the checker, need to
     // investigate.

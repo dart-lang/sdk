@@ -4,7 +4,7 @@ class A<T> {
   T x;
   A(this.x);
 
-  isT(t) => t is T; 
+  isT(t) => t is T;
 }
 
 class B extends A<int> {
@@ -24,5 +24,7 @@ void main() {
   print(a is A<int>);
   print(a as A<int>);
   print(foo is Foo);
+  print(a is dynamic);
+  print(a as dynamic);
 }
 
