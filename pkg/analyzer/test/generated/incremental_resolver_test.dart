@@ -1792,6 +1792,19 @@ class A {
     return a + second + c;'''), _isDeclaration);
   }
 
+  void test_superInvocation() {
+    _resolveUnit(r'''
+class A {
+  foo(p) {}
+}
+class B extends A {
+  bar() {
+    super.foo(1 + 2);
+  }
+}''');
+    _resolve(_editString('+', '*'), _isFunctionBody);
+  }
+
   void test_topLevelFunction_label_add() {
     _resolveUnit(r'''
 int main(int a, int b) {

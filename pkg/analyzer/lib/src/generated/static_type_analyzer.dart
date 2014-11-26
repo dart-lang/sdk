@@ -45,10 +45,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   DartType _dynamicType;
 
   /**
-   * The type representing the class containing the nodes being analyzed, or `null` if the
-   * nodes are not within a class.
+   * The type representing the class containing the nodes being analyzed,
+   * or `null` if the nodes are not within a class.
    */
-  InterfaceType _thisType;
+  InterfaceType thisType;
 
   /**
    * The object keeping track of which elements have had their types overridden.
@@ -77,19 +77,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     _overrideManager = _resolver.overrideManager;
     _promoteManager = _resolver.promoteManager;
   }
-
-  /**
-   * Set the type of the class being analyzed to the given type.
-   *
-   * @param thisType the type representing the class containing the nodes being analyzed
-   */
-  void set thisType(InterfaceType thisType) {
-    this._thisType = thisType;
-  }
-
-  get thisType_J2DAccessor => _thisType;
-
-  set thisType_J2DAccessor(__v) => _thisType = __v;
 
   /**
    * The Dart Language Specification, 12.5: <blockquote>The static type of a string literal is
@@ -1211,12 +1198,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
 
   @override
   Object visitSuperExpression(SuperExpression node) {
-    if (_thisType == null) {
+    if (thisType == null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
       // reported.
       _recordStaticType(node, _dynamicType);
     } else {
-      _recordStaticType(node, _thisType);
+      _recordStaticType(node, thisType);
     }
     return null;
   }
@@ -1233,12 +1220,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   @override
   Object visitThisExpression(ThisExpression node) {
-    if (_thisType == null) {
+    if (thisType == null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
       // reported.
       _recordStaticType(node, _dynamicType);
     } else {
-      _recordStaticType(node, _thisType);
+      _recordStaticType(node, thisType);
     }
     return null;
   }

@@ -11458,6 +11458,28 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  /**
+   * Implementation of this method should be synchronized with
+   * [visitClassDeclaration].
+   */
+  visitClassDeclarationIncrementally(ClassDeclaration node) {
+    //
+    // Resolve the metadata in the library scope.
+    //
+    if (node.metadata != null) {
+      node.metadata.accept(this);
+    }
+    _enclosingClassDeclaration = node;
+    //
+    // Continue the class resolution.
+    //
+    enclosingClass = node.element;
+    _typeAnalyzer.thisType =
+        enclosingClass == null ? null : enclosingClass.type;
+    node.accept(_elementResolver);
+    node.accept(_typeAnalyzer);
+  }
+
   @override
   Object visitComment(Comment node) {
     if (node.parent is FunctionDeclaration ||

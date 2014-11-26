@@ -10391,7 +10391,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   DartType _analyze4(Expression node, InterfaceType thisType,
       bool useStaticType) {
     try {
-      _analyzer.thisType_J2DAccessor = thisType;
+      _analyzer.thisType = thisType;
     } catch (exception) {
       throw new IllegalArgumentException(
           "Could not set type of 'this'",

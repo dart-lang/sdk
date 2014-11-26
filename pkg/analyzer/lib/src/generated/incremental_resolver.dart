@@ -795,7 +795,10 @@ class IncrementalResolver {
           _typeProvider,
           _resolutionContext.scope,
           errorListener);
-      visitor.enclosingClass = _resolutionContext.enclosingClass;
+      if (_resolutionContext.enclosingClassDeclaration != null) {
+        visitor.visitClassDeclarationIncrementally(
+            _resolutionContext.enclosingClassDeclaration);
+      }
       node.accept(visitor);
     }
     // remember errors
@@ -837,7 +840,7 @@ class IncrementalResolver {
         _typeProvider,
         new InheritanceManager(_definingLibrary));
     if (_resolutionContext.enclosingClassDeclaration != null) {
-      errorVerifier.initClassDeclaration(
+      errorVerifier.visitClassDeclarationIncrementally(
           _resolutionContext.enclosingClassDeclaration);
     }
     node.accept(errorVerifier);
