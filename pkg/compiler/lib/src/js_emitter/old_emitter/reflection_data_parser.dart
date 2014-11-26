@@ -143,12 +143,18 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
   jsAst.Statement addStubs = js.statement('''
   function addStubs(descriptor, array, name, isStatic,
                     originalDescriptor, functions) {
-    var f, funcs =
-        [originalDescriptor[name] =
-        descriptor[name] = f = ${readFunction("array", "$FUNCTION_INDEX")}];
+    var index = $FUNCTION_INDEX, alias = array[index], f;
+    if (typeof alias == "string") {
+      f = array[++index];
+    } else {
+      f = alias;
+      alias = name;
+    }
+    var funcs = [originalDescriptor[name] = descriptor[name] =
+        descriptor[alias] = f];
     f.\$stubName = name;
     functions.push(name);
-    for (var index = $FUNCTION_INDEX; index < array.length; index += 2) {
+    for (; index < array.length; index += 2) {
       f = array[index + 1];
       if (typeof f != "function") break;
       f.\$stubName = ${readString("array", "index + 2")};

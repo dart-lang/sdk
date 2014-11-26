@@ -651,12 +651,11 @@ class LibraryUpdater extends JsFeatures {
       statements.add(
           js.statement('#.prototype.# = f', [elementAccess, name]));
 
-      // TODO(ahe): Restore when isAliasedSuperMember is restored.
-      // if (backend.isAliasedSuperMember(element)) {
-      //   String superName = namer.getNameOfAliasedSuperMember(element);
-      //   statements.add(
-      //       js.statement('#.prototype.# = f', [elementAccess, superName]));
-      // }
+      if (backend.isAliasedSuperMember(element)) {
+        String superName = namer.getNameOfAliasedSuperMember(element);
+        statements.add(
+          js.statement('#.prototype.# = f', [elementAccess, superName]));
+      }
     } else {
       jsAst.Node elementAccess = namer.elementAccess(element);
       jsAst.Expression globalFunctionsAccess =
@@ -821,10 +820,9 @@ class RemovedFunctionUpdate extends RemovalUpdate
     if (element.isInstanceMember) {
       elementAccess = namer.elementAccess(element.enclosingClass);
       name = namer.getNameOfMember(element);
-      // TODO(ahe): Restore when isAliasedSuperMember is restored.
-      // if (backend.isAliasedSuperMember(element)) {
-      //   superName = namer.getNameOfAliasedSuperMember(element);
-      // }
+      if (backend.isAliasedSuperMember(element)) {
+        superName = namer.getNameOfAliasedSuperMember(element);
+      }
     } else {
       elementAccess = namer.elementAccess(element);
     }

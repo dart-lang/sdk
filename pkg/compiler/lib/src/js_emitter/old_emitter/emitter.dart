@@ -508,7 +508,7 @@ class OldEmitter implements Emitter {
 
     return js.statement('''
     {
-      var finishedClasses = #;  // finishedClassesAccess.
+      var finishedClasses = #finishedClassesAccess;
 
       function finishClass(cls) {
 
@@ -516,22 +516,21 @@ class OldEmitter implements Emitter {
         finishedClasses[cls] = true;
 
         var superclass = pendingClasses[cls];
-
         // The superclass is only false (empty string) for the Dart Object
         // class.  The minifier together with noSuchMethod can put methods on
         // the Object.prototype object, and they show through here, so we check
         // that we have a string.
         if (!superclass || typeof superclass != "string") return;
         finishClass(superclass);
-        var constructor = allClasses[cls];
         var superConstructor = allClasses[superclass];
 
         if (!superConstructor)
           superConstructor = existingIsolateProperties[superclass];
 
+        var constructor = allClasses[cls];
         var prototype = inheritFrom(constructor, superConstructor);
 
-        if (#) {  // !nativeClasses.isEmpty,
+        if (#hasNativeClasses) {
           // The property looks like this:
           //
           // HtmlElement: {
@@ -558,13 +557,13 @@ class OldEmitter implements Emitter {
             if (nativeSpec[0]) {
               var tags = nativeSpec[0].split("|");
               for (var i = 0; i < tags.length; i++) {
-                #[tags[i]] = constructor;  // embedded interceptorsByTag.
-                #[tags[i]] = true;  // embedded leafTags.
+                #interceptorsByTagAccess[tags[i]] = constructor;
+                #leafTagsAccess[tags[i]] = true;
               }
             }
             if (nativeSpec[1]) {
               tags = nativeSpec[1].split("|");
-              if (#) {  // User subclassing of native classes?
+              if (#allowNativesSubclassing) {
                 if (nativeSpec[2]) {
                   var subclasses = nativeSpec[2].split("|");
                   for (var i = 0; i < subclasses.length; i++) {
@@ -573,21 +572,19 @@ class OldEmitter implements Emitter {
                   }
                 }
                 for (i = 0; i < tags.length; i++) {
-                  #[tags[i]] = constructor;  // embedded interceptorsByTag.
-                  #[tags[i]] = false;  // embedded leafTags.
+                  #interceptorsByTagAccess[tags[i]] = constructor;
+                  #leafTagsAccess[tags[i]] = false;
                 }
               }
             }
           }
         }
       }
-    }''', [finishedClassesAccess,
-           !nativeClasses.isEmpty,
-           interceptorsByTagAccess,
-           leafTagsAccess,
-           true,
-           interceptorsByTagAccess,
-           leafTagsAccess]);
+    }''', {'finishedClassesAccess': finishedClassesAccess,
+           'hasNativeClasses': nativeClasses.isNotEmpty,
+           'interceptorsByTagAccess': interceptorsByTagAccess,
+           'leafTagsAccess': leafTagsAccess,
+           'allowNativesSubclassing': true});
   }
 
   jsAst.Fun get finishIsolateConstructorFunction {
@@ -692,9 +689,9 @@ class OldEmitter implements Emitter {
   List buildDefineClassAndFinishClassFunctionsIfNecessary() {
     if (!needsDefineClass) return [];
     return defineClassFunction
-    ..add(buildInheritFrom())
-    ..add(js('$finishClassesName = #', finishClassesFunction))
-    ..add(initFinishClasses);
+        ..add(buildInheritFrom())
+        ..add(js('$finishClassesName = #', finishClassesFunction))
+        ..add(initFinishClasses);
   }
 
   List buildLazyInitializerFunctionIfNecessary() {

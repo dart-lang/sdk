@@ -1682,14 +1682,23 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         registry.registerDynamicGetter(selector);
         registry.registerGetterForSuperMethod(node.element);
         methodName = backend.namer.invocationName(selector);
-      } else {
-        methodName = backend.namer.getNameOfInstanceMember(superMethod);
-      }
-      push(
+        push(
           js.js('#.prototype.#.call(#)', [
-              backend.namer.elementAccess(superClass),
-              methodName, visitArguments(node.inputs, start: 0)]),
+            backend.namer.elementAccess(superClass),
+            methodName, visitArguments(node.inputs, start: 0)]),
           node);
+      } else {
+        methodName =
+            backend.namer.getNameOfAliasedSuperMember(superMethod);
+        backend.registerAliasedSuperMember(superMethod);
+        use(node.receiver);
+        push(
+          js.js('#.#(#)', [
+            pop(), methodName,
+            visitArguments(node.inputs, start: 1)]), // Skip receiver argument.
+          node);
+      }
+
     }
   }
 

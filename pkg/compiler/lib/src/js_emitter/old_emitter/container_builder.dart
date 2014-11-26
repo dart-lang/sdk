@@ -388,8 +388,11 @@ class ContainerBuilder extends CodeEmitterHelper {
     final bool canBeApplied = compiler.enabledFunctionApply &&
                               compiler.world.getMightBePassedToApply(member);
 
+    final bool hasSuperAlias = backend.isAliasedSuperMember(member);
+
     final bool needStructuredInfo =
-        canTearOff || canBeReflected || canBeApplied;
+        canTearOff || canBeReflected || canBeApplied || hasSuperAlias;
+
 
     if (canTearOff) {
       assert(invariant(member, !member.isGenerativeConstructor));
@@ -408,13 +411,14 @@ class ContainerBuilder extends CodeEmitterHelper {
         tearOffName: tearOffName,
         canBeReflected: canBeReflected,
         canBeApplied: canBeApplied,
-        needStructuredInfo: needStructuredInfo);
-
+        hasSuperAlias: hasSuperAlias,
+        needStructuredInfo: needStructuredInfo
+    );
   }
 
   void addMemberMethodFromInfo(MemberInfo info, ClassBuilder builder) {
     final FunctionElement member = info.member;
-    final String name = info.name;
+    String name = info.name;
     final FunctionSignature parameters = info.parameters;
     jsAst.Expression code = info.code;
     final bool needsStubs = info.needsStubs;
@@ -424,6 +428,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     final bool canBeReflected = info.canBeReflected;
     final bool canBeApplied = info.canBeApplied;
     final bool needStructuredInfo = info.needStructuredInfo;
+    final bool hasSuperAlias = info.hasSuperAlias;
 
     emitter.interceptorEmitter.recordMangledNameOfMemberMethod(member, name);
 
@@ -435,21 +440,23 @@ class ContainerBuilder extends CodeEmitterHelper {
             member,
             (Selector selector, jsAst.Fun function) {
               compiler.dumpInfoTask.registerElementAst(member,
-                  builder.addProperty(namer.invocationName(selector), function));
+                  builder.addProperty(namer.invocationName(selector),
+                                      function));
             });
       }
       return;
     }
 
 
-    // This element is needed for reflection or needs additional stubs. So we
-    // need to retain additional information.
+    // This element is needed for reflection or needs additional stubs or has a
+    // super alias. So we need to retain additional information.
 
     // The information is stored in an array with this format:
     //
-    // 1.   The JS function for this member.
-    // 2.   First stub.
-    // 3.   Name of first stub.
+    // 1.   The alias name for this function (optional).
+    // 2.   The JS function for this member.
+    // 3.   First stub.
+    // 4.   Name of first stub.
     // ...
     // M.   Call name of this member.
     // M+1. Call name of first stub.
@@ -471,6 +478,25 @@ class ContainerBuilder extends CodeEmitterHelper {
 
     List<jsAst.Expression> expressions = <jsAst.Expression>[];
 
+    // Create the optional aliasing entry if this method is called via super.
+    if (backend.isAliasedSuperMember(member)) {
+      expressions.add(new jsAst.LiteralString(
+          '"${namer.getNameOfAliasedSuperMember(member)}"'));
+    }
+
+    expressions.add(code);
+
+    final bool onlyNeedsSuperAlias =
+        !(canTearOff || canBeReflected || canBeApplied || needsStubs);
+
+    if (onlyNeedsSuperAlias) {
+      jsAst.ArrayInitializer arrayInit =
+            new jsAst.ArrayInitializer.from(expressions);
+          compiler.dumpInfoTask.registerElementAst(member,
+              builder.addProperty(name, arrayInit));
+      return;
+    }
+
     String callSelectorString = 'null';
     if (member.isFunction) {
       Selector callSelector = new Selector.fromElement(member).toCallSelector();
@@ -484,8 +510,6 @@ class ContainerBuilder extends CodeEmitterHelper {
 
     int optionalParameterCount = parameters.optionalParameterCount << 1;
     if (parameters.optionalParametersAreNamed) optionalParameterCount++;
-
-    expressions.add(code);
 
     // TODO(sra): Don't use LiteralString for non-strings.
     List tearOffInfo = [new jsAst.LiteralString(callSelectorString)];
@@ -581,6 +605,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       expressions.add(js.string(namer.privateName(member.library,
                                                   member.name)));
     }
+
     jsAst.ArrayInitializer arrayInit =
       new jsAst.ArrayInitializer.from(expressions);
     compiler.dumpInfoTask.registerElementAst(member,
@@ -615,6 +640,8 @@ class MemberInfo {
 
   final bool needStructuredInfo;
 
+  final bool hasSuperAlias;
+
   MemberInfo(
       this.member,
       this.name,
@@ -626,6 +653,7 @@ class MemberInfo {
        this.tearOffName,
        this.canBeReflected,
        this.canBeApplied,
+       this.hasSuperAlias,
        this.needStructuredInfo}) {
     assert(member != null);
     assert(name != null);
@@ -637,6 +665,7 @@ class MemberInfo {
     assert(tearOffName != null || !canTearOff);
     assert(canBeReflected != null);
     assert(canBeApplied != null);
+    assert(hasSuperAlias != null);
     assert(needStructuredInfo != null);
   }
 }

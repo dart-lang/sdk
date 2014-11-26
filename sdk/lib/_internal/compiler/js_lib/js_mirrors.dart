@@ -733,6 +733,8 @@ Map<Symbol, Mirror> filterMembers(List<MethodMirror> methods,
     }
     // Constructors aren't 'members'.
     if (method.isConstructor) continue;
+    // Filter out synthetic tear-off stubs
+    if (JS('bool', r'!!#.$getterStub', method._jsFunction)) continue;
     // Use putIfAbsent to filter-out getters corresponding to variables.
     result.putIfAbsent(method.simpleName, () => method);
   }
@@ -1664,6 +1666,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       if (simpleName == null) continue;
       var function = JS('', '#[#]', prototype, key);
       if (isNoSuchMethodStub(function)) continue;
+      if (isAliasedSuperMethod(function, key)) continue;
       var mirror =
           new JsMethodMirror.fromUnmangledName(
               simpleName, function, false, false);
@@ -2903,6 +2906,13 @@ bool isReflectiveDataInPrototype(String key) {
 
 bool isNoSuchMethodStub(var jsFunction) {
   return JS('bool', r'#.$reflectable == 2', jsFunction);
+}
+
+/// Returns true if [key] is only an aliased entry for [function] in the
+/// prototype.
+bool isAliasedSuperMethod(var jsFunction, String key) {
+  var stubName = JS('String|Null', r'#.$stubName', jsFunction);
+  return stubName != null && key != stubName;
 }
 
 class NoSuchStaticMethodError extends Error implements NoSuchMethodError {
