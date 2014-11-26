@@ -412,7 +412,7 @@ class _MixinFieldNamingScope extends _FieldNamingScope {
   int get _localFieldNameCounter => registry.globalCount;
   void set _localFieldNameCounter(int val) { registry.globalCount = val; }
 
-  Map<Element, String> get names => registry.globalNames;
+  Map<Entity, String> get names => registry.globalNames;
 
   _MixinFieldNamingScope.mixin(ClassElement cls, _FieldNamingRegistry registry)
     : super.rootScope(cls, registry);
