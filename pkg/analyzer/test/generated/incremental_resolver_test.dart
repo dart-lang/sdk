@@ -1047,6 +1047,26 @@ class A<T> {}
 ''');
   }
 
+  void test_true_classMemberAccessor_getterSetter() {
+    _assertCompilationUnitMatches(true, r'''
+class A {
+  int _test;
+  get test => _test;
+  set test(v) {
+    _test = v;
+  }
+}
+''', r'''
+class A {
+  int _test;
+  get test => _test;
+  set test(v) {
+    _test = v;
+  }
+}
+''');
+  }
+
   void test_true_classMemberAccessor_list_reorder() {
     _assertCompilationUnitMatches(true, r'''
 class A {
@@ -1597,6 +1617,16 @@ Map<int, String> A;
 dynamic a() {}
 ''', r'''
 dynamic a() {}
+''');
+  }
+
+  void test_true_type_hasImportPrefix() {
+    _assertCompilationUnitMatches(true, r'''
+import 'dart:async' as async;
+async.Future F;
+''', r'''
+import 'dart:async' as async;
+async.Future F;
 ''');
   }
 

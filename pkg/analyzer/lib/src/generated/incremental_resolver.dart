@@ -279,6 +279,9 @@ class DeclarationMatcher extends RecursiveAstVisitor {
         node.parameters.parameters.length == 0) {
       name = "unary-";
     }
+    if (node.isSetter) {
+      name += '=';
+    }
     // prepare element
     Token property = node.propertyKeyword;
     ExecutableElement element;
@@ -441,15 +444,20 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     if (type == null) {
       return _assertTrue(false);
     }
+    // prepare name
+    Identifier nameIdentifier = node.name;
+    if (nameIdentifier is PrefixedIdentifier) {
+      nameIdentifier = (nameIdentifier as PrefixedIdentifier).identifier;
+    }
+    String nodeName = nameIdentifier.name;
     // check specific type kinds
-    String nodeName = node.name.name;
     if (type is InterfaceType) {
       _assertEquals(nodeName, type.name);
       // check arguments
       TypeArgumentList nodeArgumentList = node.typeArguments;
       List<DartType> typeArguments = type.typeArguments;
       if (nodeArgumentList == null) {
-        // Node doesn't have type arguments, so all type argument of the
+        // Node doesn't have type arguments, so all type arguments of the
         // element must be "dynamic".
         for (DartType typeArgument in typeArguments) {
           _assertTrue(typeArgument.isDynamic);
@@ -698,6 +706,8 @@ class IncrementalResolver {
     // If we are replacing the whole declaration (e.g. rename a parameter), we
     // can try to find the corresponding Element in the enclosing one, see if it
     // is compatible, and if 'yes', then restore and update it.
+    // TODO(scheglov) This should be rewritten. It causes validating the whole
+    // class, when just one method is changed.
     if (node is Declaration) {
       node = node.parent;
     }
@@ -914,6 +924,8 @@ class PoorMansIncrementalResolver {
             return false;
           }
         }
+//        print('oldNode: $oldNode');
+//        print('newNode: $newNode');
         // prepare update range
         _updateOffset = oldNode.offset;
         _updateEndOld = oldNode.end;
