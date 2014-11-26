@@ -1807,7 +1807,7 @@ void TextNode::GetQuickCheckDetails(QuickCheckDetails* details,
                                     RegExpCompiler* compiler,
                                     intptr_t characters_filled_in,
                                     bool not_at_start) {
-#if defined(__GNUC__)
+#if defined(__GNUC__) && defined(__BYTE_ORDER__)
   // TODO(zerny): Make the combination code byte-order independent.
   ASSERT(details->characters() == 1 ||
          (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__));
