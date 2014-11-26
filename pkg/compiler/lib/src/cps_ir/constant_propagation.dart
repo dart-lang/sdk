@@ -607,7 +607,23 @@ class _ConstPropagationVisitor extends Visitor {
   // JavaScript specific nodes.
 
   void visitIdentical(Identical node) {
-    setValue(node, _ConstnessLattice.NonConst);
+    _ConstnessLattice leftConst = getValue(node.left.definition);
+    _ConstnessLattice rightConst = getValue(node.left.definition);
+    ConstantValue leftValue = leftConst.constant;
+    ConstantValue rightValue = rightConst.constant;
+    if (leftConst.isUnknown || rightConst.isUnknown) {
+      // Come back later.
+      return;
+    } else if (!leftConst.isConstant || !rightConst.isConstant) {
+      setValue(node, _ConstnessLattice.NonConst);
+    } else if (leftValue.isPrimitive && rightValue.isPrimitive) {
+      assert(leftConst.isConstant && rightConst.isConstant);
+      PrimitiveConstantValue left = leftValue;
+      PrimitiveConstantValue right = rightValue;
+      ConstantValue result =
+          new BoolConstantValue(left.primitiveValue == right.primitiveValue);
+      setValue(node, new _ConstnessLattice(result));
+    }
   }
 }
 
