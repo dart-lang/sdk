@@ -78,16 +78,16 @@ class ModelEmitter {
     js.Expression code = new js.ArrayInitializer.from(elements);
     return js.js.statement(
         boilerplate,
-        [emitDeferredInitializerGlobal(program.loadMap),
-         emitHolders(unit.holders),
-         namer.elementAccess(backend.getCyclicThrowHelper()),
-         program.outputContainsConstantList,
-         emitEmbeddedGlobals(program.loadMap),
-         emitConstants(unit.constants),
-         emitStaticNonFinalFields(unit.staticNonFinalFields),
-         emitEagerClassInitializations(unit.libraries),
-         unit.main,
-         code]);
+        {'deferredInitializer': emitDeferredInitializerGlobal(program.loadMap),
+         'holders': emitHolders(unit.holders),
+         'cyclicThrow': namer.elementAccess(backend.getCyclicThrowHelper()),
+         'outputContainsConstantList': program.outputContainsConstantList,
+         'embeddedGlobals': emitEmbeddedGlobals(program.loadMap),
+         'constants': emitConstants(unit.constants),
+         'staticNonFinals': emitStaticNonFinalFields(unit.staticNonFinalFields),
+         'eagerClasses': emitEagerClassInitializations(unit.libraries),
+         'main': unit.main,
+         'code': code});
   }
 
   js.Block emitHolders(List<Holder> holders) {
@@ -362,12 +362,12 @@ class ModelEmitter {
   static final String boilerplate = """
 {
 // Declare deferred-initializer global.
-#;
+#deferredInitializer;
 
 !function(start, program) {
 
   // Initialize holder objects.
-  #;
+  #holders;
 
   function setupProgram() {
     for (var i = 0; i < program.length - 1; i++) {
@@ -412,7 +412,7 @@ class ModelEmitter {
     holder[name] = null;
     holder[getterName] = function() {
       var initializer = compile(name, descriptor);
-      holder[getterName] = function() { #(name) };  // cyclicThrowHelper
+      holder[getterName] = function() { #cyclicThrow(name) };
       var result;
       var sentinelInProgress = descriptor;
       try {
@@ -512,7 +512,7 @@ class ModelEmitter {
     return eval(__s__ + "\\n//# sourceURL=" + __name__ + ".js");
   }
 
-  if (#) { // outputContainsConstantList
+  if (#outputContainsConstantList) {
     function makeConstList(list) {
       // By assigning a function to the properties they become part of the
       // hidden class. The actual values of the fields don't matter, since we
@@ -526,23 +526,23 @@ class ModelEmitter {
   setupProgram();
 
   // Initialize globals.
-  #;
+  #embeddedGlobals;
 
   // Initialize constants.
-  #;
+  #constants;
 
   // Initialize static non-final fields.
-  #;
+  #staticNonFinals;
 
   // Initialize eager classes.
-  #;
+  #eagerClasses;
 
   var end = Date.now();
   print('Setup: ' + (end - start) + ' ms.');
 
-  if (true) #();  // Start main.
+  #main();  // Start main.
 
-}(Date.now(), #)
+}(Date.now(), #code)
 }""";
 
 }
