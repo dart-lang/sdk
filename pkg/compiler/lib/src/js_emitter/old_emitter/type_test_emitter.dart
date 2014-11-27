@@ -5,8 +5,6 @@
 part of dart2js.js_emitter;
 
 class TypeTestEmitter extends CodeEmitterHelper {
-  static const int MAX_FUNCTION_TYPE_PREDICATES = 10;
-
   /**
    * Raw ClassElement symbols occuring in is-checks and type assertions.  If the
    * program contains parameterized checks `x is Set<int>` and
@@ -20,12 +18,6 @@ class TypeTestEmitter extends CodeEmitterHelper {
    * typedefs and implicitly through type annotations in checked mode.
    */
   Set<FunctionType> checkedFunctionTypes;
-
-  Map<ClassElement, Set<FunctionType>> checkedGenericFunctionTypes =
-      new Map<ClassElement, Set<FunctionType>>();
-
-  Set<FunctionType> checkedNonGenericFunctionTypes =
-      new Set<FunctionType>();
 
   /// Initially contains all classes that need RTI. After
   /// [computeNeededClasses]
@@ -270,13 +262,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
   }
 
   void registerDynamicFunctionTypeCheck(FunctionType functionType) {
-    ClassElement classElement = Types.getClassContext(functionType);
-    if (classElement != null) {
-      checkedGenericFunctionTypes.putIfAbsent(classElement,
-          () => new Set<FunctionType>()).add(functionType);
-    } else {
-      checkedNonGenericFunctionTypes.add(functionType);
-    }
+    // Currently unused.
   }
 
   void emitRuntimeTypeSupport(CodeBuffer buffer, OutputUnit outputUnit) {
