@@ -39,6 +39,10 @@ class DummyLocal extends DummyEntity implements Local {
   ExecutableElement get executableContext => null;
 }
 
+// TODO(karlklose): we should remove all references to [ErroneousElement] from
+// the CPS IR.  Instead, the builder must construct appropriate terms for ASTs
+// that could not be resolved correctly.  Perhaps the IR should not rely on
+// elements at all for naming.
 /// Used whenever a node constructed by [SExpressionUnstringifier] requires
 /// an [Element] or [FunctionElement]. Extends [ErroneousElementX] since there
 /// is currently a large amount of overhead when extending the base abstract

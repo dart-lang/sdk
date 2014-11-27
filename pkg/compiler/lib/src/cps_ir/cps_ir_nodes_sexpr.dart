@@ -9,47 +9,41 @@ import 'cps_ir_nodes.dart';
 
 /// Generate a Lisp-like S-expression representation of an IR node as a string.
 class SExpressionStringifier extends Visitor<String> with Indentation {
-  final Map<Definition, String> names = <Definition, String>{};
+  final _Namer namer = new _Namer();
 
-  int _valueCounter = 0;
-  int _continuationCounter = 0;
+  String newValueName(Node node) => namer.defineValueName(node);
+  String newContinuationName(Node node) => namer.defineContinuationName(node);
 
-  String newValueName() => 'v${_valueCounter++}';
-  String newContinuationName() => 'k${_continuationCounter++}';
+  String access(Reference<Definition> r) => namer.getName(r.definition);
+
+  String visitParameter(Parameter node) {
+    return namer.useElementName(node);
+  }
 
   String visitFunctionDefinition(FunctionDefinition node) {
     String name = node.element.name;
-    names[node.returnContinuation] = 'return';
-    String parameters = node.parameters
-        .map((Parameter p) {
-          String name = p.hint.name;
-          names[p] = name;
-          return name;
-        })
-        .join(' ');
+    namer.useReturnName(node.returnContinuation);
+    String parameters = node.parameters.map(visit).join(' ');
     String body = indentBlock(() => visit(node.body));
     return '$indentation(FunctionDefinition $name ($parameters return)\n'
            '$body)';
   }
 
   String visitLetPrim(LetPrim node) {
-    String name = newValueName();
-    names[node.primitive] = name;
+    String name = newValueName(node.primitive);
     String value = visit(node.primitive);
     String body = visit(node.body);
     return '$indentation(LetPrim $name $value)\n$body';
   }
 
   String visitLetCont(LetCont node) {
-    String cont = newContinuationName();
-    names[node.continuation] = cont;
+    String cont = newContinuationName(node.continuation);
+    // TODO(karlklose): this should be changed to `.map(visit).join(' ')`  and
+    // should recurse to [visit].  Currently we can't do that, because the
+    // unstringifier_test produces [LetConts] with dummy arguments on them.
     String parameters = node.continuation.parameters
-        .map((Parameter p) {
-          String name = newValueName();
-          names[p] = name;
-          return ' $name';
-        })
-       .join('');
+        .map((p) => ' ${newValueName(p)}')
+        .join('');
     String contBody = indentBlock(() => visit(node.continuation.body));
     String body = visit(node.body);
     String op = node.continuation.isRecursive ? 'LetCont*' : 'LetCont';
@@ -61,8 +55,8 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   String formatArguments(Invoke node) {
     int positionalArgumentCount = node.selector.positionalArgumentCount;
     List<String> args = new List<String>();
-    args.addAll(node.arguments.getRange(0, positionalArgumentCount)
-        .map((v) => names[v.definition]));
+    args.addAll(
+        node.arguments.getRange(0, positionalArgumentCount).map(access));
     for (int i = 0; i < node.selector.namedArgumentCount; ++i) {
       String name = node.selector.namedArguments[i];
       Definition arg = node.arguments[positionalArgumentCount + i].definition;
@@ -73,22 +67,22 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
 
   String visitInvokeStatic(InvokeStatic node) {
     String name = node.target.name;
-    String cont = names[node.continuation.definition];
+    String cont = access(node.continuation);
     String args = formatArguments(node);
     return '$indentation(InvokeStatic $name $args $cont)';
   }
 
   String visitInvokeMethod(InvokeMethod node) {
     String name = node.selector.name;
-    String rcv = names[node.receiver.definition];
-    String cont = names[node.continuation.definition];
+    String rcv = access(node.receiver);
+    String cont = access(node.continuation);
     String args = formatArguments(node);
     return '$indentation(InvokeMethod $rcv $name $args $cont)';
   }
 
   String visitInvokeSuperMethod(InvokeSuperMethod node) {
     String name = node.selector.name;
-    String cont = names[node.continuation.definition];
+    String cont = access(node.continuation);
     String args = formatArguments(node);
     return '$indentation(InvokeSuperMethod $name $args $cont)';
   }
@@ -100,20 +94,20 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
     } else {
       callName = '${node.type}.${node.target.name}';
     }
-    String cont = names[node.continuation.definition];
+    String cont = access(node.continuation);
     String args = formatArguments(node);
     return '$indentation(InvokeConstructor $callName $args $cont)';
   }
 
   String visitConcatenateStrings(ConcatenateStrings node) {
-    String cont = names[node.continuation.definition];
-    String args = node.arguments.map((v) => names[v.definition]).join(' ');
+    String cont = access(node.continuation);
+    String args = node.arguments.map(access).join(' ');
     return '$indentation(ConcatenateStrings $args $cont)';
   }
 
   String visitInvokeContinuation(InvokeContinuation node) {
-    String cont = names[node.continuation.definition];
-    String args = node.arguments.map((v) => names[v.definition]).join(' ');
+    String cont = access(node.continuation);
+    String args = node.arguments.map(access).join(' ');
     String op =
         node.isRecursive ? 'InvokeContinuation*' : 'InvokeContinuation';
     return '$indentation($op $cont $args)';
@@ -121,8 +115,8 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
 
   String visitBranch(Branch node) {
     String condition = visit(node.condition);
-    String trueCont = names[node.trueContinuation.definition];
-    String falseCont = names[node.falseContinuation.definition];
+    String trueCont = access(node.trueContinuation);
+    String falseCont = access(node.falseContinuation);
     return '$indentation(Branch $condition $trueCont $falseCont)';
   }
 
@@ -143,11 +137,6 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
     return '(CreateFunction\n$function)';
   }
 
-  String visitParameter(Parameter node) {
-    // Parameters are visited directly in visitLetCont.
-    return '(Unexpected Parameter)';
-  }
-
   String visitContinuation(Continuation node) {
     // Continuations are visited directly in visitLetCont.
     return '(Unexpected Continuation)';
@@ -158,28 +147,27 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   }
 
   String visitSetClosureVariable(SetClosureVariable node) {
-    String value = names[node.value.definition];
+    String value = access(node.value);
     String body = indentBlock(() => visit(node.body));
     return '$indentation(SetClosureVariable ${node.variable.name} $value\n'
            '$body)';
   }
 
   String visitTypeOperator(TypeOperator node) {
-    String receiver = names[node.receiver.definition];
-    String cont = names[node.continuation.definition];
+    String receiver = access(node.receiver);
+    String cont = access(node.continuation);
     String operator = node.isTypeTest ? 'is' : 'as';
     return '$indentation(TypeOperator $operator $receiver ${node.type} $cont)';
   }
 
   String visitLiteralList(LiteralList node) {
-    String values = node.values.map((v) => names[v.definition]).join(' ');
+    String values = node.values.map(access).join(' ');
     return '(LiteralList ($values))';
   }
 
   String visitLiteralMap(LiteralMap node) {
-    String keys = node.entries.map((e) => names[e.key.definition]).join(' ');
-    String values =
-        node.entries.map((e) => names[e.value.definition]).join(' ');
+    String keys = node.entries.map((e) => access(e.key)).join(' ');
+    String values = node.entries.map((e) => access(e.value)).join(' ');
     return '(LiteralMap ($keys) ($values))';
   }
 
@@ -192,13 +180,44 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   }
 
   String visitIsTrue(IsTrue node) {
-    String value = names[node.value.definition];
+    String value = access(node.value);
     return '(IsTrue $value)';
   }
 
   String visitIdentical(Identical node) {
-    String left = names[node.left.definition];
-    String right = names[node.right.definition];
+    String left = access(node.left);
+    String right = access(node.right);
     return '(Identical $left $right)';
+  }
+}
+
+class _Namer {
+  final Map<Node, String> _names = <Node, String>{};
+  int _valueCounter = 0;
+  int _continuationCounter = 0;
+
+  String useElementName(Parameter parameter) {
+    assert(!_names.containsKey(parameter));
+    return _names[parameter] = parameter.hint.name;
+  }
+
+  String defineContinuationName(Node node) {
+    assert(!_names.containsKey(node));
+    return _names[node] = 'k${_continuationCounter++}';
+  }
+
+  String defineValueName(Node node) {
+    assert(!_names.containsKey(node));
+    return _names[node] = 'v${_valueCounter++}';
+  }
+
+  String useReturnName(Continuation node) {
+    assert(!_names.containsKey(node) || _names[node] == 'return');
+    return _names[node] = 'return';
+  }
+
+  String getName(Node node) {
+    assert(_names.containsKey(node));
+    return _names[node];
   }
 }
