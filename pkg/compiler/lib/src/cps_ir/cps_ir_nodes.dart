@@ -14,9 +14,6 @@ import '../universe/universe.dart' show Selector, SelectorKind;
 import '../dart_types.dart' show DartType, GenericType;
 
 abstract class Node {
-  static int hashCount = 0;
-  final int hashCode = hashCount = (hashCount + 1) & 0x3fffffff;
-
   /// A pointer to the parent node. Is null until set by optimization passes.
   Node parent;
 
