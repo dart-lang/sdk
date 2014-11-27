@@ -107,8 +107,6 @@ Future<Compiler> reuseCompiler(
     backend.emitter.typeTestEmitter
         ..checkedClasses = null
         ..checkedFunctionTypes = null
-        ..checkedGenericFunctionTypes.clear()
-        ..checkedNonGenericFunctionTypes.clear()
         ..rtiNeededClasses.clear()
         ..cachedClassesUsingTypeVariableTests = null;
 
