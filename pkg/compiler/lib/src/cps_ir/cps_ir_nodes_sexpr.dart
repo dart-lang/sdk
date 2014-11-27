@@ -7,17 +7,31 @@ library dart2js.ir_nodes_sexpr;
 import '../util/util.dart';
 import 'cps_ir_nodes.dart';
 
+/// A [Decorator] is a function used by [SExpressionStringifier] to augment the
+/// output produced for a node.  It can be provided to the constructor.
+typedef String Decorator(Node node, String s);
+
 /// Generate a Lisp-like S-expression representation of an IR node as a string.
 class SExpressionStringifier extends Visitor<String> with Indentation {
   final _Namer namer = new _Namer();
 
   String newValueName(Node node) => namer.defineValueName(node);
   String newContinuationName(Node node) => namer.defineContinuationName(node);
+  final Decorator decorator;
+
+  SExpressionStringifier([this.decorator]);
 
   String access(Reference<Definition> r) => namer.getName(r.definition);
 
   String visitParameter(Parameter node) {
     return namer.useElementName(node);
+  }
+
+  /// Main entry point for creating a [String] from a [Node].  All recursive
+  /// calls must go through this method.
+  String visit(Node node) {
+    String s = super.visit(node);
+    return (decorator == null) ? s : decorator(node, s);
   }
 
   String visitFunctionDefinition(FunctionDefinition node) {
