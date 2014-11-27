@@ -74,4 +74,14 @@ main() { return foo(); }
 function() {
   return null;
 }"""),
+const TestEntry("""
+main() {
+  print(new Set());
+  print(new Set.from([1, 2, 3]));
+}""", r"""
+function() {
+  P.print(P.Set_Set());
+  P.print(P.Set_Set$from([1, 2, 3]));
+  return null;
+}"""),
 ];

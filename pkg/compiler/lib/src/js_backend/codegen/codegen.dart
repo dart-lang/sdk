@@ -162,10 +162,27 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
     // TODO: implement visitFunctionExpression
   }
 
+  js.Expression compileConstant(ParameterElement parameter) {
+    return buildConstant(glue.getConstantForVariable(parameter).value);
+  }
+
+  js.Expression buildStaticInvoke(Selector selector,
+                                  Element target,
+                                  List<tree_ir.Expression> arguments) {
+    registry.registerStaticInvocation(target.declaration);
+
+    js.Expression elementAccess = glue.elementAccess(target);
+    List<js.Expression> compiledArguments =
+        selector.makeArgumentsList(arguments, target.implementation,
+            visitExpression,
+            compileConstant);
+    return new js.Call(elementAccess, compiledArguments);
+  }
+
   @override
   js.Expression visitInvokeConstructor(tree_ir.InvokeConstructor node) {
-    return giveup(node);
-    // TODO: implement visitInvokeConstructor
+    if (node.constant != null) return giveup(node);
+    return buildStaticInvoke(node.selector, node.target, node.arguments);
   }
 
   @override
@@ -176,20 +193,7 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   js.Expression visitInvokeStatic(tree_ir.InvokeStatic node) {
-    Element element = node.target;
-
-    registry.registerStaticInvocation(element.declaration);
-
-    js.Expression compileConstant(ParameterElement parameter) {
-      return buildConstant(glue.getConstantForVariable(parameter).value);
-    }
-
-    js.Expression elementAccess = glue.elementAccess(node.target);
-    List<js.Expression> arguments =
-      node.selector.makeArgumentsList(node.arguments, element.implementation,
-          visitExpression,
-          compileConstant);
-    return new js.Call(elementAccess, arguments);
+    return buildStaticInvoke(node.selector, node.target, node.arguments);
   }
 
   @override
