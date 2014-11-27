@@ -132,27 +132,51 @@ class StaticField {
 class Class {
   final String name;
   final Holder holder;
-  Class superclass;
+  Class _superclass;
   final List<Method> methods;
   final List<InstanceField> fields;
   final bool onlyForRti;
+  final bool isDirectlyInstantiated;
 
   /// Whether the class must be evaluated eagerly.
   bool isEager = false;
 
   Class(this.name, this.holder, this.methods, this.fields,
-        { this.onlyForRti }) {
+        {this.onlyForRti,
+         this.isDirectlyInstantiated}) {
     assert(onlyForRti != null);
+    assert(isDirectlyInstantiated != null);
   }
 
+  bool get isMixinApplication => false;
+  Class get superclass => _superclass;
+
   void setSuperclass(Class superclass) {
-    this.superclass = superclass;
+    _superclass = superclass;
   }
 
   String get superclassName
       => (superclass == null) ? "" : superclass.name;
   int get superclassHolderIndex
       => (superclass == null) ? 0 : superclass.holder.index;
+}
+
+class MixinApplication extends Class {
+  Class _mixinClass;
+
+  MixinApplication(String name, Holder holder,
+                   {bool onlyForRti,
+                    bool isDirectlyInstantiated})
+      : super(name, holder, const <Method>[], const <InstanceField>[],
+              onlyForRti: onlyForRti,
+              isDirectlyInstantiated: isDirectlyInstantiated);
+
+  bool get isMixinApplication => true;
+  Class get mixinClass => _mixinClass;
+
+  void setMixinClass(Class mixinClass) {
+    _mixinClass = mixinClass;
+  }
 }
 
 class InstanceField {

@@ -4,7 +4,9 @@
 
 library dart2js.js_emitter.program_builder;
 
+import 'js_emitter.dart' show computeMixinClass;
 import 'model.dart';
+
 import '../common.dart';
 import '../js/js.dart' as js;
 
@@ -77,6 +79,10 @@ class ProgramBuilder {
     _classes.forEach((ClassElement element, Class c) {
       if (element.superclass != null) {
         c.setSuperclass(_classes[element.superclass]);
+      }
+      if (element.isMixinApplication) {
+        MixinApplication mixinApplication = c;
+        mixinApplication.setMixinClass(_classes[computeMixinClass(element)]);
       }
     });
 
@@ -238,9 +244,6 @@ class ProgramBuilder {
   }
 
   Class _buildClass(ClassElement element) {
-    bool isInstantiated =
-        _compiler.codegenWorld.directlyInstantiatedClasses.contains(element);
-
     List<Method> methods = [];
     List<InstanceField> fields = [];
 
@@ -258,7 +261,10 @@ class ProgramBuilder {
     }
 
     ClassElement implementation = element.implementation;
-    if (isInstantiated) {
+
+    // MixinApplications run through the members of their mixin. Here, we are
+    // only interested in direct members.
+    if (!element.isMixinApplication) {
       implementation.forEachMember(visitMember, includeBackendMembers: true);
     }
     String name = namer.getNameOfClass(element);
@@ -266,8 +272,21 @@ class ProgramBuilder {
     Holder holder = _registry.registerHolder(holderName);
     bool onlyForRti =
         _task.typeTestEmitter.rtiNeededClasses.contains(element);
-    Class result = new Class(name, holder, methods, fields,
-                             onlyForRti: onlyForRti);
+    bool isInstantiated =
+        _compiler.codegenWorld.directlyInstantiatedClasses.contains(element);
+
+    Class result;
+    if (element.isMixinApplication) {
+      assert(methods.isEmpty);
+      assert(fields.isEmpty);
+      result = new MixinApplication(name, holder,
+                                    isDirectlyInstantiated: isInstantiated,
+                                    onlyForRti: onlyForRti);
+    } else {
+      result = new Class(name, holder, methods, fields,
+                         isDirectlyInstantiated: isInstantiated,
+                         onlyForRti: onlyForRti);
+    }
     _classes[element] = result;
     return result;
   }

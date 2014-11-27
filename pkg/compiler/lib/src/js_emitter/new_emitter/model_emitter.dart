@@ -256,11 +256,20 @@ class ModelEmitter {
 
   js.Expression _generateConstructor(Class cls) {
     List<String> allFieldNames = <String>[];
-    Class currentClass = cls;
-    while (currentClass != null) {
-      allFieldNames.addAll(
-          currentClass.fields.map((InstanceField field) => field.name));
-      currentClass = currentClass.superclass;
+
+    // If the class is not directly instantiated we only need it for inheritance
+    // or RTI. In either case we don't need its fields.
+    if (cls.isDirectlyInstantiated) {
+      Class currentClass = cls;
+      while (currentClass != null) {
+        // Mixins are not allowed to inject fields.
+        assert(!currentClass.isMixinApplication ||
+               (currentClass as MixinApplication).mixinClass.fields.isEmpty);
+
+        allFieldNames.addAll(
+            currentClass.fields.map((InstanceField field) => field.name));
+        currentClass = currentClass.superclass;
+      }
     }
     String name = cls.name;
     String parameters = allFieldNames.join(', ');
@@ -316,13 +325,28 @@ class ModelEmitter {
   }
 
   js.Expression emitClass(Class cls) {
-    List elements = [ js.string(cls.superclassName),
-                      js.number(cls.superclassHolderIndex),
-                      _generateConstructor(cls) ];
+    if (cls.isMixinApplication) return emitMixinApplication(cls);
+
+    List elements = [js.string(cls.superclassName),
+                     js.number(cls.superclassHolderIndex),
+                     _generateConstructor(cls)];
     Iterable<Method> methods = cls.methods;
     Iterable<Method> gettersSetters = _generateGettersSetters(cls);
     Iterable<Method> allMethods = [methods, gettersSetters].expand((x) => x);
-    elements.addAll(allMethods.expand((e) => [ js.string(e.name), e.code ]));
+    elements.addAll(allMethods.expand((e) => [js.string(e.name), e.code]));
+    return unparse(compiler, new js.ArrayInitializer.from(elements));
+  }
+
+  // This string should be referenced wherever JavaScript code makes assumptions
+  // on the mixin format.
+  static final String mixinFormatDescription =
+      "Mixins have no constructor, but a reference to their mixin class.";
+
+  js.Expression emitMixinApplication(MixinApplication cls) {
+    List elements = [js.string(cls.superclassName),
+                     js.number(cls.superclassHolderIndex),
+                     js.string(cls.mixinClass.name),
+                     js.number(cls.mixinClass.holder.index)];
     return unparse(compiler, new js.ArrayInitializer.from(elements));
   }
 
@@ -334,9 +358,8 @@ class ModelEmitter {
   js.Expression emitStaticMethod(StaticMethod method) {
     return unparse(compiler, method.code);
   }
-}
 
-final String boilerplate = r"""
+  static final String boilerplate = """
 {
 // Declare deferred-initializer global.
 #;
@@ -434,10 +457,35 @@ final String boilerplate = r"""
   function compileConstructor(name, descriptor) {
     descriptor = compile(name, descriptor);
     var prototype = determinePrototype(descriptor);
+    // $mixinFormatDescription.
+    if (typeof descriptor[2] !== 'function') {
+      return compileMixinConstructor(name, prototype, descriptor);
+    }
     var constructor = descriptor[2];
     for (var i = 3; i < descriptor.length; i += 2) {
       prototype[descriptor[i]] = descriptor[i + 1];
     }
+    constructor.prototype = prototype;
+    return constructor;
+  }
+
+  function compileMixinConstructor(name, prototype, descriptor) {
+    // $mixinFormatDescription.
+    var mixinName = descriptor[2];
+    var mixinHolderIndex = descriptor[3];
+    var mixin = holders[mixinHolderIndex][mixinName];
+    if (mixin.resolve) mixin = mixin.resolve();
+    var mixinPrototype = mixin.prototype;
+
+    // Fill the prototype with the mixin's properties.
+    var mixinProperties = Object.keys(mixinPrototype);
+    for (var i = 0; i < mixinProperties.length; i++) {
+      var p = mixinProperties[i];
+      prototype[p] = mixinPrototype[p];
+    }
+    // Since this is a mixin application the constructor will actually never
+    // be invoked. We only use its prototype for the application's subclasses. 
+    var constructor = function() {};
     constructor.prototype = prototype;
     return constructor;
   }
@@ -461,7 +509,7 @@ final String boilerplate = r"""
     'use strict';
     // TODO(floitsch): evaluate the performance impact of the string
     // concatenations.
-    return eval(__s__ + "\n//# sourceURL=" + __name__ + ".js");
+    return eval(__s__ + "\\n//# sourceURL=" + __name__ + ".js");
   }
 
   if (#) { // outputContainsConstantList
@@ -469,8 +517,8 @@ final String boilerplate = r"""
       // By assigning a function to the properties they become part of the
       // hidden class. The actual values of the fields don't matter, since we
       // only check if they exist.
-      list.immutable$list = Array;
-      list.fixed$length = Array;
+      list.immutable\$list = Array;
+      list.fixed\$length = Array;
       return list;
     }
   }
@@ -496,3 +544,5 @@ final String boilerplate = r"""
 
 }(Date.now(), #)
 }""";
+
+}
