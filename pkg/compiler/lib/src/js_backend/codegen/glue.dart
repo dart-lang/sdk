@@ -45,8 +45,17 @@ class Glue {
   String safeVariableName(String name) {
     return _namer.safeVariableName(name);
   }
+
   ClassElement get listClass => _compiler.listClass;
 
   FunctionElement get identicalFunction => _compiler.identicalFunction;
+
+  String invocationName(Selector selector) {
+    return _namer.invocationName(selector);
+  }
+
+  bool isIntercepted(Selector selector) {
+    return _backend.isInterceptedSelector(selector);
+  }
 
 }

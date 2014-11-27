@@ -185,10 +185,26 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
     return buildStaticInvoke(node.selector, node.target, node.arguments);
   }
 
+  void registerMethodInvoke(tree_ir.InvokeMethod node) {
+    Selector selector = node.selector;
+    // TODO(sigurdm): We should find a better place to register the call.
+    Selector call = new Selector.callClosureFrom(selector);
+    registry.registerDynamicInvocation(call);
+    registry.registerDynamicInvocation(selector);
+  }
+
   @override
   js.Expression visitInvokeMethod(tree_ir.InvokeMethod node) {
-    return giveup(node);
-    // TODO: implement visitInvokeMethod
+    // TODO(sigurdm): Handle intercepted invocations.
+    if (glue.isIntercepted(node.selector)) giveup(node);
+    js.Expression receiver = visitExpression(node.receiver);
+
+    List<js.Expression> arguments = visitArguments(node.arguments);
+
+    String methodName = glue.invocationName(node.selector);
+    registerMethodInvoke(node);
+
+    return js.propertyCall(receiver, methodName, arguments);
   }
 
   @override

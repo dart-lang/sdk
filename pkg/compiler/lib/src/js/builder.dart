@@ -334,12 +334,23 @@ class JsBuilder {
       new ArrayInitializer.from(list.map(string));
 
   Comment comment(String text) => new Comment(text);
+
+  Call propertyCall(Expression receiver,
+                      String fieldName,
+                      List<Expression> arguments) {
+    return new Call(new PropertyAccess.field(receiver, fieldName), arguments);
+  }
 }
 
 LiteralString string(String value) => js.string(value);
 LiteralNumber number(num value) => js.number(value);
 ArrayInitializer numArray(Iterable<int> list) => js.numArray(list);
 ArrayInitializer stringArray(Iterable<String> list) => js.stringArray(list);
+Call propertyCall(Expression receiver,
+                    String fieldName,
+                    List<Expression> arguments) {
+  return js.propertyCall(receiver, fieldName, arguments);
+}
 
 class MiniJsParserError {
   MiniJsParserError(this.parser, this.message) { }

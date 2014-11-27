@@ -74,7 +74,8 @@ main() { return foo(); }
 function() {
   return null;
 }"""),
-const TestEntry("""
+  // Constructor invocation
+  const TestEntry("""
 main() {
   print(new Set());
   print(new Set.from([1, 2, 3]));
@@ -82,6 +83,15 @@ main() {
 function() {
   P.print(P.Set_Set());
   P.print(P.Set_Set$from([1, 2, 3]));
+  return null;
+}"""),
+  // Method invocation
+  const TestEntry("""
+main() {
+  print(new DateTime.now().isBefore(new DateTime.now()));
+}""", r"""
+function() {
+  P.print(P.DateTime$now().isBefore$1(P.DateTime$now()));
   return null;
 }"""),
 ];
