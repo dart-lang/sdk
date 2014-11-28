@@ -172,12 +172,8 @@ class TypeTestEmitter extends CodeEmitterHelper {
                                     generated);
         }
         FunctionType callType = call.computeType(compiler);
-        Map<FunctionType, bool> functionTypeChecks =
-            getFunctionTypeChecksOn(callType);
-        generateFunctionTypeTests(
-            call, callType, functionTypeChecks,
-            emitFunctionTypeSignature);
-     }
+        emitFunctionTypeSignature(call, callType);
+      }
     }
 
     for (DartType interfaceType in cls.interfaces) {
@@ -217,52 +213,6 @@ class TypeTestEmitter extends CodeEmitterHelper {
       generateInterfacesIsTests(superclass, emitIsTest, emitSubstitution,
                                 alreadyGenerated);
     }
-  }
-
-  /**
-   * Returns a mapping containing all checked function types for which [type]
-   * can be a subtype. A function type is mapped to [:true:] if [type] is
-   * statically known to be a subtype of it and to [:false:] if [type] might
-   * be a subtype, provided with the right type arguments.
-   */
-  // TODO(johnniwinther): Change to return a mapping from function types to
-  // a set of variable points and use this to detect statically/dynamically
-  // known subtype relations.
-  Map<FunctionType, bool> getFunctionTypeChecksOn(DartType type) {
-    Map<FunctionType, bool> functionTypeMap = new Map<FunctionType, bool>();
-    for (FunctionType functionType in checkedFunctionTypes) {
-      int maybeSubtype =
-          compiler.types.computeSubtypeRelation(type, functionType);
-      if (maybeSubtype == Types.IS_SUBTYPE) {
-        functionTypeMap[functionType] = true;
-      } else if (maybeSubtype == Types.MAYBE_SUBTYPE) {
-        functionTypeMap[functionType] = false;
-      }
-    }
-    // TODO(johnniwinther): Ensure stable ordering of the keys.
-    return functionTypeMap;
-  }
-
-  /**
-   * Generates function type checks on [method] with type [methodType] against
-   * the function type checks in [functionTypeChecks].
-   */
-  void generateFunctionTypeTests(
-      Element method,
-      FunctionType methodType,
-      Map<FunctionType, bool> functionTypeChecks,
-      FunctionTypeSignatureEmitter emitFunctionTypeSignature) {
-
-    // TODO(ahe): We should be able to remove this forEach loop.
-    functionTypeChecks.forEach((FunctionType functionType, bool knownSubtype) {
-      registerDynamicFunctionTypeCheck(functionType);
-    });
-
-    emitFunctionTypeSignature(method, methodType);
-  }
-
-  void registerDynamicFunctionTypeCheck(FunctionType functionType) {
-    // Currently unused.
   }
 
   void emitRuntimeTypeSupport(CodeBuffer buffer, OutputUnit outputUnit) {
