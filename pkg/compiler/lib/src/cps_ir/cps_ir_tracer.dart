@@ -21,26 +21,34 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visit(cps_ir.Node node) => node.accept(this);
 
-  void traceGraph(String name, cps_ir.FunctionDefinition graph) {
+  void traceGraph(String name, cps_ir.ExecutableDefinition graph) {
     tag("cfg", () {
       printProperty("name", name);
-      visitFunctionDefinition(graph);
+      visit(graph);
     });
   }
 
   // Temporary field used during tree walk
   Names names;
 
-  visitFunctionDefinition(cps_ir.FunctionDefinition f) {
+  visitExecutableDefinition(cps_ir.ExecutableDefinition node) {
     names = new Names();
     BlockCollector builder = new BlockCollector(names);
-    builder.visit(f);
+    builder.visit(node);
 
     printNode(builder.entry);
     for (Block block in builder.cont2block.values) {
       printNode(block);
     }
     names = null;
+  }
+
+  visitFieldDefinition(cps_ir.FieldDefinition node) {
+    visitExecutableDefinition(node);
+  }
+
+  visitFunctionDefinition(cps_ir.FunctionDefinition node) {
+    visitExecutableDefinition(node);
   }
 
   int countUses(cps_ir.Definition definition) {
@@ -329,9 +337,17 @@ class BlockCollector extends cps_ir.Visitor {
     return block;
   }
 
-  visitFunctionDefinition(cps_ir.FunctionDefinition f) {
-    entry = current_block = new Block(names.name(f), [], f.body);
-    visit(f.body);
+  visitExecutableDefinition(cps_ir.ExecutableDefinition node) {
+    entry = current_block = new Block(names.name(node), [], node.body);
+    visit(node.body);
+  }
+
+  visitFieldDefinition(cps_ir.FieldDefinition node) {
+    visitExecutableDefinition(node);
+  }
+
+  visitFunctionDefinition(cps_ir.FunctionDefinition node) {
+    visitExecutableDefinition(node);
   }
 
   visitLetPrim(cps_ir.LetPrim exp) {

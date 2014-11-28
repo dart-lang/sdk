@@ -57,10 +57,10 @@ class Tracer extends TracerUtil {
     if (irObject is ssa.HGraph) {
       new HTracer(output, compiler, context).traceGraph(name, irObject);
     }
-    else if (irObject is cps_ir.FunctionDefinition) {
+    else if (irObject is cps_ir.ExecutableDefinition) {
       new IRTracer(output).traceGraph(name, irObject);
     }
-    else if (irObject is tree_ir.FunctionDefinition) {
+    else if (irObject is tree_ir.ExecutableDefinition) {
       new TreeTracer(output).traceGraph(name, irObject);
     }
   }

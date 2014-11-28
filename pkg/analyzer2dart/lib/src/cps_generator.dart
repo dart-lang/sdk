@@ -58,7 +58,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
       // Visit the body directly to avoid processing the signature as
       // expressions.
       visit(node.body);
-      return irBuilder.buildFunctionDefinition(element, const []);
+      return irBuilder.buildFunctionDefinition(const []);
     });
   }
 

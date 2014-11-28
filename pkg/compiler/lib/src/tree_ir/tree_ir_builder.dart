@@ -57,7 +57,7 @@ class Builder extends cps_ir.Visitor<Node> {
   // is the mapping from continuations to labels.
   final Map<cps_ir.Continuation, Label> labels = <cps_ir.Continuation, Label>{};
 
-  FunctionDefinition function;
+  ExecutableElement currentElement;
   cps_ir.Continuation returnContinuation;
 
   Builder parent;
@@ -73,12 +73,12 @@ class Builder extends cps_ir.Visitor<Node> {
   Variable phiTempVar;
 
   Variable getClosureVariable(Local local) {
-    if (local.executableContext != function.element) {
+    if (local.executableContext != currentElement) {
       return parent.getClosureVariable(local);
     }
     Variable variable = local2closure[local];
     if (variable == null) {
-      variable = new Variable(function, local);
+      variable = new Variable(currentElement, local);
       local2closure[local] = variable;
     }
     return variable;
@@ -96,7 +96,7 @@ class Builder extends cps_ir.Visitor<Node> {
       element2variables[primitive.hint] = variables;
     }
     while (variables.length <= primitive.registerIndex) {
-      variables.add(new Variable(function, primitive.hint));
+      variables.add(new Variable(currentElement, primitive.hint));
     }
     return variables[primitive.registerIndex];
   }
@@ -116,9 +116,43 @@ class Builder extends cps_ir.Visitor<Node> {
     return variable;
   }
 
-  FunctionDefinition build(cps_ir.FunctionDefinition node) {
-    visit(node);
-    return function;
+  ExecutableDefinition build(cps_ir.ExecutableDefinition node) {
+    if (node is cps_ir.FieldDefinition) {
+      return buildField(node);
+    } else if (node is cps_ir.FunctionDefinition) {
+      return buildFunction(node);
+    }
+    assert(false);
+  }
+
+  FieldDefinition buildField(cps_ir.FieldDefinition node) {
+    currentElement = node.element;
+    returnContinuation = node.returnContinuation;
+
+    phiTempVar = new Variable(node.element, null);
+
+    return new FieldDefinition(node.element, visit(node.body));
+  }
+
+  FunctionDefinition buildFunction(cps_ir.FunctionDefinition node) {
+    currentElement = node.element;
+    List<Variable> parameters = <Variable>[];
+    for (cps_ir.Parameter p in node.parameters) {
+      Variable parameter = getVariable(p);
+      assert(parameter != null);
+      ++parameter.writeCount; // Being a parameter counts as a write.
+      parameters.add(parameter);
+    }
+    returnContinuation = node.returnContinuation;
+
+    Statement body;
+    if (!node.isAbstract) {
+      phiTempVar = new Variable(node.element, null);
+      body = visit(node.body);
+    }
+
+    return new FunctionDefinition(node.element, parameters,
+        body, node.localConstants, node.defaultParameterValues);
   }
 
   List<Expression> translateArguments(List<cps_ir.Reference> args) {
@@ -231,24 +265,6 @@ class Builder extends cps_ir.Visitor<Node> {
   }
 
   visitNode(cps_ir.Node node) => throw "Unhandled node: $node";
-
-  Expression visitFunctionDefinition(cps_ir.FunctionDefinition node) {
-    List<Variable> parameters = <Variable>[];
-    function = new FunctionDefinition(node.element, parameters,
-        null, node.localConstants, node.defaultParameterValues);
-    returnContinuation = node.returnContinuation;
-    for (cps_ir.Parameter p in node.parameters) {
-      Variable parameter = getVariable(p);
-      assert(parameter != null);
-      ++parameter.writeCount; // Being a parameter counts as a write.
-      parameters.add(parameter);
-    }
-    if (!node.isAbstract) {
-      phiTempVar = new Variable(function, null);
-      function.body = visit(node.body);
-    }
-    return null;
-  }
 
   Statement visitLetPrim(cps_ir.LetPrim node) {
     Variable variable = getVariable(node.primitive);
@@ -440,7 +456,7 @@ class Builder extends cps_ir.Visitor<Node> {
   }
 
   FunctionDefinition makeSubFunction(cps_ir.FunctionDefinition function) {
-    return new Builder.inner(this).build(function);
+    return new Builder.inner(this).buildFunction(function);
   }
 
   Node visitCreateFunction(cps_ir.CreateFunction node) {

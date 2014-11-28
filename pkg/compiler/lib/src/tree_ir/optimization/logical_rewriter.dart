@@ -54,17 +54,15 @@ part of tree_ir.optimization;
 ///   x && !!y          (!!y validated by [isBooleanValued])
 ///   x && y            (double negation removed by [putInBooleanContext])
 ///
-class LogicalRewriter extends Visitor<Statement, Expression> implements Pass {
+class LogicalRewriter extends Visitor<Statement, Expression> with PassMixin {
 
   /// Statement to be executed next by natural fallthrough. Although fallthrough
   /// is not introduced in this phase, we need to reason about fallthrough when
   /// evaluating the benefit of swapping the branches of an [If].
   Statement fallthrough;
 
-  void rewrite(FunctionDefinition definition) {
-    if (definition.isAbstract) return;
-
-    definition.body = visitStatement(definition.body);
+  void rewriteExecutableDefinition(ExecutableDefinition root) {
+    root.body = visitStatement(root.body);
   }
 
   Statement visitLabeledStatement(LabeledStatement node) {

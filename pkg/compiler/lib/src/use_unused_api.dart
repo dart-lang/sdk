@@ -236,6 +236,7 @@ useIr(cps_ir_nodes_sexpr.SExpressionStringifier stringifier,
     ..visitDefinition(null)
     ..visitExpression(null)
     ..visitFunctionDefinition(null)
+    ..visitFieldDefinition(null)
     ..visitInvokeStatic(null)
     ..visitLetCont(null)
     ..visitNode(null)

@@ -191,12 +191,12 @@ class IrBuilderSharedState {
 
   final Iterable<Entity> closureLocals;
 
-  final FunctionElement currentFunction;
+  final ExecutableElement currentElement;
 
   final ir.Continuation returnContinuation = new ir.Continuation.retrn();
 
   IrBuilderSharedState(this.constantSystem,
-                       this.currentFunction,
+                       this.currentElement,
                        this.closureLocals);
 }
 
@@ -240,10 +240,10 @@ class IrBuilder {
   ir.Expression _current = null;
 
   IrBuilder(ConstantSystem constantSystem,
-            FunctionElement currentFunction,
+            ExecutableElement currentElement,
             Iterable<Entity> closureLocals)
       : this.state = new IrBuilderSharedState(
-            constantSystem, currentFunction, closureLocals),
+            constantSystem, currentElement, closureLocals),
         this.environment = new Environment.empty();
 
   /// Construct a delimited visitor for visiting a subtree.
@@ -533,13 +533,21 @@ class IrBuilder {
     _current = null;
   }
 
+  /// Create a [ir.FieldDefinition] for the current [Element] using [_root] as
+  /// the body.
+  ir.FieldDefinition makeFieldDefinition() {
+    return new ir.FieldDefinition(state.currentElement,
+                                  state.returnContinuation,
+                                  _root);
+  }
+
   /// Create a [ir.FunctionDefinition] for [element] using [_root] as the body.
   ///
   /// Parameters must be created before the construction of the body using
   /// [createParameter].
   ir.FunctionDefinition buildFunctionDefinition(
-      FunctionElement element,
       List<ConstantExpression> defaults) {
+    FunctionElement element = state.currentElement;
     if (element.isAbstract || element.isExternal) {
       assert(invariant(element, _root == null,
           message: "Non-empty body for abstract method $element: $_root"));

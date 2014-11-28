@@ -224,7 +224,7 @@ class PlaceholderRenamer {
 
       Set<String> memberIdentifiers = new Set<String>();
       Set<LocalPlaceholder> placeholders = functionScope.localPlaceholders;
-      if (functionElement.enclosingClass != null) {
+      if (functionElement != null && functionElement.enclosingClass != null) {
         functionElement.enclosingClass.forEachMember(
             (enclosingClass, member) {
               memberIdentifiers.add(member.name);

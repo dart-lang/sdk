@@ -15,7 +15,7 @@ import '../universe/universe.dart';
 import '../tree/tree.dart' as tree show Modifiers;
 
 /// Translates the dart_tree IR to Dart backend AST.
-Expression emit(tree.FunctionDefinition definition) {
+ExecutableDefinition emit(tree.ExecutableDefinition definition) {
   return new ASTEmitter().emit(definition);
 }
 
@@ -41,8 +41,8 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   /// Statements emitted by the most recent call to [visitStatement].
   List<Statement> statementBuffer = <Statement>[];
 
-  /// The function currently being emitted.
-  FunctionElement functionElement;
+  /// The element currently being emitted.
+  ExecutableElement currentElement;
 
   /// Bookkeeping object needed to synthesize a variable declaration.
   modelx.VariableList variableList
@@ -70,8 +70,53 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
       : this.parent = parent,
         usedVariableNames = parent.usedVariableNames;
 
-  FunctionExpression emit(tree.FunctionDefinition definition) {
-    functionElement = definition.element;
+  ExecutableDefinition emit(tree.ExecutableDefinition definition) {
+    if (definition is tree.FieldDefinition) {
+      return emitField(definition);
+    }
+    assert(definition is tree.FunctionDefinition);
+    return emitFunction(definition);
+  }
+
+  FieldDefinition emitField(tree.FieldDefinition definition) {
+    currentElement = definition.element;
+    visitStatement(definition.body);
+    List<Statement> bodyParts;
+    for (tree.Variable variable in variableNames.keys) {
+      if (!declaredVariables.contains(variable)) {
+        addDeclaration(variable);
+      }
+    }
+    if (variables.length > 0) {
+      bodyParts = new List<Statement>();
+      bodyParts.add(new VariableDeclarations(variables));
+      bodyParts.addAll(statementBuffer);
+    } else {
+      bodyParts = statementBuffer;
+    }
+
+    return new FieldDefinition(definition.element, ensureExpression(bodyParts));
+  }
+
+  /// Returns an expression that will evaluate all of [bodyParts].
+  /// If [bodyParts] is a single [Return] return its value.
+  /// Otherwise wrap the body-parts in an immediately invoked closure.
+  Expression ensureExpression(List<Statement> bodyParts) {
+    if (bodyParts.length == 1) {
+      Statement onlyStatement = bodyParts.single;
+      if (onlyStatement is Return) {
+        return onlyStatement.expression;
+      }
+    }
+    Statement body = new Block(bodyParts);
+    FunctionExpression function =
+        new FunctionExpression(new Parameters([]), body);
+    function.element = null;
+    return new CallFunction(function, []);
+  }
+
+  FunctionExpression emitFunction(tree.FunctionDefinition definition) {
+    currentElement = definition.element;
 
     Parameters parameters = emitRootParameters(definition);
 
@@ -122,16 +167,16 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
 
       body = new Block(bodyParts);
     }
-    FunctionType functionType = functionElement.type;
+    FunctionType functionType = currentElement.type;
 
     return new FunctionExpression(
         parameters,
         body,
-        name: functionElement.name,
+        name: currentElement.name,
         returnType: emitOptionalType(functionType.returnType),
-        isGetter: functionElement.isGetter,
-        isSetter: functionElement.isSetter)
-        ..element = functionElement;
+        isGetter: currentElement.isGetter,
+        isSetter: currentElement.isSetter)
+        ..element = currentElement;
   }
 
   void addDeclaration(tree.Variable variable, [Expression initializer]) {
@@ -304,7 +349,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   String getVariableName(tree.Variable variable) {
     // If the variable belongs to an enclosing function, ask the parent emitter
     // for the variable name.
-    if (variable.host.element != functionElement) {
+    if (variable.host != currentElement) {
       return parent.getVariableName(variable);
     }
 
@@ -333,7 +378,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
       // TODO(johnniwinther): Replace by synthetic [Entity].
       variable.element = new _SyntheticLocalVariableElement(
           name,
-          functionElement,
+          currentElement,
           variableList);
     }
     return name;
@@ -341,7 +386,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
 
   String getConstantName(VariableElement element) {
     assert(element.kind == ElementKind.VARIABLE);
-    if (element.enclosingElement != functionElement) {
+    if (element.enclosingElement != currentElement) {
       return parent.getConstantName(element);
     }
     String name = constantNames[element];
@@ -377,7 +422,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     }
 
     bool isFirstOccurrence = (variableNames[stmt.variable] == null);
-    bool isDeclaredHere = stmt.variable.host.element == functionElement;
+    bool isDeclaredHere = stmt.variable.host == currentElement;
     String name = getVariableName(stmt.variable);
     Expression definition = visitExpression(stmt.definition);
 
@@ -858,13 +903,14 @@ class UnshadowParameters extends tree.RecursiveVisitor {
   /// Parameters that are used in a context where it is shadowed.
   Set<tree.Variable> hasShadowedUse = new Set<tree.Variable>();
 
-  void unshadow(tree.FunctionDefinition definition) {
-    if (definition.isAbstract) return;
-
+  void unshadow(tree.ExecutableDefinition definition) {
+    // Fields have no parameters.
+    if (definition is tree.FieldDefinition) return;
     visitFunctionDefinition(definition);
   }
 
   visitFunctionDefinition(tree.FunctionDefinition definition) {
+    if (definition.isAbstract) return;
     var oldShadow = shadowedParameters;
     var oldEnvironment = environment;
     environment = new Map<String, tree.Variable>.from(environment);
@@ -883,7 +929,8 @@ class UnshadowParameters extends tree.RecursiveVisitor {
     for (int i=0; i<definition.parameters.length; i++) {
       tree.Variable param = definition.parameters[i];
       if (hasShadowedUse.remove(param)) {
-        tree.Variable newParam = new tree.Variable(definition, param.element);
+        tree.Variable newParam = new tree.Variable(definition.element,
+            param.element);
         definition.parameters[i] = newParam;
         definition.body = new tree.Assign(param, newParam, definition.body);
         newParam.writeCount = 1; // Being a parameter counts as a write.

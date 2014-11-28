@@ -10,7 +10,7 @@ part of tree_ir.optimization;
 /// This compensates for suboptimal register allocation, and merges closure
 /// variables with local temporaries that were left behind when translating
 /// out of CPS (where closure variables live in a separate space).
-class CopyPropagator extends RecursiveVisitor implements Pass {
+class CopyPropagator extends RecursiveVisitor with PassMixin {
 
   /// After visitStatement returns, [move] maps a variable v to an
   /// assignment A of form w := v, under the following conditions:
@@ -21,19 +21,16 @@ class CopyPropagator extends RecursiveVisitor implements Pass {
   /// Like [move], except w is the key instead of v.
   Map<Variable, Assign> inverseMove = <Variable, Assign>{};
 
-  /// The function currently being rewritten.
-  FunctionElement functionElement;
+  ExecutableElement currentElement;
 
-  void rewrite(FunctionDefinition function) {
-    if (function.isAbstract) return;
-
-    functionElement = function.element;
-    visitFunctionDefinition(function);
+  void rewriteExecutableDefinition(ExecutableDefinition root) {
+    currentElement = root.element;
+    root.body = visitStatement(root.body);
   }
 
-  void visitFunctionDefinition(FunctionDefinition function) {
-    assert(functionElement == function.element);
-    function.body = visitStatement(function.body);
+  rewriteFunctionDefinition(FunctionDefinition function) {
+    if (function.isAbstract) return;
+    rewriteExecutableDefinition(function);
 
     // Try to propagate moving assignments into function parameters.
     // For example:
@@ -57,7 +54,7 @@ class CopyPropagator extends RecursiveVisitor implements Pass {
     function.parameters.forEach(visitVariable);
 
     // Now do the propagation.
-    for (int i=0; i<function.parameters.length; i++) {
+    for (int i = 0; i < function.parameters.length; i++) {
       Variable param = function.parameters[i];
       Variable replacement = copyPropagateVariable(param);
       replacement.element = param.element; // Preserve parameter name.
@@ -131,7 +128,7 @@ class CopyPropagator extends RecursiveVisitor implements Pass {
     if (node.definition is Variable) {
       Variable def = node.definition;
       if (def.readCount == 1 &&
-          node.variable.host.element == functionElement) {
+          node.variable.host == currentElement) {
         move[node.definition] = node;
         inverseMove[node.variable] = node;
       }

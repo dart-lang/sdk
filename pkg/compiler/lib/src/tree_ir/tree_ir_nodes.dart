@@ -11,6 +11,7 @@ import '../dart_types.dart' show DartType, GenericType;
 import '../elements/elements.dart';
 import '../universe/universe.dart';
 import '../universe/universe.dart' show Selector;
+import 'optimization/optimization.dart';
 
 // The Tree language is the target of translation out of the CPS-based IR.
 //
@@ -86,7 +87,7 @@ class Label {
  */
 class Variable extends Expression {
   /// Function that declares this variable.
-  FunctionDefinition host;
+  ExecutableElement host;
 
   /// [Entity] used for synthesizing a name for the variable.
   /// Different variables may have the same entity. May be null.
@@ -492,7 +493,23 @@ class ExpressionStatement extends Statement {
   accept(StatementVisitor visitor) => visitor.visitExpressionStatement(this);
 }
 
-class FunctionDefinition extends Node {
+abstract class ExecutableDefinition {
+  ExecutableElement get element;
+  Statement body;
+
+  applyPass(Pass pass);
+}
+
+class FieldDefinition extends Node implements ExecutableDefinition {
+  final FieldElement element;
+  // The `body` of a field is its initializer.
+  Statement body;
+
+  FieldDefinition(this.element, this.body);
+  applyPass(Pass pass) => pass.rewriteFieldDefinition(this);
+}
+
+class FunctionDefinition extends Node implements ExecutableDefinition {
   final FunctionElement element;
   final List<Variable> parameters;
   Statement body;
@@ -506,6 +523,7 @@ class FunctionDefinition extends Node {
   ///
   /// If `true` [body] is `null` and [localConstants] is empty.
   bool get isAbstract => body == null;
+  applyPass(Pass pass) => pass.rewriteFunctionDefinition(this);
 }
 
 abstract class ExpressionVisitor<E> {

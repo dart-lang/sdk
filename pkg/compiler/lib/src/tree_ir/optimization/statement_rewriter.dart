@@ -107,7 +107,19 @@ class StatementRewriter extends Visitor<Statement, Expression> implements Pass {
     return newJump != null ? newJump : jump;
   }
 
-  void rewrite(FunctionDefinition definition) {
+  void rewrite(ExecutableDefinition definition) => definition.applyPass(this);
+
+  void rewriteFieldDefinition(FieldDefinition definition) {
+    environment = <Assign>[];
+    definition.body = visitStatement(definition.body);
+
+    // TODO(kmillikin):  Allow definitions that are not propagated.  Here,
+    // this means rebuilding the binding with a recursively unnamed definition,
+    // or else introducing a variable definition and an assignment.
+    assert(environment.isEmpty);
+  }
+
+  void rewriteFunctionDefinition(FunctionDefinition definition) {
     if (definition.isAbstract) return;
 
     environment = <Assign>[];
@@ -118,6 +130,7 @@ class StatementRewriter extends Visitor<Statement, Expression> implements Pass {
     // or else introducing a variable definition and an assignment.
     assert(environment.isEmpty);
   }
+
 
   Expression visitExpression(Expression e) => e.processed ? e : e.accept(this);
 

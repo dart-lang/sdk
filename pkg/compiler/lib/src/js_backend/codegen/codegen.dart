@@ -96,7 +96,7 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   String getVariableName(tree_ir.Variable variable) {
     // TODO(sigurdm): Handle case where the variable belongs to an enclosing
     // function.
-    if (variable.host.element != currentFunction) giveup(variable);
+    if (variable.host != currentFunction) giveup(variable);
 
     // Get the name if we already have one.
     String name = variableNames[variable];

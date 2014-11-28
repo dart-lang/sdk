@@ -15,8 +15,18 @@ part of dart2js.optimizers;
 class RedundantPhiEliminator extends RecursiveVisitor implements Pass {
   final Set<Continuation> workSet = new Set<Continuation>();
 
-  void rewrite(final FunctionDefinition root) {
+  void rewrite(final ExecutableDefinition root) => root.applyPass(this);
+
+  void rewriteFunctionDefinition(final FunctionDefinition root) {
     if (root.isAbstract) return;
+    rewriteExecutableDefinition(root);
+  }
+
+  void rewriteFieldDefinition(final FieldDefinition root) {
+    rewriteExecutableDefinition(root);
+  }
+
+  void rewriteExecutableDefinition(final ExecutableDefinition root) {
 
     // Set all parent pointers.
     new ParentVisitor().visit(root);

@@ -43,6 +43,14 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
            '$body)';
   }
 
+  String visitFieldDefinition(FieldDefinition node) {
+    String name = node.element.name;
+    namer.useReturnName(node.returnContinuation);
+    String body = indentBlock(() => visit(node.body));
+    return '$indentation(FieldDefinition $name (return)\n'
+           '$body)';
+  }
+
   String visitLetPrim(LetPrim node) {
     String name = newValueName(node.primitive);
     String value = visit(node.primitive);

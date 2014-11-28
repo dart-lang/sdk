@@ -94,7 +94,8 @@ class CspFunctionCompiler implements FunctionCompiler {
     // TODO(sigurdm): Support these constructs.
     if (element.isGenerativeConstructorBody ||
         element.enclosingClass is ClosureClassElement ||
-        element.isNative) {
+        element.isNative ||
+        element.isField) {
       giveUp('unsupported element kind: ${element.name}:${element.kind}');
     }
 
@@ -126,7 +127,7 @@ class CspFunctionCompiler implements FunctionCompiler {
 
   tree_ir.FunctionDefinition compileToTreeIR(cps.FunctionDefinition cpsNode) {
     tree_builder.Builder builder = new tree_builder.Builder(compiler);
-    tree_ir.FunctionDefinition treeNode = builder.build(cpsNode);
+    tree_ir.FunctionDefinition treeNode = builder.buildFunction(cpsNode);
     assert(treeNode != null);
     traceGraph('Tree builder', treeNode);
     return treeNode;

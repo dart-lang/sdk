@@ -134,10 +134,10 @@ class DartBackend extends Backend {
 
   /// Create an [ElementAst] from the CPS IR.
   static ElementAst createElementAst(Compiler compiler,
-                                     Tracer tracer,
-                                     ConstantSystem constantSystem,
-                                     Element element,
-                                     cps_ir.FunctionDefinition function) {
+       Tracer tracer,
+       ConstantSystem constantSystem,
+       Element element,
+       cps_ir.ExecutableDefinition cpsDefinition) {
     // Transformations on the CPS IR.
     if (tracer != null) {
       tracer.traceCompilation(element.name, null);
@@ -149,38 +149,38 @@ class DartBackend extends Backend {
       }
     }
 
-    new ConstantPropagator(compiler, constantSystem).rewrite(function);
-    traceGraph("Sparse constant propagation", function);
-    new RedundantPhiEliminator().rewrite(function);
-    traceGraph("Redundant phi elimination", function);
-    new ShrinkingReducer().rewrite(function);
-    traceGraph("Shrinking reductions", function);
+    new ConstantPropagator(compiler, constantSystem).rewrite(cpsDefinition);
+    traceGraph("Sparse constant propagation", cpsDefinition);
+    new RedundantPhiEliminator().rewrite(cpsDefinition);
+    traceGraph("Redundant phi elimination", cpsDefinition);
+    new ShrinkingReducer().rewrite(cpsDefinition);
+    traceGraph("Shrinking reductions", cpsDefinition);
 
     // Do not rewrite the IR after variable allocation.  Allocation
     // makes decisions based on an approximation of IR variable live
     // ranges that can be invalidated by transforming the IR.
-    new cps_ir.RegisterAllocator().visit(function);
+    new cps_ir.RegisterAllocator().visit(cpsDefinition);
 
     tree_builder.Builder builder = new tree_builder.Builder(compiler);
-    tree_ir.FunctionDefinition definition = builder.build(function);
-    assert(definition != null);
-    traceGraph('Tree builder', definition);
+    tree_ir.ExecutableDefinition treeDefinition = builder.build(cpsDefinition);
+    assert(treeDefinition != null);
+    traceGraph('Tree builder', treeDefinition);
 
     // Transformations on the Tree IR.
-    new StatementRewriter().rewrite(definition);
-    traceGraph('Statement rewriter', definition);
-    new CopyPropagator().rewrite(definition);
-    traceGraph('Copy propagation', definition);
-    new LoopRewriter().rewrite(definition);
-    traceGraph('Loop rewriter', definition);
-    new LogicalRewriter().rewrite(definition);
-    traceGraph('Logical rewriter', definition);
-    new backend_ast_emitter.UnshadowParameters().unshadow(definition);
-    traceGraph('Unshadow parameters', definition);
+    new StatementRewriter().rewrite(treeDefinition);
+    traceGraph('Statement rewriter', treeDefinition);
+    new CopyPropagator().rewrite(treeDefinition);
+    traceGraph('Copy propagation', treeDefinition);
+    new LoopRewriter().rewrite(treeDefinition);
+    traceGraph('Loop rewriter', treeDefinition);
+    new LogicalRewriter().rewrite(treeDefinition);
+    traceGraph('Logical rewriter', treeDefinition);
+    new backend_ast_emitter.UnshadowParameters().unshadow(treeDefinition);
+    traceGraph('Unshadow parameters', treeDefinition);
 
     TreeElementMapping treeElements = new TreeElementMapping(element);
-    backend_ast.Node backendAst =
-        backend_ast_emitter.emit(definition);
+    backend_ast.ExecutableDefinition backendAst =
+        backend_ast_emitter.emit(treeDefinition);
     Node frontend_ast = backend2frontend.emit(treeElements, backendAst);
     return new ElementAst.internal(frontend_ast, treeElements);
 
@@ -204,9 +204,10 @@ class DartBackend extends Backend {
       if (!compiler.irBuilder.hasIr(element)) {
         return new ElementAst(element);
       } else {
-        cps_ir.FunctionDefinition function = compiler.irBuilder.getIr(element);
+        cps_ir.ExecutableDefinition definition =
+            compiler.irBuilder.getIr(element);
         return createElementAst(compiler,
-            compiler.tracer, constantSystem, element, function);
+            compiler.tracer, constantSystem, element, definition);
       }
     }
 

@@ -50,8 +50,8 @@ class BlockCollector extends StatementVisitor {
     blocks.add(block);
   }
 
-  void collect(FunctionDefinition function) {
-    visitStatement(function.body);
+  void collect(ExecutableDefinition node) {
+    visitStatement(node.body);
   }
 
   visitLabeledStatement(LabeledStatement node) {
@@ -151,11 +151,11 @@ class TreeTracer extends TracerUtil with StatementVisitor {
   BlockCollector collector;
   int statementCounter;
 
-  void traceGraph(String name, FunctionDefinition function) {
+  void traceGraph(String name, ExecutableDefinition node) {
     names = new Names();
     statementCounter = 0;
     collector = new BlockCollector();
-    collector.collect(function);
+    collector.collect(node);
     tag("cfg", () {
       printProperty("name", name);
       int blockCounter = 0;

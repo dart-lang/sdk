@@ -12,6 +12,7 @@ import '../dart2jslib.dart' as dart2js show invariant;
 import '../elements/elements.dart';
 import '../universe/universe.dart' show Selector, SelectorKind;
 import '../dart_types.dart' show DartType, GenericType;
+import '../cps_ir/optimizers.dart';
 
 abstract class Node {
   /// A pointer to the parent node. Is null until set by optimization passes.
@@ -550,9 +551,30 @@ class Continuation extends Definition<Continuation> implements InteriorNode {
   accept(Visitor visitor) => visitor.visitContinuation(this);
 }
 
+abstract class ExecutableDefinition implements Node {
+  Expression get body;
+
+  applyPass(Pass pass);
+}
+
+// This is basically a function definition with an empty parameter list and a
+// field element instead of a function element and no const declarations, and
+// never a getter or setter, though that's less important.
+class FieldDefinition extends Node
+    implements InteriorNode, ExecutableDefinition {
+  final FieldElement element;
+  final Continuation returnContinuation;
+  Expression body;
+
+  FieldDefinition(this.element, this.returnContinuation, this.body);
+  accept(Visitor visitor) => visitor.visitFieldDefinition(this);
+  applyPass(Pass pass) => pass.rewriteFieldDefinition(this);
+}
+
 /// A function definition, consisting of parameters and a body.  The parameters
 /// include a distinguished continuation parameter.
-class FunctionDefinition extends Node implements InteriorNode {
+class FunctionDefinition extends Node
+    implements InteriorNode, ExecutableDefinition {
   final FunctionElement element;
   final Continuation returnContinuation;
   final List<Parameter> parameters;
@@ -573,6 +595,7 @@ class FunctionDefinition extends Node implements InteriorNode {
         this.localConstants = const <ConstDeclaration>[];
 
   accept(Visitor visitor) => visitor.visitFunctionDefinition(this);
+  applyPass(Pass pass) => pass.rewriteFunctionDefinition(this);
 
   /// Returns `true` if this function is abstract or external.
   ///
@@ -597,6 +620,7 @@ abstract class Visitor<T> {
   T visitCondition(Condition node) => visitNode(node);
 
   // Concrete classes.
+  T visitFieldDefinition(FieldDefinition node) => visitNode(node);
   T visitFunctionDefinition(FunctionDefinition node) => visitNode(node);
 
   // Expressions.
@@ -645,6 +669,12 @@ abstract class RecursiveVisitor extends Visitor {
   }
 
   processReference(Reference ref) {}
+
+  processFieldDefinition(FieldDefinition node) {}
+  visitFieldDefinition(FieldDefinition node) {
+    processFieldDefinition(node);
+    visit(node.body);
+  }
 
   processFunctionDefinition(FunctionDefinition node) {}
   visitFunctionDefinition(FunctionDefinition node) {
@@ -711,7 +741,6 @@ abstract class RecursiveVisitor extends Visitor {
     processReference(node.continuation);
     node.arguments.forEach(processReference);
   }
-
 
   processBranch(Branch node) {}
   visitBranch(Branch node) {
@@ -863,12 +892,15 @@ class RegisterAllocator extends Visitor {
     allocate(reference.definition);
   }
 
+  void visitFieldDefinition(FieldDefinition node) {
+    visit(node.body);
+  }
+
   void visitFunctionDefinition(FunctionDefinition node) {
     if (!node.isAbstract) {
       visit(node.body);
     }
     node.parameters.forEach(allocate); // Assign indices to unused parameters.
-    elementRegisters.clear();
   }
 
   void visitLetPrim(LetPrim node) {

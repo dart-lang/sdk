@@ -27,14 +27,12 @@ part of tree_ir.optimization;
 ///
 /// Note that the above pattern needs no iteration since nested ifs
 /// have been collapsed previously in the [StatementRewriter] phase.
-class LoopRewriter extends RecursiveVisitor implements Pass {
+class LoopRewriter extends RecursiveVisitor with PassMixin {
 
   Set<Label> usedContinueLabels = new Set<Label>();
 
-  void rewrite(FunctionDefinition function) {
-    if (function.isAbstract) return;
-
-    function.body = visitStatement(function.body);
+  void rewriteExecutableDefinition(ExecutableDefinition root) {
+    root.body = visitStatement(root.body);
   }
 
   Statement visitLabeledStatement(LabeledStatement node) {

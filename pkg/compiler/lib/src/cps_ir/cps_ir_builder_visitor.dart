@@ -22,8 +22,8 @@ part of dart2js.ir_builder;
  * re-implemented to work directly on the IR.
  */
 class IrBuilderTask extends CompilerTask {
-  final Map<Element, ir.FunctionDefinition> nodes =
-      <Element, ir.FunctionDefinition>{};
+  final Map<Element, ir.ExecutableDefinition> nodes =
+      <Element, ir.ExecutableDefinition>{};
 
   IrBuilderTask(Compiler compiler) : super(compiler);
 
@@ -31,9 +31,11 @@ class IrBuilderTask extends CompilerTask {
 
   bool hasIr(Element element) => nodes.containsKey(element.implementation);
 
-  ir.FunctionDefinition getIr(Element element) => nodes[element.implementation];
+  ir.ExecutableDefinition getIr(ExecutableElement element) {
+    return nodes[element.implementation];
+  }
 
-  ir.FunctionDefinition buildNode(AstElement element) {
+  ir.ExecutableDefinition buildNode(AstElement element) {
     if (!canBuild(element)) return null;
     TreeElements elementsMapping = element.resolvedAst.elements;
     element = element.implementation;
@@ -41,7 +43,7 @@ class IrBuilderTask extends CompilerTask {
       SourceFile sourceFile = elementSourceFile(element);
       IrBuilderVisitor builder =
           new IrBuilderVisitor(elementsMapping, compiler, sourceFile);
-      return builder.buildFunction(element);
+      return builder.buildExecutable(element);
     });
   }
 
@@ -49,28 +51,27 @@ class IrBuilderTask extends CompilerTask {
     measure(() {
       Set<Element> resolved = compiler.enqueuer.resolution.resolvedElements;
       resolved.forEach((AstElement element) {
-        ir.FunctionDefinition functionDefinition = buildNode(element);
-        if (functionDefinition != null) {
-          nodes[element] = functionDefinition;
+        ir.ExecutableDefinition definition = buildNode(element);
+        if (definition != null) {
+          nodes[element] = definition;
         }
       });
     });
   }
 
-
   bool canBuild(Element element) {
-    FunctionElement function = element.asFunctionElement();
-    // TODO(kmillikin,sigurdm): support lazy field initializers.
-    if (function == null) return false;
+    if (element is TypedefElement) return false;
+    if (element is FunctionElement) {
+      // TODO(sigurdm): Support native functions for dart2js.
+      assert(invariant(element, !element.isNative));
 
-    if (!compiler.backend.shouldOutput(function)) return false;
+      // TODO(kmillikin,sigurdm): Support constructors.
+      if (element is ConstructorElement) return false;
 
-    assert(invariant(element, !function.isNative));
-
-    // TODO(kmillikin,sigurdm): Support constructors.
-    if (function is ConstructorElement) return false;
-
-    return true;
+    } else if (element is! FieldElement) {
+      compiler.internalError(element, "Unexpected elementtype $element");
+    }
+    return compiler.backend.shouldOutput(element);
   }
 
   bool get inCheckedMode {
@@ -129,15 +130,54 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
       : super(elements);
 
   /**
-   * Builds the [ir.FunctionDefinition] for a function element. In case the
-   * function uses features that cannot be expressed in the IR, this function
+   * Builds the [ir.ExecutableDefinition] for an executable element. In case the
+   * function uses features that cannot be expressed in the IR, this element
    * returns `null`.
    */
-  ir.FunctionDefinition buildFunction(FunctionElement functionElement) {
-    return nullIfGiveup(() => buildFunctionInternal(functionElement));
+  ir.ExecutableDefinition buildExecutable(ExecutableElement element) {
+    return nullIfGiveup(() {
+      if (element is FieldElement) {
+        return buildField(element);
+      } else if (element is FunctionElement) {
+        return buildFunction(element);
+      } else {
+        compiler.internalError(element, "Unexpected element type $element");
+      }
+    });
   }
 
-  ir.FunctionDefinition buildFunctionInternal(FunctionElement element) {
+  /// Returns a [ir.FieldDefinition] describing the initializer of [element].
+  /// Returns `null` if [element] has no initializer.
+  ir.FieldDefinition buildField(FieldElement element) {
+    assert(invariant(element, element.isImplementation));
+    ast.VariableDefinitions definitions = element.node;
+    ast.Node fieldDefinition =
+        definitions.definitions.nodes.first;
+    if (definitions.modifiers.isConst) {
+      // TODO(sigurdm): Just return const value.
+    }
+    assert(fieldDefinition != null);
+    assert(elements[fieldDefinition] != null);
+    // This means there is no initializer.
+    // TODO(sigurdm): Avoid ever getting here. Abstract functions and fields
+    // with no initializer should not have a representation in the IR.
+    if (fieldDefinition is! ast.SendSet) return null;
+    DetectClosureVariables closureLocals =
+    new DetectClosureVariables(elements);
+        closureLocals.visit(fieldDefinition);
+
+    IrBuilder builder = new IrBuilder(compiler.backend.constantSystem,
+        element,
+        closureLocals.usedFromClosure);
+    return withBuilder(builder, () {
+      ast.SendSet sendSet = fieldDefinition;
+      ir.Primitive result = visit(sendSet.arguments.first);
+      builder.buildReturn(result);
+      return builder.makeFieldDefinition();
+    });
+  }
+
+  ir.FunctionDefinition buildFunction(FunctionElement element) {
     assert(invariant(element, element.isImplementation));
     ast.FunctionExpression function = element.node;
     assert(function != null);
@@ -161,7 +201,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
       });
 
       visit(function.body);
-      return irBuilder.buildFunctionDefinition(element, defaults);
+      return irBuilder.buildFunctionDefinition(defaults);
     });
   }
 
@@ -806,7 +846,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   }
 
   ir.FunctionDefinition makeSubFunction(ast.FunctionExpression node) {
-    return buildFunctionInternal(elements[node]);
+    return buildFunction(elements[node]);
   }
 
   ir.Primitive visitFunctionExpression(ast.FunctionExpression node) {
@@ -825,7 +865,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     throw ABORT_IRNODE_BUILDER;
   }
 
-  ir.FunctionDefinition nullIfGiveup(ir.FunctionDefinition action()) {
+  ir.ExecutableDefinition nullIfGiveup(ir.ExecutableDefinition action()) {
     try {
       return action();
     } catch(e, tr) {

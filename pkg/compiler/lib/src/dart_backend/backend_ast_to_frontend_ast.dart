@@ -15,9 +15,9 @@ import 'backend_ast_nodes.dart';
 import 'backend_ast_emitter.dart' show createTypeAnnotation;
 
 /// Translates the backend AST to Dart frontend AST.
-tree.FunctionExpression emit(dart2js.TreeElementMapping treeElements,
-                             Node definition) {
-  return new TreePrinter(treeElements).makeExpression(definition);
+tree.Node emit(dart2js.TreeElementMapping treeElements,
+               ExecutableDefinition definition) {
+  return new TreePrinter(treeElements).makeDefinition(definition);
 }
 
 /// If true, the unparser will insert a coment in front of every function
@@ -31,6 +31,34 @@ class TreePrinter {
   dart2js.TreeElementMapping treeElements;
 
   TreePrinter([this.treeElements]);
+
+  tree.Node makeDefinition(ExecutableDefinition node) {
+    if (node is FieldDefinition) {
+      tree.Node definition;
+      if (node.initializer == null) {
+        definition = makeIdentifier(node.element.name);
+      } else {
+        definition = new tree.SendSet(
+            null,
+            makeIdentifier(node.element.name),
+            new tree.Operator(assignmentToken("=")),
+            singleton(makeExpression(node.initializer)));
+      }
+      setElement(definition, node.element, node);
+      return new tree.VariableDefinitions(
+          null, // TODO(sigurdm): Type
+          makeVarModifiers(useVar: true,
+                           isFinal: node.element.isFinal,
+                           isStatic: node.element.isStatic,
+                           isConst: node.element.isConst),
+          makeList(null, [definition], close: semicolon));
+    } else if (node is FunctionExpression) {
+      return makeExpression(node);
+    } else {
+      assert(false);
+      return null;
+    }
+  }
 
   void setElement(tree.Node node, elements.Element element, source) {
     if (treeElements != null) {
@@ -418,8 +446,9 @@ class TreePrinter {
           makeFunctionModifiers(exp),
           null,  // initializers
           getOrSet,  // get/set
-          null); // async modifier
-      setElement(result, exp.element, exp);
+          null);  // async modifier
+      elements.Element element = exp.element;
+      if (element != null) setElement(result, element, exp);
     } else if (exp is Identifier) {
       precedence = CALLEE;
       result = new tree.Send(
@@ -962,13 +991,15 @@ class TreePrinter {
     if (isVar) {
       nodes.add(makeIdentifier('var'));
     }
-    return new tree.Modifiers(makeList('', nodes));
+    return new tree.Modifiers(makeList(' ', nodes));
   }
 
   tree.Modifiers makeVarModifiers({bool isConst: false,
                                    bool isFinal: false,
-                                   bool useVar: false}) {
-    return makeModifiers(isConst: isConst,
+                                   bool useVar: false,
+                                   bool isStatic: false}) {
+    return makeModifiers(isStatic: isStatic,
+                         isConst: isConst,
                          isFinal: isFinal,
                          isVar: useVar && !(isConst || isFinal));
   }
