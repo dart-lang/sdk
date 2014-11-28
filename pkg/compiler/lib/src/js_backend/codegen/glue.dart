@@ -48,6 +48,14 @@ class Glue {
 
   ClassElement get listClass => _compiler.listClass;
 
+  ConstructorElement get mapLiteralConstructor {
+    return _backend.mapLiteralConstructor;
+  }
+
+  ConstructorElement get mapLiteralConstructorEmpty {
+    return _backend.mapLiteralConstructorEmpty;
+  }
+
   FunctionElement get identicalFunction => _compiler.identicalFunction;
 
   String invocationName(Selector selector) {

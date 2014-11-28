@@ -497,45 +497,37 @@ class Selector {
   /**
    * Returns a `List` with the evaluated arguments in the normalized order.
    *
-   * [compileArgument] is a function that returns a compiled version
-   * of an argument located in [arguments].
-   *
    * [compileDefaultValue] is a function that returns a compiled constant
-   * of an optional argument that is not in [arguments].
+   * of an optional argument that is not in [compiledArguments].
    *
    * Precondition: `this.applies(element, world)`.
    *
    * Invariant: [element] must be the implementation element.
    */
   /*<S, T>*/ List/*<T>*/ makeArgumentsList(
-        List/*<S>*/ arguments,
         FunctionElement element,
-        /*T*/ compileArgument(/*S*/ argument),
+        List/*<T>*/ compiledArguments,
         /*T*/ compileDefaultValue(ParameterElement element)) {
     assert(invariant(element, element.isImplementation));
     List/*<T>*/ result = new List();
     FunctionSignature parameters = element.functionSignature;
     int i = 0;
     parameters.forEachRequiredParameter((ParameterElement element) {
-      result.add(compileArgument(arguments[i]));
+      result.add(compiledArguments[i]);
       ++i;
     });
 
     if (!parameters.optionalParametersAreNamed) {
       parameters.forEachOptionalParameter((ParameterElement element) {
-        if (i < arguments.length) {
-          result.add(compileArgument(arguments[i]));
+        if (i < compiledArguments.length) {
+          result.add(compiledArguments[i]);
           ++i;
         } else {
           result.add(compileDefaultValue(element));
         }
       });
     } else {
-      // Visit named arguments and add them into a temporary list.
-      List compiledNamedArguments = [];
-      for (; i < arguments.length; ++i) {
-        compiledNamedArguments.add(compileArgument(arguments[i]));
-      }
+      int offset = i;
       // Iterate over the optional parameters of the signature, and try to
       // find them in [compiledNamedArguments]. If found, we use the
       // value in the temporary list, otherwise the default value.
@@ -543,7 +535,7 @@ class Selector {
           .forEach((ParameterElement element) {
         int foundIndex = namedArguments.indexOf(element.name);
         if (foundIndex != -1) {
-          result.add(compiledNamedArguments[foundIndex]);
+          result.add(compiledArguments[offset + foundIndex]);
         } else {
           result.add(compileDefaultValue(element));
         }

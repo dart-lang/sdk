@@ -168,21 +168,23 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   js.Expression buildStaticInvoke(Selector selector,
                                   Element target,
-                                  List<tree_ir.Expression> arguments) {
+                                  List<js.Expression> arguments) {
     registry.registerStaticInvocation(target.declaration);
 
     js.Expression elementAccess = glue.elementAccess(target);
     List<js.Expression> compiledArguments =
-        selector.makeArgumentsList(arguments, target.implementation,
-            visitExpression,
-            compileConstant);
+        selector.makeArgumentsList(target.implementation,
+                                   arguments,
+                                   compileConstant);
     return new js.Call(elementAccess, compiledArguments);
   }
 
   @override
   js.Expression visitInvokeConstructor(tree_ir.InvokeConstructor node) {
     if (node.constant != null) return giveup(node);
-    return buildStaticInvoke(node.selector, node.target, node.arguments);
+    return buildStaticInvoke(node.selector,
+                             node.target,
+                             visitArguments(node.arguments));
   }
 
   void registerMethodInvoke(tree_ir.InvokeMethod node) {
@@ -209,7 +211,9 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   js.Expression visitInvokeStatic(tree_ir.InvokeStatic node) {
-    return buildStaticInvoke(node.selector, node.target, node.arguments);
+    return buildStaticInvoke(node.selector,
+                             node.target,
+                             visitArguments(node.arguments));
   }
 
   @override
@@ -229,8 +233,27 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   js.Expression visitLiteralMap(tree_ir.LiteralMap node) {
-    return giveup(node);
-    // TODO: implement visitLiteralMap
+    ConstructorElement constructor;
+    if (node.entries.isEmpty) {
+      constructor = glue.mapLiteralConstructorEmpty;
+    } else {
+      constructor = glue.mapLiteralConstructor;
+    }
+    List<js.ArrayElement> entries =
+        new List<js.ArrayElement>(2 * node.entries.length);
+    for (int i = 0; i < node.entries.length; i++) {
+      js.Expression key = visitExpression(node.entries[i].key);
+      js.Expression value = visitExpression(node.entries[i].value);
+      entries[2 * i] = new js.ArrayElement(2 * i, key);
+      entries[2 * i + 1] = new js.ArrayElement(2 * i + 1, value);
+    }
+    List<js.Expression> args =
+        <js.Expression>[new js.ArrayInitializer(node.entries.length * 2,
+                                                entries)];
+    return buildStaticInvoke(
+        new Selector.call(constructor.name, constructor.library, 2),
+        constructor,
+        args);
   }
 
   @override
