@@ -3834,41 +3834,57 @@ class SsaBuilder extends ResolvedVisitor {
     } else if (name == 'JS_CREATE_ISOLATE') {
       handleForeignCreateIsolate(node);
     } else if (name == 'JS_OPERATOR_IS_PREFIX') {
-      stack.add(addConstantString(backend.namer.operatorIsPrefix()));
+      // TODO(floitsch): this should be a JS_NAME.
+      stack.add(addConstantString(backend.namer.operatorIsPrefix));
     } else if (name == 'JS_OBJECT_CLASS_NAME') {
+      // TODO(floitsch): this should be a JS_NAME.
       String name = backend.namer.getRuntimeTypeName(compiler.objectClass);
       stack.add(addConstantString(name));
     } else if (name == 'JS_NULL_CLASS_NAME') {
+      // TODO(floitsch): this should be a JS_NAME.
       String name = backend.namer.getRuntimeTypeName(compiler.nullClass);
       stack.add(addConstantString(name));
     } else if (name == 'JS_FUNCTION_CLASS_NAME') {
+      // TODO(floitsch): this should be a JS_NAME.
       String name = backend.namer.getRuntimeTypeName(compiler.functionClass);
       stack.add(addConstantString(name));
     } else if (name == 'JS_OPERATOR_AS_PREFIX') {
-      stack.add(addConstantString(backend.namer.operatorAsPrefix()));
+      // TODO(floitsch): this should be a JS_NAME.
+      stack.add(addConstantString(backend.namer.operatorAsPrefix));
     } else if (name == 'JS_SIGNATURE_NAME') {
-      stack.add(addConstantString(backend.namer.operatorSignature()));
+      // TODO(floitsch): this should be a JS_NAME.
+      stack.add(addConstantString(backend.namer.operatorSignature));
+    } else if (name == 'JS_TYPEDEF_TAG') {
+      // TODO(floitsch): this should be a JS_NAME.
+      stack.add(addConstantString(backend.namer.typedefTag));
     } else if (name == 'JS_FUNCTION_TYPE_TAG') {
-      stack.add(addConstantString(backend.namer.functionTypeTag()));
+      // TODO(floitsch): this should be a JS_NAME.
+      stack.add(addConstantString(backend.namer.functionTypeTag));
     } else if (name == 'JS_FUNCTION_TYPE_VOID_RETURN_TAG') {
-      stack.add(addConstantString(backend.namer.functionTypeVoidReturnTag()));
+      // TODO(floitsch): this should be a JS_NAME.
+      stack.add(addConstantString(backend.namer.functionTypeVoidReturnTag));
     } else if (name == 'JS_FUNCTION_TYPE_RETURN_TYPE_TAG') {
-      stack.add(addConstantString(backend.namer.functionTypeReturnTypeTag()));
+      // TODO(floitsch): this should be a JS_NAME.
+      stack.add(addConstantString(backend.namer.functionTypeReturnTypeTag));
     } else if (name ==
                'JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG') {
+      // TODO(floitsch): this should be a JS_NAME.
       stack.add(addConstantString(
-          backend.namer.functionTypeRequiredParametersTag()));
+          backend.namer.functionTypeRequiredParametersTag));
     } else if (name ==
                'JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG') {
+      // TODO(floitsch): this should be a JS_NAME.
       stack.add(addConstantString(
-          backend.namer.functionTypeOptionalParametersTag()));
+          backend.namer.functionTypeOptionalParametersTag));
     } else if (name ==
                'JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG') {
+      // TODO(floitsch): this should be a JS_NAME.
       stack.add(addConstantString(
-          backend.namer.functionTypeNamedParametersTag()));
+          backend.namer.functionTypeNamedParametersTag));
     } else if (name == 'JS_DART_OBJECT_CONSTRUCTOR') {
       handleForeignDartObjectJsConstructorFunction(node);
     } else if (name == 'JS_IS_INDEXABLE_FIELD_NAME') {
+      // TODO(floitsch): this should be a JS_NAME.
       Element element = backend.findHelper('JavaScriptIndexingBehavior');
       stack.add(addConstantString(backend.namer.operatorIs(element)));
     } else if (name == 'JS_CURRENT_ISOLATE') {

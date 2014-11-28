@@ -2031,7 +2031,7 @@ abstract class Closure implements Function {
       throw 'Error in reflectionInfo.';
     }
 
-    JS('', '#.\$signature = #', prototype, signatureFunction);
+    JS('', '#[#] = #', prototype, JS_SIGNATURE_NAME(), signatureFunction);
 
     JS('', '#[#] = #', prototype, callName, trampoline);
     for (int i = 1; i < functions.length; i++) {

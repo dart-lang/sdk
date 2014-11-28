@@ -64,7 +64,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
       }
       RuntimeTypes rti = backend.rti;
       jsAst.Expression encoding = rti.getSignatureEncoding(type, thisAccess);
-      String operatorSignature = namer.operatorSignature();
+      String operatorSignature = namer.operatorSignature;
       if (!type.containsTypeVariables) {
         builder.functionType = '${emitter.metadataEmitter.reifyType(type)}';
       } else {

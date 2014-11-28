@@ -379,6 +379,7 @@ class OldEmitter implements Emitter {
         generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
     jsAst.Expression metadataAccess =
         generateEmbeddedGlobalAccess(embeddedNames.METADATA);
+    String signaturePropertyName = namer.operatorSignature;
 
     return js('''
       function(collectedClasses, isolateProperties, existingIsolateProperties) {
@@ -426,7 +427,7 @@ class OldEmitter implements Emitter {
             supr = split[0];
             var functionSignature = split[1];
             if (functionSignature)
-              desc.\$signature = (function(s) {
+              desc.$signaturePropertyName = (function(s) {
                   return function(){ return #metadata[s]; };
                 })(functionSignature);
           }

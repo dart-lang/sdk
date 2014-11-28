@@ -208,6 +208,9 @@ JS_CURRENT_ISOLATE() {}
 /// Returns the name used for generated function types on classes and methods.
 String JS_SIGNATURE_NAME() {}
 
+/// Returns the name used to tag typedefs.
+String JS_TYPEDEF_TAG() {}
+
 /// Returns the name used to tag function type representations in JavaScript.
 String JS_FUNCTION_TYPE_TAG() {}
 
