@@ -18,7 +18,7 @@ class ClassEmitter extends CodeEmitterHelper {
                      ClassBuilder properties,
                      Map<String, jsAst.Expression> additionalProperties) {
     final onlyForRti =
-        emitter.typeTestEmitter.rtiNeededClasses.contains(classElement);
+        emitter.typeTestRegistry.rtiNeededClasses.contains(classElement);
 
     assert(invariant(classElement, classElement.isDeclaration));
     assert(invariant(classElement, !classElement.isNative || onlyForRti));

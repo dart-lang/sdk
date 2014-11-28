@@ -12,7 +12,7 @@ class OldEmitter implements Emitter {
   final ContainerBuilder containerBuilder = new ContainerBuilder();
   final ClassEmitter classEmitter = new ClassEmitter();
   final NsmEmitter nsmEmitter = new NsmEmitter();
-  TypeTestEmitter get typeTestEmitter => task.typeTestEmitter;
+  final TypeTestEmitter typeTestEmitter = new TypeTestEmitter();
   final InterceptorEmitter interceptorEmitter = new InterceptorEmitter();
   final MetadataEmitter metadataEmitter = new MetadataEmitter();
 
@@ -27,6 +27,7 @@ class OldEmitter implements Emitter {
   final Namer namer;
   ConstantEmitter constantEmitter;
   NativeEmitter get nativeEmitter => task.nativeEmitter;
+  TypeTestRegistry get typeTestRegistry => task.typeTestRegistry;
 
   // The full code that is written to each hunk part-file.
   Map<OutputUnit, CodeBuffer> outputBuffers = new Map<OutputUnit, CodeBuffer>();
@@ -108,6 +109,7 @@ class OldEmitter implements Emitter {
     containerBuilder.emitter = this;
     classEmitter.emitter = this;
     nsmEmitter.emitter = this;
+    typeTestEmitter.emitter = this;
     interceptorEmitter.emitter = this;
     metadataEmitter.emitter = this;
   }

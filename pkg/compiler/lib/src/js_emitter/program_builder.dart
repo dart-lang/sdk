@@ -270,8 +270,7 @@ class ProgramBuilder {
     String name = namer.getNameOfClass(element);
     String holderName = namer.globalObjectFor(element);
     Holder holder = _registry.registerHolder(holderName);
-    bool onlyForRti =
-        _task.typeTestEmitter.rtiNeededClasses.contains(element);
+    bool onlyForRti = _task.typeTestRegistry.rtiNeededClasses.contains(element);
     bool isInstantiated =
         _compiler.codegenWorld.directlyInstantiatedClasses.contains(element);
 

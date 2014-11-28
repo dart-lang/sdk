@@ -15,7 +15,7 @@ const USE_NEW_EMITTER = const bool.fromEnvironment("dart2js.use.new.emitter");
 class CodeEmitterTask extends CompilerTask {
   // TODO(floitsch): the code-emitter task should not need a namer.
   final Namer namer;
-  final TypeTestEmitter typeTestEmitter = new TypeTestEmitter();
+  final TypeTestRegistry typeTestRegistry;
   NativeEmitter nativeEmitter;
   OldEmitter oldEmitter;
   Emitter emitter;
@@ -47,13 +47,13 @@ class CodeEmitterTask extends CompilerTask {
 
   CodeEmitterTask(Compiler compiler, Namer namer, bool generateSourceMap)
       : super(compiler),
-        this.namer = namer {
+        this.namer = namer,
+        this.typeTestRegistry = new TypeTestRegistry(compiler) {
     oldEmitter = new OldEmitter(compiler, namer, generateSourceMap, this);
     emitter = USE_NEW_EMITTER
         ? new new_js_emitter.Emitter(compiler, namer)
         : oldEmitter;
     nativeEmitter = new NativeEmitter(this);
-    typeTestEmitter.emitter = this.oldEmitter;
   }
 
 
@@ -145,7 +145,7 @@ class CodeEmitterTask extends CompilerTask {
         }
       }
       for (ClassElement cls in neededClasses) {
-        final onlyForRti = typeTestEmitter.rtiNeededClasses.contains(cls);
+        final onlyForRti = typeTestRegistry.rtiNeededClasses.contains(cls);
         if (!onlyForRti) {
           backend.retainMetadataOf(cls);
           oldEmitter.classEmitter.visitFields(cls, false,
@@ -248,13 +248,13 @@ class CodeEmitterTask extends CompilerTask {
     // these are thought to not have been instantiated, so we neeed to be able
     // to identify them later and make sure we only emit "empty shells" without
     // fields, etc.
-    typeTestEmitter.computeRtiNeededClasses();
+    typeTestRegistry.computeRtiNeededClasses();
 
     // TODO(floitsch): either change the name, or get the rti-classes
     // differently.
-    typeTestEmitter.rtiNeededClasses.removeAll(neededClasses);
+    typeTestRegistry.rtiNeededClasses.removeAll(neededClasses);
     // rtiNeededClasses now contains only the "empty shells".
-    neededClasses.addAll(typeTestEmitter.rtiNeededClasses);
+    neededClasses.addAll(typeTestRegistry.rtiNeededClasses);
 
     // TODO(18175, floitsch): remove once issue 18175 is fixed.
     if (neededClasses.contains(backend.jsIntClass)) {
@@ -281,7 +281,7 @@ class CodeEmitterTask extends CompilerTask {
 
     for (ClassElement element in sortedClasses) {
       if (Elements.isNativeOrExtendsNative(element) &&
-          !typeTestEmitter.rtiNeededClasses.contains(element)) {
+          !typeTestRegistry.rtiNeededClasses.contains(element)) {
         // For now, native classes and related classes cannot be deferred.
         nativeClasses.add(element);
         if (!element.isNative) {
@@ -332,7 +332,7 @@ class CodeEmitterTask extends CompilerTask {
 
       // Compute the required type checks to know which classes need a
       // 'is$' method.
-      typeTestEmitter.computeRequiredTypeChecks();
+      typeTestRegistry.computeRequiredTypeChecks();
 
       computeNeededDeclarations();
       computeNeededConstants();

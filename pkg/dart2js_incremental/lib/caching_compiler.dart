@@ -104,7 +104,7 @@ Future<Compiler> reuseCompiler(
     backend.emitter.oldEmitter.nsmEmitter
         ..trivialNsmHandlers.clear();
 
-    backend.emitter.typeTestEmitter
+    backend.emitter.typeTestRegistry
         ..checkedClasses = null
         ..checkedFunctionTypes = null
         ..rtiNeededClasses.clear()
