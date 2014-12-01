@@ -3296,6 +3296,23 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         load->set_recognized_kind(kind);
         return ReturnDefinition(load);
       }
+      case MethodRecognizer::kBigint_setDigits: {
+        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
+        LocalVariable* value_var =
+            node->scope()->LookupVariable(Symbols::Value(), true);
+        ASSERT(value_var != NULL);
+        Value* value = Bind(new(I) LoadLocalInstr(*value_var));
+        StoreInstanceFieldInstr* store = new(I) StoreInstanceFieldInstr(
+            Bigint::digits_offset(),
+            receiver,
+            value,
+            kEmitStoreBarrier,
+            node->token_pos());
+        Do(store);
+        ConstantInstr* null_const = new(I) ConstantInstr(
+            Object::ZoneHandle(I, Object::null()));
+        return ReturnDefinition(null_const);
+      }
       case MethodRecognizer::kBigint_getUsed: {
         Value* receiver = Bind(BuildLoadThisVar(node->scope()));
         LoadFieldInstr* load = new(I) LoadFieldInstr(
@@ -3307,6 +3324,23 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         load->set_recognized_kind(kind);
         return ReturnDefinition(load);
       }
+      case MethodRecognizer::kBigint_setUsed: {
+        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
+        LocalVariable* value_var =
+            node->scope()->LookupVariable(Symbols::Value(), true);
+        ASSERT(value_var != NULL);
+        Value* value = Bind(new(I) LoadLocalInstr(*value_var));
+        StoreInstanceFieldInstr* store = new(I) StoreInstanceFieldInstr(
+            Bigint::used_offset(),
+            receiver,
+            value,
+            kNoStoreBarrier,
+            node->token_pos());
+        Do(store);
+        ConstantInstr* null_const = new(I) ConstantInstr(
+            Object::ZoneHandle(I, Object::null()));
+        return ReturnDefinition(null_const);
+      }
       case MethodRecognizer::kBigint_getNeg: {
         Value* receiver = Bind(BuildLoadThisVar(node->scope()));
         LoadFieldInstr* load = new(I) LoadFieldInstr(
@@ -3317,6 +3351,23 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         load->set_result_cid(kBoolCid);
         load->set_recognized_kind(kind);
         return ReturnDefinition(load);
+      }
+      case MethodRecognizer::kBigint_setNeg: {
+        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
+        LocalVariable* value_var =
+            node->scope()->LookupVariable(Symbols::Value(), true);
+        ASSERT(value_var != NULL);
+        Value* value = Bind(new(I) LoadLocalInstr(*value_var));
+        StoreInstanceFieldInstr* store = new(I) StoreInstanceFieldInstr(
+            Bigint::neg_offset(),
+            receiver,
+            value,
+            kEmitStoreBarrier,
+            node->token_pos());
+        Do(store);
+        ConstantInstr* null_const = new(I) ConstantInstr(
+            Object::ZoneHandle(I, Object::null()));
+        return ReturnDefinition(null_const);
       }
       default:
         break;

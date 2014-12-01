@@ -23,6 +23,7 @@ duplicate_export_negative_test: Fail # Issue 6134
 async_test/*: Skip
 async_control_structures_test: Skip
 await_test: Skip
+await_regression_test: Skip
 await_for_test: Skip
 await_future_test: Skip
 await_nonfuture_test: Skip
@@ -35,6 +36,7 @@ vm/optimized_await_regress_test: Skip
 async_test/*: Skip
 async_control_structures_test: Skip
 await_test: Skip
+await_regression_test: Skip
 await_for_test: Skip
 await_future_test: Skip
 await_nonfuture_test: Skip

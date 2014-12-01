@@ -220,7 +220,7 @@ class _IntegerImplementation extends _Num {
       throw new ArgumentError(radix);
     }
     if (radix & (radix - 1) == 0) {
-      return _toPow2String(this, radix);
+      return _toPow2String(radix);
     }
     if (radix == 10) return this.toString();
     final bool isNegative = this < 0;
@@ -240,7 +240,8 @@ class _IntegerImplementation extends _Num {
     return string;
   }
 
-  static String _toPow2String(value, radix) {
+  String _toPow2String(int radix) {
+    int value = this;
     if (value == 0) return "0";
     assert(radix & (radix - 1) == 0);
     var negative = value < 0;

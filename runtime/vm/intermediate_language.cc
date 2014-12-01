@@ -789,6 +789,18 @@ bool Instruction::IsDominatedBy(Instruction* dom) {
 }
 
 
+bool Instruction::HasUnmatchedInputRepresentations() const {
+  for (intptr_t i = 0; i < InputCount(); i++) {
+    Definition* input = InputAt(i)->definition();
+    if (RequiredInputRepresentation(i) != input->representation()) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
 void Definition::ReplaceWith(Definition* other,
                              ForwardInstructionIterator* iterator) {
   // Record other's input uses.
@@ -1205,7 +1217,8 @@ bool BinaryInt32OpInstr::CanDeoptimize() const {
       return false;
 
     case Token::kSHL:
-      return true;
+      return can_overflow() ||
+          !RangeUtils::IsPositive(right()->definition()->range());
 
     case Token::kMOD: {
       UNREACHABLE();
@@ -1228,19 +1241,14 @@ bool BinarySmiOpInstr::CanDeoptimize() const {
     case Token::kBIT_OR:
     case Token::kBIT_XOR:
       return false;
-    case Token::kSHR: {
-      // Can't deopt if shift-count is known positive.
-      Range* right_range = this->right()->definition()->range();
-      return (right_range == NULL) || !right_range->IsPositive();
-    }
-    case Token::kSHL: {
-      Range* right_range = this->right()->definition()->range();
-      if ((right_range != NULL) && !can_overflow()) {
-        // Can deoptimize if right can be negative.
-        return !right_range->IsPositive();
-      }
-      return true;
-    }
+
+    case Token::kSHR:
+      return !RangeUtils::IsPositive(right()->definition()->range());
+
+    case Token::kSHL:
+      return can_overflow() ||
+          !RangeUtils::IsPositive(right()->definition()->range());
+
     case Token::kMOD: {
       Range* right_range = this->right()->definition()->range();
       return (right_range == NULL) || right_range->Overlaps(0, 0);
@@ -1994,7 +2002,7 @@ Definition* BoxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (!HasUses()) return NULL;
+  if (!HasUses() && !CanDeoptimize()) return NULL;
 
   // Fold away Unbox<rep>(Box<rep>(v)).
   BoxInstr* box_defn = value()->definition()->AsBox();
@@ -2026,7 +2034,7 @@ Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (!HasUses()) return NULL;
+  if (!HasUses() && !CanDeoptimize()) return NULL;
 
   // Fold away UnboxInteger<rep_to>(BoxInteger<rep_from>(v)).
   BoxIntegerInstr* box_defn = value()->definition()->AsBoxInteger();
@@ -2040,7 +2048,7 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
           box_defn->value()->CopyWithType(),
           (representation() == kUnboxedInt32) ?
               GetDeoptId() : Isolate::kNoDeoptId);
-      if ((representation() == kUnboxedInt32) && is_truncating()) {
+      if ((representation() == kUnboxedInt32) && !CanDeoptimize()) {
         converter->mark_truncating();
       }
       flow_graph->InsertBefore(this, converter, env(), FlowGraph::kValue);
@@ -2071,6 +2079,9 @@ Definition* UnboxInt32Instr::Canonicalize(FlowGraph* flow_graph) {
 
     UnboxedConstantInstr* uc =
         new UnboxedConstantInstr(c->value(), kUnboxedInt32);
+    if (c->range() != NULL) {
+      uc->set_range(*c->range());
+    }
     flow_graph->InsertBefore(this, uc, NULL, FlowGraph::kValue);
     return uc;
   }
@@ -2250,17 +2261,10 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
       return this;
     }
     ComparisonInstr* comp = replacement->AsComparison();
-    if ((comp == NULL) || comp->CanDeoptimize()) {
+    if ((comp == NULL) ||
+        comp->CanDeoptimize() ||
+        comp->HasUnmatchedInputRepresentations()) {
       return this;
-    }
-
-    // Assert that the comparison is not serving as a pending deoptimization
-    // target for conversions.
-    for (intptr_t i = 0; i < comp->InputCount(); i++) {
-      if (comp->RequiredInputRepresentation(i) !=
-          comp->InputAt(i)->definition()->representation()) {
-        return this;
-      }
     }
 
     // Replace the comparison if the replacement is used at this branch,

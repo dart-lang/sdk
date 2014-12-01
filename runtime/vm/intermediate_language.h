@@ -741,6 +741,8 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
     lifetime_position_ = pos;
   }
 
+  bool HasUnmatchedInputRepresentations() const;
+
   // Returns representation expected for the input operand at the given index.
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     return kTagged;

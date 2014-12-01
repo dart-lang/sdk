@@ -205,13 +205,13 @@ abstract class ListMixin<E> implements List<E> {
     return value;
   }
 
-  Iterable<E> skip(int count) => new SubListIterable(this, count, null);
+  Iterable<E> skip(int count) => new SubListIterable<E>(this, count, null);
 
   Iterable<E> skipWhile(bool test(E element)) {
     return new SkipWhileIterable<E>(this, test);
   }
 
-  Iterable<E> take(int count) => new SubListIterable(this, 0, count);
+  Iterable<E> take(int count) => new SubListIterable<E>(this, 0, count);
 
   Iterable<E> takeWhile(bool test(E element)) {
     return new TakeWhileIterable<E>(this, test);
@@ -347,7 +347,7 @@ abstract class ListMixin<E> implements List<E> {
 
   Iterable<E> getRange(int start, int end) {
     _rangeCheck(start, end);
-    return new SubListIterable(this, start, end);
+    return new SubListIterable<E>(this, start, end);
   }
 
   void removeRange(int start, int end) {
@@ -511,7 +511,7 @@ abstract class ListMixin<E> implements List<E> {
     }
   }
 
-  Iterable<E> get reversed => new ReversedListIterable(this);
+  Iterable<E> get reversed => new ReversedListIterable<E>(this);
 
   String toString() => IterableBase.iterableToFullString(this, '[', ']');
 }
