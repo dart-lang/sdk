@@ -1401,6 +1401,29 @@ class A implements Function {
     verify([source]);
   }
 
+  void test_implicitConstructorDependencies() {
+    // No warning should be generated for the code below; this requires that
+    // implicit constructors are generated for C1 before C2, even though C1
+    // follows C2 in the file.  See dartbug.com/21600.
+    Source source = addSource(r'''
+class B {
+  B(int i);
+}
+class M1 {}
+class M2 {}
+
+class C2 = C1 with M2;
+class C1 = B with M1;
+
+main() {
+  new C2(5);
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_implicitThisReferenceInInitializer_constructorName() {
     Source source = addSource(r'''
 class A {

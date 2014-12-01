@@ -7,6 +7,8 @@ library engine.resolver;
 import "dart:math" as math;
 import 'dart:collection';
 
+import 'package:analyzer/src/generated/utilities_collection.dart';
+
 import 'ast.dart';
 import 'constant.dart';
 import 'element.dart';
@@ -24,6 +26,18 @@ import 'source.dart';
 import 'static_type_analyzer.dart';
 import 'utilities_dart.dart';
 import 'utilities_general.dart';
+
+/**
+ * Callback signature used by ImplicitConstructorBuilder to register
+ * computations to be performed, and their dependencies.  A call to this
+ * callback indicates that [computation] may be used to compute implicit
+ * constructors for [classElement], but that the computation may not be invoked
+ * until after implicit constructors have been built for [superclassElement].
+ */
+typedef void ImplicitConstructorBuilderCallback(ClassElement classElement,
+    ClassElement superclassElement, void computation());
+
+typedef void VoidFunction();
 
 /**
  * Instances of the class `AngularCompilationUnitBuilder` build an Angular specific element
@@ -5539,35 +5553,38 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
 }
 
 /**
- * Instances of the class `SecondTypeResolverVisitor` are used to finish any resolve steps
- * after the [TypeResolverVisitor] that cannot happen in the [TypeResolverVisitor], but
- * should happen before the next tasks.
+ * Instances of the class `ImplicitConstructorBuilder` are used to build
+ * implicit constructors for mixin applications, and to check for errors
+ * related to super constructor calls in class declarations with mixins.
  *
- * Currently this visitor only finishes the resolution of [ClassTypeAlias]s, thus the scopes
- * of other top level AST nodes do not currently have to be built.
+ * The visitor methods don't directly build the implicit constructors or check
+ * for errors, since they don't in general visit the classes in the proper
+ * order to do so correctly.  Instead, they pass closures to
+ * ImplicitConstructorBuilderCallback to inform it of the computations to be
+ * done and their ordering dependencies.
  */
 class ImplicitConstructorBuilder extends ScopedVisitor {
   /**
-   * Initialize a newly created visitor to finish resolution in the nodes in a compilation unit.
-   *
-   * @param library the library containing the compilation unit being resolved
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
+   * Callback to receive the computations to be performed.
    */
-  ImplicitConstructorBuilder.con1(Library library, Source source,
-      TypeProvider typeProvider)
-      : super.con1(library, source, typeProvider);
+  final ImplicitConstructorBuilderCallback _callback;
 
   /**
-   * Initialize a newly created visitor to finish resolution in the nodes in a compilation unit.
+   * Initialize a newly created visitor to build implicit constructors for file
+   * [source], in library [libraryElement], which has scope [libraryScope]. Use
+   * [typeProvider] to access types from the core library.
    *
-   * @param library the library containing the compilation unit being resolved
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
+   * The visit methods will pass closures to [_callback] to indicate what
+   * computation needs to be performed, and its dependency order.
    */
-  ImplicitConstructorBuilder.con2(ResolvableLibrary library, Source source,
-      TypeProvider typeProvider)
-      : super.con4(library, source, typeProvider);
+  ImplicitConstructorBuilder(Source source, LibraryElement libraryElement,
+      LibraryScope libraryScope, TypeProvider typeProvider, this._callback)
+      : super.con3(
+          libraryElement,
+          source,
+          typeProvider,
+          libraryScope,
+          libraryScope.errorListener);
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
@@ -5587,23 +5604,25 @@ class ImplicitConstructorBuilder extends ScopedVisitor {
       }
       ClassElement superclassElement = classElement.supertype.element;
       if (superclassElement != null) {
-        bool constructorFound = false;
-        void callback(ConstructorElement explicitConstructor,
-            List<DartType> parameterTypes, List<DartType> argumentTypes) {
-          constructorFound = true;
-        }
-        if (_findForwardedConstructors(
-            classElement,
-            superclassName,
-            superclassType,
-            callback) &&
-            !constructorFound) {
-          reportErrorForNode(
-              CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
-              node.withClause,
-              [superclassType.element.name]);
-          classElement.mixinErrorsReported = true;
-        }
+        _callback(classElement, superclassElement, () {
+          bool constructorFound = false;
+          void callback(ConstructorElement explicitConstructor,
+              List<DartType> parameterTypes, List<DartType> argumentTypes) {
+            constructorFound = true;
+          }
+          if (_findForwardedConstructors(
+              classElement,
+              superclassName,
+              superclassType,
+              callback) &&
+              !constructorFound) {
+            reportErrorForNode(
+                CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
+                node.withClause,
+                [superclassType.element.name]);
+            classElement.mixinErrorsReported = true;
+          }
+        });
       }
     }
     return null;
@@ -5622,32 +5641,35 @@ class ImplicitConstructorBuilder extends ScopedVisitor {
     }
     ClassElementImpl classElement = node.element as ClassElementImpl;
     if (classElement != null) {
-      if (superclassType.element != null) {
-        List<ConstructorElement> implicitConstructors =
-            new List<ConstructorElement>();
-        void callback(ConstructorElement explicitConstructor,
-            List<DartType> parameterTypes, List<DartType> argumentTypes) {
-          implicitConstructors.add(
-              _createImplicitContructor(
-                  classElement.type,
-                  explicitConstructor,
-                  parameterTypes,
-                  argumentTypes));
-        }
-        if (_findForwardedConstructors(
-            classElement,
-            superclassName,
-            superclassType,
-            callback)) {
-          if (implicitConstructors.isEmpty) {
-            reportErrorForNode(
-                CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
-                node,
-                [superclassType.element.name]);
-          } else {
-            classElement.constructors = implicitConstructors;
+      ClassElement superclassElement = superclassType.element;
+      if (superclassElement != null) {
+        _callback(classElement, superclassElement, () {
+          List<ConstructorElement> implicitConstructors =
+              new List<ConstructorElement>();
+          void callback(ConstructorElement explicitConstructor,
+              List<DartType> parameterTypes, List<DartType> argumentTypes) {
+            implicitConstructors.add(
+                _createImplicitContructor(
+                    classElement.type,
+                    explicitConstructor,
+                    parameterTypes,
+                    argumentTypes));
           }
-        }
+          if (_findForwardedConstructors(
+              classElement,
+              superclassName,
+              superclassType,
+              callback)) {
+            if (implicitConstructors.isEmpty) {
+              reportErrorForNode(
+                  CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
+                  node,
+                  [superclassElement.name]);
+            } else {
+              classElement.constructors = implicitConstructors;
+            }
+          }
+        });
       }
     }
     return null;
@@ -5769,6 +5791,88 @@ class ImplicitConstructorBuilder extends ScopedVisitor {
       }
     }
     return types;
+  }
+}
+
+/**
+ * An instance of this class is capable of running ImplicitConstructorBuilder
+ * over all classes in a library cycle.
+ */
+class ImplicitConstructorComputer {
+  /**
+   * The object used to access the types from the core library.
+   */
+  final TypeProvider typeProvider;
+
+  /**
+   * Directed graph of dependencies between classes that need to have their
+   * implicit constructors computed.  Each edge in the graph points from a
+   * derived class to its superclass.  Implicit constructors will be computed
+   * for the superclass before they are compute for the derived class.
+   */
+  DirectedGraph<ClassElement> _dependencies = new DirectedGraph<ClassElement>();
+
+  /**
+   * Map from ClassElement to the function which will compute the class's
+   * implicit constructors.
+   */
+  Map<ClassElement, VoidFunction> _computations =
+      new HashMap<ClassElement, VoidFunction>();
+
+  /**
+   * Create an ImplicitConstructorComputer which will use [typeProvider] to
+   * access types from the core library.
+   */
+  ImplicitConstructorComputer(this.typeProvider);
+
+  /**
+   * Add the given [unit] to the list of units which need to have implicit
+   * constructors built for them.  [source] is the source file corresponding to
+   * the compilation unit, [libraryElement] is the library element containing
+   * that source, and [libraryScope] is the scope for the library element.
+   */
+  void add(CompilationUnit unit, Source source, LibraryElement libraryElement,
+      LibraryScope libraryScope) {
+    unit.accept(
+        new ImplicitConstructorBuilder(
+            source,
+            libraryElement,
+            libraryScope,
+            typeProvider,
+            _defer));
+  }
+
+  /**
+   * Compute the implicit constructors for all compilation units that have been
+   * passed to [add].
+   */
+  void compute() {
+    List<List<ClassElement>> topologicalSort =
+        _dependencies.computeTopologicalSort();
+    for (List<ClassElement> classesInCycle in topologicalSort) {
+      // Note: a cycle could occur if there is a loop in the inheritance graph.
+      // Such loops are forbidden by Dart but could occur in the analysis of
+      // incorrect code.  If this happens, we simply visit the classes
+      // constituting the loop in any order.
+      for (ClassElement classElement in classesInCycle) {
+        VoidFunction computation = _computations[classElement];
+        if (computation != null) {
+          computation();
+        }
+      }
+    }
+  }
+
+  /**
+   * Defer execution of [computation], which builds implicit constructors for
+   * [classElement], until after implicit constructors have been built for
+   * [superclassElement].
+   */
+  void _defer(ClassElement classElement, ClassElement superclassElement, void
+      computation()) {
+    assert(!_computations.containsKey(classElement));
+    _computations[classElement] = computation;
+    _dependencies.addEdge(classElement, superclassElement);
   }
 }
 
@@ -8737,13 +8841,18 @@ class LibraryResolver {
     TimeCounter_TimeCounterHandle timeCounter =
         PerformanceStatistics.resolve.start();
     try {
+      ImplicitConstructorComputer computer =
+          new ImplicitConstructorComputer(_typeProvider);
       for (Library library in _librariesInCycles) {
         for (Source source in library.compilationUnitSources) {
-          ImplicitConstructorBuilder visitor =
-              new ImplicitConstructorBuilder.con1(library, source, _typeProvider);
-          library.getAST(source).accept(visitor);
+          computer.add(
+              library.getAST(source),
+              source,
+              library.libraryElement,
+              library.libraryScope);
         }
       }
+      computer.compute();
     } finally {
       timeCounter.stop();
     }
@@ -9477,16 +9586,21 @@ class LibraryResolver2 {
     TimeCounter_TimeCounterHandle timeCounter =
         PerformanceStatistics.resolve.start();
     try {
+      ImplicitConstructorComputer computer =
+          new ImplicitConstructorComputer(_typeProvider);
       for (ResolvableLibrary library in _librariesInCycle) {
         for (ResolvableCompilationUnit unit in
             library.resolvableCompilationUnits) {
           Source source = unit.source;
           CompilationUnit ast = unit.compilationUnit;
-          ImplicitConstructorBuilder visitor =
-              new ImplicitConstructorBuilder.con2(library, source, _typeProvider);
-          ast.accept(visitor);
+          computer.add(
+              ast,
+              source,
+              library.libraryElement,
+              library.libraryScope);
         }
       }
+      computer.compute();
     } finally {
       timeCounter.stop();
     }

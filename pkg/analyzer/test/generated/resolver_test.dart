@@ -13264,8 +13264,18 @@ class TypeResolverVisitorTest extends EngineTestCase {
     _typeProvider = new TestTypeProvider();
     _visitor =
         new TypeResolverVisitor.con1(_library, librarySource, _typeProvider);
-    _implicitConstructorBuilder =
-        new ImplicitConstructorBuilder.con1(_library, librarySource, _typeProvider);
+    _implicitConstructorBuilder = new ImplicitConstructorBuilder(
+        librarySource,
+        _library.libraryElement,
+        _library.libraryScope,
+        _typeProvider,
+        (ClassElement classElement, ClassElement superclassElement, void computation())
+            {
+      // For these tests, we assume the classes for which implicit
+      // constructors need to be built are visited in proper dependency order,
+      // so we just invoke the computation immediately.
+      computation();
+    });
   }
 
   void test_visitCatchClause_exception() {
