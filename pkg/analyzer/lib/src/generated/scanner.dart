@@ -43,18 +43,23 @@ class BeginTokenWithComment extends BeginToken {
   /**
    * The first comment in the list of comments that precede this token.
    */
-  CommentToken precedingComments;
+  CommentToken _precedingComment;
 
   /**
    * Initialize a newly created token to have the given [type] at the given
    * [offset] and to be preceded by the comments reachable from the given
    * [comment].
    */
-  BeginTokenWithComment(TokenType type, int offset, this.precedingComments)
+  BeginTokenWithComment(TokenType type, int offset, this._precedingComment)
       : super(type, offset) {
-    if (precedingComments != null) {
-      precedingComments.parent = this;
-    }
+    _setCommentParent(_precedingComment);
+  }
+
+  CommentToken get precedingComments => _precedingComment;
+
+  void set precedingComments(CommentToken comment) {
+    _precedingComment = comment;
+    _setCommentParent(_precedingComment);
   }
 
   @override
@@ -595,18 +600,23 @@ class KeywordTokenWithComment extends KeywordToken {
   /**
    * The first comment in the list of comments that precede this token.
    */
-  CommentToken precedingComments;
+  CommentToken _precedingComment;
 
   /**
    * Initialize a newly created token to to represent the given [keyword] at the
    * given [offset] and to be preceded by the comments reachable from the given
    * [comment].
    */
-  KeywordTokenWithComment(Keyword keyword, int offset, this.precedingComments)
+  KeywordTokenWithComment(Keyword keyword, int offset, this._precedingComment)
       : super(keyword, offset) {
-    if (precedingComments != null) {
-      precedingComments.parent = this;
-    }
+    _setCommentParent(_precedingComment);
+  }
+
+  CommentToken get precedingComments => _precedingComment;
+
+  void set precedingComments(CommentToken comment) {
+    _precedingComment = comment;
+    _setCommentParent(_precedingComment);
   }
 
   @override
@@ -1842,7 +1852,7 @@ class StringTokenWithComment extends StringToken {
   /**
    * The first comment in the list of comments that precede this token.
    */
-  CommentToken precedingComments;
+  CommentToken _precedingComment;
 
   /**
    * Initialize a newly created token to have the given [type] at the given
@@ -1850,11 +1860,16 @@ class StringTokenWithComment extends StringToken {
    * [comment].
    */
   StringTokenWithComment(TokenType type, String value, int offset,
-      this.precedingComments)
+      this._precedingComment)
       : super(type, value, offset) {
-    if (precedingComments != null) {
-      precedingComments.parent = this;
-    }
+    _setCommentParent(_precedingComment);
+  }
+
+  CommentToken get precedingComments => _precedingComment;
+
+  void set precedingComments(CommentToken comment) {
+    _precedingComment = comment;
+    _setCommentParent(_precedingComment);
   }
 
   @override
@@ -2081,6 +2096,17 @@ class Token {
    * with the token.
    */
   Object value() => type.lexeme;
+
+  /**
+   * Sets the `parent` property to `this` for the given [comment] and all the
+   * next tokens.
+   */
+  void _setCommentParent(CommentToken comment) {
+    while (comment != null) {
+      comment.parent = this;
+      comment = comment.next;
+    }
+  }
 
   /**
    * Compare the given [tokens] to find the token that appears first in the
@@ -2572,18 +2598,23 @@ class TokenWithComment extends Token {
   /**
    * The first comment in the list of comments that precede this token.
    */
-  CommentToken precedingComments;
+  CommentToken _precedingComment;
 
   /**
    * Initialize a newly created token to have the given [type] at the given
    * [offset] and to be preceded by the comments reachable from the given
    * [comment].
    */
-  TokenWithComment(TokenType type, int offset, this.precedingComments)
+  TokenWithComment(TokenType type, int offset, this._precedingComment)
       : super(type, offset) {
-    if (precedingComments != null) {
-      precedingComments.parent = this;
-    }
+    _setCommentParent(_precedingComment);
+  }
+
+  CommentToken get precedingComments => _precedingComment;
+
+  void set precedingComments(CommentToken comment) {
+    _precedingComment = comment;
+    _setCommentParent(_precedingComment);
   }
 
   @override
