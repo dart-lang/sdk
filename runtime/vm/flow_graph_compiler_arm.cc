@@ -1690,11 +1690,19 @@ void ParallelMoveResolver::EmitSwap(int index) {
     Exchange(source.base_reg(), source.ToStackSlotOffset(),
              destination.base_reg(), destination.ToStackSlotOffset());
   } else if (source.IsFpuRegister() && destination.IsFpuRegister()) {
-    const DRegister dst = EvenDRegisterOf(destination.fpu_reg());
-    DRegister src = EvenDRegisterOf(source.fpu_reg());
-    __ vmovd(DTMP, src);
-    __ vmovd(src, dst);
-    __ vmovd(dst, DTMP);
+    if (TargetCPUFeatures::neon_supported()) {
+      const QRegister dst = destination.fpu_reg();
+      const QRegister src = source.fpu_reg();
+      __ vmovq(QTMP, src);
+      __ vmovq(src, dst);
+      __ vmovq(dst, QTMP);
+    } else {
+      const DRegister dst = EvenDRegisterOf(destination.fpu_reg());
+      const DRegister src = EvenDRegisterOf(source.fpu_reg());
+      __ vmovd(DTMP, src);
+      __ vmovd(src, dst);
+      __ vmovd(dst, DTMP);
+    }
   } else if (source.IsFpuRegister() || destination.IsFpuRegister()) {
     ASSERT(destination.IsDoubleStackSlot() ||
            destination.IsQuadStackSlot() ||
