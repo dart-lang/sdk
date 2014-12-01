@@ -9,7 +9,7 @@ import 'package:ddc/src/dart_sdk.dart' show mockSdkSources, dartSdkDirectory;
 
 main() {
   test('checker runs correctly (end-to-end)', () {
-    checkProgram(_uri('inferred_type'), mockSdkSources: mockSdkSources);
+    checkProgram(_uri('funwithtypes'), mockSdkSources: mockSdkSources);
   });
 
   test('checker accepts files with imports', () {

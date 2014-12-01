@@ -22,25 +22,15 @@ class TypeResolver {
       AnalysisEngine.instance.createAnalysisContext();
   final Map<Uri, Source> _sources = <Uri, Source>{};
 
-  /// Creates a resolver that uses an SDK located at the given [sdkPath].
-  factory TypeResolver.fromDir(String sdkPath) {
-    var sdk = new DirectoryBasedDartSdk(new JavaFile(sdkPath));
-    var sdkResolver = new DartUriResolver(sdk);
-    return new TypeResolver._(sdkResolver);
-  }
-
-  /// Creates a resolver using a mock contents for each `dart:` library.
-  factory TypeResolver.fromMock(Map<String, String> mockSdkSources) {
-    var sdk = new MockDartSdk(mockSdkSources, reportMissing: true);
-    return new TypeResolver._(sdk.resolver);
-  }
-
-  TypeResolver._(DartUriResolver sdkResolver) {
-    context.sourceFactory = new SourceFactory([
-      sdkResolver,
-      new FileUriResolver(),
-      new PackageUriResolver([new JavaFile('packages/')]),
-    ]);
+  TypeResolver(DartUriResolver sdkResolver, [List otherResolvers]) {
+    var resolvers = [sdkResolver];
+    if (otherResolvers == null)  {
+      resolvers.add(new FileUriResolver());
+      resolvers.add(new PackageUriResolver([new JavaFile('packages/')]));
+    } else {
+      resolvers.addAll(otherResolvers);
+    }
+    context.sourceFactory = new SourceFactory(resolvers);
   }
 
   /// Find the corresponding [Source] for [uri].
@@ -69,5 +59,15 @@ class TypeResolver {
       }
     }
     return failure;
+  }
+
+  /// Creates a [DartUriResolver] that uses the SDK at the given [sdkPath].
+  static DartUriResolver sdkResolverFromDir(String sdkPath) =>
+      new DartUriResolver(new DirectoryBasedDartSdk(new JavaFile(sdkPath)));
+
+  /// Creates a [DartUriResolver] that uses a mock 'dart:' library contents.
+  static DartUriResolver sdkResolverFromMock(
+      Map<String, String> mockSdkSources) {
+    return new MockDartSdk(mockSdkSources, reportMissing: true).resolver;
   }
 }
