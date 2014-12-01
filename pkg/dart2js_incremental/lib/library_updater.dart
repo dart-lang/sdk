@@ -49,6 +49,7 @@ import 'package:compiler/src/js_emitter/js_emitter.dart' show
     ClassBuilder,
     ClassEmitter,
     CodeEmitterTask,
+    ContainerBuilder,
     MemberInfo,
     computeMixinClass;
 
@@ -638,39 +639,36 @@ class LibraryUpdater extends JsFeatures {
   }
 
   jsAst.Node computeMemberUpdateJs(Element element) {
-    MemberInfo info = emitter.oldEmitter.containerBuilder
-        .analyzeMemberMethod(element);
+    MemberInfo info = containerBuilder.analyzeMemberMethod(element);
     if (info == null) {
       compiler.internalError(element, '${element.runtimeType}');
     }
+    ClassBuilder builder = new ClassBuilder(element, namer);
+    containerBuilder.addMemberMethodFromInfo(info, builder);
+    jsAst.Node partialDescriptor =
+        builder.toObjectInitializer(omitClassDescriptor: true);
+
     String name = info.name;
     jsAst.Node function = info.code;
-    List<jsAst.Statement> statements = <jsAst.Statement>[];
+    bool isStatic = !element.isInstanceMember;
+
+    /// Either a global object (non-instance members) or a prototype (instance
+    /// members).
+    jsAst.Node holder;
+
     if (element.isInstanceMember) {
-      jsAst.Node elementAccess = namer.elementAccess(element.enclosingClass);
-      statements.add(
-          js.statement('#.prototype.# = f', [elementAccess, name]));
+      holder = js('#.prototype', namer.elementAccess(element.enclosingClass));
     } else {
-      jsAst.Node elementAccess = namer.elementAccess(element);
-      jsAst.Expression globalFunctionsAccess =
-          emitter.generateEmbeddedGlobalAccess(embeddedNames.GLOBAL_FUNCTIONS);
-      statements.add(
-          js.statement(
-              '#.# = # = f',
-              [globalFunctionsAccess, name, elementAccess]));
-      if (info.canTearOff) {
-        String globalName = namer.globalObjectFor(element);
-        statements.add(
-            js.statement(
-                '#.#().# = f',
-                [globalName, info.tearOffName, callNameFor(element)]));
-      }
+      holder = js('#', namer.globalObjectFor(element));
     }
-    // Create a scope by creating a new function. The updated function literal
-    // is passed as an argument to this function which ensures that temporary
-    // names in updateScope don't shadow global names.
-    jsAst.Fun updateScope = js('function (f) { # }', [statements]);
-    return js.statement('(#)(#)', [updateScope, function]);
+
+    jsAst.Expression globalFunctionsAccess =
+        emitter.generateEmbeddedGlobalAccess(embeddedNames.GLOBAL_FUNCTIONS);
+
+    return js.statement(
+        r'self.$dart_unsafe_eval.addMethod(#, #, #, #, #)',
+        [partialDescriptor, js.string(name), holder,
+         new jsAst.LiteralBool(isStatic), globalFunctionsAccess]);
   }
 
   String prettyPrintJs(jsAst.Node node) {
@@ -1133,6 +1131,8 @@ abstract class JsFeatures {
   Namer get namer => backend.namer;
 
   CodeEmitterTask get emitter => backend.emitter;
+
+  ContainerBuilder get containerBuilder => emitter.oldEmitter.containerBuilder;
 }
 
 class EmitterHelper extends JsFeatures {

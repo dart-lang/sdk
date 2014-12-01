@@ -1452,8 +1452,12 @@ class OldEmitter implements Emitter {
           'this.\$dart_unsafe_eval.patch = function(a) { eval(a) }$N');
       String schemaChange =
           jsAst.prettyPrint(buildSchemaChangeFunction(), compiler).getText();
+      String addMethod =
+          jsAst.prettyPrint(buildIncrementalAddMethod(), compiler).getText();
       mainBuffer.add(
           'this.\$dart_unsafe_eval.schemaChange$_=$_$schemaChange$N');
+      mainBuffer.add(
+          'this.\$dart_unsafe_eval.addMethod$_=$_$addMethod$N');
     }
     if (isProgramSplit) {
       /// We collect all the global state of the, so it can be passed to the
@@ -1679,6 +1683,57 @@ function(newConstructor, oldConstructor, superclass) {
   oldPrototype.constructor = newConstructor;
   newConstructor.prototype = oldPrototype;
   return newConstructor;
+}''');
+  }
+
+  /// Used by incremental compilation to patch up an object ([holder]) with a
+  /// new (or updated) method.  [arrayOrFunction] is either the new method, or
+  /// an array containing the method (see
+  /// [ContainerBuilder.addMemberMethodFromInfo]). [name] is the name of the
+  /// new method. [isStatic] tells if method is static (or
+  /// top-level). [globalFunctionsAccess] is a reference to
+  /// [embeddedNames.GLOBAL_FUNCTIONS].
+  jsAst.Fun buildIncrementalAddMethod() {
+    return js(r'''
+function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
+  var arrayOrFunction = originalDescriptor[name];
+  var method;
+  if (arrayOrFunction.constructor === Array) {
+    var existing = holder[name];
+    var array = arrayOrFunction;
+    var descriptor = Object.create(null);
+    this.addStubs(
+        descriptor, arrayOrFunction, name, isStatic, originalDescriptor, []);
+    method = descriptor[name];
+    for (var property in descriptor) {
+      if (!Object.prototype.hasOwnProperty.call(descriptor, property)) continue;
+      var stub = descriptor[property];
+      var existingStub = holder[property];
+      if (stub === method || !existingStub) {
+        // Not replacing an existing stub.
+        holder[property] = method;
+        continue;
+      }
+      if (!stub.$getterStub) {
+        var error = new Error("Unexpected stub.");
+        error.stub = stub;
+        throw error;
+      }
+      // Invoke the existing stub to obtain the tear-off closure.
+      existingStub = existingStub();
+      // A stub already exist. Update all its references to [existing] to
+      // [method].
+      for (var reference in existingStub) {
+        if (existingStub[reference] === existing) {
+          existingStub[reference] = method;
+        }
+      }
+    }
+  } else {
+    method = arrayOrFunction;
+    holder[name] = method;
+  }
+  if (isStatic) globalFunctionsAccess[name] = method;
 }''');
   }
 

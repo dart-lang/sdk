@@ -280,15 +280,29 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
        mangledNamesAccess,
        mangledGlobalNamesAccess]);
 
+  List<jsAst.Statement> incrementalSupport = <jsAst.Statement>[];
+  if (compiler.hasIncrementalSupport) {
+    incrementalSupport.add(
+        js.statement(
+            r'self.$dart_unsafe_eval.addStubs = addStubs;'));
+  }
+
   return js('''
 (function (reflectionData) {
   "use strict";
-  #; // header
-  #; // processStatics
-  #; // addStubs
-  #; // tearOffCode
-  #; // init
-})''', [header, processStatics, addStubs, tearOffCode, init]);
+  #header;
+  #processStatics;
+  #addStubs;
+  #tearOffCode;
+  #incrementalSupport;
+  #init;
+})''', {
+      'header': header,
+      'processStatics': processStatics,
+      'incrementalSupport': incrementalSupport,
+      'addStubs': addStubs,
+      'tearOffCode': tearOffCode,
+      'init': init});
 }
 
 

@@ -866,8 +866,6 @@ main() {
     const <ProgramResult>[
         const ProgramResult(
             r"""
-import 'dart:collection';
-
 class C {
   static m() {
     print('v1');
@@ -875,8 +873,6 @@ class C {
 }
 
 main() {
-  // TODO(ahe): The incremental compiler magter ikke static tear-off closures.
-  new HashMap(equals: identical);
   try {
     C.m();
   } catch (e) {
