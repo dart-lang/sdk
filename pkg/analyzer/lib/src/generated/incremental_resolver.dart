@@ -619,19 +619,19 @@ class IncrementalResolver {
   final TypeProvider _typeProvider;
 
   /**
-   * The element for the library containing the compilation unit being resolved.
-   */
-  final LibraryElement _definingLibrary;
-
-  /**
    * The element of the compilation unit being resolved.
    */
   final CompilationUnitElement _definingUnit;
 
   /**
+   * The element for the library containing the compilation unit being resolved.
+   */
+  LibraryElement _definingLibrary;
+
+  /**
    * The source representing the compilation unit being visited.
    */
-  final Source _source;
+  Source _source;
 
   /**
    * The offset of the changed contents.
@@ -658,9 +658,11 @@ class IncrementalResolver {
    * Initialize a newly created incremental resolver to resolve a node in the
    * given source in the given library.
    */
-  IncrementalResolver(this._typeProvider, this._definingLibrary,
-      this._definingUnit, this._source, this._updateOffset, this._updateOldLength,
-      this._updateNewLength);
+  IncrementalResolver(this._typeProvider, this._definingUnit,
+      this._updateOffset, this._updateOldLength, this._updateNewLength) {
+    _definingLibrary = _definingUnit.library;
+    _source = _definingUnit.source;
+  }
 
   /**
    * Resolve [node], reporting any errors or warnings to the given listener.
@@ -809,6 +811,11 @@ class IncrementalResolver {
         visitor.visitClassDeclarationIncrementally(
             _resolutionContext.enclosingClassDeclaration);
       }
+      if (node is Comment) {
+        visitor.resolveOnlyCommentInFunctionBody = true;
+        node = node.parent;
+      }
+      visitor.initForIncrementalResolution();
       node.accept(visitor);
     }
     // remember errors
@@ -932,6 +939,9 @@ class PoorMansIncrementalResolver {
           _updateOffset = beginOffsetOld - 1;
           _updateEndOld = endOffsetOld;
           _updateDelta = newUnit.length - oldUnit.length;
+          if (firstPair.atComment && lastPair.atComment) {
+            _resolveComment(oldUnit, newUnit, firstPair);
+          }
           _shiftTokens(firstPair.oldToken, _updateDelta);
           IncrementalResolver._updateElementNameOffsets(
               oldUnit.element,
@@ -940,8 +950,6 @@ class PoorMansIncrementalResolver {
           _updateEntry();
           return true;
         }
-//        print('beginOffsetOld: $beginOffsetOld endOffsetOld: $endOffsetOld');
-//        print('beginOffsetNew: $beginOffsetNew endOffsetNew: $endOffsetNew');
         // Find nodes covering the "old" and "new" token ranges.
         AstNode oldNode =
             _findNodeCovering(oldUnit, beginOffsetOld, endOffsetOld);
@@ -988,11 +996,12 @@ class PoorMansIncrementalResolver {
         NodeReplacer.replace(oldNode, newNode);
         // update token references
         {
-          Token oldBeginToken = oldNode.beginToken;
+          Token oldBeginToken = _getBeginTokenNotComment(oldNode);
+          Token newBeginToken = _getBeginTokenNotComment(newNode);
           if (oldBeginToken.previous.type == TokenType.EOF) {
-            oldUnit.beginToken = newNode.beginToken;
+            oldUnit.beginToken = newBeginToken;
           } else {
-            oldBeginToken.previous.setNext(newNode.beginToken);
+            oldBeginToken.previous.setNext(newBeginToken);
           }
           newNode.endToken.setNext(oldNode.endToken.next);
           _shiftTokens(oldNode.endToken.next, _updateDelta);
@@ -1001,9 +1010,7 @@ class PoorMansIncrementalResolver {
         CompilationUnitElement oldUnitElement = oldUnit.element;
         IncrementalResolver incrementalResolver = new IncrementalResolver(
             _typeProvider,
-            oldUnitElement.library,
             oldUnitElement,
-            oldUnitElement.source,
             _updateOffset,
             oldNode.length,
             newNode.length);
@@ -1032,6 +1039,24 @@ class PoorMansIncrementalResolver {
     return unit;
   }
 
+  void _resolveComment(CompilationUnit oldUnit, CompilationUnit newUnit,
+      _TokenPair firstPair) {
+    Token oldToken = firstPair.oldToken;
+    int offset = oldToken.precedingComments.offset;
+    Comment oldComment = _findNodeCovering(oldUnit, offset, offset);
+    Comment newComment = _findNodeCovering(newUnit, offset, offset);
+    _updateOffset = offset + 1;
+    // replace node
+    NodeReplacer.replace(oldComment, newComment);
+    // update token references
+    _setPrecedingComments(oldToken, newComment.tokens.first);
+    // resolve references in the comment
+    CompilationUnitElement oldUnitElement = oldUnit.element;
+    IncrementalResolver incrementalResolver =
+        new IncrementalResolver(_typeProvider, oldUnitElement, _updateOffset, 0, 0);
+    incrementalResolver._resolveReferences(newComment);
+  }
+
   Token _scan(String code) {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     CharSequenceReader reader = new CharSequenceReader(code);
@@ -1039,6 +1064,19 @@ class PoorMansIncrementalResolver {
     Token token = scanner.tokenize();
     _newScanErrors = errorListener.errors;
     return token;
+  }
+
+  void _shiftTokens(Token token, int delta) {
+    while (token != null) {
+      if (token.offset > _updateOffset) {
+        token.offset += delta;
+      }
+      _shiftTokens(token.precedingComments, delta);
+      if (token.type == TokenType.EOF) {
+        break;
+      }
+      token = token.next;
+    }
   }
 
   void _updateEntry() {
@@ -1109,6 +1147,15 @@ class PoorMansIncrementalResolver {
     while (oldToken.type != TokenType.EOF && newToken.type != TokenType.EOF) {
 //      print('old: $oldToken @ ${oldToken.offset}');
 //      print('new: $newToken @ ${newToken.offset}');
+      {
+        Token oldComment = oldToken.precedingComments;
+        Token newComment = newToken.precedingComments;
+        if (oldComment != null && newComment != null) {
+          if (!_equalToken(oldComment, newComment, 0)) {
+            return new _TokenPair(oldToken, newToken, true);
+          }
+        }
+      }
       if (!_equalToken(oldToken, newToken, 0)) {
         return new _TokenPair(oldToken, newToken);
       }
@@ -1127,6 +1174,15 @@ class PoorMansIncrementalResolver {
       if (!_equalToken(oldToken, newToken, delta)) {
         return new _TokenPair(oldToken.next, newToken.next);
       }
+      {
+        Token oldComment = oldToken.precedingComments;
+        Token newComment = newToken.precedingComments;
+        if (oldComment != null && newComment != null) {
+          if (!_equalToken(oldComment, newComment, delta)) {
+            return new _TokenPair(oldToken, newToken, true);
+          }
+        }
+      }
       oldToken = oldToken.previous;
       newToken = newToken.previous;
     }
@@ -1138,6 +1194,15 @@ class PoorMansIncrementalResolver {
     return nodeLocator.searchWithin(root);
   }
 
+  static Token _getBeginTokenNotComment(AstNode node) {
+    Token oldBeginToken = node.beginToken;
+    if (oldBeginToken is CommentToken) {
+      oldBeginToken = (oldBeginToken as CommentToken).parent;
+    }
+    return oldBeginToken;
+  }
+
+
   static List<AstNode> _getParents(AstNode node) {
     List<AstNode> parents = <AstNode>[];
     while (node != null) {
@@ -1147,13 +1212,21 @@ class PoorMansIncrementalResolver {
     return parents;
   }
 
-  static void _shiftTokens(Token token, int delta) {
-    while (true) {
-      token.offset += delta;
-      if (token.type == TokenType.EOF) {
-        break;
-      }
-      token = token.next;
+  /**
+   * Set the given [comment] as a "precedingComments" for [parent].
+   */
+  static void _setPrecedingComments(Token parent, CommentToken comment) {
+    if (parent is BeginTokenWithComment) {
+      parent.precedingComments = comment;
+    } else if (parent is KeywordTokenWithComment) {
+      parent.precedingComments = comment;
+    } else if (parent is StringTokenWithComment) {
+      parent.precedingComments = comment;
+    } else if (parent is TokenWithComment) {
+      parent.precedingComments = comment;
+    } else {
+      Type parentType = parent != null ? parent.runtimeType : null;
+      throw new AnalysisException('Uknown parent token type: $parentType');
     }
   }
 }
@@ -1460,5 +1533,6 @@ class _ElementsRestorer extends RecursiveAstVisitor {
 class _TokenPair {
   final Token oldToken;
   final Token newToken;
-  _TokenPair(this.oldToken, this.newToken);
+  final bool atComment;
+  _TokenPair(this.oldToken, this.newToken, [this.atComment = false]);
 }

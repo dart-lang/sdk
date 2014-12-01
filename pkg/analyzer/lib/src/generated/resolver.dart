@@ -11077,6 +11077,16 @@ class ResolverVisitor extends ScopedVisitor {
   TypePromotionManager _promoteManager = new TypePromotionManager();
 
   /**
+   * A comment before a function should be resolved in the context of the
+   * function. But when we incrementally resolve a comment, we don't want to
+   * resolve the whole function.
+   *
+   * So, this flag is set to `true`, when just context of the function should
+   * be built and the comment resolved.
+   */
+  bool resolveOnlyCommentInFunctionBody = false;
+
+  /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
    *
    * @param library the library containing the compilation unit being resolved
@@ -11506,6 +11516,13 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  /**
+   * Prepares this [ResolverVisitor] to using it for incremental resolution.
+   */
+  void initForIncrementalResolution() {
+    _overrideManager.enterScope();
+  }
+
   @override
   Object visitCompilationUnit(CompilationUnit node) {
     //
@@ -11659,6 +11676,9 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitEmptyFunctionBody(EmptyFunctionBody node) {
     safelyVisit(_commentBeforeFunction);
+    if (resolveOnlyCommentInFunctionBody) {
+      return null;
+    }
     return super.visitEmptyFunctionBody(node);
   }
 
@@ -11680,6 +11700,9 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
     safelyVisit(_commentBeforeFunction);
+    if (resolveOnlyCommentInFunctionBody) {
+      return null;
+    }
     _overrideManager.enterScope();
     try {
       super.visitExpressionFunctionBody(node);

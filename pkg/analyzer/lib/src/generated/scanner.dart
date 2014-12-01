@@ -43,23 +43,24 @@ class BeginTokenWithComment extends BeginToken {
   /**
    * The first comment in the list of comments that precede this token.
    */
-  final Token _precedingComment;
+  CommentToken precedingComments;
 
   /**
    * Initialize a newly created token to have the given [type] at the given
    * [offset] and to be preceded by the comments reachable from the given
    * [comment].
    */
-  BeginTokenWithComment(TokenType type, int offset, this._precedingComment)
-      : super(type, offset);
-
-  @override
-  Token get precedingComments => _precedingComment;
+  BeginTokenWithComment(TokenType type, int offset, this.precedingComments)
+      : super(type, offset) {
+    if (precedingComments != null) {
+      precedingComments.parent = this;
+    }
+  }
 
   @override
   void applyDelta(int delta) {
     super.applyDelta(delta);
-    Token token = _precedingComment;
+    Token token = precedingComments;
     while (token != null) {
       token.applyDelta(delta);
       token = token.next;
@@ -68,65 +69,7 @@ class BeginTokenWithComment extends BeginToken {
 
   @override
   Token copy() =>
-      new BeginTokenWithComment(type, offset, copyComments(_precedingComment));
-}
-
-/**
- * A `CharSequenceReader` is a [CharacterReader] that reads characters from a
- * character sequence.
- */
-class CharSequenceReader implements CharacterReader {
-  /**
-   * The sequence from which characters will be read.
-   */
-  final String _sequence;
-
-  /**
-   * The number of characters in the string.
-   */
-  int _stringLength = 0;
-
-  /**
-   * The index, relative to the string, of the last character that was read.
-   */
-  int _charOffset = 0;
-
-  /**
-   * Initialize a newly created reader to read the characters in the given
-   * [_sequence].
-   */
-  CharSequenceReader(this._sequence) {
-    this._stringLength = _sequence.length;
-    this._charOffset = -1;
-  }
-
-  @override
-  int get offset => _charOffset;
-
-  @override
-  void set offset(int offset) {
-    _charOffset = offset;
-  }
-
-  @override
-  int advance() {
-    if (_charOffset + 1 >= _stringLength) {
-      return -1;
-    }
-    return _sequence.codeUnitAt(++_charOffset);
-  }
-
-  @override
-  String getString(int start, int endDelta) =>
-      _sequence.substring(start, _charOffset + 1 + endDelta).toString();
-
-  @override
-  int peek() {
-    if (_charOffset + 1 >= _stringLength) {
-      return -1;
-    }
-    return _sequence.codeUnitAt(_charOffset + 1);
-  }
+      new BeginTokenWithComment(type, offset, copyComments(precedingComments));
 }
 
 /**
@@ -221,6 +164,84 @@ abstract class CharacterReader {
    * position.
    */
   int peek();
+}
+
+/**
+ * A `CharSequenceReader` is a [CharacterReader] that reads characters from a
+ * character sequence.
+ */
+class CharSequenceReader implements CharacterReader {
+  /**
+   * The sequence from which characters will be read.
+   */
+  final String _sequence;
+
+  /**
+   * The number of characters in the string.
+   */
+  int _stringLength = 0;
+
+  /**
+   * The index, relative to the string, of the last character that was read.
+   */
+  int _charOffset = 0;
+
+  /**
+   * Initialize a newly created reader to read the characters in the given
+   * [_sequence].
+   */
+  CharSequenceReader(this._sequence) {
+    this._stringLength = _sequence.length;
+    this._charOffset = -1;
+  }
+
+  @override
+  int get offset => _charOffset;
+
+  @override
+  void set offset(int offset) {
+    _charOffset = offset;
+  }
+
+  @override
+  int advance() {
+    if (_charOffset + 1 >= _stringLength) {
+      return -1;
+    }
+    return _sequence.codeUnitAt(++_charOffset);
+  }
+
+  @override
+  String getString(int start, int endDelta) =>
+      _sequence.substring(start, _charOffset + 1 + endDelta).toString();
+
+  @override
+  int peek() {
+    if (_charOffset + 1 >= _stringLength) {
+      return -1;
+    }
+    return _sequence.codeUnitAt(_charOffset + 1);
+  }
+}
+
+/**
+ * A `CommentToken` is a token representing a comment.
+ */
+class CommentToken extends StringToken {
+  /**
+   * The [Token] that contains this comment.
+   */
+  Token parent;
+
+  /**
+   * Initialize a newly created token to represent a token of the given [type]
+   * with the given [value] at the given [offset].
+   */
+  CommentToken(TokenType type, String value, int offset)
+      : super(type, value, offset);
+
+  @override
+  CommentToken copy() => new CommentToken(type, _value, offset);
 }
 
 /**
@@ -574,23 +595,24 @@ class KeywordTokenWithComment extends KeywordToken {
   /**
    * The first comment in the list of comments that precede this token.
    */
-  final Token _precedingComment;
+  CommentToken precedingComments;
 
   /**
    * Initialize a newly created token to to represent the given [keyword] at the
    * given [offset] and to be preceded by the comments reachable from the given
    * [comment].
    */
-  KeywordTokenWithComment(Keyword keyword, int offset, this._precedingComment)
-      : super(keyword, offset);
-
-  @override
-  Token get precedingComments => _precedingComment;
+  KeywordTokenWithComment(Keyword keyword, int offset, this.precedingComments)
+      : super(keyword, offset) {
+    if (precedingComments != null) {
+      precedingComments.parent = this;
+    }
+  }
 
   @override
   void applyDelta(int delta) {
     super.applyDelta(delta);
-    Token token = _precedingComment;
+    Token token = precedingComments;
     while (token != null) {
       token.applyDelta(delta);
       token = token.next;
@@ -599,7 +621,7 @@ class KeywordTokenWithComment extends KeywordToken {
 
   @override
   Token copy() =>
-      new KeywordTokenWithComment(keyword, offset, copyComments(_precedingComment));
+      new KeywordTokenWithComment(keyword, offset, copyComments(precedingComments));
 }
 
 /**
@@ -958,11 +980,11 @@ class Scanner {
     }
     // OK, remember comment tokens.
     if (_firstComment == null) {
-      _firstComment = new StringToken(type, value, _tokenStart);
+      _firstComment = new CommentToken(type, value, _tokenStart);
       _lastComment = _firstComment;
     } else {
       _lastComment =
-          _lastComment.setNext(new StringToken(type, value, _tokenStart));
+          _lastComment.setNext(new CommentToken(type, value, _tokenStart));
     }
   }
 
@@ -1820,7 +1842,7 @@ class StringTokenWithComment extends StringToken {
   /**
    * The first comment in the list of comments that precede this token.
    */
-  final Token _precedingComment;
+  CommentToken precedingComments;
 
   /**
    * Initialize a newly created token to have the given [type] at the given
@@ -1828,16 +1850,17 @@ class StringTokenWithComment extends StringToken {
    * [comment].
    */
   StringTokenWithComment(TokenType type, String value, int offset,
-      this._precedingComment)
-      : super(type, value, offset);
-
-  @override
-  Token get precedingComments => _precedingComment;
+      this.precedingComments)
+      : super(type, value, offset) {
+    if (precedingComments != null) {
+      precedingComments.parent = this;
+    }
+  }
 
   @override
   void applyDelta(int delta) {
     super.applyDelta(delta);
-    Token token = _precedingComment;
+    Token token = precedingComments;
     while (token != null) {
       token.applyDelta(delta);
       token = token.next;
@@ -1850,7 +1873,7 @@ class StringTokenWithComment extends StringToken {
           type,
           lexeme,
           offset,
-          copyComments(_precedingComment));
+          copyComments(precedingComments));
 }
 
 /**
@@ -1981,7 +2004,7 @@ class Token {
    * `null` is returned.
    *
    * For example, if the original contents were "/* one */ /* two */ id", then
-   * the first precceding comment token will have a lexeme of "/* one */" and
+   * the first preceding comment token will have a lexeme of "/* one */" and
    * the next comment token will have a lexeme of "/* two */".
    */
   Token get precedingComments => null;
@@ -2549,19 +2572,20 @@ class TokenWithComment extends Token {
   /**
    * The first comment in the list of comments that precede this token.
    */
-  final Token _precedingComment;
+  CommentToken precedingComments;
 
   /**
    * Initialize a newly created token to have the given [type] at the given
    * [offset] and to be preceded by the comments reachable from the given
    * [comment].
    */
-  TokenWithComment(TokenType type, int offset, this._precedingComment)
-      : super(type, offset);
+  TokenWithComment(TokenType type, int offset, this.precedingComments)
+      : super(type, offset) {
+    if (precedingComments != null) {
+      precedingComments.parent = this;
+    }
+  }
 
   @override
-  Token get precedingComments => _precedingComment;
-
-  @override
-  Token copy() => new TokenWithComment(type, offset, _precedingComment);
+  Token copy() => new TokenWithComment(type, offset, precedingComments);
 }

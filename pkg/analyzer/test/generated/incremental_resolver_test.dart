@@ -2099,9 +2099,7 @@ class B {
     // do incremental resolution
     IncrementalResolver resolver = new IncrementalResolver(
         typeProvider,
-        library,
         unit.element,
-        source,
         edit.offset,
         edit.length,
         edit.replacement.length);
@@ -2176,6 +2174,134 @@ class PoorMansIncrementalResolutionTest extends ResolverTestCase {
   void setUp() {
     super.setUp();
     _resetWithIncremental(true);
+  }
+
+  void test_dartDoc_beforeField() {
+    _resolveUnit(r'''
+class A {
+  /**
+   * A field [field] of type [int] in class [A].
+   */
+  int field;
+}
+''');
+    _updateAndValidate(r'''
+class A {
+  /**
+   * A field [field] of the type [int] in the class [A].
+   * Updated, with a reference to the [String] type.
+   */
+  int field;
+}
+''');
+  }
+
+  void test_dartDoc_clumsy_addReference() {
+    _resolveUnit(r'''
+/**
+ * aaa bbbb
+ */
+main() {
+}
+''');
+    _updateAndValidate(r'''
+/**
+ * aaa [main] bbbb
+ */
+main() {
+}
+''');
+  }
+
+  void test_dartDoc_clumsy_removeReference() {
+    _resolveUnit(r'''
+/**
+ * aaa [main] bbbb
+ */
+main() {
+}
+''');
+    _updateAndValidate(r'''
+/**
+ * aaa bbbb
+ */
+main() {
+}
+''');
+  }
+
+  void test_dartDoc_clumsy_updateText() {
+    _resolveUnit(r'''
+/**
+ * A function [main] with a parameter [p] of type [int].
+ */
+main(int p) {
+}
+/**
+ * Other comment.
+ */
+foo() {}
+''');
+    _updateAndValidate(r'''
+/**
+ * A function [main] with a parameter [p] of type [int].
+ * Updated.
+ */
+main(int p) {
+}
+/**
+ * Other comment.
+ */
+foo() {}
+''');
+  }
+
+  void test_dartDoc_clumsy_updateText_beforeKeywordToken() {
+    _resolveUnit(r'''
+/**
+ * A comment with the [int] type reference.
+ */
+class A {}
+''');
+    _updateAndValidate(r'''
+/**
+ * A comment with the [int] type reference.
+ * Plus reference to [A] itself.
+ */
+class A {}
+''');
+  }
+
+  void test_dartDoc_elegant_addReference() {
+    _resolveUnit(r'''
+/// aaa bbb
+main() {
+  return 1;
+}
+''');
+    _updateAndValidate(r'''
+/// aaa [main] bbb
+/// ccc [int] ddd
+main() {
+  return 2;
+}
+''');
+  }
+
+  void test_dartDoc_elegant_removeReference() {
+    _resolveUnit(r'''
+/// aaa [main] bbb
+/// ccc [int] ddd
+main() {
+  return 1;
+}
+''');
+    _updateAndValidate(r'''
+/// aaa bbb
+main() {
+  return 2;
+}
+''');
   }
 
   void test_false_topLevelFunction_name() {
@@ -2650,6 +2776,21 @@ f3() {
 //      print('$incrToken @ ${incrToken.offset}');
 //      print('$fullToken @ ${fullToken.offset}');
       _assertEqualToken(incrToken, fullToken);
+      // comments
+      {
+        Token incrComment = incrToken.precedingComments;
+        Token fullComment = fullToken.precedingComments;
+        while (true) {
+          if (fullComment == null) {
+            expect(incrComment, isNull);
+            break;
+          }
+          _assertEqualToken(incrComment, fullComment);
+          incrComment = incrComment.next;
+          fullComment = fullComment.next;
+        }
+      }
+      // next tokens
       incrToken = incrToken.next;
       fullToken = fullToken.next;
     }

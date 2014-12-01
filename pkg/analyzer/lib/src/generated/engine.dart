@@ -10507,9 +10507,7 @@ class IncrementalAnalysisTask extends AnalysisTask {
         if (library != null) {
           IncrementalResolver resolver = new IncrementalResolver(
               typeProvider,
-              library,
               element,
-              cache.source,
               cache.offset,
               cache.oldLength,
               cache.newLength);
