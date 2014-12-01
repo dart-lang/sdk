@@ -4,6 +4,8 @@
 
 library computer.navigation;
 
+import 'dart:collection';
+
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -16,17 +18,19 @@ import 'package:analyzer/src/generated/scanner.dart';
 class DartUnitNavigationComputer {
   final CompilationUnit _unit;
 
-  final List<protocol.NavigationRegion> _regions = <protocol.NavigationRegion>[
-      ];
+  final List<String> files = <String>[];
+  final Map<String, int> fileMap = new HashMap<String, int>();
+  final List<protocol.NavigationTarget> targets = <protocol.NavigationTarget>[];
+  final Map<Element, int> targetMap = new HashMap<Element, int>();
+  final List<protocol.NavigationRegion> regions = <protocol.NavigationRegion>[];
 
   DartUnitNavigationComputer(this._unit);
 
   /**
-   * Returns the computed navigation regions, not `null`.
+   * Computes [regions], [targets] and [files].
    */
-  List<protocol.NavigationRegion> compute() {
+  void compute() {
     _unit.accept(new _DartUnitNavigationComputerVisitor(this));
-    return new List.from(_regions);
   }
 
   void _addRegion(int offset, int length, Element element) {
@@ -39,8 +43,31 @@ class DartUnitNavigationComputer {
     if (element.location == null) {
       return;
     }
-    protocol.Element target = protocol.newElement_fromEngine(element);
-    _regions.add(new protocol.NavigationRegion(offset, length, [target]));
+    int targetIndex = _addTarget(element);
+    regions.add(
+        new protocol.NavigationRegion(offset, length, <int>[targetIndex]));
+  }
+
+  int _addTarget(Element element) {
+    int index = targetMap[element];
+    if (index == null) {
+      index = targets.length;
+      protocol.NavigationTarget target =
+          protocol.newNavigationTarget_fromElement(element, _addFile);
+      targets.add(target);
+      targetMap[element] = index;
+    }
+    return index;
+  }
+
+  int _addFile(String file) {
+    int index = fileMap[file];
+    if (index == null) {
+      index = files.length;
+      files.add(file);
+      fileMap[file] = index;
+    }
+    return index;
   }
 
   void _addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element element) {

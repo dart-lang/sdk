@@ -689,6 +689,22 @@
               navigation regions.
             </p>
           </field>
+          <field name="targets">
+            <list><ref>NavigationTarget</ref></list>
+            <p>
+              The navigation targets referenced in the file.
+              They are referenced by <tt>NavigationRegion</tt>s by their
+              index in this array.
+            </p>
+          </field>
+          <field name="files">
+            <list><ref>FilePath</ref></list>
+            <p>
+              The files containing navigation targets referenced in the file.
+              They are referenced by <tt>NavigationTarget</tt>s by their
+              index in this array.
+            </p>
+          </field>
         </params>
       </notification>
       <notification event="occurrences">
@@ -1893,7 +1909,7 @@
             <p>
               The element identifier should be inserted at the completion location.
               For example "someMethod" in import 'myLib.dart' show someMethod; .
-              For suggestions of this kind, the element attribute is defined 
+              For suggestions of this kind, the element attribute is defined
               and the completion field is the element's identifier.
             </p>
           </value>
@@ -1902,7 +1918,7 @@
             <p>
               The element is being invoked at the completion location.
               For example, "someMethod" in x.someMethod(); .
-              For suggestions of this kind, the element attribute is defined 
+              For suggestions of this kind, the element attribute is defined
               and the completion field is the element's identifier.
             </p>
           </value>
@@ -2384,11 +2400,57 @@
             </p>
           </field>
           <field name="targets">
-            <list><ref>Element</ref></list>
+            <list><ref>int</ref></list>
             <p>
-              The elements to which the given region is bound. By
-              opening the declaration of the elements, clients can
-              implement one form of navigation.
+              The indexes of the targets (in the enclosing navigation response)
+              to which the given region is bound. By opening the target, clients
+              can implement one form of navigation.
+            </p>
+          </field>
+        </object>
+      </type>
+      <type name="NavigationTarget">
+        <p>
+          A description of a target to which the user can navigate.
+        </p>
+        <object>
+          <field name="kind">
+            <ref>ElementKind</ref>
+            <p>
+              The kind of the element.
+            </p>
+          </field>
+          <field name="fileIndex">
+            <ref>int</ref>
+            <p>
+              The index of the file (in the enclosing navigation response) to
+              navigate to.
+            </p>
+          </field>
+          <field name="offset">
+            <ref>int</ref>
+            <p>
+              The offset of the region from which the user can navigate.
+            </p>
+          </field>
+          <field name="length">
+            <ref>int</ref>
+            <p>
+              The length of the region from which the user can navigate.
+            </p>
+          </field>
+          <field name="startLine">
+            <ref>int</ref>
+            <p>
+              The one-based index of the line containing the first
+              character of the region.
+            </p>
+          </field>
+          <field name="startColumn">
+            <ref>int</ref>
+            <p>
+              The one-based index of the column containing the first
+              character of the region.
             </p>
           </field>
         </object>

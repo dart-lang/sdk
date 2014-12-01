@@ -226,6 +226,22 @@ Location newLocation_fromUnit(engine.CompilationUnit unit,
 }
 
 
+NavigationTarget newNavigationTarget_fromElement(engine.Element element,
+    int fileToIndex(String file)) {
+  ElementKind kind = newElementKind_fromEngine(element.kind);
+  Location location = newLocation_fromElement(element);
+  String file = location.file;
+  int fileIndex = fileToIndex(file);
+  return new NavigationTarget(
+      kind,
+      fileIndex,
+      location.offset,
+      location.length,
+      location.startLine,
+      location.startColumn);
+}
+
+
 /**
  * Construct based on an element from the analyzer engine.
  */

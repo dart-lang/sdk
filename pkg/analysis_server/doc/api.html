@@ -784,6 +784,8 @@ dt.typeDefinition {
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
     "<b>regions</b>": List&lt;<a href="#type_NavigationRegion">NavigationRegion</a>&gt;
+    "<b>targets</b>": List&lt;<a href="#type_NavigationTarget">NavigationTarget</a>&gt;
+    "<b>files</b>": List&lt;<a href="#type_FilePath">FilePath</a>&gt;
   }
 }</pre></div>
         <p>
@@ -814,6 +816,20 @@ dt.typeDefinition {
               versions of a package. Note that the navigation
               regions that are returned do not overlap other
               navigation regions.
+            </p>
+          </dd><dt class="field"><b><i>targets ( List&lt;<a href="#type_NavigationTarget">NavigationTarget</a>&gt; )</i></b></dt><dd>
+            
+            <p>
+              The navigation targets referenced in the file.
+              They are referenced by <tt>NavigationRegion</tt>s by their
+              index in this array.
+            </p>
+          </dd><dt class="field"><b><i>files ( List&lt;<a href="#type_FilePath">FilePath</a>&gt; )</i></b></dt><dd>
+            
+            <p>
+              The files containing navigation targets referenced in the file.
+              They are referenced by <tt>NavigationTarget</tt>s by their
+              index in this array.
             </p>
           </dd></dl></dd><dt class="notification">analysis.occurrences</dt><dd><div class="box"><pre>notification: {
   "event": "analysis.occurrences"
@@ -1802,6 +1818,7 @@ dt.typeDefinition {
       
       
       
+      
     <dl><dt class="typeDefinition"><a name="type_AddContentOverlay">AddContentOverlay: object</a></dt><dd>
         <p>
           A directive to begin overlaying the contents of a file.  The
@@ -2119,7 +2136,7 @@ dt.typeDefinition {
             <p>
               The element identifier should be inserted at the completion location.
               For example "someMethod" in import 'myLib.dart' show someMethod; .
-              For suggestions of this kind, the element attribute is defined 
+              For suggestions of this kind, the element attribute is defined
               and the completion field is the element's identifier.
             </p>
           </dd><dt class="value">INVOCATION</dt><dd>
@@ -2127,7 +2144,7 @@ dt.typeDefinition {
             <p>
               The element is being invoked at the completion location.
               For example, "someMethod" in x.someMethod(); .
-              For suggestions of this kind, the element attribute is defined 
+              For suggestions of this kind, the element attribute is defined
               and the completion field is the element's identifier.
             </p>
           </dd><dt class="value">KEYWORD</dt><dd>
@@ -2463,12 +2480,50 @@ dt.typeDefinition {
             <p>
               The length of the region from which the user can navigate.
             </p>
-          </dd><dt class="field"><b><i>targets ( List&lt;<a href="#type_Element">Element</a>&gt; )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>targets ( List&lt;int&gt; )</i></b></dt><dd>
             
             <p>
-              The elements to which the given region is bound. By
-              opening the declaration of the elements, clients can
-              implement one form of navigation.
+              The indexes of the targets (in the enclosing navigation response)
+              to which the given region is bound. By opening the target, clients
+              can implement one form of navigation.
+            </p>
+          </dd></dl></dd><dt class="typeDefinition"><a name="type_NavigationTarget">NavigationTarget: object</a></dt><dd>
+        <p>
+          A description of a target to which the user can navigate.
+        </p>
+        
+      <dl><dt class="field"><b><i>kind ( <a href="#type_ElementKind">ElementKind</a> )</i></b></dt><dd>
+            
+            <p>
+              The kind of the element.
+            </p>
+          </dd><dt class="field"><b><i>fileIndex ( int )</i></b></dt><dd>
+            
+            <p>
+              The index of the file (in the enclosing navigation response) to
+              navigate to.
+            </p>
+          </dd><dt class="field"><b><i>offset ( int )</i></b></dt><dd>
+            
+            <p>
+              The offset of the region from which the user can navigate.
+            </p>
+          </dd><dt class="field"><b><i>length ( int )</i></b></dt><dd>
+            
+            <p>
+              The length of the region from which the user can navigate.
+            </p>
+          </dd><dt class="field"><b><i>startLine ( int )</i></b></dt><dd>
+            
+            <p>
+              The one-based index of the line containing the first
+              character of the region.
+            </p>
+          </dd><dt class="field"><b><i>startColumn ( int )</i></b></dt><dd>
+            
+            <p>
+              The one-based index of the column containing the first
+              character of the region.
             </p>
           </dd></dl></dd><dt class="typeDefinition"><a name="type_Occurrences">Occurrences: object</a></dt><dd>
         <p>

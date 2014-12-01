@@ -1533,6 +1533,8 @@ class AnalysisHighlightsParams implements HasToJson {
  * {
  *   "file": FilePath
  *   "regions": List<NavigationRegion>
+ *   "targets": List<NavigationTarget>
+ *   "files": List<FilePath>
  * }
  */
 class AnalysisNavigationParams implements HasToJson {
@@ -1552,7 +1554,19 @@ class AnalysisNavigationParams implements HasToJson {
    */
   List<NavigationRegion> regions;
 
-  AnalysisNavigationParams(this.file, this.regions);
+  /**
+   * The navigation targets referenced in the file. They are referenced by
+   * NavigationRegions by their index in this array.
+   */
+  List<NavigationTarget> targets;
+
+  /**
+   * The files containing navigation targets referenced in the file. They are
+   * referenced by NavigationTargets by their index in this array.
+   */
+  List<String> files;
+
+  AnalysisNavigationParams(this.file, this.regions, this.targets, this.files);
 
   factory AnalysisNavigationParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -1571,7 +1585,19 @@ class AnalysisNavigationParams implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "regions");
       }
-      return new AnalysisNavigationParams(file, regions);
+      List<NavigationTarget> targets;
+      if (json.containsKey("targets")) {
+        targets = jsonDecoder._decodeList(jsonPath + ".targets", json["targets"], (String jsonPath, Object json) => new NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "targets");
+      }
+      List<String> files;
+      if (json.containsKey("files")) {
+        files = jsonDecoder._decodeList(jsonPath + ".files", json["files"], jsonDecoder._decodeString);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "files");
+      }
+      return new AnalysisNavigationParams(file, regions, targets, files);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.navigation params");
     }
@@ -1586,6 +1612,8 @@ class AnalysisNavigationParams implements HasToJson {
     Map<String, dynamic> result = {};
     result["file"] = file;
     result["regions"] = regions.map((NavigationRegion value) => value.toJson()).toList();
+    result["targets"] = targets.map((NavigationTarget value) => value.toJson()).toList();
+    result["files"] = files;
     return result;
   }
 
@@ -1600,7 +1628,9 @@ class AnalysisNavigationParams implements HasToJson {
   bool operator==(other) {
     if (other is AnalysisNavigationParams) {
       return file == other.file &&
-          _listEqual(regions, other.regions, (NavigationRegion a, NavigationRegion b) => a == b);
+          _listEqual(regions, other.regions, (NavigationRegion a, NavigationRegion b) => a == b) &&
+          _listEqual(targets, other.targets, (NavigationTarget a, NavigationTarget b) => a == b) &&
+          _listEqual(files, other.files, (String a, String b) => a == b);
     }
     return false;
   }
@@ -1610,6 +1640,8 @@ class AnalysisNavigationParams implements HasToJson {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, file.hashCode);
     hash = _JenkinsSmiHash.combine(hash, regions.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, targets.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, files.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }
@@ -7146,7 +7178,7 @@ class Location implements HasToJson {
  * {
  *   "offset": int
  *   "length": int
- *   "targets": List<Element>
+ *   "targets": List<int>
  * }
  */
 class NavigationRegion implements HasToJson {
@@ -7161,10 +7193,11 @@ class NavigationRegion implements HasToJson {
   int length;
 
   /**
-   * The elements to which the given region is bound. By opening the
-   * declaration of the elements, clients can implement one form of navigation.
+   * The indexes of the targets (in the enclosing navigation response) to which
+   * the given region is bound. By opening the target, clients can implement
+   * one form of navigation.
    */
-  List<Element> targets;
+  List<int> targets;
 
   NavigationRegion(this.offset, this.length, this.targets);
 
@@ -7185,9 +7218,9 @@ class NavigationRegion implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
-      List<Element> targets;
+      List<int> targets;
       if (json.containsKey("targets")) {
-        targets = jsonDecoder._decodeList(jsonPath + ".targets", json["targets"], (String jsonPath, Object json) => new Element.fromJson(jsonDecoder, jsonPath, json));
+        targets = jsonDecoder._decodeList(jsonPath + ".targets", json["targets"], jsonDecoder._decodeInt);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "targets");
       }
@@ -7201,7 +7234,7 @@ class NavigationRegion implements HasToJson {
     Map<String, dynamic> result = {};
     result["offset"] = offset;
     result["length"] = length;
-    result["targets"] = targets.map((Element value) => value.toJson()).toList();
+    result["targets"] = targets;
     return result;
   }
 
@@ -7213,7 +7246,7 @@ class NavigationRegion implements HasToJson {
     if (other is NavigationRegion) {
       return offset == other.offset &&
           length == other.length &&
-          _listEqual(targets, other.targets, (Element a, Element b) => a == b);
+          _listEqual(targets, other.targets, (int a, int b) => a == b);
     }
     return false;
   }
@@ -7224,6 +7257,141 @@ class NavigationRegion implements HasToJson {
     hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
     hash = _JenkinsSmiHash.combine(hash, length.hashCode);
     hash = _JenkinsSmiHash.combine(hash, targets.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * NavigationTarget
+ *
+ * {
+ *   "kind": ElementKind
+ *   "fileIndex": int
+ *   "offset": int
+ *   "length": int
+ *   "startLine": int
+ *   "startColumn": int
+ * }
+ */
+class NavigationTarget implements HasToJson {
+  /**
+   * The kind of the element.
+   */
+  ElementKind kind;
+
+  /**
+   * The index of the file (in the enclosing navigation response) to navigate
+   * to.
+   */
+  int fileIndex;
+
+  /**
+   * The offset of the region from which the user can navigate.
+   */
+  int offset;
+
+  /**
+   * The length of the region from which the user can navigate.
+   */
+  int length;
+
+  /**
+   * The one-based index of the line containing the first character of the
+   * region.
+   */
+  int startLine;
+
+  /**
+   * The one-based index of the column containing the first character of the
+   * region.
+   */
+  int startColumn;
+
+  NavigationTarget(this.kind, this.fileIndex, this.offset, this.length, this.startLine, this.startColumn);
+
+  factory NavigationTarget.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      ElementKind kind;
+      if (json.containsKey("kind")) {
+        kind = new ElementKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "kind");
+      }
+      int fileIndex;
+      if (json.containsKey("fileIndex")) {
+        fileIndex = jsonDecoder._decodeInt(jsonPath + ".fileIndex", json["fileIndex"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "fileIndex");
+      }
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "offset");
+      }
+      int length;
+      if (json.containsKey("length")) {
+        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "length");
+      }
+      int startLine;
+      if (json.containsKey("startLine")) {
+        startLine = jsonDecoder._decodeInt(jsonPath + ".startLine", json["startLine"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "startLine");
+      }
+      int startColumn;
+      if (json.containsKey("startColumn")) {
+        startColumn = jsonDecoder._decodeInt(jsonPath + ".startColumn", json["startColumn"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "startColumn");
+      }
+      return new NavigationTarget(kind, fileIndex, offset, length, startLine, startColumn);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "NavigationTarget");
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["kind"] = kind.toJson();
+    result["fileIndex"] = fileIndex;
+    result["offset"] = offset;
+    result["length"] = length;
+    result["startLine"] = startLine;
+    result["startColumn"] = startColumn;
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is NavigationTarget) {
+      return kind == other.kind &&
+          fileIndex == other.fileIndex &&
+          offset == other.offset &&
+          length == other.length &&
+          startLine == other.startLine &&
+          startColumn == other.startColumn;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, fileIndex.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, startLine.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, startColumn.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }

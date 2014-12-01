@@ -543,6 +543,16 @@ abstract class IntegrationTestMixin {
    *   multiple libraries or in Dart code that is compiled against multiple
    *   versions of a package. Note that the navigation regions that are
    *   returned do not overlap other navigation regions.
+   *
+   * targets ( List<NavigationTarget> )
+   *
+   *   The navigation targets referenced in the file. They are referenced by
+   *   NavigationRegions by their index in this array.
+   *
+   * files ( List<FilePath> )
+   *
+   *   The files containing navigation targets referenced in the file. They are
+   *   referenced by NavigationTargets by their index in this array.
    */
   Stream<AnalysisNavigationParams> onAnalysisNavigation;
 

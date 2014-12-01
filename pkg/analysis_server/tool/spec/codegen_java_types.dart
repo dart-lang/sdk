@@ -355,6 +355,16 @@ class CodegenJavaType extends CodegenJavaVisitor {
           writeln('private List<Outline> children;');
         });
       }
+      if (className == 'NavigationRegion') {
+        privateField(javaName('targetObjects'), () {
+          writeln('private final List<NavigationTarget> targetObjects = Lists.newArrayList();');
+        });
+      }
+      if (className == 'NavigationTarget') {
+        privateField(javaName('file'), () {
+          writeln('private String file;');
+        });
+      }
 
       //
       // constructor
@@ -440,6 +450,35 @@ class CodegenJavaType extends CodegenJavaVisitor {
             writeln('}');
           });
         }
+      }
+
+      if (className == 'NavigationRegion') {
+        publicMethod('lookupTargets', () {
+          writeln('public void lookupTargets(List<NavigationTarget> allTargets) {');
+          writeln('  for (int i = 0; i < targets.length; i++) {');
+          writeln('    int targetIndex = targets[i];');
+          writeln('    NavigationTarget target = allTargets.get(targetIndex);');
+          writeln('    targetObjects.add(target);');
+          writeln('  }');
+          writeln('}');
+        });
+        publicMethod('getTargetObjects', () {
+          writeln('public List<NavigationTarget> getTargetObjects() {');
+          writeln('  return targetObjects;');
+          writeln('}');
+        });
+      }
+      if (className == 'NavigationTarget') {
+        publicMethod('lookupFile', () {
+          writeln('public void lookupFile(String[] allTargetFiles) {');
+          writeln('  file = allTargetFiles[fileIndex];');
+          writeln('}');
+        });
+        publicMethod('getFile', () {
+          writeln('public String getFile() {');
+          writeln('  return file;');
+          writeln('}');
+        });
       }
 
       //

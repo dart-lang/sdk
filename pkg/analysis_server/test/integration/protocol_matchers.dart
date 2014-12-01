@@ -303,12 +303,16 @@ final Matcher isAnalysisHighlightsParams = new LazyMatcher(() => new MatchesJson
  * {
  *   "file": FilePath
  *   "regions": List<NavigationRegion>
+ *   "targets": List<NavigationTarget>
+ *   "files": List<FilePath>
  * }
  */
 final Matcher isAnalysisNavigationParams = new LazyMatcher(() => new MatchesJsonObject(
   "analysis.navigation params", {
     "file": isFilePath,
-    "regions": isListOf(isNavigationRegion)
+    "regions": isListOf(isNavigationRegion),
+    "targets": isListOf(isNavigationTarget),
+    "files": isListOf(isFilePath)
   }));
 
 /**
@@ -1424,14 +1428,36 @@ final Matcher isLocation = new LazyMatcher(() => new MatchesJsonObject(
  * {
  *   "offset": int
  *   "length": int
- *   "targets": List<Element>
+ *   "targets": List<int>
  * }
  */
 final Matcher isNavigationRegion = new LazyMatcher(() => new MatchesJsonObject(
   "NavigationRegion", {
     "offset": isInt,
     "length": isInt,
-    "targets": isListOf(isElement)
+    "targets": isListOf(isInt)
+  }));
+
+/**
+ * NavigationTarget
+ *
+ * {
+ *   "kind": ElementKind
+ *   "fileIndex": int
+ *   "offset": int
+ *   "length": int
+ *   "startLine": int
+ *   "startColumn": int
+ * }
+ */
+final Matcher isNavigationTarget = new LazyMatcher(() => new MatchesJsonObject(
+  "NavigationTarget", {
+    "kind": isElementKind,
+    "fileIndex": isInt,
+    "offset": isInt,
+    "length": isInt,
+    "startLine": isInt,
+    "startColumn": isInt
   }));
 
 /**
