@@ -23,7 +23,7 @@ abstract class TypeRules {
   bool isGroundType(DartType t) => true;
 
   void inferType(VariableDeclaration decl);
-  TypeMismatch checkAssignment(Expression expr, DartType t);
+  StaticInfo checkAssignment(Expression expr, DartType t);
 
   void setCompilationUnit(CompilationUnit unit) {}
 
@@ -46,7 +46,7 @@ class DartRules extends TypeRules {
 
   void inferType(VariableDeclaration decl) {}
 
-  TypeMismatch checkAssignment(Expression expr, DartType toType) {
+  StaticInfo checkAssignment(Expression expr, DartType toType) {
     final fromType = getStaticType(expr);
     if (!isAssignable(fromType, toType)) {
       return new StaticTypeError(this, expr, toType);
@@ -331,7 +331,7 @@ class RestrictedRules extends TypeRules {
     return isSubTypeOf(t1, t2);
   }
 
-  TypeMismatch checkAssignment(Expression expr, DartType type) {
+  StaticInfo checkAssignment(Expression expr, DartType type) {
     final exprType = getStaticType(expr);
     if (!isAssignable(exprType, type)) {
       if (isBoxable(type) && canBeBoxedTo(type, exprType)) {

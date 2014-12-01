@@ -19,37 +19,18 @@ abstract class StaticInfo {
   String get message;
 }
 
-abstract class TypeMismatch extends StaticInfo {
+// Implicitly injected expression conversion.
+abstract class Conversion extends StaticInfo {
   final TypeRules rules;
   final Expression expression;
   AstNode get node => expression;
-
-  TypeMismatch(this.rules, this.expression);
-
-  DartType get baseType => rules.getStaticType(expression);
-}
-
-class StaticTypeError extends TypeMismatch {
-  DartType expectedType;
-
-  StaticTypeError(TypeRules rules, Expression expression, this.expectedType)
-      : super(rules, expression);
-
-  String get message =>
-      'Type check failed: $expression ($baseType) is not of type $expectedType';
-
-  Level get level => Level.SEVERE;
-}
-
-// Implicitly injected expression conversion.
-abstract class Conversion extends TypeMismatch {
   DartType _convertedType;
 
-  Conversion(TypeRules rules, Expression expression)
-      : super(rules, expression) {
+  Conversion(this.rules, this.expression) {
     this._convertedType = _getConvertedType();
   }
 
+  DartType get baseType => rules.getStaticType(expression);
   DartType get convertedType => _convertedType;
 
   DartType _getConvertedType();
@@ -156,42 +137,73 @@ class DynamicInvoke extends Conversion {
   Level get level => Level.WARNING;
 }
 
-class InvalidRuntimeCheckError extends StaticInfo {
+abstract class StaticError extends StaticInfo {
   final AstNode node;
-  final DartType type;
 
-  InvalidRuntimeCheckError(this.node, this.type) {
-    assert(node is IsExpression || node is AsExpression);
-  }
-
-  String get message => "Invalid runtime check on non-ground type $type";
+  StaticError(this.node);
 
   Level get level => Level.SEVERE;
 }
 
-class InvalidOverride extends StaticInfo {
-  final AstNode node;
+class StaticTypeError extends StaticError {
+  final DartType baseType;
+  final DartType expectedType;
+
+  StaticTypeError(TypeRules rules, Expression expression, this.expectedType)
+      : baseType = rules.getStaticType(expression), super(expression);
+
+  String get message =>
+      'Type check failed: $node ($baseType) is not of type $expectedType';
+
+  Level get level => Level.SEVERE;
+}
+
+class InvalidRuntimeCheckError extends StaticError {
+  final DartType type;
+
+  InvalidRuntimeCheckError(AstNode node, this.type) : super(node) {
+    assert(node is IsExpression || node is AsExpression);
+  }
+
+  String get message => "Invalid runtime check on non-ground type $type";
+}
+
+// Invalid override of an instance member of a class.
+abstract class InvalidOverride extends StaticError {
   final ExecutableElement element;
   final InterfaceType base;
-  final FunctionType methodType;
-  final FunctionType baseType;
-  // TODO(vsm): Refactor to a different class.
-  final bool fieldOverride;
 
-  InvalidOverride(this.node, this.element, this.base, this.methodType,
-      this.baseType, [this.fieldOverride = false]);
+  InvalidOverride(AstNode node, this.element, this.base) : super(node);
 
   ClassDeclaration get parent =>
       element.enclosingElement.node as ClassDeclaration;
-  String get message {
-    if (fieldOverride) {
-      return 'Invalid field override for ${element.name} in '
-          '${parent.name} over $base';
-    } else {
-      return 'Invalid override for ${element.name} in ${parent.name} '
-          'over $base: $methodType does not subtype $baseType';
-    }
-  }
+}
 
-  Level get level => Level.SEVERE;
+// Invalid override due to incompatible type.  I.e., the overridden signature
+// is not compatible with the original.
+class InvalidMethodOverride extends InvalidOverride {
+  final FunctionType methodType;
+  final FunctionType baseType;
+
+  InvalidMethodOverride(AstNode node, ExecutableElement element,
+      InterfaceType base, this.methodType,
+      this.baseType) : super(node, element, base);
+
+  String get message {
+    return 'Invalid override for ${element.name} in ${parent.name} '
+        'over $base: $methodType does not subtype $baseType';
+  }
+}
+
+// TODO(vsm): Do we still need this?
+// Under certain rules, we disallow overriding a field with a
+// field/getter/setter.
+class InvalidFieldOverride extends InvalidOverride {
+  InvalidFieldOverride(AstNode node, ExecutableElement element,
+      InterfaceType base) : super(node, element, base);
+
+  String get message {
+    return 'Invalid field override for ${element.name} in '
+        '${parent.name} over $base';
+  }
 }

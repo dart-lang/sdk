@@ -231,7 +231,8 @@ class ProgramChecker extends RecursiveAstVisitor {
       // TODO(vsm): Test for generic
       FunctionType baseType = _rules.elementType(baseMethod);
       if (!_rules.isAssignable(subType, baseType)) {
-        return new InvalidOverride(node, element, type, subType, baseType);
+        return new InvalidMethodOverride(node, element, type, subType,
+            baseType);
       }
 
       // Test that we're not overriding a field.
@@ -241,8 +242,7 @@ class ProgramChecker extends RecursiveAstVisitor {
             // TODO(vsm): Is this the right test?
             bool syn = field.isSynthetic;
             if (!syn) {
-              return new InvalidOverride(
-                  node, element, type, subType, baseType, true);
+              return new InvalidFieldOverride(node, element, type);
             }
           }
         }
@@ -460,7 +460,7 @@ class ProgramChecker extends RecursiveAstVisitor {
   }
 
   bool checkAssignment(Expression expr, DartType type) {
-    TypeMismatch result = _rules.checkAssignment(expr, type);
+    StaticInfo result = _rules.checkAssignment(expr, type);
     return !record(result);
   }
 
