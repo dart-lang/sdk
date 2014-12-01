@@ -44,7 +44,9 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   }
 
   visitFieldDefinition(cps_ir.FieldDefinition node) {
-    visitExecutableDefinition(node);
+    if (node.hasInitializer) {
+      visitExecutableDefinition(node);
+    }
   }
 
   visitFunctionDefinition(cps_ir.FunctionDefinition node) {
@@ -343,7 +345,9 @@ class BlockCollector extends cps_ir.Visitor {
   }
 
   visitFieldDefinition(cps_ir.FieldDefinition node) {
-    visitExecutableDefinition(node);
+    if (node.hasInitializer) {
+      visitExecutableDefinition(node);
+    }
   }
 
   visitFunctionDefinition(cps_ir.FunctionDefinition node) {

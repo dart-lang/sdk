@@ -49,6 +49,7 @@ class ConstantPropagator extends Pass {
   }
 
   void rewriteFieldDefinition(FieldDefinition root) {
+    if (!root.hasInitializer) return;
     _rewriteExecutableDefinition(root);
   }
 
@@ -312,7 +313,9 @@ class _ConstPropagationVisitor extends Visitor {
   }
 
   void visitFieldDefinition(FieldDefinition node) {
-    setReachable(node.body);
+    if (node.hasInitializer) {
+      setReachable(node.body);
+    }
   }
 
   // Expressions.

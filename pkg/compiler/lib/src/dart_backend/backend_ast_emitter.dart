@@ -200,22 +200,26 @@ class ASTEmitter
   FieldDefinition emitField(tree.FieldDefinition definition,
                             BuilderContext<Statement> context) {
     context.currentElement = definition.element;
-    visitStatement(definition.body, context);
-    List<Statement> bodyParts;
-    for (tree.Variable variable in context.variableNames.keys) {
-      if (!context.declaredVariables.contains(variable)) {
-        context.addDeclaration(variable);
+    Expression initializer;
+    if (definition.hasInitializer) {
+      visitStatement(definition.body, context);
+      List<Statement> bodyParts;
+      for (tree.Variable variable in context.variableNames.keys) {
+        if (!context.declaredVariables.contains(variable)) {
+          context.addDeclaration(variable);
+        }
       }
-    }
-    if (context.variables.length > 0) {
-      bodyParts = new List<Statement>();
-      bodyParts.add(new VariableDeclarations(context.variables));
-      bodyParts.addAll(context.statements);
-    } else {
-      bodyParts = context.statements;
+      if (context.variables.length > 0) {
+        bodyParts = new List<Statement>();
+        bodyParts.add(new VariableDeclarations(context.variables));
+        bodyParts.addAll(context.statements);
+      } else {
+        bodyParts = context.statements;
+      }
+      initializer = ensureExpression(bodyParts);
     }
 
-    return new FieldDefinition(definition.element, ensureExpression(bodyParts));
+    return new FieldDefinition(definition.element, initializer);
   }
 
   /// Returns an expression that will evaluate all of [bodyParts].

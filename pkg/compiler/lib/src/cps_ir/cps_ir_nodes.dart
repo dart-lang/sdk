@@ -567,8 +567,31 @@ class FieldDefinition extends Node
   Expression body;
 
   FieldDefinition(this.element, this.returnContinuation, this.body);
+
+  FieldDefinition.withoutInitializer(this.element)
+      : this.returnContinuation = null;
+
   accept(Visitor visitor) => visitor.visitFieldDefinition(this);
   applyPass(Pass pass) => pass.rewriteFieldDefinition(this);
+
+  /// `true` if this field has no initializer.
+  ///
+  /// If `true` [body] and [returnContinuation] are `null`.
+  ///
+  /// This is different from a initializer that is `null`. Consider this class:
+  ///
+  ///     class Class {
+  ///       final field;
+  ///       Class.a(this.field);
+  ///       Class.b() : this.field = null;
+  ///       Class.c();
+  ///     }
+  ///
+  /// If `field` had an initializer, possibly `null`, constructors `Class.a` and
+  /// `Class.b` would be invalid, and since `field` has no initializer
+  /// constructor `Class.c` is invalid. We therefore need to distinguish the two
+  /// cases.
+  bool get hasInitializer => body != null;
 }
 
 /// A function definition, consisting of parameters and a body.  The parameters
@@ -673,14 +696,18 @@ abstract class RecursiveVisitor extends Visitor {
   processFieldDefinition(FieldDefinition node) {}
   visitFieldDefinition(FieldDefinition node) {
     processFieldDefinition(node);
-    visit(node.body);
+    if (node.hasInitializer) {
+      visit(node.body);
+    }
   }
 
   processFunctionDefinition(FunctionDefinition node) {}
   visitFunctionDefinition(FunctionDefinition node) {
     processFunctionDefinition(node);
     node.parameters.forEach(visitParameter);
-    visit(node.body);
+    if (!node.isAbstract) {
+      visit(node.body);
+    }
   }
 
   // Expressions.
@@ -893,7 +920,9 @@ class RegisterAllocator extends Visitor {
   }
 
   void visitFieldDefinition(FieldDefinition node) {
-    visit(node.body);
+    if (node.hasInitializer) {
+      visit(node.body);
+    }
   }
 
   void visitFunctionDefinition(FunctionDefinition node) {

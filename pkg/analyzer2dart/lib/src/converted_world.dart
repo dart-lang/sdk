@@ -14,6 +14,7 @@ import 'package:compiler/src/cps_ir/cps_ir_nodes.dart' as ir;
 import 'closed_world.dart';
 import 'element_converter.dart';
 import 'cps_generator.dart';
+import 'util.dart';
 
 /// A [ClosedWorld] converted to the dart2js element model.
 abstract class ConvertedWorld {
@@ -55,14 +56,15 @@ ConvertedWorld convertWorld(ClosedWorld closedWorld) {
 
     dart2js.AstElement dart2jsElement =
         converter.convertElement(analyzerElement);
-    CpsGeneratingVisitor visitor =
-        new CpsGeneratingVisitor(converter, analyzerElement);
-    ir.Node cpsNode = node.accept(visitor);
+    CpsElementVisitor visitor = new CpsElementVisitor(converter, node);
+    ir.Node cpsNode = analyzerElement.accept(visitor);
     if (cpsNode != null) {
       convertedWorld.executableElements[dart2jsElement] = cpsNode;
     } else {
-      visitor.giveUp(node,
-          'No CPS node generated for $analyzerElement (${node.runtimeType}).');
+      String message =
+         'No CPS node generated for $analyzerElement (${node.runtimeType}).';
+      reportSourceMessage(analyzerElement.source, node, message);
+      throw new UnimplementedError(message);
     }
   }
 
@@ -72,4 +74,3 @@ ConvertedWorld convertWorld(ClosedWorld closedWorld) {
 
   return convertedWorld;
 }
-

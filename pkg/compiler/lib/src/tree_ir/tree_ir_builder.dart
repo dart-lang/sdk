@@ -126,12 +126,16 @@ class Builder extends cps_ir.Visitor<Node> {
   }
 
   FieldDefinition buildField(cps_ir.FieldDefinition node) {
-    currentElement = node.element;
-    returnContinuation = node.returnContinuation;
+    Statement body;
+    if (node.hasInitializer) {
+      currentElement = node.element;
+      returnContinuation = node.returnContinuation;
 
-    phiTempVar = new Variable(node.element, null);
+      phiTempVar = new Variable(node.element, null);
 
-    return new FieldDefinition(node.element, visit(node.body));
+      body = visit(node.body);
+    }
+    return new FieldDefinition(node.element, body);
   }
 
   FunctionDefinition buildFunction(cps_ir.FunctionDefinition node) {

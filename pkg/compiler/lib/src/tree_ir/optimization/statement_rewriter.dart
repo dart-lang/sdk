@@ -110,6 +110,8 @@ class StatementRewriter extends Visitor<Statement, Expression> implements Pass {
   void rewrite(ExecutableDefinition definition) => definition.applyPass(this);
 
   void rewriteFieldDefinition(FieldDefinition definition) {
+    if (!definition.hasInitializer) return;
+
     environment = <Assign>[];
     definition.body = visitStatement(definition.body);
 

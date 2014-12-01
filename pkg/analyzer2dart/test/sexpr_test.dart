@@ -10,6 +10,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:compiler/src/cps_ir/cps_ir_nodes_sexpr.dart';
+import 'package:compiler/src/elements/elements.dart' as dart2js;
 import 'package:unittest/unittest.dart';
 
 import '../lib/src/closed_world.dart';
@@ -25,7 +26,6 @@ main() {
 
 checkResult(TestSpec result) {
   String input = result.input.trim();
-  String expectedOutput = result.output.trim();
   CollectingOutputProvider outputProvider = new CollectingOutputProvider();
   MemoryResourceProvider provider = new MemoryResourceProvider();
   DartSdk sdk = new MockSdk();
@@ -36,11 +36,30 @@ checkResult(TestSpec result) {
   FunctionElement entryPoint = driver.resolveEntryPoint(rootSource);
   ClosedWorld world = driver.computeWorld(entryPoint);
   ConvertedWorld convertedWorld = convertWorld(world);
-  String output = convertedWorld.getIr(convertedWorld.mainFunction)
-      .accept(new SExpressionStringifier());
-  expect(output, equals(expectedOutput),
-      reason: 'Input:\n$input\n'
-              'Expected:\n$expectedOutput\n'
-              'Actual:\n$output');
+
+  void checkOutput(dart2js.Element element, String expectedOutput) {
+    expectedOutput = expectedOutput.trim();
+    String output = convertedWorld.getIr(element)
+        .accept(new SExpressionStringifier());
+    expect(output, equals(expectedOutput),
+        reason: 'Input:\n$input\n'
+                'Expected:\n$expectedOutput\n'
+                'Actual:\n$output');
+  }
+
+  if (result.output is String) {
+    checkOutput(convertedWorld.mainFunction, result.output);
+  } else {
+    assert(result.output is Map<String, String>);
+    dart2js.LibraryElement mainLibrary = convertedWorld.mainFunction.library;
+    result.output.forEach((String elementName, String output) {
+      convertedWorld.resolvedElements.forEach((dart2js.Element element) {
+        if (element.name == elementName &&
+            element.library == mainLibrary) {
+          checkOutput(element, output);
+        }
+      });
+    });
+  }
 }
 

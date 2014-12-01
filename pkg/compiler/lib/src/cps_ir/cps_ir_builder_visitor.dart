@@ -158,10 +158,6 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     }
     assert(fieldDefinition != null);
     assert(elements[fieldDefinition] != null);
-    // This means there is no initializer.
-    // TODO(sigurdm): Avoid ever getting here. Abstract functions and fields
-    // with no initializer should not have a representation in the IR.
-    if (fieldDefinition is! ast.SendSet) return null;
     DetectClosureVariables closureLocals =
     new DetectClosureVariables(elements);
         closureLocals.visit(fieldDefinition);
@@ -170,10 +166,12 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
         element,
         closureLocals.usedFromClosure);
     return withBuilder(builder, () {
-      ast.SendSet sendSet = fieldDefinition;
-      ir.Primitive result = visit(sendSet.arguments.first);
-      builder.buildReturn(result);
-      return builder.makeFieldDefinition();
+      ir.Primitive initializer;
+      if (fieldDefinition is ast.SendSet) {
+        ast.SendSet sendSet = fieldDefinition;
+        initializer = visit(sendSet.arguments.first);
+      }
+      return builder.makeFieldDefinition(initializer);
     });
   }
 
@@ -201,7 +199,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
       });
 
       visit(function.body);
-      return irBuilder.buildFunctionDefinition(defaults);
+      return irBuilder.makeFunctionDefinition(defaults);
     });
   }
 

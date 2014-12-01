@@ -23,6 +23,7 @@ class RedundantPhiEliminator extends RecursiveVisitor implements Pass {
   }
 
   void rewriteFieldDefinition(final FieldDefinition root) {
+    if (!root.hasInitializer) return;
     rewriteExecutableDefinition(root);
   }
 

@@ -700,6 +700,12 @@ class TopLevelVariableElementY extends ElementY
   @override
   dart2js.DartType get type => converter.convertType(element.type);
 
+  @override
+  bool get isFinal => element.isFinal;
+
+  @override
+  bool get isConst => element.isConst;
+
   TopLevelVariableElementY(ElementConverter converter,
                            analyzer.TopLevelVariableElement element)
       : super(converter, element);

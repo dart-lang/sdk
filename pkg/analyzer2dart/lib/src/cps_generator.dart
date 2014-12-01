@@ -22,6 +22,32 @@ import 'element_converter.dart';
 import 'util.dart';
 import 'identifier_semantics.dart';
 
+/// Visitor that converts the AST node of an analyzer element into a CPS ir
+/// node.
+class CpsElementVisitor extends analyzer.SimpleElementVisitor<ir.Node> {
+  final ElementConverter converter;
+  final AstNode node;
+
+  CpsElementVisitor(this.converter, this.node);
+
+  @override
+  ir.FunctionDefinition visitFunctionElement(analyzer.FunctionElement element) {
+    CpsGeneratingVisitor visitor = new CpsGeneratingVisitor(converter, element);
+    FunctionDeclaration functionDeclaration = node;
+    return visitor.handleFunctionDeclaration(
+        element, functionDeclaration.functionExpression);
+  }
+
+  @override
+  ir.FieldDefinition visitTopLevelVariableElement(
+      analyzer.TopLevelVariableElement element) {
+    CpsGeneratingVisitor visitor = new CpsGeneratingVisitor(converter, element);
+    VariableDeclaration variableDeclaration = node;
+    return visitor.handleFieldDeclaration(element, variableDeclaration);
+  }
+}
+
+/// Visitor that converts analyzer AST nodes into CPS ir nodes.
 class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     with IrBuilderMixin<AstNode> {
   final analyzer.Element element;
@@ -35,10 +61,18 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
 
   ir.Node visit(AstNode node) => node.accept(this);
 
-  @override
-  ir.Primitive visitFunctionExpression(FunctionExpression node) {
-    return irBuilder.buildFunctionExpression(
-        handleFunctionDeclaration(node.element, node));
+  ir.FieldDefinition handleFieldDeclaration(
+      analyzer.PropertyInducingElement field, VariableDeclaration node) {
+    dart2js.FieldElement element = converter.convertElement(field);
+    return withBuilder(
+        new IrBuilder(DART_CONSTANT_SYSTEM,
+                      element,
+                      // TODO(johnniwinther): Supported closure variables.
+                      const <dart2js.Local>[]),
+        () {
+      ir.Primitive initializer = build(node.initializer);
+      return irBuilder.makeFieldDefinition(initializer);
+    });
   }
 
   ir.FunctionDefinition handleFunctionDeclaration(
@@ -58,8 +92,14 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
       // Visit the body directly to avoid processing the signature as
       // expressions.
       visit(node.body);
-      return irBuilder.buildFunctionDefinition(const []);
+      return irBuilder.makeFunctionDefinition(const []);
     });
+  }
+
+  @override
+  ir.Primitive visitFunctionExpression(FunctionExpression node) {
+    return irBuilder.buildFunctionExpression(
+        handleFunctionDeclaration(node.element, node));
   }
 
   @override
@@ -289,6 +329,24 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   ir.Node visitParameterAssignment(AssignmentExpression node,
                                    AccessSemantics semantics) {
     return handleLocalAssignment(node, semantics);
+  }
+
+  @override
+  ir.Node visitStaticFieldAssignment(AssignmentExpression node,
+                                     AccessSemantics semantics) {
+    if (node.operator.lexeme != '=') {
+      return giveUp(node, 'Assignment operator: ${node.operator.lexeme}');
+    }
+    analyzer.Element element = semantics.element;
+    dart2js.Element target = converter.convertElement(element);
+    // TODO(johnniwinther): Selector information should be computed in the
+    // [TreeShaker] and shared with the [CpsGeneratingVisitor].
+    assert(invariant(node, target.isTopLevel || target.isStatic,
+                     '$target expected to be top-level or static.'));
+    return irBuilder.buildStaticSet(
+        target,
+        new Selector.setter(target.name, target.library),
+        build(node.rightHandSide));
   }
 
   @override

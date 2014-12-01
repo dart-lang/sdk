@@ -7,6 +7,13 @@ library test.sexpr.data;
 
 import 'test_helper.dart';
 
+class TestSpec extends TestSpecBase {
+  // A [String] or a [Map<String, String>].
+  final output;
+
+  const TestSpec(String input, this.output) : super(input);
+}
+
 const List<Group> TEST_DATA = const [
   const Group('Empty main', const [
     const TestSpec('''
@@ -1275,6 +1282,77 @@ main(a) {
         (InvokeContinuation return v5))))
     (InvokeContinuation k0 v4))
   (Branch (IsTrue a) k2 k3))
+'''),
+  ]),
+
+  const Group('Top level field', const <TestSpec>[
+    const TestSpec('''
+var field;
+main(args) {
+  return field;
+}
+''', const {
+      'main': '''
+(FunctionDefinition main (args return)
+  (LetCont (k0 v0)
+    (InvokeContinuation return v0))
+  (InvokeStatic field  k0))
+''',
+      'field': '''
+(FieldDefinition field)
+'''}),
+
+    const TestSpec('''
+var field = null;
+main(args) {
+  return field;
+}
+''', const {
+      'main': '''
+(FunctionDefinition main (args return)
+  (LetCont (k0 v0)
+    (InvokeContinuation return v0))
+  (InvokeStatic field  k0))
+''',
+      'field': '''
+(FieldDefinition field (return)
+  (LetPrim v0 (Constant NullConstant))
+  (InvokeContinuation return v0))
+'''}),
+
+    const TestSpec('''
+var field = 0;
+main(args) {
+  return field;
+}
+''', const {
+      'main': '''
+(FunctionDefinition main (args return)
+  (LetCont (k0 v0)
+    (InvokeContinuation return v0))
+  (InvokeStatic field  k0))
+''',
+      'field': '''
+(FieldDefinition field (return)
+  (LetPrim v0 (Constant IntConstant(0)))
+  (InvokeContinuation return v0))
+'''}),
+
+    const TestSpec('''
+var field;
+main(args) {
+  field = args.length;
+  return field;
+}
+''', '''
+(FunctionDefinition main (args return)
+  (LetCont (k0 v0)
+    (LetCont (k1 v1)
+      (LetCont (k2 v2)
+        (InvokeContinuation return v2))
+      (InvokeStatic field  k2))
+    (InvokeStatic field v0 k1))
+  (InvokeMethod args length  k0))
 '''),
   ]),
 ];

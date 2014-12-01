@@ -534,18 +534,23 @@ class IrBuilder {
   }
 
   /// Create a [ir.FieldDefinition] for the current [Element] using [_root] as
-  /// the body.
-  ir.FieldDefinition makeFieldDefinition() {
-    return new ir.FieldDefinition(state.currentElement,
-                                  state.returnContinuation,
-                                  _root);
+  /// the body using [initializer] as the initial value.
+  ir.FieldDefinition makeFieldDefinition(ir.Primitive initializer) {
+    if (initializer == null) {
+      return new ir.FieldDefinition.withoutInitializer(state.currentElement);
+    } else {
+      buildReturn(initializer);
+      return new ir.FieldDefinition(state.currentElement,
+                                    state.returnContinuation,
+                                    _root);
+    }
   }
 
   /// Create a [ir.FunctionDefinition] for [element] using [_root] as the body.
   ///
   /// Parameters must be created before the construction of the body using
   /// [createParameter].
-  ir.FunctionDefinition buildFunctionDefinition(
+  ir.FunctionDefinition makeFunctionDefinition(
       List<ConstantExpression> defaults) {
     FunctionElement element = state.currentElement;
     if (element.isAbstract || element.isExternal) {

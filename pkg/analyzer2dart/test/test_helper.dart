@@ -9,22 +9,20 @@ import 'package:unittest/unittest.dart';
 /// A unittest group with a name and a list of input/output results.
 class Group {
   final String name;
-  final List<TestSpec> results;
+  final List<TestSpecBase> results;
 
   const Group(this.name, this.results);
 }
 
-/// A input/output pair that defines the expected [output] of when processing
-/// the [input].
-class TestSpec {
+/// A [input] for which a certain processing result is expected.
+class TestSpecBase {
   final String input;
-  final String output;
 
-  const TestSpec(this.input, this.output);
+  const TestSpecBase(this.input);
 }
 
 typedef TestGroup(Group group, RunTest check);
-typedef RunTest(TestSpec result);
+typedef RunTest(TestSpecBase result);
 
 /// Test [data] using [testGroup] and [check].
 void performTests(List<Group> data, TestGroup testGroup, RunTest runTest) {
@@ -36,7 +34,7 @@ void performTests(List<Group> data, TestGroup testGroup, RunTest runTest) {
 /// Test group using unittest.
 unittester(Group group, RunTest runTest) {
   test(group.name, () {
-    for (TestSpec result in group.results) {
+    for (TestSpecBase result in group.results) {
       runTest(result);
     }
   });

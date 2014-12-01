@@ -34,6 +34,7 @@ class ShrinkingReducer extends Pass {
 
   /// Applies shrinking reductions to root, mutating root in the process.
   void rewriteFieldDefinition(FieldDefinition root) {
+    if (!root.hasInitializer) return;
     rewriteExecutableDefinition(root);
   }
 

@@ -567,6 +567,25 @@ class FieldDefinition extends Node implements ExecutableDefinition {
 
   FieldDefinition(this.element, this.body);
   applyPass(Pass pass) => pass.rewriteFieldDefinition(this);
+
+  /// `true` if this field has no initializer.
+  ///
+  /// If `true` [body] is `null`.
+  ///
+  /// This is different from a initializer that is `null`. Consider this class:
+  ///
+  ///     class Class {
+  ///       final field;
+  ///       Class.a(this.field);
+  ///       Class.b() : this.field = null;
+  ///       Class.c();
+  ///     }
+  ///
+  /// If `field` had an initializer, possibly `null`, constructors `Class.a` and
+  /// `Class.b` would be invalid, and since `field` has no initializer
+  /// constructor `Class.c` is invalid. We therefore need to distinguish the two
+  /// cases.
+  bool get hasInitializer => body != null;
 }
 
 class FunctionDefinition extends Node implements ExecutableDefinition {
