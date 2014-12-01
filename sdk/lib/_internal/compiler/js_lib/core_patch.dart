@@ -59,12 +59,12 @@ class Function {
                List positionalArguments,
                [Map<Symbol, dynamic> namedArguments]) {
     return Primitives.applyFunction(
-        function, positionalArguments, _toMangledNames(namedArguments));
+        function, positionalArguments,
+        namedArguments == null ? null : _toMangledNames(namedArguments));
   }
 
   static Map<String, dynamic> _toMangledNames(
       Map<Symbol, dynamic> namedArguments) {
-    if (namedArguments == null) return null;
     Map<String, dynamic> result = {};
     namedArguments.forEach((symbol, value) {
       result[_symbolToString(symbol)] = value;

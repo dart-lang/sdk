@@ -1080,11 +1080,17 @@ class Primitives {
     }
 
     int argumentCount = 0;
-    List arguments = [];
+    List arguments;
 
     if (positionalArguments != null) {
-      argumentCount += positionalArguments.length;
-      arguments.addAll(positionalArguments);
+      if (JS('bool', '# instanceof Array', positionalArguments)) {
+        arguments = positionalArguments;
+      } else {
+        arguments = new List.from(positionalArguments);
+      }
+      argumentCount = JS('int', '#.length', arguments);
+    } else {
+      arguments = [];
     }
 
     String selectorName = '${JS_GET_NAME("CALL_PREFIX")}\$$argumentCount';
