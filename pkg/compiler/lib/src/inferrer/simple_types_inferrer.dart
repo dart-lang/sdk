@@ -1143,6 +1143,7 @@ class SimpleTypeInferrerVisitor<T>
     Selector selector = elements.getSelector(node);
     if (element != null && element.isFunction) {
       assert(element.isLocal);
+      if (!selector.applies(element, compiler.world)) return types.dynamicType;
       // This only works for function statements. We need a
       // more sophisticated type system with function types to support
       // more.
