@@ -96,74 +96,74 @@ class AnnotationCreator
 
   @override
   Annotation visitBinary(BinaryConstantExpression exp,
-                         [AnnotationInfo context]) {
+                         AnnotationInfo context) {
     return null;
   }
 
   @override
   Annotation visitConcatenate(ConcatenateConstantExpression exp,
-                              [AnnotationInfo context]) {
+                              AnnotationInfo context) {
     return null;
   }
 
   @override
   Annotation visitConditional(ConditionalConstantExpression exp,
-                              [AnnotationInfo context]) {
+                              AnnotationInfo context) {
     return null;
   }
 
   @override
   Annotation visitConstructed(ConstructedConstantExpresssion exp,
-                              [AnnotationInfo context]) {
+                              AnnotationInfo context) {
     return createAnnotation(exp.target, context,
         exp.arguments.map((a) => a.getText()).toList());
   }
 
   @override
   Annotation visitFunction(FunctionConstantExpression exp,
-                           [AnnotationInfo context]) {
+                           AnnotationInfo context) {
     return createAnnotation(exp.element, context);
   }
 
   @override
   Annotation visitList(ListConstantExpression exp,
-                       [AnnotationInfo context]) {
+                       AnnotationInfo context) {
     return null;
   }
 
   @override
   Annotation visitMap(MapConstantExpression exp,
-                      [AnnotationInfo context]) {
+                      AnnotationInfo context) {
     return null;
   }
 
   @override
   Annotation visitPrimitive(PrimitiveConstantExpression exp,
-                            [AnnotationInfo context]) {
+                            AnnotationInfo context) {
     return null;
   }
 
   @override
   Annotation visitSymbol(SymbolConstantExpression exp,
-                         [AnnotationInfo context]) {
+                         AnnotationInfo context) {
     return null;
   }
 
   @override
   Annotation visitType(TypeConstantExpression exp,
-                       [AnnotationInfo context]) {
+                       AnnotationInfo context) {
     return null;
   }
 
   @override
   Annotation visitUnary(UnaryConstantExpression exp,
-                        [AnnotationInfo context]) {
+                        AnnotationInfo context) {
     return null;
   }
 
   @override
   Annotation visitVariable(VariableConstantExpression exp,
-                           [AnnotationInfo context]) {
+                           AnnotationInfo context) {
     return createAnnotation(exp.element, context);
   }
 }

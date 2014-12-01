@@ -42,6 +42,7 @@ abstract class Node {
  */
 abstract class Expression extends Node {
   accept(ExpressionVisitor v);
+  accept1(ExpressionVisitor1 v, arg);
 
   /// Temporary variable used by [StatementRewriter].
   /// If set to true, this expression has already had enclosing assignments
@@ -55,6 +56,7 @@ abstract class Statement extends Node {
   Statement get next;
   void set next(Statement s);
   accept(StatementVisitor v);
+  accept1(StatementVisitor1 v, arg);
 }
 
 /**
@@ -106,6 +108,7 @@ class Variable extends Expression {
   }
 
   accept(ExpressionVisitor visitor) => visitor.visitVariable(this);
+  accept1(ExpressionVisitor1 visitor, arg) => visitor.visitVariable(this, arg);
 }
 
 /**
@@ -129,6 +132,9 @@ class InvokeStatic extends Expression implements Invoke {
   InvokeStatic(this.target, this.selector, this.arguments);
 
   accept(ExpressionVisitor visitor) => visitor.visitInvokeStatic(this);
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitInvokeStatic(this, arg);
+  }
 }
 
 /**
@@ -147,6 +153,9 @@ class InvokeMethod extends Expression implements Invoke {
   }
 
   accept(ExpressionVisitor visitor) => visitor.visitInvokeMethod(this);
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitInvokeMethod(this, arg);
+  }
 }
 
 class InvokeSuperMethod extends Expression implements Invoke {
@@ -156,6 +165,9 @@ class InvokeSuperMethod extends Expression implements Invoke {
   InvokeSuperMethod(this.selector, this.arguments);
 
   accept(ExpressionVisitor visitor) => visitor.visitInvokeSuperMethod(this);
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitInvokeSuperMethod(this, arg);
+  }
 }
 
 /**
@@ -174,6 +186,9 @@ class InvokeConstructor extends Expression implements Invoke {
   ClassElement get targetClass => target.enclosingElement;
 
   accept(ExpressionVisitor visitor) => visitor.visitInvokeConstructor(this);
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitInvokeConstructor(this, arg);
+  }
 }
 
 /// Calls [toString] on each argument and concatenates the results.
@@ -184,6 +199,9 @@ class ConcatenateStrings extends Expression {
   ConcatenateStrings(this.arguments, [this.constant]);
 
   accept(ExpressionVisitor visitor) => visitor.visitConcatenateStrings(this);
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitConcatenateStrings(this, arg);
+  }
 }
 
 /**
@@ -198,12 +216,14 @@ class Constant extends Expression {
       : expression = new PrimitiveConstantExpression(primitiveValue);
 
   accept(ExpressionVisitor visitor) => visitor.visitConstant(this);
+  accept1(ExpressionVisitor1 visitor, arg) => visitor.visitConstant(this, arg);
 
   values.ConstantValue get value => expression.value;
 }
 
 class This extends Expression {
   accept(ExpressionVisitor visitor) => visitor.visitThis(this);
+  accept1(ExpressionVisitor1 visitor, arg) => visitor.visitThis(this, arg);
 }
 
 class ReifyTypeVar extends Expression {
@@ -212,6 +232,9 @@ class ReifyTypeVar extends Expression {
   ReifyTypeVar(this.typeVariable);
 
   accept(ExpressionVisitor visitor) => visitor.visitReifyTypeVar(this);
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitReifyTypeVar(this, arg);
+  }
 }
 
 class LiteralList extends Expression {
@@ -221,6 +244,9 @@ class LiteralList extends Expression {
   LiteralList(this.type, this.values);
 
   accept(ExpressionVisitor visitor) => visitor.visitLiteralList(this);
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitLiteralList(this, arg);
+  }
 }
 
 class LiteralMapEntry {
@@ -237,6 +263,9 @@ class LiteralMap extends Expression {
   LiteralMap(this.type, this.entries);
 
   accept(ExpressionVisitor visitor) => visitor.visitLiteralMap(this);
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitLiteralMap(this, arg);
+  }
 }
 
 class TypeOperator extends Expression {
@@ -247,6 +276,9 @@ class TypeOperator extends Expression {
   TypeOperator(this.receiver, this.type, {bool this.isTypeTest});
 
   accept(ExpressionVisitor visitor) => visitor.visitTypeOperator(this);
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitTypeOperator(this, arg);
+  }
 
   String get operator => isTypeTest ? 'is' : 'as';
 }
@@ -260,6 +292,9 @@ class Conditional extends Expression {
   Conditional(this.condition, this.thenExpression, this.elseExpression);
 
   accept(ExpressionVisitor visitor) => visitor.visitConditional(this);
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitConditional(this, arg);
+  }
 }
 
 /// An && or || expression. The operator is internally represented as a boolean
@@ -276,6 +311,9 @@ class LogicalOperator extends Expression {
   String get operator => isAnd ? '&&' : '||';
 
   accept(ExpressionVisitor visitor) => visitor.visitLogicalOperator(this);
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitLogicalOperator(this, arg);
+  }
 }
 
 /// Logical negation.
@@ -285,6 +323,7 @@ class Not extends Expression {
   Not(this.operand);
 
   accept(ExpressionVisitor visitor) => visitor.visitNot(this);
+  accept1(ExpressionVisitor1 visitor, arg) => visitor.visitNot(this, arg);
 }
 
 class FunctionExpression extends Expression {
@@ -295,6 +334,9 @@ class FunctionExpression extends Expression {
   }
 
   accept(ExpressionVisitor visitor) => visitor.visitFunctionExpression(this);
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitFunctionExpression(this, arg);
+  }
 }
 
 /// Declares a local function.
@@ -312,6 +354,9 @@ class FunctionDeclaration extends Statement {
   }
 
   accept(StatementVisitor visitor) => visitor.visitFunctionDeclaration(this);
+  accept1(StatementVisitor1 visitor, arg) {
+    return visitor.visitFunctionDeclaration(this, arg);
+  }
 }
 
 /// A [LabeledStatement] or [WhileTrue] or [WhileCondition].
@@ -335,6 +380,9 @@ class LabeledStatement extends JumpTarget {
   }
 
   accept(StatementVisitor visitor) => visitor.visitLabeledStatement(this);
+  accept1(StatementVisitor1 visitor, arg) {
+    return visitor.visitLabeledStatement(this, arg);
+  }
 }
 
 /// A [WhileTrue] or [WhileCondition] loop.
@@ -357,6 +405,7 @@ class WhileTrue extends Loop {
   void set next(Statement s) => throw 'UNREACHABLE';
 
   accept(StatementVisitor visitor) => visitor.visitWhileTrue(this);
+  accept1(StatementVisitor1 visitor, arg) => visitor.visitWhileTrue(this, arg);
 }
 
 /**
@@ -382,6 +431,9 @@ class WhileCondition extends Loop {
   }
 
   accept(StatementVisitor visitor) => visitor.visitWhileCondition(this);
+  accept1(StatementVisitor1 visitor, arg) {
+    return visitor.visitWhileCondition(this, arg);
+  }
 }
 
 /// A [Break] or [Continue] statement.
@@ -404,6 +456,7 @@ class Break extends Jump {
   }
 
   accept(StatementVisitor visitor) => visitor.visitBreak(this);
+  accept1(StatementVisitor1 visitor, arg) => visitor.visitBreak(this, arg);
 }
 
 /**
@@ -421,6 +474,7 @@ class Continue extends Jump {
   }
 
   accept(StatementVisitor visitor) => visitor.visitContinue(this);
+  accept1(StatementVisitor1 visitor, arg) => visitor.visitContinue(this, arg);
 }
 
 /**
@@ -447,6 +501,7 @@ class Assign extends Statement {
   bool get hasExactlyOneUse => variable.readCount == 1;
 
   accept(StatementVisitor visitor) => visitor.visitAssign(this);
+  accept1(StatementVisitor1 visitor, arg) => visitor.visitAssign(this, arg);
 }
 
 /**
@@ -466,6 +521,7 @@ class Return extends Statement {
   Return(this.value);
 
   accept(StatementVisitor visitor) => visitor.visitReturn(this);
+  accept1(StatementVisitor1 visitor, arg) => visitor.visitReturn(this, arg);
 }
 
 /**
@@ -482,6 +538,7 @@ class If extends Statement {
   If(this.condition, this.thenStatement, this.elseStatement);
 
   accept(StatementVisitor visitor) => visitor.visitIf(this);
+  accept1(StatementVisitor1 visitor, arg) => visitor.visitIf(this, arg);
 }
 
 class ExpressionStatement extends Statement {
@@ -491,6 +548,9 @@ class ExpressionStatement extends Statement {
   ExpressionStatement(this.expression, this.next);
 
   accept(StatementVisitor visitor) => visitor.visitExpressionStatement(this);
+  accept1(StatementVisitor1 visitor, arg) {
+    return visitor.visitExpressionStatement(this, arg);
+  }
 }
 
 abstract class ExecutableDefinition {
@@ -546,6 +606,26 @@ abstract class ExpressionVisitor<E> {
   E visitFunctionExpression(FunctionExpression node);
 }
 
+abstract class ExpressionVisitor1<E, A> {
+  E visitExpression(Expression e, A arg) => e.accept1(this, arg);
+  E visitVariable(Variable node, A arg);
+  E visitInvokeStatic(InvokeStatic node, A arg);
+  E visitInvokeMethod(InvokeMethod node, A arg);
+  E visitInvokeSuperMethod(InvokeSuperMethod node, A arg);
+  E visitInvokeConstructor(InvokeConstructor node, A arg);
+  E visitConcatenateStrings(ConcatenateStrings node, A arg);
+  E visitConstant(Constant node, A arg);
+  E visitThis(This node, A arg);
+  E visitReifyTypeVar(ReifyTypeVar node, A arg);
+  E visitConditional(Conditional node, A arg);
+  E visitLogicalOperator(LogicalOperator node, A arg);
+  E visitNot(Not node, A arg);
+  E visitLiteralList(LiteralList node, A arg);
+  E visitLiteralMap(LiteralMap node, A arg);
+  E visitTypeOperator(TypeOperator node, A arg);
+  E visitFunctionExpression(FunctionExpression node, A arg);
+}
+
 abstract class StatementVisitor<S> {
   S visitStatement(Statement s) => s.accept(this);
   S visitLabeledStatement(LabeledStatement node);
@@ -560,10 +640,30 @@ abstract class StatementVisitor<S> {
   S visitExpressionStatement(ExpressionStatement node);
 }
 
+abstract class StatementVisitor1<S, A> {
+  S visitStatement(Statement s, A arg) => s.accept1(this, arg);
+  S visitLabeledStatement(LabeledStatement node, A arg);
+  S visitAssign(Assign node, A arg);
+  S visitReturn(Return node, A arg);
+  S visitBreak(Break node, A arg);
+  S visitContinue(Continue node, A arg);
+  S visitIf(If node, A arg);
+  S visitWhileTrue(WhileTrue node, A arg);
+  S visitWhileCondition(WhileCondition node, A arg);
+  S visitFunctionDeclaration(FunctionDeclaration node, A arg);
+  S visitExpressionStatement(ExpressionStatement node, A arg);
+}
+
 abstract class Visitor<S, E> implements ExpressionVisitor<E>,
                                         StatementVisitor<S> {
    E visitExpression(Expression e) => e.accept(this);
    S visitStatement(Statement s) => s.accept(this);
+}
+
+abstract class Visitor1<S, E, A> implements ExpressionVisitor1<E, A>,
+                                            StatementVisitor1<S, A> {
+   E visitExpression(Expression e, A arg) => e.accept1(this, arg);
+   S visitStatement(Statement s, A arg) => s.accept1(this, arg);
 }
 
 class RecursiveVisitor extends Visitor {
