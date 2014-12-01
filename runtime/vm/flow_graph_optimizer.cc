@@ -717,15 +717,17 @@ void FlowGraphOptimizer::InsertConversionsFor(Definition* def) {
     ConvertUse(it.Current(), from_rep);
   }
 
-  for (Value::Iterator it(def->env_use_list());
-       !it.Done();
-       it.Advance()) {
-    Value* use = it.Current();
-    if (use->instruction()->MayThrow() &&
-        use->instruction()->GetBlock()->InsideTryBlock()) {
-      // Environment uses at calls inside try-blocks must be converted to
-      // tagged representation.
-      ConvertEnvironmentUse(it.Current(), from_rep);
+  if (flow_graph()->graph_entry()->SuccessorCount() > 1) {
+    for (Value::Iterator it(def->env_use_list());
+         !it.Done();
+         it.Advance()) {
+      Value* use = it.Current();
+      if (use->instruction()->MayThrow() &&
+          use->instruction()->GetBlock()->InsideTryBlock()) {
+        // Environment uses at calls inside try-blocks must be converted to
+        // tagged representation.
+        ConvertEnvironmentUse(it.Current(), from_rep);
+      }
     }
   }
 }
