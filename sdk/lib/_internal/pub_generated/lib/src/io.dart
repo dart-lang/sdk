@@ -391,6 +391,17 @@ void deleteEntry(String path) {
   });
 }
 
+/// Attempts to delete whatever's at [path], but doesn't throw an exception if
+/// the deletion fails.
+void tryDeleteEntry(String path) {
+  try {
+    deleteEntry(path);
+  } catch (error, stackTrace) {
+    log.fine(
+        "Failed to delete $entry: $error\n" "${new Chain.forTrace(stackTrace)}");
+  }
+}
+
 /// "Cleans" [dir].
 ///
 /// If that directory already exists, it is deleted. Then a new empty directory

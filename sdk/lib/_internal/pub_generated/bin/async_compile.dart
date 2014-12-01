@@ -61,10 +61,9 @@ void main(List<String> arguments) {
 
     buildDir = rest.first;
   } on FormatException catch (ex) {
-    stderr.writeln(ex);
-    stderr.writeln();
-    stderr.writeln(
-        "Usage: dart async_compile.dart [--verbose] [--force] <build dir>");
+    print(ex);
+    print();
+    print("Usage: dart async_compile.dart [--verbose] [--force] <build dir>");
     exit(64);
   }
 
@@ -78,7 +77,7 @@ void main(List<String> arguments) {
   var readme = new File(readmePath).readAsStringSync();
   var match = _commitPattern.firstMatch(readme);
   if (match == null) {
-    stderr.writeln("Could not find compiler commit hash in README.md.");
+    print("Could not find compiler commit hash in README.md.");
     exit(1);
   }
 
@@ -151,7 +150,7 @@ String _getCurrentCommit() {
       args,
       workingDirectory: p.join(sourceDir, "../../../../third_party/pkg/async_await"));
   if (result.exitCode != 0) {
-    stderr.writeln("Could not get Git revision of async_await compiler.");
+    print("Could not get Git revision of async_await compiler.");
     exit(1);
   }
 
@@ -193,7 +192,7 @@ String _translateAsyncAwait(String sourcePath, String source) {
     var result = new CodeFormatter().format(CodeKind.COMPILATION_UNIT, source);
     return result.source;
   } catch (ex) {
-    stderr.writeln("Async compile failed on $sourcePath:\n$ex");
+    print("Async compile failed on $sourcePath:\n$ex");
     hadFailure = true;
     return null;
   }
@@ -226,9 +225,9 @@ void _generateSnapshot(String buildDir) {
       ["--package-root=$packageRoot", "--snapshot=$snapshot", entrypoint]);
 
   if (result.exitCode != 0) {
-    stderr.writeln("Failed to generate snapshot:");
-    if (result.stderr.trim().isNotEmpty) stderr.writeln(result.stderr);
-    if (result.stdout.trim().isNotEmpty) stderr.writeln(result.stdout);
+    print("Failed to generate snapshot:");
+    if (result.stderr.trim().isNotEmpty) print(result.stderr);
+    if (result.stdout.trim().isNotEmpty) print(result.stdout);
     exit(result.exitCode);
   }
 

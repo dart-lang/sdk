@@ -2,14 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
+import 'package:path/path.dart' as p;
+import 'package:scheduled_test/scheduled_process.dart';
+import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
+import 'utils.dart';
 
 main() {
   initConfig();
-  integration("the binstubs runs a precompiled snapshot if present", () {
+  integration("an outdated binstub runs 'pub global run'", () {
     servePackages((builder) {
       builder.serve("foo", "1.0.0", pubspec: {
         "executables": {
@@ -26,10 +32,18 @@ main() {
         cachePath,
         [
             d.dir(
-                "bin",
+                'global_packages',
                 [
-                    d.matcherFile(
-                        binStubName("foo-script"),
-                        contains("script.dart.snapshot"))])]).validate();
+                    d.dir(
+                        'foo',
+                        [d.dir('bin', [d.outOfDateSnapshot('script.dart.snapshot')])])])]).create();
+
+    var process = new ScheduledProcess.start(
+        p.join(sandboxDir, cachePath, "bin", binStubName("foo-script")),
+        ["arg1", "arg2"],
+        environment: getEnvironment());
+
+    process.stdout.expect(consumeThrough("ok"));
+    process.shouldExit();
   });
 }

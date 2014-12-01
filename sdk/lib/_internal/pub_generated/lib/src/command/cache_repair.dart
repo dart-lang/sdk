@@ -29,29 +29,57 @@ class CacheRepairCommand extends PubCommand {
         break0() {
           join0() {
             join1() {
-              join2() {
-                join3() {
-                  completer0.complete();
-                }
-                if (failures > 0) {
-                  flushThenExit(exit_codes.UNAVAILABLE).then((x0) {
-                    try {
-                      x0;
-                      join3();
-                    } catch (e0, s0) {
-                      completer0.completeError(e0, s0);
+              globals.repairActivatedPackages().then((x0) {
+                try {
+                  var results = x0;
+                  join2() {
+                    join3() {
+                      join4() {
+                        join5() {
+                          completer0.complete();
+                        }
+                        if (failures > 0) {
+                          flushThenExit(exit_codes.UNAVAILABLE).then((x1) {
+                            try {
+                              x1;
+                              join5();
+                            } catch (e0, s0) {
+                              completer0.completeError(e0, s0);
+                            }
+                          }, onError: completer0.completeError);
+                        } else {
+                          join5();
+                        }
+                      }
+                      if (successes == 0 && failures == 0) {
+                        log.message(
+                            "No packages in cache, so nothing to repair.");
+                        join4();
+                      } else {
+                        join4();
+                      }
                     }
-                  }, onError: completer0.completeError);
-                } else {
-                  join3();
+                    if (results.last > 0) {
+                      var packages = pluralize("package", results.last);
+                      log.message(
+                          "Failed to reactivate ${log.red(results.last)} ${packages}.");
+                      join3();
+                    } else {
+                      join3();
+                    }
+                  }
+                  if (results.first > 0) {
+                    var packages = pluralize("package", results.first);
+                    log.message(
+                        "Reactivated ${log.green(results.first)} ${packages}.");
+                    join2();
+                  } else {
+                    join2();
+                  }
+                } catch (e1, s1) {
+                  completer0.completeError(e1, s1);
                 }
-              }
-              if (successes == 0 && failures == 0) {
-                log.message("No packages in cache, so nothing to repair.");
-                join2();
-              } else {
-                join2();
-              }
+              }, onError: completer0.completeError);
             }
             if (failures > 0) {
               var packages = pluralize("package", failures);
@@ -75,17 +103,17 @@ class CacheRepairCommand extends PubCommand {
           trampoline0 = null;
           if (it0.moveNext()) {
             var source = it0.current;
-            join4() {
-              source.repairCachedPackages().then((x1) {
+            join6() {
+              source.repairCachedPackages().then((x2) {
                 trampoline0 = () {
                   trampoline0 = null;
                   try {
-                    var results = x1;
+                    var results = x2;
                     successes += results.first;
                     failures += results.last;
                     trampoline0 = continue0;
-                  } catch (e1, s1) {
-                    completer0.completeError(e1, s1);
+                  } catch (e2, s2) {
+                    completer0.completeError(e2, s2);
                   }
                 };
                 do trampoline0(); while (trampoline0 != null);
@@ -94,7 +122,7 @@ class CacheRepairCommand extends PubCommand {
             if (source is! CachedSource) {
               continue0();
             } else {
-              join4();
+              join6();
             }
           } else {
             break0();

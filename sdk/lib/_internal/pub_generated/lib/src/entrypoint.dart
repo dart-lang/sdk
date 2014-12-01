@@ -562,6 +562,10 @@ class Entrypoint {
   /// contains dependencies that are not in the lockfile or that don't match
   /// what's in there.
   bool _isLockFileUpToDate(LockFile lockFile) {
+    /// If this is an entrypoint for an in-memory package, trust the in-memory
+    /// lockfile provided for it.
+    if (root.dir == null) return true;
+
     return root.immediateDependencies.every((package) {
       var locked = lockFile.packages[package.name];
       if (locked == null) return false;

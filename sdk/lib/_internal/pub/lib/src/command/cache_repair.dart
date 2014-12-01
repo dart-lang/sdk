@@ -42,6 +42,17 @@ class CacheRepairCommand extends PubCommand {
       log.message("Failed to reinstall ${log.red(failures)} $packages.");
     }
 
+    var results = await globals.repairActivatedPackages();
+    if (results.first > 0) {
+      var packages = pluralize("package", results.first);
+      log.message("Reactivated ${log.green(results.first)} $packages.");
+    }
+
+    if (results.last > 0) {
+      var packages = pluralize("package", results.last);
+      log.message("Failed to reactivate ${log.red(results.last)} $packages.");
+    }
+
     if (successes == 0 && failures == 0) {
       log.message("No packages in cache, so nothing to repair.");
     }

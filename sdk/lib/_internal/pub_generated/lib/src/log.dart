@@ -182,16 +182,16 @@ class Entry {
 }
 
 /// Logs [message] at [Level.ERROR].
-void error(message, [error]) {
+///
+/// If [error] is passed, it's appended to [message]. If [trace] is passed, it's
+/// printed at log level fine.
+void error(message, [error, StackTrace trace]) {
   if (error != null) {
     message = "$message: $error";
-    var trace;
-    if (error is Error) trace = error.stackTrace;
-    if (trace != null) {
-      message = "$message\nStackTrace: $trace";
-    }
+    if (error is Error && trace == null) trace = error.stackTrace;
   }
   write(Level.ERROR, message);
+  if (trace != null) write(Level.FINE, new Chain.forTrace(trace));
 }
 
 /// Logs [message] at [Level.WARNING].

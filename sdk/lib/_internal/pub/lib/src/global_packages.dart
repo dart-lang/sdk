@@ -13,6 +13,7 @@ import 'package:pub_semver/pub_semver.dart';
 
 import 'barback/asset_environment.dart';
 import 'entrypoint.dart';
+import 'exceptions.dart';
 import 'executable.dart' as exe;
 import 'io.dart';
 import 'lock_file.dart';
@@ -26,10 +27,6 @@ import 'source/git.dart';
 import 'source/path.dart';
 import 'system_cache.dart';
 import 'utils.dart';
-
-/// Matches the package name that a binstub was created for inside the contents
-/// of the shell script.
-final _binStubPackagePattern = new RegExp(r"Package: ([a-zA-Z0-9_-]+)");
 
 /// Maintains the set of packages that have been globally activated.
 ///
@@ -377,27 +374,33 @@ class GlobalPackages {
   String _getLockFilePath(String name) =>
       p.join(_directory, name, "pubspec.lock");
 
-  /// Shows to the user formatted list of globally activated packages.
+  /// Shows the user a formatted list of globally activated packages.
   void listActivePackages() {
     if (!dirExists(_directory)) return;
 
-    // Loads lock [file] and returns [PackageId] of the activated package.
-    loadPackageId(file, name) {
-      var lockFile = new LockFile.load(p.join(_directory, file), cache.sources);
-      return lockFile.packages[name];
-    }
-
-    var packages = listDir(_directory).map((entry) {
-      if (fileExists(entry)) {
-        return loadPackageId(entry, p.basenameWithoutExtension(entry));
-      } else {
-        return loadPackageId(p.join(entry, 'pubspec.lock'), p.basename(entry));
-      }
-    }).toList();
-
-    packages
+    return listDir(_directory).map(_loadPackageId).toList()
         ..sort((id1, id2) => id1.name.compareTo(id2.name))
         ..forEach((id) => log.message(_formatPackage(id)));
+  }
+
+  /// Returns the [PackageId] for the globally-activated package at [path].
+  ///
+  /// [path] should be a path within [_directory]. It can either be an old-style
+  /// path to a single lockfile or a new-style path to a directory containing a
+  /// lockfile.
+  PackageId _loadPackageId(String path) {
+    var name = p.basenameWithoutExtension(path);
+    if (!fileExists(path)) path = p.join(path, 'pubspec.lock');
+
+    var id = new LockFile.load(p.join(_directory, path), cache.sources)
+        .packages[name];
+
+    if (id == null) {
+      throw new FormatException("Pubspec for activated package $name didn't "
+          "contain an entry for itself.");
+    }
+
+    return id;
   }
 
   /// Returns formatted string representing the package [id].
@@ -411,6 +414,92 @@ class GlobalPackages {
     } else {
       return '${log.bold(id.name)} ${id.version}';
     }
+  }
+
+  /// Repairs any corrupted globally-activated packages and their binstubs.
+  ///
+  /// Returns a pair of two [int]s. The first indicates how many packages were
+  /// successfully re-activated; the second indicates how many failed.
+  Future<Pair<int, int>> repairActivatedPackages() async {
+    var executables = {};
+    if (dirExists(_binStubDir)) {
+      for (var entry in listDir(_binStubDir)) {
+        try {
+          var binstub = readTextFile(entry);
+          var package = _binStubProperty(binstub, "Package");
+          if (package == null) {
+            throw new ApplicationException("No 'Package' property.");
+          }
+
+          var executable = _binStubProperty(binstub, "Executable");
+          if (executable == null) {
+            throw new ApplicationException("No 'Executable' property.");
+          }
+
+          executables.putIfAbsent(package, () => []).add(executable);
+        } catch (error, stackTrace) {
+          log.error(
+              "Error reading binstub for "
+                  "\"${p.basenameWithoutExtension(entry)}\"",
+              error, stackTrace);
+
+          tryDeleteEntry(entry);
+        }
+      }
+    }
+
+    var successes = 0;
+    var failures = 0;
+    if (dirExists(_directory)) {
+      for (var entry in listDir(_directory)) {
+        var id;
+        try {
+          id = _loadPackageId(entry);
+          log.message("Reactivating ${log.bold(id.name)} ${id.version}...");
+
+          var entrypoint = await find(id.name);
+
+          var graph = await entrypoint.loadPackageGraph();
+          var snapshots = await _precompileExecutables(entrypoint, id.name);
+          var packageExecutables = executables.remove(id.name);
+          if (packageExecutables == null) packageExecutables = [];
+          _updateBinStubs(graph.packages[id.name], packageExecutables,
+              overwriteBinStubs: true, snapshots: snapshots,
+              suggestIfNotOnPath: false);
+          successes++;
+        } catch (error, stackTrace) {
+          var message = "Failed to reactivate "
+              "${log.bold(p.basenameWithoutExtension(entry))}";
+          if (id != null) {
+            message += " ${id.version}";
+            if (id.source != "hosted") message += " from ${id.source}";
+          }
+
+          log.error(message, error, stackTrace);
+          failures++;
+
+          tryDeleteEntry(entry);
+        }
+      }
+    }
+
+    if (executables.isNotEmpty) {
+      var packages = pluralize("package", executables.length);
+      var message = new StringBuffer("Binstubs exist for non-activated "
+          "packages:\n");
+      executables.forEach((package, executableNames) {
+        // TODO(nweiz): Use a normal for loop here when
+        // https://github.com/dart-lang/async_await/issues/68 is fixed.
+        executableNames.forEach((executable) =>
+            deleteEntry(p.join(_binStubDir, executable)));
+
+        message.writeln("  From ${log.bold(package)}: "
+            "${toSentence(executableNames)}");
+      });
+      log.error(message);
+    }
+
+    return new Pair(successes, failures);
   }
 
   /// Updates the binstubs for [package].
@@ -430,10 +519,14 @@ class GlobalPackages {
   /// Otherwise, the previous ones will be preserved.
   ///
   /// If [snapshots] is given, it is a map of the names of executables whose
-  /// snapshots that were precompiled to their paths. Binstubs for those will
-  /// run the snapshot directly and skip pub entirely.
+  /// snapshots were precompiled to the paths of those snapshots. Binstubs for
+  /// those will run the snapshot directly and skip pub entirely.
+  ///
+  /// If [suggestIfNotOnPath] is `true` (the default), this will warn the user if
+  /// the bin directory isn't on their path.
   void _updateBinStubs(Package package, List<String> executables,
-      {bool overwriteBinStubs, Map<String, String> snapshots}) {
+      {bool overwriteBinStubs, Map<String, String> snapshots,
+       bool suggestIfNotOnPath: true}) {
     if (snapshots == null) snapshots = const {};
 
     // Remove any previously activated binstubs for this package, in case the
@@ -513,7 +606,9 @@ class GlobalPackages {
       }
     }
 
-    if (installed.isNotEmpty) _suggestIfNotOnPath(installed);
+    if (suggestIfNotOnPath && installed.isNotEmpty) {
+      _suggestIfNotOnPath(installed.first);
+    }
   }
 
   /// Creates a binstub named [executable] that runs [script] from [package].
@@ -537,12 +632,11 @@ class GlobalPackages {
     var previousPackage;
     if (fileExists(binStubPath)) {
       var contents = readTextFile(binStubPath);
-      var match = _binStubPackagePattern.firstMatch(contents);
-      if (match != null) {
-        previousPackage = match[1];
-        if (!overwrite) return previousPackage;
-      } else {
+      previousPackage = _binStubProperty(contents, "Package");
+      if (previousPackage == null) {
         log.fine("Could not parse binstub $binStubPath:\n$contents");
+      } else if (!overwrite) {
+        return previousPackage;
       }
     }
 
@@ -568,6 +662,20 @@ rem Executable: ${executable}
 rem Script: ${script}
 $invocation %*
 """;
+
+      if (snapshot != null) {
+        batch += """
+
+rem The VM exits with code 255 if the snapshot version is out-of-date.
+rem If it is, we need to delete it and run "pub global" manually.
+if not errorlevel 255 (
+  exit /b %errorlevel%
+)
+
+pub global run ${package.name}:$script %*
+""";
+      }
+
       writeTextFile(binStubPath, batch);
     } else {
       var bash = """
@@ -579,6 +687,21 @@ $invocation %*
 # Script: ${script}
 $invocation "\$@"
 """;
+
+      if (snapshot != null) {
+        bash += """
+
+# The VM exits with code 255 if the snapshot version is out-of-date.
+# If it is, we need to delete it and run "pub global" manually.
+exit_code=\$?
+if [[ \$exit_code != 255 ]]; then
+  exit \$exit_code
+fi
+
+pub global run ${package.name}:$script "\$@"
+""";
+      }
+
       writeTextFile(binStubPath, bash);
 
       // Make it executable.
@@ -606,13 +729,13 @@ $invocation "\$@"
 
     for (var file in listDir(_binStubDir, includeDirs: false)) {
       var contents = readTextFile(file);
-      var match = _binStubPackagePattern.firstMatch(contents);
-      if (match == null) {
+      var binStubPackage = _binStubProperty(contents, "Package");
+      if (binStubPackage == null) {
         log.fine("Could not parse binstub $file:\n$contents");
         continue;
       }
 
-      if (match[1] == package) {
+      if (binStubPackage == package) {
         log.fine("Deleting old binstub $file");
         deleteEntry(file);
       }
@@ -621,11 +744,14 @@ $invocation "\$@"
 
   /// Checks to see if the binstubs are on the user's PATH and, if not, suggests
   /// that the user add the directory to their PATH.
-  void _suggestIfNotOnPath(List<String> installed) {
+  ///
+  /// [installed] should be the name of an installed executable that can be used
+  /// to test whether accessing it on the path works.
+  void _suggestIfNotOnPath(String installed) {
     if (Platform.operatingSystem == "windows") {
       // See if the shell can find one of the binstubs.
       // "\q" means return exit code 0 if found or 1 if not.
-      var result = runProcessSync("where", [r"\q", installed.first + ".bat"]);
+      var result = runProcessSync("where", [r"\q", installed + ".bat"]);
       if (result.exitCode == 0) return;
 
       log.warning(
@@ -636,7 +762,7 @@ $invocation "\$@"
           'A web search for "configure windows path" will show you how.');
     } else {
       // See if the shell can find one of the binstubs.
-      var result = runProcessSync("which", [installed.first]);
+      var result = runProcessSync("which", [installed]);
       if (result.exitCode == 0) return;
 
       var binDir = _binStubDir;
@@ -654,5 +780,13 @@ $invocation "\$@"
           "  ${log.bold('export PATH="\$PATH":"$binDir"')}\n"
           "\n");
     }
+  }
+
+  /// Returns the value of the property named [name] in the bin stub script
+  /// [source].
+  String _binStubProperty(String source, String name) {
+    var pattern = new RegExp(quoteRegExp(name) + r": ([a-zA-Z0-9_-]+)");
+    var match = pattern.firstMatch(source);
+    return match == null ? null : match[1];
   }
 }

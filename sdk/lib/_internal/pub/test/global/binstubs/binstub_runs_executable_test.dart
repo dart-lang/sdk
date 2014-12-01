@@ -62,16 +62,3 @@ main() {
     process.shouldExit();
   });
 }
-
-/// The buildbots do not have the Dart SDK (containing "dart" and "pub") on
-/// their PATH, so we need to spawn the binstub process with a PATH that
-/// explicitly includes it.
-getEnvironment() {
-  var binDir = p.dirname(Platform.executable);
-  var separator = Platform.operatingSystem == "windows" ? ";" : ":";
-  var path = "${Platform.environment["PATH"]}$separator$binDir";
-
-  var environment = getPubTestEnvironment();
-  environment["PATH"] = path;
-  return environment;
-}

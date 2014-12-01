@@ -129,32 +129,102 @@ class HostedSource extends CachedSource {
   /// Re-downloads all packages that have been previously downloaded into the
   /// system cache from any server.
   Future<Pair<int, int>> repairCachedPackages() {
-    if (!dirExists(systemCacheRoot)) return new Future.value(new Pair(0, 0));
-
-    var successes = 0;
-    var failures = 0;
-
-    return Future.wait(listDir(systemCacheRoot).map((serverDir) {
-      var url = _directoryToUrl(path.basename(serverDir));
-      var packages = _getCachedPackagesInDirectory(path.basename(serverDir));
-      packages.sort(Package.orderByNameAndVersion);
-      return Future.wait(packages.map((package) {
-        return _download(
-            url,
-            package.name,
-            package.version,
-            package.dir).then((_) {
-          successes++;
-        }).catchError((error, stackTrace) {
-          failures++;
-          var message =
-              "Failed to repair ${log.bold(package.name)} " "${package.version}";
-          if (url != defaultUrl) message += " from $url";
-          log.error("$message. Error:\n$error");
-          log.fine(stackTrace);
-        });
-      }));
-    })).then((_) => new Pair(successes, failures));
+    final completer0 = new Completer();
+    scheduleMicrotask(() {
+      try {
+        join0() {
+          var successes = 0;
+          var failures = 0;
+          var it0 = listDir(systemCacheRoot).iterator;
+          break0() {
+            completer0.complete(new Pair(successes, failures));
+          }
+          var trampoline0;
+          continue0() {
+            trampoline0 = null;
+            if (it0.moveNext()) {
+              var serverDir = it0.current;
+              var url = _directoryToUrl(path.basename(serverDir));
+              var packages =
+                  _getCachedPackagesInDirectory(path.basename(serverDir));
+              packages.sort(Package.orderByNameAndVersion);
+              var it1 = packages.iterator;
+              break1() {
+                trampoline0 = continue0;
+              }
+              var trampoline1;
+              continue1() {
+                trampoline1 = null;
+                if (it1.moveNext()) {
+                  var package = it1.current;
+                  join1() {
+                    trampoline1 = continue1;
+                  }
+                  catch0(error, stackTrace) {
+                    try {
+                      failures++;
+                      var message =
+                          "Failed to repair ${log.bold(package.name)} " "${package.version}";
+                      join2() {
+                        log.error("${message}. Error:\n${error}");
+                        log.fine(stackTrace);
+                        tryDeleteEntry(package.dir);
+                        join1();
+                      }
+                      if (url != defaultUrl) {
+                        message += " from ${url}";
+                        join2();
+                      } else {
+                        join2();
+                      }
+                    } catch (error, stackTrace) {
+                      completer0.completeError(error, stackTrace);
+                    }
+                  }
+                  try {
+                    _download(
+                        url,
+                        package.name,
+                        package.version,
+                        package.dir).then((x0) {
+                      trampoline1 = () {
+                        trampoline1 = null;
+                        try {
+                          x0;
+                          successes++;
+                          join1();
+                        } catch (e0, s0) {
+                          catch0(e0, s0);
+                        }
+                      };
+                      do trampoline1(); while (trampoline1 != null);
+                    }, onError: catch0);
+                  } catch (e1, s1) {
+                    catch0(e1, s1);
+                  }
+                } else {
+                  break1();
+                }
+              }
+              trampoline1 = continue1;
+              do trampoline1(); while (trampoline1 != null);
+            } else {
+              break0();
+            }
+          }
+          trampoline0 = continue0;
+          do trampoline0(); while (trampoline0 != null);
+        }
+        if (!dirExists(systemCacheRoot)) {
+          completer0.complete(new Pair(0, 0));
+        } else {
+          join0();
+        }
+      } catch (e, s) {
+        completer0.completeError(e, s);
+      }
+    });
+    return completer0.future;
   }
 
   /// Gets all of the packages that have been downloaded into the system cache

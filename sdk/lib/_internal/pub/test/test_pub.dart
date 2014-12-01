@@ -486,7 +486,7 @@ String _pathInSandbox(String relPath) {
 }
 
 /// Gets the environment variables used to run pub in a test context.
-Map getPubTestEnvironment([String tokenEndpoint]) {
+Future<Map> getPubTestEnvironment([String tokenEndpoint]) async {
   var environment = {};
   environment['_PUB_TESTING'] = 'true';
   environment['PUB_CACHE'] = _pathInSandbox(cachePath);
@@ -496,6 +496,13 @@ Map getPubTestEnvironment([String tokenEndpoint]) {
 
   if (tokenEndpoint != null) {
     environment['_PUB_TEST_TOKEN_ENDPOINT'] = tokenEndpoint.toString();
+  }
+
+  if (_hasServer) {
+    return port.then((p) {
+      environment['PUB_HOSTED_URL'] = "http://localhost:$p";
+      return environment;
+    });
   }
 
   return environment;
@@ -534,20 +541,9 @@ ScheduledProcess startPub({List args, Future<String> tokenEndpoint,
   dartArgs.addAll(args);
 
   if (tokenEndpoint == null) tokenEndpoint = new Future.value();
-  var environmentFuture = tokenEndpoint.then((tokenEndpoint) {
-    var pubEnvironment = getPubTestEnvironment(tokenEndpoint);
-
-    // If there is a server running, tell pub what its URL is so hosted
-    // dependencies will look there.
-    if (_hasServer) {
-      return port.then((p) {
-        pubEnvironment['PUB_HOSTED_URL'] = "http://localhost:$p";
-        return pubEnvironment;
-      });
-    }
-
-    return pubEnvironment;
-  }).then((pubEnvironment) {
+  var environmentFuture = tokenEndpoint
+      .then((tokenEndpoint) => getPubTestEnvironment(tokenEndpoint))
+      .then((pubEnvironment) {
     if (environment != null) pubEnvironment.addAll(environment);
     return pubEnvironment;
   });
@@ -853,6 +849,11 @@ Map packageVersionApiMap(Map pubspec, {bool full: false}) {
 
   return map;
 }
+
+/// Returns the name of the shell script for a binstub named [name].
+///
+/// Adds a ".bat" extension on Windows.
+String binStubName(String name) => Platform.isWindows ? '$name.bat' : name;
 
 /// Compares the [actual] output from running pub with [expected].
 ///
