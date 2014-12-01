@@ -523,7 +523,6 @@ static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
       break;
   }
   ASSERT(hi_cond != OVERFLOW && lo_cond != OVERFLOW);
-  Label is_true, is_false;
   // Compare upper halves first.
   __ cmpl(left2, right2);
   __ j(hi_cond, labels.true_label);

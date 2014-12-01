@@ -570,7 +570,8 @@ static Condition EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
 
 static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
                                              LocationSummary* locs,
-                                             Token::Kind kind) {
+                                             Token::Kind kind,
+                                             BranchLabels labels) {
   PairLocation* left_pair = locs->in(0).AsPairLocation();
   Register left_lo = left_pair->At(0).reg();
   Register left_hi = left_pair->At(1).reg();
@@ -578,42 +579,37 @@ static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
   Register right_lo = right_pair->At(0).reg();
   Register right_hi = right_pair->At(1).reg();
 
-  Register out = locs->temp(0).reg();
-
-  // 64-bit comparison
-  Condition hi_true_cond, hi_false_cond, lo_false_cond;
+  // 64-bit comparison.
+  Condition hi_cond, lo_cond;
   switch (kind) {
     case Token::kLT:
-    case Token::kLTE:
-      hi_true_cond = LT;
-      hi_false_cond = GT;
-      lo_false_cond = (kind == Token::kLT) ? CS : HI;
+      hi_cond = LT;
+      lo_cond = CC;
       break;
     case Token::kGT:
+      hi_cond = GT;
+      lo_cond = HI;
+      break;
+    case Token::kLTE:
+      hi_cond = LT;
+      lo_cond = LS;
+      break;
     case Token::kGTE:
-      hi_true_cond = GT;
-      hi_false_cond = LT;
-      lo_false_cond = (kind == Token::kGT) ? LS : CC;
+      hi_cond = GT;
+      lo_cond = CS;
       break;
     default:
       UNREACHABLE();
-      hi_true_cond = hi_false_cond = lo_false_cond = VS;
+      hi_cond = lo_cond = VS;
   }
-
-  Label done;
   // Compare upper halves first.
   __ cmp(left_hi, Operand(right_hi));
-  __ LoadImmediate(out, 0, hi_false_cond);
-  __ LoadImmediate(out, 1, hi_true_cond);
-  // If higher words aren't equal, skip comparing lower words.
-  __ b(&done, NE);
+  __ b(labels.true_label, hi_cond);
+  __ b(labels.false_label, FlipCondition(hi_cond));
 
+  // If higher words are equal, compare lower words.
   __ cmp(left_lo, Operand(right_lo));
-  __ LoadImmediate(out, 1);
-  __ LoadImmediate(out, 0, lo_false_cond);
-  __ Bind(&done);
-
-  return NegateCondition(lo_false_cond);
+  return lo_cond;
 }
 
 
@@ -822,14 +818,13 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(Isolate* isolate,
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   if (operation_cid() == kMintCid) {
-    const intptr_t kNumTemps = 1;
+    const intptr_t kNumTemps = 0;
     LocationSummary* locs = new(isolate) LocationSummary(
         isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
     locs->set_in(0, Location::Pair(Location::RequiresRegister(),
                                    Location::RequiresRegister()));
     locs->set_in(1, Location::Pair(Location::RequiresRegister(),
                                    Location::RequiresRegister()));
-    locs->set_temp(0, Location::RequiresRegister());  // TODO(regis): Improve.
     locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
@@ -860,7 +855,7 @@ Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   if (operation_cid() == kSmiCid) {
     return EmitSmiComparisonOp(compiler, locs(), kind());
   } else if (operation_cid() == kMintCid) {
-    return EmitUnboxedMintComparisonOp(compiler, locs(), kind());
+    return EmitUnboxedMintComparisonOp(compiler, locs(), kind(), labels);
   } else {
     ASSERT(operation_cid() == kDoubleCid);
     return EmitDoubleComparisonOp(compiler, locs(), kind());
@@ -869,8 +864,8 @@ Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
 
 
 void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // The ARM code does not use true- and false-labels here.
-  BranchLabels labels = { NULL, NULL, NULL };
+  Label is_true, is_false;
+  BranchLabels labels = { &is_true, &is_false, &is_false };
   Condition true_condition = EmitComparisonCode(compiler, labels);
 
   const Register result = locs()->out(0).reg();
@@ -878,10 +873,14 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadObject(result, Bool::True(), true_condition);
     __ LoadObject(result, Bool::False(), NegateCondition(true_condition));
   } else if (operation_cid() == kMintCid) {
-    const Register cr = locs()->temp(0).reg();
+    EmitBranchOnCondition(compiler, true_condition, labels);
+    Label done;
+    __ Bind(&is_false);
+    __ LoadObject(result, Bool::False());
+    __ b(&done);
+    __ Bind(&is_true);
     __ LoadObject(result, Bool::True());
-    __ CompareImmediate(cr, 1);
-    __ LoadObject(result, Bool::False(), NE);
+    __ Bind(&done);
   } else {
     ASSERT(operation_cid() == kDoubleCid);
     Label done;
@@ -900,13 +899,8 @@ void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   BranchLabels labels = compiler->CreateBranchLabels(branch);
   Condition true_condition = EmitComparisonCode(compiler, labels);
 
-  if (operation_cid() == kSmiCid) {
+  if ((operation_cid() == kSmiCid) || (operation_cid() == kMintCid)) {
     EmitBranchOnCondition(compiler, true_condition, labels);
-  } else if (operation_cid() == kMintCid) {
-    const Register result = locs()->temp(0).reg();  // TODO(regis): Improve.
-    __ CompareImmediate(result, 1);
-    __ b(labels.true_label, EQ);
-    __ b(labels.false_label, NE);
   } else if (operation_cid() == kDoubleCid) {
     Label* nan_result = (true_condition == NE) ?
         labels.true_label : labels.false_label;
