@@ -2142,7 +2142,7 @@ Definition* BooleanNegateInstr::Canonicalize(FlowGraph* flow_graph) {
   Definition* defn = value()->definition();
   if (defn->IsComparison() && defn->HasOnlyUse(value())) {
     // Comparisons always have a bool result.
-    ASSERT(value()->Type()->ToCid() == kBoolCid);
+    ASSERT(value()->definition()->Type()->ToCid() == kBoolCid);
     defn->AsComparison()->NegateComparison();
     return defn;
   }

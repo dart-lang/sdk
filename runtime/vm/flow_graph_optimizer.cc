@@ -9085,6 +9085,7 @@ void ConstantPropagator::Transform() {
   }
 
   graph_->DiscoverBlocks();
+  graph_->MergeBlocks();
   GrowableArray<BitVector*> dominance_frontier;
   graph_->ComputeDominators(&dominance_frontier);
 

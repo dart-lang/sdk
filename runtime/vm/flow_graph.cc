@@ -223,6 +223,49 @@ void FlowGraph::DiscoverBlocks() {
 }
 
 
+void FlowGraph::MergeBlocks() {
+  bool changed = false;
+  BitVector* merged = new(isolate()) BitVector(isolate(), postorder().length());
+  for (BlockIterator block_it = reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+    if (block->IsGraphEntry()) continue;
+    if (merged->Contains(block->postorder_number())) continue;
+
+    Instruction* last = block->last_instruction();
+    BlockEntryInstr* successor = NULL;
+    while ((last->SuccessorCount() == 1) &&
+           (last->SuccessorAt(0)->PredecessorCount() == 1) &&
+           (block->try_index() == last->SuccessorAt(0)->try_index())) {
+      successor = last->SuccessorAt(0);
+      ASSERT(last->IsGoto());
+
+      // Remove environment uses and unlink goto and block entry.
+      successor->UnuseAllInputs();
+      last->previous()->LinkTo(successor->next());
+      last->UnuseAllInputs();
+
+      last = successor->last_instruction();
+      merged->Add(successor->postorder_number());
+      changed = true;
+      if (FLAG_trace_optimization) {
+        OS::Print("Merged blocks B%" Pd " and B%" Pd "\n",
+                  block->block_id(),
+                  successor->block_id());
+      }
+    }
+    // The new block inherits the block id of the last successor to maintain
+    // the order of phi inputs at its successors consistent with block ids.
+    if (successor != NULL) {
+      block->set_block_id(successor->block_id());
+    }
+  }
+  // Recompute block order after changes were made.
+  if (changed) DiscoverBlocks();
+}
+
+
 // Debugging code to verify the construction of use lists.
 static intptr_t MembershipCount(Value* use, Value* list) {
   intptr_t count = 0;

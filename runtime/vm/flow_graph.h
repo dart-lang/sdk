@@ -214,6 +214,8 @@ class FlowGraph : public ZoneAllocated {
 
   void DiscoverBlocks();
 
+  void MergeBlocks();
+
   // Compute information about effects occuring in different blocks and
   // discover side-effect free paths.
   void ComputeBlockEffects();
