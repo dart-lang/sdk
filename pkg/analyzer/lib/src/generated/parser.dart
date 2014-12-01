@@ -5458,9 +5458,9 @@ class Parser {
    * @param tokens the comment tokens representing the documentation comments to be parsed
    * @return the comment references that were parsed
    */
-  List<CommentReference> _parseCommentReferences(List<Token> tokens) {
+  List<CommentReference> _parseCommentReferences(List<CommentToken> tokens) {
     List<CommentReference> references = new List<CommentReference>();
-    for (Token token in tokens) {
+    for (CommentToken token in tokens) {
       String comment = token.lexeme;
       int length = comment.length;
       List<List<int>> codeBlockRanges = _getCodeBlockRanges(comment);
@@ -5482,6 +5482,7 @@ class Parser {
                     nameOffset);
                 if (reference != null) {
                   references.add(reference);
+                  token.references.add(reference.beginToken);
                 }
               }
             }
@@ -6016,8 +6017,8 @@ class Parser {
    * @return the documentation comment that was parsed, or `null` if there was no comment
    */
   Comment _parseDocumentationComment() {
-    List<Token> commentTokens = new List<Token>();
-    Token commentToken = _currentToken.precedingComments;
+    List<CommentToken> commentTokens = <CommentToken>[];
+    CommentToken commentToken = _currentToken.precedingComments;
     while (commentToken != null) {
       if (commentToken.type == TokenType.SINGLE_LINE_COMMENT) {
         if (StringUtilities.startsWith3(

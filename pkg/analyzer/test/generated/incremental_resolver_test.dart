@@ -2230,32 +2230,6 @@ main() {
 ''');
   }
 
-  void test_dartDoc_clumsy_updateText() {
-    _resolveUnit(r'''
-/**
- * A function [main] with a parameter [p] of type [int].
- */
-main(int p) {
-}
-/**
- * Other comment.
- */
-foo() {}
-''');
-    _updateAndValidate(r'''
-/**
- * A function [main] with a parameter [p] of type [int].
- * Updated.
- */
-main(int p) {
-}
-/**
- * Other comment.
- */
-foo() {}
-''');
-  }
-
   void test_dartDoc_clumsy_updateText_beforeKeywordToken() {
     _resolveUnit(r'''
 /**
@@ -2269,6 +2243,58 @@ class A {}
  * Plus reference to [A] itself.
  */
 class A {}
+''');
+  }
+
+  void test_dartDoc_clumsy_updateText_insert() {
+    _resolveUnit(r'''
+/**
+ * A function [main] with a parameter [p] of type [int].
+ */
+main(int p) {
+}
+/**
+ * Other comment with [int] reference.
+ */
+foo() {}
+''');
+    _updateAndValidate(r'''
+/**
+ * A function [main] with a parameter [p] of type [int].
+ * Inserted text with [String] reference.
+ */
+main(int p) {
+}
+/**
+ * Other comment with [int] reference.
+ */
+foo() {}
+''');
+  }
+
+  void test_dartDoc_clumsy_updateText_remove() {
+    _resolveUnit(r'''
+/**
+ * A function [main] with a parameter [p] of type [int].
+ * Some text with [String] reference to remove.
+ */
+main(int p) {
+}
+/**
+ * Other comment with [int] reference.
+ */
+foo() {}
+''');
+    _updateAndValidate(r'''
+/**
+ * A function [main] with a parameter [p] of type [int].
+ */
+main(int p) {
+}
+/**
+ * Other comment with [int] reference.
+ */
+foo() {}
 ''');
   }
 
@@ -3846,6 +3872,8 @@ class _SameResolutionValidator implements AstVisitor {
       expect(other, isNull);
     } else {
       this.other = other;
+      expect(node.offset, other.offset);
+      expect(node.length, other.length);
       node.accept(this);
     }
   }

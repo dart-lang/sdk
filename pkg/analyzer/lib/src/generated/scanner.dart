@@ -239,6 +239,13 @@ class CommentToken extends StringToken {
   Token parent;
 
   /**
+   * The references embedded within the documentation comment.
+   * This list will be empty unless this is a documentation comment that has
+   * references embedded within it.
+   */
+  final List<Token> references = <Token>[];
+
+  /**
    * Initialize a newly created token to represent a token of the given [type]
    * with the given [value] at the given [offset].
    */
@@ -2022,7 +2029,7 @@ class Token {
    * the first preceding comment token will have a lexeme of "/* one */" and
    * the next comment token will have a lexeme of "/* two */".
    */
-  Token get precedingComments => null;
+  CommentToken get precedingComments => null;
 
   /**
    * Apply (add) the given [delta] to this token's offset.

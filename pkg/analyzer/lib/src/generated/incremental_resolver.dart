@@ -941,13 +941,14 @@ class PoorMansIncrementalResolver {
           _updateDelta = newUnit.length - oldUnit.length;
           if (firstPair.atComment && lastPair.atComment) {
             _resolveComment(oldUnit, newUnit, firstPair);
+          } else {
+            _shiftTokens(firstPair.oldToken);
+            IncrementalResolver._updateElementNameOffsets(
+                oldUnit.element,
+                _updateOffset,
+                _updateDelta);
+            _updateEntry();
           }
-          _shiftTokens(firstPair.oldToken, _updateDelta);
-          IncrementalResolver._updateElementNameOffsets(
-              oldUnit.element,
-              _updateOffset,
-              _updateDelta);
-          _updateEntry();
           return true;
         }
         // Find nodes covering the "old" and "new" token ranges.
@@ -1004,7 +1005,7 @@ class PoorMansIncrementalResolver {
             oldBeginToken.previous.setNext(newBeginToken);
           }
           newNode.endToken.setNext(oldNode.endToken.next);
-          _shiftTokens(oldNode.endToken.next, _updateDelta);
+          _shiftTokens(oldNode.endToken.next);
         }
         // perform incremental resolution
         CompilationUnitElement oldUnitElement = oldUnit.element;
@@ -1045,11 +1046,18 @@ class PoorMansIncrementalResolver {
     int offset = oldToken.precedingComments.offset;
     Comment oldComment = _findNodeCovering(oldUnit, offset, offset);
     Comment newComment = _findNodeCovering(newUnit, offset, offset);
-    _updateOffset = offset + 1;
+    _updateOffset = oldToken.offset - 1;
+    // update token references
+    _shiftTokens(firstPair.oldToken);
+    _setPrecedingComments(oldToken, newComment.tokens.first);
     // replace node
     NodeReplacer.replace(oldComment, newComment);
-    // update token references
-    _setPrecedingComments(oldToken, newComment.tokens.first);
+    // update elements
+    IncrementalResolver._updateElementNameOffsets(
+        oldUnit.element,
+        _updateOffset,
+        _updateDelta);
+    _updateEntry();
     // resolve references in the comment
     CompilationUnitElement oldUnitElement = oldUnit.element;
     IncrementalResolver incrementalResolver =
@@ -1066,12 +1074,19 @@ class PoorMansIncrementalResolver {
     return token;
   }
 
-  void _shiftTokens(Token token, int delta) {
+  void _shiftTokens(Token token) {
     while (token != null) {
       if (token.offset > _updateOffset) {
-        token.offset += delta;
+        token.offset += _updateDelta;
       }
-      _shiftTokens(token.precedingComments, delta);
+      // comments
+      _shiftTokens(token.precedingComments);
+      if (token is CommentToken) {
+        for (Token reference in token.references) {
+          _shiftTokens(reference);
+        }
+      }
+      // next
       if (token.type == TokenType.EOF) {
         break;
       }
