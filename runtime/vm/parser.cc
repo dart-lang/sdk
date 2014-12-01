@@ -9183,7 +9183,7 @@ AstNode* Parser::ParseAwaitableExpr(bool require_compiletime_const,
                                     bool consume_cascades,
                                     SequenceNode** await_preamble) {
   TRACE_PARSER("ParseAwaitableExpr");
-  parsed_function()->reset_have_seen_await();
+  BoolScope saved_seen_await(&parsed_function()->have_seen_await_expr_, false);
   AstNode* expr = ParseExpr(require_compiletime_const, consume_cascades);
   if (parsed_function()->have_seen_await()) {
     // Make sure we do not reuse the scope to avoid creating contexts that we
@@ -9201,7 +9201,6 @@ AstNode* Parser::ParseAwaitableExpr(bool require_compiletime_const,
     } else {
       *await_preamble = preamble;
     }
-    parsed_function()->reset_have_seen_await();
     return result;
   }
   return expr;

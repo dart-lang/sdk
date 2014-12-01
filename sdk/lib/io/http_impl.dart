@@ -1329,8 +1329,11 @@ class _HttpClientConnection {
                                          proxy,
                                          _httpClient,
                                          this);
+    // For the Host header an IPv6 address must be enclosed in []'s.
+    var host = uri.host;
+    if (host.contains(':')) host = "[$host]";
     request.headers
-        ..host = uri.host
+        ..host = host
         ..port = port
         .._add(HttpHeaders.ACCEPT_ENCODING, "gzip");
     if (_httpClient.userAgent != null) {
