@@ -866,6 +866,8 @@ main() {
     const <ProgramResult>[
         const ProgramResult(
             r"""
+import 'dart:collection';
+
 class C {
   static m() {
     print('v1');
@@ -873,13 +875,8 @@ class C {
 }
 
 main() {
-  try {
-    // TODO(ahe): Incremental compiler can't handle new noSuchMethod
-    // situations, crashes when compiling a constructor which uses type
-    // arguments.
-    C.missing();
-  } catch (e) {
-  }
+  // TODO(ahe): The incremental compiler magter ikke static tear-off closures.
+  new HashMap(equals: identical);
   try {
     C.m();
   } catch (e) {
