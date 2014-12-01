@@ -650,12 +650,6 @@ class LibraryUpdater extends JsFeatures {
       jsAst.Node elementAccess = namer.elementAccess(element.enclosingClass);
       statements.add(
           js.statement('#.prototype.# = f', [elementAccess, name]));
-
-      if (backend.isAliasedSuperMember(element)) {
-        String superName = namer.getNameOfAliasedSuperMember(element);
-        statements.add(
-          js.statement('#.prototype.# = f', [elementAccess, superName]));
-      }
     } else {
       jsAst.Node elementAccess = namer.elementAccess(element);
       jsAst.Expression globalFunctionsAccess =
@@ -796,10 +790,6 @@ class RemovedFunctionUpdate extends RemovalUpdate
   /// non-instance methods.
   String name;
 
-  /// Name of super-alias property to remove using JavaScript "delete".  Null
-  /// for methods that aren't "super aliased", and non-instance methods.
-  String superName;
-
   /// For instance methods, access to class object. Otherwise, access to the
   /// method itself.
   jsAst.Node elementAccess;
@@ -820,9 +810,6 @@ class RemovedFunctionUpdate extends RemovalUpdate
     if (element.isInstanceMember) {
       elementAccess = namer.elementAccess(element.enclosingClass);
       name = namer.getNameOfMember(element);
-      if (backend.isAliasedSuperMember(element)) {
-        superName = namer.getNameOfAliasedSuperMember(element);
-      }
     } else {
       elementAccess = namer.elementAccess(element);
     }
@@ -846,11 +833,6 @@ class RemovedFunctionUpdate extends RemovalUpdate
       }
       updates.add(
           js.statement('delete #.prototype.#', [elementAccess, name]));
-
-      if (superName != null) {
-        updates.add(
-            js.statement('delete #.prototype.#', [elementAccess, superName]));
-      }
     } else {
       updates.add(js.statement('delete #', [elementAccess]));
     }

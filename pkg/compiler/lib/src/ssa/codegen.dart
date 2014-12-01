@@ -1662,36 +1662,37 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
     } else {
       Selector selector = node.selector;
-      String methodName;
-      if (selector.isGetter) {
-        // If the selector we need to register a typed getter to the
-        // [world]. The emitter needs to know if it needs to emit a
-        // bound closure for a method.
-        TypeMask receiverType =
-            new TypeMask.nonNullExact(superClass, compiler.world);
-        selector = new TypedSelector(receiverType, selector, compiler.world);
-        // TODO(floitsch): we know the target. We shouldn't register a
-        // dynamic getter.
-        registry.registerDynamicGetter(selector);
-        registry.registerGetterForSuperMethod(node.element);
-        methodName = backend.namer.invocationName(selector);
-        push(
-          js.js('#.prototype.#.call(#)', [
-            backend.namer.elementAccess(superClass),
-            methodName, visitArguments(node.inputs, start: 0)]),
-          node);
+
+      if (!backend.maybeRegisterAliasedSuperMember(superMethod, selector)) {
+        String methodName;
+        if (selector.isGetter) {
+          // If the selector we need to register a typed getter to the
+          // [world]. The emitter needs to know if it needs to emit a
+          // bound closure for a method.
+          TypeMask receiverType =
+              new TypeMask.nonNullExact(superClass, compiler.world);
+          selector = new TypedSelector(receiverType, selector, compiler.world);
+          // TODO(floitsch): we know the target. We shouldn't register a
+          // dynamic getter.
+          registry.registerDynamicGetter(selector);
+          registry.registerGetterForSuperMethod(node.element);
+          methodName = backend.namer.invocationName(selector);
+        } else {
+          assert(invariant(node, compiler.hasIncrementalSupport));
+          methodName = backend.namer.getNameOfInstanceMember(superMethod);
+        }
+        push(js.js('#.prototype.#.call(#)',
+                   [backend.namer.elementAccess(superClass),
+                    methodName, visitArguments(node.inputs, start: 0)]),
+             node);
       } else {
-        methodName =
-            backend.namer.getNameOfAliasedSuperMember(superMethod);
-        backend.registerAliasedSuperMember(superMethod);
         use(node.receiver);
         push(
           js.js('#.#(#)', [
-            pop(), methodName,
+            pop(), backend.namer.getNameOfAliasedSuperMember(superMethod),
             visitArguments(node.inputs, start: 1)]), // Skip receiver argument.
           node);
       }
-
     }
   }
 
