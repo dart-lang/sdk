@@ -10,7 +10,8 @@ import '../constants/values.dart';
 import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
-import '../elements/modelx.dart' show ClassElementX, FunctionElementX;
+import '../elements/modelx.dart'
+    show ClassElementX, FunctionElementX, LibraryElementX;
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
@@ -28,7 +29,7 @@ part 'scanner.dart';
 part 'ssa.dart';
 
 void maybeEnableNative(Compiler compiler,
-                       LibraryElement library) {
+                       LibraryElementX library) {
   String libraryName = library.canonicalUri.toString();
   if (library.entryCompilationUnit.script.name.contains(
           'dart/tests/compiler/dart2js_native')
@@ -41,7 +42,8 @@ void maybeEnableNative(Compiler compiler,
       || libraryName == 'dart:_native_typed_data'
       || libraryName == 'dart:web_audio'
       || libraryName == 'dart:web_gl'
-      || libraryName == 'dart:web_sql') {
+      || libraryName == 'dart:web_sql'
+      || compiler.allowNativeExtensions) {
     library.canUseNative = true;
   }
 }

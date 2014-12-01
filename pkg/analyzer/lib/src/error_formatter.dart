@@ -4,17 +4,18 @@
 
 library error_formatter;
 
+import 'package:analyzer/src/analyzer_impl.dart';
+
+import '../options.dart';
 import 'generated/engine.dart';
 import 'generated/error.dart';
 import 'generated/source_io.dart';
-import '../options.dart';
-import 'package:analyzer/src/analyzer_impl.dart';
-
-/// Returns `true` if [AnalysisError] should be printed.
-typedef bool _ErrorFilter(AnalysisError error);
 
 /// Allows any [AnalysisError].
 bool _anyError(AnalysisError error) => true;
+
+/// Returns `true` if [AnalysisError] should be printed.
+typedef bool _ErrorFilter(AnalysisError error);
 
 /**
  * Helper for formatting [AnalysisError]s.
@@ -26,6 +27,45 @@ class ErrorFormatter {
   final _ErrorFilter errorFilter;
 
   ErrorFormatter(this.out, this.options, [this.errorFilter = _anyError]);
+
+  void formatError(Map<AnalysisError, LineInfo> errorToLine,
+      AnalysisError error) {
+    Source source = error.source;
+    LineInfo_Location location = errorToLine[error].getLocation(error.offset);
+    int length = error.length;
+    ErrorSeverity severity =
+        AnalyzerImpl.computeSeverity(error, options.enableTypeChecks);
+    if (options.machineFormat) {
+      if (severity == ErrorSeverity.WARNING && options.warningsAreFatal) {
+        severity = ErrorSeverity.ERROR;
+      }
+      out.write(severity);
+      out.write('|');
+      out.write(error.errorCode.type);
+      out.write('|');
+      out.write(error.errorCode.name);
+      out.write('|');
+      out.write(escapePipe(source.fullName));
+      out.write('|');
+      out.write(location.lineNumber);
+      out.write('|');
+      out.write(location.columnNumber);
+      out.write('|');
+      out.write(length);
+      out.write('|');
+      out.write(escapePipe(error.message));
+    } else {
+      String errorType = severity.displayName;
+      if (error.errorCode.type == ErrorType.HINT) {
+        errorType = error.errorCode.type.displayName;
+      }
+      // [warning] 'foo' is not a... (/Users/.../tmp/foo.dart, line 1, col 2)
+      out.write('[$errorType] ${error.message} ');
+      out.write('(${source.fullName}');
+      out.write(', line ${location.lineNumber}, col ${location.columnNumber})');
+    }
+    out.writeln();
+  }
 
   void formatErrors(List<AnalysisErrorInfo> errorInfos) {
     var errors = new List<AnalysisError>();
@@ -41,16 +81,18 @@ class ErrorFormatter {
     // sort errors
     errors.sort((AnalysisError error1, AnalysisError error2) {
       // severity
-      ErrorSeverity severity1 = AnalyzerImpl.computeSeverity(
-          error1, options.enableTypeChecks);
-      ErrorSeverity severity2 = AnalyzerImpl.computeSeverity(
-          error2, options.enableTypeChecks);
+      ErrorSeverity severity1 =
+          AnalyzerImpl.computeSeverity(error1, options.enableTypeChecks);
+      ErrorSeverity severity2 =
+          AnalyzerImpl.computeSeverity(error2, options.enableTypeChecks);
       int compare = severity2.compareTo(severity1);
       if (compare != 0) {
         return compare;
       }
       // path
-      compare = Comparable.compare(error1.source.fullName.toLowerCase(), error2.source.fullName.toLowerCase());
+      compare = Comparable.compare(
+          error1.source.fullName.toLowerCase(),
+          error2.source.fullName.toLowerCase());
       if (compare != 0) {
         return compare;
       }
@@ -62,8 +104,8 @@ class ErrorFormatter {
     int warnCount = 0;
     int hintCount = 0;
     for (AnalysisError error in errors) {
-      ErrorSeverity severity = AnalyzerImpl.computeSeverity(
-          error, options.enableTypeChecks);
+      ErrorSeverity severity =
+          AnalyzerImpl.computeSeverity(error, options.enableTypeChecks);
       if (severity == ErrorSeverity.ERROR) {
         errorCount++;
       } else if (severity == ErrorSeverity.WARNING) {
@@ -119,44 +161,6 @@ class ErrorFormatter {
         out.writeln("No issues found");
       }
     }
-  }
-
-  void formatError(Map<AnalysisError, LineInfo> errorToLine, AnalysisError error) {
-    Source source = error.source;
-    LineInfo_Location location = errorToLine[error].getLocation(error.offset);
-    int length = error.length;
-    ErrorSeverity severity = AnalyzerImpl.computeSeverity(
-        error, options.enableTypeChecks);
-    if (options.machineFormat) {
-      if (severity == ErrorSeverity.WARNING && options.warningsAreFatal) {
-        severity = ErrorSeverity.ERROR;
-      }
-      out.write(severity);
-      out.write('|');
-      out.write(error.errorCode.type);
-      out.write('|');
-      out.write(error.errorCode.name);
-      out.write('|');
-      out.write(escapePipe(source.fullName));
-      out.write('|');
-      out.write(location.lineNumber);
-      out.write('|');
-      out.write(location.columnNumber);
-      out.write('|');
-      out.write(length);
-      out.write('|');
-      out.write(escapePipe(error.message));
-    } else {
-      String errorType = severity.displayName;
-      if (error.errorCode.type == ErrorType.HINT) {
-        errorType = error.errorCode.type.displayName;
-      }
-      // [warning] 'foo' is not a... (/Users/.../tmp/foo.dart, line 1, col 2)
-      out.write('[$errorType] ${error.message} ');
-      out.write('(${source.fullName}');
-      out.write(', line ${location.lineNumber}, col ${location.columnNumber})');
-    }
-    out.writeln();
   }
 
   static String escapePipe(String input) {

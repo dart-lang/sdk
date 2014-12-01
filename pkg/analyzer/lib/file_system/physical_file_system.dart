@@ -53,7 +53,8 @@ class PhysicalResourceProvider implements ResourceProvider {
       home = io.Platform.environment['HOME'];
     }
     if (home != null && io.FileSystemEntity.isDirectorySync(home)) {
-      io.Directory directory = new io.Directory(join(home, SERVER_DIR, pluginId));
+      io.Directory directory =
+          new io.Directory(join(home, SERVER_DIR, pluginId));
       directory.createSync(recursive: true);
       return new _PhysicalFolder(directory);
     }

@@ -8,9 +8,11 @@
 #include "vm/intrinsifier.h"
 
 #include "vm/assembler.h"
+#include "vm/dart_entry.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
+#include "vm/regexp_assembler.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -88,8 +90,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
       RCX);
 
   // Set the length field in the growable array object to 0.
-  __ movq(FieldAddress(RAX, GrowableObjectArray::length_offset()),
-          Immediate(0));
+  __ ZeroSmiField(FieldAddress(RAX, GrowableObjectArray::length_offset()));
   __ ret();  // returns the newly allocated object in RAX.
 
   __ Bind(&fall_through);
@@ -154,7 +155,8 @@ void Intrinsifier::GrowableArraySetLength(Assembler* assembler) {
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Length value.
   __ testq(RCX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi length.
-  __ movq(FieldAddress(RAX, GrowableObjectArray::length_offset()), RCX);
+  FieldAddress length_field(RAX, GrowableObjectArray::length_offset());
+  __ StoreIntoSmiField(length_field, RCX);
   __ ret();
   __ Bind(&fall_through);
 }
@@ -196,10 +198,9 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // Compare length with capacity.
   __ cmpq(RCX, FieldAddress(RDX, Array::length_offset()));
   __ j(EQUAL, &fall_through);  // Must grow data.
-  const Immediate& value_one =
-      Immediate(reinterpret_cast<int64_t>(Smi::New(1)));
   // len = len + 1;
-  __ addq(FieldAddress(RAX, GrowableObjectArray::length_offset()), value_one);
+  __ IncrementSmiField(FieldAddress(RAX, GrowableObjectArray::length_offset()),
+                       1);
   __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Value
   ASSERT(kSmiTagShift == 1);
   __ StoreIntoObject(RDX,
@@ -829,10 +830,12 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
 
   __ movq(RDI, Address(RSP, 5 * kWordSize));  // digits
   __ movq(R8, Address(RSP, 4 * kWordSize));  // used is Smi
-  __ SmiUntag(R8);  // used > 0.
+  __ addq(R8, Immediate(2));  // used > 0, Smi. R8 = used + 1, round up.
+  __ sarq(R8, Immediate(2));  // R8 = number of digit pairs to process.
   __ movq(RSI, Address(RSP, 3 * kWordSize));  // a_digits
   __ movq(RCX, Address(RSP, 2 * kWordSize));  // a_used is Smi
-  __ SmiUntag(RCX);  // a_used > 0.
+  __ addq(RCX, Immediate(2));  // a_used > 0, Smi. R8 = a_used + 1, round up.
+  __ sarq(RCX, Immediate(2));  // R8 = number of digit pairs to process.
   __ movq(RBX, Address(RSP, 1 * kWordSize));  // r_digits
 
   // Precompute 'used - a_used' now so that carry flag is not lost later.
@@ -842,10 +845,10 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   __ xorq(RDX, RDX);  // RDX = 0, carry flag = 0.
   Label add_loop;
   __ Bind(&add_loop);
-  // Loop a_used times, RCX = a_used, RCX > 0.
-  __ movl(RAX, FieldAddress(RDI, RDX, TIMES_4, TypedData::data_offset()));
-  __ adcl(RAX, FieldAddress(RSI, RDX, TIMES_4, TypedData::data_offset()));
-  __ movl(FieldAddress(RBX, RDX, TIMES_4, TypedData::data_offset()), RAX);
+  // Loop (a_used+1)/2 times, RCX > 0.
+  __ movq(RAX, FieldAddress(RDI, RDX, TIMES_8, TypedData::data_offset()));
+  __ adcq(RAX, FieldAddress(RSI, RDX, TIMES_8, TypedData::data_offset()));
+  __ movq(FieldAddress(RBX, RDX, TIMES_8, TypedData::data_offset()), RAX);
   __ incq(RDX);  // Does not affect carry flag.
   __ decq(RCX);  // Does not affect carry flag.
   __ j(NOT_ZERO, &add_loop, Assembler::kNearJump);
@@ -856,18 +859,18 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
 
   Label carry_loop;
   __ Bind(&carry_loop);
-  // Loop used - a_used times, R8 = used - a_used, R8 > 0.
-  __ movl(RAX, FieldAddress(RDI, RDX, TIMES_4, TypedData::data_offset()));
-  __ adcl(RAX, Immediate(0));
-  __ movl(FieldAddress(RBX, RDX, TIMES_4, TypedData::data_offset()), RAX);
+  // Loop (used+1)/2 - (a_used+1)/2 times, R8 > 0.
+  __ movq(RAX, FieldAddress(RDI, RDX, TIMES_8, TypedData::data_offset()));
+  __ adcq(RAX, Immediate(0));
+  __ movq(FieldAddress(RBX, RDX, TIMES_8, TypedData::data_offset()), RAX);
   __ incq(RDX);  // Does not affect carry flag.
   __ decq(R8);  // Does not affect carry flag.
   __ j(NOT_ZERO, &carry_loop, Assembler::kNearJump);
 
   __ Bind(&last_carry);
-  __ movl(RAX, Immediate(0));
-  __ adcl(RAX, Immediate(0));
-  __ movl(FieldAddress(RBX, RDX, TIMES_4, TypedData::data_offset()), RAX);
+  __ movq(RAX, Immediate(0));
+  __ adcq(RAX, Immediate(0));
+  __ movq(FieldAddress(RBX, RDX, TIMES_8, TypedData::data_offset()), RAX);
 
   // Returning Object::null() is not required, since this method is private.
   __ ret();
@@ -881,10 +884,12 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
 
   __ movq(RDI, Address(RSP, 5 * kWordSize));  // digits
   __ movq(R8, Address(RSP, 4 * kWordSize));  // used is Smi
-  __ SmiUntag(R8);  // used > 0.
+  __ addq(R8, Immediate(2));  // used > 0, Smi. R8 = used + 1, round up.
+  __ sarq(R8, Immediate(2));  // R8 = number of digit pairs to process.
   __ movq(RSI, Address(RSP, 3 * kWordSize));  // a_digits
   __ movq(RCX, Address(RSP, 2 * kWordSize));  // a_used is Smi
-  __ SmiUntag(RCX);  // a_used > 0.
+  __ addq(RCX, Immediate(2));  // a_used > 0, Smi. R8 = a_used + 1, round up.
+  __ sarq(RCX, Immediate(2));  // R8 = number of digit pairs to process.
   __ movq(RBX, Address(RSP, 1 * kWordSize));  // r_digits
 
   // Precompute 'used - a_used' now so that carry flag is not lost later.
@@ -894,10 +899,10 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
   __ xorq(RDX, RDX);  // RDX = 0, carry flag = 0.
   Label sub_loop;
   __ Bind(&sub_loop);
-  // Loop a_used times, RCX = a_used, RCX > 0.
-  __ movl(RAX, FieldAddress(RDI, RDX, TIMES_4, TypedData::data_offset()));
-  __ sbbl(RAX, FieldAddress(RSI, RDX, TIMES_4, TypedData::data_offset()));
-  __ movl(FieldAddress(RBX, RDX, TIMES_4, TypedData::data_offset()), RAX);
+  // Loop (a_used+1)/2 times, RCX > 0.
+  __ movq(RAX, FieldAddress(RDI, RDX, TIMES_8, TypedData::data_offset()));
+  __ sbbq(RAX, FieldAddress(RSI, RDX, TIMES_8, TypedData::data_offset()));
+  __ movq(FieldAddress(RBX, RDX, TIMES_8, TypedData::data_offset()), RAX);
   __ incq(RDX);  // Does not affect carry flag.
   __ decq(RCX);  // Does not affect carry flag.
   __ j(NOT_ZERO, &sub_loop, Assembler::kNearJump);
@@ -908,10 +913,10 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
 
   Label carry_loop;
   __ Bind(&carry_loop);
-  // Loop used - a_used times, R8 = used - a_used, R8 > 0.
-  __ movl(RAX, FieldAddress(RDI, RDX, TIMES_4, TypedData::data_offset()));
-  __ sbbl(RAX, Immediate(0));
-  __ movl(FieldAddress(RBX, RDX, TIMES_4, TypedData::data_offset()), RAX);
+  // Loop (used+1)/2 - (a_used+1)/2 times, R8 > 0.
+  __ movq(RAX, FieldAddress(RDI, RDX, TIMES_8, TypedData::data_offset()));
+  __ sbbq(RAX, Immediate(0));
+  __ movq(FieldAddress(RBX, RDX, TIMES_8, TypedData::data_offset()), RAX);
   __ incq(RDX);  // Does not affect carry flag.
   __ decq(R8);  // Does not affect carry flag.
   __ j(NOT_ZERO, &carry_loop, Assembler::kNearJump);
@@ -1691,7 +1696,7 @@ void Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   __ incq(RAX);
   __ Bind(&set_hash_code);
   __ SmiTag(RAX);
-  __ movq(FieldAddress(RBX, String::hash_offset()), RAX);
+  __ StoreIntoSmiField(FieldAddress(RBX, String::hash_offset()), RAX);
   __ ret();
 }
 
@@ -1765,7 +1770,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                               FieldAddress(RAX, String::length_offset()),
                               RDI);
   // Clear hash.
-  __ movq(FieldAddress(RAX, String::hash_offset()), Immediate(0));
+  __ ZeroSmiField(FieldAddress(RAX, String::hash_offset()));
   __ jmp(ok, Assembler::kNearJump);
 
   __ Bind(&pop_and_fail);
@@ -1911,6 +1916,41 @@ void Intrinsifier::OneByteString_equality(Assembler* assembler) {
 
 void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
   StringEquality(assembler, kTwoByteStringCid);
+}
+
+
+void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
+  if (FLAG_use_jscre) {
+    return;
+  }
+  static const intptr_t kRegExpParamOffset = 3 * kWordSize;
+  static const intptr_t kStringParamOffset = 2 * kWordSize;
+  // start_index smi is located at offset 1.
+
+  // Incoming registers:
+  // RAX: Function. (Will be loaded with the specialized matcher function.)
+  // RCX: Unknown. (Must be GC safe on tail call.)
+  // R10: Arguments descriptor. (Will be preserved.)
+
+  // Load the specialized function pointer into RAX. Leverage the fact the
+  // string CIDs as well as stored function pointers are in sequence.
+  __ movq(RBX, Address(RSP, kRegExpParamOffset));
+  __ movq(RDI, Address(RSP, kStringParamOffset));
+  __ LoadClassId(RDI, RDI);
+  __ SubImmediate(RDI, Immediate(kOneByteStringCid), PP);
+  __ movq(RAX, FieldAddress(RBX, RDI, TIMES_8,
+                            JSRegExp::function_offset(kOneByteStringCid)));
+
+  // Registers are now set up for the lazy compile stub. It expects the function
+  // in RAX, the argument descriptor in R10, and IC-Data in RCX.
+  static const intptr_t arg_count = RegExpMacroAssembler::kParamCount;
+  __ LoadObject(R10, Array::Handle(ArgumentsDescriptor::New(arg_count)), PP);
+  __ xorq(RCX, RCX);
+
+  // Tail-call the function.
+  __ movq(RDI, FieldAddress(RAX, Function::instructions_offset()));
+  __ addq(RDI, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(RDI);
 }
 
 

@@ -12,7 +12,7 @@ part of dart2js.optimizers;
  * Implemented according to 'Constant Propagation with Conditional Branches'
  * by Wegman, Zadeck.
  */
-class ConstantPropagator implements Pass {
+class ConstantPropagator extends Pass {
 
   // Required for type determination in analysis of TypeOperator expressions.
   final dart2js.Compiler _compiler;
@@ -23,12 +23,9 @@ class ConstantPropagator implements Pass {
 
   ConstantPropagator(this._compiler, this._constantSystem);
 
-  void rewrite(FunctionDefinition root) {
-    if (root.isAbstract) return;
-
+  void _rewriteExecutableDefinition(ExecutableDefinition root) {
     // Set all parent pointers.
-
-    new _ParentVisitor().visit(root);
+    new ParentVisitor().visit(root);
 
     // Analyze. In this phase, the entire term is analyzed for reachability
     // and the constant status of each expression.
@@ -45,6 +42,16 @@ class ConstantPropagator implements Pass {
         analyzer.reachableNodes, analyzer.node2value);
     transformer.transform(root);
   }
+
+  void rewriteFunctionDefinition(FunctionDefinition root) {
+    if (root.isAbstract) return;
+    _rewriteExecutableDefinition(root);
+  }
+
+  void rewriteFieldDefinition(FieldDefinition root) {
+    _rewriteExecutableDefinition(root);
+  }
+
 }
 
 /**
@@ -58,8 +65,8 @@ class _TransformingVisitor extends RecursiveVisitor {
 
   _TransformingVisitor(this.reachable, this.node2value);
 
-  void transform(FunctionDefinition root) {
-    visitFunctionDefinition(root);
+  void transform(ExecutableDefinition root) {
+    visit(root);
   }
 
   /// Given an expression with a known constant result and a continuation,
@@ -226,7 +233,7 @@ class _ConstPropagationVisitor extends Visitor {
 
   _ConstPropagationVisitor(this.compiler, this.constantSystem);
 
-  void analyze(FunctionDefinition root) {
+  void analyze(ExecutableDefinition root) {
     reachableNodes.clear();
     defWorkset.clear();
     nodeWorklist.clear();
@@ -301,6 +308,10 @@ class _ConstPropagationVisitor extends Visitor {
 
   void visitFunctionDefinition(FunctionDefinition node) {
     node.parameters.forEach(visitParameter);
+    setReachable(node.body);
+  }
+
+  void visitFieldDefinition(FieldDefinition node) {
     setReachable(node.body);
   }
 
@@ -602,6 +613,28 @@ class _ConstPropagationVisitor extends Visitor {
   void visitIsTrue(IsTrue node) {
     Branch branch = node.parent;
     visitBranch(branch);
+  }
+
+  // JavaScript specific nodes.
+
+  void visitIdentical(Identical node) {
+    _ConstnessLattice leftConst = getValue(node.left.definition);
+    _ConstnessLattice rightConst = getValue(node.left.definition);
+    ConstantValue leftValue = leftConst.constant;
+    ConstantValue rightValue = rightConst.constant;
+    if (leftConst.isUnknown || rightConst.isUnknown) {
+      // Come back later.
+      return;
+    } else if (!leftConst.isConstant || !rightConst.isConstant) {
+      setValue(node, _ConstnessLattice.NonConst);
+    } else if (leftValue.isPrimitive && rightValue.isPrimitive) {
+      assert(leftConst.isConstant && rightConst.isConstant);
+      PrimitiveConstantValue left = leftValue;
+      PrimitiveConstantValue right = rightValue;
+      ConstantValue result =
+          new BoolConstantValue(left.primitiveValue == right.primitiveValue);
+      setValue(node, new _ConstnessLattice(result));
+    }
   }
 }
 

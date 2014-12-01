@@ -212,6 +212,7 @@ void ClassHeapStats::Initialize() {
 
 
 void ClassHeapStats::ResetAtNewGC() {
+  Verify();
   pre_gc.new_count = post_gc.new_count + recent.new_count;
   pre_gc.new_size = post_gc.new_size + recent.new_size;
   // Accumulate allocations.
@@ -226,6 +227,7 @@ void ClassHeapStats::ResetAtNewGC() {
 
 
 void ClassHeapStats::ResetAtOldGC() {
+  Verify();
   pre_gc.old_count = post_gc.old_count + recent.old_count;
   pre_gc.old_size = post_gc.old_size + recent.old_size;
   // Accumulate allocations.
@@ -234,6 +236,15 @@ void ClassHeapStats::ResetAtOldGC() {
   last_reset.ResetOld();
   post_gc.ResetOld();
   recent.ResetOld();
+}
+
+
+void ClassHeapStats::Verify() {
+  pre_gc.Verify();
+  post_gc.Verify();
+  recent.Verify();
+  accumulated.Verify();
+  last_reset.Verify();
 }
 
 
@@ -345,6 +356,7 @@ ClassHeapStats* ClassTable::StatsWithUpdatedSize(intptr_t cid) {
   if (ShouldUpdateSizeForClassId(cid)) {
     stats->UpdateSize(cls.instance_size());
   }
+  stats->Verify();
   return stats;
 }
 

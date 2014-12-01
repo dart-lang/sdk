@@ -47,6 +47,11 @@ class DartBackend extends Backend {
 
   final Set<ClassElement> usedTypeLiterals = new Set<ClassElement>();
 
+  /// The set of visible platform classes that are implemented by instantiated
+  /// user classes.
+  final Set<ClassElement> _userImplementedPlatformClasses =
+      new Set<ClassElement>();
+
   /**
    * Tells whether it is safe to remove type declarations from variables,
    * functions parameters. It becomes not safe if:
@@ -129,10 +134,10 @@ class DartBackend extends Backend {
 
   /// Create an [ElementAst] from the CPS IR.
   static ElementAst createElementAst(Compiler compiler,
-                                     Tracer tracer,
-                                     ConstantSystem constantSystem,
-                                     Element element,
-                                     cps_ir.FunctionDefinition function) {
+       Tracer tracer,
+       ConstantSystem constantSystem,
+       Element element,
+       cps_ir.ExecutableDefinition cpsDefinition) {
     // Transformations on the CPS IR.
     if (tracer != null) {
       tracer.traceCompilation(element.name, null);
@@ -144,38 +149,38 @@ class DartBackend extends Backend {
       }
     }
 
-    new ConstantPropagator(compiler, constantSystem).rewrite(function);
-    traceGraph("Sparse constant propagation", function);
-    new RedundantPhiEliminator().rewrite(function);
-    traceGraph("Redundant phi elimination", function);
-    new ShrinkingReducer().rewrite(function);
-    traceGraph("Shrinking reductions", function);
+    new ConstantPropagator(compiler, constantSystem).rewrite(cpsDefinition);
+    traceGraph("Sparse constant propagation", cpsDefinition);
+    new RedundantPhiEliminator().rewrite(cpsDefinition);
+    traceGraph("Redundant phi elimination", cpsDefinition);
+    new ShrinkingReducer().rewrite(cpsDefinition);
+    traceGraph("Shrinking reductions", cpsDefinition);
 
     // Do not rewrite the IR after variable allocation.  Allocation
     // makes decisions based on an approximation of IR variable live
     // ranges that can be invalidated by transforming the IR.
-    new cps_ir.RegisterAllocator().visit(function);
+    new cps_ir.RegisterAllocator().visit(cpsDefinition);
 
     tree_builder.Builder builder = new tree_builder.Builder(compiler);
-    tree_ir.FunctionDefinition definition = builder.build(function);
-    assert(definition != null);
-    traceGraph('Tree builder', definition);
+    tree_ir.ExecutableDefinition treeDefinition = builder.build(cpsDefinition);
+    assert(treeDefinition != null);
+    traceGraph('Tree builder', treeDefinition);
 
     // Transformations on the Tree IR.
-    new StatementRewriter().rewrite(definition);
-    traceGraph('Statement rewriter', definition);
-    new CopyPropagator().rewrite(definition);
-    traceGraph('Copy propagation', definition);
-    new LoopRewriter().rewrite(definition);
-    traceGraph('Loop rewriter', definition);
-    new LogicalRewriter().rewrite(definition);
-    traceGraph('Logical rewriter', definition);
-    new backend_ast_emitter.UnshadowParameters().unshadow(definition);
-    traceGraph('Unshadow parameters', definition);
+    new StatementRewriter().rewrite(treeDefinition);
+    traceGraph('Statement rewriter', treeDefinition);
+    new CopyPropagator().rewrite(treeDefinition);
+    traceGraph('Copy propagation', treeDefinition);
+    new LoopRewriter().rewrite(treeDefinition);
+    traceGraph('Loop rewriter', treeDefinition);
+    new LogicalRewriter().rewrite(treeDefinition);
+    traceGraph('Logical rewriter', treeDefinition);
+    new backend_ast_emitter.UnshadowParameters().unshadow(treeDefinition);
+    traceGraph('Unshadow parameters', treeDefinition);
 
     TreeElementMapping treeElements = new TreeElementMapping(element);
-    backend_ast.Node backendAst =
-        backend_ast_emitter.emit(definition);
+    backend_ast.ExecutableDefinition backendAst =
+        backend_ast_emitter.emit(treeDefinition);
     Node frontend_ast = backend2frontend.emit(treeElements, backendAst);
     return new ElementAst.internal(frontend_ast, treeElements);
 
@@ -199,9 +204,10 @@ class DartBackend extends Backend {
       if (!compiler.irBuilder.hasIr(element)) {
         return new ElementAst(element);
       } else {
-        cps_ir.FunctionDefinition function = compiler.irBuilder.getIr(element);
+        cps_ir.ExecutableDefinition definition =
+            compiler.irBuilder.getIr(element);
         return createElementAst(compiler,
-            compiler.tracer, constantSystem, element, function);
+            compiler.tracer, constantSystem, element, definition);
       }
     }
 
@@ -261,6 +267,7 @@ class DartBackend extends Backend {
 
   log(String message) => compiler.log('[DartBackend] $message');
 
+  @override
   Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
     // All platform classes must be resolved to ensure that their member names
     // are preserved.
@@ -287,6 +294,7 @@ class DartBackend extends Backend {
     return new Future.value();
   }
 
+  @override
   void registerStaticUse(Element element, Enqueuer enqueuer) {
     if (element == compiler.mirrorSystemGetNameFunction) {
       FunctionElement getNameFunction = mirrorRenamer.getNameFunction;
@@ -294,6 +302,75 @@ class DartBackend extends Backend {
         enqueuer.addToWorkList(getNameFunction);
       }
     }
+  }
+
+  @override
+  void registerInstantiatedType(InterfaceType type, Registry registry) {
+    // Without patching, dart2dart has no way of performing sound tree-shaking
+    // in face external functions. Therefore we employ another scheme:
+    //
+    // Based on the assumption that the platform code only relies on the
+    // interfaces of it's own classes, we can approximate the semantics of
+    // external functions by eagerly registering dynamic invocation of instance
+    // members defined the platform interfaces.
+    //
+    // Since we only need to generate code for non-platform classes we can
+    // restrict this registration to platform interfaces implemented by
+    // instantiated non-platform classes.
+    //
+    // Consider for instance this program:
+    //
+    //     import 'dart:math' show Random;
+    //
+    //     class MyRandom implements Random {
+    //       int nextInt() => 0;
+    //     }
+    //
+    //     main() {
+    //       print([0, 1, 2].shuffle(new MyRandom()));
+    //     }
+    //
+    // Here `MyRandom` is a subtype if `Random` defined in 'dart:math'. By the
+    // assumption, all methods defined `Random` are potentially called, and
+    // therefore, though there are no visible call sites from the user node,
+    // dynamic invocation of for instance `nextInt` should be registered. In
+    // this case, `nextInt` is actually called by the standard implementation of
+    // `shuffle`.
+
+    ClassElement cls = type.element;
+    if (!cls.library.isPlatformLibrary) {
+      for (Link<DartType> link = cls.allSupertypes;
+           !link.isEmpty;
+           link = link.tail) {
+        InterfaceType supertype = link.head;
+        ClassElement superclass = supertype.element;
+        LibraryElement library = superclass.library;
+        if (library.isPlatformLibrary) {
+          if (_userImplementedPlatformClasses.add(superclass)) {
+            // Register selectors for all instance methods since these might
+            // be called on user classes from within the platform
+            // implementation.
+            superclass.forEachLocalMember((Element element) {
+              if (element.isConstructor || element.isStatic) return;
+
+              FunctionElement function = element.asFunctionElement();
+              if (function != null) {
+                function.computeSignature(compiler);
+              }
+              Selector selector = new Selector.fromElement(element);
+              if (selector.isGetter) {
+                registry.registerDynamicGetter(selector);
+              } else if (selector.isSetter) {
+                registry.registerDynamicSetter(selector);
+              } else {
+                registry.registerDynamicInvocation(selector);
+              }
+            });
+          }
+        }
+      }
+    }
+
   }
 }
 

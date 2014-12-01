@@ -23,7 +23,15 @@ import 'dart:_foreign_helper' show
     JS_CURRENT_ISOLATE,
     JS_CURRENT_ISOLATE_CONTEXT,
     JS_EMBEDDED_GLOBAL,
-    JS_GET_NAME;
+    JS_GET_NAME,
+    JS_TYPEDEF_TAG,
+    JS_FUNCTION_TYPE_TAG,
+    JS_FUNCTION_TYPE_RETURN_TYPE_TAG,
+    JS_FUNCTION_TYPE_VOID_RETURN_TAG,
+    JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG,
+    JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG,
+    JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG;
+
 
 import 'dart:_internal' as _symbol_dev;
 
@@ -733,6 +741,8 @@ Map<Symbol, Mirror> filterMembers(List<MethodMirror> methods,
     }
     // Constructors aren't 'members'.
     if (method.isConstructor) continue;
+    // Filter out synthetic tear-off stubs
+    if (JS('bool', r'!!#.$getterStub', method._jsFunction)) continue;
     // Use putIfAbsent to filter-out getters corresponding to variables.
     result.putIfAbsent(method.simpleName, () => method);
   }
@@ -1664,6 +1674,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       if (simpleName == null) continue;
       var function = JS('', '#[#]', prototype, key);
       if (isNoSuchMethodStub(function)) continue;
+      if (isAliasedSuperMethod(function, key)) continue;
       var mirror =
           new JsMethodMirror.fromUnmangledName(
               simpleName, function, false, false);
@@ -2599,19 +2610,44 @@ class JsFunctionTypeMirror extends BrokenClassMirror
 
   JsFunctionTypeMirror(this._typeData, this.owner);
 
-  bool get _hasReturnType => JS('bool', '"ret" in #', _typeData);
-  get _returnType => JS('', '#.ret', _typeData);
+  bool get _hasReturnType {
+    return JS('bool', '# in #', JS_FUNCTION_TYPE_RETURN_TYPE_TAG(), _typeData);
+  }
+  get _returnType {
+    return JS('', '#[#]', _typeData, JS_FUNCTION_TYPE_RETURN_TYPE_TAG());
+  }
 
-  bool get _isVoid => JS('bool', '!!#.void', _typeData);
+  bool get _isVoid {
+    return JS('bool', '!!#[#]', _typeData, JS_FUNCTION_TYPE_VOID_RETURN_TAG());
+  }
 
-  bool get _hasArguments => JS('bool', '"args" in #', _typeData);
-  List get _arguments => JS('JSExtendableArray', '#.args', _typeData);
+  bool get _hasArguments {
+    return JS('bool', '# in #',
+              JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG(), _typeData);
+  }
+  List get _arguments {
+    return JS('JSExtendableArray', '#[#]',
+              _typeData, JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG());
+  }
 
-  bool get _hasOptionalArguments => JS('bool', '"opt" in #', _typeData);
-  List get _optionalArguments => JS('JSExtendableArray', '#.opt', _typeData);
+  bool get _hasOptionalArguments {
+    return JS('bool', '# in #',
+              JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG(), _typeData);
+  }
+  List get _optionalArguments {
+    return JS('JSExtendableArray', '#[#]',
+              _typeData, JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG());
+  }
 
-  bool get _hasNamedArguments => JS('bool', '"named" in #', _typeData);
-  get _namedArguments => JS('=Object', '#.named', _typeData);
+  bool get _hasNamedArguments {
+    return JS('bool', '# in #',
+              JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG(), _typeData);
+  }
+  get _namedArguments {
+    return JS('=Object', '#[#]',
+              _typeData, JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG());
+  }
+
   bool get isOriginalDeclaration => true;
 
   bool get isAbstract => false;
@@ -2796,10 +2832,13 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
     return reflectClassByMangledName(
         getMangledTypeName(createRuntimeType(representation)));
   }
-  if (type != null && JS('', '#.typedef', type) != null) {
+  String typedefPropertyName = JS_TYPEDEF_TAG();
+  String functionTagPropertyName = JS_FUNCTION_TYPE_TAG();
+  if (type != null && JS('', '#[#]', type, typedefPropertyName) != null) {
     return typeMirrorFromRuntimeTypeRepresentation(
-        owner, JS('', '#.typedef', type));
-  } else if (type != null && JS('', '#.func', type) != null) {
+        owner, JS('', '#[#]', type, typedefPropertyName));
+  } else if (type != null &&
+             JS('', '#[#]', type, functionTagPropertyName) != null) {
     return new JsFunctionTypeMirror(type, owner);
   }
   return reflectClass(Function);
@@ -2903,6 +2942,13 @@ bool isReflectiveDataInPrototype(String key) {
 
 bool isNoSuchMethodStub(var jsFunction) {
   return JS('bool', r'#.$reflectable == 2', jsFunction);
+}
+
+/// Returns true if [key] is only an aliased entry for [function] in the
+/// prototype.
+bool isAliasedSuperMethod(var jsFunction, String key) {
+  var stubName = JS('String|Null', r'#.$stubName', jsFunction);
+  return stubName != null && key != stubName;
 }
 
 class NoSuchStaticMethodError extends Error implements NoSuchMethodError {

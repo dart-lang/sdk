@@ -143,7 +143,8 @@ class _FuzzTest {
           expect(list, isNotNull);
           expect(list.length, equals(0));
           list.forEach((CompletionResults results) {
-            print('${results.elapsed} received ${results.suggestionCount} suggestions');
+            print(
+                '${results.elapsed} received ${results.suggestionCount} suggestions');
           });
           return editor;
         });
@@ -154,11 +155,11 @@ class _FuzzTest {
     });
   }
 
-  void _printAnalysisSummary(AnalysisResults results) {
-    print(
-        'Found ${results.errorCount} errors, ${results.warningCount} warnings,'
-            ' and ${results.hintCount} hints in $results.elapsed');
-  }
+//  void _printAnalysisSummary(AnalysisResults results) {
+//    print(
+//        'Found ${results.errorCount} errors, ${results.warningCount} warnings,'
+//            ' and ${results.hintCount} hints in $results.elapsed');
+//  }
 
   /// Print information about how to use the server.
   void _printUsage(ArgParser parser) {

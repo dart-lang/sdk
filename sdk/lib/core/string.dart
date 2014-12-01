@@ -640,14 +640,11 @@ class RuneIterator implements BidirectionalIterator<int> {
    * and a [movePrevious] will use the rune ending just before [index] as the
    * the current value.
    *
-   * It is an error if the [index] position is in the middle of a surrogate
-   * pair.
+   * The [index] position must not be in the middle of a surrogate pair.
    */
   RuneIterator.at(String string, int index)
       : string = string, _position = index, _nextPosition = index {
-    if (index < 0 || index > string.length) {
-      throw new RangeError.range(index, 0, string.length);
-    }
+    RangeError.checkValueInInterval(index, 0, string.length);
     _checkSplitSurrogate(index);
   }
 
@@ -677,9 +674,7 @@ class RuneIterator implements BidirectionalIterator<int> {
    * Setting the position to the end of then string will set [current] to null.
    */
   void set rawIndex(int rawIndex) {
-    if (rawIndex >= string.length) {
-      throw new RangeError.index(rawIndex, string);
-    }
+    RangeError.checkValidIndex(rawIndex, string, "rawIndex");
     reset(rawIndex);
     moveNext();
   }
@@ -695,9 +690,7 @@ class RuneIterator implements BidirectionalIterator<int> {
    * is an error. So is setting it in the middle of a surrogate pair.
    */
   void reset([int rawIndex = 0]) {
-    if (rawIndex < 0 || rawIndex > string.length) {
-      throw new RangeError.range(rawIndex, 0, string.length);
-    }
+    RangeError.checkValueInInterval(rawIndex, 0, string.length, "rawIndex");
     _checkSplitSurrogate(rawIndex);
     _position = _nextPosition = rawIndex;
     _currentCodePoint = null;

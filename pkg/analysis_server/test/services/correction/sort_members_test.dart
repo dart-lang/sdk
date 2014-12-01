@@ -370,6 +370,20 @@ class C {}
 ''');
   }
 
+  void test_unitMembers_class_ignoreCase() {
+    _parseTestUnit(r'''
+class C {}
+class a {}
+class B {}
+''');
+    // validate change
+    _assertSort(r'''
+class a {}
+class B {}
+class C {}
+''');
+  }
+
   void test_unitMembers_classTypeAlias() {
     _parseTestUnit(r'''
 class M {}
@@ -383,20 +397,6 @@ class A = Object with M;
 class B = Object with M;
 class C = Object with M;
 class M {}
-''');
-  }
-
-  void test_unitMembers_class_ignoreCase() {
-    _parseTestUnit(r'''
-class C {}
-class a {}
-class B {}
-''');
-    // validate change
-    _assertSort(r'''
-class a {}
-class B {}
-class C {}
 ''');
   }
 
@@ -475,6 +475,29 @@ typedef FB();
 typedef FA();
 typedef FB();
 typedef FC();
+''');
+  }
+
+  void test_unitMembers_importsAndDeclarations() {
+    _parseTestUnit(r'''
+import 'dart:a';
+import 'package:b';
+
+main() {
+}
+
+f() => null;
+''');
+    // validate change
+    _assertSort(r'''
+import 'dart:a';
+
+import 'package:b';
+
+f() => null;
+
+main() {
+}
 ''');
   }
 

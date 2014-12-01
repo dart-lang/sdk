@@ -10,6 +10,12 @@ library html.tools;
 import 'api.dart';
 import 'codegen_tools.dart';
 
+Map<String, ImpliedType> computeImpliedTypes(Api api) {
+  _ImpliedTypesVisitor visitor = new _ImpliedTypesVisitor(api);
+  visitor.visitApi();
+  return visitor.impliedTypes;
+}
+
 class ImpliedType {
   final String camelName;
   final String humanReadableName;
@@ -31,22 +37,17 @@ class ImpliedType {
    */
   final ApiNode apiNode;
 
-  ImpliedType(this.camelName, this.humanReadableName, this.type, this.kind, this.apiNode);
-}
-
-Map<String, ImpliedType> computeImpliedTypes(Api api) {
-  _ImpliedTypesVisitor visitor = new _ImpliedTypesVisitor(api);
-  visitor.visitApi();
-  return visitor.impliedTypes;
+  ImpliedType(this.camelName, this.humanReadableName, this.type, this.kind,
+      this.apiNode);
 }
 
 class _ImpliedTypesVisitor extends HierarchicalApiVisitor {
-  Map<String, ImpliedType> impliedTypes = <String, ImpliedType> {};
+  Map<String, ImpliedType> impliedTypes = <String, ImpliedType>{};
 
   _ImpliedTypesVisitor(Api api) : super(api);
 
-  void storeType(String name, String nameSuffix, TypeDecl type, String
-      kind, ApiNode apiNode) {
+  void storeType(String name, String nameSuffix, TypeDecl type, String kind,
+      ApiNode apiNode) {
     String humanReadableName = name;
     List<String> camelNameParts = name.split('.');
     if (nameSuffix != null) {
@@ -54,36 +55,60 @@ class _ImpliedTypesVisitor extends HierarchicalApiVisitor {
       camelNameParts.add(nameSuffix);
     }
     String camelName = camelJoin(camelNameParts);
-    impliedTypes[camelName] = new ImpliedType(camelName, humanReadableName,
-        type, kind, apiNode);
+    impliedTypes[camelName] =
+        new ImpliedType(camelName, humanReadableName, type, kind, apiNode);
   }
 
   @override
   visitNotification(Notification notification) {
-    storeType(notification.longEvent, 'params', notification.params,
-        'notificationParams', notification);
-  }
-
-  @override
-  visitRequest(Request request) {
-    storeType(request.longMethod, 'params', request.params, 'requestParams',
-        request);
-    storeType(request.longMethod, 'result', request.result, 'requestResult',
-        request);
+    storeType(
+        notification.longEvent,
+        'params',
+        notification.params,
+        'notificationParams',
+        notification);
   }
 
   @override
   visitRefactoring(Refactoring refactoring) {
     String camelKind = camelJoin(refactoring.kind.toLowerCase().split('_'));
-    storeType(camelKind, 'feedback', refactoring.feedback,
-        'refactoringFeedback', refactoring);
-    storeType(camelKind, 'options', refactoring.options, 'refactoringOptions',
+    storeType(
+        camelKind,
+        'feedback',
+        refactoring.feedback,
+        'refactoringFeedback',
+        refactoring);
+    storeType(
+        camelKind,
+        'options',
+        refactoring.options,
+        'refactoringOptions',
         refactoring);
   }
 
   @override
+  visitRequest(Request request) {
+    storeType(
+        request.longMethod,
+        'params',
+        request.params,
+        'requestParams',
+        request);
+    storeType(
+        request.longMethod,
+        'result',
+        request.result,
+        'requestResult',
+        request);
+  }
+
+  @override
   visitTypeDefinition(TypeDefinition typeDefinition) {
-    storeType(typeDefinition.name, null, typeDefinition.type, 'typeDefinition',
+    storeType(
+        typeDefinition.name,
+        null,
+        typeDefinition.type,
+        'typeDefinition',
         typeDefinition);
   }
 

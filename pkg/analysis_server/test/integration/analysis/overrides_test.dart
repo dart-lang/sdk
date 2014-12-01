@@ -10,12 +10,15 @@ import 'package:unittest/unittest.dart';
 import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
+main() {
+  runReflectiveTests(Test);
+}
+
 @ReflectiveTestCase()
 class Test extends AbstractAnalysisServerIntegrationTest {
   test_overrides() {
     String pathname = sourcePath('test.dart');
-    String text =
-        r'''
+    String text = r'''
 abstract class Interface1 {
   method0();
   method1();
@@ -69,8 +72,8 @@ class Target extends Base implements Interface1, Interface2 {
         }
         return null;
       }
-      void checkOverrides(String methodName, bool
-          expectedOverridesBase, List<String> expectedOverridesInterfaces) {
+      void checkOverrides(String methodName, bool expectedOverridesBase,
+          List<String> expectedOverridesInterfaces) {
         Override override = findOverride(methodName);
         if (!expectedOverridesBase && expectedOverridesInterfaces.isEmpty) {
           // This method overrides nothing, so it should not appear in the
@@ -98,8 +101,9 @@ class Target extends Base implements Interface1, Interface2 {
             bool wasAdded = actualOverridesInterfaces.add(className);
             expect(wasAdded, isTrue);
           }
-          expect(actualOverridesInterfaces, equals(
-              expectedOverridesInterfaces.toSet()));
+          expect(
+              actualOverridesInterfaces,
+              equals(expectedOverridesInterfaces.toSet()));
         } else {
           expect(interfaceMembers, isNull);
         }
@@ -114,8 +118,4 @@ class Target extends Base implements Interface1, Interface2 {
       checkOverrides('method7', false, []);
     });
   }
-}
-
-main() {
-  runReflectiveTests(Test);
 }

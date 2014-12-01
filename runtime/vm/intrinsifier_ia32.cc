@@ -14,11 +14,12 @@
 #include "vm/intrinsifier.h"
 
 #include "vm/assembler.h"
+#include "vm/dart_entry.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
-#include "vm/stub_code.h"
+#include "vm/regexp_assembler.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -132,9 +133,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
       FieldAddress(EAX, GrowableObjectArray::type_arguments_offset()),
       EBX);
 
-  // Set the length field in the growable array object to 0.
-  __ movl(FieldAddress(EAX, GrowableObjectArray::length_offset()),
-          Immediate(0));
+  __ ZeroSmiField(FieldAddress(EAX, GrowableObjectArray::length_offset()));
   __ ret();  // returns the newly allocated object in EAX.
 
   __ Bind(&fall_through);
@@ -199,7 +198,8 @@ void Intrinsifier::GrowableArraySetLength(Assembler* assembler) {
   __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Length value.
   __ testl(EBX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi length.
-  __ movl(FieldAddress(EAX, GrowableObjectArray::length_offset()), EBX);
+  FieldAddress length_field(EAX, GrowableObjectArray::length_offset());
+  __ StoreIntoSmiField(length_field, EBX);
   __ ret();
   __ Bind(&fall_through);
 }
@@ -1828,7 +1828,7 @@ void Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   __ incl(EAX);
   __ Bind(&set_hash_code);
   __ SmiTag(EAX);
-  __ movl(FieldAddress(EBX, String::hash_offset()), EAX);
+  __ StoreIntoSmiField(FieldAddress(EBX, String::hash_offset()), EAX);
   __ ret();
 }
 
@@ -1901,7 +1901,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                               FieldAddress(EAX, String::length_offset()),
                               EDI);
   // Clear hash.
-  __ movl(FieldAddress(EAX, String::hash_offset()), Immediate(0));
+  __ ZeroSmiField(FieldAddress(EAX, String::hash_offset()));
   __ jmp(ok, Assembler::kNearJump);
 
   __ Bind(&pop_and_fail);
@@ -2047,6 +2047,41 @@ void Intrinsifier::OneByteString_equality(Assembler* assembler) {
 
 void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
   StringEquality(assembler, kTwoByteStringCid);
+}
+
+
+void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
+  if (FLAG_use_jscre) {
+    return;
+  }
+  static const intptr_t kRegExpParamOffset = 3 * kWordSize;
+  static const intptr_t kStringParamOffset = 2 * kWordSize;
+  // start_index smi is located at offset 1.
+
+  // Incoming registers:
+  // EAX: Function. (Will be loaded with the specialized matcher function.)
+  // ECX: Unknown. (Must be GC safe on tail call.)
+  // EDX: Arguments descriptor. (Will be preserved.)
+
+  // Load the specialized function pointer into EAX. Leverage the fact the
+  // string CIDs as well as stored function pointers are in sequence.
+  __ movl(EBX, Address(ESP, kRegExpParamOffset));
+  __ movl(EDI, Address(ESP, kStringParamOffset));
+  __ LoadClassId(EDI, EDI);
+  __ SubImmediate(EDI, Immediate(kOneByteStringCid));
+  __ movl(EAX, FieldAddress(EBX, EDI, TIMES_4,
+                            JSRegExp::function_offset(kOneByteStringCid)));
+
+  // Registers are now set up for the lazy compile stub. It expects the function
+  // in EAX, the argument descriptor in EDX, and IC-Data in ECX.
+  static const intptr_t arg_count = RegExpMacroAssembler::kParamCount;
+  __ LoadObject(EDX, Array::Handle(ArgumentsDescriptor::New(arg_count)));
+  __ xorl(ECX, ECX);
+
+  // Tail-call the function.
+  __ movl(EDI, FieldAddress(EAX, Function::instructions_offset()));
+  __ addl(EDI, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(EDI);
 }
 
 

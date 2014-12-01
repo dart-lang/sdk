@@ -8,16 +8,16 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
-import 'package:analysis_server/src/edit/edit_domain.dart';
-import 'package:analysis_server/src/search/search_domain.dart';
+import 'package:analysis_server/src/domain_execution.dart';
 import 'package:analysis_server/src/domain_server.dart';
-import 'package:analyzer/source/pub_package_map_provider.dart';
+import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
+import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_file_index.dart';
-import 'package:analysis_server/src/domain_execution.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/pub_package_map_provider.dart';
+import 'package:analyzer/src/generated/sdk_io.dart';
 
 
 /**
@@ -37,15 +37,16 @@ Index _createIndex() {
  * encode and decode the JSON messages exchanged with the client.
  */
 class SocketServer {
+  final AnalysisServerOptions analysisServerOptions;
+  final DirectoryBasedDartSdk defaultSdk;
+
   /**
    * The analysis server that was created when a client established a
    * connection, or `null` if no such connection has yet been established.
    */
   AnalysisServer analysisServer;
 
-  final DirectoryBasedDartSdk defaultSdk;
-
-  SocketServer(this.defaultSdk);
+  SocketServer(this.analysisServerOptions, this.defaultSdk);
 
   /**
    * Create an analysis server which will communicate with the client using the
@@ -54,19 +55,22 @@ class SocketServer {
   void createAnalysisServer(ServerCommunicationChannel serverChannel) {
     if (analysisServer != null) {
       RequestError error = new RequestError(
-          RequestErrorCode.SERVER_ALREADY_STARTED, "Server already started");
+          RequestErrorCode.SERVER_ALREADY_STARTED,
+          "Server already started");
       serverChannel.sendResponse(new Response('', error: error));
       serverChannel.listen((Request request) {
         serverChannel.sendResponse(new Response(request.id, error: error));
       });
       return;
     }
-    PhysicalResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+    PhysicalResourceProvider resourceProvider =
+        PhysicalResourceProvider.INSTANCE;
     analysisServer = new AnalysisServer(
         serverChannel,
         resourceProvider,
         new PubPackageMapProvider(resourceProvider, defaultSdk),
         _createIndex(),
+        analysisServerOptions,
         defaultSdk,
         rethrowExceptions: false);
     _initializeHandlers(analysisServer);
@@ -82,7 +86,6 @@ class SocketServer {
         new EditDomainHandler(server),
         new SearchDomainHandler(server),
         new CompletionDomainHandler(server),
-        new ExecutionDomainHandler(server),
-    ];
+        new ExecutionDomainHandler(server),];
   }
 }

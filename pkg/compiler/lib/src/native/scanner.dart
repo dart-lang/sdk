@@ -6,9 +6,8 @@ part of native;
 
 void checkAllowedLibrary(ElementListener listener, Token token) {
   LibraryElement currentLibrary = listener.compilationUnitElement.library;
-  if (!currentLibrary.canUseNative) {
-    listener.recoverableError(token, "Unexpected token");
-  }
+  if (currentLibrary.canUseNative) return;
+  listener.reportError(token, MessageKind.NATIVE_NOT_SUPPORTED);
 }
 
 Token handleNativeBlockToSkip(Listener listener, Token token) {

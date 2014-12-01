@@ -247,6 +247,13 @@ abstract class Browser {
     _testBrowserOutput = new BrowserOutput();
   }
 
+  /**
+   * Add useful info about the browser to the _testBrowserOutput.stdout,
+   * where it will be reported for failing tests.  Used to report which
+   * android device a failing test is running on.
+   */
+  void logBrowserInfoToTestBrowserOutput() { }
+
   String toString();
 
   /** Starts the browser loading the given url */
@@ -620,6 +627,11 @@ class AndroidBrowser extends Browser {
     return new Future.value(true);
   }
 
+  void logBrowserInfoToTestBrowserOutput() {
+    _testBrowserOutput.stdout.write(
+        'Android device id: ${_adbDevice.deviceId}\n');
+  }
+
   String toString() => _config.name;
 }
 
@@ -685,6 +697,11 @@ class AndroidChrome extends Browser {
       });
     }
     return new Future.value(true);
+  }
+
+  void logBrowserInfoToTestBrowserOutput() {
+    _testBrowserOutput.stdout.write(
+        'Android device id: ${_adbDevice.deviceId}\n');
   }
 
   String toString() => "chromeOnAndroid";
@@ -1167,8 +1184,9 @@ class BrowserTestRunner {
     status.currentTest.stopwatch = new Stopwatch()..start();
 
     // Reset the test specific output information (stdout, stderr) on the
-    // browser since a new test is begin started.
+    // browser, since a new test is being started.
     status.browser.resetTestBrowserOutput();
+    status.browser.logBrowserInfoToTestBrowserOutput();
 
     return test;
   }

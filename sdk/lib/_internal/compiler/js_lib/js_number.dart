@@ -202,22 +202,22 @@ class JSNumber extends Interceptor implements num {
 
   bool _isInt32(value) => JS('bool', '(# | 0) === #', value, value);
 
-  num operator ~/(num other) {
+  int operator ~/(num other) {
     if (false) _tdivFast(other); // Ensure resolution.
     if (_isInt32(this) && _isInt32(other) && 0 != other && -1 != other) {
-      return JS('num', r'(# / #) | 0', this, other);
+      return JS('int', r'(# / #) | 0', this, other);
     } else {
       return _tdivSlow(other);
     }
   }
 
-  num _tdivFast(num other) {
+  int _tdivFast(num other) {
     return _isInt32(this)
-        ? JS('num', r'(# / #) | 0', this, other)
+        ? JS('int', r'(# / #) | 0', this, other)
         : (JS('num', r'# / #', this, other)).toInt();
   }
 
-  num _tdivSlow(num other) {
+  int _tdivSlow(num other) {
     if (other is !num) throw new ArgumentError(other);
     return (JS('num', r'# / #', this, other)).toInt();
   }

@@ -5,387 +5,317 @@
 library services.completion.computer.dart.toplevel;
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element,
     ElementKind;
+import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /**
  * A computer for calculating imported class and top level variable
  * `completion.getSuggestions` request results.
  */
 class ImportedComputer extends DartCompletionComputer {
+  _ImportedSuggestionBuilder builder;
 
   @override
   bool computeFast(DartCompletionRequest request) {
-    // TODO: implement computeFast
-    // - compute results based upon current search, then replace those results
-    // during the full compute phase
-    // - filter results based upon completion offset
-    return false;
+    builder = request.node.accept(new _ImportedAstVisitor(request));
+    if (builder != null) {
+      return builder.computeFast(request.node);
+    }
+    return true;
   }
 
   @override
   Future<bool> computeFull(DartCompletionRequest request) {
-    return request.node.accept(new _ImportedVisitor(request));
+    if (builder != null) {
+      return builder.computeFull(request.node);
+    }
+    return new Future.value(false);
   }
 }
 
 /**
- * A visitor for determining which imported classes and top level variables
- * should be suggested and building those suggestions.
+ * [_ImportedAstVisitor] determines whether an import suggestions are needed
+ * and instantiates the builder to create those suggestions.
  */
-class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
+class _ImportedAstVisitor extends
+    GeneralizingAstVisitor<_ImportedSuggestionBuilder> {
   final DartCompletionRequest request;
 
-  _ImportedVisitor(this.request);
+  _ImportedAstVisitor(this.request);
 
   @override
-  Future<bool> visitArgumentList(ArgumentList node) {
-    return _addImportedElementSuggestions(node, excludeVoidReturn: true);
+  _ImportedSuggestionBuilder visitArgumentList(ArgumentList node) {
+    return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
   }
 
   @override
-  Future<bool> visitBlock(Block node) {
-    return _addImportedElementSuggestions(node);
+  _ImportedSuggestionBuilder visitBlock(Block node) {
+    return new _ImportedSuggestionBuilder(request);
   }
 
   @override
-  Future<bool> visitCascadeExpression(CascadeExpression node) {
+  _ImportedSuggestionBuilder visitCascadeExpression(CascadeExpression node) {
     // Make suggestions for the target, but not for the selector
     // InvocationComputer makes selector suggestions
     Expression target = node.target;
     if (target != null && request.offset <= target.end) {
-      return _addImportedElementSuggestions(node, excludeVoidReturn: true);
+      return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
     }
-    return new Future.value(false);
+    return null;
   }
 
   @override
-  Future<bool> visitClassDeclaration(ClassDeclaration node) {
+  _ImportedSuggestionBuilder visitClassDeclaration(ClassDeclaration node) {
     // Make suggestions in the body of the class declaration
     Token leftBracket = node.leftBracket;
     if (leftBracket != null && request.offset >= leftBracket.end) {
-      return _addImportedElementSuggestions(node);
+      return new _ImportedSuggestionBuilder(request);
     }
-    return new Future.value(false);
+    return null;
   }
 
   @override
-  Future<bool> visitExpression(Expression node) {
-    return _addImportedElementSuggestions(node, excludeVoidReturn: true);
+  _ImportedSuggestionBuilder visitExpression(Expression node) {
+    return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
   }
 
   @override
-  Future<bool> visitExpressionStatement(ExpressionStatement node) {
+  _ImportedSuggestionBuilder
+      visitExpressionStatement(ExpressionStatement node) {
     Expression expression = node.expression;
     // A pre-variable declaration (e.g. C ^) is parsed as an expression
     // statement. Do not make suggestions for the variable name.
     if (expression is SimpleIdentifier && request.offset <= expression.end) {
-      return _addImportedElementSuggestions(node);
+      return new _ImportedSuggestionBuilder(request);
     }
-    return new Future.value(false);
+    return null;
   }
 
   @override
-  Future<bool> visitFormalParameterList(FormalParameterList node) {
+  _ImportedSuggestionBuilder
+      visitFormalParameterList(FormalParameterList node) {
     Token leftParen = node.leftParenthesis;
     if (leftParen != null && request.offset > leftParen.offset) {
       Token rightParen = node.rightParenthesis;
       if (rightParen == null || request.offset <= rightParen.offset) {
-        return _addImportedElementSuggestions(node);
+        return new _ImportedSuggestionBuilder(request);
       }
     }
-    return new Future.value(false);
+    return null;
   }
 
   @override
-  Future<bool> visitForStatement(ForStatement node) {
+  _ImportedSuggestionBuilder visitForStatement(ForStatement node) {
     Token leftParen = node.leftParenthesis;
     if (leftParen != null && request.offset >= leftParen.end) {
-      return _addImportedElementSuggestions(node);
+      return new _ImportedSuggestionBuilder(request);
     }
-    return new Future.value(false);
+    return null;
   }
 
   @override
-  Future<bool> visitIfStatement(IfStatement node) {
+  _ImportedSuggestionBuilder visitIfStatement(IfStatement node) {
     Token leftParen = node.leftParenthesis;
     if (leftParen != null && request.offset >= leftParen.end) {
       Token rightParen = node.rightParenthesis;
       if (rightParen == null || request.offset <= rightParen.offset) {
-        return _addImportedElementSuggestions(node, excludeVoidReturn: true);
+        return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
       }
     }
-    return new Future.value(false);
+    return null;
   }
 
   @override
-  Future<bool> visitInterpolationExpression(InterpolationExpression node) {
+  _ImportedSuggestionBuilder
+      visitInterpolationExpression(InterpolationExpression node) {
     Expression expression = node.expression;
     if (expression is SimpleIdentifier) {
-      return _addImportedElementSuggestions(node, excludeVoidReturn: true);
+      return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
     }
-    return new Future.value(false);
+    return null;
   }
 
   @override
-  Future<bool> visitMethodInvocation(MethodInvocation node) {
+  _ImportedSuggestionBuilder visitMethodInvocation(MethodInvocation node) {
     Token period = node.period;
     if (period == null || request.offset <= period.offset) {
-      return _addImportedElementSuggestions(node, excludeVoidReturn: true);
+      return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
     }
-    return new Future.value(false);
+    return null;
   }
 
   @override
-  Future<bool> visitNode(AstNode node) {
-    return new Future.value(false);
+  _ImportedSuggestionBuilder visitNode(AstNode node) {
+    return null;
   }
 
   @override
-  Future<bool> visitPrefixedIdentifier(PrefixedIdentifier node) {
+  _ImportedSuggestionBuilder visitPrefixedIdentifier(PrefixedIdentifier node) {
     // Make suggestions for the prefix, but not for the selector
     // InvocationComputer makes selector suggestions
     Token period = node.period;
     if (period != null && request.offset <= period.offset) {
-      return _addImportedElementSuggestions(node, excludeVoidReturn: true);
+      return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
     }
-    return new Future.value(false);
+    return null;
   }
 
   @override
-  Future<bool> visitPropertyAccess(PropertyAccess node) {
+  _ImportedSuggestionBuilder visitPropertyAccess(PropertyAccess node) {
     // Make suggestions for the target, but not for the property name
     // InvocationComputer makes property name suggestions
     var operator = node.operator;
     if (operator != null && request.offset < operator.offset) {
-      return _addImportedElementSuggestions(node, excludeVoidReturn: true);
+      return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
     }
-    return new Future.value(false);
+    return null;
   }
 
   @override
-  Future<bool> visitSimpleIdentifier(SimpleIdentifier node) {
+  _ImportedSuggestionBuilder visitSimpleIdentifier(SimpleIdentifier node) {
     return node.parent.accept(this);
   }
 
   @override
-  Future<bool> visitStringLiteral(StringLiteral node) {
-    return new Future.value(false);
+  _ImportedSuggestionBuilder visitStringLiteral(StringLiteral node) {
+    return null;
   }
 
   @override
-  Future<bool> visitTypeName(TypeName node) {
-    return _addImportedElementSuggestions(node, typesOnly: true);
+  _ImportedSuggestionBuilder visitTypeName(TypeName node) {
+    return new _ImportedSuggestionBuilder(request, typesOnly: true);
   }
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  _ImportedSuggestionBuilder
+      visitVariableDeclaration(VariableDeclaration node) {
     Token equals = node.equals;
     // Make suggestions for the RHS of a variable declaration
     if (equals != null && request.offset >= equals.end) {
-      return _addImportedElementSuggestions(node, excludeVoidReturn: true);
+      return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
     }
-    return new Future.value(false);
+    return null;
+  }
+}
+
+/**
+ * [_ImportedSuggestionBuilder] traverses the imports and builds suggestions
+ * based upon imported elements.
+ */
+class _ImportedSuggestionBuilder implements SuggestionBuilder {
+  final DartCompletionRequest request;
+  final bool typesOnly;
+  final bool excludeVoidReturn;
+  DartCompletionCache cache;
+
+  _ImportedSuggestionBuilder(this.request, {this.typesOnly: false,
+      this.excludeVoidReturn: false}) {
+    cache = request.cache;
   }
 
-  void _addElementSuggestion(Element element, bool typesOnly,
-      bool excludeVoidReturn, CompletionRelevance relevance) {
-
-    if (element is ExecutableElement) {
-      if (element.isOperator) {
-        return;
-      }
-      if (excludeVoidReturn) {
-        DartType returnType = element.returnType;
-        if (returnType != null && returnType.isVoid) {
-          return;
-        }
-      }
+  /**
+   * If the needed information is cached, then add suggestions and return `true`
+   * else return `false` indicating that additional work is necessary.
+   */
+  bool computeFast(AstNode node) {
+    CompilationUnit unit = request.unit;
+    if (cache.isImportInfoCached(unit)) {
+      _addInheritedSuggestions(node);
+      _addTopLevelSuggestions();
+      return true;
     }
-    if (typesOnly && element is! ClassElement) {
-      return;
-    }
-
-    String completion = element.displayName;
-    CompletionSuggestion suggestion = new CompletionSuggestion(
-        CompletionSuggestionKind.INVOCATION,
-        element.isDeprecated ? CompletionRelevance.LOW : relevance,
-        completion,
-        completion.length,
-        0,
-        element.isDeprecated,
-        false);
-
-    suggestion.element = newElement_fromEngine(element);
-
-    DartType type;
-    if (element is FunctionElement) {
-      type = element.returnType;
-    } else if (element is PropertyAccessorElement && element.isGetter) {
-      type = element.returnType;
-    } else if (element is TopLevelVariableElement) {
-      type = element.type;
-    }
-    if (type != null) {
-      String name = type.displayName;
-      if (name != null && name.length > 0 && name != 'dynamic') {
-        suggestion.returnType = name;
-      }
-    }
-
-    request.suggestions.add(suggestion);
+    return false;
   }
 
-  void _addElementSuggestions(List<Element> elements, bool typesOnly,
-      bool excludeVoidReturn) {
-    elements.forEach((Element elem) {
-      _addElementSuggestion(
-          elem,
-          typesOnly,
-          excludeVoidReturn,
-          CompletionRelevance.DEFAULT);
+  /**
+   * Compute suggested based upon imported elements.
+   */
+  Future<bool> computeFull(AstNode node) {
+    return cache.computeImportInfo(
+        request.unit,
+        request.searchEngine).then((_) {
+      _addInheritedSuggestions(node);
+      _addTopLevelSuggestions();
+      return true;
     });
   }
 
-  Future<bool> _addImportedElementSuggestions(AstNode node, {bool typesOnly:
-      false, bool excludeVoidReturn: false}) {
-
-    // Exclude elements from local library
-    // because they are provided by LocalComputer
-    Set<LibraryElement> excludedLibs = new Set<LibraryElement>();
-    excludedLibs.add(request.unit.element.enclosingElement);
-
-    // Include explicitly imported elements
-    Map<String, ClassElement> classMap = new Map<String, ClassElement>();
-    request.unit.directives.forEach((Directive directive) {
-      if (directive is ImportDirective) {
-        ImportElement importElem = directive.element;
-        if (importElem != null && importElem.importedLibrary != null) {
-          if (directive.prefix == null) {
-            Namespace importNamespace =
-                new NamespaceBuilder().createImportNamespaceForDirective(importElem);
-            // Include top level elements
-            importNamespace.definedNames.forEach((String name, Element elem) {
-              if (elem is ClassElement) {
-                classMap[name] = elem;
-              }
-              _addElementSuggestion(
-                  elem,
-                  typesOnly,
-                  excludeVoidReturn,
-                  CompletionRelevance.DEFAULT);
-            });
-          } else {
-            // Exclude elements from prefixed imports
-            // because they are provided by InvocationComputer
-            excludedLibs.add(importElem.importedLibrary);
-            _addLibraryPrefixSuggestion(importElem);
+  /**
+   * Add imported element suggestions.
+   */
+  void _addElementSuggestions(List<Element> elements) {
+    elements.forEach((Element elem) {
+      if (elem is! ClassElement) {
+        if (typesOnly) {
+          return;
+        }
+        if (elem is ExecutableElement) {
+          if (elem.isOperator) {
+            return;
+          }
+          DartType returnType = elem.returnType;
+          if (returnType != null && returnType.isVoid) {
+            if (excludeVoidReturn) {
+              return;
+            }
           }
         }
       }
+      request.suggestions.add(
+          createElementSuggestion(elem, relevance: CompletionRelevance.DEFAULT));
     });
+  }
 
-    // Include implicitly imported dart:core elements
-    Source coreUri = request.context.sourceFactory.forUri('dart:core');
-    LibraryElement coreLib = request.context.getLibraryElement(coreUri);
-    Namespace coreNamespace =
-        new NamespaceBuilder().createPublicNamespaceForLibrary(coreLib);
-    coreNamespace.definedNames.forEach((String name, Element elem) {
-      if (elem is ClassElement) {
-        classMap[name] = elem;
-      }
-      _addElementSuggestion(
-          elem,
-          typesOnly,
-          excludeVoidReturn,
-          CompletionRelevance.DEFAULT);
-    });
-
-    // Build a list of inherited types that are imported
-    // and include any inherited imported members
+  /**
+   * Add suggestions for any inherited imported members.
+   */
+  void _addInheritedSuggestions(AstNode node) {
     var classDecl = node.getAncestor((p) => p is ClassDeclaration);
     if (classDecl is ClassDeclaration) {
+      // Build a list of inherited types that are imported
+      // and include any inherited imported members
       List<String> inheritedTypes = new List<String>();
-      visitInheritedTypes(classDecl, (ClassDeclaration classDecl) {
-        // ignored
+      visitInheritedTypes(classDecl, (_) {
+        // local declarations are handled by the local computer
       }, (String typeName) {
         inheritedTypes.add(typeName);
       });
-      Set<String> visited = new Set<String>();
+      HashSet<String> visited = new HashSet<String>();
       while (inheritedTypes.length > 0) {
         String name = inheritedTypes.removeLast();
-        ClassElement elem = classMap[name];
+        ClassElement elem = cache.importedClassMap[name];
         if (visited.add(name) && elem != null) {
-          _addElementSuggestions(elem.accessors, typesOnly, excludeVoidReturn);
-          _addElementSuggestions(elem.methods, typesOnly, excludeVoidReturn);
+          _addElementSuggestions(elem.accessors);
+          _addElementSuggestions(elem.methods);
           elem.allSupertypes.forEach((InterfaceType type) {
             if (visited.add(type.name)) {
-              _addElementSuggestions(
-                  type.accessors,
-                  typesOnly,
-                  excludeVoidReturn);
-              _addElementSuggestions(
-                  type.methods,
-                  typesOnly,
-                  excludeVoidReturn);
+              _addElementSuggestions(type.accessors);
+              _addElementSuggestions(type.methods);
             }
           });
         }
       }
     }
-
-    // Add non-imported elements as low relevance
-    var future = request.searchEngine.searchTopLevelDeclarations('');
-    return future.then((List<SearchMatch> matches) {
-      Set<String> completionSet = new Set<String>();
-      request.suggestions.forEach((CompletionSuggestion suggestion) {
-        completionSet.add(suggestion.completion);
-      });
-      matches.forEach((SearchMatch match) {
-        if (match.kind == MatchKind.DECLARATION) {
-          Element element = match.element;
-          if (element.isPublic &&
-              !excludedLibs.contains(element.library) &&
-              !completionSet.contains(element.displayName)) {
-            if (!typesOnly || element is ClassElement) {
-              _addElementSuggestion(
-                  element,
-                  typesOnly,
-                  excludeVoidReturn,
-                  CompletionRelevance.LOW);
-            }
-          }
-        }
-      });
-      return true;
-    });
   }
 
-  void _addLibraryPrefixSuggestion(ImportElement importElem) {
-    String completion = importElem.prefix.displayName;
-    if (completion != null && completion.length > 0) {
-      CompletionSuggestion suggestion = new CompletionSuggestion(
-          CompletionSuggestionKind.INVOCATION,
-          CompletionRelevance.DEFAULT,
-          completion,
-          completion.length,
-          0,
-          importElem.isDeprecated,
-          false);
-      LibraryElement lib = importElem.importedLibrary;
-      if (lib != null) {
-        suggestion.element = newElement_fromEngine(lib);
+  void _addTopLevelSuggestions() {
+    DartCompletionCache cache = request.cache;
+    request.suggestions
+        ..addAll(cache.importedTypeSuggestions)
+        ..addAll(cache.libraryPrefixSuggestions);
+    if (!typesOnly) {
+      request.suggestions.addAll(cache.otherImportedSuggestions);
+      if (!excludeVoidReturn) {
+        request.suggestions.addAll(cache.importedVoidReturnSuggestions);
       }
-      request.suggestions.add(suggestion);
     }
   }
 }

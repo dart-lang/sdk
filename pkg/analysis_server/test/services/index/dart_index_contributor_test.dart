@@ -85,208 +85,6 @@ class DartUnitContributorTest extends AbstractSingleUnitTest {
     });
   }
 
-  void test_NameElement_field() {
-    _indexTestUnit('''
-class A {
-  int field;
-}
-main(A a, p) {
-  print(a.field); // r
-  print(p.field); // ur
-  {
-    var field = 42;
-    print(field); // not a member
-  }
-}
-''');
-    // prepare elements
-    Element mainElement = findElement('main');
-    FieldElement fieldElement = findElement('field');
-    Element nameElement = new NameElement('field');
-    // verify
-    _assertRecordedRelation(
-        nameElement,
-        IndexConstants.NAME_IS_DEFINED_BY,
-        _expectedLocation(fieldElement, 'field;'));
-    _assertRecordedRelation(
-        nameElement,
-        IndexConstants.IS_READ_BY,
-        _expectedLocationQ(mainElement, 'field); // r'));
-    _assertRecordedRelation(
-        nameElement,
-        IndexConstants.IS_READ_BY,
-        _expectedLocationQU(mainElement, 'field); // ur'));
-    _assertNoRecordedRelation(
-        nameElement,
-        IndexConstants.IS_READ_BY,
-        _expectedLocation(mainElement, 'field); // not a member'));
-  }
-
-  void test_NameElement_isDefinedBy_localVariable_inForEach() {
-    _indexTestUnit('''
-class A {
-  main() {
-    for (int test in []) {
-    }
-  }
-}
-''');
-    // prepare elements
-    LocalVariableElement testElement = findElement('test');
-    Element nameElement = new NameElement('test');
-    // verify
-    _assertRecordedRelation(
-        nameElement,
-        IndexConstants.NAME_IS_DEFINED_BY,
-        _expectedLocation(testElement, 'test in []'));
-  }
-
-  void test_NameElement_method() {
-    _indexTestUnit('''
-class A {
-  method() {}
-}
-main(A a, p) {
-  a.method(); // r
-  p.method(); // ur
-}
-''');
-    // prepare elements
-    Element mainElement = findElement('main');
-    MethodElement methodElement = findElement('method');
-    Element nameElement = new NameElement('method');
-    // verify
-    _assertRecordedRelation(
-        nameElement,
-        IndexConstants.NAME_IS_DEFINED_BY,
-        _expectedLocation(methodElement, 'method() {}'));
-    _assertRecordedRelation(
-        nameElement,
-        IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQ(mainElement, 'method(); // r'));
-    _assertRecordedRelation(
-        nameElement,
-        IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQU(mainElement, 'method(); // ur'));
-  }
-
-  void test_NameElement_operator_resolved() {
-    _indexTestUnit('''
-class A {
-  operator +(o) {}
-  operator -(o) {}
-  operator ~() {}
-  operator ==(o) {}
-}
-main(A a) {
-  a + 5;
-  a += 5;
-  a == 5;
-  ++a;
-  --a;
-  ~a;
-  a++;
-  a--;
-}
-''');
-    // prepare elements
-    Element mainElement = findElement('main');
-    // binary
-    _assertRecordedRelation(
-        new NameElement('+'),
-        IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQ(mainElement, '+ 5', length: 1));
-    _assertRecordedRelation(
-        new NameElement('+'),
-        IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQ(mainElement, '+= 5', length: 2));
-    _assertRecordedRelation(
-        new NameElement('=='),
-        IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQ(mainElement, '== 5', length: 2));
-    // prefix
-    _assertRecordedRelation(
-        new NameElement('+'),
-        IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQ(mainElement, '++a', length: 2));
-    _assertRecordedRelation(
-        new NameElement('-'),
-        IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQ(mainElement, '--a', length: 2));
-    _assertRecordedRelation(
-        new NameElement('~'),
-        IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQ(mainElement, '~a', length: 1));
-    // postfix
-    _assertRecordedRelation(
-        new NameElement('+'),
-        IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQ(mainElement, '++;', length: 2));
-    _assertRecordedRelation(
-        new NameElement('-'),
-        IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQ(mainElement, '--;', length: 2));
-  }
-
-
-  void test_NameElement_operator_unresolved() {
-    _indexTestUnit('''
-class A {
-  operator +(o) {}
-  operator -(o) {}
-  operator ~() {}
-  operator ==(o) {}
-}
-main(a) {
-  a + 5;
-  a += 5;
-  a == 5;
-  ++a;
-  --a;
-  ~a;
-  a++;
-  a--;
-}
-''');
-    // prepare elements
-    Element mainElement = findElement('main');
-    // binary
-    _assertRecordedRelation(
-        new NameElement('+'),
-        IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQU(mainElement, '+ 5', length: 1));
-    _assertRecordedRelation(
-        new NameElement('+'),
-        IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQU(mainElement, '+= 5', length: 2));
-    _assertRecordedRelation(
-        new NameElement('=='),
-        IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQU(mainElement, '== 5', length: 2));
-    // prefix
-    _assertRecordedRelation(
-        new NameElement('+'),
-        IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQU(mainElement, '++a', length: 2));
-    _assertRecordedRelation(
-        new NameElement('-'),
-        IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQU(mainElement, '--a', length: 2));
-    _assertRecordedRelation(
-        new NameElement('~'),
-        IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQU(mainElement, '~a', length: 1));
-    // postfix
-    _assertRecordedRelation(
-        new NameElement('+'),
-        IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQU(mainElement, '++;', length: 2));
-    _assertRecordedRelation(
-        new NameElement('-'),
-        IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQU(mainElement, '--;', length: 2));
-  }
-
   void test_definesClass() {
     _indexTestUnit('class A {}');
     // prepare elements
@@ -295,16 +93,6 @@ main(a) {
     _assertDefinesTopLevelElement(
         IndexConstants.DEFINES,
         _expectedLocation(classElement, 'A {}'));
-  }
-
-  void test_definesClassEnum() {
-    _indexTestUnit('enum MyEnum {A, B, c}');
-    // prepare elements
-    ClassElement classElement = findElement("MyEnum");
-    // verify
-    _assertDefinesTopLevelElement(
-        IndexConstants.DEFINES,
-        _expectedLocation(classElement, 'MyEnum {'));
   }
 
   void test_definesClassAlias() {
@@ -317,6 +105,16 @@ class MyClass = Object with Mix;''');
     _assertDefinesTopLevelElement(
         IndexConstants.DEFINES,
         _expectedLocation(classElement, 'MyClass ='));
+  }
+
+  void test_definesClassEnum() {
+    _indexTestUnit('enum MyEnum {A, B, c}');
+    // prepare elements
+    ClassElement classElement = findElement("MyEnum");
+    // verify
+    _assertDefinesTopLevelElement(
+        IndexConstants.DEFINES,
+        _expectedLocation(classElement, 'MyEnum {'));
   }
 
   void test_definesFunction() {
@@ -404,6 +202,7 @@ class A {
         _expectedLocation(methodElement, 'm() {}'));
   }
 
+
   void test_isDefinedBy_NameElement_operator() {
     _indexTestUnit('''
 class A {
@@ -418,7 +217,6 @@ class A {
         IndexConstants.NAME_IS_DEFINED_BY,
         _expectedLocation(methodElement, '+(o) {}', length: 1));
   }
-
 
   void test_isExtendedBy_ClassDeclaration() {
     _indexTestUnit('''
@@ -448,7 +246,6 @@ class A {} // 1
         IndexConstants.IS_EXTENDED_BY,
         _expectedLocation(classElementA, 'A {}', length: 0));
   }
-
 
   void test_isExtendedBy_ClassTypeAlias() {
     _indexTestUnit('''
@@ -496,6 +293,7 @@ class C = Object with A implements B; // 3
         IndexConstants.IS_IMPLEMENTED_BY,
         _expectedLocation(classElementC, 'B; // 3'));
   }
+
 
   void test_isInvokedBy_FieldElement() {
     _indexTestUnit('''
@@ -546,6 +344,7 @@ main() {
         IndexConstants.IS_INVOKED_BY,
         _expectedLocation(mainElement, 'foo(); // nq'));
   }
+
 
   void test_isInvokedBy_LocalVariableElement() {
     _indexTestUnit('''
@@ -604,21 +403,6 @@ main() {
         methodElement,
         IndexConstants.IS_INVOKED_BY,
         _expectedLocationQ(mainElement, 'foo();'));
-  }
-
-  void test_isInvokedBy_ParameterElement() {
-    _indexTestUnit('''
-main(p()) {
-  p();
-}''');
-    // prepare elements
-    Element mainElement = findElement("main");
-    Element element = findElement("p");
-    // verify
-    _assertRecordedRelation(
-        element,
-        IndexConstants.IS_INVOKED_BY,
-        _expectedLocation(mainElement, 'p();'));
   }
 
   void test_isInvokedBy_operator_binary() {
@@ -698,6 +482,21 @@ main(A a) {
         element,
         IndexConstants.IS_INVOKED_BY,
         _expectedLocationQ(mainElement, '~a', length: 1));
+  }
+
+  void test_isInvokedBy_ParameterElement() {
+    _indexTestUnit('''
+main(p()) {
+  p();
+}''');
+    // prepare elements
+    Element mainElement = findElement("main");
+    Element element = findElement("p");
+    // verify
+    _assertRecordedRelation(
+        element,
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocation(mainElement, 'p();'));
   }
 
   void test_isMixedInBy_ClassDeclaration() {
@@ -1105,6 +904,33 @@ main(A p) {
         _expectedLocation(pElement, 'A p) {'));
   }
 
+  /**
+   * There was a bug in the AST structure, when single [Comment] was cloned and
+   * assigned to both [FieldDeclaration] and [VariableDeclaration].
+   *
+   * This caused duplicate indexing.
+   * Here we test that the problem is fixed one way or another.
+   */
+  void test_isReferencedBy_identifierInComment() {
+    _indexTestUnit('''
+class A {}
+/// [A] text
+var myVariable = null;
+''');
+    // prepare elements
+    Element aElement = findElement('A');
+    Element variableElement = findElement('myVariable');
+    // verify
+    _assertRecordedRelation(
+        aElement,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(testUnitElement, 'A] text'));
+    _assertNoRecordedRelation(
+        aElement,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(variableElement, 'A] text'));
+  }
+
   void test_isReferencedBy_ImportElement_noPrefix() {
     addSource('/lib.dart', '''
 library lib;
@@ -1307,6 +1133,24 @@ main() {
         _expectedLocation(mainElement, 'L;'));
   }
 
+  void test_isReferencedBy_libraryName() {
+    Source libSource = addSource('/lib.dart', '''
+library lib;
+part 'test.dart';
+''');
+    testCode = 'part of lib;';
+    testSource = addSource('/test.dart', testCode);
+    testUnit = resolveDartUnit(testSource, libSource);
+    testUnitElement = testUnit.element;
+    testLibraryElement = testUnitElement.library;
+    indexDartUnit(store, context, testUnit);
+    // verify
+    _assertRecordedRelation(
+        testLibraryElement,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(testUnitElement, "lib;"));
+  }
+
   void test_isReferencedBy_MethodElement() {
     _indexTestUnit('''
 class A {
@@ -1411,6 +1255,21 @@ main() {
         _expectedLocation(mainElement, 'V); // nq'));
   }
 
+  void test_isReferencedBy_typeInVariableList() {
+    _indexTestUnit('''
+class A {}
+A myVariable = null;
+''');
+    // prepare elements
+    Element classElementA = findElement('A');
+    Element variableElement = findElement('myVariable');
+    // verify
+    _assertRecordedRelation(
+        classElementA,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(variableElement, 'A myVariable'));
+  }
+
   void test_isReferencedBy_TypeParameterElement() {
     _indexTestUnit('''
 class A<T> {
@@ -1438,66 +1297,6 @@ class A<T> {
         typeParameterElement,
         IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(variableElement, 'T v'));
-  }
-
-  /**
-   * There was a bug in the AST structure, when single [Comment] was cloned and
-   * assigned to both [FieldDeclaration] and [VariableDeclaration].
-   *
-   * This caused duplicate indexing.
-   * Here we test that the problem is fixed one way or another.
-   */
-  void test_isReferencedBy_identifierInComment() {
-    _indexTestUnit('''
-class A {}
-/// [A] text
-var myVariable = null;
-''');
-    // prepare elements
-    Element aElement = findElement('A');
-    Element variableElement = findElement('myVariable');
-    // verify
-    _assertRecordedRelation(
-        aElement,
-        IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(testUnitElement, 'A] text'));
-    _assertNoRecordedRelation(
-        aElement,
-        IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(variableElement, 'A] text'));
-  }
-
-  void test_isReferencedBy_libraryName() {
-    Source libSource = addSource('/lib.dart', '''
-library lib;
-part 'test.dart';
-''');
-    testCode = 'part of lib;';
-    testSource = addSource('/test.dart', testCode);
-    testUnit = resolveDartUnit(testSource, libSource);
-    testUnitElement = testUnit.element;
-    testLibraryElement = testUnitElement.library;
-    indexDartUnit(store, context, testUnit);
-    // verify
-    _assertRecordedRelation(
-        testLibraryElement,
-        IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(testUnitElement, "lib;"));
-  }
-
-  void test_isReferencedBy_typeInVariableList() {
-    _indexTestUnit('''
-class A {}
-A myVariable = null;
-''');
-    // prepare elements
-    Element classElementA = findElement('A');
-    Element variableElement = findElement('myVariable');
-    // verify
-    _assertRecordedRelation(
-        classElementA,
-        IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(variableElement, 'A myVariable'));
   }
 
   void test_isWrittenBy_ParameterElement() {
@@ -1529,6 +1328,207 @@ main() {
         vElement,
         IndexConstants.IS_WRITTEN_BY,
         _expectedLocation(mainElement, 'v = 1'));
+  }
+
+  void test_NameElement_field() {
+    _indexTestUnit('''
+class A {
+  int field;
+}
+main(A a, p) {
+  print(a.field); // r
+  print(p.field); // ur
+  {
+    var field = 42;
+    print(field); // not a member
+  }
+}
+''');
+    // prepare elements
+    Element mainElement = findElement('main');
+    FieldElement fieldElement = findElement('field');
+    Element nameElement = new NameElement('field');
+    // verify
+    _assertRecordedRelation(
+        nameElement,
+        IndexConstants.NAME_IS_DEFINED_BY,
+        _expectedLocation(fieldElement, 'field;'));
+    _assertRecordedRelation(
+        nameElement,
+        IndexConstants.IS_READ_BY,
+        _expectedLocationQ(mainElement, 'field); // r'));
+    _assertRecordedRelation(
+        nameElement,
+        IndexConstants.IS_READ_BY,
+        _expectedLocationQU(mainElement, 'field); // ur'));
+    _assertNoRecordedRelation(
+        nameElement,
+        IndexConstants.IS_READ_BY,
+        _expectedLocation(mainElement, 'field); // not a member'));
+  }
+
+  void test_NameElement_isDefinedBy_localVariable_inForEach() {
+    _indexTestUnit('''
+class A {
+  main() {
+    for (int test in []) {
+    }
+  }
+}
+''');
+    // prepare elements
+    LocalVariableElement testElement = findElement('test');
+    Element nameElement = new NameElement('test');
+    // verify
+    _assertRecordedRelation(
+        nameElement,
+        IndexConstants.NAME_IS_DEFINED_BY,
+        _expectedLocation(testElement, 'test in []'));
+  }
+
+  void test_NameElement_method() {
+    _indexTestUnit('''
+class A {
+  method() {}
+}
+main(A a, p) {
+  a.method(); // r
+  p.method(); // ur
+}
+''');
+    // prepare elements
+    Element mainElement = findElement('main');
+    MethodElement methodElement = findElement('method');
+    Element nameElement = new NameElement('method');
+    // verify
+    _assertRecordedRelation(
+        nameElement,
+        IndexConstants.NAME_IS_DEFINED_BY,
+        _expectedLocation(methodElement, 'method() {}'));
+    _assertRecordedRelation(
+        nameElement,
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, 'method(); // r'));
+    _assertRecordedRelation(
+        nameElement,
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, 'method(); // ur'));
+  }
+
+  void test_NameElement_operator_resolved() {
+    _indexTestUnit('''
+class A {
+  operator +(o) {}
+  operator -(o) {}
+  operator ~() {}
+  operator ==(o) {}
+}
+main(A a) {
+  a + 5;
+  a += 5;
+  a == 5;
+  ++a;
+  --a;
+  ~a;
+  a++;
+  a--;
+}
+''');
+    // prepare elements
+    Element mainElement = findElement('main');
+    // binary
+    _assertRecordedRelation(
+        new NameElement('+'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '+ 5', length: 1));
+    _assertRecordedRelation(
+        new NameElement('+'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '+= 5', length: 2));
+    _assertRecordedRelation(
+        new NameElement('=='),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '== 5', length: 2));
+    // prefix
+    _assertRecordedRelation(
+        new NameElement('+'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '++a', length: 2));
+    _assertRecordedRelation(
+        new NameElement('-'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '--a', length: 2));
+    _assertRecordedRelation(
+        new NameElement('~'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '~a', length: 1));
+    // postfix
+    _assertRecordedRelation(
+        new NameElement('+'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '++;', length: 2));
+    _assertRecordedRelation(
+        new NameElement('-'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '--;', length: 2));
+  }
+
+  void test_NameElement_operator_unresolved() {
+    _indexTestUnit('''
+class A {
+  operator +(o) {}
+  operator -(o) {}
+  operator ~() {}
+  operator ==(o) {}
+}
+main(a) {
+  a + 5;
+  a += 5;
+  a == 5;
+  ++a;
+  --a;
+  ~a;
+  a++;
+  a--;
+}
+''');
+    // prepare elements
+    Element mainElement = findElement('main');
+    // binary
+    _assertRecordedRelation(
+        new NameElement('+'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '+ 5', length: 1));
+    _assertRecordedRelation(
+        new NameElement('+'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '+= 5', length: 2));
+    _assertRecordedRelation(
+        new NameElement('=='),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '== 5', length: 2));
+    // prefix
+    _assertRecordedRelation(
+        new NameElement('+'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '++a', length: 2));
+    _assertRecordedRelation(
+        new NameElement('-'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '--a', length: 2));
+    _assertRecordedRelation(
+        new NameElement('~'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '~a', length: 1));
+    // postfix
+    _assertRecordedRelation(
+        new NameElement('+'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '++;', length: 2));
+    _assertRecordedRelation(
+        new NameElement('-'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '--;', length: 2));
   }
 
   void test_nameIsInvokedBy() {

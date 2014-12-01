@@ -372,6 +372,9 @@ class _RefactoringManager {
       if (nodes.isNotEmpty && elements.isNotEmpty) {
         AstNode node = nodes[0];
         Element element = elements[0];
+        if (element is FieldFormalParameterElement) {
+          element = (element as FieldFormalParameterElement).field;
+        }
         // climb from "Class" in "new Class()" to "new Class()"
         if (node.parent is TypeName &&
             node.parent.parent is ConstructorName &&

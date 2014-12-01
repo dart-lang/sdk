@@ -61,8 +61,10 @@ class MemberSorter {
    */
   List<SourceEdit> sort() {
     _sortClassesMembers();
-    _sortUnitDirectives();
     _sortUnitMembers();
+    // Must sort unit directives last because it may insert newlines, which
+    // would confuse the offsets used by the other sort functions.
+    _sortUnitDirectives();
     // prepare edits
     List<SourceEdit> edits = <SourceEdit>[];
     if (code != initialCode) {
@@ -91,6 +93,18 @@ class MemberSorter {
         String beforeCode = code.substring(0, oldInfo.offset);
         String afterCode = code.substring(oldInfo.end);
         code = beforeCode + newInfo.text + afterCode;
+      }
+    }
+  }
+
+  /**
+   * Sorts all members of all [ClassDeclaration]s.
+   */
+  void _sortClassesMembers() {
+    for (CompilationUnitMember unitMember in unit.declarations) {
+      if (unitMember is ClassDeclaration) {
+        ClassDeclaration classDeclaration = unitMember;
+        _sortClassMembers(classDeclaration);
       }
     }
   }
@@ -146,18 +160,6 @@ class MemberSorter {
     }
     // do sort
     _sortAndReorderMembers(members);
-  }
-
-  /**
-   * Sorts all members of all [ClassDeclaration]s.
-   */
-  void _sortClassesMembers() {
-    for (CompilationUnitMember unitMember in unit.declarations) {
-      if (unitMember is ClassDeclaration) {
-        ClassDeclaration classDeclaration = unitMember;
-        _sortClassMembers(classDeclaration);
-      }
-    }
   }
 
   /**

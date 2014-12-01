@@ -7,9 +7,10 @@ library test.services.src.index.store.temporary_folder_file_mananer;
 import 'dart:io';
 
 import 'package:analysis_server/src/services/index/store/temporary_folder_file_manager.dart';
-import '../../../reflective_tests.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
+
+import '../../../reflective_tests.dart';
 
 
 main() {

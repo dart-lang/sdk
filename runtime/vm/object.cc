@@ -44,6 +44,7 @@
 #include "vm/tags.h"
 #include "vm/timer.h"
 #include "vm/unicode.h"
+#include "vm/verified_memory.h"
 #include "vm/weak_code.h"
 
 namespace dart {
@@ -1698,6 +1699,7 @@ void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
   tags = RawObject::ClassIdTag::update(class_id, tags);
   tags = RawObject::SizeTag::update(size, tags);
   reinterpret_cast<RawObject*>(address)->tags_ = tags;
+  VerifiedMemory::Accept(address, size);
 }
 
 
@@ -1807,6 +1809,7 @@ RawObject* Object::Clone(const Object& orig, Heap::Space space) {
   memmove(reinterpret_cast<uint8_t*>(clone_addr + kHeaderSizeInBytes),
           reinterpret_cast<uint8_t*>(orig_addr + kHeaderSizeInBytes),
           size - kHeaderSizeInBytes);
+  VerifiedMemory::Accept(clone_addr, size);
   // Add clone to store buffer, if needed.
   if (!raw_clone->IsOldObject()) {
     // No need to remember an object in new space.
@@ -5385,6 +5388,9 @@ const char* Function::KindToCString(RawFunction::Kind kind) {
     case RawFunction::kInvokeFieldDispatcher:
       return "kInvokeFieldDispatcher";
       break;
+    case RawFunction::kIrregexpFunction:
+      return "kIrregexpFunction";
+      break;
     default:
       UNREACHABLE();
       return NULL;
@@ -5467,6 +5473,29 @@ void Function::set_name(const String& value) const {
 void Function::set_owner(const Object& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->owner_, value.raw());
+}
+
+
+RawJSRegExp* Function::regexp() const {
+  ASSERT(kind() == RawFunction::kIrregexpFunction);
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  return JSRegExp::Cast(obj).raw();
+}
+
+
+void Function::set_regexp(const JSRegExp& value) const {
+  ASSERT(kind() == RawFunction::kIrregexpFunction);
+  ASSERT(raw_ptr()->data_ == Object::null());
+  set_data(value);
+}
+
+
+void Function::set_regexp_cid(intptr_t regexp_cid) const {
+    ASSERT((regexp_cid == kIllegalCid) ||
+           (kind() == RawFunction::kIrregexpFunction));
+    ASSERT((regexp_cid == kIllegalCid) ||
+           RawObject::IsStringClassId(regexp_cid));
+    StoreNonPointer(&raw_ptr()->regexp_cid_, regexp_cid);
 }
 
 
@@ -6150,6 +6179,7 @@ RawFunction* Function::New(const String& name,
   result.set_num_optional_parameters(0);
   result.set_usage_counter(0);
   result.set_deoptimization_counter(0);
+  result.set_regexp_cid(kIllegalCid);
   result.set_optimized_instruction_count(0);
   result.set_optimized_call_site_count(0);
   result.set_is_optimizable(is_native ? false : true);
@@ -6178,6 +6208,7 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   clone.ClearCode();
   clone.set_usage_counter(0);
   clone.set_deoptimization_counter(0);
+  clone.set_regexp_cid(kIllegalCid);
   clone.set_optimized_instruction_count(0);
   clone.set_optimized_call_site_count(0);
   clone.set_ic_data_array(Array::Handle());
@@ -6744,6 +6775,9 @@ const char* Function::ToCString() const {
       break;
     case RawFunction::kInvokeFieldDispatcher:
       kind_str = "invoke-field-dispatcher";
+      break;
+    case RawFunction::kIrregexpFunction:
+      kind_str = "irregexp-function";
       break;
     default:
       UNREACHABLE();
@@ -12169,6 +12203,7 @@ RawCode* Code::FinalizeCode(const char* name,
   MemoryRegion region(reinterpret_cast<void*>(instrs.EntryPoint()),
                       instrs.size());
   assembler->FinalizeInstructions(region);
+  VerifiedMemory::Accept(region.start(), region.size());
   CPU::FlushICache(instrs.EntryPoint(), instrs.size());
 
   code.set_compile_timestamp(OS::GetCurrentTimeMicros());
@@ -12570,7 +12605,7 @@ void Context::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
   JSONArray jsarr(&jsobj, "variables");
   for (intptr_t i = 0; i < num_variables(); i++) {
-    const Instance& var = Instance::Handle(At(i));
+    const Object& var = Object::Handle(At(i));
     JSONObject jselement(&jsarr);
     jselement.AddProperty("index", i);
     jselement.AddProperty("value", var);
@@ -15904,9 +15939,9 @@ RawInteger* Smi::ShiftOp(Token::Kind kind,
         return raw();
       }
       { // Check for overflow.
-        int cnt = Utils::HighestBit(left_value);
-        if ((cnt + right_value) >= Smi::kBits) {
-          if ((cnt + right_value) >= Mint::kBits) {
+        int cnt = Utils::BitLength(left_value);
+        if ((cnt + right_value) > Smi::kBits) {
+          if ((cnt + right_value) > Mint::kBits) {
             return Bigint::NewFromShiftedInt64(left_value, right_value);
           } else {
             int64_t left_64 = left_value;
@@ -16404,7 +16439,7 @@ RawBigint* Bigint::NewFromUint64(uint64_t value, Heap::Space space) {
 
 
 RawBigint* Bigint::NewFromShiftedInt64(int64_t value, intptr_t shift,
-                                         Heap::Space space) {
+                                       Heap::Space space) {
   ASSERT(kBitsPerDigit == 32);
   ASSERT(shift >= 0);
   const Bigint& result = Bigint::Handle(New(space));
@@ -16436,26 +16471,32 @@ RawBigint* Bigint::NewFromShiftedInt64(int64_t value, intptr_t shift,
 
 void Bigint::EnsureLength(intptr_t length, Heap::Space space) const {
   ASSERT(length >= 0);
+  length++;  // Account for leading zero for 64-bit processing.
   TypedData& old_digits = TypedData::Handle(digits());
-  if ((length > 0) && (length > old_digits.Length())) {
+  if (length > old_digits.Length()) {
     TypedData& new_digits = TypedData::Handle(
         TypedData::New(kTypedDataUint32ArrayCid, length + kExtraDigits, space));
-    if (old_digits.Length() > 0) {
+    set_digits(new_digits);
+    if (Used() > 0) {
       TypedData::Copy(new_digits, TypedData::data_offset(),
                       old_digits, TypedData::data_offset(),
-                      old_digits.LengthInBytes());
+                      (Used() + 1)*kBytesPerDigit);  // Copy leading zero.
     }
-    set_digits(new_digits);
   }
 }
 
 
 void Bigint::Clamp() const {
   intptr_t used = Used();
-  while ((used > 0) && (DigitAt(used - 1) == 0)) {
-    --used;
+  if (used > 0) {
+    if (DigitAt(used - 1) == 0) {
+      do {
+        --used;
+      } while ((used > 0) && (DigitAt(used - 1) == 0));
+      SetUsed(used);
+    }
+    SetDigitAt(used, 0);  // Set leading zero for 64-bit processing.
   }
-  SetUsed(used);
 }
 
 
@@ -16467,17 +16508,10 @@ bool Bigint::IsClamped() const {
 
 RawBigint* Bigint::NewFromCString(const char* str, Heap::Space space) {
   ASSERT(str != NULL);
-  if (str[0] == '\0') {
-    return NewFromInt64(0, space);
-  }
-
   // If the string starts with '-' recursively restart the whole operation
   // without the character and then toggle the sign.
-  // This allows multiple leading '-' (which will cancel each other out), but
-  // we have added an assert, to make sure that the returned result of the
-  // recursive call is not negative.
-  // We don't catch leading '-'s for zero. Ex: "--0", or "---".
   if (str[0] == '-') {
+    ASSERT(str[1] != '-');
     const Bigint& result = Bigint::Handle(NewFromCString(&str[1], space));
     result.SetNeg(!result.Neg());  // Toggle sign.
     ASSERT(result.IsZero() || result.IsNegative());
@@ -16488,7 +16522,7 @@ RawBigint* Bigint::NewFromCString(const char* str, Heap::Space space) {
   // No overflow check needed since overflowing str_length implies that we take
   // the branch to NewFromDecCString() which contains a check itself.
   const intptr_t str_length = strlen(str);
-  if ((str_length > 2) &&
+  if ((str_length >= 2) &&
       (str[0] == '0') &&
       ((str[1] == 'x') || (str[1] == 'X'))) {
     const Bigint& result = Bigint::Handle(NewFromHexCString(&str[2], space));
@@ -16530,17 +16564,14 @@ RawBigint* Bigint::NewCanonical(const String& str) {
 
 
 RawBigint* Bigint::NewFromHexCString(const char* str, Heap::Space space) {
-  // TODO(regis): Do we need to check for max length?
   // If the string starts with '-' recursively restart the whole operation
   // without the character and then toggle the sign.
-  // This allows multiple leading '-' (which will cancel each other out), but
-  // we have added an assert, to make sure that the returned result of the
-  // recursive call is not negative.
-  // We don't catch leading '-'s for zero. Ex: "--0", or "---".
   if (str[0] == '-') {
+    ASSERT(str[1] != '-');
     const Bigint& result = Bigint::Handle(NewFromHexCString(&str[1], space));
-    result.SetNeg(!result.Neg());  // Toggle sign.
-    ASSERT(result.IsZero() || result.IsNegative());
+    if (!result.IsZero()) {
+      result.SetNeg(!result.Neg());  // Toggle sign.
+    }
     ASSERT(result.IsClamped());
     return result.raw();
   }
@@ -16549,6 +16580,9 @@ RawBigint* Bigint::NewFromHexCString(const char* str, Heap::Space space) {
   const int kHexDigitsPerDigit = 8;
   const int kBitsPerDigit = kBitsPerHexDigit * kHexDigitsPerDigit;
   intptr_t hex_i = strlen(str);  // Terminating byte excluded.
+  if ((hex_i <= 0) || (hex_i >= kMaxInt32)) {
+    FATAL("Fatal error in Bigint::NewFromHexCString: string too long or empty");
+  }
   result.EnsureLength((hex_i + kHexDigitsPerDigit - 1) / kHexDigitsPerDigit,
                       space);
   intptr_t used_ = 0;
@@ -16579,8 +16613,8 @@ RawBigint* Bigint::NewFromDecCString(const char* str, Heap::Space space) {
   ASSERT(kBitsPerDigit == 32);
 
   const intptr_t str_length = strlen(str);
-  if (str_length < 0) {  // TODO(regis): Pick a smaller limit.
-    FATAL("Fatal error in Bigint::NewFromDecCString: string too long");
+  if ((str_length <= 0) || (str_length >= kMaxInt32)) {
+    FATAL("Fatal error in Bigint::NewFromDecCString: string too long or empty");
   }
   intptr_t str_pos = 0;
 
@@ -16590,6 +16624,7 @@ RawBigint* Bigint::NewFromDecCString(const char* str, Heap::Space space) {
   // The extra digits allocated take care of variations (kExtraDigits).
   const int64_t kLog10Dividend = 33219281;
   const int64_t kLog10Divisor = 10000000;
+
   result.EnsureLength((kLog10Dividend * str_length) /
                       (kLog10Divisor * kBitsPerDigit) + 1, space);
 
@@ -18809,6 +18844,8 @@ RawArray* Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
                          space));
     NoGCScope no_gc;
     raw->StoreSmi(&(raw->ptr()->length_), Smi::New(len));
+    VerifiedMemory::Accept(reinterpret_cast<uword>(raw->ptr()),
+                           Array::InstanceSize(len));
     return raw;
   }
 }
@@ -19147,8 +19184,7 @@ class DefaultHashTraits {
     hash_code ^= Instance::Cast(obj).HashCode();
     if (hash_code.IsSmi()) {
       // May waste some bits on 64-bit, to ensure consistency with non-Smi case.
-      return static_cast<uword>(Smi::Cast(hash_code).Value() & 0xFFFFFFFF);
-      // TODO(regis): Same as Smi::AsTruncatedUint32Value(), simplify?
+      return static_cast<uword>(Smi::Cast(hash_code).AsTruncatedUint32Value());
     } else if (hash_code.IsInteger()) {
       return static_cast<uword>(
           Integer::Cast(hash_code).AsTruncatedUint32Value());
@@ -20083,6 +20119,11 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
 
 void JSRegExp::set_pattern(const String& pattern) const {
   StorePointer(&raw_ptr()->pattern_, pattern.raw());
+}
+
+
+void JSRegExp::set_function(intptr_t cid, const Function& value) const {
+  StorePointer(FunctionAddr(cid), value.raw());
 }
 
 

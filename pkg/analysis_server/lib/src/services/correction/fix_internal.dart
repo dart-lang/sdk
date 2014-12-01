@@ -262,13 +262,6 @@ class FixProcessor {
     exitPosition = null;
   }
 
-  void _addFixToElement(FixKind kind, List args, Element element) {
-    Source source = element.source;
-    String file = source.fullName;
-    int fileStamp = element.context.getModificationStamp(source);
-    _addFix(kind, args, file: file, fileStamp: fileStamp);
-  }
-
   void _addFix_boolInsteadOfBoolean() {
     SourceRange range = rf.rangeError(error);
     _addReplaceEdit(range, "bool");
@@ -303,10 +296,144 @@ class FixProcessor {
       }
       // insert source
       _insertBuilder(sb);
-      _addLinkedPosition("NAME", rf.rangeNode(node));
+      _addLinkedPosition("NAME", sb, rf.rangeNode(node));
       // add proposal
       _addFix(FixKind.CREATE_CLASS, [name]);
     }
+  }
+
+  void _addFix_createConstructor_insteadOfSyntheticDefault() {
+    TypeName typeName = null;
+    ConstructorName constructorName = null;
+    InstanceCreationExpression instanceCreation = null;
+    if (node is SimpleIdentifier) {
+      if (node.parent is TypeName) {
+        typeName = node.parent as TypeName;
+        if (typeName.name == node && typeName.parent is ConstructorName) {
+          constructorName = typeName.parent as ConstructorName;
+          // should be synthetic default constructor
+          {
+            ConstructorElement constructorElement =
+                constructorName.staticElement;
+            if (constructorElement == null ||
+                !constructorElement.isDefaultConstructor ||
+                !constructorElement.isSynthetic) {
+              return;
+            }
+          }
+          // prepare InstanceCreationExpression
+          if (constructorName.parent is InstanceCreationExpression) {
+            instanceCreation =
+                constructorName.parent as InstanceCreationExpression;
+            if (instanceCreation.constructorName != constructorName) {
+              return;
+            }
+          }
+        }
+      }
+    }
+    // do we have enough information?
+    if (instanceCreation == null) {
+      return;
+    }
+    // prepare target
+    DartType targetType = typeName.type;
+    if (targetType is! InterfaceType) {
+      return;
+    }
+    ClassElement targetElement = targetType.element as ClassElement;
+    String targetFile = targetElement.source.fullName;
+    ClassDeclaration targetClass = targetElement.node;
+    _ConstructorLocation targetLocation =
+        _prepareNewConstructorLocation(targetClass);
+    // build method source
+    SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
+    {
+      String indent = "  ";
+      sb.append(targetLocation.prefix);
+      sb.append(indent);
+      sb.append(targetElement.name);
+      _addFix_undefinedMethod_create_parameters(
+          sb,
+          instanceCreation.argumentList);
+      sb.append(") {${eol}${indent}}");
+      sb.append(targetLocation.suffix);
+    }
+    // insert source
+    _insertBuilder(sb);
+    // add proposal
+    _addFixToElement(
+        FixKind.CREATE_CONSTRUCTOR,
+        [constructorName],
+        targetElement);
+  }
+
+  void _addFix_createConstructor_named() {
+    SimpleIdentifier name = null;
+    ConstructorName constructorName = null;
+    InstanceCreationExpression instanceCreation = null;
+    if (node is SimpleIdentifier) {
+      // name
+      name = node as SimpleIdentifier;
+      if (name.parent is ConstructorName) {
+        constructorName = name.parent as ConstructorName;
+        if (constructorName.name == name) {
+          // Type.name
+          if (constructorName.parent is InstanceCreationExpression) {
+            instanceCreation =
+                constructorName.parent as InstanceCreationExpression;
+            // new Type.name()
+            if (instanceCreation.constructorName != constructorName) {
+              return;
+            }
+          }
+        }
+      }
+    }
+    // do we have enough information?
+    if (instanceCreation == null) {
+      return;
+    }
+    // prepare target interface type
+    DartType targetType = constructorName.type.type;
+    if (targetType is! InterfaceType) {
+      return;
+    }
+    ClassElement targetElement = targetType.element as ClassElement;
+    String targetFile = targetElement.source.fullName;
+    ClassDeclaration targetClass = targetElement.node;
+    _ConstructorLocation targetLocation =
+        _prepareNewConstructorLocation(targetClass);
+    // build method source
+    SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
+    {
+      String indent = "  ";
+      sb.append(targetLocation.prefix);
+      sb.append(indent);
+      sb.append(targetElement.name);
+      sb.append(".");
+      // append name
+      {
+        sb.startPosition("NAME");
+        sb.append(name.name);
+        sb.endPosition();
+      }
+      _addFix_undefinedMethod_create_parameters(
+          sb,
+          instanceCreation.argumentList);
+      sb.append(") {${eol}${indent}}");
+      sb.append(targetLocation.suffix);
+    }
+    // insert source
+    _insertBuilder(sb);
+    if (targetFile == file) {
+      _addLinkedPosition("NAME", sb, rf.rangeNode(name));
+    }
+    // add proposal
+    _addFixToElement(
+        FixKind.CREATE_CONSTRUCTOR,
+        [constructorName],
+        targetElement);
   }
 
   void _addFix_createConstructorSuperExplicit() {
@@ -448,140 +575,6 @@ class FixProcessor {
     }
   }
 
-  void _addFix_createConstructor_insteadOfSyntheticDefault() {
-    TypeName typeName = null;
-    ConstructorName constructorName = null;
-    InstanceCreationExpression instanceCreation = null;
-    if (node is SimpleIdentifier) {
-      if (node.parent is TypeName) {
-        typeName = node.parent as TypeName;
-        if (typeName.name == node && typeName.parent is ConstructorName) {
-          constructorName = typeName.parent as ConstructorName;
-          // should be synthetic default constructor
-          {
-            ConstructorElement constructorElement =
-                constructorName.staticElement;
-            if (constructorElement == null ||
-                !constructorElement.isDefaultConstructor ||
-                !constructorElement.isSynthetic) {
-              return;
-            }
-          }
-          // prepare InstanceCreationExpression
-          if (constructorName.parent is InstanceCreationExpression) {
-            instanceCreation =
-                constructorName.parent as InstanceCreationExpression;
-            if (instanceCreation.constructorName != constructorName) {
-              return;
-            }
-          }
-        }
-      }
-    }
-    // do we have enough information?
-    if (instanceCreation == null) {
-      return;
-    }
-    // prepare target
-    DartType targetType = typeName.type;
-    if (targetType is! InterfaceType) {
-      return;
-    }
-    ClassElement targetElement = targetType.element as ClassElement;
-    String targetFile = targetElement.source.fullName;
-    ClassDeclaration targetClass = targetElement.node;
-    _ConstructorLocation targetLocation =
-        _prepareNewConstructorLocation(targetClass);
-    // build method source
-    SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
-    {
-      String indent = "  ";
-      sb.append(targetLocation.prefix);
-      sb.append(indent);
-      sb.append(targetElement.name);
-      _addFix_undefinedMethod_create_parameters(
-          sb,
-          instanceCreation.argumentList);
-      sb.append(") {${eol}${indent}}");
-      sb.append(targetLocation.suffix);
-    }
-    // insert source
-    _insertBuilder(sb);
-    // add proposal
-    _addFixToElement(
-        FixKind.CREATE_CONSTRUCTOR,
-        [constructorName],
-        targetElement);
-  }
-
-  void _addFix_createConstructor_named() {
-    SimpleIdentifier name = null;
-    ConstructorName constructorName = null;
-    InstanceCreationExpression instanceCreation = null;
-    if (node is SimpleIdentifier) {
-      // name
-      name = node as SimpleIdentifier;
-      if (name.parent is ConstructorName) {
-        constructorName = name.parent as ConstructorName;
-        if (constructorName.name == name) {
-          // Type.name
-          if (constructorName.parent is InstanceCreationExpression) {
-            instanceCreation =
-                constructorName.parent as InstanceCreationExpression;
-            // new Type.name()
-            if (instanceCreation.constructorName != constructorName) {
-              return;
-            }
-          }
-        }
-      }
-    }
-    // do we have enough information?
-    if (instanceCreation == null) {
-      return;
-    }
-    // prepare target interface type
-    DartType targetType = constructorName.type.type;
-    if (targetType is! InterfaceType) {
-      return;
-    }
-    ClassElement targetElement = targetType.element as ClassElement;
-    String targetFile = targetElement.source.fullName;
-    ClassDeclaration targetClass = targetElement.node;
-    _ConstructorLocation targetLocation =
-        _prepareNewConstructorLocation(targetClass);
-    // build method source
-    SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
-    {
-      String indent = "  ";
-      sb.append(targetLocation.prefix);
-      sb.append(indent);
-      sb.append(targetElement.name);
-      sb.append(".");
-      // append name
-      {
-        sb.startPosition("NAME");
-        sb.append(name.name);
-        sb.endPosition();
-      }
-      _addFix_undefinedMethod_create_parameters(
-          sb,
-          instanceCreation.argumentList);
-      sb.append(") {${eol}${indent}}");
-      sb.append(targetLocation.suffix);
-    }
-    // insert source
-    _insertBuilder(sb);
-    if (targetFile == file) {
-      _addLinkedPosition("NAME", rf.rangeNode(name));
-    }
-    // add proposal
-    _addFixToElement(
-        FixKind.CREATE_CONSTRUCTOR,
-        [constructorName],
-        targetElement);
-  }
-
   void _addFix_createField() {
     SimpleIdentifier nameNode = node;
     String name = nameNode.name;
@@ -634,11 +627,7 @@ class FixProcessor {
       // append type
       Expression fieldTypeNode = climbPropertyAccess(nameNode);
       DartType fieldType = _inferUndefinedExpressionType(fieldTypeNode);
-      if (fieldType != null) {
-        _appendType(sb, fieldType, 'TYPE');
-      } else {
-        sb.append('var ');
-      }
+      _appendType(sb, fieldType, groupId: 'TYPE', orVar: true);
       // append name
       {
         sb.startPosition('NAME');
@@ -652,7 +641,7 @@ class FixProcessor {
     _insertBuilder(sb);
     // add linked positions
     if (targetFile == file) {
-      _addLinkedPosition3('NAME', sb, rf.rangeNode(node));
+      _addLinkedPosition('NAME', sb, rf.rangeNode(node));
     }
     // add proposal
     _addFixToElement(FixKind.CREATE_FIELD, [name], targetClassElement);
@@ -748,11 +737,7 @@ class FixProcessor {
     {
       // append type
       DartType fieldType = _inferUndefinedExpressionType(node);
-      if (fieldType != null) {
-        _appendType(sb, fieldType, 'TYPE');
-      } else {
-        sb.append('var ');
-      }
+      _appendType(sb, fieldType, groupId: 'TYPE', orVar: true);
       // append name
       {
         sb.startPosition('NAME');
@@ -766,7 +751,7 @@ class FixProcessor {
     // insert source
     _insertBuilder(sb);
     // add linked positions
-    _addLinkedPosition3('NAME', sb, rf.rangeNode(node));
+    _addLinkedPosition('NAME', sb, rf.rangeNode(node));
     // add proposal
     _addFix(FixKind.CREATE_LOCAL_VARIABLE, [name]);
   }
@@ -1281,7 +1266,7 @@ class FixProcessor {
       // append return type
       {
         DartType type = _inferUndefinedExpressionType(invocation);
-        _appendType(sb, type, 'RETURN_TYPE');
+        _appendType(sb, type, groupId: 'RETURN_TYPE');
       }
       // append name
       {
@@ -1294,7 +1279,7 @@ class FixProcessor {
     }
     // insert source
     _insertBuilder(sb);
-    _addLinkedPosition3('NAME', sb, rf.rangeNode(node));
+    _addLinkedPosition('NAME', sb, rf.rangeNode(node));
     // add proposal
     _addFix(FixKind.CREATE_FUNCTION, [name]);
   }
@@ -1381,10 +1366,10 @@ class FixProcessor {
           sb.append("static ");
         }
         // append return type
-        _appendType(
-            sb,
-            _inferUndefinedExpressionType(invocation),
-            'RETURN_TYPE');
+        {
+          DartType type = _inferUndefinedExpressionType(invocation);
+          _appendType(sb, type, groupId: 'RETURN_TYPE');
+        }
         // append name
         {
           sb.startPosition("NAME");
@@ -1399,7 +1384,7 @@ class FixProcessor {
       _insertBuilder(sb);
       // add linked positions
       if (targetFile == file) {
-        _addLinkedPosition3('NAME', sb, rf.rangeNode(node));
+        _addLinkedPosition('NAME', sb, rf.rangeNode(node));
       }
       // add proposal
       _addFixToElement(FixKind.CREATE_METHOD, [name], targetElement);
@@ -1539,6 +1524,13 @@ class FixProcessor {
     }
   }
 
+  void _addFixToElement(FixKind kind, List args, Element element) {
+    Source source = element.source;
+    String file = source.fullName;
+    int fileStamp = element.context.getModificationStamp(source);
+    _addFix(kind, args, file: file, fileStamp: fileStamp);
+  }
+
   /**
    * Adds a new [Edit] to [edits].
    */
@@ -1550,22 +1542,18 @@ class FixProcessor {
   /**
    * Adds a single linked position to [groupId].
    */
-  void _addLinkedPosition(String groupId, SourceRange range) {
-    Position position = new Position(file, range.offset);
-    LinkedEditGroup group = _getLinkedPosition(groupId);
-    group.addPosition(position, range.length);
-  }
-
-  /**
-   * Adds a single linked position to [groupId].
-   */
-  void _addLinkedPosition3(String groupId, SourceBuilder sb,
-      SourceRange range) {
-    if (sb.offset < range.offset) {
+  void _addLinkedPosition(String groupId, SourceBuilder sb, SourceRange range) {
+    // prepare offset
+    int offset = range.offset;
+    if (sb.offset < offset) {
       int delta = sb.length;
-      range = range.getTranslated(delta);
+      offset += delta;
     }
-    _addLinkedPosition(groupId, range);
+    // prepare group
+    LinkedEditGroup group = _getLinkedPosition(groupId);
+    // add position
+    Position position = new Position(file, offset);
+    group.addPosition(position, range.length);
   }
 
   /**
@@ -1585,7 +1573,7 @@ class FixProcessor {
         sb.append("static ");
       }
       // append return type
-      _appendType(sb, functionType.returnType, 'RETURN_TYPE');
+      _appendType(sb, functionType.returnType, groupId: 'RETURN_TYPE');
       // append name
       {
         sb.startPosition("NAME");
@@ -1631,7 +1619,7 @@ class FixProcessor {
     _insertBuilder(sb);
     // add linked positions
     if (targetSource == unitSource) {
-      _addLinkedPosition3("NAME", sb, rf.rangeNode(node));
+      _addLinkedPosition("NAME", sb, rf.rangeNode(node));
     }
   }
 
@@ -1709,14 +1697,6 @@ class FixProcessor {
     edits.add(edit);
   }
 
-  void _appendParameterSource(SourceBuilder sb, DartType type, String name) {
-    Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
-    // TODO(scheglov) use librariesToImport
-    String parameterSource =
-        utils.getParameterSource(type, name, librariesToImport);
-    sb.append(parameterSource);
-  }
-
   void _appendParameters(SourceBuilder sb, List<ParameterElement> parameters) {
     sb.append("(");
     bool firstParameter = true;
@@ -1765,7 +1745,16 @@ class FixProcessor {
     sb.append(")");
   }
 
-  void _appendType(SourceBuilder sb, DartType type, [String groupId]) {
+  void _appendParameterSource(SourceBuilder sb, DartType type, String name) {
+    Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+    // TODO(scheglov) use librariesToImport
+    String parameterSource =
+        utils.getParameterSource(type, name, librariesToImport);
+    sb.append(parameterSource);
+  }
+
+  void _appendType(SourceBuilder sb, DartType type, {String groupId, bool orVar:
+      false}) {
     if (type != null && !type.isDynamic) {
       Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
       // TODO(scheglov) use librariesToImport
@@ -1778,6 +1767,8 @@ class FixProcessor {
         sb.append(typeSource);
       }
       sb.append(' ');
+    } else if (orVar) {
+      sb.append('var ');
     }
   }
 
@@ -1826,25 +1817,6 @@ class FixProcessor {
       linkedPositionGroups[groupId] = group;
     }
     return group;
-  }
-
-  /**
-   * Returns `true` if [node] is in static context.
-   */
-  bool _inStaticContext() {
-    // constructor initializer cannot reference "this"
-    if (node.getAncestor((node) => node is ConstructorInitializer) != null) {
-      return true;
-    }
-    // field initializer cannot reference "this"
-    if (node.getAncestor((node) => node is FieldDeclaration) != null) {
-      return true;
-    }
-    // static method
-    MethodDeclaration method = node.getAncestor((node) {
-      return node is MethodDeclaration;
-    });
-    return method != null && method.isStatic;
   }
 
   /**
@@ -1989,6 +1961,25 @@ class FixProcessor {
         fixGroup.addSuggestion(suggestion);
       });
     });
+  }
+
+  /**
+   * Returns `true` if [node] is in static context.
+   */
+  bool _inStaticContext() {
+    // constructor initializer cannot reference "this"
+    if (node.getAncestor((node) => node is ConstructorInitializer) != null) {
+      return true;
+    }
+    // field initializer cannot reference "this"
+    if (node.getAncestor((node) => node is FieldDeclaration) != null) {
+      return true;
+    }
+    // static method
+    MethodDeclaration method = node.getAncestor((node) {
+      return node is MethodDeclaration;
+    });
+    return method != null && method.isStatic;
   }
 
   _ConstructorLocation

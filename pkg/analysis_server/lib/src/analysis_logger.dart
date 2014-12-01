@@ -5,8 +5,8 @@
 library analysis.logger;
 
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:logging/logging.dart' as logging;
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:logging/logging.dart' as logging;
 
 /**
  * Instances of the class [AnalysisLogger] translate from the analysis engine's

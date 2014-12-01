@@ -10,12 +10,15 @@ import 'package:unittest/unittest.dart';
 import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
+main() {
+  runReflectiveTests(Test);
+}
+
 @ReflectiveTestCase()
 class Test extends AbstractAnalysisServerIntegrationTest {
   test_occurrences() {
     String pathname = sourcePath('test.dart');
-    String text =
-        r'''
+    String text = r'''
 main() {
   int sum = 0;
   for (int i = 0; i < 10; i++) {
@@ -48,8 +51,8 @@ main() {
         return null;
       }
       void check(String elementName, Iterable<String> expectedOccurrences) {
-        Set<int> expectedOffsets = expectedOccurrences.map((String substring) =>
-            text.indexOf(substring)).toSet();
+        Set<int> expectedOffsets =
+            expectedOccurrences.map((String substring) => text.indexOf(substring)).toSet();
         Set<int> foundOffsets = findOffsets(elementName);
         expect(foundOffsets, equals(expectedOffsets));
       }
@@ -58,8 +61,4 @@ main() {
       check('sum', ['sum = 0', 'sum +=', 'sum)']);
     });
   }
-}
-
-main() {
-  runReflectiveTests(Test);
 }

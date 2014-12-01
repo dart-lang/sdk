@@ -20,8 +20,7 @@ main() {
 class CombinatorComputerTest extends AbstractCompletionTest {
 
   @override
-  void setUp() {
-    super.setUp();
+  void setUpComputer() {
     computer = new CombinatorComputer();
   }
 
@@ -34,7 +33,7 @@ class CombinatorComputerTest extends AbstractCompletionTest {
       class M { var m1; int m2() { } }
       class A extends E implements I with M {a() {^}}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertNoSuggestions();
     });
   }
@@ -59,7 +58,7 @@ class CombinatorComputerTest extends AbstractCompletionTest {
       import "/testCD.dart";
       class X {}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestClass(
           'A',
           CompletionRelevance.DEFAULT,
@@ -112,7 +111,7 @@ class CombinatorComputerTest extends AbstractCompletionTest {
       import "/testCD.dart";
       class X {}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestClass(
           'A',
           CompletionRelevance.DEFAULT,

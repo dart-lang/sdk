@@ -9,6 +9,7 @@
 #include "vm/code_patcher.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
+#include "vm/flow_graph_compiler.h"
 #include "vm/instructions.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
@@ -275,7 +276,7 @@ intptr_t CodePatcher::InstanceCallSizeInBytes() {
 class EdgeCounter : public ValueObject {
  public:
   EdgeCounter(uword pc, const Code& ignored)
-      : end_(pc - CodePatcher::EdgeCounterIncrementSizeInBytes()) {
+      : end_(pc - FlowGraphCompiler::EdgeCounterIncrementSizeInBytes()) {
     ASSERT(IsValid(end_));
   }
 
@@ -290,14 +291,6 @@ class EdgeCounter : public ValueObject {
  private:
   uword end_;
 };
-
-
-int32_t CodePatcher::EdgeCounterIncrementSizeInBytes() {
-  // The edge counter load is followed by the fixed-size edge counter
-  // incrementing code:
-  //     83 40 0b 02               add [eax+0xb],0x2
-  return 4;
-}
 
 
 RawObject* CodePatcher::GetEdgeCounterAt(uword pc, const Code& code) {

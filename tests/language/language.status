@@ -23,6 +23,7 @@ duplicate_export_negative_test: Fail # Issue 6134
 async_test/*: Skip
 async_control_structures_test: Skip
 await_test: Skip
+await_regression_test: Skip
 await_for_test: Skip
 await_future_test: Skip
 await_nonfuture_test: Skip
@@ -35,6 +36,7 @@ vm/optimized_await_regress_test: Skip
 async_test/*: Skip
 async_control_structures_test: Skip
 await_test: Skip
+await_regression_test: Skip
 await_for_test: Skip
 await_future_test: Skip
 await_nonfuture_test: Skip
@@ -50,6 +52,7 @@ deferred_closurize_load_library_test: Fail  # Issue 17523
 deferred_inlined_test: Fail  # Issue 17523
 deferred_optimized_test: Fail  # Issue 17523
 enum_test: Crash # Issue 21416/21417
+enum_mirror_test: Skip # Issue 11511.
 
 override_inheritance_mixed_test/08: Fail # Issue 18124
 override_inheritance_mixed_test/09: Fail # Issue 18124

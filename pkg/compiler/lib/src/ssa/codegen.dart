@@ -1490,13 +1490,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  js.Call jsPropertyCall(js.Expression receiver,
-                         String fieldName,
-                         List<js.Expression> arguments) {
-    return new js.Call(new js.PropertyAccess.field(receiver, fieldName),
-                       arguments);
-  }
-
   void visitInterceptor(HInterceptor node) {
     registry.registerSpecializedGetInterceptor(node.interceptedClasses);
     String name = backend.namer.getInterceptorName(
@@ -1505,7 +1498,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         backend.namer.globalObjectFor(backend.interceptorsLibrary));
     use(node.receiver);
     List<js.Expression> arguments = <js.Expression>[pop()];
-    push(jsPropertyCall(isolate, name, arguments), node);
+    push(js.propertyCall(isolate, name, arguments), node);
     registry.registerUseInterceptor();
   }
 
@@ -1540,7 +1533,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       methodName = backend.namer.invocationName(node.selector);
       registerMethodInvoke(node);
     }
-    push(jsPropertyCall(object, methodName, arguments), node);
+    push(js.propertyCall(object, methodName, arguments), node);
   }
 
   void visitInvokeConstructorBody(HInvokeConstructorBody node) {
@@ -1548,7 +1541,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Expression object = pop();
     String methodName = backend.namer.getNameOfInstanceMember(node.element);
     List<js.Expression> arguments = visitArguments(node.inputs);
-    push(jsPropertyCall(object, methodName, arguments), node);
+    push(js.propertyCall(object, methodName, arguments), node);
     registry.registerStaticUse(node.element);
   }
 
@@ -1558,7 +1551,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         backend.namer.globalObjectFor(backend.interceptorsLibrary));
     Selector selector = getOptimizedSelectorFor(node, node.selector);
     String methodName = backend.registerOneShotInterceptor(selector);
-    push(jsPropertyCall(isolate, methodName, arguments), node);
+    push(js.propertyCall(isolate, methodName, arguments), node);
     if (selector.isGetter) {
       registerGetter(node);
     } else if (selector.isSetter) {
@@ -1615,33 +1608,32 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
     use(node.receiver);
     String name = backend.namer.invocationName(node.selector);
-    push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
+    push(js.propertyCall(pop(), name, visitArguments(node.inputs)), node);
     registerSetter(node);
   }
 
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
     use(node.receiver);
     String name = backend.namer.invocationName(node.selector);
-    push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
+    push(js.propertyCall(pop(), name, visitArguments(node.inputs)), node);
     registerGetter(node);
   }
 
   visitInvokeClosure(HInvokeClosure node) {
     Selector call = new Selector.callClosureFrom(node.selector);
     use(node.receiver);
-    push(jsPropertyCall(pop(),
-                        backend.namer.invocationName(call),
-                        visitArguments(node.inputs)),
+    push(js.propertyCall(pop(),
+                         backend.namer.invocationName(call),
+                         visitArguments(node.inputs)),
          node);
     registry.registerDynamicInvocation(call);
   }
 
   visitInvokeStatic(HInvokeStatic node) {
     Element element = node.element;
-    ClassElement cls = element.enclosingClass;
     List<DartType> instantiatedTypes = node.instantiatedTypes;
 
-    registry.registerStaticUse(element);
+    registry.registerStaticInvocation(element);
 
     if (instantiatedTypes != null && !instantiatedTypes.isEmpty) {
       instantiatedTypes.forEach((type) {
@@ -1655,7 +1647,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitInvokeSuper(HInvokeSuper node) {
     Element superMethod = node.element;
-    registry.registerStaticUse(superMethod);
+    registry.registerSuperInvocation(superMethod);
     ClassElement superClass = superMethod.enclosingClass;
     if (superMethod.kind == ElementKind.FIELD) {
       String fieldName = backend.namer.instanceFieldPropertyName(superMethod);
@@ -1683,14 +1675,23 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         registry.registerDynamicGetter(selector);
         registry.registerGetterForSuperMethod(node.element);
         methodName = backend.namer.invocationName(selector);
-      } else {
-        methodName = backend.namer.getNameOfInstanceMember(superMethod);
-      }
-      push(
+        push(
           js.js('#.prototype.#.call(#)', [
-              backend.namer.elementAccess(superClass),
-              methodName, visitArguments(node.inputs, start: 0)]),
+            backend.namer.elementAccess(superClass),
+            methodName, visitArguments(node.inputs, start: 0)]),
           node);
+      } else {
+        methodName =
+            backend.namer.getNameOfAliasedSuperMember(superMethod);
+        backend.registerAliasedSuperMember(superMethod);
+        use(node.receiver);
+        push(
+          js.js('#.#(#)', [
+            pop(), methodName,
+            visitArguments(node.inputs, start: 1)]), // Skip receiver argument.
+          node);
+      }
+
     }
   }
 
@@ -2578,7 +2579,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         use(node.checkedInput);
         String methodName =
             backend.namer.invocationName(node.receiverTypeCheckSelector);
-        js.Expression call = jsPropertyCall(pop(), methodName, []);
+        js.Expression call = js.propertyCall(pop(), methodName, []);
         pushStatement(new js.Return(call));
       }
       currentContainer = oldContainer;

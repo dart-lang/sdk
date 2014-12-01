@@ -647,6 +647,10 @@ uword Isolate::GetSpecifiedStackSize() {
 
 
 void Isolate::SetStackLimitFromStackBase(uword stack_base) {
+  // Set stack base.
+  stack_base_ = stack_base;
+
+  // Set stack limit.
 #if defined(USING_SIMULATOR)
   // Ignore passed-in native stack top and use Simulator stack top.
   Simulator* sim = Simulator::Current();  // May allocate a simulator.
@@ -654,10 +658,7 @@ void Isolate::SetStackLimitFromStackBase(uword stack_base) {
   stack_base = sim->StackTop();
   // The overflow area is accounted for by the simulator.
 #endif
-  // Set stack base.
-  stack_base_ = stack_base;
-  // Set stack limit.
-  SetStackLimit(stack_base_ - GetSpecifiedStackSize());
+  SetStackLimit(stack_base - GetSpecifiedStackSize());
 }
 
 
@@ -680,14 +681,11 @@ void Isolate::ClearStackLimit() {
 
 
 bool Isolate::GetProfilerStackBounds(uword* lower, uword* upper) const {
-  uword stack_lower = stack_limit();
-  if (stack_lower == kUwordMax) {
-    stack_lower = saved_stack_limit();
-  }
-  if (stack_lower == kUwordMax) {
+  uword stack_upper = stack_base_;
+  if (stack_upper == 0) {
     return false;
   }
-  uword stack_upper = stack_lower + GetSpecifiedStackSize();
+  uword stack_lower = stack_upper - GetSpecifiedStackSize();
   *lower = stack_lower;
   *upper = stack_upper;
   return true;

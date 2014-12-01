@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.completion.dart;
+library services.completion.dart;
 
 import 'dart:async';
 
@@ -10,6 +10,7 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/arglist_computer.dart';
 import 'package:analysis_server/src/services/completion/combinator_computer.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/imported_computer.dart';
 import 'package:analysis_server/src/services/completion/invocation_computer.dart';
 import 'package:analysis_server/src/services/completion/keyword_computer.dart';
@@ -47,22 +48,54 @@ abstract class DartCompletionComputer {
  * Manages code completion for a given Dart file completion request.
  */
 class DartCompletionManager extends CompletionManager {
+  final DartCompletionRequest request;
   final AnalysisContext context;
   final Source source;
   final int offset;
   final CompletionPerformance performance;
-  DartCompletionRequest request;
+  final DartCompletionCache cache;
   List<DartCompletionComputer> computers;
 
-  DartCompletionManager(this.context, SearchEngine searchEngine, this.source,
-      this.offset, this.performance) {
-    request = new DartCompletionRequest(context, searchEngine, source, offset);
+  DartCompletionManager(this.request, this.context, this.source, this.offset,
+      this.cache, this.performance)
+      : computers = [
+          new KeywordComputer(),
+          new LocalComputer(),
+          new ArgListComputer(),
+          new CombinatorComputer(),
+          new ImportedComputer(),
+          new InvocationComputer()];
+
+  /**
+   * Create a new initialized Dart source completion manager
+   */
+  factory DartCompletionManager.create(AnalysisContext context,
+      SearchEngine searchEngine, Source source, int offset, CompletionCache oldCache,
+      CompletionPerformance performance) {
+    DartCompletionCache newCache;
+    if (oldCache is DartCompletionCache) {
+      if (oldCache.context == context && oldCache.source == source) {
+        newCache = oldCache;
+      }
+    }
+    if (newCache == null) {
+      newCache = new DartCompletionCache(context, source);
+    }
+    return new DartCompletionManager(
+        new DartCompletionRequest(context, searchEngine, source, offset, newCache),
+        context,
+        source,
+        offset,
+        newCache,
+        performance);
   }
+
+  @override
+  CompletionCache get completionCache => cache;
 
   @override
   void compute() {
     performance.logElapseTime('compute', () {
-      initComputers();
       computeFast();
       if (!computers.isEmpty) {
         computeFull();
@@ -124,21 +157,6 @@ class DartCompletionManager extends CompletionManager {
   }
 
   /**
-   * Build and initialize the list of completion computers
-   */
-  void initComputers() {
-    if (computers == null) {
-      computers = [
-          new KeywordComputer(),
-          new LocalComputer(),
-          new ArgListComputer(),
-          new CombinatorComputer(),
-          new ImportedComputer(),
-          new InvocationComputer()];
-    }
-  }
-
-  /**
    * Send the current list of suggestions to the client.
    */
   void sendResults(bool last) {
@@ -196,6 +214,11 @@ class DartCompletionRequest {
   final int offset;
 
   /**
+   * Cached information from a prior code completion operation.
+   */
+  final DartCompletionCache cache;
+
+  /**
    * The compilation unit in which the completion was requested. This unit
    * may or may not be resolved when [DartCompletionComputer.computeFast]
    * is called but is resolved when [DartCompletionComputer.computeFull].
@@ -228,10 +251,10 @@ class DartCompletionRequest {
   /**
    * The list of suggestions to be sent to the client.
    */
-  final List<CompletionSuggestion> suggestions = [];
+  final List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
   DartCompletionRequest(this.context, this.searchEngine, this.source,
-      this.offset);
+      this.offset, this.cache);
 }
 
 /**

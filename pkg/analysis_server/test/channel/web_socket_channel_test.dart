@@ -19,7 +19,9 @@ main() {
     test('invalidJsonToClient', WebSocketChannelTest.invalidJsonToClient);
     test('invalidJsonToServer', WebSocketChannelTest.invalidJsonToServer);
     test('notification', WebSocketChannelTest.notification);
-    test('notificationAndResponse', WebSocketChannelTest.notificationAndResponse);
+    test(
+        'notificationAndResponse',
+        WebSocketChannelTest.notificationAndResponse);
     test('request', WebSocketChannelTest.request);
     test('requestResponse', WebSocketChannelTest.requestResponse);
     test('response', WebSocketChannelTest.response);
@@ -42,60 +44,54 @@ class WebSocketChannelTest {
     return future;
   }
 
-  static void expectMsgCount({requestCount: 0,
-                              responseCount: 0,
-                              notificationCount: 0}) {
+  static void expectMsgCount({requestCount: 0, responseCount: 0,
+      notificationCount: 0}) {
     expect(requestsReceived, hasLength(requestCount));
     expect(responsesReceived, hasLength(responseCount));
     expect(notificationsReceived, hasLength(notificationCount));
   }
 
   static Future invalidJsonToClient() {
-    var result = client.responseStream
-        .first
-        .timeout(new Duration(seconds: 1))
-        .then((Response response) {
-          expect(response.id, equals('myId'));
-          expectMsgCount(responseCount: 1);
-        });
+    var result = client.responseStream.first.timeout(
+        new Duration(seconds: 1)).then((Response response) {
+      expect(response.id, equals('myId'));
+      expectMsgCount(responseCount: 1);
+    });
     socket.twin.add('{"foo":"bar"}');
     server.sendResponse(new Response('myId'));
     return result;
   }
 
   static Future invalidJsonToServer() {
-    var result = client.responseStream
-        .first
-        .timeout(new Duration(seconds: 1))
-        .then((Response response) {
-          expect(response.id, equals(''));
-          expect(response.error, isNotNull);
-          expectMsgCount(responseCount: 1);
-        });
+    var result = client.responseStream.first.timeout(
+        new Duration(seconds: 1)).then((Response response) {
+      expect(response.id, equals(''));
+      expect(response.error, isNotNull);
+      expectMsgCount(responseCount: 1);
+    });
     socket.add('"blat"');
     return result;
   }
 
   static Future notification() {
-    var result = client.notificationStream
-        .first
-        .timeout(new Duration(seconds: 1))
-        .then((Notification notification) {
-          expect(notification.event, equals('myEvent'));
-          expectMsgCount(notificationCount: 1);
-          expect(notificationsReceived.first, equals(notification));
-        });
+    var result = client.notificationStream.first.timeout(
+        new Duration(seconds: 1)).then((Notification notification) {
+      expect(notification.event, equals('myEvent'));
+      expectMsgCount(notificationCount: 1);
+      expect(notificationsReceived.first, equals(notification));
+    });
     server.sendNotification(new Notification('myEvent'));
     return result;
   }
 
   static Future notificationAndResponse() {
-    var result = Future
-        .wait([
-          client.notificationStream.first,
-          client.responseStream.first])
-        .timeout(new Duration(seconds: 1))
-        .then((_) => expectMsgCount(responseCount: 1, notificationCount: 1));
+    var result = Future.wait(
+        [
+            client.notificationStream.first,
+            client.responseStream.first]).timeout(
+                new Duration(
+                    seconds: 1)).then(
+                        (_) => expectMsgCount(responseCount: 1, notificationCount: 1));
     server
         ..sendNotification(new Notification('myEvent'))
         ..sendResponse(new Response('myId'));
@@ -113,31 +109,30 @@ class WebSocketChannelTest {
 
   static Future requestResponse() {
     // Simulate server sending a response by echoing the request.
-    server.listen((Request request) =>
-        server.sendResponse(new Response(request.id)));
-    return client.sendRequest(new Request('myId', 'myMth'))
-        .timeout(new Duration(seconds: 1))
-        .then((Response response) {
-          expect(response.id, equals('myId'));
-          expectMsgCount(requestCount: 1, responseCount: 1);
+    server.listen(
+        (Request request) => server.sendResponse(new Response(request.id)));
+    return client.sendRequest(
+        new Request(
+            'myId',
+            'myMth')).timeout(new Duration(seconds: 1)).then((Response response) {
+      expect(response.id, equals('myId'));
+      expectMsgCount(requestCount: 1, responseCount: 1);
 
-          expect(requestsReceived.first is Request, isTrue);
-          Request request = requestsReceived.first;
-          expect(request.id, equals('myId'));
-          expect(request.method, equals('myMth'));
-          expect(responsesReceived.first, equals(response));
-        });
+      expect(requestsReceived.first is Request, isTrue);
+      Request request = requestsReceived.first;
+      expect(request.id, equals('myId'));
+      expect(request.method, equals('myMth'));
+      expect(responsesReceived.first, equals(response));
+    });
   }
 
   static Future response() {
     server.sendResponse(new Response('myId'));
-    return client.responseStream
-        .first
-        .timeout(new Duration(seconds: 1))
-        .then((Response response) {
-          expect(response.id, equals('myId'));
-          expectMsgCount(responseCount: 1);
-        });
+    return client.responseStream.first.timeout(
+        new Duration(seconds: 1)).then((Response response) {
+      expect(response.id, equals('myId'));
+      expectMsgCount(responseCount: 1);
+    });
   }
 
   static void setUp() {

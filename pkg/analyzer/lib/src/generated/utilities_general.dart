@@ -56,7 +56,8 @@ class TimeCounter_TimeCounterHandle {
    */
   int stop() {
     _counter._sw.stop();
-    int elapsed = (_counter._sw.elapsedMicroseconds - _startMicros) *
+    int elapsed =
+        (_counter._sw.elapsedMicroseconds - _startMicros) *
         TimeCounter.NANOS_PER_MICRO;
     // restore previous counter and resume it
     TimeCounter._current = _prev;

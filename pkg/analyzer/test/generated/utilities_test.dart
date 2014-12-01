@@ -37,6 +37,30 @@ main() {
   runReflectiveTests(StringUtilitiesTest);
 }
 
+class AstCloneComparator extends AstComparator {
+  final bool expectTokensCopied;
+
+  AstCloneComparator(this.expectTokensCopied);
+
+  @override
+  bool isEqualNodes(AstNode first, AstNode second) {
+    if (first != null && identical(first, second)) {
+      fail('Failed to copy node: $first (${first.offset})');
+      return false;
+    }
+    return super.isEqualNodes(first, second);
+  }
+
+  @override
+  bool isEqualTokens(Token first, Token second) {
+    if (expectTokensCopied && first != null && identical(first, second)) {
+      fail('Failed to copy token: ${first.lexeme} (${first.offset})');
+      return false;
+    }
+    return super.isEqualTokens(first, second);
+  }
+}
+
 class AstClonerTest extends EngineTestCase {
   void test_visitAdjacentStrings() {
     _assertClone(
@@ -92,10 +116,6 @@ class AstClonerTest extends EngineTestCase {
             AstFactory.identifier3("b")));
   }
 
-  void test_visitBlockFunctionBody() {
-    _assertClone(AstFactory.blockFunctionBody2());
-  }
-
   void test_visitBlock_empty() {
     _assertClone(AstFactory.block());
   }
@@ -103,6 +123,10 @@ class AstClonerTest extends EngineTestCase {
   void test_visitBlock_nonEmpty() {
     _assertClone(
         AstFactory.block([AstFactory.breakStatement(), AstFactory.breakStatement()]));
+  }
+
+  void test_visitBlockFunctionBody() {
+    _assertClone(AstFactory.blockFunctionBody2());
   }
 
   void test_visitBooleanLiteral_false() {
@@ -161,8 +185,7 @@ class AstClonerTest extends EngineTestCase {
   }
 
   void test_visitCatchClause_on_catch() {
-    _assertClone(
-        AstFactory.catchClause4(AstFactory.typeName4("E"), "e"));
+    _assertClone(AstFactory.catchClause4(AstFactory.typeName4("E"), "e"));
   }
 
   void test_visitClassDeclaration_abstract() {
@@ -470,9 +493,10 @@ class AstClonerTest extends EngineTestCase {
     _assertClone(
         AstFactory.compilationUnit4(
             [AstFactory.libraryDirective2("l")],
-            [AstFactory.topLevelVariableDeclaration2(
-                Keyword.VAR,
-                [AstFactory.variableDeclaration("a")])]));
+            [
+                AstFactory.topLevelVariableDeclaration2(
+                    Keyword.VAR,
+                    [AstFactory.variableDeclaration("a")])]));
   }
 
   void test_visitCompilationUnit_empty() {
@@ -505,9 +529,10 @@ class AstClonerTest extends EngineTestCase {
         AstFactory.compilationUnit8(
             "!#/bin/dartvm",
             [AstFactory.libraryDirective2("l")],
-            [AstFactory.topLevelVariableDeclaration2(
-                Keyword.VAR,
-                [AstFactory.variableDeclaration("a")])]));
+            [
+                AstFactory.topLevelVariableDeclaration2(
+                    Keyword.VAR,
+                    [AstFactory.variableDeclaration("a")])]));
   }
 
   void test_visitConditionalExpression() {
@@ -559,11 +584,12 @@ class AstClonerTest extends EngineTestCase {
             AstFactory.identifier3("C"),
             null,
             AstFactory.formalParameterList(),
-            [AstFactory.constructorFieldInitializer(false, "a", AstFactory.identifier3("b")),
-            AstFactory.constructorFieldInitializer(
-                false,
-                "c",
-                AstFactory.identifier3("d"))],
+            [
+                AstFactory.constructorFieldInitializer(false, "a", AstFactory.identifier3("b")),
+                AstFactory.constructorFieldInitializer(
+                    false,
+                    "c",
+                    AstFactory.identifier3("d"))],
             AstFactory.blockFunctionBody2()));
   }
 
@@ -574,9 +600,10 @@ class AstClonerTest extends EngineTestCase {
             null,
             AstFactory.identifier3("C"),
             null,
-            AstFactory.formalParameterList([
-                AstFactory.simpleFormalParameter(Keyword.VAR, "a"),
-                AstFactory.simpleFormalParameter(Keyword.VAR, "b")]),
+            AstFactory.formalParameterList(
+                [
+                    AstFactory.simpleFormalParameter(Keyword.VAR, "a"),
+                    AstFactory.simpleFormalParameter(Keyword.VAR, "b")]),
             null,
             AstFactory.blockFunctionBody2()));
   }
@@ -601,10 +628,11 @@ class AstClonerTest extends EngineTestCase {
             AstFactory.identifier3("C"),
             null,
             AstFactory.formalParameterList(),
-            [AstFactory.constructorFieldInitializer(
-                false,
-                "a",
-                AstFactory.identifier3("b"))],
+            [
+                AstFactory.constructorFieldInitializer(
+                    false,
+                    "a",
+                    AstFactory.identifier3("b"))],
             AstFactory.blockFunctionBody2()));
   }
 
@@ -622,11 +650,6 @@ class AstClonerTest extends EngineTestCase {
     _assertClone(declaration);
   }
 
-  void test_visitConstructorFieldInitializer_withThis() {
-    _assertClone(
-        AstFactory.constructorFieldInitializer(true, "a", AstFactory.identifier3("b")));
-  }
-
   void test_visitConstructorFieldInitializer_withoutThis() {
     _assertClone(
         AstFactory.constructorFieldInitializer(
@@ -635,14 +658,18 @@ class AstClonerTest extends EngineTestCase {
             AstFactory.identifier3("b")));
   }
 
+  void test_visitConstructorFieldInitializer_withThis() {
+    _assertClone(
+        AstFactory.constructorFieldInitializer(true, "a", AstFactory.identifier3("b")));
+  }
+
   void test_visitConstructorName_named_prefix() {
     _assertClone(
         AstFactory.constructorName(AstFactory.typeName4("p.C.n"), null));
   }
 
   void test_visitConstructorName_unnamed_noPrefix() {
-    _assertClone(
-        AstFactory.constructorName(AstFactory.typeName4("C"), null));
+    _assertClone(AstFactory.constructorName(AstFactory.typeName4("C"), null));
   }
 
   void test_visitConstructorName_unnamed_prefix() {
@@ -784,10 +811,7 @@ class AstClonerTest extends EngineTestCase {
 
   void test_visitFieldFormalParameter_keywordAndType() {
     _assertClone(
-        AstFactory.fieldFormalParameter(
-            Keyword.FINAL,
-            AstFactory.typeName4("A"),
-            "a"));
+        AstFactory.fieldFormalParameter(Keyword.FINAL, AstFactory.typeName4("A"), "a"));
   }
 
   void test_visitFieldFormalParameter_type() {
@@ -826,113 +850,6 @@ class AstClonerTest extends EngineTestCase {
             TokenFactory.tokenFromKeyword(Keyword.IN),
             AstFactory.identifier3("b"),
             TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-            AstFactory.block()));
-  }
-
-  void test_visitForStatement_c() {
-    _assertClone(
-        AstFactory.forStatement(
-            null,
-            AstFactory.identifier3("c"),
-            null,
-            AstFactory.block()));
-  }
-
-  void test_visitForStatement_cu() {
-    _assertClone(
-        AstFactory.forStatement(
-            null,
-            AstFactory.identifier3("c"),
-            [AstFactory.identifier3("u")],
-            AstFactory.block()));
-  }
-
-  void test_visitForStatement_e() {
-    _assertClone(
-        AstFactory.forStatement(
-            AstFactory.identifier3("e"),
-            null,
-            null,
-            AstFactory.block()));
-  }
-
-  void test_visitForStatement_ec() {
-    _assertClone(
-        AstFactory.forStatement(
-            AstFactory.identifier3("e"),
-            AstFactory.identifier3("c"),
-            null,
-            AstFactory.block()));
-  }
-
-  void test_visitForStatement_ecu() {
-    _assertClone(
-        AstFactory.forStatement(
-            AstFactory.identifier3("e"),
-            AstFactory.identifier3("c"),
-            [AstFactory.identifier3("u")],
-            AstFactory.block()));
-  }
-
-  void test_visitForStatement_eu() {
-    _assertClone(
-        AstFactory.forStatement(
-            AstFactory.identifier3("e"),
-            null,
-            [AstFactory.identifier3("u")],
-            AstFactory.block()));
-  }
-
-  void test_visitForStatement_i() {
-    _assertClone(
-        AstFactory.forStatement2(
-            AstFactory.variableDeclarationList2(
-                Keyword.VAR,
-                [AstFactory.variableDeclaration("i")]),
-            null,
-            null,
-            AstFactory.block()));
-  }
-
-  void test_visitForStatement_ic() {
-    _assertClone(
-        AstFactory.forStatement2(
-            AstFactory.variableDeclarationList2(
-                Keyword.VAR,
-                [AstFactory.variableDeclaration("i")]),
-            AstFactory.identifier3("c"),
-            null,
-            AstFactory.block()));
-  }
-
-  void test_visitForStatement_icu() {
-    _assertClone(
-        AstFactory.forStatement2(
-            AstFactory.variableDeclarationList2(
-                Keyword.VAR,
-                [AstFactory.variableDeclaration("i")]),
-            AstFactory.identifier3("c"),
-            [AstFactory.identifier3("u")],
-            AstFactory.block()));
-  }
-
-  void test_visitForStatement_iu() {
-    _assertClone(
-        AstFactory.forStatement2(
-            AstFactory.variableDeclarationList2(
-                Keyword.VAR,
-                [AstFactory.variableDeclaration("i")]),
-            null,
-            [AstFactory.identifier3("u")],
-            AstFactory.block()));
-  }
-
-  void test_visitForStatement_u() {
-    _assertClone(
-        AstFactory.forStatement(
-            null,
-            null,
-            [AstFactory.identifier3("u")],
             AstFactory.block()));
   }
 
@@ -1091,13 +1008,111 @@ class AstClonerTest extends EngineTestCase {
                     AstFactory.integer(4))]));
   }
 
-  void test_visitFunctionDeclarationStatement() {
+  void test_visitForStatement_c() {
     _assertClone(
-        AstFactory.functionDeclarationStatement(
+        AstFactory.forStatement(
+            null,
+            AstFactory.identifier3("c"),
+            null,
+            AstFactory.block()));
+  }
+
+  void test_visitForStatement_cu() {
+    _assertClone(
+        AstFactory.forStatement(
+            null,
+            AstFactory.identifier3("c"),
+            [AstFactory.identifier3("u")],
+            AstFactory.block()));
+  }
+
+  void test_visitForStatement_e() {
+    _assertClone(
+        AstFactory.forStatement(
+            AstFactory.identifier3("e"),
             null,
             null,
-            "f",
-            AstFactory.functionExpression()));
+            AstFactory.block()));
+  }
+
+  void test_visitForStatement_ec() {
+    _assertClone(
+        AstFactory.forStatement(
+            AstFactory.identifier3("e"),
+            AstFactory.identifier3("c"),
+            null,
+            AstFactory.block()));
+  }
+
+  void test_visitForStatement_ecu() {
+    _assertClone(
+        AstFactory.forStatement(
+            AstFactory.identifier3("e"),
+            AstFactory.identifier3("c"),
+            [AstFactory.identifier3("u")],
+            AstFactory.block()));
+  }
+
+  void test_visitForStatement_eu() {
+    _assertClone(
+        AstFactory.forStatement(
+            AstFactory.identifier3("e"),
+            null,
+            [AstFactory.identifier3("u")],
+            AstFactory.block()));
+  }
+
+  void test_visitForStatement_i() {
+    _assertClone(
+        AstFactory.forStatement2(
+            AstFactory.variableDeclarationList2(
+                Keyword.VAR,
+                [AstFactory.variableDeclaration("i")]),
+            null,
+            null,
+            AstFactory.block()));
+  }
+
+  void test_visitForStatement_ic() {
+    _assertClone(
+        AstFactory.forStatement2(
+            AstFactory.variableDeclarationList2(
+                Keyword.VAR,
+                [AstFactory.variableDeclaration("i")]),
+            AstFactory.identifier3("c"),
+            null,
+            AstFactory.block()));
+  }
+
+  void test_visitForStatement_icu() {
+    _assertClone(
+        AstFactory.forStatement2(
+            AstFactory.variableDeclarationList2(
+                Keyword.VAR,
+                [AstFactory.variableDeclaration("i")]),
+            AstFactory.identifier3("c"),
+            [AstFactory.identifier3("u")],
+            AstFactory.block()));
+  }
+
+  void test_visitForStatement_iu() {
+    _assertClone(
+        AstFactory.forStatement2(
+            AstFactory.variableDeclarationList2(
+                Keyword.VAR,
+                [AstFactory.variableDeclaration("i")]),
+            null,
+            [AstFactory.identifier3("u")],
+            AstFactory.block()));
+  }
+
+  void test_visitForStatement_u() {
+    _assertClone(
+        AstFactory.forStatement(
+            null,
+            null,
+            [AstFactory.identifier3("u")],
+            AstFactory.block()));
   }
 
   void test_visitFunctionDeclaration_getter() {
@@ -1136,6 +1151,15 @@ class AstClonerTest extends EngineTestCase {
     declaration.metadata =
         [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
     _assertClone(declaration);
+  }
+
+  void test_visitFunctionDeclarationStatement() {
+    _assertClone(
+        AstFactory.functionDeclarationStatement(
+            null,
+            null,
+            "f",
+            AstFactory.functionExpression()));
   }
 
   void test_visitFunctionExpression() {
@@ -1182,9 +1206,7 @@ class AstClonerTest extends EngineTestCase {
 
   void test_visitFunctionTypedFormalParameter_type() {
     _assertClone(
-        AstFactory.functionTypedFormalParameter(
-            AstFactory.typeName4("T"),
-            "f"));
+        AstFactory.functionTypedFormalParameter(AstFactory.typeName4("T"), "f"));
   }
 
   void test_visitIfStatement_withElse() {
@@ -1305,9 +1327,7 @@ class AstClonerTest extends EngineTestCase {
 
   void test_visitInstanceCreationExpression_unnamed() {
     _assertClone(
-        AstFactory.instanceCreationExpression2(
-            Keyword.NEW,
-            AstFactory.typeName4("C")));
+        AstFactory.instanceCreationExpression2(Keyword.NEW, AstFactory.typeName4("C")));
   }
 
   void test_visitIntegerLiteral() {
@@ -1402,10 +1422,6 @@ class AstClonerTest extends EngineTestCase {
                 AstFactory.identifier3("c")]));
   }
 
-  void test_visitMapLiteralEntry() {
-    _assertClone(AstFactory.mapLiteralEntry("a", AstFactory.identifier3("b")));
-  }
-
   void test_visitMapLiteral_const() {
     _assertClone(AstFactory.mapLiteral(Keyword.CONST, null));
   }
@@ -1421,6 +1437,10 @@ class AstClonerTest extends EngineTestCase {
                 AstFactory.mapLiteralEntry("a", AstFactory.identifier3("a")),
                 AstFactory.mapLiteralEntry("b", AstFactory.identifier3("b")),
                 AstFactory.mapLiteralEntry("c", AstFactory.identifier3("c"))]));
+  }
+
+  void test_visitMapLiteralEntry() {
+    _assertClone(AstFactory.mapLiteralEntry("a", AstFactory.identifier3("b")));
   }
 
   void test_visitMethodDeclaration_external() {
@@ -1601,8 +1621,7 @@ class AstClonerTest extends EngineTestCase {
   }
 
   void test_visitMethodInvocation_target() {
-    _assertClone(
-        AstFactory.methodInvocation(AstFactory.identifier3("t"), "m"));
+    _assertClone(AstFactory.methodInvocation(AstFactory.identifier3("t"), "m"));
   }
 
   void test_visitNamedExpression() {
@@ -1669,13 +1688,13 @@ class AstClonerTest extends EngineTestCase {
         AstFactory.postfixExpression(AstFactory.identifier3("a"), TokenType.PLUS_PLUS));
   }
 
+  void test_visitPrefixedIdentifier() {
+    _assertClone(AstFactory.identifier5("a", "b"));
+  }
+
   void test_visitPrefixExpression() {
     _assertClone(
         AstFactory.prefixExpression(TokenType.MINUS, AstFactory.identifier3("a")));
-  }
-
-  void test_visitPrefixedIdentifier() {
-    _assertClone(AstFactory.identifier5("a", "b"));
   }
 
   void test_visitPropertyAccess() {
@@ -1799,9 +1818,7 @@ class AstClonerTest extends EngineTestCase {
 
   void test_visitSwitchDefault_singleLabel() {
     _assertClone(
-        AstFactory.switchDefault(
-            [AstFactory.label2("l1")],
-            [AstFactory.block()]));
+        AstFactory.switchDefault([AstFactory.label2("l1")], [AstFactory.block()]));
   }
 
   void test_visitSwitchStatement() {
@@ -1850,14 +1867,6 @@ class AstClonerTest extends EngineTestCase {
             [AstFactory.catchClause3(AstFactory.typeName4("E"))]));
   }
 
-  void test_visitTryStatement_catchFinally() {
-    _assertClone(
-        AstFactory.tryStatement3(
-            AstFactory.block(),
-            [AstFactory.catchClause3(AstFactory.typeName4("E"))],
-            AstFactory.block()));
-  }
-
   void test_visitTryStatement_catches() {
     _assertClone(
         AstFactory.tryStatement2(
@@ -1865,6 +1874,14 @@ class AstClonerTest extends EngineTestCase {
             [
                 AstFactory.catchClause3(AstFactory.typeName4("E")),
                 AstFactory.catchClause3(AstFactory.typeName4("F"))]));
+  }
+
+  void test_visitTryStatement_catchFinally() {
+    _assertClone(
+        AstFactory.tryStatement3(
+            AstFactory.block(),
+            [AstFactory.catchClause3(AstFactory.typeName4("E"))],
+            AstFactory.block()));
   }
 
   void test_visitTryStatement_finally() {
@@ -1904,14 +1921,6 @@ class AstClonerTest extends EngineTestCase {
     _assertClone(AstFactory.typeName4("C", [AstFactory.typeName4("D")]));
   }
 
-  void test_visitTypeParameterList_multiple() {
-    _assertClone(AstFactory.typeParameterList(["E", "F"]));
-  }
-
-  void test_visitTypeParameterList_single() {
-    _assertClone(AstFactory.typeParameterList(["E"]));
-  }
-
   void test_visitTypeParameter_withExtends() {
     _assertClone(AstFactory.typeParameter2("E", AstFactory.typeName4("C")));
   }
@@ -1925,6 +1934,30 @@ class AstClonerTest extends EngineTestCase {
 
   void test_visitTypeParameter_withoutExtends() {
     _assertClone(AstFactory.typeParameter("E"));
+  }
+
+  void test_visitTypeParameterList_multiple() {
+    _assertClone(AstFactory.typeParameterList(["E", "F"]));
+  }
+
+  void test_visitTypeParameterList_single() {
+    _assertClone(AstFactory.typeParameterList(["E"]));
+  }
+
+  void test_visitVariableDeclaration_initialized() {
+    _assertClone(
+        AstFactory.variableDeclaration2("a", AstFactory.identifier3("b")));
+  }
+
+  void test_visitVariableDeclaration_uninitialized() {
+    _assertClone(AstFactory.variableDeclaration("a"));
+  }
+
+  void test_visitVariableDeclaration_withMetadata() {
+    VariableDeclaration declaration = AstFactory.variableDeclaration("a");
+    declaration.metadata =
+        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
+    _assertClone(declaration);
   }
 
   void test_visitVariableDeclarationList_const_type() {
@@ -1975,22 +2008,6 @@ class AstClonerTest extends EngineTestCase {
             [AstFactory.variableDeclaration("c")]));
   }
 
-  void test_visitVariableDeclaration_initialized() {
-    _assertClone(
-        AstFactory.variableDeclaration2("a", AstFactory.identifier3("b")));
-  }
-
-  void test_visitVariableDeclaration_uninitialized() {
-    _assertClone(AstFactory.variableDeclaration("a"));
-  }
-
-  void test_visitVariableDeclaration_withMetadata() {
-    VariableDeclaration declaration = AstFactory.variableDeclaration("a");
-    declaration.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("deprecated"))];
-    _assertClone(declaration);
-  }
-
   void test_visitWhileStatement() {
     _assertClone(
         AstFactory.whileStatement(AstFactory.identifier3("c"), AstFactory.block()));
@@ -2032,30 +2049,6 @@ class AstClonerTest extends EngineTestCase {
     if (!comparitor.isEqualNodes(node, clone)) {
       fail("Failed to clone ${node.runtimeType.toString()}");
     }
-  }
-}
-
-class AstCloneComparator extends AstComparator {
-  final bool expectTokensCopied;
-
-  AstCloneComparator(this.expectTokensCopied);
-
-  @override
-  bool isEqualNodes(AstNode first, AstNode second) {
-    if (first != null && identical(first, second)) {
-      fail('Failed to copy node: $first (${first.offset})');
-      return false;
-    }
-    return super.isEqualNodes(first, second);
-  }
-
-  @override
-  bool isEqualTokens(Token first, Token second) {
-    if (expectTokensCopied && first != null && identical(first, second)) {
-      fail('Failed to copy token: ${first.lexeme} (${first.offset})');
-      return false;
-    }
-    return super.isEqualTokens(first, second);
   }
 }
 
@@ -2386,36 +2379,6 @@ class DirectedGraphTest extends EngineTestCase {
  * Instances of the class `Node` represent simple nodes used for testing purposes.
  */
 class DirectedGraphTest_Node {
-}
-
-class Getter_NodeReplacerTest_testAnnotatedNode implements
-    NodeReplacerTest_Getter {
-  @override
-  Comment get(AnnotatedNode node) => node.documentationComment;
-}
-
-class Getter_NodeReplacerTest_testNormalFormalParameter implements
-    NodeReplacerTest_Getter {
-  @override
-  SimpleIdentifier get(NormalFormalParameter node) => node.identifier;
-}
-
-class Getter_NodeReplacerTest_testNormalFormalParameter_2 implements
-    NodeReplacerTest_Getter {
-  @override
-  Comment get(NormalFormalParameter node) => node.documentationComment;
-}
-
-class Getter_NodeReplacerTest_testTypedLiteral implements
-    NodeReplacerTest_Getter {
-  @override
-  TypeArgumentList get(TypedLiteral node) => node.typeArguments;
-}
-
-class Getter_NodeReplacerTest_testUriBasedDirective implements
-    NodeReplacerTest_Getter {
-  @override
-  StringLiteral get(UriBasedDirective node) => node.uri;
 }
 
 class Getter_NodeReplacerTest_test_annotation implements NodeReplacerTest_Getter
@@ -2833,13 +2796,6 @@ class Getter_NodeReplacerTest_test_functionDeclaration implements
   TypeName get(FunctionDeclaration node) => node.returnType;
 }
 
-class Getter_NodeReplacerTest_test_functionDeclarationStatement implements
-    NodeReplacerTest_Getter {
-  @override
-  FunctionDeclaration get(FunctionDeclarationStatement node) =>
-      node.functionDeclaration;
-}
-
 class Getter_NodeReplacerTest_test_functionDeclaration_2 implements
     NodeReplacerTest_Getter {
   @override
@@ -2852,10 +2808,23 @@ class Getter_NodeReplacerTest_test_functionDeclaration_3 implements
   SimpleIdentifier get(FunctionDeclaration node) => node.name;
 }
 
+class Getter_NodeReplacerTest_test_functionDeclarationStatement implements
+    NodeReplacerTest_Getter {
+  @override
+  FunctionDeclaration get(FunctionDeclarationStatement node) =>
+      node.functionDeclaration;
+}
+
 class Getter_NodeReplacerTest_test_functionExpression implements
     NodeReplacerTest_Getter {
   @override
   FormalParameterList get(FunctionExpression node) => node.parameters;
+}
+
+class Getter_NodeReplacerTest_test_functionExpression_2 implements
+    NodeReplacerTest_Getter {
+  @override
+  FunctionBody get(FunctionExpression node) => node.body;
 }
 
 class Getter_NodeReplacerTest_test_functionExpressionInvocation implements
@@ -2868,12 +2837,6 @@ class Getter_NodeReplacerTest_test_functionExpressionInvocation_2 implements
     NodeReplacerTest_Getter {
   @override
   ArgumentList get(FunctionExpressionInvocation node) => node.argumentList;
-}
-
-class Getter_NodeReplacerTest_test_functionExpression_2 implements
-    NodeReplacerTest_Getter {
-  @override
-  FunctionBody get(FunctionExpression node) => node.body;
 }
 
 class Getter_NodeReplacerTest_test_functionTypeAlias implements
@@ -3091,12 +3054,6 @@ class Getter_NodeReplacerTest_test_postfixExpression implements
   Expression get(PostfixExpression node) => node.operand;
 }
 
-class Getter_NodeReplacerTest_test_prefixExpression implements
-    NodeReplacerTest_Getter {
-  @override
-  Expression get(PrefixExpression node) => node.operand;
-}
-
 class Getter_NodeReplacerTest_test_prefixedIdentifier implements
     NodeReplacerTest_Getter {
   @override
@@ -3107,6 +3064,12 @@ class Getter_NodeReplacerTest_test_prefixedIdentifier_2 implements
     NodeReplacerTest_Getter {
   @override
   SimpleIdentifier get(PrefixedIdentifier node) => node.prefix;
+}
+
+class Getter_NodeReplacerTest_test_prefixExpression implements
+    NodeReplacerTest_Getter {
+  @override
+  Expression get(PrefixExpression node) => node.operand;
 }
 
 class Getter_NodeReplacerTest_test_propertyAccess implements
@@ -3224,6 +3187,12 @@ class Getter_NodeReplacerTest_test_variableDeclaration implements
   SimpleIdentifier get(VariableDeclaration node) => node.name;
 }
 
+class Getter_NodeReplacerTest_test_variableDeclaration_2 implements
+    NodeReplacerTest_Getter {
+  @override
+  Expression get(VariableDeclaration node) => node.initializer;
+}
+
 class Getter_NodeReplacerTest_test_variableDeclarationList implements
     NodeReplacerTest_Getter {
   @override
@@ -3237,12 +3206,6 @@ class Getter_NodeReplacerTest_test_variableDeclarationStatement implements
       node.variables;
 }
 
-class Getter_NodeReplacerTest_test_variableDeclaration_2 implements
-    NodeReplacerTest_Getter {
-  @override
-  Expression get(VariableDeclaration node) => node.initializer;
-}
-
 class Getter_NodeReplacerTest_test_whileStatement implements
     NodeReplacerTest_Getter {
   @override
@@ -3253,6 +3216,36 @@ class Getter_NodeReplacerTest_test_whileStatement_2 implements
     NodeReplacerTest_Getter {
   @override
   Statement get(WhileStatement node) => node.body;
+}
+
+class Getter_NodeReplacerTest_testAnnotatedNode implements
+    NodeReplacerTest_Getter {
+  @override
+  Comment get(AnnotatedNode node) => node.documentationComment;
+}
+
+class Getter_NodeReplacerTest_testNormalFormalParameter implements
+    NodeReplacerTest_Getter {
+  @override
+  SimpleIdentifier get(NormalFormalParameter node) => node.identifier;
+}
+
+class Getter_NodeReplacerTest_testNormalFormalParameter_2 implements
+    NodeReplacerTest_Getter {
+  @override
+  Comment get(NormalFormalParameter node) => node.documentationComment;
+}
+
+class Getter_NodeReplacerTest_testTypedLiteral implements
+    NodeReplacerTest_Getter {
+  @override
+  TypeArgumentList get(TypedLiteral node) => node.typeArguments;
+}
+
+class Getter_NodeReplacerTest_testUriBasedDirective implements
+    NodeReplacerTest_Getter {
+  @override
+  StringLiteral get(UriBasedDirective node) => node.uri;
 }
 
 class LineInfoTest {
@@ -3298,46 +3291,6 @@ class LineInfoTest {
     expect(location.lineNumber, 2);
     expect(location.columnNumber, 1);
   }
-}
-
-class ListGetter_NodeReplacerTest_testAnnotatedNode extends
-    NodeReplacerTest_ListGetter<AnnotatedNode, Annotation> {
-  ListGetter_NodeReplacerTest_testAnnotatedNode(int arg0) : super(arg0);
-
-  @override
-  NodeList<Annotation> getList(AnnotatedNode node) => node.metadata;
-}
-
-class ListGetter_NodeReplacerTest_testNamespaceDirective extends
-    NodeReplacerTest_ListGetter<NamespaceDirective, Combinator> {
-  ListGetter_NodeReplacerTest_testNamespaceDirective(int arg0) : super(arg0);
-
-  @override
-  NodeList<Combinator> getList(NamespaceDirective node) => node.combinators;
-}
-
-class ListGetter_NodeReplacerTest_testNormalFormalParameter extends
-    NodeReplacerTest_ListGetter<NormalFormalParameter, Annotation> {
-  ListGetter_NodeReplacerTest_testNormalFormalParameter(int arg0) : super(arg0);
-
-  @override
-  NodeList<Annotation> getList(NormalFormalParameter node) => node.metadata;
-}
-
-class ListGetter_NodeReplacerTest_testSwitchMember extends
-    NodeReplacerTest_ListGetter<SwitchMember, Label> {
-  ListGetter_NodeReplacerTest_testSwitchMember(int arg0) : super(arg0);
-
-  @override
-  NodeList<Label> getList(SwitchMember node) => node.labels;
-}
-
-class ListGetter_NodeReplacerTest_testSwitchMember_2 extends
-    NodeReplacerTest_ListGetter<SwitchMember, Statement> {
-  ListGetter_NodeReplacerTest_testSwitchMember_2(int arg0) : super(arg0);
-
-  @override
-  NodeList<Statement> getList(SwitchMember node) => node.statements;
 }
 
 class ListGetter_NodeReplacerTest_test_adjacentStrings extends
@@ -3423,6 +3376,15 @@ class ListGetter_NodeReplacerTest_test_constructorDeclaration extends
       node.initializers;
 }
 
+class ListGetter_NodeReplacerTest_test_formalParameterList extends
+    NodeReplacerTest_ListGetter<FormalParameterList, FormalParameter> {
+  ListGetter_NodeReplacerTest_test_formalParameterList(int arg0) : super(arg0);
+
+  @override
+  NodeList<FormalParameter> getList(FormalParameterList node) =>
+      node.parameters;
+}
+
 class ListGetter_NodeReplacerTest_test_forStatement_withInitialization extends
     NodeReplacerTest_ListGetter<ForStatement, Expression> {
   ListGetter_NodeReplacerTest_test_forStatement_withInitialization(int arg0)
@@ -3439,15 +3401,6 @@ class ListGetter_NodeReplacerTest_test_forStatement_withVariables extends
 
   @override
   NodeList<Expression> getList(ForStatement node) => node.updaters;
-}
-
-class ListGetter_NodeReplacerTest_test_formalParameterList extends
-    NodeReplacerTest_ListGetter<FormalParameterList, FormalParameter> {
-  ListGetter_NodeReplacerTest_test_formalParameterList(int arg0) : super(arg0);
-
-  @override
-  NodeList<FormalParameter> getList(FormalParameterList node) =>
-      node.parameters;
 }
 
 class ListGetter_NodeReplacerTest_test_hideCombinator extends
@@ -3564,6 +3517,46 @@ class ListGetter_NodeReplacerTest_test_withClause extends
 
   @override
   NodeList<TypeName> getList(WithClause node) => node.mixinTypes;
+}
+
+class ListGetter_NodeReplacerTest_testAnnotatedNode extends
+    NodeReplacerTest_ListGetter<AnnotatedNode, Annotation> {
+  ListGetter_NodeReplacerTest_testAnnotatedNode(int arg0) : super(arg0);
+
+  @override
+  NodeList<Annotation> getList(AnnotatedNode node) => node.metadata;
+}
+
+class ListGetter_NodeReplacerTest_testNamespaceDirective extends
+    NodeReplacerTest_ListGetter<NamespaceDirective, Combinator> {
+  ListGetter_NodeReplacerTest_testNamespaceDirective(int arg0) : super(arg0);
+
+  @override
+  NodeList<Combinator> getList(NamespaceDirective node) => node.combinators;
+}
+
+class ListGetter_NodeReplacerTest_testNormalFormalParameter extends
+    NodeReplacerTest_ListGetter<NormalFormalParameter, Annotation> {
+  ListGetter_NodeReplacerTest_testNormalFormalParameter(int arg0) : super(arg0);
+
+  @override
+  NodeList<Annotation> getList(NormalFormalParameter node) => node.metadata;
+}
+
+class ListGetter_NodeReplacerTest_testSwitchMember extends
+    NodeReplacerTest_ListGetter<SwitchMember, Label> {
+  ListGetter_NodeReplacerTest_testSwitchMember(int arg0) : super(arg0);
+
+  @override
+  NodeList<Label> getList(SwitchMember node) => node.labels;
+}
+
+class ListGetter_NodeReplacerTest_testSwitchMember_2 extends
+    NodeReplacerTest_ListGetter<SwitchMember, Statement> {
+  ListGetter_NodeReplacerTest_testSwitchMember_2(int arg0) : super(arg0);
+
+  @override
+  NodeList<Statement> getList(SwitchMember node) => node.statements;
 }
 
 class ListUtilitiesTest {
@@ -3750,9 +3743,7 @@ class NodeReplacerTest extends EngineTestCase {
   void test_asExpression() {
     AsExpression node = AstFactory.asExpression(
         AstFactory.integer(0),
-        AstFactory.typeName3(
-            AstFactory.identifier3("a"),
-            [AstFactory.typeName4("C")]));
+        AstFactory.typeName3(AstFactory.identifier3("a"), [AstFactory.typeName4("C")]));
     _assertReplace(node, new Getter_NodeReplacerTest_test_asExpression_2());
     _assertReplace(node, new Getter_NodeReplacerTest_test_asExpression());
   }
@@ -3886,9 +3877,10 @@ class NodeReplacerTest extends EngineTestCase {
     CompilationUnit node = AstFactory.compilationUnit8(
         "",
         [AstFactory.libraryDirective2("lib")],
-        [AstFactory.topLevelVariableDeclaration2(
-            null,
-            [AstFactory.variableDeclaration("X")])]);
+        [
+            AstFactory.topLevelVariableDeclaration2(
+                null,
+                [AstFactory.variableDeclaration("X")])]);
     _assertReplace(node, new Getter_NodeReplacerTest_test_compilationUnit());
     _assertReplace(
         node,
@@ -3925,8 +3917,7 @@ class NodeReplacerTest extends EngineTestCase {
         AstFactory.emptyFunctionBody());
     node.documentationComment =
         Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
-    node.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("a"))];
+    node.metadata = [AstFactory.annotation(AstFactory.identifier3("a"))];
     node.redirectedConstructor =
         AstFactory.constructorName(AstFactory.typeName4("B"), "a");
     _assertReplace(
@@ -3978,8 +3969,7 @@ class NodeReplacerTest extends EngineTestCase {
         AstFactory.declaredIdentifier4(AstFactory.typeName4("C"), "i");
     node.documentationComment =
         Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
-    node.metadata =
-        [AstFactory.annotation(AstFactory.identifier3("a"))];
+    node.metadata = [AstFactory.annotation(AstFactory.identifier3("a"))];
     _assertReplace(node, new Getter_NodeReplacerTest_test_declaredIdentifier());
     _assertReplace(
         node,
@@ -4019,8 +4009,8 @@ class NodeReplacerTest extends EngineTestCase {
 
   void test_enumDeclaration() {
     EnumDeclaration node = AstFactory.enumDeclaration2("E", ["ONE", "TWO"]);
-    node.documentationComment
-        = Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.documentationComment =
+        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata = [AstFactory.annotation(AstFactory.identifier3("a"))];
     _assertReplace(node, new Getter_NodeReplacerTest_test_enumDeclaration());
     _testAnnotatedNode(node);
@@ -4052,8 +4042,7 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_extendsClause() {
-    ExtendsClause node =
-        AstFactory.extendsClause(AstFactory.typeName4("S"));
+    ExtendsClause node = AstFactory.extendsClause(AstFactory.typeName4("S"));
     _assertReplace(node, new Getter_NodeReplacerTest_test_extendsClause());
   }
 
@@ -4120,6 +4109,14 @@ class NodeReplacerTest extends EngineTestCase {
         new Getter_NodeReplacerTest_test_forEachStatement_withLoopVariable_3());
   }
 
+  void test_formalParameterList() {
+    FormalParameterList node =
+        AstFactory.formalParameterList([AstFactory.simpleFormalParameter3("p")]);
+    _assertReplace(
+        node,
+        new ListGetter_NodeReplacerTest_test_formalParameterList(0));
+  }
+
   void test_forStatement_withInitialization() {
     ForStatement node = AstFactory.forStatement(
         AstFactory.identifier3("a"),
@@ -4160,14 +4157,6 @@ class NodeReplacerTest extends EngineTestCase {
     _assertReplace(
         node,
         new ListGetter_NodeReplacerTest_test_forStatement_withVariables(0));
-  }
-
-  void test_formalParameterList() {
-    FormalParameterList node =
-        AstFactory.formalParameterList([AstFactory.simpleFormalParameter3("p")]);
-    _assertReplace(
-        node,
-        new ListGetter_NodeReplacerTest_test_formalParameterList(0));
   }
 
   void test_functionDeclaration() {
@@ -4348,9 +4337,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_labeledStatement() {
-    LabeledStatement node = AstFactory.labeledStatement(
-        [AstFactory.label2("l")],
-        AstFactory.block());
+    LabeledStatement node =
+        AstFactory.labeledStatement([AstFactory.label2("l")], AstFactory.block());
     _assertReplace(
         node,
         new ListGetter_NodeReplacerTest_test_labeledStatement(0));
@@ -4483,18 +4471,18 @@ class NodeReplacerTest extends EngineTestCase {
     _assertReplace(node, new Getter_NodeReplacerTest_test_postfixExpression());
   }
 
-  void test_prefixExpression() {
-    PrefixExpression node =
-        AstFactory.prefixExpression(TokenType.PLUS_PLUS, AstFactory.identifier3("y"));
-    _assertReplace(node, new Getter_NodeReplacerTest_test_prefixExpression());
-  }
-
   void test_prefixedIdentifier() {
     PrefixedIdentifier node = AstFactory.identifier5("a", "b");
     _assertReplace(
         node,
         new Getter_NodeReplacerTest_test_prefixedIdentifier_2());
     _assertReplace(node, new Getter_NodeReplacerTest_test_prefixedIdentifier());
+  }
+
+  void test_prefixExpression() {
+    PrefixExpression node =
+        AstFactory.prefixExpression(TokenType.PLUS_PLUS, AstFactory.identifier3("y"));
+    _assertReplace(node, new Getter_NodeReplacerTest_test_prefixExpression());
   }
 
   void test_propertyAccess() {
@@ -4568,9 +4556,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_switchDefault() {
-    SwitchDefault node = AstFactory.switchDefault(
-        [AstFactory.label2("l")],
-        [AstFactory.block()]);
+    SwitchDefault node =
+        AstFactory.switchDefault([AstFactory.label2("l")], [AstFactory.block()]);
     _testSwitchMember(node);
   }
 
@@ -4582,9 +4569,7 @@ class NodeReplacerTest extends EngineTestCase {
                 [AstFactory.label2("l")],
                 AstFactory.integer(0),
                 [AstFactory.block()]),
-            AstFactory.switchDefault(
-                [AstFactory.label2("l")],
-                [AstFactory.block()])]);
+            AstFactory.switchDefault([AstFactory.label2("l")], [AstFactory.block()])]);
     _assertReplace(node, new Getter_NodeReplacerTest_test_switchStatement());
     _assertReplace(
         node,
@@ -4690,9 +4675,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_whileStatement() {
-    WhileStatement node = AstFactory.whileStatement(
-        AstFactory.booleanLiteral(true),
-        AstFactory.block());
+    WhileStatement node =
+        AstFactory.whileStatement(AstFactory.booleanLiteral(true), AstFactory.block());
     _assertReplace(node, new Getter_NodeReplacerTest_test_whileStatement());
     _assertReplace(node, new Getter_NodeReplacerTest_test_whileStatement_2());
   }
@@ -4929,11 +4913,19 @@ class SourceRangeTest {
   }
 
   void test_getUnion() {
-    expect(new SourceRange(10, 10).getUnion(new SourceRange(15, 10)), new SourceRange(10, 15));
-    expect(new SourceRange(15, 10).getUnion(new SourceRange(10, 10)), new SourceRange(10, 15));
+    expect(
+        new SourceRange(10, 10).getUnion(new SourceRange(15, 10)),
+        new SourceRange(10, 15));
+    expect(
+        new SourceRange(15, 10).getUnion(new SourceRange(10, 10)),
+        new SourceRange(10, 15));
     // "other" is covered/covers
-    expect(new SourceRange(10, 10).getUnion(new SourceRange(15, 2)), new SourceRange(10, 10));
-    expect(new SourceRange(15, 2).getUnion(new SourceRange(10, 10)), new SourceRange(10, 10));
+    expect(
+        new SourceRange(10, 10).getUnion(new SourceRange(15, 2)),
+        new SourceRange(10, 10));
+    expect(
+        new SourceRange(15, 2).getUnion(new SourceRange(10, 10)),
+        new SourceRange(10, 10));
   }
 
   void test_intersects() {
@@ -5019,18 +5011,34 @@ class StringUtilitiesTest {
     expect(StringUtilities.indexOf4("abcdefghi", 0, 0x61, 0x62, 0x63, 0x64), 0);
     expect(StringUtilities.indexOf4("abcdefghi", 0, 0x63, 0x64, 0x65, 0x66), 2);
     expect(StringUtilities.indexOf4("abcdefghi", 0, 0x66, 0x67, 0x68, 0x69), 5);
-    expect(StringUtilities.indexOf4("abcdefghi", 0, 0x64, 0x65, 0x61, 0x64), -1);
-    expect(StringUtilities.indexOf4("abcdefghi", 1, 0x61, 0x62, 0x63, 0x64), -1);
+    expect(
+        StringUtilities.indexOf4("abcdefghi", 0, 0x64, 0x65, 0x61, 0x64),
+        -1);
+    expect(
+        StringUtilities.indexOf4("abcdefghi", 1, 0x61, 0x62, 0x63, 0x64),
+        -1);
     // before start
   }
 
   void test_indexOf5() {
-    expect(StringUtilities.indexOf5("abcde", 0, 0x61, 0x62, 0x63, 0x64, 0x65), 0);
-    expect(StringUtilities.indexOf5("abcdefghi", 0, 0x61, 0x62, 0x63, 0x64, 0x65), 0);
-    expect(StringUtilities.indexOf5("abcdefghi", 0, 0x63, 0x64, 0x65, 0x66, 0x67), 2);
-    expect(StringUtilities.indexOf5("abcdefghi", 0, 0x65, 0x66, 0x67, 0x68, 0x69), 4);
-    expect(StringUtilities.indexOf5("abcdefghi", 0, 0x64, 0x65, 0x66, 0x69, 0x6E), -1);
-    expect(StringUtilities.indexOf5("abcdefghi", 1, 0x61, 0x62, 0x63, 0x64, 0x65), -1);
+    expect(
+        StringUtilities.indexOf5("abcde", 0, 0x61, 0x62, 0x63, 0x64, 0x65),
+        0);
+    expect(
+        StringUtilities.indexOf5("abcdefghi", 0, 0x61, 0x62, 0x63, 0x64, 0x65),
+        0);
+    expect(
+        StringUtilities.indexOf5("abcdefghi", 0, 0x63, 0x64, 0x65, 0x66, 0x67),
+        2);
+    expect(
+        StringUtilities.indexOf5("abcdefghi", 0, 0x65, 0x66, 0x67, 0x68, 0x69),
+        4);
+    expect(
+        StringUtilities.indexOf5("abcdefghi", 0, 0x64, 0x65, 0x66, 0x69, 0x6E),
+        -1);
+    expect(
+        StringUtilities.indexOf5("abcdefghi", 1, 0x61, 0x62, 0x63, 0x64, 0x65),
+        -1);
     // before start
   }
 
@@ -5064,7 +5072,9 @@ class StringUtilitiesTest {
   }
 
   void test_printListOfQuotedNames_five() {
-    expect(StringUtilities.printListOfQuotedNames(<String>["a", "b", "c", "d", "e"]), "'a', 'b', 'c', 'd' and 'e'");
+    expect(
+        StringUtilities.printListOfQuotedNames(<String>["a", "b", "c", "d", "e"]),
+        "'a', 'b', 'c', 'd' and 'e'");
   }
 
   void test_printListOfQuotedNames_null() {
@@ -5086,11 +5096,15 @@ class StringUtilitiesTest {
   }
 
   void test_printListOfQuotedNames_three() {
-    expect(StringUtilities.printListOfQuotedNames(<String>["a", "b", "c"]), "'a', 'b' and 'c'");
+    expect(
+        StringUtilities.printListOfQuotedNames(<String>["a", "b", "c"]),
+        "'a', 'b' and 'c'");
   }
 
   void test_printListOfQuotedNames_two() {
-    expect(StringUtilities.printListOfQuotedNames(<String>["a", "b"]), "'a' and 'b'");
+    expect(
+        StringUtilities.printListOfQuotedNames(<String>["a", "b"]),
+        "'a' and 'b'");
   }
 
   void test_startsWith2() {
@@ -5104,69 +5118,75 @@ class StringUtilitiesTest {
 
   void test_startsWith3() {
     expect(StringUtilities.startsWith3("abc", 0, 0x61, 0x62, 0x63), isTrue);
-    expect(StringUtilities.startsWith3("abcdefghi", 0, 0x61, 0x62, 0x63), isTrue);
-    expect(StringUtilities.startsWith3("abcdefghi", 2, 0x63, 0x64, 0x65), isTrue);
-    expect(StringUtilities.startsWith3("abcdefghi", 6, 0x67, 0x68, 0x69), isTrue);
-    expect(StringUtilities.startsWith3("abcdefghi", 0, 0x64, 0x65, 0x61), isFalse);
+    expect(
+        StringUtilities.startsWith3("abcdefghi", 0, 0x61, 0x62, 0x63),
+        isTrue);
+    expect(
+        StringUtilities.startsWith3("abcdefghi", 2, 0x63, 0x64, 0x65),
+        isTrue);
+    expect(
+        StringUtilities.startsWith3("abcdefghi", 6, 0x67, 0x68, 0x69),
+        isTrue);
+    expect(
+        StringUtilities.startsWith3("abcdefghi", 0, 0x64, 0x65, 0x61),
+        isFalse);
     // missing
   }
 
   void test_startsWith4() {
-    expect(StringUtilities.startsWith4("abcd", 0, 0x61, 0x62, 0x63, 0x64), isTrue);
-    expect(StringUtilities.startsWith4("abcdefghi", 0, 0x61, 0x62, 0x63, 0x64), isTrue);
-    expect(StringUtilities.startsWith4("abcdefghi", 2, 0x63, 0x64, 0x65, 0x66), isTrue);
-    expect(StringUtilities.startsWith4("abcdefghi", 5, 0x66, 0x67, 0x68, 0x69), isTrue);
-    expect(StringUtilities.startsWith4("abcdefghi", 0, 0x64, 0x65, 0x61, 0x64), isFalse);
+    expect(
+        StringUtilities.startsWith4("abcd", 0, 0x61, 0x62, 0x63, 0x64),
+        isTrue);
+    expect(
+        StringUtilities.startsWith4("abcdefghi", 0, 0x61, 0x62, 0x63, 0x64),
+        isTrue);
+    expect(
+        StringUtilities.startsWith4("abcdefghi", 2, 0x63, 0x64, 0x65, 0x66),
+        isTrue);
+    expect(
+        StringUtilities.startsWith4("abcdefghi", 5, 0x66, 0x67, 0x68, 0x69),
+        isTrue);
+    expect(
+        StringUtilities.startsWith4("abcdefghi", 0, 0x64, 0x65, 0x61, 0x64),
+        isFalse);
     // missing
   }
 
   void test_startsWith5() {
-    expect(StringUtilities.startsWith5("abcde", 0, 0x61, 0x62, 0x63, 0x64, 0x65), isTrue);
-    expect(StringUtilities.startsWith5("abcdefghi", 0, 0x61, 0x62, 0x63, 0x64, 0x65), isTrue);
-    expect(StringUtilities.startsWith5("abcdefghi", 2, 0x63, 0x64, 0x65, 0x66, 0x67), isTrue);
-    expect(StringUtilities.startsWith5("abcdefghi", 4, 0x65, 0x66, 0x67, 0x68, 0x69), isTrue);
-    expect(StringUtilities.startsWith5("abcdefghi", 0, 0x61, 0x62, 0x63, 0x62, 0x61), isFalse);
+    expect(
+        StringUtilities.startsWith5("abcde", 0, 0x61, 0x62, 0x63, 0x64, 0x65),
+        isTrue);
+    expect(
+        StringUtilities.startsWith5("abcdefghi", 0, 0x61, 0x62, 0x63, 0x64, 0x65),
+        isTrue);
+    expect(
+        StringUtilities.startsWith5("abcdefghi", 2, 0x63, 0x64, 0x65, 0x66, 0x67),
+        isTrue);
+    expect(
+        StringUtilities.startsWith5("abcdefghi", 4, 0x65, 0x66, 0x67, 0x68, 0x69),
+        isTrue);
+    expect(
+        StringUtilities.startsWith5("abcdefghi", 0, 0x61, 0x62, 0x63, 0x62, 0x61),
+        isFalse);
     // missing
   }
 
   void test_startsWith6() {
-    expect(StringUtilities.startsWith6("abcdef", 0, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66), isTrue);
-    expect(StringUtilities.startsWith6(
-            "abcdefghi",
-            0,
-            0x61,
-            0x62,
-            0x63,
-            0x64,
-            0x65,
-            0x66), isTrue);
-    expect(StringUtilities.startsWith6(
-            "abcdefghi",
-            2,
-            0x63,
-            0x64,
-            0x65,
-            0x66,
-            0x67,
-            0x68), isTrue);
-    expect(StringUtilities.startsWith6(
-            "abcdefghi",
-            3,
-            0x64,
-            0x65,
-            0x66,
-            0x67,
-            0x68,
-            0x69), isTrue);
-    expect(StringUtilities.startsWith6(
-            "abcdefghi",
-            0,
-            0x61,
-            0x62,
-            0x63,
-            0x64,
-            0x65,
-            0x67), isFalse);
+    expect(
+        StringUtilities.startsWith6("abcdef", 0, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66),
+        isTrue);
+    expect(
+        StringUtilities.startsWith6("abcdefghi", 0, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66),
+        isTrue);
+    expect(
+        StringUtilities.startsWith6("abcdefghi", 2, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68),
+        isTrue);
+    expect(
+        StringUtilities.startsWith6("abcdefghi", 3, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69),
+        isTrue);
+    expect(
+        StringUtilities.startsWith6("abcdefghi", 0, 0x61, 0x62, 0x63, 0x64, 0x65, 0x67),
+        isFalse);
     // missing
   }
 

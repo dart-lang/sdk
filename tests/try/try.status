@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+web/incremental_compilation_update_test: Slow, Pass
+
 [ $runtime == ie10 || $runtime == ie9 || $runtime == vm || $jscl ]
 web/*: Skip
 
@@ -22,6 +24,9 @@ web/incremental_compilation_update_test: Skip # Safari may crash on this test.
 # Suspect this is a bad optimization.
 web/source_update_test: Fail, Pass
 web/paste_content_rewriting_test: Fail, Pass
+
+[ $runtime == safarimobilesim ]
+web/end_to_end_test: Skip # Issue 21608
 
 [ $browser ]
 poi/poi_test: SkipByDesign # Uses dart:io.

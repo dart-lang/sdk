@@ -609,6 +609,26 @@ class AssistProcessor {
       SourceRange rightRange = rangeStartEnd(rightOperand, binaryExpression);
       _addReplaceEdit(leftRange, _getRangeText(rightRange));
       _addReplaceEdit(rightRange, _getRangeText(leftRange));
+      // maybe replace the operator
+      {
+        Token operator = binaryExpression.operator;
+        // prepare a new operator
+        String newOperator = null;
+        TokenType operatorType = operator.type;
+        if (operatorType == TokenType.LT) {
+          newOperator = '>=';
+        } else if (operatorType == TokenType.LT_EQ) {
+          newOperator = '>';
+        } else if (operatorType == TokenType.GT) {
+          newOperator = '<=';
+        } else if (operatorType == TokenType.GT_EQ) {
+          newOperator = '<';
+        }
+        // replace the operator
+        if (newOperator != null) {
+          _addReplaceEdit(rangeToken(operator), newOperator);
+        }
+      }
     }
     // add proposal
     _addAssist(AssistKind.EXCHANGE_OPERANDS, []);

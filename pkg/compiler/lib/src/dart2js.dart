@@ -115,6 +115,7 @@ Future compile(List<String> argv) {
   bool analyzeOnly = false;
   bool analyzeAll = false;
   bool enableAsyncAwait = false;
+  bool allowNativeExtensions = false;
   bool trustTypeAnnotations = false;
   bool trustPrimitives = false;
   bool checkedMode = false;
@@ -193,6 +194,11 @@ Future compile(List<String> argv) {
 
   setEnableAsync(String argument) {
     enableAsyncAwait = true;
+    passThrough(argument);
+  }
+
+  setAllowNativeExtensions(String argument) {
+    allowNativeExtensions = true;
     passThrough(argument);
   }
 
@@ -335,6 +341,7 @@ Future compile(List<String> argv) {
     new OptionHandler('--enable-experimental-mirrors', passThrough),
     new OptionHandler('--enable-async', setEnableAsync),
     new OptionHandler('--enable-enum', passThrough),
+    new OptionHandler('--allow-native-extensions', setAllowNativeExtensions),
     new OptionHandler('-D.+=.*', addInEnvironment),
 
     // The following two options must come last.
@@ -395,9 +402,15 @@ Future compile(List<String> argv) {
         api.Diagnostic.INFO);
   }
   if (analyzeAll) analyzeOnly = true;
-  if (enableAsyncAwait && !analyzeOnly) {
-    helpAndFail("Option '--enable-async' is currently only supported in "
-                "combination with the '--analyze-only' option.");
+  if (!analyzeOnly) {
+    if (enableAsyncAwait) {
+      helpAndFail("Option '--enable-async' is currently only supported in "
+                  "combination with the '--analyze-only' option.");
+    }
+    if (allowNativeExtensions) {
+      helpAndFail("Option '--allow-native-extensions' is only supported in "
+                  "combination with the '--analyze-only' option.");
+    }
   }
 
   diagnosticHandler.info('Package root is $packageRoot');

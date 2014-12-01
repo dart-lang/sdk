@@ -34,8 +34,8 @@ class StdioAnalysisServer {
    * Return a future that will be completed when stdin closes.
    */
   Future serveStdio() {
-    ByteStreamServerChannel serverChannel = new ByteStreamServerChannel(stdin,
-        stdout);
+    ByteStreamServerChannel serverChannel =
+        new ByteStreamServerChannel(stdin, stdout);
     socketServer.createAnalysisServer(serverChannel);
     return serverChannel.closed;
   }

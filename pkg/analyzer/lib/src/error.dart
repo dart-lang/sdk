@@ -6,31 +6,10 @@ library error;
 import 'dart:collection';
 
 import 'generated/error.dart';
-import 'generated/source.dart';
 
 /// The maximum line length when printing extracted source code when converting
 /// an [AnalyzerError] to a string.
 final _MAX_ERROR_LINE_LENGTH = 120;
-
-/// An error class that collects multiple [AnalyzerError]s that are emitted
-/// during a single analysis.
-class AnalyzerErrorGroup implements Exception {
-  /// The errors in this collection.
-  List<AnalyzerError> get errors =>
-    new UnmodifiableListView<AnalyzerError>(_errors);
-  final List<AnalyzerError> _errors;
-
-  AnalyzerErrorGroup(Iterable<AnalyzerError> errors)
-      : _errors = errors.toList();
-
-  /// Creates an [AnalyzerErrorGroup] from a list of lower-level
-  /// [AnalysisError]s.
-  AnalyzerErrorGroup.fromAnalysisErrors(Iterable<AnalysisError> errors)
-      : this(errors.map((e) => new AnalyzerError(e)));
-
-  String get message => toString();
-  String toString() => errors.join("\n");
-}
 
 /// A wrapper around [AnalysisError] that provides a more user-friendly string
 /// representation.
@@ -93,12 +72,22 @@ class AnalyzerError implements Exception {
   }
 }
 
-// A content receiver that collects all the content into a string.
-class _ContentReceiver implements Source_ContentReceiver {
-  final _buffer = new StringBuffer();
+/// An error class that collects multiple [AnalyzerError]s that are emitted
+/// during a single analysis.
+class AnalyzerErrorGroup implements Exception {
+  final List<AnalyzerError> _errors;
+  AnalyzerErrorGroup(Iterable<AnalyzerError> errors)
+      : _errors = errors.toList();
 
-  String get result => _buffer.toString();
+  /// Creates an [AnalyzerErrorGroup] from a list of lower-level
+  /// [AnalysisError]s.
+  AnalyzerErrorGroup.fromAnalysisErrors(Iterable<AnalysisError> errors)
+      : this(errors.map((e) => new AnalyzerError(e)));
 
-  void accept(String contents, _) =>
-    _buffer.write(contents.substring(0, contents.length));
+  /// The errors in this collection.
+  List<AnalyzerError> get errors =>
+      new UnmodifiableListView<AnalyzerError>(_errors);
+
+  String get message => toString();
+  String toString() => errors.join("\n");
 }

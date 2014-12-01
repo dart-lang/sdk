@@ -39,6 +39,7 @@ Future<MirrorSystem> analyze(List<Uri> libraries,
   options.add('--analyze-all');
   options.add('--categories=Client,Server');
   options.add('--enable-async');
+  options.add('--allow-native-extensions');
 
   bool compilationFailed = false;
   void internalDiagnosticHandler(Uri uri, int begin, int end,

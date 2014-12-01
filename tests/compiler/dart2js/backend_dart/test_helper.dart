@@ -31,7 +31,7 @@ Future<Compiler> compilerFor(String code) {
     compiler.world.populate();
     compiler.backend.onResolutionComplete();
 
-    compiler.irBuilder.buildNodes(useNewBackend: true);
+    compiler.irBuilder.buildNodes();
 
     return compiler;
   });

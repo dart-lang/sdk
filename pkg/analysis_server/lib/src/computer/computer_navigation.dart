@@ -49,16 +49,6 @@ class DartUnitNavigationComputer {
     _addRegion(offset, length, element);
   }
 
-  void _addRegion_nodeStart_nodeStart(AstNode a, AstNode b, Element element,
-      {bool excludeLastChar: false}) {
-    int offset = a.offset;
-    int length = b.offset - offset;
-    if (excludeLastChar) {
-      length--;
-    }
-    _addRegion(offset, length, element);
-  }
-
   void _addRegion_tokenStart_nodeEnd(Token a, AstNode b, Element element) {
     int offset = a.offset;
     int length = b.end - offset;

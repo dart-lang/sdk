@@ -1,6 +1,9 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// Test write barrier verification mode.
+// VMOptions=--verified_mem --verify_before_gc --verify_after_gc --old_gen_growth_rate=1
+// VMOptions=
 
 import "package:expect/expect.dart";
 import 'dart:async';

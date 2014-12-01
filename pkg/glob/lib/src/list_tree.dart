@@ -13,6 +13,13 @@ import 'ast.dart';
 import 'stream_pool.dart';
 import 'utils.dart';
 
+/// The errno for a file or directory not existing on Mac and Linux.
+const _ENOENT = 2;
+
+/// Another errno we see on Windows when trying to list a non-existent
+/// directory.
+const _ENOENT_WIN = 3;
+
 /// A structure built from a glob that efficiently lists filesystem entities
 /// that match that glob.
 ///
@@ -319,8 +326,17 @@ class _ListTreeNode {
       children.forEach((sequence, child) {
         if (entity is! Directory) return;
         if (!sequence.matches(basename)) return;
-        resultPool.add(child.list(p.join(dir, basename),
-            followLinks: followLinks));
+        var stream = child.list(p.join(dir, basename), followLinks: followLinks)
+            .handleError((_) {}, test: (error) {
+          // Ignore errors from directories not existing. We do this here so
+          // that we only ignore warnings below wild cards. For example, the
+          // glob "foo/bar/*/baz" should fail if "foo/bar" doesn't exist but
+          // succeed if "foo/bar/qux/baz" doesn't exist.
+          return error is FileSystemException &&
+              (error.osError.errorCode == _ENOENT ||
+              error.osError.errorCode == _ENOENT_WIN);
+        });
+        resultPool.add(stream);
       });
     },
         onError: resultController.addError,
@@ -361,8 +377,21 @@ class _ListTreeNode {
       entities.addAll(children.keys
           .where((sequence) => sequence.matches(basename))
           .expand((sequence) {
-        return children[sequence].listSync(
-            p.join(dir, basename), followLinks: followLinks);
+        try {
+          return children[sequence].listSync(
+              p.join(dir, basename), followLinks: followLinks).toList();
+        } on FileSystemException catch (error) {
+          // Ignore errors from directories not existing. We do this here so
+          // that we only ignore warnings below wild cards. For example, the
+          // glob "foo/bar/*/baz" should fail if "foo/bar" doesn't exist but
+          // succeed if "foo/bar/qux/baz" doesn't exist.
+          if (error.osError.errorCode == _ENOENT ||
+              error.osError.errorCode == _ENOENT_WIN) {
+            return const [];
+          } else {
+            rethrow;
+          }
+        }
       }));
 
       return entities;

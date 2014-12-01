@@ -78,12 +78,13 @@ void testTypeRepresentations() {
     }
 
     JavaScriptBackend backend = env.compiler.backend;
-    String func = backend.namer.functionTypeTag();
-    String retvoid = backend.namer.functionTypeVoidReturnTag();
-    String ret = backend.namer.functionTypeReturnTypeTag();
-    String args = backend.namer.functionTypeRequiredParametersTag();
-    String opt = backend.namer.functionTypeOptionalParametersTag();
-    String named = backend.namer.functionTypeNamedParametersTag();
+    String func = backend.namer.functionTypeTag;
+    String retvoid = backend.namer.functionTypeVoidReturnTag;
+    String ret = backend.namer.functionTypeReturnTypeTag;
+    String args = backend.namer.functionTypeRequiredParametersTag;
+    String opt = backend.namer.functionTypeOptionalParametersTag;
+    String named = backend.namer.functionTypeNamedParametersTag;
+    String typedefTag = backend.namer.typedefTag;
 
     ClassElement List_ = env.getElement('List');
     TypeVariableType List_E = List_.typeVariables[0];
@@ -142,52 +143,55 @@ void testTypeRepresentations() {
     // List<Typedef>
     expect(instantiate(List_, [Typedef_]),
         '[$List_rep, {$func: "void_", $retvoid: true}]',
-        '[$List_rep, {$func: "void_", $retvoid: true, typedef: $Typedef_rep}]');
+        '[$List_rep, {$func: "void_", $retvoid: true,'
+          ' $typedefTag: $Typedef_rep}]');
     expect(instantiate(List_, [Typedef2_]),
         '[$List_rep, {$func: "int_", $ret: $int_rep}]',
-        '[$List_rep, {$func: "int_", $ret: $int_rep, typedef: $Typedef2_rep}]');
+        '[$List_rep, {$func: "int_", $ret: $int_rep,'
+          ' $typedefTag: $Typedef2_rep}]');
     expect(instantiate(List_, [Typedef3_]),
         '[$List_rep, {$func: "List_", $ret: [$List_rep, $int_rep]}]',
         '[$List_rep, {$func: "List_", $ret: [$List_rep, $int_rep],'
-          ' typedef: $Typedef3_rep}]');
+          ' $typedefTag: $Typedef3_rep}]');
     expect(instantiate(List_, [Typedef4_]),
         '[$List_rep, {$func: "args0"}]',
-        '[$List_rep, {$func: "args0", typedef: $Typedef4_rep}]');
+        '[$List_rep, {$func: "args0", $typedefTag: $Typedef4_rep}]');
     expect(instantiate(List_, [Typedef5_]),
         '[$List_rep, {$func: "dynamic__int_String",'
           ' $args: [$int_rep, $String_rep]}]',
         '[$List_rep, {$func: "dynamic__int_String",'
-          ' $args: [$int_rep, $String_rep], typedef: $Typedef5_rep}]');
+          ' $args: [$int_rep, $String_rep], $typedefTag: $Typedef5_rep}]');
     expect(instantiate(List_, [Typedef6_]),
         '[$List_rep, {$func: "dynamic__int__String",'
           ' $args: [$int_rep], $opt: [$String_rep]}]',
         '[$List_rep, {$func: "dynamic__int__String",'
-          ' $args: [$int_rep], $opt: [$String_rep], typedef: $Typedef6_rep}]');
+          ' $args: [$int_rep], $opt: [$String_rep],'
+          ' $typedefTag: $Typedef6_rep}]');
     expect(instantiate(List_, [Typedef7_]),
         '[$List_rep, {$func: "dynamic__int_String__List_dynamic", $args: '
           '[$int_rep, $String_rep], $opt: [[$List_rep, $int_rep], null]}]',
         '[$List_rep, {$func: "dynamic__int_String__List_dynamic", $args: '
           '[$int_rep, $String_rep], $opt: [[$List_rep, $int_rep], null], '
-          'typedef: $Typedef7_rep}]');
+          '$typedefTag: $Typedef7_rep}]');
     expect(instantiate(List_, [Typedef8_]),
         '[$List_rep, {$func: "dynamic__int__String0", $args: [$int_rep],'
           ' $named: {b: $String_rep}}]',
         '[$List_rep, {$func: "dynamic__int__String0", $args: [$int_rep],'
-          ' $named: {b: $String_rep}, typedef: $Typedef8_rep}]');
+          ' $named: {b: $String_rep}, $typedefTag: $Typedef8_rep}]');
     expect(instantiate(List_, [Typedef9_]),
         '[$List_rep, {$func: "dynamic__int_String__List_dynamic0", '
           '$args: [$int_rep, $String_rep], $named: '
           '{c: [$List_rep, $int_rep], d: null}}]',
         '[$List_rep, {$func: "dynamic__int_String__List_dynamic0", '
           '$args: [$int_rep, $String_rep], $named: {c: [$List_rep, $int_rep],'
-          ' d: null}, typedef: $Typedef9_rep}]');
+          ' d: null}, $typedefTag: $Typedef9_rep}]');
     expect(instantiate(List_, [Typedef10_]),
         '[$List_rep, {$func: "dynamic__void__int__dynamic", '
           '$args: [{$func: "void__int__dynamic", $retvoid: true, '
           '$args: [$int_rep], $opt: [null]}]}]',
         '[$List_rep, {$func: "dynamic__void__int__dynamic", '
           '$args: [{$func: "void__int__dynamic", $retvoid: true, '
-          '$args: [$int_rep], $opt: [null]}], typedef: $Typedef10_rep}]');
+          '$args: [$int_rep], $opt: [null]}], $typedefTag: $Typedef10_rep}]');
 
     // Map<K,V>
     expect(Map_.computeType(env.compiler),
@@ -250,5 +254,3 @@ void testTypeRepresentations() {
            ' $retvoid: true, $args: [$int_rep], $opt: [null]}]}');
   }));
 }
-
-

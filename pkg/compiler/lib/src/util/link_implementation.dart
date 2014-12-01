@@ -136,6 +136,17 @@ class LinkEntry<T> extends Link<T> {
   int get hashCode => throw new UnsupportedError('LinkEntry.hashCode');
 
   int slowLength() => 1 + tail.slowLength();
+
+  Link copyWithout(e) {
+    LinkBuilder copy = new LinkBuilder();
+    Link link = this;
+    for (; !link.isEmpty; link = link.tail) {
+      if (link.head != e) {
+        copy.addLast(link.head);
+      }
+    }
+    return copy.toLink(link);
+  }
 }
 
 class LinkBuilderImplementation<T> implements LinkBuilder<T> {

@@ -11,6 +11,10 @@ import 'package:unittest/unittest.dart';
 import '../reflective_tests.dart';
 import 'integration_tests.dart';
 
+main() {
+  runReflectiveTests(AsynchronyIntegrationTest);
+}
+
 /**
  * Verify that the server's input and output streams are asynchronous by
  * attempting to flood its input buffer with commands without listening to
@@ -23,14 +27,14 @@ import 'integration_tests.dart';
 @ReflectiveTestCase()
 class AsynchronyIntegrationTest {
   /**
-   * Connection to the analysis server.
-   */
-  final Server server = new Server();
-
-  /**
    * Number of messages to queue up before listening for responses.
    */
   static const MESSAGE_COUNT = 10000;
+
+  /**
+   * Connection to the analysis server.
+   */
+  final Server server = new Server();
 
   Future setUp() {
     return server.start();
@@ -65,8 +69,4 @@ class AsynchronyIntegrationTest {
       });
     });
   }
-}
-
-main() {
-  runReflectiveTests(AsynchronyIntegrationTest);
 }

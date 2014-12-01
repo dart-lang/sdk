@@ -546,6 +546,7 @@ class Assembler : public ValueObject {
   void XorImmediate(Register dst, const Immediate& imm, Register pp);
 
   void addl(Register dst, Register src);
+  void addl(Register dst, const Immediate& imm);
   void addl(Register dst, const Address& address);
   void addl(const Address& address, Register src);
   void adcl(Register dst, Register src);
@@ -557,6 +558,9 @@ class Assembler : public ValueObject {
   void addq(Register dst, const Address& address);
   void addq(const Address& address, const Immediate& imm);
   void addq(const Address& address, Register src);
+  void adcq(Register dst, Register src);
+  void adcq(Register dst, const Immediate& imm);
+  void adcq(Register dst, const Address& address);
 
   void cdq();
   void cqo();
@@ -576,6 +580,7 @@ class Assembler : public ValueObject {
   void MulImmediate(Register reg, const Immediate& imm, Register pp);
 
   void subl(Register dst, Register src);
+  void subl(Register dst, const Immediate& imm);
   void subl(Register dst, const Address& address);
   void sbbl(Register dst, Register src);
   void sbbl(Register dst, const Immediate& imm);
@@ -586,6 +591,9 @@ class Assembler : public ValueObject {
   void subq(Register reg, const Address& address);
   void subq(const Address& address, Register reg);
   void subq(const Address& address, const Immediate& imm);
+  void sbbq(Register dst, Register src);
+  void sbbq(Register dst, const Immediate& imm);
+  void sbbq(Register dst, const Address& address);
 
   void shll(Register reg, const Immediate& imm);
   void shll(Register operand, Register shifter);
@@ -650,10 +658,12 @@ class Assembler : public ValueObject {
   void int3();
   void hlt();
 
+  // Note: verified_mem mode forces far jumps.
   void j(Condition condition, Label* label, bool near = kFarJump);
   void j(Condition condition, const ExternalLabel* label);
 
   void jmp(Register reg);
+  // Note: verified_mem mode forces far jumps.
   void jmp(Label* label, bool near = kFarJump);
   void jmp(const ExternalLabel* label);
 
@@ -673,6 +683,7 @@ class Assembler : public ValueObject {
   void cpuid();
 
   // Issue memory to memory move through a TMP register.
+  // TODO(koda): Assert that these are not used for heap objects.
   void MoveMemoryToMemory(const Address& dst, const Address& src) {
     movq(TMP, src);
     movq(dst, TMP);
@@ -705,6 +716,7 @@ class Assembler : public ValueObject {
   // the object pool when possible. Unless you are sure that the untagged object
   // pool pointer is in another register, or that it is not available at all,
   // PP should be passed for pp.
+  // TODO(koda): Assert that these are not used for heap objects.
   void AddImmediate(Register reg, const Immediate& imm, Register pp);
   void AddImmediate(const Address& address, const Immediate& imm, Register pp);
   void SubImmediate(Register reg, const Immediate& imm, Register pp);
@@ -726,7 +738,6 @@ class Assembler : public ValueObject {
 
   bool CanLoadImmediateFromPool(const Immediate& imm, Register pp);
   void LoadImmediate(Register reg, const Immediate& imm, Register pp);
-  void LoadImmediate(const Address& dst, const Immediate& imm, Register pp);
   void LoadIsolate(Register dst);
   void LoadObject(Register dst, const Object& obj, Register pp);
   void JmpPatchable(const ExternalLabel* label, Register pp);
@@ -734,6 +745,8 @@ class Assembler : public ValueObject {
   void J(Condition condition, const ExternalLabel* label, Register pp);
   void CallPatchable(const ExternalLabel* label);
   void Call(const ExternalLabel* label, Register pp);
+  // Unaware of write barrier (use StoreInto* methods for storing to objects).
+  // TODO(koda): Add StackAddress/HeapAddress types to prevent misuse.
   void StoreObject(const Address& dst, const Object& obj, Register pp);
   void PushObject(const Object& object, Register pp);
   void CompareObject(Register reg, const Object& object, Register pp);
@@ -747,15 +760,25 @@ class Assembler : public ValueObject {
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 Register value);
+  void StoreIntoObjectNoBarrier(Register object,
+                                const Address& dest,
+                                const Object& value,
+                                Register pp);
+
+  // Stores a Smi value into a heap object field that always contains a Smi.
+  void StoreIntoSmiField(const Address& dest, Register value);
+  void ZeroSmiField(const Address& dest);
+  // Increments a Smi field. Leaves flags in same state as an 'addq'.
+  void IncrementSmiField(const Address& dest, int64_t increment);
 
   void DoubleNegate(XmmRegister d);
   void FloatNegate(XmmRegister f);
 
   void DoubleAbs(XmmRegister reg);
 
-  void LockCmpxchgl(const Address& address, Register reg) {
+  void LockCmpxchgq(const Address& address, Register reg) {
     lock();
-    cmpxchgl(address, reg);
+    cmpxchgq(address, reg);
   }
 
   void PushRegisters(intptr_t cpu_register_set, intptr_t xmm_register_set);
@@ -930,7 +953,7 @@ class Assembler : public ValueObject {
                         Register end_address);
 
   // Debugging and bringup support.
-  void Stop(const char* message);
+  void Stop(const char* message, bool fixed_length_encoding = false);
   void Unimplemented(const char* message);
   void Untested(const char* message);
   void Unreachable(const char* message);
@@ -1075,6 +1098,13 @@ class Assembler : public ValueObject {
   void StoreIntoObjectFilterNoSmi(Register object,
                                   Register value,
                                   Label* no_update);
+
+  // Analogous to VerifiedMemory::Verify(address, kWordSize).
+  void VerifyHeapWord(const Address& address);
+  // Analogous to VerifiedMemory::Write.
+  void VerifiedWrite(const Address& dest, Register value);
+  // Unaware of write barrier (use StoreInto* methods for storing to objects).
+  void MoveImmediate(const Address& dst, const Immediate& imm, Register pp);
 
   void ComputeCounterAddressesForCid(intptr_t cid,
                                      Heap::Space space,

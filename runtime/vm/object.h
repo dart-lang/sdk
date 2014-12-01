@@ -21,8 +21,11 @@
 #include "vm/report.h"
 #include "vm/scanner.h"
 #include "vm/tags.h"
+#include "vm/verified_memory.h"
 
 namespace dart {
+
+DECLARE_FLAG(bool, use_jscre);
 
 // Forward declarations.
 #define DEFINE_FORWARD_DECLARATION(clazz)                                      \
@@ -610,6 +613,7 @@ class Object {
     ASSERT(Contains(reinterpret_cast<uword>(to)));
     if (raw()->IsNewObject()) {
       memmove(const_cast<RawObject**>(to), from, count * kWordSize);
+      VerifiedMemory::Accept(reinterpret_cast<uword>(to), count * kWordSize);
     } else {
       for (intptr_t i = 0; i < count; ++i) {
         StorePointer(&to[i], from[i]);
@@ -1295,11 +1299,6 @@ class Class : public Object {
   // Patch the signature function of a signature class allocated without it.
   void PatchSignatureFunction(const Function& signature_function) const;
 
-  // Return a class object corresponding to the specified kind. If
-  // a canonicalized version of it exists then that object is returned
-  // otherwise a new object is allocated and returned.
-  static RawClass* GetClass(intptr_t class_id, bool is_signature_class);
-
   // Register code that has used CHA for optimization.
   // TODO(srdjan): Also register kind of CHA optimization (e.g.: leaf class,
   // leaf method, ...).
@@ -1593,10 +1592,6 @@ class TypeArguments : public Object {
   static const intptr_t kBytesPerElement = kWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
-  static intptr_t length_offset() {
-    return OFFSET_OF(RawTypeArguments, length_);
-  }
-
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawTypeArguments) ==
            OFFSET_OF_RETURNED_VALUE(RawTypeArguments, types));
@@ -1732,6 +1727,14 @@ class Function : public Object {
   RawClass* origin() const;
   RawScript* script() const;
 
+  void set_regexp(const JSRegExp& value) const;
+  RawJSRegExp* regexp() const;
+
+  // Get and set the class id this function is specialized for. Only set for
+  // irregexp functions.
+  intptr_t regexp_cid() const { return raw_ptr()->regexp_cid_; }
+  void set_regexp_cid(intptr_t regexp_cid) const;
+
   RawAbstractType* result_type() const { return raw_ptr()->result_type_; }
   void set_result_type(const AbstractType& value) const;
 
@@ -1861,6 +1864,7 @@ class Function : public Object {
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
       case RawFunction::kImplicitStaticFinalGetter:
+      case RawFunction::kIrregexpFunction:
         return false;
       default:
         UNREACHABLE();
@@ -1878,6 +1882,7 @@ class Function : public Object {
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
       case RawFunction::kImplicitStaticFinalGetter:
+      case RawFunction::kIrregexpFunction:
         return true;
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
@@ -2070,6 +2075,11 @@ class Function : public Object {
   // function.
   bool IsClosureFunction() const {
     return kind() == RawFunction::kClosureFunction;
+  }
+
+  // Returns true if this function represents a generated irregexp function.
+  bool IsIrregexpFunction() const {
+    return kind() == RawFunction::kIrregexpFunction;
   }
 
   // Returns true if this function represents an implicit closure function.
@@ -4074,10 +4084,10 @@ class Context : public Object {
     return OFFSET_OF(RawContext, num_variables_);
   }
 
-  RawInstance* At(intptr_t context_index) const {
-    return *InstanceAddr(context_index);
+  RawObject* At(intptr_t context_index) const {
+    return *ObjectAddr(context_index);
   }
-  inline void SetAt(intptr_t context_index, const Instance& value) const;
+  inline void SetAt(intptr_t context_index, const Object& value) const;
 
   void Dump(int indent = 0) const;
 
@@ -4103,7 +4113,7 @@ class Context : public Object {
                          Heap::Space space = Heap::kNew);
 
  private:
-  RawInstance* const* InstanceAddr(intptr_t context_index) const {
+  RawObject* const* ObjectAddr(intptr_t context_index) const {
     ASSERT((context_index >= 0) && (context_index < num_variables()));
     return &raw_ptr()->data()[context_index];
   }
@@ -4555,6 +4565,7 @@ class Instance : public Object {
   friend class Class;
   friend class Closure;
   friend class DeferredObject;
+  friend class JSRegExp;
   friend class SnapshotWriter;
   friend class StubCode;
   friend class TypedDataView;
@@ -7232,7 +7243,34 @@ class JSRegExp : public Instance {
     return raw_ptr()->num_bracket_expressions_;
   }
 
+  static intptr_t function_offset(intptr_t cid) {
+    switch (cid) {
+      case kOneByteStringCid:
+        return OFFSET_OF(RawJSRegExp, one_byte_function_);
+      case kTwoByteStringCid:
+        return OFFSET_OF(RawJSRegExp, two_byte_function_);
+      case kExternalOneByteStringCid:
+         return OFFSET_OF(RawJSRegExp, external_one_byte_function_);
+      case kExternalTwoByteStringCid:
+        return OFFSET_OF(RawJSRegExp, external_two_byte_function_);
+    }
+
+    UNREACHABLE();
+    return -1;
+  }
+
+  RawFunction** FunctionAddr(intptr_t cid) const {
+    return reinterpret_cast<RawFunction**>(
+          FieldAddrAtOffset(function_offset(cid)));
+  }
+
+  RawFunction* function(intptr_t cid) const {
+    return *FunctionAddr(cid);
+  }
+
   void set_pattern(const String& pattern) const;
+  void set_function(intptr_t cid, const Function& value) const;
+
   void set_num_bracket_expressions(intptr_t value) const;
   void set_is_global() const { set_flags(flags() | kGlobal); }
   void set_is_ignore_case() const { set_flags(flags() | kIgnoreCase); }
@@ -7251,7 +7289,10 @@ class JSRegExp : public Instance {
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawJSRegExp) == OFFSET_OF_RETURNED_VALUE(RawJSRegExp, data));
-    return 0;
+    if (FLAG_use_jscre) {
+      return 0;
+    }
+    return RoundedAllocationSize(sizeof(RawJSRegExp));
   }
 
   static intptr_t InstanceSize(intptr_t len) {
@@ -7453,8 +7494,8 @@ void Field::SetOffset(intptr_t value_in_bytes) const {
 }
 
 
-void Context::SetAt(intptr_t index, const Instance& value) const {
-  StorePointer(InstanceAddr(index), value.raw());
+void Context::SetAt(intptr_t index, const Object& value) const {
+  StorePointer(ObjectAddr(index), value.raw());
 }
 
 

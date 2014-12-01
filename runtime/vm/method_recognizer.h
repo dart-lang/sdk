@@ -155,9 +155,9 @@ namespace dart {
 #define CORE_LIB_INTRINSIC_LIST(V)                                             \
   V(_Smi, ~, Smi_bitNegate, 134149043)                                         \
   V(_Smi, get:bitLength, Smi_bitLength, 869986288)                             \
-  V(_Bigint, set:_neg, Bigint_setNeg, 855560832)                               \
-  V(_Bigint, set:_used, Bigint_setUsed, 1792932615)                            \
-  V(_Bigint, _set_digits, Bigint_setDigits, 178162491)                         \
+  V(_Bigint, set:_neg, Bigint_setNeg, 1924982939)                              \
+  V(_Bigint, set:_used, Bigint_setUsed, 1574448752)                            \
+  V(_Bigint, _set_digits, Bigint_setDigits, 1865626071)                        \
   V(_Bigint, _absAdd, Bigint_absAdd, 97148049)                                 \
   V(_Bigint, _absSub, Bigint_absSub, 159012285)                                \
   V(_Bigint, _mulAdd, Bigint_mulAdd, 101252203)                                \
@@ -184,6 +184,7 @@ namespace dart {
   V(_GrowableList, _setLength, GrowableArraySetLength, 1832199634)             \
   V(_GrowableList, _setData, GrowableArraySetData, 1722254196)                 \
   V(_GrowableList, add, GrowableArray_add, 422087403)                          \
+  V(_JSSyntaxRegExp, _ExecuteMatch, JSRegExp_ExecuteMatch, 1654250896)         \
   V(Object, ==, ObjectEquals, 1955975370)                                      \
   V(_StringBase, get:hashCode, String_getHashCode, 2102936032)                 \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, 769493198)                    \
@@ -320,6 +321,8 @@ namespace dart {
   V(_ImmutableList, get:length, ImmutableArrayLength, 274947518)               \
   V(_TypedList, get:length, TypedDataLength, 522595148)                        \
   V(_GrowableList, get:length, GrowableArrayLength, 778534898)                 \
+  V(_GrowableList, add, GrowableListAdd, 422087403)                            \
+  V(_GrowableList, removeLast, GrowableListRemoveLast, 1285719639)             \
   V(_StringBase, get:length, StringBaseLength, 784429419)                      \
   V(ListIterator, moveNext, ListIteratorMoveNext, 1001265875)                  \
   V(_FixedSizeArrayIterator, moveNext, FixedListIteratorMoveNext, 890839431)   \
@@ -374,9 +377,12 @@ namespace dart {
   V(::, tan, MathTan, 982072809)                                               \
   V(Lists, copy, ListsCopy, 605584668)                                         \
   V(_Bigint, get:_neg, Bigint_getNeg, 1151543890)                              \
+  V(_Bigint, set:_neg, Bigint_setNeg, 1924982939)                              \
   V(_Bigint, get:_used, Bigint_getUsed, 1308559334)                            \
+  V(_Bigint, set:_used, Bigint_setUsed, 1574448752)                            \
   V(_Bigint, get:_digits, Bigint_getDigits, 1408092463)                        \
   V(_Bigint, set:_digits, Bigint_setDigits, 1625268649)                        \
+  V(_Bigint, _set_digits, Bigint_setDigits, 1865626071)                        \
 
 // A list of core function that should never be inlined.
 #define INLINE_BLACK_LIST(V)                                                   \

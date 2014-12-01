@@ -220,6 +220,7 @@ class Namer implements ClosureNamer {
   final String currentIsolate = r'$';
   final String getterPrefix = r'get$';
   final String setterPrefix = r'set$';
+  final String superPrefix = r'super$';
   final String metadataField = '@';
   final String callPrefix = 'call';
   final String callCatchAllName = r'call$catchAll';
@@ -809,6 +810,15 @@ class Namer implements ClosureNamer {
   // TODO(ahe): Remove this method. Use get getNameOfMember instead.
   String getNameOfInstanceMember(Element member) => getNameX(member);
 
+  String getNameOfAliasedSuperMember(Element member) {
+    ClassElement superClass = member.enclosingClass;
+    String className = getNameOfClass(superClass);
+    String memberName = getNameOfMember(member);
+    String proposal = "$superPrefix$className\$$memberName";
+    // TODO(herhut): Use field naming constraints (unique wrt. inheritance).
+    return getMappedInstanceName(proposal);
+  }
+
   String getNameOfMember(Element member) => getNameX(member);
 
   String getNameOfGlobalField(VariableElement field) => getNameX(field);
@@ -882,25 +892,25 @@ class Namer implements ClosureNamer {
 
   String globalObjectForConstant(ConstantValue constant) => 'C';
 
-  String operatorIsPrefix() => r'$is';
+  String get operatorIsPrefix => r'$is';
 
-  String operatorAsPrefix() => r'$as';
+  String get operatorAsPrefix => r'$as';
 
-  String operatorSignature() => r'$signature';
+  String get operatorSignature => r'$signature';
 
-  String typedefTag() => r'typedef';
+  String get typedefTag => r'typedef';
 
-  String functionTypeTag() => r'func';
+  String get functionTypeTag => r'func';
 
-  String functionTypeVoidReturnTag() => r'void';
+  String get functionTypeVoidReturnTag => r'void';
 
-  String functionTypeReturnTypeTag() => r'ret';
+  String get functionTypeReturnTypeTag => r'ret';
 
-  String functionTypeRequiredParametersTag() => r'args';
+  String get functionTypeRequiredParametersTag => r'args';
 
-  String functionTypeOptionalParametersTag() => r'opt';
+  String get functionTypeOptionalParametersTag => r'opt';
 
-  String functionTypeNamedParametersTag() => r'named';
+  String get functionTypeNamedParametersTag => r'named';
 
   Map<FunctionType,String> functionTypeNameMap =
       new Map<FunctionType,String>();
@@ -918,14 +928,14 @@ class Namer implements ClosureNamer {
   String operatorIsType(DartType type) {
     if (type.isFunctionType) {
       // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
-      return '${operatorIsPrefix()}_${getFunctionTypeName(type)}';
+      return '${operatorIsPrefix}_${getFunctionTypeName(type)}';
     }
     return operatorIs(type.element);
   }
 
   String operatorIs(Element element) {
     // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
-    return '${operatorIsPrefix()}${getRuntimeTypeName(element)}';
+    return '${operatorIsPrefix}${getRuntimeTypeName(element)}';
   }
 
   /*
@@ -944,7 +954,7 @@ class Namer implements ClosureNamer {
     // TODO(ahe): Creating a string here is unfortunate. It is slow (due to
     // string concatenation in the implementation), and may prevent
     // segmentation of '$'.
-    return '${operatorAsPrefix()}${getNameForRti(element)}';
+    return '${operatorAsPrefix}${getNameForRti(element)}';
   }
 
   String safeName(String name) => _safeName(name, jsReserved);

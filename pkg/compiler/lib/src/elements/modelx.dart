@@ -118,8 +118,6 @@ abstract class ElementX extends Element {
 
   bool get isSynthesized => false;
 
-  bool get isForwardingConstructor => false;
-
   bool get isMixinApplication => false;
 
   bool get isLocal => false;
@@ -267,6 +265,10 @@ abstract class ElementX extends Element {
   }
 
   DeclarationSite get declarationSite => null;
+
+  void reuseElement() {
+    throw "reuseElement isn't implemented on ${runtimeType}.";
+  }
 }
 
 class ErroneousElementX extends ElementX implements ErroneousElement {
@@ -302,6 +304,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   get nestedClosures => unsupported();
   get memberContext => unsupported();
   get executableContext => unsupported();
+  get isExternal => unsupported();
 
   bool get isRedirectingFactory => unsupported();
 
@@ -1257,6 +1260,11 @@ class FieldElementX extends VariableElementX
     super.reuseElement();
     nestedClosures.clear();
   }
+
+  FieldElementX copyWithEnclosing(Element enclosingElement) {
+    return new FieldElementX(
+        new Identifier(token), enclosingElement, variables);
+  }
 }
 
 /// [Element] for a parameter-like element.
@@ -1552,6 +1560,10 @@ abstract class BaseFunctionElementX
         _hasNoBody = hasNoBody {
     assert(modifiers != null);
   }
+
+  bool get isExternal => modifiers.isExternal;
+
+  bool get hasNoBody => _hasNoBody;
 
   bool get isInstanceMember {
     return isClassMember

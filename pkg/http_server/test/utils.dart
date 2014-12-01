@@ -42,12 +42,14 @@ void _testVirtualDir(String name, bool useMocks, Future func(Directory dir)) {
 }
 
 Future<int> getStatusCodeForVirtDir(VirtualDirectory virtualDir,
-                           String path,
-                          {String host,
-                           bool secure: false,
-                           DateTime ifModifiedSince,
-                           bool rawPath: false,
-                           bool followRedirects: true}) {
+                                    String path,
+                                    {String host,
+                                     bool secure: false,
+                                     DateTime ifModifiedSince,
+                                     bool rawPath: false,
+                                     bool followRedirects: true,
+                                     int from,
+                                     int to}) {
 
   // if this is a mock test, then run the mock code path
   if(_isMockTestExpando[currentTestCase]) {
@@ -55,6 +57,7 @@ Future<int> getStatusCodeForVirtDir(VirtualDirectory virtualDir,
 
     var request = new MockHttpRequest(uri, followRedirects: followRedirects,
         ifModifiedSince: ifModifiedSince);
+    _addRangeHeader(request, from, to);
 
     return _withMockRequest(virtualDir, request)
         .then((response) {
@@ -67,7 +70,7 @@ Future<int> getStatusCodeForVirtDir(VirtualDirectory virtualDir,
   return _withServer(virtualDir, (port) {
     return getStatusCode(port, path, host: host, secure: secure,
           ifModifiedSince: ifModifiedSince, rawPath: rawPath,
-          followRedirects: followRedirects);
+          followRedirects: followRedirects, from: from, to: to);
   });
 }
 
@@ -77,29 +80,36 @@ Future<int> getStatusCode(int port,
                            bool secure: false,
                            DateTime ifModifiedSince,
                            bool rawPath: false,
-                           bool followRedirects: true}) {
+                           bool followRedirects: true,
+                           int from,
+                           int to}) {
   var uri = _getUri(port, path, secure: secure, rawPath: rawPath);
 
-  return new HttpClient().getUrl(uri)
+  var client = new HttpClient();
+  return client.getUrl(uri)
       .then((request) {
         if (!followRedirects) request.followRedirects = false;
         if (host != null) request.headers.host = host;
         if (ifModifiedSince != null) {
           request.headers.ifModifiedSince = ifModifiedSince;
         }
+        _addRangeHeader(request, from, to);
         return request.close();
       })
-      .then((response) => response.drain().then(
-          (_) => response.statusCode));
+      .then((response) => response.drain()
+          .then((_) => response.statusCode))
+      .whenComplete(() => client.close());
 }
 
-Future<HttpHeaders> getHeaders(VirtualDirectory virDir, String path) {
+Future<HttpHeaders> getHeaders(
+    VirtualDirectory virDir, String path, {int from, int to}) {
 
   // if this is a mock test, then run the mock code path
   if(_isMockTestExpando[currentTestCase]) {
     var uri = _getUri(0, path);
 
     var request = new MockHttpRequest(uri);
+    _addRangeHeader(request, from, to);
 
     return _withMockRequest(virDir, request)
         .then((response) {
@@ -110,7 +120,7 @@ Future<HttpHeaders> getHeaders(VirtualDirectory virDir, String path) {
   assert(_isMockTestExpando[currentTestCase] == false);
 
   return _withServer(virDir, (port) {
-      return _getHeaders(port, path);
+      return _getHeaders(port, path, from, to);
     });
 }
 
@@ -132,6 +142,52 @@ Future<String> getAsString(VirtualDirectory virtualDir, String path) {
 
   return _withServer(virtualDir, (int port) {
       return _getAsString(port, path);
+    });
+}
+
+Future<List<int>> getAsBytes(
+    VirtualDirectory virtualDir, String path, {int from, int to}) {
+
+  // if this is a mock test, then run the mock code path
+  if (_isMockTestExpando[currentTestCase]) {
+    var uri = _getUri(0, path);
+
+    var request = new MockHttpRequest(uri);
+    _addRangeHeader(request, from, to);
+
+    return _withMockRequest(virtualDir, request)
+        .then((response) {
+          return response.mockContentBinary;
+        });
+  };
+
+  assert(_isMockTestExpando[currentTestCase] == false);
+
+  return _withServer(virtualDir, (int port) {
+      return _getAsBytes(port, path, from, to);
+    });
+}
+
+Future<List> getContentAndResponse(
+    VirtualDirectory virtualDir, String path, {int from, int to}) {
+  // if this is a mock test, then run the mock code path
+  if (_isMockTestExpando[currentTestCase]) {
+    var uri = _getUri(0, path);
+
+    var request = new MockHttpRequest(uri);
+    _addRangeHeader(request, from, to);
+
+    return _withMockRequest(virtualDir, request)
+        .then((response) {
+          return [response.mockContentBinary,
+                  response];
+        });
+  };
+
+  assert(_isMockTestExpando[currentTestCase] == false);
+
+  return _withServer(virtualDir, (int port) {
+      return _getContentAndResponse(port, path, from, to);
     });
 }
 
@@ -167,18 +223,48 @@ Future _withServer(VirtualDirectory virDir, Future func(int port)) {
       .whenComplete(() => server.close());
 }
 
-Future<HttpHeaders> _getHeaders(int port, String path) =>
-    new HttpClient()
-      .get('localhost', port, path)
-      .then((request) => request.close())
-      .then((response) => response.drain().then(
-          (_) => response.headers));
+Future<HttpHeaders> _getHeaders(int port, String path, int from, int to) {
+    var client = new HttpClient();
+    return client.get('localhost', port, path)
+      .then((request) {
+        _addRangeHeader(request, from, to);
+        return request.close();
+      })
+      .then((response) => response.drain()
+          .then((_) => response.headers))
+      .whenComplete(() => client.close());
+}
 
-Future<String> _getAsString(int port, String path) =>
-    new HttpClient()
-      .get('localhost', port, path)
+Future<String> _getAsString(int port, String path) {
+    var client = new HttpClient();
+    return client.get('localhost', port, path)
       .then((request) => request.close())
-      .then((response) => UTF8.decodeStream(response));
+      .then((response) => UTF8.decodeStream(response))
+      .whenComplete(() => client.close());
+}
+
+Future<List<int>> _getAsBytes(int port, String path, int from, int to) {
+    var client = new HttpClient();
+    return client.get('localhost', port, path)
+      .then((request) {
+        _addRangeHeader(request, from, to);
+        return request.close();
+      })
+      .then((response) => response.fold([], (p, e) => p..addAll(e)))
+      .whenComplete(() => client.close());
+}
+
+Future<List> _getContentAndResponse(int port, String path, int from, int to) {
+    var client = new HttpClient();
+    return client.get('localhost', port, path)
+      .then((request) {
+        _addRangeHeader(request, from, to);
+        return request.close();
+      })
+      .then((response) => response.fold([], (p, e) => p..addAll(e))
+          .then((bytes) => [bytes, response]))
+      .whenComplete(() => client.close());
+}
 
 Uri _getUri(int port,
             String path,
@@ -193,6 +279,14 @@ Uri _getUri(int port,
     return (secure ?
         new Uri.https('localhost:$port', path) :
         new Uri.http('localhost:$port', path));
+  }
+}
+
+void _addRangeHeader(request, int from, int to) {
+  var fromStr = from != null ? '$from' : '';
+  var toStr = to != null ? '$to' : '';
+  if (fromStr.isNotEmpty || toStr.isNotEmpty) {
+    request.headers.set(HttpHeaders.RANGE, 'bytes=$fromStr-$toStr');
   }
 }
 

@@ -2,19 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library engine.scanner_test;
 
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
-import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
+import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
-import 'test_support.dart';
-import '../reflective_tests.dart';
 
+import '../reflective_tests.dart';
+import 'test_support.dart';
+
+main() {
+  groupSep = ' | ';
+  runReflectiveTests(CharSequenceReaderTest);
+  runReflectiveTests(KeywordStateTest);
+  runReflectiveTests(ScannerTest);
+  runReflectiveTests(TokenTypeTest);
+}
 
 class CharSequenceReaderTest {
   void test_advance() {
@@ -63,472 +67,59 @@ class CharSequenceReaderTest {
   }
 }
 
-class IncrementalScannerTest extends EngineTestCase {
-  /**
-   * The first token from the token stream resulting from parsing the original
-   * source, or `null` if [scan] has not been invoked.
-   */
-  Token _originalTokens;
-
-  /**
-   * The scanner used to perform incremental scanning, or `null` if [scan] has
-   * not been invoked.
-   */
-  IncrementalScanner _incrementalScanner;
-
-  /**
-   * The first token from the token stream resulting from performing an
-   * incremental scan, or `null` if [scan] has not been invoked.
-   */
-  Token _incrementalTokens;
-
-  void fail_insert_beginning() {
-    // This is currently reporting the changed range as being from 0 to 5, but
-    // that would force us to re-parse both classes, which is clearly sub-optimal.
-    //
-    // "class B {}"
-    // "class A {} class B {}"
-    _scan("", "", "class A {} ", "class B {}");
-    _assertTokens(-1, 4, ["class", "A", "{", "}", "class", "B", "{", "}"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+class CharacterRangeReaderTest extends EngineTestCase {
+  void test_advance() {
+    CharSequenceReader baseReader = new CharSequenceReader("xyzzy");
+    CharacterRangeReader reader = new CharacterRangeReader(baseReader, 1, 4);
+    expect(reader.advance(), 0x79);
+    expect(reader.advance(), 0x80);
+    expect(reader.advance(), 0x80);
+    expect(reader.advance(), -1);
+    expect(reader.advance(), -1);
   }
 
-  void test_delete_identifier_beginning() {
-    // "abs + b;"
-    // "s + b;")
-    _scan("", "ab", "", "s + b;");
-    _assertTokens(-1, 1, ["s", "+", "b", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+  void test_creation() {
+    CharSequenceReader baseReader = new CharSequenceReader("xyzzy");
+    CharacterRangeReader reader = new CharacterRangeReader(baseReader, 1, 4);
+    expect(reader, isNotNull);
   }
 
-  void test_delete_identifier_end() {
-    // "abs + b;"
-    // "a + b;")
-    _scan("a", "bs", "", " + b;");
-    _assertTokens(-1, 1, ["a", "+", "b", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+  void test_getOffset() {
+    CharSequenceReader baseReader = new CharSequenceReader("xyzzy");
+    CharacterRangeReader reader = new CharacterRangeReader(baseReader, 1, 2);
+    expect(reader.offset, 1);
+    reader.advance();
+    expect(reader.offset, 2);
+    reader.advance();
+    expect(reader.offset, 2);
   }
 
-  void test_delete_identifier_middle() {
-    // "abs + b;"
-    // "as + b;")
-    _scan("a", "b", "", "s + b;");
-    _assertTokens(-1, 1, ["as", "+", "b", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+  void test_getString() {
+    CharSequenceReader baseReader = new CharSequenceReader("__xyzzy__");
+    CharacterRangeReader reader = new CharacterRangeReader(baseReader, 2, 7);
+    reader.offset = 5;
+    expect(reader.getString(3, 0), "yzz");
+    expect(reader.getString(4, 1), "zzy");
   }
 
-  void test_delete_mergeTokens() {
-    // "a + b + c;"
-    // "ac;")
-    _scan("a", " + b + ", "", "c;");
-    _assertTokens(-1, 1, ["ac", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+  void test_peek() {
+    CharSequenceReader baseReader = new CharSequenceReader("xyzzy");
+    CharacterRangeReader reader = new CharacterRangeReader(baseReader, 1, 3);
+    expect(reader.peek(), 0x79);
+    expect(reader.peek(), 0x79);
+    reader.advance();
+    expect(reader.peek(), 0x80);
+    expect(reader.peek(), 0x80);
+    reader.advance();
+    expect(reader.peek(), -1);
+    expect(reader.peek(), -1);
   }
 
-  void test_delete_whitespace() {
-    // "a + b + c;"
-    // "a+ b + c;")
-    _scan("a", " ", "", "+ b + c;");
-    _assertTokens(1, 2, ["a", "+", "b", "+", "c", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isFalse);
-  }
-
-  void test_insert_afterIdentifier_firstToken() {
-    // "a + b;"
-    // "abs + b;"
-    _scan("a", "", "bs", " + b;");
-    _assertTokens(-1, 1, ["abs", "+", "b", ";"]);
-    _assertReplaced(1, "+");
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_insert_afterIdentifier_lastToken() {
-    // "a + b"
-    // "a + bc")
-    _scan("a + b", "", "c", "");
-    _assertTokens(1, 3, ["a", "+", "bc"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_insert_afterIdentifier_middleToken() {
-    // "a + b;"
-    // "a + by;"
-    _scan("a + b", "", "y", ";");
-    _assertTokens(1, 3, ["a", "+", "by", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_insert_beforeIdentifier() {
-    // "a + b;"
-    // "a + xb;")
-    _scan("a + ", "", "x", "b;");
-    _assertTokens(1, 3, ["a", "+", "xb", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_insert_beforeIdentifier_firstToken() {
-    // "a + b;"
-    // "xa + b;"
-    _scan("", "", "x", "a + b;");
-    _assertTokens(-1, 1, ["xa", "+", "b", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_insert_convertOneFunctionToTwo() {
-    // "f() {}"
-    // "f() => 0; g() {}"
-    _scan("f()", "", " => 0; g()", " {}");
-    _assertTokens(2, 9, ["f", "(", ")", "=>", "0", ";", "g", "(", ")", "{", "}"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_insert_convertOneFunctionToTwo_overlap() {
-    // "f() {}"
-    // "f() {} g() {}"
-    _scan("f() {", "", "} g() {", "}");
-    _assertTokens(4, 10, ["f", "(", ")", "{", "}", "g", "(", ")", "{", "}"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_insert_end() {
-    // "class A {}"
-    // "class A {} class B {}"
-    _scan("class A {}", "", " class B {}", "");
-    _assertTokens(3, 8, ["class", "A", "{", "}", "class", "B", "{", "}"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_insert_insideIdentifier() {
-    // "cob;"
-    // "cow.b;"
-    _scan("co", "", "w.", "b;");
-    _assertTokens(-1, 3, ["cow", ".", "b", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_insert_newIdentifier_noSpaceBefore() {
-    // "a; c;"
-    // "a;b c;"
-    _scan("a;", "", "b", " c;");
-    _assertTokens(1, 3, ["a", ";", "b", "c", ";"]);
-    _assertReplaced(1, ";");
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_insert_newIdentifier_spaceBefore() {
-    // "a; c;"
-    // "a; b c;"
-    _scan("a; ", "", "b ", "c;");
-    _assertTokens(1, 3, ["a", ";", "b", "c", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_insert_period() {
-    // "a + b;"
-    // "a + b.;"
-    _scan("a + b", "", ".", ";");
-    _assertTokens(2, 4, ["a", "+", "b", ".", ";"]);
-  }
-
-  void test_insert_period_betweenIdentifiers_left() {
-    // "a b;"
-    // "a. b;"
-    _scan("a", "", ".", " b;");
-    _assertTokens(0, 2, ["a", ".", "b", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_insert_period_betweenIdentifiers_middle() {
-    // "a  b;"
-    // "a . b;"
-    _scan("a ", "", ".", " b;");
-    _assertTokens(0, 2, ["a", ".", "b", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_insert_period_betweenIdentifiers_right() {
-    // "a b;"
-    // "a .b;"
-    _scan("a ", "", ".", "b;");
-    _assertTokens(0, 2, ["a", ".", "b", ";"]);
-  }
-
-  void test_insert_period_insideExistingIdentifier() {
-    // "ab;"
-    // "a.b;"
-    _scan("a", "", ".", "b;");
-    _assertTokens(-1, 3, ["a", ".", "b", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_insert_periodAndIdentifier() {
-    // "a + b;"
-    // "a + b.x;"
-    _scan("a + b", "", ".x", ";");
-    _assertTokens(2, 5, ["a", "+", "b", ".", "x", ";"]);
-  }
-
-  void test_insert_whitespace_beginning_beforeToken() {
-    // "a + b;"
-    // " a + b;"
-    _scan("", "", " ", "a + b;");
-    _assertTokens(0, 1, ["a", "+", "b", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isFalse);
-  }
-
-  void test_insert_whitespace_betweenTokens() {
-    // "a + b;"
-    // "a  + b;"
-    _scan("a ", "", " ", "+ b;");
-    _assertTokens(1, 2, ["a", "+", "b", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isFalse);
-  }
-
-  void test_insert_whitespace_end_afterToken() {
-    // "a + b;"
-    // "a + b; "
-    _scan("a + b;", "", " ", "");
-    _assertTokens(3, 4, ["a", "+", "b", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isFalse);
-  }
-
-  void test_insert_whitespace_end_afterWhitespace() {
-    // "a + b; "
-    // "a + b;  "
-    _scan("a + b; ", "", " ", "");
-    _assertTokens(3, 4, ["a", "+", "b", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isFalse);
-  }
-
-  void test_insert_whitespace_withMultipleComments() {
-    // "//comment", "//comment2", "a + b;"
-    // "//comment", "//comment2", "a  + b;"
-    _scan(r'''
-//comment
-//comment2
-a''', "", " ", " + b;");
-    _assertTokens(1, 2, ["a", "+", "b", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isFalse);
-  }
-
-  void test_replace_identifier_beginning() {
-    // "bell + b;"
-    // "fell + b;")
-    _scan("", "b", "f", "ell + b;");
-    _assertTokens(-1, 1, ["fell", "+", "b", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_replace_identifier_end() {
-    // "bell + b;"
-    // "belt + b;")
-    _scan("bel", "l", "t", " + b;");
-    _assertTokens(-1, 1, ["belt", "+", "b", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_replace_identifier_middle() {
-    // "first + b;"
-    // "frost + b;")
-    _scan("f", "ir", "ro", "st + b;");
-    _assertTokens(-1, 1, ["frost", "+", "b", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_replace_multiple_partialFirstAndLast() {
-    // "aa + bb;"
-    // "ab * ab;")
-    _scan("a", "a + b", "b * a", "b;");
-    _assertTokens(-1, 3, ["ab", "*", "ab", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_replace_operator_oneForMany() {
-    // "a + b;"
-    // "a * c - b;")
-    _scan("a ", "+", "* c -", " b;");
-    _assertTokens(0, 4, ["a", "*", "c", "-", "b", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_replace_operator_oneForOne() {
-    // "a + b;"
-    // "a * b;")
-    _scan("a ", "+", "*", " b;");
-    _assertTokens(0, 2, ["a", "*", "b", ";"]);
-    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
-  }
-
-  void test_tokenMap() {
-    // "main() {a + b;}"
-    // "main() { a + b;}"
-    _scan("main() {", "", " ", "a + b;}");
-    TokenMap tokenMap = _incrementalScanner.tokenMap;
-    Token oldToken = _originalTokens;
-    while (oldToken.type != TokenType.EOF) {
-      Token newToken = tokenMap.get(oldToken);
-      expect(newToken, isNot(same(oldToken)));
-      expect(newToken.type, same(oldToken.type));
-      expect(newToken.lexeme, oldToken.lexeme);
-      oldToken = oldToken.next;
-    }
-    expect(_incrementalScanner.hasNonWhitespaceChange, isFalse);
-  }
-
-  /**
-   * Assert that the token at the given [offset] was replaced with a new token
-   * having the given [lexeme].
-   */
-  void _assertReplaced(int offset, String lexeme) {
-    Token oldToken = _originalTokens;
-    for (int i = 0; i < offset; i++) {
-      oldToken = oldToken.next;
-    }
-    expect(oldToken.lexeme, lexeme);
-    Token newToken = _incrementalScanner.tokenMap.get(oldToken);
-    expect(newToken, isNotNull);
-    expect(newToken.lexeme, lexeme);
-    expect(newToken, isNot(same(oldToken)));
-  }
-
-  /**
-   * Assert that the result of the incremental scan matches the given list of
-   * [lexemes] and that the left and right tokens correspond to the tokens at
-   * the [leftIndex] and [rightIndex].
-   */
-  void _assertTokens(int leftIndex, int rightIndex, List<String> lexemes) {
-    int count = lexemes.length;
-    expect(
-        leftIndex >= -1 && leftIndex < count,
-        isTrue,
-        reason: "Invalid left index");
-    expect(
-        rightIndex >= 0 && rightIndex <= count,
-        isTrue,
-        reason: "Invalid right index");
-    Token leftToken = null;
-    Token rightToken = null;
-    Token token = _incrementalTokens;
-    if (leftIndex < 0) {
-      leftToken = token.previous;
-    }
-    for (int i = 0; i < count; i++) {
-      expect(token.lexeme, lexemes[i]);
-      if (i == leftIndex) {
-        leftToken = token;
-      }
-      if (i == rightIndex) {
-        rightToken = token;
-      }
-      token = token.next;
-    }
-    if (rightIndex >= count) {
-      rightToken = token;
-    }
-    expect(token.type, same(TokenType.EOF), reason: "Too many tokens");
-    if (leftIndex >= 0) {
-      expect(leftToken, isNotNull);
-    }
-    expect(
-        _incrementalScanner.leftToken,
-        same(leftToken),
-        reason: "Invalid left token");
-    if (rightIndex >= 0) {
-      expect(rightToken, isNotNull);
-    }
-    expect(
-        _incrementalScanner.rightToken,
-        same(rightToken),
-        reason: "Invalid right token");
-  }
-
-  /**
-   * Given a description of the original and modified contents, perform an
-   * incremental scan of the two pieces of text. Verify that the incremental
-   * scan produced the same tokens as those that would be produced by a full
-   * scan of the new contents.
-   *
-   * The original content is the concatenation of the [prefix], [removed] and
-   * [suffix] fragments. The modeified content is the concatenation of the
-   * [prefix], [added] and [suffix] fragments.
-   */
-  void _scan(String prefix, String removed, String added, String suffix) {
-    //
-    // Compute the information needed to perform the test.
-    //
-    String originalContents = "$prefix$removed$suffix";
-    String modifiedContents = "$prefix$added$suffix";
-    int replaceStart = prefix.length;
-    Source source = new TestSource();
-    //
-    // Scan the original contents.
-    //
-    GatheringErrorListener originalListener = new GatheringErrorListener();
-    Scanner originalScanner = new Scanner(
-        source,
-        new CharSequenceReader(originalContents),
-        originalListener);
-    _originalTokens = originalScanner.tokenize();
-    expect(_originalTokens, isNotNull);
-    //
-    // Scan the modified contents.
-    //
-    GatheringErrorListener modifiedListener = new GatheringErrorListener();
-    Scanner modifiedScanner = new Scanner(
-        source,
-        new CharSequenceReader(modifiedContents),
-        modifiedListener);
-    Token modifiedTokens = modifiedScanner.tokenize();
-    expect(modifiedTokens, isNotNull);
-    //
-    // Incrementally scan the modified contents.
-    //
-    GatheringErrorListener incrementalListener = new GatheringErrorListener();
-    _incrementalScanner = new IncrementalScanner(
-        source,
-        new CharSequenceReader(modifiedContents),
-        incrementalListener);
-    _incrementalTokens = _incrementalScanner.rescan(
-        _originalTokens,
-        replaceStart,
-        removed.length,
-        added.length);
-    //
-    // Validate that the results of the incremental scan are the same as the
-    // full scan of the modified source.
-    //
-    Token incrementalToken = _incrementalTokens;
-    expect(incrementalToken, isNotNull);
-    while (incrementalToken.type != TokenType.EOF
-        && modifiedTokens.type != TokenType.EOF) {
-      expect(
-          incrementalToken.type,
-          same(modifiedTokens.type),
-          reason: "Wrong type for token");
-      expect(
-          incrementalToken.offset,
-              modifiedTokens.offset,
-              reason: "Wrong offset for token");
-      expect(
-          incrementalToken.length,
-              modifiedTokens.length,
-              reason: "Wrong length for token");
-      expect(
-          incrementalToken.lexeme,
-              modifiedTokens.lexeme,
-              reason: "Wrong lexeme for token");
-      incrementalToken = incrementalToken.next;
-      modifiedTokens = modifiedTokens.next;
-    }
-    expect(
-        incrementalToken.type,
-        same(TokenType.EOF),
-        reason: "Too many tokens");
-    expect(
-        modifiedTokens.type,
-        same(TokenType.EOF),
-        reason: "Not enough tokens");
-    // TODO(brianwilkerson) Verify that the errors are correct?
+  void test_setOffset() {
+    CharSequenceReader baseReader = new CharSequenceReader("xyzzy");
+    CharacterRangeReader reader = new CharacterRangeReader(baseReader, 1, 4);
+    reader.offset = 2;
+    expect(reader.offset, 2);
   }
 }
 
@@ -578,10 +169,14 @@ class KeywordStateTest {
 class ScannerTest {
   void fail_incomplete_string_interpolation() {
     // https://code.google.com/p/dart/issues/detail?id=18073
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 9, "\"foo \${bar", [
-        new StringToken(TokenType.STRING, "\"foo ", 0),
-        new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 5),
-        new StringToken(TokenType.IDENTIFIER, "bar", 7)]);
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        9,
+        "\"foo \${bar",
+        [
+            new StringToken(TokenType.STRING, "\"foo ", 0),
+            new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 5),
+            new StringToken(TokenType.IDENTIFIER, "bar", 7)]);
   }
 
   void test_ampersand() {
@@ -657,7 +252,10 @@ class ScannerTest {
   }
 
   void test_comment_disabled_multi() {
-    Scanner scanner = new Scanner(null, new CharSequenceReader("/* comment */ "), AnalysisErrorListener.NULL_LISTENER);
+    Scanner scanner = new Scanner(
+        null,
+        new CharSequenceReader("/* comment */ "),
+        AnalysisErrorListener.NULL_LISTENER);
     scanner.preserveComments = false;
     Token token = scanner.tokenize();
     expect(token, isNotNull);
@@ -673,43 +271,45 @@ class ScannerTest {
   }
 
   void test_comment_nested() {
-    _assertComment(TokenType.MULTI_LINE_COMMENT, "/* comment /* within a */ comment */");
+    _assertComment(
+        TokenType.MULTI_LINE_COMMENT,
+        "/* comment /* within a */ comment */");
   }
 
   void test_comment_single() {
     _assertComment(TokenType.SINGLE_LINE_COMMENT, "// comment");
   }
 
-  void test_double_both_e() {
-    _assertToken(TokenType.DOUBLE, "0.123e4");
-  }
-
   void test_double_both_E() {
     _assertToken(TokenType.DOUBLE, "0.123E4");
+  }
+
+  void test_double_both_e() {
+    _assertToken(TokenType.DOUBLE, "0.123e4");
   }
 
   void test_double_fraction() {
     _assertToken(TokenType.DOUBLE, ".123");
   }
 
-  void test_double_fraction_e() {
-    _assertToken(TokenType.DOUBLE, ".123e4");
-  }
-
   void test_double_fraction_E() {
     _assertToken(TokenType.DOUBLE, ".123E4");
+  }
+
+  void test_double_fraction_e() {
+    _assertToken(TokenType.DOUBLE, ".123e4");
   }
 
   void test_double_missingDigitInExponent() {
     _assertError(ScannerErrorCode.MISSING_DIGIT, 1, "1e");
   }
 
-  void test_double_whole_e() {
-    _assertToken(TokenType.DOUBLE, "12e4");
-  }
-
   void test_double_whole_E() {
     _assertToken(TokenType.DOUBLE, "12E4");
+  }
+
+  void test_double_whole_e() {
+    _assertToken(TokenType.DOUBLE, "12e4");
   }
 
   void test_eq() {
@@ -978,33 +578,42 @@ class ScannerTest {
 
   void test_lineInfo_multilineComment() {
     String source = "/*\r *\r */";
-    _assertLineInfo(source, [
-        new ScannerTest_ExpectedLocation(0, 1, 1),
-        new ScannerTest_ExpectedLocation(4, 2, 2),
-        new ScannerTest_ExpectedLocation(source.length - 1, 3, 3)]);
+    _assertLineInfo(
+        source,
+        [
+            new ScannerTest_ExpectedLocation(0, 1, 1),
+            new ScannerTest_ExpectedLocation(4, 2, 2),
+            new ScannerTest_ExpectedLocation(source.length - 1, 3, 3)]);
   }
 
   void test_lineInfo_multilineString() {
     String source = "'''a\r\nbc\r\nd'''";
-    _assertLineInfo(source, [
-        new ScannerTest_ExpectedLocation(0, 1, 1),
-        new ScannerTest_ExpectedLocation(7, 2, 2),
-        new ScannerTest_ExpectedLocation(source.length - 1, 3, 4)]);
+    _assertLineInfo(
+        source,
+        [
+            new ScannerTest_ExpectedLocation(0, 1, 1),
+            new ScannerTest_ExpectedLocation(7, 2, 2),
+            new ScannerTest_ExpectedLocation(source.length - 1, 3, 4)]);
   }
 
   void test_lineInfo_simpleClass() {
-    String source = "class Test {\r\n    String s = '...';\r\n    int get x => s.MISSING_GETTER;\r\n}";
-    _assertLineInfo(source, [
-        new ScannerTest_ExpectedLocation(0, 1, 1),
-        new ScannerTest_ExpectedLocation(source.indexOf("MISSING_GETTER"), 3, 20),
-        new ScannerTest_ExpectedLocation(source.length - 1, 4, 1)]);
+    String source =
+        "class Test {\r\n    String s = '...';\r\n    int get x => s.MISSING_GETTER;\r\n}";
+    _assertLineInfo(
+        source,
+        [
+            new ScannerTest_ExpectedLocation(0, 1, 1),
+            new ScannerTest_ExpectedLocation(source.indexOf("MISSING_GETTER"), 3, 20),
+            new ScannerTest_ExpectedLocation(source.length - 1, 4, 1)]);
   }
 
   void test_lineInfo_slashN() {
     String source = "class Test {\n}";
-    _assertLineInfo(source, [
-        new ScannerTest_ExpectedLocation(0, 1, 1),
-        new ScannerTest_ExpectedLocation(source.indexOf("}"), 2, 1)]);
+    _assertLineInfo(
+        source,
+        [
+            new ScannerTest_ExpectedLocation(0, 1, 1),
+            new ScannerTest_ExpectedLocation(source.indexOf("}"), 2, 1)]);
   }
 
   void test_lt() {
@@ -1035,6 +644,10 @@ class ScannerTest {
     _assertToken(TokenType.MINUS_MINUS, "--");
   }
 
+  void test_openSquareBracket() {
+    _assertToken(TokenType.OPEN_SQUARE_BRACKET, "[");
+  }
+
   void test_open_curly_bracket() {
     _assertToken(TokenType.OPEN_CURLY_BRACKET, "{");
   }
@@ -1044,10 +657,6 @@ class ScannerTest {
   }
 
   void test_open_square_bracket() {
-    _assertToken(TokenType.OPEN_SQUARE_BRACKET, "[");
-  }
-
-  void test_openSquareBracket() {
     _assertToken(TokenType.OPEN_SQUARE_BRACKET, "[");
   }
 
@@ -1063,30 +672,34 @@ class ScannerTest {
     _assertToken(TokenType.PERIOD, ".");
   }
 
+  void test_periodAfterNumberNotIncluded_identifier() {
+    _assertTokens(
+        "42.isEven()",
+        [
+            new StringToken(TokenType.INT, "42", 0),
+            new Token(TokenType.PERIOD, 2),
+            new StringToken(TokenType.IDENTIFIER, "isEven", 3),
+            new Token(TokenType.OPEN_PAREN, 9),
+            new Token(TokenType.CLOSE_PAREN, 10)]);
+  }
+
+  void test_periodAfterNumberNotIncluded_period() {
+    _assertTokens(
+        "42..isEven()",
+        [
+            new StringToken(TokenType.INT, "42", 0),
+            new Token(TokenType.PERIOD_PERIOD, 2),
+            new StringToken(TokenType.IDENTIFIER, "isEven", 4),
+            new Token(TokenType.OPEN_PAREN, 10),
+            new Token(TokenType.CLOSE_PAREN, 11)]);
+  }
+
   void test_period_period() {
     _assertToken(TokenType.PERIOD_PERIOD, "..");
   }
 
   void test_period_period_period() {
     _assertToken(TokenType.PERIOD_PERIOD_PERIOD, "...");
-  }
-
-  void test_periodAfterNumberNotIncluded_identifier() {
-    _assertTokens("42.isEven()", [
-        new StringToken(TokenType.INT, "42", 0),
-        new Token(TokenType.PERIOD, 2),
-        new StringToken(TokenType.IDENTIFIER, "isEven", 3),
-        new Token(TokenType.OPEN_PAREN, 9),
-        new Token(TokenType.CLOSE_PAREN, 10)]);
-  }
-
-  void test_periodAfterNumberNotIncluded_period() {
-    _assertTokens("42..isEven()", [
-        new StringToken(TokenType.INT, "42", 0),
-        new Token(TokenType.PERIOD_PERIOD, 2),
-        new StringToken(TokenType.IDENTIFIER, "isEven", 4),
-        new Token(TokenType.OPEN_PAREN, 10),
-        new Token(TokenType.CLOSE_PAREN, 11)]);
   }
 
   void test_plus() {
@@ -1109,12 +722,12 @@ class ScannerTest {
     _assertToken(TokenType.SCRIPT_TAG, "#!/bin/dart -debug");
   }
 
-  void test_scriptTag_withoutSpace() {
-    _assertToken(TokenType.SCRIPT_TAG, "#!/bin/dart");
-  }
-
   void test_scriptTag_withSpace() {
     _assertToken(TokenType.SCRIPT_TAG, "#! /bin/dart");
+  }
+
+  void test_scriptTag_withoutSpace() {
+    _assertToken(TokenType.SCRIPT_TAG, "#!/bin/dart");
   }
 
   void test_semicolon() {
@@ -1124,7 +737,8 @@ class ScannerTest {
   void test_setSourceStart() {
     int offsetDelta = 42;
     GatheringErrorListener listener = new GatheringErrorListener();
-    Scanner scanner = new Scanner(null, new SubSequenceReader("a", offsetDelta), listener);
+    Scanner scanner =
+        new Scanner(null, new SubSequenceReader("a", offsetDelta), listener);
     scanner.setSourceStart(3, 9);
     scanner.tokenize();
     List<int> lineStarts = scanner.lineStarts;
@@ -1172,20 +786,24 @@ class ScannerTest {
   }
 
   void test_string_multi_interpolation_block() {
-    _assertTokens("\"Hello \${name}!\"", [
-        new StringToken(TokenType.STRING, "\"Hello ", 0),
-        new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 7),
-        new StringToken(TokenType.IDENTIFIER, "name", 9),
-        new Token(TokenType.CLOSE_CURLY_BRACKET, 13),
-        new StringToken(TokenType.STRING, "!\"", 14)]);
+    _assertTokens(
+        "\"Hello \${name}!\"",
+        [
+            new StringToken(TokenType.STRING, "\"Hello ", 0),
+            new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 7),
+            new StringToken(TokenType.IDENTIFIER, "name", 9),
+            new Token(TokenType.CLOSE_CURLY_BRACKET, 13),
+            new StringToken(TokenType.STRING, "!\"", 14)]);
   }
 
   void test_string_multi_interpolation_identifier() {
-    _assertTokens("\"Hello \$name!\"", [
-        new StringToken(TokenType.STRING, "\"Hello ", 0),
-        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 7),
-        new StringToken(TokenType.IDENTIFIER, "name", 8),
-        new StringToken(TokenType.STRING, "!\"", 12)]);
+    _assertTokens(
+        "\"Hello \$name!\"",
+        [
+            new StringToken(TokenType.STRING, "\"Hello ", 0),
+            new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 7),
+            new StringToken(TokenType.IDENTIFIER, "name", 8),
+            new StringToken(TokenType.STRING, "!\"", 12)]);
   }
 
   void test_string_multi_single() {
@@ -1197,23 +815,35 @@ class ScannerTest {
   }
 
   void test_string_multi_unterminated() {
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "'''string", [new StringToken(TokenType.STRING, "'''string", 0)]);
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        8,
+        "'''string",
+        [new StringToken(TokenType.STRING, "'''string", 0)]);
   }
 
   void test_string_multi_unterminated_interpolation_block() {
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "'''\${name", [
-        new StringToken(TokenType.STRING, "'''", 0),
-        new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 3),
-        new StringToken(TokenType.IDENTIFIER, "name", 5),
-        new StringToken(TokenType.STRING, "", 9)]);
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        8,
+        "'''\${name",
+        [
+            new StringToken(TokenType.STRING, "'''", 0),
+            new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 3),
+            new StringToken(TokenType.IDENTIFIER, "name", 5),
+            new StringToken(TokenType.STRING, "", 9)]);
   }
 
   void test_string_multi_unterminated_interpolation_identifier() {
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, "'''\$name", [
-        new StringToken(TokenType.STRING, "'''", 0),
-        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 3),
-        new StringToken(TokenType.IDENTIFIER, "name", 4),
-        new StringToken(TokenType.STRING, "", 8)]);
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        7,
+        "'''\$name",
+        [
+            new StringToken(TokenType.STRING, "'''", 0),
+            new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 3),
+            new StringToken(TokenType.IDENTIFIER, "name", 4),
+            new StringToken(TokenType.STRING, "", 8)]);
   }
 
   void test_string_raw_multi_double() {
@@ -1226,7 +856,11 @@ class ScannerTest {
 
   void test_string_raw_multi_unterminated() {
     String source = "r'''string";
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 9, source, [new StringToken(TokenType.STRING, source, 0)]);
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        9,
+        source,
+        [new StringToken(TokenType.STRING, source, 0)]);
   }
 
   void test_string_raw_simple_double() {
@@ -1239,12 +873,20 @@ class ScannerTest {
 
   void test_string_raw_simple_unterminated_eof() {
     String source = "r'string";
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, source, [new StringToken(TokenType.STRING, source, 0)]);
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        7,
+        source,
+        [new StringToken(TokenType.STRING, source, 0)]);
   }
 
   void test_string_raw_simple_unterminated_eol() {
     String source = "r'string";
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "$source\n", [new StringToken(TokenType.STRING, source, 0)]);
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        8,
+        "$source\n",
+        [new StringToken(TokenType.STRING, source, 0)]);
   }
 
   void test_string_simple_double() {
@@ -1256,75 +898,89 @@ class ScannerTest {
   }
 
   void test_string_simple_interpolation_adjacentIdentifiers() {
-    _assertTokens("'\$a\$b'", [
-        new StringToken(TokenType.STRING, "'", 0),
-        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
-        new StringToken(TokenType.IDENTIFIER, "a", 2),
-        new StringToken(TokenType.STRING, "", 3),
-        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 3),
-        new StringToken(TokenType.IDENTIFIER, "b", 4),
-        new StringToken(TokenType.STRING, "'", 5)]);
+    _assertTokens(
+        "'\$a\$b'",
+        [
+            new StringToken(TokenType.STRING, "'", 0),
+            new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
+            new StringToken(TokenType.IDENTIFIER, "a", 2),
+            new StringToken(TokenType.STRING, "", 3),
+            new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 3),
+            new StringToken(TokenType.IDENTIFIER, "b", 4),
+            new StringToken(TokenType.STRING, "'", 5)]);
   }
 
   void test_string_simple_interpolation_block() {
-    _assertTokens("'Hello \${name}!'", [
-        new StringToken(TokenType.STRING, "'Hello ", 0),
-        new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 7),
-        new StringToken(TokenType.IDENTIFIER, "name", 9),
-        new Token(TokenType.CLOSE_CURLY_BRACKET, 13),
-        new StringToken(TokenType.STRING, "!'", 14)]);
+    _assertTokens(
+        "'Hello \${name}!'",
+        [
+            new StringToken(TokenType.STRING, "'Hello ", 0),
+            new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 7),
+            new StringToken(TokenType.IDENTIFIER, "name", 9),
+            new Token(TokenType.CLOSE_CURLY_BRACKET, 13),
+            new StringToken(TokenType.STRING, "!'", 14)]);
   }
 
   void test_string_simple_interpolation_blockWithNestedMap() {
-    _assertTokens("'a \${f({'b' : 'c'})} d'", [
-        new StringToken(TokenType.STRING, "'a ", 0),
-        new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 3),
-        new StringToken(TokenType.IDENTIFIER, "f", 5),
-        new Token(TokenType.OPEN_PAREN, 6),
-        new Token(TokenType.OPEN_CURLY_BRACKET, 7),
-        new StringToken(TokenType.STRING, "'b'", 8),
-        new Token(TokenType.COLON, 12),
-        new StringToken(TokenType.STRING, "'c'", 14),
-        new Token(TokenType.CLOSE_CURLY_BRACKET, 17),
-        new Token(TokenType.CLOSE_PAREN, 18),
-        new Token(TokenType.CLOSE_CURLY_BRACKET, 19),
-        new StringToken(TokenType.STRING, " d'", 20)]);
+    _assertTokens(
+        "'a \${f({'b' : 'c'})} d'",
+        [
+            new StringToken(TokenType.STRING, "'a ", 0),
+            new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 3),
+            new StringToken(TokenType.IDENTIFIER, "f", 5),
+            new Token(TokenType.OPEN_PAREN, 6),
+            new Token(TokenType.OPEN_CURLY_BRACKET, 7),
+            new StringToken(TokenType.STRING, "'b'", 8),
+            new Token(TokenType.COLON, 12),
+            new StringToken(TokenType.STRING, "'c'", 14),
+            new Token(TokenType.CLOSE_CURLY_BRACKET, 17),
+            new Token(TokenType.CLOSE_PAREN, 18),
+            new Token(TokenType.CLOSE_CURLY_BRACKET, 19),
+            new StringToken(TokenType.STRING, " d'", 20)]);
   }
 
   void test_string_simple_interpolation_firstAndLast() {
-    _assertTokens("'\$greeting \$name'", [
-        new StringToken(TokenType.STRING, "'", 0),
-        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
-        new StringToken(TokenType.IDENTIFIER, "greeting", 2),
-        new StringToken(TokenType.STRING, " ", 10),
-        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 11),
-        new StringToken(TokenType.IDENTIFIER, "name", 12),
-        new StringToken(TokenType.STRING, "'", 16)]);
+    _assertTokens(
+        "'\$greeting \$name'",
+        [
+            new StringToken(TokenType.STRING, "'", 0),
+            new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
+            new StringToken(TokenType.IDENTIFIER, "greeting", 2),
+            new StringToken(TokenType.STRING, " ", 10),
+            new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 11),
+            new StringToken(TokenType.IDENTIFIER, "name", 12),
+            new StringToken(TokenType.STRING, "'", 16)]);
   }
 
   void test_string_simple_interpolation_identifier() {
-    _assertTokens("'Hello \$name!'", [
-        new StringToken(TokenType.STRING, "'Hello ", 0),
-        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 7),
-        new StringToken(TokenType.IDENTIFIER, "name", 8),
-        new StringToken(TokenType.STRING, "!'", 12)]);
+    _assertTokens(
+        "'Hello \$name!'",
+        [
+            new StringToken(TokenType.STRING, "'Hello ", 0),
+            new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 7),
+            new StringToken(TokenType.IDENTIFIER, "name", 8),
+            new StringToken(TokenType.STRING, "!'", 12)]);
   }
 
   void test_string_simple_interpolation_missingIdentifier() {
-    _assertTokens("'\$x\$'", [
-        new StringToken(TokenType.STRING, "'", 0),
-        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
-        new StringToken(TokenType.IDENTIFIER, "x", 2),
-        new StringToken(TokenType.STRING, "", 3),
-        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 3),
-        new StringToken(TokenType.STRING, "'", 4)]);
+    _assertTokens(
+        "'\$x\$'",
+        [
+            new StringToken(TokenType.STRING, "'", 0),
+            new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
+            new StringToken(TokenType.IDENTIFIER, "x", 2),
+            new StringToken(TokenType.STRING, "", 3),
+            new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 3),
+            new StringToken(TokenType.STRING, "'", 4)]);
   }
 
   void test_string_simple_interpolation_nonIdentifier() {
-    _assertTokens("'\$1'", [
-        new StringToken(TokenType.STRING, "'", 0),
-        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
-        new StringToken(TokenType.STRING, "1'", 2)]);
+    _assertTokens(
+        "'\$1'",
+        [
+            new StringToken(TokenType.STRING, "'", 0),
+            new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
+            new StringToken(TokenType.STRING, "1'", 2)]);
   }
 
   void test_string_simple_single() {
@@ -1333,28 +989,44 @@ class ScannerTest {
 
   void test_string_simple_unterminated_eof() {
     String source = "'string";
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 6, source, [new StringToken(TokenType.STRING, source, 0)]);
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        6,
+        source,
+        [new StringToken(TokenType.STRING, source, 0)]);
   }
 
   void test_string_simple_unterminated_eol() {
     String source = "'string";
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, "$source\r", [new StringToken(TokenType.STRING, source, 0)]);
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        7,
+        "$source\r",
+        [new StringToken(TokenType.STRING, source, 0)]);
   }
 
   void test_string_simple_unterminated_interpolation_block() {
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 6, "'\${name", [
-        new StringToken(TokenType.STRING, "'", 0),
-        new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 1),
-        new StringToken(TokenType.IDENTIFIER, "name", 3),
-        new StringToken(TokenType.STRING, "", 7)]);
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        6,
+        "'\${name",
+        [
+            new StringToken(TokenType.STRING, "'", 0),
+            new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 1),
+            new StringToken(TokenType.IDENTIFIER, "name", 3),
+            new StringToken(TokenType.STRING, "", 7)]);
   }
 
   void test_string_simple_unterminated_interpolation_identifier() {
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 5, "'\$name", [
-        new StringToken(TokenType.STRING, "'", 0),
-        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
-        new StringToken(TokenType.IDENTIFIER, "name", 2),
-        new StringToken(TokenType.STRING, "", 6)]);
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        5,
+        "'\$name",
+        [
+            new StringToken(TokenType.STRING, "'", 0),
+            new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
+            new StringToken(TokenType.IDENTIFIER, "name", 2),
+            new StringToken(TokenType.STRING, "", 6)]);
   }
 
   void test_tilde() {
@@ -1402,39 +1074,54 @@ class ScannerTest {
   }
 
   /**
-   * Assert that scanning the given source produces an error with the given code.
+   * Assert that scanning the given [source] produces an error with the given
+   * code.
    *
-   * @param expectedError the error that should be produced
-   * @param expectedOffset the string offset that should be associated with the error
-   * @param source the source to be scanned to produce the error
+   * [expectedError] the error that should be produced
+   * [expectedOffset] the string offset that should be associated with the error
+   * [source] the source to be scanned to produce the error
    */
-  void _assertError(ScannerErrorCode expectedError, int expectedOffset, String source) {
+  void _assertError(ScannerErrorCode expectedError, int expectedOffset,
+      String source) {
     GatheringErrorListener listener = new GatheringErrorListener();
     _scanWithListener(source, listener);
-    listener.assertErrors([new AnalysisError.con2(null, expectedOffset, 1, expectedError, [source.codeUnitAt(expectedOffset)])]);
+    listener.assertErrors(
+        [
+            new AnalysisError.con2(
+                null,
+                expectedOffset,
+                1,
+                expectedError,
+                [source.codeUnitAt(expectedOffset)])]);
   }
 
   /**
-   * Assert that scanning the given source produces an error with the given code, and also produces
-   * the given tokens.
+   * Assert that scanning the given [source] produces an error with the given
+   * code, and also produces the given tokens.
    *
-   * @param expectedError the error that should be produced
-   * @param expectedOffset the string offset that should be associated with the error
-   * @param source the source to be scanned to produce the error
-   * @param expectedTokens the tokens that are expected to be in the source
+   * [expectedError] the error that should be produced
+   * [expectedOffset] the string offset that should be associated with the error
+   * [source] the source to be scanned to produce the error
+   * [expectedTokens] the tokens that are expected to be in the source
    */
-  void _assertErrorAndTokens(ScannerErrorCode expectedError, int expectedOffset, String source, List<Token> expectedTokens) {
+  void _assertErrorAndTokens(ScannerErrorCode expectedError, int expectedOffset,
+      String source, List<Token> expectedTokens) {
     GatheringErrorListener listener = new GatheringErrorListener();
     Token token = _scanWithListener(source, listener);
-    listener.assertErrors([new AnalysisError.con2(null, expectedOffset, 1, expectedError, [source.codeUnitAt(expectedOffset)])]);
+    listener.assertErrors(
+        [
+            new AnalysisError.con2(
+                null,
+                expectedOffset,
+                1,
+                expectedError,
+                [source.codeUnitAt(expectedOffset)])]);
     _checkTokens(token, expectedTokens);
   }
 
   /**
-   * Assert that when scanned the given source contains a single keyword token with the same lexeme
-   * as the original source.
-   *
-   * @param source the source to be scanned
+   * Assert that when scanned the given [source] contains a single keyword token
+   * with the same lexeme as the original source.
    */
   void _assertKeywordToken(String source) {
     Token token = _scan(source);
@@ -1458,7 +1145,8 @@ class ScannerTest {
     expect(token.next.type, TokenType.EOF);
   }
 
-  void _assertLineInfo(String source, List<ScannerTest_ExpectedLocation> expectedLocations) {
+  void _assertLineInfo(String source,
+      List<ScannerTest_ExpectedLocation> expectedLocations) {
     GatheringErrorListener listener = new GatheringErrorListener();
     _scanWithListener(source, listener);
     listener.assertNoErrors();
@@ -1472,10 +1160,8 @@ class ScannerTest {
   }
 
   /**
-   * Assert that the token scanned from the given source has the expected type.
-   *
-   * @param expectedType the expected type of the token
-   * @param source the source to be scanned to produce the actual token
+   * Assert that the token scanned from the given [source] has the
+   * [expectedType].
    */
   Token _assertToken(TokenType expectedType, String source) {
     Token originalToken = _scan(source);
@@ -1485,7 +1171,8 @@ class ScannerTest {
     expect(originalToken.length, source.length);
     expect(originalToken.lexeme, source);
     if (expectedType == TokenType.SCRIPT_TAG) {
-      // Adding space before the script tag is not allowed, and adding text at the end changes nothing.
+      // Adding space before the script tag is not allowed, and adding text at
+      // the end changes nothing.
       return originalToken;
     } else if (expectedType == TokenType.SINGLE_LINE_COMMENT) {
       // Adding space to an end-of-line comment changes the comment.
@@ -1496,7 +1183,8 @@ class ScannerTest {
       expect(tokenWithSpaces.length, source.length);
       expect(tokenWithSpaces.lexeme, source);
       return originalToken;
-    } else if (expectedType == TokenType.INT || expectedType == TokenType.DOUBLE) {
+    } else if (expectedType == TokenType.INT ||
+        expectedType == TokenType.DOUBLE) {
       Token tokenWithLowerD = _scan("${source}d");
       expect(tokenWithLowerD, isNotNull);
       expect(tokenWithLowerD.type, expectedType);
@@ -1521,11 +1209,8 @@ class ScannerTest {
   }
 
   /**
-   * Assert that when scanned the given source contains a sequence of tokens identical to the given
-   * tokens.
-   *
-   * @param source the source to be scanned
-   * @param expectedTokens the tokens that are expected to be in the source
+   * Assert that when scanned the given [source] contains a sequence of tokens
+   * identical to the given list of [expectedTokens].
    */
   void _assertTokens(String source, List<Token> expectedTokens) {
     Token token = _scan(source);
@@ -1538,9 +1223,18 @@ class ScannerTest {
     for (int i = 0; i < expectedTokens.length; i++) {
       Token expectedToken = expectedTokens[i];
       expect(token.type, expectedToken.type, reason: "Wrong type for token $i");
-      expect(token.offset, expectedToken.offset, reason: "Wrong offset for token $i");
-      expect(token.length, expectedToken.length, reason: "Wrong length for token $i");
-      expect(token.lexeme, expectedToken.lexeme, reason: "Wrong lexeme for token $i");
+      expect(
+          token.offset,
+          expectedToken.offset,
+          reason: "Wrong offset for token $i");
+      expect(
+          token.length,
+          expectedToken.length,
+          reason: "Wrong length for token $i");
+      expect(
+          token.lexeme,
+          expectedToken.lexeme,
+          reason: "Wrong lexeme for token $i");
       token = token.next;
       expect(token, isNotNull);
     }
@@ -1555,7 +1249,8 @@ class ScannerTest {
   }
 
   Token _scanWithListener(String source, GatheringErrorListener listener) {
-    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
+    Scanner scanner =
+        new Scanner(null, new CharSequenceReader(source), listener);
     Token result = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     return result;
@@ -1563,8 +1258,8 @@ class ScannerTest {
 }
 
 /**
- * Instances of the class `ExpectedLocation` encode information about the expected location
- * of a given offset in source code.
+ * An `ExpectedLocation` encodes information about the expected location of a
+ * given offset in source code.
  */
 class ScannerTest_ExpectedLocation {
   final int _offset;
@@ -1573,18 +1268,18 @@ class ScannerTest_ExpectedLocation {
 
   final int _columnNumber;
 
-  ScannerTest_ExpectedLocation(this._offset, this._lineNumber, this._columnNumber);
+  ScannerTest_ExpectedLocation(this._offset, this._lineNumber,
+      this._columnNumber);
 }
 
 /**
- * Instances of the class `TokenStreamValidator` are used to validate the correct construction
- * of a stream of tokens.
+ * A `TokenStreamValidator` is used to validate the correct construction of a
+ * stream of tokens.
  */
 class TokenStreamValidator {
   /**
-   * Validate that the stream of tokens that starts with the given token is correct.
-   *
-   * @param token the first token in the stream of tokens to be validated
+   * Validate that the stream of tokens that starts with the given [token] is
+   * correct.
    */
   void validate(Token token) {
     StringBuffer buffer = new StringBuffer();
@@ -1604,7 +1299,10 @@ class TokenStreamValidator {
     while (currentToken != null && currentToken.type != TokenType.EOF) {
       _validateStream(buffer, currentToken.precedingComments);
       TokenType type = currentToken.type;
-      if (type == TokenType.OPEN_CURLY_BRACKET || type == TokenType.OPEN_PAREN || type == TokenType.OPEN_SQUARE_BRACKET || type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
+      if (type == TokenType.OPEN_CURLY_BRACKET ||
+          type == TokenType.OPEN_PAREN ||
+          type == TokenType.OPEN_SQUARE_BRACKET ||
+          type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
         if (currentToken is! BeginToken) {
           buffer.write("\r\nExpected BeginToken, found ");
           buffer.write(currentToken.runtimeType.toString());
@@ -1705,13 +1403,4 @@ class TokenTypeTest extends EngineTestCase {
     expect(TokenType.TILDE.isUserDefinableOperator, isTrue);
     expect(TokenType.TILDE_SLASH.isUserDefinableOperator, isTrue);
   }
-}
-
-main() {
-  groupSep = ' | ';
-  runReflectiveTests(CharSequenceReaderTest);
-  runReflectiveTests(IncrementalScannerTest);
-  runReflectiveTests(KeywordStateTest);
-  runReflectiveTests(ScannerTest);
-  runReflectiveTests(TokenTypeTest);
 }

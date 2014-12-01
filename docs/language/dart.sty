@@ -118,7 +118,7 @@
 % ----------------------------------------------------------------------
 % Support for hash valued Location Markers
 
-% very small font, to enable 33 char hash values in the margin
+% very small font, to enable 40 char hash values in the margin
 \makeatletter
 \ifcase \@ptsize \relax% 10pt
   \newcommand{\miniscule}{\@setfontsize\miniscule{2}{3}}% \tiny: 5/6
@@ -141,11 +141,7 @@
 
 % define a label, and show the associated logical location marker
 \newcommand{\LMLabel}[1]{%
-  \vspace{-\baselineskip}\hspace{0pt}\OriginalLMHash{\raisebox{10ex}{sec:#1}}%
+  \vspace{-\baselineskip}\hspace{0pt}\OriginalLMHash{\raisebox{10ex}{#1}}%
   \label{#1}}
-
-% dummy version of LMHash, always shows the same arbitrary hash value
-\renewcommand{\LMHash}[1]{\OriginalLMHash{ba01b04d58c8c4e259764498f823cc65}}
-
 % ----------------------------------------------------------------------
 

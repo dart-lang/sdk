@@ -13,6 +13,7 @@
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
+#include "vm/verified_memory.h"
 
 namespace dart {
 
@@ -1944,6 +1945,9 @@ void Assembler::hlt() {
 
 void Assembler::j(Condition condition, Label* label, bool near) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (VerifiedMemory::enabled()) {
+    near = Assembler::kFarJump;
+  }
   if (label->IsBound()) {
     static const int kShortSize = 2;
     static const int kLongSize = 6;
@@ -1986,6 +1990,9 @@ void Assembler::jmp(Register reg) {
 
 void Assembler::jmp(Label* label, bool near) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (VerifiedMemory::enabled()) {
+    near = Assembler::kFarJump;
+  }
   if (label->IsBound()) {
     static const int kShortSize = 2;
     static const int kLongSize = 5;
@@ -2198,13 +2205,47 @@ void Assembler::StoreIntoObjectFilter(Register object,
 }
 
 
+void Assembler::VerifyHeapWord(const Address& address) {
+  if (VerifiedMemory::enabled()) {
+    Register addr_reg = EDX;
+    Register value = EBX;
+    // Preserve registers.
+    pushl(addr_reg);
+    pushl(value);
+    leal(addr_reg, address);
+    // ASSERT(*address == *(address + offset))
+    movl(value, Address(addr_reg, 0));
+    cmpl(value, Address(addr_reg, VerifiedMemory::offset()));
+    Label ok;
+    j(EQUAL, &ok, Assembler::kNearJump);
+    Stop("Write barrier verification failed");
+    Bind(&ok);
+    popl(value);
+    popl(addr_reg);
+  }
+}
+
+
+void Assembler::VerifiedWrite(const Address& dest, Register value) {
+  VerifyHeapWord(dest);
+  movl(dest, value);
+  if (VerifiedMemory::enabled()) {
+    Register temp = (value == EDX) ? ECX : EDX;
+    pushl(temp);
+    leal(temp, dest);
+    movl(Address(temp, VerifiedMemory::offset()), value);
+    popl(temp);
+  }
+}
+
+
 // Destroys the value register.
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
                                 bool can_value_be_smi) {
   ASSERT(object != value);
-  movl(dest, value);
+  VerifiedWrite(dest, value);
   Label done;
   if (can_value_be_smi) {
     StoreIntoObjectFilter(object, value, &done);
@@ -2230,7 +2271,7 @@ void Assembler::StoreIntoObject(Register object,
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          Register value) {
-  movl(dest, value);
+  VerifiedWrite(dest, value);
 #if defined(DEBUG)
   Label done;
   pushl(value);
@@ -2243,24 +2284,47 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 }
 
 
+void Assembler::UnverifiedStoreOldObject(const Address& dest,
+                                         const Object& value) {
+  ASSERT(value.IsOld());
+  ASSERT(!value.InVMHeap());
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xC7);
+  EmitOperand(0, dest);
+  buffer_.EmitObject(value);
+}
+
+
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value) {
+  VerifyHeapWord(dest);
   if (value.IsSmi() || value.InVMHeap()) {
-    movl(dest, Immediate(reinterpret_cast<int32_t>(value.raw())));
+    Immediate imm_value(reinterpret_cast<int32_t>(value.raw()));
+    movl(dest, imm_value);
+    if (VerifiedMemory::enabled()) {
+      Register temp = ECX;
+      pushl(temp);
+      leal(temp, dest);
+      movl(Address(temp, VerifiedMemory::offset()), imm_value);
+      popl(temp);
+    }
   } else {
-    ASSERT(value.IsOld());
-    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-    EmitUint8(0xC7);
-    EmitOperand(0, dest);
-    buffer_.EmitObject(value);
+    UnverifiedStoreOldObject(dest, value);
+    if (VerifiedMemory::enabled()) {
+      Register temp = EDX;
+      pushl(temp);
+      leal(temp, dest);
+      UnverifiedStoreOldObject(Address(temp, VerifiedMemory::offset()), value);
+      popl(temp);
+    }
   }
   // No store buffer update.
 }
 
 
 void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
-  movl(dest, value);
+  VerifiedWrite(dest, value);
 #if defined(DEBUG)
   Label done;
   testl(value, Immediate(kHeapObjectTag));
@@ -2271,9 +2335,35 @@ void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
 }
 
 
+void Assembler::ZeroSmiField(const Address& dest) {
+  // TODO(koda): Add VerifySmi once we distinguish initalization.
+  VerifyHeapWord(dest);
+  Immediate zero(Smi::RawValue(0));
+  movl(dest, zero);
+  if (VerifiedMemory::enabled()) {
+    Register temp = ECX;
+    pushl(temp);
+    leal(temp, dest);
+    movl(Address(temp, VerifiedMemory::offset()), zero);
+    popl(temp);
+  }
+}
+
+
 void Assembler::IncrementSmiField(const Address& dest, int32_t increment) {
-  // TODO(koda): Implement testl for addresses and check that dest is a smi.
-  addl(dest, Immediate(Smi::RawValue(increment)));
+  // Note: FlowGraphCompiler::EdgeCounterIncrementSizeInBytes depends on
+  // the length of this instruction sequence.
+  // TODO(koda): Add VerifySmi once we distinguish initalization.
+  VerifyHeapWord(dest);
+  Immediate inc_imm(Smi::RawValue(increment));
+  addl(dest, inc_imm);
+  if (VerifiedMemory::enabled()) {
+    Register temp = ECX;
+    pushl(temp);
+    leal(temp, dest);
+    addl(Address(temp, VerifiedMemory::offset()), inc_imm);
+    popl(temp);
+  }
 }
 
 

@@ -12,7 +12,7 @@ class OldEmitter implements Emitter {
   final ContainerBuilder containerBuilder = new ContainerBuilder();
   final ClassEmitter classEmitter = new ClassEmitter();
   final NsmEmitter nsmEmitter = new NsmEmitter();
-  TypeTestEmitter get typeTestEmitter => task.typeTestEmitter;
+  final TypeTestEmitter typeTestEmitter = new TypeTestEmitter();
   final InterceptorEmitter interceptorEmitter = new InterceptorEmitter();
   final MetadataEmitter metadataEmitter = new MetadataEmitter();
 
@@ -27,6 +27,7 @@ class OldEmitter implements Emitter {
   final Namer namer;
   ConstantEmitter constantEmitter;
   NativeEmitter get nativeEmitter => task.nativeEmitter;
+  TypeTestRegistry get typeTestRegistry => task.typeTestRegistry;
 
   // The full code that is written to each hunk part-file.
   Map<OutputUnit, CodeBuffer> outputBuffers = new Map<OutputUnit, CodeBuffer>();
@@ -108,6 +109,7 @@ class OldEmitter implements Emitter {
     containerBuilder.emitter = this;
     classEmitter.emitter = this;
     nsmEmitter.emitter = this;
+    typeTestEmitter.emitter = this;
     interceptorEmitter.emitter = this;
     metadataEmitter.emitter = this;
   }
@@ -267,27 +269,27 @@ class OldEmitter implements Emitter {
     //  },
     // });
 
-    var defineClass = js('''function(name, cls, fields) {
+    var defineClass = js('''function(name, fields) {
       var accessors = [];
 
-      var str = "function " + cls + "(";
+      var str = "function " + name + "(";
       var body = "";
 
       for (var i = 0; i < fields.length; i++) {
         if(i != 0) str += ", ";
 
-        var field = generateAccessor(fields[i], accessors, cls);
+        var field = generateAccessor(fields[i], accessors, name);
         var parameter = "parameter_" + field;
         str += parameter;
         body += ("this." + field + " = " + parameter + ";\\n");
       }
       str += ") {\\n" + body + "}\\n";
-      str += cls + ".builtin\$cls=\\"" + name + "\\";\\n";
-      str += "\$desc=\$collectedClasses." + cls + ";\\n";
+      str += name + ".builtin\$cls=\\"" + name + "\\";\\n";
+      str += "\$desc=\$collectedClasses." + name + ";\\n";
       str += "if(\$desc instanceof Array) \$desc = \$desc[1];\\n";
-      str += cls + ".prototype = \$desc;\\n";
+      str += name + ".prototype = \$desc;\\n";
       if (typeof defineClass.name != "string") {
-        str += cls + ".name=\\"" + cls + "\\";\\n";
+        str += name + ".name=\\"" + name + "\\";\\n";
       }
       str += accessors.join("");
 
@@ -295,18 +297,23 @@ class OldEmitter implements Emitter {
     }''');
     // Declare a function called "generateAccessor".  This is used in
     // defineClassFunction (it's a local declaration in init()).
+    List<jsAst.Node> saveDefineClass = [];
+    if (compiler.hasIncrementalSupport) {
+      saveDefineClass.add(
+          js(r'self.$dart_unsafe_eval.defineClass = defineClass'));
+    }
     return [
         generateAccessorFunction,
         js('$generateAccessorHolder = generateAccessor'),
         new jsAst.FunctionDeclaration(
-            new jsAst.VariableDeclaration('defineClass'), defineClass) ];
+            new jsAst.VariableDeclaration('defineClass'), defineClass) ]
+        ..addAll(saveDefineClass);
   }
 
   /** Needs defineClass to be defined. */
   jsAst.Expression buildInheritFrom() {
-    return js(r'''
-        var inheritFrom = function() {
-          function tmp() {}
+    jsAst.Expression result = js(r'''
+        function() {
           function tmp() {}
           var hasOwnProperty = Object.prototype.hasOwnProperty;
           return function (constructor, superConstructor) {
@@ -324,6 +331,10 @@ class OldEmitter implements Emitter {
           };
         }()
       ''');
+    if (compiler.hasIncrementalSupport) {
+      result = js(r'self.$dart_unsafe_eval.inheritFrom = #', [result]);
+    }
+    return js(r'var inheritFrom = #', [result]);
   }
 
   /// Code that needs to be run before first invocation of
@@ -370,6 +381,7 @@ class OldEmitter implements Emitter {
         generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
     jsAst.Expression metadataAccess =
         generateEmbeddedGlobalAccess(embeddedNames.METADATA);
+    String signaturePropertyName = namer.operatorSignature;
 
     return js('''
       function(collectedClasses, isolateProperties, existingIsolateProperties) {
@@ -399,27 +411,16 @@ class OldEmitter implements Emitter {
           /* The 'fields' are either a constructor function or a
            * string encoding fields, constructor and superclass. Gets the
            * superclass and fields in the format
-           *   '[name/]Super;field1,field2'
+           *   'Super;field1,field2'
            * from the CLASS_DESCRIPTOR_PROPERTY property on the descriptor.
-           * The 'name/' is optional and contains the name that should be used
-           * when printing the runtime type string.  It is used, for example,
-           * to print the runtime type JSInt as 'int'.
            */
           var classData = desc["${namer.classDescriptorProperty}"],
-              supr, name = cls, fields = classData;
+              supr, fields = classData;
           if (#hasRetainedMetadata)
             if (typeof classData == "object" &&
                 classData instanceof Array) {
               classData = fields = classData[0];
             }
-          if (typeof classData == "string") {
-            var split = classData.split("/");
-            if (split.length == 2) {
-              name = split[0];
-              fields = split[1];
-            }
-          }
-
           var s = fields.split(";");
           fields = s[1] == "" ? [] : s[1].split(",");
           supr = s[0];
@@ -428,7 +429,7 @@ class OldEmitter implements Emitter {
             supr = split[0];
             var functionSignature = split[1];
             if (functionSignature)
-              desc.\$signature = (function(s) {
+              desc.$signaturePropertyName = (function(s) {
                   return function(){ return #metadata[s]; };
                 })(functionSignature);
           }
@@ -447,7 +448,7 @@ class OldEmitter implements Emitter {
             }
 
           if (typeof dart_precompiled != "function") {
-            combinedConstructorFunction += defineClass(name, cls, fields);
+            combinedConstructorFunction += defineClass(cls, fields);
             constructorsList.push(cls);
           }
           if (supr) pendingClasses[cls] = supr;
@@ -510,7 +511,7 @@ class OldEmitter implements Emitter {
 
     return js.statement('''
     {
-      var finishedClasses = #;  // finishedClassesAccess.
+      var finishedClasses = #finishedClassesAccess;
 
       function finishClass(cls) {
 
@@ -518,22 +519,21 @@ class OldEmitter implements Emitter {
         finishedClasses[cls] = true;
 
         var superclass = pendingClasses[cls];
-
         // The superclass is only false (empty string) for the Dart Object
         // class.  The minifier together with noSuchMethod can put methods on
         // the Object.prototype object, and they show through here, so we check
         // that we have a string.
         if (!superclass || typeof superclass != "string") return;
         finishClass(superclass);
-        var constructor = allClasses[cls];
         var superConstructor = allClasses[superclass];
 
         if (!superConstructor)
           superConstructor = existingIsolateProperties[superclass];
 
+        var constructor = allClasses[cls];
         var prototype = inheritFrom(constructor, superConstructor);
 
-        if (#) {  // !nativeClasses.isEmpty,
+        if (#hasNativeClasses) {
           // The property looks like this:
           //
           // HtmlElement: {
@@ -560,13 +560,13 @@ class OldEmitter implements Emitter {
             if (nativeSpec[0]) {
               var tags = nativeSpec[0].split("|");
               for (var i = 0; i < tags.length; i++) {
-                #[tags[i]] = constructor;  // embedded interceptorsByTag.
-                #[tags[i]] = true;  // embedded leafTags.
+                #interceptorsByTagAccess[tags[i]] = constructor;
+                #leafTagsAccess[tags[i]] = true;
               }
             }
             if (nativeSpec[1]) {
               tags = nativeSpec[1].split("|");
-              if (#) {  // User subclassing of native classes?
+              if (#allowNativesSubclassing) {
                 if (nativeSpec[2]) {
                   var subclasses = nativeSpec[2].split("|");
                   for (var i = 0; i < subclasses.length; i++) {
@@ -575,21 +575,19 @@ class OldEmitter implements Emitter {
                   }
                 }
                 for (i = 0; i < tags.length; i++) {
-                  #[tags[i]] = constructor;  // embedded interceptorsByTag.
-                  #[tags[i]] = false;  // embedded leafTags.
+                  #interceptorsByTagAccess[tags[i]] = constructor;
+                  #leafTagsAccess[tags[i]] = false;
                 }
               }
             }
           }
         }
       }
-    }''', [finishedClassesAccess,
-           !nativeClasses.isEmpty,
-           interceptorsByTagAccess,
-           leafTagsAccess,
-           true,
-           interceptorsByTagAccess,
-           leafTagsAccess]);
+    }''', {'finishedClassesAccess': finishedClassesAccess,
+           'hasNativeClasses': nativeClasses.isNotEmpty,
+           'interceptorsByTagAccess': interceptorsByTagAccess,
+           'leafTagsAccess': leafTagsAccess,
+           'allowNativesSubclassing': true});
   }
 
   jsAst.Fun get finishIsolateConstructorFunction {
@@ -694,9 +692,9 @@ class OldEmitter implements Emitter {
   List buildDefineClassAndFinishClassFunctionsIfNecessary() {
     if (!needsDefineClass) return [];
     return defineClassFunction
-    ..add(buildInheritFrom())
-    ..add(js('$finishClassesName = #', finishClassesFunction))
-    ..add(initFinishClasses);
+        ..add(buildInheritFrom())
+        ..add(js('$finishClassesName = #', finishClassesFunction))
+        ..add(initFinishClasses);
   }
 
   List buildLazyInitializerFunctionIfNecessary() {
@@ -1448,9 +1446,14 @@ class OldEmitter implements Emitter {
     mainBuffer.add('(function(${namer.currentIsolate})$_{\n');
     if (compiler.hasIncrementalSupport) {
       mainBuffer.add(
-          '(this.\$dart_unsafe_eval ='
-          ' this.\$dart_unsafe_eval || Object.create(null))'
-          '.patch = function(a) { eval(a) }$N');
+          'this.\$dart_unsafe_eval ='
+          ' this.\$dart_unsafe_eval || Object.create(null)$N');
+      mainBuffer.add(
+          'this.\$dart_unsafe_eval.patch = function(a) { eval(a) }$N');
+      String schemaChange =
+          jsAst.prettyPrint(buildSchemaChangeFunction(), compiler).getText();
+      mainBuffer.add(
+          'this.\$dart_unsafe_eval.schemaChange$_=$_$schemaChange$N');
     }
     if (isProgramSplit) {
       /// We collect all the global state of the, so it can be passed to the
@@ -1650,6 +1653,33 @@ class OldEmitter implements Emitter {
         ..add(assembledCode)
         ..close();
     compiler.assembledCode = assembledCode;
+  }
+
+  /// Used by incremental compilation to patch up the prototype of
+  /// [oldConstructor] for use as prototype of [newConstructor].
+  jsAst.Fun buildSchemaChangeFunction() {
+    return js('''
+function(newConstructor, oldConstructor, superclass) {
+  // Invariant: newConstructor.prototype has no interesting properties besides
+  // generated accessors. These are copied to oldPrototype which will be
+  // updated by other incremental changes.
+  if (superclass != null) {
+    this.inheritFrom(newConstructor, superclass);
+  }
+  var oldPrototype = oldConstructor.prototype;
+  var newPrototype = newConstructor.prototype;
+  var hasOwnProperty = Object.prototype.hasOwnProperty;
+  for (var property in newPrototype) {
+    if (hasOwnProperty.call(newPrototype, property)) {
+      // Copy generated accessors.
+      oldPrototype[property] = newPrototype[property];
+    }
+  }
+  oldPrototype.__proto__ = newConstructor.prototype.__proto__;
+  oldPrototype.constructor = newConstructor;
+  newConstructor.prototype = oldPrototype;
+  return newConstructor;
+}''');
   }
 
   /// Returns a map from OutputUnit to a hash of its content. The hash uniquely

@@ -4,5 +4,5 @@
 
 library formatter;
 
-export 'package:analyzer/src/services/formatter_impl.dart'
-  show CodeFormatter, FormatterOptions, FormattedSource, CodeKind;
+export 'package:analyzer/src/services/formatter_impl.dart' show CodeFormatter,
+    FormatterOptions, FormattedSource, CodeKind;

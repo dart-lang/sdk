@@ -7,9 +7,9 @@ library test.search.member_declarations;
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
-import '../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
+import '../reflective_tests.dart';
 import 'abstract_search_domain.dart';
 
 
@@ -40,7 +40,8 @@ class MemberDeclarationsTest extends AbstractSearchDomainTest {
       Request request =
           new SearchFindMemberDeclarationsParams(name).toRequest('0');
       Response response = handleSuccessfulRequest(request);
-      var result = new SearchFindMemberDeclarationsResult.fromResponse(response);
+      var result =
+          new SearchFindMemberDeclarationsResult.fromResponse(response);
       searchId = result.id;
       results.clear();
       return waitForSearchResults();

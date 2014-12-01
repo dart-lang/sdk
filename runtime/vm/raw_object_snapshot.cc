@@ -698,6 +698,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   func.set_num_fixed_parameters(reader->Read<int16_t>());
   func.set_num_optional_parameters(reader->Read<int16_t>());
   func.set_deoptimization_counter(reader->Read<int16_t>());
+  func.set_regexp_cid(reader->Read<int16_t>());
   func.set_kind_tag(reader->Read<uint32_t>());
   func.set_optimized_instruction_count(reader->Read<uint16_t>());
   func.set_optimized_call_site_count(reader->Read<uint16_t>());
@@ -741,6 +742,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   writer->Write<int16_t>(ptr()->num_fixed_parameters_);
   writer->Write<int16_t>(ptr()->num_optional_parameters_);
   writer->Write<int16_t>(ptr()->deoptimization_counter_);
+  writer->Write<int16_t>(ptr()->regexp_cid_);
   writer->Write<uint32_t>(ptr()->kind_tag_);
   writer->Write<uint16_t>(ptr()->optimized_instruction_count_);
   writer->Write<uint16_t>(ptr()->optimized_call_site_count_);
@@ -1756,7 +1758,7 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (obj.raw()->to() - obj.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl();
     obj.StorePointer(obj.raw()->from() + i,
                      reader->PassiveObjectHandle()->raw());
   }
@@ -1796,7 +1798,7 @@ void RawBigint::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, false);
   visitor.VisitPointers(from(), to());
 }
 
@@ -1914,7 +1916,7 @@ RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
     RawOneByteString* obj = reader->NewOneByteString(len);
     str_obj = obj;
     str_obj.set_tags(tags);
-    obj->ptr()->hash_ = Smi::New(hash);
+    str_obj.SetHash(hash);
     if (len > 0) {
       uint8_t* raw_ptr = CharAddr(str_obj, 0);
       reader->ReadBytes(raw_ptr, len);
@@ -1943,7 +1945,7 @@ RawTwoByteString* TwoByteString::ReadFrom(SnapshotReader* reader,
     RawTwoByteString* obj = reader->NewTwoByteString(len);
     str_obj = obj;
     str_obj.set_tags(tags);
-    obj->ptr()->hash_ = Smi::New(hash);
+    str_obj.SetHash(hash);
     NoGCScope no_gc;
     uint16_t* raw_ptr = (len > 0)? CharAddr(str_obj, 0) : NULL;
     for (intptr_t i = 0; i < len; i++) {
@@ -2108,6 +2110,7 @@ RawArray* Array::ReadFrom(SnapshotReader* reader,
                                 NEW_OBJECT_WITH_LEN_SPACE(Array, len, kind)));
     reader->AddBackRef(object_id, array, kIsDeserialized);
   }
+  ASSERT(!RawObject::IsCanonical(tags));
   reader->ArrayReadFrom(*array, len, tags);
   return array->raw();
 }
@@ -2129,6 +2132,9 @@ RawImmutableArray* ImmutableArray::ReadFrom(SnapshotReader* reader,
     reader->AddBackRef(object_id, array, kIsDeserialized);
   }
   reader->ArrayReadFrom(*array, len, tags);
+  if (RawObject::IsCanonical(tags)) {
+    *array ^= array->CheckAndCanonicalize(NULL);
+  }
   return raw(*array);
 }
 
@@ -2136,6 +2142,7 @@ RawImmutableArray* ImmutableArray::ReadFrom(SnapshotReader* reader,
 void RawArray::WriteTo(SnapshotWriter* writer,
                        intptr_t object_id,
                        Snapshot::Kind kind) {
+  ASSERT(!RawObject::IsCanonical(writer->GetObjectTags(this)));
   writer->ArrayWriteTo(object_id,
                        kArrayCid,
                        writer->GetObjectTags(this),

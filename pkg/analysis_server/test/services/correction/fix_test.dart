@@ -233,6 +233,9 @@ main() {
   new A.named(1, 2.0);
 }
 ''');
+    _assertLinkedGroup(
+        change.linkedEditGroups[0],
+        ['named(int ', 'named(1']);
   }
 
   void test_createConstructorSuperExplicit() {
@@ -438,6 +441,30 @@ class A {
 }
 main(A a) {
   int v = a.test;
+}
+''');
+  }
+
+  void test_createField_getter_qualified_instance_dynamicType() {
+    _indexTestUnit('''
+class A {
+  B b;
+  void f(Object p) {
+    p == b.test;
+  }
+}
+class B {
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  B b;
+  void f(Object p) {
+    p == b.test;
+  }
+}
+class B {
+  var test;
 }
 ''');
   }
@@ -2304,7 +2331,9 @@ main() {
   AnalysisError _findErrorToFix() {
     List<AnalysisError> errors = context.computeErrors(testSource);
     errors.removeWhere((error) {
-      return error.errorCode == HintCode.UNUSED_LOCAL_VARIABLE;
+      return error.errorCode == HintCode.UNUSED_ELEMENT ||
+          error.errorCode == HintCode.UNUSED_FIELD ||
+          error.errorCode == HintCode.UNUSED_LOCAL_VARIABLE;
     });
     if (checkHasSingleError) {
       expect(errors, hasLength(1));

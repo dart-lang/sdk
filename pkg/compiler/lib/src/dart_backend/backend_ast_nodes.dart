@@ -26,6 +26,16 @@ abstract class Expression extends Node implements Receiver, Argument {
   bool get assignable => false;
 }
 
+abstract class ExecutableDefinition extends Node {
+  elements.Element get element;
+}
+
+class FieldDefinition extends ExecutableDefinition {
+  final elements.Element element;
+  final Expression initializer;
+  FieldDefinition(this.element, this.initializer);
+}
+
 abstract class Statement extends Node {}
 
 /// Used as receiver in expressions that dispatch to the super class.
@@ -296,7 +306,7 @@ class Parameter extends Node {
 
 // EXPRESSIONS
 
-class FunctionExpression extends Expression {
+class FunctionExpression extends Expression implements ExecutableDefinition {
   final TypeAnnotation returnType;
   String name;
   final Parameters parameters;

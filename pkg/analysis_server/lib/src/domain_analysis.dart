@@ -141,7 +141,7 @@ class AnalysisDomainHandler implements RequestHandler {
    */
   Response setPriorityFiles(Request request) {
     var params = new AnalysisSetPriorityFilesParams.fromRequest(request);
-    server.setPriorityFiles(request, params.files);
+    server.setPriorityFiles(request.id, params.files);
     return new AnalysisSetPriorityFilesResult().toResponse(request.id);
   }
 

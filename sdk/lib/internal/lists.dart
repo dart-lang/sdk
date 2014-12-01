@@ -75,25 +75,16 @@ class Lists {
   }
 
   static void indicesCheck(List a, int start, int end) {
-    if (start < 0 || start > a.length) {
-      throw new RangeError.range(start, 0, a.length);
-    }
-    if (end != null && (end < start || end > a.length)) {
-      throw new RangeError.range(end, start, a.length);
-    }
+    RangeError.checkValidRange(start, end, a.length);
   }
 
   static void rangeCheck(List a, int start, int length) {
-    if (length < 0) {
-      throw new ArgumentError("negative length $length");
-    }
-    if (start < 0 ) {
-      String message = "$start must be greater than or equal to 0";
-      throw new RangeError(message);
-    }
+    RangeError.checkNotNegative(length);
+    RangeError.checkNotNegative(start);
     if (start + length > a.length) {
-      String message = "$start + $length must be in the range [0..${a.length})";
-      throw new RangeError(message);
+      String message = "$start + $length must be in the range [0..${a.length}]";
+      throw new RangeError.range(length, 0, a.length - start,
+                                 "length", message);
     }
   }
 }

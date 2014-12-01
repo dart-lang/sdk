@@ -251,6 +251,18 @@ void main() {
         p.join("foo", "baz", "qux")
       ])));
     });
+
+    test("lists a subdirectory that sometimes exists", () {
+      d.dir("top", [
+        d.dir("dir1", [
+          d.dir("subdir", [d.file("file")])
+        ]),
+        d.dir("dir2", [])
+      ]).create();
+
+      expect(list("top/*/subdir/**"),
+          completion(equals([p.join("top", "dir1", "subdir", "file")])));
+    });
   });
 }
 

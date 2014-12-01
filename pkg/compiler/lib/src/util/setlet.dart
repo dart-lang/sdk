@@ -157,7 +157,7 @@ class Setlet<E> extends IterableBase<E> implements Set<E> {
     }
   }
 
-  bool remove(E element) {
+  bool remove(Object element) {
     if (_extra == null) {
       if (_contents == element) {
         _contents = _MARKER;

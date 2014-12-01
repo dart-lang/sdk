@@ -4,10 +4,14 @@
 
 library test.integration.server.set.subscriptions.invalid.service;
 
-import '../../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import '../integration_tests.dart';
+
+main() {
+  runReflectiveTests(Test);
+}
 
 @ReflectiveTestCase()
 class Test extends AbstractAnalysisServerIntegrationTest {
@@ -22,8 +26,4 @@ class Test extends AbstractAnalysisServerIntegrationTest {
       // The expected error occurred.
     });
   }
-}
-
-main() {
-  runReflectiveTests(Test);
 }

@@ -29,6 +29,8 @@
 #include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/parser.h"
+#include "vm/regexp_parser.h"
+#include "vm/regexp_assembler.h"
 #include "vm/scanner.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
@@ -63,6 +65,102 @@ DEFINE_FLAG(bool, verify_compiler, false,
 
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 DECLARE_FLAG(bool, trace_patching);
+DECLARE_FLAG(bool, trace_irregexp);
+
+// TODO(zerny): Factor out unoptimizing/optimizing pipelines and remove
+// separate helpers functions & `optimizing` args.
+class CompilationPipeline : public ZoneAllocated {
+ public:
+  static CompilationPipeline* New(Isolate* isolate, const Function& function);
+
+  virtual void ParseFunction(ParsedFunction* parsed_function) = 0;
+  virtual FlowGraph* BuildFlowGraph(
+      ParsedFunction* parsed_function,
+      const ZoneGrowableArray<const ICData*>& ic_data_array,
+      intptr_t osr_id) = 0;
+  virtual void FinalizeCompilation() = 0;
+  virtual ~CompilationPipeline() { }
+};
+
+
+class DartCompilationPipeline : public CompilationPipeline {
+ public:
+  virtual void ParseFunction(ParsedFunction* parsed_function) {
+    Parser::ParseFunction(parsed_function);
+    parsed_function->AllocateVariables();
+  }
+
+  virtual FlowGraph* BuildFlowGraph(
+      ParsedFunction* parsed_function,
+      const ZoneGrowableArray<const ICData*>& ic_data_array,
+      intptr_t osr_id) {
+    // Build the flow graph.
+    FlowGraphBuilder builder(parsed_function,
+                             ic_data_array,
+                             NULL,  // NULL = not inlining.
+                             osr_id);
+
+    return builder.BuildGraph();
+  }
+
+  virtual void FinalizeCompilation() { }
+};
+
+
+class IrregexpCompilationPipeline : public CompilationPipeline {
+ public:
+  explicit IrregexpCompilationPipeline(Isolate* isolate)
+    : backtrack_goto_(NULL),
+      isolate_(isolate) { }
+
+  virtual void ParseFunction(ParsedFunction* parsed_function) {
+    RegExpParser::ParseFunction(parsed_function);
+    // Variables are allocated after compilation.
+  }
+
+  virtual FlowGraph* BuildFlowGraph(
+      ParsedFunction* parsed_function,
+      const ZoneGrowableArray<const ICData*>& ic_data_array,
+      intptr_t osr_id) {
+    // Compile to the dart IR.
+    RegExpEngine::CompilationResult result =
+        RegExpEngine::Compile(parsed_function->regexp_compile_data(),
+                              parsed_function,
+                              ic_data_array);
+    backtrack_goto_ = result.backtrack_goto;
+
+    // Allocate variables now that we know the number of locals.
+    parsed_function->AllocateIrregexpVariables(result.num_stack_locals);
+
+    // Build the flow graph.
+    FlowGraphBuilder builder(parsed_function,
+                             ic_data_array,
+                             NULL,  // NULL = not inlining.
+                             osr_id);
+
+    return new(isolate_) FlowGraph(builder,
+                                   result.graph_entry,
+                                   result.num_blocks);
+  }
+
+  virtual void FinalizeCompilation() {
+    backtrack_goto_->ComputeOffsetTable(isolate_);
+  }
+
+ private:
+  IndirectGotoInstr* backtrack_goto_;
+  Isolate* isolate_;
+};
+
+CompilationPipeline* CompilationPipeline::New(Isolate* isolate,
+                                              const Function& function) {
+  if (function.IsIrregexpFunction()) {
+    return new(isolate) IrregexpCompilationPipeline(isolate);
+  } else {
+    return new(isolate) DartCompilationPipeline();
+  }
+}
+
 
 // Compile a function. Should call only if the function has not been compiled.
 //   Arg0: function object.
@@ -264,7 +362,8 @@ RawError* Compiler::CompileClass(const Class& cls) {
 
 
 // Return false if bailed out.
-static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
+static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
+                                        ParsedFunction* parsed_function,
                                         bool optimized,
                                         intptr_t osr_id) {
   const Function& function = parsed_function->function();
@@ -321,12 +420,9 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           }
         }
 
-        // Build the flow graph.
-        FlowGraphBuilder builder(parsed_function,
-                                 *ic_data_array,
-                                 NULL,  // NULL = not inlining.
-                                 osr_id);
-        flow_graph = builder.BuildGraph();
+        flow_graph = pipeline->BuildFlowGraph(parsed_function,
+                                              *ic_data_array,
+                                              osr_id);
       }
 
       if (FLAG_print_flow_graph ||
@@ -583,6 +679,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
                          &CompilerStats::graphcompiler_timer,
                          isolate);
         graph_compiler.CompileGraph();
+        pipeline->FinalizeCompilation();
       }
       {
         TimerScope timer(FLAG_compiler_stats,
@@ -815,7 +912,8 @@ static void DisassembleCode(const Function& function, bool optimized) {
 }
 
 
-static RawError* CompileFunctionHelper(const Function& function,
+static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
+                                       const Function& function,
                                        bool optimized,
                                        intptr_t osr_id) {
   Isolate* isolate = Isolate::Current();
@@ -837,12 +935,13 @@ static RawError* CompileFunctionHelper(const Function& function,
     }
     {
       HANDLESCOPE(isolate);
-      Parser::ParseFunction(parsed_function);
-      parsed_function->AllocateVariables();
+      pipeline->ParseFunction(parsed_function);
     }
 
-    const bool success =
-        CompileParsedFunctionHelper(parsed_function, optimized, osr_id);
+    const bool success = CompileParsedFunctionHelper(pipeline,
+                                                     parsed_function,
+                                                     optimized,
+                                                     osr_id);
     if (!success) {
       if (optimized) {
         // Optimizer bailed out. Disable optimizations and to never try again.
@@ -896,7 +995,8 @@ static RawError* CompileFunctionHelper(const Function& function,
 RawError* Compiler::CompileFunction(Isolate* isolate,
                                     const Function& function) {
   VMTagScope tagScope(isolate, VMTag::kCompileUnoptimizedTagId);
-  return CompileFunctionHelper(function, false, Isolate::kNoDeoptId);
+  CompilationPipeline* pipeline = CompilationPipeline::New(isolate, function);
+  return CompileFunctionHelper(pipeline, function, false, Isolate::kNoDeoptId);
 }
 
 
@@ -904,7 +1004,8 @@ RawError* Compiler::CompileOptimizedFunction(Isolate* isolate,
                                              const Function& function,
                                              intptr_t osr_id) {
   VMTagScope tagScope(isolate, VMTag::kCompileOptimizedTagId);
-  return CompileFunctionHelper(function, true, osr_id);
+  CompilationPipeline* pipeline = CompilationPipeline::New(isolate, function);
+  return CompileFunctionHelper(pipeline, function, true, osr_id);
 }
 
 
@@ -915,7 +1016,11 @@ RawError* Compiler::CompileParsedFunction(
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     // Non-optimized code generator.
-    CompileParsedFunctionHelper(parsed_function, false, Isolate::kNoDeoptId);
+    DartCompilationPipeline pipeline;
+    CompileParsedFunctionHelper(&pipeline,
+                                parsed_function,
+                                false,
+                                Isolate::kNoDeoptId);
     if (FLAG_disassemble) {
       DisassembleCode(parsed_function->function(), false);
     }
@@ -992,7 +1097,11 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
 
     parsed_function->AllocateVariables();
     // Non-optimized code generator.
-    CompileParsedFunctionHelper(parsed_function, false, Isolate::kNoDeoptId);
+    DartCompilationPipeline pipeline;
+    CompileParsedFunctionHelper(&pipeline,
+                                parsed_function,
+                                false,
+                                Isolate::kNoDeoptId);
 
     // Invoke the function to evaluate the expression.
     const Function& initializer = parsed_function->function();
@@ -1053,7 +1162,11 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     parsed_function->AllocateVariables();
 
     // Non-optimized code generator.
-    CompileParsedFunctionHelper(parsed_function, false, Isolate::kNoDeoptId);
+    DartCompilationPipeline pipeline;
+    CompileParsedFunctionHelper(&pipeline,
+                                parsed_function,
+                                false,
+                                Isolate::kNoDeoptId);
 
     const Object& result = PassiveObject::Handle(
         DartEntry::InvokeFunction(func, Object::empty_array()));

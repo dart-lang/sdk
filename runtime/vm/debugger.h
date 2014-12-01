@@ -174,7 +174,7 @@ class ActivationFrame : public ZoneAllocated {
                   String* name,
                   intptr_t* token_pos,
                   intptr_t* end_pos,
-                  Instance* value);
+                  Object* value);
 
   RawArray* GetLocalVariables();
   RawObject* GetReceiver();

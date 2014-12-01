@@ -554,16 +554,16 @@ static Condition EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
                                            Token::Kind kind) {
   ASSERT(Token::IsEqualityOperator(kind));
   PairLocation* left_pair = locs->in(0).AsPairLocation();
-  Register left1 = left_pair->At(0).reg();
-  Register left2 = left_pair->At(1).reg();
+  Register left_lo = left_pair->At(0).reg();
+  Register left_hi = left_pair->At(1).reg();
   PairLocation* right_pair = locs->in(1).AsPairLocation();
-  Register right1 = right_pair->At(0).reg();
-  Register right2 = right_pair->At(1).reg();
+  Register right_lo = right_pair->At(0).reg();
+  Register right_hi = right_pair->At(1).reg();
 
   // Compare lower.
-  __ cmp(left1, Operand(right1));
+  __ cmp(left_lo, Operand(right_lo));
   // Compare upper if lower is equal.
-  __ cmp(left2, Operand(right2), EQ);
+  __ cmp(left_hi, Operand(right_hi), EQ);
   return TokenKindToMintCondition(kind);
 }
 
@@ -572,11 +572,11 @@ static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
                                              LocationSummary* locs,
                                              Token::Kind kind) {
   PairLocation* left_pair = locs->in(0).AsPairLocation();
-  Register left1 = left_pair->At(0).reg();
-  Register left2 = left_pair->At(1).reg();
+  Register left_lo = left_pair->At(0).reg();
+  Register left_hi = left_pair->At(1).reg();
   PairLocation* right_pair = locs->in(1).AsPairLocation();
-  Register right1 = right_pair->At(0).reg();
-  Register right2 = right_pair->At(1).reg();
+  Register right_lo = right_pair->At(0).reg();
+  Register right_hi = right_pair->At(1).reg();
 
   Register out = locs->temp(0).reg();
 
@@ -600,15 +600,15 @@ static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
       hi_true_cond = hi_false_cond = lo_false_cond = VS;
   }
 
-  Label is_true, is_false, done;
+  Label done;
   // Compare upper halves first.
-  __ cmp(left2, Operand(right2));
+  __ cmp(left_hi, Operand(right_hi));
   __ LoadImmediate(out, 0, hi_false_cond);
   __ LoadImmediate(out, 1, hi_true_cond);
   // If higher words aren't equal, skip comparing lower words.
   __ b(&done, NE);
 
-  __ cmp(left1, Operand(right1));
+  __ cmp(left_lo, Operand(right_lo));
   __ LoadImmediate(out, 1);
   __ LoadImmediate(out, 0, lo_false_cond);
   __ Bind(&done);
@@ -829,7 +829,7 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(Isolate* isolate,
                                    Location::RequiresRegister()));
     locs->set_in(1, Location::Pair(Location::RequiresRegister(),
                                    Location::RequiresRegister()));
-    locs->set_temp(0, Location::RequiresRegister());
+    locs->set_temp(0, Location::RequiresRegister());  // TODO(regis): Improve.
     locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
@@ -903,7 +903,7 @@ void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   if (operation_cid() == kSmiCid) {
     EmitBranchOnCondition(compiler, true_condition, labels);
   } else if (operation_cid() == kMintCid) {
-    const Register result = locs()->temp(0).reg();
+    const Register result = locs()->temp(0).reg();  // TODO(regis): Improve.
     __ CompareImmediate(result, 1);
     __ b(labels.true_label, EQ);
     __ b(labels.false_label, NE);
@@ -1863,6 +1863,116 @@ class BoxAllocationSlowPath : public SlowPathCode {
 };
 
 
+
+
+LocationSummary* LoadCodeUnitsInstr::MakeLocationSummary(Isolate* isolate,
+                                                         bool opt) const {
+  const bool might_box = (representation() == kTagged) && !can_pack_into_smi();
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = might_box ? 1 : 0;
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps,
+      might_box ? LocationSummary::kCallOnSlowPath : LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RequiresRegister());
+
+  if (might_box) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
+
+  if (representation() == kUnboxedMint) {
+    summary->set_out(0, Location::Pair(Location::RequiresRegister(),
+                                       Location::RequiresRegister()));
+  } else {
+    ASSERT(representation() == kTagged);
+    summary->set_out(0, Location::RequiresRegister());
+  }
+
+  return summary;
+}
+
+
+void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register array = locs()->in(0).reg();
+  const Location index = locs()->in(1);
+
+  Address element_address = __ ElementAddressForRegIndex(
+        true,  IsExternal(), class_id(), index_scale(), array, index.reg());
+  // Warning: element_address may use register IP as base.
+
+  if (representation() == kUnboxedMint) {
+    ASSERT(compiler->is_optimizing());
+    ASSERT(locs()->out(0).IsPairLocation());
+    PairLocation* result_pair = locs()->out(0).AsPairLocation();
+    Register result1 = result_pair->At(0).reg();
+    Register result2 = result_pair->At(1).reg();
+    switch (class_id()) {
+      case kOneByteStringCid:
+      case kExternalOneByteStringCid:
+        ASSERT(element_count() == 4);
+        __ ldr(result1, element_address);
+        __ eor(result2, result2, Operand(result2));
+        break;
+      case kTwoByteStringCid:
+      case kExternalTwoByteStringCid:
+        ASSERT(element_count() == 2);
+        __ ldr(result1, element_address);
+        __ eor(result2, result2, Operand(result2));
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else {
+    ASSERT(representation() == kTagged);
+    Register result = locs()->out(0).reg();
+    switch (class_id()) {
+      case kOneByteStringCid:
+      case kExternalOneByteStringCid:
+        switch (element_count()) {
+          case 1: __ ldrb(result, element_address); break;
+          case 2: __ ldrh(result, element_address); break;
+          case 4: __ ldr(result, element_address); break;
+          default: UNREACHABLE();
+        }
+        break;
+      case kTwoByteStringCid:
+      case kExternalTwoByteStringCid:
+        switch (element_count()) {
+          case 1: __ ldrh(result, element_address); break;
+          case 2: __ ldr(result, element_address); break;
+          default: UNREACHABLE();
+        }
+        break;
+      default:
+        UNREACHABLE();
+        break;
+    }
+    if (can_pack_into_smi()) {
+      __ SmiTag(result);
+    } else {
+      // If the value cannot fit in a smi then allocate a mint box for it.
+      Register value = locs()->temp(0).reg();
+      Register temp = locs()->temp(1).reg();
+      ASSERT(result != value);
+      __ MoveRegister(value, result);
+      __ SmiTag(result);
+
+      Label done;
+      __ TestImmediate(value, 0xC0000000);
+      __ b(&done, EQ);
+      BoxAllocationSlowPath::Allocate(
+          compiler, this, compiler->mint_class(), result, temp);
+      __ eor(temp, temp, Operand(temp));
+      __ StoreToOffset(kWord, value, result,
+                       Mint::value_offset() - kHeapObjectTag);
+      __ StoreToOffset(kWord, temp, result,
+                       Mint::value_offset() - kHeapObjectTag + kWordSize);
+      __ Bind(&done);
+    }
+  }
+}
+
+
 LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Isolate* isolate,
                                                               bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -2220,23 +2330,9 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
     __ mov(R7, Operand(R6));
     __ AddImmediate(R8, R0, sizeof(RawArray) - kHeapObjectTag);
     if (array_size < (kInlineArraySize * kWordSize)) {
-      intptr_t current_offset = 0;
-      while (current_offset + kWordSize < array_size) {
-        __ strd(R6, Address(R8, current_offset));
-        current_offset += 2*kWordSize;
-      }
-      while (current_offset < array_size) {
-        __ str(R6, Address(R8, current_offset));
-        current_offset += kWordSize;
-      }
+      __ InitializeFieldsNoBarrierUnrolled(R0, R8, num_elements, R6, R7);
     } else {
-      Label init_loop;
-      __ Bind(&init_loop);
-      __ AddImmediate(R8, 2 * kWordSize);
-      __ cmp(R8, Operand(R3));
-      __ strd(R6, Address(R8, -2 * kWordSize), LS);
-      __ b(&init_loop, CC);
-      __ str(R6, Address(R8, -2 * kWordSize), HI);
+      __ InitializeFieldsNoBarrier(R0, R8, R3, R6, R7);
     }
   }
   __ b(done);
@@ -3786,7 +3882,7 @@ void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* BoxInt64Instr::MakeLocationSummary(Isolate* isolate,
-                                                      bool opt) const {
+                                                    bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
   LocationSummary* summary = new(isolate) LocationSummary(
@@ -5140,6 +5236,28 @@ void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* CaseInsensitiveCompareUC16Instr::MakeLocationSummary(
+    Isolate* isolate, bool opt) const {
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, InputCount(), kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(R0));
+  summary->set_in(1, Location::RegisterLocation(R1));
+  summary->set_in(2, Location::RegisterLocation(R2));
+  summary->set_in(3, Location::RegisterLocation(R3));
+  summary->set_out(0, Location::RegisterLocation(R0));
+  return summary;
+}
+
+
+void CaseInsensitiveCompareUC16Instr::EmitNativeCode(
+    FlowGraphCompiler* compiler) {
+
+  // Call the function.
+  __ CallRuntime(TargetFunction(), TargetFunction().argument_count());
+}
+
+
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Isolate* isolate,
                                                       bool opt) const {
   if (result_cid() == kDoubleCid) {
@@ -6207,8 +6325,13 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         // Check for overflow.
         if (can_overflow()) {
           // Compare high word from input with shifted high word from output.
-          if (shift > 31) {
-            __ cmp(left_hi, Operand(out_hi));
+          // If shift > 32, also compare low word from input with high word from
+          // output shifted back shift - 32.
+          if (shift > 32) {
+            __ cmp(left_lo, Operand(out_hi, ASR, shift - 32));
+            __ cmp(left_hi, Operand(out_hi, ASR, 31), EQ);
+          } else if (shift == 32) {
+            __ cmp(left_hi, Operand(out_hi, ASR, 31));
           } else {
             __ cmp(left_hi, Operand(out_hi, ASR, shift));
           }
@@ -6233,35 +6356,33 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ b(deopt, HI);
     }
 
-    __ mov(out_lo, Operand(left_lo));
-    __ mov(out_hi, Operand(left_hi));
-
     switch (op_kind()) {
       case Token::kSHR: {
-        __ cmp(shift, Operand(32));
-
-        __ mov(out_lo, Operand(out_hi), HI);
-        __ Asr(out_hi, out_hi, Operand(31), HI);
-        __ sub(shift, shift, Operand(32), HI);
-
-        __ rsb(IP, shift, Operand(32));
-        __ mov(IP, Operand(out_hi, LSL, IP));
-        __ orr(out_lo, IP, Operand(out_lo, LSR, shift));
-        __ Asr(out_hi, out_hi, shift);
+        __ rsbs(IP, shift, Operand(32));
+        __ sub(IP, shift, Operand(32), MI);
+        __ mov(out_lo, Operand(left_hi, ASR, IP), MI);
+        __ mov(out_lo, Operand(left_lo, LSR, shift), PL);
+        __ orr(out_lo, out_lo, Operand(left_hi, LSL, IP), PL);
+        __ mov(out_hi, Operand(left_hi, ASR, shift));
         break;
       }
       case Token::kSHL: {
         __ rsbs(IP, shift, Operand(32));
         __ sub(IP, shift, Operand(32), MI);
-        __ mov(out_hi, Operand(out_lo, LSL, IP), MI);
-        __ mov(out_hi, Operand(out_hi, LSL, shift), PL);
-        __ orr(out_hi, out_hi, Operand(out_lo, LSR, IP), PL);
-        __ mov(out_lo, Operand(out_lo, LSL, shift));
+        __ mov(out_hi, Operand(left_lo, LSL, IP), MI);
+        __ mov(out_hi, Operand(left_hi, LSL, shift), PL);
+        __ orr(out_hi, out_hi, Operand(left_lo, LSR, IP), PL);
+        __ mov(out_lo, Operand(left_lo, LSL, shift));
 
         // Check for overflow.
         if (can_overflow()) {
+          // If shift > 32, compare low word from input with high word from
+          // output shifted back shift - 32.
+          __ mov(IP, Operand(out_hi, ASR, IP), MI);
+          __ mov(IP, Operand(left_lo), PL);  // No test if shift <= 32.
+          __ cmp(left_lo, Operand(IP));
           // Compare high word from input with shifted high word from output.
-          __ cmp(left_hi, Operand(out_hi, ASR, shift));
+          __ cmp(left_hi, Operand(out_hi, ASR, shift), EQ);
           // Overflow if they aren't equal.
           __ b(deopt, NE);
         }
@@ -6612,6 +6733,38 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->CanFallThroughTo(successor())) {
     __ b(compiler->GetJumpLabel(successor()));
   }
+}
+
+
+LocationSummary* IndirectGotoInstr::MakeLocationSummary(Isolate* isolate,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+
+  LocationSummary* summary = new(isolate) LocationSummary(
+        isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_temp(0, Location::RequiresRegister());
+
+  return summary;
+}
+
+
+void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register target_address_reg = locs()->temp_slot(0)->reg();
+
+  // Load from [current frame pointer] + kPcMarkerSlotFromFp.
+  __ ldr(target_address_reg, Address(FP, kPcMarkerSlotFromFp * kWordSize));
+
+  // Add the offset.
+  Register offset_reg = locs()->in(0).reg();
+  __ add(target_address_reg,
+         target_address_reg,
+         Operand(offset_reg, ASR, kSmiTagSize));
+
+  // Jump to the absolute address.
+  __ bx(target_address_reg);
 }
 
 

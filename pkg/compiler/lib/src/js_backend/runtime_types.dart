@@ -676,18 +676,18 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
     }
 
     jsAst.LiteralString name = js.string(namer.getFunctionTypeName(type));
-    addProperty(namer.functionTypeTag(), name);
+    addProperty(namer.functionTypeTag, name);
     if (type.returnType.isVoid) {
-      addProperty(namer.functionTypeVoidReturnTag(), js('true'));
+      addProperty(namer.functionTypeVoidReturnTag, js('true'));
     } else if (!type.returnType.treatAsDynamic) {
-      addProperty(namer.functionTypeReturnTypeTag(), visit(type.returnType));
+      addProperty(namer.functionTypeReturnTypeTag, visit(type.returnType));
     }
     if (!type.parameterTypes.isEmpty) {
-      addProperty(namer.functionTypeRequiredParametersTag(),
+      addProperty(namer.functionTypeRequiredParametersTag,
                   visitList(type.parameterTypes));
     }
     if (!type.optionalParameterTypes.isEmpty) {
-      addProperty(namer.functionTypeOptionalParametersTag(),
+      addProperty(namer.functionTypeOptionalParametersTag,
                   visitList(type.optionalParameterTypes));
     }
     if (!type.namedParameterTypes.isEmpty) {
@@ -699,7 +699,7 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
         jsAst.Expression name = js.string(names[index]);
         namedArguments.add(new jsAst.Property(name, visit(types[index])));
       }
-      addProperty(namer.functionTypeNamedParametersTag(),
+      addProperty(namer.functionTypeNamedParametersTag,
                   new jsAst.ObjectInitializer(namedArguments));
     }
     return new jsAst.ObjectInitializer(properties);
@@ -726,7 +726,7 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
           type.treatAsRaw ? name : visitList(type.typeArguments, head: name);
 
       // Add it to the function-type object.
-      jsAst.LiteralString tag = js.string(namer.typedefTag());
+      jsAst.LiteralString tag = js.string(namer.typedefTag);
       initializer.properties.add(new jsAst.Property(tag, encodedTypedef));
       return initializer;
     } else {

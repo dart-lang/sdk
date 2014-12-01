@@ -251,6 +251,35 @@ void main() {
     });
   });
 
+  test('a bad HTTP request results in a 500 response', () {
+    var socket;
+
+    _scheduleServer(syncHandler);
+
+    schedule(() {
+      return Socket.connect('localhost', _serverPort).then((value) {
+        socket = value;
+
+        currentSchedule.onComplete.schedule(() {
+          return socket.close();
+        }, 'close the socket');
+      });
+    });
+
+    schedule(() {
+      socket.write('GET / HTTP/1.1\r\n');
+      socket.write('Host: ^^super bad !@#host\r\n');
+      socket.write('\r\n');
+      return socket.close();
+    });
+
+    schedule(() {
+      return UTF8.decodeStream(socket).then((value) {
+        expect(value, contains('500 Internal Server Error'));
+      });
+    });
+  });
+
   group('date header', () {
     test('is sent by default', () {
       _scheduleServer(syncHandler);

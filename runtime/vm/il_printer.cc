@@ -505,7 +505,7 @@ void RelationalOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void AllocateObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", cls().ToCString());
+  f->Print("%s", String::Handle(cls().PrettyName()).ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); i++) {
     f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
@@ -518,7 +518,7 @@ void AllocateObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void MaterializeObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", String::Handle(cls_.Name()).ToCString());
+  f->Print("%s", String::Handle(cls_.PrettyName()).ToCString());
   for (intptr_t i = 0; i < InputCount(); i++) {
     f->Print(", ");
     f->Print("%s: ", slots_[i]->ToCString());
@@ -571,6 +571,10 @@ void AllocateContextInstr::PrintOperandsTo(BufferFormatter* f) const {
 void AllocateUninitializedContextInstr::PrintOperandsTo(
     BufferFormatter* f) const {
   f->Print("%" Pd "", num_context_variables());
+
+  if (Identity().IsNotAliased()) {
+    f->Print(" <not-aliased>");
+  }
 }
 
 
@@ -924,6 +928,30 @@ void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
 }
 
 
+void IndirectEntryInstr::PrintTo(BufferFormatter* f) const {
+  ASSERT(try_index() == CatchClauseNode::kInvalidTryIndex);
+  f->Print("B%" Pd "[join indirect]:%" Pd " pred(", block_id(), GetDeoptId());
+  for (intptr_t i = 0; i < predecessors_.length(); ++i) {
+    if (i > 0) f->Print(", ");
+    f->Print("B%" Pd, predecessors_[i]->block_id());
+  }
+  f->Print(")");
+  if (phis_ != NULL) {
+    f->Print(" {");
+    for (intptr_t i = 0; i < phis_->length(); ++i) {
+      if ((*phis_)[i] == NULL) continue;
+      f->Print("\n      ");
+      (*phis_)[i]->PrintTo(f);
+    }
+    f->Print("\n}");
+  }
+  if (HasParallelMove()) {
+    f->Print(" ");
+    parallel_move()->PrintTo(f);
+  }
+}
+
+
 static const char *RepresentationToCString(Representation rep) {
   switch (rep) {
     case kTagged:
@@ -1063,6 +1091,17 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
   } else {
     f->Print("goto: %" Pd "", successor()->block_id());
   }
+}
+
+
+void IndirectGotoInstr::PrintTo(BufferFormatter* f) const {
+  if (GetDeoptId() != Isolate::kNoDeoptId) {
+    f->Print("igoto:%" Pd "(", GetDeoptId());
+  } else {
+    f->Print("igoto:(");
+  }
+  InputAt(0)->PrintTo(f);
+  f->Print(")");
 }
 
 

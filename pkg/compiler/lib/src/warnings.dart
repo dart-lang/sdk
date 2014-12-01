@@ -4,7 +4,7 @@
 
 part of dart2js;
 
-const DONT_KNOW_HOW_TO_FIX = "";
+const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
 
 /**
  * The messages in this file should meet the following guide lines:
@@ -2160,6 +2160,24 @@ main() sync* {
  var yield;
 }"""]);
 
+  static const MessageKind NATIVE_NOT_SUPPORTED = const MessageKind(
+      "'native' modifier is not supported.",
+      howToFix: "Try removing the 'native' implementation or analyzing the "
+                "code with the --allow-native-extensions option.",
+      examples: const ["""
+main() native "Main";
+"""]);
+
+  static const MessageKind DART_EXT_NOT_SUPPORTED = const MessageKind(
+      "The 'dart-ext' scheme is not supported.",
+      howToFix: "Try analyzing the code with the --allow-native-extensions "
+                "option.",
+      examples: const ["""
+import 'dart-ext:main';
+
+main() {}
+"""]);
+
   //////////////////////////////////////////////////////////////////////////////
   // Patch errors start.
   //////////////////////////////////////////////////////////////////////////////
@@ -2248,6 +2266,18 @@ main() sync* {
   static const MessageKind PATCH_NON_FUNCTION = const MessageKind(
       "Cannot patch non-function with function patch "
       "'#{functionName}'.");
+
+  static const MessageKind EXTERNAL_WITH_BODY = const MessageKind(
+      "External function '#{functionName}' cannot have a function body.",
+      options: const ["--output-type=dart"],
+      howToFix: "Try removing the 'external' modifier or the function body.",
+      examples: const ["""
+external foo() => 0;
+main() => foo();
+""", """
+external foo() {}
+main() => foo();
+"""]);
 
   //////////////////////////////////////////////////////////////////////////////
   // Patch errors end.

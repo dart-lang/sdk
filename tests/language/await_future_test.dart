@@ -20,6 +20,8 @@ foo() async {
   return b;
 }
 
+faa() async => (await bar('faa')).length;
+
 quaz(p) async {
   var x = 0;
   try {
@@ -184,6 +186,8 @@ main() async {
   for (int i = 0; i < 10; i++) {
     result = await foo();
     Expect.equals(30, result);
+    result = await faa();
+    Expect.equals(3, result);
     result = await quaz(17);
     Expect.equals(17, result);
     result = await quazz();

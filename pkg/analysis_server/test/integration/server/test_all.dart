@@ -7,9 +7,9 @@ library test.integration.server.all;
 import 'package:unittest/unittest.dart';
 
 import 'get_version_test.dart' as get_version_test;
-import 'set_subscriptions_test.dart' as set_subscriptions_test;
 import 'set_subscriptions_invalid_service_test.dart' as
     set_subscriptions_invalid_service_test;
+import 'set_subscriptions_test.dart' as set_subscriptions_test;
 import 'shutdown_test.dart' as shutdown_test;
 import 'status_test.dart' as status_test;
 

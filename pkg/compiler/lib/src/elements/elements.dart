@@ -401,7 +401,6 @@ abstract class Element implements Entity {
   Element get origin;
 
   bool get isSynthesized;
-  bool get isForwardingConstructor;
   bool get isMixinApplication;
 
   bool get hasFixedBackendName;
@@ -885,7 +884,6 @@ abstract class LibraryElement extends Element
   bool get exportsHandled;
 
   // TODO(kasperl): We should try to get rid of these.
-  void set canUseNative(bool value);
   void set libraryTag(LibraryName value);
 
   LibraryElement get implementation;
@@ -1140,6 +1138,9 @@ abstract class FunctionElement extends Element
 
   /// The synchronous/asynchronous marker on this function.
   AsyncMarker get asyncMarker;
+
+  /// `true` if this function is external.
+  bool get isExternal;
 }
 
 /// Enum for the synchronous/asynchronous function body modifiers.

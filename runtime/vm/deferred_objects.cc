@@ -97,7 +97,7 @@ void DeferredObjectRef::Materialize(DeoptContext* deopt_context) {
 }
 
 
-RawInstance* DeferredObject::object() {
+RawObject* DeferredObject::object() {
   if (object_ == NULL) {
     Create();
   }
@@ -113,14 +113,34 @@ void DeferredObject::Create() {
   Class& cls = Class::Handle();
   cls ^= GetClass();
 
-  if (FLAG_trace_deoptimization_verbose) {
-    OS::PrintErr("materializing instance of %s (%" Px ", %" Pd " fields)\n",
-                 cls.ToCString(),
-                 reinterpret_cast<uword>(args_),
-                 field_count_);
-  }
+  if (cls.raw() == Object::context_class()) {
+    intptr_t num_variables = Smi::Cast(Object::Handle(GetLength())).Value();
+    if (FLAG_trace_deoptimization_verbose) {
+      OS::PrintErr(
+          "materializing context of length %" Pd " (%" Px ", %" Pd " vars)\n",
+          num_variables,
+          reinterpret_cast<uword>(args_),
+          field_count_);
+    }
+    object_ = &Context::ZoneHandle(Context::New(num_variables));
 
-  object_ = &Instance::ZoneHandle(Instance::New(cls));
+  } else {
+    if (FLAG_trace_deoptimization_verbose) {
+      OS::PrintErr("materializing instance of %s (%" Px ", %" Pd " fields)\n",
+                   cls.ToCString(),
+                   reinterpret_cast<uword>(args_),
+                   field_count_);
+    }
+
+    object_ = &Instance::ZoneHandle(Instance::New(cls));
+  }
+}
+
+
+static intptr_t ToContextIndex(intptr_t offset_in_bytes) {
+  intptr_t result = (offset_in_bytes - Context::variable_offset(0)) / kWordSize;
+  ASSERT(result >= 0);
+  return result;
 }
 
 
@@ -130,32 +150,64 @@ void DeferredObject::Fill() {
   Class& cls = Class::Handle();
   cls ^= GetClass();
 
-  const Instance& obj = *object_;
+  if (cls.raw() == Object::context_class()) {
+    const Context& context = Context::Cast(*object_);
 
-  Smi& offset = Smi::Handle();
-  Field& field = Field::Handle();
-  Object& value = Object::Handle();
-  const Array& offset_map = Array::Handle(cls.OffsetToFieldMap());
+    Smi& offset = Smi::Handle();
+    Object& value = Object::Handle();
 
-  for (intptr_t i = 0; i < field_count_; i++) {
-    offset ^= GetFieldOffset(i);
-    field ^= offset_map.At(offset.Value() / kWordSize);
-    value = GetValue(i);
-    if (!field.IsNull()) {
-      obj.SetField(field, value);
-      if (FLAG_trace_deoptimization_verbose) {
-        OS::PrintErr("    %s <- %s\n",
-                     String::Handle(field.name()).ToCString(),
-                     value.ToCString());
+    for (intptr_t i = 0; i < field_count_; i++) {
+      offset ^= GetFieldOffset(i);
+      if (offset.Value() == Context::parent_offset()) {
+        // Copy parent.
+        Context& parent = Context::Handle();
+        parent ^= GetValue(i);
+        context.set_parent(parent);
+        if (FLAG_trace_deoptimization_verbose) {
+          OS::PrintErr("    ctx@parent (offset %" Pd ") <- %s\n",
+                       offset.Value(),
+                       value.ToCString());
+        }
+      } else {
+        intptr_t context_index = ToContextIndex(offset.Value());
+        value = GetValue(i);
+        context.SetAt(context_index, value);
+        if (FLAG_trace_deoptimization_verbose) {
+          OS::PrintErr("    ctx@%" Pd " (offset %" Pd ") <- %s\n",
+                       context_index,
+                       offset.Value(),
+                       value.ToCString());
+        }
       }
-    } else {
-      ASSERT(cls.IsSignatureClass() ||
-             (offset.Value() == cls.type_arguments_field_offset()));
-      obj.SetFieldAtOffset(offset.Value(), value);
-      if (FLAG_trace_deoptimization_verbose) {
-        OS::PrintErr("    null Field @ offset(%" Pd ") <- %s\n",
-                     offset.Value(),
-                     value.ToCString());
+    }
+  } else {
+    const Instance& obj = Instance::Cast(*object_);
+
+    Smi& offset = Smi::Handle();
+    Field& field = Field::Handle();
+    Object& value = Object::Handle();
+    const Array& offset_map = Array::Handle(cls.OffsetToFieldMap());
+
+    for (intptr_t i = 0; i < field_count_; i++) {
+      offset ^= GetFieldOffset(i);
+      field ^= offset_map.At(offset.Value() / kWordSize);
+      value = GetValue(i);
+      if (!field.IsNull()) {
+        obj.SetField(field, value);
+        if (FLAG_trace_deoptimization_verbose) {
+          OS::PrintErr("    %s <- %s\n",
+                       String::Handle(field.name()).ToCString(),
+                       value.ToCString());
+        }
+      } else {
+        ASSERT(cls.IsSignatureClass() ||
+               (offset.Value() == cls.type_arguments_field_offset()));
+        obj.SetFieldAtOffset(offset.Value(), value);
+        if (FLAG_trace_deoptimization_verbose) {
+          OS::PrintErr("    null Field @ offset(%" Pd ") <- %s\n",
+                       offset.Value(),
+                       value.ToCString());
+        }
       }
     }
   }

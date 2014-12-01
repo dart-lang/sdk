@@ -201,14 +201,14 @@ abstract class Iterable<E> {
   bool get isNotEmpty;
 
   /**
-   * Returns an [Iterable] with at most [n] elements.
+   * Returns an [Iterable] with at most [count] elements.
    *
-   * The returned [Iterable] may contain fewer than [n] elements, if `this`
-   * contains fewer than [n] elements.
+   * The returned `Iterable` may contain fewer than `count` elements, if `this`
+   * contains fewer than `count` elements.
    *
-   * It is an error if [n] is negative.
+   * It is an error if `count` is negative.
    */
-  Iterable<E> take(int n);
+  Iterable<E> take(int count);
 
   /**
    * Returns an Iterable that stops once [test] is not satisfied anymore.
@@ -223,14 +223,14 @@ abstract class Iterable<E> {
   Iterable<E> takeWhile(bool test(E value));
 
   /**
-   * Returns an Iterable that skips the first [n] elements.
+   * Returns an Iterable that skips the first [count] elements.
    *
-   * If `this` has fewer than [n] elements, then the resulting Iterable is
+   * If `this` has fewer than `count` elements, then the resulting Iterable is
    * empty.
    *
-   * It is an error if [n] is negative.
+   * It is an error if `count` is negative.
    */
-  Iterable<E> skip(int n);
+  Iterable<E> skip(int count);
 
   /**
    * Returns an Iterable that skips elements while [test] is satisfied.
@@ -321,18 +321,18 @@ class _GeneratorIterable<E> extends IterableBase<E>
       new _GeneratorIterator<E>(_start, _end, _generator);
   int get length => _end - _start;
 
-  Iterable<E> skip(int n) {
-    if (n < 0) throw new RangeError.value(n);
-    if (n == 0) return this;
-    int newStart = _start + n;
+  Iterable<E> skip(int count) {
+    RangeError.checkNotNegative(count, "count");
+    if (count == 0) return this;
+    int newStart = _start + count;
     if (newStart >= _end) return new EmptyIterable<E>();
     return new _GeneratorIterable<E>.slice(newStart, _end, _generator);
   }
 
-  Iterable<E> take(int n) {
-    if (n < 0) throw new RangeError.value(n);
-    if (n == 0) return new EmptyIterable<E>();
-    int newEnd = _start + n;
+  Iterable<E> take(int count) {
+    RangeError.checkNotNegative(count, "count");
+    if (count == 0) return new EmptyIterable<E>();
+    int newEnd = _start + count;
     if (newEnd >= _end) return this;
     return new _GeneratorIterable<E>.slice(_start, newEnd, _generator);
   }

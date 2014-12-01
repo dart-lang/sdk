@@ -40,8 +40,17 @@ class BuildUnitElementTask extends AnalysisTask {
    * the given [source] in the given [library] based on the compilation [unit]
    * that was parsed.
    */
-  BuildUnitElementTask(InternalAnalysisContext context, this.source, this.library, this.unit)
+  BuildUnitElementTask(InternalAnalysisContext context, this.source,
+      this.library, this.unit)
       : super(context);
+
+  @override
+  String get taskDescription {
+    if (source == null) {
+      return "build the unit element model for null source";
+    }
+    return "build the unit element model for " + source.fullName;
+  }
 
   @override
   accept(AnalysisTaskVisitor visitor) {
@@ -74,13 +83,5 @@ class BuildUnitElementTask extends AnalysisTask {
   void internalPerform() {
     CompilationUnitBuilder builder = new CompilationUnitBuilder();
     unitElement = builder.buildCompilationUnit(source, unit);
-  }
-
-  @override
-  String get taskDescription {
-    if (source == null) {
-      return "build the unit element model for null source";
-    }
-    return "build the unit element model for " + source.fullName;
   }
 }

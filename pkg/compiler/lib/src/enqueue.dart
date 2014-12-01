@@ -92,6 +92,7 @@ abstract class Enqueuer {
       cls.ensureResolved(compiler);
       universe.registerTypeInstantiation(type, byMirrors: mirrorUsage);
       processInstantiatedClass(cls);
+      compiler.backend.registerInstantiatedType(type, registry);
     });
   }
 

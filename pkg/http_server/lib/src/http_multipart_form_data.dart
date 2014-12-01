@@ -2,8 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of http_server;
+library http_server.http_multipart_form_data;
 
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:mime/mime.dart';
+
+import 'http_multipart_form_data_impl.dart';
 
 /**
  * [:HttpMultipartFormData:] class used for 'upgrading' a [MimeMultipart] by
@@ -76,5 +83,5 @@ abstract class HttpMultipartFormData implements Stream {
    */
   static HttpMultipartFormData parse(MimeMultipart multipart,
                                      {Encoding defaultEncoding: UTF8})
-      => _HttpMultipartFormData.parse(multipart, defaultEncoding);
+      => HttpMultipartFormDataImpl.parse(multipart, defaultEncoding);
 }

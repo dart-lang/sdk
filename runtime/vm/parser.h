@@ -25,8 +25,10 @@ class ArgumentsDescriptor;
 class Isolate;
 class LocalScope;
 class LocalVariable;
+struct RegExpCompileData;
 class SourceLabel;
 template <typename T> class GrowableArray;
+class Parser;
 
 struct CatchParamDesc;
 class ClassDesc;
@@ -42,6 +44,7 @@ class ParsedFunction : public ZoneAllocated {
       : function_(function),
         code_(Code::Handle(isolate, function.unoptimized_code())),
         node_sequence_(NULL),
+        regexp_compile_data_(NULL),
         instantiator_(NULL),
         default_parameter_values_(Array::ZoneHandle(isolate, Array::null())),
         current_context_var_(NULL),
@@ -71,6 +74,11 @@ class ParsedFunction : public ZoneAllocated {
 
   SequenceNode* node_sequence() const { return node_sequence_; }
   void SetNodeSequence(SequenceNode* node_sequence);
+
+  RegExpCompileData* regexp_compile_data() const {
+    return regexp_compile_data_;
+  }
+  void SetRegExpCompileData(RegExpCompileData* regexp_compile_data);
 
   LocalVariable* instantiator() const { return instantiator_; }
   void set_instantiator(LocalVariable* instantiator) {
@@ -130,11 +138,9 @@ class ParsedFunction : public ZoneAllocated {
   int num_stack_locals() const { return num_stack_locals_; }
 
   void AllocateVariables();
+  void AllocateIrregexpVariables(intptr_t num_stack_locals);
 
-  void record_await() {
-    have_seen_await_expr_ = true;
-  }
-  void reset_have_seen_await() { have_seen_await_expr_ = false; }
+  void record_await() { have_seen_await_expr_ = true; }
   bool have_seen_await() const { return have_seen_await_expr_; }
 
   void set_saved_try_ctx(LocalVariable* saved_try_ctx) {
@@ -161,6 +167,7 @@ class ParsedFunction : public ZoneAllocated {
   const Function& function_;
   Code& code_;
   SequenceNode* node_sequence_;
+  RegExpCompileData* regexp_compile_data_;
   LocalVariable* instantiator_;
   Array& default_parameter_values_;
   LocalVariable* current_context_var_;
@@ -178,6 +185,7 @@ class ParsedFunction : public ZoneAllocated {
 
   Isolate* isolate_;
 
+  friend class Parser;
   DISALLOW_COPY_AND_ASSIGN(ParsedFunction);
 };
 
@@ -550,7 +558,6 @@ class Parser : public ValueObject {
                                               bool test_only);
   void CaptureInstantiator();
   AstNode* LoadReceiver(intptr_t token_pos);
-  AstNode* LoadTypeArgumentsParameter(intptr_t token_pos);
   AstNode* LoadFieldIfUnresolved(AstNode* node);
   AstNode* LoadClosure(PrimaryNode* primary);
   AstNode* CallGetter(intptr_t token_pos, AstNode* object, const String& name);

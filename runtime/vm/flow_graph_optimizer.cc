@@ -589,7 +589,14 @@ bool FlowGraphOptimizer::Canonicalize() {
     BlockEntryInstr* entry = block_order_[i];
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
+      if (current->HasUnmatchedInputRepresentations()) {
+        // Can't canonicalize this instruction until all conversions for its
+        // inputs are inserted.
+        continue;
+      }
+
       Instruction* replacement = current->Canonicalize(flow_graph());
+
       if (replacement != current) {
         // For non-definitions Canonicalize should return either NULL or
         // this.
@@ -2963,57 +2970,6 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     return true;
   }
 
-  if ((recognized_kind == MethodRecognizer::kBigint_setUsed) &&
-      (ic_data.NumberOfChecks() == 1) &&
-      (class_ids[0] == kBigintCid)) {
-    // This is an internal method, no need to check argument types nor
-    // range.
-    Definition* bigint = call->ArgumentAt(0);
-    Definition* value = call->ArgumentAt(1);
-    StoreInstanceFieldInstr* store = new(I) StoreInstanceFieldInstr(
-        Bigint::used_offset(),
-        new(I) Value(bigint),
-        new(I) Value(value),
-        kNoStoreBarrier,
-        call->token_pos());
-    ReplaceCall(call, store);
-    return true;
-  }
-
-  if ((recognized_kind == MethodRecognizer::kBigint_setDigits) &&
-      (ic_data.NumberOfChecks() == 1) &&
-      (class_ids[0] == kBigintCid)) {
-    // This is an internal method, no need to check argument types nor
-    // range.
-    Definition* bigint = call->ArgumentAt(0);
-    Definition* value = call->ArgumentAt(1);
-    StoreInstanceFieldInstr* store = new(I) StoreInstanceFieldInstr(
-        Bigint::digits_offset(),
-        new(I) Value(bigint),
-        new(I) Value(value),
-        kEmitStoreBarrier,
-        call->token_pos());
-    ReplaceCall(call, store);
-    return true;
-  }
-
-  if ((recognized_kind == MethodRecognizer::kBigint_setNeg) &&
-      (ic_data.NumberOfChecks() == 1) &&
-      (class_ids[0] == kBigintCid)) {
-    // This is an internal method, no need to check argument types nor
-    // range.
-    Definition* bigint = call->ArgumentAt(0);
-    Definition* value = call->ArgumentAt(1);
-    StoreInstanceFieldInstr* store = new(I) StoreInstanceFieldInstr(
-        Bigint::neg_offset(),
-        new(I) Value(bigint),
-        new(I) Value(value),
-        kEmitStoreBarrier,
-        call->token_pos());
-    ReplaceCall(call, store);
-    return true;
-  }
-
   if (((recognized_kind == MethodRecognizer::kStringBaseCodeUnitAt) ||
        (recognized_kind == MethodRecognizer::kStringBaseCharAt)) &&
       (ic_data.NumberOfChecks() == 1) &&
@@ -4611,6 +4567,15 @@ void FlowGraphOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
 }
 
 
+void FlowGraphOptimizer::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
+  // TODO(zerny): Use kUnboxedUint32 once it is fully supported/optimized.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
+  if (!instr->can_pack_into_smi())
+    instr->set_representation(kUnboxedMint);
+#endif
+}
+
+
 bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
                                                  const ICData& unary_ic_data) {
   ASSERT((unary_ic_data.NumberOfChecks() > 0) &&
@@ -5487,10 +5452,10 @@ class Place : public ValueObject {
   static Place* Wrap(Isolate* isolate, const Place& place, intptr_t id);
 
   static bool IsAllocation(Definition* defn) {
-    // TODO(vegorov): add CreateContext to this list.
     return (defn != NULL) &&
         (defn->IsAllocateObject() ||
          defn->IsCreateArray() ||
+         defn->IsAllocateUninitializedContext() ||
          (defn->IsStaticCall() &&
           defn->AsStaticCall()->IsRecognizedFactory()));
   }
@@ -5609,9 +5574,11 @@ class PhiPlaceMoves : public ZoneAllocated {
 class AliasedSet : public ZoneAllocated {
  public:
   AliasedSet(Isolate* isolate,
+             DirectChainedHashMap<PointerKeyValueTrait<Place> >* places_map,
              ZoneGrowableArray<Place*>* places,
              PhiPlaceMoves* phi_moves)
       : isolate_(isolate),
+        places_map_(places_map),
         places_(*places),
         phi_moves_(phi_moves),
         aliases_(5),
@@ -5632,38 +5599,6 @@ class AliasedSet : public ZoneAllocated {
     return (result != NULL) ? result->id() : static_cast<intptr_t>(kNoAlias);
   }
 
-  bool IsStore(Instruction* instr, BitVector** killed) {
-    bool is_load = false, is_store = false;
-    Place place(instr, &is_load, &is_store);
-    if (is_store && (place.kind() != Place::kNone)) {
-      const intptr_t alias_id = LookupAliasId(place.ToAlias());
-      if (alias_id != kNoAlias) {
-        *killed = GetKilledSet(alias_id);
-      } else if (!place.IsFinalField()) {
-        // We encountered unknown alias: this means intrablock load forwarding
-        // refined parameter of this store, for example
-        //
-        //     o   <- alloc()
-        //     a.f <- o
-        //     u   <- a.f
-        //     u.x <- null ;; this store alias is *.x
-        //
-        // after intrablock load forwarding
-        //
-        //     o   <- alloc()
-        //     a.f <- o
-        //     o.x <- null ;; this store alias is o.x
-        //
-        // In this case we fallback to using place id recorded in the
-        // instruction that still points to the old place with a more generic
-        // alias.
-        *killed = GetKilledSet(
-            LookupAliasId(places_[instr->place_id()]->ToAlias()));
-      }
-    }
-    return is_store;
-  }
-
   BitVector* GetKilledSet(intptr_t alias) {
     return (alias < killed_.length()) ? killed_[alias] : NULL;
   }
@@ -5675,6 +5610,10 @@ class AliasedSet : public ZoneAllocated {
 
   const ZoneGrowableArray<Place*>& places() const {
     return places_;
+  }
+
+  Place* LookupCanonical(Place* place) const {
+    return places_map_->Lookup(place);
   }
 
   void PrintSet(BitVector* set) {
@@ -5712,10 +5651,12 @@ class AliasedSet : public ZoneAllocated {
     return !alloc->Identity().IsNotAliased();
   }
 
+  enum {
+    kNoAlias = 0
+  };
+
  private:
   enum {
-    kNoAlias = 0,
-
     // Artificial alias that is used to collect all representatives of the
     // *[C], X[C] aliases for arbitrary C.
     kAnyConstantIndexedAlias = 1,
@@ -5924,13 +5865,18 @@ class AliasedSet : public ZoneAllocated {
   bool HasLoadsFromPlace(Definition* defn, const Place* place) {
     ASSERT((place->kind() == Place::kField) ||
            (place->kind() == Place::kVMField));
-    ASSERT(place->instance() == defn);
 
     for (Value* use = defn->input_use_list();
          use != NULL;
          use = use->next_use()) {
+      Instruction* instr = use->instruction();
+      if ((instr->IsRedefinition() ||
+           instr->IsAssertAssignable()) &&
+          HasLoadsFromPlace(instr->AsDefinition(), place)) {
+        return true;
+      }
       bool is_load = false, is_store;
-      Place load_place(use->instruction(), &is_load, &is_store);
+      Place load_place(instr, &is_load, &is_store);
 
       if (is_load && load_place.Equals(place)) {
         return true;
@@ -5951,9 +5897,10 @@ class AliasedSet : public ZoneAllocated {
           (instr->IsStoreIndexed()
            && (use->use_index() == StoreIndexedInstr::kValuePos)) ||
           instr->IsStoreStaticField() ||
-          instr->IsPhi() ||
-          instr->IsAssertAssignable() ||
-          instr->IsRedefinition()) {
+          instr->IsPhi()) {
+        return true;
+      } else if ((instr->IsAssertAssignable() || instr->IsRedefinition()) &&
+                 AnyUseCreatesAlias(instr->AsDefinition())) {
         return true;
       } else if ((instr->IsStoreInstanceField()
            && (use->use_index() != StoreInstanceFieldInstr::kInstancePos))) {
@@ -5961,8 +5908,10 @@ class AliasedSet : public ZoneAllocated {
         // If we store this value into an object that is not aliased itself
         // and we never load again then the store does not create an alias.
         StoreInstanceFieldInstr* store = instr->AsStoreInstanceField();
-        Definition* instance = store->instance()->definition();
-        if (instance->IsAllocateObject() && !instance->Identity().IsAliased()) {
+        Definition* instance =
+            store->instance()->definition()->OriginalDefinition();
+        if (Place::IsAllocation(instance) &&
+            !instance->Identity().IsAliased()) {
           bool is_load, is_store;
           Place store_place(instr, &is_load, &is_store);
 
@@ -5977,7 +5926,6 @@ class AliasedSet : public ZoneAllocated {
             continue;
           }
         }
-
         return true;
       }
     }
@@ -5986,19 +5934,20 @@ class AliasedSet : public ZoneAllocated {
 
   // Mark any value stored into the given object as potentially aliased.
   void MarkStoredValuesEscaping(Definition* defn) {
-    if (!defn->IsAllocateObject()) {
-      return;
-    }
-
     // Find all stores into this object.
     for (Value* use = defn->input_use_list();
          use != NULL;
          use = use->next_use()) {
+      if (use->instruction()->IsRedefinition() ||
+          use->instruction()->IsAssertAssignable()) {
+        MarkStoredValuesEscaping(use->instruction()->AsDefinition());
+        continue;
+      }
       if ((use->use_index() == StoreInstanceFieldInstr::kInstancePos) &&
           use->instruction()->IsStoreInstanceField()) {
         StoreInstanceFieldInstr* store =
             use->instruction()->AsStoreInstanceField();
-        Definition* value = store->value()->definition();
+        Definition* value = store->value()->definition()->OriginalDefinition();
         if (value->Identity().IsNotAliased()) {
           value->SetIdentity(AliasIdentity::Aliased());
           identity_rollback_.Add(value);
@@ -6012,6 +5961,7 @@ class AliasedSet : public ZoneAllocated {
 
   // Determine if the given definition can't be aliased.
   void ComputeAliasing(Definition* alloc) {
+    ASSERT(Place::IsAllocation(alloc));
     ASSERT(alloc->Identity().IsUnknown());
     ASSERT(aliasing_worklist_.is_empty());
 
@@ -6020,7 +5970,7 @@ class AliasedSet : public ZoneAllocated {
 
     while (!aliasing_worklist_.is_empty()) {
       Definition* defn = aliasing_worklist_.RemoveLast();
-
+      ASSERT(Place::IsAllocation(defn));
       // If the definition in the worklist was optimistically marked as
       // not-aliased check that optimistic assumption still holds: check if
       // any of its uses can create an alias.
@@ -6038,6 +5988,8 @@ class AliasedSet : public ZoneAllocated {
   }
 
   Isolate* isolate_;
+
+  DirectChainedHashMap<PointerKeyValueTrait<Place> >* places_map_;
 
   const ZoneGrowableArray<Place*>& places_;
 
@@ -6208,17 +6160,14 @@ static AliasedSet* NumberPlaces(
   PhiPlaceMoves* phi_moves = ComputePhiMoves(map, places);
 
   // Build aliasing sets mapping aliases to loads.
-  return new(isolate) AliasedSet(isolate, places, phi_moves);
+  return new(isolate) AliasedSet(isolate, map, places, phi_moves);
 }
 
 
 class LoadOptimizer : public ValueObject {
  public:
-  LoadOptimizer(FlowGraph* graph,
-                AliasedSet* aliased_set,
-                DirectChainedHashMap<PointerKeyValueTrait<Place> >* map)
+  LoadOptimizer(FlowGraph* graph, AliasedSet* aliased_set)
       : graph_(graph),
-        map_(map),
         aliased_set_(aliased_set),
         in_(graph_->preorder().length()),
         out_(graph_->preorder().length()),
@@ -6264,7 +6213,7 @@ class LoadOptimizer : public ValueObject {
       // as loads from loaded context.
       // TODO(vegorov): renumber newly discovered congruences during the
       // forwarding to forward chains without running whole pass twice.
-      LoadOptimizer load_optimizer(graph, aliased_set, &map);
+      LoadOptimizer load_optimizer(graph, aliased_set);
       return load_optimizer.Optimize();
     }
     return false;
@@ -6312,8 +6261,38 @@ class LoadOptimizer : public ValueObject {
            instr_it.Advance()) {
         Instruction* instr = instr_it.Current();
 
+        bool is_load = false, is_store = false;
+        Place place(instr, &is_load, &is_store);
+
         BitVector* killed = NULL;
-        if (aliased_set_->IsStore(instr, &killed)) {
+        if (is_store) {
+          const intptr_t alias_id =
+              aliased_set_->LookupAliasId(place.ToAlias());
+          if (alias_id != AliasedSet::kNoAlias) {
+            killed = aliased_set_->GetKilledSet(alias_id);
+          } else if (!place.IsFinalField()) {
+            // We encountered unknown alias: this means intrablock load
+            // forwarding refined parameter of this store, for example
+            //
+            //     o   <- alloc()
+            //     a.f <- o
+            //     u   <- a.f
+            //     u.x <- null ;; this store alias is *.x
+            //
+            // after intrablock load forwarding
+            //
+            //     o   <- alloc()
+            //     a.f <- o
+            //     o.x <- null ;; this store alias is o.x
+            //
+            // In this case we fallback to using place id recorded in the
+            // instruction that still points to the old place with a more
+            // generic alias.
+            const intptr_t old_alias_id = aliased_set_->LookupAliasId(
+                aliased_set_->places()[instr->place_id()]->ToAlias());
+            killed = aliased_set_->GetKilledSet(old_alias_id);
+          }
+
           if (killed != NULL) {
             kill->AddAll(killed);
             // There is no need to clear out_values when clearing GEN set
@@ -6331,22 +6310,27 @@ class LoadOptimizer : public ValueObject {
               (array_store->class_id() == kTypedDataFloat64ArrayCid) ||
               (array_store->class_id() == kTypedDataFloat32ArrayCid) ||
               (array_store->class_id() == kTypedDataFloat32x4ArrayCid)) {
-            bool is_load = false, is_store = false;
-            Place store_place(instr, &is_load, &is_store);
-            ASSERT(!is_load && is_store);
-            Place* place = map_->Lookup(&store_place);
-            if (place != NULL) {
+            Place* canonical_place = aliased_set_->LookupCanonical(&place);
+            if (canonical_place != NULL) {
               // Store has a corresponding numbered place that might have a
               // load. Try forwarding stored value to it.
-              gen->Add(place->id());
+              gen->Add(canonical_place->id());
               if (out_values == NULL) out_values = CreateBlockOutValues();
-              (*out_values)[place->id()] = GetStoredValue(instr);
+              (*out_values)[canonical_place->id()] = GetStoredValue(instr);
             }
           }
 
           ASSERT(!instr->IsDefinition() ||
                  !IsLoadEliminationCandidate(instr->AsDefinition()));
           continue;
+        } else if (is_load) {
+          // Check if this load needs renumbering because of the intrablock
+          // load forwarding.
+          const Place* canonical = aliased_set_->LookupCanonical(&place);
+          if ((canonical != NULL) &&
+            (canonical->id() != instr->AsDefinition()->place_id())) {
+            instr->AsDefinition()->set_place_id(canonical->id());
+          }
         }
 
         // If instruction has effects then kill all loads affected.
@@ -7509,10 +7493,10 @@ ConstantPropagator::ConstantPropagator(
       non_constant_(Object::non_constant()),
       reachable_(new(graph->isolate()) BitVector(
           graph->isolate(), graph->preorder().length())),
-      definition_marks_(new(graph->isolate()) BitVector(
+      marked_phis_(new(graph->isolate()) BitVector(
           graph->isolate(), graph->max_virtual_register_number())),
       block_worklist_(),
-      definition_worklist_() {}
+      definition_worklist_(graph, 10) {}
 
 
 void ConstantPropagator::Optimize(FlowGraph* graph) {
@@ -7540,7 +7524,7 @@ void ConstantPropagator::SetReachable(BlockEntryInstr* block) {
 }
 
 
-void ConstantPropagator::SetValue(Definition* definition, const Object& value) {
+bool ConstantPropagator::SetValue(Definition* definition, const Object& value) {
   // We would like to assert we only go up (toward non-constant) in the lattice.
   //
   // ASSERT(IsUnknown(definition->constant_value()) ||
@@ -7552,13 +7536,11 @@ void ConstantPropagator::SetValue(Definition* definition, const Object& value) {
   if (definition->constant_value().raw() != value.raw()) {
     definition->constant_value() = value.raw();
     if (definition->input_use_list() != NULL) {
-      ASSERT(definition->HasSSATemp());
-      if (!definition_marks_->Contains(definition->ssa_temp_index())) {
-        definition_worklist_.Add(definition);
-        definition_marks_->Add(definition->ssa_temp_index());
-      }
+      definition_worklist_.Add(definition);
     }
+    return true;
   }
+  return false;
 }
 
 
@@ -7617,6 +7599,13 @@ void ConstantPropagator::VisitTargetEntry(TargetEntryInstr* block) {
 }
 
 
+void ConstantPropagator::VisitIndirectEntry(IndirectEntryInstr* block) {
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    it.Current()->Accept(this);
+  }
+}
+
+
 void ConstantPropagator::VisitCatchBlockEntry(CatchBlockEntryInstr* block) {
   const GrowableArray<Definition*>& defs = *block->initial_definitions();
   for (intptr_t i = 0; i < defs.length(); ++i) {
@@ -7660,6 +7649,13 @@ void ConstantPropagator::VisitGoto(GotoInstr* instr) {
   // to revisit phis every time a predecessor becomes reachable.
   for (PhiIterator it(instr->successor()); !it.Done(); it.Advance()) {
     it.Current()->Accept(this);
+  }
+}
+
+
+void ConstantPropagator::VisitIndirectGoto(IndirectGotoInstr* instr) {
+  for (intptr_t i = 0; i < instr->SuccessorCount(); i++) {
+    SetReachable(instr->SuccessorAt(i));
   }
 }
 
@@ -7724,6 +7720,34 @@ void ConstantPropagator::VisitDeoptimize(DeoptimizeInstr* instr) {
 }
 
 
+Definition* ConstantPropagator::UnwrapPhi(Definition* defn) {
+  if (defn->IsPhi()) {
+    JoinEntryInstr* block = defn->AsPhi()->block();
+
+    Definition* input = NULL;
+    for (intptr_t i = 0; i < defn->InputCount(); ++i) {
+      if (reachable_->Contains(block->PredecessorAt(i)->preorder_number())) {
+        if (input == NULL) {
+          input = defn->InputAt(i)->definition();
+        } else {
+          return defn;
+        }
+      }
+    }
+
+    return input;
+  }
+
+  return defn;
+}
+
+
+void ConstantPropagator::MarkPhi(Definition* phi) {
+  ASSERT(phi->IsPhi());
+  marked_phis_->Add(phi->ssa_temp_index());
+}
+
+
 // --------------------------------------------------------------------------
 // Analysis of definitions.  Compute the constant value.  If it has changed
 // and the definition has input uses, add the definition to the definition
@@ -7739,7 +7763,11 @@ void ConstantPropagator::VisitPhi(PhiInstr* instr) {
            instr->InputAt(pred_idx)->definition()->constant_value());
     }
   }
-  SetValue(instr, value);
+  if (!SetValue(instr, value) &&
+      marked_phis_->Contains(instr->ssa_temp_index())) {
+    marked_phis_->Remove(instr->ssa_temp_index());
+    definition_worklist_.Add(instr);
+  }
 }
 
 
@@ -7855,15 +7883,25 @@ void ConstantPropagator::VisitIfThenElse(IfThenElseInstr* instr) {
 
 
 void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
-  const Object& left = instr->left()->definition()->constant_value();
-  const Object& right = instr->right()->definition()->constant_value();
+  Definition* left_defn = instr->left()->definition();
+  Definition* right_defn = instr->right()->definition();
 
-  if (instr->left()->definition() == instr->right()->definition()) {
+  Definition* unwrapped_left_defn = UnwrapPhi(left_defn);
+  Definition* unwrapped_right_defn = UnwrapPhi(right_defn);
+  if (unwrapped_left_defn == unwrapped_right_defn) {
     // Fold x === x, and x !== x to true/false.
     SetValue(instr, Bool::Get(instr->kind() == Token::kEQ_STRICT));
+    if (unwrapped_left_defn != left_defn) {
+      MarkPhi(left_defn);
+    }
+    if (unwrapped_right_defn != right_defn) {
+      MarkPhi(right_defn);
+    }
     return;
   }
 
+  const Object& left = left_defn->constant_value();
+  const Object& right = right_defn->constant_value();
   if (IsNonConstant(left) || IsNonConstant(right)) {
     // TODO(vegorov): incorporate nullability information into the lattice.
     if ((left.IsNull() && instr->right()->Type()->HasDecidableNullability()) ||
@@ -7941,16 +7979,28 @@ void ConstantPropagator::VisitTestCids(TestCidsInstr* instr) {
 
 
 void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
-  const Object& left = instr->left()->definition()->constant_value();
-  const Object& right = instr->right()->definition()->constant_value();
+  Definition* left_defn = instr->left()->definition();
+  Definition* right_defn = instr->right()->definition();
 
-  if (instr->left()->definition() == instr->right()->definition()) {
+  if (RawObject::IsIntegerClassId(instr->operation_cid())) {
     // Fold x == x, and x != x to true/false for numbers comparisons.
-    if (RawObject::IsIntegerClassId(instr->operation_cid())) {
-      return SetValue(instr, Bool::Get(instr->kind() == Token::kEQ));
+    Definition* unwrapped_left_defn = UnwrapPhi(left_defn);
+    Definition* unwrapped_right_defn = UnwrapPhi(right_defn);
+    if (unwrapped_left_defn == unwrapped_right_defn) {
+      // Fold x === x, and x !== x to true/false.
+      SetValue(instr, Bool::Get(instr->kind() == Token::kEQ));
+      if (unwrapped_left_defn != left_defn) {
+        MarkPhi(left_defn);
+      }
+      if (unwrapped_right_defn != right_defn) {
+        MarkPhi(right_defn);
+      }
+      return;
     }
   }
 
+  const Object& left = left_defn->constant_value();
+  const Object& right = right_defn->constant_value();
   if (IsNonConstant(left) || IsNonConstant(right)) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(left) && IsConstant(right)) {
@@ -8069,6 +8119,12 @@ void ConstantPropagator::VisitLoadIndexed(LoadIndexedInstr* instr) {
     }
     SetValue(instr, non_constant_);
   }
+}
+
+
+void ConstantPropagator::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
+  // TODO(zerny): Implement constant propagation.
+  SetValue(instr, non_constant_);
 }
 
 
@@ -8714,6 +8770,12 @@ void ConstantPropagator::VisitMathMinMax(MathMinMaxInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitCaseInsensitiveCompareUC16(
+    CaseInsensitiveCompareUC16Instr *instr) {
+  SetValue(instr, non_constant_);
+}
+
+
 void ConstantPropagator::VisitUnbox(UnboxInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {
@@ -8779,9 +8841,8 @@ void ConstantPropagator::Analyze() {
 
   while (true) {
     if (block_worklist_.is_empty()) {
-      if (definition_worklist_.is_empty()) break;
+      if (definition_worklist_.IsEmpty()) break;
       Definition* definition = definition_worklist_.RemoveLast();
-      definition_marks_->Remove(definition->ssa_temp_index());
       Value* use = definition->input_use_list();
       while (use != NULL) {
         use->instruction()->Accept(this);
@@ -8797,7 +8858,8 @@ void ConstantPropagator::Analyze() {
 
 static bool IsEmptyBlock(BlockEntryInstr* block) {
   return block->next()->IsGoto() &&
-      (!block->IsJoinEntry() || (block->AsJoinEntry()->phis() == NULL));
+      (!block->IsJoinEntry() || (block->AsJoinEntry()->phis() == NULL)) &&
+      !block->IsIndirectEntry();
 }
 
 
@@ -9442,7 +9504,7 @@ static bool IsSafeUse(Value* use, SafeUseCheck check_type) {
 // deoptimization exit. So candidate should only be used in StoreInstanceField
 // instructions that write into fields of the allocated object.
 // We do not support materialization of the object that has type arguments.
-static bool IsAllocationSinkingCandidate(AllocateObjectInstr* alloc,
+static bool IsAllocationSinkingCandidate(Definition* alloc,
                                          SafeUseCheck check_type) {
   for (Value* use = alloc->input_use_list();
        use != NULL;
@@ -9475,7 +9537,7 @@ static Definition* StoreInto(Value* use) {
 
 // Remove the given allocation from the graph. It is not observable.
 // If deoptimization occurs the object will be materialized.
-void AllocationSinking::EliminateAllocation(AllocateObjectInstr* alloc) {
+void AllocationSinking::EliminateAllocation(Definition* alloc) {
   ASSERT(IsAllocationSinkingCandidate(alloc, kStrictCheck));
 
   if (FLAG_trace_optimization) {
@@ -9521,11 +9583,20 @@ void AllocationSinking::CollectCandidates() {
        block_it.Advance()) {
     BlockEntryInstr* block = block_it.Current();
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-      AllocateObjectInstr* alloc = it.Current()->AsAllocateObject();
-      if ((alloc != NULL) &&
-          IsAllocationSinkingCandidate(alloc, kOptimisticCheck)) {
-        alloc->SetIdentity(AliasIdentity::AllocationSinkingCandidate());
-        candidates_.Add(alloc);
+      { AllocateObjectInstr* alloc = it.Current()->AsAllocateObject();
+        if ((alloc != NULL) &&
+            IsAllocationSinkingCandidate(alloc, kOptimisticCheck)) {
+          alloc->SetIdentity(AliasIdentity::AllocationSinkingCandidate());
+          candidates_.Add(alloc);
+        }
+      }
+      { AllocateUninitializedContextInstr* alloc =
+            it.Current()->AsAllocateUninitializedContext();
+        if ((alloc != NULL) &&
+            IsAllocationSinkingCandidate(alloc, kOptimisticCheck)) {
+          alloc->SetIdentity(AliasIdentity::AllocationSinkingCandidate());
+          candidates_.Add(alloc);
+        }
       }
     }
   }
@@ -9535,7 +9606,7 @@ void AllocationSinking::CollectCandidates() {
   do {
     changed = false;
     for (intptr_t i = 0; i < candidates_.length(); i++) {
-      AllocateObjectInstr* alloc = candidates_[i];
+      Definition* alloc = candidates_[i];
       if (alloc->Identity().IsAllocationSinkingCandidate()) {
         if (!IsAllocationSinkingCandidate(alloc, kStrictCheck)) {
           alloc->SetIdentity(AliasIdentity::Unknown());
@@ -9548,7 +9619,7 @@ void AllocationSinking::CollectCandidates() {
   // Shrink the list of candidates removing all unmarked ones.
   intptr_t j = 0;
   for (intptr_t i = 0; i < candidates_.length(); i++) {
-    AllocateObjectInstr* alloc = candidates_[i];
+    Definition* alloc = candidates_[i];
     if (alloc->Identity().IsAllocationSinkingCandidate()) {
       if (FLAG_trace_optimization) {
         OS::Print("discovered allocation sinking candidate: v%" Pd "\n",
@@ -9630,7 +9701,7 @@ void AllocationSinking::DiscoverFailedCandidates() {
   do {
     changed = false;
     for (intptr_t i = 0; i < candidates_.length(); i++) {
-      AllocateObjectInstr* alloc = candidates_[i];
+      Definition* alloc = candidates_[i];
       if (alloc->Identity().IsAllocationSinkingCandidate()) {
         if (!IsAllocationSinkingCandidate(alloc, kStrictCheck)) {
           alloc->SetIdentity(AliasIdentity::Unknown());
@@ -9643,7 +9714,7 @@ void AllocationSinking::DiscoverFailedCandidates() {
   // Remove all failed candidates from the candidates list.
   intptr_t j = 0;
   for (intptr_t i = 0; i < candidates_.length(); i++) {
-    AllocateObjectInstr* alloc = candidates_[i];
+    Definition* alloc = candidates_[i];
     if (!alloc->Identity().IsAllocationSinkingCandidate()) {
       if (FLAG_trace_optimization) {
         OS::Print("allocation v%" Pd " can't be eliminated\n",
@@ -9827,8 +9898,7 @@ MaterializeObjectInstr* AllocationSinking::MaterializationFor(
 // the given instruction that can deoptimize.
 void AllocationSinking::CreateMaterializationAt(
     Instruction* exit,
-    AllocateObjectInstr* alloc,
-    const Class& cls,
+    Definition* alloc,
     const ZoneGrowableArray<const Object*>& slots) {
   ZoneGrowableArray<Value*>* values =
       new(I) ZoneGrowableArray<Value*>(slots.length());
@@ -9856,8 +9926,16 @@ void AllocationSinking::CreateMaterializationAt(
     values->Add(new(I) Value(load));
   }
 
-  MaterializeObjectInstr* mat =
-      new(I) MaterializeObjectInstr(alloc, cls, slots, values);
+  MaterializeObjectInstr* mat = NULL;
+  if (alloc->IsAllocateObject()) {
+    mat = new(I) MaterializeObjectInstr(
+        alloc->AsAllocateObject(), slots, values);
+  } else {
+    ASSERT(alloc->IsAllocateUninitializedContext());
+    mat = new(I) MaterializeObjectInstr(
+        alloc->AsAllocateUninitializedContext(), slots, values);
+  }
+
   flow_graph_->InsertBefore(exit, mat, NULL, FlowGraph::kValue);
 
   // Replace all mentions of this allocation with a newly inserted
@@ -9950,7 +10028,7 @@ void AllocationSinking::ExitsCollector::CollectTransitively(Definition* alloc) {
 }
 
 
-void AllocationSinking::InsertMaterializations(AllocateObjectInstr* alloc) {
+void AllocationSinking::InsertMaterializations(Definition* alloc) {
   // Collect all fields that are written for this instance.
   ZoneGrowableArray<const Object*>* slots =
       new(I) ZoneGrowableArray<const Object*>(5);
@@ -9969,8 +10047,10 @@ void AllocationSinking::InsertMaterializations(AllocateObjectInstr* alloc) {
   }
 
   if (alloc->ArgumentCount() > 0) {
-    ASSERT(alloc->ArgumentCount() == 1);
-    intptr_t type_args_offset = alloc->cls().type_arguments_field_offset();
+    AllocateObjectInstr* alloc_object = alloc->AsAllocateObject();
+    ASSERT(alloc_object->ArgumentCount() == 1);
+    intptr_t type_args_offset =
+        alloc_object->cls().type_arguments_field_offset();
     AddSlot(slots, Smi::ZoneHandle(I, Smi::New(type_args_offset)));
   }
 
@@ -9980,7 +10060,7 @@ void AllocationSinking::InsertMaterializations(AllocateObjectInstr* alloc) {
   // Insert materializations at environment uses.
   for (intptr_t i = 0; i < exits_collector_.exits().length(); i++) {
     CreateMaterializationAt(
-        exits_collector_.exits()[i], alloc, alloc->cls(), *slots);
+        exits_collector_.exits()[i], alloc, *slots);
   }
 }
 

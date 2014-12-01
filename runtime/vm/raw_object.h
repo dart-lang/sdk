@@ -8,8 +8,9 @@
 #include "platform/assert.h"
 #include "vm/atomic.h"
 #include "vm/globals.h"
-#include "vm/token.h"
 #include "vm/snapshot.h"
+#include "vm/token.h"
+#include "vm/verified_memory.h"
 
 namespace dart {
 
@@ -487,7 +488,7 @@ class RawObject {
   void StorePointer(type const* addr, type value) {
     // Ensure that this object contains the addr.
     ASSERT(Contains(reinterpret_cast<uword>(addr)));
-    *const_cast<type*>(addr) = value;
+    VerifiedMemory::Write(const_cast<type*>(addr), value);
     // Filter stores based on source and target.
     if (!value->IsHeapObject()) return;
     if (value->IsNewObject() && this->IsOldObject() &&
@@ -502,7 +503,7 @@ class RawObject {
   void StoreSmi(RawSmi* const* addr, RawSmi* value) {
     // Can't use Contains, as array length is initialized through this method.
     ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(this));
-    *const_cast<RawSmi**>(addr) = value;
+    VerifiedMemory::Write(const_cast<RawSmi**>(addr), value);
   }
 
   friend class Api;
@@ -671,6 +672,7 @@ class RawFunction : public RawObject {
     kMethodExtractor,  // converts method into implicit closure on the receiver.
     kNoSuchMethodDispatcher,  // invokes noSuchMethod.
     kInvokeFieldDispatcher,  // invokes a field as a closure.
+    kIrregexpFunction,   // represents a generated irregexp matcher function.
   };
 
   enum AsyncModifier {
@@ -713,6 +715,7 @@ class RawFunction : public RawObject {
   int16_t num_fixed_parameters_;
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
   int16_t deoptimization_counter_;
+  int16_t regexp_cid_;
   uint32_t kind_tag_;  // See Function::KindTagBits.
   uint16_t optimized_instruction_count_;
   uint16_t optimized_call_site_count_;
@@ -1212,9 +1215,9 @@ class RawContext : public RawObject {
   RawContext* parent_;
 
   // Variable length data follows here.
-  RawInstance** data() { OPEN_ARRAY_START(RawInstance*, RawInstance*); }
-  RawInstance* const* data() const {
-      OPEN_ARRAY_START(RawInstance*, RawInstance*);
+  RawObject** data() { OPEN_ARRAY_START(RawObject*, RawObject*); }
+  RawObject* const* data() const {
+      OPEN_ARRAY_START(RawObject*, RawObject*);
   }
   RawObject** to(intptr_t num_vars) {
     return reinterpret_cast<RawObject**>(&ptr()->data()[num_vars - 1]);
@@ -1828,8 +1831,12 @@ class RawJSRegExp : public RawInstance {
   RawSmi* data_length_;
   RawSmi* num_bracket_expressions_;
   RawString* pattern_;  // Pattern to be used for matching.
+  RawFunction* one_byte_function_;
+  RawFunction* two_byte_function_;
+  RawFunction* external_one_byte_function_;
+  RawFunction* external_two_byte_function_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->pattern_);
+    return reinterpret_cast<RawObject**>(&ptr()->external_two_byte_function_);
   }
 
   // A bitfield with two fields:

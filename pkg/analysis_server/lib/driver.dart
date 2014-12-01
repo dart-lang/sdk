@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server/http_server.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/stdio_server.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -24,7 +25,13 @@ class Driver {
   /**
    * The name of the application that is used to start a server.
    */
-  static const BINARY_NAME = 'server';
+  static const BINARY_NAME = "server";
+
+  /**
+   * The name of the option used to enable incremental resolution.
+   */
+  static const String ENABLE_INCREMENTAL_RESOLUTION =
+      "enable-incremental-resolution";
 
   /**
    * The name of the option used to enable instrumentation.
@@ -40,7 +47,15 @@ class Driver {
    * The name of the option used to specify the log file to which
    * instrumentation data is to be written.
    */
-  static const String INSTRUMENTATION_LOG_FILE_OPTION = "instrumentation-log-file";
+  static const String INSTRUMENTATION_LOG_FILE_OPTION =
+      "instrumentation-log-file";
+
+  /**
+   * The name of the option used to specify if [print] should print to the
+   * console instead of being intercepted.
+   */
+  static const String INTERNAL_PRINT_TO_CONSOLE =
+      "internal-print-to-console";
 
   /**
    * The name of the option used to specify the port to which the server will
@@ -53,7 +68,12 @@ class Driver {
    * TODO(paulberry): get rid of this once the 'analysis.updateSdks' request is
    * operational.
    */
-  static const String SDK_OPTION = 'sdk';
+  static const String SDK_OPTION = "sdk";
+
+  /**
+   * The name of the option used to disable error notifications.
+   */
+  static const String NO_ERROR_NOTIFICATION = "no-error-notification";
 
   SocketServer socketServer;
 
@@ -61,28 +81,45 @@ class Driver {
 
   StdioAnalysisServer stdioServer;
 
-  Driver() {
-  }
-
+  Driver();
   /**
    * Use the given command-line arguments to start this server.
    */
   void start(List<String> args) {
     ArgParser parser = new ArgParser();
-    parser.addFlag(ENABLE_INSTRUMENTATION_OPTION,
+    parser.addFlag(
+        ENABLE_INCREMENTAL_RESOLUTION,
+        help: "enable using incremental resolution",
+        defaultsTo: false,
+        negatable: false);
+    parser.addFlag(
+        ENABLE_INSTRUMENTATION_OPTION,
         help: "enable sending instrumentation information to a server",
         defaultsTo: false,
         negatable: false);
-    parser.addFlag(HELP_OPTION,
+    parser.addFlag(
+        HELP_OPTION,
         help: "print this help message without starting a server",
         defaultsTo: false,
         negatable: false);
-    parser.addOption(INSTRUMENTATION_LOG_FILE_OPTION,
+    parser.addOption(
+        INSTRUMENTATION_LOG_FILE_OPTION,
         help: "[path] the file to which instrumentation data will be logged");
-    parser.addOption(PORT_OPTION,
+    parser.addFlag(
+        INTERNAL_PRINT_TO_CONSOLE,
+        help: "enable sending `print` output to the console",
+        defaultsTo: false,
+        negatable: false);
+    parser.addOption(
+        PORT_OPTION,
         help: "[port] the port on which the server will listen");
-    parser.addOption(SDK_OPTION,
-        help: "[path] the path to the sdk");
+    parser.addOption(SDK_OPTION, help: "[path] the path to the sdk");
+    parser.addFlag(
+        NO_ERROR_NOTIFICATION,
+        help:
+            "disable sending all analysis error notifications to the server (not yet implemented)",
+        defaultsTo: false,
+        negatable: false);
 
     ArgResults results = parser.parse(args);
     if (results[HELP_OPTION]) {
@@ -91,11 +128,14 @@ class Driver {
     }
     if (results[ENABLE_INSTRUMENTATION_OPTION]) {
       if (results[INSTRUMENTATION_LOG_FILE_OPTION] != null) {
-        // TODO(brianwilkerson) Initialize the instrumentation system with logging.
+        // TODO(brianwilkerson) Initialize the instrumentation system with
+        // logging.
       } else {
-        // TODO(brianwilkerson) Initialize the instrumentation system without logging.
+        // TODO(brianwilkerson) Initialize the instrumentation system without
+        // logging.
       }
     }
+
     int port;
     bool serve_http = false;
     if (results[PORT_OPTION] != null) {
@@ -110,6 +150,11 @@ class Driver {
         return;
       }
     }
+
+    AnalysisServerOptions analysisServerOptions = new AnalysisServerOptions();
+    analysisServerOptions.enableIncrementalResolution =
+        results[ENABLE_INCREMENTAL_RESOLUTION];
+
     DartSdk defaultSdk;
     if (results[SDK_OPTION] != null) {
       defaultSdk = new DirectoryBasedDartSdk(new JavaFile(results[SDK_OPTION]));
@@ -119,21 +164,31 @@ class Driver {
       defaultSdk = DirectoryBasedDartSdk.defaultSdk;
     }
 
-    socketServer = new SocketServer(defaultSdk);
+    socketServer = new SocketServer(analysisServerOptions, defaultSdk);
     httpServer = new HttpAnalysisServer(socketServer);
     stdioServer = new StdioAnalysisServer(socketServer);
 
     if (serve_http) {
       httpServer.serveHttp(port);
     }
-    _capturePrints(() {
+
+    if (results[INTERNAL_PRINT_TO_CONSOLE]) {
       stdioServer.serveStdio().then((_) {
         if (serve_http) {
           httpServer.close();
         }
         exit(0);
       });
-    }, httpServer.recordPrint);
+    } else {
+      _capturePrints(() {
+        stdioServer.serveStdio().then((_) {
+          if (serve_http) {
+            httpServer.close();
+          }
+          exit(0);
+        });
+      }, httpServer.recordPrint);
+    }
   }
 
   /**
@@ -141,8 +196,8 @@ class Driver {
    * the function [printHandler].
    */
   dynamic _capturePrints(dynamic callback(), void printHandler(String line)) {
-    ZoneSpecification zoneSpecification = new ZoneSpecification(print:
-        (Zone self, ZoneDelegate parent, Zone zone, String line) {
+    ZoneSpecification zoneSpecification = new ZoneSpecification(
+        print: (Zone self, ZoneDelegate parent, Zone zone, String line) {
       printHandler(line);
       // Note: we don't pass the line on to stdout, because that is reserved
       // for communication to the client.

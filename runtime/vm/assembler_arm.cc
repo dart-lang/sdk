@@ -1735,6 +1735,57 @@ void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
 }
 
 
+void Assembler::InitializeFieldsNoBarrier(Register object,
+                                          Register begin,
+                                          Register end,
+                                          Register value_even,
+                                          Register value_odd) {
+  ASSERT(value_odd == value_even + 1);
+  Label init_loop;
+  Bind(&init_loop);
+  AddImmediate(begin, 2 * kWordSize);
+  cmp(begin, Operand(end));
+  strd(value_even, Address(begin, -2 * kWordSize), LS);
+  b(&init_loop, CC);
+  str(value_even, Address(begin, -2 * kWordSize), HI);
+#if defined(DEBUG)
+  Label done;
+  StoreIntoObjectFilter(object, value_even, &done);
+  StoreIntoObjectFilter(object, value_odd, &done);
+  Stop("Store buffer update is required");
+  Bind(&done);
+#endif  // defined(DEBUG)
+  // No store buffer update.
+}
+
+
+void Assembler::InitializeFieldsNoBarrierUnrolled(Register object,
+                                                  Register begin,
+                                                  intptr_t count,
+                                                  Register value_even,
+                                                  Register value_odd) {
+  ASSERT(value_odd == value_even + 1);
+  intptr_t current_offset = 0;
+  const intptr_t end_offset = count * kWordSize;
+  while (current_offset + kWordSize < end_offset) {
+    strd(value_even, Address(begin, current_offset));
+    current_offset += 2*kWordSize;
+  }
+  while (current_offset < end_offset) {
+    str(value_even, Address(begin, current_offset));
+    current_offset += kWordSize;
+  }
+#if defined(DEBUG)
+  Label done;
+  StoreIntoObjectFilter(object, value_even, &done);
+  StoreIntoObjectFilter(object, value_odd, &done);
+  Stop("Store buffer update is required");
+  Bind(&done);
+#endif  // defined(DEBUG)
+  // No store buffer update.
+}
+
+
 void Assembler::LoadClassId(Register result, Register object, Condition cond) {
   ASSERT(RawObject::kClassIdTagPos == 16);
   ASSERT(RawObject::kClassIdTagSize == 16);

@@ -53,7 +53,13 @@ void serveRequests(Stream<HttpRequest> requests, Handler handler) {
 ///
 /// Returns a [Future] which completes when the request has been handled.
 Future handleRequest(HttpRequest request, Handler handler) {
-  var shelfRequest = _fromHttpRequest(request);
+  var shelfRequest;
+  try {
+    shelfRequest = _fromHttpRequest(request);
+  } catch (error, stackTrace) {
+    var response = _logError('Error parsing request.\n$error', stackTrace);
+    return _writeResponse(response, request.response);
+  }
 
   // TODO(nweiz): abstract out hijack handling to make it easier to implement an
   // adapter.

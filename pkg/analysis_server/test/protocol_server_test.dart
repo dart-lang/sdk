@@ -274,6 +274,18 @@ class A {
     expect(element.flags, Element.FLAG_CONST);
   }
 
+  void test_fromElement_dynamic() {
+    var engineElement = engine.DynamicElementImpl.instance;
+    // create notification Element
+    Element element = newElement_fromEngine(engineElement);
+    expect(element.kind, ElementKind.UNKNOWN);
+    expect(element.name, 'dynamic');
+    expect(element.location, isNull);
+    expect(element.parameters, isNull);
+    expect(element.returnType, isNull);
+    expect(element.flags, 0);
+  }
+
   void test_fromElement_FIELD() {
     engine.Source source = addSource('/test.dart', '''
 class A {
@@ -401,64 +413,7 @@ class A {
     expect(element.returnType, isNull);
     expect(element.flags, 0);
   }
-
-  void test_fromElement_dynamic() {
-    var engineElement = engine.DynamicElementImpl.instance;
-    // create notification Element
-    Element element = newElement_fromEngine(engineElement);
-    expect(element.kind, ElementKind.UNKNOWN);
-    expect(element.name, 'dynamic');
-    expect(element.location, isNull);
-    expect(element.parameters, isNull);
-    expect(element.returnType, isNull);
-    expect(element.flags, 0);
-  }
 }
-
-/**
- * Helper class for testing the correspondence between an analysis engine enum
- * and an analysis server API enum.
- */
-class EnumTester<EngineEnum, ApiEnum extends Enum> {
-  /**
-   * Test that the function [convert] properly converts all possible values of
-   * [EngineEnum] to an [ApiEnum] with the same name, with the exceptions noted
-   * in [exceptions].  For each key in [exceptions], if the corresponding value
-   * is null, then we check that converting the given key results in an error.
-   * If the corresponding value is an [ApiEnum], then we check that converting
-   * the given key results in the given value.
-   */
-  void run(ApiEnum convert(EngineEnum value), {Map<EngineEnum,
-      ApiEnum> exceptions: const {}}) {
-    ClassMirror engineClass = reflectClass(EngineEnum);
-    engineClass.staticMembers.forEach((Symbol symbol, MethodMirror method) {
-      if (symbol == #values) {
-        return;
-      }
-      if (!method.isGetter) {
-        return;
-      }
-      String enumName = MirrorSystem.getName(symbol);
-      EngineEnum engineValue = engineClass.getField(symbol).reflectee;
-      expect(engineValue, new isInstanceOf<EngineEnum>());
-      if (exceptions.containsKey(engineValue)) {
-        ApiEnum expectedResult = exceptions[engineValue];
-        if (expectedResult == null) {
-          expect(() {
-            convert(engineValue);
-          }, throws);
-        } else {
-          ApiEnum apiValue = convert(engineValue);
-          expect(apiValue, equals(expectedResult));
-        }
-      } else {
-        ApiEnum apiValue = convert(engineValue);
-        expect(apiValue.name, equals(enumName));
-      }
-    });
-  }
-}
-
 
 @ReflectiveTestCase()
 class EnumTest {
@@ -511,9 +466,54 @@ class EnumTest {
     new EnumTester<MatchKind, SearchResultKind>().run(
         newSearchResultKind_fromEngine,
         exceptions: {
-          // TODO(paulberry): do any of the exceptions below constitute bugs?
-          MatchKind.ANGULAR_REFERENCE: SearchResultKind.UNKNOWN,
-          MatchKind.ANGULAR_CLOSING_TAG_REFERENCE: SearchResultKind.UNKNOWN
-        });
+      // TODO(paulberry): do any of the exceptions below constitute bugs?
+      MatchKind.ANGULAR_REFERENCE: SearchResultKind.UNKNOWN,
+      MatchKind.ANGULAR_CLOSING_TAG_REFERENCE: SearchResultKind.UNKNOWN
+    });
+  }
+}
+
+
+/**
+ * Helper class for testing the correspondence between an analysis engine enum
+ * and an analysis server API enum.
+ */
+class EnumTester<EngineEnum, ApiEnum extends Enum> {
+  /**
+   * Test that the function [convert] properly converts all possible values of
+   * [EngineEnum] to an [ApiEnum] with the same name, with the exceptions noted
+   * in [exceptions].  For each key in [exceptions], if the corresponding value
+   * is null, then we check that converting the given key results in an error.
+   * If the corresponding value is an [ApiEnum], then we check that converting
+   * the given key results in the given value.
+   */
+  void run(ApiEnum convert(EngineEnum value), {Map<EngineEnum,
+      ApiEnum> exceptions: const {}}) {
+    ClassMirror engineClass = reflectClass(EngineEnum);
+    engineClass.staticMembers.forEach((Symbol symbol, MethodMirror method) {
+      if (symbol == #values) {
+        return;
+      }
+      if (!method.isGetter) {
+        return;
+      }
+      String enumName = MirrorSystem.getName(symbol);
+      EngineEnum engineValue = engineClass.getField(symbol).reflectee;
+      expect(engineValue, new isInstanceOf<EngineEnum>());
+      if (exceptions.containsKey(engineValue)) {
+        ApiEnum expectedResult = exceptions[engineValue];
+        if (expectedResult == null) {
+          expect(() {
+            convert(engineValue);
+          }, throws);
+        } else {
+          ApiEnum apiValue = convert(engineValue);
+          expect(apiValue, equals(expectedResult));
+        }
+      } else {
+        ApiEnum apiValue = convert(engineValue);
+        expect(apiValue.name, equals(enumName));
+      }
+    });
   }
 }

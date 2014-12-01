@@ -8,24 +8,21 @@ part of dart2js.optimizers;
  * [[ShrinkingReducer]] applies shrinking reductions to CPS terms as described
  * in 'Compiling with Continuations, Continued' by Andrew Kennedy.
  */
-class ShrinkingReducer implements Pass {
+class ShrinkingReducer extends Pass {
   _RedexVisitor _redexVisitor;
   Set<_ReductionTask> _worklist;
 
   static final _DeletedNode _DELETED = new _DeletedNode();
 
-  /// Applies shrinking reductions to root, mutating root in the process.
-  void rewrite(FunctionDefinition root) {
-    if (root.isAbstract) return;
-
+  void rewriteExecutableDefinition(ExecutableDefinition root) {
     _worklist = new Set<_ReductionTask>();
     _redexVisitor = new _RedexVisitor(_worklist);
 
     // Set all parent pointers.
-    new _ParentVisitor().visit(root);
+    new ParentVisitor().visit(root);
 
     // Sweep over the term, collecting redexes into the worklist.
-    _redexVisitor.visitFunctionDefinition(root);
+    _redexVisitor.visit(root);
 
     // Process the worklist.
     while (_worklist.isNotEmpty) {
@@ -33,6 +30,17 @@ class ShrinkingReducer implements Pass {
       _worklist.remove(task);
       _processTask(task);
     }
+  }
+
+  /// Applies shrinking reductions to root, mutating root in the process.
+  void rewriteFieldDefinition(FieldDefinition root) {
+    rewriteExecutableDefinition(root);
+  }
+
+  /// Applies shrinking reductions to root, mutating root in the process.
+  void rewriteFunctionDefinition(FunctionDefinition root) {
+    if (root.isAbstract) return;
+    rewriteExecutableDefinition(root);
   }
 
   /// Removes the given node from the CPS graph, replacing it with its body
@@ -293,7 +301,11 @@ class _RemovalRedexVisitor extends _RedexVisitor {
 }
 
 /// Traverses the CPS term and sets node.parent for each visited node.
-class _ParentVisitor extends RecursiveVisitor {
+class ParentVisitor extends RecursiveVisitor {
+
+  processFieldDefinition(FieldDefinition node) {
+    node.body.parent = node;
+  }
 
   processFunctionDefinition(FunctionDefinition node) {
     node.body.parent = node;
@@ -390,6 +402,13 @@ class _ParentVisitor extends RecursiveVisitor {
 
   processIsTrue(IsTrue node) {
     node.value.parent = node;
+  }
+
+  // JavaScript specific nodes.
+
+  processIdentical(Identical node) {
+    node.left.parent = node;
+    node.right.parent = node;
   }
 }
 

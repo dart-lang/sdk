@@ -121,6 +121,8 @@ bit_twiddling_bigint_test: RuntimeError # Requires bigint support.
 compare_to2_test: RuntimeError, OK    # Requires bigint support.
 string_base_vm_test: RuntimeError, OK # VM specific test.
 nan_infinity_test/01: Fail # Issue 11551
+regexp/pcre_test: Pass, Slow # Issue 21593
+regress_r21715_test: RuntimeError # Requires bigint support.
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
@@ -151,12 +153,13 @@ string_case_test/03: Fail, OK  # Bug in dartium version of V8.
 [ $compiler == dart2dart ]
 compare_to2_test: Fail # inherited from VM
 unicode_test: Fail # inherited from VM
-string_split_test: RuntimeError # Issue 21441.
 
 [ $compiler == dart2dart && $minified ]
 error_stack_trace1_test: Fail # Fails in minified mode, test depends on method names.
 
 [ $compiler == dartanalyzer ]
+from_environment_const_type_test: Skip # The -D option that defines a constant
+# for the Dart vm is not accepted by the deprecated java dartanalyzer.
 int_parse_radix_test: Fail, OK # Test contains errors but doesn’t mark them as expected
 list_insert_test: Fail, OK # Test contains errors but doesn’t mark them as expected
 list_removeat_test: Fail, OK # Test contains errors but doesn’t mark them as expected
@@ -201,18 +204,9 @@ int_parse_radix_test: fail
 list_insert_test: fail
 list_removeat_test: fail
 
-[ $arch == simarm || $arch == simarm64 ]
-big_integer_parsed_*: Pass, Slow
-
-[ $arch == simmips ]
-int_parse_radix_test: Skip # Timeout
-
 [ $arch == simmips || $arch == mips ]
-big_integer_parsed_*: Skip # Timeout. Issue 20879
-big_integer_huge_mul_vm_test: Skip # Timeout
-
-[ $arch == simarm && $checked ]
-num_parse_test: Skip  # Pass, Timeout
+big_integer_parsed_mul_div_vm_test: Skip # Timeout. Issue 20879.
+big_integer_huge_mul_vm_test: Skip # Timeout. Issue 20879.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 error_stack_trace_test: StaticWarning, OK # Test generates errors on purpose.
@@ -228,6 +222,8 @@ num_parse_test/01: RuntimeError  # Issue 15316
 stopwatch_test: Skip  # Flaky test due to expected performance behaviour.
 
 [ $runtime != d8 ]
-# JSCRE does not pass all of the tests ported for irregexp.
-# Ignore all of the tests until irregexp is fully ported.
+# The regexp tests are not verified to work on non d8 platforms yet.
 regexp/*: Skip
+
+[ $runtime == vm ]
+regexp/global_test: Skip # Timeout. Issue 21709 and 21708

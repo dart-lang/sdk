@@ -4,12 +4,48 @@
 
 library services.completion.suggestion.builder;
 
+import 'dart:async';
+
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart' hide Element,
     ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+
+/**
+ * Create a suggestion based upon the given imported element.
+ */
+CompletionSuggestion createElementSuggestion(Element element,
+    {CompletionRelevance relevance: CompletionRelevance.DEFAULT}) {
+  String completion = element.displayName;
+  CompletionSuggestion suggestion = new CompletionSuggestion(
+      CompletionSuggestionKind.INVOCATION,
+      element.isDeprecated ? CompletionRelevance.LOW : relevance,
+      completion,
+      completion.length,
+      0,
+      element.isDeprecated,
+      false);
+
+  suggestion.element = newElement_fromEngine(element);
+
+  DartType type;
+  if (element is FunctionElement) {
+    type = element.returnType;
+  } else if (element is PropertyAccessorElement && element.isGetter) {
+    type = element.returnType;
+  } else if (element is TopLevelVariableElement) {
+    type = element.type;
+  }
+  if (type != null) {
+    String name = type.displayName;
+    if (name != null && name.length > 0 && name != 'dynamic') {
+      suggestion.returnType = name;
+    }
+  }
+  return suggestion;
+}
 
 /**
  * Call the given function with each non-null non-empty inherited type name
@@ -54,9 +90,11 @@ visitInheritedTypeNames(ClassDeclaration node, void inherited(String name)) {
 }
 
 /**
- * Call the given functions with each non-null non-empty inherited class
- * declaration, if the class is defined locally, or type name if it is not
- * defined locally.
+ * Starting with the given class node, traverse the inheritence hierarchy
+ * calling the given functions with each non-null non-empty inherited class
+ * declaration. For each locally defined class declaration, call [local].
+ * For each class identifier in the hierarchy that is not defined locally,
+ * call the [imported] function.
  */
 void visitInheritedTypes(ClassDeclaration node, void
     local(ClassDeclaration classNode), void imported(String typeName)) {
@@ -219,13 +257,38 @@ class LibraryElementSuggestionBuilder extends _AbstractSuggestionBuilder {
 
 /**
  * This class visits elements in a class and provides suggestions based upon
- * the visible named constructors in that class. Clients should call
- * [NamedConstructorSuggestionBuilder.suggestionsFor].
+ * the visible named constructors in that class.
  */
-class NamedConstructorSuggestionBuilder extends _AbstractSuggestionBuilder {
+class NamedConstructorSuggestionBuilder extends _AbstractSuggestionBuilder
+    implements SuggestionBuilder {
 
   NamedConstructorSuggestionBuilder(DartCompletionRequest request)
       : super(request, CompletionSuggestionKind.INVOCATION);
+
+  @override
+  bool computeFast(AstNode node) {
+    return false;
+  }
+
+  @override
+  Future<bool> computeFull(AstNode node) {
+    if (node is SimpleIdentifier) {
+      node = node.parent;
+    }
+    if (node is ConstructorName) {
+      TypeName typeName = node.type;
+      if (typeName != null) {
+        DartType type = typeName.type;
+        if (type != null) {
+          if (type.element is ClassElement) {
+            type.element.accept(this);
+          }
+          return new Future.value(true);
+        }
+      }
+    }
+    return new Future.value(false);
+  }
 
   @override
   visitClassElement(ClassElement element) {
@@ -244,15 +307,23 @@ class NamedConstructorSuggestionBuilder extends _AbstractSuggestionBuilder {
   visitElement(Element element) {
     // ignored
   }
+}
+
+/**
+ * Common interface implemented by suggestion builders.
+ */
+abstract class SuggestionBuilder {
+  /**
+   * Compute suggestions and return `true` if building is complete,
+   * or `false` if [computeFull] should be called.
+   */
+  bool computeFast(AstNode node);
 
   /**
-   * Add suggestions for the visible members in the given class
+   * Return a future that computes the suggestions given a fully resolved AST.
+   * The future returns `true` if suggestions were added, else `false`.
    */
-  static void suggestionsFor(DartCompletionRequest request, Element element) {
-    if (element is ClassElement) {
-      element.accept(new NamedConstructorSuggestionBuilder(request));
-    }
-  }
+  Future<bool> computeFull(AstNode node);
 }
 
 /**

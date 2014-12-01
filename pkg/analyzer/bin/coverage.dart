@@ -6,10 +6,27 @@ library runtime.coverage;
 
 import 'dart:io';
 
+import 'package:analyzer/src/services/runtime/coverage/coverage_impl.dart';
+import 'package:analyzer/src/services/runtime/log.dart' as log;
 import 'package:args/args.dart';
 
-import 'package:analyzer/src/services/runtime/log.dart' as log;
-import 'package:analyzer/src/services/runtime/coverage/coverage_impl.dart';
+
+/// General error code.
+const ERROR = 1;
+
+
+final ArgParser _argParser = new ArgParser()
+    ..addFlag('help', negatable: false, help: 'Print this usage information.')
+    ..addOption(
+        'level',
+        help: 'The level of the coverage.',
+        allowed: ['method', 'block', 'statement'],
+        defaultsTo: 'statement')
+    ..addOption('out', help: 'The output file with statistics.')
+    ..addOption(
+        'port',
+        help: 'The port to run server on, if 0 select any.',
+        defaultsTo: '0');
 
 
 main(args) {
@@ -63,27 +80,9 @@ main(args) {
 }
 
 
-final ArgParser _argParser = new ArgParser()
-    ..addFlag('help', negatable: false, help: 'Print this usage information.')
-    ..addOption(
-        'level',
-        help: 'The level of the coverage.',
-        allowed: ['method', 'block', 'statement'],
-        defaultsTo: 'statement')
-    ..addOption('out', help: 'The output file with statistics.')
-    ..addOption(
-        'port',
-        help: 'The port to run server on, if 0 select any.',
-        defaultsTo: '0');
-
-
 printUsage([var description = 'Code coverage tool for Dart.']) {
   var usage = _argParser.usage;
   print('$description\n');
   print('Usage: coverage [options] <script>\n');
   print('$usage\n');
 }
-
-
-/// General error code.
-const ERROR = 1;

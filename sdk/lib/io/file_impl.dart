@@ -176,6 +176,11 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
     _openFuture = _file.open(mode: mode);
   }
 
+  _FileStreamConsumer.fromStdio(int fd) {
+    assert(1 <= fd && fd <= 2);
+    _openFuture = new Future.value(_File._openStdioSync(fd));
+  }
+
   Future<File> addStream(Stream<List<int>> stream) {
     Completer<File> completer = new Completer<File>.sync();
     _openFuture
@@ -708,11 +713,7 @@ class _RandomAccessFile
   }
 
   static void _checkReadWriteListArguments(int length, int start, int end) {
-    if (start < 0) throw new RangeError.value(start);
-    if (end < start) throw new RangeError.value(end);
-    if (end > length) {
-      throw new RangeError.value(end);
-    }
+    RangeError.checkValidRange(start, end, length);
   }
 
   external static _readInto(int id, List<int> buffer, int start, int end);

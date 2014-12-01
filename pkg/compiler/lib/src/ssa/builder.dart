@@ -4,6 +4,29 @@
 
 part of ssa;
 
+class SsaFunctionCompiler implements FunctionCompiler {
+  SsaCodeGeneratorTask generator;
+  SsaBuilderTask builder;
+  SsaOptimizerTask optimizer;
+
+  SsaFunctionCompiler(JavaScriptBackend backend, bool generateSourceMap)
+      : generator = new SsaCodeGeneratorTask(backend),
+        builder = new SsaBuilderTask(backend, generateSourceMap),
+        optimizer = new SsaOptimizerTask(backend);
+
+  /// Generates JavaScript code for `work.element`.
+  /// Using the ssa builder, optimizer and codegenerator.
+  js.Fun compile(CodegenWorkItem work) {
+    HGraph graph = builder.build(work);
+    optimizer.optimize(work, graph);
+    return generator.generateCode(work, graph);
+  }
+
+  Iterable<CompilerTask> get tasks {
+    return <CompilerTask>[builder, optimizer, generator];
+  }
+}
+
 /// A synthetic local variable only used with the SSA graph.
 ///
 /// For instance used for holding return value of function or the exception of a
@@ -18,10 +41,11 @@ class SyntheticLocal extends Local {
 class SsaBuilderTask extends CompilerTask {
   final CodeEmitterTask emitter;
   final JavaScriptBackend backend;
+  final bool generateSourceMap;
 
   String get name => 'SSA builder';
 
-  SsaBuilderTask(JavaScriptBackend backend)
+  SsaBuilderTask(JavaScriptBackend backend, this.generateSourceMap)
     : emitter = backend.emitter,
       backend = backend,
       super(backend.compiler);
@@ -32,7 +56,8 @@ class SsaBuilderTask extends CompilerTask {
       return compiler.withCurrentElement(element, () {
         HInstruction.idCounter = 0;
         SsaBuilder builder =
-            new SsaBuilder(backend, work, emitter.nativeEmitter);
+            new SsaBuilder(
+                backend, work, emitter.nativeEmitter, generateSourceMap);
         HGraph graph;
         ElementKind kind = element.kind;
         if (kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
@@ -908,6 +933,7 @@ class SsaBuilder extends ResolvedVisitor {
   final ConstantSystem constantSystem;
   final CodegenWorkItem work;
   final RuntimeTypes rti;
+  final bool generateSourceMap;
 
   /* This field is used by the native handler. */
   final NativeEmitter nativeEmitter;
@@ -986,7 +1012,8 @@ class SsaBuilder extends ResolvedVisitor {
 
   SsaBuilder(JavaScriptBackend backend,
              CodegenWorkItem work,
-             this.nativeEmitter)
+             this.nativeEmitter,
+             this.generateSourceMap)
     : this.compiler = backend.compiler,
       this.backend = backend,
       this.constantSystem = backend.constantSystem,
@@ -1092,7 +1119,7 @@ class SsaBuilder extends ResolvedVisitor {
 
     bool isInstanceMember = function.isInstanceMember;
     // For static calls, [providedArguments] is complete, default arguments
-    // have been included if necessary, see [addStaticSendArgumentsToList].
+    // have been included if necessary, see [makeStaticArgumentList].
     if (!isInstanceMember
         || currentNode == null // In erroneous code, currentNode can be null.
         || providedArgumentsKnownToBeComplete(currentNode)
@@ -1820,12 +1847,10 @@ class SsaBuilder extends ResolvedVisitor {
           FunctionElement target = elements[call].implementation;
           Selector selector = elements.getSelector(call);
           Link<ast.Node> arguments = call.arguments;
-          List<HInstruction> compiledArguments = new List<HInstruction>();
+          List<HInstruction> compiledArguments;
           inlinedFrom(constructor, () {
-            addStaticSendArgumentsToList(selector,
-                                         arguments,
-                                         target,
-                                         compiledArguments);
+            compiledArguments =
+                makeStaticArgumentList(selector, arguments, target);
           });
           inlineSuperOrRedirect(target,
                                 compiledArguments,
@@ -1861,13 +1886,11 @@ class SsaBuilder extends ResolvedVisitor {
           compiler.internalError(superClass,
               "No default constructor available.");
         }
-        List<HInstruction> arguments = <HInstruction>[];
-        selector.addArgumentsToList(const Link<ast.Node>(),
-                                    arguments,
-                                    target.implementation,
-                                    null,
-                                    handleConstantForOptionalParameter,
-                                    compiler.world);
+        List<HInstruction> arguments =
+            selector.makeArgumentsList2(const Link<ast.Node>(),
+                                        target.implementation,
+                                        null,
+                                        handleConstantForOptionalParameter);
         inlineSuperOrRedirect(target,
                               arguments,
                               constructors,
@@ -2391,7 +2414,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   HInstruction attachPosition(HInstruction target, ast.Node node) {
-    if (node != null) {
+    if (generateSourceMap && node != null) {
       target.sourcePosition = sourceFileLocationForBeginToken(node);
     }
     return target;
@@ -3422,14 +3445,14 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   /**
-   * Returns true if the arguments were compatible with the function signature.
+   * Returns a list with the evaluated [arguments] in the normalized order.
    *
+   * Precondition: `this.applies(element, world)`.
    * Invariant: [element] must be an implementation element.
    */
-  bool addStaticSendArgumentsToList(Selector selector,
-                                    Link<ast.Node> arguments,
-                                    FunctionElement element,
-                                    List<HInstruction> list) {
+  List<HInstruction> makeStaticArgumentList(Selector selector,
+                                            Link<ast.Node> arguments,
+                                            FunctionElement element) {
     assert(invariant(element, element.isImplementation));
 
     HInstruction compileArgument(ast.Node argument) {
@@ -3437,12 +3460,10 @@ class SsaBuilder extends ResolvedVisitor {
       return pop();
     }
 
-    return selector.addArgumentsToList(arguments,
-                                       list,
+    return selector.makeArgumentsList2(arguments,
                                        element,
                                        compileArgument,
-                                       handleConstantForOptionalParameter,
-                                       compiler.world);
+                                       handleConstantForOptionalParameter);
   }
 
   void addGenericSendArgumentsToList(Link<ast.Node> link, List<HInstruction> list) {
@@ -3813,41 +3834,57 @@ class SsaBuilder extends ResolvedVisitor {
     } else if (name == 'JS_CREATE_ISOLATE') {
       handleForeignCreateIsolate(node);
     } else if (name == 'JS_OPERATOR_IS_PREFIX') {
-      stack.add(addConstantString(backend.namer.operatorIsPrefix()));
+      // TODO(floitsch): this should be a JS_NAME.
+      stack.add(addConstantString(backend.namer.operatorIsPrefix));
     } else if (name == 'JS_OBJECT_CLASS_NAME') {
+      // TODO(floitsch): this should be a JS_NAME.
       String name = backend.namer.getRuntimeTypeName(compiler.objectClass);
       stack.add(addConstantString(name));
     } else if (name == 'JS_NULL_CLASS_NAME') {
+      // TODO(floitsch): this should be a JS_NAME.
       String name = backend.namer.getRuntimeTypeName(compiler.nullClass);
       stack.add(addConstantString(name));
     } else if (name == 'JS_FUNCTION_CLASS_NAME') {
+      // TODO(floitsch): this should be a JS_NAME.
       String name = backend.namer.getRuntimeTypeName(compiler.functionClass);
       stack.add(addConstantString(name));
     } else if (name == 'JS_OPERATOR_AS_PREFIX') {
-      stack.add(addConstantString(backend.namer.operatorAsPrefix()));
+      // TODO(floitsch): this should be a JS_NAME.
+      stack.add(addConstantString(backend.namer.operatorAsPrefix));
     } else if (name == 'JS_SIGNATURE_NAME') {
-      stack.add(addConstantString(backend.namer.operatorSignature()));
+      // TODO(floitsch): this should be a JS_NAME.
+      stack.add(addConstantString(backend.namer.operatorSignature));
+    } else if (name == 'JS_TYPEDEF_TAG') {
+      // TODO(floitsch): this should be a JS_NAME.
+      stack.add(addConstantString(backend.namer.typedefTag));
     } else if (name == 'JS_FUNCTION_TYPE_TAG') {
-      stack.add(addConstantString(backend.namer.functionTypeTag()));
+      // TODO(floitsch): this should be a JS_NAME.
+      stack.add(addConstantString(backend.namer.functionTypeTag));
     } else if (name == 'JS_FUNCTION_TYPE_VOID_RETURN_TAG') {
-      stack.add(addConstantString(backend.namer.functionTypeVoidReturnTag()));
+      // TODO(floitsch): this should be a JS_NAME.
+      stack.add(addConstantString(backend.namer.functionTypeVoidReturnTag));
     } else if (name == 'JS_FUNCTION_TYPE_RETURN_TYPE_TAG') {
-      stack.add(addConstantString(backend.namer.functionTypeReturnTypeTag()));
+      // TODO(floitsch): this should be a JS_NAME.
+      stack.add(addConstantString(backend.namer.functionTypeReturnTypeTag));
     } else if (name ==
                'JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG') {
+      // TODO(floitsch): this should be a JS_NAME.
       stack.add(addConstantString(
-          backend.namer.functionTypeRequiredParametersTag()));
+          backend.namer.functionTypeRequiredParametersTag));
     } else if (name ==
                'JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG') {
+      // TODO(floitsch): this should be a JS_NAME.
       stack.add(addConstantString(
-          backend.namer.functionTypeOptionalParametersTag()));
+          backend.namer.functionTypeOptionalParametersTag));
     } else if (name ==
                'JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG') {
+      // TODO(floitsch): this should be a JS_NAME.
       stack.add(addConstantString(
-          backend.namer.functionTypeNamedParametersTag()));
+          backend.namer.functionTypeNamedParametersTag));
     } else if (name == 'JS_DART_OBJECT_CONSTRUCTOR') {
       handleForeignDartObjectJsConstructorFunction(node);
     } else if (name == 'JS_IS_INDEXABLE_FIELD_NAME') {
+      // TODO(floitsch): this should be a JS_NAME.
       Element element = backend.findHelper('JavaScriptIndexingBehavior');
       stack.add(addConstantString(backend.namer.operatorIs(element)));
     } else if (name == 'JS_CURRENT_ISOLATE') {
@@ -3954,11 +3991,12 @@ class SsaBuilder extends ResolvedVisitor {
     } else if (element.isFunction || element.isGenerativeConstructor) {
       if (selector.applies(element, compiler.world)) {
         // TODO(5347): Try to avoid the need for calling [implementation] before
-        // calling [addStaticSendArgumentsToList].
+        // calling [makeStaticArgumentList].
         FunctionElement function = element.implementation;
-        bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
-                                                      function, inputs);
-        assert(succeeded);
+        assert(selector.applies(function, compiler.world));
+        inputs = makeStaticArgumentList(selector,
+                                        node.arguments,
+                                        function);
         push(buildInvokeSuper(selector, element, inputs));
       } else if (element.isGenerativeConstructor) {
         generateWrongArgumentCountError(node, element, node.arguments);
@@ -4236,14 +4274,14 @@ class SsaBuilder extends ResolvedVisitor {
       inputs.add(graph.addConstantNull(compiler));
     }
     // TODO(5347): Try to avoid the need for calling [implementation] before
-    // calling [addStaticSendArgumentsToList].
-    bool succeeded = addStaticSendArgumentsToList(selector, send.arguments,
-                                                  constructor.implementation,
-                                                  inputs);
-    if (!succeeded) {
+    // calling [makeStaticArgumentList].
+    if (!selector.applies(constructor.implementation, compiler.world)) {
       generateWrongArgumentCountError(send, constructor, send.arguments);
       return;
     }
+    inputs.addAll(makeStaticArgumentList(selector,
+                                         send.arguments,
+                                         constructor.implementation));
 
     if (constructor.isFactoryConstructor &&
         !expectedType.typeArguments.isEmpty) {
@@ -4275,7 +4313,7 @@ class SsaBuilder extends ResolvedVisitor {
       push(foreign);
       TypesInferrer inferrer = compiler.typesTask.typesInferrer;
       if (inferrer.isFixedArrayCheckedForGrowable(send)) {
-        js.Template code = js.js.parseForeignJS(r'#.fixed$length = init');
+        js.Template code = js.js.parseForeignJS(r'#.fixed$length = Array');
         // We set the instruction as [canThrow] to avoid it being dead code.
         // We need a finer grained side effect.
         add(new HForeign(
@@ -4425,16 +4463,17 @@ class SsaBuilder extends ResolvedVisitor {
     invariant(element, !element.isGenerativeConstructor);
     generateIsDeferredLoadedCheckIfNeeded(node);
     if (element.isFunction) {
-      var inputs = <HInstruction>[];
       // TODO(5347): Try to avoid the need for calling [implementation] before
-      // calling [addStaticSendArgumentsToList].
-      bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
-                                                    element.implementation,
-                                                    inputs);
-      if (!succeeded) {
+      // calling [makeStaticArgumentList].
+      if (!selector.applies(element.implementation, compiler.world)) {
         generateWrongArgumentCountError(node, element, node.arguments);
         return;
       }
+
+      List<HInstruction> inputs =
+          makeStaticArgumentList(selector,
+                                 node.arguments,
+                                 element.implementation);
 
       if (element == compiler.identicalFunction) {
         pushWithPosition(

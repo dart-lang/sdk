@@ -24,6 +24,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
+#include "vm/regexp_assembler.h"
 #include "vm/report.h"
 #include "vm/resolver.h"
 #include "vm/scanner.h"
@@ -99,6 +100,21 @@ int TraceParser::indent_ = 0;
 #endif  // DEBUG
 
 
+class BoolScope : public ValueObject {
+ public:
+  BoolScope(bool* addr, bool new_value) : _addr(addr), _saved_value(*addr) {
+    *_addr = new_value;
+  }
+  ~BoolScope() {
+    *_addr = _saved_value;
+  }
+
+ private:
+  bool* _addr;
+  bool _saved_value;
+};
+
+
 static RawTypeArguments* NewTypeArguments(const GrowableObjectArray& objs) {
   const TypeArguments& a =
       TypeArguments::Handle(TypeArguments::New(objs.Length()));
@@ -148,6 +164,14 @@ void ParsedFunction::SetNodeSequence(SequenceNode* node_sequence) {
 }
 
 
+void ParsedFunction::SetRegExpCompileData(
+    RegExpCompileData* regexp_compile_data) {
+  ASSERT(regexp_compile_data_ == NULL);
+  ASSERT(regexp_compile_data != NULL);
+  regexp_compile_data_ = regexp_compile_data;
+}
+
+
 void ParsedFunction::AddDeferredPrefix(const LibraryPrefix& prefix) {
   ASSERT(prefix.is_deferred_load());
   ASSERT(!prefix.is_loaded());
@@ -161,6 +185,7 @@ void ParsedFunction::AddDeferredPrefix(const LibraryPrefix& prefix) {
 
 
 void ParsedFunction::AllocateVariables() {
+  ASSERT(!function().IsIrregexpFunction());
   LocalScope* scope = node_sequence()->scope();
   const intptr_t num_fixed_params = function().num_fixed_parameters();
   const intptr_t num_opt_params = function().NumOptionalParameters();
@@ -207,6 +232,24 @@ struct CatchParamDesc {
   const String* name;
   LocalVariable* var;
 };
+
+
+void ParsedFunction::AllocateIrregexpVariables(intptr_t num_stack_locals) {
+  ASSERT(function().IsIrregexpFunction());
+  ASSERT(function().NumOptionalParameters() == 0);
+  const intptr_t num_params = function().num_fixed_parameters();
+  ASSERT(num_params == RegExpMacroAssembler::kParamCount);
+  // Compute start indices to parameters and locals, and the number of
+  // parameters to copy.
+  // Parameter i will be at fp[kParamEndSlotFromFp + num_params - i] and
+  // local variable j will be at fp[kFirstLocalSlotFromFp - j].
+  first_parameter_index_ = kParamEndSlotFromFp + num_params;
+  first_stack_local_index_ = kFirstLocalSlotFromFp;
+  num_copied_params_ = 0;
+
+  // Frame indices are relative to the frame pointer and are decreasing.
+  num_stack_locals_ = num_stack_locals;
+}
 
 
 struct Parser::Block : public ZoneAllocated {
@@ -837,6 +880,8 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       node_sequence =
           parser.ParseInvokeFieldDispatcher(func, &default_parameter_values);
       break;
+    case RawFunction::kIrregexpFunction:
+      UNREACHABLE();  // Irregexp functions have their own parser.
     default:
       UNREACHABLE();
   }
@@ -3055,9 +3100,8 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     OpenAsyncClosure();
   }
 
-  bool saved_await_is_keyword = await_is_keyword_;
-  await_is_keyword_ = func.IsAsyncFunction() || func.is_async_closure();
-
+  BoolScope allow_await(&this->await_is_keyword_,
+                        func.IsAsyncFunction() || func.is_async_closure());
   intptr_t end_token_pos = 0;
   if (CurrentToken() == Token::kLBRACE) {
     ConsumeToken();
@@ -3080,7 +3124,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
       }
     }
     const intptr_t expr_pos = TokenPos();
-    AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
+    AstNode* expr = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
     ASSERT(expr != NULL);
     current_block_->statements->Add(new ReturnNode(expr_pos, expr));
     end_token_pos = TokenPos();
@@ -3126,7 +3170,6 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   current_block_->statements->Add(body);
   innermost_function_ = saved_innermost_function.raw();
   last_used_try_index_ = saved_try_index;
-  await_is_keyword_ = saved_await_is_keyword;
   async_temp_scope_ = saved_async_temp_scope;
   parsed_function()->set_saved_try_ctx(saved_saved_try_ctx);
   parsed_function()->set_async_saved_try_ctx_name(
@@ -3482,6 +3525,8 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       ExpectToken(Token::kRBRACE);
     } else {
       ConsumeToken();
+      BoolScope allow_await(&this->await_is_keyword_,
+                            async_modifier != RawFunction::kNoModifier);
       SkipExpr();
       method_end_pos = TokenPos();
       ExpectSemicolon();
@@ -4453,7 +4498,6 @@ void Parser::ParseEnumDefinition(const Class& cls) {
       helper_class.LookupDynamicFunctionAllowPrivate(Symbols::toString()));
   ASSERT(!to_string_func.IsNull());
   to_string_func = to_string_func.Clone(cls);
-  to_string_func.set_is_visible(false);
   enum_members.AddFunction(to_string_func);
 
   cls.AddFields(enum_members.fields());
@@ -5156,6 +5200,8 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
     ExpectToken(Token::kRBRACE);
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
+    BoolScope allow_await(&this->await_is_keyword_,
+                          func_modifier != RawFunction::kNoModifier);
     SkipExpr();
     function_end_pos = TokenPos();
     ExpectSemicolon();
@@ -6316,18 +6362,6 @@ AstNode* Parser::LoadReceiver(intptr_t token_pos) {
     ReportError(token_pos, "illegal implicit access to receiver 'this'");
   }
   return new(I) LoadLocalNode(TokenPos(), receiver);
-}
-
-
-AstNode* Parser::LoadTypeArgumentsParameter(intptr_t token_pos) {
-  // A nested function may access ':type_arguments' to use as instantiator,
-  // referring to the implicit first parameter of the outermost enclosing
-  // factory function.
-  const bool kTestOnly = false;
-  LocalVariable* param = LookupTypeArgumentsParameter(current_block_->scope,
-                                                      kTestOnly);
-  ASSERT(param != NULL);
-  return new(I) LoadLocalNode(TokenPos(), param);
 }
 
 
@@ -9183,7 +9217,7 @@ AstNode* Parser::ParseAwaitableExpr(bool require_compiletime_const,
                                     bool consume_cascades,
                                     SequenceNode** await_preamble) {
   TRACE_PARSER("ParseAwaitableExpr");
-  parsed_function()->reset_have_seen_await();
+  BoolScope saved_seen_await(&parsed_function()->have_seen_await_expr_, false);
   AstNode* expr = ParseExpr(require_compiletime_const, consume_cascades);
   if (parsed_function()->have_seen_await()) {
     // Make sure we do not reuse the scope to avoid creating contexts that we
@@ -9201,7 +9235,6 @@ AstNode* Parser::ParseAwaitableExpr(bool require_compiletime_const,
     } else {
       *await_preamble = preamble;
     }
-    parsed_function()->reset_have_seen_await();
     return result;
   }
   return expr;
@@ -10796,8 +10829,8 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
       }
       const_list.SetAt(i, elem->AsLiteralNode()->literal());
     }
-    const_list ^= TryCanonicalize(const_list, literal_pos);
     const_list.MakeImmutable();
+    const_list ^= TryCanonicalize(const_list, literal_pos);
     return new(I) LiteralNode(literal_pos, const_list);
   } else {
     // Factory call at runtime.
@@ -11021,8 +11054,8 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       }
       key_value_array.SetAt(i, arg->AsLiteralNode()->literal());
     }
-    key_value_array ^= TryCanonicalize(key_value_array, TokenPos());
     key_value_array.MakeImmutable();
+    key_value_array ^= TryCanonicalize(key_value_array, TokenPos());
 
     // Construct the map object.
     const Class& immutable_map_class = Class::Handle(I,
@@ -11815,7 +11848,9 @@ void Parser::SkipFunctionLiteral() {
     params.skipped = true;
     ParseFormalParameterList(allow_explicit_default_values, false, &params);
   }
-  ParseFunctionModifier();
+  RawFunction::AsyncModifier async_modifier = ParseFunctionModifier();
+  BoolScope allow_await(&this->await_is_keyword_,
+                        async_modifier != RawFunction::kNoModifier);
   if (CurrentToken() == Token::kLBRACE) {
     SkipBlock();
     ExpectToken(Token::kRBRACE);
@@ -12062,7 +12097,8 @@ void Parser::SkipPostfixExpr() {
 
 void Parser::SkipUnaryExpr() {
   if (IsPrefixOperator(CurrentToken()) ||
-      IsIncrementOperator(CurrentToken())) {
+      IsIncrementOperator(CurrentToken()) ||
+      IsAwaitKeyword()) {
     ConsumeToken();
     SkipUnaryExpr();
   } else {

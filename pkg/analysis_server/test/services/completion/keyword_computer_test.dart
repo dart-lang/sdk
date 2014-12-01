@@ -60,8 +60,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
   }
 
   @override
-  void setUp() {
-    super.setUp();
+  void setUpComputer() {
     computer = new KeywordComputer();
   }
 

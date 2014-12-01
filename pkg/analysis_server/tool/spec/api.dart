@@ -13,20 +13,58 @@ import 'dart:collection';
 import 'package:html5lib/dom.dart' as dom;
 
 /**
+ * Toplevel container for the API.
+ */
+class Api extends ApiNode {
+  final String version;
+  final List<Domain> domains;
+  final Types types;
+  final Refactorings refactorings;
+
+  Api(this.version, this.domains, this.types, this.refactorings,
+      dom.Element html)
+      : super(html);
+}
+
+/**
+ * Base class for objects in the API model.
+ */
+class ApiNode {
+  /**
+   * Html element representing this part of the API.
+   */
+  final dom.Element html;
+
+  ApiNode(this.html);
+}
+
+/**
  * Base class for visiting the API definition.
  */
 abstract class ApiVisitor<T> {
-  T visitTypeReference(TypeReference typeReference);
-  T visitTypeUnion(TypeUnion typeUnion);
-  T visitTypeObject(TypeObject typeObject);
-  T visitTypeList(TypeList typeList);
-  T visitTypeMap(TypeMap typeMap);
-  T visitTypeEnum(TypeEnum typeEnum);
-
   /**
    * Dispatch the given [type] to the visitor.
    */
   T visitTypeDecl(TypeDecl type) => type.accept(this);
+  T visitTypeEnum(TypeEnum typeEnum);
+  T visitTypeList(TypeList typeList);
+  T visitTypeMap(TypeMap typeMap);
+  T visitTypeObject(TypeObject typeObject);
+  T visitTypeReference(TypeReference typeReference);
+
+  T visitTypeUnion(TypeUnion typeUnion);
+}
+
+/**
+ * Definition of a single domain.
+ */
+class Domain extends ApiNode {
+  final String name;
+  final List<Request> requests;
+  final List<Notification> notifications;
+
+  Domain(this.name, this.requests, this.notifications, dom.Element html)
+      : super(html);
 }
 
 /**
@@ -40,27 +78,24 @@ class HierarchicalApiVisitor extends ApiVisitor {
 
   HierarchicalApiVisitor(this.api);
 
+  /**
+   * If [type] is a [TypeReference] that is defined in the API, follow the
+   * chain until a non-[TypeReference] is found, if possible.
+   *
+   * If it is not possible (because the chain ends with a [TypeReference] that
+   * is not defined in the API), then that final [TypeReference] is returned.
+   */
+  TypeDecl resolveTypeReferenceChain(TypeDecl type) {
+    while (type is TypeReference && api.types.containsKey(type.typeName)) {
+      type = api.types[(type as TypeReference).typeName].type;
+    }
+    return type;
+  }
+
   void visitApi() {
     api.domains.forEach(visitDomain);
     visitTypes(api.types);
     visitRefactorings(api.refactorings);
-  }
-
-  void visitRefactorings(Refactorings refactorings) {
-    refactorings.forEach(visitRefactoring);
-  }
-
-  void visitRefactoring(Refactoring refactoring) {
-    if (refactoring.feedback != null) {
-      visitTypeDecl(refactoring.feedback);
-    }
-    if (refactoring.options != null) {
-      visitTypeDecl(refactoring.options);
-    }
-  }
-
-  void visitTypes(Types types) {
-    types.forEach(visitTypeDefinition);
   }
 
   void visitDomain(Domain domain) {
@@ -72,6 +107,19 @@ class HierarchicalApiVisitor extends ApiVisitor {
     if (notification.params != null) {
       visitTypeDecl(notification.params);
     }
+  }
+
+  void visitRefactoring(Refactoring refactoring) {
+    if (refactoring.feedback != null) {
+      visitTypeDecl(refactoring.feedback);
+    }
+    if (refactoring.options != null) {
+      visitTypeDecl(refactoring.options);
+    }
+  }
+
+  void visitRefactorings(Refactorings refactorings) {
+    refactorings.forEach(visitRefactoring);
   }
 
   void visitRequest(Request request) {
@@ -119,61 +167,60 @@ class HierarchicalApiVisitor extends ApiVisitor {
   void visitTypeReference(TypeReference typeReference) {
   }
 
+  void visitTypes(Types types) {
+    types.forEach(visitTypeDefinition);
+  }
+
   @override
   void visitTypeUnion(TypeUnion typeUnion) {
     typeUnion.choices.forEach(visitTypeDecl);
   }
+}
+
+/**
+ * Description of a request method.
+ */
+class Notification extends ApiNode {
+  /**
+   * Name of the domain enclosing this request.
+   */
+  final String domainName;
 
   /**
-   * If [type] is a [TypeReference] that is defined in the API, follow the
-   * chain until a non-[TypeReference] is found, if possible.
-   *
-   * If it is not possible (because the chain ends with a [TypeReference] that
-   * is not defined in the API), then that final [TypeReference] is returned.
+   * Name of the notification, without the domain prefix.
    */
-  TypeDecl resolveTypeReferenceChain(TypeDecl type) {
-    while (type is TypeReference && api.types.containsKey(type.typeName)) {
-      type = api.types[(type as TypeReference).typeName].type;
+  final String event;
+
+  /**
+   * Type of the object associated with the "params" key in the notification
+   * object, or null if the notification has no parameters.
+   */
+  final TypeObject params;
+
+  Notification(this.domainName, this.event, this.params, dom.Element html)
+      : super(html);
+
+  /**
+   * Get the name of the notification, including the domain prefix.
+   */
+  String get longEvent => '$domainName.$event';
+
+  /**
+   * Get the full type of the notification object, including the common "id"
+   * and "error" fields.
+   */
+  TypeDecl get notificationType {
+    List<TypeObjectField> fields = [
+        new TypeObjectField(
+            'event',
+            new TypeReference('String', null),
+            null,
+            value: '$domainName.$event')];
+    if (params != null) {
+      fields.add(new TypeObjectField('params', params, null));
     }
-    return type;
+    return new TypeObject(fields, null);
   }
-}
-
-/**
- * Base class for objects in the API model.
- */
-class ApiNode {
-  /**
-   * Html element representing this part of the API.
-   */
-  final dom.Element html;
-
-  ApiNode(this.html);
-}
-
-/**
- * Toplevel container for the API.
- */
-class Api extends ApiNode {
-  final String version;
-  final List<Domain> domains;
-  final Types types;
-  final Refactorings refactorings;
-
-  Api(this.version, this.domains, this.types, this.refactorings, dom.Element
-      html) : super(html);
-}
-
-/**
- * A collection of refactoring definitions.
- */
-class Refactorings extends ApiNode with IterableMixin<Refactoring> {
-  final List<Refactoring> refactorings;
-
-  Refactorings(this.refactorings, dom.Element html) : super(html);
-
-  @override
-  Iterator<Refactoring> get iterator => refactorings.iterator;
 }
 
 /**
@@ -197,38 +244,20 @@ class Refactoring extends ApiNode {
    */
   final TypeObject options;
 
-  Refactoring(this.kind, this.feedback, this.options, dom.Element html) : super(
-      html);
+  Refactoring(this.kind, this.feedback, this.options, dom.Element html)
+      : super(html);
 }
 
 /**
- * A collection of type definitions.
+ * A collection of refactoring definitions.
  */
-class Types extends ApiNode with IterableMixin<TypeDefinition> {
-  final Map<String, TypeDefinition> types;
+class Refactorings extends ApiNode with IterableMixin<Refactoring> {
+  final List<Refactoring> refactorings;
 
-  Types(this.types, dom.Element html) : super(html);
-
-  bool containsKey(String typeName) => types.containsKey(typeName);
+  Refactorings(this.refactorings, dom.Element html) : super(html);
 
   @override
-  Iterator<TypeDefinition> get iterator => types.values.iterator;
-
-  TypeDefinition operator [](String typeName) => types[typeName];
-
-  Iterable<String> get keys => types.keys;
-}
-
-/**
- * Definition of a single domain.
- */
-class Domain extends ApiNode {
-  final String name;
-  final List<Request> requests;
-  final List<Notification> notifications;
-
-  Domain(this.name, this.requests, this.notifications, dom.Element html) :
-      super(html);
+  Iterator<Refactoring> get iterator => refactorings.iterator;
 }
 
 /**
@@ -257,8 +286,9 @@ class Request extends ApiNode {
    */
   final TypeObject result;
 
-  Request(this.domainName, this.method, this.params, this.result, dom.Element
-      html) : super(html);
+  Request(this.domainName, this.method, this.params, this.result,
+      dom.Element html)
+      : super(html);
 
   /**
    * Get the name of the request, including the domain prefix.
@@ -270,9 +300,13 @@ class Request extends ApiNode {
    * "method" fields.
    */
   TypeDecl get requestType {
-    List<TypeObjectField> fields = [new TypeObjectField('id', new TypeReference(
-        'String', null), null), new TypeObjectField('method', new TypeReference(
-        'String', null), null, value: '$domainName.$method')];
+    List<TypeObjectField> fields = [
+        new TypeObjectField('id', new TypeReference('String', null), null),
+        new TypeObjectField(
+            'method',
+            new TypeReference('String', null),
+            null,
+            value: '$domainName.$method')];
     if (params != null) {
       fields.add(new TypeObjectField('params', params, null));
     }
@@ -299,45 +333,12 @@ class Request extends ApiNode {
 }
 
 /**
- * Description of a request method.
+ * Base class for all possible types.
  */
-class Notification extends ApiNode {
-  /**
-   * Name of the domain enclosing this request.
-   */
-  final String domainName;
+abstract class TypeDecl extends ApiNode {
+  TypeDecl(dom.Element html) : super(html);
 
-  /**
-   * Name of the notification, without the domain prefix.
-   */
-  final String event;
-
-  /**
-   * Type of the object associated with the "params" key in the notification
-   * object, or null if the notification has no parameters.
-   */
-  final TypeObject params;
-
-  Notification(this.domainName, this.event, this.params, dom.Element html) :
-      super(html);
-
-  /**
-   * Get the name of the notification, including the domain prefix.
-   */
-  String get longEvent => '$domainName.$event';
-
-  /**
-   * Get the full type of the notification object, including the common "id"
-   * and "error" fields.
-   */
-  TypeDecl get notificationType {
-    List<TypeObjectField> fields = [new TypeObjectField('event',
-        new TypeReference('String', null), null, value: '$domainName.$event')];
-    if (params != null) {
-      fields.add(new TypeObjectField('params', params, null));
-    }
-    return new TypeObject(fields, null);
-  }
+  accept(ApiVisitor visitor);
 }
 
 /**
@@ -351,44 +352,56 @@ class TypeDefinition extends ApiNode {
 }
 
 /**
- * Base class for all possible types.
+ * Type of an enum.  We represent enums in JSON as strings, so this type
+ * declaration simply lists the allowed values.
  */
-abstract class TypeDecl extends ApiNode {
-  TypeDecl(dom.Element html) : super(html);
+class TypeEnum extends TypeDecl {
+  final List<TypeEnumValue> values;
 
-  accept(ApiVisitor visitor);
+  TypeEnum(this.values, dom.Element html) : super(html);
+
+  accept(ApiVisitor visitor) => visitor.visitTypeEnum(this);
 }
 
 /**
- * A reference to a type which is either defined elsewhere in the API or which
- * is built-in ([String], [bool], or [int]).
+ * Description of a single allowed value for an enum.
  */
-class TypeReference extends TypeDecl {
-  final String typeName;
+class TypeEnumValue extends ApiNode {
+  final String value;
 
-  TypeReference(this.typeName, dom.Element html) : super(html) {
-    if (typeName.isEmpty) {
-      throw new Exception('Empty type name');
-    }
-  }
-
-  accept(ApiVisitor visitor) => visitor.visitTypeReference(this);
+  TypeEnumValue(this.value, dom.Element html) : super(html);
 }
 
 /**
- * Type which represents a union among multiple choices.
+ * Type of a JSON list.
  */
-class TypeUnion extends TypeDecl {
-  final List<TypeDecl> choices;
+class TypeList extends TypeDecl {
+  final TypeDecl itemType;
+
+  TypeList(this.itemType, dom.Element html) : super(html);
+
+  accept(ApiVisitor visitor) => visitor.visitTypeList(this);
+}
+
+/**
+ * Type of a JSON map.
+ */
+class TypeMap extends TypeDecl {
+  /**
+   * Type of map keys.  Note that since JSON map keys must always be strings,
+   * this must either be a [TypeReference] for [String], or a [TypeReference]
+   * to a type which is defined in the API as an enum or a synonym for [String].
+   */
+  final TypeReference keyType;
 
   /**
-   * The field that is used to disambiguate this union
+   * Type of map values.
    */
-  final String field;
+  final TypeDecl valueType;
 
-  TypeUnion(this.choices, this.field, dom.Element html) : super(html);
+  TypeMap(this.keyType, this.valueType, dom.Element html) : super(html);
 
-  accept(ApiVisitor visitor) => visitor.visitTypeUnion(this);
+  accept(ApiVisitor visitor) => visitor.visitTypeMap(this);
 }
 
 /**
@@ -427,59 +440,57 @@ class TypeObjectField extends ApiNode {
    */
   final Object value;
 
-  TypeObjectField(this.name, this.type, dom.Element html, {this.optional:
-      false, this.value}) : super(html);
+  TypeObjectField(this.name, this.type, dom.Element html, {this.optional: false,
+      this.value})
+      : super(html);
 }
 
 /**
- * Type of a JSON list.
+ * A reference to a type which is either defined elsewhere in the API or which
+ * is built-in ([String], [bool], or [int]).
  */
-class TypeList extends TypeDecl {
-  final TypeDecl itemType;
+class TypeReference extends TypeDecl {
+  final String typeName;
 
-  TypeList(this.itemType, dom.Element html) : super(html);
+  TypeReference(this.typeName, dom.Element html) : super(html) {
+    if (typeName.isEmpty) {
+      throw new Exception('Empty type name');
+    }
+  }
 
-  accept(ApiVisitor visitor) => visitor.visitTypeList(this);
+  accept(ApiVisitor visitor) => visitor.visitTypeReference(this);
 }
 
 /**
- * Type of a JSON map.
+ * A collection of type definitions.
  */
-class TypeMap extends TypeDecl {
+class Types extends ApiNode with IterableMixin<TypeDefinition> {
+  final Map<String, TypeDefinition> types;
+
+  Types(this.types, dom.Element html) : super(html);
+
+  @override
+  Iterator<TypeDefinition> get iterator => types.values.iterator;
+
+  Iterable<String> get keys => types.keys;
+
+  TypeDefinition operator [](String typeName) => types[typeName];
+
+  bool containsKey(String typeName) => types.containsKey(typeName);
+}
+
+/**
+ * Type which represents a union among multiple choices.
+ */
+class TypeUnion extends TypeDecl {
+  final List<TypeDecl> choices;
+
   /**
-   * Type of map keys.  Note that since JSON map keys must always be strings,
-   * this must either be a [TypeReference] for [String], or a [TypeReference]
-   * to a type which is defined in the API as an enum or a synonym for [String].
+   * The field that is used to disambiguate this union
    */
-  final TypeReference keyType;
+  final String field;
 
-  /**
-   * Type of map values.
-   */
-  final TypeDecl valueType;
+  TypeUnion(this.choices, this.field, dom.Element html) : super(html);
 
-  TypeMap(this.keyType, this.valueType, dom.Element html) : super(html);
-
-  accept(ApiVisitor visitor) => visitor.visitTypeMap(this);
-}
-
-/**
- * Type of an enum.  We represent enums in JSON as strings, so this type
- * declaration simply lists the allowed values.
- */
-class TypeEnum extends TypeDecl {
-  final List<TypeEnumValue> values;
-
-  TypeEnum(this.values, dom.Element html) : super(html);
-
-  accept(ApiVisitor visitor) => visitor.visitTypeEnum(this);
-}
-
-/**
- * Description of a single allowed value for an enum.
- */
-class TypeEnumValue extends ApiNode {
-  final String value;
-
-  TypeEnumValue(this.value, dom.Element html) : super(html);
+  accept(ApiVisitor visitor) => visitor.visitTypeUnion(this);
 }

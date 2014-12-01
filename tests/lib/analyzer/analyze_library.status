@@ -23,3 +23,12 @@ lib/_internal/pub_generated/bin/async_compile: Skip
 # Pub is starting to use the new async syntax, which isn't supported on the
 # analyzer bots yet.
 lib/_internal/pub/*: Pass, CompileTimeError
+
+[ $compiler == dart2analyzer ]
+lib/web_gl/dartium/web_gl_dartium: CompileTimeError # Issue 21647
+lib/web_sql/dartium/web_sql_dartium: CompileTimeError # Issue 21647
+lib/html/dartium/html_dartium: CompileTimeError # Issue 21647
+lib/html/html_common/html_common: CompileTimeError # Issue 21647
+lib/indexed_db/dartium/indexed_db_dartium: CompileTimeError # Issue 21647
+lib/web_audio/dartium/web_audio_dartium: CompileTimeError # Issue 21647
+lib/svg/dartium/svg_dartium: CompileTimeError # Issue 21647

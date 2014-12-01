@@ -1,3 +1,10 @@
+# 1.0.2
+
+* Avoid unintentionally allocating extra objects for internal `FileSpan`
+  operations.
+
+* Ensure that `SourceSpan.operator==` works on arbitrary `Object`s.
+
 # 1.0.1
 
 * Use a more compact internal representation for `FileSpan`.

@@ -10,6 +10,10 @@ import 'package:unittest/unittest.dart';
 import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
+main() {
+  runReflectiveTests(Test);
+}
+
 @ReflectiveTestCase()
 class Test extends AbstractAnalysisServerIntegrationTest {
   test_reanalyze() {
@@ -33,8 +37,4 @@ class Test extends AbstractAnalysisServerIntegrationTest {
       });
     });
   }
-}
-
-main() {
-  runReflectiveTests(Test);
 }

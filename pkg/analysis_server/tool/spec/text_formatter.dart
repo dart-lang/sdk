@@ -11,6 +11,8 @@ import 'package:html5lib/dom.dart' as dom;
 
 import 'codegen_tools.dart';
 
+final RegExp whitespace = new RegExp(r'\s');
+
 /**
  * Convert the HTML in [desc] into text, word wrapping at width [width].
  *
@@ -24,8 +26,6 @@ String nodesToText(List<dom.Node> desc, int width, bool javadocStyle) {
     formatter.lineBreak(false);
   });
 }
-
-final RegExp whitespace = new RegExp(r'\s');
 
 /**
  * Engine that transforms HTML to text.  The input HTML is processed one
@@ -69,23 +69,6 @@ class _TextFormatter extends CodeGenerator {
   final bool javadocStyle;
 
   _TextFormatter(this.width, this.javadocStyle);
-
-  /**
-   * Escape the given character for HTML.
-   */
-  String escape(String char) {
-    if (javadocStyle) {
-      switch (char) {
-        case '<':
-          return '&lt;';
-        case '>':
-          return '&gt;';
-        case '&':
-          return '&amp;';
-      }
-    }
-    return char;
-  }
 
   /**
    * Process an HTML node.
@@ -191,34 +174,29 @@ class _TextFormatter extends CodeGenerator {
   }
 
   /**
-   * Insert vertical space if necessary.
+   * Process a list of HTML nodes.
    */
-  void resolveVerticalSpace() {
-    if (verticalSpaceNeeded) {
-      writeln();
-      verticalSpaceNeeded = false;
+  void addAll(List<dom.Node> nodes) {
+    for (dom.Node node in nodes) {
+      add(node);
     }
   }
 
   /**
-   * Terminate the current word, if a word is in progress.
+   * Escape the given character for HTML.
    */
-  void wordBreak() {
-    if (word.isNotEmpty) {
-      atStart = false;
-      if (line.isNotEmpty) {
-        if (indentWidth + line.length + 1 + word.length <= width)
-            {
-          line += ' $word';
-        } else {
-          writeln(line);
-          line = word;
-        }
-      } else {
-        line = word;
+  String escape(String char) {
+    if (javadocStyle) {
+      switch (char) {
+        case '<':
+          return '&lt;';
+        case '>':
+          return '&gt;';
+        case '&':
+          return '&amp;';
       }
-      word = '';
     }
+    return char;
   }
 
   /**
@@ -236,11 +214,32 @@ class _TextFormatter extends CodeGenerator {
   }
 
   /**
-   * Process a list of HTML nodes.
+   * Insert vertical space if necessary.
    */
-  void addAll(List<dom.Node> nodes) {
-    for (dom.Node node in nodes) {
-      add(node);
+  void resolveVerticalSpace() {
+    if (verticalSpaceNeeded) {
+      writeln();
+      verticalSpaceNeeded = false;
+    }
+  }
+
+  /**
+   * Terminate the current word, if a word is in progress.
+   */
+  void wordBreak() {
+    if (word.isNotEmpty) {
+      atStart = false;
+      if (line.isNotEmpty) {
+        if (indentWidth + line.length + 1 + word.length <= width) {
+          line += ' $word';
+        } else {
+          writeln(line);
+          line = word;
+        }
+      } else {
+        line = word;
+      }
+      word = '';
     }
   }
 }

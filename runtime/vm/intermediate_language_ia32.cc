@@ -2080,13 +2080,13 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
       intptr_t current_offset = 0;
       __ movl(EBX, raw_null);
       while (current_offset < array_size) {
-        __ movl(Address(EDI, current_offset), EBX);
+        __ StoreIntoObjectNoBarrier(EAX, Address(EDI, current_offset), EBX);
         current_offset += kWordSize;
       }
     } else {
       Label init_loop;
       __ Bind(&init_loop);
-      __ movl(Address(EDI, 0), raw_null);
+      __ StoreIntoObjectNoBarrier(EAX, Address(EDI, 0), Object::null_object());
       __ addl(EDI, Immediate(kWordSize));
       __ cmpl(EDI, EBX);
       __ j(BELOW, &init_loop, Assembler::kNearJump);
@@ -3695,6 +3695,117 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* LoadCodeUnitsInstr::MakeLocationSummary(Isolate* isolate,
+                                                         bool opt) const {
+  const bool might_box = (representation() == kTagged) && !can_pack_into_smi();
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = might_box ? 1 : 0;
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps,
+      might_box ? LocationSummary::kCallOnSlowPath : LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  // The smi index is either untagged (element size == 1), or it is left smi
+  // tagged (for all element sizes > 1).
+  summary->set_in(1, (index_scale() == 1) ? Location::WritableRegister()
+                                          : Location::RequiresRegister());
+  if (might_box) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
+
+  if (representation() == kUnboxedMint) {
+    summary->set_out(0, Location::Pair(Location::RequiresRegister(),
+                                       Location::RequiresRegister()));
+  } else {
+    ASSERT(representation() == kTagged);
+    summary->set_out(0, Location::RequiresRegister());
+  }
+
+  return summary;
+}
+
+
+void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register array = locs()->in(0).reg();
+  const Location index = locs()->in(1);
+
+  Address element_address = Assembler::ElementAddressForRegIndex(
+        IsExternal(), class_id(), index_scale(), array, index.reg());
+
+  if ((index_scale() == 1)) {
+    __ SmiUntag(index.reg());
+  }
+
+  if (representation() == kUnboxedMint) {
+    ASSERT(compiler->is_optimizing());
+    ASSERT(locs()->out(0).IsPairLocation());
+    PairLocation* result_pair = locs()->out(0).AsPairLocation();
+    Register result1 = result_pair->At(0).reg();
+    Register result2 = result_pair->At(1).reg();
+
+    switch (class_id()) {
+      case kOneByteStringCid:
+      case kExternalOneByteStringCid:
+        ASSERT(element_count() == 4);
+        __ movl(result1, element_address);
+        __ xorl(result2, result2);
+        break;
+      case kTwoByteStringCid:
+      case kExternalTwoByteStringCid:
+        ASSERT(element_count() == 2);
+        __ movl(result1, element_address);
+        __ xorl(result2, result2);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else {
+    ASSERT(representation() == kTagged);
+    Register result = locs()->out(0).reg();
+    switch (class_id()) {
+      case kOneByteStringCid:
+      case kExternalOneByteStringCid:
+        switch (element_count()) {
+          case 1: __ movzxb(result, element_address); break;
+          case 2: __ movzxw(result, element_address); break;
+          case 4: __ movl(result, element_address); break;
+          default: UNREACHABLE();
+        }
+        break;
+      case kTwoByteStringCid:
+      case kExternalTwoByteStringCid:
+        switch (element_count()) {
+          case 1: __ movzxw(result, element_address); break;
+          case 2: __ movl(result, element_address); break;
+          default: UNREACHABLE();
+        }
+        break;
+      default:
+        UNREACHABLE();
+        break;
+    }
+    if (can_pack_into_smi()) {
+      __ SmiTag(result);
+    } else {
+      // If the value cannot fit in a smi then allocate a mint box for it.
+      Register temp = locs()->temp(0).reg();
+      ASSERT(temp != result);
+      __ MoveRegister(temp, result);
+      __ SmiTag(result);
+
+      Label done;
+      __ testl(temp, Immediate(0xC0000000));
+      __ j(ZERO, &done);
+      BoxAllocationSlowPath::Allocate(
+          compiler, this, compiler->mint_class(), result, kNoRegister);
+      __ movl(FieldAddress(result, Mint::value_offset()), temp);
+      __ movl(FieldAddress(result, Mint::value_offset() + kWordSize),
+              Immediate(0));
+      __ Bind(&done);
+    }
+  }
+}
+
+
 LocationSummary* BinaryDoubleOpInstr::MakeLocationSummary(Isolate* isolate,
                                                           bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -4788,6 +4899,42 @@ void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Restore ESP.
     __ movl(ESP, locs()->temp(0).reg());
   }
+}
+
+
+LocationSummary* CaseInsensitiveCompareUC16Instr::MakeLocationSummary(
+    Isolate* isolate, bool opt) const {
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, InputCount(), kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(EAX));
+  summary->set_in(1, Location::RegisterLocation(ECX));
+  summary->set_in(2, Location::RegisterLocation(EDX));
+  summary->set_in(3, Location::RegisterLocation(EBX));
+  summary->set_out(0, Location::RegisterLocation(EAX));
+  return summary;
+}
+
+
+void CaseInsensitiveCompareUC16Instr::EmitNativeCode(
+    FlowGraphCompiler* compiler) {
+
+  // Save ESP. EDI is chosen because it is callee saved so we do not need to
+  // back it up before calling into the runtime.
+  static const Register kSavedSPReg = EDI;
+  __ movl(kSavedSPReg, ESP);
+  __ ReserveAlignedFrameSpace(kWordSize * TargetFunction().argument_count());
+
+  __ movl(Address(ESP, + 0 * kWordSize), locs()->in(0).reg());
+  __ movl(Address(ESP, + 1 * kWordSize), locs()->in(1).reg());
+  __ movl(Address(ESP, + 2 * kWordSize), locs()->in(2).reg());
+  __ movl(Address(ESP, + 3 * kWordSize), locs()->in(3).reg());
+
+  // Call the function.
+  __ CallRuntime(TargetFunction(), TargetFunction().argument_count());
+
+  // Restore ESP.
+  __ movl(ESP, kSavedSPReg);
 }
 
 
@@ -5921,7 +6068,6 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ movl(temp1, left_hi);  // Preserve high 32 bits.
           if (shift > 31) {
             __ movl(left_hi, left_lo);  // Shift by 32.
-            __ xorl(left_lo, left_lo);  // Zero left_lo.
             if (shift > 32) {
               __ shll(left_hi, Immediate(shift - 32));
             }
@@ -5931,6 +6077,15 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             __ sarl(temp2, Immediate(31));
             __ cmpl(temp1, temp2);
             __ j(NOT_EQUAL, deopt);
+            if (shift > 32) {
+              // Also compare low word from input with high word from
+              // output shifted back shift - 32.
+              __ movl(temp2, left_hi);
+              __ sarl(temp2, Immediate(shift - 32));
+              __ cmpl(left_lo, temp2);
+              __ j(NOT_EQUAL, deopt);
+            }
+            __ xorl(left_lo, left_lo);  // Zero left_lo.
           } else {
             __ shldl(left_hi, left_lo, Immediate(shift));
             __ shll(left_lo, Immediate(shift));
@@ -6006,7 +6161,6 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ Bind(&large_shift);
           // No need to subtract 32 from CL, only 5 bits used by shll.
           __ movl(left_hi, left_lo);  // Shift by 32.
-          __ xorl(left_lo, left_lo);  // Zero left_lo.
           __ shll(left_hi, ECX);  // Shift count: CL % 32.
           // Check for overflow by sign extending the high 32 bits
           // and comparing with the input.
@@ -6014,6 +6168,13 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ sarl(temp2, Immediate(31));
           __ cmpl(temp1, temp2);
           __ j(NOT_EQUAL, deopt);
+          // Also compare low word from input with high word from
+          // output shifted back shift - 32.
+          __ movl(temp2, left_hi);
+          __ sarl(temp2, ECX);  // Shift count: CL % 32.
+          __ cmpl(left_lo, temp2);
+          __ j(NOT_EQUAL, deopt);
+          __ xorl(left_lo, left_lo);  // Zero left_lo.
         } else {
           __ cmpl(ECX, Immediate(31));
           __ j(ABOVE, &large_shift);
@@ -6359,6 +6520,37 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->CanFallThroughTo(successor())) {
     __ jmp(compiler->GetJumpLabel(successor()));
   }
+}
+
+
+LocationSummary* IndirectGotoInstr::MakeLocationSummary(Isolate* isolate,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+
+  LocationSummary* summary = new(isolate) LocationSummary(
+        isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_temp(0, Location::RequiresRegister());
+
+  return summary;
+}
+
+
+void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register target_address_reg = locs()->temp_slot(0)->reg();
+
+  // Load from [current frame pointer] + kPcMarkerSlotFromFp.
+  __ movl(target_address_reg, Address(EBP, kPcMarkerSlotFromFp * kWordSize));
+
+  // Add the offset.
+  Register offset_reg = locs()->in(0).reg();
+  __ SmiUntag(offset_reg);
+  __ addl(target_address_reg, offset_reg);
+
+  // Jump to the absolute address.
+  __ jmp(target_address_reg);
 }
 
 

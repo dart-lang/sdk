@@ -119,8 +119,7 @@ class _LocalDeclarationFinder extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredField(FieldDeclaration fieldDecl,
-      VariableDeclaration varDecl) {
+  void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
   }
 
   @override

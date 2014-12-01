@@ -4,21 +4,11 @@
 
 library reflective_tests;
 
-import 'dart:async';
-
 @MirrorsUsed(metaTargets: 'ReflectiveTestCase')
 import 'dart:mirrors';
+import 'dart:async';
 
 import 'package:unittest/unittest.dart';
-
-
-/**
- * A marker annotation used to instruct dart2js to keep reflection information
- * for the annotated classes.
- */
-class ReflectiveTestCase {
-  const ReflectiveTestCase();
-}
 
 
 /**
@@ -67,14 +57,6 @@ void runReflectiveTests(Type type) {
 }
 
 
-_runTest(ClassMirror classMirror, Symbol symbol) {
-  InstanceMirror instanceMirror = classMirror.newInstance(new Symbol(''), []);
-  return _invokeSymbolIfExists(instanceMirror, #setUp).then(
-      (_) => instanceMirror.invoke(symbol, []).reflectee).whenComplete(
-      () => _invokeSymbolIfExists(instanceMirror, #tearDown));
-}
-
-
 Future _invokeSymbolIfExists(InstanceMirror instanceMirror, Symbol symbol) {
   var invocationResult = null;
   try {
@@ -86,4 +68,27 @@ Future _invokeSymbolIfExists(InstanceMirror instanceMirror, Symbol symbol) {
   } else {
     return new Future.value(invocationResult);
   }
+}
+
+
+_runTest(ClassMirror classMirror, Symbol symbol) {
+  InstanceMirror instanceMirror = classMirror.newInstance(new Symbol(''), []);
+  return _invokeSymbolIfExists(
+      instanceMirror,
+      #setUp).then(
+          (_) =>
+              instanceMirror.invoke(
+                  symbol,
+                  [
+                      ]).reflectee).whenComplete(
+                          () => _invokeSymbolIfExists(instanceMirror, #tearDown));
+}
+
+
+/**
+ * A marker annotation used to instruct dart2js to keep reflection information
+ * for the annotated classes.
+ */
+class ReflectiveTestCase {
+  const ReflectiveTestCase();
 }

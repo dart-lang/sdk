@@ -4,12 +4,13 @@
 
 library test.search.top_level_declarations;
 
+import 'dart:async';
+
 import 'package:analysis_server/src/protocol.dart';
-import '../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
+import '../reflective_tests.dart';
 import 'abstract_search_domain.dart';
-import 'dart:async';
 
 
 main() {
@@ -20,18 +21,6 @@ main() {
 
 @ReflectiveTestCase()
 class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
-  Future findTopLevelDeclarations(String pattern) {
-    return waitForTasksFinished().then((_) {
-      Request request = new SearchFindTopLevelDeclarationsParams(
-          pattern).toRequest('0');
-      Response response = handleSuccessfulRequest(request);
-      searchId = new SearchFindTopLevelDeclarationsResult.fromResponse(
-          response).id;
-      results.clear();
-      return waitForSearchResults();
-    });
-  }
-
   void assertHasDeclaration(ElementKind kind, String name) {
     result = findTopLevelResult(kind, name);
     if (result == null) {
@@ -44,6 +33,18 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
     if (result != null) {
       fail('Unexpected: kind=$kind name="$name"\nin\n' + results.join('\n'));
     }
+  }
+
+  Future findTopLevelDeclarations(String pattern) {
+    return waitForTasksFinished().then((_) {
+      Request request =
+          new SearchFindTopLevelDeclarationsParams(pattern).toRequest('0');
+      Response response = handleSuccessfulRequest(request);
+      searchId =
+          new SearchFindTopLevelDeclarationsResult.fromResponse(response).id;
+      results.clear();
+      return waitForSearchResults();
+    });
   }
 
   SearchResult findTopLevelResult(ElementKind kind, String name) {

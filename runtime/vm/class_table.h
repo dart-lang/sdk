@@ -60,6 +60,13 @@ class AllocStats {
     old_size = old_count * instance_size;
     new_size = new_count * instance_size;
   }
+
+  void Verify() {
+    ASSERT(new_count >= 0);
+    ASSERT(new_size >= 0);
+    ASSERT(old_count >= 0);
+    ASSERT(old_size >= 0);
+  }
 };
 
 class ClassHeapStats {
@@ -102,6 +109,7 @@ class ClassHeapStats {
   void UpdatePromotedAfterNewGC();
   void UpdateSize(intptr_t instance_size);
   void PrintToJSONObject(const Class& cls, JSONObject* obj) const;
+  void Verify();
 
  private:
   // Recent old at start of last new GC (used to compute promoted_*).

@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library statement_rewriter;
-
-import 'tree_ir_nodes.dart';
+part of tree_ir.optimization;
 
 /**
  * Performs the following transformations on the tree:
@@ -93,7 +91,7 @@ import 'tree_ir_nodes.dart';
  * This may trigger a flattening of nested ifs in case the eliminated label
  * separated two ifs.
  */
-class StatementRewriter extends Visitor<Statement, Expression> {
+class StatementRewriter extends Visitor<Statement, Expression> implements Pass {
   // The binding environment.  The rightmost element of the list is the nearest
   // available enclosing binding.
   List<Assign> environment;
@@ -109,7 +107,19 @@ class StatementRewriter extends Visitor<Statement, Expression> {
     return newJump != null ? newJump : jump;
   }
 
-  void rewrite(FunctionDefinition definition) {
+  void rewrite(ExecutableDefinition definition) => definition.applyPass(this);
+
+  void rewriteFieldDefinition(FieldDefinition definition) {
+    environment = <Assign>[];
+    definition.body = visitStatement(definition.body);
+
+    // TODO(kmillikin):  Allow definitions that are not propagated.  Here,
+    // this means rebuilding the binding with a recursively unnamed definition,
+    // or else introducing a variable definition and an assignment.
+    assert(environment.isEmpty);
+  }
+
+  void rewriteFunctionDefinition(FunctionDefinition definition) {
     if (definition.isAbstract) return;
 
     environment = <Assign>[];
@@ -120,6 +130,7 @@ class StatementRewriter extends Visitor<Statement, Expression> {
     // or else introducing a variable definition and an assignment.
     assert(environment.isEmpty);
   }
+
 
   Expression visitExpression(Expression e) => e.processed ? e : e.accept(this);
 

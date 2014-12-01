@@ -112,7 +112,7 @@ class NativeEmitter {
     Set<ClassElement> neededByConstant =
         emitterTask.interceptorsReferencedFromConstants();
     Set<ClassElement> modifiedClasses =
-        emitterTask.typeTestEmitter.classesModifiedByEmitRuntimeTypeSupport();
+        emitterTask.typeTestRegistry.classesModifiedByEmitRuntimeTypeSupport();
 
     for (ClassElement classElement in preOrder.reversed) {
       // Post-order traversal ensures we visit the subclasses before their
@@ -313,7 +313,7 @@ class NativeEmitter {
         classElement, builder);
     emitterTask.oldEmitter.classEmitter.emitInstanceMembers(
         classElement, builder);
-    emitterTask.typeTestEmitter.emitIsTests(classElement, builder);
+    emitterTask.oldEmitter.typeTestEmitter.emitIsTests(classElement, builder);
 
     if (!hasFields &&
         builder.properties.length == propertyCount &&

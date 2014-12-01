@@ -32,7 +32,7 @@ class ApplyUpdateTestCase extends LibraryUpdaterTestCase {
       : this.expectedUpdate = update,
         super(before: before, after: after, canReuse: true);
 
-  Future run() => mainApp.then((LibraryElement library) {
+  Future run() => loadMainApp().then((LibraryElement library) {
     // Capture the current version of [before] before invoking the [updater].
     PartialFunctionElement before = library.localLookup(expectedUpdate);
     var beforeNode = before.parseNode(compiler);

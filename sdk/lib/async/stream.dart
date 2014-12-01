@@ -1165,17 +1165,19 @@ abstract class Stream<T> {
     if (index is! int || index < 0) throw new ArgumentError(index);
     _Future<T> future = new _Future<T>();
     StreamSubscription subscription;
+    int elementIndex = 0;
     subscription = this.listen(
       (T value) {
-        if (index == 0) {
+        if (index == elementIndex) {
           _cancelAndValue(subscription, future, value);
           return;
         }
-        index -= 1;
+        elementIndex += 1;
       },
       onError: future._completeError,
       onDone: () {
-        future._completeError(new RangeError.value(index));
+        future._completeError(
+            new RangeError.index(index, this, "index", null, elementIndex));
       },
       cancelOnError: true);
     return future;

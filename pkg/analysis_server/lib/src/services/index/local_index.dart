@@ -7,7 +7,8 @@ library services.src.index.local_index;
 import 'dart:async';
 
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/index_contributor.dart' as contributors;
+import 'package:analysis_server/src/services/index/index_contributor.dart' as
+    contributors;
 import 'package:analysis_server/src/services/index/store/split_store.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';

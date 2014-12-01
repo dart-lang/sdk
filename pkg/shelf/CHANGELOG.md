@@ -1,6 +1,9 @@
-## 0.5.6-dev
+## 0.5.6
 
-* Fixed `createMiddleware` to only catch errors in `errorHandler` is provided.
+* Fixed `createMiddleware` to only catch errors if `errorHandler` is provided.
+
+* Updated `handleRequest` in `shelf_io` to more gracefully handle errors when
+  parsing `HttpRequest`.
 
 ## 0.5.5+1
 

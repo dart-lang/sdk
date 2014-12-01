@@ -525,6 +525,167 @@ void main() {
     });
   });
 
+  group('range', () {
+    var fileContent = [0, 1, 2, 3, 4, 5, 6, 7 ,8, 9];
+    var virDir;
+
+    prepare(dir) {
+      new File('${dir.path}/file').writeAsBytesSync(fileContent);
+      virDir = new VirtualDirectory(dir.path);
+    }
+
+    testVirtualDir('range', (dir) {
+      prepare(dir);
+      Future test(
+          int from, int to, [List<int> expected, String contentRange]) {
+        if (expected == null) {
+          expected = fileContent.sublist(from, to + 1);
+        }
+        if (contentRange == null) {
+          contentRange = 'bytes $from-$to/${fileContent.length}';
+        }
+        return getContentAndResponse(virDir, '/file', from: from, to: to)
+            .then(expectAsync((result) {
+              var content = result[0];
+              var response = result[1];
+              expect(content, expected);
+              expect(response.headers[HttpHeaders.CONTENT_RANGE][0],
+                     contentRange);
+              expect(expected.length, response.headers.contentLength);
+              expect(response.statusCode, HttpStatus.PARTIAL_CONTENT);
+            }));
+      }
+
+      return Future.forEach([
+          () => test(0, 0),
+          () => test(0, 1),
+          () => test(1, 2),
+          () => test(1, 9),
+          () => test(0, 9),
+          () => test(8, 9),
+          () => test(9, 9),
+          () => test(0, 10, fileContent, 'bytes 0-9/10'),
+          () => test(9, 10, [9], 'bytes 9-9/10'),
+          () => test(0, 1000, fileContent, 'bytes 0-9/10'),
+      ], (f) => f().then(expectAsync((_) {})));
+    });
+
+    testVirtualDir('prefix-range', (dir) {
+      prepare(dir);
+      Future test(int from,
+                  [List<int> expected,
+                   String contentRange,
+                   bool expectContentRange = true,
+                   int expectedStatusCode = HttpStatus.PARTIAL_CONTENT]) {
+        if (expected == null) {
+          expected = fileContent.sublist(from, fileContent.length);
+        }
+        if (contentRange == null && expectContentRange) {
+          contentRange = 'bytes ${from}-'
+                         '${fileContent.length - 1}/'
+                         '${fileContent.length}';
+        }
+        return getContentAndResponse(virDir, '/file', from: from)
+            .then(expectAsync((result) {
+              var content = result[0];
+              var response = result[1];
+              expect(content, expected);
+              if (expectContentRange) {
+                expect(response.headers[HttpHeaders.CONTENT_RANGE][0],
+                       contentRange);
+              } else {
+                expect(response.headers[HttpHeaders.CONTENT_RANGE], null);
+              }
+              expect(response.statusCode, expectedStatusCode);
+            }));
+      }
+
+      return Future.forEach([
+          () => test(0),
+          () => test(1),
+          () => test(9),
+          () => test(10, fileContent, null, false, HttpStatus.OK),
+          () => test(11, fileContent, null, false, HttpStatus.OK),
+          () => test(1000, fileContent, null, false, HttpStatus.OK),
+      ], (f) => f().then(expectAsync((_) {})));
+    });
+
+    testVirtualDir('suffix-range', (dir) {
+      prepare(dir);
+      Future test(int to, [List<int> expected, String contentRange]) {
+        if (expected == null) {
+          expected = fileContent.sublist(fileContent.length - to,
+                                         fileContent.length);
+        }
+        if (contentRange == null) {
+          contentRange = 'bytes ${fileContent.length - to}-'
+                         '${fileContent.length - 1}/'
+                         '${fileContent.length}';
+        }
+        return getContentAndResponse(virDir, '/file', to: to)
+            .then(expectAsync((result) {
+              var content = result[0];
+              var response = result[1];
+              expect(content, expected);
+              expect(response.headers[HttpHeaders.CONTENT_RANGE][0],
+                     contentRange);
+              expect(response.statusCode, HttpStatus.PARTIAL_CONTENT);
+            }));
+      }
+
+      return Future.forEach([
+          () => test(1),
+          () => test(2),
+          () => test(9),
+          () => test(10),
+          () => test(11, fileContent, 'bytes 0-9/10'),
+          () => test(1000, fileContent, 'bytes 0-9/10')
+      ], (f) => f().then(expectAsync((_) {})));
+    });
+
+    testVirtualDir('unsatisfiable-range', (dir) {
+      prepare(dir);
+      Future test(int from, int to) {
+        return getContentAndResponse(virDir, '/file', from: from, to: to)
+            .then(expectAsync((result) {
+              var content = result[0];
+              var response = result[1];
+              expect(content.length, 0);
+              expect(response.headers[HttpHeaders.CONTENT_RANGE], isNull);
+              expect(response.statusCode,
+                     HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE);
+            }));
+      }
+
+      return Future.forEach([
+          () => test(10, 11),
+          () => test(10, 1000),
+          () => test(1000, 1000)
+      ], (f) => f().then(expectAsync((_) {})));
+    });
+
+    testVirtualDir('invalid-range', (dir) {
+      prepare(dir);
+      Future test(int from, int to) {
+        return getContentAndResponse(virDir, '/file', from: from, to: to)
+            .then(expectAsync((result) {
+              var content = result[0];
+              var response = result[1];
+              expect(content, fileContent);
+              expect(response.headers[HttpHeaders.CONTENT_RANGE], isNull);
+              expect(response.statusCode, HttpStatus.OK);
+            }));
+      }
+
+      return Future.forEach([
+          () => test(1, 0),
+          () => test(10, 0),
+          () => test(1000, 999),
+          () => test(null, 0),  // This is effectively range 10-9.
+      ], (f) => f().then(expectAsync((_) {})));
+    });
+  });
+
   group('error-page', () {
     testVirtualDir('default', (dir) {
         var virDir = new VirtualDirectory(pathos.join(dir.path, 'foo'));
@@ -637,8 +798,12 @@ void main() {
         };
 
         return getAsString(virDir, '/')
-          .then((result) {
-            expect(result, 'file contents');
+            .then((result) {
+              expect(result, 'file contents');
+              return getHeaders(virDir, '/')
+                  .then(expectAsync((headers) {
+                    expect('file contents'.length, headers.contentLength);
+                  }));
           });
     });
   });

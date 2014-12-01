@@ -1827,6 +1827,14 @@ void Assembler::addl(Register dst, Register src) {
 }
 
 
+void Assembler::addl(Register dst, const Immediate& imm) {
+  ASSERT(imm.is_int32());
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitRegisterREX(dst, REX_NONE);
+  EmitComplex(0, Operand(dst), imm);
+}
+
+
 void Assembler::addl(Register dst, const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(dst, address, REX_NONE);
@@ -1917,12 +1925,49 @@ void Assembler::addq(const Address& address, Register src) {
 }
 
 
+void Assembler::adcq(Register dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  Operand operand(src);
+  EmitOperandREX(dst, operand, REX_W);
+  EmitUint8(0x13);
+  EmitOperand(dst & 7, operand);
+}
+
+
+void Assembler::adcq(Register dst, const Immediate& imm) {
+  if (imm.is_int32()) {
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitRegisterREX(dst, REX_W);
+    EmitComplex(2, Operand(dst), imm);
+  } else {
+    movq(TMP, imm);
+    adcq(dst, TMP);
+  }
+}
+
+
+void Assembler::adcq(Register dst, const Address& address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(dst, address, REX_W);
+  EmitUint8(0x13);
+  EmitOperand(dst & 7, address);
+}
+
+
 void Assembler::subl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);
   EmitOperandREX(dst, operand, REX_NONE);
   EmitUint8(0x2B);
   EmitOperand(dst & 7, operand);
+}
+
+
+void Assembler::subl(Register dst, const Immediate& imm) {
+  ASSERT(imm.is_int32());
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitRegisterREX(dst, REX_NONE);
+  EmitComplex(3, Operand(dst), imm);
 }
 
 
@@ -2115,6 +2160,35 @@ void Assembler::subq(const Address& address, const Immediate& imm) {
     movq(TMP, imm);
     subq(address, TMP);
   }
+}
+
+
+void Assembler::sbbq(Register dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  Operand operand(src);
+  EmitOperandREX(dst, operand, REX_W);
+  EmitUint8(0x1B);
+  EmitOperand(dst & 7, operand);
+}
+
+
+void Assembler::sbbq(Register dst, const Immediate& imm) {
+  if (imm.is_int32()) {
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitRegisterREX(dst, REX_W);
+    EmitComplex(3, Operand(dst), imm);
+  } else {
+    movq(TMP, imm);
+    sbbq(dst, TMP);
+  }
+}
+
+
+void Assembler::sbbq(Register dst, const Address& address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(dst, address, REX_W);
+  EmitUint8(0x1B);
+  EmitOperand(dst & 7, address);
 }
 
 
@@ -2384,6 +2458,9 @@ void Assembler::hlt() {
 
 void Assembler::j(Condition condition, Label* label, bool near) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (VerifiedMemory::enabled()) {
+    near = Assembler::kFarJump;
+  }
   if (label->IsBound()) {
     static const int kShortSize = 2;
     static const int kLongSize = 6;
@@ -2436,6 +2513,9 @@ void Assembler::jmp(Register reg) {
 
 void Assembler::jmp(Label* label, bool near) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  if (VerifiedMemory::enabled()) {
+    near = Assembler::kFarJump;
+  }
   if (label->IsBound()) {
     static const int kShortSize = 2;
     static const int kLongSize = 5;
@@ -2754,7 +2834,7 @@ void Assembler::StoreObject(const Address& dst, const Object& object,
     LoadObject(TMP, object, pp);
     movq(dst, TMP);
   } else {
-    LoadImmediate(dst, Immediate(reinterpret_cast<int64_t>(object.raw())), pp);
+    MoveImmediate(dst, Immediate(reinterpret_cast<int64_t>(object.raw())), pp);
   }
 }
 
@@ -2819,7 +2899,7 @@ void Assembler::LoadImmediate(Register reg, const Immediate& imm, Register pp) {
 }
 
 
-void Assembler::LoadImmediate(const Address& dst, const Immediate& imm,
+void Assembler::MoveImmediate(const Address& dst, const Immediate& imm,
                               Register pp) {
   if (CanLoadImmediateFromPool(imm, pp)) {
     LoadImmediate(TMP, imm, pp);
@@ -2871,12 +2951,47 @@ void Assembler::StoreIntoObjectFilter(Register object,
 }
 
 
+void Assembler::VerifyHeapWord(const Address& address) {
+  if (VerifiedMemory::enabled()) {
+    Register addr_reg = RDX;
+    Register value = RBX;
+    // Preserve registers.
+    pushq(addr_reg);
+    pushq(value);
+    leaq(addr_reg, address);
+    // ASSERT(*address == *(address + offset))
+    movq(value, Address(addr_reg, 0));
+    cmpq(value, Address(addr_reg, VerifiedMemory::offset()));
+    Label ok;
+    j(EQUAL, &ok);
+    static const bool kFixedLengthEncoding = true;
+    Stop("Write barrier verification failed", kFixedLengthEncoding);
+    Bind(&ok);
+    popq(value);
+    popq(addr_reg);
+  }
+}
+
+
+void Assembler::VerifiedWrite(const Address& dest, Register value) {
+  VerifyHeapWord(dest);
+  movq(dest, value);
+  if (VerifiedMemory::enabled()) {
+    Register temp = (value == RDX) ? RCX : RDX;
+    pushq(temp);
+    leaq(temp, dest);
+    movq(Address(temp, VerifiedMemory::offset()), value);
+    popq(temp);
+  }
+}
+
+
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
                                 bool can_value_be_smi) {
   ASSERT(object != value);
-  movq(dest, value);
+  VerifiedWrite(dest, value);
   Label done;
   if (can_value_be_smi) {
     StoreIntoObjectFilter(object, value, &done);
@@ -2884,13 +2999,13 @@ void Assembler::StoreIntoObject(Register object,
     StoreIntoObjectFilterNoSmi(object, value, &done);
   }
   // A store buffer update is required.
-  if (value != RAX) pushq(RAX);
-  if (object != RAX) {
-    movq(RAX, object);
+  if (value != RDX) pushq(RDX);
+  if (object != RDX) {
+    movq(RDX, object);
   }
   StubCode* stub_code = Isolate::Current()->stub_code();
   Call(&stub_code->UpdateStoreBufferLabel(), PP);
-  if (value != RAX) popq(RAX);
+  if (value != RDX) popq(RDX);
   Bind(&done);
 }
 
@@ -2898,7 +3013,7 @@ void Assembler::StoreIntoObject(Register object,
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          Register value) {
-  movq(dest, value);
+  VerifiedWrite(dest, value);
 #if defined(DEBUG)
   Label done;
   pushq(value);
@@ -2908,6 +3023,69 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   popq(value);
 #endif  // defined(DEBUG)
   // No store buffer update.
+}
+
+
+void Assembler::StoreIntoObjectNoBarrier(Register object,
+                                         const Address& dest,
+                                         const Object& value,
+                                         Register pp) {
+  if (VerifiedMemory::enabled()) {
+    VerifyHeapWord(dest);
+    Register temp = (pp == RCX) ? RDX : RCX;
+    pushq(temp);
+    leaq(temp, dest);
+    StoreObject(Address(temp, 0), value, pp);
+    StoreObject(Address(temp, VerifiedMemory::offset()), value, pp);
+    popq(temp);
+  } else {
+    StoreObject(dest, value, pp);
+  }
+  // TODO(koda): Use 'object', verify that generational barrier's not needed.
+}
+
+
+void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
+  VerifiedWrite(dest, value);
+#if defined(DEBUG)
+  Label done;
+  testq(value, Immediate(kHeapObjectTag));
+  j(ZERO, &done);
+  Stop("Smi expected");
+  Bind(&done);
+#endif  // defined(DEBUG)
+}
+
+
+void Assembler::ZeroSmiField(const Address& dest) {
+  // TODO(koda): Add VerifySmi once we distinguish initalization.
+  VerifyHeapWord(dest);
+  Immediate zero(Smi::RawValue(0));
+  movq(dest, zero);
+  if (VerifiedMemory::enabled()) {
+    Register temp = RCX;
+    pushq(temp);
+    leaq(temp, dest);
+    movq(Address(temp, VerifiedMemory::offset()), zero);
+    popq(temp);
+  }
+}
+
+
+void Assembler::IncrementSmiField(const Address& dest, int64_t increment) {
+  // Note: FlowGraphCompiler::EdgeCounterIncrementSizeInBytes depends on
+  // the length of this instruction sequence.
+  // TODO(koda): Add VerifySmi once we distinguish initalization.
+  VerifyHeapWord(dest);
+  Immediate inc_imm(Smi::RawValue(increment));
+  addq(dest, inc_imm);
+  if (VerifiedMemory::enabled()) {
+    Register temp = RCX;
+    pushq(temp);
+    leaq(temp, dest);
+    addq(Address(temp, VerifiedMemory::offset()), inc_imm);
+    popq(temp);
+  }
 }
 
 
@@ -2935,12 +3113,19 @@ void Assembler::DoubleAbs(XmmRegister reg) {
 }
 
 
-void Assembler::Stop(const char* message) {
+void Assembler::Stop(const char* message, bool fixed_length_encoding) {
   int64_t message_address = reinterpret_cast<int64_t>(message);
   if (FLAG_print_stop_message) {
     pushq(TMP);  // Preserve TMP register.
     pushq(RDI);  // Preserve RDI register.
-    LoadImmediate(RDI, Immediate(message_address), PP);
+    if (fixed_length_encoding) {
+      AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+      EmitRegisterREX(RDI, REX_W);
+      EmitUint8(0xB8 | (RDI & 7));
+      EmitInt64(message_address);
+    } else {
+      LoadImmediate(RDI, Immediate(message_address), PP);
+    }
     call(&StubCode::PrintStopMessageLabel());
     popq(RDI);  // Restore RDI register.
     popq(TMP);  // Restore TMP register.
@@ -3336,7 +3521,7 @@ void Assembler::TryAllocate(const Class& cls,
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
-    LoadImmediate(FieldAddress(instance_reg, Object::tags_offset()),
+    MoveImmediate(FieldAddress(instance_reg, Object::tags_offset()),
                   Immediate(tags), pp);
   } else {
     jmp(failure);

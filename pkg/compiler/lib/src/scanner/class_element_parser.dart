@@ -24,13 +24,13 @@ class PartialClassElement extends ClassElementX with PartialElement {
   }
 
   void set supertypeLoadState(int state) {
-    assert(state == supertypeLoadState + 1);
+    assert(state == STATE_NOT_STARTED || state == supertypeLoadState + 1);
     assert(state <= STATE_DONE);
     super.supertypeLoadState = state;
   }
 
   void set resolutionState(int state) {
-    assert(state == resolutionState + 1);
+    assert(state == STATE_NOT_STARTED || state == resolutionState + 1);
     assert(state <= STATE_DONE);
     super.resolutionState = state;
   }
@@ -73,6 +73,10 @@ class PartialClassElement extends ClassElementX with PartialElement {
       cachedNode != null ? cachedNode.modifiers : Modifiers.EMPTY;
 
   accept(ElementVisitor visitor) => visitor.visitClassElement(this);
+
+  PartialClassElement copyWithEnclosing(CompilationUnitElement enclosing) {
+    return new PartialClassElement(name, beginToken, endToken, enclosing, id);
+  }
 }
 
 class MemberListener extends NodeListener {

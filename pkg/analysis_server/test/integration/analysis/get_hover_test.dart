@@ -13,6 +13,10 @@ import 'package:unittest/unittest.dart';
 import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
+main() {
+  runReflectiveTests(AnalysisGetHoverIntegrationTest);
+}
+
 @ReflectiveTestCase()
 class AnalysisGetHoverIntegrationTest extends
     AbstractAnalysisServerIntegrationTest {
@@ -24,8 +28,7 @@ class AnalysisGetHoverIntegrationTest extends
   /**
    * Dart code under test.
    */
-  final String text =
-      r'''
+  final String text = r'''
 library lib.test;
 
 List topLevelVar;
@@ -45,54 +48,6 @@ main() {
 }
 ''';
 
-  setUp() {
-    return super.setUp().then((_) {
-      pathname = sourcePath('test.dart');
-    });
-  }
-
-  test_getHover() {
-    writeFile(pathname, text);
-    standardAnalysisSetup();
-
-    // Note: analysis.getHover doesn't wait for analysis to complete--it simply
-    // returns the latest results that are available at the time that the
-    // request is made.  So wait for analysis to finish before testing anything.
-    return analysisFinished.then((_) {
-      List<Future> tests = [];
-      tests.add(checkHover('topLevelVar;', 11, ['List', 'topLevelVar'],
-          'top level variable', ['List']));
-      tests.add(checkHover('func(', 4, ['func', 'int', 'param'], 'function',
-          ['int', 'void'], docRegexp: 'Documentation for func'));
-      tests.add(checkHover('int param', 3, ['int'], 'class', ['int'], isCore:
-          true, docRegexp: '.*'));
-      tests.add(checkHover('param)', 5, ['int', 'param'], 'parameter', ['int'],
-          docRegexp: 'Documentation for func'));
-      tests.add(checkHover('num localVar', 3, ['num'], 'class', ['num'], isCore:
-          true, docRegexp: '.*'));
-      tests.add(checkHover('localVar =', 8, ['num', 'localVar'],
-          'local variable', ['num'], propagatedType: 'int'));
-      tests.add(checkHover('topLevelVar.length;', 11, ['List', 'topLevelVar'],
-          'top level variable', ['List']));
-      tests.add(checkHover('length;', 6, ['get', 'length', 'int'], 'getter',
-          ['int'], isCore: true, docRegexp: '.*'));
-      tests.add(checkHover('length =', 6, ['set', 'length', 'int'], 'setter',
-          ['int'], isCore: true, docRegexp: '.*'));
-      tests.add(checkHover('param;', 5, ['int', 'param'], 'parameter', ['int'],
-          docRegexp: 'Documentation for func', parameterRegexps: ['.*']));
-      tests.add(checkHover('add(', 3, ['List', 'add'], 'method', null, isCore:
-          true, docRegexp: '.*'));
-      tests.add(checkHover('localVar)', 8, ['num', 'localVar'],
-          'local variable', ['num'], parameterRegexps: ['.*'], propagatedType: 'int'));
-      tests.add(checkHover('func(35', 4, ['func', 'int', 'param'], 'function',
-          null, docRegexp: 'Documentation for func'));
-      tests.add(checkHover('35', 2, null, null, ['int'], isLiteral: true,
-          parameterRegexps: ['int', 'param']));
-      tests.add(checkNoHover('comment'));
-      return Future.wait(tests);
-    });
-  }
-
   /**
    * Check that a getHover request on the substring [target] produces a result
    * which has length [length], has an elementDescription matching every
@@ -106,9 +61,9 @@ main() {
    * match the hover parameters.  [propagatedType], if specified, is the
    * expected propagated type of the element.
    */
-  checkHover(String target, int length, List<String> descriptionRegexps, String
-      kind, List<String> staticTypeRegexps, {bool isCore: false, String docRegexp:
-      null, bool isLiteral: false, List<String> parameterRegexps:
+  checkHover(String target, int length, List<String> descriptionRegexps,
+      String kind, List<String> staticTypeRegexps, {bool isCore: false,
+      String docRegexp: null, bool isLiteral: false, List<String> parameterRegexps:
       null, propagatedType: null}) {
     int offset = text.indexOf(target);
     return sendAnalysisGetHover(pathname, offset).then((result) {
@@ -170,8 +125,142 @@ main() {
       expect(result.hovers, hasLength(0));
     });
   }
-}
 
-main() {
-  runReflectiveTests(AnalysisGetHoverIntegrationTest);
+  setUp() {
+    return super.setUp().then((_) {
+      pathname = sourcePath('test.dart');
+    });
+  }
+
+  test_getHover() {
+    writeFile(pathname, text);
+    standardAnalysisSetup();
+
+    // Note: analysis.getHover doesn't wait for analysis to complete--it simply
+    // returns the latest results that are available at the time that the
+    // request is made.  So wait for analysis to finish before testing anything.
+    return analysisFinished.then((_) {
+      List<Future> tests = [];
+      tests.add(
+          checkHover(
+              'topLevelVar;',
+              11,
+              ['List', 'topLevelVar'],
+              'top level variable',
+              ['List']));
+      tests.add(
+          checkHover(
+              'func(',
+              4,
+              ['func', 'int', 'param'],
+              'function',
+              ['int', 'void'],
+              docRegexp: 'Documentation for func'));
+      tests.add(
+          checkHover(
+              'int param',
+              3,
+              ['int'],
+              'class',
+              ['int'],
+              isCore: true,
+              docRegexp: '.*'));
+      tests.add(
+          checkHover(
+              'param)',
+              5,
+              ['int', 'param'],
+              'parameter',
+              ['int'],
+              docRegexp: 'Documentation for func'));
+      tests.add(
+          checkHover(
+              'num localVar',
+              3,
+              ['num'],
+              'class',
+              ['num'],
+              isCore: true,
+              docRegexp: '.*'));
+      tests.add(
+          checkHover(
+              'localVar =',
+              8,
+              ['num', 'localVar'],
+              'local variable',
+              ['num'],
+              propagatedType: 'int'));
+      tests.add(
+          checkHover(
+              'topLevelVar.length;',
+              11,
+              ['List', 'topLevelVar'],
+              'top level variable',
+              ['List']));
+      tests.add(
+          checkHover(
+              'length;',
+              6,
+              ['get', 'length', 'int'],
+              'getter',
+              ['int'],
+              isCore: true,
+              docRegexp: '.*'));
+      tests.add(
+          checkHover(
+              'length =',
+              6,
+              ['set', 'length', 'int'],
+              'setter',
+              ['int'],
+              isCore: true,
+              docRegexp: '.*'));
+      tests.add(
+          checkHover(
+              'param;',
+              5,
+              ['int', 'param'],
+              'parameter',
+              ['int'],
+              docRegexp: 'Documentation for func',
+              parameterRegexps: ['.*']));
+      tests.add(
+          checkHover(
+              'add(',
+              3,
+              ['List', 'add'],
+              'method',
+              null,
+              isCore: true,
+              docRegexp: '.*'));
+      tests.add(
+          checkHover(
+              'localVar)',
+              8,
+              ['num', 'localVar'],
+              'local variable',
+              ['num'],
+              parameterRegexps: ['.*'],
+              propagatedType: 'int'));
+      tests.add(
+          checkHover(
+              'func(35',
+              4,
+              ['func', 'int', 'param'],
+              'function',
+              null,
+              docRegexp: 'Documentation for func'));
+      tests.add(
+          checkHover(
+              '35',
+              2,
+              null,
+              null,
+              ['int'],
+              isLiteral: true,
+              parameterRegexps: ['int', 'param']));
+      tests.add(checkNoHover('comment'));
+      return Future.wait(tests);
+    });
+  }
 }

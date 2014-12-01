@@ -21,6 +21,7 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/verified_memory.h"
 
 namespace dart {
 
@@ -76,6 +77,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                  DeoptInfoBuilder* builder,
                                                  const Array& deopt_table) {
   if (deopt_env_ == NULL) {
+    ++builder->current_info_number_;
     return DeoptInfo::null();
   }
 
@@ -1233,8 +1235,15 @@ void FlowGraphCompiler::EmitEdgeCounter() {
   intptr_t increment_start = assembler_->CodeSize();
 #endif  // DEBUG
   __ IncrementSmiField(FieldAddress(EAX, Array::element_offset(0)), 1);
+  // If the assertion below fails, update EdgeCounterIncrementSizeInBytes.
   DEBUG_ASSERT((assembler_->CodeSize() - increment_start) ==
-               CodePatcher::EdgeCounterIncrementSizeInBytes());
+               EdgeCounterIncrementSizeInBytes());
+}
+
+
+int32_t FlowGraphCompiler::EdgeCounterIncrementSizeInBytes() {
+  // Used by CodePatcher; so must be constant across all code in an isolate.
+  return VerifiedMemory::enabled() ? 50 : 4;
 }
 
 

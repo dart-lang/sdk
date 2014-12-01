@@ -118,14 +118,17 @@ typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage thi
 math/math_test: RuntimeError
 math/math2_test: RuntimeError
 
-[ $compiler == dart2js && ($jscl || $runtime == d8) && $unchecked ]
+[ $compiler == dart2js && $jscl && $unchecked ]
 mirrors/invocation_fuzz_test: RuntimeError # Issue 15566
 
-[ $compiler == dart2js && ($jscl || $runtime == d8) && $checked ]
+[ $compiler == dart2js && $jscl && $checked ]
 mirrors/invocation_fuzz_test/none: RuntimeError # Issue 15566
 
 [ $compiler == dart2js && ($minified || $runtime == jsshell) ]
 mirrors/invocation_fuzz_test: RuntimeError # Issue 15566
+
+[ $runtime == vm && $mode == debug && $system == macos ]
+mirrors/invocation_fuzz_test: Pass, RuntimeError # Issue 21707
 
 [ $compiler == dart2js && $runtime == jsshell ]
 async/future_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
@@ -255,6 +258,7 @@ async/timer_cancel2_test: Pass, Timeout # Issue 13719: Please triage this failur
 [$compiler == none && $runtime == ContentShellOnAndroid ]
 async/stream_timeout_test: RuntimeError, Pass # Issue 19127
 async/slow_consumer3_test: Skip # Times out flakily. Issue 20956
+async/slow_consumer2_test: Skip # Times out flakily. Issue 20956
 convert/streamed_conversion_utf8_encode_test: Skip # Times out or passes. Issue 19127
 convert/streamed_conversion_utf8_decode_test: Skip # Times out or passes. Issue 19127
 mirrors/lazy_static_test: Skip # Times out. Issue 19127
@@ -315,3 +319,9 @@ profiler/metrics_num_test: Skip # Because of a int / double type test.
 
 [ $arch == simarm64 ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.
+
+[ $mode == debug && $arch == ia32 && $system == windows ]
+convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification OOM.
+
+[ $mode == debug && $arch != ia32 && $arch != x64 ]
+convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification not yet implemented.

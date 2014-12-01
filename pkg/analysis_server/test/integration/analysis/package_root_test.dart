@@ -11,6 +11,10 @@ import 'package:unittest/unittest.dart';
 import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
+main() {
+  runReflectiveTests(Test);
+}
+
 @ReflectiveTestCase()
 class Test extends AbstractAnalysisServerIntegrationTest {
   test_package_root() {
@@ -35,14 +39,17 @@ f() {}
     writeFile(mainPath, mainText);
     String normalizedFooBarPath = writeFile(fooBarPath, fooBarText);
     sendServerSetSubscriptions([ServerService.STATUS]);
-    sendAnalysisSetSubscriptions({AnalysisService.NAVIGATION: [mainPath]});
+    sendAnalysisSetSubscriptions({
+      AnalysisService.NAVIGATION: [mainPath]
+    });
     List<NavigationRegion> navigationRegions;
     onAnalysisNavigation.listen((AnalysisNavigationParams params) {
       expect(params.file, equals(mainPath));
       navigationRegions = params.regions;
     });
-    sendAnalysisSetAnalysisRoots([projPath], [],
-        packageRoots: {projPath: packagesPath});
+    sendAnalysisSetAnalysisRoots([projPath], [], packageRoots: {
+      projPath: packagesPath
+    });
     return analysisFinished.then((_) {
       // Verify that fooBarPath was properly resolved by checking that f()
       // refers to it.
@@ -60,8 +67,4 @@ f() {}
       expect(found, isTrue);
     });
   }
-}
-
-main() {
-  runReflectiveTests(Test);
 }

@@ -1,4 +1,7 @@
-#### Pub version 0.9.0-dev
+#### Pub version 0.9.0+1
+  * Remove all `.map` and `.concat.js` files during release mode.
+
+#### Pub version 0.9.0
   * Updated to platform version 0.4.2, internally a deprecated API was removed,
     hence the bump in the version number.
 

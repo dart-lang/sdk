@@ -25,8 +25,9 @@ String errorsForFile(String contents) {
       parseDartFile(path);
     } on AnalyzerErrorGroup catch (e) {
       return e.toString().replaceAllMapped(
-          new RegExp(r"^(Error on line \d+ of )((?:[A-Z]+:)?[^:]+): .*$",
-                     multiLine: true),
+          new RegExp(
+              r"^(Error on line \d+ of )((?:[A-Z]+:)?[^:]+): .*$",
+              multiLine: true),
           (match) => match[1] + pathos.basename(match[2]) + ': ...');
     }
     return null;
@@ -38,8 +39,7 @@ String errorsForFile(String contents) {
 ///
 /// Returns the return value of [fn].
 dynamic withTempDir(fn(String path)) {
-  var tempDir =
-      Directory.systemTemp.createTempSync('analyzer_').path;
+  var tempDir = Directory.systemTemp.createTempSync('analyzer_').path;
   try {
     return fn(tempDir);
   } finally {

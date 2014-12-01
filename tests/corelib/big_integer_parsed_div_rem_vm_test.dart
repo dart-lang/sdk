@@ -28,7 +28,6 @@ divRemParsed(String a, String b, String quotient, String remainder) {
   Expect.equals(remainder.toLowerCase(), str_remainder);
 }
 
-
 testBigintDivideRemainder() {
   String zero = "0x0";
   String one = "0x1";

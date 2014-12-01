@@ -8,8 +8,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/channel/channel.dart';
+import 'package:analysis_server/src/protocol.dart';
 
 
 /**
@@ -33,19 +33,23 @@ class WebSocketClientChannel implements ClientCommunicationChannel {
    * Initialize a new [WebSocket] wrapper for the given [socket].
    */
   WebSocketClientChannel(this.socket) {
-    Stream jsonStream = socket
-        .where((data) => data is String)
-        .transform(new JsonStreamDecoder())
-        .where((json) => json is Map)
-        .asBroadcastStream();
-    responseStream = jsonStream
-        .where((json) => json[Notification.EVENT] == null)
-        .transform(new ResponseConverter())
-        .asBroadcastStream();
-    notificationStream = jsonStream
-        .where((json) => json[Notification.EVENT] != null)
-        .transform(new NotificationConverter())
-        .asBroadcastStream();
+    Stream jsonStream = socket.where(
+        (data) =>
+            data is String).transform(
+                new JsonStreamDecoder()).where((json) => json is Map).asBroadcastStream();
+    responseStream = jsonStream.where(
+        (json) =>
+            json[Notification.EVENT] ==
+                null).transform(new ResponseConverter()).asBroadcastStream();
+    notificationStream = jsonStream.where(
+        (json) =>
+            json[Notification.EVENT] !=
+                null).transform(new NotificationConverter()).asBroadcastStream();
+  }
+
+  @override
+  Future close() {
+    return socket.close();
   }
 
   @override
@@ -53,11 +57,6 @@ class WebSocketClientChannel implements ClientCommunicationChannel {
     String id = request.id;
     socket.add(JSON.encode(request.toJson()));
     return responseStream.firstWhere((Response response) => response.id == id);
-  }
-
-  @override
-  Future close() {
-    return socket.close();
   }
 }
 
@@ -78,25 +77,17 @@ class WebSocketServerChannel implements ServerCommunicationChannel {
   WebSocketServerChannel(this.socket);
 
   @override
-  void listen(void onRequest(Request request), {void onError(), void onDone()}) {
-    socket.listen((data) => readRequest(data, onRequest), onError: onError,
+  void close() {
+    socket.close(WebSocketStatus.NORMAL_CLOSURE);
+  }
+
+  @override
+  void listen(void onRequest(Request request), {void onError(), void
+      onDone()}) {
+    socket.listen(
+        (data) => readRequest(data, onRequest),
+        onError: onError,
         onDone: onDone);
-  }
-
-  @override
-  void sendNotification(Notification notification) {
-    ServerCommunicationChannel.ToJson.start();
-    String jsonEncoding = JSON.encode(notification.toJson());
-    ServerCommunicationChannel.ToJson.stop();
-    socket.add(jsonEncoding);
-  }
-
-  @override
-  void sendResponse(Response response) {
-    ServerCommunicationChannel.ToJson.start();
-    String jsonEncoding = JSON.encode(response.toJson());
-    ServerCommunicationChannel.ToJson.stop();
-    socket.add(jsonEncoding);
   }
 
   /**
@@ -124,7 +115,18 @@ class WebSocketServerChannel implements ServerCommunicationChannel {
   }
 
   @override
-  void close() {
-    socket.close(WebSocketStatus.NORMAL_CLOSURE);
+  void sendNotification(Notification notification) {
+    ServerCommunicationChannel.ToJson.start();
+    String jsonEncoding = JSON.encode(notification.toJson());
+    ServerCommunicationChannel.ToJson.stop();
+    socket.add(jsonEncoding);
+  }
+
+  @override
+  void sendResponse(Response response) {
+    ServerCommunicationChannel.ToJson.start();
+    String jsonEncoding = JSON.encode(response.toJson());
+    ServerCommunicationChannel.ToJson.stop();
+    socket.add(jsonEncoding);
   }
 }

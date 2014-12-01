@@ -60,9 +60,9 @@ class AsciiCodec extends Encoding {
     }
   }
 
-  Converter<String, List<int>> get encoder => const AsciiEncoder();
+  AsciiEncoder get encoder => const AsciiEncoder();
 
-  Converter<List<int>, String> get decoder =>
+  AsciiDecoder get decoder =>
       _allowInvalid ? const AsciiDecoder(allowInvalid: true)
                     : const AsciiDecoder(allowInvalid: false);
 }
@@ -74,10 +74,20 @@ class _UnicodeSubsetEncoder extends Converter<String, List<int>> {
 
   const _UnicodeSubsetEncoder(this._subsetMask);
 
-  List<int> convert(String string) {
-    List result = new Uint8List(string.length);
-    for (int i = 0; i < string.length; i++) {
-      var codeUnit = string.codeUnitAt(i);
+  /**
+   * Converts the [String] into a list of its code units.
+   *
+   * If [start] and [end] are provided, only the substring
+   * `string.substring(start, end)` is used as input to the conversion.
+   */
+  List<int> convert(String string, [int start = 0, int end]) {
+    int stringLength = string.length;
+    RangeError.checkValidRange(start, end, stringLength);
+    if (end == null) end = stringLength;
+    int length = end - start;
+    List result = new Uint8List(length);
+    for (int i = 0; i < length; i++) {
+      var codeUnit = string.codeUnitAt(start + i);
       if ((codeUnit & ~_subsetMask) != 0) {
         throw new ArgumentError("String contains invalid characters.");
       }
@@ -125,12 +135,7 @@ class _UnicodeSubsetEncoderSink extends StringConversionSinkBase {
   }
 
   void addSlice(String source, int start, int end, bool isLast) {
-    if (start < 0 || start > source.length) {
-      throw new RangeError.range(start, 0, source.length);
-    }
-    if (end < start || end > source.length) {
-      throw new RangeError.range(end, start, source.length);
-    }
+    RangeError.checkValidRange(start, end, source.length);
     for (int i = start; i < end; i++) {
       int codeUnit = source.codeUnitAt(i);
       if ((codeUnit & ~_subsetMask) != 0) {
@@ -172,23 +177,31 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
   /**
    * Converts the [bytes] (a list of unsigned 7- or 8-bit integers) to the
    * corresponding string.
+   *
+   * If [start] and [end] are provided, only the sub-list of bytes from
+   * `start` to `end` (`end` not inclusive) is used as input to the conversion.
    */
-  String convert(List<int> bytes) {
-    for (int i = 0; i < bytes.length; i++) {
+  String convert(List<int> bytes, [int start = 0, int end]) {
+    int byteCount = bytes.length;
+    RangeError.checkValidRange(start, end, byteCount);
+    if (end == null) end = byteCount;
+    int length = end - start;
+
+    for (int i = start; i < end; i++) {
       int byte = bytes[i];
       if ((byte & ~_subsetMask) != 0) {
         if (!_allowInvalid) {
           throw new FormatException("Invalid value in input: $byte");
         }
-        return _convertInvalid(bytes);
+        return _convertInvalid(bytes, start, end);
       }
     }
-    return new String.fromCharCodes(bytes);
+    return new String.fromCharCodes(bytes, start, end);
   }
 
-  String _convertInvalid(List<int> bytes) {
+  String _convertInvalid(List<int> bytes, int start, int end) {
     StringBuffer buffer = new StringBuffer();
-    for (int i = 0; i < bytes.length; i++) {
+    for (int i = start; i < end; i++) {
       int value = bytes[i];
       if ((value & ~_subsetMask) != 0) value = 0xFFFD;
       buffer.writeCharCode(value);
@@ -250,12 +263,7 @@ class _ErrorHandlingAsciiDecoderSink extends ByteConversionSinkBase {
   }
 
   void addSlice(List<int> source, int start, int end, bool isLast) {
-    if (start < 0 || start > source.length) {
-      throw new RangeError.range(start, 0, source.length);
-    }
-    if (end < start || end > source.length) {
-      throw new RangeError.range(end, start, source.length);
-    }
+    RangeError.checkValidRange(start, end, source.length);
     for (int i = start; i < end; i++) {
       if ((source[i] & ~_ASCII_MASK) != 0) {
         if (i > start) _utf8Sink.addSlice(source, start, i, false);
@@ -291,12 +299,7 @@ class _SimpleAsciiDecoderSink extends ByteConversionSinkBase {
 
   void addSlice(List<int> source, int start, int end, bool isLast) {
     final int length = source.length;
-    if (start < 0 || start > length) {
-      throw new RangeError.range(start, 0, length);
-    }
-    if (end < start || end > length) {
-      throw new RangeError.range(end, start, length);
-    }
+    RangeError.checkValidRange(start, end, length);
     if (start < end) {
       if (start != 0 || end != length) {
         source = source.sublist(start, end);

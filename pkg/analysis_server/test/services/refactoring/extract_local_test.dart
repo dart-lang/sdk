@@ -513,6 +513,38 @@ main() {
     });
   }
 
+  test_occurences_differentVariable() {
+    indexTestUnit('''
+main() {
+  {
+    int v = 1;
+    print(v + 1); // marker
+    print(v + 1);
+  }
+  {
+    int v = 2;
+    print(v + 1);
+  }
+}
+''');
+    _createRefactoringWithSuffix('v + 1', '); // marker');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main() {
+  {
+    int v = 1;
+    var res = v + 1;
+    print(res); // marker
+    print(res);
+  }
+  {
+    int v = 2;
+    print(v + 1);
+  }
+}
+''');
+  }
+
   test_occurences_disableOccurences() {
     indexTestUnit('''
 int foo() => 42;
@@ -592,38 +624,6 @@ main() {
   var res = foo();
   int a = 1 + res;
   int b = 2 +  res; // marker
-}
-''');
-  }
-
-  test_occurences_differentVariable() {
-    indexTestUnit('''
-main() {
-  {
-    int v = 1;
-    print(v + 1); // marker
-    print(v + 1);
-  }
-  {
-    int v = 2;
-    print(v + 1);
-  }
-}
-''');
-    _createRefactoringWithSuffix('v + 1', '); // marker');
-    // apply refactoring
-    return _assertSuccessfulRefactoring('''
-main() {
-  {
-    int v = 1;
-    var res = v + 1;
-    print(res); // marker
-    print(res);
-  }
-  {
-    int v = 2;
-    print(v + 1);
-  }
 }
 ''');
   }

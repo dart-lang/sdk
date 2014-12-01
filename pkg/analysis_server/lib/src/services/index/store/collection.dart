@@ -12,8 +12,9 @@ import 'dart:typed_data';
  * A hash map with `List<int>` keys and [int] values.
  */
 class IntArrayToIntMap {
-  final Map<Int32List, int> map = new HashMap<Int32List, int>(equals:
-      _intArrayEquals, hashCode: _intArrayHashCode);
+  final Map<Int32List, int> map = new HashMap<Int32List, int>(
+      equals: _intArrayEquals,
+      hashCode: _intArrayHashCode);
 
   /**
    * Returns the value for the given [key] or null if [key] is not in the map.

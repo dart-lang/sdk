@@ -127,6 +127,8 @@ class Link<T> {
     }
     return true;
   }
+
+  Link copyWithout(e) => this;
 }
 
 abstract class LinkBuilder<T> {

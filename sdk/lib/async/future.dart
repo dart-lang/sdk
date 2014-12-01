@@ -479,8 +479,13 @@ abstract class Future<T> {
   Future<T> whenComplete(action());
 
   /**
-   * Creates a [Stream] that sends [this]' completion value, data or error, to
-   * its subscribers. The stream closes after the completion value.
+   * Creates a [Stream] containing the result of this future.
+   *
+   * The stream will produce single data or error event containing the
+   * completion result of this future, and then it will close with a
+   * done event.
+   *
+   * If the future never completes, the stream will not produce any events.
    */
   Stream<T> asStream();
 
@@ -512,12 +517,10 @@ class TimeoutException implements Exception {
   TimeoutException(this.message, [this.duration]);
 
   String toString() {
-    if (message != null) {
-      if (duration != null) return "TimeoutException after $duration: $message";
-      return "TimeoutException: $message";
-    }
-    if (duration != null) return "TimeoutException after $duration";
-    return "TimeoutException";
+    String result = "TimeoutException";
+    if (duration != null) result = "TimeoutException after $duration";
+    if (message != null) result = "$result: $message";
+    return result;
   }
 }
 
@@ -595,6 +598,29 @@ abstract class Completer<T> {
    * known to be the final result of another asynchronous operation. If in doubt
    * use the default [Completer] constructor.
    *
+   * Using an normal, asynchronous, completer will never give the wrong
+   * behavior, but using a synchronous completer incorrectly can cause
+   * otherwise correct programs to break.
+   *
+   * An asynchronous completer is only intended for optimizing event
+   * propagation when one asynchronous event immediately triggers another.
+   * It should not be used unless the calls to [complete] and [completeError]
+   * are guaranteed to occur in places where it won't break `Future` invariants.
+   *
+   * Completing synchronously means that the completer's future will be
+   * completed immediately when calling the [complete] or [completeError]
+   * method on a synchronous completer, which also calls any callbacks
+   * registered on that future.
+   *
+   * Completing synchronously must not break the rule that when you add a
+   * callback on a future, that callback must not be called until the code
+   * that added the callback has completed.
+   * For that reason, a synchronous completion must only occur at the very end
+   * (in "tail position") of another synchronous event,
+   * because at that point, completing the future immediately is be equivalent
+   * to returning to the event loop and completing the future in the next
+   * microtask.
+   *
    * Example:
    *
    *     var completer = new Completer.sync();
@@ -618,10 +644,13 @@ abstract class Completer<T> {
   factory Completer.sync() => new _SyncCompleter<T>();
 
   /** The future that will contain the result provided to this completer. */
-  Future get future;
+  Future<T> get future;
 
   /**
    * Completes [future] with the supplied values.
+   *
+   * The value must be either a value of type [T]
+   * or a future of type `Future<T>`.
    *
    * If the value is itself a future, the completer will wait for that future
    * to complete, and complete with the same result, whether it is a success

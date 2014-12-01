@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library loop_rewriter;
-
-import 'tree_ir_nodes.dart';
+part of tree_ir.optimization;
 
 /// Rewrites [WhileTrue] statements with an [If] body into a [WhileCondition],
 /// in situations where only one of the branches contains a [Continue] to the
@@ -29,14 +27,12 @@ import 'tree_ir_nodes.dart';
 ///
 /// Note that the above pattern needs no iteration since nested ifs
 /// have been collapsed previously in the [StatementRewriter] phase.
-class LoopRewriter extends RecursiveVisitor {
+class LoopRewriter extends RecursiveVisitor with PassMixin {
 
   Set<Label> usedContinueLabels = new Set<Label>();
 
-  void rewrite(FunctionDefinition function) {
-    if (function.isAbstract) return;
-
-    function.body = visitStatement(function.body);
+  void rewriteExecutableDefinition(ExecutableDefinition root) {
+    root.body = visitStatement(root.body);
   }
 
   Statement visitLabeledStatement(LabeledStatement node) {

@@ -110,6 +110,8 @@ class Simulator {
                                          CallKind call_kind,
                                          int argument_count);
 
+  static uword FunctionForRedirect(uword redirect);
+
   void Longjmp(uword pc,
                uword sp,
                uword fp,

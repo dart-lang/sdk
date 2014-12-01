@@ -362,6 +362,23 @@ main() {
 ''');
   }
 
+  void test_addTypeAnnotation_local_OK_localType() {
+    _indexTestUnit('''
+class C {}
+C f() => null;
+main() {
+  var x = f();
+}
+''');
+    assertHasAssistAt('x =', AssistKind.ADD_TYPE_ANNOTATION, '''
+class C {}
+C f() => null;
+main() {
+  C x = f();
+}
+''');
+  }
+
   void test_addTypeAnnotation_local_OK_onInitializer() {
     _indexTestUnit('''
 main() {
@@ -987,6 +1004,27 @@ main(A a) {
 }
 ''');
     assertNoAssistAt('isEmpty;', AssistKind.CONVERT_INTO_IS_NOT_EMPTY);
+  }
+
+  void test_exchangeBinaryExpressionArguments_OK_compare() {
+    Map<String, String> operatorMap = {
+      '<': '>=',
+      '<=': '>',
+      '>': '<=',
+      '>=': '<'
+    };
+    operatorMap.forEach((initialOperator, resultOperator) {
+      _indexTestUnit('''
+bool main(int a, int b) {
+  return a $initialOperator b;
+}
+''');
+      assertHasAssistAt(initialOperator, AssistKind.EXCHANGE_OPERANDS, '''
+bool main(int a, int b) {
+  return b $resultOperator a;
+}
+''');
+    });
   }
 
   void test_exchangeBinaryExpressionArguments_OK_extended_mixOperator_1() {

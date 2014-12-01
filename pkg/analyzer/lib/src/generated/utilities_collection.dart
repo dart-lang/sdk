@@ -7,8 +7,8 @@
 
 library engine.utilities.collection;
 
-import 'dart:collection';
 import "dart:math" as math;
+import 'dart:collection';
 
 import 'java_core.dart';
 import 'scanner.dart' show Token;
@@ -68,7 +68,8 @@ class BooleanArray {
    * @return the updated value of the array
    * @throws IndexOutOfBoundsException if the index is not between zero (0) and 31, inclusive
    */
-  static int setEnum(int array, Enum index, bool value) => set(array, index.ordinal, value);
+  static int setEnum(int array, Enum index, bool value) =>
+      set(array, index.ordinal, value);
 
   /**
    * Throw an exception if the index is not within the bounds allowed for an integer-encoded array
@@ -98,6 +99,25 @@ class DirectedGraph<N> {
    * the node to an empty set of tails.
    */
   HashMap<N, HashSet<N>> _edges = new HashMap<N, HashSet<N>>();
+
+  /**
+   * Return `true` if this graph is empty.
+   *
+   * @return `true` if this graph is empty
+   */
+  bool get isEmpty => _edges.isEmpty;
+
+  /**
+   * Return the number of nodes in this graph.
+   *
+   * @return the number of nodes in this graph
+   */
+  int get nodeCount => _edges.length;
+
+  /**
+   * Return a set of all nodes in the graph.
+   */
+  Set<N> get nodes => _edges.keys.toSet();
 
   /**
    * Add an edge from the given head node to the given tail node. Both nodes will be a part of the
@@ -170,18 +190,6 @@ class DirectedGraph<N> {
   }
 
   /**
-   * Return the number of nodes in this graph.
-   *
-   * @return the number of nodes in this graph
-   */
-  int get nodeCount => _edges.length;
-
-  /**
-   * Return a set of all nodes in the graph.
-   */
-  Set<N> get nodes => _edges.keys.toSet();
-
-  /**
    * Return a set containing the tails of edges that have the given node as their head. The set will
    * be empty if there are no such edges or if the node is not part of the graph. Clients must not
    * modify the returned set.
@@ -196,13 +204,6 @@ class DirectedGraph<N> {
     }
     return tails;
   }
-
-  /**
-   * Return `true` if this graph is empty.
-   *
-   * @return `true` if this graph is empty
-   */
-  bool get isEmpty => _edges.isEmpty;
 
   /**
    * Remove all of the given nodes from this graph. As a consequence, any edges for which those
@@ -358,7 +359,8 @@ class DirectedGraph_SccFinder<N> {
   /**
    * A table mapping nodes to information about the nodes that is used by this algorithm.
    */
-  HashMap<N, DirectedGraph_NodeInfo<N>> _nodeMap = new HashMap<N, DirectedGraph_NodeInfo<N>>();
+  HashMap<N, DirectedGraph_NodeInfo<N>> _nodeMap =
+      new HashMap<N, DirectedGraph_NodeInfo<N>>();
 
   /**
    * A list of all strongly connected components found, in topological sort order (each node in a
@@ -514,6 +516,14 @@ abstract class MapIterator<K, V> {
   V get value;
 
   /**
+   * Set the value associated with the current element to the given value.
+   *
+   * @param newValue the new value to be associated with the current element
+   * @throws NoSuchElementException if there is no current element
+   */
+  void set value(V newValue);
+
+  /**
    * Advance to the next entry in the map. Return `true` if there is a current element that
    * can be accessed after this method returns. It is safe to invoke this method even if the
    * previous invocation returned `false`.
@@ -521,14 +531,6 @@ abstract class MapIterator<K, V> {
    * @return `true` if there is a current element that can be accessed
    */
   bool moveNext();
-
-  /**
-   * Set the value associated with the current element to the given value.
-   *
-   * @param newValue the new value to be associated with the current element
-   * @throws NoSuchElementException if there is no current element
-   */
-  void set value(V newValue);
 }
 
 /**
@@ -581,6 +583,14 @@ class MultipleMapIterator<K, V> implements MapIterator<K, V> {
   }
 
   @override
+  void set value(V newValue) {
+    if (_currentIterator == null) {
+      throw new NoSuchElementException();
+    }
+    _currentIterator.value = newValue;
+  }
+
+  @override
   bool moveNext() {
     if (_iteratorIndex < 0) {
       if (_iterators.length == 0) {
@@ -604,14 +614,6 @@ class MultipleMapIterator<K, V> implements MapIterator<K, V> {
     }
   }
 
-  @override
-  void set value(V newValue) {
-    if (_currentIterator == null) {
-      throw new NoSuchElementException();
-    }
-    _currentIterator.value = newValue;
-  }
-
   /**
    * Under the assumption that there are no more entries that can be returned using the current
    * iterator, advance to the next iterator that has entries.
@@ -633,46 +635,10 @@ class MultipleMapIterator<K, V> implements MapIterator<K, V> {
 }
 
 /**
- * Instances of the class `TokenMap` map one set of tokens to another set of tokens.
- */
-class TokenMap {
-  /**
-   * A table mapping tokens to tokens. This should be replaced by a more performant implementation.
-   * One possibility is a pair of parallel arrays, with keys being sorted by their offset and a
-   * cursor indicating where to start searching.
-   */
-  HashMap<Token, Token> _map = new HashMap<Token, Token>();
-
-  /**
-   * Return the token that is mapped to the given token, or `null` if there is no token
-   * corresponding to the given token.
-   *
-   * @param key the token being mapped to another token
-   * @return the token that is mapped to the given token
-   */
-  Token get(Token key) => _map[key];
-
-  /**
-   * Map the key to the value.
-   *
-   * @param key the token being mapped to the value
-   * @param value the token to which the key will be mapped
-   */
-  void put(Token key, Token value) {
-    _map[key] = value;
-  }
-}
-
-/**
  * Instances of the class `SingleMapIterator` implement an iterator that can be used to access
  * the entries in a single map.
  */
 class SingleMapIterator<K, V> implements MapIterator<K, V> {
-  /**
-   * Returns a new [SingleMapIterator] instance for the given [Map].
-   */
-  static SingleMapIterator forMap(Map map) => new SingleMapIterator(map);
-
   /**
    * The [Map] containing the entries to be iterated over.
    */
@@ -719,6 +685,15 @@ class SingleMapIterator<K, V> implements MapIterator<K, V> {
   }
 
   @override
+  void set value(V newValue) {
+    if (_currentKey == null) {
+      throw new NoSuchElementException();
+    }
+    _currentValue = newValue;
+    _map[_currentKey] = newValue;
+  }
+
+  @override
   bool moveNext() {
     if (_keyIterator.moveNext()) {
       _currentKey = _keyIterator.current;
@@ -730,12 +705,39 @@ class SingleMapIterator<K, V> implements MapIterator<K, V> {
     }
   }
 
-  @override
-  void set value(V newValue) {
-    if (_currentKey == null) {
-      throw new NoSuchElementException();
-    }
-    _currentValue = newValue;
-    _map[_currentKey] = newValue;
+  /**
+   * Returns a new [SingleMapIterator] instance for the given [Map].
+   */
+  static SingleMapIterator forMap(Map map) => new SingleMapIterator(map);
+}
+
+/**
+ * Instances of the class `TokenMap` map one set of tokens to another set of tokens.
+ */
+class TokenMap {
+  /**
+   * A table mapping tokens to tokens. This should be replaced by a more performant implementation.
+   * One possibility is a pair of parallel arrays, with keys being sorted by their offset and a
+   * cursor indicating where to start searching.
+   */
+  HashMap<Token, Token> _map = new HashMap<Token, Token>();
+
+  /**
+   * Return the token that is mapped to the given token, or `null` if there is no token
+   * corresponding to the given token.
+   *
+   * @param key the token being mapped to another token
+   * @return the token that is mapped to the given token
+   */
+  Token get(Token key) => _map[key];
+
+  /**
+   * Map the key to the value.
+   *
+   * @param key the token being mapped to the value
+   * @param value the token to which the key will be mapped
+   */
+  void put(Token key, Token value) {
+    _map[key] = value;
   }
 }

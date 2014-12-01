@@ -7,14 +7,12 @@
 
 #include "vm/unibrow.h"
 
-// SNIP
+#include "platform/assert.h"
 
 namespace unibrow {
 
-// SNIP
-
-template <class T, int s> int Mapping<T, s>::get(uchar c, uchar n,
-    uchar* result) {
+template <class T, intptr_t s> intptr_t Mapping<T, s>::get(
+    int32_t c, int32_t n, int32_t* result) {
   CacheEntry entry = entries_[c & kMask];
   if (entry.code_point_ == c) {
     if (entry.offset_ == 0) {
@@ -28,10 +26,10 @@ template <class T, int s> int Mapping<T, s>::get(uchar c, uchar n,
   }
 }
 
-template <class T, int s> int Mapping<T, s>::CalculateValue(uchar c, uchar n,
-    uchar* result) {
+template <class T, intptr_t s> intptr_t Mapping<T, s>::CalculateValue(
+    int32_t c, int32_t n, int32_t* result) {
   bool allow_caching = true;
-  int length = T::Convert(c, n, result, &allow_caching);
+  intptr_t length = T::Convert(c, n, result, &allow_caching);
   if (allow_caching) {
     if (length == 1) {
       entries_[c & kMask] = CacheEntry(c, result[0] - c);
@@ -44,8 +42,6 @@ template <class T, int s> int Mapping<T, s>::CalculateValue(uchar c, uchar n,
     return length;
   }
 }
-
-// SNIP
 
 }  // namespace unibrow
 

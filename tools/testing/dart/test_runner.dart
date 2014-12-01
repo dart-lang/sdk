@@ -262,10 +262,12 @@ class BrowserTestCommand extends Command {
   final String browser;
   final String url;
   final Map configuration;
+  final bool retry;
 
   BrowserTestCommand._(String _browser,
                        this.url,
-                       this.configuration)
+                       this.configuration,
+                       this.retry)
       : super._(_browser), browser = _browser;
 
   void _buildHashCode(HashCodeBuilder builder) {
@@ -273,13 +275,15 @@ class BrowserTestCommand extends Command {
     builder.addJson(browser);
     builder.addJson(url);
     builder.add(configuration);
+    builder.add(retry);
   }
 
   bool _equal(BrowserTestCommand other) =>
       super._equal(other) &&
       browser == other.browser &&
       url == other.url &&
-      identical(configuration, other.configuration);
+      identical(configuration, other.configuration) &&
+      retry == other.retry;
 
   String get reproductionCommand {
     var parts = [TestUtils.dartTestExecutable.toString(),
@@ -295,8 +299,9 @@ class BrowserHtmlTestCommand extends BrowserTestCommand {
   BrowserHtmlTestCommand._(String browser,
                            String url,
                            Map configuration,
-                           this.expectedMessages)
-      : super._(browser, url, configuration);
+                           this.expectedMessages,
+                           bool retry)
+      : super._(browser, url, configuration, retry);
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
@@ -566,17 +571,19 @@ class CommandBuilder {
 
   BrowserTestCommand getBrowserTestCommand(String browser,
                                            String url,
-                                           Map configuration) {
-    var command = new BrowserTestCommand._(browser, url, configuration);
+                                           Map configuration,
+                                           bool retry) {
+    var command = new BrowserTestCommand._(browser, url, configuration, retry);
     return _getUniqueCommand(command);
   }
 
   BrowserHtmlTestCommand getBrowserHtmlTestCommand(String browser,
                                                String url,
                                                Map configuration,
-                                               List<String> expectedMessages) {
+                                               List<String> expectedMessages,
+                                               bool retry) {
     var command = new BrowserHtmlTestCommand._(
-        browser, url, configuration, expectedMessages);
+        browser, url, configuration, expectedMessages, retry);
     return _getUniqueCommand(command);
   }
 
@@ -2616,10 +2623,11 @@ class ReplayingCommandExecutor implements CommandExecutor {
 bool shouldRetryCommand(CommandOutput output) {
   var command = output.command;
   // We rerun tests on Safari because 6.2 and 7.1 are flaky. Issue 21434.
-  if (command is BrowserTestCommand && command.browser == 'safari' &&
+  if (command is BrowserTestCommand &&
+      command.retry &&
+      command.browser == 'safari' &&
       output is BrowserControllerTestOutcome &&
       output._rawOutcome != Expectation.PASS) {
-    // TODO(whesse): This retries tests that fail intentionally. Fix this
     return true;
   }
 
@@ -2647,7 +2655,9 @@ bool shouldRetryCommand(CommandOutput output) {
     }
 
     // We currently rerun dartium tests, see issue 14074.
-    if (command is BrowserTestCommand && command.browser == 'dartium') {
+    if (command is BrowserTestCommand &&
+        command.retry &&
+        command.browser == 'dartium') {
       return true;
     }
   }

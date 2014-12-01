@@ -367,6 +367,26 @@ main() {
     return _verifyReferences(element, expected);
   }
 
+  Future test_searchReferences_LabelElement() {
+    _indexTestUnit('''
+main() {
+label:
+  while (true) {
+    if (true) {
+      break label; // 1
+    }
+    break label; // 2
+  }
+}
+''');
+    LabelElement element = findElement('label');
+    Element mainElement = findElement('main');
+    var expected = [
+        _expectId(mainElement, MatchKind.REFERENCE, 'label; // 1'),
+        _expectId(mainElement, MatchKind.REFERENCE, 'label; // 2')];
+    return _verifyReferences(element, expected);
+  }
+
   Future test_searchReferences_LibraryElement() {
     var codeA = 'part of lib; // A';
     var codeB = 'part of lib; // B';
@@ -413,43 +433,6 @@ main() {
         _expectId(mainElement, MatchKind.READ_WRITE, 'v += 2;'),
         _expectId(mainElement, MatchKind.READ, 'v);'),
         _expectId(mainElement, MatchKind.INVOCATION, 'v();')];
-    return _verifyReferences(element, expected);
-  }
-
-  Future test_searchReferences_LabelElement() {
-    _indexTestUnit('''
-main() {
-label:
-  while (true) {
-    if (true) {
-      break label; // 1
-    }
-    break label; // 2
-  }
-}
-''');
-    LabelElement element = findElement('label');
-    Element mainElement = findElement('main');
-    var expected = [
-        _expectId(mainElement, MatchKind.REFERENCE, 'label; // 1'),
-        _expectId(mainElement, MatchKind.REFERENCE, 'label; // 2')];
-    return _verifyReferences(element, expected);
-  }
-
-  Future test_searchReferences_PrefixElement() {
-    _indexTestUnit('''
-import 'dart:async' as ppp;
-main() {
-  ppp.Future a;
-  ppp.Stream b;
-}
-''');
-    PrefixElement element = findNodeElementAtString('ppp;');
-    Element elementA = findElement('a');
-    Element elementB = findElement('b');
-    var expected = [
-        _expectId(elementA, MatchKind.REFERENCE, 'ppp.Future'),
-        _expectId(elementB, MatchKind.REFERENCE, 'ppp.Stream')];
     return _verifyReferences(element, expected);
   }
 
@@ -512,6 +495,23 @@ main() {
         _expectId(fooElement, MatchKind.READ, 'p);'),
         _expectId(fooElement, MatchKind.INVOCATION, 'p();'),
         _expectId(mainElement, MatchKind.REFERENCE, 'p: 42')];
+    return _verifyReferences(element, expected);
+  }
+
+  Future test_searchReferences_PrefixElement() {
+    _indexTestUnit('''
+import 'dart:async' as ppp;
+main() {
+  ppp.Future a;
+  ppp.Stream b;
+}
+''');
+    PrefixElement element = findNodeElementAtString('ppp;');
+    Element elementA = findElement('a');
+    Element elementB = findElement('b');
+    var expected = [
+        _expectId(elementA, MatchKind.REFERENCE, 'ppp.Future'),
+        _expectId(elementB, MatchKind.REFERENCE, 'ppp.Stream')];
     return _verifyReferences(element, expected);
   }
 

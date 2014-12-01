@@ -15,6 +15,19 @@ import 'from_html.dart';
 import 'implied_types.dart';
 import 'to_html.dart';
 
+final GeneratedFile target =
+    new GeneratedFile('../../test/integration/protocol_matchers.dart', () {
+  CodegenMatchersVisitor visitor = new CodegenMatchersVisitor(readApi());
+  return visitor.collectCode(visitor.visitApi);
+});
+
+/**
+ * Translate spec_input.html into protocol_matchers.dart.
+ */
+main() {
+  target.generate();
+}
+
 class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
   /**
    * Visitor used to produce doc comments.
@@ -54,6 +67,36 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
     }
     writeln(';');
     writeln();
+  }
+
+  /**
+   * Generate a map describing the given set of fields, for use as the
+   * 'requiredFields' or 'optionalFields' argument to the [MatchesJsonObject]
+   * constructor.
+   */
+  void outputObjectFields(Iterable<TypeObjectField> fields) {
+    if (fields.isEmpty) {
+      write('null');
+      return;
+    }
+    writeln('{');
+    indent(() {
+      bool commaNeeded = false;
+      for (TypeObjectField field in fields) {
+        if (commaNeeded) {
+          writeln(',');
+        }
+        write('${JSON.encode(field.name)}: ');
+        if (field.value != null) {
+          write('equals(${JSON.encode(field.value)})');
+        } else {
+          visitTypeDecl(field.type);
+        }
+        commaNeeded = true;
+      }
+      writeln();
+    });
+    write('}');
   }
 
   @override
@@ -113,47 +156,17 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
     writeln('new LazyMatcher(() => new MatchesJsonObject(');
     indent(() {
       write('${JSON.encode(context)}, ');
-      Iterable<TypeObjectField> requiredFields = typeObject.fields.where(
-          (TypeObjectField field) => !field.optional);
+      Iterable<TypeObjectField> requiredFields =
+          typeObject.fields.where((TypeObjectField field) => !field.optional);
       outputObjectFields(requiredFields);
-      List<TypeObjectField> optionalFields = typeObject.fields.where(
-          (TypeObjectField field) => field.optional).toList();
+      List<TypeObjectField> optionalFields =
+          typeObject.fields.where((TypeObjectField field) => field.optional).toList();
       if (optionalFields.isNotEmpty) {
         write(', optionalFields: ');
         outputObjectFields(optionalFields);
       }
     });
     write('))');
-  }
-
-  /**
-   * Generate a map describing the given set of fields, for use as the
-   * 'requiredFields' or 'optionalFields' argument to the [MatchesJsonObject]
-   * constructor.
-   */
-  void outputObjectFields(Iterable<TypeObjectField> fields) {
-    if (fields.isEmpty) {
-      write('null');
-      return;
-    }
-    writeln('{');
-    indent(() {
-      bool commaNeeded = false;
-      for (TypeObjectField field in fields) {
-        if (commaNeeded) {
-          writeln(',');
-        }
-        write('${JSON.encode(field.name)}: ');
-        if (field.value != null) {
-          write('equals(${JSON.encode(field.value)})');
-        } else {
-          visitTypeDecl(field.type);
-        }
-        commaNeeded = true;
-      }
-      writeln();
-    });
-    write('}');
   }
 
   @override
@@ -178,17 +191,4 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
     }
     write('])');
   }
-}
-
-final GeneratedFile target = new GeneratedFile(
-    '../../test/integration/protocol_matchers.dart', () {
-  CodegenMatchersVisitor visitor = new CodegenMatchersVisitor(readApi());
-  return visitor.collectCode(visitor.visitApi);
-});
-
-/**
- * Translate spec_input.html into protocol_matchers.dart.
- */
-main() {
-  target.generate();
 }

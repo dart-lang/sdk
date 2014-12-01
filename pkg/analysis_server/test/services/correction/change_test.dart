@@ -195,16 +195,6 @@ class EditTest {
 
 @ReflectiveTestCase()
 class FileEditTest {
-  void test_addAll() {
-    SourceEdit edit1a = new SourceEdit(1, 0, 'a1');
-    SourceEdit edit1b = new SourceEdit(1, 0, 'a2');
-    SourceEdit edit10 = new SourceEdit(10, 1, 'b');
-    SourceEdit edit100 = new SourceEdit(100, 2, 'c');
-    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart', 0);
-    fileEdit.addAll([edit100, edit1a, edit10, edit1b]);
-    expect(fileEdit.edits, [edit100, edit10, edit1b, edit1a]);
-  }
-
   void test_add_sorts() {
     SourceEdit edit1a = new SourceEdit(1, 0, 'a1');
     SourceEdit edit1b = new SourceEdit(1, 0, 'a2');
@@ -215,6 +205,16 @@ class FileEditTest {
     fileEdit.add(edit1a);
     fileEdit.add(edit1b);
     fileEdit.add(edit10);
+    expect(fileEdit.edits, [edit100, edit10, edit1b, edit1a]);
+  }
+
+  void test_addAll() {
+    SourceEdit edit1a = new SourceEdit(1, 0, 'a1');
+    SourceEdit edit1b = new SourceEdit(1, 0, 'a2');
+    SourceEdit edit10 = new SourceEdit(10, 1, 'b');
+    SourceEdit edit100 = new SourceEdit(100, 2, 'c');
+    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart', 0);
+    fileEdit.addAll([edit100, edit1a, edit10, edit1b]);
     expect(fileEdit.edits, [edit100, edit10, edit1b, edit1a]);
   }
 

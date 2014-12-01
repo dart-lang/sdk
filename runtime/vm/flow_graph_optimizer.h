@@ -65,6 +65,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
   virtual void VisitStoreInstanceField(StoreInstanceFieldInstr* instr);
   virtual void VisitAllocateContext(AllocateContextInstr* instr);
+  virtual void VisitLoadCodeUnits(LoadCodeUnitsInstr* instr);
 
   void InsertBefore(Instruction* next,
                     Instruction* instr,
@@ -345,7 +346,10 @@ class ConstantPropagator : public FlowGraphVisitor {
   void EliminateRedundantBranches();
 
   void SetReachable(BlockEntryInstr* block);
-  void SetValue(Definition* definition, const Object& value);
+  bool SetValue(Definition* definition, const Object& value);
+
+  Definition* UnwrapPhi(Definition* defn);
+  void MarkPhi(Definition* defn);
 
   // Assign the join (least upper bound) of a pair of abstract values to the
   // first one.
@@ -381,14 +385,11 @@ class ConstantPropagator : public FlowGraphVisitor {
   // preorder number.
   BitVector* reachable_;
 
-  // Definitions can move up the lattice twice, so we use a mark bit to
-  // indicate that they are already on the worklist in order to avoid adding
-  // them again.  Indexed by SSA temp index.
-  BitVector* definition_marks_;
+  BitVector* marked_phis_;
 
   // Worklists of blocks and definitions.
   GrowableArray<BlockEntryInstr*> block_worklist_;
-  GrowableArray<Definition*> definition_worklist_;
+  DefinitionWorklist definition_worklist_;
 };
 
 
@@ -435,7 +436,7 @@ class AllocationSinking : public ZoneAllocated {
         candidates_(5),
         materializations_(5) { }
 
-  const GrowableArray<AllocateObjectInstr*>& candidates() const {
+  const GrowableArray<Definition*>& candidates() const {
     return candidates_;
   }
 
@@ -480,21 +481,20 @@ class AllocationSinking : public ZoneAllocated {
 
   void DiscoverFailedCandidates();
 
-  void InsertMaterializations(AllocateObjectInstr* alloc);
+  void InsertMaterializations(Definition* alloc);
 
   void CreateMaterializationAt(
       Instruction* exit,
-      AllocateObjectInstr* alloc,
-      const Class& cls,
+      Definition* alloc,
       const ZoneGrowableArray<const Object*>& fields);
 
-  void EliminateAllocation(AllocateObjectInstr* alloc);
+  void EliminateAllocation(Definition* alloc);
 
   Isolate* isolate() const { return flow_graph_->isolate(); }
 
   FlowGraph* flow_graph_;
 
-  GrowableArray<AllocateObjectInstr*> candidates_;
+  GrowableArray<Definition*> candidates_;
   GrowableArray<MaterializeObjectInstr*> materializations_;
 
   ExitsCollector exits_collector_;

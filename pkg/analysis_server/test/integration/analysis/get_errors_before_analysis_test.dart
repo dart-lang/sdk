@@ -5,14 +5,13 @@
 library test.integration.analysis.get.errors.before.analysis;
 
 import '../../reflective_tests.dart';
-
 import 'get_errors.dart';
+
+main() {
+  runReflectiveTests(Test);
+}
 
 @ReflectiveTestCase()
 class Test extends AnalysisDomainGetErrorsTest {
   Test() : super(false);
-}
-
-main() {
-  runReflectiveTests(Test);
 }

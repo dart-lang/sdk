@@ -668,6 +668,23 @@ class Assembler : public ValueObject {
                                       int32_t offset,
                                       const Object& value);
 
+  // Store value_even, value_odd, value_even, ... into the words in the address
+  // range [begin, end), assumed to be uninitialized fields in object (tagged).
+  // The stores must not need a generational store barrier (e.g., smi/null),
+  // and (value_even, value_odd) must be a valid register pair.
+  // Destroys register 'begin'.
+  void InitializeFieldsNoBarrier(Register object,
+                                 Register begin,
+                                 Register end,
+                                 Register value_even,
+                                 Register value_odd);
+  // Like above, for the range [begin, begin+count*kWordSize), unrolled.
+  void InitializeFieldsNoBarrierUnrolled(Register object,
+                                         Register begin,
+                                         intptr_t count,
+                                         Register value_even,
+                                         Register value_odd);
+
   void LoadClassId(Register result, Register object, Condition cond = AL);
   void LoadClassById(Register result, Register class_id);
   void LoadClass(Register result, Register object, Register scratch);

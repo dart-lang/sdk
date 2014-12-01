@@ -18,6 +18,7 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/verified_memory.h"
 
 namespace dart {
 
@@ -76,6 +77,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                  DeoptInfoBuilder* builder,
                                                  const Array& deopt_table) {
   if (deopt_env_ == NULL) {
+    ++builder->current_info_number_;
     return DeoptInfo::null();
   }
 
@@ -1265,8 +1267,26 @@ void FlowGraphCompiler::EmitEdgeCounter() {
   counter.SetAt(0, Smi::Handle(Smi::New(0)));
   __ Comment("Edge counter");
   __ LoadObject(RAX, counter, PP);
-  __ AddImmediate(FieldAddress(RAX, Array::element_offset(0)),
-                  Immediate(Smi::RawValue(1)), PP);
+#if defined(DEBUG)
+  intptr_t increment_start = assembler_->CodeSize();
+#endif  // DEBUG
+  __ IncrementSmiField(FieldAddress(RAX, Array::element_offset(0)), 1);
+#if defined(DEBUG)
+  // If the assertion below fails, update EdgeCounterIncrementSizeInBytes.
+  intptr_t expected = EdgeCounterIncrementSizeInBytes();
+  intptr_t actual = assembler_->CodeSize() - increment_start;
+  if (actual != expected) {
+    FATAL2("Edge counter increment length: %" Pd ", expected %" Pd "\n",
+           actual,
+           expected);
+  }
+#endif  // DEBUG
+}
+
+
+int32_t FlowGraphCompiler::EdgeCounterIncrementSizeInBytes() {
+  // Used by CodePatcher; so must be constant across all code in an isolate.
+  return VerifiedMemory::enabled() ? 73 : 5;
 }
 
 

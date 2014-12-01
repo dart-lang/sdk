@@ -15,7 +15,8 @@ void main() {
 
   test("throws errors for an invalid compilation unit", () {
     expect(() {
-      parseCompilationUnit("void main() => print('Hello, world!')",
+      parseCompilationUnit(
+          "void main() => print('Hello, world!')",
           name: 'test.dart');
     }, throwsA(predicate((error) {
       return error is AnalyzerErrorGroup &&

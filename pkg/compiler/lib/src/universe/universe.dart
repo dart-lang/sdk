@@ -495,42 +495,78 @@ class Selector {
   }
 
   /**
-   * Fills [list] with the arguments in the normalized order.
-   *
-   * [compileArgument] is a function that returns a compiled version
-   * of an argument located in [arguments].
+   * Returns a `List` with the evaluated arguments in the normalized order.
    *
    * [compileDefaultValue] is a function that returns a compiled constant
-   * of an optional argument that is not in [arguments].
+   * of an optional argument that is not in [compiledArguments].
    *
-   * Returns [:true:] if the selector and the [element] match; [:false:]
-   * otherwise.
+   * Precondition: `this.applies(element, world)`.
    *
    * Invariant: [element] must be the implementation element.
    */
-  /*<T>*/ bool addArgumentsToList(
+  /*<S, T>*/ List/*<T>*/ makeArgumentsList(
+        FunctionElement element,
+        List/*<T>*/ compiledArguments,
+        /*T*/ compileDefaultValue(ParameterElement element)) {
+    assert(invariant(element, element.isImplementation));
+    List/*<T>*/ result = new List();
+    FunctionSignature parameters = element.functionSignature;
+    int i = 0;
+    parameters.forEachRequiredParameter((ParameterElement element) {
+      result.add(compiledArguments[i]);
+      ++i;
+    });
+
+    if (!parameters.optionalParametersAreNamed) {
+      parameters.forEachOptionalParameter((ParameterElement element) {
+        if (i < compiledArguments.length) {
+          result.add(compiledArguments[i]);
+          ++i;
+        } else {
+          result.add(compileDefaultValue(element));
+        }
+      });
+    } else {
+      int offset = i;
+      // Iterate over the optional parameters of the signature, and try to
+      // find them in [compiledNamedArguments]. If found, we use the
+      // value in the temporary list, otherwise the default value.
+      parameters.orderedOptionalParameters
+          .forEach((ParameterElement element) {
+        int foundIndex = namedArguments.indexOf(element.name);
+        if (foundIndex != -1) {
+          result.add(compiledArguments[offset + foundIndex]);
+        } else {
+          result.add(compileDefaultValue(element));
+        }
+      });
+    }
+    return result;
+  }
+
+  /// This is a version of [makeArgumentsList] that works for a `Link`
+  /// representation of arguments.
+  /*<T>*/ List/*<T>*/ makeArgumentsList2(
       Link<Node> arguments,
-      List/*<T>*/ list,
       FunctionElement element,
       /*T*/ compileArgument(Node argument),
-      /*T*/ compileDefaultValue(ParameterElement element),
-      World world) {
+      /*T*/ compileDefaultValue(ParameterElement element)) {
     assert(invariant(element, element.isImplementation));
-    if (!this.applies(element, world)) return false;
+    List/*<T>*/ result = new List();
 
     FunctionSignature parameters = element.functionSignature;
     parameters.forEachRequiredParameter((ParameterElement element) {
-      list.add(compileArgument(arguments.head));
+      result.add(compileArgument(arguments.head));
       arguments = arguments.tail;
     });
 
     if (!parameters.optionalParametersAreNamed) {
       parameters.forEachOptionalParameter((ParameterElement element) {
         if (!arguments.isEmpty) {
-          list.add(compileArgument(arguments.head));
+          result.add(compileArgument(arguments.head));
           arguments = arguments.tail;
         } else {
-          list.add(compileDefaultValue(element));
+          result.add(compileDefaultValue(element));
         }
       });
     } else {
@@ -546,14 +582,15 @@ class Selector {
       parameters.orderedOptionalParameters.forEach((ParameterElement element) {
         int foundIndex = namedArguments.indexOf(element.name);
         if (foundIndex != -1) {
-          list.add(compiledNamedArguments[foundIndex]);
+          result.add(compiledNamedArguments[foundIndex]);
         } else {
-          list.add(compileDefaultValue(element));
+          result.add(compileDefaultValue(element));
         }
       });
     }
-    return true;
+    return result;
   }
+
 
   /**
    * Fills [list] with the arguments in the order expected by
@@ -621,12 +658,13 @@ class Selector {
                                           signature.parameterCount,
                                           namedParameters);
 
-    return selector.addArgumentsToList(nodes,
-                                       list,
-                                       callee,
-                                       internalCompileArgument,
-                                       compileConstant,
-                                       world);
+    if (!selector.applies(callee, world)) return false;
+    list.addAll(selector.makeArgumentsList2(nodes,
+                                            callee,
+                                            internalCompileArgument,
+                                            compileConstant));
+
+    return true;
   }
 
   static bool sameNames(List<String> first, List<String> second) {
@@ -747,6 +785,14 @@ class TypedSelector extends Selector {
       new Map<Selector, Map<TypeMask, TypedSelector>>();
 
   factory TypedSelector(TypeMask mask, Selector selector, World world) {
+    if (!world.hasClosedWorldAssumption) {
+      // TODO(johnniwinther): Improve use of TypedSelector in an open world.
+      bool isNullable = mask.isNullable;
+      mask = world.compiler.typesTask.dynamicType;
+      if (isNullable) {
+        mask = mask.nullable();
+      }
+    }
     // TODO(johnniwinther): Allow more TypeSelector kinds during resoluton.
     assert(world.isClosed || mask.isExact);
     if (selector.mask == mask) return selector;

@@ -36,6 +36,22 @@ class NotificationErrorsTest extends AbstractAnalysisTest {
     server.handlers = [new AnalysisDomainHandler(server),];
   }
 
+  test_notInAnalysisRoot() {
+    createProject();
+    String otherFile = '/other.dart';
+    addFile(otherFile, 'UnknownType V;');
+    addTestFile('''
+import '/other.dart';
+
+main() {
+  print(V);
+}
+''');
+    return waitForTasksFinished().then((_) {
+      expect(filesErrors[otherFile], isNull);
+    });
+  }
+
   test_ParserError() {
     createProject();
     addTestFile('library lib');
@@ -65,22 +81,6 @@ main() {
       AnalysisError error = errors[0];
       expect(error.severity, AnalysisErrorSeverity.WARNING);
       expect(error.type, AnalysisErrorType.STATIC_WARNING);
-    });
-  }
-
-  test_notInAnalysisRoot() {
-    createProject();
-    String otherFile = '/other.dart';
-    addFile(otherFile, 'UnknownType V;');
-    addTestFile('''
-import '/other.dart';
-
-main() {
-  print(V);
-}
-''');
-    return waitForTasksFinished().then((_) {
-      expect(filesErrors[otherFile], isNull);
     });
   }
 }

@@ -11,6 +11,7 @@
 #include "vm/lockers.h"
 #include "vm/object.h"
 #include "vm/thread.h"
+#include "vm/verified_memory.h"
 #include "vm/virtual_memory.h"
 
 namespace dart {
@@ -35,13 +36,13 @@ DEFINE_FLAG(bool, log_code_drop, false,
             "Emit a log message when pointers to unused code are dropped.");
 DEFINE_FLAG(bool, always_drop_code, false,
             "Always try to drop code if the function's usage counter is >= 0");
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
-DEFINE_FLAG(bool, concurrent_sweep, true,
-            "Concurrent sweep for old generation.");
-#else  // TARGET_ARCH_IA32 || TARGET_ARCH_ARM
+#if defined(TARGET_ARCH_MIPS) || defined(TARGET_ARCH_ARM64)
 DEFINE_FLAG(bool, concurrent_sweep, false,
             "Concurrent sweep for old generation.");
-#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_ARM
+#else  // TARGET_ARCH_MIPS || TARGET_ARCH_ARM64
+DEFINE_FLAG(bool, concurrent_sweep, true,
+            "Concurrent sweep for old generation.");
+#endif  // TARGET_ARCH_MIPS || TARGET_ARCH_ARM64
 DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 
 HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
@@ -59,7 +60,7 @@ HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
 
 HeapPage* HeapPage::Allocate(intptr_t size_in_words, PageType type) {
   VirtualMemory* memory =
-      VirtualMemory::Reserve(size_in_words << kWordSizeLog2);
+      VerifiedMemory::Reserve(size_in_words << kWordSizeLog2);
   return Initialize(memory, type);
 }
 

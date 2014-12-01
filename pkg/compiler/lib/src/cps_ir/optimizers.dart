@@ -21,5 +21,11 @@ part 'shrinking_reductions.dart';
 /// An optimization pass over the CPS IR.
 abstract class Pass {
   /// Applies optimizations to root, rewriting it in the process.
-  void rewrite(FunctionDefinition root);
+  void rewrite(ExecutableDefinition root) => root.applyPass(this);
+  void rewriteFunctionDefinition(FunctionDefinition root) {
+    return root.applyPass(this);
+  }
+  void rewriteFieldDefinition(FieldDefinition root) {
+    return root.applyPass(this);
+  }
 }

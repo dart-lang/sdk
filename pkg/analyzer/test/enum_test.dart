@@ -6,7 +6,6 @@ library test.enums;
 
 import 'dart:mirrors';
 
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -14,7 +13,6 @@ import 'package:analyzer/src/generated/html.dart' as html;
 import 'package:analyzer/src/generated/instrumentation.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart' as scanner;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:unittest/unittest.dart';
@@ -50,12 +48,6 @@ class EnumTest {
 
   void test_CacheState() {
     new EnumTester<CacheState>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
-  void test_CommentType() {
-    new EnumTester<CommentType>()
         ..check_getters()
         ..check_explicit_values();
   }
@@ -102,12 +94,6 @@ class EnumTest {
         ..check_explicit_values();
   }
 
-  void test_Keyword() {
-    new EnumTester<scanner.Keyword>(ignoreGetters: ['keywords'])
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
   void test_Modifier() {
     new EnumTester<Modifier>()
         ..check_getters()
@@ -132,12 +118,6 @@ class EnumTest {
         ..check_explicit_values();
   }
 
-  void test_scanner_TokenType() {
-    new EnumTester<scanner.TokenType>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
   void test_SourceKind() {
     new EnumTester<SourceKind>()
         ..check_getters()
@@ -150,20 +130,8 @@ class EnumTest {
         ..check_explicit_values();
   }
 
-  void test_TokenClass() {
-    new EnumTester<scanner.TokenClass>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
   void test_UriKind() {
     new EnumTester<UriKind>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
-  void test_UriValidationCode() {
-    new EnumTester<UriValidationCode>()
         ..check_getters()
         ..check_explicit_values();
   }

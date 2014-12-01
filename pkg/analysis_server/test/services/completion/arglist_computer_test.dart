@@ -20,8 +20,7 @@ main() {
 class ArgListComputerTest extends AbstractCompletionTest {
 
   @override
-  void setUp() {
-    super.setUp();
+  void setUpComputer() {
     computer = new ArgListComputer();
   }
 
@@ -38,7 +37,7 @@ class ArgListComputerTest extends AbstractCompletionTest {
       String bar() => true;
       void main() {expect(^)}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     });
   }
@@ -56,7 +55,7 @@ class ArgListComputerTest extends AbstractCompletionTest {
 //      String bar() => true;
 //      void main() {expect(^)}''');
 //    computeFast();
-//    return computeFull(true).then((_) {
+//    return computeFull((bool result) {
 //      assertSuggestArgumentList(['arg'], ['String']);
 //    });
 //  }
@@ -74,7 +73,7 @@ class ArgListComputerTest extends AbstractCompletionTest {
       String bar() => true;
       void main() {expect(^)}''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestArgumentList(['arg'], ['dynamic']);
     });
   }
@@ -92,7 +91,7 @@ class ArgListComputerTest extends AbstractCompletionTest {
         void foo() {expect(^)}}
       String bar() => true;''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     });
   }
@@ -110,7 +109,7 @@ class ArgListComputerTest extends AbstractCompletionTest {
         void foo() {expect(^)}}
       String bar() => true;''');
     computeFast();
-    return computeFull(true).then((_) {
+    return computeFull((bool result) {
       assertSuggestArgumentList(['arg', 'blat'], ['dynamic', 'int']);
     });
   }

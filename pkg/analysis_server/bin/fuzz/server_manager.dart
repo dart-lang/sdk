@@ -195,8 +195,9 @@ class ServerManager {
   Future<AnalysisResults> analyze(Directory appDir) {
     this.appDir = appDir;
     Stopwatch stopwatch = new Stopwatch()..start();
-    Request request =
-        new AnalysisSetAnalysisRootsParams([appDir.path], []).toRequest(_nextRequestId);
+    Request request = new AnalysisSetAnalysisRootsParams(
+        [appDir.path],
+        []).toRequest(_nextRequestId);
 
     // Request analysis
     return channel.sendRequest(request).then((Response response) {
@@ -275,8 +276,8 @@ class ServerManager {
    * Return when the server has acknowledged that request.
    */
   Future setSubscriptions() {
-    Request request =
-        new ServerSetSubscriptionsParams([ServerService.STATUS]).toRequest(_nextRequestId);
+    Request request = new ServerSetSubscriptionsParams(
+        [ServerService.STATUS]).toRequest(_nextRequestId);
     return channel.sendRequest(request);
   }
 

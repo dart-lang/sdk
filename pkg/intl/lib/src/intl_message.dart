@@ -69,6 +69,11 @@ abstract class Message {
    */
   get examples => parent == null ? const [] : parent.examples;
 
+  /**
+   * The name of the top-level [MainMessage].
+   */
+  String get name => parent == null ? '<unnamed>' : parent.name;
+
   String checkValidity(MethodInvocation node, List arguments,
                        String outerName, FormalParameterList outerArgs) {
     var hasArgs = arguments.any(
@@ -274,6 +279,12 @@ class VariableSubstitution extends Message {
     // case-insensitive.
     _index = arguments.map((x) => x.toUpperCase()).toList()
         .indexOf(_variableNameUpper);
+    if (_index == -1) {
+      throw new ArgumentError(
+          "Cannot find parameter named '$_variableNameUpper' in "
+          "message named '$name'. Available "
+          "parameters are $arguments");
+    }
     return _index;
   }
 

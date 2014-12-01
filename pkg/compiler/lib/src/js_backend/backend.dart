@@ -6,9 +6,18 @@ part of js_backend;
 
 const VERBOSE_OPTIMIZER_HINTS = false;
 
+const bool USE_CPS_IR = const bool.fromEnvironment("USE_CPS_IR");
+
 class JavaScriptItemCompilationContext extends ItemCompilationContext {
   final Set<HInstruction> boundsChecked = new Set<HInstruction>();
   final Set<HInstruction> allocatedFixedLists = new Set<HInstruction>();
+}
+
+abstract class FunctionCompiler {
+  /// Generates JavaScript code for `work.element`.
+  jsAst.Fun compile(CodegenWorkItem work);
+
+  Iterable get tasks;
 }
 
 /*
@@ -97,9 +106,8 @@ class JavaScriptBackend extends Backend {
     return [closureClass, jsIndexableClass];
   }
 
-  SsaBuilderTask builder;
-  SsaOptimizerTask optimizer;
-  SsaCodeGeneratorTask generator;
+  FunctionCompiler functionCompiler;
+
   CodeEmitterTask emitter;
 
   /**
@@ -323,8 +331,17 @@ class JavaScriptBackend extends Backend {
    */
   final Set<ClassElement> specialOperatorEqClasses = new Set<ClassElement>();
 
+  /**
+   * A set of members that are called from subclasses via `super`.
+   */
+  final Set<FunctionElement> aliasedSuperMembers =
+      new Setlet<FunctionElement>();
+
   List<CompilerTask> get tasks {
-    return <CompilerTask>[builder, optimizer, generator, emitter];
+    List<CompilerTask> result = functionCompiler.tasks;
+    result.add(emitter);
+    result.add(patchResolverTask);
+    return result;
   }
 
   final RuntimeTypes rti;
@@ -431,6 +448,8 @@ class JavaScriptBackend extends Backend {
 
   JavaScriptResolutionCallbacks resolutionCallbacks;
 
+  PatchResolverTask patchResolverTask;
+
   JavaScriptBackend(Compiler compiler, bool generateSourceMap)
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<String, Selector>(),
@@ -439,13 +458,14 @@ class JavaScriptBackend extends Backend {
         specializedGetInterceptors = new Map<String, Set<ClassElement>>(),
         super(compiler) {
     emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
-    builder = new SsaBuilderTask(this);
-    optimizer = new SsaOptimizerTask(this);
-    generator = new SsaCodeGeneratorTask(this);
     typeVariableHandler = new TypeVariableHandler(this);
     customElementsAnalysis = new CustomElementsAnalysis(this);
     constantCompilerTask = new JavaScriptConstantTask(compiler);
     resolutionCallbacks = new JavaScriptResolutionCallbacks(this);
+    patchResolverTask = new PatchResolverTask(compiler);
+    functionCompiler = USE_CPS_IR
+         ? new CspFunctionCompiler(compiler, this)
+         : new SsaFunctionCompiler(this, generateSourceMap);
   }
 
   ConstantSystem get constantSystem => constants.constantSystem;
@@ -454,6 +474,12 @@ class JavaScriptBackend extends Backend {
   /// constants.
   JavaScriptConstantCompiler get constants {
     return constantCompilerTask.jsConstantCompiler;
+  }
+
+  FunctionElement resolveExternalFunction(FunctionElement element) {
+    return patchResolverTask.measure(() {
+      return patchResolverTask.resolveExternalFunction(element);
+    });
   }
 
   // TODO(karlklose): Split into findHelperFunction and findHelperClass and
@@ -526,6 +552,20 @@ class JavaScriptBackend extends Backend {
       oneShotInterceptors[name] = selector;
     }
     return name;
+  }
+
+  /**
+   * Record that [method] is called from a subclass via `super`.
+   */
+  void registerAliasedSuperMember(FunctionElement method) {
+    aliasedSuperMembers.add(method);
+  }
+
+  /**
+   * Returns `true` if [member] is called from a subclass via `super`.
+   */
+  bool isAliasedSuperMember(FunctionElement member) {
+    return aliasedSuperMembers.contains(member);
   }
 
   bool isInterceptedMethod(Element element) {
@@ -1167,7 +1207,8 @@ class JavaScriptBackend extends Backend {
       return;
     }
     if (kind.category == ElementCategory.VARIABLE) {
-      ConstantExpression initialValue = constants.getConstantForVariable(element);
+      ConstantExpression initialValue =
+          constants.getConstantForVariable(element);
       if (initialValue != null) {
         registerCompileTimeConstant(initialValue.value, work.registry);
         constants.addCompileTimeConstantForEmission(initialValue.value);
@@ -1183,10 +1224,7 @@ class JavaScriptBackend extends Backend {
         compiler.enqueuer.codegen.registerStaticUse(getCyclicThrowHelper());
       }
     }
-    HGraph graph = builder.build(work);
-    optimizer.optimize(work, graph);
-    jsAst.Expression code = generator.generateCode(work, graph);
-    generatedCode[element] = code;
+    generatedCode[element] = functionCompiler.compile(work);
   }
 
   native.NativeEnqueuer nativeResolutionEnqueuer(Enqueuer world) {
@@ -1669,6 +1707,14 @@ class JavaScriptBackend extends Backend {
 
   Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
     return super.onLibraryScanned(library, loader).then((_) {
+      if (library.isPlatformLibrary && !library.isPatched) {
+        // Apply patch, if any.
+        Uri patchUri = compiler.resolvePatchUri(library.canonicalUri.path);
+        if (patchUri != null) {
+          return compiler.patchParser.patchLibrary(loader, patchUri, library);
+        }
+      }
+    }).then((_) {
       Uri uri = library.canonicalUri;
 
       VariableElement findVariable(String name) {
@@ -2233,6 +2279,7 @@ class JavaScriptBackend extends Backend {
   void forgetElement(Element element) {
     constants.forgetElement(element);
     constantCompilerTask.dartConstantCompiler.forgetElement(element);
+    aliasedSuperMembers.remove(element);
   }
 
   void registerMainHasArguments(Enqueuer enqueuer) {

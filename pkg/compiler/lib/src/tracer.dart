@@ -10,8 +10,8 @@ import 'ssa/ssa.dart' as ssa;
 import 'ssa/ssa_tracer.dart' show HTracer;
 import 'cps_ir/cps_ir_nodes.dart' as cps_ir;
 import 'cps_ir/cps_ir_tracer.dart' show IRTracer;
-import 'dart_backend/tree_ir_nodes.dart' as tree_ir;
-import 'dart_backend/tree_ir_tracer.dart' show TreeTracer;
+import 'tree_ir/tree_ir_nodes.dart' as tree_ir;
+import 'tree_ir/tree_ir_tracer.dart' show TreeTracer;
 import 'util/util.dart' show Indentation;
 import 'dart2jslib.dart';
 
@@ -57,10 +57,10 @@ class Tracer extends TracerUtil {
     if (irObject is ssa.HGraph) {
       new HTracer(output, compiler, context).traceGraph(name, irObject);
     }
-    else if (irObject is cps_ir.FunctionDefinition) {
+    else if (irObject is cps_ir.ExecutableDefinition) {
       new IRTracer(output).traceGraph(name, irObject);
     }
-    else if (irObject is tree_ir.FunctionDefinition) {
+    else if (irObject is tree_ir.ExecutableDefinition) {
       new TreeTracer(output).traceGraph(name, irObject);
     }
   }

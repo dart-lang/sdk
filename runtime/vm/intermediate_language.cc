@@ -17,6 +17,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
+#include "vm/regexp_assembler.h"
 #include "vm/resolver.h"
 #include "vm/scopes.h"
 #include "vm/stub_code.h"
@@ -451,6 +452,7 @@ GraphEntryInstr::GraphEntryInstr(const ParsedFunction* parsed_function,
       parsed_function_(parsed_function),
       normal_entry_(normal_entry),
       catch_entries_(),
+      indirect_entries_(),
       initial_definitions_(),
       osr_id_(osr_id),
       entry_count_(0),
@@ -786,6 +788,18 @@ bool Instruction::IsDominatedBy(Instruction* dom) {
   }
 
   return dom_block->Dominates(block);
+}
+
+
+bool Instruction::HasUnmatchedInputRepresentations() const {
+  for (intptr_t i = 0; i < InputCount(); i++) {
+    Definition* input = InputAt(i)->definition();
+    if (RequiredInputRepresentation(i) != input->representation()) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 
@@ -1205,7 +1219,8 @@ bool BinaryInt32OpInstr::CanDeoptimize() const {
       return false;
 
     case Token::kSHL:
-      return true;
+      return can_overflow() ||
+          !RangeUtils::IsPositive(right()->definition()->range());
 
     case Token::kMOD: {
       UNREACHABLE();
@@ -1228,19 +1243,14 @@ bool BinarySmiOpInstr::CanDeoptimize() const {
     case Token::kBIT_OR:
     case Token::kBIT_XOR:
       return false;
-    case Token::kSHR: {
-      // Can't deopt if shift-count is known positive.
-      Range* right_range = this->right()->definition()->range();
-      return (right_range == NULL) || !right_range->IsPositive();
-    }
-    case Token::kSHL: {
-      Range* right_range = this->right()->definition()->range();
-      if ((right_range != NULL) && !can_overflow()) {
-        // Can deoptimize if right can be negative.
-        return !right_range->IsPositive();
-      }
-      return true;
-    }
+
+    case Token::kSHR:
+      return !RangeUtils::IsPositive(right()->definition()->range());
+
+    case Token::kSHL:
+      return can_overflow() ||
+          !RangeUtils::IsPositive(right()->definition()->range());
+
     case Token::kMOD: {
       Range* right_range = this->right()->definition()->range();
       return (right_range == NULL) || right_range->Overlaps(0, 0);
@@ -1994,7 +2004,7 @@ Definition* BoxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (!HasUses()) return NULL;
+  if (!HasUses() && !CanDeoptimize()) return NULL;
 
   // Fold away Unbox<rep>(Box<rep>(v)).
   BoxInstr* box_defn = value()->definition()->AsBox();
@@ -2026,7 +2036,7 @@ Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (!HasUses()) return NULL;
+  if (!HasUses() && !CanDeoptimize()) return NULL;
 
   // Fold away UnboxInteger<rep_to>(BoxInteger<rep_from>(v)).
   BoxIntegerInstr* box_defn = value()->definition()->AsBoxInteger();
@@ -2040,7 +2050,7 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
           box_defn->value()->CopyWithType(),
           (representation() == kUnboxedInt32) ?
               GetDeoptId() : Isolate::kNoDeoptId);
-      if ((representation() == kUnboxedInt32) && is_truncating()) {
+      if ((representation() == kUnboxedInt32) && !CanDeoptimize()) {
         converter->mark_truncating();
       }
       flow_graph->InsertBefore(this, converter, env(), FlowGraph::kValue);
@@ -2071,6 +2081,9 @@ Definition* UnboxInt32Instr::Canonicalize(FlowGraph* flow_graph) {
 
     UnboxedConstantInstr* uc =
         new UnboxedConstantInstr(c->value(), kUnboxedInt32);
+    if (c->range() != NULL) {
+      uc->set_range(*c->range());
+    }
     flow_graph->InsertBefore(this, uc, NULL, FlowGraph::kValue);
     return uc;
   }
@@ -2250,17 +2263,10 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
       return this;
     }
     ComparisonInstr* comp = replacement->AsComparison();
-    if ((comp == NULL) || comp->CanDeoptimize()) {
+    if ((comp == NULL) ||
+        comp->CanDeoptimize() ||
+        comp->HasUnmatchedInputRepresentations()) {
       return this;
-    }
-
-    // Assert that the comparison is not serving as a pending deoptimization
-    // target for conversions.
-    for (intptr_t i = 0; i < comp->InputCount(); i++) {
-      if (comp->RequiredInputRepresentation(i) !=
-          comp->InputAt(i)->definition()->representation()) {
-        return this;
-      }
     }
 
     // Replace the comparison if the replacement is used at this branch,
@@ -2542,6 +2548,52 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
+}
+
+
+void IndirectGotoInstr::ComputeOffsetTable(Isolate* isolate) {
+  if (GetBlock()->offset() < 0) {
+    // Don't generate a table when contained in an unreachable block.
+    return;
+  }
+  ASSERT(SuccessorCount() == offsets_.Capacity());
+  offsets_.SetLength(SuccessorCount());
+  for (intptr_t i = 0; i < SuccessorCount(); i++) {
+    TargetEntryInstr* target = SuccessorAt(i);
+    intptr_t offset = target->offset();
+
+    // The intermediate block might be compacted, if so, use the indirect entry.
+    if (offset < 0) {
+      // Optimizations might have modified the immediate target block, but it
+      // must end with a goto to the indirect entry. Also, we can't use
+      // last_instruction because 'target' is compacted/unreachable.
+      Instruction* last = target->next();
+      while (last != NULL && !last->IsGoto()) {
+        last = last->next();
+      }
+      ASSERT(last);
+      IndirectEntryInstr* ientry =
+          last->AsGoto()->successor()->AsIndirectEntry();
+      ASSERT(ientry != NULL);
+      ASSERT(ientry->indirect_id() == i);
+      offset = ientry->offset();
+    }
+
+    ASSERT(offset > 0);
+    offset -= Assembler::EntryPointToPcMarkerOffset();
+    offsets_.SetAt(i, Smi::ZoneHandle(isolate, Smi::New(offset)));
+  }
+}
+
+
+LocationSummary* IndirectEntryInstr::MakeLocationSummary(
+    Isolate* isolate, bool optimizing) const {
+  return JoinEntryInstr::MakeLocationSummary(isolate, optimizing);
+}
+
+
+void IndirectEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  JoinEntryInstr::EmitNativeCode(compiler);
 }
 
 
@@ -3333,6 +3385,23 @@ const char* MathUnaryInstr::KindToCString(MathUnaryKind kind) {
   }
   UNREACHABLE();
   return "";
+}
+
+typedef RawBool* (*CaseInsensitiveCompareUC16Function) (
+    RawString* string_raw,
+    RawSmi* lhs_index_raw,
+    RawSmi* rhs_index_raw,
+    RawSmi* length_raw);
+
+
+extern const RuntimeEntry kCaseInsensitiveCompareUC16RuntimeEntry(
+    "CaseInsensitiveCompareUC16", reinterpret_cast<RuntimeFunction>(
+        static_cast<CaseInsensitiveCompareUC16Function>(
+        &IRRegExpMacroAssembler::CaseInsensitiveCompareUC16)), 4, true, false);
+
+
+const RuntimeEntry& CaseInsensitiveCompareUC16Instr::TargetFunction() const {
+  return kCaseInsensitiveCompareUC16RuntimeEntry;
 }
 
 

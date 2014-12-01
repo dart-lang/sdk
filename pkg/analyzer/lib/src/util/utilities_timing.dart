@@ -26,14 +26,14 @@ class CountedStopwatch extends Stopwatch {
   int get averageMilliseconds => elapsedMilliseconds ~/ stopCount;
 
   @override
-  void stop() {
-    super.stop();
-    stopCount++;
-  }
-
-  @override
   void reset() {
     super.reset();
     stopCount = 0;
+  }
+
+  @override
+  void stop() {
+    super.stop();
+    stopCount++;
   }
 }

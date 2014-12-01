@@ -128,20 +128,6 @@ main2() {
     return assertRefactoringConditionsOK();
   }
 
-  test_checkFinalConditions_shadows_OK_namedParameterReference() {
-    indexTestUnit('''
-void f({newName}) {}
-main() {
-  var test = 0;
-  f(newName: test);
-}
-''');
-    createRenameRefactoringAtString('test = 0');
-    // check status
-    refactoring.newName = 'newName';
-    return assertRefactoringFinalConditionsOK();
-  }
-
   test_checkFinalConditions_shadows_classMember() {
     indexTestUnit('''
 class A {
@@ -179,6 +165,20 @@ class A {
     // check status
     refactoring.newName = 'newName';
     return assertRefactoringConditionsOK();
+  }
+
+  test_checkFinalConditions_shadows_OK_namedParameterReference() {
+    indexTestUnit('''
+void f({newName}) {}
+main() {
+  var test = 0;
+  f(newName: test);
+}
+''');
+    createRenameRefactoringAtString('test = 0');
+    // check status
+    refactoring.newName = 'newName';
+    return assertRefactoringFinalConditionsOK();
   }
 
   test_checkFinalConditions_shadows_topLevelFunction() {

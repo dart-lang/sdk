@@ -10,13 +10,16 @@ import 'package:unittest/unittest.dart';
 import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
+main() {
+  runReflectiveTests(AnalysisErrorIntegrationTest);
+}
+
 @ReflectiveTestCase()
 class AnalysisErrorIntegrationTest extends AbstractAnalysisServerIntegrationTest
     {
   test_detect_simple_error() {
     String pathname = sourcePath('test.dart');
-    writeFile(pathname,
-        '''
+    writeFile(pathname, '''
 main() {
   print(null) // parse error: missing ';'
 }''');
@@ -28,8 +31,4 @@ main() {
       expect(errors[0].location.file, equals(pathname));
     });
   }
-}
-
-main() {
-  runReflectiveTests(AnalysisErrorIntegrationTest);
 }

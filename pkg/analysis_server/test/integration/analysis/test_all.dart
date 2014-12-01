@@ -8,7 +8,8 @@ import 'package:unittest/unittest.dart';
 
 import 'error_test.dart' as error_test;
 import 'get_errors_after_analysis_test.dart' as get_errors_after_analysis_test;
-import 'get_errors_before_analysis_test.dart' as get_errors_before_analysis_test;
+import 'get_errors_before_analysis_test.dart' as
+    get_errors_before_analysis_test;
 import 'get_hover_test.dart' as get_hover_test;
 import 'highlights_test.dart' as highlights_test;
 import 'navigation_test.dart' as navigation_test;
@@ -18,8 +19,8 @@ import 'overrides_test.dart' as overrides_test;
 import 'package_root_test.dart' as package_root_test;
 import 'reanalyze_concurrent_test.dart' as reanalyze_concurrent_test;
 import 'reanalyze_test.dart' as reanalyze_test;
-import 'update_content_test.dart' as update_content_test;
 import 'update_content_list_test.dart' as update_content_list_test;
+import 'update_content_test.dart' as update_content_test;
 
 /**
  * Utility for manually running all integration tests.

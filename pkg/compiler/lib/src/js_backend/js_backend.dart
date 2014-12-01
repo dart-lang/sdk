@@ -7,7 +7,8 @@ library js_backend;
 import 'dart:async' show EventSink, Future;
 import 'dart:collection' show Queue, LinkedHashMap, LinkedHashSet;
 
-import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' as embeddedNames;
+import 'package:_internal/compiler/js_lib/shared/embedded_names.dart'
+    as embeddedNames;
 
 import '../closure.dart';
 import '../constants/expressions.dart';
@@ -30,6 +31,8 @@ import '../util/util.dart';
 
 import '../elements/visitor.dart' show
     ElementVisitor;
+import '../js_backend/codegen/task.dart';
+import 'patch_resolver.dart';
 
 part 'backend.dart';
 part 'checked_mode_helpers.dart';
