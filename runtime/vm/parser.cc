@@ -6112,7 +6112,7 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
       Class::ZoneHandle(I, I->object_store()->future_class());
   ASSERT(!future.IsNull());
   const Function& constructor = Function::ZoneHandle(I,
-      future.LookupFunction(Symbols::FutureConstructor()));
+      future.LookupFunction(Symbols::FutureMicrotask()));
   ASSERT(!constructor.IsNull());
   const Class& completer =
       Class::ZoneHandle(I, I->object_store()->completer_class());

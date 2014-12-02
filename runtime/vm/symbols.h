@@ -85,7 +85,7 @@ class ObjectPointerVisitor;
   V(AwaitContextVar, ":await_ctx_var")                                         \
   V(AwaitJumpVar, ":await_jump_var")                                           \
   V(Future, "Future")                                                          \
-  V(FutureConstructor, "Future.")                                              \
+  V(FutureMicrotask, "Future.microtask")                                       \
   V(FutureValue, "Future.value")                                               \
   V(FutureThen, "then")                                                        \
   V(FutureCatchError, "catchError")                                            \
