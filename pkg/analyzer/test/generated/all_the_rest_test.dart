@@ -3379,6 +3379,27 @@ class ConstantEvaluatorTest extends ResolverTestCase {
 class ConstantFinderTest extends EngineTestCase {
   AstNode _node;
 
+  /**
+   * Test an annotation that consists solely of an identifier (and hence
+   * represents a reference to a compile-time constant variable).
+   */
+  void test_visitAnnotation_constantVariable() {
+    _node = AstFactory.annotation(AstFactory.identifier3('x'));
+    expect(_findAnnotations(), contains(_node));
+  }
+
+  /**
+   * Test an annotation that represents the invocation of a constant
+   * constructor.
+   */
+  void test_visitAnnotation_invocation() {
+    _node = AstFactory.annotation2(
+        AstFactory.identifier3('A'),
+        null,
+        AstFactory.argumentList());
+    expect(_findAnnotations(), contains(_node));
+  }
+
   void test_visitConstructorDeclaration_const() {
     ConstructorElement element = _setupConstructorDeclaration("A", true);
     expect(_findConstantDeclarations()[element], same(_node));
@@ -3412,6 +3433,14 @@ class ConstantFinderTest extends EngineTestCase {
   void test_visitVariableDeclaration_nonConst() {
     _setupVariableDeclaration("v", false, true);
     expect(_findVariableDeclarations().isEmpty, isTrue);
+  }
+
+  List<Annotation> _findAnnotations() {
+    ConstantFinder finder = new ConstantFinder();
+    _node.accept(finder);
+    List<Annotation> annotations = finder.annotations;
+    expect(annotations, isNotNull);
+    return annotations;
   }
 
   Map<ConstructorElement, ConstructorDeclaration> _findConstantDeclarations() {
@@ -3483,6 +3512,179 @@ class ConstantFinderTest extends EngineTestCase {
 
 
 class ConstantValueComputerTest extends ResolverTestCase {
+  void test_annotation_constConstructor() {
+    CompilationUnit compilationUnit = resolveSource(r'''
+class A {
+  final int i;
+  const A(this.i);
+}
+
+class C {
+  @A(5)
+  f() {}
+}
+''');
+    EvaluationResultImpl result =
+        _evaluateAnnotation(compilationUnit, "C", "f");
+    Map<String, DartObjectImpl> annotationFields = _assertType(result, 'A');
+    _assertIntField(annotationFields, 'i', 5);
+  }
+
+  void test_annotation_constConstructor_named() {
+    CompilationUnit compilationUnit = resolveSource(r'''
+class A {
+  final int i;
+  const A.named(this.i);
+}
+
+class C {
+  @A.named(5)
+  f() {}
+}
+''');
+    EvaluationResultImpl result =
+        _evaluateAnnotation(compilationUnit, "C", "f");
+    Map<String, DartObjectImpl> annotationFields = _assertType(result, 'A');
+    _assertIntField(annotationFields, 'i', 5);
+  }
+
+  void test_annotation_constConstructor_noArgs() {
+    // Failing to pass arguments to an annotation which is a constant
+    // constructor is illegal, but shouldn't crash analysis.
+    CompilationUnit compilationUnit = resolveSource(r'''
+class A {
+  final int i;
+  const A(this.i);
+}
+
+class C {
+  @A
+  f() {}
+}
+''');
+    _evaluateAnnotation(compilationUnit, "C", "f");
+  }
+
+  void test_annotation_constConstructor_noArgs_named() {
+    // Failing to pass arguments to an annotation which is a constant
+    // constructor is illegal, but shouldn't crash analysis.
+    CompilationUnit compilationUnit = resolveSource(r'''
+class A {
+  final int i;
+  const A.named(this.i);
+}
+
+class C {
+  @A.named
+  f() {}
+}
+''');
+    _evaluateAnnotation(compilationUnit, "C", "f");
+  }
+
+  void test_annotation_nonConstConstructor() {
+    // Calling a non-const constructor from an annotation that is illegal, but
+    // shouldn't crash analysis.
+    CompilationUnit compilationUnit = resolveSource(r'''
+class A {
+  final int i;
+  A(this.i);
+}
+
+class C {
+  @A(5)
+  f() {}
+}
+''');
+    _evaluateAnnotation(compilationUnit, "C", "f");
+  }
+
+  void test_annotation_staticConst() {
+    CompilationUnit compilationUnit = resolveSource(r'''
+class C {
+  static const int i = 5;
+
+  @i
+  f() {}
+}
+''');
+    EvaluationResultImpl result =
+        _evaluateAnnotation(compilationUnit, "C", "f");
+    expect(_assertValidInt(result), 5);
+  }
+
+  void test_annotation_staticConst_args() {
+    // Applying arguments to an annotation that is a static const is
+    // illegal, but shouldn't crash analysis.
+    CompilationUnit compilationUnit = resolveSource(r'''
+class C {
+  static const int i = 5;
+
+  @i(1)
+  f() {}
+}
+''');
+    _evaluateAnnotation(compilationUnit, "C", "f");
+  }
+
+  void test_annotation_staticConst_otherClass() {
+    CompilationUnit compilationUnit = resolveSource(r'''
+class A {
+  static const int i = 5;
+}
+
+class C {
+  @A.i
+  f() {}
+}
+''');
+    EvaluationResultImpl result =
+        _evaluateAnnotation(compilationUnit, "C", "f");
+    expect(_assertValidInt(result), 5);
+  }
+
+  void test_annotation_staticConst_otherClass_args() {
+    // Applying arguments to an annotation that is a static const is
+    // illegal, but shouldn't crash analysis.
+    CompilationUnit compilationUnit = resolveSource(r'''
+class A {
+  static const int i = 5;
+}
+
+class C {
+  @A.i(1)
+  f() {}
+}
+''');
+    _evaluateAnnotation(compilationUnit, "C", "f");
+  }
+
+  void test_annotation_toplevelVariable() {
+    CompilationUnit compilationUnit = resolveSource(r'''
+const int i = 5;
+class C {
+  @i
+  f() {}
+}
+''');
+    EvaluationResultImpl result =
+        _evaluateAnnotation(compilationUnit, "C", "f");
+    expect(_assertValidInt(result), 5);
+  }
+
+  void test_annotation_toplevelVariable_args() {
+    // Applying arguments to an annotation that is a toplevel variable is
+    // illegal, but shouldn't crash analysis.
+    CompilationUnit compilationUnit = resolveSource(r'''
+const int i = 5;
+class C {
+  @i(1)
+  f() {}
+}
+''');
+    _evaluateAnnotation(compilationUnit, "C", "f");
+  }
+
   void test_computeValues_cycle() {
     TestLogger logger = new TestLogger();
     AnalysisEngine.instance.logger = logger;
@@ -4466,6 +4668,30 @@ class A {
     Map<String, DartObjectImpl> fieldsOfY = _assertType(y, "A");
     expect(fieldsOfY, hasLength(1));
     _assertIntField(fieldsOfY, fieldName, 10);
+  }
+
+  /**
+   * Search [compilationUnit] for a class named [className], containing a
+   * method [methodName], with exactly one annotation.  Return the constant
+   * value of the annotation.
+   */
+  EvaluationResultImpl _evaluateAnnotation(CompilationUnit compilationUnit,
+      String className, String memberName) {
+    for (CompilationUnitMember member in compilationUnit.declarations) {
+      if (member is ClassDeclaration && member.name.name == className) {
+        for (ClassMember classMember in member.members) {
+          if (classMember is MethodDeclaration &&
+              classMember.name.name == memberName) {
+            expect(classMember.metadata, hasLength(1));
+            ElementAnnotationImpl elementAnnotation =
+                classMember.metadata[0].elementAnnotation;
+            return elementAnnotation.evaluationResult;
+          }
+        }
+      }
+    }
+    fail('Class member not found');
+    return null;
   }
 
   EvaluationResultImpl

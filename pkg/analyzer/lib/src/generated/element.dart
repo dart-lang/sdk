@@ -3358,6 +3358,13 @@ class ElementAnnotationImpl implements ElementAnnotation {
   final Element element;
 
   /**
+   * The result of evaluating this annotation as a compile-time constant
+   * expression, or `null` if the compilation unit containing the variable has
+   * not been resolved.
+   */
+  EvaluationResultImpl evaluationResult;
+
+  /**
    * Initialize a newly created annotation.
    *
    * @param element the element representing the field, variable, or constructor being used as an
