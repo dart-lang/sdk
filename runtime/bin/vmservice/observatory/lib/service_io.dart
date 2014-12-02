@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:logging/logging.dart';
 import 'package:observatory/service_common.dart';
 
 // Export the service library.
@@ -49,7 +50,7 @@ class _IOWebSocket implements CommonWebSocket {
   
   Future<ByteData> nonStringToByteData(dynamic data) {
     assert(data is Uint8List);
-    print('nonString: ${data.lengthInBytes}, $data');
+    Logger.root.info('Binary data size in bytes: ${data.lengthInBytes}');
     return new Future.sync(() =>
         new ByteData.view(data.buffer,
                           data.offsetInBytes,

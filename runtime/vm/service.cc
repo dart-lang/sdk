@@ -2266,6 +2266,34 @@ static bool HandleHeapMap(Isolate* isolate, JSONStream* js) {
 }
 
 
+static bool HandleGraph(Isolate* isolate, JSONStream* js) {
+  Service::SendGraphEvent(isolate);
+  // TODO(koda): Provide some id that ties this request to async response(s).
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "OK");
+  jsobj.AddProperty("id", "ok");
+  return true;
+}
+
+
+void Service::SendGraphEvent(Isolate* isolate) {
+  uint8_t* buffer = NULL;
+  WriteStream stream(&buffer, &allocator, 1 * MB);
+  ObjectGraph graph(isolate);
+  graph.Serialize(&stream);
+  JSONStream js;
+  {
+    JSONObject jsobj(&js);
+    jsobj.AddProperty("type", "ServiceEvent");
+    jsobj.AddPropertyF("id", "_graphEvent");
+    jsobj.AddProperty("eventType", "_Graph");
+    jsobj.AddProperty("isolate", isolate);
+  }
+  const String& message = String::Handle(String::New(js.ToCString()));
+  SendEvent(kEventFamilyDebug, message, buffer, stream.bytes_written());
+}
+
+
 class ContainsAddressVisitor : public FindObjectVisitor {
  public:
   ContainsAddressVisitor(Isolate* isolate, uword addr)
@@ -2338,6 +2366,7 @@ static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "code", HandleCode },
   { "coverage", HandleCoverage },
   { "debug", HandleDebug },
+  { "graph", HandleGraph },
   { "heapmap", HandleHeapMap },
   { "libraries", HandleLibraries },
   { "metrics", HandleMetrics },

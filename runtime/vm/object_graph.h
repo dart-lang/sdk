@@ -89,6 +89,10 @@ class ObjectGraph : public StackResource {
   // be live due to references from the stack or embedder handles.
   intptr_t InboundReferences(Object* obj, const Array& references);
 
+  // Write the isolate's object graph to 'stream'. Smis and nulls are omitted.
+  // TODO(koda): Document format; support streaming/chunking.
+  void Serialize(WriteStream* stream);
+
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectGraph);
 };

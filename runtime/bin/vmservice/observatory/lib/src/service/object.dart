@@ -1311,6 +1311,7 @@ class ServiceEvent extends ServiceObject {
   @observable ServiceMap breakpoint;
   @observable ServiceMap exception;
   @observable ByteData data;
+  @observable int count;
 
   void _update(ObservableMap map, bool mapIsRef) {
     _loaded = true;
@@ -1326,6 +1327,9 @@ class ServiceEvent extends ServiceObject {
     }
     if (map['_data'] != null) {
       data = map['_data'];
+    }
+    if (map['count'] != null) {
+      count = map['count'];
     }
   }
 
