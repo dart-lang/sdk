@@ -35,7 +35,7 @@ var tests = [
       ReadStream reader = new ReadStream(event.data);
       ObjectGraph graph = new ObjectGraph(reader);
       expect(fooId, isNotNull);
-      List<ObjectVertex> foos = graph.vertices.where((ObjectVertex obj) => obj.classId == fooId);
+      Iterable<ObjectVertex> foos = graph.vertices.where((ObjectVertex obj) => obj.classId == fooId);
       expect(foos.length, equals(3));
       expect(foos.where((ObjectVertex obj) => obj.succ.length == 0).length, equals(1));
       expect(foos.where((ObjectVertex obj) => obj.succ.length == 1).length, equals(1));
