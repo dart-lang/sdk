@@ -592,7 +592,7 @@ class ClassEmitter extends CodeEmitterHelper {
     if (substitution != null) {
       jsAst.Expression typeArguments =
           js(r'#.apply(null, this.$builtinTypeInfo)',
-              substitution.getCode(backend.rti, true));
+             substitution.getCode(backend.rti));
       computeTypeVariable = js('#[#]', [typeArguments, index]);
     } else {
       // TODO(ahe): These can be generated dynamically.

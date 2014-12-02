@@ -453,7 +453,7 @@ class RuntimeTypes {
    * for type arguments in a subtype test.
    *
    * The result can be:
-   *  1) [:null:], if no substituted check is necessary, because the
+   *  1) `null`, if no substituted check is necessary, because the
    *     type variables are the same or there are no type variables in the class
    *     that is checked for.
    *  2) A list expression describing the type arguments to be used in the
@@ -464,11 +464,10 @@ class RuntimeTypes {
    */
   jsAst.Expression getSupertypeSubstitution(
        ClassElement cls,
-       ClassElement check,
-       {bool alwaysGenerateFunction: false}) {
+       ClassElement check) {
     Substitution substitution = getSubstitution(cls, check);
     if (substitution != null) {
-      return substitution.getCode(this, alwaysGenerateFunction);
+      return substitution.getCode(this);
     } else {
       return null;
     }
@@ -868,7 +867,7 @@ class Substitution {
   Substitution.function(this.arguments, this.parameters)
       : isFunction = true;
 
-  jsAst.Expression getCode(RuntimeTypes rti, bool ensureIsFunction) {
+  jsAst.Expression getCode(RuntimeTypes rti) {
     jsAst.Expression declaration(TypeVariableType variable) {
       return new jsAst.Parameter(
           rti.backend.namer.safeVariableName(variable.name));
@@ -884,10 +883,8 @@ class Substitution {
     if (isFunction) {
       Iterable<jsAst.Expression> formals = parameters.map(declaration);
       return js('function(#) { return # }', [formals, value]);
-    } else if (ensureIsFunction) {
-      return js('function() { return # }', value);
     } else {
-      return value;
+      return js('function() { return # }', value);
     }
   }
 }
