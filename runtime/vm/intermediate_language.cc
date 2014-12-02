@@ -3209,7 +3209,7 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
   //   v8 <- StringInterpolate(v2)
 
   // Don't compile-time fold when optimizing the interpolation function itself.
-  if (flow_graph->parsed_function().function().raw() == CallFunction().raw()) {
+  if (flow_graph->parsed_function()->function().raw() == CallFunction().raw()) {
     return this;
   }
 

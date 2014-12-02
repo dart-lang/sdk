@@ -19,17 +19,16 @@ DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, verify_compiler);
 
 
-FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
+FlowGraph::FlowGraph(ParsedFunction* parsed_function,
                      GraphEntryInstr* graph_entry,
                      intptr_t max_block_id)
   : isolate_(Isolate::Current()),
     parent_(),
     current_ssa_temp_index_(0),
     max_block_id_(max_block_id),
-    builder_(builder),
-    parsed_function_(*builder.parsed_function()),
-    num_copied_params_(builder.num_copied_params()),
-    num_non_copied_params_(builder.num_non_copied_params()),
+    parsed_function_(parsed_function),
+    num_copied_params_(parsed_function->num_copied_params()),
+    num_non_copied_params_(parsed_function->num_non_copied_params()),
     graph_entry_(graph_entry),
     preorder_(),
     postorder_(),
@@ -42,8 +41,8 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
     licm_allowed_(true),
     loop_headers_(NULL),
     loop_invariant_loads_(NULL),
-    guarded_fields_(builder.guarded_fields()),
-    deferred_prefixes_(builder.deferred_prefixes()),
+    guarded_fields_(parsed_function->guarded_fields()),
+    deferred_prefixes_(parsed_function->deferred_prefixes()),
     captured_parameters_(
         new(isolate_) BitVector(isolate_, variable_count())) {
   DiscoverBlocks();
@@ -89,7 +88,7 @@ bool FlowGraph::ShouldReorderBlocks(const Function& function,
 
 GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder(
     bool is_optimized) {
-  return ShouldReorderBlocks(parsed_function().function(), is_optimized)
+  return ShouldReorderBlocks(parsed_function()->function(), is_optimized)
       ? &optimized_block_order_
       : &reverse_postorder_;
 }
@@ -855,7 +854,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   if (!IsCompiledForOsr()) {
     for (intptr_t i = parameter_count(); i < variable_count(); ++i) {
       if (i == CurrentContextEnvIndex()) {
-        if (parsed_function().function().IsClosureFunction()) {
+        if (parsed_function()->function().IsClosureFunction()) {
           CurrentContextInstr* context = new CurrentContextInstr();
           context->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
           AddToInitialDefinitions(context);
@@ -885,7 +884,7 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
       Environment::From(isolate(),
                         *env,
                         num_non_copied_params_,
-                        &parsed_function_);
+                        parsed_function_);
   if (instr->IsClosureCall()) {
     deopt_env = deopt_env->DeepCopy(isolate(),
                                     deopt_env->Length() - instr->InputCount());

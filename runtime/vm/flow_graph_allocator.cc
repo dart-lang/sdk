@@ -2921,7 +2921,7 @@ void FlowGraphAllocator::AllocateRegisters() {
   }
 
   if (FLAG_print_ssa_liveranges) {
-    const Function& function = flow_graph_.parsed_function().function();
+    const Function& function = flow_graph_.parsed_function()->function();
 
     OS::Print("-- [before ssa allocator] ranges [%s] ---------\n",
               function.ToFullyQualifiedCString());
@@ -2962,7 +2962,7 @@ void FlowGraphAllocator::AllocateRegisters() {
   entry->set_spill_slot_count(cpu_spill_slot_count_ + double_spill_slot_count);
 
   if (FLAG_print_ssa_liveranges) {
-    const Function& function = flow_graph_.parsed_function().function();
+    const Function& function = flow_graph_.parsed_function()->function();
 
     OS::Print("-- [after ssa allocator] ranges [%s] ---------\n",
               function.ToFullyQualifiedCString());

@@ -65,7 +65,7 @@ static void SetEdgeWeight(Instruction* instruction,
 
 
 void BlockScheduler::AssignEdgeWeights() const {
-  const Code& unoptimized_code = flow_graph()->parsed_function().code();
+  const Code& unoptimized_code = flow_graph()->parsed_function()->code();
   ASSERT(!unoptimized_code.IsNull());
 
   intptr_t entry_count =

@@ -249,7 +249,6 @@ FlowGraphBuilder::FlowGraphBuilder(
             : 0),
         num_stack_locals_(parsed_function->num_stack_locals()),
         exit_collector_(exit_collector),
-        guarded_fields_(new(I) ZoneGrowableArray<const Field*>()),
         last_used_block_id_(0),  // 0 is used for the graph entry.
         try_index_(CatchClauseNode::kInvalidTryIndex),
         catch_try_index_(CatchClauseNode::kInvalidTryIndex),
@@ -768,10 +767,10 @@ Definition* EffectGraphVisitor::BuildStoreLocal(const LocalVariable& local,
     Value* tmp_val = Bind(new(I) LoadLocalInstr(*tmp_var));
     StoreInstanceFieldInstr* store =
         new(I) StoreInstanceFieldInstr(Context::variable_offset(local.index()),
-                                    context,
-                                    tmp_val,
-                                    kEmitStoreBarrier,
-                                    Scanner::kNoSourcePos);
+                                       context,
+                                       tmp_val,
+                                       kEmitStoreBarrier,
+                                       Scanner::kNoSourcePos);
     Do(store);
     return ExitTempLocalScope(tmp_var);
   } else {
@@ -2314,7 +2313,7 @@ void EffectGraphVisitor::VisitLetNode(LetNode* node) {
   intptr_t num_temps = node->num_temps();
   if (num_temps > 0) {
     owner()->DeallocateTemps(num_temps);
-    Do(new(I) DropTempsInstr(num_temps));
+    Do(new(I) DropTempsInstr(num_temps, NULL));
   }
 }
 
@@ -3474,8 +3473,8 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
   store_value = Bind(BuildLoadExprTemp());
   GuardFieldLengthInstr* guard_field_length =
       new(I) GuardFieldLengthInstr(store_value,
-                                node->field(),
-                                I->GetNextDeoptId());
+                                   node->field(),
+                                   I->GetNextDeoptId());
   AddInstruction(guard_field_length);
 
   store_value = Bind(BuildLoadExprTemp());
@@ -4281,7 +4280,8 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
     PruneUnreachable();
   }
 
-  FlowGraph* graph = new(I) FlowGraph(*this, graph_entry_, last_used_block_id_);
+  FlowGraph* graph =
+      new(I) FlowGraph(parsed_function(), graph_entry_, last_used_block_id_);
   return graph;
 }
 

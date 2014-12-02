@@ -201,7 +201,7 @@ class FlowGraphBuilder: public ValueObject {
   InlineExitCollector* exit_collector() const { return exit_collector_; }
 
   ZoneGrowableArray<const Field*>* guarded_fields() const {
-    return guarded_fields_;
+    return parsed_function_->guarded_fields();
   }
 
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes() const {
@@ -247,7 +247,6 @@ class FlowGraphBuilder: public ValueObject {
   const intptr_t num_non_copied_params_;
   const intptr_t num_stack_locals_;  // Does not include any parameters.
   InlineExitCollector* const exit_collector_;
-  ZoneGrowableArray<const Field*>* guarded_fields_;
 
   intptr_t last_used_block_id_;
   intptr_t try_index_;

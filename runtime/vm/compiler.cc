@@ -138,7 +138,7 @@ class IrregexpCompilationPipeline : public CompilationPipeline {
                              NULL,  // NULL = not inlining.
                              osr_id);
 
-    return new(isolate_) FlowGraph(builder,
+    return new(isolate_) FlowGraph(parsed_function,
                                    result.graph_entry,
                                    result.num_blocks);
   }
@@ -425,8 +425,11 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
                                               osr_id);
       }
 
-      if (FLAG_print_flow_graph ||
-          (optimized && FLAG_print_flow_graph_optimized)) {
+      const bool print_flow_graph =
+          FLAG_print_flow_graph ||
+          (optimized && FLAG_print_flow_graph_optimized);
+
+      if (print_flow_graph) {
         if (osr_id == Isolate::kNoDeoptId) {
           FlowGraphPrinter::PrintGraph("Before Optimizations", flow_graph);
         } else {
@@ -448,7 +451,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         // Transform to SSA (virtual register 0 and no inlining arguments).
         flow_graph->ComputeSSA(0, NULL);
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
-        if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
+        if (print_flow_graph) {
           FlowGraphPrinter::PrintGraph("After SSA", flow_graph);
         }
       }
@@ -667,7 +670,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         allocator.AllocateRegisters();
         if (reorder_blocks) block_scheduler.ReorderBlocks();
 
-        if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
+        if (print_flow_graph) {
           FlowGraphPrinter::PrintGraph("After Optimizations", flow_graph);
         }
       }

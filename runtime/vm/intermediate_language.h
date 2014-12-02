@@ -3247,7 +3247,7 @@ class PushTempInstr : public TemplateDefinition<1, NoThrow> {
 
 class DropTempsInstr : public Definition {
  public:
-  explicit DropTempsInstr(intptr_t num_temps, Value* value = NULL)
+  DropTempsInstr(intptr_t num_temps, Value* value)
       : num_temps_(num_temps), value_(NULL) {
     if (value != NULL) {
       SetInputAt(0, value);
