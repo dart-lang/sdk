@@ -44,11 +44,6 @@ class DartUnitNavigationComputer {
       return;
     }
     int targetIndex = _addTarget(element);
-    // TODO(scheglov) Fix the enclosing element problem in the incremental
-    // resolver and remove this.
-    if (targetIndex == null) {
-      return;
-    }
     regions.add(
         new protocol.NavigationRegion(offset, length, <int>[targetIndex]));
   }
@@ -59,11 +54,6 @@ class DartUnitNavigationComputer {
       index = targets.length;
       protocol.NavigationTarget target =
           protocol.newNavigationTarget_fromElement(element, _addFile);
-      // TODO(scheglov) Fix the enclosing element problem in the incremental
-      // resolver and remove this.
-      if (target == null) {
-        return null;
-      }
       targets.add(target);
       targetMap[element] = index;
     }

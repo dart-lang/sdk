@@ -230,11 +230,6 @@ NavigationTarget newNavigationTarget_fromElement(engine.Element element,
     int fileToIndex(String file)) {
   ElementKind kind = newElementKind_fromEngine(element.kind);
   Location location = newLocation_fromElement(element);
-  // TODO(scheglov) Fix the enclosing element problem in the incremental
-  // resolver and remove this.
-  if (location == null) {
-    return null;
-  }
   String file = location.file;
   int fileIndex = fileToIndex(file);
   return new NavigationTarget(

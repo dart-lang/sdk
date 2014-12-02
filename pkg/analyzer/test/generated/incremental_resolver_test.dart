@@ -1891,6 +1891,16 @@ class B extends A {
     _resolve(_editString('+', '*'), _isExpression);
   }
 
+  void test_function_localFunction_add() {
+    _resolveUnit(r'''
+int main() {
+  return 0;
+}
+callIt(f) {}
+''');
+    _resolve(_editString('return 0;', 'callIt((p) {});'), _isBlock);
+  }
+
   void test_functionBody_body() {
     _resolveUnit(r'''
 main(int a, int b) {
@@ -1933,6 +1943,18 @@ class A {
 }
 ''');
     _resolve(_editString('return', 'label: return'), _isBlock);
+  }
+
+  void test_method_localFunction_add() {
+    _resolveUnit(r'''
+class A {
+  int m() {
+    return 0;
+  }
+}
+callIt(f) {}
+''');
+    _resolve(_editString('return 0;', 'callIt((p) {});'), _isBlock);
   }
 
   void test_method_localVariable_add() {

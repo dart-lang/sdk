@@ -848,6 +848,7 @@ class IncrementalResolver {
         }
       }
       // update the old Element
+      oldElement.functions = newElement.functions;
       oldElement.labels = newElement.labels;
       oldElement.localVariables = newElement.localVariables;
     }
@@ -865,6 +866,7 @@ class IncrementalResolver {
         }
       }
       // update the old Element
+      oldElement.functions = newElement.functions;
       oldElement.labels = newElement.labels;
       oldElement.localVariables = newElement.localVariables;
     }
