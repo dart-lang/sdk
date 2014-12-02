@@ -3673,6 +3673,13 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
                       FieldAddress(value, hi_offset),
                       temp,
                       out_of_range);
+  } else if (!CanDeoptimize()) {
+    ASSERT(value == result);
+    Label done;
+    __ SmiUntag(value);
+    __ j(NOT_CARRY, &done);
+    __ movl(value, Address(value, TIMES_2, lo_offset));
+    __ Bind(&done);
   } else {
     ASSERT(value == result);
     Label done;

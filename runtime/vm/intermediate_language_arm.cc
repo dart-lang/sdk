@@ -3986,6 +3986,11 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ SmiUntag(out, value);
   } else if (value_cid == kMintCid) {
     LoadInt32FromMint(compiler, value, out, temp, out_of_range);
+  } else if (!CanDeoptimize()) {
+    Label done;
+    __ SmiUntag(out, value, &done);
+    LoadInt32FromMint(compiler, value, out, kNoRegister, NULL);
+    __ Bind(&done);
   } else {
     Label done;
     __ SmiUntag(out, value, &done);

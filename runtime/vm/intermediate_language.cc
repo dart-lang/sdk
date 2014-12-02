@@ -1202,6 +1202,10 @@ bool UnboxInt32Instr::CanDeoptimize() const {
     return !is_truncating() &&
         !RangeUtils::Fits(value()->definition()->range(),
                           RangeBoundary::kRangeBoundaryInt32);
+  } else if ((kSmiBits < 32) && value()->Type()->IsInt()) {
+    // Note: we don't support truncation of Bigint values.
+    return !RangeUtils::Fits(value()->definition()->range(),
+                             RangeBoundary::kRangeBoundaryInt32);
   } else {
     return true;
   }
