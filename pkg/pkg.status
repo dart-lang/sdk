@@ -360,6 +360,8 @@ intl/test/message_extraction/failed_extraction_test: Fail, OK # Users dart:io
 intl/test/message_extraction/message_extraction_test: Fail, OK # Uses dart:io.
 intl/test/message_extraction/message_extraction_no_deferred_test: Fail, OK # Uses dart:io.
 intl/test/message_extraction/really_fail_extraction_test: Fail, OK # Users dart:io
+intl/test/message_extraction/embedded_plural_text_after_test: Fail, OK # Uses dart:io.
+intl/test/message_extraction/embedded_plural_text_before_test: Fail, OK # Uses dart:io.
 observe/test/transformer_test: Fail, OK # Uses dart:io.
 observe/test/unique_message_test: Skip # Intended only as a vm test.
 path/test/io_test: Fail, OK # Uses dart:io.
