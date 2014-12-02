@@ -85,7 +85,8 @@ void main(List argv) {
   // Generate code.
   if (args['out'] != null) {
     String outDir = args['out'];
-    var cg = new CodeGenerator(outDir, uri, results.libraries, results.infoMap);
+    var cg = new CodeGenerator(outDir, uri, results.libraries, results.infoMap,
+        results.rules);
     cg.generate();
   }
 

@@ -27,11 +27,13 @@ Results checkProgram(Uri fileUri, {TypeResolver resolver, String sdkDir,
   // Invoke the checker on the entry point.
   _log.info('running checker...');
   TypeProvider provider = resolver.context.typeProvider;
+  var rules = new RestrictedRules(provider);
   final visitor = new ProgramChecker(
-      resolver, new RestrictedRules(provider), fileUri, checkSdk);
+      resolver, rules, fileUri, checkSdk);
   visitor.check();
   visitor.finalizeImports();
-  return new Results(visitor.libraries, visitor.infoMap, visitor.failure);
+  return new Results(visitor.libraries, visitor.infoMap, rules,
+      visitor.failure);
 }
 
 /// Represents a summary of the results collected by running the program
@@ -39,9 +41,10 @@ Results checkProgram(Uri fileUri, {TypeResolver resolver, String sdkDir,
 class Results {
   final Map<Uri, Library> libraries;
   final Map<AstNode, List<StaticInfo>> infoMap;
+  final TypeRules rules;
   final bool failure;
 
-  Results(this.libraries, this.infoMap, this.failure);
+  Results(this.libraries, this.infoMap, this.rules, this.failure);
 }
 
 /// Holds information about a Dart library.

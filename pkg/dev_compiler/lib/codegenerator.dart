@@ -7,6 +7,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
 import 'src/static_info.dart';
+import 'src/type_rules.dart';
 import 'typechecker.dart';
 
 class OutWriter {
@@ -61,10 +62,12 @@ class UnitGenerator extends GeneralizingAstVisitor {
   final String libName;
   final CompilationUnit unit;
   final Map<AstNode, List<StaticInfo>> infoMap;
+  final TypeRules rules;
   OutWriter out = null;
 
   UnitGenerator(
-      this.uri, this.unit, this.directory, this.libName, this.infoMap);
+      this.uri, this.unit, this.directory, this.libName, this.infoMap,
+          this.rules);
 
   DynamicInvoke _processDynamicInvoke(AstNode node) {
     DynamicInvoke result = null;
@@ -289,22 +292,33 @@ var $name = (function () {
     return node;
   }
 
-  AstNode visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    _reportUnimplementedConversions(node);
-
-    var declarations = node.variables.variables;
+  void _generateVariableList(VariableDeclarationList list, bool lazy) {
+    // TODO(vsm): Detect when we can avoid wrapping in function.
+    var prefix = lazy ? 'function () { return ' : '';
+    var postfix = lazy ? '; }()' : '';
+    var declarations = list.variables;
     for (var declaration in declarations) {
       var name = declaration.name.name;
       var initializer = declaration.initializer;
       if (initializer == null) {
         out.write('var $name;\n');
       } else {
-        // TODO(vsm): Check for conversion.
-        out.write('var $name = ');
+        out.write('var $name = $prefix');
         initializer.accept(this);
-        out.write(';\n');
+        out.write('$postfix;\n');
       }
     }
+  }
+
+  AstNode visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    _reportUnimplementedConversions(node);
+    _generateVariableList(node.variables, true);
+    return node;
+  }
+
+  AstNode visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    _reportUnimplementedConversions(node);
+    _generateVariableList(node.variables, false);
     return node;
   }
 
@@ -326,6 +340,36 @@ var $name = (function () {
     node.constructorName.accept(this);
     out.write('(');
     node.argumentList.accept(this);
+    out.write(')');
+    return node;
+  }
+
+  AstNode visitBinaryExpression(BinaryExpression node) {
+    _reportUnimplementedConversions(node);
+
+    var op = node.operator;
+    var lhs = node.leftOperand;
+    var rhs = node.rightOperand;
+
+    var dispatchType = rules.getStaticType(lhs);
+    if (rules.isPrimitive(dispatchType)) {
+      // TODO(vsm): When do Dart ops not map to JS?
+      assert(rules.isPrimitive(rules.getStaticType(rhs)));
+      lhs.accept(this);
+      out.write(' $op ');
+      rhs.accept(this);
+    } else {
+      // TODO(vsm): Figure out operator calling convention / dispatch.
+      out.write('/* Unimplemented binary operator: $node */');
+    }
+
+    return node;
+  }
+
+  AstNode visitParenthesizedExpression(ParenthesizedExpression node) {
+    _reportUnimplementedConversions(node);
+    out.write('(');
+    node.expression.accept(this);
     out.write(')');
     return node;
   }
@@ -410,11 +454,12 @@ class LibraryGenerator {
   final Library library;
   final Directory dir;
   final Map<AstNode, List<StaticInfo>> info;
+  final TypeRules rules;
 
-  LibraryGenerator(this.name, this.library, this.dir, this.info);
+  LibraryGenerator(this.name, this.library, this.dir, this.info, this.rules);
 
   void generateUnit(Uri uri, CompilationUnit unit) {
-    var unitGen = new UnitGenerator(uri, unit, dir, name, info);
+    var unitGen = new UnitGenerator(uri, unit, dir, name, info, rules);
     unitGen.generate();
   }
 
@@ -431,8 +476,9 @@ class CodeGenerator {
   final Uri root;
   final Map<Uri, Library> libraries;
   final Map<AstNode, List<StaticInfo>> info;
+  final TypeRules rules;
 
-  CodeGenerator(this.outDir, this.root, this.libraries, this.info);
+  CodeGenerator(this.outDir, this.root, this.libraries, this.info, this.rules);
 
   String _libName(Library lib) {
     for (var directive in lib.lib.directives) {
@@ -455,7 +501,7 @@ class CodeGenerator {
       var dir = new Directory.fromUri(out.resolve(name));
       dir.createSync();
 
-      var libgen = new LibraryGenerator(name, lib, dir, info);
+      var libgen = new LibraryGenerator(name, lib, dir, info, rules);
       libgen.generate();
     });
   }
