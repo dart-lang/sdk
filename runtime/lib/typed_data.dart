@@ -275,40 +275,6 @@ abstract class _TypedListBase {
     return IterableMixinWorkaround.expand(this, f);
   }
 
-  // The following methods need to know the element type (int or double).
-  Iterable where(bool f(element)) {
-    return new IterableMixinWorkaround().where(this, f);
-  }
-
-  Iterable take(int n) {
-    return new IterableMixinWorkaround().takeList(this, n);
-  }
-
-  Iterable takeWhile(bool test(element)) {
-    return new IterableMixinWorkaround().takeWhile(this, test);
-  }
-
-  Iterable skip(int n) {
-    return new IterableMixinWorkaround().skipList(this, n);
-  }
-
-  Iterable skipWhile(bool test(element)) {
-    return new IterableMixinWorkaround().skipWhile(this, test);
-  }
-
-  Iterable<dynamic> get reversed {
-    return new IterableMixinWorkaround().reversedList(this);
-  }
-
-  Map<int, dynamic> asMap() {
-    return new IterableMixinWorkaround().asMapList(this);
-  }
-
-  Iterable getRange(int start, [int end]) {
-    return new IterableMixinWorkaround().getRangeList(this, start, end);
-  }
-  // End of methods returning incorrectly parameterized types.
-
   bool every(bool f(element)) {
     return IterableMixinWorkaround.every(this, f);
   }
@@ -535,6 +501,142 @@ abstract class _TypedListBase {
 }
 
 
+class _IntListMixin {
+  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+
+  Iterable<int> take(int n) => new SubListIterable<int>(this, 0, n);
+
+  Iterable<int> takeWhile(bool test(int element)) =>
+    new TakeWhileIterable<int>(this, test);
+
+  Iterable<int> skip(int n) => new SubListIterable<int>(this, n, null);
+
+  Iterable<int> skipWhile(bool test(element)) =>
+    new SkipWhileIterable<int>(this, test);
+
+  Iterable<int> get reversed => new ReversedListIterable<int>(this);
+
+  Map<int, int> asMap() => new ListMapView<int>(this);
+
+  Iterable<int> getRange(int start, [int end]) {
+    RangeError.checkValidRange(start, end, this.length);
+    return new SubListIterable<int>(this, start, end);
+  }
+
+  Iterator<int> get iterator => new _TypedListIterator<int>(this);
+}
+
+
+class _DoubleListMixin {
+  Iterable<double> where(bool f(int element)) =>
+    new WhereIterable<double>(this, f);
+
+  Iterable<double> take(int n) => new SubListIterable<double>(this, 0, n);
+
+  Iterable<double> takeWhile(bool test(int element)) =>
+    new TakeWhileIterable<double>(this, test);
+
+  Iterable<double> skip(int n) => new SubListIterable<double>(this, n, null);
+
+  Iterable<double> skipWhile(bool test(element)) =>
+    new SkipWhileIterable<double>(this, test);
+
+  Iterable<double> get reversed => new ReversedListIterable<double>(this);
+
+  Map<int, double> asMap() => new ListMapView<double>(this);
+
+  Iterable<double> getRange(int start, [int end]) {
+    RangeError.checkValidRange(start, end, this.length);
+    return new SubListIterable<double>(this, start, end);
+  }
+
+  Iterator<double> get iterator => new _TypedListIterator<double>(this);
+}
+
+
+class _Float32x4ListMixin {
+  Iterable<Float32x4> where(bool f(int element)) =>
+    new WhereIterable<Float32x4>(this, f);
+
+  Iterable<Float32x4> take(int n) => new SubListIterable<Float32x4>(this, 0, n);
+
+  Iterable<Float32x4> takeWhile(bool test(int element)) =>
+    new TakeWhileIterable<Float32x4>(this, test);
+
+  Iterable<Float32x4> skip(int n) =>
+    new SubListIterable<Float32x4>(this, n, null);
+
+  Iterable<Float32x4> skipWhile(bool test(element)) =>
+    new SkipWhileIterable<Float32x4>(this, test);
+
+  Iterable<Float32x4> get reversed => new ReversedListIterable<Float32x4>(this);
+
+  Map<int, Float32x4> asMap() => new ListMapView<Float32x4>(this);
+
+  Iterable<Float32x4> getRange(int start, [int end]) {
+    RangeError.checkValidRange(start, end, this.length);
+    return new SubListIterable<Float32x4>(this, start, end);
+  }
+
+  Iterator<Float32x4> get iterator => new _TypedListIterator<Float32x4>(this);
+}
+
+
+class _Int32x4ListMixin {
+  Iterable<Int32x4> where(bool f(int element)) =>
+    new WhereIterable<Int32x4>(this, f);
+
+  Iterable<Int32x4> take(int n) => new SubListIterable<Int32x4>(this, 0, n);
+
+  Iterable<Int32x4> takeWhile(bool test(int element)) =>
+    new TakeWhileIterable<Int32x4>(this, test);
+
+  Iterable<Int32x4> skip(int n) => new SubListIterable<Int32x4>(this, n, null);
+
+  Iterable<Int32x4> skipWhile(bool test(element)) =>
+    new SkipWhileIterable<Int32x4>(this, test);
+
+  Iterable<Int32x4> get reversed => new ReversedListIterable<Int32x4>(this);
+
+  Map<int, Int32x4> asMap() => new ListMapView<Int32x4>(this);
+
+  Iterable<Int32x4> getRange(int start, [int end]) {
+    RangeError.checkValidRange(start, end, this.length);
+    return new SubListIterable<Int32x4>(this, start, end);
+  }
+
+  Iterator<Int32x4> get iterator => new _TypedListIterator<Int32x4>(this);
+}
+
+
+class _Float64x2ListMixin {
+  Iterable<Float64x2> where(bool f(int element)) =>
+    new WhereIterable<Float64x2>(this, f);
+
+  Iterable<Float64x2> take(int n) => new SubListIterable<Float64x2>(this, 0, n);
+
+  Iterable<Float64x2> takeWhile(bool test(int element)) =>
+    new TakeWhileIterable<Float64x2>(this, test);
+
+  Iterable<Float64x2> skip(int n) =>
+    new SubListIterable<Float64x2>(this, n, null);
+
+  Iterable<Float64x2> skipWhile(bool test(element)) =>
+    new SkipWhileIterable<Float64x2>(this, test);
+
+  Iterable<Float64x2> get reversed => new ReversedListIterable<Float64x2>(this);
+
+  Map<int, Float64x2> asMap() => new ListMapView<Float64x2>(this);
+
+  Iterable<Float64x2> getRange(int start, [int end]) {
+    RangeError.checkValidRange(start, end, this.length);
+    return new SubListIterable<Float64x2>(this, start, end);
+  }
+
+  Iterator<Float64x2> get iterator => new _TypedListIterator<Float64x2>(this);
+}
+
+
 class _ByteBuffer implements ByteBuffer {
   final _TypedList _data;
 
@@ -730,7 +832,7 @@ abstract class _TypedList extends _TypedListBase {
 }
 
 
-class _Int8Array extends _TypedList implements Int8List {
+class _Int8Array extends _TypedList with _IntListMixin implements Int8List {
   // Factory constructors.
 
   factory _Int8Array(int length) {
@@ -754,10 +856,6 @@ class _Int8Array extends _TypedList implements Int8List {
     _setInt8(index, _toInt8(value));
   }
 
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
-  }
-
 
   // Method(s) implementing TypedData interface.
 
@@ -776,7 +874,7 @@ class _Int8Array extends _TypedList implements Int8List {
 }
 
 
-class _Uint8Array extends _TypedList implements Uint8List {
+class _Uint8Array extends _TypedList with _IntListMixin implements Uint8List {
   // Factory constructors.
 
   factory _Uint8Array(int length) {
@@ -799,10 +897,6 @@ class _Uint8Array extends _TypedList implements Uint8List {
     _setUint8(index, _toUint8(value));
   }
 
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
-  }
-
 
   // Methods implementing TypedData interface.
   int get elementSizeInBytes {
@@ -820,7 +914,7 @@ class _Uint8Array extends _TypedList implements Uint8List {
 }
 
 
-class _Uint8ClampedArray extends _TypedList implements Uint8ClampedList {
+class _Uint8ClampedArray extends _TypedList with _IntListMixin implements Uint8ClampedList {
   // Factory constructors.
 
   factory _Uint8ClampedArray(int length) {
@@ -843,10 +937,6 @@ class _Uint8ClampedArray extends _TypedList implements Uint8ClampedList {
     _setUint8(index, _toClampedUint8(value));
   }
 
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
-  }
-
 
   // Methods implementing TypedData interface.
   int get elementSizeInBytes {
@@ -865,7 +955,7 @@ class _Uint8ClampedArray extends _TypedList implements Uint8ClampedList {
 }
 
 
-class _Int16Array extends _TypedList implements Int16List {
+class _Int16Array extends _TypedList with _IntListMixin implements Int16List {
   // Factory constructors.
 
   factory _Int16Array(int length) {
@@ -887,10 +977,6 @@ class _Int16Array extends _TypedList implements Int16List {
       _throwRangeError(index, length);
     }
     _setIndexedInt16(index, _toInt16(value));
-  }
-
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
   }
 
 
@@ -919,7 +1005,7 @@ class _Int16Array extends _TypedList implements Int16List {
 }
 
 
-class _Uint16Array extends _TypedList implements Uint16List {
+class _Uint16Array extends _TypedList with _IntListMixin implements Uint16List {
   // Factory constructors.
 
   factory _Uint16Array(int length) {
@@ -941,10 +1027,6 @@ class _Uint16Array extends _TypedList implements Uint16List {
       _throwRangeError(index, length);
     }
     _setIndexedUint16(index, _toUint16(value));
-  }
-
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
   }
 
 
@@ -973,7 +1055,7 @@ class _Uint16Array extends _TypedList implements Uint16List {
 }
 
 
-class _Int32Array extends _TypedList implements Int32List {
+class _Int32Array extends _TypedList with _IntListMixin implements Int32List {
   // Factory constructors.
 
   factory _Int32Array(int length) {
@@ -995,10 +1077,6 @@ class _Int32Array extends _TypedList implements Int32List {
       _throwRangeError(index, length);
     }
     _setIndexedInt32(index, _toInt32(value));
-  }
-
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
   }
 
 
@@ -1027,7 +1105,7 @@ class _Int32Array extends _TypedList implements Int32List {
 }
 
 
-class _Uint32Array extends _TypedList implements Uint32List {
+class _Uint32Array extends _TypedList with _IntListMixin implements Uint32List {
   // Factory constructors.
 
   factory _Uint32Array(int length) {
@@ -1049,10 +1127,6 @@ class _Uint32Array extends _TypedList implements Uint32List {
       _throwRangeError(index, length);
     }
     _setIndexedUint32(index, _toUint32(value));
-  }
-
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
   }
 
 
@@ -1081,7 +1155,7 @@ class _Uint32Array extends _TypedList implements Uint32List {
 }
 
 
-class _Int64Array extends _TypedList implements Int64List {
+class _Int64Array extends _TypedList with _IntListMixin implements Int64List {
   // Factory constructors.
 
   factory _Int64Array(int length) {
@@ -1103,10 +1177,6 @@ class _Int64Array extends _TypedList implements Int64List {
       _throwRangeError(index, length);
     }
     _setIndexedInt64(index, _toInt64(value));
-  }
-
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
   }
 
 
@@ -1135,7 +1205,7 @@ class _Int64Array extends _TypedList implements Int64List {
 }
 
 
-class _Uint64Array extends _TypedList implements Uint64List {
+class _Uint64Array extends _TypedList with _IntListMixin implements Uint64List {
   // Factory constructors.
 
   factory _Uint64Array(int length) {
@@ -1157,10 +1227,6 @@ class _Uint64Array extends _TypedList implements Uint64List {
       _throwRangeError(index, length);
     }
     _setIndexedUint64(index, _toUint64(value));
-  }
-
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
   }
 
 
@@ -1189,7 +1255,7 @@ class _Uint64Array extends _TypedList implements Uint64List {
 }
 
 
-class _Float32Array extends _TypedList implements Float32List {
+class _Float32Array extends _TypedList with _DoubleListMixin implements Float32List {
   // Factory constructors.
 
   factory _Float32Array(int length) {
@@ -1211,10 +1277,6 @@ class _Float32Array extends _TypedList implements Float32List {
       _throwRangeError(index, length);
     }
     _setIndexedFloat32(index, value);
-  }
-
-  Iterator<double> get iterator {
-    return new _TypedListIterator<double>(this);
   }
 
 
@@ -1243,7 +1305,7 @@ class _Float32Array extends _TypedList implements Float32List {
 }
 
 
-class _Float64Array extends _TypedList implements Float64List {
+class _Float64Array extends _TypedList with _DoubleListMixin implements Float64List {
   // Factory constructors.
 
   factory _Float64Array(int length) {
@@ -1265,10 +1327,6 @@ class _Float64Array extends _TypedList implements Float64List {
       _throwRangeError(index, length);
     }
     _setIndexedFloat64(index, value);
-  }
-
-  Iterator<double> get iterator {
-    return new _TypedListIterator<double>(this);
   }
 
 
@@ -1297,7 +1355,7 @@ class _Float64Array extends _TypedList implements Float64List {
 }
 
 
-class _Float32x4Array extends _TypedList implements Float32x4List {
+class _Float32x4Array extends _TypedList with _Float32x4ListMixin implements Float32x4List {
   // Factory constructors.
 
   factory _Float32x4Array(int length) {
@@ -1317,10 +1375,6 @@ class _Float32x4Array extends _TypedList implements Float32x4List {
       _throwRangeError(index, length);
     }
     _setIndexedFloat32x4(index, value);
-  }
-
-  Iterator<Float32x4> get iterator {
-    return new _TypedListIterator<Float32x4>(this);
   }
 
 
@@ -1349,7 +1403,7 @@ class _Float32x4Array extends _TypedList implements Float32x4List {
 }
 
 
-class _Int32x4Array extends _TypedList implements Int32x4List {
+class _Int32x4Array extends _TypedList with _Int32x4ListMixin implements Int32x4List {
   // Factory constructors.
 
   factory _Int32x4Array(int length) {
@@ -1369,10 +1423,6 @@ class _Int32x4Array extends _TypedList implements Int32x4List {
       _throwRangeError(index, length);
     }
     _setIndexedInt32x4(index, value);
-  }
-
-  Iterator<Int32x4> get iterator {
-    return new _TypedListIterator<Int32x4>(this);
   }
 
 
@@ -1401,7 +1451,7 @@ class _Int32x4Array extends _TypedList implements Int32x4List {
 }
 
 
-class _Float64x2Array extends _TypedList implements Float64x2List {
+class _Float64x2Array extends _TypedList with _Float64x2ListMixin implements Float64x2List {
   // Factory constructors.
 
   factory _Float64x2Array(int length) {
@@ -1421,10 +1471,6 @@ class _Float64x2Array extends _TypedList implements Float64x2List {
       _throwRangeError(index, length);
     }
     _setIndexedFloat64x2(index, value);
-  }
-
-  Iterator<Float64x2> get iterator {
-    return new _TypedListIterator<Float64x2>(this);
   }
 
 
@@ -1453,7 +1499,7 @@ class _Float64x2Array extends _TypedList implements Float64x2List {
 }
 
 
-class _ExternalInt8Array extends _TypedList implements Int8List {
+class _ExternalInt8Array extends _TypedList with _IntListMixin implements Int8List {
   // Factory constructors.
 
   factory _ExternalInt8Array(int length) {
@@ -1476,10 +1522,6 @@ class _ExternalInt8Array extends _TypedList implements Int8List {
     _setInt8(index, value);
   }
 
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
-  }
-
 
   // Method(s) implementing the TypedData interface.
 
@@ -1499,7 +1541,7 @@ class _ExternalInt8Array extends _TypedList implements Int8List {
 }
 
 
-class _ExternalUint8Array extends _TypedList implements Uint8List {
+class _ExternalUint8Array extends _TypedList with _IntListMixin implements Uint8List {
   // Factory constructors.
 
   factory _ExternalUint8Array(int length) {
@@ -1523,10 +1565,6 @@ class _ExternalUint8Array extends _TypedList implements Uint8List {
     _setUint8(index, _toUint8(value));
   }
 
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
-  }
-
 
   // Method(s) implementing the TypedData interface.
 
@@ -1546,7 +1584,7 @@ class _ExternalUint8Array extends _TypedList implements Uint8List {
 }
 
 
-class _ExternalUint8ClampedArray extends _TypedList implements Uint8ClampedList {
+class _ExternalUint8ClampedArray extends _TypedList with _IntListMixin implements Uint8ClampedList {
   // Factory constructors.
 
   factory _ExternalUint8ClampedArray(int length) {
@@ -1569,10 +1607,6 @@ class _ExternalUint8ClampedArray extends _TypedList implements Uint8ClampedList 
     _setUint8(index, _toClampedUint8(value));
   }
 
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
-  }
-
 
   // Method(s) implementing the TypedData interface.
 
@@ -1592,7 +1626,7 @@ class _ExternalUint8ClampedArray extends _TypedList implements Uint8ClampedList 
 }
 
 
-class _ExternalInt16Array extends _TypedList implements Int16List {
+class _ExternalInt16Array extends _TypedList with _IntListMixin implements Int16List {
   // Factory constructors.
 
   factory _ExternalInt16Array(int length) {
@@ -1614,10 +1648,6 @@ class _ExternalInt16Array extends _TypedList implements Int16List {
       _throwRangeError(index, length);
     }
     _setIndexedInt16(index, _toInt16(value));
-  }
-
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
   }
 
 
@@ -1647,7 +1677,7 @@ class _ExternalInt16Array extends _TypedList implements Int16List {
 }
 
 
-class _ExternalUint16Array extends _TypedList implements Uint16List {
+class _ExternalUint16Array extends _TypedList with _IntListMixin implements Uint16List {
   // Factory constructors.
 
   factory _ExternalUint16Array(int length) {
@@ -1669,10 +1699,6 @@ class _ExternalUint16Array extends _TypedList implements Uint16List {
       _throwRangeError(index, length);
     }
     _setIndexedUint16(index, _toUint16(value));
-  }
-
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
   }
 
 
@@ -1702,7 +1728,7 @@ class _ExternalUint16Array extends _TypedList implements Uint16List {
 }
 
 
-class _ExternalInt32Array extends _TypedList implements Int32List {
+class _ExternalInt32Array extends _TypedList with _IntListMixin implements Int32List {
   // Factory constructors.
 
   factory _ExternalInt32Array(int length) {
@@ -1724,10 +1750,6 @@ class _ExternalInt32Array extends _TypedList implements Int32List {
       _throwRangeError(index, length);
     }
     _setIndexedInt32(index, _toInt32(value));
-  }
-
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
   }
 
 
@@ -1757,7 +1779,7 @@ class _ExternalInt32Array extends _TypedList implements Int32List {
 }
 
 
-class _ExternalUint32Array extends _TypedList implements Uint32List {
+class _ExternalUint32Array extends _TypedList with _IntListMixin implements Uint32List {
   // Factory constructors.
 
   factory _ExternalUint32Array(int length) {
@@ -1779,10 +1801,6 @@ class _ExternalUint32Array extends _TypedList implements Uint32List {
       _throwRangeError(index, length);
     }
     _setIndexedUint32(index, _toUint32(value));
-  }
-
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
   }
 
 
@@ -1812,7 +1830,7 @@ class _ExternalUint32Array extends _TypedList implements Uint32List {
 }
 
 
-class _ExternalInt64Array extends _TypedList implements Int64List {
+class _ExternalInt64Array extends _TypedList with _IntListMixin implements Int64List {
   // Factory constructors.
 
   factory _ExternalInt64Array(int length) {
@@ -1834,10 +1852,6 @@ class _ExternalInt64Array extends _TypedList implements Int64List {
       _throwRangeError(index, length);
     }
     _setIndexedInt64(index, _toInt64(value));
-  }
-
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
   }
 
 
@@ -1867,7 +1881,7 @@ class _ExternalInt64Array extends _TypedList implements Int64List {
 }
 
 
-class _ExternalUint64Array extends _TypedList implements Uint64List {
+class _ExternalUint64Array extends _TypedList with _IntListMixin implements Uint64List {
   // Factory constructors.
 
   factory _ExternalUint64Array(int length) {
@@ -1889,10 +1903,6 @@ class _ExternalUint64Array extends _TypedList implements Uint64List {
       _throwRangeError(index, length);
     }
     _setIndexedUint64(index, _toUint64(value));
-  }
-
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
   }
 
 
@@ -1922,7 +1932,7 @@ class _ExternalUint64Array extends _TypedList implements Uint64List {
 }
 
 
-class _ExternalFloat32Array extends _TypedList implements Float32List {
+class _ExternalFloat32Array extends _TypedList with _DoubleListMixin implements Float32List {
   // Factory constructors.
 
   factory _ExternalFloat32Array(int length) {
@@ -1944,10 +1954,6 @@ class _ExternalFloat32Array extends _TypedList implements Float32List {
       _throwRangeError(index, length);
     }
     _setIndexedFloat32(index, value);
-  }
-
-  Iterator<double> get iterator {
-    return new _TypedListIterator<double>(this);
   }
 
 
@@ -1977,7 +1983,7 @@ class _ExternalFloat32Array extends _TypedList implements Float32List {
 }
 
 
-class _ExternalFloat64Array extends _TypedList implements Float64List {
+class _ExternalFloat64Array extends _TypedList with _DoubleListMixin implements Float64List {
   // Factory constructors.
 
   factory _ExternalFloat64Array(int length) {
@@ -1999,10 +2005,6 @@ class _ExternalFloat64Array extends _TypedList implements Float64List {
       _throwRangeError(index, length);
     }
     _setIndexedFloat64(index, value);
-  }
-
-  Iterator<double> get iterator {
-    return new _TypedListIterator<double>(this);
   }
 
 
@@ -2032,7 +2034,7 @@ class _ExternalFloat64Array extends _TypedList implements Float64List {
 }
 
 
-class _ExternalFloat32x4Array extends _TypedList implements Float32x4List {
+class _ExternalFloat32x4Array extends _TypedList with _Float32x4ListMixin implements Float32x4List {
   // Factory constructors.
 
   factory _ExternalFloat32x4Array(int length) {
@@ -2054,10 +2056,6 @@ class _ExternalFloat32x4Array extends _TypedList implements Float32x4List {
       _throwRangeError(index, length);
     }
     _setIndexedFloat32x4(index, value);
-  }
-
-  Iterator<Float32x4> get iterator {
-    return new _TypedListIterator<Float32x4>(this);
   }
 
 
@@ -2087,7 +2085,7 @@ class _ExternalFloat32x4Array extends _TypedList implements Float32x4List {
 }
 
 
-class _ExternalInt32x4Array extends _TypedList implements Int32x4List {
+class _ExternalInt32x4Array extends _TypedList with _Int32x4ListMixin implements Int32x4List {
   // Factory constructors.
 
   factory _ExternalInt32x4Array(int length) {
@@ -2109,10 +2107,6 @@ class _ExternalInt32x4Array extends _TypedList implements Int32x4List {
       _throwRangeError(index, length);
     }
     _setIndexedInt32x4(index, value);
-  }
-
-  Iterator<Int32x4> get iterator {
-    return new _TypedListIterator<Int32x4>(this);
   }
 
 
@@ -2142,7 +2136,7 @@ class _ExternalInt32x4Array extends _TypedList implements Int32x4List {
 }
 
 
-class _ExternalFloat64x2Array extends _TypedList implements Float64x2List {
+class _ExternalFloat64x2Array extends _TypedList with _Float64x2ListMixin implements Float64x2List {
   // Factory constructors.
 
   factory _ExternalFloat64x2Array(int length) {
@@ -2164,10 +2158,6 @@ class _ExternalFloat64x2Array extends _TypedList implements Float64x2List {
       _throwRangeError(index, length);
     }
     _setIndexedFloat64x2(index, value);
-  }
-
-  Iterator<Float64x2> get iterator {
-    return new _TypedListIterator<Float64x2>(this);
   }
 
 
@@ -2469,7 +2459,7 @@ class _TypedListView extends _TypedListBase implements TypedData {
 }
 
 
-class _Int8ArrayView extends _TypedListView implements Int8List {
+class _Int8ArrayView extends _TypedListView with _IntListMixin implements Int8List {
   // Constructor.
   _Int8ArrayView(ByteBuffer buffer, [int _offsetInBytes = 0, int _length])
     : super(buffer, _offsetInBytes,
@@ -2500,10 +2490,6 @@ class _Int8ArrayView extends _TypedListView implements Int8List {
                         _toInt8(value));
   }
 
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
-  }
-
 
   // Method(s) implementing TypedData interface.
 
@@ -2520,7 +2506,7 @@ class _Int8ArrayView extends _TypedListView implements Int8List {
 }
 
 
-class _Uint8ArrayView extends _TypedListView implements Uint8List {
+class _Uint8ArrayView extends _TypedListView with _IntListMixin implements Uint8List {
   // Constructor.
   _Uint8ArrayView(ByteBuffer buffer, [int _offsetInBytes = 0, int _length])
     : super(buffer, _offsetInBytes,
@@ -2551,10 +2537,6 @@ class _Uint8ArrayView extends _TypedListView implements Uint8List {
                          _toUint8(value));
   }
 
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
-  }
-
 
   // Method(s) implementing TypedData interface.
 
@@ -2571,7 +2553,7 @@ class _Uint8ArrayView extends _TypedListView implements Uint8List {
 }
 
 
-class _Uint8ClampedArrayView extends _TypedListView implements Uint8ClampedList {
+class _Uint8ClampedArrayView extends _TypedListView with _IntListMixin implements Uint8ClampedList {
   // Constructor.
   _Uint8ClampedArrayView(ByteBuffer buffer,
                          [int _offsetInBytes = 0, int _length])
@@ -2603,10 +2585,6 @@ class _Uint8ClampedArrayView extends _TypedListView implements Uint8ClampedList 
                          _toClampedUint8(value));
   }
 
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
-  }
-
 
   // Method(s) implementing TypedData interface.
 
@@ -2623,7 +2601,7 @@ class _Uint8ClampedArrayView extends _TypedListView implements Uint8ClampedList 
 }
 
 
-class _Int16ArrayView extends _TypedListView implements Int16List {
+class _Int16ArrayView extends _TypedListView with _IntListMixin implements Int16List {
   // Constructor.
   _Int16ArrayView(ByteBuffer buffer, [int _offsetInBytes = 0, int _length])
     : super(buffer, _offsetInBytes,
@@ -2655,10 +2633,6 @@ class _Int16ArrayView extends _TypedListView implements Int16List {
                          _toInt16(value));
   }
 
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
-  }
-
 
   // Method(s) implementing TypedData interface.
 
@@ -2675,7 +2649,7 @@ class _Int16ArrayView extends _TypedListView implements Int16List {
 }
 
 
-class _Uint16ArrayView extends _TypedListView implements Uint16List {
+class _Uint16ArrayView extends _TypedListView with _IntListMixin implements Uint16List {
   // Constructor.
   _Uint16ArrayView(ByteBuffer buffer, [int _offsetInBytes = 0, int _length])
     : super(buffer, _offsetInBytes,
@@ -2707,10 +2681,6 @@ class _Uint16ArrayView extends _TypedListView implements Uint16List {
                           _toUint16(value));
   }
 
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
-  }
-
 
   // Method(s) implementing TypedData interface.
 
@@ -2727,7 +2697,7 @@ class _Uint16ArrayView extends _TypedListView implements Uint16List {
 }
 
 
-class _Int32ArrayView extends _TypedListView implements Int32List {
+class _Int32ArrayView extends _TypedListView with _IntListMixin implements Int32List {
   // Constructor.
   _Int32ArrayView(ByteBuffer buffer, [int _offsetInBytes = 0, int _length])
     : super(buffer, _offsetInBytes,
@@ -2759,10 +2729,6 @@ class _Int32ArrayView extends _TypedListView implements Int32List {
                          _toInt32(value));
   }
 
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
-  }
-
 
   // Method(s) implementing TypedData interface.
 
@@ -2779,7 +2745,7 @@ class _Int32ArrayView extends _TypedListView implements Int32List {
 }
 
 
-class _Uint32ArrayView extends _TypedListView implements Uint32List {
+class _Uint32ArrayView extends _TypedListView with _IntListMixin implements Uint32List {
   // Constructor.
   _Uint32ArrayView(ByteBuffer buffer, [int _offsetInBytes = 0, int _length])
     : super(buffer, _offsetInBytes,
@@ -2811,10 +2777,6 @@ class _Uint32ArrayView extends _TypedListView implements Uint32List {
                           _toUint32(value));
   }
 
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
-  }
-
 
   // Method(s) implementing TypedData interface.
 
@@ -2831,7 +2793,7 @@ class _Uint32ArrayView extends _TypedListView implements Uint32List {
 }
 
 
-class _Int64ArrayView extends _TypedListView implements Int64List {
+class _Int64ArrayView extends _TypedListView with _IntListMixin implements Int64List {
   // Constructor.
   _Int64ArrayView(ByteBuffer buffer, [int _offsetInBytes = 0, int _length])
     : super(buffer, _offsetInBytes,
@@ -2863,10 +2825,6 @@ class _Int64ArrayView extends _TypedListView implements Int64List {
                          _toInt64(value));
   }
 
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
-  }
-
 
   // Method(s) implementing TypedData interface.
 
@@ -2883,7 +2841,7 @@ class _Int64ArrayView extends _TypedListView implements Int64List {
 }
 
 
-class _Uint64ArrayView extends _TypedListView implements Uint64List {
+class _Uint64ArrayView extends _TypedListView with _IntListMixin implements Uint64List {
   // Constructor.
   _Uint64ArrayView(ByteBuffer buffer, [int _offsetInBytes = 0, int _length])
     : super(buffer, _offsetInBytes,
@@ -2915,10 +2873,6 @@ class _Uint64ArrayView extends _TypedListView implements Uint64List {
                           _toUint64(value));
   }
 
-  Iterator<int> get iterator {
-    return new _TypedListIterator<int>(this);
-  }
-
 
   // Method(s) implementing TypedData interface.
 
@@ -2935,7 +2889,7 @@ class _Uint64ArrayView extends _TypedListView implements Uint64List {
 }
 
 
-class _Float32ArrayView extends _TypedListView implements Float32List {
+class _Float32ArrayView extends _TypedListView with _DoubleListMixin implements Float32List {
   // Constructor.
   _Float32ArrayView(ByteBuffer buffer, [int _offsetInBytes = 0, int _length])
     : super(buffer, _offsetInBytes,
@@ -2967,10 +2921,6 @@ class _Float32ArrayView extends _TypedListView implements Float32List {
                            (index * Float32List.BYTES_PER_ELEMENT), value);
   }
 
-  Iterator<double> get iterator {
-    return new _TypedListIterator<double>(this);
-  }
-
 
   // Method(s) implementing TypedData interface.
 
@@ -2987,7 +2937,7 @@ class _Float32ArrayView extends _TypedListView implements Float32List {
 }
 
 
-class _Float64ArrayView extends _TypedListView implements Float64List {
+class _Float64ArrayView extends _TypedListView with _DoubleListMixin implements Float64List {
   // Constructor.
   _Float64ArrayView(ByteBuffer buffer, [int _offsetInBytes = 0, int _length])
     : super(buffer, _offsetInBytes,
@@ -3019,10 +2969,6 @@ class _Float64ArrayView extends _TypedListView implements Float64List {
                           (index * Float64List.BYTES_PER_ELEMENT), value);
   }
 
-  Iterator<double> get iterator {
-    return new _TypedListIterator<double>(this);
-  }
-
 
   // Method(s) implementing TypedData interface.
 
@@ -3039,7 +2985,7 @@ class _Float64ArrayView extends _TypedListView implements Float64List {
 }
 
 
-class _Float32x4ArrayView extends _TypedListView implements Float32x4List {
+class _Float32x4ArrayView extends _TypedListView with _Float32x4ListMixin implements Float32x4List {
   // Constructor.
   _Float32x4ArrayView(ByteBuffer buffer, [int _offsetInBytes = 0, int _length])
     : super(buffer, _offsetInBytes,
@@ -3071,10 +3017,6 @@ class _Float32x4ArrayView extends _TypedListView implements Float32x4List {
                              (index * Float32x4List.BYTES_PER_ELEMENT), value);
   }
 
-  Iterator<Float32x4> get iterator {
-    return new _TypedListIterator<Float32x4>(this);
-  }
-
 
   // Method(s) implementing TypedData interface.
 
@@ -3091,7 +3033,7 @@ class _Float32x4ArrayView extends _TypedListView implements Float32x4List {
 }
 
 
-class _Int32x4ArrayView extends _TypedListView implements Int32x4List {
+class _Int32x4ArrayView extends _TypedListView with _Int32x4ListMixin implements Int32x4List {
   // Constructor.
   _Int32x4ArrayView(ByteBuffer buffer, [int _offsetInBytes = 0, int _length])
     : super(buffer, _offsetInBytes,
@@ -3123,10 +3065,6 @@ class _Int32x4ArrayView extends _TypedListView implements Int32x4List {
                             (index * Int32x4List.BYTES_PER_ELEMENT), value);
   }
 
-  Iterator<Int32x4> get iterator {
-    return new _TypedListIterator<Int32x4>(this);
-  }
-
 
   // Method(s) implementing TypedData interface.
 
@@ -3143,7 +3081,7 @@ class _Int32x4ArrayView extends _TypedListView implements Int32x4List {
 }
 
 
-class _Float64x2ArrayView extends _TypedListView implements Float64x2List {
+class _Float64x2ArrayView extends _TypedListView with _Float64x2ListMixin implements Float64x2List {
   // Constructor.
   _Float64x2ArrayView(ByteBuffer buffer, [int _offsetInBytes = 0, int _length])
     : super(buffer, _offsetInBytes,
@@ -3173,10 +3111,6 @@ class _Float64x2ArrayView extends _TypedListView implements Float64x2List {
     }
     _typedData._setFloat64x2(offsetInBytes +
                              (index * Float64x2List.BYTES_PER_ELEMENT), value);
-  }
-
-  Iterator<Float64x2> get iterator {
-    return new _TypedListIterator<Float64x2>(this);
   }
 
 

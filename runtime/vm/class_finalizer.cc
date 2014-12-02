@@ -3101,6 +3101,7 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
     error = cls.EnsureIsFinalized(isolate);
     ASSERT(error.IsNull());
     cls = cls.SuperClass();  // Get it's super class '_TypedListView'.
+    cls = cls.SuperClass();
     fields_array ^= cls.fields();
     ASSERT(fields_array.Length() == TypedDataView::NumberOfFields());
     field ^= fields_array.At(0);
