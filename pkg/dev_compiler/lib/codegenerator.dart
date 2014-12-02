@@ -430,7 +430,6 @@ var $name = (function () {
   };
 
   void writeQualifiedName(Expression target, SimpleIdentifier id) {
-    var prefix = "";
     if (target != null) {
       target.accept(this);
       out.write('.');

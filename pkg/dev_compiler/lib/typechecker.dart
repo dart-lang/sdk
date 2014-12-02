@@ -76,8 +76,6 @@ class ProgramChecker extends RecursiveAstVisitor {
   final List<_WorkListItem> _workList = [];
   final List<_WorkListItem> _partWorkList = [];
 
-  Uri _uri = null;
-
   Uri toUri(String string) {
     // FIXME: Use analyzer's resolver logic.
     if (string.startsWith('package:')) {
@@ -118,7 +116,6 @@ class ProgramChecker extends RecursiveAstVisitor {
       assert(isLibrary);
       return _unitMap[uri];
     }
-    _uri = uri;
     final unit = getCompilationUnit(source, isLibrary);
     _rules.setCompilationUnit(unit);
     _unitMap[uri] = unit;
@@ -208,7 +205,6 @@ class ProgramChecker extends RecursiveAstVisitor {
     final isGetter = element is PropertyAccessorElement && element.isGetter;
     final isSetter = element is PropertyAccessorElement && element.isSetter;
 
-    int kind;
     if (isGetter) {
       assert(!isSetter);
       // Look for getter or field.
