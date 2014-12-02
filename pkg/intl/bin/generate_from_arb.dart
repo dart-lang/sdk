@@ -34,21 +34,26 @@ main(List<String> args) {
   var targetDir;
   var parser = new ArgParser();
   parser.addFlag("suppress-warnings", defaultsTo: false,
-      callback: (x) => suppressWarnings = x);
+      callback: (x) => suppressWarnings = x,
+      help: 'Suppress printing of warnings.');
   parser.addOption("output-dir", defaultsTo: '.',
-      callback: (x) => targetDir = x);
+      callback: (x) => targetDir = x,
+      help: 'Specify the output directory.');
   parser.addOption("generated-file-prefix", defaultsTo: '',
-      callback: (x) => generatedFilePrefix = x);
+      callback: (x) => generatedFilePrefix = x,
+      help: 'Specify a prefix to be used for the generated file names.');
   parser.addFlag("use-deferred-loading", defaultsTo: true,
-      callback: (x) => useDeferredLoading = x);
+      callback: (x) => useDeferredLoading = x,
+      help: 'Generate message code that must be loaded with deferred loading. '
+      'Otherwise, all messages are eagerly loaded.');
   parser.parse(args);
   var dartFiles = args.where((x) => x.endsWith("dart")).toList();
   var jsonFiles = args.where((x) => x.endsWith(".arb")).toList();
   if (dartFiles.length == 0 || jsonFiles.length == 0) {
-    print('Usage: generate_from_arb [--output-dir=<dir>]'
-        ' [--[no-]use-deferred-loading]'
-        ' [--generated-file-prefix=<prefix>] file1.dart file2.dart ...'
+    print('Usage: generate_from_arb [options]'
+        ' file1.dart file2.dart ...'
         ' translation1_<languageTag>.arb translation2.arb ...');
+    print(parser.getUsage());
     exit(0);
   }
 

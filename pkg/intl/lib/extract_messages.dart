@@ -47,6 +47,16 @@ List<String> warnings = [];
 /** Were there any warnings or errors in extracting messages. */
 bool get hasWarnings => warnings.isNotEmpty;
 
+/** Are plural and gender expressions required to be at the top level
+ * of an expression, or are they allowed to be embedded in string literals.
+ *
+ * For example, the following expression
+ *     'There are ${Intl.plural(...)} items'.
+ * is legal if [allowEmbeddedPluralsAndGenders] is true, but illegal
+ * if [allowEmbeddedPluralsAndGenders] is false.
+ */
+bool allowEmbeddedPluralsAndGenders = true;
+
 /**
  * Parse the source of the Dart program file [file] and return a Map from
  * message names to [IntlMessage] instances.
@@ -228,7 +238,8 @@ class MessageFindingVisitor extends GeneralizingAstVisitor {
     message.arguments = parameters.parameters.map(
         (x) => x.identifier.name).toList();
     var arguments = node.argumentList.arguments;
-    extract(message, arguments);
+    var extractionResult = extract(message, arguments);
+    if (extractionResult == null) return null;
 
     for (var namedArgument in arguments.where((x) => x is NamedExpression)) {
       var name = namedArgument.name.label.name;
@@ -249,10 +260,19 @@ class MessageFindingVisitor extends GeneralizingAstVisitor {
    */
   MainMessage messageFromIntlMessageCall(MethodInvocation node) {
 
-    void extractFromIntlCall(MainMessage message, List arguments) {
+    MainMessage extractFromIntlCall(MainMessage message, List arguments) {
       try {
         var interpolation = new InterpolationVisitor(message);
         arguments.first.accept(interpolation);
+        if (interpolation.pieces.any((x) => x is Plural || x is Gender) &&
+            !allowEmbeddedPluralsAndGenders) {
+          if (interpolation.pieces.any((x) => x is String && x.isNotEmpty)) {
+            throw new IntlMessageExtractionException(
+                "Plural and gender expressions must be at the top level, "
+                "they cannot be embedded in larger string literals.\n"
+                "Error at $node");
+          }
+        }
         message.messagePieces.addAll(interpolation.pieces);
       } on IntlMessageExtractionException catch (e) {
         message = null;
@@ -260,8 +280,9 @@ class MessageFindingVisitor extends GeneralizingAstVisitor {
             ..writeAll(["Error ", e, "\nProcessing <", node, ">\n"])
             ..write(_reportErrorLocation(node));
         print(err);
-        warnings.add(err);
+        warnings.add(err.toString());
       }
+      return message; // Because we may have set it to null on an error.
     }
 
     void setValue(MainMessage message, String fieldName, Object fieldValue) {
@@ -279,10 +300,11 @@ class MessageFindingVisitor extends GeneralizingAstVisitor {
   MainMessage messageFromDirectPluralOrGenderCall(MethodInvocation node) {
     var pluralOrGender;
 
-    void extractFromPluralOrGender(MainMessage message, _) {
+    MainMessage extractFromPluralOrGender(MainMessage message, _) {
       var visitor = new PluralAndGenderVisitor(message.messagePieces, message);
       node.accept(visitor);
       pluralOrGender = message.messagePieces.last;
+      return message;
     }
 
     void setAttribute(MainMessage msg, String fieldName, String fieldValue) {
@@ -424,7 +446,7 @@ class PluralAndGenderVisitor extends SimpleAstVisitor {
 
   /**
    * Create a MainMessage from [node] using the name and
-   * parameters of the last function/method declaration we encountered            e
+   * parameters of the last function/method declaration we encountered
    * and the parameters to the Intl.message call.
    */
   Message messageFromMethodInvocation(MethodInvocation node) {
@@ -450,7 +472,7 @@ class PluralAndGenderVisitor extends SimpleAstVisitor {
             ..writeAll(["Error ", e, "\nProcessing <", node, ">"])
             ..write(_reportErrorLocation(node));
         print(err);
-        warnings.add(err);
+        warnings.add(err.toString());
       }
     });
     var mainArg = node.argumentList.arguments.firstWhere(

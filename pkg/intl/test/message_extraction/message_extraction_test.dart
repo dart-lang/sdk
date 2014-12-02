@@ -85,6 +85,8 @@ void copyFilesToTempDirectory() {
       asTestDirPath('part_of_sample_with_messages.dart'),
       asTestDirPath('verify_messages.dart'),
       asTestDirPath('run_and_verify.dart'),
+      asTestDirPath('embedded_plural_text_before.dart'),
+      asTestDirPath('embedded_plural_text_after.dart'),
       asTestDirPath('print_to_list.dart')];
   for (var filename in files) {
     var file = new File(filename);
@@ -150,7 +152,7 @@ Future<ProcessResult> generateTranslationFiles(ProcessResult previousResult) =>
 
 Future<ProcessResult> generateCodeFromTranslation(ProcessResult previousResult)
     => run(previousResult, [asTestDirPath('../../bin/generate_from_arb.dart'),
-    deferredLoadArg, '--generated-file-prefix=foo_', 
+    deferredLoadArg, '--generated-file-prefix=foo_',
     'sample_with_messages.dart', 'part_of_sample_with_messages.dart',
     'translation_fr.arb', 'translation_de_DE.arb']);
 

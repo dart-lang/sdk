@@ -13,7 +13,11 @@ main() {
   });
 }
 
-void runTestWithWarnings({bool warningsAreErrors, int expectedExitCode}) {
+const defaultFiles =
+    const ["sample_with_messages.dart", "part_of_sample_with_messages.dart"];
+
+void runTestWithWarnings({bool warningsAreErrors, int expectedExitCode,
+  bool embeddedPlurals: true, List<String> sourceFiles: defaultFiles}) {
 
   void verify(ProcessResult result) {
     try {
@@ -29,8 +33,10 @@ void runTestWithWarnings({bool warningsAreErrors, int expectedExitCode}) {
   if (warningsAreErrors) {
     args.add('--warnings-are-errors');
   }
-  var files = [asTempDirPath("sample_with_messages.dart"), asTempDirPath(
-      "part_of_sample_with_messages.dart"),];
+  if (!embeddedPlurals) {
+    args.add('--no-embedded-plurals');
+  }
+  var files = sourceFiles.map(asTempDirPath).toList();
   var allArgs = [program]
       ..addAll(args)
       ..addAll(files);
