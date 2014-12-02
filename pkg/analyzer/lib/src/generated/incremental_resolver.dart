@@ -1081,7 +1081,7 @@ class PoorMansIncrementalResolver {
       }
       // comments
       _shiftTokens(token.precedingComments);
-      if (token is CommentToken) {
+      if (token is DocumentationCommentToken) {
         for (Token reference in token.references) {
           _shiftTokens(reference);
         }

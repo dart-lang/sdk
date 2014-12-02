@@ -6742,11 +6742,11 @@ void''');
   }
 
   void test_parseCommentReferences_multiLine() {
-    CommentToken token = new CommentToken(
+    DocumentationCommentToken token = new DocumentationCommentToken(
         TokenType.MULTI_LINE_COMMENT,
         "/** xxx [a] yyy [bb] zzz */",
         3);
-    List<CommentToken> tokens = <CommentToken>[token];
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[token];
     List<CommentReference> references =
         ParserTestCase.parse("parseCommentReferences", <Object>[tokens], "");
     List<Token> tokenReferences = token.references;
@@ -6775,8 +6775,11 @@ void''');
   }
 
   void test_parseCommentReferences_notClosed_noIdentifier() {
-    List<CommentToken> tokens = <CommentToken>[
-        new CommentToken(TokenType.MULTI_LINE_COMMENT, "/** [ some text", 5)];
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+        new DocumentationCommentToken(
+            TokenType.MULTI_LINE_COMMENT,
+            "/** [ some text",
+            5)];
     List<CommentReference> references =
         ParserTestCase.parse("parseCommentReferences", <Object>[tokens], "");
     expect(references, hasLength(1));
@@ -6788,8 +6791,11 @@ void''');
   }
 
   void test_parseCommentReferences_notClosed_withIdentifier() {
-    List<CommentToken> tokens = <CommentToken>[
-        new CommentToken(TokenType.MULTI_LINE_COMMENT, "/** [namePrefix some text", 5)];
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+        new DocumentationCommentToken(
+            TokenType.MULTI_LINE_COMMENT,
+            "/** [namePrefix some text",
+            5)];
     List<CommentReference> references =
         ParserTestCase.parse("parseCommentReferences", <Object>[tokens], "");
     expect(references, hasLength(1));
@@ -6801,9 +6807,12 @@ void''');
   }
 
   void test_parseCommentReferences_singleLine() {
-    List<CommentToken> tokens = <CommentToken>[
-        new CommentToken(TokenType.SINGLE_LINE_COMMENT, "/// xxx [a] yyy [b] zzz", 3),
-        new CommentToken(TokenType.SINGLE_LINE_COMMENT, "/// x [c]", 28)];
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+        new DocumentationCommentToken(
+            TokenType.SINGLE_LINE_COMMENT,
+            "/// xxx [a] yyy [b] zzz",
+            3),
+        new DocumentationCommentToken(TokenType.SINGLE_LINE_COMMENT, "/// x [c]", 28)];
     List<CommentReference> references =
         ParserTestCase.parse("parseCommentReferences", <Object>[tokens], "");
     expect(references, hasLength(3));
@@ -6822,8 +6831,8 @@ void''');
   }
 
   void test_parseCommentReferences_skipCodeBlock_bracketed() {
-    List<CommentToken> tokens = <CommentToken>[
-        new CommentToken(
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+        new DocumentationCommentToken(
             TokenType.MULTI_LINE_COMMENT,
             "/** [:xxx [a] yyy:] [b] zzz */",
             3)];
@@ -6837,8 +6846,8 @@ void''');
   }
 
   void test_parseCommentReferences_skipCodeBlock_spaces() {
-    List<CommentToken> tokens = <CommentToken>[
-        new CommentToken(
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+        new DocumentationCommentToken(
             TokenType.MULTI_LINE_COMMENT,
             "/**\n *     a[i]\n * xxx [i] zzz\n */",
             3)];
@@ -6852,8 +6861,8 @@ void''');
   }
 
   void test_parseCommentReferences_skipLinkDefinition() {
-    List<CommentToken> tokens = <CommentToken>[
-        new CommentToken(
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+        new DocumentationCommentToken(
             TokenType.MULTI_LINE_COMMENT,
             "/** [a]: http://www.google.com (Google) [b] zzz */",
             3)];
@@ -6867,8 +6876,8 @@ void''');
   }
 
   void test_parseCommentReferences_skipLinked() {
-    List<CommentToken> tokens = <CommentToken>[
-        new CommentToken(
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+        new DocumentationCommentToken(
             TokenType.MULTI_LINE_COMMENT,
             "/** [a](http://www.google.com) [b] zzz */",
             3)];
@@ -6882,8 +6891,11 @@ void''');
   }
 
   void test_parseCommentReferences_skipReferenceLink() {
-    List<CommentToken> tokens = <CommentToken>[
-        new CommentToken(TokenType.MULTI_LINE_COMMENT, "/** [a][c] [b] zzz */", 3)];
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+        new DocumentationCommentToken(
+            TokenType.MULTI_LINE_COMMENT,
+            "/** [a][c] [b] zzz */",
+            3)];
     List<CommentReference> references =
         ParserTestCase.parse("parseCommentReferences", <Object>[tokens], "");
     expect(references, hasLength(1));

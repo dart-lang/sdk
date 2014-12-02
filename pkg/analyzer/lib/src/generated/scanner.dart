@@ -239,6 +239,21 @@ class CommentToken extends StringToken {
   Token parent;
 
   /**
+   * Initialize a newly created token to represent a token of the given [type]
+   * with the given [value] at the given [offset].
+   */
+  CommentToken(TokenType type, String value, int offset)
+      : super(type, value, offset);
+
+  @override
+  CommentToken copy() => new CommentToken(type, _value, offset);
+}
+
+/**
+ * A documentation comment token.
+ */
+class DocumentationCommentToken extends CommentToken {
+  /**
    * The references embedded within the documentation comment.
    * This list will be empty unless this is a documentation comment that has
    * references embedded within it.
@@ -249,11 +264,11 @@ class CommentToken extends StringToken {
    * Initialize a newly created token to represent a token of the given [type]
    * with the given [value] at the given [offset].
    */
-  CommentToken(TokenType type, String value, int offset)
+  DocumentationCommentToken(TokenType type, String value, int offset)
       : super(type, value, offset);
 
   @override
-  CommentToken copy() => new CommentToken(type, _value, offset);
+  CommentToken copy() => new DocumentationCommentToken(type, _value, offset);
 }
 
 /**
@@ -996,12 +1011,17 @@ class Scanner {
       return;
     }
     // OK, remember comment tokens.
+    CommentToken token;
+    if (_isDocumentationComment(value)) {
+      token = new DocumentationCommentToken(type, value, _tokenStart);
+    } else {
+      token = new CommentToken(type, value, _tokenStart);
+    }
     if (_firstComment == null) {
-      _firstComment = new CommentToken(type, value, _tokenStart);
+      _firstComment = token;
       _lastComment = _firstComment;
     } else {
-      _lastComment =
-          _lastComment.setNext(new CommentToken(type, value, _tokenStart));
+      _lastComment = _lastComment.setNext(token);
     }
   }
 
@@ -1779,6 +1799,14 @@ class Scanner {
       _appendTokenOfType(TokenType.TILDE);
       return next;
     }
+  }
+
+  /**
+   * Checks if [value] is a single-line or multi-line comment.
+   */
+  static bool _isDocumentationComment(String value) {
+    return StringUtilities.startsWith3(value, 0, 0x2F, 0x2F, 0x2F) ||
+        StringUtilities.startsWith3(value, 0, 0x2F, 0x2A, 0x2A);
   }
 }
 

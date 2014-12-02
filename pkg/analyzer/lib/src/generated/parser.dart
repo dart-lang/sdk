@@ -5458,9 +5458,10 @@ class Parser {
    * @param tokens the comment tokens representing the documentation comments to be parsed
    * @return the comment references that were parsed
    */
-  List<CommentReference> _parseCommentReferences(List<CommentToken> tokens) {
+  List<CommentReference>
+      _parseCommentReferences(List<DocumentationCommentToken> tokens) {
     List<CommentReference> references = new List<CommentReference>();
-    for (CommentToken token in tokens) {
+    for (DocumentationCommentToken token in tokens) {
       String comment = token.lexeme;
       int length = comment.length;
       List<List<int>> codeBlockRanges = _getCodeBlockRanges(comment);
@@ -6017,41 +6018,32 @@ class Parser {
    * @return the documentation comment that was parsed, or `null` if there was no comment
    */
   Comment _parseDocumentationComment() {
-    List<CommentToken> commentTokens = <CommentToken>[];
+    List<DocumentationCommentToken> documentationTokens =
+        <DocumentationCommentToken>[
+        ];
     CommentToken commentToken = _currentToken.precedingComments;
     while (commentToken != null) {
-      if (commentToken.type == TokenType.SINGLE_LINE_COMMENT) {
-        if (StringUtilities.startsWith3(
-            commentToken.lexeme,
-            0,
-            0x2F,
-            0x2F,
-            0x2F)) {
-          if (commentTokens.length == 1 &&
-              StringUtilities.startsWith3(commentTokens[0].lexeme, 0, 0x2F, 0x2A, 0x2A)) {
-            commentTokens.clear();
+      if (commentToken is DocumentationCommentToken) {
+        if (documentationTokens.isNotEmpty) {
+          if (commentToken.type == TokenType.SINGLE_LINE_COMMENT) {
+            if (documentationTokens[0].type != TokenType.SINGLE_LINE_COMMENT) {
+              documentationTokens.clear();
+            }
+          } else {
+            documentationTokens.clear();
           }
-          commentTokens.add(commentToken);
         }
-      } else {
-        if (StringUtilities.startsWith3(
-            commentToken.lexeme,
-            0,
-            0x2F,
-            0x2A,
-            0x2A)) {
-          commentTokens.clear();
-          commentTokens.add(commentToken);
-        }
+        documentationTokens.add(commentToken);
       }
       commentToken = commentToken.next;
     }
-    if (commentTokens.isEmpty) {
+    if (documentationTokens.isEmpty) {
       return null;
     }
-    List<CommentReference> references = _parseCommentReferences(commentTokens);
+    List<CommentReference> references =
+        _parseCommentReferences(documentationTokens);
     return Comment.createDocumentationCommentWithReferences(
-        commentTokens,
+        documentationTokens,
         references);
   }
 
