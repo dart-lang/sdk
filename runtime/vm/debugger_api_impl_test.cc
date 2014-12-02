@@ -2256,9 +2256,6 @@ TEST_CASE(Debug_ListSuperType) {
   Dart_Handle list_type = Dart_InstanceGetType(list_access_test_obj);
   Dart_Handle super_type = Dart_GetSupertype(list_type);
   EXPECT(!Dart_IsError(super_type));
-  super_type = Dart_GetSupertype(super_type);
-  EXPECT(!Dart_IsError(super_type));
-  EXPECT(super_type == Dart_Null());
 }
 
 TEST_CASE(Debug_ScriptGetTokenInfo_Basic) {

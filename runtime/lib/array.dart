@@ -4,17 +4,13 @@
 
 
 // TODO(srdjan): Use shared array implementation.
-class _List<E> implements List<E> {
+class _List<E> extends FixedLengthListBase<E> {
 
   factory _List(length) native "List_allocate";
 
   E operator [](int index) native "List_getIndexed";
 
   void operator []=(int index, E value) native "List_setIndexed";
-
-  String toString() {
-    return ListBase.listToString(this);
-  }
 
   int get length native "List_getLength";
 
@@ -33,38 +29,6 @@ class _List<E> implements List<E> {
 
   List _sliceInternal(int start, int count, bool needsTypeArgument)
       native "List_slice";
-
-  void insert(int index, E element) {
-    throw NonGrowableListError.add();
-  }
-
-  void insertAll(int index, Iterable<E> iterable) {
-    throw NonGrowableListError.add();
-  }
-
-  void setAll(int index, Iterable<E> iterable) {
-    IterableMixinWorkaround.setAllList(this, index, iterable);
-  }
-
-  E removeAt(int index) {
-    throw NonGrowableListError.remove();
-  }
-
-  bool remove(Object element) {
-    throw NonGrowableListError.remove();
-  }
-
-  void removeWhere(bool test(E element)) {
-    throw NonGrowableListError.remove();
-  }
-
-  void retainWhere(bool test(E element)) {
-    throw NonGrowableListError.remove();
-  }
-
-  Iterable<E> getRange(int start, [int end]) {
-    return new IterableMixinWorkaround<E>().getRangeList(this, start, end);
-  }
 
   // List interface.
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
@@ -95,18 +59,6 @@ class _List<E> implements List<E> {
     }
   }
 
-  void removeRange(int start, int end) {
-    throw NonGrowableListError.remove();
-  }
-
-  void replaceRange(int start, int end, Iterable<E> iterable) {
-    throw NonGrowableListError.remove();
-  }
-
-  void fillRange(int start, int end, [E fillValue]) {
-    IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
-  }
-
   List<E> sublist(int start, [int end]) {
     Lists.indicesCheck(this, start, end);
     if (end == null) end = this.length;
@@ -119,10 +71,6 @@ class _List<E> implements List<E> {
 
   // Iterable interface.
 
-  bool contains(Object element) {
-    return IterableMixinWorkaround.contains(this, element);
-  }
-
   void forEach(f(E element)) {
     final length = this.length;
     for (int i = 0; i < length; i++) {
@@ -130,118 +78,8 @@ class _List<E> implements List<E> {
     }
   }
 
-  String join([String separator = ""]) {
-    return IterableMixinWorkaround.joinList(this, separator);
-  }
-
-  Iterable map(f(E element)) {
-    return IterableMixinWorkaround.mapList(this, f);
-  }
-
-  E reduce(E combine(E value, E element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  fold(initialValue, combine(previousValue, E element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  Iterable<E> where(bool f(E element)) {
-    return new IterableMixinWorkaround<E>().where(this, f);
-  }
-
-  Iterable expand(Iterable f(E element)) {
-    return IterableMixinWorkaround.expand(this, f);
-  }
-
-  Iterable<E> take(int n) {
-    return new IterableMixinWorkaround<E>().takeList(this, n);
-  }
-
-  Iterable<E> takeWhile(bool test(E value)) {
-    return new IterableMixinWorkaround<E>().takeWhile(this, test);
-  }
-
-  Iterable<E> skip(int n) {
-    return new IterableMixinWorkaround<E>().skipList(this, n);
-  }
-
-  Iterable<E> skipWhile(bool test(E value)) {
-    return new IterableMixinWorkaround<E>().skipWhile(this, test);
-  }
-
-  bool every(bool f(E element)) {
-    return IterableMixinWorkaround.every(this, f);
-  }
-
-  bool any(bool f(E element)) {
-    return IterableMixinWorkaround.any(this, f);
-  }
-
-  E firstWhere(bool test(E value), {E orElse()}) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  E lastWhere(bool test(E value), {E orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  E singleWhere(bool test(E value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  E elementAt(int index) {
-    return this[index];
-  }
-
-  bool get isEmpty {
-    return this.length == 0;
-  }
-
-  bool get isNotEmpty => !isEmpty;
-
-  Iterable<E> get reversed =>
-      new IterableMixinWorkaround<E>().reversedList(this);
-
-  void sort([int compare(E a, E b)]) {
-    IterableMixinWorkaround.sortList(this, compare);
-  }
-
-  void shuffle([Random random]) {
-    IterableMixinWorkaround.shuffleList(this, random);
-  }
-
-  int indexOf(Object element, [int start = 0]) {
-    return Lists.indexOf(this, element, start, this.length);
-  }
-
-  int lastIndexOf(Object element, [int start = null]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
   Iterator<E> get iterator {
     return new _FixedSizeArrayIterator<E>(this);
-  }
-
-  void add(E element) {
-    throw NonGrowableListError.add();
-  }
-
-  void addAll(Iterable<E> iterable) {
-    throw NonGrowableListError.add();
-  }
-
-  void clear() {
-    throw NonGrowableListError.remove();
-  }
-
-  void set length(int length) {
-    throw NonGrowableListError.length();
-  }
-
-  E removeLast() {
-    throw NonGrowableListError.remove();
   }
 
   E get first {
@@ -273,14 +111,6 @@ class _List<E> implements List<E> {
     // _GrowableList.withData must not be called with empty list.
     return growable ? <E>[] : new List<E>(0);
   }
-
-  Set<E> toSet() {
-    return new Set<E>.from(this);
-  }
-
-  Map<int, E> asMap() {
-    return new IterableMixinWorkaround<E>().asMapList(this);
-  }
 }
 
 
@@ -291,7 +121,7 @@ class _List<E> implements List<E> {
 // classes (and inline cache misses) versus a field in the native
 // implementation (checks when modifying). We should keep watching
 // the inline cache misses.
-class _ImmutableList<E> implements List<E> {
+class _ImmutableList<E> extends UnmodifiableListBase<E> {
 
   factory _ImmutableList._uninstantiable() {
     throw new UnsupportedError(
@@ -303,59 +133,7 @@ class _ImmutableList<E> implements List<E> {
 
   E operator [](int index) native "List_getIndexed";
 
-  void operator []=(int index, E value) {
-    throw UnmodifiableListError.change();
-  }
-
   int get length native "List_getLength";
-
-  void insert(int index, E element) {
-    throw UnmodifiableListError.add();
-  }
-
-  void insertAll(int index, Iterable<E> iterable) {
-    throw UnmodifiableListError.add();
-  }
-
-  void setAll(int index, Iterable<E> iterable) {
-    throw UnmodifiableListError.change();
-  }
-
-  E removeAt(int index) {
-    throw UnmodifiableListError.remove();
-  }
-
-  bool remove(Object element) {
-    throw UnmodifiableListError.remove();
-  }
-
-  void removeWhere(bool test(E element)) {
-    throw UnmodifiableListError.remove();
-  }
-
-  void retainWhere(bool test(E element)) {
-    throw UnmodifiableListError.remove();
-  }
-
-  void copyFrom(List src, int srcStart, int dstStart, int count) {
-    throw UnmodifiableListError.change();
-  }
-
-  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
-    throw UnmodifiableListError.change();
-  }
-
-  void removeRange(int start, int end) {
-    throw UnmodifiableListError.remove();
-  }
-
-  void fillRange(int start, int end, [E fillValue]) {
-    throw UnmodifiableListError.change();
-  }
-
-  void replaceRange(int start, int end, Iterable<E> iterable) {
-    throw UnmodifiableListError.change();
-  }
 
   List<E> sublist(int start, [int end]) {
     Lists.indicesCheck(this, start, end);
@@ -371,15 +149,7 @@ class _ImmutableList<E> implements List<E> {
     return result;
   }
 
-  Iterable<E> getRange(int start, int end) {
-    return new IterableMixinWorkaround<E>().getRangeList(this, start, end);
-  }
-
   // Collection interface.
-
-  bool contains(Object element) {
-    return IterableMixinWorkaround.contains(this, element);
-  }
 
   void forEach(f(E element)) {
     final length = this.length;
@@ -388,122 +158,8 @@ class _ImmutableList<E> implements List<E> {
     }
   }
 
-  Iterable map(f(E element)) {
-    return IterableMixinWorkaround.mapList(this, f);
-  }
-
-  String join([String separator = ""]) {
-    return IterableMixinWorkaround.joinList(this, separator);
-  }
-
-  E reduce(E combine(E value, E element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  fold(initialValue, combine(previousValue, E element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  Iterable<E> where(bool f(E element)) {
-    return new IterableMixinWorkaround<E>().where(this, f);
-  }
-
-  Iterable expand(Iterable f(E element)) {
-    return IterableMixinWorkaround.expand(this, f);
-  }
-
-  Iterable<E> take(int n) {
-    return new IterableMixinWorkaround<E>().takeList(this, n);
-  }
-
-  Iterable<E> takeWhile(bool test(E value)) {
-    return new IterableMixinWorkaround<E>().takeWhile(this, test);
-  }
-
-  Iterable<E> skip(int n) {
-    return new IterableMixinWorkaround<E>().skipList(this, n);
-  }
-
-  Iterable<E> skipWhile(bool test(E value)) {
-    return new IterableMixinWorkaround<E>().skipWhile(this, test);
-  }
-
-  bool every(bool f(E element)) {
-    return IterableMixinWorkaround.every(this, f);
-  }
-
-  bool any(bool f(E element)) {
-    return IterableMixinWorkaround.any(this, f);
-  }
-
-  E firstWhere(bool test(E value), {E orElse()}) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  E lastWhere(bool test(E value), {E orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  E singleWhere(bool test(E value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  E elementAt(int index) {
-    return this[index];
-  }
-
-  bool get isEmpty {
-    return this.length == 0;
-  }
-
-  bool get isNotEmpty => !isEmpty;
-
-  Iterable<E> get reversed =>
-      new IterableMixinWorkaround<E>().reversedList(this);
-
-  void sort([int compare(E a, E b)]) {
-    throw UnmodifiableListError.change();
-  }
-
-  void shuffle([Random random]) {
-    throw UnmodifiableListError.change();
-  }
-
-  String toString() {
-    return ListBase.listToString(this);
-  }
-
-  int indexOf(Object element, [int start = 0]) {
-    return Lists.indexOf(this, element, start, this.length);
-  }
-
-  int lastIndexOf(Object element, [int start = null]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
   Iterator<E> get iterator {
     return new _FixedSizeArrayIterator<E>(this);
-  }
-
-  void add(E element) {
-    throw UnmodifiableListError.add();
-  }
-
-  void addAll(Iterable<E> elements) {
-    throw UnmodifiableListError.add();
-  }
-
-  void clear() {
-    throw UnmodifiableListError.remove();
-  }
-
-  void set length(int length) {
-    throw UnmodifiableListError.length();
-  }
-
-  E removeLast() {
-    throw UnmodifiableListError.remove();
   }
 
   E get first {
@@ -535,14 +191,6 @@ class _ImmutableList<E> implements List<E> {
       return result;
     }
     return growable ? <E>[] : new _List<E>(0);
-  }
-
-  Set<E> toSet() {
-    return new Set<E>.from(this);
-  }
-
-  Map<int, E> asMap() {
-    return new IterableMixinWorkaround<E>().asMapList(this);
   }
 }
 

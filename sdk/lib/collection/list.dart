@@ -322,7 +322,7 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   Map<int, E> asMap() {
-    return new ListMapView(this);
+    return new ListMapView<E>(this);
   }
 
   List<E> sublist(int start, [int end]) {

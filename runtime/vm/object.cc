@@ -1021,7 +1021,6 @@ RawError* Object::Init(Isolate* isolate) {
   // declared in RawArray.
   cls.set_type_arguments_field_offset(Array::type_arguments_offset());
   cls.set_num_type_arguments(1);
-  cls.set_num_own_type_arguments(1);
 
   // Set up the growable object array class (Has to be done after the array
   // class is setup as one of its field is an array object).
@@ -1030,7 +1029,6 @@ RawError* Object::Init(Isolate* isolate) {
   cls.set_type_arguments_field_offset(
       GrowableObjectArray::type_arguments_offset());
   cls.set_num_type_arguments(1);
-  cls.set_num_own_type_arguments(1);
 
   // canonical_type_arguments_ are Smi terminated.
   // Last element contains the count of used slots.
@@ -1105,7 +1103,6 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_immutable_array_class(cls);
   cls.set_type_arguments_field_offset(Array::type_arguments_offset());
   cls.set_num_type_arguments(1);
-  cls.set_num_own_type_arguments(1);
   ASSERT(object_store->immutable_array_class() != object_store->array_class());
   cls.set_is_prefinalized();
   RegisterPrivateClass(cls, Symbols::_ImmutableList(), core_lib);

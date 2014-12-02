@@ -37,6 +37,7 @@ RECOGNIZED_LIST(KIND_TO_STRING)
 void MethodRecognizer::InitializeState() {
   GrowableArray<Library*> libs(3);
   libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
+  libs.Add(&Library::ZoneHandle(Library::CollectionLibrary()));
   libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
   libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   libs.Add(&Library::ZoneHandle(Library::InternalLibrary()));
