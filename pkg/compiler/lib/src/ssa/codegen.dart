@@ -2130,13 +2130,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void generateArrayLiteral(HLiteralList node) {
-    int len = node.inputs.length;
-    List<js.ArrayElement> elements = <js.ArrayElement>[];
-    for (int i = 0; i < len; i++) {
-      use(node.inputs[i]);
-      elements.add(new js.ArrayElement(i, pop()));
-    }
-    push(new js.ArrayInitializer(len, elements), node);
+    List<js.Expression> elements = node.inputs.map((HInstruction input) {
+      use(input);
+      return pop();
+    }).toList();
+    push(new js.ArrayInitializer(elements), node);
   }
 
   void visitIndex(HIndex node) {
@@ -2650,16 +2648,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (namedParameters.isEmpty) {
       var arguments = [returnType];
       if (!parameterTypes.isEmpty || !optionalParameterTypes.isEmpty) {
-        arguments.add(new js.ArrayInitializer.from(parameterTypes));
+        arguments.add(new js.ArrayInitializer(parameterTypes));
       }
       if (!optionalParameterTypes.isEmpty) {
-        arguments.add(new js.ArrayInitializer.from(optionalParameterTypes));
+        arguments.add(new js.ArrayInitializer(optionalParameterTypes));
       }
       push(js.js('#(#)', [accessHelper('buildFunctionType'), arguments]));
     } else {
       var arguments = [
           returnType,
-          new js.ArrayInitializer.from(parameterTypes),
+          new js.ArrayInitializer(parameterTypes),
           new js.ObjectInitializer(namedParameters)];
       push(js.js('#(#)', [accessHelper('buildNamedFunctionType'), arguments]));
     }
@@ -2701,7 +2699,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     ClassElement cls = node.dartType.element;
     var arguments = [backend.namer.elementAccess(cls)];
     if (!typeArguments.isEmpty) {
-      arguments.add(new js.ArrayInitializer.from(typeArguments));
+      arguments.add(new js.ArrayInitializer(typeArguments));
     }
     push(js.js('#(#)', [accessHelper('buildInterfaceType'), arguments]));
   }

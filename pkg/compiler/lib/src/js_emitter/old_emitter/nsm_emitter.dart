@@ -88,8 +88,8 @@ class NsmEmitter extends CodeEmitterHelper {
               internalName : methodName),
           js.string(internalName),
           js.number(type),
-          new jsAst.ArrayInitializer.from(parameterNames.map(js)),
-          new jsAst.ArrayInitializer.from(argNames)]);
+          new jsAst.ArrayInitializer(parameterNames.map(js).toList()),
+          new jsAst.ArrayInitializer(argNames)]);
 
       if (backend.isInterceptedName(selector.name)) {
         return js(r'function($receiver, #) { return # }',

@@ -328,10 +328,10 @@ class JsBuilder {
   LiteralNumber number(num value) => new LiteralNumber('$value');
 
   ArrayInitializer numArray(Iterable<int> list) =>
-      new ArrayInitializer.from(list.map(number));
+      new ArrayInitializer(list.map(number).toList());
 
   ArrayInitializer stringArray(Iterable<String> list) =>
-      new ArrayInitializer.from(list.map(string));
+      new ArrayInitializer(list.map(string).toList());
 
   Comment comment(String text) => new Comment(text);
 
@@ -727,14 +727,19 @@ class MiniJsParser {
     } else if (acceptCategory(LBRACE)) {
       return parseObjectInitializer();
     } else if (acceptCategory(LSQUARE)) {
-      var values = <ArrayElement>[];
-      if (!acceptCategory(RSQUARE)) {
-        do {
-          values.add(new ArrayElement(values.length, parseAssignment()));
-        } while (acceptCategory(COMMA));
-        expectCategory(RSQUARE);
+      var values = <Expression>[];
+
+      while (true) {
+        if (acceptCategory(COMMA)) {
+          values.add(new ArrayHole());
+          continue;
+        }
+        if (acceptCategory(RSQUARE)) break;
+        values.add(parseAssignment());
+        if (acceptCategory(RSQUARE)) break;
+        expectCategory(COMMA);
       }
-      return new ArrayInitializer(values.length, values);
+      return new ArrayInitializer(values);
     } else if (last != null && last.startsWith("/")) {
       String regexp = getDelimited(lastPosition);
       getToken();

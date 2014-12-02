@@ -59,13 +59,13 @@ void testTypeRepresentations() {
       bool encodeTypedefName = false;
       Expression expression =
             typeRepresentation.getTypeRepresentation(type, onVariable,
-                                                    (x) => encodeTypedefName);
+                                                     (x) => encodeTypedefName);
       Expect.stringEquals(expectedRepresentation, stringify(expression));
 
       encodeTypedefName = true;
       expression =
             typeRepresentation.getTypeRepresentation(type, onVariable,
-                                                    (x) => encodeTypedefName);
+                                                     (x) => encodeTypedefName);
       if (expectedTypedefRepresentation == null) {
         expectedTypedefRepresentation = expectedRepresentation;
       }

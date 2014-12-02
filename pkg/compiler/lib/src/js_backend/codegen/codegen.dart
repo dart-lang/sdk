@@ -226,9 +226,8 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
   js.Expression visitLiteralList(tree_ir.LiteralList node) {
     registry.registerInstantiatedClass(glue.listClass);
     int length = node.values.length;
-    List<js.ArrayElement> entries = new List<js.ArrayElement>.generate(length,
-        (int i) => new js.ArrayElement(i, visitExpression(node.values[i])));
-    return new js.ArrayInitializer(length, entries);
+    List<js.Expression> entries = node.values.map(visitExpression).toList();
+    return new js.ArrayInitializer(entries);
   }
 
   @override
@@ -239,17 +238,14 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
     } else {
       constructor = glue.mapLiteralConstructor;
     }
-    List<js.ArrayElement> entries =
-        new List<js.ArrayElement>(2 * node.entries.length);
+    List<js.Expression> entries =
+        new List<js.Expression>(2 * node.entries.length);
     for (int i = 0; i < node.entries.length; i++) {
-      js.Expression key = visitExpression(node.entries[i].key);
-      js.Expression value = visitExpression(node.entries[i].value);
-      entries[2 * i] = new js.ArrayElement(2 * i, key);
-      entries[2 * i + 1] = new js.ArrayElement(2 * i + 1, value);
+      entries[2 * i] = visitExpression(node.entries[i].key);
+      entries[2 * i + 1] = visitExpression(node.entries[i].value);
     }
     List<js.Expression> args =
-        <js.Expression>[new js.ArrayInitializer(node.entries.length * 2,
-                                                entries)];
+        <js.Expression>[new js.ArrayInitializer(entries)];
     return buildStaticInvoke(
         new Selector.call(constructor.name, constructor.library, 2),
         constructor,

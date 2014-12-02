@@ -857,7 +857,7 @@ class OldEmitter implements Emitter {
         return #;
       }''',
         [cspPrecompiledFunctionFor(outputUnit),
-         new jsAst.ArrayInitializer.from(
+         new jsAst.ArrayInitializer(
              cspPrecompiledConstructorNamesFor(outputUnit))]);
   }
 
@@ -1897,8 +1897,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       List<jsAst.Property> properties = new List<jsAst.Property>();
       mapping.forEach((String key, List<String> values) {
         properties.add(new jsAst.Property(js.escapedString(key),
-            new jsAst.ArrayInitializer.from(
-                values.map(js.escapedString))));
+            new jsAst.ArrayInitializer(
+                values.map(js.escapedString).toList())));
       });
       jsAst.Node initializer =
           new jsAst.ObjectInitializer(properties, isOneLiner: true);

@@ -51,7 +51,7 @@ class ClassBuilder {
       // and the field metadata is appended. So if classData is just a string,
       // there is no field metadata.
       classData =
-          new jsAst.ArrayInitializer.from([classData]..addAll(fieldMetadata));
+          new jsAst.ArrayInitializer([classData]..addAll(fieldMetadata));
     }
     List<jsAst.Property> fieldsAndProperties;
     if (!omitClassDescriptor) {

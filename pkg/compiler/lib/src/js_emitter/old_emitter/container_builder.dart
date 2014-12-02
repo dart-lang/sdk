@@ -491,7 +491,7 @@ class ContainerBuilder extends CodeEmitterHelper {
 
     if (onlyNeedsSuperAlias) {
       jsAst.ArrayInitializer arrayInit =
-            new jsAst.ArrayInitializer.from(expressions);
+            new jsAst.ArrayInitializer(expressions);
           compiler.dumpInfoTask.registerElementAst(member,
               builder.addProperty(name, arrayInit));
       return;
@@ -581,8 +581,8 @@ class ContainerBuilder extends CodeEmitterHelper {
             backend.constants.addCompileTimeConstantForEmission(constant);
             return emitter.metadataEmitter.reifyMetadata(annotation);
           });
-          expressions.add(
-              new jsAst.ArrayInitializer.from(metadataIndices.map(js.number)));
+          expressions.add(new jsAst.ArrayInitializer(
+              metadataIndices.map(js.number).toList()));
         }
       });
     }
@@ -607,7 +607,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     }
 
     jsAst.ArrayInitializer arrayInit =
-      new jsAst.ArrayInitializer.from(expressions);
+      new jsAst.ArrayInitializer(expressions.toList());
     compiler.dumpInfoTask.registerElementAst(member,
         builder.addProperty(name, arrayInit));
   }

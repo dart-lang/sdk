@@ -506,13 +506,10 @@ class RuntimeTypes {
   jsAst.Expression getSubstitutionRepresentation(
       List<DartType> types,
       OnVariableCallback onVariable) {
-    List<jsAst.ArrayElement> elements = <jsAst.ArrayElement>[];
-    int index = 0;
-    for (DartType type in types) {
-      jsAst.Expression representation = getTypeRepresentation(type, onVariable);
-      elements.add(new jsAst.ArrayElement(index++, representation));
-    }
-    return new jsAst.ArrayInitializer(index, elements);
+    List<jsAst.Expression> elements = types
+        .map((DartType type) => getTypeRepresentation(type, onVariable))
+        .toList(growable: false);
+    return new jsAst.ArrayInitializer(elements);
   }
 
   jsAst.Expression getTypeEncoding(DartType type,
@@ -657,15 +654,15 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
 
   jsAst.Expression visitList(List<DartType> types, {jsAst.Expression head}) {
     int index = 0;
-    List<jsAst.ArrayElement> elements = <jsAst.ArrayElement>[];
+    List<jsAst.Expression> elements = <jsAst.Expression>[];
     if (head != null) {
-      elements.add(new jsAst.ArrayElement(0, head));
+      elements.add(head);
       index++;
     }
     for (DartType type in types) {
-      elements.add(new jsAst.ArrayElement(index++, visit(type)));
+      elements.add(visit(type));
     }
-    return new jsAst.ArrayInitializer(elements.length, elements);
+    return new jsAst.ArrayInitializer(elements);
   }
 
   visitFunctionType(FunctionType type, _) {

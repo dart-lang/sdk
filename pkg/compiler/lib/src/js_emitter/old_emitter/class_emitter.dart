@@ -305,7 +305,7 @@ class ClassEmitter extends CodeEmitterHelper {
       if ((!typeVariableProperties.isEmpty && !hasSuper) ||
           (hasSuper && !equalElements(superclass.typeVariables, typeVars))) {
         classBuilder.addProperty('<>',
-            new jsAst.ArrayInitializer.from(typeVariableProperties));
+            new jsAst.ArrayInitializer(typeVariableProperties.toList()));
       }
     }
 
@@ -349,7 +349,7 @@ class ClassEmitter extends CodeEmitterHelper {
           types.add(emitter.metadataEmitter.reifyType(interface));
         }
         enclosingBuilder.addProperty("+$reflectionName",
-            new jsAst.ArrayInitializer.from(types.map(js.number)));
+            new jsAst.ArrayInitializer(types.map(js.number).toList()));
       }
     }
   }

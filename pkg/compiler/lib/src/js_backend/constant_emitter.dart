@@ -234,7 +234,7 @@ class ConstantLiteralEmitter implements ConstantValueVisitor<jsAst.Expression> {
 
   jsAst.Expression visitList(ListConstantValue constant) {
     List<jsAst.Expression> elements = _array(constant.entries);
-    jsAst.ArrayInitializer array = new jsAst.ArrayInitializer.from(elements);
+    jsAst.ArrayInitializer array = new jsAst.ArrayInitializer(elements);
     jsAst.Expression value = makeConstantListTemplate.instantiate([array]);
     return maybeAddTypeArguments(constant.type, value);
   }
@@ -271,7 +271,7 @@ class ConstantLiteralEmitter implements ConstantValueVisitor<jsAst.Expression> {
         data.add(keyExpression);
         data.add(valueExpression);
       }
-      return new jsAst.ArrayInitializer.from(data);
+      return new jsAst.ArrayInitializer(data);
     }
 
     ClassElement classElement = constant.type.element;
@@ -362,11 +362,7 @@ class ConstantLiteralEmitter implements ConstantValueVisitor<jsAst.Expression> {
   }
 
   List<jsAst.Expression> _array(List<ConstantValue> values) {
-    List<jsAst.Expression> valueList = <jsAst.Expression>[];
-    for (int i = 0; i < values.length; i++) {
-      valueList.add(constantEmitter.reference(values[i]));
-    }
-    return valueList;
+    return values.map(constantEmitter.reference).toList(growable: false);
   }
 
   jsAst.Expression maybeAddTypeArguments(InterfaceType type,

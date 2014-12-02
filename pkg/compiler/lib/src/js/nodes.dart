@@ -55,7 +55,7 @@ abstract class NodeVisitor<T> {
   T visitLiteralNull(LiteralNull node);
 
   T visitArrayInitializer(ArrayInitializer node);
-  T visitArrayElement(ArrayElement node);
+  T visitArrayHole(ArrayHole node);
   T visitObjectInitializer(ObjectInitializer node);
   T visitProperty(Property node);
   T visitRegExpLiteral(RegExpLiteral node);
@@ -145,7 +145,7 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitLiteralNull(LiteralNull node) => visitLiteral(node);
 
   T visitArrayInitializer(ArrayInitializer node) => visitExpression(node);
-  T visitArrayElement(ArrayElement node) => visitNode(node);
+  T visitArrayHole(ArrayHole node) => visitExpression(node);
   T visitObjectInitializer(ObjectInitializer node) => visitExpression(node);
   T visitProperty(Property node) => visitNode(node);
   T visitRegExpLiteral(RegExpLiteral node) => visitExpression(node);
@@ -934,53 +934,33 @@ class LiteralNumber extends Literal {
 }
 
 class ArrayInitializer extends Expression {
-  final int length;
-  // We represent the array as sparse list of elements. Each element knows its
-  // position in the array.
-  final List<ArrayElement> elements;
+  final List<Expression> elements;
 
-  ArrayInitializer(this.length, this.elements);
-
-  factory ArrayInitializer.from(Iterable<Expression> expressions) {
-    List<ArrayElement> elements = _convert(expressions);
-    return new ArrayInitializer(elements.length, elements);
-  }
+  ArrayInitializer(this.elements);
 
   accept(NodeVisitor visitor) => visitor.visitArrayInitializer(this);
 
   void visitChildren(NodeVisitor visitor) {
-    for (ArrayElement element in elements) element.accept(visitor);
+    for (Expression element in elements) element.accept(visitor);
   }
 
-  ArrayInitializer _clone() => new ArrayInitializer(length, elements);
+  ArrayInitializer _clone() => new ArrayInitializer(elements);
 
   int get precedenceLevel => PRIMARY;
-
-  static List<ArrayElement> _convert(Iterable<Expression> expressions) {
-    int index = 0;
-    return expressions.map(
-        (expression) => new ArrayElement(index++, expression))
-        .toList();
-  }
 }
 
 /**
- * An expression inside an [ArrayInitializer]. An [ArrayElement] knows
- * its position in the containing [ArrayInitializer].
+ * An empty place in an [ArrayInitializer].
+ * For example the list [1, , , 2] would contain two holes.
  */
-class ArrayElement extends Node {
-  final int index;
-  final Expression value;
+class ArrayHole extends Expression {
+  accept(NodeVisitor visitor) => visitor.visitArrayHole(this);
 
-  ArrayElement(this.index, this.value);
+  void visitChildren(NodeVisitor visitor) {}
 
-  accept(NodeVisitor visitor) => visitor.visitArrayElement(this);
+  ArrayHole _clone() => new ArrayHole();
 
-  void visitChildren(NodeVisitor visitor) {
-    value.accept(visitor);
-  }
-
-  ArrayElement _clone() => new ArrayElement(index, value);
+  int get precedenceLevel => PRIMARY;
 }
 
 class ObjectInitializer extends Expression {

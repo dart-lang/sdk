@@ -78,13 +78,9 @@ class InterceptorEmitter extends CodeEmitterHelper {
 
     int index = 0;
     var invocationNames = interceptorInvocationNames.toList()..sort();
-    List<jsAst.ArrayElement> elements = invocationNames.map(
-      (String invocationName) {
-        jsAst.Literal str = js.string(invocationName);
-        return new jsAst.ArrayElement(index++, str);
-      }).toList();
+    List<jsAst.Expression> elements = invocationNames.map(js.string).toList();
     jsAst.ArrayInitializer array =
-        new jsAst.ArrayInitializer(invocationNames.length, elements);
+        new jsAst.ArrayInitializer(elements);
 
     jsAst.Expression assignment =
         js('${emitter.isolateProperties}.# = #', [name, array]);
@@ -147,7 +143,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
       }
     }
 
-    jsAst.ArrayInitializer array = new jsAst.ArrayInitializer.from(elements);
+    jsAst.ArrayInitializer array = new jsAst.ArrayInitializer(elements);
     String name =
         backend.namer.getNameOfGlobalField(backend.mapTypeToInterceptor);
     jsAst.Expression assignment =

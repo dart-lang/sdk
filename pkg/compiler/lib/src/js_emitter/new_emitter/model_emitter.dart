@@ -75,7 +75,7 @@ class ModelEmitter {
     List<js.Expression> elements = unit.libraries.map(emitLibrary).toList();
     elements.add(
         emitLazilyInitializedStatics(unit.staticLazilyInitializedFields));
-    js.Expression code = new js.ArrayInitializer.from(elements);
+    js.Expression code = new js.ArrayInitializer(elements);
     return js.js.statement(
         boilerplate,
         {'deferredInitializer': emitDeferredInitializerGlobal(program.loadMap),
@@ -107,8 +107,9 @@ class ModelEmitter {
                 new js.VariableInitialization(
                     new js.VariableDeclaration(e.name, allowRename: false),
                     new js.ObjectInitializer(const []))).toList())),
-        js.js.statement('var holders = #', new js.ArrayInitializer.from(
-            holders.map((e) => new js.VariableUse(e.name))))
+        js.js.statement('var holders = #', new js.ArrayInitializer(
+            holders.map((e) => new js.VariableUse(e.name))
+                   .toList(growable: false)))
     ];
     return new js.Block(statements);
   }
@@ -198,7 +199,8 @@ class ModelEmitter {
       throw new UnimplementedError("constants in deferred units");
     }
     js.ArrayInitializer content =
-        new js.ArrayInitializer.from(unit.libraries.map(emitLibrary));
+        new js.ArrayInitializer(unit.libraries.map(emitLibrary)
+                                              .toList(growable: false));
     return js.js("$deferredInitializersGlobal[$hash] = #", content);
   }
 
@@ -226,7 +228,7 @@ class ModelEmitter {
           js.string("${namer.getterPrefix}${field.name}"),
           js.number(field.holder.index),
           emitLazyInitializer(field) ]);
-    return new js.ArrayInitializer.from(fieldDescriptors);
+    return new js.ArrayInitializer(fieldDescriptors.toList(growable: false));
   }
 
   js.Block emitEagerClassInitializations(List<Library> libraries) {
@@ -248,10 +250,12 @@ class ModelEmitter {
     Iterable classDescriptors = library.classes.expand((e) =>
         [ js.string(e.name), js.number(e.holder.index), emitClass(e) ]);
 
-    js.Expression staticArray = new js.ArrayInitializer.from(staticDescriptors);
-    js.Expression classArray = new js.ArrayInitializer.from(classDescriptors);
+    js.Expression staticArray =
+        new js.ArrayInitializer(staticDescriptors.toList(growable: false));
+    js.Expression classArray =
+        new js.ArrayInitializer(classDescriptors.toList(growable: false));
 
-    return new js.ArrayInitializer.from([staticArray, classArray]);
+    return new js.ArrayInitializer([staticArray, classArray]);
   }
 
   js.Expression _generateConstructor(Class cls) {
@@ -334,7 +338,7 @@ class ModelEmitter {
     Iterable<Method> gettersSetters = _generateGettersSetters(cls);
     Iterable<Method> allMethods = [methods, gettersSetters].expand((x) => x);
     elements.addAll(allMethods.expand((e) => [js.string(e.name), e.code]));
-    return unparse(compiler, new js.ArrayInitializer.from(elements));
+    return unparse(compiler, new js.ArrayInitializer(elements));
   }
 
   // This string should be referenced wherever JavaScript code makes assumptions
@@ -347,7 +351,7 @@ class ModelEmitter {
                      js.number(cls.superclassHolderIndex),
                      js.string(cls.mixinClass.name),
                      js.number(cls.mixinClass.holder.index)];
-    return unparse(compiler, new js.ArrayInitializer.from(elements));
+    return unparse(compiler, new js.ArrayInitializer(elements));
   }
 
   js.Expression emitLazyInitializer(StaticField field) {
