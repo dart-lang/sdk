@@ -11,7 +11,7 @@ import '../../test_pub.dart';
 
 main() {
   initConfig();
-  integration('updates an outdated binstub script', () {
+  integration('handles a corrupted global lockfile', () {
     d.dir(
         cachePath,
         [d.dir('global_packages/foo', [d.file('pubspec.lock', 'junk')])]).create();

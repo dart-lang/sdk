@@ -398,7 +398,7 @@ void tryDeleteEntry(String path) {
   try {
     deleteEntry(path);
   } catch (error, stackTrace) {
-    log.fine("Failed to delete $entry: $error\n"
+    log.fine("Failed to delete $path: $error\n"
         "${new Chain.forTrace(stackTrace)}");
   }
 }

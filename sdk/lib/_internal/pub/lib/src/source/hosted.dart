@@ -134,7 +134,9 @@ class HostedSource extends CachedSource {
       var url = _directoryToUrl(path.basename(serverDir));
       var packages = _getCachedPackagesInDirectory(path.basename(serverDir));
       packages.sort(Package.orderByNameAndVersion);
-      for (var package in packages) {
+      // TODO(nweiz): Use a normal for loop here when
+      // https://github.com/dart-lang/async_await/issues/72 is fixed.
+      await Future.forEach(packages, (package) async {
         try {
           await _download(url, package.name, package.version, package.dir);
           successes++;
@@ -148,7 +150,7 @@ class HostedSource extends CachedSource {
 
           tryDeleteEntry(package.dir);
         }
-      }
+      });
     }
 
     return new Pair(successes, failures);

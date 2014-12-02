@@ -11,7 +11,7 @@ import '../../test_pub.dart';
 
 main() {
   initConfig();
-  integration('updates an outdated binstub script', () {
+  integration('recompiles activated executable snapshots', () {
     servePackages((builder) {
       builder.serve(
           "foo",
