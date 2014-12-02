@@ -38,16 +38,14 @@ void runReflectiveTests(Type type) {
       String memberName = MirrorSystem.getName(symbol);
       // test_
       if (memberName.startsWith('test_')) {
-        String testName = memberName.substring('test_'.length);
-        test(testName, () {
+        test(memberName, () {
           return _runTest(classMirror, symbol);
         });
         return;
       }
       // solo_test_
       if (memberName.startsWith('solo_test_')) {
-        String testName = memberName.substring('solo_test_'.length);
-        solo_test(testName, () {
+        solo_test(memberName, () {
           return _runTest(classMirror, symbol);
         });
       }
