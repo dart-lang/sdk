@@ -7,6 +7,8 @@
 
 library engine.sdk.io;
 
+import 'dart:io';
+
 import 'package:analyzer/src/generated/java_engine.dart';
 
 import 'ast.dart';
@@ -401,7 +403,7 @@ class DirectoryBasedDartSdk implements DartSdk {
         if (revision != null) {
           _sdkVersion = revision.trim();
         }
-      } on JavaIOException catch (exception) {
+      } on FileSystemException catch (exception) {
         // Fall through to return the default.
       }
     }

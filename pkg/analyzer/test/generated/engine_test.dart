@@ -35,7 +35,7 @@ import 'package:unittest/unittest.dart';
 import 'package:watcher/src/utils.dart';
 
 import '../reflective_tests.dart';
-import 'all_the_rest.dart';
+import 'all_the_rest_test.dart';
 import 'resolver_test.dart';
 import 'test_support.dart';
 
