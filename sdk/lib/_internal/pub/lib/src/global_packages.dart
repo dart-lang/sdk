@@ -378,7 +378,7 @@ class GlobalPackages {
   void listActivePackages() {
     if (!dirExists(_directory)) return;
 
-    return listDir(_directory).map(_loadPackageId).toList()
+    listDir(_directory).map(_loadPackageId).toList()
         ..sort((id1, id2) => id1.name.compareTo(id2.name))
         ..forEach((id) => log.message(_formatPackage(id)));
   }
