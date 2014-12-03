@@ -338,6 +338,8 @@ dt.typeDefinition {
       
       
       
+      
+      
     <h3>Requests</h3><dl><dt class="request">analysis.getErrors</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.getErrors"
@@ -360,7 +362,9 @@ dt.typeDefinition {
           for the file cannot be computed, then the subset of the
           errors that can be computed will be returned and the
           response will contain an error to indicate why the errors
-          could not be computed.
+          could not be computed. If the content of the file changes after this
+          request was received but before a response could be sent, then an
+          error of type <tt>CONTENT_MODIFIED</tt> will be generated.
         </p>
         <p>
           This request is intended to be used by clients that cannot
@@ -413,14 +417,12 @@ dt.typeDefinition {
       <h4>Parameters</h4><dl><dt class="field"><b><i>file ( <a href="#type_FilePath">FilePath</a> )</i></b></dt><dd>
             
             <p>
-              The file in which hover information is being
-              requested.
+              The file in which hover information is being requested.
             </p>
           </dd><dt class="field"><b><i>offset ( int )</i></b></dt><dd>
             
             <p>
-              The offset for which hover information is being
-              requested.
+              The offset for which hover information is being requested.
             </p>
           </dd></dl><h4>Returns</h4><dl><dt class="field"><b><i>hovers ( List&lt;<a href="#type_HoverInformation">HoverInformation</a>&gt; )</i></b></dt><dd>
             
@@ -431,6 +433,78 @@ dt.typeDefinition {
               contain multiple items if the file is being analyzed
               in multiple contexts in conflicting ways (such as a
               part that is included in multiple libraries).
+            </p>
+          </dd></dl></dd><dt class="request">analysis.getNavigation</dt><dd><div class="box"><pre>request: {
+  "id": String
+  "method": "analysis.getNavigation"
+  "params": {
+    "<b>file</b>": <a href="#type_FilePath">FilePath</a>
+    "<b>offset</b>": int
+    "<b>length</b>": int
+  }
+}</pre><br><pre>response: {
+  "id": String
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
+  "result": {
+    "<b>files</b>": List&lt;<a href="#type_FilePath">FilePath</a>&gt;
+    "<b>targets</b>": List&lt;<a href="#type_NavigationTarget">NavigationTarget</a>&gt;
+    "<b>regions</b>": List&lt;<a href="#type_NavigationRegion">NavigationRegion</a>&gt;
+  }
+}</pre></div>
+        <p>
+          Return the navigation information associated with the given region of
+          the given file. If the navigation information for the given file has
+          not yet been computed, or the most recently computed navigation
+          information for the given file is out of date, then the response for
+          this request will be delayed until it has been computed. If the
+          content of the file changes after this request was received but before
+          a response could be sent, then an error of type
+          <tt>CONTENT_MODIFIED</tt> will be generated.
+        </p>
+        <p>
+          If a navigation region overlaps (but extends either before or after)
+          the given region of the file it will be included in the result. This
+          means that it is theoretically possible to get the same navigation
+          region in response to multiple requests. Clients can avoid this by
+          always choosing a region that starts at the beginning of a line and
+          ends at the end of a (possibly different) line in the file.
+        </p>
+        
+        
+      <h4>Parameters</h4><dl><dt class="field"><b><i>file ( <a href="#type_FilePath">FilePath</a> )</i></b></dt><dd>
+            
+            <p>
+              The file in which navigation information is being requested.
+            </p>
+          </dd><dt class="field"><b><i>offset ( int )</i></b></dt><dd>
+            
+            <p>
+              The offset of the region for which navigation information is being
+              requested.
+            </p>
+          </dd><dt class="field"><b><i>length ( int )</i></b></dt><dd>
+            
+            <p>
+              The length of the region for which navigation information is being
+              requested.
+            </p>
+          </dd></dl><h4>Returns</h4><dl><dt class="field"><b><i>files ( List&lt;<a href="#type_FilePath">FilePath</a>&gt; )</i></b></dt><dd>
+            
+            <p>
+              A list of the paths of files that are referenced by the navigation
+              targets.
+            </p>
+          </dd><dt class="field"><b><i>targets ( List&lt;<a href="#type_NavigationTarget">NavigationTarget</a>&gt; )</i></b></dt><dd>
+            
+            <p>
+              A list of the navigation targets that are referenced by the
+              navigation regions.
+            </p>
+          </dd><dt class="field"><b><i>regions ( List&lt;<a href="#type_NavigationRegion">NavigationRegion</a>&gt; )</i></b></dt><dd>
+            
+            <p>
+              A list of the navigation regions within the requested region of
+              the file.
             </p>
           </dd></dl></dd><dt class="request">analysis.reanalyze</dt><dd><div class="box"><pre>request: {
   "id": String
@@ -778,6 +852,47 @@ dt.typeDefinition {
               the highlight regions that are returned can overlap
               other highlight regions if there is more than one
               meaning associated with a particular region.
+            </p>
+          </dd></dl></dd><dt class="notification">analysis.invalidate</dt><dd><div class="box"><pre>notification: {
+  "event": "analysis.invalidate"
+  "params": {
+    "<b>file</b>": <a href="#type_FilePath">FilePath</a>
+    "<b>offset</b>": int
+    "<b>length</b>": int
+    "<b>delta</b>": int
+  }
+}</pre></div>
+        <p>
+          Reports that the navigation information associated with a region of a
+          single file has become invalid and should be re-requested.
+        </p>
+        <p>
+          This notification is not subscribed to by default. Clients can
+          subscribe by including the value <tt>"INVALIDATE"</tt> in the list of
+          services passed in an analysis.setSubscriptions request.
+        </p>
+        
+      <h4>Parameters</h4><dl><dt class="field"><b><i>file ( <a href="#type_FilePath">FilePath</a> )</i></b></dt><dd>
+            
+            <p>
+              The file whose information has been invalidated.
+            </p>
+          </dd><dt class="field"><b><i>offset ( int )</i></b></dt><dd>
+            
+            <p>
+              The offset of the invalidated region.
+            </p>
+          </dd><dt class="field"><b><i>length ( int )</i></b></dt><dd>
+            
+            <p>
+              The length of the invalidated region.
+            </p>
+          </dd><dt class="field"><b><i>delta ( int )</i></b></dt><dd>
+            
+            <p>
+              The delta to be applied to the offsets in information that follows
+              the invalidated region in order to update it so that it doesn't
+              need to be re-requested.
             </p>
           </dd></dl></dd><dt class="notification">analysis.navigation</dt><dd><div class="box"><pre>notification: {
   "event": "analysis.navigation"
@@ -1941,7 +2056,7 @@ dt.typeDefinition {
           domain.
         </p>
         
-      <dl><dt class="value">FOLDING</dt><dt class="value">HIGHLIGHTS</dt><dt class="value">NAVIGATION</dt><dt class="value">OCCURRENCES</dt><dt class="value">OUTLINE</dt><dt class="value">OVERRIDES</dt></dl></dd><dt class="typeDefinition"><a name="type_AnalysisStatus">AnalysisStatus: object</a></dt><dd>
+      <dl><dt class="value">FOLDING</dt><dt class="value">HIGHLIGHTS</dt><dt class="value">INVALIDATE</dt><dt class="value">NAVIGATION</dt><dt class="value">OCCURRENCES</dt><dt class="value">OUTLINE</dt><dt class="value">OVERRIDES</dt></dl></dd><dt class="typeDefinition"><a name="type_AnalysisStatus">AnalysisStatus: object</a></dt><dd>
         <p>
           An indication of the current state of analysis.
         </p>
@@ -2762,7 +2877,14 @@ dt.typeDefinition {
           execution of the server.
         </p>
         
-      <dl><dt class="value">GET_ERRORS_INVALID_FILE</dt><dd>
+      <dl><dt class="value">CONTENT_MODIFIED</dt><dd>
+            
+            <p>
+              An "analysis.getErrors" or "analysis.getNavigation" request could
+              not be satisfied because the content of the file changed before
+              the requested results could be computed.
+            </p>
+          </dd><dt class="value">GET_ERRORS_INVALID_FILE</dt><dd>
             
             <p>
               An "analysis.getErrors" request specified a FilePath

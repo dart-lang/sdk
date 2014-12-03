@@ -692,6 +692,202 @@ class AnalysisGetHoverResult implements HasToJson {
     return _JenkinsSmiHash.finish(hash);
   }
 }
+
+/**
+ * analysis.getNavigation params
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ *   "length": int
+ * }
+ */
+class AnalysisGetNavigationParams implements HasToJson {
+  /**
+   * The file in which navigation information is being requested.
+   */
+  String file;
+
+  /**
+   * The offset of the region for which navigation information is being
+   * requested.
+   */
+  int offset;
+
+  /**
+   * The length of the region for which navigation information is being
+   * requested.
+   */
+  int length;
+
+  AnalysisGetNavigationParams(this.file, this.offset, this.length);
+
+  factory AnalysisGetNavigationParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "file");
+      }
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "offset");
+      }
+      int length;
+      if (json.containsKey("length")) {
+        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "length");
+      }
+      return new AnalysisGetNavigationParams(file, offset, length);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "analysis.getNavigation params");
+    }
+  }
+
+  factory AnalysisGetNavigationParams.fromRequest(Request request) {
+    return new AnalysisGetNavigationParams.fromJson(
+        new RequestDecoder(request), "params", request._params);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    result["offset"] = offset;
+    result["length"] = length;
+    return result;
+  }
+
+  Request toRequest(String id) {
+    return new Request(id, "analysis.getNavigation", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is AnalysisGetNavigationParams) {
+      return file == other.file &&
+          offset == other.offset &&
+          length == other.length;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * analysis.getNavigation result
+ *
+ * {
+ *   "files": List<FilePath>
+ *   "targets": List<NavigationTarget>
+ *   "regions": List<NavigationRegion>
+ * }
+ */
+class AnalysisGetNavigationResult implements HasToJson {
+  /**
+   * A list of the paths of files that are referenced by the navigation
+   * targets.
+   */
+  List<String> files;
+
+  /**
+   * A list of the navigation targets that are referenced by the navigation
+   * regions.
+   */
+  List<NavigationTarget> targets;
+
+  /**
+   * A list of the navigation regions within the requested region of the file.
+   */
+  List<NavigationRegion> regions;
+
+  AnalysisGetNavigationResult(this.files, this.targets, this.regions);
+
+  factory AnalysisGetNavigationResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<String> files;
+      if (json.containsKey("files")) {
+        files = jsonDecoder._decodeList(jsonPath + ".files", json["files"], jsonDecoder._decodeString);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "files");
+      }
+      List<NavigationTarget> targets;
+      if (json.containsKey("targets")) {
+        targets = jsonDecoder._decodeList(jsonPath + ".targets", json["targets"], (String jsonPath, Object json) => new NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "targets");
+      }
+      List<NavigationRegion> regions;
+      if (json.containsKey("regions")) {
+        regions = jsonDecoder._decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "regions");
+      }
+      return new AnalysisGetNavigationResult(files, targets, regions);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "analysis.getNavigation result");
+    }
+  }
+
+  factory AnalysisGetNavigationResult.fromResponse(Response response) {
+    return new AnalysisGetNavigationResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["files"] = files;
+    result["targets"] = targets.map((NavigationTarget value) => value.toJson()).toList();
+    result["regions"] = regions.map((NavigationRegion value) => value.toJson()).toList();
+    return result;
+  }
+
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is AnalysisGetNavigationResult) {
+      return _listEqual(files, other.files, (String a, String b) => a == b) &&
+          _listEqual(targets, other.targets, (NavigationTarget a, NavigationTarget b) => a == b) &&
+          _listEqual(regions, other.regions, (NavigationRegion a, NavigationRegion b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, files.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, targets.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, regions.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
 /**
  * analysis.reanalyze params
  */
@@ -1523,6 +1719,119 @@ class AnalysisHighlightsParams implements HasToJson {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, file.hashCode);
     hash = _JenkinsSmiHash.combine(hash, regions.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * analysis.invalidate params
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ *   "length": int
+ *   "delta": int
+ * }
+ */
+class AnalysisInvalidateParams implements HasToJson {
+  /**
+   * The file whose information has been invalidated.
+   */
+  String file;
+
+  /**
+   * The offset of the invalidated region.
+   */
+  int offset;
+
+  /**
+   * The length of the invalidated region.
+   */
+  int length;
+
+  /**
+   * The delta to be applied to the offsets in information that follows the
+   * invalidated region in order to update it so that it doesn't need to be
+   * re-requested.
+   */
+  int delta;
+
+  AnalysisInvalidateParams(this.file, this.offset, this.length, this.delta);
+
+  factory AnalysisInvalidateParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "file");
+      }
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "offset");
+      }
+      int length;
+      if (json.containsKey("length")) {
+        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "length");
+      }
+      int delta;
+      if (json.containsKey("delta")) {
+        delta = jsonDecoder._decodeInt(jsonPath + ".delta", json["delta"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "delta");
+      }
+      return new AnalysisInvalidateParams(file, offset, length, delta);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "analysis.invalidate params");
+    }
+  }
+
+  factory AnalysisInvalidateParams.fromNotification(Notification notification) {
+    return new AnalysisInvalidateParams.fromJson(
+        new ResponseDecoder(null), "params", notification._params);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    result["offset"] = offset;
+    result["length"] = length;
+    result["delta"] = delta;
+    return result;
+  }
+
+  Notification toNotification() {
+    return new Notification("analysis.invalidate", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is AnalysisInvalidateParams) {
+      return file == other.file &&
+          offset == other.offset &&
+          length == other.length &&
+          delta == other.delta;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, delta.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }
@@ -5014,6 +5323,7 @@ class AnalysisOptions implements HasToJson {
  * enum {
  *   FOLDING
  *   HIGHLIGHTS
+ *   INVALIDATE
  *   NAVIGATION
  *   OCCURRENCES
  *   OUTLINE
@@ -5024,6 +5334,8 @@ class AnalysisService implements Enum {
   static const FOLDING = const AnalysisService._("FOLDING");
 
   static const HIGHLIGHTS = const AnalysisService._("HIGHLIGHTS");
+
+  static const INVALIDATE = const AnalysisService._("INVALIDATE");
 
   static const NAVIGATION = const AnalysisService._("NAVIGATION");
 
@@ -5043,6 +5355,8 @@ class AnalysisService implements Enum {
         return FOLDING;
       case "HIGHLIGHTS":
         return HIGHLIGHTS;
+      case "INVALIDATE":
+        return INVALIDATE;
       case "NAVIGATION":
         return NAVIGATION;
       case "OCCURRENCES":
@@ -8450,6 +8764,7 @@ class RequestError implements HasToJson {
  * RequestErrorCode
  *
  * enum {
+ *   CONTENT_MODIFIED
  *   GET_ERRORS_INVALID_FILE
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
@@ -8464,6 +8779,13 @@ class RequestError implements HasToJson {
  * }
  */
 class RequestErrorCode implements Enum {
+  /**
+   * An "analysis.getErrors" or "analysis.getNavigation" request could not be
+   * satisfied because the content of the file changed before the requested
+   * results could be computed.
+   */
+  static const CONTENT_MODIFIED = const RequestErrorCode._("CONTENT_MODIFIED");
+
   /**
    * An "analysis.getErrors" request specified a FilePath which does not match
    * a file currently subject to analysis.
@@ -8545,6 +8867,8 @@ class RequestErrorCode implements Enum {
 
   factory RequestErrorCode(String name) {
     switch (name) {
+      case "CONTENT_MODIFIED":
+        return CONTENT_MODIFIED;
       case "GET_ERRORS_INVALID_FILE":
         return GET_ERRORS_INVALID_FILE;
       case "INVALID_OVERLAY_CHANGE":

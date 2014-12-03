@@ -144,6 +144,38 @@ final Matcher isAnalysisGetHoverResult = new LazyMatcher(() => new MatchesJsonOb
   }));
 
 /**
+ * analysis.getNavigation params
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ *   "length": int
+ * }
+ */
+final Matcher isAnalysisGetNavigationParams = new LazyMatcher(() => new MatchesJsonObject(
+  "analysis.getNavigation params", {
+    "file": isFilePath,
+    "offset": isInt,
+    "length": isInt
+  }));
+
+/**
+ * analysis.getNavigation result
+ *
+ * {
+ *   "files": List<FilePath>
+ *   "targets": List<NavigationTarget>
+ *   "regions": List<NavigationRegion>
+ * }
+ */
+final Matcher isAnalysisGetNavigationResult = new LazyMatcher(() => new MatchesJsonObject(
+  "analysis.getNavigation result", {
+    "files": isListOf(isFilePath),
+    "targets": isListOf(isNavigationTarget),
+    "regions": isListOf(isNavigationRegion)
+  }));
+
+/**
  * analysis.reanalyze params
  */
 final Matcher isAnalysisReanalyzeParams = isNull;
@@ -295,6 +327,24 @@ final Matcher isAnalysisHighlightsParams = new LazyMatcher(() => new MatchesJson
   "analysis.highlights params", {
     "file": isFilePath,
     "regions": isListOf(isHighlightRegion)
+  }));
+
+/**
+ * analysis.invalidate params
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ *   "length": int
+ *   "delta": int
+ * }
+ */
+final Matcher isAnalysisInvalidateParams = new LazyMatcher(() => new MatchesJsonObject(
+  "analysis.invalidate params", {
+    "file": isFilePath,
+    "offset": isInt,
+    "length": isInt,
+    "delta": isInt
   }));
 
 /**
@@ -922,6 +972,7 @@ final Matcher isAnalysisOptions = new LazyMatcher(() => new MatchesJsonObject(
  * enum {
  *   FOLDING
  *   HIGHLIGHTS
+ *   INVALIDATE
  *   NAVIGATION
  *   OCCURRENCES
  *   OUTLINE
@@ -931,6 +982,7 @@ final Matcher isAnalysisOptions = new LazyMatcher(() => new MatchesJsonObject(
 final Matcher isAnalysisService = new MatchesEnum("AnalysisService", [
   "FOLDING",
   "HIGHLIGHTS",
+  "INVALIDATE",
   "NAVIGATION",
   "OCCURRENCES",
   "OUTLINE",
@@ -1690,6 +1742,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  * RequestErrorCode
  *
  * enum {
+ *   CONTENT_MODIFIED
  *   GET_ERRORS_INVALID_FILE
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
@@ -1704,6 +1757,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  * }
  */
 final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
+  "CONTENT_MODIFIED",
   "GET_ERRORS_INVALID_FILE",
   "INVALID_OVERLAY_CHANGE",
   "INVALID_PARAMETER",
