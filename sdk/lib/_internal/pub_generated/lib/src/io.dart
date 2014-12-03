@@ -488,14 +488,12 @@ String assetPath(String target) {
         'asset',
         target);
   } else {
-    return path.join(
-        path.dirname(libraryPath('pub.io')),
-        '..',
-        '..',
-        'asset',
-        target);
+    return path.join(pubRoot, 'asset', target);
   }
 }
+
+/// Returns the path to the root of pub's sources in the Dart repo.
+String get pubRoot => path.join(repoRoot, 'sdk', 'lib', '_internal', 'pub');
 
 /// Returns the path to the root of the Dart repository.
 ///

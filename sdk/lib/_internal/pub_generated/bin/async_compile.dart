@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:analyzer/src/services/formatter_impl.dart';
 import 'package:async_await/async_await.dart' as async_await;
+import 'package:stack_trace/stack_trace.dart';
 import 'package:path/path.dart' as p;
 
 /// The path to pub's root directory (sdk/lib/_internal/pub) in the Dart repo.
@@ -18,7 +19,7 @@ final sourceDir = p.dirname(p.dirname(p.fromUri(Platform.script)));
 final sourceUrl = p.toUri(sourceDir).toString();
 
 /// The directory that compiler output should be written to.
-final generatedDir = p.join(p.dirname(sourceDir), 'pub_generated');
+String generatedDir;
 
 /// `true` if any file failed to compile.
 bool hadFailure = false;
@@ -33,6 +34,30 @@ final _compilerPattern = new RegExp(r"import '(\.\./)+compiler");
 /// This is used both to find the current commit and replace it with the new
 /// one.
 final _commitPattern = new RegExp(r"[a-f0-9]{40}");
+
+/// The template for the README that's added to the generated source.
+///
+/// This is used to store the current commit of the async_await compiler.
+const _README = """
+Pub is currently dogfooding the new Dart async/await syntax. Since the Dart VM
+doesn't natively support it yet, we are using the [async-await][] compiler
+package.
+
+[async-await]: https://github.com/dart-lang/async_await
+
+We run that to compile pub-using-await from sdk/lib/_internal/pub down to
+vanilla Dart code which is what you see here. To interoperate more easily with
+the rest of the repositry, we check in that generated code.
+
+When bug #104 is fixed, we can remove this entirely.
+
+The code here was compiled using the async-await compiler at commit:
+
+    <<COMMIT>>
+
+(Note: this file is also parsed by a tool to update the above commit, so be
+careful not to reformat it.)
+""";
 
 /// This runs the async/await compiler on all of the pub source code.
 ///
@@ -49,22 +74,24 @@ void main(List<String> arguments) {
   parser.addFlag("force", callback: (value) => force = value);
 
   var buildDir;
+  parser.addOption("snapshot-build-dir", callback: (value) => buildDir = value);
 
   try {
     var rest = parser.parse(arguments).rest;
     if (rest.isEmpty) {
-      throw new FormatException('Missing build directory.');
+      throw new FormatException('Missing generated directory.');
     } else if (rest.length > 1) {
       throw new FormatException(
           'Unexpected arguments: ${rest.skip(1).join(" ")}.');
     }
 
-    buildDir = rest.first;
+    generatedDir = rest.first;
   } on FormatException catch (ex) {
     stderr.writeln(ex);
     stderr.writeln();
     stderr.writeln(
-        "Usage: dart async_compile.dart [--verbose] [--force] <build dir>");
+        "Usage: dart async_compile.dart [--verbose] [--force] "
+            "[--snapshot-build-dir <dir>] <generated dir>");
     exit(64);
   }
 
@@ -75,14 +102,21 @@ void main(List<String> arguments) {
 
   var readmePath = p.join(generatedDir, "README.md");
   var lastCommit;
-  var readme = new File(readmePath).readAsStringSync();
-  var match = _commitPattern.firstMatch(readme);
-  if (match == null) {
-    stderr.writeln("Could not find compiler commit hash in README.md.");
-    exit(1);
-  }
+  try {
+    var readme = new File(readmePath).readAsStringSync();
+    var match = _commitPattern.firstMatch(readme);
+    if (match == null) {
+      stderr.writeln("Could not find compiler commit hash in README.md.");
+      exit(1);
+    }
 
-  lastCommit = match[0];
+    lastCommit = match[0];
+  } on IOException catch (error, stackTrace) {
+    if (verbose) {
+      stderr.writeln(
+          "Failed to load $readmePath: $error\n" "${new Trace.from(stackTrace)}");
+    }
+  }
 
   var numFiles = 0;
   var numCompiled = 0;
@@ -123,12 +157,11 @@ void main(List<String> arguments) {
 
   // Update the README.
   if (currentCommit != lastCommit) {
-    readme = readme.replaceAll(_commitPattern, currentCommit);
-    _writeFile(readmePath, readme);
+    _writeFile(readmePath, _README.replaceAll("<<COMMIT>>", currentCommit));
     if (verbose) print("Updated README.md");
   }
 
-  if (numCompiled > 0) _generateSnapshot(buildDir);
+  if (numCompiled > 0 && buildDir != null) _generateSnapshot(buildDir);
 
   if (verbose) print("Compiled $numCompiled out of $numFiles files");
 
@@ -216,6 +249,7 @@ String _fixDart2jsImports(String sourcePath, String source, String destPath) {
 /// build.
 void _generateSnapshot(String buildDir) {
   buildDir = p.normalize(buildDir);
+  new Directory(dir).createSync(recursive: true);
 
   var entrypoint = p.join(generatedDir, 'bin/pub.dart');
   var packageRoot = p.join(buildDir, 'packages');
