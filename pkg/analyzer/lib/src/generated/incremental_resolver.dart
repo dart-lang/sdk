@@ -979,10 +979,14 @@ class PoorMansIncrementalResolver {
           _updateOffset = beginOffsetOld - 1;
           _updateEndOld = endOffsetOld;
           _updateDelta = newUnit.length - oldUnit.length;
-          if (firstPair.atComment && lastPair.atComment) {
-            logger.log('Comment change.');
+          // A Dart documentation comment change.
+          if (firstPair.kind == _TokenDifferenceKind.COMMENT_DOC) {
             _resolveComment(oldUnit, newUnit, firstPair);
-          } else {
+            logger.log('Success.');
+            return true;
+          }
+          // A pure whitespace change.
+          if (firstPair.kind == _TokenDifferenceKind.OFFSET) {
             logger.log('Whitespace change.');
             _shiftTokens(firstPair.oldToken);
             IncrementalResolver._updateElementNameOffsets(
@@ -990,9 +994,10 @@ class PoorMansIncrementalResolver {
                 _updateOffset,
                 _updateDelta);
             _updateEntry();
+            logger.log('Success.');
+            return true;
           }
-          logger.log('Success.');
-          return true;
+          // fall-through, end-of-line comment
         }
         // Find nodes covering the "old" and "new" token ranges.
         AstNode oldNode =
@@ -1202,57 +1207,82 @@ class PoorMansIncrementalResolver {
     return errors;
   }
 
-  static bool _equalToken(Token oldToken, Token newToken, int delta) {
+  static _TokenDifferenceKind _compareToken(Token oldToken, Token newToken,
+      int delta) {
+    if (oldToken == null && newToken == null) {
+      return null;
+    }
+    if (oldToken == null || newToken == null) {
+      return _TokenDifferenceKind.CONTENT;
+    }
     if (oldToken.type != newToken.type) {
-      return false;
+      return _TokenDifferenceKind.CONTENT;
+    }
+    if (oldToken.lexeme != newToken.lexeme) {
+      return _TokenDifferenceKind.CONTENT;
     }
     if (newToken.offset - oldToken.offset != delta) {
-      return false;
-    }
-    return oldToken.lexeme == newToken.lexeme;
-  }
-
-  static _TokenPair _findFirstDifferentToken(Token oldToken, Token newToken) {
-//    print('first ------------');
-    while (oldToken.type != TokenType.EOF && newToken.type != TokenType.EOF) {
-//      print('old: $oldToken @ ${oldToken.offset}');
-//      print('new: $newToken @ ${newToken.offset}');
-      {
-        Token oldComment = oldToken.precedingComments;
-        Token newComment = newToken.precedingComments;
-        if (oldComment != null && newComment != null) {
-          if (!_equalToken(oldComment, newComment, 0)) {
-            return new _TokenPair(oldToken, newToken, true);
-          }
-        }
-      }
-      if (!_equalToken(oldToken, newToken, 0)) {
-        return new _TokenPair(oldToken, newToken);
-      }
-      oldToken = oldToken.next;
-      newToken = newToken.next;
+      return _TokenDifferenceKind.OFFSET;
     }
     return null;
   }
 
-  static _TokenPair _findLastDifferentToken(Token oldToken, Token newToken) {
-//    print('last ------------');
-    int delta = newToken.offset - oldToken.offset;
-    while (oldToken.previous != oldToken && newToken.previous != newToken) {
-//      print('old: $oldToken @ ${oldToken.offset}');
-//      print('new: $newToken @ ${newToken.offset}');
-      if (!_equalToken(oldToken, newToken, delta)) {
-        return new _TokenPair(oldToken.next, newToken.next);
+  static _TokenPair _findFirstDifferentToken(Token oldToken, Token newToken) {
+    while (true) {
+      if (oldToken.type == TokenType.EOF && newToken.type == TokenType.EOF) {
+        return null;
       }
+      if (oldToken.type == TokenType.EOF || newToken.type == TokenType.EOF) {
+        return new _TokenPair(_TokenDifferenceKind.CONTENT, oldToken, newToken);
+      }
+      // compare comments
       {
         Token oldComment = oldToken.precedingComments;
         Token newComment = newToken.precedingComments;
-        if (oldComment != null && newComment != null) {
-          if (!_equalToken(oldComment, newComment, delta)) {
-            return new _TokenPair(oldToken, newToken, true);
+        if (_compareToken(oldComment, newComment, 0) != null) {
+          _TokenDifferenceKind diffKind = _TokenDifferenceKind.COMMENT;
+          if (oldComment is DocumentationCommentToken ||
+              newComment is DocumentationCommentToken) {
+            diffKind = _TokenDifferenceKind.COMMENT_DOC;
           }
+          return new _TokenPair(diffKind, oldToken, newToken);
         }
       }
+      // compare tokens
+      _TokenDifferenceKind diffKind = _compareToken(oldToken, newToken, 0);
+      if (diffKind != null) {
+        return new _TokenPair(diffKind, oldToken, newToken);
+      }
+      // next tokens
+      oldToken = oldToken.next;
+      newToken = newToken.next;
+    }
+    // no difference
+    return null;
+  }
+
+  static _TokenPair _findLastDifferentToken(Token oldToken, Token newToken) {
+    int delta = newToken.offset - oldToken.offset;
+    while (oldToken.previous != oldToken && newToken.previous != newToken) {
+      // compare tokens
+      _TokenDifferenceKind diffKind = _compareToken(oldToken, newToken, delta);
+      if (diffKind != null) {
+        return new _TokenPair(diffKind, oldToken.next, newToken.next);
+      }
+      // compare comments
+      {
+        Token oldComment = oldToken.precedingComments;
+        Token newComment = newToken.precedingComments;
+        if (_compareToken(oldComment, newComment, delta) != null) {
+          _TokenDifferenceKind diffKind = _TokenDifferenceKind.COMMENT;
+          if (oldComment is DocumentationCommentToken ||
+              newComment is DocumentationCommentToken) {
+            diffKind = _TokenDifferenceKind.COMMENT_DOC;
+          }
+          return new _TokenPair(diffKind, oldToken, newToken);
+        }
+      }
+      // next tokens
       oldToken = oldToken.previous;
       newToken = newToken.previous;
     }
@@ -1600,9 +1630,27 @@ class _ElementsRestorer extends RecursiveAstVisitor {
 }
 
 
+/**
+ * Describes how two [Token]s are different.
+ */
+class _TokenDifferenceKind {
+  static const COMMENT = const _TokenDifferenceKind('COMMENT');
+  static const COMMENT_DOC = const _TokenDifferenceKind('COMMENT_DOC');
+  static const CONTENT = const _TokenDifferenceKind('CONTENT');
+  static const OFFSET = const _TokenDifferenceKind('OFFSET');
+
+  final String name;
+
+  const _TokenDifferenceKind(this.name);
+
+  @override
+  String toString() => name;
+}
+
+
 class _TokenPair {
+  final _TokenDifferenceKind kind;
   final Token oldToken;
   final Token newToken;
-  final bool atComment;
-  _TokenPair(this.oldToken, this.newToken, [this.atComment = false]);
+  _TokenPair(this.kind, this.oldToken, this.newToken);
 }

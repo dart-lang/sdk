@@ -8,8 +8,8 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/incremental_resolver.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart' as log;
+import 'package:analyzer/src/generated/incremental_resolver.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -2353,6 +2353,63 @@ main() {
 ''');
   }
 
+  void test_endOfLineComment_add_beforeKeywordToken() {
+    _resolveUnit(r'''
+main() {
+  var v = 42;
+}
+''');
+    _updateAndValidate(r'''
+main() {
+  // some comment
+  var v = 42;
+}
+''');
+  }
+
+  void test_endOfLineComment_add_beforeStringToken() {
+    _resolveUnit(r'''
+main() {
+  print(0);
+}
+''');
+    _updateAndValidate(r'''
+main() {
+  // some comment
+  print(0);
+}
+''');
+  }
+
+  void test_endOfLineComment_edit() {
+    _resolveUnit(r'''
+main() {
+  // some comment
+  print(2);
+}
+''');
+    _updateAndValidate(r'''
+main() {
+  // edited comment text
+  print(0);
+}
+''');
+  }
+
+  void test_endOfLineComment_remove() {
+    _resolveUnit(r'''
+main() {
+  // some comment
+  print(0);
+}
+''');
+    _updateAndValidate(r'''
+main() {
+  print(0);
+}
+''');
+  }
+
   void test_false_topLevelFunction_name() {
     _resolveUnit(r'''
 a() {}
@@ -2836,6 +2893,7 @@ f3() {
             expect(incrComment, isNull);
             break;
           }
+          expect(incrComment, isNotNull);
           _assertEqualToken(incrComment, fullComment);
           incrComment = incrComment.next;
           fullComment = fullComment.next;
