@@ -10,7 +10,7 @@ var dart_runtime;
     var fnText,argDecl;
     var args=[];
     fnText = fn.toString().replace(STRIP_COMMENTS, '');
-    argDecl = fnText.match(FN_ARGS); 
+    argDecl = fnText.match(FN_ARGS);
 
     var r = argDecl[1].split(FN_ARG_SPLIT);
     for(var a in r){
@@ -44,4 +44,11 @@ var dart_runtime;
     return f.apply(void 0, args);
   }
   dart_runtime.dinvokef = dinvokef;
+
+  function dextend(sub, _super) {
+    sub.prototype = Object.create(_super.prototype);
+    sub.prototype.constructor = sub;
+  }
+  dart_runtime.dextend = dextend;
+
 })(dart_runtime || (dart_runtime = {}));
