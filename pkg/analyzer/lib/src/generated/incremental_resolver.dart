@@ -7,18 +7,18 @@ library engine.incremental_resolver;
 import 'dart:collection';
 import 'dart:math' as math;
 
-import 'package:analyzer/src/generated/error_verifier.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
-
 import 'ast.dart';
 import 'element.dart';
 import 'engine.dart';
 import 'error.dart';
+import 'error_verifier.dart';
+import 'incremental_logger.dart' show logger;
 import 'java_engine.dart';
 import 'parser.dart';
 import 'resolver.dart';
 import 'scanner.dart';
 import 'source.dart';
+import 'utilities_dart.dart';
 
 
 /**
@@ -920,6 +920,8 @@ class PoorMansIncrementalResolver {
    * The [oldUnit] might be damaged.
    */
   bool resolve(CompilationUnit oldUnit, String newCode) {
+    logger.enter('resolve $_unitSource');
+    logger.log(oldUnit != null ? 'has oldUnit' : 'oldUnit is null');
     try {
       CompilationUnit newUnit = _parseUnit(newCode);
       _TokenPair firstPair =
@@ -942,8 +944,10 @@ class PoorMansIncrementalResolver {
           _updateEndOld = endOffsetOld;
           _updateDelta = newUnit.length - oldUnit.length;
           if (firstPair.atComment && lastPair.atComment) {
+            logger.log('Comment change.');
             _resolveComment(oldUnit, newUnit, firstPair);
           } else {
+            logger.log('Whitespace change.');
             _shiftTokens(firstPair.oldToken);
             IncrementalResolver._updateElementNameOffsets(
                 oldUnit.element,
@@ -951,6 +955,7 @@ class PoorMansIncrementalResolver {
                 _updateDelta);
             _updateEntry();
           }
+          logger.log('Success.');
           return true;
         }
         // Find nodes covering the "old" and "new" token ranges.
@@ -958,8 +963,8 @@ class PoorMansIncrementalResolver {
             _findNodeCovering(oldUnit, beginOffsetOld, endOffsetOld);
         AstNode newNode =
             _findNodeCovering(newUnit, beginOffsetNew, endOffsetNew);
-//        print('oldNode: $oldNode');
-//        print('newNode: $newNode');
+        logger.log('oldNode: $oldNode');
+        logger.log('newNode: $newNode');
         // Try to find the smallest common node, a FunctionBody currently.
         {
           List<AstNode> oldParents = _getParents(oldNode);
@@ -985,11 +990,12 @@ class PoorMansIncrementalResolver {
             }
           }
           if (!found) {
+            logger.log('Failure: no enclosing function body or executable.');
             return false;
           }
         }
-//        print('oldNode: $oldNode');
-//        print('newNode: $newNode');
+        logger.log('oldNode: $oldNode');
+        logger.log('newNode: $newNode');
         // prepare update range
         _updateOffset = oldNode.offset;
         _updateEndOld = oldNode.end;
@@ -1022,13 +1028,15 @@ class PoorMansIncrementalResolver {
         _newVerifyErrors = incrementalResolver._verifyErrors;
         _newHints = incrementalResolver._hints;
         _updateEntry();
-//        print('Successfully incrementally resolved.');
+        logger.log('Success.');
         return true;
       }
-    } catch (e) {
-      // TODO(scheglov) find a way to log these exceptions
-//      print(e);
-//      print(st);
+    } catch (e, st) {
+      logger.log(e);
+      logger.log(st);
+      logger.log('Failure: exception.');
+    } finally {
+      logger.exit();
     }
     return false;
   }
@@ -1045,9 +1053,13 @@ class PoorMansIncrementalResolver {
   void _resolveComment(CompilationUnit oldUnit, CompilationUnit newUnit,
       _TokenPair firstPair) {
     Token oldToken = firstPair.oldToken;
-    int offset = oldToken.precedingComments.offset;
+    CommentToken precedingComments = oldToken.precedingComments;
+    int offset = precedingComments.offset;
+    logger.log('offset: $offset');
     Comment oldComment = _findNodeCovering(oldUnit, offset, offset);
     Comment newComment = _findNodeCovering(newUnit, offset, offset);
+    logger.log('oldComment.beginToken: ${oldComment.beginToken}');
+    logger.log('newComment.beginToken: ${newComment.beginToken}');
     _updateOffset = oldToken.offset - 1;
     // update token references
     _shiftTokens(firstPair.oldToken);

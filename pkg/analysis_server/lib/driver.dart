@@ -11,10 +11,38 @@ import 'package:analysis_server/http_server.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/stdio_server.dart';
+import 'package:analyzer/src/generated/incremental_logger.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:args/args.dart';
+
+
+/**
+ * Initializes incremental logger.
+ *
+ * Supports following formats of [spec]:
+ *
+ *     "console" - log to the console;
+ *     "file:/some/file/name" - log to the file, overwritten on start.
+ */
+void _initIncrementalLogger(String spec) {
+  logger = new NullLogger();
+  if (spec == null) {
+    return;
+  }
+  // create logger
+  if (spec == 'console') {
+    logger = new StringSinkLogger(console.log);
+  }
+  if (spec.startsWith('file:')) {
+    String fileName = spec.substring('file:'.length);
+    File file = new File(fileName);
+    IOSink sink = file.openWrite();
+    logger = new StringSinkLogger(sink);
+  }
+}
+
 
 /**
  * The [Driver] class represents a single running instance of the analysis
@@ -32,6 +60,11 @@ class Driver {
    */
   static const String ENABLE_INCREMENTAL_RESOLUTION =
       "enable-incremental-resolution";
+
+  /**
+   * The name of the option used to describe the incremental resolution logger.
+   */
+  static const String INCREMENTAL_RESOLUTION_LOG = "incremental-resolution-log";
 
   /**
    * The name of the option used to enable instrumentation.
@@ -54,8 +87,7 @@ class Driver {
    * The name of the option used to specify if [print] should print to the
    * console instead of being intercepted.
    */
-  static const String INTERNAL_PRINT_TO_CONSOLE =
-      "internal-print-to-console";
+  static const String INTERNAL_PRINT_TO_CONSOLE = "internal-print-to-console";
 
   /**
    * The name of the option used to specify the port to which the server will
@@ -102,6 +134,9 @@ class Driver {
         help: "print this help message without starting a server",
         defaultsTo: false,
         negatable: false);
+    parser.addOption(
+        INCREMENTAL_RESOLUTION_LOG,
+        help: "the description of the incremental resolotion log");
     parser.addOption(
         INSTRUMENTATION_LOG_FILE_OPTION,
         help: "[path] the file to which instrumentation data will be logged");
@@ -154,6 +189,8 @@ class Driver {
     AnalysisServerOptions analysisServerOptions = new AnalysisServerOptions();
     analysisServerOptions.enableIncrementalResolution =
         results[ENABLE_INCREMENTAL_RESOLUTION];
+
+    _initIncrementalLogger(results[INCREMENTAL_RESOLUTION_LOG]);
 
     DartSdk defaultSdk;
     if (results[SDK_OPTION] != null) {
