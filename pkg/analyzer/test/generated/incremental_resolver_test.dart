@@ -9,6 +9,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/incremental_resolver.dart';
+import 'package:analyzer/src/generated/incremental_logger.dart' as log;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -2726,6 +2727,8 @@ f3() {
   void _resetWithIncremental(bool enable) {
     AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
     analysisOptions.incremental = enable;
+//    log.logger = log.PRINT_LOGGER;
+    log.logger = log.NULL_LOGGER;
     analysisContext2.analysisOptions = analysisOptions;
   }
 

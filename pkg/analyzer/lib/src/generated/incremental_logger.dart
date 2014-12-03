@@ -9,7 +9,17 @@ library engine.incremental_logger;
  * The shared instance of [Logger] used by several incremental resolution
  * classes. It is initialized externally by the Analysis Engine client.
  */
-Logger logger = new NullLogger();
+Logger logger = NULL_LOGGER;
+
+/**
+ * An instance of [Logger] that does not print anything.
+ */
+final Logger NULL_LOGGER = new _NullLogger();
+
+/**
+ * An instance of [Logger] that uses `print` for output.
+ */
+final Logger PRINT_LOGGER = new StringSinkLogger(new _PrintStringSink());
 
 
 /**
@@ -30,23 +40,31 @@ abstract class Logger {
    * Logs the given [obj].
    */
   void log(Object obj);
+
+  /**
+   * Starts a new timer.
+   */
+  LoggingTimer startTimer();
 }
 
 
 /**
- * A [Logger] that does nothing.
+ * The handle of a timer.
  */
-class NullLogger implements Logger {
-  @override
-  void enter(String name) {
+class LoggingTimer {
+  final Logger _logger;
+  final Stopwatch _stopwatch = new Stopwatch();
+
+  LoggingTimer(this._logger) {
+    _stopwatch.start();
   }
 
-  @override
-  void exit() {
-  }
-
-  @override
-  void log(Object obj) {
+  /**
+   * This methods stop the timer and logs the elapsed time.
+   */
+  void stop(String message) {
+    _stopwatch.stop();
+    _logger.log('$message in ${_stopwatch.elapsedMilliseconds} ms');
   }
 }
 
@@ -87,9 +105,17 @@ class StringSinkLogger implements Logger {
     _sink.writeln(line);
   }
 
+  @override
+  LoggingTimer startTimer() {
+    return new LoggingTimer(this);
+  }
+
   String _getObjectString(Object obj) {
     if (obj == null) {
       return 'null';
+    }
+    if (obj is Function) {
+      obj = obj();
     }
     String str = obj.toString();
     if (str.length < _MAX_LINE_LENGTH) {
@@ -110,4 +136,61 @@ class _LoggerSection {
   final String indent;
   final String name;
   _LoggerSection(this.indent, this.name);
+}
+
+
+/**
+ * A [Logger] that does nothing.
+ */
+class _NullLogger implements Logger {
+  @override
+  void enter(String name) {
+  }
+
+  @override
+  void exit() {
+  }
+
+  @override
+  void log(Object obj) {
+  }
+
+  @override
+  LoggingTimer startTimer() {
+    return new LoggingTimer(this);
+  }
+}
+
+
+/**
+ * A [StringSink] implementation that uses `print`.
+ */
+class _PrintStringSink implements StringSink {
+  String _line = '';
+
+  @override
+  void write(Object obj) {
+    if (obj == null) {
+      _line += 'null';
+    } else {
+      _line += obj.toString();
+    }
+  }
+
+  @override
+  void writeAll(Iterable objects, [String separator = '']) {
+    _line += objects.join(separator);
+  }
+
+  @override
+  void writeCharCode(int charCode) {
+    _line += new String.fromCharCode(charCode);
+  }
+
+  @override
+  void writeln([Object obj = '']) {
+    _line += obj;
+    print(_line);
+    _line = '';
+  }
 }

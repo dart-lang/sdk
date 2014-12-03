@@ -27,7 +27,7 @@ import 'package:args/args.dart';
  *     "file:/some/file/name" - log to the file, overwritten on start.
  */
 void _initIncrementalLogger(String spec) {
-  logger = new NullLogger();
+  logger = NULL_LOGGER;
   if (spec == null) {
     return;
   }

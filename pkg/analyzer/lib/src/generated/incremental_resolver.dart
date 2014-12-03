@@ -12,7 +12,7 @@ import 'element.dart';
 import 'engine.dart';
 import 'error.dart';
 import 'error_verifier.dart';
-import 'incremental_logger.dart' show logger;
+import 'incremental_logger.dart' show logger, LoggingTimer;
 import 'java_engine.dart';
 import 'parser.dart';
 import 'resolver.dart';
@@ -85,12 +85,15 @@ class DeclarationMatcher extends RecursiveAstVisitor {
    *         element model
    */
   bool matches(AstNode node, Element element) {
-    _captureEnclosingElements(element);
-    _gatherElements(element);
+    logger.enter('match $element @ ${element.nameOffset}');
     try {
+      _captureEnclosingElements(element);
+      _gatherElements(element);
       node.accept(this);
     } on _DeclarationMismatchException catch (exception) {
       return false;
+    } finally {
+      logger.exit();
     }
     return _unmatchedElements.isEmpty;
   }
@@ -670,21 +673,29 @@ class IncrementalResolver {
    * [node] - the root of the AST structure to be resolved.
    */
   void resolve(AstNode node) {
-    AstNode rootNode = _findResolutionRoot(node);
-    // update elements
-    _updateElementNameOffsets(
-        _definingUnit,
-        _updateOffset,
-        _updateNewLength - _updateOldLength);
-    if (_elementModelChanged(rootNode)) {
-      throw new AnalysisException("Cannot resolve node: element model changed");
+    logger.enter('resolve: $_definingUnit');
+    try {
+      logger.log(() => 'node: $node');
+      AstNode rootNode = _findResolutionRoot(node);
+      logger.log(() => 'rootNode: $rootNode');
+      // update elements
+      _updateElementNameOffsets(
+          _definingUnit,
+          _updateOffset,
+          _updateNewLength - _updateOldLength);
+      if (_elementModelChanged(rootNode)) {
+        throw new AnalysisException(
+            "Cannot resolve node: element model changed");
+      }
+      _updateElements(rootNode);
+      // resolve
+      _resolveReferences(rootNode);
+      // verify
+      _verify(rootNode);
+      _generateHints(rootNode);
+    } finally {
+      logger.exit();
     }
-    _updateElements(rootNode);
-    // resolve
-    _resolveReferences(rootNode);
-    // verify
-    _verify(rootNode);
-    _generateHints(rootNode);
   }
 
   /**
@@ -751,13 +762,18 @@ class IncrementalResolver {
   }
 
   void _generateHints(AstNode node) {
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    CompilationUnit unit = node.getAncestor((n) => n is CompilationUnit);
-    AnalysisContext analysisContext = _definingLibrary.context;
-    HintGenerator hintGenerator =
-        new HintGenerator(<CompilationUnit>[unit], analysisContext, errorListener);
-    hintGenerator.generateForLibrary();
-    _hints = errorListener.getErrorsForSource(_source);
+    LoggingTimer timer = logger.startTimer();
+    try {
+      RecordingErrorListener errorListener = new RecordingErrorListener();
+      CompilationUnit unit = node.getAncestor((n) => n is CompilationUnit);
+      AnalysisContext analysisContext = _definingLibrary.context;
+      HintGenerator hintGenerator =
+          new HintGenerator(<CompilationUnit>[unit], analysisContext, errorListener);
+      hintGenerator.generateForLibrary();
+      _hints = errorListener.getErrorsForSource(_source);
+    } finally {
+      timer.stop('generate hints');
+    }
   }
 
   /**
@@ -774,122 +790,142 @@ class IncrementalResolver {
   }
 
   _resolveReferences(AstNode node) {
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    // prepare context
-    _resolutionContext =
-        ResolutionContextBuilder.contextFor(node, errorListener);
-    Scope scope = _resolutionContext.scope;
-    // resolve types
-    {
-      TypeResolverVisitor visitor = new TypeResolverVisitor.con3(
-          _definingLibrary,
-          _source,
-          _typeProvider,
-          scope,
-          errorListener);
-      node.accept(visitor);
-    }
-    // resolve variables
-    {
-      VariableResolverVisitor visitor = new VariableResolverVisitor.con2(
-          _definingLibrary,
-          _source,
-          _typeProvider,
-          scope,
-          errorListener);
-      node.accept(visitor);
-    }
-    // resolve references
-    {
-      ResolverVisitor visitor = new ResolverVisitor.con3(
-          _definingLibrary,
-          _source,
-          _typeProvider,
-          _resolutionContext.scope,
-          errorListener);
-      if (_resolutionContext.enclosingClassDeclaration != null) {
-        visitor.visitClassDeclarationIncrementally(
-            _resolutionContext.enclosingClassDeclaration);
+    LoggingTimer timer = logger.startTimer();
+    try {
+      RecordingErrorListener errorListener = new RecordingErrorListener();
+      // prepare context
+      _resolutionContext =
+          ResolutionContextBuilder.contextFor(node, errorListener);
+      Scope scope = _resolutionContext.scope;
+      // resolve types
+      {
+        TypeResolverVisitor visitor = new TypeResolverVisitor.con3(
+            _definingLibrary,
+            _source,
+            _typeProvider,
+            scope,
+            errorListener);
+        node.accept(visitor);
       }
-      if (node is Comment) {
-        visitor.resolveOnlyCommentInFunctionBody = true;
-        node = node.parent;
+      // resolve variables
+      {
+        VariableResolverVisitor visitor = new VariableResolverVisitor.con2(
+            _definingLibrary,
+            _source,
+            _typeProvider,
+            scope,
+            errorListener);
+        node.accept(visitor);
       }
-      visitor.initForIncrementalResolution();
-      node.accept(visitor);
+      // resolve references
+      {
+        ResolverVisitor visitor = new ResolverVisitor.con3(
+            _definingLibrary,
+            _source,
+            _typeProvider,
+            _resolutionContext.scope,
+            errorListener);
+        if (_resolutionContext.enclosingClassDeclaration != null) {
+          visitor.visitClassDeclarationIncrementally(
+              _resolutionContext.enclosingClassDeclaration);
+        }
+        if (node is Comment) {
+          visitor.resolveOnlyCommentInFunctionBody = true;
+          node = node.parent;
+        }
+        visitor.initForIncrementalResolution();
+        node.accept(visitor);
+      }
+      // remember errors
+      _resolveErrors = errorListener.getErrorsForSource(_source);
+    } finally {
+      timer.stop('resolve references');
     }
-    // remember errors
-    _resolveErrors = errorListener.getErrorsForSource(_source);
   }
 
   void _updateElements(AstNode node) {
-    // build elements in node
-    ElementHolder holder;
-    _ElementsRestorer elementsRestorer = new _ElementsRestorer(node);
+    LoggingTimer timer = logger.startTimer();
     try {
-      holder = new ElementHolder();
-      ElementBuilder builder = new ElementBuilder(holder);
-      node.accept(builder);
+      // build elements in node
+      ElementHolder holder;
+      _ElementsRestorer elementsRestorer = new _ElementsRestorer(node);
+      try {
+        holder = new ElementHolder();
+        ElementBuilder builder = new ElementBuilder(holder);
+        node.accept(builder);
+      } finally {
+        elementsRestorer.restore();
+      }
+      // apply compatible changes to elements
+      if (node is FunctionDeclaration) {
+        ExecutableElementImpl oldElement = node.element;
+        // prepare the new element
+        ExecutableElement newElement;
+        {
+          List<FunctionElement> holderFunctions = holder.functions;
+          List<PropertyAccessorElement> holderAccessors = holder.accessors;
+          if (holderFunctions.isNotEmpty) {
+            newElement = holderFunctions[0];
+          } else if (holderAccessors.isNotEmpty) {
+            newElement = holderAccessors[0];
+          }
+        }
+        // update the old Element
+        oldElement.functions = newElement.functions;
+        oldElement.labels = newElement.labels;
+        oldElement.localVariables = newElement.localVariables;
+      }
+      if (node is MethodDeclaration) {
+        ExecutableElementImpl oldElement = node.element;
+        // prepare the new element
+        ExecutableElement newElement;
+        {
+          List<MethodElement> holderMethods = holder.methods;
+          List<PropertyAccessorElement> holderAccessors = holder.accessors;
+          if (holderMethods.isNotEmpty) {
+            newElement = holderMethods[0];
+          } else if (holderAccessors.isNotEmpty) {
+            newElement = holderAccessors[0];
+          }
+        }
+        // update the old Element
+        oldElement.functions = newElement.functions;
+        oldElement.labels = newElement.labels;
+        oldElement.localVariables = newElement.localVariables;
+      }
     } finally {
-      elementsRestorer.restore();
-    }
-    // apply compatible changes to elements
-    if (node is FunctionDeclaration) {
-      ExecutableElementImpl oldElement = node.element;
-      // prepare the new element
-      ExecutableElement newElement;
-      {
-        List<FunctionElement> holderFunctions = holder.functions;
-        List<PropertyAccessorElement> holderAccessors = holder.accessors;
-        if (holderFunctions.isNotEmpty) {
-          newElement = holderFunctions[0];
-        } else if (holderAccessors.isNotEmpty) {
-          newElement = holderAccessors[0];
-        }
-      }
-      // update the old Element
-      oldElement.functions = newElement.functions;
-      oldElement.labels = newElement.labels;
-      oldElement.localVariables = newElement.localVariables;
-    }
-    if (node is MethodDeclaration) {
-      ExecutableElementImpl oldElement = node.element;
-      // prepare the new element
-      ExecutableElement newElement;
-      {
-        List<MethodElement> holderMethods = holder.methods;
-        List<PropertyAccessorElement> holderAccessors = holder.accessors;
-        if (holderMethods.isNotEmpty) {
-          newElement = holderMethods[0];
-        } else if (holderAccessors.isNotEmpty) {
-          newElement = holderAccessors[0];
-        }
-      }
-      // update the old Element
-      oldElement.functions = newElement.functions;
-      oldElement.labels = newElement.labels;
-      oldElement.localVariables = newElement.localVariables;
+      timer.stop('update elements');
     }
   }
 
   void _verify(AstNode node) {
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
-    ErrorVerifier errorVerifier = new ErrorVerifier(
-        errorReporter,
-        _definingLibrary,
-        _typeProvider,
-        new InheritanceManager(_definingLibrary));
-    if (_resolutionContext.enclosingClassDeclaration != null) {
-      errorVerifier.visitClassDeclarationIncrementally(
-          _resolutionContext.enclosingClassDeclaration);
+    LoggingTimer timer = logger.startTimer();
+    try {
+      RecordingErrorListener errorListener = new RecordingErrorListener();
+      ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
+      ErrorVerifier errorVerifier = new ErrorVerifier(
+          errorReporter,
+          _definingLibrary,
+          _typeProvider,
+          new InheritanceManager(_definingLibrary));
+      if (_resolutionContext.enclosingClassDeclaration != null) {
+        errorVerifier.visitClassDeclarationIncrementally(
+            _resolutionContext.enclosingClassDeclaration);
+      }
+      node.accept(errorVerifier);
+      _verifyErrors = errorListener.getErrorsForSource(_source);
+    } finally {
+      timer.stop('verify');
     }
-    node.accept(errorVerifier);
-    _verifyErrors = errorListener.getErrorsForSource(_source);
   }
 
   static void _updateElementNameOffsets(Element root, int offset, int delta) {
-    root.accept(new _ElementNameOffsetUpdater(offset, delta));
+    LoggingTimer timer = logger.startTimer();
+    try {
+      root.accept(new _ElementNameOffsetUpdater(offset, delta));
+    } finally {
+      timer.stop('update element offsets');
+    }
   }
 }
 
@@ -920,7 +956,7 @@ class PoorMansIncrementalResolver {
    * The [oldUnit] might be damaged.
    */
   bool resolve(CompilationUnit oldUnit, String newCode) {
-    logger.enter('resolve $_unitSource');
+    logger.enter('diff/resolve $_unitSource');
     logger.log(oldUnit != null ? 'has oldUnit' : 'oldUnit is null');
     try {
       CompilationUnit newUnit = _parseUnit(newCode);
@@ -963,8 +999,8 @@ class PoorMansIncrementalResolver {
             _findNodeCovering(oldUnit, beginOffsetOld, endOffsetOld);
         AstNode newNode =
             _findNodeCovering(newUnit, beginOffsetNew, endOffsetNew);
-        logger.log('oldNode: $oldNode');
-        logger.log('newNode: $newNode');
+        logger.log(() => 'oldNode: $oldNode');
+        logger.log(() => 'newNode: $newNode');
         // Try to find the smallest common node, a FunctionBody currently.
         {
           List<AstNode> oldParents = _getParents(oldNode);
@@ -994,8 +1030,8 @@ class PoorMansIncrementalResolver {
             return false;
           }
         }
-        logger.log('oldNode: $oldNode');
-        logger.log('newNode: $newNode');
+        logger.log(() => 'oldNode: $oldNode');
+        logger.log(() => 'newNode: $newNode');
         // prepare update range
         _updateOffset = oldNode.offset;
         _updateEndOld = oldNode.end;
@@ -1042,12 +1078,17 @@ class PoorMansIncrementalResolver {
   }
 
   CompilationUnit _parseUnit(String code) {
-    Token token = _scan(code);
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    Parser parser = new Parser(_unitSource, errorListener);
-    CompilationUnit unit = parser.parseCompilationUnit(token);
-    _newParseErrors = errorListener.errors;
-    return unit;
+    LoggingTimer timer = logger.startTimer();
+    try {
+      Token token = _scan(code);
+      RecordingErrorListener errorListener = new RecordingErrorListener();
+      Parser parser = new Parser(_unitSource, errorListener);
+      CompilationUnit unit = parser.parseCompilationUnit(token);
+      _newParseErrors = errorListener.errors;
+      return unit;
+    } finally {
+      timer.stop('parse');
+    }
   }
 
   void _resolveComment(CompilationUnit oldUnit, CompilationUnit newUnit,
