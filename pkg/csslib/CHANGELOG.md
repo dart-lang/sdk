@@ -1,3 +1,7 @@
+## 0.11.0+3
+
+* Improve the speed and memory efficiency of parsing.
+
 ## 0.11.0+2
 
 * Fix another test that was failing on IE10.
