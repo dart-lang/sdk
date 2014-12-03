@@ -4,7 +4,7 @@
 library ddc.src.dart_sdk;
 
 import 'dart:convert' as convert;
-import 'dart:io' show File, Platform, Process;
+import 'dart:io' show File, Link, Platform, Process;
 import 'package:path/path.dart' as path;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -17,16 +17,22 @@ String get dartSdkDirectory {
       new File(path.join(dirname, 'lib', '_internal', 'libraries.dart'))
       .existsSync();
 
-  if (path.split(Platform.executable).length == 1) {
+  String executable = Platform.executable;
+  if (path.split(executable).length == 1) {
     // TODO(sigmund,blois): make this cross-platform.
     // HACK: A single part, hope it's on the path.
-    var result = Process
-        .runSync('which', ['dart'], stdoutEncoding: convert.UTF8);
-
-    var sdkDir = path.dirname(path.dirname(result.stdout));
+    executable = Process
+        .runSync('which', ['dart'], stdoutEncoding: convert.UTF8).stdout.trim();
+    // In case Dart is symlinked (e.g. homebrew on Mac) follow symbolic links.
+    var link = new Link(executable);
+    if (link.existsSync()) {
+      executable = link.resolveSymbolicLinksSync();
+    }
+    var sdkDir = path.dirname(path.dirname(executable));
     if (isSdkDir(sdkDir)) return sdkDir;
   }
-  var dartDir = path.dirname(path.absolute(Platform.executable));
+
+  var dartDir = path.dirname(path.absolute(executable));
   // If there's a sub-dir named dart-sdk then we're most likely executing from
   // a dart enlistment build directory.
   if (isSdkDir(path.join(dartDir, 'dart-sdk'))) {
@@ -44,6 +50,7 @@ String get dartSdkDirectory {
 
   return null;
 }
+
 
 /// Dart SDK which contains a mock implementation of the SDK libraries. May be
 /// used to speed up execution when most of the core libraries is not needed.
