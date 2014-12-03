@@ -249,7 +249,7 @@ String _fixDart2jsImports(String sourcePath, String source, String destPath) {
 /// build.
 void _generateSnapshot(String buildDir) {
   buildDir = p.normalize(buildDir);
-  new Directory(dir).createSync(recursive: true);
+  new Directory(buildDir).createSync(recursive: true);
 
   var entrypoint = p.join(generatedDir, 'bin/pub.dart');
   var packageRoot = p.join(buildDir, 'packages');

@@ -16,9 +16,8 @@ void main() {
   integration("the generated pub source is up to date", () {
     var compilerArgs = Platform.executableArguments.toList()..addAll([
       p.join(pubRoot, 'bin', 'async_compile.dart'),
-      '--force', '--verbose', '--no-snapshot',
-      p.join(sandboxDir, "pub_generated"),
-      p.join(sandboxDir, "build")
+      '--force', '--verbose',
+      p.join(sandboxDir, "pub_generated")
     ]);
 
     new ScheduledProcess.start(Platform.executable, compilerArgs).shouldExit(0);

@@ -19,9 +19,7 @@ void main() {
             p.join(pubRoot, 'bin', 'async_compile.dart'),
             '--force',
             '--verbose',
-            '--no-snapshot',
-            p.join(sandboxDir, "pub_generated"),
-            p.join(sandboxDir, "build")]);
+            p.join(sandboxDir, "pub_generated")]);
 
     new ScheduledProcess.start(Platform.executable, compilerArgs).shouldExit(0);
 

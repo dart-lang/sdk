@@ -31,6 +31,9 @@ class DirectoryDescriptor extends Descriptor implements LoadableDescriptor {
   /// as this descriptor is constructed.
   DirectoryDescriptor.fromFilesystem(String name, String path)
       : this(name, new Directory(path).listSync().map((entity) {
+          // Ignore hidden files.
+          if (p.basename(entity.path).startsWith(".")) return null;
+
           if (entity is Directory) {
             return new DirectoryDescriptor.fromFilesystem(
                 p.basename(entity.path), entity.path);
@@ -39,7 +42,7 @@ class DirectoryDescriptor extends Descriptor implements LoadableDescriptor {
                 p.basename(entity.path), entity.readAsBytesSync());
           }
           // Ignore broken symlinks.
-        }));
+        }).where((path) => path != null));
 
   Future create([String parent]) => schedule(() {
     if (parent == null) parent = defaultRoot;

@@ -1,3 +1,7 @@
+## 0.11.2+3
+
+* Ignore hidden files in `DirectoryDescriptor.fromFilesystem`.
+
 ## 0.11.2+2
 
 * Moved shared test utilities to `metatest` package.
