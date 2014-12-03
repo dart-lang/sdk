@@ -162,28 +162,48 @@ const double MegamorphicCache::kLoadFactor = 0.75;
 
 // The following functions are marked as invisible, meaning they will be hidden
 // in the stack trace and will be hidden from reflective access.
-// (Library, class name, method name)
 // Additionally, private functions in dart:* that are native or constructors are
 // marked as invisible by the parser.
 #define INVISIBLE_CLASS_FUNCTIONS(V)                                           \
-  V(CoreLibrary, int, _throwFormatException)                                   \
-  V(CoreLibrary, int, _parse)                                                  \
+  V(AsyncLibrary, _AsyncRun, _scheduleImmediate)                               \
+  V(CoreLibrary, StringBuffer, _addPart)                                       \
   V(CoreLibrary, _Bigint, _absAdd)                                             \
   V(CoreLibrary, _Bigint, _absSub)                                             \
+  V(CoreLibrary, _Bigint, _estQuotientDigit)                                   \
   V(CoreLibrary, _Bigint, _mulAdd)                                             \
   V(CoreLibrary, _Bigint, _sqrAdd)                                             \
-  V(CoreLibrary, _Bigint, _estQuotientDigit)                                   \
+  V(CoreLibrary, _Double, _addFromInteger)                                     \
+  V(CoreLibrary, _Double, _moduloFromInteger)                                  \
+  V(CoreLibrary, _Double, _mulFromInteger)                                     \
+  V(CoreLibrary, _Double, _remainderFromInteger)                               \
+  V(CoreLibrary, _Double, _subFromInteger)                                     \
+  V(CoreLibrary, _Double, _truncDivFromInteger)                                \
   V(CoreLibrary, _Montgomery, _mulMod)                                         \
+  V(CoreLibrary, int, _parse)                                                  \
+  V(CoreLibrary, int, _throwFormatException)                                   \
+
 
 #define INVISIBLE_LIBRARY_FUNCTIONS(V)                                         \
-  V(TypedDataLibrary, _toInt8)                                                 \
+  V(AsyncLibrary, _asyncRunCallback)                                           \
+  V(AsyncLibrary, _rootHandleUncaughtError)                                    \
+  V(AsyncLibrary, _scheduleAsyncCallback)                                      \
+  V(AsyncLibrary, _schedulePriorityAsyncCallback)                              \
+  V(AsyncLibrary, _setScheduleImmediateClosure)                                \
+  V(AsyncLibrary, _setTimerFactoryClosure)                                     \
+  V(IsolateLibrary, _isolateScheduleImmediate)                                 \
+  V(IsolateLibrary, _startIsolate)                                             \
+  V(IsolateLibrary, _startMainIsolate)                                         \
+  V(MirrorsLibrary, _n)                                                        \
+  V(MirrorsLibrary, _s)                                                        \
   V(TypedDataLibrary, _toInt16)                                                \
   V(TypedDataLibrary, _toInt32)                                                \
   V(TypedDataLibrary, _toInt64)                                                \
-  V(TypedDataLibrary, _toUint8)                                                \
+  V(TypedDataLibrary, _toInt8)                                                 \
   V(TypedDataLibrary, _toUint16)                                               \
   V(TypedDataLibrary, _toUint32)                                               \
   V(TypedDataLibrary, _toUint64)                                               \
+  V(TypedDataLibrary, _toUint8)                                                \
+
 
 static void MarkClassFunctionAsInvisible(const Library& lib,
                                          const char* class_name,

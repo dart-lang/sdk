@@ -20,51 +20,40 @@ var blacklist = [
   // Don't exit the test pre-maturely.
   'dart.io.exit',
 
+  // Don't change the exit code, which may fool the test harness.
+  'dart.io.exitCode',
+
   // Don't run blocking io calls.
   new RegExp(r".*Sync$"),
 
   // These prevent the test from exiting.
-  'dart.async._scheduleAsyncCallback',
-  'dart.async._setTimerFactoryClosure',
-  'dart.isolate._startMainIsolate',
-  'dart.isolate._startIsolate',
   'dart.io.sleep',
   'dart.io.HttpServer.HttpServer.listenOn',
-  new RegExp(r'dart.io.*'),  /// smi: ok
+  new RegExp('dart\.io.*'),  /// smi: ok
 
   // Runtime exceptions we can't catch because they occur too early in event
   // dispatch to be caught in a zone.
-  'dart.isolate._isolateScheduleImmediate',
   'dart.io._Timer._createTimer',  /// smi: ok
   'dart.async.runZoned',  /// string: ok
-  'dart.async._AsyncRun._scheduleImmediate',
   'dart.async._ScheduleImmediate._closure',
-  'dart.async._asyncRunCallback',
-  'dart.async._rootHandleUncaughtError',
-  'dart.async._schedulePriorityAsyncCallback',
-  'dart.async._setScheduleImmediateClosure',
 
   // These either cause the VM to segfault or throw uncatchable API errors.
   // TODO(15274): Fix them and remove from blacklist.
   'dart.io._IOService.dispatch',
-  new RegExp(r'.*_RandomAccessFile.*'),
   'dart.io._StdIOUtils._socketType',
   'dart.io._StdIOUtils._getStdioOutputStream',
   'dart.io._Filter.newZLibInflateFilter',
   'dart.io._Filter.newZLibDeflateFilter',
   'dart.io._FileSystemWatcher._listenOnSocket',
-  'dart.io.SystemEncoding.decode',
-  'dart.io.SystemEncoding.encode',
-  'dart.core.StringBuffer.toString',  /// emptyarray: ok
-
-  // See Object_toString and Issue 20583
-  'dart.core.Error._objectToString',  /// string: ok
 ];
 
 bool isBlacklisted(Symbol qualifiedSymbol) {
   var qualifiedString = MirrorSystem.getName(qualifiedSymbol);
   for (var pattern in blacklist) {
-    if (qualifiedString.contains(pattern)) return true;
+    if (qualifiedString.contains(pattern)) {
+      print('Skipping $qualifiedString');
+      return true;
+    }
   }
   return false;
 }
@@ -168,18 +157,20 @@ doOneTask() {
 
 var fuzzArgument;
 
-main([args]) {
+main() {
   fuzzArgument = null;
   fuzzArgument = 1;  /// smi: ok
   fuzzArgument = false;  /// false: ok
   fuzzArgument = 'string';  /// string: ok
   fuzzArgument = new List(0);  /// emptyarray: ok
 
+  print('Fuzzing with $fuzzArgument');
+
   currentMirrorSystem().libraries.values.forEach(checkLibrary);
 
   var valueObjects =
-    [true, false, null,
-     0, 0xEFFFFFF, 0xFFFFFFFF, 0xFFFFFFFFFFFFFFFF,
+    [true, false, null, [], {}, dynamic,
+     0, 0xEFFFFFF, 0xFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 3.14159,
      "foo", 'blåbærgrød', 'Îñţérñåţîöñåļîžåţîờñ', "𝄞", #symbol];
   valueObjects.forEach((v) => checkInstance(reflect(v), 'value object'));
 
