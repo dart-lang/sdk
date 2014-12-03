@@ -2252,21 +2252,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(new js.Binary('!=', pop(), new js.LiteralNull()));
   }
 
-  bool checkIndexingBehavior(HInstruction input, {bool negative: false}) {
-    if (!compiler.resolverWorld.isInstantiated(
-          backend.jsIndexingBehaviorInterface)) {
-      return false;
-    }
-
-    use(input);
-    js.Expression object1 = pop();
-    use(input);
-    js.Expression object2 = pop();
-    push(backend.generateIsJsIndexableCall(object1, object2));
-    if (negative) push(new js.Prefix('!', pop()));
-    return true;
-  }
-
   void checkType(HInstruction input, HInstruction interceptor,
                  DartType type, {bool negative: false}) {
     Element element = type.element;
@@ -2467,97 +2452,43 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     attachLocationToLast(node);
   }
 
-  js.Expression generateTest(HInstruction input, TypeMask checkedType) {
+  js.Expression generateReceiverOrArgumentTypeTest(
+      HInstruction input, TypeMask checkedType) {
     ClassWorld classWorld = compiler.world;
-    TypeMask receiver = input.instructionType;
+    TypeMask inputType = input.instructionType;
     // Figure out if it is beneficial to turn this into a null check.
     // V8 generally prefers 'typeof' checks, but for integers and
     // indexable primitives we cannot compile this test into a single
     // typeof check so the null check is cheaper.
-    bool turnIntoNumCheck = input.isIntegerOrNull(compiler)
-        && checkedType.containsOnlyInt(classWorld);
+    bool isIntCheck = checkedType.containsOnlyInt(classWorld);
+    bool turnIntoNumCheck = isIntCheck && input.isIntegerOrNull(compiler);
     bool turnIntoNullCheck = !turnIntoNumCheck
-        && (checkedType.nullable() == receiver)
-        && (checkedType.containsOnlyInt(classWorld)
+        && (checkedType.nullable() == inputType)
+        && (isIntCheck
             || checkedType.satisfies(backend.jsIndexableClass, classWorld));
-    js.Expression test;
+
     if (turnIntoNullCheck) {
       use(input);
-      test = new js.Binary("==", pop(), new js.LiteralNull());
-    } else if (checkedType.containsOnlyInt(classWorld) && !turnIntoNumCheck) {
+      return new js.Binary("==", pop(), new js.LiteralNull());
+    } else if (isIntCheck && !turnIntoNumCheck) {
       // input is !int
-      checkInt(input, '!==');
-      test = pop();
-    } else if (checkedType.containsOnlyNum(classWorld) || turnIntoNumCheck) {
+      checkBigInt(input, '!==');
+      return pop();
+    } else if (turnIntoNumCheck || checkedType.containsOnlyNum(classWorld)) {
       // input is !num
       checkNum(input, '!==');
-      test = pop();
+      return pop();
     } else if (checkedType.containsOnlyBool(classWorld)) {
       // input is !bool
       checkBool(input, '!==');
-      test = pop();
+      return pop();
     } else if (checkedType.containsOnlyString(classWorld)) {
       // input is !string
       checkString(input, '!==');
-      test = pop();
-    } else if (checkedType.satisfies(backend.jsExtendableArrayClass,
-                                     classWorld)) {
-      // input is !Object || input is !Array || input.isFixed
-      checkObject(input, '!==');
-      js.Expression objectTest = pop();
-      checkArray(input, '!==');
-      js.Expression arrayTest = pop();
-      checkFixedArray(input);
-      test = new js.Binary('||', objectTest, arrayTest);
-      test = new js.Binary('||', test, pop());
-    } else if (checkedType.satisfies(backend.jsMutableArrayClass, classWorld)) {
-      // input is !Object
-      // || ((input is !Array || input.isImmutable)
-      //     && input is !JsIndexingBehavior)
-      checkObject(input, '!==');
-      js.Expression objectTest = pop();
-      checkArray(input, '!==');
-      js.Expression arrayTest = pop();
-      checkImmutableArray(input);
-      js.Binary notArrayOrImmutable = new js.Binary('||', arrayTest, pop());
-
-      js.Binary notIndexing = checkIndexingBehavior(input, negative: true)
-          ? new js.Binary('&&', notArrayOrImmutable, pop())
-          : notArrayOrImmutable;
-      test = new js.Binary('||', objectTest, notIndexing);
-    } else if (checkedType.satisfies(backend.jsArrayClass, classWorld)) {
-      // input is !Object
-      // || (input is !Array && input is !JsIndexingBehavior)
-      checkObject(input, '!==');
-      js.Expression objectTest = pop();
-      checkArray(input, '!==');
-      js.Expression arrayTest = pop();
-
-      js.Expression notIndexing = checkIndexingBehavior(input, negative: true)
-          ? new js.Binary('&&', arrayTest, pop())
-          : arrayTest;
-      test = new js.Binary('||', objectTest, notIndexing);
-    } else if (checkedType.satisfies(backend.jsIndexableClass, classWorld)) {
-      // input is !String
-      // && (input is !Object
-      //     || (input is !Array && input is !JsIndexingBehavior))
-      checkString(input, '!==');
-      js.Expression stringTest = pop();
-      checkObject(input, '!==');
-      js.Expression objectTest = pop();
-      checkArray(input, '!==');
-      js.Expression arrayTest = pop();
-
-      js.Binary notIndexingTest = checkIndexingBehavior(input, negative: true)
-          ? new js.Binary('&&', arrayTest, pop())
-          : arrayTest;
-      js.Binary notObjectOrIndexingTest =
-          new js.Binary('||', objectTest, notIndexingTest);
-      test = new js.Binary('&&', stringTest, notObjectOrIndexingTest);
-    } else {
-      compiler.internalError(input, 'Unexpected check.');
+      return pop();
     }
-    return test;
+    compiler.internalError(input, 'Unexpected check.');
+    return null;
   }
 
   void visitTypeConversion(HTypeConversion node) {
@@ -2568,7 +2499,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       assert(compiler.trustTypeAnnotations ||
              !node.checkedType.containsOnlyInt(classWorld) ||
              node.checkedInput.isIntegerOrNull(compiler));
-      js.Expression test = generateTest(node.checkedInput, node.checkedType);
+      js.Expression test = generateReceiverOrArgumentTypeTest(
+          node.checkedInput, node.checkedType);
       js.Block oldContainer = currentContainer;
       js.Statement body = new js.Block.empty();
       currentContainer = body;
