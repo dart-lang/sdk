@@ -13,14 +13,16 @@ const int _MAX_MILLISECONDS = 8640000000000000;
 void testNow() {
   var t1 = new DateTime.now();
   bool timeMovedForward = false;
-  for (int i = 0; i < 1000000; i++) {
-    var t2 = new DateTime.now();
-    if (t1.millisecondsSinceEpoch < t2.millisecondsSinceEpoch) {
-      timeMovedForward = true;
-      break;
+  const int N = 1000000;
+  outer: while (true) {
+    for (int i = N; i > 0; i--) {
+      var t2 = new DateTime.now();
+      if (t1.millisecondsSinceEpoch < t2.millisecondsSinceEpoch) {
+        break outer;
+      }
     }
+    print("testNow: No Date.now() progress in $N loops. Time: $t1");
   }
-  Expect.equals(true, timeMovedForward);
   Expect.isFalse(t1.isUtc);
 }
 
