@@ -6206,7 +6206,7 @@ class Parser {
    */
   ExportDirective _parseExportDirective(CommentAndMetadata commentAndMetadata) {
     Token exportKeyword = _expectKeyword(Keyword.EXPORT);
-    StringLiteral libraryUri = parseStringLiteral();
+    StringLiteral libraryUri = _parseUri();
     List<Combinator> combinators = _parseCombinators();
     Token semicolon = _expectSemicolon();
     return new ExportDirective(
@@ -6903,7 +6903,7 @@ class Parser {
    */
   ImportDirective _parseImportDirective(CommentAndMetadata commentAndMetadata) {
     Token importKeyword = _expectKeyword(Keyword.IMPORT);
-    StringLiteral libraryUri = parseStringLiteral();
+    StringLiteral libraryUri = _parseUri();
     Token deferredToken = null;
     Token asToken = null;
     SimpleIdentifier prefix = null;
@@ -7764,7 +7764,7 @@ class Parser {
           libraryName,
           semicolon);
     }
-    StringLiteral partUri = parseStringLiteral();
+    StringLiteral partUri = _parseUri();
     Token semicolon = _expect(TokenType.SEMICOLON);
     return new PartDirective(
         commentAndMetadata.comment,
@@ -8619,6 +8619,58 @@ class Parser {
       return _parseAwaitExpression();
     }
     return _parsePostfixExpression();
+  }
+
+  /**
+   * Parse a string literal representing a URI.
+   */
+  StringLiteral _parseUri() {
+    bool iskeywordAfterUri(Token token) =>
+        token.lexeme == Keyword.AS.syntax ||
+            token.lexeme == _HIDE ||
+            token.lexeme == _SHOW;
+    if (!_matches(TokenType.STRING) &&
+        !_matches(TokenType.SEMICOLON) &&
+        !iskeywordAfterUri(_currentToken)) {
+      // Attempt to recover in the case where the URI was not enclosed in
+      // quotes.
+      Token token = _currentToken;
+      while ((_tokenMatchesIdentifier(token) && !iskeywordAfterUri(token)) ||
+          _tokenMatches(token, TokenType.COLON) ||
+          _tokenMatches(token, TokenType.SLASH) ||
+          _tokenMatches(token, TokenType.PERIOD) ||
+          _tokenMatches(token, TokenType.PERIOD_PERIOD) ||
+          _tokenMatches(token, TokenType.PERIOD_PERIOD_PERIOD) ||
+          _tokenMatches(token, TokenType.INT) ||
+          _tokenMatches(token, TokenType.DOUBLE)) {
+        token = token.next;
+      }
+      if (_tokenMatches(token, TokenType.SEMICOLON) ||
+          iskeywordAfterUri(token)) {
+        Token endToken = token.previous;
+        token = _currentToken;
+        int endOffset = token.end;
+        StringBuffer buffer = new StringBuffer();
+        buffer.write(token.lexeme);
+        while (token != endToken) {
+          token = token.next;
+          if (token.offset != endOffset || token.precedingComments != null) {
+            return parseStringLiteral();
+          }
+          buffer.write(token.lexeme);
+          endOffset = token.end;
+        }
+        String value = buffer.toString();
+        Token newToken =
+            new StringToken(TokenType.STRING, "'$value'", _currentToken.offset);
+        _reportErrorForToken(
+            ParserErrorCode.NON_STRING_LITERAL_AS_URI,
+            newToken);
+        _currentToken = endToken.next;
+        return new SimpleStringLiteral(newToken, value);
+      }
+    }
+    return parseStringLiteral();
   }
 
   /**
@@ -10477,6 +10529,12 @@ class ParserErrorCode extends ErrorCode {
       const ParserErrorCode(
           'NON_PART_OF_DIRECTIVE_IN_PART',
           "The part-of directive must be the only directive in a part");
+
+  static const ParserErrorCode NON_STRING_LITERAL_AS_URI =
+      const ParserErrorCode(
+          'NON_STRING_LITERAL_AS_URI',
+          "The URI must be a string literal",
+          "Enclose the URI in either single or double quotes.");
 
   static const ParserErrorCode NON_USER_DEFINABLE_OPERATOR =
       const ParserErrorCode(

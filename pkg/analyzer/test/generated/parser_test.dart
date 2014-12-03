@@ -4278,6 +4278,12 @@ class C {
         expression.leftOperand);
   }
 
+  void test_nonStringLiteralUri_import() {
+    ParserTestCase.parseCompilationUnit(
+        "import dart:io; class C {}",
+        [ParserErrorCode.NON_STRING_LITERAL_AS_URI]);
+  }
+
   void test_prefixExpression_missing_operand_minus() {
     PrefixExpression expression =
         ParserTestCase.parseExpression("-", [ParserErrorCode.MISSING_IDENTIFIER]);
