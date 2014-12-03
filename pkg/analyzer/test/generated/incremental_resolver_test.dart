@@ -2117,8 +2117,10 @@ class B {
     // replace the node
     AstNode oldNode = _findNodeAt(unit, offset, predicate);
     AstNode newNode = _findNodeAt(newUnit, offset, predicate);
-    bool success = NodeReplacer.replace(oldNode, newNode);
-    expect(success, isTrue);
+    {
+      bool success = NodeReplacer.replace(oldNode, newNode);
+      expect(success, isTrue);
+    }
     // do incremental resolution
     IncrementalResolver resolver = new IncrementalResolver(
         typeProvider,
@@ -2126,7 +2128,8 @@ class B {
         edit.offset,
         edit.length,
         edit.replacement.length);
-    resolver.resolve(newNode);
+    bool success = resolver.resolve(newNode);
+    expect(success, isTrue);
     // resolve "newCode" from scratch
     CompilationUnit fullNewUnit;
     {

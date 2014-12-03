@@ -671,8 +671,10 @@ class IncrementalResolver {
    * Resolve [node], reporting any errors or warnings to the given listener.
    *
    * [node] - the root of the AST structure to be resolved.
+   *
+   * Returns `true` if resolution was successful.
    */
-  void resolve(AstNode node) {
+  bool resolve(AstNode node) {
     logger.enter('resolve: $_definingUnit');
     try {
       logger.log(() => 'node: $node');
@@ -684,8 +686,7 @@ class IncrementalResolver {
           _updateOffset,
           _updateNewLength - _updateOldLength);
       if (_elementModelChanged(rootNode)) {
-        throw new AnalysisException(
-            "Cannot resolve node: element model changed");
+        return false;
       }
       _updateElements(rootNode);
       // resolve
@@ -693,6 +694,8 @@ class IncrementalResolver {
       // verify
       _verify(rootNode);
       _generateHints(rootNode);
+      // OK
+      return true;
     } finally {
       logger.exit();
     }
@@ -1064,7 +1067,13 @@ class PoorMansIncrementalResolver {
             _updateOffset,
             oldNode.length,
             newNode.length);
-        incrementalResolver.resolve(newNode);
+        bool success = incrementalResolver.resolve(newNode);
+        // check if success
+        if (!success) {
+          logger.log('Failure: element model changed.');
+          return false;
+        }
+        // update DartEntry
         _newResolveErrors = incrementalResolver._resolveErrors;
         _newVerifyErrors = incrementalResolver._verifyErrors;
         _newHints = incrementalResolver._hints;
