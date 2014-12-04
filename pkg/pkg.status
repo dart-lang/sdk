@@ -278,6 +278,9 @@ polymer/test/js_interop_test: Pass, RuntimeError # Issue 20075
 [ $runtime == safari || $ie ]
 polymer/test/two_way_bind_test: Pass, RuntimeError # Issue 20075
 
+[ $runtime == ff ]
+polymer/test/layout_test: RuntimeError # Issue 21787
+
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
 path/test/browser_test: Fail, OK # Uses dart:html
