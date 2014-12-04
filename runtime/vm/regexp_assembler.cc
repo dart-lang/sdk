@@ -158,6 +158,7 @@ void IRRegExpMacroAssembler::InitializeLocals() {
   match_end_index_ = Local(Symbols::match_end_index());
   char_in_capture_ = Local(Symbols::char_in_capture());
   char_in_match_ = Local(Symbols::char_in_match());
+  index_temp_ = Local(Symbols::index_temp());
   result_ = Local(Symbols::result());
 
   string_param_ = Parameter(Symbols::string_param(), 0);
@@ -944,8 +945,8 @@ void IRRegExpMacroAssembler::CheckNotBackReferenceIgnoreCase(
     BlockLabel loop;
     BindBlock(&loop);
 
-    StoreLocal(char_in_capture_, CharacterAt(LoadLocal(capture_start_index_)));
-    StoreLocal(char_in_match_, CharacterAt(LoadLocal(match_start_index_)));
+    StoreLocal(char_in_capture_, CharacterAt(capture_start_index_));
+    StoreLocal(char_in_match_, CharacterAt(match_start_index_));
 
     BranchOrBacktrack(Comparison(kEQ,
                                  LoadLocal(char_in_capture_),
@@ -1105,8 +1106,8 @@ void IRRegExpMacroAssembler::CheckNotBackReference(
   BlockLabel loop;
   BindBlock(&loop);
 
-  StoreLocal(char_in_capture_, CharacterAt(LoadLocal(capture_start_index_)));
-  StoreLocal(char_in_match_, CharacterAt(LoadLocal(match_start_index_)));
+  StoreLocal(char_in_capture_, CharacterAt(capture_start_index_));
+  StoreLocal(char_in_match_, CharacterAt(match_start_index_));
 
   BranchOrBacktrack(Comparison(kNE,
                                LoadLocal(char_in_capture_),
@@ -1765,9 +1766,6 @@ void IRRegExpMacroAssembler::LoadCurrentCharacterUnchecked(
     ASSERT(characters == 1 || characters == 2);
   }
 
-  // Bind the pattern as the load receiver.
-  Value* pattern = BindLoadLocal(*string_param_);
-
   // Calculate the addressed string index as:
   //    cp_offset + current_position_ + string_param_length_
   // TODO(zerny): Avoid generating 'add' instance-calls here.
@@ -1779,30 +1777,53 @@ void IRRegExpMacroAssembler::LoadCurrentCharacterUnchecked(
       PushArgument(Bind(Add(off_arg, pos_arg)));
   PushArgumentInstr* len_arg =
       PushArgument(BindLoadLocal(*string_param_length_));
-  Value* index = Bind(Add(off_pos_arg, len_arg));
+  // Index is stored in a temporary local so that we can later load it safely.
+  StoreLocal(index_temp_, Bind(Add(off_pos_arg, len_arg)));
 
   // Load and store the code units.
-  Value* code_unit_value = LoadCodeUnitsAt(pattern, index, characters);
+  Value* code_unit_value = LoadCodeUnitsAt(index_temp_, characters);
   StoreLocal(current_character_, code_unit_value);
   PRINT(PushLocal(current_character_));
 }
 
 
-Value* IRRegExpMacroAssembler::CharacterAt(Definition* index) {
-  Value* pattern_val = BindLoadLocal(*string_param_);
-  Value* index_val = Bind(index);
-  return LoadCodeUnitsAt(pattern_val, index_val, 1);
+Value* IRRegExpMacroAssembler::CharacterAt(LocalVariable* index) {
+  return LoadCodeUnitsAt(index, 1);
 }
 
 
-// Note: We can't replace pattern with a load-local of string_param_
-// because we need to maintain the stack discipline in unoptimized code.
-Value* IRRegExpMacroAssembler::LoadCodeUnitsAt(Value* pattern,
-                                               Value* index,
+Value* IRRegExpMacroAssembler::LoadCodeUnitsAt(LocalVariable* index,
                                                intptr_t characters) {
+  // Bind the pattern as the load receiver.
+  Value* pattern_val = BindLoadLocal(*string_param_);
+  if (RawObject::IsExternalStringClassId(specialization_cid_)) {
+    // The data of an external string is stored through two indirections.
+    intptr_t external_offset;
+    intptr_t data_offset;
+    if (specialization_cid_ == kExternalOneByteStringCid) {
+      external_offset = ExternalOneByteString::external_data_offset();
+      data_offset = RawExternalOneByteString::ExternalData::data_offset();
+    } else if (specialization_cid_ == kExternalTwoByteStringCid) {
+      external_offset = ExternalTwoByteString::external_data_offset();
+      data_offset = RawExternalTwoByteString::ExternalData::data_offset();
+    } else {
+      UNREACHABLE();
+    }
+    // This pushes untagged values on the stack which are immediately consumed:
+    // the first value is consumed to obtain the second value which is consumed
+    // by LoadCodeUnitsAtInstr below.
+    Value* external_val =
+        Bind(new(I) LoadUntaggedInstr(pattern_val, external_offset));
+    pattern_val =
+        Bind(new(I) LoadUntaggedInstr(external_val, data_offset));
+  }
+
+  // Here pattern_val might be untagged so this must not trigger a GC.
+  Value* index_val = BindLoadLocal(*index);
+
   return Bind(new(I) LoadCodeUnitsInstr(
-      pattern,
-      index,
+      pattern_val,
+      index_val,
       characters,
       specialization_cid_,
       Scanner::kNoSourcePos));

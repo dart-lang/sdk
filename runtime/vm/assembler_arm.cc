@@ -2164,8 +2164,10 @@ OperandSize Address::OperandSizeFor(intptr_t cid) {
     case kImmutableArrayCid:
       return kWord;
     case kOneByteStringCid:
+    case kExternalOneByteStringCid:
       return kByte;
     case kTwoByteStringCid:
+    case kExternalTwoByteStringCid:
       return kHalfword;
     case kTypedDataInt8ArrayCid:
       return kByte;

@@ -347,6 +347,7 @@ class ObjectPointerVisitor;
   V(match_end_index, ":match_end_index")                                       \
   V(char_in_capture, ":char_in_capture")                                       \
   V(char_in_match, ":char_in_match")                                           \
+  V(index_temp, ":index_temp")                                                 \
   V(result, ":result")                                                         \
   V(position_registers, ":position_registers")                                 \
   V(string_param, ":string_param")                                             \

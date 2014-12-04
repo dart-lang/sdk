@@ -2904,11 +2904,12 @@ void LoadIndexedInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 
 
 void LoadCodeUnitsInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  ASSERT(class_id() == kOneByteStringCid ||
-         class_id() == kTwoByteStringCid);
+  ASSERT(RawObject::IsStringClassId(class_id()));
   switch (class_id()) {
     case kOneByteStringCid:
     case kTwoByteStringCid:
+    case kExternalOneByteStringCid:
+    case kExternalTwoByteStringCid:
       *range = Range(RangeBoundary::FromConstant(0),
                      RangeBoundary::FromConstant(kMaxUint32));
       break;

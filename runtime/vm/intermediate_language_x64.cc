@@ -889,9 +889,14 @@ LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register object = locs()->in(0).reg();
+  Register obj = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
-  __ movq(result, FieldAddress(object, offset()));
+  if (object()->definition()->representation() == kUntagged) {
+    __ movq(result, Address(obj, offset()));
+  } else {
+    ASSERT(object()->definition()->representation() == kTagged);
+    __ movq(result, FieldAddress(obj, offset()));
+  }
 }
 
 
@@ -1148,11 +1153,12 @@ LocationSummary* LoadCodeUnitsInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register array = locs()->in(0).reg();
+  // The string register points to the backing store for external strings.
+  const Register str = locs()->in(0).reg();
   const Location index = locs()->in(1);
 
   Address element_address = Assembler::ElementAddressForRegIndex(
-        IsExternal(), class_id(), index_scale(), array, index.reg());
+        IsExternal(), class_id(), index_scale(), str, index.reg());
 
   if ((index_scale() == 1)) {
     __ SmiUntag(index.reg());

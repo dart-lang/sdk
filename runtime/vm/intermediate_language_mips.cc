@@ -1022,9 +1022,14 @@ LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register object = locs()->in(0).reg();
+  Register obj = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
-  __ LoadFromOffset(result, object, offset() - kHeapObjectTag);
+  if (object()->definition()->representation() == kUntagged) {
+    __ LoadFromOffset(result, obj, offset());
+  } else {
+    ASSERT(object()->definition()->representation() == kTagged);
+    __ LoadFieldFromOffset(result, obj, offset());
+  }
 }
 
 
@@ -1259,17 +1264,19 @@ LocationSummary* LoadCodeUnitsInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register array = locs()->in(0).reg();
+  // The string register points to the backing store for external strings.
+  const Register str = locs()->in(0).reg();
   const Location index = locs()->in(1);
 
   Address element_address = __ ElementAddressForRegIndex(
-        true, IsExternal(), class_id(), index_scale(), array, index.reg());
+        true, IsExternal(), class_id(), index_scale(), str, index.reg());
   // Warning: element_address may use register TMP as base.
 
   ASSERT(representation() == kTagged);
   Register result = locs()->out(0).reg();
   switch (class_id()) {
     case kOneByteStringCid:
+    case kExternalOneByteStringCid:
       switch (element_count()) {
         case 1: __ lbu(result, element_address); break;
         case 2: __ lhu(result, element_address); break;
@@ -1279,6 +1286,7 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiTag(result);
       break;
     case kTwoByteStringCid:
+    case kExternalTwoByteStringCid:
       switch (element_count()) {
         case 1: __ lhu(result, element_address); break;
         case 2:  // Loading multiple code units is disabled on MIPS.
@@ -2241,8 +2249,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ Bind(&load_pointer);
   }
-  __ LoadFromOffset(
-      result_reg, instance_reg, offset_in_bytes() - kHeapObjectTag);
+  __ LoadFieldFromOffset(result_reg, instance_reg, offset_in_bytes());
   __ Bind(&done);
 }
 
@@ -3321,13 +3328,11 @@ static void LoadInt32FromMint(FlowGraphCompiler* compiler,
                               Register mint,
                               Register result,
                               Label* deopt) {
-  __ LoadFromOffset(result,
-                    mint,
-                    Mint::value_offset() - kHeapObjectTag);
+  __ LoadFieldFromOffset(result, mint, Mint::value_offset());
   if (deopt != NULL) {
-    __ LoadFromOffset(CMPRES1,
-                      mint,
-                      Mint::value_offset() - kHeapObjectTag + kWordSize);
+    __ LoadFieldFromOffset(CMPRES1,
+                           mint,
+                           Mint::value_offset() + kWordSize);
     __ sra(CMPRES2, result, kBitsPerWord - 1);
     __ BranchNotEqual(CMPRES1, CMPRES2, deopt);
   }

@@ -1047,9 +1047,14 @@ LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register object = locs()->in(0).reg();
+  const Register obj = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  __ LoadFromOffset(kWord, result, object, offset() - kHeapObjectTag);
+  if (object()->definition()->representation() == kUntagged) {
+    __ LoadFromOffset(kWord, result, obj, offset());
+  } else {
+    ASSERT(object()->definition()->representation() == kTagged);
+    __ LoadFieldFromOffset(kWord, result, obj, offset());
+  }
 }
 
 
@@ -1887,11 +1892,12 @@ LocationSummary* LoadCodeUnitsInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register array = locs()->in(0).reg();
+  // The string register points to the backing store for external strings.
+  const Register str = locs()->in(0).reg();
   const Location index = locs()->in(1);
 
   Address element_address = __ ElementAddressForRegIndex(
-        true,  IsExternal(), class_id(), index_scale(), array, index.reg());
+        true,  IsExternal(), class_id(), index_scale(), str, index.reg());
   // Warning: element_address may use register IP as base.
 
   if (representation() == kUnboxedMint) {
@@ -2212,8 +2218,7 @@ LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(Isolate* isolate,
 void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register field = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  __ LoadFromOffset(kWord, result,
-                    field, Field::value_offset() - kHeapObjectTag);
+  __ LoadFieldFromOffset(kWord, result, field, Field::value_offset());
 }
 
 
@@ -2514,8 +2519,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ Bind(&load_pointer);
   }
-  __ LoadFromOffset(kWord, result_reg,
-                    instance_reg, offset_in_bytes() - kHeapObjectTag);
+  __ LoadFieldFromOffset(kWord, result_reg, instance_reg, offset_in_bytes());
   __ Bind(&done);
 }
 
@@ -3712,14 +3716,14 @@ void UnboxInstr::EmitLoadFromBox(FlowGraphCompiler* compiler) {
   switch (representation()) {
     case kUnboxedMint: {
       PairLocation* result = locs()->out(0).AsPairLocation();
-      __ LoadFromOffset(kWord,
-                        result->At(0).reg(),
-                        box,
-                        ValueOffset() - kHeapObjectTag);
-      __ LoadFromOffset(kWord,
-                        result->At(1).reg(),
-                        box,
-                        ValueOffset() - kHeapObjectTag + kWordSize);
+      __ LoadFieldFromOffset(kWord,
+                             result->At(0).reg(),
+                             box,
+                             ValueOffset());
+      __ LoadFieldFromOffset(kWord,
+                             result->At(1).reg(),
+                             box,
+                             ValueOffset() + kWordSize);
       break;
     }
 
@@ -3939,15 +3943,12 @@ static void LoadInt32FromMint(FlowGraphCompiler* compiler,
                               Register result,
                               Register temp,
                               Label* deopt) {
-  __ LoadFromOffset(kWord,
-                    result,
-                    mint,
-                    Mint::value_offset() - kHeapObjectTag);
+  __ LoadFieldFromOffset(kWord, result, mint, Mint::value_offset());
   if (deopt != NULL) {
-    __ LoadFromOffset(kWord,
-                      temp,
-                      mint,
-                      Mint::value_offset() - kHeapObjectTag + kWordSize);
+    __ LoadFieldFromOffset(kWord,
+                           temp,
+                           mint,
+                           Mint::value_offset() + kWordSize);
     __ cmp(temp, Operand(result, ASR, kBitsPerWord - 1));
     __ b(deopt, NE);
   }

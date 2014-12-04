@@ -6089,6 +6089,10 @@ class ExternalOneByteString : public AllStatic {
     return raw_ptr(str)->external_data_->peer();
   }
 
+  static intptr_t external_data_offset() {
+    return OFFSET_OF(RawExternalOneByteString, external_data_);
+  }
+
   // We use the same maximum elements for all strings.
   static const intptr_t kBytesPerElement = 1;
   static const intptr_t kMaxElements = String::kMaxElements;
@@ -6163,6 +6167,10 @@ class ExternalTwoByteString : public AllStatic {
 
   static void* GetPeer(const String& str) {
     return raw_ptr(str)->external_data_->peer();
+  }
+
+  static intptr_t external_data_offset() {
+    return OFFSET_OF(RawExternalTwoByteString, external_data_);
   }
 
   // We use the same maximum elements for all strings.

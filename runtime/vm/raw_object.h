@@ -1589,6 +1589,10 @@ class ExternalStringData {
     return peer_;
   }
 
+  static intptr_t data_offset() {
+    return OFFSET_OF(ExternalStringData<T>, data_);
+  }
+
  private:
   const T* data_;
   void* peer_;
@@ -1598,16 +1602,22 @@ class ExternalStringData {
 
 class RawExternalOneByteString : public RawString {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalOneByteString);
+ public:
+  typedef ExternalStringData<uint8_t> ExternalData;
 
-  ExternalStringData<uint8_t>* external_data_;
+ private:
+  ExternalData* external_data_;
   friend class Api;
 };
 
 
 class RawExternalTwoByteString : public RawString {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalTwoByteString);
+ public:
+  typedef ExternalStringData<uint16_t> ExternalData;
 
-  ExternalStringData<uint16_t>* external_data_;
+ private:
+  ExternalData* external_data_;
   friend class Api;
 };
 

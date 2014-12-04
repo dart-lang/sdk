@@ -469,12 +469,10 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
                                      intptr_t character_count);
 
   // Returns the character within the passed string at the specified index.
-  Value* CharacterAt(Definition* index);
+  Value* CharacterAt(LocalVariable* index);
 
   // Load a number of characters starting from index in the pattern string.
-  Value* LoadCodeUnitsAt(Value* pattern,
-                         Value* index,
-                         intptr_t character_count);
+  Value* LoadCodeUnitsAt(LocalVariable* index, intptr_t character_count);
 
   // Check whether preemption has been requested.
   void CheckPreemption();
@@ -606,6 +604,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   LocalVariable* match_end_index_;
   LocalVariable* char_in_capture_;
   LocalVariable* char_in_match_;
+  LocalVariable* index_temp_;
 
   LocalVariable* result_;
 

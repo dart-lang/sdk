@@ -13654,6 +13654,10 @@ intptr_t Instance::ElementSizeFor(intptr_t cid) {
       return OneByteString::kBytesPerElement;
     case kTwoByteStringCid:
       return TwoByteString::kBytesPerElement;
+    case kExternalOneByteStringCid:
+      return ExternalOneByteString::kBytesPerElement;
+    case kExternalTwoByteStringCid:
+      return ExternalTwoByteString::kBytesPerElement;
     default:
       UNIMPLEMENTED();
       return 0;

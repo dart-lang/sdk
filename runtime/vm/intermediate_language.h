@@ -3695,7 +3695,7 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
         element_count_(element_count),
         representation_(kTagged) {
     ASSERT(element_count == 1 || element_count == 2 || element_count == 4);
-    ASSERT(class_id == kOneByteStringCid || class_id == kTwoByteStringCid);
+    ASSERT(RawObject::IsStringClassId(class_id));
     SetInputAt(0, str);
     SetInputAt(1, index);
   }
@@ -4212,6 +4212,12 @@ class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
   }
   DECLARE_INSTRUCTION(LoadUntagged)
   virtual CompileType ComputeType() const;
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    // The object may be tagged or untagged (for external objects).
+    return kNoRepresentation;
+  }
 
   Value* object() const { return inputs_[0]; }
   intptr_t offset() const { return offset_; }

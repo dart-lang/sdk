@@ -697,6 +697,13 @@ class Assembler : public ValueObject {
                       Register base,
                       int32_t offset,
                       Condition cond = AL);
+  void LoadFieldFromOffset(OperandSize type,
+                           Register reg,
+                           Register base,
+                           int32_t offset,
+                           Condition cond = AL) {
+    LoadFromOffset(type, reg, base, offset - kHeapObjectTag, cond);
+  }
   void StoreToOffset(OperandSize type,
                      Register reg,
                      Register base,
