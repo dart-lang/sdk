@@ -1,5 +1,5 @@
 name: web_components
-version: 0.9.0+1
+version: 0.10.0
 author: Polymer.dart Authors <web-ui-dev@dartlang.org>
 homepage: https://www.dartlang.org/polymer-dart/
 description: >
@@ -11,16 +11,3 @@ description: >
   bundle code and HTML as if they were libraries.
 environment:
   sdk: ">=1.4.0-dev.6.6 <2.0.0"
-dependencies:
-  code_transformers: ">=0.2.2 <0.3.0"
-transformers:
-# TODO(sigmund): once we have some easier way to do global app-level
-# transformers, we might want to remove this transformer here and only apply it
-# in apps that need it.
-- code_transformers/src/delete_file:
-    $include:
-      - lib/platform.concat.js
-      - lib/platform.concat.js.map
-      - lib/platform.js.map
-- code_transformers/src/remove_sourcemap_comment:
-    $include: lib/platform.js

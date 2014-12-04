@@ -1,4 +1,16 @@
-#### Pub version 0.15.1+5
+#### 0.15.2
+  * Upgraded to polymer js version
+    [0.5.1](https://github.com/Polymer/polymer/releases/tag/0.5.1).
+    **Dart Note**: Since dirty checking is only a development feature for
+    Polymer Dart, we did not include the functionality to stop dirty checks in
+    inactive windows.
+  * `polymer.js` is now the unminified version, and `polymer.min.js` is the
+    minified version.
+  * Fixed bug where polymer js was creating instances of extended elements in
+    order to check if they had been registered. All dart custom elements now get
+    registered with polymer js using the HTMLElement prototype.
+
+#### 0.15.1+5
   * Increase code_transformers lower bound and use shared transformers from it.
 
 #### 0.15.1+4

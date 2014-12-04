@@ -313,6 +313,14 @@ class _LinterVisitor extends TreeVisitor {
       _logger.warning(DART_SUPPORT_NO_LONGER_REQUIRED, span: node.sourceSpan);
     }
 
+    if (src != null && src.contains('web_components/webcomponents.')) {
+      _logger.warning(WEB_COMPONENTS_NO_LONGER_REQUIRED, span: node.sourceSpan);
+    }
+
+    if (src != null && src.contains('web_components/platform.')) {
+      _logger.warning(PLATFORM_JS_RENAMED, span: node.sourceSpan);
+    }
+
     var isEmpty = node.innerHtml.trim() == '';
 
     if (src == null) {

@@ -19,6 +19,7 @@ scheduled_test/test/scheduled_server_test: Pass, Fail # 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 scheduled_test/test/scheduled_stream/stream_matcher_test: Pass, Slow
 polymer/test/build/script_compactor_test: Pass, Slow
+polymer/test/import_test: Skip # 17873
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 third_party/angular_tests/browser_test/*: Skip # github perf_api.dart issue 5
@@ -49,7 +50,7 @@ polymer/test/js_custom_event_test: Pass, RuntimeError # Issue 18931
 polymer/test/js_interop_test: Pass, RuntimeError # Issue 18931
 polymer/test/nested_binding_test: Pass, RuntimeError # Issue 18931
 polymer/test/noscript_test: Pass, RuntimeError # Issue 18931
-polymer/test/platform_less_test: Pass, RuntimeError # Issue 18931
+polymer/test/web_components_less_test: Pass, RuntimeError # Issue 18931
 polymer/test/prop_attr_bind_reflection_test: Pass, RuntimeError # Issue 18931
 polymer/test/prop_attr_reflection_test: Pass, RuntimeError # Issue 18931
 polymer/test/property_change_test: Pass, Timeout # Issue 18931
@@ -206,6 +207,7 @@ polymer/test/event_path_declarative_test: Skip #uses dart:html
 polymer/test/event_path_test: Skip #uses dart:html
 polymer/test/events_test: Skip #uses dart:html
 polymer/test/force_ready_test: Skip # uses dart:html
+polymer/test/import_test: Skip # uses dart:html
 polymer/test/inject_bound_html_test: Skip # uses dart:html
 polymer/test/instance_attrs_test: Skip #uses dart:html
 polymer/test/js_custom_event_test: Skip #uses dart:html
@@ -214,7 +216,7 @@ polymer/test/layout_test: Skip #uses dart:html
 polymer/test/mirror_loader_test: Skip # uses dart:html
 polymer/test/nested_binding_test: Skip # uses dart:html
 polymer/test/noscript_test: Skip #uses dart:html
-polymer/test/platform_less_test: Skip #uses dart:html
+polymer/test/web_components_less_test: Skip #uses dart:html
 polymer/test/prop_attr_bind_reflection_test: Skip #uses dart:html
 polymer/test/prop_attr_reflection_test: Skip #uses dart:html
 polymer/test/property_change_test: Skip # uses dart:html

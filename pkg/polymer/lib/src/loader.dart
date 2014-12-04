@@ -143,7 +143,9 @@ JsObject _polymerElementProto = () {
 // console automatically if any are supplied.
 void _initializeLogging() {
   hierarchicalLoggingEnabled = true;
-  var logFlags = js.context['logFlags'];
+  var webComponents = js.context['WebComponents'];
+  var logFlags = (webComponents == null || webComponents['flags'] == null) ? {}
+      : webComponents['flags']['log'];
   if (logFlags == null) logFlags = {};
   var loggers =
       [_observeLog, _eventsLog, _unbindLog, _bindLog, _watchLog, _readyLog];

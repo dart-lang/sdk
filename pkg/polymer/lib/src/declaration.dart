@@ -79,6 +79,38 @@ class PolymerDeclaration {
   /// The root URI for assets.
   Uri _rootUri;
 
+  /// List of properties to ignore for observation.
+  static Set<Symbol> _OBSERVATION_BLACKLIST =
+      new HashSet.from(const [#attribute]);
+
+  static bool _canObserveProperty(Symbol property) =>
+      !_OBSERVATION_BLACKLIST.contains(property);
+
+  /// This list contains some property names that people commonly want to use,
+  /// but won't work because of Chrome/Safari bugs. It isn't an exhaustive
+  /// list. In particular it doesn't contain any property names found on
+  /// subtypes of HTMLElement (e.g. name, value). Rather it attempts to catch
+  /// some common cases.
+  ///
+  /// Dart Note: `class` is left out since its an invalid symbol in dart. This
+  /// means that nobody could make a property by this name anyways though.
+  /// Dart Note: We have added `classes` to this list, which is the dart:html
+  /// equivalent of `classList` but more likely to have conflicts.
+  static Set<Symbol> _PROPERTY_NAME_BLACKLIST = new HashSet.from([
+      const Symbol('children'), const Symbol('id'), const Symbol('hidden'),
+      const Symbol('style'), const Symbol('title'), const Symbol('classes')]);
+
+  bool _checkPropertyBlacklist(Symbol name) {
+    if (_PROPERTY_NAME_BLACKLIST.contains(name)) {
+      print('Cannot define property "$name" for element "${this.name}" '
+          'because it has the same name as an HTMLElement property, and not '
+          'all browsers support overriding that. Consider giving it a '
+          'different name. ');
+      return true;
+    }
+    return false;
+  }
+
   // Dart note: since polymer-element is handled in JS now, we have a simplified
   // flow for registering. We don't need to wait for the supertype or the code
   // to be noticed.
@@ -248,6 +280,7 @@ class PolymerDeclaration {
         includeUpTo: HtmlElement, withAnnotations: const [PublishedProperty]);
     for (var decl in smoke.query(type, options)) {
       if (decl.isFinal) continue;
+      if (_checkPropertyBlacklist(decl.name)) continue;
       if (_publish == null) _publish = {};
       _publish[new PropertyPath([decl.name])] = decl;
 
@@ -423,6 +456,7 @@ class PolymerDeclaration {
       if (_observe == null) _observe = new HashMap();
       var name = smoke.symbolToName(decl.name);
       name = name.substring(0, name.length - 7);
+      if (!_canObserveProperty(decl.name)) continue;
       _observe[new PropertyPath(name)] = [decl.name];
     }
   }
@@ -470,8 +504,9 @@ class PolymerDeclaration {
         includeUpTo: HtmlElement, withAnnotations: const [ComputedProperty]);
     var existing = {};
     for (var decl in smoke.query(type, options)) {
-      var meta = decl.annotations.firstWhere((e) => e is ComputedProperty);
       var name = decl.name;
+      if (_checkPropertyBlacklist(name)) continue;
+      var meta = decl.annotations.firstWhere((e) => e is ComputedProperty);
       var prev = existing[name];
       // The definition of a child class takes priority.
       if (prev == null || smoke.isSubclassOf(decl.type, prev.type)) {
@@ -495,7 +530,8 @@ final Map _declarations = new Map<String, PolymerDeclaration>();
 bool _isRegistered(String name) => _declarations.containsKey(name);
 PolymerDeclaration _getDeclaration(String name) => _declarations[name];
 
-/// Using Polymer's platform/src/ShadowCSS.js passing the style tag's content.
+/// Using Polymer's web_components/src/ShadowCSS.js passing the style tag's
+/// content.
 void _shimShadowDomStyling(DocumentFragment template, String name,
     String extendee) {
   if (_ShadowCss == null ||!_hasShadowDomPolyfill) return;
@@ -504,7 +540,8 @@ void _shimShadowDomStyling(DocumentFragment template, String name,
 }
 
 final bool _hasShadowDomPolyfill = js.context.hasProperty('ShadowDOMPolyfill');
-final JsObject _ShadowCss = _Platform != null ? _Platform['ShadowCSS'] : null;
+final JsObject _ShadowCss =
+    _WebComponents != null ? _WebComponents['ShadowCSS'] : null;
 
 const _STYLE_SELECTOR = 'style';
 const _SHEET_SELECTOR = 'link[rel=stylesheet]';
@@ -558,5 +595,5 @@ bool _isObserverMethod(Symbol symbol) {
 
 final _ATTRIBUTES_REGEX = new RegExp(r'\s|,');
 
-final JsObject _Platform = js.context['Platform'];
+final JsObject _WebComponents = js.context['WebComponents'];
 final JsObject _Polymer = js.context['Polymer'];

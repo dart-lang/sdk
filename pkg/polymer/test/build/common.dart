@@ -201,10 +201,12 @@ const EMPTY_DATA = '{"experimental_bootstrap":false,"script_ids":[]}';
 
 const DART_SUPPORT_TAG =
     '<script src="packages/web_components/dart_support.js"></script>\n';
+const WEB_COMPONENTS_JS_TAG =
+    '<script src="packages/web_components/webcomponents.min.js"></script>\n';
+const COMPATIBILITY_JS_TAGS =
+    '$WEB_COMPONENTS_JS_TAG$DART_SUPPORT_TAG';
 const PLATFORM_JS_TAG =
     '<script src="packages/web_components/platform.js"></script>\n';
-const WEB_COMPONENTS_TAG =
-    '$PLATFORM_JS_TAG$DART_SUPPORT_TAG';
 
 const INTEROP_TAG = '<script src="packages/browser/interop.js"></script>\n';
 const DART_JS_TAG = '<script src="packages/browser/dart.js"></script>';

@@ -167,6 +167,30 @@ void main() {
         '(web/test.html 0 21)'
       ]);
 
+    _testLinter('webcomponents unnecessary', {
+        'a|web/test.html': '<!DOCTYPE html><html>'
+            '$WEB_COMPONENTS_JS_TAG'
+            '<script type="application/dart" src="foo.dart">'
+            '</script>'
+            '</html>',
+      }, [
+        'warning: ${WEB_COMPONENTS_NO_LONGER_REQUIRED.snippet} '
+        '(web/test.html 0 21)'
+      ]);
+
+
+    _testLinter('platform.js -> webcomponents.js', {
+        'a|web/test.html':
+            '<!DOCTYPE html><html>'
+            '$PLATFORM_JS_TAG'
+            '<script type="application/dart" src="foo.dart">'
+            '</script>'
+            '</html>',
+      }, [
+        'warning: ${PLATFORM_JS_RENAMED.snippet} '
+        '(web/test.html 0 21)'
+      ]);
+
   });
 
   group('single script tag per document', () {

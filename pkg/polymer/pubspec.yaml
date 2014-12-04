@@ -1,5 +1,5 @@
 name: polymer
-version: 0.15.1+5
+version: 0.15.2
 author: Polymer.dart Authors <web-ui-dev@dartlang.org>
 description: >
   Polymer.dart is a new type of library for the web, built on top of Web
@@ -20,8 +20,8 @@ dependencies:
   smoke: '>=0.2.0 <0.3.0'
   source_maps: '>=0.9.4 <0.11.0'
   source_span: '>=1.0.0 <2.0.0'
-  template_binding: '>=0.12.0 <0.14.0'
-  web_components: '>=0.9.0 <0.10.0'
+  template_binding: '>=0.12.0 <0.15.0'
+  web_components: '>=0.10.0 <0.11.0'
   yaml: '>=0.9.0 <3.0.0'
 dev_dependencies:
   unittest: '>=0.10.0 <0.12.0'
@@ -32,11 +32,7 @@ transformers:
 - code_transformers/src/delete_file:
     $include:
       - lib/src/build/log_injector.css
-      - lib/src/js/polymer/polymer.concat.js
-      - lib/src/js/polymer/polymer.concat.js.map
-      - lib/src/js/polymer/polymer.js.map
-- code_transformers/src/remove_sourcemap_comment:
-    $include: lib/src/js/polymer/polymer.js
+      - lib/src/js/polymer/polymer.js
 - observe:
     files: lib/src/instance.dart
     $include: lib/src/instance.dart

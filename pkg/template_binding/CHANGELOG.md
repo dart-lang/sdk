@@ -1,3 +1,7 @@
+#### Pub version 0.14.0
+  * Up to date with release 0.5.1 ([TemplateBinding#d2bddc4][d2bddc4]).
+  * The `js/patches_mdv.js` file is now named `js/flush.js`.
+
 #### Pub version 0.13.1
   * Up to date with release 0.4.2 ([TemplateBinding#35b7880][35b7880]).
   * Widen web_components version constraint to include 0.9.0.

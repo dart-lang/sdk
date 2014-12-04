@@ -16,20 +16,20 @@ load the polyfills, as indicated below.
 Include the polyfills in your HTML `<head>` to enable Shadow DOM:
 
 ```html
-<script src="packages/web_components/platform.js"></script>
+<script src="packages/web_components/webcomponents.min.js"></script>
 <script src="packages/web_components/dart_support.js"></script>
 ```
 
 You can also use an unminified version for development:
 
 ```html
-<script src="packages/web_components/platform.concat.js"></script>
+<script src="packages/web_components/webcomponents.js"></script>
 <script src="packages/web_components/dart_support.js"></script>
 ```
 
-Because the Shadow DOM polyfill does extensive DOM patching, platform.js should
-be included **before** other script tags. Be sure to include dart_support.js
-too, it is required for the Shadow DOM polyfill to work with
+Because the Shadow DOM polyfill does extensive DOM patching, webcomponents.js
+should be included **before** other script tags. Be sure to include
+dart_support.js too, it is required for the Shadow DOM polyfill to work with
 [dart2js](https://www.dartlang.org/docs/dart-up-and-running/contents/ch04-tools-dart2js.html).
 
 ## Custom Elements
@@ -64,23 +64,6 @@ for more information.
 
 ## Hacking on this package
 
-To rebuild platform.js:
-
-```bash
-# Make a directory like ~/src/polymer
-mkdir ~/src/polymer
-cd ~/src/polymer
-git clone https://github.com/polymer/tools
-
-# Sync polymer repositories
-./tools/bin/pull-all-polymer.sh
-
-# If you don't have "npm", get it here: http://nodejs.org
-cd platform-dev
-npm install
-grunt minify audit
-cd build
-
-# Copy the build output to your Dart source tree
-cp build.log platform* ~/dart/dart/pkg/web_components/lib
-```
+The `webcomponents.*` files in this package are developed 
+[here](https://github.com/Polymer/webcomponentsjs). Follow the instructions
+there for how to build a new release and then copy the files into this package.

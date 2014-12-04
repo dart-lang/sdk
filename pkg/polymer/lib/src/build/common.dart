@@ -88,14 +88,14 @@ class TransformOptions {
   // reachable (entry point+imported) html if deploying. See dartbug.com/17199.
   final LintOptions lint;
 
-  /// This will automatically inject `platform.js` from the `web_components`
+  /// This will automatically inject the polyfills from the `web_components`
   /// package in all entry points, if it is not already included.
-  final bool injectPlatformJs;
+  final bool injectWebComponentsJs;
 
   TransformOptions({entryPoints, this.inlineStylesheets,
       this.contentSecurityPolicy: false, this.directlyIncludeJS: true,
       this.releaseMode: true, this.lint: const LintOptions(),
-      this.injectBuildLogsInOutput: false, this.injectPlatformJs: true})
+      this.injectBuildLogsInOutput: false, this.injectWebComponentsJs: true})
       : entryPoints = entryPoints == null ? null
           : entryPoints.map(systemToAssetPath).toList();
 
