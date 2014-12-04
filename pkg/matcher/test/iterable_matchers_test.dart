@@ -17,6 +17,11 @@ void main() {
     shouldFail([1], isEmpty, "Expected: empty Actual: [1]");
   });
 
+  test('isNotEmpty', () {
+    shouldFail([], isNotEmpty, "Expected: non-empty Actual: []");
+    shouldPass([1], isNotEmpty);
+  });
+
   test('contains', () {
     var d = [1, 2];
     shouldPass(d, contains(1));

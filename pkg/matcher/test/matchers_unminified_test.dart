@@ -108,6 +108,15 @@ void main() {
           "Actual: SimpleIterable:[1]");
     });
 
+    test('isNotEmpty', () {
+      var d = new SimpleIterable(0);
+      var e = new SimpleIterable(1);
+      shouldPass(e, isNotEmpty);
+      shouldFail(d, isNotEmpty, "Expected: non-empty "
+          "Actual: SimpleIterable:[]");
+    });
+
+
     test('contains', () {
       var d = new SimpleIterable(3);
       shouldPass(d, contains(2));
