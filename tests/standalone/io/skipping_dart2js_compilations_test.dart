@@ -18,6 +18,7 @@ import 'package:expect/expect.dart';
 import 'package:path/path.dart';
 import 'dart:async';
 import 'dart:io';
+import '../../../tools/testing/dart/path.dart';
 import '../../../tools/testing/dart/test_suite.dart' as suite;
 import '../../../tools/testing/dart/test_runner.dart' as runner;
 import '../../../tools/testing/dart/test_options.dart' as options;
