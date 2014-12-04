@@ -12,7 +12,6 @@ mandel_isolate_test: Skip # Uses 600 MB Ram on our 1 GB test device.
 [ $compiler == none || $compiler == dart2dart ]
 serialization_test: SkipByDesign # Tests dart2js-specific serialization code
 compile_time_error_test/01: Skip # Issue 12587
-capability_test: Fail     # Not implemented yet
 start_paused_test: Fail   # Not implemented yet
 ondone_test: Fail         # Not implemented yet
 ping_test: Fail           # Not implemented yet

@@ -17,6 +17,17 @@ patch class Capability {
 
 class _CapabilityImpl implements Capability {
   factory _CapabilityImpl() native "CapabilityImpl_factory";
+
+  bool operator==(var other) {
+    return (other is _CapabilityImpl) && _equals(other);
+  }
+
+  int get hashCode {
+    return _get_hashcode();
+  }
+
+  _equals(other) native "CapabilityImpl_equals";
+  _get_hashcode() native "CapabilityImpl_get_hashcode";
 }
 
 patch class RawReceivePort {
