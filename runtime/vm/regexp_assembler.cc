@@ -1798,8 +1798,8 @@ Value* IRRegExpMacroAssembler::LoadCodeUnitsAt(LocalVariable* index,
   Value* pattern_val = BindLoadLocal(*string_param_);
   if (RawObject::IsExternalStringClassId(specialization_cid_)) {
     // The data of an external string is stored through two indirections.
-    intptr_t external_offset;
-    intptr_t data_offset;
+    intptr_t external_offset = 0;
+    intptr_t data_offset = 0;
     if (specialization_cid_ == kExternalOneByteStringCid) {
       external_offset = ExternalOneByteString::external_data_offset();
       data_offset = RawExternalOneByteString::ExternalData::data_offset();
