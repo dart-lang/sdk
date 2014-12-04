@@ -1,3 +1,9 @@
+## 0.10.0+1
+
+* Remove an unnecessary warning printed when the "file" field is missing from a
+  Json formatted source map. This field is optional and its absence is not
+  unusual.
+
 ## 0.10.0
 
 * Remove the `Span`, `Location` and `SourceFile` classes. Use the
