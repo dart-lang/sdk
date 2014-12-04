@@ -400,7 +400,7 @@ void FlowGraphCompiler::Bailout(const char* reason) {
 
 void FlowGraphCompiler::EmitTrySync(Instruction* instr, intptr_t try_index) {
   ASSERT(is_optimizing());
-  Environment* env = instr->env();
+  Environment* env = instr->env()->Outermost();
   CatchBlockEntryInstr* catch_block =
       flow_graph().graph_entry()->GetCatchEntry(try_index);
   const GrowableArray<Definition*>* idefs = catch_block->initial_definitions();

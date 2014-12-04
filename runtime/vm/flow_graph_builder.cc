@@ -339,7 +339,8 @@ void InlineExitCollector::SortExits() {
 
 
 Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
-                                             Instruction** last_instruction) {
+                                             Instruction** last_instruction,
+                                             intptr_t try_index) {
   // First sort the list of exits by block id (caching return instruction
   // block entries as a side effect).
   SortExits();
@@ -355,7 +356,7 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
     intptr_t join_id = caller_graph_->max_block_id() + 1;
     caller_graph_->set_max_block_id(join_id);
     JoinEntryInstr* join =
-        new(I) JoinEntryInstr(join_id, CatchClauseNode::kInvalidTryIndex);
+        new(I) JoinEntryInstr(join_id, try_index);
     join->InheritDeoptTargetAfter(isolate(), call_);
 
     // The dominator set of the join is the intersection of the dominator
@@ -485,7 +486,8 @@ void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
 
   } else {
     Definition* callee_result = JoinReturns(&callee_exit,
-                                            &callee_last_instruction);
+                                            &callee_last_instruction,
+                                            call_block->try_index());
     if (callee_result != NULL) {
       call_->ReplaceUsesWith(callee_result);
     }

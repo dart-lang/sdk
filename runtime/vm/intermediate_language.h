@@ -1149,6 +1149,9 @@ class BlockEntryInstr : public Instruction {
   virtual bool MayThrow() const { return false; }
 
   intptr_t try_index() const { return try_index_; }
+  void set_try_index(intptr_t index) {
+    try_index_ = index;
+  }
 
   // True for blocks inside a try { } region.
   bool InsideTryBlock() const {
@@ -1204,7 +1207,7 @@ class BlockEntryInstr : public Instruction {
   void set_dominator(BlockEntryInstr* instr) { dominator_ = instr; }
 
   intptr_t block_id_;
-  const intptr_t try_index_;
+  intptr_t try_index_;
   intptr_t preorder_number_;
   intptr_t postorder_number_;
   // Starting and ending lifetime positions for this block.  Used by
@@ -7863,6 +7866,12 @@ class Environment : public ZoneAllocated {
   intptr_t deopt_id() const { return deopt_id_; }
 
   Environment* outer() const { return outer_; }
+
+  Environment* Outermost() {
+    Environment* result = this;
+    while (result->outer() != NULL) result = result->outer();
+    return result;
+  }
 
   Value* ValueAt(intptr_t ix) const {
     return values_[ix];

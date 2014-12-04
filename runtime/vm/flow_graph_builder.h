@@ -127,7 +127,8 @@ class InlineExitCollector: public ZoneAllocated {
   void SortExits();
 
   Definition* JoinReturns(BlockEntryInstr** exit_block,
-                          Instruction** last_instruction);
+                          Instruction** last_instruction,
+                          intptr_t try_index);
 
   Isolate* isolate() const { return caller_graph_->isolate(); }
 

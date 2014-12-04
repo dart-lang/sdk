@@ -4938,7 +4938,7 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
              instr_it.Advance()) {
           Instruction* current = instr_it.Current();
           if (current->MayThrow()) {
-            Environment* env = current->env();
+            Environment* env = current->env()->Outermost();
             ASSERT(env != NULL);
             for (intptr_t env_idx = 0; env_idx < cdefs.length(); ++env_idx) {
               if (cdefs[env_idx] != NULL &&

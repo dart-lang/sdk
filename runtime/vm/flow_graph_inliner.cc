@@ -591,15 +591,6 @@ class CallSiteInliner : public ValueObject {
                              function.ToCString(),
                              function.deoptimization_counter()));
 
-    // TODO(fschneider): Enable inlining inside try-blocks.
-    if (call_data->call->GetBlock()->try_index() !=
-        CatchClauseNode::kInvalidTryIndex) {
-      TRACE_INLINING(OS::Print("     Bailout: inside try-block\n"));
-      PRINT_INLINING_TREE("Inside try-block",
-          &call_data->caller, &function, call_data->call);
-      return false;
-    }
-
     // Make a handle for the unoptimized code so that it is not disconnected
     // from the function while we are trying to inline it.
     const Code& unoptimized_code = Code::Handle(function.unoptimized_code());
@@ -729,6 +720,17 @@ class CallSiteInliner : public ValueObject {
       // After treating optional parameters the actual/formal count must match.
       ASSERT(arguments->length() == function.NumParameters());
       ASSERT(param_stubs->length() == callee_graph->parameter_count());
+
+      // Update try-index of the callee graph.
+      BlockEntryInstr* call_block = call_data->call->GetBlock();
+      if (call_block->InsideTryBlock()) {
+        intptr_t try_index = call_block->try_index();
+        for (BlockIterator it = callee_graph->reverse_postorder_iterator();
+             !it.Done(); it.Advance()) {
+          BlockEntryInstr* block = it.Current();
+          block->set_try_index(try_index);
+        }
+      }
 
       BlockScheduler block_scheduler(callee_graph);
       block_scheduler.AssignEdgeWeights();
