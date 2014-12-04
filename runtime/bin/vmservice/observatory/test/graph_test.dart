@@ -12,16 +12,24 @@ class Foo {
   Object left;
   Object right;
 }
-Foo root;
+Foo r;
+
+List lst;
 
 void script() {
-  // Create 3 instances of Foo, with out-degrees 0 (for b), 1 (for a), and 2 (for root).
-  root = new Foo();
+  // Create 3 instances of Foo, with out-degrees
+  // 0 (for b), 1 (for a), and 2 (for staticFoo).
+  r = new Foo();
   var a = new Foo();
   var b = new Foo();
-  root.left = a;
-  root.right = b;
+  r.left = a;
+  r.right = b;
   a.left = b;
+  
+  lst = new List(2);
+  lst[0] = lst;  // Self-loop.
+  // Larger than any other fixed-size list in a fresh heap.
+  lst[1] = new List(123456);
 }
 
 int fooId;
@@ -35,17 +43,50 @@ var tests = [
       ReadStream reader = new ReadStream(event.data);
       ObjectGraph graph = new ObjectGraph(reader);
       expect(fooId, isNotNull);
-      Iterable<ObjectVertex> foos = graph.vertices.where((ObjectVertex obj) => obj.classId == fooId);
+      Iterable<ObjectVertex> foos = graph.vertices.where(
+          (ObjectVertex obj) => obj.classId == fooId);
       expect(foos.length, equals(3));
-      expect(foos.where((ObjectVertex obj) => obj.succ.length == 0).length, equals(1));
-      expect(foos.where((ObjectVertex obj) => obj.succ.length == 1).length, equals(1));
-      expect(foos.where((ObjectVertex obj) => obj.succ.length == 2).length, equals(1));
+      expect(foos.where(
+          (ObjectVertex obj) => obj.succ.length == 0).length, equals(1));
+      expect(foos.where(
+          (ObjectVertex obj) => obj.succ.length == 1).length, equals(1));
+      expect(foos.where(
+          (ObjectVertex obj) => obj.succ.length == 2).length, equals(1));
+      
+      ObjectVertex bVertex = foos.where(
+          (ObjectVertex obj) => obj.succ.length == 0).first;
+      ObjectVertex aVertex = foos.where(
+          (ObjectVertex obj) => obj.succ.length == 1).first;
+      ObjectVertex rVertex = foos.where(
+          (ObjectVertex obj) => obj.succ.length == 2).first;
+      
+      // TODO(koda): Check actual byte sizes.
+
+      expect(aVertex.retainedSize, equals(aVertex.shallowSize));
+      expect(bVertex.retainedSize, equals(bVertex.shallowSize));
+      expect(rVertex.retainedSize, equals(aVertex.shallowSize +
+                                          bVertex.shallowSize +
+                                          rVertex.shallowSize));
+      
+      const int fixedSizeListCid = 62;
+      List<ObjectVertex> lists = new List.from(graph.vertices.where(
+          (ObjectVertex obj) => obj.classId == fixedSizeListCid));
+      expect(lists.length >= 2, isTrue);
+      // Order by decreasing retained size.
+      lists.sort((u, v) => v.retainedSize - u.retainedSize);
+      ObjectVertex first = lists[0];
+      ObjectVertex second = lists[1];
+      // Check that the short list retains more than the long list inside.
+      expect(first.succ.length, equals(2 + second.succ.length));
+      // ... and specifically, that it retains exactly itself + the long one.
+      expect(first.retainedSize,
+          equals(first.shallowSize + second.shallowSize));
       completer.complete();
     }
   });
   return isolate.rootLib.load().then((Library lib) {
     expect(lib.classes.length, equals(1));
-    // Extract the numerical class id of 'Foo', used in the event listener above.
+    // TODO(koda): Use vmCid.
     Class fooClass = lib.classes.first;
     String prefix = "classes/";
     // TODO(koda): Add method on Class to get numerical id.

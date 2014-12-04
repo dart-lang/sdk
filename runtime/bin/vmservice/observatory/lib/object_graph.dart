@@ -6,6 +6,8 @@ library object_graph;
 
 import 'dart:typed_data';
 
+import 'dominator_tree.dart';
+
 // Port of dart::ReadStream from vm/datastream.h.
 class ReadStream {
   int _cur = 0;
@@ -34,16 +36,19 @@ class ReadStream {
 }
 
 class ObjectVertex {
-  // Never null.
+  // Never null. The isolate root has id 0.
   final int _id;
   // null for VM-heap objects.
-  int _size;
-  int get size => _size;
+  int _shallowSize;
+  int get shallowSize => _shallowSize;
+  int _retainedSize;
+  int get retainedSize => _retainedSize;
   // null for VM-heap objects.
   int _classId;
   int get classId => _classId;
   final List<ObjectVertex> succ = new List<ObjectVertex>();
-  ObjectVertex(this._id);
+  ObjectVertex(this._id) : _retainedSize = 0;
+  String toString() => '$_id,$_shallowSize,$succ';
 }
 
 // See implementation of ObjectGraph::Serialize for format.
@@ -56,7 +61,7 @@ class ObjectGraph {
 
   void _addFrom(ReadStream stream) {
     ObjectVertex obj = _asVertex(stream.readUnsigned());
-    obj._size = stream.readUnsigned();
+    obj._shallowSize = stream.readUnsigned();
     obj._classId = stream.readUnsigned();
     int last = stream.readUnsigned();
     while (last != 0) {
@@ -69,7 +74,47 @@ class ObjectGraph {
     while (reader.pendingBytes > 0) {
       _addFrom(reader);
     }
+    _computeRetainedSizes();
   }
 
   Iterable<ObjectVertex> get vertices => _idToVertex.values;
+
+  ObjectVertex get root => _asVertex(0);
+  
+  void _computeRetainedSizes() {
+    // The retained size for an object is the sum of the shallow sizes of
+    // all its descendants in the dominator tree (including itself).
+    var d = new Dominator();
+    for (ObjectVertex u in vertices) {
+      if (u.shallowSize != null) {
+        u._retainedSize = u.shallowSize;
+        d.addEdges(u, u.succ.where((ObjectVertex v) => v.shallowSize != null));
+      }
+    }
+    d.computeDominatorTree(root);
+    // Compute all retained sizes "bottom up", starting from the leaves.
+    // Keep track of number of remaining children of each vertex.
+    var degree = new Map<ObjectVertex, int>();
+    for (ObjectVertex u in vertices) {
+      var v = d.dominator(u);
+      if (v != null) {
+        degree[v] = 1 + degree.putIfAbsent(v, () => 0);
+      }
+    }
+    var leaves = new List<ObjectVertex>();
+    for (ObjectVertex u in vertices) {
+      if (!degree.containsKey(u)) {
+        leaves.add(u);
+      }
+    }
+    while (!leaves.isEmpty) {
+      var v = leaves.removeLast();
+      var u = d.dominator(v);
+      if (u == null) continue;
+      u._retainedSize += v._retainedSize;
+      if (--degree[u] == 0) {
+        leaves.add(u);
+      }
+    }
+  }
 }
