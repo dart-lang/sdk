@@ -12,19 +12,19 @@ import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 /// Helper accessor to determine the full pathname of the root of the dart
-/// checkout. We can be in one of three situations:
-/// 1) Running from pkg/docgen/bin/docgen.dart
-/// 2) Running from a snapshot in a build,
-///   e.g. xcodebuild/ReleaseIA32/dart-sdk/bin
-/// 3) Running from a built distribution,
-///   e.g. ...somename/dart-sdk/bin/snapshots
+/// checkout if we are running without the --sdk parameter specified. That
+/// normally means we are running directly from source, and we expect to
+/// find the root as the directory above 'pkg'. The only other time this
+/// would happen is running a snapshot directly, rather than from the
+/// dartdocgen script, where we look for the dart-sdk directory. If not
+/// using the script and not in a normal directory structure, you'll need
+/// to pass the --sdk parameter.
 String get rootDirectory {
   if (_rootDirectoryCache != null) return _rootDirectoryCache;
   var scriptDir = path.absolute(path.dirname(Platform.script.toFilePath()));
   var root = scriptDir;
   var base = path.basename(root);
-  // When we find dart-sdk or sdk we are one level below the root.
-  while (base != 'dart-sdk' && base != 'sdk' && base != 'pkg') {
+  while (base != 'dart-sdk' && base != 'pkg') {
     root = path.dirname(root);
     base = path.basename(root);
     if (root == base) {

@@ -44,7 +44,7 @@ Future<bool> docgen(List<String> files, {String packageRoot,
     bool includeDependentPackages: false, bool compile: false,
     bool serve: false, bool noDocs: false, String startPage,
     String pubScript : 'pub', String dartBinary: 'dart',
-    bool indentJSON: false}) {
+    bool indentJSON: false, String sdk}) {
   var result;
   if (!noDocs) {
     viewer.ensureMovedViewerCode();
@@ -55,7 +55,7 @@ Future<bool> docgen(List<String> files, {String packageRoot,
         excludeLibraries: excludeLibraries,
         includeDependentPackages: includeDependentPackages,
         startPage: startPage, pubScriptValue: pubScript,
-        dartBinaryValue: dartBinary, indentJSON: indentJSON);
+        dartBinaryValue: dartBinary, indentJSON: indentJSON, sdk: sdk);
     viewer.addBackViewerCode();
     if (compile || serve) {
       result.then((success) {

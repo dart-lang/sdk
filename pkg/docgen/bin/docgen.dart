@@ -55,7 +55,8 @@ void main(List<String> arguments) {
       pubScript: pubScript,
       noDocs: options['no-docs'],
       startPage: startPage,
-      indentJSON: indentJSON);
+      indentJSON: indentJSON,
+      sdk: options['sdk']);
 }
 
 /**

@@ -61,7 +61,7 @@ Future<bool> generateDocumentation(List<String> files, {String packageRoot,
     bool parseSdk: false, String introFileName: '',
     out: DEFAULT_OUTPUT_DIRECTORY, List<String> excludeLibraries: const [], bool
     includeDependentPackages: false, String startPage, String dartBinaryValue,
-    String pubScriptValue, bool indentJSON: false}) {
+    String pubScriptValue, bool indentJSON: false, String sdk}) {
   _excluded = excludeLibraries;
   dartBinary = dartBinaryValue;
   pubScript = pubScriptValue;
@@ -80,7 +80,7 @@ Future<bool> generateDocumentation(List<String> files, {String packageRoot,
   }
 
   return getMirrorSystem(allLibraries, includePrivate,
-      packageRoot: updatedPackageRoot, parseSdk: parseSdk)
+      packageRoot: updatedPackageRoot, parseSdk: parseSdk, sdkRoot: sdk)
       .then((MirrorSystem mirrorSystem) {
     if (mirrorSystem.libraries.isEmpty) {
       throw new StateError('No library mirrors were created.');
@@ -110,7 +110,8 @@ Future<bool> generateDocumentation(List<String> files, {String packageRoot,
 /// Analyzes set of libraries by getting a mirror system and triggers the
 /// documentation of the libraries.
 Future<MirrorSystem> getMirrorSystem(List<Uri> libraries,
-    bool includePrivate, {String packageRoot, bool parseSdk: false}) {
+    bool includePrivate, {String packageRoot, bool parseSdk: false,
+    String sdkRoot}) {
   if (libraries.isEmpty) throw new StateError('No Libraries.');
 
   includePrivateMembers = includePrivate;
@@ -118,10 +119,12 @@ Future<MirrorSystem> getMirrorSystem(List<Uri> libraries,
   // Finds the root of SDK library based off the location of docgen.
   // We have two different places to look, depending if we're in a development
   // repo or in a built SDK, either sdk or dart-sdk respectively
-  var root = rootDirectory;
-  var sdkRoot = path.normalize(path.absolute(path.join(root, 'sdk')));
-  if (!new Directory(sdkRoot).existsSync()) {
-    sdkRoot = path.normalize(path.absolute(path.join(root, 'dart-sdk')));
+  if (sdkRoot == null) {
+    var root = rootDirectory;
+    sdkRoot = path.normalize(path.absolute(path.join(root, 'sdk')));
+    if (!new Directory(sdkRoot).existsSync()) {
+      sdkRoot = path.normalize(path.absolute(path.join(root, 'dart-sdk')));
+    }
   }
   logger.info('SDK Root: ${sdkRoot}');
   return analyzeLibraries(libraries, sdkRoot, packageRoot: packageRoot);
