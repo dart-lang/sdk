@@ -2343,8 +2343,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           // The source kind is always valid, so the state isn't interesting.
           continue;
         } else if (descriptor == DartEntry.CONTAINING_LIBRARIES) {
-          // The list of containing libraries is always valid, so the state isn't
-          // interesting.
+          // The list of containing libraries is always valid, so the state
+          // isn't interesting.
           continue;
         } else if (descriptor == DartEntry.PUBLIC_NAMESPACE) {
           // The public namespace isn't computed by performAnalysisTask()
@@ -2377,8 +2377,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             if (descriptor == DartEntry.ANGULAR_ERRORS ||
                 descriptor == DartEntry.BUILT_ELEMENT ||
                 descriptor == DartEntry.BUILT_UNIT) {
-              // These values are not currently being computed, so their state is
-              // not interesting.
+              // These values are not currently being computed, so their state
+              // is not interesting.
               continue;
             } else if (source.isInSystemLibrary &&
                 !_generateSdkErrors &&
@@ -2917,6 +2917,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           sourceEntry.modificationTime =
               _contentCache.getModificationStamp(source);
           sourceEntry.setValue(SourceEntry.CONTENT, contents);
+        }
+      } else {
+        SourceEntry sourceEntry = _cache.get(source);
+        if (sourceEntry != null) {
+          sourceEntry.modificationTime =
+              _contentCache.getModificationStamp(source);
         }
       }
     } else if (originalContents != null) {

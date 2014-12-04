@@ -1885,6 +1885,23 @@ int a = 0;''');
     expect(_getIncrementalAnalysisCache(_context), isNull);
   }
 
+  void test_setContents_unchanged_consistentModificationTime() {
+    String contents = "// foo";
+    Source source = _addSource("/test.dart", contents);
+    // do all, no tasks
+    _analyzeAll_assertFinished();
+    {
+      AnalysisResult result = _context.performAnalysisTask();
+      expect(result.changeNotices, isNull);
+    }
+    // set the same contents, still no tasks
+    _context.setContents(source, contents);
+    {
+      AnalysisResult result = _context.performAnalysisTask();
+      expect(result.changeNotices, isNull);
+    }
+  }
+
   void test_setSourceFactory() {
     expect(_context.sourceFactory, _sourceFactory);
     SourceFactory factory = new SourceFactory([]);
@@ -6192,8 +6209,8 @@ class SourcesChangedEventTest {
 
   void test_changedRange2() {
     var source = new StringSource('', '/test.dart');
-    var event = new SourcesChangedEvent.changedRange(
-        source, 'library A;', 0, 0, 13);
+    var event =
+        new SourcesChangedEvent.changedRange(source, 'library A;', 0, 0, 13);
     assertEvent(event, changedSources: [source]);
   }
 
@@ -6227,9 +6244,9 @@ class SourcesChangedEventTest {
     assertEvent(event, wereSourcesRemovedOrDeleted: true);
   }
 
-  static void assertEvent(SourcesChangedEvent event, {bool wereSourcesAdded: false,
-    List<Source> changedSources: Source.EMPTY_ARRAY,
-    bool wereSourcesRemovedOrDeleted: false}) {
+  static void assertEvent(SourcesChangedEvent event, {bool wereSourcesAdded:
+      false, List<Source> changedSources: Source.EMPTY_ARRAY,
+      bool wereSourcesRemovedOrDeleted: false}) {
     expect(event.wereSourcesAdded, wereSourcesAdded);
     expect(event.changedSources, changedSources);
     expect(event.wereSourcesRemovedOrDeleted, wereSourcesRemovedOrDeleted);
@@ -6240,9 +6257,8 @@ class SourcesChangedEventTest {
 class SourcesChangedListener {
   List<SourcesChangedEvent> actualEvents = [];
 
-  void assertEvent({bool wereSourcesAdded: false,
-      List<Source> changedSources: Source.EMPTY_ARRAY,
-      bool wereSourcesRemovedOrDeleted: false}) {
+  void assertEvent({bool wereSourcesAdded: false, List<Source> changedSources:
+      Source.EMPTY_ARRAY, bool wereSourcesRemovedOrDeleted: false}) {
     if (actualEvents.isEmpty) {
       fail('Expected event but found none');
     }
