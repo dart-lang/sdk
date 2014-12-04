@@ -7294,7 +7294,19 @@ class Parser {
       _parseMethodDeclarationAfterReturnType(CommentAndMetadata commentAndMetadata,
       Token externalKeyword, Token staticKeyword, TypeName returnType) {
     SimpleIdentifier methodName = parseSimpleIdentifier();
-    FormalParameterList parameters = parseFormalParameterList();
+    FormalParameterList parameters;
+    if (!_matches(TokenType.OPEN_PAREN) &&
+        (_matches(TokenType.OPEN_CURLY_BRACKET) || _matches(TokenType.FUNCTION))) {
+      _reportErrorForToken(ParserErrorCode.MISSING_METHOD_PARAMETERS, _currentToken.previous);
+      parameters = new FormalParameterList(
+          _createSyntheticToken(TokenType.OPEN_PAREN),
+                null,
+                null,
+                null,
+                _createSyntheticToken(TokenType.CLOSE_PAREN));
+    } else {
+      parameters = parseFormalParameterList();
+    }
     _validateFormalParameterList(parameters);
     return _parseMethodDeclarationAfterParameters(
         commentAndMetadata,
@@ -10401,6 +10413,10 @@ class ParserErrorCode extends ErrorCode {
       const ParserErrorCode(
           'MISSING_FUNCTION_PARAMETERS',
           "Functions must have an explicit list of parameters");
+
+  static const ParserErrorCode MISSING_METHOD_PARAMETERS = const ParserErrorCode(
+      'MISSING_METHOD_PARAMETERS',
+      "Methods must have an explicit list of parameters");
 
   static const ParserErrorCode MISSING_GET = const ParserErrorCode(
       'MISSING_GET',

@@ -1921,6 +1921,22 @@ class ErrorParserTest extends ParserTestCase {
         [ParserErrorCode.MISSING_KEYWORD_OPERATOR]);
   }
 
+  void test_missingMethodParameters_void_block() {
+    ParserTestCase.parse3(
+        "parseClassMember",
+        <Object>["C"],
+        "void m {} }",
+        [ParserErrorCode.MISSING_METHOD_PARAMETERS]);
+  }
+
+  void test_missingMethodParameters_void_expression() {
+    ParserTestCase.parse3(
+        "parseClassMember",
+        <Object>["C"],
+        "void m => null; }",
+        [ParserErrorCode.MISSING_METHOD_PARAMETERS]);
+  }
+
   void test_missingNameInLibraryDirective() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(
         "library;",
