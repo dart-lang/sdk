@@ -18,6 +18,7 @@ samples/third_party/angular_todo: Fail # angular needs to be updated
 [ $use_public_packages ]
 samples/third_party/angular_todo: Pass, Slow
 third_party/pkg/async_await: Skip # Uses expect package.
+pkg/polymer: Fail # web_components 0.10.0 not published yet
 
 [ $builder_tag == russian ]
 samples/pop_pop_win: Fail # Issue 16356
