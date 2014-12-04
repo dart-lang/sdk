@@ -394,7 +394,6 @@ class CleanDirectoryCopyCommand extends ScriptCommand {
   Future<ScriptCommandOutputImpl> run() {
     var watch = new Stopwatch()..start();
 
-    var source = new io.Directory(_sourceDirectory);
     var destination = new io.Directory(_destinationDirectory);
 
     return destination.exists().then((bool exists) {
@@ -1453,8 +1452,6 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
   }
 
   void parseAnalyzerOutput(List<String> outErrors, List<String> outWarnings) {
-    AnalysisCommand analysisCommand = command;
-
     // Parse a line delimited by the | character using \ as an escape charager
     // like:  FOO|BAR|FOO\|BAR|FOO\\BAZ as 4 fields: FOO BAR FOO|BAR FOO\BAZ
     List<String> splitMachineError(String line) {
@@ -2770,7 +2767,6 @@ class TestCaseCompleter {
 class ProcessQueue {
   Map _globalConfiguration;
 
-  bool _listTests;
   Function _allDone;
   final dgraph.Graph _graph = new dgraph.Graph();
   List<EventListener> _eventListener;
@@ -2783,7 +2779,6 @@ class ProcessQueue {
                this._eventListener,
                this._allDone,
                [bool verbose = false,
-                this._listTests = false,
                 String recordingOutputFile,
                 String recordedInputFile]) {
     void setupForListing(TestCaseEnqueuer testCaseEnqueuer) {

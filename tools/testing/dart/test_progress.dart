@@ -341,7 +341,6 @@ class TimingPrinter extends EventListener {
       var commandOutput = outputs[i];
       var command = commandOutput.command;
       var testCases = _command2testCases[command];
-      var duration = commandOutput.time;
 
       var testCasesDescription = testCases.map((testCase) {
         return "${testCase.configurationString}/${testCase.displayName}";

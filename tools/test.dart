@@ -298,7 +298,6 @@ void testConfigurations(List<Map> configurations) {
                      eventListener,
                      allTestsFinished,
                      verbose,
-                     listTests,
                      recordingPath,
                      recordingOutputPath);
   }

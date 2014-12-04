@@ -283,7 +283,6 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
 
 
 Path CreateMultitestDirectory(String outputDir, Path suiteDir) {
-  final String generatedTestDirectory = 'generated_tests';
   Directory generatedTestDir = new Directory('$outputDir/generated_tests');
   if (!new Directory(outputDir).existsSync()) {
     new Directory(outputDir).createSync();
