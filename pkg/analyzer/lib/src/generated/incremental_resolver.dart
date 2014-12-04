@@ -22,6 +22,12 @@ import 'utilities_dart.dart';
 
 
 /**
+ * If `true`, an attempt to resolve API-changing modifications is made.
+ */
+bool _resolveApiChanges = false;
+
+
+/**
  * Instances of the class [DeclarationMatcher] determine whether the element
  * model defined by a given AST structure matches an existing element model.
  */
@@ -956,7 +962,9 @@ class PoorMansIncrementalResolver {
   List<AnalysisError> _newHints = <AnalysisError>[];
 
   PoorMansIncrementalResolver(this._typeProvider, this._unitSource,
-      this._librarySource, this._entry);
+      this._librarySource, this._entry, bool resolveApiChanges) {
+    _resolveApiChanges = resolveApiChanges;
+  }
 
   /**
    * Attempts to update [oldUnit] to the state corresponding to [newCode].

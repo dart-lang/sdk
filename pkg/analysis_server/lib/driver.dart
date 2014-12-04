@@ -62,6 +62,13 @@ class Driver {
       "enable-incremental-resolution";
 
   /**
+   * The name of the option used to enable incremental resolution of API
+   * changes.
+   */
+  static const String ENABLE_INCREMENTAL_RESOLUTION_API =
+      "enable-incremental-resolution-api";
+
+  /**
    * The name of the option used to describe the incremental resolution logger.
    */
   static const String INCREMENTAL_RESOLUTION_LOG = "incremental-resolution-log";
@@ -122,6 +129,11 @@ class Driver {
     parser.addFlag(
         ENABLE_INCREMENTAL_RESOLUTION,
         help: "enable using incremental resolution",
+        defaultsTo: false,
+        negatable: false);
+    parser.addFlag(
+        ENABLE_INCREMENTAL_RESOLUTION_API,
+        help: "enable using incremental resolution for API changes",
         defaultsTo: false,
         negatable: false);
     parser.addFlag(
@@ -189,6 +201,8 @@ class Driver {
     AnalysisServerOptions analysisServerOptions = new AnalysisServerOptions();
     analysisServerOptions.enableIncrementalResolution =
         results[ENABLE_INCREMENTAL_RESOLUTION];
+    analysisServerOptions.enableIncrementalResolutionApi =
+        results[ENABLE_INCREMENTAL_RESOLUTION_API];
 
     _initIncrementalLogger(results[INCREMENTAL_RESOLUTION_LOG]);
 

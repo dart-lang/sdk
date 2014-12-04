@@ -192,6 +192,8 @@ class AnalysisServer {
         new ServerContextManager(this, resourceProvider, packageMapProvider);
     contextDirectoryManager.defaultOptions.incremental =
         analysisServerOptions.enableIncrementalResolution;
+    contextDirectoryManager.defaultOptions.incrementalApi =
+        analysisServerOptions.enableIncrementalResolutionApi;
     AnalysisEngine.instance.logger = new AnalysisLogger();
     _onAnalysisStartedController = new StreamController.broadcast();
     _onAnalysisCompleteController = new StreamController.broadcast();
@@ -918,6 +920,7 @@ class AnalysisServer {
 
 class AnalysisServerOptions {
   bool enableIncrementalResolution = false;
+  bool enableIncrementalResolutionApi = false;
 }
 
 /**

@@ -1056,6 +1056,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.dart2jsHint = options.dart2jsHint;
     this._options.hint = options.hint;
     this._options.incremental = options.incremental;
+    this._options.incrementalApi = options.incrementalApi;
     this._options.preserveComments = options.preserveComments;
     _generateSdkErrors = options.generateSdkErrors;
     if (needsRecompute) {
@@ -4936,7 +4937,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         typeProvider,
         unitSource,
         librarySource,
-        dartEntry);
+        dartEntry,
+        analysisOptions.incrementalApi);
     bool success = resolver.resolve(oldUnit, newCode);
     if (!success) {
       return false;
@@ -6342,6 +6344,12 @@ abstract class AnalysisOptions {
   bool get incremental;
 
   /**
+   * A flag indicating whether incremental analysis should be used for API
+   * changes.
+   */
+  bool get incrementalApi;
+
+  /**
    * Return `true` if analysis is to parse comments.
    *
    * @return `true` if analysis is to parse comments
@@ -6432,6 +6440,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool incremental = false;
 
   /**
+   * A flag indicating whether incremental analysis should be used for API
+   * changes.
+   */
+  bool incrementalApi = false;
+
+  /**
    * A flag indicating whether analysis is to parse comments.
    */
   bool preserveComments = true;
@@ -6459,6 +6473,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     _generateSdkErrors = options.generateSdkErrors;
     hint = options.hint;
     incremental = options.incremental;
+    incrementalApi = options.incrementalApi;
     preserveComments = options.preserveComments;
   }
 
