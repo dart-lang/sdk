@@ -9,6 +9,7 @@ import "dart:convert" show LineSplitter, UTF8;
 import "dart:core";
 import "dart:io";
 
+import "path.dart";
 import "utils.dart";
 
 Future _executeCommand(String executable,

@@ -20,6 +20,7 @@ import "dart:io" as io;
 import "dart:math" as math;
 import 'dependency_graph.dart' as dgraph;
 import "browser_controller.dart";
+import "path.dart";
 import "status_file_parser.dart";
 import "test_progress.dart";
 import "test_suite.dart";

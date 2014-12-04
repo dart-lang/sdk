@@ -20,7 +20,7 @@ import "dart:io";
 
 import "test_options.dart";
 import "test_suite.dart";
-import "../../test.dart" as test_dart;
+import "test_configurations.dart";
 
 const List<String> COMMON_ARGUMENTS =
     const <String>['--report', '--progress=diff', 'co19'];
@@ -55,7 +55,7 @@ void main(List<String> args) {
   }
 
   if (configurations != null || configurations.length > 0) {
-    test_dart.testConfigurations(configurations);
+    testConfigurations(configurations);
   }
 }
 

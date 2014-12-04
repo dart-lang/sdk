@@ -18,6 +18,7 @@ import "dart:async";
 import "dart:io";
 import "drt_updater.dart";
 import "html_test.dart" as htmlTest;
+import "path.dart";
 import "multitest.dart";
 import "status_file_parser.dart";
 import "test_runner.dart";
@@ -31,7 +32,7 @@ import "compiler_configuration.dart" show
 import "runtime_configuration.dart" show
     RuntimeConfiguration;
 
-part "browser_test.dart";
+import 'browser_test.dart';
 
 
 RegExp multiHtmlTestGroupRegExp = new RegExp(r"\s*[^/]\s*group\('[^,']*");

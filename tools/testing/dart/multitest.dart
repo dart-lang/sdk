@@ -6,6 +6,8 @@ library multitest;
 
 import "dart:async";
 import "dart:io";
+
+import "path.dart";
 import "test_suite.dart";
 import "utils.dart";
 

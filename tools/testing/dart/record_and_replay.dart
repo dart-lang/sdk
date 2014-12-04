@@ -7,8 +7,8 @@ library record_and_replay;
 import 'dart:io';
 import 'dart:convert';
 
+import 'path.dart';
 import 'test_runner.dart';
-import 'utils.dart' show Path;
 
 /*
  * Json files look like this:

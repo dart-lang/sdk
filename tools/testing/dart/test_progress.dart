@@ -8,6 +8,7 @@ import "dart:async";
 import "dart:io";
 import "dart:io" as io;
 import "dart:convert" show JSON;
+import "path.dart";
 import "status_file_parser.dart";
 import "test_runner.dart";
 import "test_suite.dart";

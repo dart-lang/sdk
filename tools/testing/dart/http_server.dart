@@ -10,6 +10,7 @@ import 'dart:io';
 import 'dart:convert' show
     HtmlEscape;
 
+import 'path.dart';
 import 'test_suite.dart';  // For TestUtils.
 // TODO(efortuna): Rewrite to not use the args library and simply take an
 // expected number of arguments, so test.dart doesn't rely on the args library?

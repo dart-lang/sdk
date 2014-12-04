@@ -8,8 +8,8 @@ import "dart:async";
 import "dart:convert" show LineSplitter, UTF8;
 import "dart:io";
 
+import "path.dart";
 import "status_expression.dart";
-import "utils.dart" show Path;
 
 class Expectation {
   // Possible outcomes of running a test.
