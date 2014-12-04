@@ -1074,7 +1074,7 @@ TEST_CASE(Service_Classes) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
-    "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Invalid sub collection x\","
+    "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Invalid sub command x\","
     "\"request\":"
     "{\"arguments\":[\"classes\",\"%" Pd "\",\"functions\",\"b\",\"x\"],"
     "\"option_keys\":[],\"option_values\":[]}}", cid);
@@ -1117,6 +1117,127 @@ TEST_CASE(Service_Classes) {
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(), "\"totalCount\":2");
   ExpectSubstringF(handler.msg(), "\"sampleCount\":1");
+}
+
+
+TEST_CASE(Service_SetSource) {
+  const char* kScript =
+      "var port;\n"  // Set to our mock port by C++.
+      "\n"
+      "class A {\n"
+      "  a() { return 1; }\n"
+      "  b() { return 0; }\n"
+      "  c(String f) { return f.length; }\n"
+      "}\n"
+      "main() {\n"
+      "  var z = new A();\n"
+      "  return z.a();\n"
+      "}\n"
+      "runB() {\n"
+      "  var z = new A();\n"
+      "  return z.b();\n"
+      "}\n"
+      "runC() {\n"
+      "  var z = new A();\n"
+      "  return z.c();\n"
+      "}\n";
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  const Class& class_a = Class::Handle(GetClass(vmlib, "A"));
+  EXPECT(!class_a.IsNull());
+  intptr_t cid = class_a.id();
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+
+  Array& service_msg = Array::Handle();
+
+  // Request the class A over the service.
+  service_msg = EvalF(lib, "[0, port, ['classes', '%" Pd "'], [], []]", cid);
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"Class\"", handler.msg());
+  ExpectSubstringF(handler.msg(),
+                   "\"id\":\"classes\\/%" Pd "\",\"name\":\"A\",", cid);
+  ExpectSubstringF(handler.msg(), "\"allocationStats\":");
+  ExpectSubstringF(handler.msg(), "\"tokenPos\":");
+  ExpectSubstringF(handler.msg(), "\"endTokenPos\":");
+
+  // Request function 'b' from class A.
+  service_msg = EvalF(lib,
+                      "[0, port, ['classes', '%" Pd "', 'functions', 'b'],"
+                      "[], []]", cid);
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"Function\"", handler.msg());
+  ExpectSubstringF(handler.msg(),
+                   "\"id\":\"classes\\/%" Pd "\\/functions\\/b\","
+                   "\"name\":\"b\",", cid);
+
+  // Invalid set source of function 'b' from class A.
+  service_msg = EvalF(
+    lib,
+    "[0, port, ['classes', '%" Pd "', 'functions', 'b', 'set_source'],"
+    "[], []]", cid);
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
+  EXPECT_SUBSTRING("set_source expects a 'source' option", handler.msg());
+
+  // Set source (with syntax error) of function 'b' from class A.
+  service_msg = EvalF(
+    lib,
+    "[0, port, ['classes', '%" Pd "', 'functions', 'b', 'set_source'],"
+    "['source'], ['b() { return 4 }']]", cid);
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
+
+  // Set source of function 'b' from class A.
+  service_msg = EvalF(
+    lib,
+    "[0, port, ['classes', '%" Pd "', 'functions', 'b', 'set_source'],"
+    "['source'], ['b() { return 4; }']]", cid);
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("Success", handler.msg());
+
+  // Run function 'b' see that it is executing replaced code.
+  result = Dart_Invoke(lib, NewString("runB"), 0, NULL);
+  EXPECT_VALID(result);
+  ASSERT(Dart_IsInteger(result));
+  int64_t r;
+  result = Dart_IntegerToInt64(result, &r);
+  EXPECT_VALID(result);
+  EXPECT_EQ(4, r);
+
+  // Set source of function 'c' from class A, changing its signature.
+  service_msg = EvalF(
+    lib,
+    "[0, port, ['classes', '%" Pd "', 'functions', 'c', 'set_source'],"
+    "['source'], ['c() { return 99; }']]", cid);
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("Success", handler.msg());
+
+  // Run function 'c' see that it is executing replaced code.
+  result = Dart_Invoke(lib, NewString("runC"), 0, NULL);
+  EXPECT_VALID(result);
+  ASSERT(Dart_IsInteger(result));
+  result = Dart_IntegerToInt64(result, &r);
+  EXPECT_VALID(result);
+  EXPECT_EQ(99, r);
 }
 
 

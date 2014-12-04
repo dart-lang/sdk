@@ -1106,6 +1106,42 @@ ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
 }
 
 
+RawObject* Parser::ParseFunctionFromSource(const Class& owning_class,
+                                           const String& source) {
+  Isolate* isolate = Isolate::Current();
+  StackZone zone(isolate);
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    const String& uri = String::Handle(Symbols::New("dynamically-added"));
+    const Script& script = Script::Handle(
+        Script::New(uri, source, RawScript::kSourceTag));
+    const Library& owning_library = Library::Handle(owning_class.library());
+    const String& private_key = String::Handle(owning_library.private_key());
+    script.Tokenize(private_key);
+    const intptr_t token_pos = 0;
+    Parser parser(script, owning_library, token_pos);
+    parser.is_top_level_ = true;
+    parser.set_current_class(owning_class);
+    const String& class_name = String::Handle(owning_class.Name());
+    ClassDesc members(owning_class, class_name, false, token_pos);
+    const intptr_t metadata_pos = parser.SkipMetadata();
+    parser.ParseClassMemberDefinition(&members, metadata_pos);
+    ASSERT(members.functions().Length() == 1);
+    const Function& func =
+        Function::ZoneHandle(Function::RawCast(members.functions().At(0)));
+    func.set_eval_script(script);
+    ParsedFunction* parsed_function = new ParsedFunction(isolate, func);
+    Parser::ParseFunction(parsed_function);
+    return func.raw();
+  } else {
+    const Error& error = Error::Handle(isolate->object_store()->sticky_error());
+    isolate->object_store()->clear_sticky_error();
+    return error.raw();
+  }
+  UNREACHABLE();
+}
+
+
 SequenceNode* Parser::ParseStaticFinalGetter(const Function& func) {
   TRACE_PARSER("ParseStaticFinalGetter");
   ParamList params;
@@ -3301,7 +3337,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   TRACE_PARSER("ParseMethodOrConstructor");
   ASSERT(CurrentToken() == Token::kLPAREN || method->IsGetter());
   ASSERT(method->type != NULL);
-  ASSERT(method->name_pos > 0);
+  ASSERT(is_top_level_ || method->name_pos > 0);
   ASSERT(current_member_ == method);
 
   if (method->has_var) {

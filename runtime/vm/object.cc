@@ -2125,6 +2125,19 @@ void Class::AddFunction(const Function& function) const {
 }
 
 
+void Class::RemoveFunction(const Function& function) const {
+  const Array& arr = Array::Handle(functions());
+  StorePointer(&raw_ptr()->functions_, Object::empty_array().raw());
+  Function& entry = Function::Handle();
+  for (intptr_t i = 0; i < arr.Length(); i++) {
+    entry ^= arr.At(i);
+    if (function.raw() != entry.raw()) {
+      AddFunction(entry);
+    }
+  }
+}
+
+
 intptr_t Class::FindFunctionIndex(const Function& needle) const {
   Isolate* isolate = Isolate::Current();
   if (EnsureIsFinalized(isolate) != Error::null()) {
