@@ -729,11 +729,16 @@ class IncrementalResolver {
    * be determined.
    */
   bool _elementModelChanged(AstNode node) {
-    // If we are replacing the whole declaration (e.g. rename a parameter), we
-    // can try to find the corresponding Element in the enclosing one, see if it
-    // is compatible, and if 'yes', then restore and update it.
-    // TODO(scheglov) This should be rewritten. It causes validating the whole
-    // class, when just one method is changed.
+    // If we are replacing the whole declaration, this means that its signature
+    // is changed. It might be an API change, or not.
+    //
+    // If, for example, a required parameter is changed, it is not an API
+    // change, but we want to find the existing corresponding Element in the
+    // enclosing one, set it for the node and update as needed.
+    //
+    // If, for example, the name of a method is changed, it is an API change,
+    // we need to know the old Element and the new Element. Again, we need to
+    // check the whole enclosing Element.
     if (node is Declaration) {
       node = node.parent;
     }
@@ -1184,12 +1189,7 @@ class PoorMansIncrementalResolver {
           _librarySource,
           errors);
     }
-    {
-      List<AnalysisError> oldErrors =
-          _entry.getValueInLibrary(DartEntry.HINTS, _librarySource);
-      List<AnalysisError> errors = _updateErrors(oldErrors, _newHints);
-      _entry.setValueInLibrary(DartEntry.HINTS, _librarySource, errors);
-    }
+    _entry.setValueInLibrary(DartEntry.HINTS, _librarySource, _newHints);
   }
 
   List<AnalysisError> _updateErrors(List<AnalysisError> oldErrors,

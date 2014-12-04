@@ -2388,7 +2388,7 @@ main() {
     _resolveUnit(r'''
 main() {
   // some comment
-  print(2);
+  print(0);
 }
 ''');
     _updateAndValidate(r'''
@@ -2660,6 +2660,18 @@ class A {
 ''');
   }
 
+  void test_updateErrors_addNew_hint() {
+    _resolveUnit(r'''
+int main() {
+  return 42;
+}
+''');
+    _updateAndValidate(r'''
+int main() {
+}
+''');
+  }
+
   void test_updateErrors_addNew_hints() {
     _resolveUnit(r'''
 main() {
@@ -2730,7 +2742,19 @@ foo(int p) {}
 ''');
   }
 
-  void test_updateErrors_removeExisting() {
+  void test_updateErrors_removeExisting_hint() {
+    _resolveUnit(r'''
+int main() {
+}
+''');
+    _updateAndValidate(r'''
+int main() {
+  return 42;
+}
+''');
+  }
+
+  void test_updateErrors_removeExisting_verify() {
     _resolveUnit(r'''
 f1() {
   print(1)
