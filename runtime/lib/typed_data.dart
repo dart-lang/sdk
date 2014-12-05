@@ -3462,12 +3462,12 @@ int _toUint32(int value) {
 
 
 int _toInt64(int value) {
-  return _toInt(value, 0xFFFFFFFFFFFFFFFF);
+  return _toInt(value, 0xFFFFFFFFFFFFFFFF);  // TODO(regis): Avoid bigint mask.
 }
 
 
 int _toUint64(int value) {
-  return value & 0xFFFFFFFFFFFFFFFF;
+  return value & 0xFFFFFFFFFFFFFFFF;  // TODO(regis): Avoid bigint mask.
 }
 
 

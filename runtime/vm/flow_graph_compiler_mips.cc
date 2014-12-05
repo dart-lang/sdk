@@ -40,7 +40,7 @@ bool FlowGraphCompiler::SupportsUnboxedDoubles() {
 
 
 bool FlowGraphCompiler::SupportsUnboxedMints() {
-  return false;
+  return true;
 }
 
 

@@ -6543,8 +6543,7 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Non constant shift value.
   Register shifter = locs()->in(1).reg();
 
-  __ mov(temp, Operand(shifter));
-  __ SmiUntag(temp);
+  __ SmiUntag(temp, shifter);
   __ CompareImmediate(temp, 0);
   // If shift value is < 0, deoptimize.
   __ b(deopt, LT);
