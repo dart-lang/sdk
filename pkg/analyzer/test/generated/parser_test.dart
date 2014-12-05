@@ -2354,6 +2354,12 @@ class ErrorParserTest extends ParserTestCase {
         [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP]);
   }
 
+  void test_unexpectedToken_endOfFieldDeclarationStatement() {
+    ParserTestCase.parseStatement(
+        "String s = (null));",
+        [ParserErrorCode.UNEXPECTED_TOKEN]);
+  }
+
   void test_unexpectedToken_semicolonBetweenClassMembers() {
     ParserTestCase.parse3(
         "parseClassDeclaration",

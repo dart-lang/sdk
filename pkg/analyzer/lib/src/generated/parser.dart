@@ -4143,12 +4143,14 @@ class Parser {
   }
 
   /**
-   * If the current token has the expected type, return it after advancing to the next token.
-   * Otherwise report an error and return the current token without advancing. Note that the method
-   * [_expectGt] should be used if the argument to this method would be [TokenType.GT].
+   * If the current token has the expected type, return it after advancing to
+   * the next token. Otherwise report an error and return the current token
+   * without advancing.
    *
-   * @param type the type of token that is expected
-   * @return the token that matched the given type
+   * Note that the method [_expectGt] should be used if the argument to this
+   * method would be [TokenType.GT].
+   *
+   * The [type] is the type of token that is expected.
    */
   Token _expect(TokenType type) {
     if (_matches(type)) {
@@ -4157,6 +4159,13 @@ class Parser {
     // Remove uses of this method in favor of matches?
     // Pass in the error code to use to report the error?
     if (type == TokenType.SEMICOLON) {
+      if (_tokenMatches(_currentToken.next, TokenType.SEMICOLON)) {
+        _reportErrorForCurrentToken(
+            ParserErrorCode.UNEXPECTED_TOKEN,
+            [_currentToken.lexeme]);
+        _advance();
+        return andAdvance;
+      }
       _reportErrorForToken(
           ParserErrorCode.EXPECTED_TOKEN,
           _currentToken.previous,
@@ -7297,13 +7306,15 @@ class Parser {
     FormalParameterList parameters;
     if (!_matches(TokenType.OPEN_PAREN) &&
         (_matches(TokenType.OPEN_CURLY_BRACKET) || _matches(TokenType.FUNCTION))) {
-      _reportErrorForToken(ParserErrorCode.MISSING_METHOD_PARAMETERS, _currentToken.previous);
+      _reportErrorForToken(
+          ParserErrorCode.MISSING_METHOD_PARAMETERS,
+          _currentToken.previous);
       parameters = new FormalParameterList(
           _createSyntheticToken(TokenType.OPEN_PAREN),
-                null,
-                null,
-                null,
-                _createSyntheticToken(TokenType.CLOSE_PAREN));
+          null,
+          null,
+          null,
+          _createSyntheticToken(TokenType.CLOSE_PAREN));
     } else {
       parameters = parseFormalParameterList();
     }
@@ -10414,9 +10425,10 @@ class ParserErrorCode extends ErrorCode {
           'MISSING_FUNCTION_PARAMETERS',
           "Functions must have an explicit list of parameters");
 
-  static const ParserErrorCode MISSING_METHOD_PARAMETERS = const ParserErrorCode(
-      'MISSING_METHOD_PARAMETERS',
-      "Methods must have an explicit list of parameters");
+  static const ParserErrorCode MISSING_METHOD_PARAMETERS =
+      const ParserErrorCode(
+          'MISSING_METHOD_PARAMETERS',
+          "Methods must have an explicit list of parameters");
 
   static const ParserErrorCode MISSING_GET = const ParserErrorCode(
       'MISSING_GET',
