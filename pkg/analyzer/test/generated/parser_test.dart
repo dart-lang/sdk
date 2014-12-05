@@ -2360,6 +2360,12 @@ class ErrorParserTest extends ParserTestCase {
         [ParserErrorCode.UNEXPECTED_TOKEN]);
   }
 
+  void test_unexpectedToken_returnInExpressionFuntionBody() {
+    ParserTestCase.parseCompilationUnit(
+        "f() => return null;",
+        [ParserErrorCode.UNEXPECTED_TOKEN]);
+  }
+
   void test_unexpectedToken_semicolonBetweenClassMembers() {
     ParserTestCase.parse3(
         "parseClassDeclaration",

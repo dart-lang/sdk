@@ -6561,6 +6561,11 @@ class Parser {
           }
         }
         Token functionDefinition = andAdvance;
+        if (_matchesKeyword(Keyword.RETURN)) {
+          _reportErrorForToken(
+              ParserErrorCode.UNEXPECTED_TOKEN,
+              andAdvance);
+        }
         Expression expression = parseExpression2();
         Token semicolon = null;
         if (!inExpression) {
