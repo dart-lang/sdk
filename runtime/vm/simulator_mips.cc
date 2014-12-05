@@ -18,12 +18,14 @@
 #include "vm/disassembler.h"
 #include "vm/lockers.h"
 #include "vm/native_arguments.h"
+#include "vm/stack_frame.h"
 #include "vm/thread.h"
 
 namespace dart {
 
 DEFINE_FLAG(bool, trace_sim, false, "Trace simulator execution.");
-DEFINE_FLAG(int, stop_sim_at, 0, "Address to stop simulator at.");
+DEFINE_FLAG(int, stop_sim_at, 0,
+            "Instruction address or instruction count to stop simulator at.");
 
 
 // This macro provides a platform independent use of sscanf. The reason for
@@ -93,6 +95,15 @@ class SimulatorDebugger {
   bool GetValue(char* desc, uint32_t* value);
   bool GetFValue(char* desc, double* value);
   bool GetDValue(char* desc, double* value);
+
+  static intptr_t GetApproximateTokenIndex(const Code& code, uword pc);
+
+  static void PrintDartFrame(uword pc, uword fp, uword sp,
+                             const Function& function,
+                             intptr_t token_pos,
+                             bool is_optimized,
+                             bool is_inlined);
+  void PrintBacktrace();
 
   static const int32_t kSimulatorBreakpointInstruction =
       Instr::kBreakPointInstruction |
@@ -203,6 +214,10 @@ bool SimulatorDebugger::GetValue(char* desc, uint32_t* value) {
     *value = sim_->get_pc();
     return true;
   }
+  if (strcmp("icount", desc) == 0) {
+    *value = sim_->get_icount();
+    return true;
+  }
   bool retval = SScanF(desc, "0x%x", value) == 1;
   if (!retval) {
     retval = SScanF(desc, "%x", value) == 1;
@@ -248,6 +263,98 @@ bool SimulatorDebugger::GetDValue(char* desc, double* value) {
     }
   }
   return false;
+}
+
+
+intptr_t SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
+                                                     uword pc) {
+  intptr_t token_pos = -1;
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(code.pc_descriptors());
+  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
+  while (iter.MoveNext()) {
+    if (iter.Pc() == pc) {
+      return iter.TokenPos();
+    } else if ((token_pos <= 0) && (iter.Pc() > pc)) {
+      token_pos = iter.TokenPos();
+    }
+  }
+  return token_pos;
+}
+
+
+void SimulatorDebugger::PrintDartFrame(uword pc, uword fp, uword sp,
+                                       const Function& function,
+                                       intptr_t token_pos,
+                                       bool is_optimized,
+                                       bool is_inlined) {
+  const Script& script = Script::Handle(function.script());
+  const String& func_name = String::Handle(function.QualifiedUserVisibleName());
+  const String& url = String::Handle(script.url());
+  intptr_t line = -1;
+  intptr_t column = -1;
+  if (token_pos >= 0) {
+    script.GetTokenLocation(token_pos, &line, &column);
+  }
+  OS::Print("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s%s (%s:%" Pd
+            ":%" Pd ")\n",
+            pc, fp, sp,
+            is_optimized ? (is_inlined ? "inlined " : "optimized ") : "",
+            func_name.ToCString(),
+            url.ToCString(),
+            line, column);
+}
+
+
+void SimulatorDebugger::PrintBacktrace() {
+  StackFrameIterator frames(sim_->get_register(FP),
+                            sim_->get_register(SP),
+                            sim_->get_pc(),
+                            StackFrameIterator::kDontValidateFrames);
+  StackFrame* frame = frames.NextFrame();
+  ASSERT(frame != NULL);
+  Function& function = Function::Handle();
+  Function& inlined_function = Function::Handle();
+  Code& code = Code::Handle();
+  Code& unoptimized_code = Code::Handle();
+  while (frame != NULL) {
+    if (frame->IsDartFrame()) {
+      code = frame->LookupDartCode();
+      function = code.function();
+      if (code.is_optimized()) {
+        // For optimized frames, extract all the inlined functions if any
+        // into the stack trace.
+        InlinedFunctionsIterator it(code, frame->pc());
+        while (!it.Done()) {
+          // Print each inlined frame with its pc in the corresponding
+          // unoptimized frame.
+          inlined_function = it.function();
+          unoptimized_code = it.code();
+          uword unoptimized_pc = it.pc();
+          it.Advance();
+          if (!it.Done()) {
+            PrintDartFrame(unoptimized_pc, frame->fp(), frame->sp(),
+                           inlined_function,
+                           GetApproximateTokenIndex(unoptimized_code,
+                                                    unoptimized_pc),
+                           true, true);
+          }
+        }
+        // Print the optimized inlining frame below.
+      }
+      PrintDartFrame(frame->pc(), frame->fp(), frame->sp(),
+                     function,
+                     GetApproximateTokenIndex(code, frame->pc()),
+                     code.is_optimized(), false);
+    } else {
+      OS::Print("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s frame\n",
+                frame->pc(), frame->fp(), frame->sp(),
+                frame->IsEntryFrame() ? "entry" :
+                    frame->IsExitFrame() ? "exit" :
+                        frame->IsStubFrame() ? "stub" : "invalid");
+    }
+    frame = frames.NextFrame();
+  }
 }
 
 
@@ -345,10 +452,12 @@ void SimulatorDebugger::Debug() {
                   "gdb -- transfer control to gdb\n"
                   "h/help -- print this help string\n"
                   "break <address> -- set break point at specified address\n"
-                  "p/print <reg or value or *addr> -- print integer value\n"
+                  "p/print <reg or icount or value or *addr> -- print integer\n"
                   "pf/printfloat <freg or *addr> -- print float value\n"
                   "po/printobject <*reg or *addr> -- print object\n"
                   "si/stepi -- single step an instruction\n"
+                  "trace -- toggle execution tracing mode\n"
+                  "bt -- print backtrace\n"
                   "unstop -- if current pc is a stop instr make it a nop\n"
                   "q/quit -- Quit the debugger and exit the program\n");
       } else if ((strcmp(cmd, "quit") == 0) || (strcmp(cmd, "q") == 0)) {
@@ -483,6 +592,11 @@ void SimulatorDebugger::Debug() {
         } else {
           OS::Print("Not at debugger stop.\n");
         }
+      } else if (strcmp(cmd, "trace") == 0) {
+        FLAG_trace_sim = !FLAG_trace_sim;
+        OS::Print("execution tracing %s\n", FLAG_trace_sim ? "on" : "off");
+      } else if (strcmp(cmd, "bt") == 0) {
+        PrintBacktrace();
       } else {
         OS::Print("Unknown command: %s\n", cmd);
       }
@@ -1060,24 +1174,6 @@ uword Simulator::CompareExchange(uword* address,
     SetExclusiveAccess(reinterpret_cast<uword>(address));
   }
   return value;
-}
-
-
-bool Simulator::OverflowFrom(int32_t alu_out,
-                             int32_t left, int32_t right, bool addition) {
-  bool overflow;
-  if (addition) {
-               // Operands have the same sign.
-    overflow = ((left >= 0 && right >= 0) || (left < 0 && right < 0))
-               // And operands and result have different sign.
-               && ((left < 0 && alu_out >= 0) || (left >= 0 && alu_out < 0));
-  } else {
-               // Operands have different signs.
-    overflow = ((left < 0 && right >= 0) || (left >= 0 && right < 0))
-               // And first operand and result have different signs.
-               && ((left < 0 && alu_out >= 0) || (left >= 0 && alu_out < 0));
-  }
-  return overflow;
 }
 
 
@@ -2172,9 +2268,14 @@ void Simulator::ExecuteDelaySlot() {
   delay_slot_ = true;
   icount_++;
   Instr* instr = Instr::At(pc_ + Instr::kInstrSize);
-  if ((FLAG_stop_sim_at != 0) && (icount_ == FLAG_stop_sim_at)) {
-    SimulatorDebugger dbg(this);
-    dbg.Stop(instr, "Instruction count reached");
+  if (FLAG_stop_sim_at != 0) {
+    if (static_cast<int>(icount_) == FLAG_stop_sim_at) {
+      SimulatorDebugger dbg(this);
+      dbg.Stop(instr, "Instruction count reached");
+    } else if (reinterpret_cast<int>(instr) == FLAG_stop_sim_at) {
+      SimulatorDebugger dbg(this);
+      dbg.Stop(instr, "Instruction address reached");
+    }
   }
   InstructionDecode(instr);
   delay_slot_ = false;
@@ -2196,13 +2297,16 @@ void Simulator::Execute() {
     }
   } else {
     // FLAG_stop_sim_at is at the non-default value. Stop in the debugger when
-    // we reach the particular instruction count.
+    // we reach the particular instruction count or address.
     while (pc_ != kEndSimulatingPC) {
       icount_++;
       Instr* instr = Instr::At(pc_);
-      if (icount_ == FLAG_stop_sim_at) {
+      if (static_cast<int>(icount_) == FLAG_stop_sim_at) {
         SimulatorDebugger dbg(this);
         dbg.Stop(instr, "Instruction count reached");
+      } else if (reinterpret_cast<int>(instr) == FLAG_stop_sim_at) {
+        SimulatorDebugger dbg(this);
+        dbg.Stop(instr, "Instruction address reached");
       } else {
         if (IsIllegalAddress(pc_)) {
           HandleIllegalAccess(pc_, instr);
