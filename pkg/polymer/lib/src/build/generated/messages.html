@@ -498,7 +498,7 @@ To do this, use the following pattern to update your pubspec.yaml:</p>
 but assign the value to true.</p>
 </div><hr />
 
-<div id="polymer_43"><h3>"dart_support.js" not necessary <a href="#polymer_43">#43</a></h3>
+<div id="polymer_43"><h3>"dart_support.js" injected automatically <a href="#polymer_43">#43</a></h3>
 <p>The script <code>packages/web_components/dart_support.js</code> is still used, but you no
 longer need to put it in your application's entrypoint.</p>
 <p>In the past this file served two purposes:</p><ul><li>to make dart2js work well with the web_components polyfills, and</li><li>to support registering Dart APIs for JavaScript custom elements.</li></ul>
@@ -510,7 +510,7 @@ half.  Developers of packages that wrap JavaScript custom elements (like
 application developers don't have to worry about it anymore.</p>
 </div><hr />
 
-<div id="polymer_44"><h3>A dart script file was included more than once. <a href="#polymer_44">#44</a></h3>
+<div id="polymer_44"><h3>Dart script file included more than once. <a href="#polymer_44">#44</a></h3>
 <p>Duplicate dart scripts often happen if you have multiple html imports that
 include the same script. The simplest workaround for this is to move your dart
 script to its own html file, and import that instead of the script (html imports
@@ -522,8 +522,24 @@ are automatically deduped).</p>
 <pre><code>&lt;link rel="import" href="foo.html"&gt;
 </code></pre>
 <p>And <code>foo.html</code> should look like:</p>
-<pre><code>&lt;!DOCTYPE html&gt;
-&lt;script type="application/dart" src="foo.dart"&gt;&lt;/script&gt;
+<pre><code>&lt;script type="application/dart" src="foo.dart"&gt;&lt;/script&gt;
 </code></pre>
+</div><hr />
+
+<div id="polymer_45"><h3>"webcomponents.js" injected automatically <a href="#polymer_45">#45</a></h3>
+<p>The script <code>packages/web_components/webcomponents.js</code> is still used, but you no
+longer need to put it in your application's entrypoint.</p>
+<p>The polyfills provided by this file are no longer required in chrome and will
+automatically be added during <code>pub build</code> and <code>pub serve</code>.</p>
+</div><hr />
+
+<div id="polymer_46"><h3>"platform.js" renamed to "webcomponents.js". <a href="#polymer_46">#46</a></h3>
+<p>The script <code>packages/web_components/platform.js</code> has been renamed to
+<code>packages/web_components/webcomponents.js</code>. This is automatically fixed in
+<code>pub serve</code> and <code>pub build</code> but we may remove this functionality in the next
+breaking version of Polymer.</p>
+<p>In addition, it is no longer required that you include this file directly, as
+<code>pub build</code> and <code>pub serve</code> will inject it for you, and its not required when
+running in dartium with a local server.</p>
 </div><hr /></body>
 </html>
