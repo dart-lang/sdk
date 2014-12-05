@@ -1464,8 +1464,7 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
   // General purpose registers have the highest register number at the
-  // lowest address. The order in which the registers are popped must match the
-  // order in which the registers are pushed in SaveLiveRegisters.
+  // lowest address.
   for (intptr_t reg_idx = kNumberOfCpuRegisters - 1; reg_idx >= 0; --reg_idx) {
     Register reg = static_cast<Register>(reg_idx);
     if (locs->live_registers()->ContainsRegister(reg)) {

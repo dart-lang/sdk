@@ -1490,41 +1490,46 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
     ASSERT(offset == (fpu_regs_count * kFpuRegisterSize));
   }
 
-  // Store general purpose registers with the lowest register number at the
-  // lowest address.
+  // Store general purpose registers with the highest register number at the
+  // lowest address. The order in which the registers are pushed must match the
+  // order in which the registers are encoded in the safe point's stack map.
   const intptr_t cpu_registers = locs->live_registers()->cpu_registers();
   ASSERT((cpu_registers & ~kAllCpuRegistersList) == 0);
   const int register_count = Utils::CountOneBits(cpu_registers);
-  int registers_pushed = 0;
-
-  __ addiu(SP, SP, Immediate(-register_count * kWordSize));
-  for (int i = 0; i < kNumberOfCpuRegisters; i++) {
-    Register r = static_cast<Register>(i);
-    if (locs->live_registers()->ContainsRegister(r)) {
-      __ sw(r, Address(SP, registers_pushed * kWordSize));
-      registers_pushed++;
+  if (register_count > 0) {
+    __ addiu(SP, SP, Immediate(-register_count * kWordSize));
+    intptr_t offset = register_count * kWordSize;
+    for (int i = 0; i < kNumberOfCpuRegisters; i++) {
+      Register r = static_cast<Register>(i);
+      if (locs->live_registers()->ContainsRegister(r)) {
+        offset -= kWordSize;
+        __ sw(r, Address(SP, offset));
+      }
     }
+    ASSERT(offset == 0);
   }
 }
 
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
-  // General purpose registers have the lowest register number at the
+  // General purpose registers have the highest register number at the
   // lowest address.
   __ TraceSimMsg("RestoreLiveRegisters");
   const intptr_t cpu_registers = locs->live_registers()->cpu_registers();
   ASSERT((cpu_registers & ~kAllCpuRegistersList) == 0);
   const int register_count = Utils::CountOneBits(cpu_registers);
-  int registers_popped = 0;
-
-  for (int i = 0; i < kNumberOfCpuRegisters; i++) {
-    Register r = static_cast<Register>(i);
-    if (locs->live_registers()->ContainsRegister(r)) {
-      __ lw(r, Address(SP, registers_popped * kWordSize));
-      registers_popped++;
+  if (register_count > 0) {
+    intptr_t offset = register_count * kWordSize;
+    for (int i = 0; i < kNumberOfCpuRegisters; i++) {
+      Register r = static_cast<Register>(i);
+      if (locs->live_registers()->ContainsRegister(r)) {
+        offset -= kWordSize;
+        __ lw(r, Address(SP, offset));
+      }
     }
+    ASSERT(offset == 0);
+    __ addiu(SP, SP, Immediate(register_count * kWordSize));
   }
-  __ addiu(SP, SP, Immediate(register_count * kWordSize));
 
   const intptr_t fpu_regs_count = locs->live_registers()->FpuRegisterCount();
   if (fpu_regs_count > 0) {
