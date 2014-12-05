@@ -112,8 +112,6 @@ out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 
 [ $arch == simmips || $arch == mips ]
-io/web_socket_test: Pass, Slow
-io/http_server_response_test: Pass, Slow
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 javascript_int_overflow_test: Skip # --throw_on_javascript_int_overflow not supported on MIPS.
