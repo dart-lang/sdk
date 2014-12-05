@@ -23,6 +23,8 @@
 namespace dart {
 
 DECLARE_FLAG(bool, emit_edge_counters);
+DECLARE_FLAG(bool, enable_asserts);
+DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(bool, use_osr);
@@ -248,10 +250,17 @@ static void EmitAssertBoolean(Register reg,
   // Call the runtime if the object is not bool::true or bool::false.
   ASSERT(locs->always_calls());
   Label done;
-  __ CompareObject(reg, Bool::True());
-  __ j(EQUAL, &done, Assembler::kNearJump);
-  __ CompareObject(reg, Bool::False());
-  __ j(EQUAL, &done, Assembler::kNearJump);
+
+  if (FLAG_enable_type_checks) {
+    __ CompareObject(reg, Bool::True());
+    __ j(EQUAL, &done, Assembler::kNearJump);
+    __ CompareObject(reg, Bool::False());
+    __ j(EQUAL, &done, Assembler::kNearJump);
+  } else {
+    ASSERT(FLAG_enable_asserts);
+    __ CompareObject(reg, Object::null_instance());
+    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+  }
 
   __ pushl(reg);  // Push the source object.
   compiler->GenerateRuntimeCall(token_pos,
