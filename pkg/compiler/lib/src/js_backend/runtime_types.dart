@@ -539,7 +539,7 @@ class RuntimeTypes {
       JavaScriptBackend backend = compiler.backend;
       String contextName = backend.namer.getNameOfClass(contextClass);
       return js('function () { return #(#, #, #); }',
-          [ backend.namer.elementAccess(backend.getComputeSignature()),
+          [ backend.emitter.staticFunctionAccess(backend.getComputeSignature()),
               encoding, this_, js.string(contextName) ]);
     } else {
       return encoding;
@@ -631,7 +631,11 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
   }
 
   jsAst.Expression getJavaScriptClassName(Element element) {
-    return namer.elementAccess(element);
+    if (element.isTypedef) {
+      return backend.emitter.typedefAccess(element);
+    } else {
+      return backend.emitter.classAccess(element);  
+    }
   }
 
   visit(DartType type) {

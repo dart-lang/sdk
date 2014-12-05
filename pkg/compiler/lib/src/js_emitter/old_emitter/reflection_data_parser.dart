@@ -318,7 +318,8 @@ List<jsAst.Statement> buildTearOffCode(JavaScriptBackend backend) {
   if (closureFromTearOff != null) {
     // We need both the AST that references [closureFromTearOff] and a string
     // for the NoCsp version that constructs a function.
-    tearOffAccessExpression = namer.elementAccess(closureFromTearOff);
+    tearOffAccessExpression =
+        backend.emitter.staticFunctionAccess(closureFromTearOff);
     tearOffAccessText =
         jsAst.prettyPrint(tearOffAccessExpression, compiler).getText();
     tearOffGlobalObjectName = tearOffGlobalObject =

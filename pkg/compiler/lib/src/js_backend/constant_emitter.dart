@@ -240,7 +240,7 @@ class ConstantLiteralEmitter implements ConstantValueVisitor<jsAst.Expression> {
   }
 
   jsAst.Expression getJsConstructor(ClassElement element) {
-    return namer.elementAccess(element);
+    return backend.emitter.classAccess(element);
   }
 
   jsAst.Expression visitMap(JavaScriptMapConstant constant) {
@@ -322,7 +322,7 @@ class ConstantLiteralEmitter implements ConstantValueVisitor<jsAst.Expression> {
   JavaScriptBackend get backend => compiler.backend;
 
   jsAst.PropertyAccess getHelperProperty(Element helper) {
-    return backend.namer.elementAccess(helper);
+    return backend.emitter.staticFunctionAccess(helper);
   }
 
   jsAst.Expression visitType(TypeConstantValue constant) {

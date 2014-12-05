@@ -224,7 +224,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
         }
       }
 
-      jsAst.Expression holder = namer.elementAccess(cls);
+      jsAst.Expression holder = backend.emitter.classAccess(cls);
       if (properties.length > 1) {
         // Use temporary shortened reference.
         statements.add(js.statement('_ = #;', holder));

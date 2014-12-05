@@ -181,6 +181,30 @@ class OldEmitter implements Emitter {
     return '$initName.$global';
   }
 
+  jsAst.PropertyAccess globalPropertyAccess(Element element) {
+    String name = namer.getNameX(element);
+    jsAst.PropertyAccess pa = new jsAst.PropertyAccess.field(
+        new jsAst.VariableUse(namer.globalObjectFor(element)),
+        name);
+    return pa;
+  }
+  
+  jsAst.PropertyAccess staticFieldAccess(Element element) {
+      return globalPropertyAccess(element);
+  }
+  
+  jsAst.PropertyAccess staticFunctionAccess(Element element) {
+      return globalPropertyAccess(element);
+  }
+    
+  jsAst.PropertyAccess classAccess(Element element) {
+        return globalPropertyAccess(element);
+  }
+  
+  jsAst.PropertyAccess typedefAccess(Element element) {
+       return globalPropertyAccess(element);
+  }
+
   jsAst.FunctionDeclaration get generateAccessorFunction {
     const RANGE1_SIZE = RANGE1_LAST - RANGE1_FIRST + 1;
     const RANGE2_SIZE = RANGE2_LAST - RANGE2_FIRST + 1;
@@ -646,7 +670,7 @@ class OldEmitter implements Emitter {
   jsAst.Fun get lazyInitializerFunction {
     String isolate = namer.currentIsolate;
     jsAst.Expression cyclicThrow =
-        namer.elementAccess(backend.getCyclicThrowHelper());
+        staticFunctionAccess(backend.getCyclicThrowHelper());
     jsAst.Expression laziesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.LAZIES);
 
@@ -1043,7 +1067,7 @@ class OldEmitter implements Emitter {
     // Since we pass the closurized version of the main method to
     // the isolate method, we must make sure that it exists.
     return js('function(a){ #(#, a); }',
-        [namer.elementAccess(isolateMain), mainAccess]);
+        [backend.emitter.staticFunctionAccess(isolateMain), mainAccess]);
   }
 
   /**
@@ -1115,10 +1139,11 @@ class OldEmitter implements Emitter {
         backend.isolateHelperLibrary.find(JavaScriptBackend.START_ROOT_ISOLATE);
       mainCallClosure = buildIsolateSetupClosure(main, isolateMain);
     } else if (compiler.hasIncrementalSupport) {
-      mainCallClosure =
-          js('function() { return #(); }', namer.elementAccess(main));
+      mainCallClosure = js(
+          'function() { return #(); }',
+          backend.emitter.staticFunctionAccess(main));
     } else {
-      mainCallClosure = namer.elementAccess(main);
+      mainCallClosure = backend.emitter.staticFunctionAccess(main);
     }
 
     if (backend.needToInitializeIsolateAffinityTag) {

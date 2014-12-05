@@ -83,7 +83,8 @@ class NsmEmitter extends CodeEmitterHelper {
       assert(backend.isInterceptedName(Compiler.NO_SUCH_METHOD));
       jsAst.Expression expression = js('this.#(this, #(#, #, #, #, #))', [
           noSuchMethodName,
-          namer.elementAccess(backend.getCreateInvocationMirror()),
+          backend.emitter.staticFunctionAccess(
+              backend.getCreateInvocationMirror()),
           js.string(compiler.enableMinification ?
               internalName : methodName),
           js.string(internalName),
@@ -269,8 +270,8 @@ class NsmEmitter extends CodeEmitterHelper {
     // Startup code that loops over the method names and puts handlers on the
     // Object class to catch noSuchMethod invocations.
     ClassElement objectClass = compiler.objectClass;
-    jsAst.Expression createInvocationMirror = namer.elementAccess(
-        backend.getCreateInvocationMirror());
+    jsAst.Expression createInvocationMirror = backend.emitter
+        .staticFunctionAccess(backend.getCreateInvocationMirror());
     String noSuchMethodName = namer.publicInstanceMethodNameByArity(
         Compiler.NO_SUCH_METHOD, Compiler.NO_SUCH_METHOD_ARG_COUNT);
     var type = 0;

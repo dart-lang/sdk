@@ -13,7 +13,7 @@ class InterceptorStubGenerator {
 
   jsAst.Expression generateGetInterceptorMethod(Set<ClassElement> classes) {
     jsAst.Expression interceptorFor(ClassElement cls) {
-      return js('#.prototype', namer.elementAccess(cls));
+      return js('#.prototype', backend.emitter.classAccess(cls));
     }
 
     /**
@@ -142,8 +142,9 @@ class InterceptorStubGenerator {
           if (receiver instanceof #) return receiver;
           return #(receiver);
       }''', [
-          namer.elementAccess(compiler.objectClass),
-          namer.elementAccess(backend.getNativeInterceptorMethod)]));
+          backend.emitter.classAccess(compiler.objectClass),
+          backend.emitter
+              .staticFunctionAccess(backend.getNativeInterceptorMethod)]));
 
     } else {
       ClassElement jsUnknown = backend.jsUnknownJavaScriptObjectClass;
@@ -151,7 +152,7 @@ class InterceptorStubGenerator {
               .directlyInstantiatedClasses.contains(jsUnknown)) {
         statements.add(
             js.statement('if (!(receiver instanceof #)) return #;',
-                [namer.elementAccess(compiler.objectClass),
+                [backend.emitter.classAccess(compiler.objectClass),
                  interceptorFor(jsUnknown)]));
       }
 

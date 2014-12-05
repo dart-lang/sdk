@@ -171,7 +171,7 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
                                   List<js.Expression> arguments) {
     registry.registerStaticInvocation(target.declaration);
 
-    js.Expression elementAccess = glue.elementAccess(target);
+    js.Expression elementAccess = glue.staticFunctionAccess(target);
     List<js.Expression> compiledArguments =
         selector.makeArgumentsList(target.implementation,
                                    arguments,

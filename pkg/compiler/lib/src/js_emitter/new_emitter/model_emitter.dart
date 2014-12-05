@@ -80,7 +80,8 @@ class ModelEmitter {
         boilerplate,
         {'deferredInitializer': emitDeferredInitializerGlobal(program.loadMap),
          'holders': emitHolders(unit.holders),
-         'cyclicThrow': namer.elementAccess(backend.getCyclicThrowHelper()),
+         'cyclicThrow':
+           backend.emitter.staticFunctionAccess(backend.getCyclicThrowHelper()),
          'outputContainsConstantList': program.outputContainsConstantList,
          'embeddedGlobals': emitEmbeddedGlobals(program.loadMap),
          'constants': emitConstants(unit.constants),

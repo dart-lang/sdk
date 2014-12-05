@@ -599,8 +599,8 @@ class ClassEmitter extends CodeEmitterHelper {
       computeTypeVariable =
           js(r'this.$builtinTypeInfo && this.$builtinTypeInfo[#]', index);
     }
-    jsAst.Expression convertRtiToRuntimeType =
-        namer.elementAccess(backend.findHelper('convertRtiToRuntimeType'));
+    jsAst.Expression convertRtiToRuntimeType = emitter
+        .staticFunctionAccess(backend.findHelper('convertRtiToRuntimeType'));
     compiler.dumpInfoTask.registerElementAst(element,
         builder.addProperty(name,
             js('function () { return #(#) }',

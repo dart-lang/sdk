@@ -65,6 +65,22 @@ class CodeEmitterTask extends CompilerTask {
     return emitter.constantReference(value);
   }
 
+  jsAst.Expression staticFieldAccess(Element e) {
+    return emitter.staticFunctionAccess(e);
+  }
+  
+  jsAst.Expression staticFunctionAccess(Element e) {
+    return emitter.staticFunctionAccess(e);
+  }
+  
+  jsAst.Expression classAccess(Element e) {
+    return emitter.classAccess(e);
+  }
+  
+  jsAst.Expression typedefAccess(Element e) {
+    return emitter.typedefAccess(e);
+  }
+
   void registerReadTypeVariable(TypeVariableElement element) {
     readTypeVariables.add(element);
   }
@@ -354,6 +370,15 @@ abstract class Emitter {
 
   jsAst.Expression generateEmbeddedGlobalAccess(String global);
   jsAst.Expression constantReference(ConstantValue value);
+  jsAst.PropertyAccess staticFunctionAccess(Element element);
+  
+  // TODO(zarah): Split into more fine-grained accesses.
+  /// Generates access to the js constructor of the class represented by 
+  /// [element]
+  jsAst.PropertyAccess classAccess(Element element);
+  jsAst.PropertyAccess typedefAccess(Element element);
+  jsAst.PropertyAccess staticFieldAccess(Element element);
+  
 
   int compareConstants(ConstantValue a, ConstantValue b);
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant);

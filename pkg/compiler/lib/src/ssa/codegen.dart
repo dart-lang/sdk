@@ -1641,7 +1641,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       });
     }
 
-    push(backend.namer.elementAccess(node.element));
+    push(backend.emitter.staticFunctionAccess(node.element));
     push(new js.Call(pop(), visitArguments(node.inputs, start: 0)), node);
   }
 
@@ -1682,7 +1682,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           methodName = backend.namer.getNameOfInstanceMember(superMethod);
         }
         push(js.js('#.prototype.#.call(#)',
-                   [backend.namer.elementAccess(superClass),
+                   [backend.emitter.classAccess(superClass),
                     methodName, visitArguments(node.inputs, start: 0)]),
              node);
       } else {
@@ -1785,7 +1785,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitForeignNew(HForeignNew node) {
-    js.Expression jsClassReference = backend.namer.elementAccess(node.element);
+    js.Expression jsClassReference =
+        backend.emitter.classAccess(node.element);
     List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
     push(new js.New(jsClassReference, arguments), node);
     registerForeignTypes(node);
@@ -2023,7 +2024,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void generateThrowWithHelper(String helperName, argument) {
     Element helper = backend.findHelper(helperName);
     registry.registerStaticUse(helper);
-    js.Expression jsHelper = backend.namer.elementAccess(helper);
+    js.Expression jsHelper = backend.emitter.staticFunctionAccess(helper);
     List arguments = [];
     var location;
     if (argument is List) {
@@ -2056,7 +2057,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     Element helper = backend.findHelper("throwExpression");
     registry.registerStaticUse(helper);
 
-    js.Expression jsHelper = backend.namer.elementAccess(helper);
+    js.Expression jsHelper = backend.emitter.staticFunctionAccess(helper);
     js.Call value = new js.Call(jsHelper, [pop()]);
     value = attachLocation(value, argument);
     push(value, node);
@@ -2068,10 +2069,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitStatic(HStatic node) {
     Element element = node.element;
+    assert(element.isFunction || element.isField);
     if (element.isFunction) {
       push(backend.namer.isolateStaticClosureAccess(node.element));
     } else {
-      push(backend.namer.elementAccess(node.element));
+      push(backend.emitter.staticFieldAccess(node.element));
     }
     registry.registerStaticUse(element);
   }
@@ -2087,7 +2089,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitStaticStore(HStaticStore node) {
     registry.registerStaticUse(node.element);
-    js.Node variable = backend.namer.elementAccess(node.element);
+    js.Node variable = backend.emitter.staticFieldAccess(node.element);
     use(node.inputs[0]);
     push(new js.Assignment(variable, pop()), node);
   }
@@ -2118,7 +2120,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       Element convertToString = backend.getStringInterpolationHelper();
       registry.registerStaticUse(convertToString);
-      js.Expression jsHelper = backend.namer.elementAccess(convertToString);
+      js.Expression jsHelper =
+          backend.emitter.staticFunctionAccess(convertToString);
       use(input);
       push(new js.Call(jsHelper, <js.Expression>[pop()]), node);
     }
@@ -2605,7 +2608,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       if (backend.isInterceptorClass(element.enclosingClass)) {
         int index = RuntimeTypes.getTypeVariableIndex(element);
         js.Expression receiver = pop();
-        js.Expression helper = backend.namer.elementAccess(helperElement);
+        js.Expression helper = backend.emitter
+            .staticFunctionAccess(helperElement);
         push(js.js(r'#(#.$builtinTypeInfo && #.$builtinTypeInfo[#])',
                 [helper, receiver, receiver, js.js.number(index)]));
       } else {
@@ -2615,7 +2619,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
     } else {
       push(js.js('#(#)', [
-          backend.namer.elementAccess(
+          backend.emitter.staticFunctionAccess(
               backend.findHelper('convertRtiToRuntimeType')),
           pop()]));
     }
@@ -2629,7 +2633,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     ClassElement cls = node.dartType.element;
-    var arguments = [backend.namer.elementAccess(cls)];
+    var arguments = [backend.emitter.classAccess(cls)];
     if (!typeArguments.isEmpty) {
       arguments.add(new js.ArrayInitializer(typeArguments));
     }
@@ -2651,6 +2655,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       return js.js('(void 0).$name');
     }
     registry.registerStaticUse(helper);
-    return backend.namer.elementAccess(helper);
+    return backend.emitter.staticFunctionAccess(helper);
   }
 }

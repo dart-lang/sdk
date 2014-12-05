@@ -112,7 +112,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
           if (!analysis.needsClass(classElement)) continue;
 
           elements.add(emitter.constantReference(constant));
-          elements.add(namer.elementAccess(classElement));
+          elements.add(backend.emitter.classAccess(classElement));
 
           // Create JavaScript Object map for by-name lookup of generative
           // constructors.  For example, the class A has three generative
@@ -134,7 +134,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
             properties.add(
                 new jsAst.Property(
                     js.string(member.name),
-                    backend.namer.elementAccess(member)));
+                    backend.emitter.classAccess(member)));
           }
 
           var map = new jsAst.ObjectInitializer(properties);

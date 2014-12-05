@@ -856,13 +856,6 @@ class Namer implements ClosureNamer {
         library.getLibraryOrScriptName().hashCode % userGlobalObjects.length];
   }
 
-  jsAst.PropertyAccess elementAccess(Element element) {
-    String name = getNameX(element);
-    return new jsAst.PropertyAccess.field(
-        new jsAst.VariableUse(globalObjectFor(element)),
-        name);
-  }
-
   String getLazyInitializerName(Element element) {
     assert(Elements.isStaticOrTopLevelField(element));
     return getMappedGlobalName("$getterPrefix${getNameX(element)}");

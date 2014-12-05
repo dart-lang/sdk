@@ -126,7 +126,7 @@ class ContainerBuilder extends CodeEmitterHelper {
         //   `<class>.prototype.bar$1.call(this, argument0, ...)`.
         body = js.statement(
             'return #.prototype.#.call(this, #);',
-            [backend.namer.elementAccess(superClass), methodName,
+            [backend.emitter.classAccess(superClass), methodName,
              argumentsBuffer]);
       } else {
         body = js.statement(
@@ -135,7 +135,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       }
     } else {
       body = js.statement('return #(#)',
-          [namer.elementAccess(member), argumentsBuffer]);
+          [emitter.staticFunctionAccess(member), argumentsBuffer]);
     }
 
     jsAst.Fun function = js('function(#) { #; }', [parametersBuffer, body]);

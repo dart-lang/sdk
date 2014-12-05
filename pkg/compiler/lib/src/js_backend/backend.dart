@@ -2121,7 +2121,7 @@ class JavaScriptBackend extends Backend {
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[use1, record];
     FunctionElement helper = findHelper('isJsIndexable');
-    jsAst.Expression helperExpression = namer.elementAccess(helper);
+    jsAst.Expression helperExpression = emitter.staticFunctionAccess(helper);
     return new jsAst.Call(helperExpression, arguments);
   }
 
