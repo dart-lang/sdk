@@ -36,12 +36,12 @@ exit_code_test: Skip # This tests requires checked mode.
 uri_retention_test: Pass, Slow
 deferred_mirrors_test: Pass, Slow
 mirror_final_field_inferrer2_test: Pass, Slow
+check_elements_invariants_test: Slow, Pass
 
-[ $checked || $mode == debug ]
+[ $mode == debug ]
 check_elements_invariants_test: Skip # Slow and only needs to be run in one
                                      # configuration
 
-[ $mode == debug ]
 mirror_final_field_inferrer2_test: Crash, Pass, Slow # dartbug.com/15581
 
 deferred_mirrors_test: Pass, Slow
