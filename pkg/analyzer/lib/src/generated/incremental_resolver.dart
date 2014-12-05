@@ -28,6 +28,14 @@ bool _resolveApiChanges = false;
 
 
 /**
+ * This method is used to enable/disable API-changing modifications resolution.
+ */
+void set test_resolveApiChanges(bool value) {
+  _resolveApiChanges = value;
+}
+
+
+/**
  * Instances of the class [DeclarationMatcher] determine whether the element
  * model defined by a given AST structure matches an existing element model.
  */
@@ -52,7 +60,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
    * The class containing the AST nodes being visited, or `null` if we are not
    * in the scope of a class.
    */
-  ClassElement _enclosingClass;
+  ClassElementImpl _enclosingClass;
 
   /**
    * The parameter containing the AST nodes being visited, or `null` if we are not in the
@@ -75,33 +83,42 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   HashSet<Element> _allElements = new HashSet<Element>();
 
   /**
-   * A set containing all of the elements in the element model that were defined by the old AST node
-   * corresponding to the AST node being visited that have not already been matched to nodes in the
-   * AST structure being visited.
+   * A set containing all of the elements were defined in the old element model,
+   * but are not defined in the new element model.
    */
-  HashSet<Element> _unmatchedElements = new HashSet<Element>();
+  HashSet<Element> _removedElements = new HashSet<Element>();
 
   /**
-   * Return `true` if the declarations within the given AST structure define an element model
-   * that is equivalent to the corresponding elements rooted at the given element.
-   *
-   * @param node the AST structure being compared to the element model
-   * @param element the root of the element model being compared to the AST structure
-   * @return `true` if the AST structure defines the same elements as those in the given
-   *         element model
+   * A set containing all of the elements are defined in the new element model,
+   * but were not defined in the old element model.
    */
-  bool matches(AstNode node, Element element) {
+  HashSet<Element> _addedElements = new HashSet<Element>();
+
+  /**
+   * Determines how elements model corresponding to the given [node] differs
+   * from the [element].
+   */
+  DeclarationMatchKind matches(AstNode node, Element element) {
     logger.enter('match $element @ ${element.nameOffset}');
     try {
       _captureEnclosingElements(element);
       _gatherElements(element);
       node.accept(this);
     } on _DeclarationMismatchException catch (exception) {
-      return false;
+      return DeclarationMatchKind.MISMATCH;
     } finally {
       logger.exit();
     }
-    return _unmatchedElements.isEmpty;
+    // no API changes
+    if (_removedElements.isEmpty && _addedElements.isEmpty) {
+      return DeclarationMatchKind.MATCH;
+    }
+    // simple API change
+    if (_removedElements.length <= 1 && _addedElements.length == 1) {
+      return DeclarationMatchKind.MISMATCH_OK;
+    }
+    // something more complex
+    return DeclarationMatchKind.MISMATCH;
   }
 
   @override
@@ -311,15 +328,36 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       element = _findElement(_enclosingClass.accessors, name);
     }
     // process element
-    _processElement(element);
-    _assertEquals(node.isStatic, element.isStatic);
-    _assertSameType(node.returnType, element.returnType);
-    _assertCompatibleParameters(node.parameters, element.parameters);
-    // matches, update the existing element
     ExecutableElement newElement = node.element;
-    node.name.staticElement = element;
-    _setLocalElements(element, newElement);
-    _setParameterElements(node.parameters, element.parameters);
+    try {
+      _assertNotNull(element);
+      _assertEquals(node.isStatic, element.isStatic);
+      _assertSameType(node.returnType, element.returnType);
+      _assertCompatibleParameters(node.parameters, element.parameters);
+      _removedElements.remove(element);
+      // matches, update the existing element
+      node.name.staticElement = element;
+      _setLocalElements(element, newElement);
+      _setParameterElements(node.parameters, element.parameters);
+    } on _DeclarationMismatchException catch (e) {
+      _addedElements.add(newElement);
+      // remove old element
+      if (element is MethodElement) {
+        _enclosingClass.methods.remove(element);
+      } else if (element is PropertyAccessorElement) {
+        _enclosingClass.accessors.remove(element);
+      }
+      // add new element
+      if (newElement is MethodElement) {
+        List<MethodElement> methods = _enclosingClass.methods;
+        methods.add(newElement);
+        _enclosingClass.methods = methods;
+      } else {
+        List<PropertyAccessorElement> accessors = _enclosingClass.accessors;
+        accessors.add(newElement);
+        _enclosingClass.accessors = accessors;
+      }
+    }
   }
 
   @override
@@ -588,7 +626,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     if (!_allElements.contains(element)) {
       throw new _DeclarationMismatchException();
     }
-    _unmatchedElements.remove(element);
+    _removedElements.remove(element);
   }
 
   /**
@@ -648,6 +686,34 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       }
     }
   }
+}
+
+
+/**
+ * Describes how declarations match an existing elements model.
+ */
+class DeclarationMatchKind {
+  /**
+   * Complete match, no API changes.
+   */
+  static const MATCH = const DeclarationMatchKind('MATCH');
+
+  /**
+   * Has API changes that we might be able to resolve incrementally.
+   */
+  static const MISMATCH_OK = const DeclarationMatchKind('MISMATCH_OK');
+
+  /**
+   * Has API changes that we cannot resolve incrementally.
+   */
+  static const MISMATCH = const DeclarationMatchKind('MISMATCH');
+
+  final String name;
+
+  const DeclarationMatchKind(this.name);
+
+  @override
+  String toString() => name;
 }
 
 
@@ -801,7 +867,7 @@ class IncrementalResolver {
           "Cannot resolve node: a ${node.runtimeType} does not define an element");
     }
     DeclarationMatcher matcher = new DeclarationMatcher();
-    return !matcher.matches(node, element);
+    return matcher.matches(node, element) != DeclarationMatchKind.MATCH;
   }
 
   /**
@@ -1593,7 +1659,7 @@ class _ElementsGatherer extends GeneralizingElementVisitor {
   void _addElement(Element element) {
     if (element != null) {
       matcher._allElements.add(element);
-      matcher._unmatchedElements.add(element);
+      matcher._removedElements.add(element);
     }
   }
 }
