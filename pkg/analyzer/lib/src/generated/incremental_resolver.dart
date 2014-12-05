@@ -160,12 +160,16 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   visitConstructorDeclaration(ConstructorDeclaration node) {
     _hasConstructor = true;
     SimpleIdentifier constructorName = node.name;
-    ConstructorElement element = constructorName == null ?
+    ConstructorElementImpl element = constructorName == null ?
         _enclosingClass.unnamedConstructor :
         _enclosingClass.getNamedConstructor(constructorName.name);
     _processElement(element);
-    node.element = element;
     _assertCompatibleParameters(node.parameters, element.parameters);
+    // matches, update the existing element
+    ExecutableElement newElement = node.element;
+    node.element = element;
+    _setLocalElements(element, newElement);
+    _setParameterElements(node.parameters, element.parameters);
   }
 
   @override
@@ -225,7 +229,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     }
     // prepare element
     Token property = node.propertyKeyword;
-    ExecutableElement element;
+    ExecutableElementImpl element;
     if (property == null) {
       element = _findElement(_enclosingUnit.functions, name);
     } else {
@@ -233,11 +237,17 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     }
     // process element
     _processElement(element);
-    node.name.staticElement = element;
-    node.functionExpression.element = element;
     _assertFalse(element.isSynthetic);
     _assertSameType(node.returnType, element.returnType);
     _assertCompatibleParameters(
+        node.functionExpression.parameters,
+        element.parameters);
+    // matches, update the existing element
+    ExecutableElement newElement = node.element;
+    node.name.staticElement = element;
+    node.functionExpression.element = element;
+    _setLocalElements(element, newElement);
+    _setParameterElements(
         node.functionExpression.parameters,
         element.parameters);
   }
@@ -294,7 +304,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     }
     // prepare element
     Token property = node.propertyKeyword;
-    ExecutableElement element;
+    ExecutableElementImpl element;
     if (property == null) {
       element = _findElement(_enclosingClass.methods, name);
     } else {
@@ -303,9 +313,13 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     // process element
     _processElement(element);
     _assertEquals(node.isStatic, element.isStatic);
-    node.name.staticElement = element;
     _assertSameType(node.returnType, element.returnType);
     _assertCompatibleParameters(node.parameters, element.parameters);
+    // matches, update the existing element
+    ExecutableElement newElement = node.element;
+    node.name.staticElement = element;
+    _setLocalElements(element, newElement);
+    _setParameterElements(node.parameters, element.parameters);
   }
 
   @override
@@ -350,6 +364,8 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     _assertSameType(
         (node.parent as VariableDeclarationList).type,
         element.type);
+    // matches, restore the existing element
+    node.name.staticElement = element;
   }
 
   @override
@@ -412,9 +428,6 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       _assertSameType(node.returnType, elementType.returnType);
     } else if (node is SimpleFormalParameter) {
       _assertSameType(node.type, element.type);
-      node.identifier.staticElement = element;
-      (element as ElementImpl).nameOffset = node.identifier.offset;
-      (element as ElementImpl).name = node.identifier.name;
     }
   }
 
@@ -614,6 +627,27 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     }
     return literal.stringValue;
   }
+
+  static void _setLocalElements(ExecutableElementImpl to,
+      ExecutableElement from) {
+    to.functions = from.functions;
+    to.labels = from.labels;
+    to.localVariables = from.localVariables;
+  }
+
+  static void _setParameterElements(FormalParameterList nodes,
+      List<ParameterElement> elements) {
+    if (nodes != null) {
+      for (int i = 0; i < elements.length; i++) {
+        ParameterElement element = elements[i];
+        FormalParameter node = nodes.parameters[i];
+        ParameterElement newElement = node.element;
+        node.identifier.staticElement = element;
+        (element as ElementImpl).name = newElement.name;
+        (element as ElementImpl).nameOffset = newElement.nameOffset;
+      }
+    }
+  }
 }
 
 
@@ -657,6 +691,7 @@ class IncrementalResolver {
    */
   final int _updateNewLength;
 
+  RecordingErrorListener errorListener = new RecordingErrorListener();
   ResolutionContext _resolutionContext;
 
   List<AnalysisError> _resolveErrors = AnalysisError.NO_ERRORS;
@@ -686,15 +721,16 @@ class IncrementalResolver {
       logger.log(() => 'node: $node');
       AstNode rootNode = _findResolutionRoot(node);
       logger.log(() => 'rootNode: $rootNode');
+      _prepareResolutionContext(rootNode);
       // update elements
       _updateElementNameOffsets(
           _definingUnit,
           _updateOffset,
           _updateNewLength - _updateOldLength);
+      _buildElements(rootNode);
       if (_elementModelChanged(rootNode)) {
         return false;
       }
-      _updateElements(rootNode);
       // resolve
       _resolveReferences(rootNode);
       // verify
@@ -704,6 +740,17 @@ class IncrementalResolver {
       return true;
     } finally {
       logger.exit();
+    }
+  }
+
+  void _buildElements(AstNode node) {
+    LoggingTimer timer = logger.startTimer();
+    try {
+      ElementHolder holder = new ElementHolder();
+      ElementBuilder builder = new ElementBuilder(holder);
+      node.accept(builder);
+    } finally {
+      timer.stop('build elements');
     }
   }
 
@@ -803,13 +850,17 @@ class IncrementalResolver {
     return null;
   }
 
+  void _prepareResolutionContext(AstNode node) {
+    if (_resolutionContext == null) {
+      _resolutionContext =
+          ResolutionContextBuilder.contextFor(node, errorListener);
+    }
+  }
+
   _resolveReferences(AstNode node) {
     LoggingTimer timer = logger.startTimer();
     try {
-      RecordingErrorListener errorListener = new RecordingErrorListener();
-      // prepare context
-      _resolutionContext =
-          ResolutionContextBuilder.contextFor(node, errorListener);
+      _prepareResolutionContext(node);
       Scope scope = _resolutionContext.scope;
       // resolve types
       {
@@ -837,7 +888,7 @@ class IncrementalResolver {
             _definingLibrary,
             _source,
             _typeProvider,
-            _resolutionContext.scope,
+            scope,
             errorListener);
         if (_resolutionContext.enclosingClassDeclaration != null) {
           visitor.visitClassDeclarationIncrementally(
@@ -854,61 +905,6 @@ class IncrementalResolver {
       _resolveErrors = errorListener.getErrorsForSource(_source);
     } finally {
       timer.stop('resolve references');
-    }
-  }
-
-  void _updateElements(AstNode node) {
-    LoggingTimer timer = logger.startTimer();
-    try {
-      // build elements in node
-      ElementHolder holder;
-      _ElementsRestorer elementsRestorer = new _ElementsRestorer(node);
-      try {
-        holder = new ElementHolder();
-        ElementBuilder builder = new ElementBuilder(holder);
-        node.accept(builder);
-      } finally {
-        elementsRestorer.restore();
-      }
-      // apply compatible changes to elements
-      if (node is FunctionDeclaration) {
-        ExecutableElementImpl oldElement = node.element;
-        // prepare the new element
-        ExecutableElement newElement;
-        {
-          List<FunctionElement> holderFunctions = holder.functions;
-          List<PropertyAccessorElement> holderAccessors = holder.accessors;
-          if (holderFunctions.isNotEmpty) {
-            newElement = holderFunctions[0];
-          } else if (holderAccessors.isNotEmpty) {
-            newElement = holderAccessors[0];
-          }
-        }
-        // update the old Element
-        oldElement.functions = newElement.functions;
-        oldElement.labels = newElement.labels;
-        oldElement.localVariables = newElement.localVariables;
-      }
-      if (node is MethodDeclaration) {
-        ExecutableElementImpl oldElement = node.element;
-        // prepare the new element
-        ExecutableElement newElement;
-        {
-          List<MethodElement> holderMethods = holder.methods;
-          List<PropertyAccessorElement> holderAccessors = holder.accessors;
-          if (holderMethods.isNotEmpty) {
-            newElement = holderMethods[0];
-          } else if (holderAccessors.isNotEmpty) {
-            newElement = holderAccessors[0];
-          }
-        }
-        // update the old Element
-        oldElement.functions = newElement.functions;
-        oldElement.labels = newElement.labels;
-        oldElement.localVariables = newElement.localVariables;
-      }
-    } finally {
-      timer.stop('update elements');
     }
   }
 
@@ -1353,6 +1349,7 @@ class PoorMansIncrementalResolver {
  * The context to resolve an [AstNode] in.
  */
 class ResolutionContext {
+  CompilationUnitElement enclosingUnit;
   ClassDeclaration enclosingClassDeclaration;
   ClassElement enclosingClass;
   Scope scope;
@@ -1369,6 +1366,11 @@ class ResolutionContextBuilder {
    * The listener to which analysis errors will be reported.
    */
   final AnalysisErrorListener _errorListener;
+
+  /**
+   * The class containing the enclosing [CompilationUnitElement].
+   */
+  CompilationUnitElement _enclosingUnit;
 
   /**
    * The class containing the enclosing [ClassDeclaration], or `null` if we are
@@ -1472,12 +1474,12 @@ class ResolutionContextBuilder {
   }
 
   Scope _scopeForCompilationUnit(CompilationUnit node) {
-    CompilationUnitElement unitElement = node.element;
-    if (unitElement == null) {
+    _enclosingUnit = node.element;
+    if (_enclosingUnit == null) {
       throw new AnalysisException(
           "Cannot create scope: compilation unit is not resolved");
     }
-    LibraryElement libraryElement = unitElement.library;
+    LibraryElement libraryElement = _enclosingUnit.library;
     if (libraryElement == null) {
       throw new AnalysisException(
           "Cannot create scope: compilation unit is not part of a library");
@@ -1506,6 +1508,7 @@ class ResolutionContextBuilder {
     // prepare context
     ResolutionContext context = new ResolutionContext();
     context.scope = scope;
+    context.enclosingUnit = builder._enclosingUnit;
     context.enclosingClassDeclaration = builder._enclosingClassDeclaration;
     context.enclosingClass = builder._enclosingClass;
     return context;
@@ -1592,57 +1595,6 @@ class _ElementsGatherer extends GeneralizingElementVisitor {
       matcher._allElements.add(element);
       matcher._unmatchedElements.add(element);
     }
-  }
-}
-
-
-/**
- * [ElementBuilder] not just builds elements, it also applies them to nodes.
- * But we want to keep externally visible (and referenced) elements instances.
- * So, we need to remember them and restore.
- */
-class _ElementsRestorer extends RecursiveAstVisitor {
-  final Map<AstNode, Element> _elements = <AstNode, Element>{};
-
-  _ElementsRestorer(AstNode root) {
-    root.accept(this);
-  }
-
-  void restore() {
-    _elements.forEach((AstNode node, Element element) {
-      if (node is ConstructorDeclaration) {
-        node.element = element;
-      } else if (node is FunctionExpression) {
-        node.element = element;
-      } else if (node is SimpleIdentifier) {
-        node.staticElement = element;
-      }
-    });
-  }
-
-  @override
-  visitBlockFunctionBody(BlockFunctionBody node) {
-  }
-
-  @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
-    _elements[node] = node.element;
-    super.visitConstructorDeclaration(node);
-  }
-
-  @override
-  visitExpressionFunctionBody(ExpressionFunctionBody node) {
-  }
-
-  @override
-  visitFunctionExpression(FunctionExpression node) {
-    _elements[node] = node.element;
-    super.visitFunctionExpression(node);
-  }
-
-  @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
-    _elements[node] = node.staticElement;
   }
 }
 

@@ -1826,7 +1826,15 @@ class B extends Object with A {}
     Source source = addSource(oldContent);
     LibraryElement library = resolve(source);
     CompilationUnit oldUnit = resolveCompilationUnit(source, library);
+    // parse
     CompilationUnit newUnit = ParserTestCase.parseCompilationUnit(newContent);
+    // build elements
+    {
+      ElementHolder holder = new ElementHolder();
+      ElementBuilder builder = new ElementBuilder(holder);
+      newUnit.accept(builder);
+    }
+    // match
     DeclarationMatcher matcher = new DeclarationMatcher();
     expect(matcher.matches(newUnit, oldUnit.element), expectMatch);
   }
@@ -1878,6 +1886,28 @@ class A {
   }
 }''');
     _resolve(_editString('+', '*'), _isExpression);
+  }
+
+  void test_constructor_label_add() {
+    _resolveUnit(r'''
+class A {
+  A() {
+    return 42;
+  }
+}
+''');
+    _resolve(_editString('return', 'label: return'), _isBlock);
+  }
+
+  void test_constructor_localVariable_add() {
+    _resolveUnit(r'''
+class A {
+  A() {
+    42;
+  }
+}
+''');
+    _resolve(_editString('42;', 'var res = 42;'), _isBlock);
   }
 
   void test_constructor_superConstructorInvocation() {
@@ -3933,6 +3963,8 @@ class _SameResolutionValidator implements AstVisitor {
 
   void _verifyElement(Element a, Element b) {
     if (a != b) {
+      print(a.location);
+      print(b.location);
       fail('Expected: $b\n  Actual: $a');
     }
     if (a == null && b == null) {
