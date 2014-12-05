@@ -3337,7 +3337,6 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   TRACE_PARSER("ParseMethodOrConstructor");
   ASSERT(CurrentToken() == Token::kLPAREN || method->IsGetter());
   ASSERT(method->type != NULL);
-  ASSERT(is_top_level_ || method->name_pos > 0);
   ASSERT(current_member_ == method);
 
   if (method->has_var) {
