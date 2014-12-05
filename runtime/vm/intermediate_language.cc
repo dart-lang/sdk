@@ -1826,7 +1826,8 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   // For fixed length arrays if the array is the result of a known constructor
   // call we can replace the length load with the length argument passed to
   // the constructor.
-  StaticCallInstr* call = instance()->definition()->AsStaticCall();
+  StaticCallInstr* call =
+      instance()->definition()->OriginalDefinition()->AsStaticCall();
   if (call != NULL) {
     if (call->is_known_list_constructor() &&
         IsFixedLengthArrayCid(call->Type()->ToCid())) {
@@ -1837,7 +1838,8 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
     }
   }
 
-  CreateArrayInstr* create_array = instance()->definition()->AsCreateArray();
+  CreateArrayInstr* create_array =
+      instance()->definition()->OriginalDefinition()->AsCreateArray();
   if ((create_array != NULL) &&
       (recognized_kind() == MethodRecognizer::kObjectArrayLength)) {
     return create_array->num_elements()->definition();
@@ -1845,7 +1847,8 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
 
   // For arrays with guarded lengths, replace the length load
   // with a constant.
-  LoadFieldInstr* load_array = instance()->definition()->AsLoadField();
+  LoadFieldInstr* load_array =
+      instance()->definition()->OriginalDefinition()->AsLoadField();
   if (load_array != NULL) {
     const Field* field = load_array->field();
     if ((field != NULL) && (field->guarded_list_length() >= 0)) {

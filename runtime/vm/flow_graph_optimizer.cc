@@ -8238,10 +8238,11 @@ void ConstantPropagator::VisitLoadClassId(LoadClassIdInstr* instr) {
 
 
 void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
+  Value* instance = instr->instance();
   if ((instr->recognized_kind() == MethodRecognizer::kObjectArrayLength) &&
-      (instr->instance()->definition()->IsCreateArray())) {
-    Value* num_elements =
-        instr->instance()->definition()->AsCreateArray()->num_elements();
+      instance->definition()->OriginalDefinition()->IsCreateArray()) {
+    Value* num_elements = instance->definition()->OriginalDefinition()
+        ->AsCreateArray()->num_elements();
     if (num_elements->BindsToConstant() &&
         num_elements->BoundConstant().IsSmi()) {
       intptr_t length = Smi::Cast(num_elements->BoundConstant()).Value();
@@ -8252,7 +8253,8 @@ void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
   }
 
   if (instr->IsImmutableLengthLoad()) {
-    ConstantInstr* constant = instr->instance()->definition()->AsConstant();
+    ConstantInstr* constant =
+        instance->definition()->OriginalDefinition()->AsConstant();
     if (constant != NULL) {
       if (constant->value().IsString()) {
         SetValue(instr, Smi::ZoneHandle(I,
