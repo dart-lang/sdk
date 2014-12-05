@@ -107,13 +107,11 @@ oom_error_stacktrace_test: Pass # The test only fails at runtime.
 # Skip until we stabilize language tests.
 *: Skip
 
-[ $arch == simarm ]
+[ $arch == simarm || $arch == simmips]
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 
 [ $arch == simmips || $arch == mips ]
-out_of_memory_test: Skip # passes on Mac, crashes on Linux
-oom_error_stacktrace_test: Skip # Fails on Linux
 javascript_int_overflow_test: Skip # --throw_on_javascript_int_overflow not supported on MIPS.
 
 [ $arch == mips ]
