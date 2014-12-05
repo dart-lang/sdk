@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library path;
+library legacy_path;
 
 import 'dart:io';
 import 'dart:math';
 
+// TODO: Remove this class, and use the URI class for all path manipulation.
 class Path {
   final String _path;
   final bool isWindowsShare;
