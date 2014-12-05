@@ -3104,6 +3104,11 @@ abstract class Element {
   Element get enclosingElement;
 
   /**
+   * The unique integer identifier of this element.
+   */
+  int get id;
+
+  /**
    * Return `true` if this element has an annotation of the form '@deprecated' or
    * '@Deprecated('..')'.
    *
@@ -3224,12 +3229,22 @@ abstract class Element {
   CompilationUnit get unit;
 
   /**
+   * Identifiers of the elements that use this elements.
+   */
+  IntSet get users;
+
+  /**
    * Use the given visitor to visit this element.
    *
    * @param visitor the visitor that will visit this element
    * @return the value returned by the visitor as a result of visiting this element
    */
   accept(ElementVisitor visitor);
+
+  /**
+   * Remember the given [element] as a user of this element.
+   */
+  void addUser(Element element);
 
   /**
    * Return the documentation comment for this element as it appears in the original source
@@ -3429,6 +3444,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
  * an [Element].
  */
 abstract class ElementImpl implements Element {
+  static int _NEXT_ID = 0;
+
+  final int id = _NEXT_ID++;
+
   /**
    * The enclosing element of this element, or `null` if this element is at the root of the
    * element structure.
@@ -3465,6 +3484,13 @@ abstract class ElementImpl implements Element {
    * A cached copy of the calculated location for this element.
    */
   ElementLocation _cachedLocation;
+
+  /**
+   * Identifiers of the elements that use this elements.
+   *
+   * TODO(scheglov) consider this field lazily
+   */
+  final IntSet users = new IntSet();
 
   /**
    * Initialize a newly created element to have the given name.
@@ -3506,6 +3532,8 @@ abstract class ElementImpl implements Element {
    */
   void set enclosingElement(Element element) {
     _enclosingElement = element as ElementImpl;
+    _cachedLocation = null;
+    _cachedHashCode = null;
   }
 
   @override
@@ -3621,6 +3649,16 @@ abstract class ElementImpl implements Element {
     }
     return object.runtimeType == runtimeType &&
         (object as Element).location == location;
+  }
+
+  /**
+   * Remember the given [element] as a user of this element.
+   */
+  @override
+  void addUser(Element element) {
+    if (element != null) {
+      users.add(element.id);
+    }
   }
 
   /**
@@ -8952,6 +8990,8 @@ abstract class Member implements Element {
   @override
   String get displayName => _baseElement.displayName;
 
+  int get id => _baseElement.id;
+
   @override
   bool get isDeprecated => _baseElement.isDeprecated;
 
@@ -8993,6 +9033,20 @@ abstract class Member implements Element {
 
   @override
   CompilationUnit get unit => _baseElement.unit;
+
+  /**
+   * Identifiers of the elements that use this elements.
+   */
+  @override
+  IntSet get users => _baseElement.users;
+
+  /**
+   * Remember the given [element] as a user of this element.
+   */
+  @override
+  void addUser(Element element) {
+    _baseElement.addUser(element);
+  }
 
   @override
   String computeDocumentationComment() =>
@@ -9452,6 +9506,11 @@ abstract class MultiplyDefinedElement implements Element {
  */
 class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   /**
+   * The unique integer identifier of this element.
+   */
+  final int id = ElementImpl._NEXT_ID++;
+
+  /**
    * The analysis context in which the multiply defined elements are defined.
    */
   final AnalysisContext context;
@@ -9533,8 +9592,20 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @override
   CompilationUnit get unit => null;
 
+  /**
+   * Identifiers of the elements that use this elements.
+   */
+  @override
+  IntSet get users => new IntSet();
+
   @override
   accept(ElementVisitor visitor) => visitor.visitMultiplyDefinedElement(this);
+
+  /**
+   * Remember the given [element] as a user of this element.
+   */
+  void addUser(Element element) {
+  }
 
   @override
   String computeDocumentationComment() => null;

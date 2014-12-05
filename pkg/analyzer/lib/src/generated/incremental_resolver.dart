@@ -18,6 +18,7 @@ import 'parser.dart';
 import 'resolver.dart';
 import 'scanner.dart';
 import 'source.dart';
+import 'utilities_collection.dart';
 import 'utilities_dart.dart';
 
 
@@ -118,6 +119,8 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       return DeclarationMatchKind.MISMATCH_OK;
     }
     // something more complex
+    logger.log('_removedElements: $_removedElements');
+    logger.log('_addedElements: $_addedElements');
     return DeclarationMatchKind.MISMATCH;
   }
 
@@ -521,7 +524,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     }
     String nodeName = nameIdentifier.name;
     // check specific type kinds
-    if (type is InterfaceType) {
+    if (type is ParameterizedType) {
       _assertEquals(nodeName, type.name);
       // check arguments
       TypeArgumentList nodeArgumentList = node.typeArguments;
@@ -545,7 +548,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       _assertEquals(nodeName, 'dynamic');
     } else {
       // TODO(scheglov) support other types
-//      print('node: $node type: $type  type.type: ${type.runtimeType}');
+      logger.log('node: $node type: $type  type.type: ${type.runtimeType}');
       _assertTrue(false);
     }
   }
@@ -765,6 +768,11 @@ class IncrementalResolver {
   List<AnalysisError> _hints = AnalysisError.NO_ERRORS;
 
   /**
+   * The elements that should be resolved because of API changes.
+   */
+  HashSet<Element> _resolutionQueue = new HashSet<Element>();
+
+  /**
    * Initialize a newly created incremental resolver to resolve a node in the
    * given source in the given library.
    */
@@ -794,7 +802,7 @@ class IncrementalResolver {
           _updateOffset,
           _updateNewLength - _updateOldLength);
       _buildElements(rootNode);
-      if (_elementModelChanged(rootNode)) {
+      if (!_canBeIncrementallyResolved(rootNode)) {
         return false;
       }
       // resolve
@@ -802,6 +810,8 @@ class IncrementalResolver {
       // verify
       _verify(rootNode);
       _generateHints(rootNode);
+      // resolve queue in response of API changes
+      _resolveQueue();
       // OK
       return true;
     } finally {
@@ -818,6 +828,39 @@ class IncrementalResolver {
     } finally {
       timer.stop('build elements');
     }
+  }
+
+  /**
+   * Return `true` if [node] does not have element model changes, or these
+   * changes can be incrementally propagated.
+   */
+  bool _canBeIncrementallyResolved(AstNode node) {
+    // If we are replacing the whole declaration, this means that its signature
+    // is changed. It might be an API change, or not.
+    //
+    // If, for example, a required parameter is changed, it is not an API
+    // change, but we want to find the existing corresponding Element in the
+    // enclosing one, set it for the node and update as needed.
+    //
+    // If, for example, the name of a method is changed, it is an API change,
+    // we need to know the old Element and the new Element. Again, we need to
+    // check the whole enclosing Element.
+    if (node is Declaration) {
+      node = node.parent;
+    }
+    Element element = _getElement(node);
+    DeclarationMatcher matcher = new DeclarationMatcher();
+    DeclarationMatchKind matchKind = matcher.matches(node, element);
+    if (matchKind == DeclarationMatchKind.MATCH) {
+      return true;
+    }
+    // try to resolve a simple API change
+    if (_resolveApiChanges && matchKind == DeclarationMatchKind.MISMATCH_OK) {
+      _fillResolutionQueue(matcher);
+      return true;
+    }
+    // mismatch that cannot be incrementally fixed
+    return false;
   }
 
   /**
@@ -838,36 +881,18 @@ class IncrementalResolver {
           node is FunctionTypeAlias ||
           node is MethodDeclaration;
 
-  /**
-   * Return `true` if the portion of the element model defined by the given node
-   * has changed.
-   *
-   * [node] - the node defining the portion of the element model being tested.
-   *
-   * Throws [AnalysisException] if the correctness of the element model cannot
-   * be determined.
-   */
-  bool _elementModelChanged(AstNode node) {
-    // If we are replacing the whole declaration, this means that its signature
-    // is changed. It might be an API change, or not.
-    //
-    // If, for example, a required parameter is changed, it is not an API
-    // change, but we want to find the existing corresponding Element in the
-    // enclosing one, set it for the node and update as needed.
-    //
-    // If, for example, the name of a method is changed, it is an API change,
-    // we need to know the old Element and the new Element. Again, we need to
-    // check the whole enclosing Element.
-    if (node is Declaration) {
-      node = node.parent;
+  void _fillResolutionQueue(DeclarationMatcher matcher) {
+    for (Element removedElement in matcher._removedElements) {
+      AnalysisContextImpl context = removedElement.context;
+      IntSet users = removedElement.users;
+      while (!users.isEmpty) {
+        int id = users.remove();
+        Element removedElementUser = context.findElementById(id);
+        _resolutionQueue.add(removedElementUser);
+      }
     }
-    Element element = _getElement(node);
-    if (element == null) {
-      throw new AnalysisException(
-          "Cannot resolve node: a ${node.runtimeType} does not define an element");
-    }
-    DeclarationMatcher matcher = new DeclarationMatcher();
-    return matcher.matches(node, element) != DeclarationMatchKind.MATCH;
+    // TODO(scheglov) a method change might also require its class, and
+    // subclasses resolution
   }
 
   /**
@@ -920,6 +945,26 @@ class IncrementalResolver {
     if (_resolutionContext == null) {
       _resolutionContext =
           ResolutionContextBuilder.contextFor(node, errorListener);
+    }
+  }
+
+  /**
+   * Resolves elements [_resolutionQueue].
+   *
+   * TODO(scheglov) work in progress
+  *
+  * TODO(scheglov) revisit later. Each task duration should be kept short.
+   */
+  void _resolveQueue() {
+    for (Element element in _resolutionQueue) {
+      // TODO(scheglov) in general, we should not call Element.node, it
+      // might perform complete unit resolution.
+      AstNode node = element.node;
+      CompilationUnitElement unit =
+          element.getAncestor((e) => e is CompilationUnitElement);
+      IncrementalResolver resolver =
+          new IncrementalResolver(_typeProvider, unit, 0, 0, 0);
+      resolver._resolveReferences(node);
     }
   }
 

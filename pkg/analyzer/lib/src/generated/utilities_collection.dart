@@ -469,6 +469,33 @@ class DirectedGraph_SccFinder<N> {
 }
 
 /**
+ * An efficient [int] set.
+ * Currently not really efficient.
+ */
+class IntSet {
+  HashSet<int> _set = new HashSet<int>();
+
+  bool get isEmpty {
+    return _set.isEmpty;
+  }
+
+  void add(int value) {
+    _set.add(value);
+  }
+
+  int remove() {
+    int value = _set.first;
+    _set.remove(value);
+    return value;
+  }
+
+  @override
+  String toString() {
+    return _set.toString();
+  }
+}
+
+/**
  * The class `ListUtilities` defines utility methods useful for working with [List
  ].
  */

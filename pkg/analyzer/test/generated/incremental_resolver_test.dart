@@ -1655,6 +1655,20 @@ class A {
 ''');
   }
 
+  void test_true_method_parameters_type_functionType() {
+    _assertMatches(r'''
+typedef F();
+class A {
+  m(F p) {}
+}
+''', r'''
+typedef F();
+class A {
+  m(F p) {}
+}
+''');
+  }
+
   void test_true_part_list_reorder() {
     addNamedSource('/unitA.dart', 'part of lib; class A {}');
     addNamedSource('/unitB.dart', 'part of lib; class B {}');
@@ -1879,6 +1893,28 @@ class IncrementalResolverTest extends ResolverTestCase {
   String code;
   LibraryElement library;
   CompilationUnit unit;
+
+  void setUp() {
+    super.setUp();
+    test_resolveApiChanges = true;
+  }
+
+  void test_api_method_edit_returnType() {
+    _resolveUnit(r'''
+class A {
+  int m() {
+    return null;
+  }
+}
+main() {
+  A a = new A();
+  var v = a.m();
+}
+''');
+    _resolve(_editString('int m', 'String m'), _isDeclaration);
+    // We don't add or fix an error, but we verify that type of "v"
+    // is updated from "int" to "String".
+  }
 
   void test_classMemberAccessor_body() {
     _resolveUnit(r'''
@@ -2172,17 +2208,17 @@ class B {
         edit.replacement +
         code.substring(offset + edit.length);
     CompilationUnit newUnit = _parseUnit(newCode);
-    // update tokens
-    {
-      int delta = edit.replacement.length - edit.length;
-      _shiftTokens(unit.beginToken, offset, delta);
-    }
     // replace the node
     AstNode oldNode = _findNodeAt(unit, offset, predicate);
     AstNode newNode = _findNodeAt(newUnit, offset, predicate);
     {
       bool success = NodeReplacer.replace(oldNode, newNode);
       expect(success, isTrue);
+    }
+    // update tokens
+    {
+      int delta = edit.replacement.length - edit.length;
+      _shiftTokens(unit.beginToken, offset, delta);
     }
     // do incremental resolution
     IncrementalResolver resolver = new IncrementalResolver(
@@ -3996,8 +4032,6 @@ class _SameResolutionValidator implements AstVisitor {
 
   void _verifyElement(Element a, Element b) {
     if (a != b) {
-      print(a.location);
-      print(b.location);
       fail('Expected: $b\n  Actual: $a');
     }
     if (a == null && b == null) {
@@ -4009,7 +4043,9 @@ class _SameResolutionValidator implements AstVisitor {
   }
 
   void _verifyType(DartType a, DartType b) {
-    expect(a, equals(b));
+    if (a != b) {
+      fail('Expected: $b\n  Actual: $a');
+    }
   }
 
   void _visitAnnotatedNode(AnnotatedNode node, AnnotatedNode other) {
