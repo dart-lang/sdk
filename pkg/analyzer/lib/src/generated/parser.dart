@@ -2674,7 +2674,22 @@ class Parser {
           modifiers.externalKeyword,
           null);
     } else if (!_matchesIdentifier()) {
-      if (_isOperator(_currentToken)) {
+      //
+      // Recover from an error.
+      //
+      if (_matchesKeyword(Keyword.CLASS)) {
+        _reportErrorForCurrentToken(ParserErrorCode.CLASS_IN_CLASS);
+        // TODO(brianwilkerson) We don't currently have any way to capture the
+        // class that was parsed.
+        _parseClassDeclaration(commentAndMetadata, null);
+        return null;
+      } else if (_matchesKeyword(Keyword.ABSTRACT) && _tokenMatchesKeyword(_peek(), Keyword.CLASS)) {
+        _reportErrorForToken(ParserErrorCode.CLASS_IN_CLASS, _peek());
+        // TODO(brianwilkerson) We don't currently have any way to capture the
+        // class that was parsed.
+        _parseClassDeclaration(commentAndMetadata, andAdvance);
+        return null;
+      } else if (_isOperator(_currentToken)) {
         //
         // We appear to have found an operator declaration without the
         // 'operator' keyword.
@@ -2781,6 +2796,12 @@ class Parser {
           modifiers.staticKeyword,
           _validateModifiersForField(modifiers),
           null);
+    } else if (_matchesKeyword(Keyword.TYPEDEF)) {
+      _reportErrorForCurrentToken(ParserErrorCode.TYPEDEF_IN_CLASS);
+      // TODO(brianwilkerson) We don't currently have any way to capture the
+      // function type alias that was parsed.
+      _parseFunctionTypeAlias(commentAndMetadata, andAdvance);
+      return null;
     }
     TypeName type = parseTypeName();
     if (_matchesKeyword(Keyword.GET) && _tokenMatchesIdentifier(_peek())) {
@@ -10085,6 +10106,10 @@ class ParserErrorCode extends ErrorCode {
       'BREAK_OUTSIDE_OF_LOOP',
       "A break statement cannot be used outside of a loop or switch statement");
 
+  static const ParserErrorCode CLASS_IN_CLASS = const ParserErrorCode(
+      'CLASS_IN_CLASS',
+      "Classes cannot be declared inside other classes");
+
   static const ParserErrorCode CONST_AND_FINAL = const ParserErrorCode(
       'CONST_AND_FINAL',
       "Members cannot be declared to be both 'const' and 'final'");
@@ -10644,6 +10669,10 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode TOP_LEVEL_OPERATOR = const ParserErrorCode(
       'TOP_LEVEL_OPERATOR',
       "Operators must be declared within a class");
+
+  static const ParserErrorCode TYPEDEF_IN_CLASS = const ParserErrorCode(
+      'TYPEDEF_IN_CLASS',
+      "Function type aliases cannot be declared inside classes");
 
   static const ParserErrorCode UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP =
       const ParserErrorCode(

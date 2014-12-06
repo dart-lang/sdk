@@ -840,6 +840,18 @@ class ErrorParserTest extends ParserTestCase {
     ParserTestCase.parseStatement("() {for (; x;) {break;}};");
   }
 
+  void test_classInClass_abstract() {
+    ParserTestCase.parseCompilationUnit(
+        "class C { abstract class B {} }",
+        [ParserErrorCode.CLASS_IN_CLASS]);
+  }
+
+  void test_classInClass_nonAbstract() {
+    ParserTestCase.parseCompilationUnit(
+        "class C { class B {} }",
+        [ParserErrorCode.CLASS_IN_CLASS]);
+  }
+
   void test_classTypeAlias_abstractAfterEq() {
     // This syntax has been removed from the language in favor of
     // "abstract class A = B with C;" (issue 18098).
@@ -2338,6 +2350,18 @@ class ErrorParserTest extends ParserTestCase {
         <Object>[emptyCommentAndMetadata()],
         "void operator +(bool x, bool y) => x | y;",
         [ParserErrorCode.TOP_LEVEL_OPERATOR]);
+  }
+
+  void test_typedefInClass_withoutReturnType() {
+    ParserTestCase.parseCompilationUnit(
+        "class C { typedef F(x); }",
+        [ParserErrorCode.TYPEDEF_IN_CLASS]);
+  }
+
+  void test_typedefInClass_withReturnType() {
+    ParserTestCase.parseCompilationUnit(
+        "class C { typedef int F(int x); }",
+        [ParserErrorCode.TYPEDEF_IN_CLASS]);
   }
 
   void test_unexpectedTerminatorForParameterGroup_named() {
