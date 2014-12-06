@@ -862,6 +862,12 @@ class ErrorParserTest extends ParserTestCase {
         [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN]);
   }
 
+  void test_colonInPlaceOfIn() {
+    ParserTestCase.parseStatement(
+        "for (var x : list) {}",
+        [ParserErrorCode.COLON_IN_PLACE_OF_IN]);
+  }
+
   void test_constAndFinal() {
     ParserTestCase.parse3(
         "parseClassMember",

@@ -6393,7 +6393,7 @@ class Parser {
       Expression initialization = null;
       if (!_matches(TokenType.SEMICOLON)) {
         CommentAndMetadata commentAndMetadata = _parseCommentAndMetadata();
-        if (_matchesIdentifier() && _tokenMatchesKeyword(_peek(), Keyword.IN)) {
+        if (_matchesIdentifier() && (_tokenMatchesKeyword(_peek(), Keyword.IN) || _tokenMatches(_peek(), TokenType.COLON))) {
           List<VariableDeclaration> variables = new List<VariableDeclaration>();
           SimpleIdentifier variableName = parseSimpleIdentifier();
           variables.add(
@@ -6410,7 +6410,10 @@ class Parser {
         } else {
           initialization = parseExpression2();
         }
-        if (_matchesKeyword(Keyword.IN)) {
+        if (_matchesKeyword(Keyword.IN) || _matches(TokenType.COLON)) {
+          if (_matches(TokenType.COLON)) {
+            _reportErrorForCurrentToken(ParserErrorCode.COLON_IN_PLACE_OF_IN);
+          }
           DeclaredIdentifier loopVariable = null;
           SimpleIdentifier identifier = null;
           if (variableList == null) {
@@ -6447,7 +6450,7 @@ class Parser {
               identifier = variable.name;
             }
           }
-          Token inKeyword = _expectKeyword(Keyword.IN);
+          Token inKeyword = andAdvance;
           Expression iterator = parseExpression2();
           Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
           Statement body = parseStatement2();
@@ -10109,6 +10112,10 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode CLASS_IN_CLASS = const ParserErrorCode(
       'CLASS_IN_CLASS',
       "Classes cannot be declared inside other classes");
+
+  static const ParserErrorCode COLON_IN_PLACE_OF_IN = const ParserErrorCode(
+      'COLON_IN_PLACE_OF_IN',
+      "For-in loops use 'in' rather than a colon");
 
   static const ParserErrorCode CONST_AND_FINAL = const ParserErrorCode(
       'CONST_AND_FINAL',
