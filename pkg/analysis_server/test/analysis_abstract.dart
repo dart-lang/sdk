@@ -82,6 +82,16 @@ class AbstractAnalysisTest {
     return testFile;
   }
 
+  AnalysisServer createAnalysisServer(Index index) {
+    return new AnalysisServer(
+        serverChannel,
+        resourceProvider,
+        packageMapProvider,
+        index,
+        new AnalysisServerOptions(),
+        new MockSdk());
+  }
+
   Index createIndex() {
     return null;
   }
@@ -227,13 +237,7 @@ class AbstractAnalysisTest {
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
     Index index = createIndex();
-    server = new AnalysisServer(
-        serverChannel,
-        resourceProvider,
-        packageMapProvider,
-        index,
-        new AnalysisServerOptions(),
-        new MockSdk());
+    server = createAnalysisServer(index);
     server.contextDirectoryManager.defaultOptions.enableAsync = true;
     server.contextDirectoryManager.defaultOptions.enableEnum = true;
     handler = new AnalysisDomainHandler(server);

@@ -5,6 +5,7 @@
 library test.services.completion.toplevel;
 
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/imported_computer.dart';
@@ -55,7 +56,8 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
         searchEngine,
         testSource,
         completionOffset,
-        cache);
+        cache,
+        new CompletionPerformance());
     expect(computeFast(), isTrue);
     expect(request.unit.element, isNull);
     List<CompletionSuggestion> newSuggestions = request.suggestions;

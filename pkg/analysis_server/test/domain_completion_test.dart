@@ -7,6 +7,7 @@ library test.domain.completion;
 import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
@@ -15,160 +16,223 @@ import 'package:analysis_server/src/services/completion/completion_manager.dart'
 import 'package:analysis_server/src/services/index/index.dart' show Index;
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
+import 'mock_sdk.dart';
 import 'mocks.dart';
 import 'reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(CompletionCacheTest);
+  runReflectiveTests(CompletionManagerTest);
   runReflectiveTests(CompletionTest);
 }
 
 @ReflectiveTestCase()
-class CompletionCacheTest extends AbstractAnalysisTest {
+class CompletionManagerTest extends AbstractAnalysisTest {
   AnalysisDomainHandler analysisDomain;
+  Test_CompletionDomainHandler completionDomain;
+  Request request;
+  int requestCount = 0;
+  String testFile2 = '/project/bin/test2.dart';
+
+  AnalysisServer createAnalysisServer(Index index) {
+    return new Test_AnalysisServer(
+        super.serverChannel,
+        super.resourceProvider,
+        super.packageMapProvider,
+        index,
+        new AnalysisServerOptions(),
+        new MockSdk());
+  }
+
+  void sendRequest(String path) {
+    String id = (++requestCount).toString();
+    request = new CompletionGetSuggestionsParams(path, 0).toRequest(id);
+    Response response = handler.handleRequest(request);
+    expect(response, isResponseSuccess(id));
+  }
 
   @override
   void setUp() {
     super.setUp();
     createProject();
     analysisDomain = handler;
-    handler = new Test_CompletionDomainHandler(server);
+    completionDomain = new Test_CompletionDomainHandler(server);
+    handler = completionDomain;
+    addTestFile('^library A; cl');
+    addFile(testFile2, 'library B; cl');
   }
 
   void tearDown() {
     super.tearDown();
     analysisDomain = null;
+    completionDomain = null;
   }
 
-  test_cache() {
-    Test_CompletionDomainHandler target = handler;
-    addTestFile('^library A; cl');
-    Request request =
-        new CompletionGetSuggestionsParams(testFile, 0).toRequest('0');
-
-    /*
-     * Assert cache is created by manager
-     * and context.onSourceChanged listen is called
-     */
-    Source source;
-    var expectedCache = null;
-    handleSuccessfulRequest(request);
+  /**
+   * Assert different managers are used for different sources
+   */
+  test_2_requests_different_sources() {
+    expect(completionDomain.manager, isNull);
+    sendRequest(testFile);
+    expect(completionDomain.manager, isNotNull);
+    CompletionManager expectedManager = completionDomain.manager;
+    expect(completionDomain.mockContext.mockStream.listenCount, 1);
+    expect(completionDomain.mockContext.mockStream.cancelCount, 0);
     return pumpEventQueue().then((_) {
-      expect(identical(target.cacheReceived, expectedCache), isTrue);
-      expect(target.completionManager.computeCallCount, 1);
-      source = target.completionManager.source;
-      expect(source, isNotNull);
-      expectedCache = target.completionManager.cache;
-      expect(expectedCache, isNotNull);
-      expect(target.mockContext.mockStream.listenCount, 1);
-      expect(target.mockContext.mockStream.cancelCount, 0);
-
-      /*
-       * Assert cache is stored in target,
-       * and context.onSourceChanged listen has not changed
-       */
-      handleSuccessfulRequest(request);
+      expect(completionDomain.manager, expectedManager);
+      expect(completionDomain.mockManager.computeCallCount, 1);
+      sendRequest(testFile2);
+      expect(completionDomain.manager, isNotNull);
+      expect(completionDomain.manager, isNot(expectedManager));
+      expectedManager = completionDomain.manager;
+      expect(completionDomain.mockContext.mockStream.listenCount, 2);
+      expect(completionDomain.mockContext.mockStream.cancelCount, 1);
       return pumpEventQueue();
     }).then((_) {
-      expect(identical(target.cacheReceived, expectedCache), isTrue);
-      expect(target.completionManager.computeCallCount, 1);
-      expect(target.mockContext.mockStream.listenCount, 1);
-      expect(target.mockContext.mockStream.cancelCount, 0);
+      expect(completionDomain.manager, expectedManager);
+      expect(completionDomain.mockContext.mockStream.listenCount, 2);
+      expect(completionDomain.mockContext.mockStream.cancelCount, 1);
+      expect(completionDomain.mockManager.computeCallCount, 1);
+    });
+  }
 
-      /*
-       * Assert same cache and listening is preserved across multiple calls
-       */
-      handleSuccessfulRequest(request);
+  /**
+   * Assert same manager is used for multiple requests on same source
+   */
+  test_2_requests_same_source() {
+    expect(completionDomain.manager, isNull);
+    sendRequest(testFile);
+    expect(completionDomain.manager, isNotNull);
+    expect(completionDomain.manager.source, isNotNull);
+    CompletionManager expectedManager = completionDomain.manager;
+    expect(completionDomain.mockContext.mockStream.listenCount, 1);
+    expect(completionDomain.mockContext.mockStream.cancelCount, 0);
+    return pumpEventQueue().then((_) {
+      expect(completionDomain.manager, expectedManager);
+      expect(completionDomain.mockManager.computeCallCount, 1);
+      sendRequest(testFile);
+      expect(completionDomain.manager, expectedManager);
+      expect(completionDomain.mockContext.mockStream.listenCount, 1);
+      expect(completionDomain.mockContext.mockStream.cancelCount, 0);
       return pumpEventQueue();
     }).then((_) {
-      expect(identical(target.cacheReceived, expectedCache), isTrue);
-      expect(target.completionManager.computeCallCount, 1);
-      expect(target.mockContext.mockStream.listenCount, 1);
-      expect(target.mockContext.mockStream.cancelCount, 0);
+      expect(completionDomain.manager, expectedManager);
+      expect(completionDomain.mockContext.mockStream.listenCount, 1);
+      expect(completionDomain.mockContext.mockStream.cancelCount, 0);
+      expect(completionDomain.mockManager.computeCallCount, 2);
+    });
+  }
 
-      /*
-       * Trigger source change event that should NOT clear existing cache
-       */
-      target.sourcesChanged(new SourcesChangedEvent.changedContent(source, ''));
-    }).then((_) {
-
-      handleSuccessfulRequest(request);
-      return pumpEventQueue();
-    }).then((_) {
-      expect(identical(target.cacheReceived, expectedCache), isTrue);
-      expect(target.completionManager.computeCallCount, 1);
-      expect(target.mockContext.mockStream.listenCount, 1);
-      expect(target.mockContext.mockStream.cancelCount, 0);
-
-      /*
-       * Trigger source change event that should clear existing cache
-       * and assert subscription.cancel is called when the cache is discarded.
-       */
-      ChangeSet changeSet = new ChangeSet();
-      changeSet.removedSource(source);
-      target.sourcesChanged(new SourcesChangedEvent(changeSet));
-    }).then((_) {
-      expect(target.mockContext.mockStream.listenCount, 1);
-      expect(target.mockContext.mockStream.cancelCount, 1);
-
-      /*
-       * Assert that cache was cleared, recreated,
-       * and context.onSourceChanged listen is called again.
-       */
-      expectedCache = null;
-      handleSuccessfulRequest(request);
-      return pumpEventQueue();
-    }).then((_) {
-      expect(identical(target.cacheReceived, expectedCache), isTrue);
-      expectedCache = target.completionManager.cache;
-      expect(expectedCache, isNotNull);
-      expect(target.completionManager.computeCallCount, 1);
-      expect(target.mockContext.mockStream.listenCount, 2);
-      expect(target.mockContext.mockStream.cancelCount, 1);
-
-      /*
-       * Assert same cache and listening is preserved across multiple calls
-       */
-      handleSuccessfulRequest(request);
-      return pumpEventQueue();
-    }).then((_) {
-      expect(identical(target.cacheReceived, expectedCache), isTrue);
-      expect(target.completionManager.computeCallCount, 1);
-      expect(target.mockContext.mockStream.listenCount, 2);
-      expect(target.mockContext.mockStream.cancelCount, 1);
-
-      /*
-       * Trigger context change event that should clear existing cache
-       */
-      Request request =
-          new AnalysisSetAnalysisRootsParams([], []).toRequest('0');
+  /**
+   * Assert manager is cleared when analysis roots are set
+   */
+  test_setAnalysisRoots() {
+    sendRequest(testFile);
+    return pumpEventQueue().then((_) {
+      expect(completionDomain.manager, isNotNull);
+      request = new AnalysisSetAnalysisRootsParams([], []).toRequest('7');
       Response response = analysisDomain.handleRequest(request);
-      expect(response, isResponseSuccess('0'));
+      expect(response, isResponseSuccess('7'));
       return pumpEventQueue();
     }).then((_) {
-      expect(target.mockContext.mockStream.listenCount, 2);
-      expect(target.mockContext.mockStream.cancelCount, 2);
+      expect(completionDomain.manager, isNull);
+    });
+  }
 
-      /*
-       * Assert that cache was cleared, recreated,
-       * and context.onSourceChanged listen is called again.
-       */
-      expectedCache = null;
-      handleSuccessfulRequest(request);
+  /**
+   * Assert manager is NOT cleared when context NOT associated with manager changes.
+   */
+  test_contextsChanged_different() {
+    sendRequest(testFile);
+    CompletionManager expectedManager;
+    return pumpEventQueue().then((_) {
+      expect(completionDomain.manager, isNotNull);
+      expectedManager = completionDomain.manager;
+      completionDomain.contextsChangedRaw(
+          new ContextsChangedEvent(changed: [new MockContext()]));
       return pumpEventQueue();
     }).then((_) {
-      expect(identical(target.cacheReceived, expectedCache), isTrue);
-      expectedCache = target.completionManager.cache;
-      expect(expectedCache, isNotNull);
-      expect(target.completionManager.computeCallCount, 1);
-      expect(target.mockContext.mockStream.listenCount, 3);
-      expect(target.mockContext.mockStream.cancelCount, 2);
+      expect(completionDomain.manager, expectedManager);
+    });
+  }
+
+  /**
+   * Assert manager is cleared when context associated with manager changes.
+   */
+  test_contextsChanged_same() {
+    sendRequest(testFile);
+    return pumpEventQueue().then((_) {
+      expect(completionDomain.manager, isNotNull);
+      completionDomain.contextsChangedRaw(
+          new ContextsChangedEvent(changed: [completionDomain.mockContext]));
+      return pumpEventQueue();
+    }).then((_) {
+      expect(completionDomain.manager, isNull);
+    });
+  }
+
+  /**
+   * Assert manager is cleared when source NOT associated with manager is changed.
+   */
+  test_sourcesChanged_different_source_changed() {
+    sendRequest(testFile);
+    return pumpEventQueue().then((_) {
+      expect(completionDomain.manager, isNotNull);
+      ChangeSet changeSet = new ChangeSet();
+      changeSet.changedSource(server.getSource(testFile2));
+      completionDomain.sourcesChanged(new SourcesChangedEvent(changeSet));
+      expect(completionDomain.manager, isNull);
+    });
+  }
+
+  /**
+   * Assert manager is NOT cleared when source associated with manager is changed.
+   */
+  test_sourcesChanged_same_source_changed() {
+    sendRequest(testFile);
+    return pumpEventQueue().then((_) {
+      expect(completionDomain.manager, isNotNull);
+      CompletionManager expectedManager = completionDomain.manager;
+      ChangeSet changeSet = new ChangeSet();
+      changeSet.changedSource(completionDomain.manager.source);
+      completionDomain.sourcesChanged(new SourcesChangedEvent(changeSet));
+      expect(completionDomain.manager, expectedManager);
+    });
+  }
+
+  /**
+   * Assert manager is cleared when source is deleted
+   */
+  test_sourcesChanged_source_deleted() {
+    sendRequest(testFile);
+    return pumpEventQueue().then((_) {
+      expect(completionDomain.manager, isNotNull);
+      ChangeSet changeSet = new ChangeSet();
+      changeSet.deletedSource(completionDomain.manager.source);
+      completionDomain.sourcesChanged(new SourcesChangedEvent(changeSet));
+      expect(completionDomain.manager, isNull);
+    });
+  }
+
+  /**
+   * Assert manager is cleared when source is removed
+   */
+  test_sourcesChanged_source_removed() {
+    sendRequest(testFile);
+    return pumpEventQueue().then((_) {
+      expect(completionDomain.manager, isNotNull);
+      ChangeSet changeSet = new ChangeSet();
+      changeSet.removedSource(completionDomain.manager.source);
+      completionDomain.sourcesChanged(new SourcesChangedEvent(changeSet));
+      expect(completionDomain.manager, isNull);
     });
   }
 }
@@ -370,35 +434,27 @@ class MockCache extends CompletionCache {
 class MockCompletionManager implements CompletionManager {
   final AnalysisContext context;
   final Source source;
-  final int offset;
   final SearchEngine searchEngine;
   CompletionCache cache;
-  CompletionPerformance performance;
   StreamController<CompletionResult> controller;
   int computeCallCount = 0;
 
-  MockCompletionManager(this.context, this.source, this.offset,
-      this.searchEngine, this.cache, this.performance);
+  MockCompletionManager(this.context, this.source, this.searchEngine,
+      this.cache);
 
   @override
-  CompletionCache get completionCache {
-    if (cache == null) {
-      cache = new MockCache(context, source);
-    }
-    return cache;
-  }
-
-  @override
-  void compute() {
+  void compute(CompletionRequest request) {
     ++computeCallCount;
     CompletionResult result = new CompletionResult(0, 0, [], true);
     controller.add(result);
   }
 
   @override
-  Stream<CompletionResult> results() {
+  Stream<CompletionResult> results(CompletionRequest request) {
     controller = new StreamController<CompletionResult>(onListen: () {
-      scheduleMicrotask(compute);
+      scheduleMicrotask(() {
+        compute(request);
+      });
     });
     return controller.stream;
   }
@@ -453,38 +509,51 @@ class MockSubscription<E> implements StreamSubscription<E> {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class Test_AnalysisServer extends AnalysisServer {
+  final MockContext mockContext = new MockContext();
+
+  Test_AnalysisServer(ServerCommunicationChannel channel,
+      ResourceProvider resourceProvider, PackageMapProvider packageMapProvider,
+      Index index, AnalysisServerOptions analysisServerOptions, DartSdk defaultSdk)
+      : super(
+          channel,
+          resourceProvider,
+          packageMapProvider,
+          index,
+          analysisServerOptions,
+          defaultSdk);
+
+  AnalysisContext getAnalysisContext(String path) {
+    return mockContext;
+  }
+}
+
 /**
  * A [CompletionDomainHandler] subclass that returns a mock completion manager
  * so that the domain handler cache management can be tested.
  */
 class Test_CompletionDomainHandler extends CompletionDomainHandler {
-  CompletionCache cacheReceived;
-  final MockContext mockContext = new MockContext();
-  MockCompletionManager completionManager;
 
-  Test_CompletionDomainHandler(AnalysisServer server) : super(server);
+  Test_CompletionDomainHandler(Test_AnalysisServer server) : super(server);
+
+  MockContext get mockContext => (server as Test_AnalysisServer).mockContext;
+
+  MockCompletionManager get mockManager => manager;
 
   void contextsChanged(ContextsChangedEvent event) {
-    if (event.removed.length == 1) {
-      event = new ContextsChangedEvent(
-          added: event.added,
-          changed: event.changed,
-          removed: [mockContext]);
-    }
-    super.contextsChanged(event);
+    contextsChangedRaw(
+        new ContextsChangedEvent(
+            added: event.added.length > 0 ? [mockContext] : [],
+            changed: event.changed.length > 0 ? [mockContext] : [],
+            removed: event.removed.length > 0 ? [mockContext] : []));
+  }
+
+  void contextsChangedRaw(ContextsChangedEvent newEvent) {
+    super.contextsChanged(newEvent);
   }
 
   CompletionManager createCompletionManager(AnalysisContext context,
-      Source source, int offset, SearchEngine searchEngine, CompletionCache cache,
-      CompletionPerformance performance) {
-    cacheReceived = cache;
-    completionManager = new MockCompletionManager(
-        mockContext,
-        source,
-        offset,
-        searchEngine,
-        cache,
-        performance);
-    return completionManager;
+      Source source, SearchEngine searchEngine, CompletionCache cache) {
+    return new MockCompletionManager(mockContext, source, searchEngine, cache);
   }
 }

@@ -66,13 +66,8 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     source = addSource('/does/not/exist.dart', '');
     cache = null;
     perf = new CompletionPerformance();
-    manager = new DartCompletionManager.create(
-        context,
-        searchEngine,
-        source,
-        0,
-        cache,
-        perf);
+    manager =
+        new DartCompletionManager.create(context, searchEngine, source, cache);
     suggestion1 = new CompletionSuggestion(
         CompletionSuggestionKind.INVOCATION,
         CompletionRelevance.DEFAULT,
@@ -97,7 +92,8 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     manager.computers = [computer1, computer2];
     int count = 0;
     bool done = false;
-    manager.results().listen((CompletionResult r) {
+    CompletionRequest completionRequest = new CompletionRequest(0, perf);
+    manager.results(completionRequest).listen((CompletionResult r) {
       switch (++count) {
         case 1:
           computer1.assertCalls(context, source, 0, searchEngine);
@@ -133,7 +129,8 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     manager.computers = [computer1, computer2];
     int count = 0;
     bool done = false;
-    manager.results().listen((CompletionResult r) {
+    CompletionRequest completionRequest = new CompletionRequest(0, perf);
+    manager.results(completionRequest).listen((CompletionResult r) {
       switch (++count) {
         case 1:
           computer1.assertCalls(context, source, 0, searchEngine);

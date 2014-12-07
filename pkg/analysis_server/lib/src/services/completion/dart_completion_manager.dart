@@ -48,17 +48,14 @@ abstract class DartCompletionComputer {
  * Manages code completion for a given Dart file completion request.
  */
 class DartCompletionManager extends CompletionManager {
-  final DartCompletionRequest request;
-  final AnalysisContext context;
-  final Source source;
-  final int offset;
-  final CompletionPerformance performance;
+  final SearchEngine searchEngine;
   final DartCompletionCache cache;
   List<DartCompletionComputer> computers;
 
-  DartCompletionManager(this.request, this.context, this.source, this.offset,
-      this.cache, this.performance)
-      : computers = [
+  DartCompletionManager(AnalysisContext context, this.searchEngine,
+      Source source, this.cache)
+      : super(context, source),
+        computers = [
           new KeywordComputer(),
           new LocalComputer(),
           new ArgListComputer(),
@@ -70,8 +67,7 @@ class DartCompletionManager extends CompletionManager {
    * Create a new initialized Dart source completion manager
    */
   factory DartCompletionManager.create(AnalysisContext context,
-      SearchEngine searchEngine, Source source, int offset, CompletionCache oldCache,
-      CompletionPerformance performance) {
+      SearchEngine searchEngine, Source source, CompletionCache oldCache) {
     DartCompletionCache newCache;
     if (oldCache is DartCompletionCache) {
       if (oldCache.context == context && oldCache.source == source) {
@@ -81,24 +77,22 @@ class DartCompletionManager extends CompletionManager {
     if (newCache == null) {
       newCache = new DartCompletionCache(context, source);
     }
-    return new DartCompletionManager(
-        new DartCompletionRequest(context, searchEngine, source, offset, newCache),
-        context,
-        source,
-        offset,
-        newCache,
-        performance);
+    return new DartCompletionManager(context, searchEngine, source, newCache);
   }
 
   @override
-  CompletionCache get completionCache => cache;
-
-  @override
-  void compute() {
-    performance.logElapseTime('compute', () {
-      computeFast();
+  void compute(CompletionRequest completionRequest) {
+    DartCompletionRequest request = new DartCompletionRequest(
+        context,
+        searchEngine,
+        source,
+        completionRequest.offset,
+        cache,
+        completionRequest.performance);
+    request.performance.logElapseTime('compute', () {
+      computeFast(request);
       if (!computers.isEmpty) {
-        computeFull();
+        computeFull(request);
       }
     });
   }
@@ -107,18 +101,20 @@ class DartCompletionManager extends CompletionManager {
    * Compute suggestions based upon cached information only
    * then send an initial response to the client.
    */
-  void computeFast() {
-    performance.logElapseTime('computeFast', () {
+  void computeFast(DartCompletionRequest request) {
+    request.performance.logElapseTime('computeFast', () {
       CompilationUnit unit = context.parseCompilationUnit(source);
       request.unit = unit;
-      request.node = new NodeLocator.con1(offset).searchWithin(unit);
+      request.node = new NodeLocator.con1(request.offset).searchWithin(unit);
       request.node.accept(new _ReplacementOffsetBuilder(request));
       computers.removeWhere((DartCompletionComputer c) {
-        return performance.logElapseTime('computeFast ${c.runtimeType}', () {
+        return request.performance.logElapseTime(
+            'computeFast ${c.runtimeType}',
+            () {
           return c.computeFast(request);
         });
       });
-      sendResults(computers.isEmpty);
+      sendResults(request, computers.isEmpty);
     });
   }
 
@@ -126,28 +122,28 @@ class DartCompletionManager extends CompletionManager {
    * If there is remaining work to be done, then wait for the unit to be
    * resolved and request that each remaining computer finish their work.
    */
-  void computeFull() {
-    performance.logStartTime('waitForAnalysis');
+  void computeFull(DartCompletionRequest request) {
+    request.performance.logStartTime('waitForAnalysis');
     waitForAnalysis().then((CompilationUnit unit) {
-      performance.logElapseTime('waitForAnalysis');
+      request.performance.logElapseTime('waitForAnalysis');
       if (unit == null) {
-        sendResults(true);
+        sendResults(request, true);
         return;
       }
-      performance.logElapseTime('computeFull', () {
+      request.performance.logElapseTime('computeFull', () {
         request.unit = unit;
-        request.node = new NodeLocator.con1(offset).searchWithin(unit);
+        request.node = new NodeLocator.con1(request.offset).searchWithin(unit);
         int count = computers.length;
         computers.forEach((DartCompletionComputer c) {
           String name = c.runtimeType.toString();
           String completeTag = 'computeFull $name complete';
-          performance.logStartTime(completeTag);
-          performance.logElapseTime('computeFull $name', () {
+          request.performance.logStartTime(completeTag);
+          request.performance.logElapseTime('computeFull $name', () {
             c.computeFull(request).then((bool changed) {
-              performance.logElapseTime(completeTag);
+              request.performance.logElapseTime(completeTag);
               bool last = --count == 0;
               if (changed || last) {
-                sendResults(last);
+                sendResults(request, last);
               }
             });
           });
@@ -159,7 +155,7 @@ class DartCompletionManager extends CompletionManager {
   /**
    * Send the current list of suggestions to the client.
    */
-  void sendResults(bool last) {
+  void sendResults(DartCompletionRequest request, bool last) {
     controller.add(
         new CompletionResult(
             request.replacementOffset,
@@ -192,7 +188,7 @@ class DartCompletionManager extends CompletionManager {
 /**
  * The context in which the completion is requested.
  */
-class DartCompletionRequest {
+class DartCompletionRequest extends CompletionRequest {
   /**
    * The analysis context in which the completion is requested.
    */
@@ -207,11 +203,6 @@ class DartCompletionRequest {
    * The source in which the completion is requested.
    */
   final Source source;
-
-  /**
-   * The offset within the source at which the completion is requested.
-   */
-  final int offset;
 
   /**
    * Cached information from a prior code completion operation.
@@ -254,7 +245,8 @@ class DartCompletionRequest {
   final List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
   DartCompletionRequest(this.context, this.searchEngine, this.source,
-      this.offset, this.cache);
+      int offset, this.cache, CompletionPerformance performance)
+      : super(offset, performance);
 }
 
 /**
