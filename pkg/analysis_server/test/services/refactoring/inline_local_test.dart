@@ -168,6 +168,30 @@ main() {
 ''');
   }
 
+  test_OK_inSwitchCase() {
+    indexTestUnit('''
+main(int p) {
+  switch (p) {
+    case 0:
+      int test = 42;
+      print(test);
+      break;
+  }
+}
+''');
+    _createRefactoring('test =');
+    // validate change
+    return assertSuccessfulRefactoring('''
+main(int p) {
+  switch (p) {
+    case 0:
+      print(42);
+      break;
+  }
+}
+''');
+  }
+
   test_OK_intoStringInterpolation_binaryExpression() {
     indexTestUnit(r'''
 main() {
