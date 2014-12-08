@@ -17,6 +17,7 @@ main() {
   runReflectiveTests(IncrementalScannerTest);
 }
 
+@ReflectiveTestCase()
 class IncrementalScannerTest extends EngineTestCase {
   /**
    * The first token from the token stream resulting from parsing the original
