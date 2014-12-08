@@ -2160,7 +2160,7 @@ TEST_CASE(Service_Address) {
     service_msg = Eval(lib, buf);
     Service::HandleIsolateMessage(isolate, service_msg);
     handler.HandleNextMessage();
-    EXPECT_SUBSTRING("\"type\":\"@String\"", handler.msg());
+    EXPECT_SUBSTRING("\"type\":\"String\"", handler.msg());
     EXPECT_SUBSTRING("foobar", handler.msg());
   }
   // Expect null when no object is found.
@@ -2168,8 +2168,8 @@ TEST_CASE(Service_Address) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // TODO(turnidge): Should this be a ServiceException instead?
-  EXPECT_STREQ("{\"type\":\"@null\",\"id\":\"objects\\/null\","
-               "\"valueAsString\":\"null\"}",
+  EXPECT_SUBSTRING("{\"type\":\"null\",\"id\":\"objects\\/null\","
+                   "\"valueAsString\":\"null\"",
                handler.msg());
 }
 
