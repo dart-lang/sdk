@@ -2071,7 +2071,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     Element element = node.element;
     assert(element.isFunction || element.isField);
     if (element.isFunction) {
-      push(backend.namer.isolateStaticClosureAccess(node.element));
+      push(backend.emitter.isolateStaticClosureAccess(node.element));
     } else {
       push(backend.emitter.staticFieldAccess(node.element));
     }
@@ -2082,7 +2082,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     Element element = node.element;
     registry.registerStaticUse(element);
     js.Expression lazyGetter =
-        backend.namer.isolateLazyInitializerAccess(element);
+        backend.emitter.isolateLazyInitializerAccess(element);
     js.Call call = new js.Call(lazyGetter, <js.Expression>[]);
     push(call, node);
   }

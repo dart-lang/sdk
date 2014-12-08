@@ -181,6 +181,16 @@ class OldEmitter implements Emitter {
     return '$initName.$global';
   }
 
+  jsAst.Expression isolateLazyInitializerAccess(Element element) {
+     return jsAst.js('#.#', [namer.globalObjectFor(element), 
+                             namer.getLazyInitializerName(element)]);
+   }
+
+  jsAst.Expression isolateStaticClosureAccess(Element element) {
+     return jsAst.js('#.#()',
+         [namer.globalObjectFor(element), namer.getStaticClosureName(element)]);
+   }
+  
   jsAst.PropertyAccess globalPropertyAccess(Element element) {
     String name = namer.getNameX(element);
     jsAst.PropertyAccess pa = new jsAst.PropertyAccess.field(
@@ -1063,7 +1073,7 @@ class OldEmitter implements Emitter {
   ///   `function(args) { $.startRootIsolate(X.main$closure(), args); }`
   jsAst.Expression buildIsolateSetupClosure(Element appMain,
                                             Element isolateMain) {
-    jsAst.Expression mainAccess = namer.isolateStaticClosureAccess(appMain);
+    jsAst.Expression mainAccess = isolateStaticClosureAccess(appMain);
     // Since we pass the closurized version of the main method to
     // the isolate method, we must make sure that it exists.
     return js('function(a){ #(#, a); }',

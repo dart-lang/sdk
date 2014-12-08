@@ -63,6 +63,8 @@ class ConstantReferenceEmitter
 
   ConstantReferenceEmitter(this.compiler, this.namer, this.constantEmitter);
 
+  JavaScriptBackend get backend => compiler.backend;
+  
   jsAst.Expression generate(ConstantValue constant) {
     return _visit(constant);
   }
@@ -82,7 +84,7 @@ class ConstantReferenceEmitter
   }
 
   jsAst.Expression visitFunction(FunctionConstantValue constant) {
-    return namer.isolateStaticClosureAccess(constant.element);
+    return backend.emitter.isolateStaticClosureAccess(constant.element);
   }
 
   jsAst.Expression visitNull(NullConstantValue constant) {

@@ -866,16 +866,6 @@ class Namer implements ClosureNamer {
     return getMappedGlobalName("${getNameX(element)}\$closure");
   }
 
-  jsAst.Expression isolateLazyInitializerAccess(Element element) {
-    return js('#.#',
-        [globalObjectFor(element), getLazyInitializerName(element)]);
-  }
-
-  jsAst.Expression isolateStaticClosureAccess(Element element) {
-    return js('#.#()',
-        [globalObjectFor(element), getStaticClosureName(element)]);
-  }
-
   // This name is used as part of the name of a TypeConstant
   String uniqueNameForTypeConstantElement(Element element) {
     // TODO(sra): If we replace the period with an identifier character,

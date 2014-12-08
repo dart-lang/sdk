@@ -72,6 +72,16 @@ class Emitter implements emitterTask.Emitter {
     return _emitter.constantEmitter.reference(value);
   }
 
+  js.Expression isolateLazyInitializerAccess(Element element) {
+    return js.js('#.#', [namer.globalObjectFor(element), 
+                         namer.getLazyInitializerName(element)]);
+  }
+
+  js.Expression isolateStaticClosureAccess(Element element) {
+    return js.js('#.#()',
+        [namer.globalObjectFor(element), namer.getStaticClosureName(element)]);
+  }
+  
   js.PropertyAccess globalPropertyAccess(Element element) {
      String name = namer.getNameX(element);
      js.PropertyAccess pa = new js.PropertyAccess.field(

@@ -56,7 +56,14 @@ class CodeEmitterTask extends CompilerTask {
     nativeEmitter = new NativeEmitter(this);
   }
 
-
+  jsAst.Expression isolateStaticClosureAccess(Element element) {
+    return emitter.isolateStaticClosureAccess(element);
+  }
+  
+  jsAst.Expression isolateLazyInitializerAccess(Element element) {
+    return emitter.isolateLazyInitializerAccess(element);
+  }
+  
   jsAst.Expression generateEmbeddedGlobalAccess(String global) {
     return emitter.generateEmbeddedGlobalAccess(global);
   }
@@ -368,6 +375,8 @@ class CodeEmitterTask extends CompilerTask {
 abstract class Emitter {
   void emitProgram(Program program);
 
+  jsAst.Expression isolateLazyInitializerAccess(Element element);
+  jsAst.Expression isolateStaticClosureAccess(Element element);
   jsAst.Expression generateEmbeddedGlobalAccess(String global);
   jsAst.Expression constantReference(ConstantValue value);
   jsAst.PropertyAccess staticFunctionAccess(Element element);
