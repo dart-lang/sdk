@@ -5,12 +5,6 @@
 [ $runtime == vm ]
 browser/*: SkipByDesign  # Browser specific tests
 isolate_stress_test: Fail # Issue 12588: This should be able to pass when we have wrapper-less tests.
-message3_test/constList_identical: RuntimeError # Issue 21816
-message3_test/constMap: RuntimeError  # Issue 21816
-message3_test/fun: RuntimeError  # Issue 21585
-message3_test/constInstance: RuntimeError # Issue 21816
-message3_test/byteBuffer: Crash # Issue 21818
-message3_test/int32x4: Crash # Issue 21818
 
 [ $runtime == vm && $arch == mips && $mode == debug ]
 mandel_isolate_test: Skip # Uses 600 MB Ram on our 1 GB test device.
@@ -29,6 +23,13 @@ handle_error_test: Fail   # Not implemented yet
 handle_error2_test: Fail  # Not implemented yet
 handle_error3_test: Fail  # Not implemented yet
 function_send_test: Fail   # Not implemented yet
+
+message3_test/constList_identical: RuntimeError # Issue 21816
+message3_test/constMap: RuntimeError  # Issue 21816
+message3_test/fun: RuntimeError  # Issue 21585
+message3_test/constInstance: RuntimeError # Issue 21816
+message3_test/byteBuffer: Crash # Issue 21818
+message3_test/int32x4: Crash # Issue 21818
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 *: Skip # Isolate tests are timing out flakily on Android content_shell.  Issue 19795
@@ -95,6 +96,7 @@ compile_time_error_test/none: Fail, OK # Issue 13921 Dom isolates don't support 
 isolate_import_test/none: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
 isolate_stress_test: Skip # Issue 13921 Dom isolates don't support spawnFunction
 simple_message_test/none: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
+message3_test: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
 spawn_uri_missing_from_isolate_test: RuntimeError # http://dartbug.com/17649
 spawn_uri_missing_test: Skip # Times out.
 
