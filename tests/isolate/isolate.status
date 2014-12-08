@@ -95,8 +95,9 @@ spawn_uri_nested_vm_test: Skip # Issue 14479: This test is timing out.
 compile_time_error_test/none: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
 isolate_import_test/none: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
 isolate_stress_test: Skip # Issue 13921 Dom isolates don't support spawnFunction
-simple_message_test/none: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
 message3_test: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
+object_leak_test: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
+simple_message_test/none: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
 spawn_uri_missing_from_isolate_test: RuntimeError # http://dartbug.com/17649
 spawn_uri_missing_test: Skip # Times out.
 
