@@ -18,6 +18,7 @@ main() {
   runReflectiveTests(StaticWarningCodeTest);
 }
 
+@ReflectiveTestCase()
 class StaticWarningCodeTest extends ResolverTestCase {
   void fail_undefinedGetter() {
     Source source = addSource(r'''

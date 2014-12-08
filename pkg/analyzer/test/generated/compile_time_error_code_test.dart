@@ -18,6 +18,7 @@ main() {
   runReflectiveTests(CompileTimeErrorCodeTest);
 }
 
+@ReflectiveTestCase()
 class CompileTimeErrorCodeTest extends ResolverTestCase {
   void fail_compileTimeConstantRaisesException() {
     Source source = addSource(r'''

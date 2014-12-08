@@ -29,6 +29,14 @@ import 'package:unittest/unittest.dart';
  */
 void runReflectiveTests(Type type) {
   ClassMirror classMirror = reflectClass(type);
+  if (!classMirror.metadata.any(
+      (InstanceMirror annotation) =>
+          annotation.type.reflectedType == ReflectiveTestCase)) {
+    String name = MirrorSystem.getName(classMirror.qualifiedName);
+    throw new Exception(
+        'Class $name must have annotation "@ReflectiveTestCase()" '
+            'in order to be run by runReflectiveTests.');
+  }
   String className = MirrorSystem.getName(classMirror.simpleName);
   group(className, () {
     classMirror.instanceMembers.forEach((symbol, memberMirror) {

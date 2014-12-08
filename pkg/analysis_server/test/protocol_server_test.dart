@@ -115,6 +115,7 @@ class AnalysisErrorTest {
 }
 
 
+@ReflectiveTestCase()
 class ElementKindTest {
   void test_fromEngine() {
     expect(

@@ -452,6 +452,7 @@ abstract class AbstractScannerTest {
 }
 
 
+@ReflectiveTestCase()
 class AngularCompilationUnitBuilderTest extends AngularTest {
   void test_bad_notConstructorAnnotation() {
     String mainContent = r'''
@@ -1445,6 +1446,7 @@ class MyRouteInitializer {
 }
 
 
+@ReflectiveTestCase()
 class AngularHtmlUnitResolverTest extends AngularTest {
   void fail_analysisContext_changeDart_invalidateApplication() {
     addMainSource(r'''
@@ -2352,6 +2354,7 @@ class MyRouteInitializer {
 /**
  * Tests for [HtmlUnitUtils] for Angular HTMLs.
  */
+@ReflectiveTestCase()
 class AngularHtmlUnitUtilsTest extends AngularTest {
   void test_getElement_forExpression() {
     addMyController();
@@ -2992,6 +2995,7 @@ $innerHtml
 }
 
 
+@ReflectiveTestCase()
 class ConstantEvaluatorTest extends ResolverTestCase {
   void fail_constructor() {
     EvaluationResult result = _getExpressionValue("?");
@@ -3376,6 +3380,7 @@ class ConstantEvaluatorTest extends ResolverTestCase {
 }
 
 
+@ReflectiveTestCase()
 class ConstantFinderTest extends EngineTestCase {
   AstNode _node;
 
@@ -3511,6 +3516,7 @@ class ConstantFinderTest extends EngineTestCase {
 }
 
 
+@ReflectiveTestCase()
 class ConstantValueComputerTest extends ResolverTestCase {
   void test_annotation_constConstructor() {
     CompilationUnit compilationUnit = resolveSource(r'''
@@ -4744,6 +4750,7 @@ class ConstantValueComputerTest_ValidatingConstantVisitor extends
 }
 
 
+@ReflectiveTestCase()
 class ConstantVisitorTest extends ResolverTestCase {
   void test_visitConditionalExpression_false() {
     Expression thenExpression = AstFactory.integer(1);
@@ -4915,6 +4922,7 @@ const b = 3;''');
 }
 
 
+@ReflectiveTestCase()
 class ContentCacheTest {
   void test_setContents() {
     Source source = new TestSource();
@@ -4934,6 +4942,7 @@ class ContentCacheTest {
 }
 
 
+@ReflectiveTestCase()
 class DartObjectImplTest extends EngineTestCase {
   TypeProvider _typeProvider = new TestTypeProvider();
 
@@ -7182,6 +7191,7 @@ class DartObjectImplTest extends EngineTestCase {
 }
 
 
+@ReflectiveTestCase()
 class DartUriResolverTest {
   void test_creation() {
     JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
@@ -7227,6 +7237,7 @@ class DartUriResolverTest {
 }
 
 
+@ReflectiveTestCase()
 class DeclaredVariablesTest extends EngineTestCase {
   void test_getBool_false() {
     TestTypeProvider typeProvider = new TestTypeProvider();
@@ -7328,6 +7339,7 @@ class DeclaredVariablesTest extends EngineTestCase {
 }
 
 
+@ReflectiveTestCase()
 class DirectoryBasedDartSdkTest {
   void fail_getDocFileFor() {
     DirectoryBasedDartSdk sdk = _createDartSdk();
@@ -7440,6 +7452,7 @@ class DirectoryBasedDartSdkTest {
 }
 
 
+@ReflectiveTestCase()
 class DirectoryBasedSourceContainerTest {
   void test_contains() {
     JavaFile dir = FileUtilities2.createFile("/does/not/exist");
@@ -7459,6 +7472,7 @@ class DirectoryBasedSourceContainerTest {
 }
 
 
+@ReflectiveTestCase()
 class ElementBuilderTest extends EngineTestCase {
   void test_visitCatchClause() {
     ElementHolder holder = new ElementHolder();
@@ -8715,6 +8729,7 @@ class ElementBuilderTest extends EngineTestCase {
 }
 
 
+@ReflectiveTestCase()
 class ElementLocatorTest extends ResolverTestCase {
   void fail_locate_ExportDirective() {
     AstNode id = _findNodeIn("export", "export 'dart:core';");
@@ -9185,6 +9200,7 @@ core.int value;''');
 }
 
 
+@ReflectiveTestCase()
 class EnumMemberBuilderTest extends EngineTestCase {
   void test_visitEnumDeclaration_multiple() {
     String firstName = "ONE";
@@ -9267,6 +9283,7 @@ class EnumMemberBuilderTest extends EngineTestCase {
 }
 
 
+@ReflectiveTestCase()
 class ErrorReporterTest extends EngineTestCase {
   /**
    * Create a type with the given name in a compilation unit with the given name.
@@ -9319,6 +9336,7 @@ class ErrorReporterTest extends EngineTestCase {
 }
 
 
+@ReflectiveTestCase()
 class ErrorSeverityTest extends EngineTestCase {
   void test_max_error_error() {
     expect(
@@ -9376,6 +9394,7 @@ class ErrorSeverityTest extends EngineTestCase {
 }
 
 
+@ReflectiveTestCase()
 class ExitDetectorTest extends ParserTestCase {
   void fail_doStatement_continue_with_label() {
     _assertFalse("{ x: do { continue x; } while(true); }");
@@ -9877,6 +9896,7 @@ class ExpressionVisitor_AngularTest_verify extends ExpressionVisitor {
 }
 
 
+@ReflectiveTestCase()
 class FileBasedSourceTest {
   void test_equals_false_differentFiles() {
     JavaFile file1 = FileUtilities2.createFile("/does/not/exist1.dart");
@@ -10093,6 +10113,7 @@ class FileBasedSourceTest {
 }
 
 
+@ReflectiveTestCase()
 class FileUriResolverTest {
   void test_creation() {
     expect(new FileUriResolver(), isNotNull);
@@ -10117,6 +10138,7 @@ class FileUriResolverTest {
 }
 
 
+@ReflectiveTestCase()
 class HtmlParserTest extends EngineTestCase {
   /**
    * The name of the 'script' tag in an HTML file.
@@ -10300,6 +10322,7 @@ $scriptBody
 }
 
 
+@ReflectiveTestCase()
 class HtmlTagInfoBuilderTest extends HtmlParserTest {
   void test_builder() {
     HtmlTagInfoBuilder builder = new HtmlTagInfoBuilder();
@@ -10323,6 +10346,7 @@ class HtmlTagInfoBuilderTest extends HtmlParserTest {
 }
 
 
+@ReflectiveTestCase()
 class HtmlUnitBuilderTest extends EngineTestCase {
   AnalysisContextImpl _context;
   @override
@@ -10460,6 +10484,7 @@ class HtmlUnitBuilderTest_ExpectedVariable {
 /**
  * Instances of the class `HtmlWarningCodeTest` test the generation of HTML warning codes.
  */
+@ReflectiveTestCase()
 class HtmlWarningCodeTest extends EngineTestCase {
   /**
    * The source factory used to create the sources to be resolved.
@@ -10570,6 +10595,7 @@ class MockDartSdk implements DartSdk {
 }
 
 
+@ReflectiveTestCase()
 class ReferenceFinderTest extends EngineTestCase {
   DirectedGraph<AstNode> _referenceGraph;
   Map<VariableElement, VariableDeclaration> _variableDeclarationMap;
@@ -10732,6 +10758,7 @@ class ReferenceFinderTest extends EngineTestCase {
 }
 
 
+@ReflectiveTestCase()
 class SDKLibrariesReaderTest extends EngineTestCase {
   void test_readFrom_dart2js() {
     LibraryMap libraryMap = new SdkLibrariesReader(
@@ -10803,6 +10830,7 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
 }
 
 
+@ReflectiveTestCase()
 class SourceFactoryTest {
   void test_creation() {
     expect(new SourceFactory([]), isNotNull);
@@ -10870,6 +10898,7 @@ class SourceFactoryTest {
 }
 
 
+@ReflectiveTestCase()
 class StringScannerTest extends AbstractScannerTest {
   @override
   ht.AbstractScanner newScanner(String input) {
@@ -10881,6 +10910,7 @@ class StringScannerTest extends AbstractScannerTest {
 /**
  * Instances of the class `ToSourceVisitorTest`
  */
+@ReflectiveTestCase()
 class ToSourceVisitorTest extends EngineTestCase {
   void fail_visitHtmlScriptTagNode_attributes_content() {
     _assertSource(
@@ -10935,6 +10965,7 @@ class ToSourceVisitorTest extends EngineTestCase {
 }
 
 
+@ReflectiveTestCase()
 class UriKindTest {
   void test_fromEncoding() {
     expect(UriKind.fromEncoding(0x64), same(UriKind.DART_URI));
