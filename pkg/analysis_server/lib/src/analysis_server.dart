@@ -282,7 +282,14 @@ class AnalysisServer {
       }
     }
     // check if there is a context that analyzed this source
-    Source source = getSource(path);
+    return getAnalysisContextForSource(getSource(path));
+  }
+
+  /**
+   * Return the [AnalysisContext] that is used to analyze the given [source].
+   * Return `null` if there is no such context.
+   */
+  AnalysisContext getAnalysisContextForSource(Source source) {
     for (AnalysisContext context in folderMap.values) {
       SourceKind kind = context.getKindOf(source);
       if (kind != null) {

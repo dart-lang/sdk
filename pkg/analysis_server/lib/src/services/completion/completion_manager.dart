@@ -75,13 +75,22 @@ abstract class CompletionManager {
   }
 
   /**
+   * Compute and cache information in preparation for a possible code
+   * completion request sometime in the future. The default implementation
+   * of this method does nothing. Subclasses may override but should not
+   * count on this method being called before [computeSuggestions].
+   */
+  void computeCache() {
+  }
+
+  /**
    * Compute completion results for the given reqeust and append them to the stream.
    * Clients should not call this method directly as it is automatically called
    * when a client listens to the stream returned by [results].
    * Subclasses should override this method, append at least one result
    * to the [controller], and close the controller stream once complete.
    */
-  void compute(CompletionRequest request);
+  void computeSuggestions(CompletionRequest request);
 
   /**
    * Generate a stream of code completion results.
@@ -89,7 +98,7 @@ abstract class CompletionManager {
   Stream<CompletionResult> results(CompletionRequest request) {
     controller = new StreamController<CompletionResult>(onListen: () {
       scheduleMicrotask(() {
-        compute(request);
+        computeSuggestions(request);
       });
     });
     return controller.stream;
@@ -198,7 +207,7 @@ class NoOpCompletionManager extends CompletionManager {
   NoOpCompletionManager(Source source) : super(null, source);
 
   @override
-  void compute(CompletionRequest request) {
+  void computeSuggestions(CompletionRequest request) {
     controller.add(new CompletionResult(request.offset, 0, [], true));
   }
 }

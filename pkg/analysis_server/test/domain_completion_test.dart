@@ -132,22 +132,6 @@ class CompletionManagerTest extends AbstractAnalysisTest {
   }
 
   /**
-   * Assert manager is cleared when analysis roots are set
-   */
-  test_setAnalysisRoots() {
-    sendRequest(testFile);
-    return pumpEventQueue().then((_) {
-      expect(completionDomain.manager, isNotNull);
-      request = new AnalysisSetAnalysisRootsParams([], []).toRequest('7');
-      Response response = analysisDomain.handleRequest(request);
-      expect(response, isResponseSuccess('7'));
-      return pumpEventQueue();
-    }).then((_) {
-      expect(completionDomain.manager, isNull);
-    });
-  }
-
-  /**
    * Assert manager is NOT cleared when context NOT associated with manager changes.
    */
   test_contextsChanged_different() {
@@ -173,6 +157,22 @@ class CompletionManagerTest extends AbstractAnalysisTest {
       expect(completionDomain.manager, isNotNull);
       completionDomain.contextsChangedRaw(
           new ContextsChangedEvent(changed: [completionDomain.mockContext]));
+      return pumpEventQueue();
+    }).then((_) {
+      expect(completionDomain.manager, isNull);
+    });
+  }
+
+  /**
+   * Assert manager is cleared when analysis roots are set
+   */
+  test_setAnalysisRoots() {
+    sendRequest(testFile);
+    return pumpEventQueue().then((_) {
+      expect(completionDomain.manager, isNotNull);
+      request = new AnalysisSetAnalysisRootsParams([], []).toRequest('7');
+      Response response = analysisDomain.handleRequest(request);
+      expect(response, isResponseSuccess('7'));
       return pumpEventQueue();
     }).then((_) {
       expect(completionDomain.manager, isNull);
@@ -443,7 +443,12 @@ class MockCompletionManager implements CompletionManager {
       this.cache);
 
   @override
-  void compute(CompletionRequest request) {
+  void computeCache() {
+    // ignored
+  }
+
+  @override
+  void computeSuggestions(CompletionRequest request) {
     ++computeCallCount;
     CompletionResult result = new CompletionResult(0, 0, [], true);
     controller.add(result);
@@ -453,7 +458,7 @@ class MockCompletionManager implements CompletionManager {
   Stream<CompletionResult> results(CompletionRequest request) {
     controller = new StreamController<CompletionResult>(onListen: () {
       scheduleMicrotask(() {
-        compute(request);
+        computeSuggestions(request);
       });
     });
     return controller.stream;

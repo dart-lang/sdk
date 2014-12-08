@@ -53,6 +53,7 @@ class CompletionDomainHandler implements RequestHandler {
    */
   CompletionDomainHandler(this.server) {
     server.onContextsChanged.listen(contextsChanged);
+    server.onPriorityChange.listen(priorityChanged);
   }
 
   /**
@@ -111,6 +112,22 @@ class CompletionDomainHandler implements RequestHandler {
       return exception.response;
     }
     return null;
+  }
+
+  /**
+   * If the set the priority files has changed, then pre-cache completion
+   * information related to the first priority file.
+   */
+  void priorityChanged(PriorityChangeEvent event) {
+    Source source = event.firstSource;
+    if (source == null) {
+      return;
+    }
+    AnalysisContext context = server.getAnalysisContextForSource(source);
+    if (context == null) {
+      return;
+    }
+    completionManagerFor(context, source).computeCache();
   }
 
   /**

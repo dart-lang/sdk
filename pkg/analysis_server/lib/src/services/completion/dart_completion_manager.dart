@@ -81,7 +81,7 @@ class DartCompletionManager extends CompletionManager {
   }
 
   @override
-  void compute(CompletionRequest completionRequest) {
+  void computeSuggestions(CompletionRequest completionRequest) {
     DartCompletionRequest request = new DartCompletionRequest(
         context,
         searchEngine,
