@@ -74,8 +74,7 @@ class CompletionDomainHandler implements RequestHandler {
       }
       _discardManager();
     }
-    _manager =
-        createCompletionManager(context, source, server.searchEngine, null);
+    _manager = createCompletionManager(context, source, server.searchEngine);
     if (context != null) {
       _sourcesChangedSubscription =
           context.onSourcesChanged.listen(sourcesChanged);
@@ -97,8 +96,8 @@ class CompletionDomainHandler implements RequestHandler {
   }
 
   CompletionManager createCompletionManager(AnalysisContext context,
-      Source source, SearchEngine searchEngine, CompletionCache cache) {
-    return new CompletionManager.create(context, source, searchEngine, cache);
+      Source source, SearchEngine searchEngine) {
+    return new CompletionManager.create(context, source, searchEngine);
   }
 
   @override

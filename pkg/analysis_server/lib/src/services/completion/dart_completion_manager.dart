@@ -67,17 +67,12 @@ class DartCompletionManager extends CompletionManager {
    * Create a new initialized Dart source completion manager
    */
   factory DartCompletionManager.create(AnalysisContext context,
-      SearchEngine searchEngine, Source source, CompletionCache oldCache) {
-    DartCompletionCache newCache;
-    if (oldCache is DartCompletionCache) {
-      if (oldCache.context == context && oldCache.source == source) {
-        newCache = oldCache;
-      }
-    }
-    if (newCache == null) {
-      newCache = new DartCompletionCache(context, source);
-    }
-    return new DartCompletionManager(context, searchEngine, source, newCache);
+      SearchEngine searchEngine, Source source) {
+    return new DartCompletionManager(
+        context,
+        searchEngine,
+        source,
+        new DartCompletionCache(context, source));
   }
 
   @override

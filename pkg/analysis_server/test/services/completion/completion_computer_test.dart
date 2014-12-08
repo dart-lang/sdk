@@ -44,7 +44,6 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
   Index index;
   SearchEngineImpl searchEngine;
   Source source;
-  CompletionCache cache;
   CompletionPerformance perf;
   DartCompletionManager manager;
   MockCompletionComputer computer1;
@@ -64,10 +63,8 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     index = createLocalMemoryIndex();
     searchEngine = new SearchEngineImpl(index);
     source = addSource('/does/not/exist.dart', '');
-    cache = null;
     perf = new CompletionPerformance();
-    manager =
-        new DartCompletionManager.create(context, searchEngine, source, cache);
+    manager = new DartCompletionManager.create(context, searchEngine, source);
     suggestion1 = new CompletionSuggestion(
         CompletionSuggestionKind.INVOCATION,
         CompletionRelevance.DEFAULT,

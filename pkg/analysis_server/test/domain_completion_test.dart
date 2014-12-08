@@ -435,12 +435,10 @@ class MockCompletionManager implements CompletionManager {
   final AnalysisContext context;
   final Source source;
   final SearchEngine searchEngine;
-  CompletionCache cache;
   StreamController<CompletionResult> controller;
   int computeCallCount = 0;
 
-  MockCompletionManager(this.context, this.source, this.searchEngine,
-      this.cache);
+  MockCompletionManager(this.context, this.source, this.searchEngine);
 
   @override
   void computeCache() {
@@ -558,7 +556,7 @@ class Test_CompletionDomainHandler extends CompletionDomainHandler {
   }
 
   CompletionManager createCompletionManager(AnalysisContext context,
-      Source source, SearchEngine searchEngine, CompletionCache cache) {
-    return new MockCompletionManager(mockContext, source, searchEngine, cache);
+      Source source, SearchEngine searchEngine) {
+    return new MockCompletionManager(mockContext, source, searchEngine);
   }
 }

@@ -57,14 +57,10 @@ abstract class CompletionManager {
    * Create a manager for the given request.
    */
   factory CompletionManager.create(AnalysisContext context, Source source,
-      SearchEngine searchEngine, CompletionCache cache) {
+      SearchEngine searchEngine) {
     if (context != null) {
       if (AnalysisEngine.isDartFileName(source.shortName)) {
-        return new DartCompletionManager.create(
-            context,
-            searchEngine,
-            source,
-            cache);
+        return new DartCompletionManager.create(context, searchEngine, source);
       }
       if (AnalysisEngine.isHtmlFileName(source.shortName)) {
         //TODO (danrubel) implement
