@@ -41,7 +41,9 @@ DEFINE_FLAG(int, inlining_caller_size_threshold, 50000,
 DEFINE_FLAG(int, inlining_constant_arguments_count, 1,
     "Inline function calls with sufficient constant arguments "
     "and up to the increased threshold on instructions");
-DEFINE_FLAG(int, inlining_constant_arguments_size_threshold, 60,
+DEFINE_FLAG(int, inlining_constant_arguments_max_size_threshold, 200,
+    "Do not inline callees larger than threshold if constant arguments");
+DEFINE_FLAG(int, inlining_constant_arguments_min_size_threshold, 60,
     "Inline function calls with sufficient constant arguments "
     "and up to the increased threshold on instructions");
 DEFINE_FLAG(int, inlining_hotness, 10,
@@ -498,7 +500,11 @@ class CallSiteInliner : public ValueObject {
       // Prevent methods becoming humongous and thus slow to compile.
       return false;
     }
-    if (instr_count > FLAG_inlining_callee_size_threshold) {
+    if (const_arg_count > 0) {
+      if (instr_count > FLAG_inlining_constant_arguments_max_size_threshold) {
+        return false;
+      }
+    } else if (instr_count > FLAG_inlining_callee_size_threshold) {
       return false;
     }
     // 'instr_count' can be 0 if it was not computed yet.
@@ -509,7 +515,7 @@ class CallSiteInliner : public ValueObject {
       return true;
     }
     if ((const_arg_count >= FLAG_inlining_constant_arguments_count) &&
-        (instr_count <= FLAG_inlining_constant_arguments_size_threshold)) {
+        (instr_count <= FLAG_inlining_constant_arguments_min_size_threshold)) {
       return true;
     }
     if (FlowGraphInliner::AlwaysInline(callee)) {
@@ -787,7 +793,8 @@ class CallSiteInliner : public ValueObject {
         // If size is larger than all thresholds, don't consider it again.
         if ((size > FLAG_inlining_size_threshold) &&
             (call_site_count > FLAG_inlining_callee_call_sites_threshold) &&
-            (size > FLAG_inlining_constant_arguments_size_threshold)) {
+            (size > FLAG_inlining_constant_arguments_min_size_threshold) &&
+            (size > FLAG_inlining_constant_arguments_max_size_threshold)) {
           function.set_is_inlinable(false);
         }
         isolate()->set_deopt_id(prev_deopt_id);
