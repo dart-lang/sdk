@@ -146,7 +146,7 @@ final Map<String, String> mockSdkSources = {
   'dart:core': '''
         library dart.core;
 
-        print(Object o) {}
+        void print(Object o) {}
 
         class Object {
           String toString(){}

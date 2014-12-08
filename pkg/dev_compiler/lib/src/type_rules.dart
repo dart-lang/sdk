@@ -5,8 +5,8 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
-import 'type_walker.dart';
 import 'static_info.dart';
+import 'utils.dart';
 
 abstract class TypeRules {
   final TypeProvider provider;
@@ -22,7 +22,6 @@ abstract class TypeRules {
 
   bool isGroundType(DartType t) => true;
 
-  void inferType(VariableDeclaration decl);
   StaticInfo checkAssignment(Expression expr, DartType t);
 
   void setCompilationUnit(CompilationUnit unit) {}
@@ -44,7 +43,6 @@ class DartRules extends TypeRules {
     return t1.isAssignableTo(t2);
   }
 
-  void inferType(VariableDeclaration decl) {}
 
   StaticInfo checkAssignment(Expression expr, DartType toType) {
     final fromType = getStaticType(expr);
@@ -65,28 +63,22 @@ class RestrictedRules extends TypeRules {
   // If true, num is treated as a synonym for double.
   // If false, num is always boxed.
   static const bool primitiveNum = false;
-  RestrictedTypeWalker _typeWalker = null;
   LibraryElement _current = null;
 
   RestrictedRules(TypeProvider provider) : super(provider);
 
   void setCompilationUnit(CompilationUnit unit) {
-    LibraryElement lib = unit.element.enclosingElement;
-    if (lib != _current) {
-      _current = lib;
-      _typeWalker = new RestrictedTypeWalker(provider, _current);
-      unit.visitChildren(_typeWalker);
-    }
+    _current = unit.element.enclosingElement;
   }
 
-  // FIXME: Don't use Dart's static type propagation rules.
   DartType getStaticType(Expression expr) {
-    return _typeWalker.getStaticType(expr);
-    //return super.getStaticType(expr);
-  }
+    var type = expr.staticType;
+    if (type != null) return type;
 
-  void inferType(VariableDeclaration decl) {
-    decl.accept(_typeWalker);
+    print(spanFor(_current.source, expr.offset, expr.end).message(
+          "type analysis didn't compute the type of: $expr ${expr.runtimeType}",
+          color: colorOf('warning')));
+    return provider.dynamicType;
   }
 
   bool isDynamic(DartType t) {
@@ -359,11 +351,9 @@ class RestrictedRules extends TypeRules {
     return null;
   }
 
-  DartType mapGenericType(DartType type) {
-    return _typeWalker.dynamize(type);
-  }
+  DartType mapGenericType(DartType type) => type;
 
   DartType elementType(Element e) {
-    return _typeWalker.baseElementType(e);
+    return (e as dynamic).type;
   }
 }

@@ -3,4 +3,4 @@ set -e
 
 dart -c test/all_tests.dart
 
-ls bin/*.dart lib/*.dart | dartanalyzer -b --fatal-warnings
+ls lib/*.dart bin/*.dart | dartanalyzer -b --fatal-warnings

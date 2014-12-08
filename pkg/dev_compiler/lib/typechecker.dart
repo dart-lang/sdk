@@ -92,6 +92,11 @@ class ProgramChecker extends RecursiveAstVisitor {
     }
   }
 
+  visitComment(Comment node) {
+    // skip, no need to do typechecking inside comments (they may contain
+    // comment references which would require resolution).
+  }
+
   visitAssignmentExpression(AssignmentExpression node) {
     DartType staticType = _rules.getStaticType(node.leftHandSide);
     checkAssignment(node.rightHandSide, staticType);
@@ -332,9 +337,9 @@ class ProgramChecker extends RecursiveAstVisitor {
   visitVariableDeclarationList(VariableDeclarationList node) {
     TypeName type = node.type;
     if (type == null) {
-      // No checks are needed when the type is var, but we can infer from the
-      // RHS a more precise type for the variable declaration.
-      node.variables.forEach(_rules.inferType);
+      // No checks are needed when the type is var. Although internally the
+      // typing rules may have inferred a more precise type for the variable
+      // based on the initializer.
     } else {
       var dartType = getType(type);
       for (VariableDeclaration variable in node.variables) {

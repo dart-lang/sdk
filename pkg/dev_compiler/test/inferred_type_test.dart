@@ -43,9 +43,9 @@ main() {
 
       test() {
         var a = new A();
-        A b = a;        // doesn't require down cast
-        print(a.x);     // doesn't require dynamic invoke
-        print(a.x + 2); // ok to use in bigger expression
+        A b = a;                      // doesn't require down cast
+        print(/*config:Box*/a.x);     // doesn't require dynamic invoke
+        print(/*config:Box*/a.x + 2); // ok to use in bigger expression
       }
     '''});
 
@@ -65,8 +65,6 @@ main() {
 
   });
 
-  // The following tests are currently failing
-
   test('propagate inference transitively ', () {
     testChecker({'/main.dart': '''
       class A {
@@ -74,8 +72,11 @@ main() {
       }
 
       test5() {
-        var a = new A();
-        a.x = "hi"; // invalid, declared type is `int`, checker should complain
+        var a1 = new A();
+        a1.x = /*severe:StaticTypeError*/"hi";
+
+        A a2 = new A();
+        a2.x = /*severe:StaticTypeError*/"hi";
       }
     '''});
 
@@ -98,9 +99,8 @@ main() {
 
       void main() {
         var d1 = new D();
-        print(/*warning:DynamicInvoke*/(
-                /*warning:DynamicInvoke*/(
-                  /*warning:DynamicInvoke*/(d1.c).b).a).x);
+        print(/*config:Box*/d1.c.b.a.x);
+
         D d2 = new D();
         print(/*config:Box*/d2.c.b.a.x);  
       }
