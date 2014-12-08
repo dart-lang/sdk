@@ -199,7 +199,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visitSetClosureVariable(cps_ir.SetClosureVariable node) {
     String dummy = names.name(node);
-    String variable = node.variable.name;
+    String variable = names.name(node.variable.definition);
     String value = formatReference(node.value);
     printStmt(dummy, 'SetClosureVariable $variable = $value');
     visit(node.body);
@@ -207,7 +207,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visitDeclareFunction(cps_ir.DeclareFunction node) {
     String dummy = names.name(node);
-    String variable = node.variable.name;
+    String variable = names.name(node.variable.definition);
     printStmt(dummy, 'DeclareFunction $variable');
     visit(node.body);
   }
@@ -229,6 +229,10 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visitParameter(cps_ir.Parameter node) {
     return "Parameter ${names.name(node)}";
+  }
+
+  visitClosureVariable(cps_ir.ClosureVariable node) {
+    return "ClosureVariable ${names.name(node)}";
   }
 
   visitContinuation(cps_ir.Continuation node) {
@@ -258,7 +262,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   }
 
   visitGetClosureVariable(cps_ir.GetClosureVariable node) {
-    String variable = node.variable.name;
+    String variable = names.name(node.variable.definition);
     return 'GetClosureVariable $variable';
   }
 
@@ -282,13 +286,15 @@ class Names {
     'r': 0,
     'B': 0,
     'v': 0,
-    'x': 0
+    'x': 0,
+    'c': 0
   };
 
   String prefix(x) {
     if (x is cps_ir.Parameter) return 'r';
     if (x is cps_ir.Continuation || x is cps_ir.FunctionDefinition) return 'B';
     if (x is cps_ir.Primitive) return 'v';
+    if (x is cps_ir.ClosureVariable) return 'c';
     return 'x';
   }
 

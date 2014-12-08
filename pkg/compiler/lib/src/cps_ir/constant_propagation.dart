@@ -308,7 +308,7 @@ class _ConstPropagationVisitor extends Visitor {
   }
 
   void visitFunctionDefinition(FunctionDefinition node) {
-    node.parameters.forEach(visitParameter);
+    node.parameters.forEach(visit);
     setReachable(node.body);
   }
 
@@ -584,6 +584,9 @@ class _ConstPropagationVisitor extends Visitor {
 
   void visitGetClosureVariable(GetClosureVariable node) {
     setValue(node, _ConstnessLattice.NonConst);
+  }
+
+  void visitClosureVariable(ClosureVariable node) {
   }
 
   void visitParameter(Parameter node) {

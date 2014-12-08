@@ -25,6 +25,7 @@ main() {
 }
 
 checkResult(TestSpec result) {
+  if (result.skipInAnalyzerFrontend) return;
   String input = result.input.trim();
   CollectingOutputProvider outputProvider = new CollectingOutputProvider();
   MemoryResourceProvider provider = new MemoryResourceProvider();

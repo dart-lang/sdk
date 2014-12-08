@@ -87,7 +87,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
       function.parameters.forEach((analyzer.ParameterElement parameter) {
         // TODO(johnniwinther): Support "closure variables", that is variables
         // accessed from an inner function.
-        irBuilder.createParameter(converter.convertElement(parameter));
+        irBuilder.createFunctionParameter(converter.convertElement(parameter));
       });
       // Visit the body directly to avoid processing the signature as
       // expressions.

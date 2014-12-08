@@ -27,6 +27,10 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
     return namer.useElementName(node);
   }
 
+  String visitClosureVariable(ClosureVariable node) {
+    return namer.getName(node);
+  }
+
   /// Main entry point for creating a [String] from a [Node].  All recursive
   /// calls must go through this method.
   String visit(Node node) {
@@ -37,10 +41,13 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   String visitFunctionDefinition(FunctionDefinition node) {
     String name = node.element.name;
     namer.useReturnName(node.returnContinuation);
+    String closureVariables = node.closureVariables.isEmpty
+        ? ''
+        : '{${node.closureVariables.map(namer.defineClosureName).join(' ')}} ';
     String parameters = node.parameters.map(visit).join(' ');
     String body = indentBlock(() => visit(node.body));
-    return '$indentation(FunctionDefinition $name ($parameters return)\n'
-           '$body)';
+    return '$indentation(FunctionDefinition $name $closureVariables'
+           '($parameters return)\n$body)';
   }
 
   String visitFieldDefinition(FieldDefinition node) {
@@ -169,14 +176,14 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   }
 
   String visitGetClosureVariable(GetClosureVariable node) {
-    return '(GetClosureVariable ${node.variable.name})';
+    return '(GetClosureVariable ${visit(node.variable.definition)})';
   }
 
   String visitSetClosureVariable(SetClosureVariable node) {
     String value = access(node.value);
     String body = indentBlock(() => visit(node.body));
-    return '$indentation(SetClosureVariable ${node.variable.name} $value\n'
-           '$body)';
+    return '$indentation(SetClosureVariable ${visit(node.variable.definition)} '
+           '$value\n$body)';
   }
 
   String visitTypeOperator(TypeOperator node) {
@@ -200,7 +207,8 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   String visitDeclareFunction(DeclareFunction node) {
     String function = indentBlock(() => visit(node.definition));
     String body = indentBlock(() => visit(node.body));
-    return '$indentation(DeclareFunction ${node.variable.name} =\n'
+    String name = namer.getName(node.variable.definition);
+    return '$indentation(DeclareFunction $name =\n'
            '$function in\n'
            '$body)';
   }
@@ -225,6 +233,11 @@ class _Namer {
   String useElementName(Parameter parameter) {
     assert(!_names.containsKey(parameter));
     return _names[parameter] = parameter.hint.name;
+  }
+
+  String defineClosureName(ClosureVariable variable) {
+    assert(!_names.containsKey(variable));
+    return _names[variable] = variable.hint.name;
   }
 
   String defineContinuationName(Node node) {

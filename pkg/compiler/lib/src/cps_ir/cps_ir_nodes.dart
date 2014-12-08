@@ -310,8 +310,7 @@ class ConcatenateStrings extends Expression {
   accept(Visitor visitor) => visitor.visitConcatenateStrings(this);
 }
 
-/// Gets the value from a closure variable. The identity of the variable is
-/// determined by a [Local].
+/// Gets the value from a closure variable.
 ///
 /// Closure variables can be seen as ref cells that are not first-class values.
 /// A [LetPrim] with a [GetClosureVariable] can then be seen as:
@@ -319,17 +318,15 @@ class ConcatenateStrings extends Expression {
 ///   let prim p = ![variable] in [body]
 ///
 class GetClosureVariable extends Primitive {
-  final Local variable;
+  final Reference<ClosureVariable> variable;
 
-  GetClosureVariable(this.variable) {
-    assert(variable != null);
-  }
+  GetClosureVariable(ClosureVariable variable)
+      : this.variable = new Reference<ClosureVariable>(variable);
 
   accept(Visitor visitor) => visitor.visitGetClosureVariable(this);
 }
 
-/// Assign or declare a closure variable. The identity of the variable is
-/// determined by a [Local].
+/// Assign or declare a closure variable.
 ///
 /// Closure variables can be seen as ref cells that are not first-class values.
 /// If [isDeclaration], this can seen as a let binding:
@@ -343,7 +340,7 @@ class GetClosureVariable extends Primitive {
 /// Closure variables without a declaring [SetClosureVariable] are implicitly
 /// declared at the entry to the [variable]'s enclosing function.
 class SetClosureVariable extends Expression implements InteriorNode {
-  final Local variable;
+  final Reference<ClosureVariable> variable;
   final Reference<Primitive> value;
   Expression body;
 
@@ -355,11 +352,10 @@ class SetClosureVariable extends Expression implements InteriorNode {
   /// avoid declaring closure variables if it is not necessary.
   final bool isDeclaration;
 
-  SetClosureVariable(this.variable, Primitive value,
+  SetClosureVariable(ClosureVariable variable, Primitive value,
                      {this.isDeclaration : false })
-      : this.value = new Reference<Primitive>(value) {
-    assert(variable != null);
-  }
+      : this.value = new Reference<Primitive>(value),
+        this.variable = new Reference<ClosureVariable>(variable);
 
   accept(Visitor visitor) => visitor.visitSetClosureVariable(this);
 
@@ -378,11 +374,12 @@ class SetClosureVariable extends Expression implements InteriorNode {
 ///   let rec [variable] = [definition] in [body]
 ///
 class DeclareFunction extends Expression implements InteriorNode {
-  final Local variable;
+  final Reference<ClosureVariable> variable;
   final FunctionDefinition definition;
   Expression body;
 
-  DeclareFunction(this.variable, this.definition);
+  DeclareFunction(ClosureVariable variable, this.definition)
+      : this.variable = new Reference<ClosureVariable>(variable);
 
   Expression plug(Expression expr) {
     assert(body == null);
@@ -594,28 +591,44 @@ class FieldDefinition extends Node
   bool get hasInitializer => body != null;
 }
 
+/// Identifies a closure variable.
+class ClosureVariable extends Definition {
+  /// Body of code that declares this closure variable.
+  ExecutableElement host;
+  Entity hint;
+
+  ClosureVariable(this.host, this.hint);
+
+  accept(Visitor v) => v.visitClosureVariable(this);
+}
+
 /// A function definition, consisting of parameters and a body.  The parameters
 /// include a distinguished continuation parameter.
 class FunctionDefinition extends Node
     implements InteriorNode, ExecutableDefinition {
   final FunctionElement element;
   final Continuation returnContinuation;
-  final List<Parameter> parameters;
+  /// Mixed list of [Parameter]s and [ClosureVariable]s.
+  final List<Definition> parameters;
   Expression body;
   final List<ConstDeclaration> localConstants;
 
   /// Values for optional parameters.
   final List<ConstantExpression> defaultParameterValues;
 
+  /// Closure variables declared by this function.
+  final List<ClosureVariable> closureVariables;
+
   FunctionDefinition(this.element, this.returnContinuation,
       this.parameters, this.body, this.localConstants,
-      this.defaultParameterValues);
+      this.defaultParameterValues, this.closureVariables);
 
   FunctionDefinition.abstract(this.element,
                               this.parameters,
                               this.defaultParameterValues)
       : this.returnContinuation = null,
-        this.localConstants = const <ConstDeclaration>[];
+        this.localConstants = const <ConstDeclaration>[],
+        this.closureVariables = const <ClosureVariable>[];
 
   accept(Visitor visitor) => visitor.visitFunctionDefinition(this);
   applyPass(Pass pass) => pass.rewriteFunctionDefinition(this);
@@ -670,6 +683,7 @@ abstract class Visitor<T> {
   T visitGetClosureVariable(GetClosureVariable node) => visitPrimitive(node);
   T visitParameter(Parameter node) => visitPrimitive(node);
   T visitContinuation(Continuation node) => visitDefinition(node);
+  T visitClosureVariable(ClosureVariable node) => visitDefinition(node);
 
   // Conditions.
   T visitIsTrue(IsTrue node) => visitCondition(node);
@@ -704,7 +718,7 @@ abstract class RecursiveVisitor extends Visitor {
   processFunctionDefinition(FunctionDefinition node) {}
   visitFunctionDefinition(FunctionDefinition node) {
     processFunctionDefinition(node);
-    node.parameters.forEach(visitParameter);
+    node.parameters.forEach(visit);
     if (!node.isAbstract) {
       visit(node.body);
     }
@@ -830,9 +844,15 @@ abstract class RecursiveVisitor extends Visitor {
     visit(node.definition);
   }
 
+  processClosureVariable(node) {}
+  visitClosureVariable(ClosureVariable node) {
+    processClosureVariable(node);
+  }
+
   processGetClosureVariable(GetClosureVariable node) {}
-  visitGetClosureVariable(GetClosureVariable node) =>
-      processGetClosureVariable(node);
+  visitGetClosureVariable(GetClosureVariable node) {
+    processGetClosureVariable(node);
+  }
 
   processParameter(Parameter node) {}
   visitParameter(Parameter node) => processParameter(node);
@@ -929,7 +949,12 @@ class RegisterAllocator extends Visitor {
     if (!node.isAbstract) {
       visit(node.body);
     }
-    node.parameters.forEach(allocate); // Assign indices to unused parameters.
+    // Assign indices to unused parameters.
+    for (Definition param in node.parameters) {
+      if (param is Primitive) {
+        allocate(param);
+      }
+    }
   }
 
   void visitLetPrim(LetPrim node) {

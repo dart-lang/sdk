@@ -175,32 +175,37 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     });
   }
 
+  ir.FunctionDefinition _makeFunctionBody(FunctionElement element,
+                                          ast.FunctionExpression node) {
+    FunctionSignature signature = element.functionSignature;
+    signature.orderedForEachParameter((ParameterElement parameterElement) {
+      irBuilder.createFunctionParameter(parameterElement);
+    });
+
+    List<ConstantExpression> defaults = new List<ConstantExpression>();
+    signature.orderedOptionalParameters.forEach((ParameterElement element) {
+      defaults.add(getConstantForVariable(element));
+    });
+
+    visit(node.body);
+
+    return irBuilder.makeFunctionDefinition(defaults);
+  }
+
   ir.FunctionDefinition buildFunction(FunctionElement element) {
     assert(invariant(element, element.isImplementation));
-    ast.FunctionExpression function = element.node;
-    assert(function != null);
-    assert(elements[function] != null);
+    ast.FunctionExpression node = element.node;
+    assert(node != null);
+    assert(elements[node] != null);
 
     DetectClosureVariables closureLocals = new DetectClosureVariables(elements);
-    closureLocals.visit(function);
+    closureLocals.visit(node);
 
-    return withBuilder(
-        new IrBuilder(compiler.backend.constantSystem,
-                      element, closureLocals.usedFromClosure),
-        () {
-      FunctionSignature signature = element.functionSignature;
-      signature.orderedForEachParameter((ParameterElement parameterElement) {
-        irBuilder.createParameter(parameterElement);
-      });
+    IrBuilder builder = new IrBuilder(compiler.backend.constantSystem,
+                                      element,
+                                      closureLocals.usedFromClosure);
 
-      List<ConstantExpression> defaults = new List<ConstantExpression>();
-      signature.orderedOptionalParameters.forEach((ParameterElement element) {
-        defaults.add(getConstantForVariable(element));
-      });
-
-      visit(function.body);
-      return irBuilder.makeFunctionDefinition(defaults);
-    });
+    return withBuilder(builder, () => _makeFunctionBody(element, node));
   }
 
   ir.Primitive visit(ast.Node node) => node.accept(this);
@@ -844,7 +849,12 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   }
 
   ir.FunctionDefinition makeSubFunction(ast.FunctionExpression node) {
-    return buildFunction(elements[node]);
+    FunctionElement element = elements[node];
+    assert(invariant(element, element.isImplementation));
+
+    IrBuilder builder = new IrBuilder.innerFunction(irBuilder, element);
+
+    return withBuilder(builder, () => _makeFunctionBody(element, node));
   }
 
   ir.Primitive visitFunctionExpression(ast.FunctionExpression node) {

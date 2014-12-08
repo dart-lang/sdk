@@ -11,7 +11,11 @@ class TestSpec extends TestSpecBase {
   // A [String] or a [Map<String, String>].
   final output;
 
-  const TestSpec(String input, this.output) : super(input);
+  /// True if the test should be skipped when testing analyzer2dart.
+  final bool skipInAnalyzerFrontend;
+
+  const TestSpec(String input, this.output,
+                 {this.skipInAnalyzerFrontend: false}) : super(input);
 }
 
 const List<Group> TEST_DATA = const [
@@ -1354,5 +1358,29 @@ main(args) {
     (InvokeStatic field v0 k1))
   (InvokeMethod args length  k0))
 '''),
+  ]),
+
+  const Group('Closure variables', const <TestSpec>[
+    const TestSpec('''
+main(x,foo) {
+  print(x);
+  getFoo() => foo;
+  print(getFoo());
+}
+''', '''
+(FunctionDefinition main {foo} (x foo return)
+  (LetCont (k0 v0)
+    (LetPrim v1 (CreateFunction
+      (FunctionDefinition getFoo ( return)
+        (LetPrim v2 (GetClosureVariable foo))
+        (InvokeContinuation return v2))))
+    (LetCont (k1 v3)
+      (LetCont (k2 v4)
+        (LetPrim v5 (Constant NullConstant))
+        (InvokeContinuation return v5))
+      (InvokeStatic print v3 k2))
+    (InvokeMethod v1 call  k1))
+  (InvokeStatic print x k0))
+''', skipInAnalyzerFrontend: true)
   ]),
 ];

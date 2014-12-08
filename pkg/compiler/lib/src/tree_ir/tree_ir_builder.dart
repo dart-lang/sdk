@@ -49,9 +49,9 @@ class Builder extends cps_ir.Visitor<Node> {
   final Map<Element, List<Variable>> element2variables =
       <Element,List<Variable>>{};
 
-  /// Like [element2variables], except for closure variables. Closure variables
-  /// are not subject to SSA, so at most one variable is used per local.
-  final Map<Local, Variable> local2closure = <Local, Variable>{};
+  /// Like [element2variables], except for closure variables.
+  final Map<cps_ir.ClosureVariable, Variable> local2closure =
+      <cps_ir.ClosureVariable, Variable>{};
 
   // Continuations with more than one use are replaced with Tree labels.  This
   // is the mapping from continuations to labels.
@@ -72,16 +72,12 @@ class Builder extends cps_ir.Visitor<Node> {
   /// variables.
   Variable phiTempVar;
 
-  Variable getClosureVariable(Local local) {
-    if (local.executableContext != currentElement) {
-      return parent.getClosureVariable(local);
+  Variable getClosureVariable(cps_ir.ClosureVariable irVariable) {
+    if (irVariable.host != currentElement) {
+      return parent.getClosureVariable(irVariable);
     }
-    Variable variable = local2closure[local];
-    if (variable == null) {
-      variable = new Variable(currentElement, local);
-      local2closure[local] = variable;
-    }
-    return variable;
+    return local2closure.putIfAbsent(irVariable,
+        () => new Variable(currentElement, irVariable.hint));
   }
 
   /// Obtains the variable representing the given primitive. Returns null for
@@ -90,11 +86,8 @@ class Builder extends cps_ir.Visitor<Node> {
     if (primitive.registerIndex == null) {
       return null; // variable is unused
     }
-    List<Variable> variables = element2variables[primitive.hint];
-    if (variables == null) {
-      variables = <Variable>[];
-      element2variables[primitive.hint] = variables;
-    }
+    List<Variable> variables = element2variables.putIfAbsent(primitive.hint,
+        () => <Variable>[]);
     while (variables.length <= primitive.registerIndex) {
       variables.add(new Variable(currentElement, primitive.hint));
     }
@@ -138,11 +131,19 @@ class Builder extends cps_ir.Visitor<Node> {
     return new FieldDefinition(node.element, body);
   }
 
+  Variable getFunctionParameter(cps_ir.Definition variable) {
+    if (variable is cps_ir.Parameter) {
+      return getVariable(variable);
+    } else {
+      return getClosureVariable(variable as cps_ir.ClosureVariable);
+    }
+  }
+
   FunctionDefinition buildFunction(cps_ir.FunctionDefinition node) {
     currentElement = node.element;
     List<Variable> parameters = <Variable>[];
-    for (cps_ir.Parameter p in node.parameters) {
-      Variable parameter = getVariable(p);
+    for (cps_ir.Definition p in node.parameters) {
+      Variable parameter = getFunctionParameter(p);
       assert(parameter != null);
       ++parameter.writeCount; // Being a parameter counts as a write.
       parameters.add(parameter);
@@ -348,18 +349,18 @@ class Builder extends cps_ir.Visitor<Node> {
   }
 
   Expression visitGetClosureVariable(cps_ir.GetClosureVariable node) {
-    return getClosureVariable(node.variable);
+    return getClosureVariable(node.variable.definition);
   }
 
   Statement visitSetClosureVariable(cps_ir.SetClosureVariable node) {
-    Variable variable = getClosureVariable(node.variable);
+    Variable variable = getClosureVariable(node.variable.definition);
     Expression value = getVariableReference(node.value);
     return new Assign(variable, value, visit(node.body),
                       isDeclaration: node.isDeclaration);
   }
 
   Statement visitDeclareFunction(cps_ir.DeclareFunction node) {
-    Variable variable = getClosureVariable(node.variable);
+    Variable variable = getClosureVariable(node.variable.definition);
     FunctionDefinition function = makeSubFunction(node.definition);
     return new FunctionDeclaration(variable, function, visit(node.body));
   }

@@ -310,7 +310,7 @@ class ParentVisitor extends RecursiveVisitor {
 
   processFunctionDefinition(FunctionDefinition node) {
     node.body.parent = node;
-    node.parameters.forEach((Parameter p) => p.parent = node);
+    node.parameters.forEach((Definition p) => p.parent = node);
   }
 
   // Expressions.

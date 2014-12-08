@@ -177,7 +177,34 @@ abstract class IrBuilderMixin<N> {
   }
 }
 
-/// Shared state between nested builders.
+/// Shared state between IrBuilders of nested functions.
+class IrBuilderClosureState {
+  final Iterable<Entity> closureLocals;
+
+  /// Maps local variables to their corresponding [ClosureVariable] object.
+  final Map<Local, ir.ClosureVariable> local2closure =
+      <Local, ir.ClosureVariable>{};
+
+  /// Maps functions to the list of closure variables declared in that function.
+  final Map<ExecutableElement, List<ir.ClosureVariable>> function2closures =
+      <ExecutableElement, List<ir.ClosureVariable>>{};
+
+  /// Returns the closure variables declared in the given function.
+  List<ir.ClosureVariable> getClosureList(ExecutableElement element) {
+    return function2closures.putIfAbsent(element, () => <ir.ClosureVariable>[]);
+  }
+
+  IrBuilderClosureState(this.closureLocals) {
+    for (Local local in closureLocals) {
+      ExecutableElement context = local.executableContext;
+      ir.ClosureVariable variable = new ir.ClosureVariable(context, local);
+      local2closure[local] = variable;
+      getClosureList(context).add(variable);
+    }
+  }
+}
+
+/// Shared state between delimited IrBuilders within the same function.
 class IrBuilderSharedState {
   final ConstantSystem constantSystem;
 
@@ -189,15 +216,13 @@ class IrBuilderSharedState {
 
   final List<ConstDeclaration> localConstants = <ConstDeclaration>[];
 
-  final Iterable<Entity> closureLocals;
-
   final ExecutableElement currentElement;
 
   final ir.Continuation returnContinuation = new ir.Continuation.retrn();
 
-  IrBuilderSharedState(this.constantSystem,
-                       this.currentElement,
-                       this.closureLocals);
+  final List<ir.Definition> functionParameters = <ir.Definition>[];
+
+  IrBuilderSharedState(this.constantSystem, this.currentElement);
 }
 
 /// A factory for building the cps IR.
@@ -208,6 +233,8 @@ class IrBuilder {
   final List<ir.Parameter> _parameters = <ir.Parameter>[];
 
   final IrBuilderSharedState state;
+
+  final IrBuilderClosureState closure;
 
   /// A map from variable indexes to their values.
   Environment environment;
@@ -242,8 +269,8 @@ class IrBuilder {
   IrBuilder(ConstantSystem constantSystem,
             ExecutableElement currentElement,
             Iterable<Entity> closureLocals)
-      : this.state = new IrBuilderSharedState(
-            constantSystem, currentElement, closureLocals),
+      : this.state = new IrBuilderSharedState(constantSystem, currentElement),
+        this.closure = new IrBuilderClosureState(closureLocals),
         this.environment = new Environment.empty();
 
   /// Construct a delimited visitor for visiting a subtree.
@@ -254,6 +281,7 @@ class IrBuilder {
   /// the built expression is not plugged into the parent's context.
   IrBuilder.delimited(IrBuilder parent)
       : this.state = parent.state,
+        this.closure = parent.closure,
         this.environment = new Environment.from(parent.environment);
 
   /// Construct a visitor for a recursive continuation.
@@ -266,9 +294,18 @@ class IrBuilder {
   /// the same value at all invocation sites.
   IrBuilder.recursive(IrBuilder parent)
       : this.state = parent.state,
+        this.closure = parent.closure,
         this.environment = new Environment.empty() {
-    parent.environment.index2variable.forEach(createParameter);
+    parent.environment.index2variable.forEach(createLocalParameter);
   }
+
+  /// Construct a builder for an inner function.
+  IrBuilder.innerFunction(IrBuilder parent,
+                          ExecutableElement currentElement)
+      : this.state = new IrBuilderSharedState(parent.state.constantSystem,
+                                              currentElement),
+        this.closure = parent.closure,
+        this.environment = new Environment.empty();
 
 
   bool get isOpen => _root == null || _current != null;
@@ -279,22 +316,31 @@ class IrBuilder {
   ///
   /// If `true`, [element] is a [LocalElement].
   bool isClosureVariable(Element element) {
-    return state.closureLocals.contains(element);
+    return closure.closureLocals.contains(element);
+  }
+
+  /// Returns the [ClosureVariable] corresponding to the given variable.
+  /// Returns `null` for non-closure variables.
+  ir.ClosureVariable getClosureVariable(LocalElement element) {
+    return closure.local2closure[element];
+  }
+
+  /// Adds the given parameter to the function currently being built.
+  void createFunctionParameter(ParameterElement parameterElement) {
+    if (isClosureVariable(parameterElement)) {
+      state.functionParameters.add(getClosureVariable(parameterElement));
+    } else {
+      state.functionParameters.add(createLocalParameter(parameterElement));
+    }
   }
 
   /// Create a parameter for [parameterElement] and add it to the current
   /// environment.
-  ///
-  /// [isClosureVariable] marks whether [parameterElement] is accessed from an
-  /// inner function.
-  void createParameter(LocalElement parameterElement) {
+  ir.Parameter createLocalParameter(LocalElement parameterElement) {
     ir.Parameter parameter = new ir.Parameter(parameterElement);
     _parameters.add(parameter);
-    if (isClosureVariable(parameterElement)) {
-      add(new ir.SetClosureVariable(parameterElement, parameter));
-    } else {
-      environment.extend(parameterElement, parameter);
-    }
+    environment.extend(parameterElement, parameter);
+    return parameter;
   }
 
   /// Add the constant [variableElement] to the environment with [value] as its
@@ -315,7 +361,7 @@ class IrBuilder {
       initialValue = buildNullLiteral();
     }
     if (isClosureVariable(variableElement)) {
-      add(new ir.SetClosureVariable(variableElement,
+      add(new ir.SetClosureVariable(getClosureVariable(variableElement),
                                     initialValue,
                                     isDeclaration: true));
     } else {
@@ -331,7 +377,8 @@ class IrBuilder {
                             ir.FunctionDefinition definition) {
     assert(isOpen);
     if (isClosureVariable(functionElement)) {
-      add(new ir.DeclareFunction(functionElement, definition));
+      ir.ClosureVariable variable = getClosureVariable(functionElement);
+      add(new ir.DeclareFunction(variable, definition));
     } else {
       ir.CreateFunction prim = new ir.CreateFunction(definition);
       add(new ir.LetPrim(prim));
@@ -549,7 +596,7 @@ class IrBuilder {
   /// Create a [ir.FunctionDefinition] for [element] using [_root] as the body.
   ///
   /// Parameters must be created before the construction of the body using
-  /// [createParameter].
+  /// [createFunctionParameter].
   ir.FunctionDefinition makeFunctionDefinition(
       List<ConstantExpression> defaults) {
     FunctionElement element = state.currentElement;
@@ -560,12 +607,12 @@ class IrBuilder {
           message: "Local constants for abstract method $element: "
                    "${state.localConstants}"));
       return new ir.FunctionDefinition.abstract(
-                element, _parameters, defaults);
+                element, state.functionParameters, defaults);
     } else {
       _ensureReturn();
       return new ir.FunctionDefinition(
-          element, state.returnContinuation, _parameters, _root,
-          state.localConstants, defaults);
+          element, state.returnContinuation, state.functionParameters, _root,
+          state.localConstants, defaults, closure.getClosureList(element));
     }
   }
 
@@ -684,7 +731,8 @@ class IrBuilder {
   ir.Primitive buildLocalGet(LocalElement local) {
     assert(isOpen);
     if (isClosureVariable(local)) {
-      ir.Primitive result = new ir.GetClosureVariable(local);
+      ir.Primitive result =
+          new ir.GetClosureVariable(getClosureVariable(local));
       add(new ir.LetPrim(result));
       return result;
     } else {
@@ -696,7 +744,7 @@ class IrBuilder {
   ir.Primitive buildLocalSet(LocalElement local, ir.Primitive value) {
     assert(isOpen);
     if (isClosureVariable(local)) {
-      add(new ir.SetClosureVariable(local, value));
+      add(new ir.SetClosureVariable(getClosureVariable(local), value));
     } else {
       value.useElementAsHint(local);
       environment.update(local, value);
@@ -711,7 +759,7 @@ class IrBuilder {
                                     List<ir.Definition> arguments) {
     ir.Primitive receiver;
     if (isClosureVariable(local)) {
-      receiver = new ir.GetClosureVariable(local);
+      receiver = new ir.GetClosureVariable(getClosureVariable(local));
       add(new ir.LetPrim(receiver));
     } else {
       receiver = environment.lookup(local);
