@@ -56,8 +56,10 @@ class PubPackageMapProvider implements PackageMapProvider {
           "Error running pub $PUB_LIST_COMMAND\n$exception\n$stackTrace");
     }
     if (result == null || result.exitCode != 0) {
+      String exitCode =
+          result != null ? 'exit code ${result.exitCode}' : 'null';
       AnalysisEngine.instance.logger.logInformation(
-          "pub $PUB_LIST_COMMAND failed: exit code ${result.exitCode}");
+          "pub $PUB_LIST_COMMAND failed: $exitCode");
       return _error(folder);
     }
     try {
