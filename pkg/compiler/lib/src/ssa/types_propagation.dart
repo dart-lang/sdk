@@ -314,6 +314,17 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     });
   }
 
+  /// Stores a set of valid target classes for the receiver of a given
+  /// instruction.
+  final _validTargetClasses = new Map<HInstruction, _ClassSet>();
+
+  /// Filters out (i.e. returns false for) instances of `noSuchMethod` that are
+  /// known to not forward but throw.
+  bool _excludeNoSuchMethod(Element element) {
+    return element.name != Compiler.NO_SUCH_METHOD ||
+           !backend.isDefaultNoSuchMethodImplementation(element);
+  }
+
   TypeMask visitInvokeDynamic(HInvokeDynamic instruction) {
     if (instruction.isInterceptedCall) {
       // We cannot do the following optimization now, because we have
@@ -341,7 +352,20 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     // Try to specialize the receiver after this call.
     if (receiver.dominatedUsers(instruction).length != 1
         && !selector.isClosureCall) {
-      TypeMask newType = compiler.world.allFunctions.receiverType(selector);
+      var targets = compiler.world.allFunctions.query(selector);
+      _ClassSet classes = new _ClassSet.from(targets, classWorld,
+          filter: _excludeNoSuchMethod);
+      _ClassSet previousClasses = _validTargetClasses[receiver];
+      TypeMask newType;
+      // If we have previous knowledge, we use that to compute the typemask.
+      // Otherwise, we have to use `targets` to also include the noSuchMethod
+      // handlers, which are filtered out of `classes`.
+      if (previousClasses != null) {
+        classes = previousClasses.intersect(classes);
+        newType = classes.computeMask();
+      } else {
+        newType = targets.computeMask(classWorld);
+      }
       newType = newType.intersection(receiverType, classWorld);
       var next = instruction.next;
       if (next is HTypeKnown && next.checkedInput == receiver) {
@@ -353,7 +377,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
           next.knownType = next.instructionType = newType;
           addDependentInstructionsToWorkList(next);
         }
-      } else if (newType != receiverType) {
+        _validTargetClasses[next] = classes;
+      } else if (newType != receiverType || !classes.treatAsDynamic) {
         // Insert a refinement node after the call and update all
         // users dominated by the call to use that node instead of
         // [receiver].
@@ -362,10 +387,77 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
         instruction.block.addBefore(instruction.next, converted);
         receiver.replaceAllUsersDominatedBy(converted.next, converted);
         addDependentInstructionsToWorkList(converted);
+        _validTargetClasses[converted] = classes;
       }
     }
 
     return instruction.specializer.computeTypeFromInputTypes(
         instruction, compiler);
   }
+}
+
+// TODO(johnniwinther): Move to world.dart for a full implementation.
+class _ClassSet {
+  final Set<ClassElement> classes;
+  final ClassWorld world;
+
+  const _ClassSet.empty(this.world) :
+      classes = const ImmutableEmptySet<ClassElement>();
+
+  _ClassSet.from(FunctionSetQuery query,
+                 this.world,
+                 {bool filter(Element element): null}) :
+      classes = new Setlet<ClassElement>() {
+    Iterable<Element> functions = query.functions;
+    if (filter != null) functions = functions.where(filter);
+    classes.addAll(functions.expand(_toClasses));
+  }
+
+  _ClassSet._internal(this.classes, this.world);
+
+  Iterable<ClassElement> _toClasses(Element element) {
+    ClassElement cls = element.enclosingClass.declaration;
+    return [cls]..addAll(world.mixinUsesOf(cls))..map((c) => c.declaration);
+  }
+
+  _ClassSet intersect(_ClassSet other) {
+    Setlet<ClassElement> intersected = new Setlet<ClassElement>();
+    Set<ClassElement> otherClasses = other.classes;
+
+    for (ClassElement cls in classes) {
+      if (otherClasses.contains(cls)) {
+        intersected.add(cls);
+      } else {
+        for (ClassElement otherCls in otherClasses) {
+          if (cls.isSubclassOf(otherCls)) {
+            intersected.add(cls);
+            break; // cls is covered, no need to search further
+          } else if (otherCls.isSubclassOf(cls)) {
+            intersected.add(otherCls);
+          }
+        }
+      }
+    }
+
+    return new _ClassSet._internal(intersected, world);
+  }
+
+  /// Whether this [_ClassSet] should be memoized in the tree or can be ignored
+  /// as it is too close to `dynamic`.
+  // TODO(herhut): Find a more meaningful implementation if the need arises.
+  bool get treatAsDynamic => false;
+
+  TypeMask computeMask() {
+    return new TypeMask.unionOf(classes.map(_toMask), world);
+  }
+
+  TypeMask _toMask(ClassElement cls) {
+    if (world.backend.isNullImplementation(cls)) {
+      return const TypeMask.empty();
+    } else {
+      return new TypeMask.nonNullSubclass(cls, world);
+    }
+  }
+
+  toString() => "ClassSet: ${classes}";
 }
