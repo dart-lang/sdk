@@ -78,21 +78,24 @@ class DartCompletionManager extends CompletionManager {
   /**
    * Compute suggestions based upon cached information only
    * then send an initial response to the client.
+   * Return a list of computers for which [computeFull] should be called
    */
-  void computeFast(DartCompletionRequest request) {
-    request.performance.logElapseTime('computeFast', () {
+  List<DartCompletionComputer> computeFast(DartCompletionRequest request) {
+    return request.performance.logElapseTime('computeFast', () {
       CompilationUnit unit = context.parseCompilationUnit(source);
       request.unit = unit;
       request.node = new NodeLocator.con1(request.offset).searchWithin(unit);
       request.node.accept(new _ReplacementOffsetBuilder(request));
-      computers.removeWhere((DartCompletionComputer c) {
+      List<DartCompletionComputer> todo = new List.from(computers);
+      todo.removeWhere((DartCompletionComputer c) {
         return request.performance.logElapseTime(
             'computeFast ${c.runtimeType}',
             () {
           return c.computeFast(request);
         });
       });
-      sendResults(request, computers.isEmpty);
+      sendResults(request, todo.isEmpty);
+      return todo;
     });
   }
 
@@ -100,7 +103,8 @@ class DartCompletionManager extends CompletionManager {
    * If there is remaining work to be done, then wait for the unit to be
    * resolved and request that each remaining computer finish their work.
    */
-  void computeFull(DartCompletionRequest request) {
+  void computeFull(DartCompletionRequest request,
+      List<DartCompletionComputer> todo) {
     request.performance.logStartTime('waitForAnalysis');
     waitForAnalysis().then((CompilationUnit unit) {
       request.performance.logElapseTime('waitForAnalysis');
@@ -111,8 +115,8 @@ class DartCompletionManager extends CompletionManager {
       request.performance.logElapseTime('computeFull', () {
         request.unit = unit;
         request.node = new NodeLocator.con1(request.offset).searchWithin(unit);
-        int count = computers.length;
-        computers.forEach((DartCompletionComputer c) {
+        int count = todo.length;
+        todo.forEach((DartCompletionComputer c) {
           String name = c.runtimeType.toString();
           String completeTag = 'computeFull $name complete';
           request.performance.logStartTime(completeTag);
@@ -140,9 +144,9 @@ class DartCompletionManager extends CompletionManager {
         cache,
         completionRequest.performance);
     request.performance.logElapseTime('compute', () {
-      computeFast(request);
-      if (!computers.isEmpty) {
-        computeFull(request);
+      List<DartCompletionComputer> todo = computeFast(request);
+      if (!todo.isEmpty) {
+        computeFull(request, todo);
       }
     });
   }
