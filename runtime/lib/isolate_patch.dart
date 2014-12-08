@@ -322,6 +322,8 @@ patch class Isolate {
   // in vm/isolate.cc.
   static const _PAUSE = 1;
   static const _RESUME = 2;
+  static const _PING = 3;
+
 
   static SendPort _spawnFunction(SendPort readyPort, Function topLevelFunction,
                                  var message)
@@ -369,7 +371,12 @@ patch class Isolate {
   }
 
   /* patch */ void ping(SendPort responsePort, [int pingType = IMMEDIATE]) {
-    throw new UnsupportedError("ping");
+    var msg = new List(4)
+        ..[0] = 0  // Make room for OOM message type.
+        ..[1] = _PING
+        ..[2] = responsePort
+        ..[3] = pingType;
+    _sendOOB(controlPort, msg);
   }
 
   /* patch */ void addErrorListener(SendPort port) {

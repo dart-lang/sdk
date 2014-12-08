@@ -52,6 +52,21 @@ DEFINE_FLAG(bool, break_at_isolate_spawn, false,
 #define I (isolate())
 
 
+static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
+  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
+  return reinterpret_cast<uint8_t*>(new_ptr);
+}
+
+
+static void SerializeObject(const Instance& obj,
+                            uint8_t** obj_data,
+                            intptr_t* obj_len) {
+  MessageWriter writer(obj_data, &allocator);
+  writer.WriteMessage(obj);
+  *obj_len = writer.BytesWritten();
+}
+
+
 void Isolate::RegisterClass(const Class& cls) {
   class_table()->Register(cls);
 }
@@ -89,7 +104,12 @@ class IsolateMessageHandler : public MessageHandler {
   // Keep in sync with isolate_patch.dart.
   enum {
     kPauseMsg = 1,
-    kResumeMsg
+    kResumeMsg = 2,
+    kPingMsg = 3,
+
+    kImmediateAction = 0,
+    kBeforeNextEventAction = 1,
+    kAsEventAction = 2
   };
 
   void HandleLibMessage(const Array& message);
@@ -147,6 +167,50 @@ void IsolateMessageHandler::HandleLibMessage(const Array& message) {
       }
       break;
     }
+    case kPingMsg: {
+      // [ OOB, kPingMsg, responsePort, pingType ]
+      if (message.Length() != 4) return;
+      const Object& obj2 = Object::Handle(I, message.At(2));
+      if (!obj2.IsSendPort()) return;
+      const SendPort& send_port = SendPort::Cast(obj2);
+      const Object& obj3 = Object::Handle(I, message.At(3));
+      if (!obj3.IsSmi()) return;
+      const intptr_t ping_type = Smi::Cast(obj3).Value();
+      if (ping_type == kImmediateAction) {
+        uint8_t* data = NULL;
+        intptr_t len = 0;
+        SerializeObject(Object::null_instance(), &data, &len);
+        PortMap::PostMessage(new Message(send_port.Id(),
+                                         data, len,
+                                         Message::kNormalPriority));
+      } else if (ping_type == kBeforeNextEventAction) {
+        // Update the message so that it will be handled immediately when it
+        // is picked up from the message queue the next time.
+        message.SetAt(
+            0, Smi::Handle(I, Smi::New(Message::kDelayedIsolateLibOOBMsg)));
+        message.SetAt(3, Smi::Handle(I, Smi::New(kImmediateAction)));
+        uint8_t* data = NULL;
+        intptr_t len = 0;
+        SerializeObject(message, &data, &len);
+        this->PostMessage(new Message(Message::kIllegalPort,
+                                      data, len,
+                                      Message::kNormalPriority),
+                          true /* at_head */);
+      } else if (ping_type == kAsEventAction) {
+        // Update the message so that it will be handled immediately when it
+        // is picked up from the message queue the next time.
+        message.SetAt(
+            0, Smi::Handle(I, Smi::New(Message::kDelayedIsolateLibOOBMsg)));
+        message.SetAt(3, Smi::Handle(I, Smi::New(kImmediateAction)));
+        uint8_t* data = NULL;
+        intptr_t len = 0;
+        SerializeObject(message, &data, &len);
+        this->PostMessage(new Message(Message::kIllegalPort,
+                                      data, len,
+                                      Message::kNormalPriority));
+      }
+      break;
+    }
 #if defined(DEBUG)
     // Malformed OOB messages are silently ignored in release builds.
     default:
@@ -180,8 +244,10 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
 
   // If the message is in band we lookup the handler to dispatch to.  If the
   // receive port was closed, we drop the message without deserializing it.
+  // Illegal port is a special case for artificially enqueued isolate library
+  // messages which are handled in C++ code below.
   Object& msg_handler = Object::Handle(I);
-  if (!message->IsOOB()) {
+  if (!message->IsOOB() && (message->dest_port() != Message::kIllegalPort)) {
     msg_handler = DartLibraryCalls::LookupHandler(message->dest_port());
     if (msg_handler.IsError()) {
       delete message;
@@ -248,6 +314,20 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
             }
 #endif  // defined(DEBUG)
           }
+        }
+      }
+    }
+  } else if (message->dest_port() == Message::kIllegalPort) {
+    // Check whether this is a delayed OOB message which needed handling as
+    // part of the regular message dispatch. All other messages are dropped on
+    // the floor.
+    if (msg.IsArray()) {
+      const Array& msg_arr = Array::Cast(msg);
+      if (msg_arr.Length() > 0) {
+        const Object& oob_tag = Object::Handle(I, msg_arr.At(0));
+        if (oob_tag.IsSmi() &&
+            (Smi::Cast(oob_tag).Value() == Message::kDelayedIsolateLibOOBMsg)) {
+          HandleLibMessage(Array::Cast(msg_arr));
         }
       }
     }
@@ -1406,21 +1486,6 @@ T* Isolate::AllocateReusableHandle() {
   T* handle = reinterpret_cast<T*>(reusable_handles_.AllocateScopedHandle());
   T::initializeHandle(handle, T::null());
   return handle;
-}
-
-
-static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
-  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
-  return reinterpret_cast<uint8_t*>(new_ptr);
-}
-
-
-static void SerializeObject(const Instance& obj,
-                            uint8_t** obj_data,
-                            intptr_t* obj_len) {
-  MessageWriter writer(obj_data, &allocator);
-  writer.WriteMessage(obj);
-  *obj_len = writer.BytesWritten();
 }
 
 

@@ -31,7 +31,7 @@ MessageQueue::~MessageQueue() {
 }
 
 
-void MessageQueue::Enqueue(Message* msg) {
+void MessageQueue::Enqueue(Message* msg, bool before_events) {
   // Make sure messages are not reused.
   ASSERT(msg->next_ == NULL);
   if (head_ == NULL) {
@@ -41,9 +41,34 @@ void MessageQueue::Enqueue(Message* msg) {
     tail_ = msg;
   } else {
     ASSERT(tail_ != NULL);
-    // Append at the tail.
-    tail_->next_ = msg;
-    tail_ = msg;
+    if (!before_events) {
+        // Append at the tail.
+        tail_->next_ = msg;
+        tail_ = msg;
+    } else {
+      ASSERT(msg->dest_port() == Message::kIllegalPort);
+      if (head_->dest_port() != Message::kIllegalPort) {
+        msg->next_ = head_;
+        head_ = msg;
+      } else {
+        Message* cur = head_;
+        while (cur->next_ != NULL) {
+          if (cur->next_->dest_port() != Message::kIllegalPort) {
+            // Splice in the new message at the break.
+            msg->next_ = cur->next_;
+            cur->next_ = msg;
+            return;
+          }
+          cur = cur->next_;
+        }
+        // All pending messages are isolate library control messages. Append at
+        // the tail.
+        ASSERT(tail_ == cur);
+        ASSERT(tail_->dest_port() == Message::kIllegalPort);
+        tail_->next_ = msg;
+        tail_ = msg;
+      }
+    }
   }
 }
 

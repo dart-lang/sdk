@@ -117,7 +117,9 @@ class MessageHandler {
   virtual Isolate* isolate() const { return NULL; }
 
   // Posts a message on this handler's message queue.
-  void PostMessage(Message* message);
+  // If before_events is true, then the message is enqueued before any pending
+  // events, but after any pending isolate library events.
+  void PostMessage(Message* message, bool before_events = false);
 
   // Notifies this handler that a port is being closed.
   void ClosePort(Dart_Port port);

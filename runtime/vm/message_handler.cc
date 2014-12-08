@@ -92,7 +92,7 @@ void MessageHandler::Run(ThreadPool* pool,
 }
 
 
-void MessageHandler::PostMessage(Message* message) {
+void MessageHandler::PostMessage(Message* message, bool before_events) {
   MonitorLocker ml(&monitor_);
   if (FLAG_trace_isolates) {
     const char* source_name = "<native code>";
@@ -109,9 +109,9 @@ void MessageHandler::PostMessage(Message* message) {
 
   Message::Priority saved_priority = message->priority();
   if (message->IsOOB()) {
-    oob_queue_->Enqueue(message);
+    oob_queue_->Enqueue(message, before_events);
   } else {
-    queue_->Enqueue(message);
+    queue_->Enqueue(message, before_events);
   }
   message = NULL;  // Do not access message.  May have been deleted.
 
