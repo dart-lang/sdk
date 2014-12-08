@@ -1,3 +1,9 @@
+##0.11.2
+
+* Prints a warning instead of throwing an error when setting the test
+  configuration after it has already been set. The first configuration is always
+  used.
+
 ##0.11.1+1
 
 * Fix bug in withTestEnvironment where test cases were not reinitialized if
