@@ -75,23 +75,6 @@ class DartCompletionManager extends CompletionManager {
         new DartCompletionCache(context, source));
   }
 
-  @override
-  void computeSuggestions(CompletionRequest completionRequest) {
-    DartCompletionRequest request = new DartCompletionRequest(
-        context,
-        searchEngine,
-        source,
-        completionRequest.offset,
-        cache,
-        completionRequest.performance);
-    request.performance.logElapseTime('compute', () {
-      computeFast(request);
-      if (!computers.isEmpty) {
-        computeFull(request);
-      }
-    });
-  }
-
   /**
    * Compute suggestions based upon cached information only
    * then send an initial response to the client.
@@ -144,6 +127,23 @@ class DartCompletionManager extends CompletionManager {
           });
         });
       });
+    });
+  }
+
+  @override
+  void computeSuggestions(CompletionRequest completionRequest) {
+    DartCompletionRequest request = new DartCompletionRequest(
+        context,
+        searchEngine,
+        source,
+        completionRequest.offset,
+        cache,
+        completionRequest.performance);
+    request.performance.logElapseTime('compute', () {
+      computeFast(request);
+      if (!computers.isEmpty) {
+        computeFull(request);
+      }
     });
   }
 

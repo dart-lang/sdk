@@ -99,7 +99,7 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
 
   @override
   void setUpComputer() {
-    computer = new ImportedComputer();
+    computer = new ImportedComputer(shouldWaitForLowPrioritySuggestions: true);
   }
 
   @override

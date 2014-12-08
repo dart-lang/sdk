@@ -77,7 +77,10 @@ class DartCompletionCache extends CompletionCache {
 
   /**
    * Compute suggestions based upon the imports in the given compilation unit.
-   * Return a future that completes when the information has been cached.
+   * On return, the cache will be populated except for lower priority
+   * suggestions added as a result of a global search. Callers may wait
+   * on the returned future if they want to ensure those lower priority
+   * suggestions are part of the cached suggestions.
    */
   Future<bool> computeImportInfo(CompilationUnit unit,
       SearchEngine searchEngine) {
@@ -130,8 +133,16 @@ class DartCompletionCache extends CompletionCache {
       addSuggestion(elem, CompletionRelevance.DEFAULT);
     });
 
+    /*
+     * Don't wait for search of lower relevance results to complete.
+     * Set key indicating results are ready, and lower relevance results
+     * will be added to the cache when the search completes.
+     */
+    _importKey = _computeImportKey(unit);
+
     // Add non-imported elements as low relevance
-    var future = searchEngine.searchTopLevelDeclarations('');
+    Future<List<SearchMatch>> future =
+        searchEngine.searchTopLevelDeclarations('');
     return future.then((List<SearchMatch> matches) {
       matches.forEach((SearchMatch match) {
         if (match.kind == MatchKind.DECLARATION) {
@@ -143,7 +154,6 @@ class DartCompletionCache extends CompletionCache {
           }
         }
       });
-      _importKey = _computeImportKey(unit);
       return true;
     });
   }
