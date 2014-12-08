@@ -22,11 +22,13 @@ var dart_core;
   })();
   dart_core.Object = Object;
 
+  // Function print: (Object) → void
   function print(obj) {
     console.log(obj.toString());
   }
   dart_core.print = print;
 
+  // Class NoSuchMethodError
   var NoSuchMethodError = (function () {
     // TODO(vsm): Implement.
     function NoSuchMethodError(f, args) {
@@ -34,4 +36,14 @@ var dart_core;
     return NoSuchMethodError;
   })();
   dart_core.NoSuchMethodError = NoSuchMethodError;
+
+  // Class UnimplementedError
+  var UnimplementedError = (function () {
+    // TODO(vsm): Implement.
+    function UnimplementedError(message) {
+      this.message = (message != void 0) ? message : null;
+    }
+    return NoSuchMethodError;
+  })();
+  dart_core.UnimplementedError = UnimplementedError;
 })(dart_core || (dart_core = {}));

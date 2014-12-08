@@ -24,7 +24,7 @@ var dart_runtime;
 
   function dload(obj, field) {
     if (!(field in obj)) {
-      throw new dart.core.NoSuchMethodError(obj, field);
+      throw new dart_core.NoSuchMethodError(obj, field);
     }
     return obj[field];
   }
@@ -34,11 +34,11 @@ var dart_runtime;
     var formals = formalParameterList(f);
     // TODO(vsm): Type check args!  We need to encode sufficient type info on f.
     if (formals.length < args.length) {
-      throw new dart.core.NoSuchMethodError(f, args);
+      throw new dart_core.NoSuchMethodError(f, args);
     } else if (formals.length > args.length) {
       for (var i = args.length; i < formals.length; ++i) {
         if (formals[i].indexOf("opt$") != 0)
-          throw new dart.core.NoSuchMethodError(f, args);
+          throw new dart_core.NoSuchMethodError(f, args);
       }
     }
     return f.apply(void 0, args);
@@ -50,5 +50,23 @@ var dart_runtime;
     sub.prototype.constructor = sub;
   }
   dart_runtime.dextend = dextend;
+
+  function cast(obj, type) {
+    if (obj == null || instanceOf(obj, type)) return obj;
+    throw new dart_core.CastError();
+  }
+  dart_runtime.cast = cast;
+
+  function instanceOf(obj, type) {
+    // TODO(vsm): Implement.
+    throw new dart_core.UnimplementedError();
+  }
+  dart_runtime.instanceOf = instanceOf;
+
+  function isGroundType(type) {
+    // TODO(vsm): Implement.
+    throw new dart_core.UnimplementedError();
+  }
+  dart_runtime.isGroundType = isGroundType;
 
 })(dart_runtime || (dart_runtime = {}));
