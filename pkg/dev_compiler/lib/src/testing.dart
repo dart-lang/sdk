@@ -59,9 +59,7 @@ testChecker(Map<String, String> testFiles, {bool mockSdk: true}) {
   var visitor = new _ErrorMarkerVisitor(expectedErrors);
   var initialLibrary =
       resolver.context.getLibraryElement(testUriResolver.files[mainFile]);
-  List reachableLibraries = [];
-  _findReachable(initialLibrary, reachableLibraries);
-  for (var lib in reachableLibraries) {
+  for (var lib in reachableLibraries(initialLibrary)) {
     for (var unit in lib.units) {
       unit.unit.accept(visitor);
     }
@@ -135,21 +133,6 @@ SourceSpan _spanFor(AstNode node) {
   var root = node.root as CompilationUnit;
   _TestSource source = (root.element as CompilationUnitElementImpl).source;
   return source.spanFor(node);
-}
-
-
-/// Recursively visits all libraries loaded by the test files.
-_findReachable(lib, results, [Set seen]) {
-  if (seen == null) seen = new Set();
-  if (seen.contains(lib)) return results;
-  seen.add(lib);
-  results.add(lib);
-  for (var other in lib.importedLibraries) {
-    _findReachable(other, results, seen);
-  }
-  for (var other in lib.exportedLibraries) {
-    _findReachable(other, results, seen);
-  }
 }
 
 /// Visitor that extracts expected errors from comments.

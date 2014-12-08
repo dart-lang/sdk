@@ -2,7 +2,23 @@
 library ddc.src.utils;
 
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:source_span/source_span.dart';
+
+/// Returns all libraries transitively imported or exported from [start].
+List<LibraryElement> reachableLibraries(LibraryElement start) {
+  var results = <LibraryElement>[];
+  var seen = new Set();
+  void find(LibraryElement lib) {
+    if (seen.contains(lib)) return;
+    seen.add(lib);
+    results.add(lib);
+    lib.importedLibraries.forEach(find);
+    lib.exportedLibraries.forEach(find);
+  }
+  find(start);
+  return results;
+}
 
 /// Cache of [SourceFile]s per [Source], so we avoid recomputing line-breaks and
 /// source-span information on a file multiple times.

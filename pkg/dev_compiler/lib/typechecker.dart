@@ -10,6 +10,7 @@ import 'package:logging/logging.dart' as logger;
 import 'src/resolver.dart';
 import 'src/static_info.dart';
 import 'src/type_rules.dart';
+import 'src/utils.dart';
 
 final _log = new logger.Logger('ddc.checker');
 
@@ -58,13 +59,6 @@ class Library {
   Library(this.uri, this.source, this.lib);
 }
 
-class _WorkListItem {
-  final Uri uri;
-  final Source source;
-  final bool isLibrary;
-  _WorkListItem(this.uri, this.source, this.isLibrary);
-}
-
 class ProgramChecker extends RecursiveAstVisitor {
   final TypeResolver _resolver;
   final TypeRules _rules;
@@ -72,33 +66,6 @@ class ProgramChecker extends RecursiveAstVisitor {
   final bool _checkSdk;
   final Map<Uri, CompilationUnit> _unitMap = <Uri, CompilationUnit>{};
   final Map<Uri, Library> libraries = <Uri, Library>{};
-  Library _currentLibrary;
-  final List<_WorkListItem> _workList = [];
-  final List<_WorkListItem> _partWorkList = [];
-
-  Uri toUri(String string) {
-    // FIXME: Use analyzer's resolver logic.
-    if (string.startsWith('package:')) {
-      String package = string.substring(8);
-      string = 'packages/' + package;
-      return _root.resolve(string);
-    } else {
-      return _currentLibrary.uri.resolve(string);
-    }
-  }
-
-  void add(Uri uri, Source source, bool isLibrary) {
-    if (isLibrary) {
-      _workList.add(new _WorkListItem(uri, source, isLibrary));
-      if (_currentLibrary != null) {
-        // This is an import / export.
-        // Record the key.  Fill in the library later.
-        _currentLibrary.imports[uri] = null;
-      }
-    } else {
-      _partWorkList.add(new _WorkListItem(uri, source, isLibrary));
-    }
-  }
 
   void finalizeImports() {
     libraries.forEach((Uri uri, Library lib) {
@@ -108,80 +75,21 @@ class ProgramChecker extends RecursiveAstVisitor {
     });
   }
 
-  CompilationUnit load(Uri uri, Source source, bool isLibrary) {
-    if (!_checkSdk && uri.scheme == 'dart') {
-      return null;
-    }
-    if (_unitMap.containsKey(uri)) {
-      assert(isLibrary);
-      return _unitMap[uri];
-    }
-    final unit = getCompilationUnit(source, isLibrary);
-    _rules.setCompilationUnit(unit);
-    _unitMap[uri] = unit;
-    final last = _currentLibrary;
-    if (isLibrary) {
-      assert(!libraries.containsKey(uri));
-      var lib = new Library(uri, source, unit);
-      libraries[uri] = lib;
-      _currentLibrary = lib;
-    } else {
-      var lib = _currentLibrary;
-      assert(!lib.parts.containsKey(uri));
-      lib.parts[uri] = unit;
-    }
-    unit.visitChildren(this);
-    if (isLibrary) {
-      while (_partWorkList.isNotEmpty) {
-        _WorkListItem item = _partWorkList.removeAt(0);
-        assert(!item.isLibrary);
-        load(item.uri, item.source, item.isLibrary);
-      }
-      assert(_currentLibrary.uri == uri);
-      _currentLibrary = last;
-    }
-    return unit;
-  }
-
-  void loadFromDirective(UriBasedDirective directive, bool isLibrary) {
-    String content = directive.uri.stringValue;
-    Uri uri = toUri(content);
-    Source source = directive.source;
-    add(uri, source, isLibrary);
-  }
-
-  CompilationUnit getCompilationUnit(Source source, bool isLibrary) {
-    var container = isLibrary ? source : _currentLibrary.source;
-    var res = _resolver.context.resolveCompilationUnit2(source, container);
-    failure = _resolver.logErrors(source) || failure;
-    return res;
-  }
-
-  ProgramChecker(this._resolver, this._rules, this._root, this._checkSdk) {
-    add(_root, _resolver.findSource(_root), true);
-  }
+  ProgramChecker(this._resolver, this._rules, this._root, this._checkSdk);
 
   void check() {
-    while (_workList.isNotEmpty) {
-      _WorkListItem item = _workList.removeAt(0);
-      assert(item.isLibrary);
-      load(item.uri, item.source, item.isLibrary);
+    var startLibrary = _resolver.context.computeLibraryElement(
+        _resolver.findSource(_root));
+    for (var lib in reachableLibraries(startLibrary)) {
+      if (!_checkSdk && lib.isInSdk) continue;
+      var source = lib.source;
+      libraries[source.uri] =
+          new Library(source.uri, source, lib.definingCompilationUnit.node);
+      for (var unit in lib.units) {
+        _rules.setCompilationUnit(unit.node);
+        unit.node.visitChildren(this);
+      }
     }
-  }
-
-  visitExportDirective(ExportDirective node) {
-    loadFromDirective(node, true);
-    node.visitChildren(this);
-  }
-
-  visitImportDirective(ImportDirective node) {
-    loadFromDirective(node, true);
-    node.visitChildren(this);
-  }
-
-  visitPartDirective(PartDirective node) {
-    loadFromDirective(node, false);
-    node.visitChildren(this);
   }
 
   visitAssignmentExpression(AssignmentExpression node) {
