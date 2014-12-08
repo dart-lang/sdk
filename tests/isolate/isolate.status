@@ -5,12 +5,17 @@
 [ $runtime == vm ]
 browser/*: SkipByDesign  # Browser specific tests
 isolate_stress_test: Fail # Issue 12588: This should be able to pass when we have wrapper-less tests.
+message3_test/constList_identical: RuntimeError # Issue 21816
+message3_test/constMap: RuntimeError  # Issue 21816
+message3_test/fun: RuntimeError  # Issue 21585
+message3_test/constInstance: RuntimeError # Issue 21816
+message3_test/byteBuffer: Crash # Issue 21818
+message3_test/int32x4: Crash # Issue 21818
 
 [ $runtime == vm && $arch == mips && $mode == debug ]
 mandel_isolate_test: Skip # Uses 600 MB Ram on our 1 GB test device.
 
 [ $compiler == none || $compiler == dart2dart ]
-serialization_test: SkipByDesign # Tests dart2js-specific serialization code
 compile_time_error_test/01: Skip # Issue 12587
 start_paused_test: Fail   # Not implemented yet
 ondone_test: Fail         # Not implemented yet
@@ -37,11 +42,6 @@ browser/*: SkipByDesign  # Browser specific tests
 [ $compiler == dart2js && $runtime == jsshell ]
 pause_test: Fail  # non-zero timer not supported.
 
-[ $compiler == dart2js ]
-serialization_test: RuntimeError # Issue 1882, tries to access class TestingOnly declared in isolate_patch.dart
-
-function_send_test/01: RuntimeError # dart2js allows sending closures to the same isolate.
-
 [ $compiler == dart2js && $runtime == safari ]
 cross_isolate_message_test: Skip # Issue 12627
 message_test: Skip # Issue 12627
@@ -49,12 +49,13 @@ message_test: Skip # Issue 12627
 [ $compiler == dart2js ]
 spawn_uri_vm_test: SkipByDesign # Test uses a ".dart" URI.
 spawn_uri_nested_vm_test: SkipByDesign # Test uses a ".dart" URI.
+message3_test/constList: RuntimeError # Issue 21817
+message3_test/constList_identical: RuntimeError # Issue 21817
+message3_test/constMap: RuntimeError  # Issue 21817
+message3_test/constInstance: RuntimeError # Issue 21817
 
 [ $compiler == dart2js && $jscl ]
 spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
-
-[ $compiler == dart2js && $runtime == none ]
-serialization_test: Pass # Issue 12628
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 isolate_stress_test: Pass, Slow # TODO(kasperl): Please triage.
@@ -100,7 +101,6 @@ spawn_uri_missing_test: Skip # Times out.
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
 mint_maker_test: StaticWarning
-serialization_test: StaticWarning
 
 [ $compiler != none || $runtime != vm ]
 package_root_test: SkipByDesign # Uses dart:io.

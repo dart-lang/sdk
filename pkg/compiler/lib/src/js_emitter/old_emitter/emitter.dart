@@ -288,7 +288,7 @@ class OldEmitter implements Emitter {
       }''');
   }
 
-  List get defineClassFunction {
+  List<jsAst.Node> get defineClassFunction {
     // First the class name, then the field names in an array and the members
     // (inside an Object literal).
     // The caller can also pass in the constructor as a function if needed.
@@ -303,16 +303,21 @@ class OldEmitter implements Emitter {
     //  },
     // });
 
-    var defineClass = js('''function(name, fields) {
+    bool hasIsolateSupport = compiler.hasIsolateSupport;
+    String fieldNamesProperty = r"$__fields__";
+
+    jsAst.Expression defineClass = js('''function(name, fields) {
       var accessors = [];
 
       var str = "function " + name + "(";
       var body = "";
+      if (#hasIsolateSupport) { var fieldNames = ""; }
 
       for (var i = 0; i < fields.length; i++) {
         if(i != 0) str += ", ";
 
         var field = generateAccessor(fields[i], accessors, name);
+        if (#hasIsolateSupport) { fieldNames += "'" + field + "',"; }
         var parameter = "parameter_" + field;
         str += parameter;
         body += ("this." + field + " = " + parameter + ";\\n");
@@ -325,23 +330,71 @@ class OldEmitter implements Emitter {
       if (typeof defineClass.name != "string") {
         str += name + ".name=\\"" + name + "\\";\\n";
       }
+      if (#hasIsolateSupport) {
+        str += name + ".$fieldNamesProperty=[" + fieldNames + "];\\n";
+      }
       str += accessors.join("");
 
       return str;
-    }''');
+    }''', { 'hasIsolateSupport': hasIsolateSupport });
+
     // Declare a function called "generateAccessor".  This is used in
     // defineClassFunction (it's a local declaration in init()).
-    List<jsAst.Node> saveDefineClass = [];
-    if (compiler.hasIncrementalSupport) {
-      saveDefineClass.add(
-          js(r'self.$dart_unsafe_eval.defineClass = defineClass'));
-    }
-    return [
+    List result = <jsAst.Node>[
         generateAccessorFunction,
         js('$generateAccessorHolder = generateAccessor'),
         new jsAst.FunctionDeclaration(
-            new jsAst.VariableDeclaration('defineClass'), defineClass) ]
-        ..addAll(saveDefineClass);
+            new jsAst.VariableDeclaration('defineClass'), defineClass) ];
+
+    if (compiler.hasIncrementalSupport) {
+      result.add(
+          js(r'self.$dart_unsafe_eval.defineClass = defineClass'));
+    }
+
+    if (hasIsolateSupport) {
+      jsAst.Expression classIdExtractorAccess =
+          generateEmbeddedGlobalAccess(embeddedNames.CLASS_ID_EXTRACTOR);
+      var classIdExtractorAssignment =
+          js('# = function(o) { return o.constructor.name; }',
+              classIdExtractorAccess);
+
+      jsAst.Expression classFieldsExtractorAccess =
+          generateEmbeddedGlobalAccess(embeddedNames.CLASS_FIELDS_EXTRACTOR);
+      var classFieldsExtractorAssignment = js('''
+      # = function(o) {
+        var fieldNames = o.constructor.$fieldNamesProperty;
+        if (!fieldNames) return [];  // TODO(floitsch): do something else here.
+        var result = [];
+        result.length = fieldNames.length;
+        for (var i = 0; i < fieldNames.length; i++) {
+          result[i] = o[fieldNames[i]];
+        }
+        return result;
+      }''', classFieldsExtractorAccess);
+
+      jsAst.Expression instanceFromClassIdAccess =
+          generateEmbeddedGlobalAccess(embeddedNames.INSTANCE_FROM_CLASS_ID);
+      jsAst.Expression allClassesAccess =
+          generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
+      var instanceFromClassIdAssignment =
+          js('# = function(name) { return new #[name](); }',
+             [instanceFromClassIdAccess, allClassesAccess]);
+
+      jsAst.Expression initializeEmptyInstanceAccess =
+          generateEmbeddedGlobalAccess(embeddedNames.INITIALIZE_EMPTY_INSTANCE);
+      var initializeEmptyInstanceAssignment = js('''
+      # = function(name, o, fields) {
+        #[name].apply(o, fields);
+        return o;
+      }''', [ initializeEmptyInstanceAccess, allClassesAccess ]);
+
+      result.addAll([classIdExtractorAssignment,
+                     classFieldsExtractorAssignment,
+                     instanceFromClassIdAssignment,
+                     initializeEmptyInstanceAssignment]);
+    }
+
+    return result;
   }
 
   /** Needs defineClass to be defined. */
