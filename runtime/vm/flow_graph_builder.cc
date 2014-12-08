@@ -38,6 +38,7 @@ DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
 
+DECLARE_FLAG(bool, enable_asserts);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
@@ -884,7 +885,7 @@ BlockEntryInstr* TestGraphVisitor::CreateFalseSuccessor() const {
 
 
 void TestGraphVisitor::ReturnValue(Value* value) {
-  if (FLAG_enable_type_checks) {
+  if (FLAG_enable_type_checks || FLAG_enable_asserts) {
     value = Bind(new(I) AssertBooleanInstr(condition_token_pos(), value));
   }
   Value* constant_true = Bind(new(I) ConstantInstr(Bool::True()));
@@ -1239,7 +1240,7 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     TestGraphVisitor for_left(owner(), node->left()->token_pos());
     node->left()->Visit(&for_left);
     EffectGraphVisitor empty(owner());
-    if (FLAG_enable_type_checks) {
+    if (FLAG_enable_type_checks || FLAG_enable_asserts) {
       ValueGraphVisitor for_right(owner());
       node->right()->Visit(&for_right);
       Value* right_value = for_right.value();
@@ -1304,7 +1305,7 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     ValueGraphVisitor for_right(owner());
     node->right()->Visit(&for_right);
     Value* right_value = for_right.value();
-    if (FLAG_enable_type_checks) {
+    if (FLAG_enable_type_checks|| FLAG_enable_asserts) {
       right_value =
           for_right.Bind(new(I) AssertBooleanInstr(node->right()->token_pos(),
                                                    right_value));
@@ -1763,7 +1764,7 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
         2,
         owner()->ic_data_array());
     if (node->kind() == Token::kNE) {
-      if (FLAG_enable_type_checks) {
+      if (FLAG_enable_type_checks || FLAG_enable_asserts) {
         Value* value = Bind(result);
         result = new(I) AssertBooleanInstr(node->token_pos(), value);
       }
@@ -1809,7 +1810,7 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
     node->operand()->Visit(&for_value);
     Append(for_value);
     Value* value = for_value.value();
-    if (FLAG_enable_type_checks) {
+    if (FLAG_enable_type_checks || FLAG_enable_asserts) {
       value =
           Bind(new(I) AssertBooleanInstr(node->operand()->token_pos(), value));
     }

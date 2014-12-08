@@ -25,6 +25,8 @@
 namespace dart {
 
 DECLARE_FLAG(bool, emit_edge_counters);
+DECLARE_FLAG(bool, enable_asserts);
+DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(bool, use_osr);
@@ -42,7 +44,7 @@ LocationSummary* Instruction::MakeCallSummary(Isolate* isolate) {
 LocationSummary* PushArgumentInstr::MakeLocationSummary(Isolate* isolate,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps= 0;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::AnyOrConstant(value()));
@@ -376,10 +378,17 @@ static void EmitAssertBoolean(Register reg,
   // Call the runtime if the object is not bool::true or bool::false.
   ASSERT(locs->always_calls());
   Label done;
-  __ CompareObject(reg, Bool::True());
-  __ b(&done, EQ);
-  __ CompareObject(reg, Bool::False());
-  __ b(&done, EQ);
+
+  if (FLAG_enable_type_checks) {
+    __ CompareObject(reg, Bool::True());
+    __ b(&done, EQ);
+    __ CompareObject(reg, Bool::False());
+    __ b(&done, EQ);
+  } else {
+    ASSERT(FLAG_enable_asserts);
+    __ CompareObject(reg, Object::null_instance());
+    __ b(&done, NE);
+  }
 
   __ Push(reg);  // Push the source object.
   compiler->GenerateRuntimeCall(token_pos,
