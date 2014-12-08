@@ -6060,8 +6060,9 @@ class Element implements HasToJson {
 
   /**
    * The parameter list for the element. If the element is not a method or
-   * function this field will not be defined. If the element has zero
-   * parameters, this field will have a value of "()".
+   * function this field will not be defined. If the element doesn't have
+   * parameters (e.g. getter), this field will not be defined. If the element
+   * has zero parameters, this field will have a value of "()".
    */
   String parameters;
 

@@ -226,8 +226,8 @@ Location newLocation_fromUnit(engine.CompilationUnit unit,
 }
 
 
-NavigationTarget newNavigationTarget_fromElement(engine.Element element,
-    int fileToIndex(String file)) {
+NavigationTarget newNavigationTarget_fromElement(engine.Element element, int
+    fileToIndex(String file)) {
   ElementKind kind = newElementKind_fromEngine(element.kind);
   Location location = newLocation_fromElement(element);
   String file = location.file;
@@ -318,9 +318,15 @@ List<Element> _computePath(engine.Element element) {
 String _getParametersString(engine.Element element) {
   // TODO(scheglov) expose the corresponding feature from ExecutableElement
   if (element is engine.ExecutableElement) {
-    var sb = new StringBuffer();
+    // valid getters don't have parameters
+    if (element.kind == engine.ElementKind.GETTER &&
+        element.parameters.isEmpty) {
+      return null;
+    }
+    // append parameters
+    StringBuffer sb = new StringBuffer();
     String closeOptionalString = '';
-    for (var parameter in element.parameters) {
+    for (engine.ParameterElement parameter in element.parameters) {
       if (sb.isNotEmpty) {
         sb.write(', ');
       }
