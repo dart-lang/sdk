@@ -3,7 +3,7 @@ description: Dart dev checker / compiler
 dependencies:
   analyzer:
     git:
-      url: git@github.com:dart-lang/analyzer-for-ddc.git
+      url: http://github.com/dart-lang/analyzer-for-ddc.git
       ref: master
   args: ">=0.12.1 <0.13.0"
   logging: ">=0.9.2 <0.10.0"
