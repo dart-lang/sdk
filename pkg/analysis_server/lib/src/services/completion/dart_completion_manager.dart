@@ -75,6 +75,15 @@ class DartCompletionManager extends CompletionManager {
         new DartCompletionCache(context, source));
   }
 
+  @override
+  void computeCache() {
+    waitForAnalysis().then((CompilationUnit unit) {
+      if (unit != null && !cache.isImportInfoCached(unit)) {
+        cache.computeImportInfo(unit, searchEngine);
+      }
+    });
+  }
+
   /**
    * Compute suggestions based upon cached information only
    * then send an initial response to the client.

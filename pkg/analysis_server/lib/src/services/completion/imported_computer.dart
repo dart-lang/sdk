@@ -21,7 +21,7 @@ import 'package:analyzer/src/generated/scanner.dart';
  * `completion.getSuggestions` request results.
  */
 class ImportedComputer extends DartCompletionComputer {
-  final bool shouldWaitForLowPrioritySuggestions;
+  bool shouldWaitForLowPrioritySuggestions;
   _ImportedSuggestionBuilder builder;
 
   ImportedComputer({this.shouldWaitForLowPrioritySuggestions: false});
@@ -30,7 +30,8 @@ class ImportedComputer extends DartCompletionComputer {
   bool computeFast(DartCompletionRequest request) {
     builder = request.node.accept(new _ImportedAstVisitor(request));
     if (builder != null) {
-      builder.shouldWaitForLowPrioritySuggestions = shouldWaitForLowPrioritySuggestions;
+      builder.shouldWaitForLowPrioritySuggestions =
+          shouldWaitForLowPrioritySuggestions;
       return builder.computeFast(request.node);
     }
     return true;
@@ -251,12 +252,14 @@ class _ImportedSuggestionBuilder implements SuggestionBuilder {
       return new Future.value(true);
     }
 
-    Future future = cache.computeImportInfo(request.unit, request.searchEngine);
-    if (shouldWaitForLowPrioritySuggestions) {
-      return future.then(addSuggestions);
-    } else {
-      return addSuggestions(true);
+    Future future = null;
+    if (!cache.isImportInfoCached(request.unit)) {
+      future = cache.computeImportInfo(request.unit, request.searchEngine);
     }
+    if (future != null && shouldWaitForLowPrioritySuggestions) {
+      return future.then(addSuggestions);
+    }
+    return addSuggestions(true);
   }
 
   /**

@@ -39,6 +39,9 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
    */
   @override
   void assertCachedCompute(_) {
+    if (!(computer as ImportedComputer).shouldWaitForLowPrioritySuggestions) {
+      return;
+    }
     expect(request.unit.element, isNotNull);
     List<CompletionSuggestion> oldSuggestions = request.suggestions;
     /*
@@ -142,6 +145,46 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
       assertNotCached('e1');
       assertNotCached('i2');
       assertNotCached('m1');
+    });
+  }
+
+  test_Block_partial_results() {
+    // Block  BlockFunctionBody  MethodDeclaration
+    addSource('/testAB.dart', '''
+      export "dart:math" hide max;
+      class A {int x;}
+      @deprecated D1() {int x;}
+      class _B { }''');
+    addSource('/testCD.dart', '''
+      String T1;
+      var _T2;
+      class C { }
+      class D { }''');
+    addSource('/testEEF.dart', '''
+      class EE { }
+      class F { }''');
+    addSource('/testG.dart', 'class G { }');
+    addSource('/testH.dart', '''
+      class H { }
+      int T3;
+      var _T4;'''); // not imported
+    addTestSource('''
+      import "/testAB.dart";
+      import "/testCD.dart" hide D;
+      import "/testEEF.dart" show EE;
+      import "/testG.dart" as g;
+      int T5;
+      var _T6;
+      Z D2() {int x;}
+      class X {a() {var f; {var x;} ^ var r;} void b() { }}
+      class Z { }''');
+    (computer as ImportedComputer).shouldWaitForLowPrioritySuggestions = false;
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestImportedClass('C');
+      // Assert computer does not wait for or include low priority results
+      // from non-imported libraries unless instructed to do so.
+      assertNotSuggested('H');
     });
   }
 }
