@@ -1463,6 +1463,9 @@ class Class extends ServiceObject with Coverage {
   void _update(ObservableMap map, bool mapIsRef) {
     name = map['name'];
     vmName = (map.containsKey('vmName') ? map['vmName'] : name);
+    var idPrefix = "classes/";
+    assert(id.startsWith(idPrefix));
+    vmCid = int.parse(id.substring(idPrefix.length));
 
     if (mapIsRef) {
       return;
@@ -1510,9 +1513,6 @@ class Class extends ServiceObject with Coverage {
       superclass._addSubclass(this);
     }
     error = map['error'];
-    var idPrefix = "classes/";
-    assert(id.startsWith(idPrefix));
-    vmCid = int.parse(id.substring(idPrefix.length));
 
     var allocationStats = map['allocationStats'];
     if (allocationStats != null) {
