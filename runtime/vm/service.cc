@@ -2363,7 +2363,7 @@ static bool HandleAddress(Isolate* isolate, JSONStream* js) {
     ContainsAddressVisitor visitor(isolate, addr);
     object = isolate->heap()->FindObject(&visitor);
   }
-  object.PrintJSON(js, true);
+  object.PrintJSON(js, false);
   return true;
 }
 

@@ -86,11 +86,8 @@ var tests = [
   });
   return isolate.rootLib.load().then((Library lib) {
     expect(lib.classes.length, equals(1));
-    // TODO(koda): Use vmCid.
     Class fooClass = lib.classes.first;
-    String prefix = "classes/";
-    // TODO(koda): Add method on Class to get numerical id.
-    fooId = int.parse(fooClass.id.substring(prefix.length));
+    fooId = fooClass.vmCid;
     isolate.get('graph');
     return completer.future;
   });
