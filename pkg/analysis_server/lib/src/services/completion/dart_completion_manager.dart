@@ -116,6 +116,9 @@ class DartCompletionManager extends CompletionManager {
       List<DartCompletionComputer> todo) {
     request.performance.logStartTime('waitForAnalysis');
     waitForAnalysis().then((CompilationUnit unit) {
+      if (controller.isClosed) {
+        return;
+      }
       request.performance.logElapseTime('waitForAnalysis');
       if (unit == null) {
         sendResults(request, true);
@@ -164,6 +167,9 @@ class DartCompletionManager extends CompletionManager {
    * Send the current list of suggestions to the client.
    */
   void sendResults(DartCompletionRequest request, bool last) {
+    if (controller.isClosed) {
+      return;
+    }
     controller.add(
         new CompletionResult(
             request.replacementOffset,
