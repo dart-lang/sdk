@@ -122,12 +122,18 @@ class LibraryUpdater extends JsFeatures {
   final Set<ClassElementX> _classesWithSchemaChanges =
       new Set<ClassElementX>();
 
+  final Set<ClassElementX> _existingClasses = new Set();
+
   LibraryUpdater(
       this.compiler,
       this.inputProvider,
       this.uri,
       this.logTime,
-      this.logVerbose);
+      this.logVerbose) {
+    if (compiler != null) {
+      _existingClasses.addAll(emitter.neededClasses);
+    }
+  }
 
   /// When [true], updates must be applied (using [applyUpdates]) before the
   /// [compiler]'s state correctly reflects the updated program.
@@ -534,9 +540,6 @@ class LibraryUpdater extends JsFeatures {
   }
 
   String computeUpdateJs() {
-    Set existingClasses =
-        new Set.from(compiler.codegenWorld.directlyInstantiatedClasses);
-
     List<Update> removals = <Update>[];
     List<Element> updatedElements = applyUpdates(removals);
     if (compiler.progress != null) {
@@ -569,9 +572,10 @@ class LibraryUpdater extends JsFeatures {
 
     List<jsAst.Statement> updates = <jsAst.Statement>[];
 
-    Set newClasses =
-        new Set.from(compiler.codegenWorld.directlyInstantiatedClasses);
-    newClasses.removeAll(existingClasses);
+    Set newClasses = new Set.from(
+        compiler.codegenWorld.allInstantiatedClasses.where(
+            emitter.computeClassFilter()));
+    newClasses.removeAll(_existingClasses);
 
     List<jsAst.Statement> inherits = <jsAst.Statement>[];
 

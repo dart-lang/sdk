@@ -1290,6 +1290,59 @@ main() {
             const <String>['v2', 'lazy']),
     ],
 */
+
+    // Test that superclasses of directly instantiated classes are also
+    // emitted.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class A {
+}
+
+class B extends A {
+}
+
+main() {
+  print('v1');
+}
+""",
+            const <String>['v1']),
+        const ProgramResult(
+            r"""
+class A {
+}
+
+class B extends A {
+}
+
+main() {
+  new B();
+  print('v2');
+}
+""",
+            const <String>['v2']),
+    ],
+
+    // Test that interceptor classes are handled correctly.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+main() {
+  // TODO(ahe): Remove next line when new constants are handled correctly.
+  [].map(null);
+  print('v1');
+}
+""",
+            const <String>['v1']),
+        const ProgramResult(
+            r"""
+main() {
+  // TODO(ahe): Use forEach(print) when closures are computed correctly.
+  ['v2'].forEach((e) { print(e); });
+}
+""",
+            const <String>['v2']),
+    ],
 ];
 
 void main() {
@@ -1372,7 +1425,9 @@ Future compileAndRun(List<ProgramResult> programs) {
   }).then((_) {
     status.style.color = 'limegreen';
 
-    // Remove the iframe to work around a bug in test.dart.
+    // Remove the iframe and status to work around a bug in test.dart
+    // (https://code.google.com/p/dart/issues/detail?id=21691).
+    status.remove();
     iframe.remove();
   });
 }
