@@ -25,7 +25,9 @@ class _GrowableList<T> extends ListBase<T> {
   T removeAt(int index) {
     var result = this[index];
     int newLength = this.length - 1;
-    Lists.copy(this, index + 1, this, index, newLength - index);
+    if (index < newLength) {
+      Lists.copy(this, index + 1, this, index, newLength - index);
+    }
     this.length = newLength;
     return result;
   }
