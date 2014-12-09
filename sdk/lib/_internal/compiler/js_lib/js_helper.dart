@@ -77,12 +77,6 @@ class _Patch {
 
 const _Patch patch = const _Patch();
 
-
-/// Marks the internal map in dart2js, so that internal libraries can is-check
-// them.
-abstract class InternalMap {
-}
-
 /// No-op method that is called to inform the compiler that preambles might
 /// be needed when executing the resulting JS file in a command-line
 /// JS engine.

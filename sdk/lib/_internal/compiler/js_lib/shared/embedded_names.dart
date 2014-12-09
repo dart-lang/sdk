@@ -32,7 +32,3 @@ const DEFERRED_LIBRARY_URIS = 'deferredLibraryUris';
 const DEFERRED_LIBRARY_HASHES = 'deferredLibraryHashes';
 const INITIALIZE_LOADED_HUNK = 'initializeLoadedHunk';
 const IS_HUNK_LOADED = 'isHunkLoaded';
-const CLASS_ID_EXTRACTOR = 'classIdExtractor';
-const CLASS_FIELDS_EXTRACTOR = 'classFieldsExtractor';
-const INSTANCE_FROM_CLASS_ID = "instanceFromClassId";
-const INITIALIZE_EMPTY_INSTANCE = "initializeEmptyInstance";

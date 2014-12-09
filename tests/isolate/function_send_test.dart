@@ -153,12 +153,13 @@ void testUnsendable(name, func) {
 
   asyncStart();
   var noReply = new RawReceivePort((_) { throw "Unexpected message: $_"; });
-  Expect.throws(() {
-    noReply.sendPort.send(func);
-  }, null, "send direct");
-  Expect.throws(() {
-    noReply.sendPort.send([func]);
-  }, null, "send wrapped");
+  // Currently succeedes incorrectly in dart2js.
+  Expect.throws(() {                /// 01: ok
+    noReply.sendPort.send(func);    /// 01: continued
+  }, null, "send direct");          /// 01: continued
+  Expect.throws(() {                /// 01: continued
+    noReply.sendPort.send([func]);  /// 01: continued
+  }, null, "send wrapped");         /// 01: continued
   scheduleMicrotask(() {
     noReply.close();
     asyncEnd();
