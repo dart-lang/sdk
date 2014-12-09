@@ -65,28 +65,27 @@ class CompletionTestCase extends CompletionTest {
 
   runTest(LocationSpec spec, [Map<String, String> extraFiles]) {
     super.setUp();
-    String content = spec.source;
-    addFile(testFile, content);
-    this.testCode = content;
-    completionOffset = spec.testLocation;
-    if (extraFiles != null) {
-      extraFiles.forEach((String fileName, String content) {
-        addFile(fileName, content);
-      });
-    }
-    return getSuggestions().then((_) {
-      try {
-        //expect(replacementOffset, equals(completionOffset));
-        //expect(replacementLength, equals(0));
-        for (String result in spec.positiveResults) {
-          assertHasCompletion(result);
-        }
-        for (String result in spec.negativeResults) {
-          assertHasNoCompletion(result);
-        }
-      } finally {
-        super.tearDown();
+    return new Future(() {
+      String content = spec.source;
+      addFile(testFile, content);
+      this.testCode = content;
+      completionOffset = spec.testLocation;
+      if (extraFiles != null) {
+        extraFiles.forEach((String fileName, String content) {
+          addFile(fileName, content);
+        });
       }
+    }).then((_) => getSuggestions()).then((_) {
+      //expect(replacementOffset, equals(completionOffset));
+      //expect(replacementLength, equals(0));
+      for (String result in spec.positiveResults) {
+        assertHasCompletion(result);
+      }
+      for (String result in spec.negativeResults) {
+        assertHasNoCompletion(result);
+      }
+    }).whenComplete(() {
+      super.tearDown();
     });
   }
 
