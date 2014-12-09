@@ -1,3 +1,8 @@
+##0.11.3
+
+* Narrow the constraint on matcher to ensure that new features are reflected in
+  unittest's version.
+
 ##0.11.2
 
 * Prints a warning instead of throwing an error when setting the test

@@ -1,3 +1,8 @@
+#### 0.15.3
+
+  * Narrow the constraint on observe to ensure that new features are reflected
+    in polymer's version.
+
 #### 0.15.2
   * Upgraded to polymer js version
     [0.5.1](https://github.com/Polymer/polymer/releases/tag/0.5.1).
