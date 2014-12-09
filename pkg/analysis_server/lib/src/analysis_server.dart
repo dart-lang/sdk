@@ -18,6 +18,7 @@ import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -113,6 +114,11 @@ class AnalysisServer {
   final DartSdk defaultSdk;
 
   /**
+   * The instrumentation server that is to be used by this analysis server.
+   */
+  final InstrumentationServer instrumentationServer;
+
+  /**
    * A table mapping [Folder]s to the [AnalysisContext]s associated with them.
    */
   final Map<Folder, AnalysisContext> folderMap =
@@ -185,7 +191,7 @@ class AnalysisServer {
   AnalysisServer(this.channel, this.resourceProvider,
       PackageMapProvider packageMapProvider, this.index,
       AnalysisServerOptions analysisServerOptions, this.defaultSdk,
-      {this.rethrowExceptions: true}) {
+      this.instrumentationServer, {this.rethrowExceptions: true}) {
     searchEngine = createSearchEngine(index);
     operationQueue = new ServerOperationQueue(this);
     contextDirectoryManager =

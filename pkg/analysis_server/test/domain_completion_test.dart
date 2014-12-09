@@ -17,6 +17,7 @@ import 'package:analysis_server/src/services/index/index.dart' show Index;
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -517,14 +518,16 @@ class Test_AnalysisServer extends AnalysisServer {
 
   Test_AnalysisServer(ServerCommunicationChannel channel,
       ResourceProvider resourceProvider, PackageMapProvider packageMapProvider,
-      Index index, AnalysisServerOptions analysisServerOptions, DartSdk defaultSdk)
+      Index index, AnalysisServerOptions analysisServerOptions, DartSdk defaultSdk,
+      InstrumentationServer instrumentationServer)
       : super(
           channel,
           resourceProvider,
           packageMapProvider,
           index,
           analysisServerOptions,
-          defaultSdk);
+          defaultSdk,
+          instrumentationServer);
 
   AnalysisContext getAnalysisContext(String path) {
     return mockContext;

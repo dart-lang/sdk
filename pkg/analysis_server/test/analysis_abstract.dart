@@ -12,6 +12,7 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mock_sdk.dart';
@@ -89,7 +90,8 @@ class AbstractAnalysisTest {
         packageMapProvider,
         index,
         new AnalysisServerOptions(),
-        new MockSdk());
+        new MockSdk(),
+        const NullInstrumentationServer());
   }
 
   Index createIndex() {

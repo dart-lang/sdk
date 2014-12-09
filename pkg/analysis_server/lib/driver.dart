@@ -11,6 +11,7 @@ import 'package:analysis_server/http_server.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/stdio_server.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -114,6 +115,11 @@ class Driver {
    */
   static const String NO_ERROR_NOTIFICATION = "no-error-notification";
 
+  /**
+   * The instrumentation server that is to be used by the analysis server.
+   */
+  InstrumentationServer instrumentationServer;
+
   SocketServer socketServer;
 
   HttpAnalysisServer httpServer;
@@ -173,15 +179,31 @@ class Driver {
       _printUsage(parser);
       return;
     }
-    if (results[ENABLE_INSTRUMENTATION_OPTION]) {
-      if (results[INSTRUMENTATION_LOG_FILE_OPTION] != null) {
-        // TODO(brianwilkerson) Initialize the instrumentation system with
-        // logging.
-      } else {
-        // TODO(brianwilkerson) Initialize the instrumentation system without
-        // logging.
-      }
-    }
+
+    // TODO(brianwilkerson) Enable this after it is possible for an
+    // instrumentation server to be provided.
+//    if (results[ENABLE_INSTRUMENTATION_OPTION]) {
+////      if (results[INSTRUMENTATION_LOG_FILE_OPTION] != null) {
+////        // TODO(brianwilkerson) Initialize the instrumentation server with
+////        // logging.
+////      } else {
+////        // TODO(brianwilkerson) Initialize the instrumentation server without
+////        // logging.
+////      }
+//      if (instrumentationServer == null) {
+//        print('Exiting server: enabled instrumentation without providing an instrumentation server');
+//        print('');
+//        _printUsage(parser);
+//        return;
+//      }
+//    } else {
+//      if (instrumentationServer != null) {
+//        print('Exiting server: providing an instrumentation server without enabling instrumentation');
+//        print('');
+//        _printUsage(parser);
+//        return;
+//      }
+//    }
 
     int port;
     bool serve_http = false;
@@ -215,7 +237,12 @@ class Driver {
       defaultSdk = DirectoryBasedDartSdk.defaultSdk;
     }
 
-    socketServer = new SocketServer(analysisServerOptions, defaultSdk);
+    socketServer = new SocketServer(
+        analysisServerOptions,
+        defaultSdk,
+        instrumentationServer == null ?
+            new NullInstrumentationServer() :
+            instrumentationServer);
     httpServer = new HttpAnalysisServer(socketServer);
     stdioServer = new StdioAnalysisServer(socketServer);
 
