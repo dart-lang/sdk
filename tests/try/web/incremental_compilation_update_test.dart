@@ -158,12 +158,13 @@ class C {
 var instance;
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new C();
   }
   instance.m();
 }
 """,
-            const <String> ['v1']),
+            const <String> ['instance is null', 'v1']),
         const ProgramResult(
             """
 class C {
@@ -174,6 +175,7 @@ class C {
 var instance;
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new C();
   }
   instance.m();
@@ -194,12 +196,13 @@ class C {
 var closure;
 main() {
   if (closure == null) {
+    print('closure is null');
     closure = new C().m;
   }
   closure();
 }
 """,
-            const <String> ['v1']),
+            const <String> ['closure is null', 'v1']),
         const ProgramResult(
             """
 class C {
@@ -210,6 +213,7 @@ class C {
 var closure;
 main() {
   if (closure == null) {
+    print('closure is null');
     closure = new C().m;
   }
   closure();
@@ -230,16 +234,17 @@ class C {
 var instance;
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new C();
   }
   try {
     instance.m();
   } catch (e) {
-    print('v2');
+    print('threw');
   }
 }
 """,
-            const <String> ['v1']),
+            const <String> ['instance is null', 'v1']),
         const ProgramResult(
             """
 class C {
@@ -247,16 +252,17 @@ class C {
 var instance;
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new C();
   }
   try {
     instance.m();
   } catch (e) {
-    print('v2');
+    print('threw');
   }
 }
 """,
-            const <String> ['v2']),
+            const <String> ['threw']),
     ],
 
     // Test that deleting an instance method works, even when accessed through
@@ -282,12 +288,13 @@ class C extends B {
 var instance;
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new C();
   }
   instance.m();
 }
 """,
-            const <String> ['v1']),
+            const <String> ['instance is null', 'v1']),
         const ProgramResult(
             """
 class A {
@@ -305,6 +312,7 @@ class C extends B {
 var instance;
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new C();
   }
   instance.m();
@@ -325,19 +333,20 @@ class C {
     try {
       toplevel();
     } catch (e) {
-      print('v2');
+      print('threw');
     }
   }
 }
 var instance;
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new C();
   }
   instance.m();
 }
 """,
-            const <String> ['v1']),
+            const <String> ['instance is null', 'v1']),
         const ProgramResult(
             """
 class C {
@@ -345,19 +354,20 @@ class C {
     try {
       toplevel();
     } catch (e) {
-      print('v2');
+      print('threw');
     }
   }
 }
 var instance;
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new C();
   }
   instance.m();
 }
 """,
-            const <String> ['v2']),
+            const <String> ['threw']),
     ],
 
     // Test that deleting a static method works.
@@ -374,7 +384,7 @@ class C {
     try {
       B.staticMethod();
     } catch (e) {
-      print('v2');
+      print('threw');
     }
     try {
       // Ensure that noSuchMethod support is compiled. This test is not about
@@ -388,12 +398,13 @@ class C {
 var instance;
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new C();
   }
   instance.m();
 }
 """,
-            const <String> ['v1']),
+            const <String> ['instance is null', 'v1']),
         const ProgramResult(
             """
 class B {
@@ -403,7 +414,7 @@ class C {
     try {
       B.staticMethod();
     } catch (e) {
-      print('v2');
+      print('threw');
     }
     try {
       // Ensure that noSuchMethod support is compiled. This test is not about
@@ -417,12 +428,13 @@ class C {
 var instance;
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new C();
   }
   instance.m();
 }
 """,
-            const <String> ['v2']),
+            const <String> ['threw']),
     ],
 
     // Test that a newly instantiated class is handled.
@@ -444,14 +456,13 @@ class B {
 var instance;
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new A();
-//   } else {
-//     instance = new B();
   }
   instance.m();
 }
 """,
-            const <String>['Called A.m']),
+            const <String>['instance is null', 'Called A.m']),
         const ProgramResult(
             """
 class A {
@@ -469,6 +480,7 @@ class B {
 var instance;
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new A();
   } else {
     instance = new B();
@@ -519,14 +531,13 @@ class B extends A {
 var instance;
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new A();
-//   } else {
-//     instance = new B();
   }
   instance.m();
 }
 """,
-            const <String>['Called A.m']),
+            const <String>['instance is null', 'Called A.m']),
         const ProgramResult(
             r"""
 class A {
@@ -544,6 +555,7 @@ class B extends A {
 var instance;
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new A();
   } else {
     instance = new B();
@@ -605,11 +617,11 @@ main() {
   try {
     foo();
   } catch(e) {
-    print('v1');
+    print('threw');
   }
 }
 """,
-            const <String>['v1']),
+            const <String>['threw']),
         const ProgramResult(
             r"""
 foo() {
@@ -620,7 +632,7 @@ main() {
   try {
     foo();
   } catch(e) {
-    print('v1');
+    print('threw');
   }
 }
 """,
@@ -638,11 +650,11 @@ main() {
   try {
     C.foo();
   } catch(e) {
-    print('v1');
+    print('threw');
   }
 }
 """,
-            const <String>['v1']),
+            const <String>['threw']),
         const ProgramResult(
             r"""
 class C {
@@ -655,7 +667,7 @@ main() {
   try {
     C.foo();
   } catch(e) {
-    print('v1');
+    print('threw');
   }
 }
 """,
@@ -673,17 +685,18 @@ var instance;
 
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new C();
   }
 
   try {
     instance.foo();
   } catch(e) {
-    print('v1');
+    print('threw');
   }
 }
 """,
-            const <String>['v1']),
+            const <String>['instance is null', 'threw']),
         const ProgramResult(
             r"""
 class C {
@@ -696,13 +709,14 @@ var instance;
 
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new C();
   }
 
   try {
     instance.foo();
   } catch(e) {
-    print('v1');
+    print('threw');
   }
 }
 """,
@@ -779,13 +793,14 @@ var instance;
 
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new C();
   }
 
   instance.foo();
 }
 """,
-            const <String>['v1']),
+            const <String>['instance is null', 'v1']),
         const ProgramResult(
             r"""
 class C {
@@ -798,6 +813,7 @@ var instance;
 
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new C();
   }
 
@@ -918,12 +934,13 @@ var instance;
 
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new C();
   }
   instance.m();
 }
 """,
-            const <String>['v1']),
+            const <String>['instance is null', 'v1']),
         const ProgramResult(
             r"""
 class A {
@@ -946,6 +963,7 @@ var instance;
 
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new C();
   }
   instance.m();
@@ -965,6 +983,7 @@ var instance;
 
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new A();
   }
   try {
@@ -979,7 +998,7 @@ main() {
   }
 }
 """,
-            const <String>['setter threw', 'getter threw']),
+            const <String>['instance is null', 'setter threw', 'getter threw']),
         const ProgramResult(
             r"""
 class A {
@@ -990,6 +1009,7 @@ var instance;
 
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new A();
   }
   try {
@@ -1008,8 +1028,6 @@ main() {
     ],
 
     // Test removing a field from a class works.
-    // TODO(ahe): The emitter still see the field, and we need to ensure that
-    // old names aren't used again.
     const <ProgramResult>[
         const ProgramResult(
             r"""
@@ -1021,6 +1039,7 @@ var instance;
 
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new A();
   }
   try {
@@ -1035,7 +1054,7 @@ main() {
   }
 }
 """,
-            const <String>['v1']),
+            const <String>['instance is null', 'v1']),
         const ProgramResult(
             r"""
 class A {
@@ -1045,6 +1064,7 @@ var instance;
 
 main() {
   if (instance == null) {
+    print('instance is null');
     instance = new A();
   }
   try {
@@ -1061,6 +1081,215 @@ main() {
 """,
             const <String>['setter threw', 'getter threw']),
     ],
+
+    // Test that named arguments can be called.
+    // TODO(ahe): This test doesn't pass yet, see expectation below.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class C {
+  foo({a, named: 'v1', x}) {
+    print(named);
+  }
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    print('instance is null');
+    instance = new C();
+  }
+  try {
+    instance.foo();
+  } catch (e) {
+    // TODO(ahe): This try/catch shouldn't be necessary.
+    print('threw');
+  }
+}
+""",
+            const <String>['instance is null', 'v1']),
+        const ProgramResult(
+            r"""
+class C {
+  foo({a, named: 'v1', x}) {
+    print(named);
+  }
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    print('instance is null');
+    instance = new C();
+  }
+  try {
+    instance.foo(named: 'v2');
+  } catch (e) {
+    // TODO(ahe): This try/catch shouldn't be necessary.
+    print('threw');
+  }
+}
+""",
+            const <String>['threw']), // TODO(ahe): Expect 'v2'.
+    ],
+
+    // Test than named arguments can be called.
+    // TODO(ahe): This test doesn't pass yet, see expectation below.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class C {
+  foo({a, named: 'v2', x}) {
+    print(named);
+  }
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    print('instance is null');
+    instance = new C();
+  }
+  try {
+    instance.foo(named: 'v1');
+  } catch (e) {
+    // TODO(ahe): This try/catch shouldn't be necessary.
+    print('threw');
+  }
+}
+""",
+            const <String>['instance is null', 'v1']),
+        const ProgramResult(
+            r"""
+class C {
+  foo({a, named: 'v2', x}) {
+    print(named);
+  }
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    print('instance is null');
+    instance = new C();
+  }
+  try {
+    instance.foo();
+  } catch (e) {
+    // TODO(ahe): This try/catch shouldn't be necessary.
+    print('threw');
+  }
+}
+""",
+            const <String>['threw']),
+    ],
+
+    // Test that an instance tear-off with named parameters can be called.
+    // TODO(ahe): This test doesn't pass yet, see expectation below.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class C {
+  foo({a, named: 'v1', x}) {
+    print(named);
+  }
+}
+
+var closure;
+
+main() {
+  if (closure == null) {
+    print('closure is null');
+    closure = new C().foo;
+  }
+  try {
+    closure();
+  } catch (e) {
+    // TODO(ahe): This try/catch shouldn't be necessary.
+    print('threw');
+  }
+}
+""",
+            const <String>['closure is null', 'v1']),
+        const ProgramResult(
+            r"""
+class C {
+  foo({a, named: 'v1', x}) {
+    print(named);
+  }
+}
+
+var closure;
+
+main() {
+  if (closure == null) {
+    print('closure is null');
+    closure = new C().foo;
+  }
+  try {
+    closure(named: 'v2');
+  } catch (e) {
+    // TODO(ahe): This try/catch shouldn't be necessary.
+    print('threw');
+  }
+}
+""",
+            const <String>['threw']), // TODO(ahe): Expect 'v2'.
+    ],
+
+/*
+    // Test that a lazy static is supported.
+    // TODO(ahe): This test doesn't pass yet.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+var normal;
+
+foo() {
+  print(normal);
+}
+
+main() {
+  if (normal == null) {
+    normal = 'v1';
+  } else {
+    normal = '';
+  }
+  foo();
+}
+""",
+            const <String>['v1']),
+        const ProgramResult(
+            r"""
+var normal;
+
+var lazy = bar();
+
+foo() {
+  print(lazy);
+}
+
+bar() {
+  print('v2');
+  return 'lazy';
+}
+
+main() {
+  if (normal == null) {
+    normal = 'v1';
+  } else {
+    normal = '';
+  }
+  foo();
+}
+""",
+            const <String>['v2', 'lazy']),
+    ],
+*/
 ];
 
 void main() {
@@ -1068,7 +1297,17 @@ void main() {
 
   document.head.append(lineNumberStyle());
 
-  return asyncTest(() => Future.forEach(tests, compileAndRun));
+  String query = window.location.search;
+  int skip = 0;
+  if (query != null && query.length > 1) {
+    query = query.substring(1);
+    String skipParam = Uri.splitQueryString(window.location.search)['skip'];
+    if (skipParam != null) {
+      skip = int.parse(skipParam);
+    }
+  }
+
+  return asyncTest(() => Future.forEach(tests.skip(skip), compileAndRun));
 }
 
 int testCount = 1;
