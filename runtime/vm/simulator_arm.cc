@@ -25,7 +25,8 @@
 namespace dart {
 
 DEFINE_FLAG(bool, trace_sim, false, "Trace simulator execution.");
-DEFINE_FLAG(int, stop_sim_at, 0, "Address to stop simulator at.");
+DEFINE_FLAG(int, stop_sim_at, 0,
+            "Instruction address or instruction count to stop simulator at.");
 
 
 // This macro provides a platform independent use of sscanf. The reason for
@@ -33,19 +34,6 @@ DEFINE_FLAG(int, stop_sim_at, 0, "Address to stop simulator at.");
 // OS in the same way as SNPrint is that the Windows C Run-Time
 // Library does not provide vsscanf.
 #define SScanF sscanf  // NOLINT
-
-
-// Unimplemented counter class for debugging and measurement purposes.
-class StatsCounter {
- public:
-  explicit StatsCounter(const char* name) {
-    // UNIMPLEMENTED();
-  }
-
-  void Increment() {
-    // UNIMPLEMENTED();
-  }
-};
 
 
 // SimulatorSetjmpBuffer are linked together, and the last created one
@@ -100,15 +88,9 @@ class SimulatorDebugger {
 
   void Stop(Instr* instr, const char* message);
   void Debug();
-
   char* ReadLine(const char* prompt);
 
  private:
-  static const int32_t kSimulatorBreakpointInstr =  // svc #kBreakpointSvcCode
-    ((AL << kConditionShift) | (0xf << 24) | kBreakpointSvcCode);
-  static const int32_t kNopInstr =  // nop
-    ((AL << kConditionShift) | (0x32 << 20) | (0xf << 12));
-
   Simulator* sim_;
 
   bool GetValue(char* desc, uint32_t* value);
@@ -216,6 +198,10 @@ bool SimulatorDebugger::GetValue(char* desc, uint32_t* value) {
       *value = *(reinterpret_cast<uint32_t*>(addr));
       return true;
     }
+  }
+  if (strcmp("icount", desc) == 0) {
+    *value = sim_->get_icount();
+    return true;
   }
   bool retval = SScanF(desc, "0x%x", value) == 1;
   if (!retval) {
@@ -392,7 +378,7 @@ void SimulatorDebugger::UndoBreakpoints() {
 
 void SimulatorDebugger::RedoBreakpoints() {
   if (sim_->break_pc_ != NULL) {
-    sim_->break_pc_->SetInstructionBits(kSimulatorBreakpointInstr);
+    sim_->break_pc_->SetInstructionBits(Instr::kSimulatorBreakpointInstruction);
   }
 }
 
@@ -452,7 +438,7 @@ void SimulatorDebugger::Debug() {
                   "gdb -- transfer control to gdb\n"
                   "h/help -- print this help string\n"
                   "break <address> -- set break point at specified address\n"
-                  "p/print <reg or value or *addr> -- print integer value\n"
+                  "p/print <reg or icount or value or *addr> -- print integer\n"
                   "ps/printsingle <sreg or *addr> -- print float value\n"
                   "pd/printdouble <dreg or *addr> -- print double value\n"
                   "po/printobject <*reg or *addr> -- print object\n"
@@ -540,17 +526,32 @@ void SimulatorDebugger::Debug() {
           end = start + (10 * Instr::kInstrSize);
         } else if (args == 2) {
           if (GetValue(arg1, &start)) {
-            // no length parameter passed, assume 10 instructions
+            // No length parameter passed, assume 10 instructions.
+            if (Simulator::IsIllegalAddress(start)) {
+              // If start isn't a valid address, warn and use PC instead.
+              OS::Print("First argument yields invalid address: 0x%x\n", start);
+              OS::Print("Using PC instead\n");
+              start = sim_->get_pc();
+            }
             end = start + (10 * Instr::kInstrSize);
           }
         } else {
           uint32_t length;
           if (GetValue(arg1, &start) && GetValue(arg2, &length)) {
+            if (Simulator::IsIllegalAddress(start)) {
+              // If start isn't a valid address, warn and use PC instead.
+              OS::Print("First argument yields invalid address: 0x%x\n", start);
+              OS::Print("Using PC instead\n");
+              start = sim_->get_pc();
+            }
             end = start + (length * Instr::kInstrSize);
           }
         }
-
-        Disassembler::Disassemble(start, end);
+        if ((start > 0) && (end > start)) {
+          Disassembler::Disassemble(start, end);
+        } else {
+          OS::Print("disasm [<address> [<number_of_instructions>]]\n");
+        }
       } else if (strcmp(cmd, "gdb") == 0) {
         OS::Print("relinquishing control to gdb\n");
         OS::DebugBreak();
@@ -587,7 +588,7 @@ void SimulatorDebugger::Debug() {
         intptr_t stop_pc = sim_->get_pc() - Instr::kInstrSize;
         Instr* stop_instr = reinterpret_cast<Instr*>(stop_pc);
         if (stop_instr->IsSvc() || stop_instr->IsBkpt()) {
-          stop_instr->SetInstructionBits(kNopInstr);
+          stop_instr->SetInstructionBits(Instr::kNopInstruction);
         } else {
           OS::Print("Not at debugger stop.\n");
         }
@@ -618,7 +619,7 @@ void SimulatorDebugger::Debug() {
 char* SimulatorDebugger::ReadLine(const char* prompt) {
   char* result = NULL;
   char line_buf[256];
-  int offset = 0;
+  intptr_t offset = 0;
   bool keep_going = true;
   OS::Print("%s", prompt);
   while (keep_going) {
@@ -629,7 +630,7 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
       }
       return NULL;
     }
-    int len = strlen(line_buf);
+    intptr_t len = strlen(line_buf);
     if (len > 1 &&
         line_buf[len - 2] == '\\' &&
         line_buf[len - 1] == '\n') {
@@ -652,7 +653,7 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
       }
     } else {
       // Allocate a new result with enough room for the new addition.
-      int new_len = offset + len + 1;
+      intptr_t new_len = offset + len + 1;
       char* new_result = new char[new_len];
       if (new_result == NULL) {
         // OOM, free the buffer allocated so far and return NULL.
@@ -797,15 +798,13 @@ class Redirection {
   }
 
  private:
-  static const int32_t kRedirectSvcInstruction =
-    ((AL << kConditionShift) | (0xf << 24) | kRedirectionSvcCode);
   Redirection(uword external_function,
               Simulator::CallKind call_kind,
               int argument_count)
       : external_function_(external_function),
         call_kind_(call_kind),
         argument_count_(argument_count),
-        svc_instruction_(kRedirectSvcInstruction),
+        svc_instruction_(Instr::kSimulatorRedirectInstruction),
         next_(list_) {
     list_ = this;
   }
@@ -1002,8 +1001,6 @@ void Simulator::UnimplementedInstruction(Instr* instr) {
 
 
 intptr_t Simulator::ReadW(uword addr, Instr* instr) {
-  static StatsCounter counter_read_w("Simulated word reads");
-  counter_read_w.Increment();
   if ((addr & 3) == 0) {
     intptr_t* ptr = reinterpret_cast<intptr_t*>(addr);
     return *ptr;
@@ -1014,8 +1011,6 @@ intptr_t Simulator::ReadW(uword addr, Instr* instr) {
 
 
 void Simulator::WriteW(uword addr, intptr_t value, Instr* instr) {
-  static StatsCounter counter_write_w("Simulated word writes");
-  counter_write_w.Increment();
   if ((addr & 3) == 0) {
     intptr_t* ptr = reinterpret_cast<intptr_t*>(addr);
     *ptr = value;
@@ -1026,8 +1021,6 @@ void Simulator::WriteW(uword addr, intptr_t value, Instr* instr) {
 
 
 uint16_t Simulator::ReadHU(uword addr, Instr* instr) {
-  static StatsCounter counter_read_hu("Simulated unsigned halfword reads");
-  counter_read_hu.Increment();
   if ((addr & 1) == 0) {
     uint16_t* ptr = reinterpret_cast<uint16_t*>(addr);
     return *ptr;
@@ -1038,8 +1031,6 @@ uint16_t Simulator::ReadHU(uword addr, Instr* instr) {
 
 
 int16_t Simulator::ReadH(uword addr, Instr* instr) {
-  static StatsCounter counter_read_h("Simulated signed halfword reads");
-  counter_read_h.Increment();
   if ((addr & 1) == 0) {
     int16_t* ptr = reinterpret_cast<int16_t*>(addr);
     return *ptr;
@@ -1050,8 +1041,6 @@ int16_t Simulator::ReadH(uword addr, Instr* instr) {
 
 
 void Simulator::WriteH(uword addr, uint16_t value, Instr* instr) {
-  static StatsCounter counter_write_h("Simulated halfword writes");
-  counter_write_h.Increment();
   if ((addr & 1) == 0) {
     uint16_t* ptr = reinterpret_cast<uint16_t*>(addr);
     *ptr = value;
@@ -1062,24 +1051,18 @@ void Simulator::WriteH(uword addr, uint16_t value, Instr* instr) {
 
 
 uint8_t Simulator::ReadBU(uword addr) {
-  static StatsCounter counter_read_bu("Simulated unsigned byte reads");
-  counter_read_bu.Increment();
   uint8_t* ptr = reinterpret_cast<uint8_t*>(addr);
   return *ptr;
 }
 
 
 int8_t Simulator::ReadB(uword addr) {
-  static StatsCounter counter_read_b("Simulated signed byte reads");
-  counter_read_b.Increment();
   int8_t* ptr = reinterpret_cast<int8_t*>(addr);
   return *ptr;
 }
 
 
 void Simulator::WriteB(uword addr, uint8_t value) {
-  static StatsCounter counter_write_b("Simulated byte writes");
-  counter_write_b.Increment();
   uint8_t* ptr = reinterpret_cast<uint8_t*>(addr);
   *ptr = value;
 }
@@ -1638,16 +1621,6 @@ void Simulator::SupervisorCall(Instr* instr) {
           reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
       set_pc(get_pc() + Instr::kInstrSize);
       dbg.Stop(instr, message);
-      break;
-    }
-    case kWordSpillMarkerSvcCode: {
-      static StatsCounter counter_spill_w("Simulated word spills");
-      counter_spill_w.Increment();
-      break;
-    }
-    case kDWordSpillMarkerSvcCode: {
-      static StatsCounter counter_spill_d("Simulated double word spills");
-      counter_spill_d.Increment();
       break;
     }
     default: {
@@ -3654,8 +3627,6 @@ void Simulator::InstructionDecode(Instr* instr) {
 
 
 void Simulator::Execute() {
-  static StatsCounter counter_instructions("Simulated instructions");
-
   // Get the PC to simulate. Cannot use the accessor here as we need the
   // raw PC value and not the one used as input to arithmetic instructions.
   uword program_counter = get_pc();
@@ -3666,7 +3637,6 @@ void Simulator::Execute() {
     while (program_counter != kEndSimulatingPC) {
       Instr* instr = reinterpret_cast<Instr*>(program_counter);
       icount_++;
-      counter_instructions.Increment();
       if (IsIllegalAddress(program_counter)) {
         HandleIllegalAccess(program_counter, instr);
       } else {
@@ -3676,14 +3646,16 @@ void Simulator::Execute() {
     }
   } else {
     // FLAG_stop_sim_at is at the non-default value. Stop in the debugger when
-    // we reach the particular instruction count.
+    // we reach the particular instruction count or address.
     while (program_counter != kEndSimulatingPC) {
       Instr* instr = reinterpret_cast<Instr*>(program_counter);
       icount_++;
-      counter_instructions.Increment();
-      if (icount_ == FLAG_stop_sim_at) {
+      if (static_cast<intptr_t>(icount_) == FLAG_stop_sim_at) {
         SimulatorDebugger dbg(this);
         dbg.Stop(instr, "Instruction count reached");
+      } else if (reinterpret_cast<intptr_t>(instr) == FLAG_stop_sim_at) {
+        SimulatorDebugger dbg(this);
+        dbg.Stop(instr, "Instruction address reached");
       } else if (IsIllegalAddress(program_counter)) {
         HandleIllegalAccess(program_counter, instr);
       } else {

@@ -15,7 +15,6 @@
 
 #include "vm/assembler.h"
 #include "vm/constants_arm64.h"
-#include "vm/cpu.h"
 #include "vm/disassembler.h"
 #include "vm/lockers.h"
 #include "vm/native_arguments.h"
@@ -25,7 +24,8 @@
 namespace dart {
 
 DEFINE_FLAG(bool, trace_sim, false, "Trace simulator execution.");
-DEFINE_FLAG(int, stop_sim_at, 0, "Address to stop simulator at.");
+DEFINE_FLAG(int, stop_sim_at, 0,
+            "Instruction address or instruction count to stop simulator at.");
 
 
 // This macro provides a platform independent use of sscanf. The reason for
@@ -92,11 +92,28 @@ class SimulatorDebugger {
  private:
   Simulator* sim_;
 
-  bool GetValue(char* desc, int64_t* value);
-  bool GetSValue(char* desc, int32_t* value);
-  bool GetDValue(char* desc, int64_t* value);
+  bool GetValue(char* desc, uint64_t* value);
+  bool GetSValue(char* desc, uint32_t* value);
+  bool GetDValue(char* desc, uint64_t* value);
   bool GetQValue(char* desc, simd_value_t* value);
-  // TODO(zra): Breakpoints.
+
+  static intptr_t GetApproximateTokenIndex(const Code& code, uword pc);
+
+  static void PrintDartFrame(uword pc, uword fp, uword sp,
+                             const Function& function,
+                             intptr_t token_pos,
+                             bool is_optimized,
+                             bool is_inlined);
+  void PrintBacktrace();
+
+  // Set or delete a breakpoint. Returns true if successful.
+  bool SetBreakpoint(Instr* breakpc);
+  bool DeleteBreakpoint(Instr* breakpc);
+
+  // Undo and redo all breakpoints. This is needed to bracket disassembly and
+  // execution to skip past breakpoints when run from the debugger.
+  void UndoBreakpoints();
+  void RedoBreakpoints();
 };
 
 
@@ -107,6 +124,7 @@ SimulatorDebugger::SimulatorDebugger(Simulator* sim) {
 
 SimulatorDebugger::~SimulatorDebugger() {
 }
+
 
 void SimulatorDebugger::Stop(Instr* instr, const char* message) {
   OS::Print("Simulator hit %s\n", message);
@@ -155,7 +173,7 @@ static VRegister LookupVRegisterByName(const char* name) {
 }
 
 
-bool SimulatorDebugger::GetValue(char* desc, int64_t* value) {
+bool SimulatorDebugger::GetValue(char* desc, uint64_t* value) {
   Register reg = LookupCpuRegisterByName(desc);
   if (reg != kNoRegister) {
     if (reg == ZR) {
@@ -166,7 +184,7 @@ bool SimulatorDebugger::GetValue(char* desc, int64_t* value) {
     return true;
   }
   if (desc[0] == '*') {
-    int64_t addr;
+    uint64_t addr;
     if (GetValue(desc + 1, &addr)) {
       if (Simulator::IsIllegalAddress(addr)) {
         return false;
@@ -179,6 +197,10 @@ bool SimulatorDebugger::GetValue(char* desc, int64_t* value) {
     *value = sim_->get_pc();
     return true;
   }
+  if (strcmp("icount", desc) == 0) {
+    *value = sim_->get_icount();
+    return true;
+  }
   bool retval = SScanF(desc, "0x%"Px64, value) == 1;
   if (!retval) {
     retval = SScanF(desc, "%"Px64, value) == 1;
@@ -187,19 +209,19 @@ bool SimulatorDebugger::GetValue(char* desc, int64_t* value) {
 }
 
 
-bool SimulatorDebugger::GetSValue(char* desc, int32_t* value) {
+bool SimulatorDebugger::GetSValue(char* desc, uint32_t* value) {
   VRegister vreg = LookupVRegisterByName(desc);
   if (vreg != kNoVRegister) {
     *value = sim_->get_vregisters(vreg, 0);
     return true;
   }
   if (desc[0] == '*') {
-    int64_t addr;
+    uint64_t addr;
     if (GetValue(desc + 1, &addr)) {
       if (Simulator::IsIllegalAddress(addr)) {
         return false;
       }
-      *value = *(reinterpret_cast<int32_t*>(addr));
+      *value = *(reinterpret_cast<uint32_t*>(addr));
       return true;
     }
   }
@@ -207,19 +229,19 @@ bool SimulatorDebugger::GetSValue(char* desc, int32_t* value) {
 }
 
 
-bool SimulatorDebugger::GetDValue(char* desc, int64_t* value) {
+bool SimulatorDebugger::GetDValue(char* desc, uint64_t* value) {
   VRegister vreg = LookupVRegisterByName(desc);
   if (vreg != kNoVRegister) {
     *value = sim_->get_vregisterd(vreg, 0);
     return true;
   }
   if (desc[0] == '*') {
-    int64_t addr;
+    uint64_t addr;
     if (GetValue(desc + 1, &addr)) {
       if (Simulator::IsIllegalAddress(addr)) {
         return false;
       }
-      *value = *(reinterpret_cast<int64_t*>(addr));
+      *value = *(reinterpret_cast<uint64_t*>(addr));
       return true;
     }
   }
@@ -234,7 +256,7 @@ bool SimulatorDebugger::GetQValue(char* desc, simd_value_t* value) {
     return true;
   }
   if (desc[0] == '*') {
-    int64_t addr;
+    uint64_t addr;
     if (GetValue(desc + 1, &addr)) {
       if (Simulator::IsIllegalAddress(addr)) {
         return false;
@@ -244,6 +266,138 @@ bool SimulatorDebugger::GetQValue(char* desc, simd_value_t* value) {
     }
   }
   return false;
+}
+
+
+intptr_t SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
+                                                     uword pc) {
+  intptr_t token_pos = -1;
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(code.pc_descriptors());
+  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
+  while (iter.MoveNext()) {
+    if (iter.Pc() == pc) {
+      return iter.TokenPos();
+    } else if ((token_pos <= 0) && (iter.Pc() > pc)) {
+      token_pos = iter.TokenPos();
+    }
+  }
+  return token_pos;
+}
+
+
+void SimulatorDebugger::PrintDartFrame(uword pc, uword fp, uword sp,
+                                       const Function& function,
+                                       intptr_t token_pos,
+                                       bool is_optimized,
+                                       bool is_inlined) {
+  const Script& script = Script::Handle(function.script());
+  const String& func_name = String::Handle(function.QualifiedUserVisibleName());
+  const String& url = String::Handle(script.url());
+  intptr_t line = -1;
+  intptr_t column = -1;
+  if (token_pos >= 0) {
+    script.GetTokenLocation(token_pos, &line, &column);
+  }
+  OS::Print("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s%s (%s:%" Pd
+            ":%" Pd ")\n",
+            pc, fp, sp,
+            is_optimized ? (is_inlined ? "inlined " : "optimized ") : "",
+            func_name.ToCString(),
+            url.ToCString(),
+            line, column);
+}
+
+
+void SimulatorDebugger::PrintBacktrace() {
+  StackFrameIterator frames(sim_->get_register(FP),
+                            sim_->get_register(SP),
+                            sim_->get_pc(),
+                            StackFrameIterator::kDontValidateFrames);
+  StackFrame* frame = frames.NextFrame();
+  ASSERT(frame != NULL);
+  Function& function = Function::Handle();
+  Function& inlined_function = Function::Handle();
+  Code& code = Code::Handle();
+  Code& unoptimized_code = Code::Handle();
+  while (frame != NULL) {
+    if (frame->IsDartFrame()) {
+      code = frame->LookupDartCode();
+      function = code.function();
+      if (code.is_optimized()) {
+        // For optimized frames, extract all the inlined functions if any
+        // into the stack trace.
+        InlinedFunctionsIterator it(code, frame->pc());
+        while (!it.Done()) {
+          // Print each inlined frame with its pc in the corresponding
+          // unoptimized frame.
+          inlined_function = it.function();
+          unoptimized_code = it.code();
+          uword unoptimized_pc = it.pc();
+          it.Advance();
+          if (!it.Done()) {
+            PrintDartFrame(unoptimized_pc, frame->fp(), frame->sp(),
+                           inlined_function,
+                           GetApproximateTokenIndex(unoptimized_code,
+                                                    unoptimized_pc),
+                           true, true);
+          }
+        }
+        // Print the optimized inlining frame below.
+      }
+      PrintDartFrame(frame->pc(), frame->fp(), frame->sp(),
+                     function,
+                     GetApproximateTokenIndex(code, frame->pc()),
+                     code.is_optimized(), false);
+    } else {
+      OS::Print("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s frame\n",
+                frame->pc(), frame->fp(), frame->sp(),
+                frame->IsEntryFrame() ? "entry" :
+                    frame->IsExitFrame() ? "exit" :
+                        frame->IsStubFrame() ? "stub" : "invalid");
+    }
+    frame = frames.NextFrame();
+  }
+}
+
+
+bool SimulatorDebugger::SetBreakpoint(Instr* breakpc) {
+  // Check if a breakpoint can be set. If not return without any side-effects.
+  if (sim_->break_pc_ != NULL) {
+    return false;
+  }
+
+  // Set the breakpoint.
+  sim_->break_pc_ = breakpc;
+  sim_->break_instr_ = breakpc->InstructionBits();
+  // Not setting the breakpoint instruction in the code itself. It will be set
+  // when the debugger shell continues.
+  return true;
+}
+
+
+bool SimulatorDebugger::DeleteBreakpoint(Instr* breakpc) {
+  if (sim_->break_pc_ != NULL) {
+    sim_->break_pc_->SetInstructionBits(sim_->break_instr_);
+  }
+
+  sim_->break_pc_ = NULL;
+  sim_->break_instr_ = 0;
+  return true;
+}
+
+
+void SimulatorDebugger::UndoBreakpoints() {
+  if (sim_->break_pc_ != NULL) {
+    sim_->break_pc_->SetInstructionBits(sim_->break_instr_);
+  }
+}
+
+
+void SimulatorDebugger::RedoBreakpoints() {
+  if (sim_->break_pc_ != NULL) {
+    sim_->break_pc_->SetInstructionBits(Instr::kSimulatorBreakpointInstruction);
+  }
 }
 
 
@@ -266,9 +420,9 @@ void SimulatorDebugger::Debug() {
   arg1[ARG_SIZE] = 0;
   arg2[ARG_SIZE] = 0;
 
-  // TODO(zra): Undo all set breakpoints while running in the debugger shell.
-  // This will make them invisible to all commands.
-  // UndoBreakpoints();
+  // Undo all set breakpoints while running in the debugger shell. This will
+  // make them invisible to all commands.
+  UndoBreakpoints();
 
   while (!done) {
     if (last_pc != sim_->get_pc()) {
@@ -297,15 +451,20 @@ void SimulatorDebugger::Debug() {
                   "    disasm <address>\n"
                   "    disasm <address> <number_of_instructions>\n"
                   "  by default 10 instrs are disassembled\n"
+                  "del -- delete breakpoints\n"
                   "flags -- print flag values\n"
                   "gdb -- transfer control to gdb\n"
                   "h/help -- print this help string\n"
-                  "p/print <reg or value or *addr> -- print integer value\n"
+                  "break <address> -- set break point at specified address\n"
+                  "p/print <reg or icount or value or *addr> -- print integer\n"
                   "pf/printfloat <vreg or *addr> --print float value\n"
                   "pd/printdouble <vreg or *addr> -- print double value\n"
                   "pq/printquad <vreg or *addr> -- print vector register\n"
                   "po/printobject <*reg or *addr> -- print object\n"
                   "si/stepi -- single step an instruction\n"
+                  "trace -- toggle execution tracing mode\n"
+                  "bt -- print backtrace\n"
+                  "unstop -- if current pc is a stop instr make it a nop\n"
                   "q/quit -- Quit the debugger and exit the program\n");
       } else if ((strcmp(cmd, "quit") == 0) || (strcmp(cmd, "q") == 0)) {
         OS::Print("Quitting\n");
@@ -319,7 +478,7 @@ void SimulatorDebugger::Debug() {
         done = true;
       } else if ((strcmp(cmd, "p") == 0) || (strcmp(cmd, "print") == 0)) {
         if (args == 2) {
-          int64_t value;
+          uint64_t value;
           if (GetValue(arg1, &value)) {
             OS::Print("%s: %"Pu64" 0x%"Px64"\n", arg1, value, value);
           } else {
@@ -331,9 +490,9 @@ void SimulatorDebugger::Debug() {
       } else if ((strcmp(cmd, "pf") == 0) ||
                  (strcmp(cmd, "printfloat") == 0)) {
         if (args == 2) {
-          int32_t value;
+          uint32_t value;
           if (GetSValue(arg1, &value)) {
-            float svalue = bit_cast<float, int32_t>(value);
+            float svalue = bit_cast<float, uint32_t>(value);
             OS::Print("%s: %d 0x%x %.8g\n",
                 arg1, value, value, svalue);
           } else {
@@ -345,9 +504,9 @@ void SimulatorDebugger::Debug() {
       } else if ((strcmp(cmd, "pd") == 0) ||
                  (strcmp(cmd, "printdouble") == 0)) {
         if (args == 2) {
-          int64_t long_value;
+          uint64_t long_value;
           if (GetDValue(arg1, &long_value)) {
-            double dvalue = bit_cast<double, int64_t>(long_value);
+            double dvalue = bit_cast<double, uint64_t>(long_value);
             OS::Print("%s: %"Pu64" 0x%"Px64" %.8g\n",
                 arg1, long_value, long_value, dvalue);
           } else {
@@ -388,7 +547,7 @@ void SimulatorDebugger::Debug() {
       } else if ((strcmp(cmd, "po") == 0) ||
                  (strcmp(cmd, "printobject") == 0)) {
         if (args == 2) {
-          int64_t value;
+          uint64_t value;
           // Make the dereferencing '*' optional.
           if (((arg1[0] == '*') && GetValue(arg1 + 1, &value)) ||
               GetValue(arg1, &value)) {
@@ -409,28 +568,28 @@ void SimulatorDebugger::Debug() {
           OS::Print("printobject <*reg or *addr>\n");
         }
       } else if (strcmp(cmd, "disasm") == 0) {
-        int64_t start = 0;
-        int64_t end = 0;
+        uint64_t start = 0;
+        uint64_t end = 0;
         if (args == 1) {
           start = sim_->get_pc();
           end = start + (10 * Instr::kInstrSize);
         } else if (args == 2) {
           if (GetValue(arg1, &start)) {
-            // no length parameter passed, assume 10 instructions
+            // No length parameter passed, assume 10 instructions.
             if (Simulator::IsIllegalAddress(start)) {
-              // If start isn't a valid address, warn and use PC instead
+              // If start isn't a valid address, warn and use PC instead.
               OS::Print("First argument yields invalid address: 0x%"Px64"\n",
                         start);
-              OS::Print("Using PC instead");
+              OS::Print("Using PC instead\n");
               start = sim_->get_pc();
             }
             end = start + (10 * Instr::kInstrSize);
           }
         } else {
-          int64_t length;
+          uint64_t length;
           if (GetValue(arg1, &start) && GetValue(arg2, &length)) {
             if (Simulator::IsIllegalAddress(start)) {
-              // If start isn't a valid address, warn and use PC instead
+              // If start isn't a valid address, warn and use PC instead.
               OS::Print("First argument yields invalid address: 0x%"Px64"\n",
                         start);
               OS::Print("Using PC instead\n");
@@ -439,17 +598,51 @@ void SimulatorDebugger::Debug() {
             end = start + (length * Instr::kInstrSize);
           }
         }
-        Disassembler::Disassemble(start, end);
+        if ((start > 0) && (end > start)) {
+          Disassembler::Disassemble(start, end);
+        } else {
+          OS::Print("disasm [<address> [<number_of_instructions>]]\n");
+        }
+      } else if (strcmp(cmd, "gdb") == 0) {
+        OS::Print("relinquishing control to gdb\n");
+        OS::DebugBreak();
+        OS::Print("regaining control from gdb\n");
+      } else if (strcmp(cmd, "break") == 0) {
+        if (args == 2) {
+          uint64_t addr;
+          if (GetValue(arg1, &addr)) {
+            if (!SetBreakpoint(reinterpret_cast<Instr*>(addr))) {
+              OS::Print("setting breakpoint failed\n");
+            }
+          } else {
+            OS::Print("%s unrecognized\n", arg1);
+          }
+        } else {
+          OS::Print("break <addr>\n");
+        }
+      } else if (strcmp(cmd, "del") == 0) {
+        if (!DeleteBreakpoint(NULL)) {
+          OS::Print("deleting breakpoint failed\n");
+        }
       } else if (strcmp(cmd, "flags") == 0) {
         OS::Print("APSR: ");
         OS::Print("N flag: %d; ", sim_->n_flag_);
         OS::Print("Z flag: %d; ", sim_->z_flag_);
         OS::Print("C flag: %d; ", sim_->c_flag_);
         OS::Print("V flag: %d\n", sim_->v_flag_);
-      } else if (strcmp(cmd, "gdb") == 0) {
-        OS::Print("relinquishing control to gdb\n");
-        OS::DebugBreak();
-        OS::Print("regaining control from gdb\n");
+      } else if (strcmp(cmd, "unstop") == 0) {
+        intptr_t stop_pc = sim_->get_pc() - Instr::kInstrSize;
+        Instr* stop_instr = reinterpret_cast<Instr*>(stop_pc);
+        if (stop_instr->IsExceptionGenOp()) {
+          stop_instr->SetInstructionBits(Instr::kNopInstruction);
+        } else {
+          OS::Print("Not at debugger stop.\n");
+        }
+      } else if (strcmp(cmd, "trace") == 0) {
+        FLAG_trace_sim = !FLAG_trace_sim;
+        OS::Print("execution tracing %s\n", FLAG_trace_sim ? "on" : "off");
+      } else if (strcmp(cmd, "bt") == 0) {
+        PrintBacktrace();
       } else {
         OS::Print("Unknown command: %s\n", cmd);
       }
@@ -457,9 +650,9 @@ void SimulatorDebugger::Debug() {
     delete[] line;
   }
 
-  // TODO(zra): Add all the breakpoints back to stop execution and enter the
-  // debugger shell when hit.
-  // RedoBreakpoints();
+  // Add all the breakpoints back to stop execution and enter the debugger
+  // shell when hit.
+  RedoBreakpoints();
 
 #undef COMMAND_SIZE
 #undef ARG_SIZE
@@ -806,7 +999,6 @@ int64_t Simulator::get_last_pc() const {
 void Simulator::HandleIllegalAccess(uword addr, Instr* instr) {
   uword fault_pc = get_pc();
   uword last_pc = get_last_pc();
-  // TODO(zra): drop into debugger.
   char buffer[128];
   snprintf(buffer, sizeof(buffer),
       "illegal memory access at 0x%" Px ", pc=0x%" Px ", last_pc=0x%" Px"\n",
@@ -1478,26 +1670,32 @@ void Simulator::DecodeExceptionGen(Instr* instr) {
   } else if ((instr->Bits(0, 2) == 0) && (instr->Bits(2, 3) == 0) &&
              (instr->Bits(21, 3) == 1)) {
     // Format(instr, "brk 'imm16");
-    UnimplementedInstruction(instr);
+    SimulatorDebugger dbg(this);
+    uint16_t imm = static_cast<uint16_t>(instr->Imm16Field());
+    char buffer[32];
+    snprintf(buffer, sizeof(buffer), "brk #0x%x", imm);
+    set_pc(get_pc() + Instr::kInstrSize);
+    dbg.Stop(instr, buffer);
   } else if ((instr->Bits(0, 2) == 0) && (instr->Bits(2, 3) == 0) &&
              (instr->Bits(21, 3) == 2)) {
     // Format(instr, "hlt 'imm16");
     uint16_t imm = static_cast<uint16_t>(instr->Imm16Field());
-    if (imm == kImmExceptionIsDebug) {
+    if (imm == Instr::kSimulatorMessageCode) {
       SimulatorDebugger dbg(this);
       const char* message = *reinterpret_cast<const char**>(
           reinterpret_cast<intptr_t>(instr) - 2 * Instr::kInstrSize);
       set_pc(get_pc() + Instr::kInstrSize);
       dbg.Stop(instr, message);
-    } else if (imm == kImmExceptionIsPrintf) {
-      const char* message = *reinterpret_cast<const char**>(
-          reinterpret_cast<intptr_t>(instr) - 2 * Instr::kInstrSize);
-      OS::Print("Simulator hit: %s", message);
-    } else if (imm == kImmExceptionIsRedirectedCall) {
+    } else if (imm == Instr::kSimulatorBreakCode) {
+      SimulatorDebugger dbg(this);
+      dbg.Stop(instr, "breakpoint");
+    } else if (imm == Instr::kSimulatorRedirectCode) {
       DoRedirectedCall(instr);
     } else {
       UnimplementedInstruction(instr);
     }
+  } else {
+    UnimplementedInstruction(instr);
   }
 }
 
@@ -3122,13 +3320,16 @@ void Simulator::Execute() {
     }
   } else {
     // FLAG_stop_sim_at is at the non-default value. Stop in the debugger when
-    // we reach the particular instruction count.
+    // we reach the particular instruction count or address.
     while (program_counter != kEndSimulatingPC) {
       Instr* instr = reinterpret_cast<Instr*>(program_counter);
       icount_++;
-      if (icount_ == FLAG_stop_sim_at) {
-        // TODO(zra): Add a debugger.
-        UNIMPLEMENTED();
+      if (static_cast<intptr_t>(icount_) == FLAG_stop_sim_at) {
+        SimulatorDebugger dbg(this);
+        dbg.Stop(instr, "Instruction count reached");
+      } else if (reinterpret_cast<intptr_t>(instr) == FLAG_stop_sim_at) {
+        SimulatorDebugger dbg(this);
+        dbg.Stop(instr, "Instruction address reached");
       } else if (IsIllegalAddress(program_counter)) {
         HandleIllegalAccess(program_counter, instr);
       } else {

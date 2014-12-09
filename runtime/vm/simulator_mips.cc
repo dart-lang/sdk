@@ -105,10 +105,6 @@ class SimulatorDebugger {
                              bool is_inlined);
   void PrintBacktrace();
 
-  static const int32_t kSimulatorBreakpointInstruction =
-      Instr::kBreakPointInstruction |
-      (Instr::kSimulatorBreakCode << kBreakCodeShift);
-
   // Set or delete a breakpoint. Returns true if successful.
   bool SetBreakpoint(Instr* breakpc);
   bool DeleteBreakpoint(Instr* breakpc);
@@ -393,7 +389,7 @@ void SimulatorDebugger::UndoBreakpoints() {
 
 void SimulatorDebugger::RedoBreakpoints() {
   if (sim_->break_pc_ != NULL) {
-    sim_->break_pc_->SetInstructionBits(kSimulatorBreakpointInstruction);
+    sim_->break_pc_->SetInstructionBits(Instr::kSimulatorBreakpointInstruction);
   }
 }
 
@@ -540,11 +536,11 @@ void SimulatorDebugger::Debug() {
           end = start + (10 * Instr::kInstrSize);
         } else if (args == 2) {
           if (GetValue(arg1, &start)) {
-            // no length parameter passed, assume 10 instructions
+            // No length parameter passed, assume 10 instructions.
             if (Simulator::IsIllegalAddress(start)) {
-              // If start isn't a valid address, warn and use PC instead
+              // If start isn't a valid address, warn and use PC instead.
               OS::Print("First argument yields invalid address: 0x%x\n", start);
-              OS::Print("Using PC instead");
+              OS::Print("Using PC instead\n");
               start = sim_->get_pc();
             }
             end = start + (10 * Instr::kInstrSize);
@@ -553,7 +549,7 @@ void SimulatorDebugger::Debug() {
           uint32_t length;
           if (GetValue(arg1, &start) && GetValue(arg2, &length)) {
             if (Simulator::IsIllegalAddress(start)) {
-              // If start isn't a valid address, warn and use PC instead
+              // If start isn't a valid address, warn and use PC instead.
               OS::Print("First argument yields invalid address: 0x%x\n", start);
               OS::Print("Using PC instead\n");
               start = sim_->get_pc();
@@ -561,8 +557,11 @@ void SimulatorDebugger::Debug() {
             end = start + (length * Instr::kInstrSize);
           }
         }
-
-        Disassembler::Disassemble(start, end);
+        if ((start > 0) && (end > start)) {
+          Disassembler::Disassemble(start, end);
+        } else {
+          OS::Print("disasm [<address> [<number_of_instructions>]]\n");
+        }
       } else if (strcmp(cmd, "gdb") == 0) {
         OS::Print("relinquishing control to gdb\n");
         OS::DebugBreak();
@@ -781,16 +780,13 @@ class Redirection {
   }
 
  private:
-  static const int32_t kRedirectInstruction =
-    Instr::kBreakPointInstruction | (Instr::kRedirectCode << kBreakCodeShift);
-
   Redirection(uword external_function,
               Simulator::CallKind call_kind,
               int argument_count)
       : external_function_(external_function),
         call_kind_(call_kind),
         argument_count_(argument_count),
-        break_instruction_(kRedirectInstruction),
+        break_instruction_(Instr::kSimulatorRedirectInstruction),
         next_(list_) {
     list_ = this;
   }
@@ -1118,7 +1114,7 @@ bool Simulator::HasExclusiveAccessAndOpen(uword addr) {
   bool result = false;
   for (int i = 0; i < kNumAddressTags; i++) {
     if (exclusive_access_state_[i].isolate == isolate) {
-      // Check whether the current isolates address reservation matches.
+      // Check whether the current isolate's address reservation matches.
       if (exclusive_access_state_[i].addr == addr) {
         result = true;
       }
@@ -1203,7 +1199,7 @@ void Simulator::DoBreak(Instr *instr) {
     dbg.Stop(instr, message);
     // Adjust for extra pc increment.
     set_pc(get_pc() - Instr::kInstrSize);
-  } else if (instr->BreakCodeField() == Instr::kMsgMessageCode) {
+  } else if (instr->BreakCodeField() == Instr::kSimulatorMessageCode) {
     const char* message = *reinterpret_cast<const char**>(
         reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
     if (FLAG_trace_sim) {
@@ -1212,7 +1208,7 @@ void Simulator::DoBreak(Instr *instr) {
       OS::PrintErr("Bad break code: 0x%x\n", instr->InstructionBits());
       UnimplementedInstruction(instr);
     }
-  } else if (instr->BreakCodeField() == Instr::kRedirectCode) {
+  } else if (instr->BreakCodeField() == Instr::kSimulatorRedirectCode) {
     SimulatorSetjmpBuffer buffer(this);
 
     if (!setjmp(buffer.buffer_)) {
@@ -2299,20 +2295,18 @@ void Simulator::Execute() {
     // FLAG_stop_sim_at is at the non-default value. Stop in the debugger when
     // we reach the particular instruction count or address.
     while (pc_ != kEndSimulatingPC) {
-      icount_++;
       Instr* instr = Instr::At(pc_);
-      if (static_cast<int>(icount_) == FLAG_stop_sim_at) {
+      icount_++;
+      if (static_cast<intptr_t>(icount_) == FLAG_stop_sim_at) {
         SimulatorDebugger dbg(this);
         dbg.Stop(instr, "Instruction count reached");
-      } else if (reinterpret_cast<int>(instr) == FLAG_stop_sim_at) {
+      } else if (reinterpret_cast<intptr_t>(instr) == FLAG_stop_sim_at) {
         SimulatorDebugger dbg(this);
         dbg.Stop(instr, "Instruction address reached");
+      } else if (IsIllegalAddress(pc_)) {
+        HandleIllegalAccess(pc_, instr);
       } else {
-        if (IsIllegalAddress(pc_)) {
-          HandleIllegalAccess(pc_, instr);
-        } else {
-          InstructionDecode(instr);
-        }
+        InstructionDecode(instr);
       }
     }
   }

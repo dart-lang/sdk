@@ -832,6 +832,8 @@ void ARM64Decoder::DecodeExceptionGen(Instr* instr) {
   } else if ((instr->Bits(0, 2) == 0) && (instr->Bits(2, 3) == 0) &&
              (instr->Bits(21, 3) == 2)) {
     Format(instr, "hlt 'imm16");
+  } else {
+    Unknown(instr);
   }
 }
 

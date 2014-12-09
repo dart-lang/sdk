@@ -340,15 +340,11 @@ enum Shift {
 
 
 // Special Supervisor Call 24-bit codes used in the presence of the ARM
-// simulator for redirection, breakpoints, stop messages, and spill markers.
+// simulator for redirection, breakpoints, and stop messages.
 // See /usr/include/asm/unistd.h
 const uint32_t kRedirectionSvcCode = 0x90001f;  //  unused syscall, was sys_stty
 const uint32_t kBreakpointSvcCode = 0x900020;  // unused syscall, was sys_gtty
 const uint32_t kStopMessageSvcCode = 0x9f0001;  // __ARM_NR_breakpoint
-const uint32_t kSpillMarkerSvcBase = 0x9f0100;  // unused ARM private syscall
-const uint32_t kWordSpillMarkerSvcCode = kSpillMarkerSvcBase + 1;
-const uint32_t kDWordSpillMarkerSvcCode = kSpillMarkerSvcBase + 2;
-
 
 // Constants used for the decoding or encoding of the individual fields of
 // instructions. Based on the "Figure 3-1 ARM instruction set summary".
@@ -450,12 +446,21 @@ class Instr {
 
   static const int32_t kNopInstruction =  // nop
       ((AL << kConditionShift) | (0x32 << 20) | (0xf << 12));
-  static const int32_t kBreakPointInstruction =  // svc #kBreakpointSvcCode
+
+  // Breakpoint instruction filling assembler code buffers in debug mode.
+  static const int32_t kBreakPointInstruction =  // bkpt(0xdeb0)
+      ((AL << kConditionShift) | (0x12 << 20) | (0xdeb << 8) | (0x7 << 4));
+
+  // Breakpoint instruction used by the simulator.
+  // Should be distinct from kBreakPointInstruction and from a typical user
+  // breakpoint inserted in generated code for debugging, e.g. bkpt(0).
+  static const int32_t kSimulatorBreakpointInstruction =
+      // svc #kBreakpointSvcCode
       ((AL << kConditionShift) | (0xf << 24) | kBreakpointSvcCode);
-  static const int kBreakPointInstructionSize = kInstrSize;
-  bool IsBreakPoint() {
-    return IsBkpt();
-  }
+
+  // Runtime call redirection instruction used by the simulator.
+  static const int32_t kSimulatorRedirectInstruction =
+      ((AL << kConditionShift) | (0xf << 24) | kRedirectionSvcCode);
 
   // Get the raw instruction bits.
   inline int32_t InstructionBits() const {
