@@ -72,6 +72,7 @@ polymer/test/bind_properties_test: Skip # Sometimes times out. Issue 19326
 
 [ $runtime == vm && $mode == debug]
 analysis_server/test/analysis_server_test: Skip  # Times out
+analysis_server/test/completion_test: Skip  # Times out
 analysis_server/test/domain_context_test: Skip  # Times out
 analysis_server/test/domain_server_test: Skip  # Times out
 analysis_server/test/integration/analysis/reanalyze_concurrent_test: Skip # Times out
