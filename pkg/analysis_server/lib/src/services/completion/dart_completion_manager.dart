@@ -177,9 +177,11 @@ class DartCompletionManager extends CompletionManager {
 
   /**
    * Return a future that completes when analysis is complete.
-   * Return `true` if the compilation unit is be resolved.
    */
-  Future<CompilationUnit> waitForAnalysis() {
+  Future<CompilationUnit> waitForAnalysis([int waitCount = 10000]) {
+    //TODO (danrubel) replace this when new API is ready.
+    // I expect the new API to be either a stream of resolution events
+    // or a future that completes when the resolved library element is available
     LibraryElement library = context.getLibraryElement(source);
     if (library != null) {
       CompilationUnit unit =
@@ -188,8 +190,13 @@ class DartCompletionManager extends CompletionManager {
         return new Future.value(unit);
       }
     }
-    //TODO (danrubel) Determine if analysis is complete but unit not resolved
-    return new Future(waitForAnalysis);
+    //TODO (danrubel) Remove this HACK
+    if (waitCount > 0) {
+      return new Future(() {
+        return waitForAnalysis(waitCount - 1);
+      });
+    }
+    return new Future.value(null);
   }
 }
 
