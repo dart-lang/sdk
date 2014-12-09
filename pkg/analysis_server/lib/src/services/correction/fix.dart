@@ -19,7 +19,11 @@ import 'package:analyzer/src/generated/error.dart';
 List<Fix> computeFixes(SearchEngine searchEngine, CompilationUnit unit,
     AnalysisError error) {
   var processor = new FixProcessor(searchEngine, unit, error);
-  return processor.compute();
+  List<Fix> fixes = processor.compute();
+  fixes.sort((Fix a, Fix b) {
+    return a.kind.relevance - b.kind.relevance;
+  });
+  return fixes;
 }
 
 
@@ -49,7 +53,7 @@ class FixKind {
       'ADD_SUPER_CONSTRUCTOR_INVOCATION',
       50,
       "Add super constructor {0} invocation");
-  static const CHANGE_TO = const FixKind('CHANGE_TO', 51, "Change to '{0}'");
+  static const CHANGE_TO = const FixKind('CHANGE_TO', 49, "Change to '{0}'");
   static const CHANGE_TO_STATIC_ACCESS = const FixKind(
       'CHANGE_TO_STATIC_ACCESS',
       50,
@@ -67,7 +71,7 @@ class FixKind {
   static const CREATE_FILE =
       const FixKind('CREATE_FILE', 50, "Create file '{0}'");
   static const CREATE_FUNCTION =
-      const FixKind('CREATE_FUNCTION', 49, "Create function '{0}'");
+      const FixKind('CREATE_FUNCTION', 51, "Create function '{0}'");
   static const CREATE_LOCAL_VARIABLE =
       const FixKind('CREATE_LOCAL_VARIABLE', 50, "Create local variable '{0}'");
   static const CREATE_METHOD =
@@ -77,17 +81,17 @@ class FixKind {
       50,
       "Create {0} missing override(s)");
   static const CREATE_NO_SUCH_METHOD =
-      const FixKind('CREATE_NO_SUCH_METHOD', 49, "Create 'noSuchMethod' method");
+      const FixKind('CREATE_NO_SUCH_METHOD', 51, "Create 'noSuchMethod' method");
   static const IMPORT_LIBRARY_PREFIX = const FixKind(
       'IMPORT_LIBRARY_PREFIX',
       51,
       "Use imported library '{0}' with prefix '{1}'");
   static const IMPORT_LIBRARY_PROJECT =
-      const FixKind('IMPORT_LIBRARY_PROJECT', 51, "Import library '{0}'");
+      const FixKind('IMPORT_LIBRARY_PROJECT', 49, "Import library '{0}'");
   static const IMPORT_LIBRARY_SDK =
-      const FixKind('IMPORT_LIBRARY_SDK', 51, "Import library '{0}'");
+      const FixKind('IMPORT_LIBRARY_SDK', 49, "Import library '{0}'");
   static const IMPORT_LIBRARY_SHOW =
-      const FixKind('IMPORT_LIBRARY_SHOW', 51, "Update library '{0}' import");
+      const FixKind('IMPORT_LIBRARY_SHOW', 49, "Update library '{0}' import");
   static const INSERT_SEMICOLON =
       const FixKind('INSERT_SEMICOLON', 50, "Insert ';'");
   static const MAKE_CLASS_ABSTRACT =
