@@ -5,19 +5,27 @@
 library _isolate_helper;
 
 import 'shared/embedded_names.dart' show
+    CLASS_ID_EXTRACTOR,
+    CLASS_FIELDS_EXTRACTOR,
     CURRENT_SCRIPT,
-    GLOBAL_FUNCTIONS;
+    GLOBAL_FUNCTIONS,
+    INITIALIZE_EMPTY_INSTANCE,
+    INSTANCE_FROM_CLASS_ID;
 
 import 'dart:async';
 import 'dart:collection' show Queue, HashMap;
 import 'dart:isolate';
+import 'dart:_native_typed_data' show NativeByteBuffer, NativeTypedData;
+
 import 'dart:_js_helper' show
     Closure,
+    InternalMap,
     Null,
     Primitives,
     convertDartClosureToJS,
     random64,
     requiresPreamble;
+
 import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS,
                                    JS_CREATE_ISOLATE,
@@ -26,7 +34,17 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS_EMBEDDED_GLOBAL,
                                    JS_SET_CURRENT_ISOLATE,
                                    IsolateContext;
-import 'dart:_interceptors' show JSExtendableArray;
+
+import 'dart:_interceptors' show Interceptor,
+                                 JSArray,
+                                 JSExtendableArray,
+                                 JSFixedArray,
+                                 JSIndexable,
+                                 JSMutableArray,
+                                 JSObject;
+
+
+part 'isolate_serialization.dart';
 
 /**
  * Called by the compiler to support switching
@@ -184,13 +202,6 @@ class _Manager {
    * debugging/testing.
    */
   bool get useWorkers => supportsWorkers;
-
-  /**
-   * Whether to use the web-worker JSON-based message serialization protocol. By
-   * default this is only used with web workers. For debugging, you can force
-   * using this protocol by changing this field value to [:true:].
-   */
-  bool get needSerialization => useWorkers;
 
   /**
    * Registry of isolates. Isolates must be registered if, and only if, receive
@@ -980,6 +991,10 @@ class IsolateNatives {
       bool startPaused,
       SendPort replyPort,
       void onError(String message)) {
+    // Make sure that the args list is a fresh generic list. A newly spawned
+    // isolate should be able to assume that the arguments list is an
+    // extendable list.
+    if (args != null) args = new List<String>.from(args);
     if (_globalState.isWorker) {
       _globalState.mainManager.postMessage(_serializeMessage({
           'command': 'spawn-worker',
@@ -1007,8 +1022,13 @@ class IsolateNatives {
       throw new UnsupportedError(
           "Currently spawnUri is not supported without web workers.");
     }
-    message = _serializeMessage(message);
-    args = _serializeMessage(args);  // Or just args.toList() ?
+    // Clone the message to enforce the restrictions we have on isolate
+    // messages.
+    message = _clone(message);
+    // Make sure that the args list is a fresh generic list. A newly spawned
+    // isolate should be able to assume that the arguments list is an
+    // extendable list.
+    if (args != null) args = new List<String>.from(args);
     _globalState.topEventLoop.enqueue(new _IsolateContext(), () {
       final func = _getJSFunctionFromName(functionName);
       _startIsolate(func, args, message, isSpawnUri, startPaused, replyPort);
@@ -1165,28 +1185,15 @@ class _NativeJsSendPort extends _BaseSendPort implements SendPort {
     final isolate = _globalState.isolates[_isolateId];
     if (isolate == null) return;
     if (_receivePort._isClosed) return;
-    // We force serialization/deserialization as a simple way to ensure
-    // isolate communication restrictions are respected between isolates that
-    // live in the same worker. [_NativeJsSendPort] delivers both messages
-    // from the same worker and messages from other workers. In particular,
-    // messages sent from a worker via a [_WorkerSendPort] are received at
-    // [_processWorkerMessage] and forwarded to a native port. In such cases,
-    // here we'll see [_globalState.currentContext == null].
-    final shouldSerialize = _globalState.currentContext != null
-        && _globalState.currentContext.id != _isolateId;
-    var msg = message;
-    if (shouldSerialize) {
-      msg = _serializeMessage(msg);
-    }
+    // Clone the message to enforce the restrictions we have on isolate
+    // messages.
+    var msg = _clone(message);
     if (isolate.controlPort == _receivePort) {
       isolate.handleControlMessage(msg);
       return;
     }
     _globalState.topEventLoop.enqueue(isolate, () {
       if (!_receivePort._isClosed) {
-        if (shouldSerialize) {
-          msg = _deserializeMessage(msg);
-        }
         _receivePort._add(msg);
       }
     }, 'receive $message');
@@ -1315,420 +1322,6 @@ class ReceivePortImpl extends Stream implements ReceivePort {
   }
 
   SendPort get sendPort => _rawPort.sendPort;
-}
-
-
-/********************************************************
-  Inserted from lib/isolate/dart2js/messages.dart
- ********************************************************/
-
-// Defines message visitors, serialization, and deserialization.
-
-/** Serialize [message] (or simulate serialization). */
-_serializeMessage(message) {
-  if (_globalState.needSerialization) {
-    return new _JsSerializer().traverse(message);
-  } else {
-    return new _JsCopier().traverse(message);
-  }
-}
-
-/** Deserialize [message] (or simulate deserialization). */
-_deserializeMessage(message) {
-  if (_globalState.needSerialization) {
-    return new _JsDeserializer().deserialize(message);
-  } else {
-    // Nothing more to do.
-    return message;
-  }
-}
-
-class _JsSerializer extends _Serializer {
-
-  _JsSerializer() : super() { _visited = new _JsVisitedMap(); }
-
-  visitSendPort(SendPort x) {
-    if (x is _NativeJsSendPort) return visitNativeJsSendPort(x);
-    if (x is _WorkerSendPort) return visitWorkerSendPort(x);
-    throw "Illegal underlying port $x";
-  }
-
-  visitCapability(Capability x) {
-    if (x is CapabilityImpl) {
-      return ['capability', x._id];
-    }
-    throw "Capability not serializable: $x";
-  }
-
-  visitNativeJsSendPort(_NativeJsSendPort port) {
-    return ['sendport', _globalState.currentManagerId,
-        port._isolateId, port._receivePort._id];
-  }
-
-  visitWorkerSendPort(_WorkerSendPort port) {
-    return ['sendport', port._workerId, port._isolateId, port._receivePortId];
-  }
-
-  visitFunction(Function topLevelFunction) {
-    final name = IsolateNatives._getJSFunctionName(topLevelFunction);
-    if (name == null) {
-      throw new UnsupportedError(
-          "only top-level functions can be sent.");
-    }
-    return ['function', name];
-  }
-}
-
-
-class _JsCopier extends _Copier {
-
-  _JsCopier() : super() { _visited = new _JsVisitedMap(); }
-
-  visitSendPort(SendPort x) {
-    if (x is _NativeJsSendPort) return visitNativeJsSendPort(x);
-    if (x is _WorkerSendPort) return visitWorkerSendPort(x);
-    throw "Illegal underlying port $x";
-  }
-
-  visitCapability(Capability x) {
-    if (x is CapabilityImpl) {
-      return new CapabilityImpl._internal(x._id);
-    }
-    throw "Capability not serializable: $x";
-  }
-
-  SendPort visitNativeJsSendPort(_NativeJsSendPort port) {
-    return new _NativeJsSendPort(port._receivePort, port._isolateId);
-  }
-
-  SendPort visitWorkerSendPort(_WorkerSendPort port) {
-    return new _WorkerSendPort(
-        port._workerId, port._isolateId, port._receivePortId);
-  }
-
-  Function visitFunction(Function topLevelFunction) {
-    final name = IsolateNatives._getJSFunctionName(topLevelFunction);
-    if (name == null) {
-      throw new UnsupportedError(
-          "only top-level functions can be sent.");
-    }
-    // Is this getting it from the correct isolate? Is it just topLevelFunction?
-    return IsolateNatives._getJSFunctionFromName(name);
-  }
-}
-
-class _JsDeserializer extends _Deserializer {
-
-  SendPort deserializeSendPort(List list) {
-    int managerId = list[1];
-    int isolateId = list[2];
-    int receivePortId = list[3];
-    // If two isolates are in the same manager, we use NativeJsSendPorts to
-    // deliver messages directly without using postMessage.
-    if (managerId == _globalState.currentManagerId) {
-      var isolate = _globalState.isolates[isolateId];
-      if (isolate == null) return null; // Isolate has been closed.
-      var receivePort = isolate.lookup(receivePortId);
-      if (receivePort == null) return null; // Port has been closed.
-      return new _NativeJsSendPort(receivePort, isolateId);
-    } else {
-      return new _WorkerSendPort(managerId, isolateId, receivePortId);
-    }
-  }
-
-  Capability deserializeCapability(List list) {
-    return new CapabilityImpl._internal(list[1]);
-  }
-
-  Function deserializeFunction(List list) {
-    return IsolateNatives._getJSFunctionFromName(list[1]);
-  }
-}
-
-class _JsVisitedMap implements _MessageTraverserVisitedMap {
-  List tagged;
-
-  /** Retrieves any information stored in the native object [object]. */
-  operator[](var object) {
-    return _getAttachedInfo(object);
-  }
-
-  /** Injects some information into the native [object]. */
-  void operator[]=(var object, var info) {
-    tagged.add(object);
-    _setAttachedInfo(object, info);
-  }
-
-  /** Get ready to rumble. */
-  void reset() {
-    assert(tagged == null);
-    tagged = new List();
-  }
-
-  /** Remove all information injected in the native objects. */
-  void cleanup() {
-    for (int i = 0, length = tagged.length; i < length; i++) {
-      _clearAttachedInfo(tagged[i]);
-    }
-    tagged = null;
-  }
-
-  void _clearAttachedInfo(var o) {
-    JS("void", "#['__MessageTraverser__attached_info__'] = #", o, null);
-  }
-
-  void _setAttachedInfo(var o, var info) {
-    JS("void", "#['__MessageTraverser__attached_info__'] = #", o, info);
-  }
-
-  _getAttachedInfo(var o) {
-    return JS("", "#['__MessageTraverser__attached_info__']", o);
-  }
-}
-
-// only visible for testing purposes
-// TODO(sigmund): remove once we can disable privacy for testing (bug #1882)
-class TestingOnly {
-  static copy(x) {
-    return new _JsCopier().traverse(x);
-  }
-
-  // only visible for testing purposes
-  static serialize(x) {
-    _Serializer serializer = new _JsSerializer();
-    _Deserializer deserializer = new _JsDeserializer();
-    return deserializer.deserialize(serializer.traverse(x));
-  }
-}
-
-/********************************************************
-  Inserted from lib/isolate/serialization.dart
- ********************************************************/
-
-class _MessageTraverserVisitedMap {
-
-  operator[](var object) => null;
-  void operator[]=(var object, var info) { }
-
-  void reset() { }
-  void cleanup() { }
-
-}
-
-/** Abstract visitor for dart objects that can be sent as isolate messages. */
-abstract class _MessageTraverser {
-
-  _MessageTraverserVisitedMap _visited;
-  _MessageTraverser() : _visited = new _MessageTraverserVisitedMap();
-
-  /** Visitor's entry point. */
-  traverse(var x) {
-    if (isPrimitive(x)) return visitPrimitive(x);
-    _visited.reset();
-    var result;
-    try {
-      result = _dispatch(x);
-    } finally {
-      _visited.cleanup();
-    }
-    return result;
-  }
-
-  _dispatch(var x) {
-    // This code likely fails for user classes implementing
-    // SendPort and Capability because it assumes the internal classes.
-    if (isPrimitive(x)) return visitPrimitive(x);
-    if (x is List) return visitList(x);
-    if (x is Map) return visitMap(x);
-    if (x is SendPort) return visitSendPort(x);
-    if (x is Capability) return visitCapability(x);
-    if (x is Function) return visitFunction(x);
-
-    // Overridable fallback.
-    return visitObject(x);
-  }
-
-  visitPrimitive(x);
-  visitList(List x);
-  visitMap(Map x);
-  visitSendPort(SendPort x);
-  visitCapability(Capability x);
-  visitFunction(Function f);
-
-  visitObject(Object x) {
-    // TODO(floitsch): make this a real exception. (which one)?
-    throw "Message serialization: Illegal value $x passed";
-  }
-
-  static bool isPrimitive(x) {
-    return (x == null) || (x is String) || (x is num) || (x is bool);
-  }
-}
-
-
-/** A visitor that recursively copies a message. */
-class _Copier extends _MessageTraverser {
-
-  visitPrimitive(x) => x;
-
-  List visitList(List list) {
-    List copy = _visited[list];
-    if (copy != null) return copy;
-
-    int len = list.length;
-
-    // TODO(floitsch): we loose the generic type of the List.
-    copy = new List(len);
-    _visited[list] = copy;
-    for (int i = 0; i < len; i++) {
-      copy[i] = _dispatch(list[i]);
-    }
-    return copy;
-  }
-
-  Map visitMap(Map map) {
-    Map copy = _visited[map];
-    if (copy != null) return copy;
-
-    // TODO(floitsch): we loose the generic type of the map.
-    copy = new Map();
-    _visited[map] = copy;
-    map.forEach((key, val) {
-      copy[_dispatch(key)] = _dispatch(val);
-    });
-    return copy;
-  }
-
-  visitFunction(Function f) => throw new UnimplementedError();
-
-  visitSendPort(SendPort x) => throw new UnimplementedError();
-
-  visitCapability(Capability x) => throw new UnimplementedError();
-}
-
-/** Visitor that serializes a message as a JSON array. */
-class _Serializer extends _MessageTraverser {
-  int _nextFreeRefId = 0;
-
-  visitPrimitive(x) => x;
-
-  visitList(List list) {
-    int copyId = _visited[list];
-    if (copyId != null) return ['ref', copyId];
-
-    int id = _nextFreeRefId++;
-    _visited[list] = id;
-    var jsArray = _serializeList(list);
-    // TODO(floitsch): we are losing the generic type.
-    return ['list', id, jsArray];
-  }
-
-  visitMap(Map map) {
-    int copyId = _visited[map];
-    if (copyId != null) return ['ref', copyId];
-
-    int id = _nextFreeRefId++;
-    _visited[map] = id;
-    var keys = _serializeList(map.keys.toList());
-    var values = _serializeList(map.values.toList());
-    // TODO(floitsch): we are losing the generic type.
-    return ['map', id, keys, values];
-  }
-
-  _serializeList(List list) {
-    int len = list.length;
-    // Use a growable list because we do not add extra properties on
-    // them.
-    var result = new List()..length = len;
-    for (int i = 0; i < len; i++) {
-      result[i] = _dispatch(list[i]);
-    }
-    return result;
-  }
-
-  visitSendPort(SendPort x) => throw new UnimplementedError();
-
-  visitCapability(Capability x) => throw new UnimplementedError();
-
-  visitFunction(Function f) => throw new UnimplementedError();
-}
-
-/** Deserializes arrays created with [_Serializer]. */
-abstract class _Deserializer {
-  Map<int, dynamic> _deserialized;
-
-  _Deserializer();
-
-  static bool isPrimitive(x) {
-    return (x == null) || (x is String) || (x is num) || (x is bool);
-  }
-
-  deserialize(x) {
-    if (isPrimitive(x)) return x;
-    // TODO(floitsch): this should be new HashMap<int, dynamic>()
-    _deserialized = new HashMap();
-    return _deserializeHelper(x);
-  }
-
-  _deserializeHelper(x) {
-    if (isPrimitive(x)) return x;
-    assert(x is List);
-    switch (x[0]) {
-      case 'ref': return _deserializeRef(x);
-      case 'list': return _deserializeList(x);
-      case 'map': return _deserializeMap(x);
-      case 'sendport': return deserializeSendPort(x);
-      case 'capability': return deserializeCapability(x);
-      case 'function' : return deserializeFunction(x);
-      default: return deserializeObject(x);
-    }
-  }
-
-  _deserializeRef(List x) {
-    int id = x[1];
-    var result = _deserialized[id];
-    assert(result != null);
-    return result;
-  }
-
-  List _deserializeList(List x) {
-    int id = x[1];
-    // We rely on the fact that Dart-lists are directly mapped to Js-arrays.
-    List dartList = x[2];
-    _deserialized[id] = dartList;
-    int len = dartList.length;
-    for (int i = 0; i < len; i++) {
-      dartList[i] = _deserializeHelper(dartList[i]);
-    }
-    return dartList;
-  }
-
-  Map _deserializeMap(List x) {
-    Map result = new Map();
-    int id = x[1];
-    _deserialized[id] = result;
-    List keys = x[2];
-    List values = x[3];
-    int len = keys.length;
-    assert(len == values.length);
-    for (int i = 0; i < len; i++) {
-      var key = _deserializeHelper(keys[i]);
-      var value = _deserializeHelper(values[i]);
-      result[key] = value;
-    }
-    return result;
-  }
-
-  deserializeFunction(List x);
-
-  deserializeSendPort(List x);
-
-  deserializeCapability(List x);
-
-  deserializeObject(List x) {
-    // TODO(floitsch): Use real exception (which one?).
-    throw "Unexpected serialized object";
-  }
 }
 
 class TimerImpl implements Timer {

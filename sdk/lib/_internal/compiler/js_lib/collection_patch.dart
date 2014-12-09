@@ -4,7 +4,8 @@
 
 // Patch file for dart:collection classes.
 import 'dart:_foreign_helper' show JS;
-import 'dart:_js_helper' show fillLiteralMap, NoInline, NoThrows, patch;
+import 'dart:_js_helper' show
+    fillLiteralMap, InternalMap, NoInline, NoThrows, patch;
 
 @patch
 class HashMap<K, V> {
@@ -529,7 +530,7 @@ class LinkedHashMap<K, V> {
   }
 }
 
-class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
+class _LinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
   int _length = 0;
 
   // The hash map contents are divided into three parts: one part for

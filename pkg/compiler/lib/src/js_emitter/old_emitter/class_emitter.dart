@@ -85,7 +85,7 @@ class ClassEmitter extends CodeEmitterHelper {
     OutputUnit outputUnit =
         compiler.deferredLoadTask.outputUnitForElement(classElement);
     emitter.emitPrecompiledConstructor(
-        outputUnit, constructorName, constructorAst);
+        outputUnit, constructorName, constructorAst, fields);
   }
 
   /// Returns `true` if fields added.
