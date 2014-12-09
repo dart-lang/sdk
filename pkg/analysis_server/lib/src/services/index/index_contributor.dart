@@ -662,6 +662,23 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
   }
 
   @override
+  Object
+      visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+    ConstructorElement element = node.staticElement;
+    Location location;
+    if (node.constructorName != null) {
+      int start = node.period.offset;
+      int end = node.constructorName.end;
+      location = _createLocationForOffset(start, end - start);
+    } else {
+      int start = node.keyword.end;
+      location = _createLocationForOffset(start, 0);
+    }
+    recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
+    return super.visitRedirectingConstructorInvocation(node);
+  }
+
+  @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     Element nameElement = new NameElement(node.name);
     Location location = _createLocationForNode(node);
