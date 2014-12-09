@@ -832,7 +832,7 @@ class Primitives {
   }
 
   static String flattenString(String str) {
-    return JS('', "#.charCodeAt(0) == 0 ? # : #", str, str, str);
+    return JS('String', "#.charCodeAt(0) == 0 ? # : #", str, str, str);
   }
 
   static String getTimeZoneName(receiver) {

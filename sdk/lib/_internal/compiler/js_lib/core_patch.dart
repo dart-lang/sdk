@@ -363,16 +363,10 @@ bool identical(Object a, Object b) {
 
 @patch
 class StringBuffer {
-  String _contents = "";
+  String _contents;
 
   @patch
-  StringBuffer([Object content = ""]) {
-    if (content is String) {
-      _contents = content;
-    } else {
-      write(content);
-    }
-  }
+  StringBuffer([Object content = ""]) : _contents = '$content';
 
   @patch
   int get length => _contents.length;
