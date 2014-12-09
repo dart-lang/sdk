@@ -22,4 +22,3 @@ void main() {
   bar(a);
   print(baz(a));
 }
-

@@ -6,7 +6,9 @@ int get b => a;
 // This requires a type check.
 String c() => a;
 
-d() { return a; }
+d() {
+  return a;
+}
 
 // This requires a type check.
 String e() {
@@ -29,4 +31,3 @@ void main() {
   a = new A.named();
   print(new A());
 }
-

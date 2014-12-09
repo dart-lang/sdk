@@ -28,7 +28,7 @@ class TypeResolver {
 
   TypeResolver(DartUriResolver sdkResolver, [List otherResolvers]) {
     var resolvers = [sdkResolver];
-    if (otherResolvers == null)  {
+    if (otherResolvers == null) {
       resolvers.add(new FileUriResolver());
       resolvers.add(new PackageUriResolver([new JavaFile('packages/')]));
     } else {
@@ -58,8 +58,8 @@ class TypeResolver {
         var isError = severity == ErrorSeverity.ERROR;
         if (isError) failure = true;
         var level = isError ? logger.Level.SEVERE : logger.Level.WARNING;
-        _log.log(level,
-            span.message(error.message, color: colorOf(severity.name)));
+        _log.log(
+            level, span.message(error.message, color: colorOf(severity.name)));
       }
     }
     return failure;
@@ -86,7 +86,6 @@ InternalAnalysisContext _initContext() {
 /// type rules. This changes how types are promoted in conditional expressions
 /// and statements, and how types are computed on expressions.
 class RestrictedResolverVisitor extends ResolverVisitor {
-
   RestrictedResolverVisitor(
       Library library, Source source, TypeProvider typeProvider)
       : super.con1(library, source, typeProvider,
@@ -95,7 +94,6 @@ class RestrictedResolverVisitor extends ResolverVisitor {
   static ResolverVisitor constructor(
       Library library, Source source, TypeProvider typeProvider) =>
       new RestrictedResolverVisitor(library, source, typeProvider);
-
 
   @override // removes type promotion
   void promoteTypes(Expression condition) {
@@ -107,7 +105,6 @@ class RestrictedResolverVisitor extends ResolverVisitor {
 /// in the restricted type system and to infer types for untyped local
 /// variables.
 class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
-
   RestrictedStaticTypeAnalyzer(ResolverVisitor r) : super(r);
 
   @override // to infer type from initializers
@@ -136,7 +133,6 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
     visitSimpleIdentifier(node.methodName);
     return super.visitMethodInvocation(node);
   }
-
 
   // Review note: no longer need to override visitFunctionExpression, this is
   // handled by the analyzer internally.

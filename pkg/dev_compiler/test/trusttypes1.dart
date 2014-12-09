@@ -11,7 +11,7 @@ void bar(A a) {
 void main() {
   Map<A, Function> map = <A, Function>{
     new A(): bar,
-    new B(new Point<int>(1,2)): print,
+    new B(new Point<int>(1, 2)): print,
   };
   map.forEach((A a, Function f) => f(a));
 }

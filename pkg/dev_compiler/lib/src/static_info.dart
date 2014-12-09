@@ -40,8 +40,7 @@ abstract class Conversion extends StaticInfo {
 
   Level get level => safe ? Level.CONFIG : Level.INFO;
 
-  String get description =>
-      '${this.runtimeType}: $baseType to $convertedType';
+  String get description => '${this.runtimeType}: $baseType to $convertedType';
 }
 
 class Box extends Conversion {
@@ -150,7 +149,8 @@ class StaticTypeError extends StaticError {
   final DartType expectedType;
 
   StaticTypeError(TypeRules rules, Expression expression, this.expectedType)
-      : baseType = rules.getStaticType(expression), super(expression);
+      : baseType = rules.getStaticType(expression),
+        super(expression);
 
   String get message =>
       'Type check failed: $node ($baseType) is not of type $expectedType';
@@ -186,8 +186,8 @@ class InvalidMethodOverride extends InvalidOverride {
   final FunctionType baseType;
 
   InvalidMethodOverride(AstNode node, ExecutableElement element,
-      InterfaceType base, this.methodType,
-      this.baseType) : super(node, element, base);
+      InterfaceType base, this.methodType, this.baseType)
+      : super(node, element, base);
 
   String get message {
     return 'Invalid override for ${element.name} in ${parent.name} '
@@ -199,8 +199,9 @@ class InvalidMethodOverride extends InvalidOverride {
 // Under certain rules, we disallow overriding a field with a
 // field/getter/setter.
 class InvalidFieldOverride extends InvalidOverride {
-  InvalidFieldOverride(AstNode node, ExecutableElement element,
-      InterfaceType base) : super(node, element, base);
+  InvalidFieldOverride(
+      AstNode node, ExecutableElement element, InterfaceType base)
+      : super(node, element, base);
 
   String get message {
     return 'Invalid field override for ${element.name} in '

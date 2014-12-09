@@ -40,13 +40,12 @@ import 'package:ddc/typechecker.dart';
 ///     });
 ///
 testChecker(Map<String, String> testFiles, {bool mockSdk: true}) {
-  expect(testFiles.containsKey('/main.dart'), isTrue,
-      reason: '`/main.dart` is missing in testFiles');
+  expect(testFiles.containsKey(
+      '/main.dart'), isTrue, reason: '`/main.dart` is missing in testFiles');
 
   // Create a resolver that can load test files from memory.
-  var dartUriResolver = mockSdk
-      ? TypeResolver.sdkResolverFromMock(mockSdkSources)
-      : TypeResolver.sdkResolverFromDir(dartSdkDirectory);
+  var dartUriResolver = mockSdk ? TypeResolver.sdkResolverFromMock(
+      mockSdkSources) : TypeResolver.sdkResolverFromDir(dartSdkDirectory);
   var testUriResolver = new _TestUriResolver(testFiles);
   var resolver = new TypeResolver(dartUriResolver, [testUriResolver]);
 
@@ -57,8 +56,8 @@ testChecker(Map<String, String> testFiles, {bool mockSdk: true}) {
   // Extract expectations from the comments in the test files.
   var expectedErrors = <AstNode, List<_ErrorExpectation>>{};
   var visitor = new _ErrorMarkerVisitor(expectedErrors);
-  var initialLibrary =
-      resolver.context.getLibraryElement(testUriResolver.files[mainFile]);
+  var initialLibrary = resolver.context
+      .getLibraryElement(testUriResolver.files[mainFile]);
   for (var lib in reachableLibraries(initialLibrary)) {
     for (var unit in lib.units) {
       unit.unit.accept(visitor);
@@ -74,22 +73,20 @@ testChecker(Map<String, String> testFiles, {bool mockSdk: true}) {
     if (value.length != expectedTotal) {
       expect(value.length, expectedTotal,
           reason: 'The checker found ${value.length} errors on the expression'
-              ' `$key`, but we expected $expectedTotal. These are the errors '
-              'the checker found:\n\n'
-              '${_unexpectedErrors(key, value)}');
+          ' `$key`, but we expected $expectedTotal. These are the errors '
+          'the checker found:\n\n' '${_unexpectedErrors(key, value)}');
     }
 
     for (int i = 0; i < expected.length; i++) {
       expect(value[i].level, expected[i].level,
           reason: 'expected different logging level at:\n\n'
-              '${_messageWithSpan(value[i])}');
+          '${_messageWithSpan(value[i])}');
       expect(value[i].runtimeType, expected[i].type,
           reason: 'expected different error type at:\n\n'
-              '${_messageWithSpan(value[i])}');
+          '${_messageWithSpan(value[i])}');
     }
     expectedErrors.remove(key);
   });
-
 
   // Check that all expected errors are accounted for.
   if (!expectedErrors.isEmpty) {
@@ -144,10 +141,11 @@ class _ErrorMarkerVisitor extends UnifyingAstVisitor {
   visitNode(AstNode node) {
     var token = node.beginToken;
     var comment = token.precedingComments;
-    // Use error marker found in an immediately preceding comment.
-    if (comment != null && comment.end == token.offset
-        // and attach it to the outermost expression that starts at that token.
-        && node.parent.beginToken != token) {
+    // Use error marker found in an immediately preceding comment,
+    // and attach it to the outermost expression that starts at that token.
+    if (comment != null &&
+        comment.end == token.offset &&
+        node.parent.beginToken != token) {
       var commentText = '$comment';
       expect(commentText.startsWith('/*'), isTrue);
       expect(commentText.startsWith('/**'), isFalse);
@@ -173,12 +171,12 @@ class _ErrorExpectation {
     var name = tokens[0].toUpperCase();
     var typeName = tokens[1].toLowerCase();
 
-    var level = Level.LEVELS.firstWhere((l) => l.name == name,
-        orElse: () => null);
+    var level = Level.LEVELS
+        .firstWhere((l) => l.name == name, orElse: () => null);
     expect(level, isNotNull,
         reason: 'invalid level in error descriptor: `${tokens[0]}`');
-    var type = _infoTypes.firstWhere((t) => '$t'.toLowerCase() == typeName,
-        orElse: () => null);
+    var type = _infoTypes
+        .firstWhere((t) => '$t'.toLowerCase() == typeName, orElse: () => null);
     expect(type, isNotNull,
         reason: 'invalid type in error descriptor: ${tokens[1]}');
     return new _ErrorExpectation(level, type);
@@ -234,6 +232,14 @@ class _TestSource implements Source {
   SourceSpan spanFor(AstNode node) => _file.span(node.offset, node.end);
 }
 
-const _infoTypes = const [Box, ClosureWrap, DownCast, DynamicInvoke,
-    InvalidOverride, InvalidRuntimeCheckError, NumericConversion,
-    StaticTypeError, Unbox];
+const _infoTypes = const [
+  Box,
+  ClosureWrap,
+  DownCast,
+  DynamicInvoke,
+  InvalidOverride,
+  InvalidRuntimeCheckError,
+  NumericConversion,
+  StaticTypeError,
+  Unbox
+];

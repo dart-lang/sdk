@@ -17,13 +17,13 @@ import 'package:ddc/src/utils.dart';
 
 ArgResults parse(List argv) {
   var parser = new ArgParser()
-      ..addFlag(
-          'sdk-check', abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false)
-      ..addOption('log', abbr: 'l', help: 'Logging level', defaultsTo: 'severe')
-      ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
-      ..addFlag(
-          'mock-sdk', abbr: 'm', help: 'Use a mock Dart SDK', defaultsTo: false)
-      ..addOption('out', abbr: 'o', help: 'Output directory', defaultsTo: null);
+    ..addFlag(
+        'sdk-check', abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false)
+    ..addOption('log', abbr: 'l', help: 'Logging level', defaultsTo: 'severe')
+    ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
+    ..addFlag(
+        'mock-sdk', abbr: 'm', help: 'Use a mock Dart SDK', defaultsTo: false)
+    ..addOption('out', abbr: 'o', help: 'Output directory', defaultsTo: null);
   return parser.parse(argv);
 }
 
@@ -76,17 +76,15 @@ void main(List argv) {
 
   // Run checker
   var uri = new Uri.file(path.absolute(args.rest[0]));
-  var results = checkProgram(uri,
-      sdkDir: shouldMockSdk ? null : dartSdkPath,
-      mockSdkSources: shouldMockSdk ? mockSdkSources : null,
-      checkSdk: args['sdk-check'],
-      useColors: useColors);
+  var results = checkProgram(uri, sdkDir: shouldMockSdk ? null :
+      dartSdkPath, mockSdkSources: shouldMockSdk ? mockSdkSources :
+      null, checkSdk: args['sdk-check'], useColors: useColors);
 
   // Generate code.
   if (args['out'] != null) {
     String outDir = args['out'];
-    var cg = new CodeGenerator(outDir, uri, results.libraries, results.infoMap,
-        results.rules);
+    var cg = new CodeGenerator(
+        outDir, uri, results.libraries, results.infoMap, results.rules);
     cg.generate();
   }
 
@@ -96,6 +94,5 @@ void main(List argv) {
     _log.shout('Program is valid');
   }
 }
-
 
 final _log = new logger.Logger('ddc.bin.checker');

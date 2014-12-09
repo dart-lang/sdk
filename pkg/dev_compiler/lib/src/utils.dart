@@ -28,8 +28,8 @@ final Map<Source, SourceFile> _sources = <Source, SourceFile>{};
 /// Returns [SourceSpan] for a segment between the [begin] offset and [end]
 /// offset in [source].
 SourceSpan spanFor(Source source, int begin, int end) {
-  var file = _sources.putIfAbsent(source, 
-      () => new SourceFile(source.contents.data, url: source.uri));
+  var file = _sources.putIfAbsent(
+      source, () => new SourceFile(source.contents.data, url: source.uri));
   return file.span(begin, end);
 }
 

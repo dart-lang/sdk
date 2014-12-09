@@ -25,9 +25,7 @@ class BB<T, U> extends AA<U, T> {
   T z;
 }
 
-class CC extends BB<String, List> {
-}
-
+class CC extends BB<String, List> {}
 
 typedef B Foo(B b, String s);
 
@@ -141,7 +139,7 @@ void main() {
 
   test('generic and inheritance', () {
     AA<String, List> aa = new AA<String, List>();
-    final aatype= aa.runtimeType;
+    final aatype = aa.runtimeType;
     BB<String, List> bb = new BB<String, List>();
     final bbtype = bb.runtimeType;
     CC cc = new CC();

@@ -10,33 +10,40 @@ main() {
   useCompactVMConfiguration();
   test('infer type on var', () {
     // Error also expected when declared type is `int`.
-    testChecker({'/main.dart': '''
+    testChecker({
+      '/main.dart': '''
       test1() {
         int x = 3;
         x = /*severe:StaticTypeError*/"hi";
       }
-    '''});
+    '''
+    });
 
     // If inferred type is `int`, error is also reported
-    testChecker({'/main.dart': '''
+    testChecker({
+      '/main.dart': '''
       test2() {
         var x = 3;
         x = /*severe:StaticTypeError*/"hi";
       }
-    '''});
+    '''
+    });
   });
 
   test('do not infer type on dynamic', () {
-    testChecker({'/main.dart': '''
+    testChecker({
+      '/main.dart': '''
       test() {
         dynamic x = /*config:Box*/3;
         x = "hi";
       }
-    '''});
+    '''
+    });
   });
 
   test('propagate inference to field in class', () {
-    testChecker({'/main.dart': '''
+    testChecker({
+      '/main.dart': '''
       class A {
         int x = 2;
       }
@@ -47,10 +54,12 @@ main() {
         print(/*config:Box*/a.x);     // doesn't require dynamic invoke
         print(/*config:Box*/a.x + 2); // ok to use in bigger expression
       }
-    '''});
+    '''
+    });
 
     // Same code with dynamic yields warnings
-    testChecker({'/main.dart': '''
+    testChecker({
+      '/main.dart': '''
       class A {
         int x = 2;
       }
@@ -61,12 +70,13 @@ main() {
         print(/*warning:DynamicInvoke*/a.x);
         print((/*warning:DynamicInvoke*/a.x) + 2);
       }
-    '''});
-
+    '''
+    });
   });
 
   test('propagate inference transitively ', () {
-    testChecker({'/main.dart': '''
+    testChecker({
+      '/main.dart': '''
       class A {
         int x = 2;
       }
@@ -78,9 +88,11 @@ main() {
         A a2 = new A();
         a2.x = /*severe:StaticTypeError*/"hi";
       }
-    '''});
+    '''
+    });
 
-    testChecker({'/main.dart': '''
+    testChecker({
+      '/main.dart': '''
       class A {
         int x = 42;
       }
@@ -104,8 +116,7 @@ main() {
         D d2 = new D();
         print(/*config:Box*/d2.c.b.a.x);  
       }
-    '''});
-
+    '''
+    });
   });
 }
-

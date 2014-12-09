@@ -8,4 +8,3 @@ Foo foo = g;
 void main() {
   print(g(41));
 }
-

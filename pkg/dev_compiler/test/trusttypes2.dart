@@ -12,7 +12,7 @@ void bar(AA aa, a) {
 void main() {
   List<A> list = <A>[];
   list.add(new A());
-  list.add(new B(new Point(1,2)));
+  list.add(new B(new Point(1, 2)));
   list.forEach((A a) => bar((a) => a.x, a));
 }
 
@@ -27,7 +27,7 @@ class Point {
   int x;
   int y;
   Point(this.x, this.y);
-  Point operator+(Point other) {
+  Point operator +(Point other) {
     return new Point(this.x + other.x, this.y + other.y);
   }
   String toString() => "($x, $y)";

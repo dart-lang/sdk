@@ -18,23 +18,21 @@ final _log = new logger.Logger('ddc.checker');
 Results checkProgram(Uri fileUri, {TypeResolver resolver, String sdkDir,
     Map<String, String> mockSdkSources, bool checkSdk: false,
     bool useColors: true}) {
-
   if (resolver == null) {
-    resolver = new TypeResolver(mockSdkSources != null
-        ? TypeResolver.sdkResolverFromMock(mockSdkSources)
-        : TypeResolver.sdkResolverFromDir(sdkDir));
+    resolver = new TypeResolver(mockSdkSources != null ? TypeResolver
+        .sdkResolverFromMock(mockSdkSources) :
+        TypeResolver.sdkResolverFromDir(sdkDir));
   }
 
   // Invoke the checker on the entry point.
   _log.info('running checker...');
   TypeProvider provider = resolver.context.typeProvider;
   var rules = new RestrictedRules(provider);
-  final visitor = new ProgramChecker(
-      resolver, rules, fileUri, checkSdk);
+  final visitor = new ProgramChecker(resolver, rules, fileUri, checkSdk);
   visitor.check();
   visitor.finalizeImports();
-  return new Results(visitor.libraries, visitor.infoMap, rules,
-      visitor.failure);
+  return new Results(
+      visitor.libraries, visitor.infoMap, rules, visitor.failure);
 }
 
 /// Represents a summary of the results collected by running the program
@@ -78,8 +76,8 @@ class ProgramChecker extends RecursiveAstVisitor {
   ProgramChecker(this._resolver, this._rules, this._root, this._checkSdk);
 
   void check() {
-    var startLibrary = _resolver.context.computeLibraryElement(
-        _resolver.findSource(_root));
+    var startLibrary = _resolver.context
+        .computeLibraryElement(_resolver.findSource(_root));
     for (var lib in reachableLibraries(startLibrary)) {
       if (!_checkSdk && lib.isInSdk) continue;
       var source = lib.source;
@@ -143,8 +141,8 @@ class ProgramChecker extends RecursiveAstVisitor {
       // TODO(vsm): Test for generic
       FunctionType baseType = _rules.elementType(baseMethod);
       if (!_rules.isAssignable(subType, baseType)) {
-        return new InvalidMethodOverride(node, element, type, subType,
-            baseType);
+        return new InvalidMethodOverride(
+            node, element, type, subType, baseType);
       }
 
       // Test that we're not overriding a field.
@@ -261,8 +259,7 @@ class ProgramChecker extends RecursiveAstVisitor {
     node.visitChildren(this);
   }
 
-  visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
+  visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     bool checked = checkArgumentList(node.argumentList);
     assert(checked);
     node.visitChildren(this);
@@ -276,7 +273,8 @@ class ProgramChecker extends RecursiveAstVisitor {
 
   AstNode _getOwnerFunction(AstNode node) {
     var parent = node.parent;
-    while (parent is! FunctionExpression && parent is! MethodDeclaration &&
+    while (parent is! FunctionExpression &&
+        parent is! MethodDeclaration &&
         parent is! ConstructorDeclaration) {
       parent = parent.parent;
     }

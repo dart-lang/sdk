@@ -21,6 +21,5 @@ void main() {
   print(d1.c.b.a.x);
 
   D d2 = new D();
-  print(d2.c.b.a.x);  
+  print(d2.c.b.a.x);
 }
-

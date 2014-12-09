@@ -65,9 +65,8 @@ class UnitGenerator extends GeneralizingAstVisitor {
   final TypeRules rules;
   OutWriter out = null;
 
-  UnitGenerator(
-      this.uri, this.unit, this.directory, this.libName, this.infoMap,
-          this.rules);
+  UnitGenerator(this.uri, this.unit, this.directory, this.libName, this.infoMap,
+      this.rules);
 
   DynamicInvoke _processDynamicInvoke(AstNode node) {
     DynamicInvoke result = null;
@@ -123,8 +122,8 @@ var $libName;
     return node;
   }
 
-  void generateInitializer(ClassDeclaration node,
-      List<String> initializedFields) {
+  void generateInitializer(
+      ClassDeclaration node, List<String> initializedFields) {
     // TODO: generate one field initialzing function per-class and one
     // initializer list function per constructor. Inline if possible.
     var params = (['_this']..addAll(initializedFields)).join(', ');
@@ -168,16 +167,11 @@ var _initializer = (function ($params) {
 
   void generateConstructor(ConstructorDeclaration ctor, String name,
       List<String> initializedFields, bool needsInitializer) {
+    var fieldParameters = ctor == null ? [] : getFieldFormalParameters(ctor);
 
-    var fieldParameters = ctor == null
-        ? []
-        : getFieldFormalParameters(ctor);
-
-    var initializers = ctor == null
-        ? {}
-        : new Map.fromIterable(
-            ctor.initializers.where((i) => i is ConstructorFieldInitializer),
-            key: (i) => i.fieldName.name);
+    var initializers = ctor == null ? {
+    } : new Map.fromIterable(ctor.initializers.where(
+        (i) => i is ConstructorFieldInitializer), key: (i) => i.fieldName.name);
 
     out.write("function $name(");
     if (ctor != null) ctor.parameters.accept(this);
@@ -201,12 +195,10 @@ var _initializer = (function ($params) {
 
     if (ctor != null) {
       var superCall = ctor.initializers.firstWhere(
-          (i) => i is SuperConstructorInvocation,
-          orElse: () => null);
+          (i) => i is SuperConstructorInvocation, orElse: () => null);
       if (superCall != null) {
         var superName = superCall.constructorName;
-        var args = superCall.argumentList.arguments
-            .map((a) => a.toString());
+        var args = superCall.argumentList.arguments.map((a) => a.toString());
         var superArgs = (['this']..addAll(args)).join(', ');
         var superSelector = superName == null ? '' : '.$superName';
         out.write("  _super$superSelector.call($superArgs);\n");
@@ -225,7 +217,8 @@ var _initializer = (function ($params) {
     var ctor = ctors.firstWhere((m) => m.name == null, orElse: () => null);
 
     if (ctor == null && ctors.isNotEmpty) {
-      out.write("""
+      out.write(
+          """
 var constructor = function $name() {
   throw "no default constructor";
 }\n""");
@@ -243,8 +236,8 @@ var constructor = function $name() {
     for (var ctor in ctors) {
       var name = ctor.name.name;
       out.write("constructor.$name = ");
-      generateConstructor(ctor, node.name.name, initializedFields,
-          needsInitializer);
+      generateConstructor(
+          ctor, node.name.name, initializedFields, needsInitializer);
       out.write("""
 constructor.$name.prototype = constructor.prototype;
 """);
@@ -271,7 +264,6 @@ constructor.$name.prototype = constructor.prototype;
       // field parameters: this.foo
       var parameters = getFieldFormalParameters(ctor);
       fields.addAll(parameters);
-
     }
     return fields;
   }
@@ -300,14 +292,13 @@ var $name = (function (_super) {
 """, 2);
     // TODO(vsm): Process constructors, fields, and methods properly.
     // Generate default only when needed.
-    var needsInitializer = node.members.where((m) => m is FieldDeclaration)
-        .isNotEmpty;
+    var needsInitializer = node.members
+        .where((m) => m is FieldDeclaration).isNotEmpty;
     var initializedFields = getConstructorInitializedFields(node).toList();
     if (needsInitializer) {
       generateInitializer(node, initializedFields);
     }
-    generateDefaultConstructor(node, initializedFields,
-        needsInitializer);
+    generateDefaultConstructor(node, initializedFields, needsInitializer);
     generateNamedConstructors(node, initializedFields, needsInitializer);
     // TODO(vsm): What should we generate if there is no unnamed constructor
     // for this class?
@@ -590,8 +581,8 @@ var $name = (function (_super) {
         var library = element.enclosingElement.enclosingElement;
         assert(library is LibraryElement);
         var package = library.name;
-        var libname = _builtins.containsKey(package) ?
-            _builtins[package] : package;
+        var libname = _builtins
+            .containsKey(package) ? _builtins[package] : package;
         out.write('$libname.');
       }
     }

@@ -1,5 +1,4 @@
-class A {
-}
+class A {}
 
 class B {
   B();
@@ -39,7 +38,7 @@ class H {
   H({String p1});
 }
 
-class I  {
+class I {
   String name;
 
   I() : name = 'default';

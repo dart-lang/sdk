@@ -27,4 +27,3 @@ void main() {
   print(a is dynamic);
   print(a as dynamic);
 }
-

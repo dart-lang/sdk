@@ -43,7 +43,6 @@ class DartRules extends TypeRules {
     return t1.isAssignableTo(t2);
   }
 
-
   StaticInfo checkAssignment(Expression expr, DartType toType) {
     final fromType = getStaticType(expr);
     if (!isAssignable(fromType, toType)) {
@@ -76,8 +75,8 @@ class RestrictedRules extends TypeRules {
     if (type != null) return type;
 
     print(spanFor(_current.source, expr.offset, expr.end).message(
-          "type analysis didn't compute the type of: $expr ${expr.runtimeType}",
-          color: colorOf('warning')));
+        "type analysis didn't compute the type of: $expr ${expr.runtimeType}",
+        color: colorOf('warning')));
     return provider.dynamicType;
   }
 

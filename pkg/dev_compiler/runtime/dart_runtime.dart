@@ -33,8 +33,7 @@ bool instanceOf(dynamic obj, Type staticType) {
   // This is our 'is' equivalent.
   if (obj == null) {
     // Only true for the Object type.
-    return staticType == Object || staticType == dynamic ||
-        staticType == Null;
+    return staticType == Object || staticType == dynamic || staticType == Null;
   }
 
   Type runtimeType = obj.runtimeType;
@@ -121,8 +120,7 @@ bool _isFunctionSubType(TypeMirror t1, TypeMirror t2) {
   for (int i = params2.length; i < params1.length; ++i) {
     ParameterMirror p1 = params1[i];
     // Any additional sub params must be optional.
-    if (!p1.isOptional)
-      return false;
+    if (!p1.isOptional) return false;
   }
 
   return true;
@@ -135,11 +133,9 @@ bool _isClassSubType(ClassMirror m1, ClassMirror m2) {
   // Ours are invariant, with the addition that:
   // - S<T> <: S
   // - S<dynamic> == S
-  if (m1 == m2)
-    return true;
+  if (m1 == m2) return true;
 
-  if (m1.hasReflectedType && m1.reflectedType == Object)
-    return false;
+  if (m1.hasReflectedType && m1.reflectedType == Object) return false;
 
   // Check if m1 is not in raw form.
   if (m1 != m1.originalDeclaration) {
@@ -150,13 +146,11 @@ bool _isClassSubType(ClassMirror m1, ClassMirror m2) {
   }
 
   // Check superclass.
-  if (_isClassSubType(m1.superclass, m2))
-    return true;
+  if (_isClassSubType(m1.superclass, m2)) return true;
 
   // Check interfaces.
   for (final parent in m1.superinterfaces) {
-    if (_isClassSubType(parent, m2))
-      return true;
+    if (_isClassSubType(parent, m2)) return true;
   }
 
   return false;
@@ -192,21 +186,16 @@ bool _isSubType(TypeMirror t1, TypeMirror t2) {
   t1 = _canonicalizeTypeMirror(t1);
   t2 = _canonicalizeTypeMirror(t2);
 
-  if (t1 == t2)
-    return true;
+  if (t1 == t2) return true;
 
   // In Dart, dynamic is effectively both top and bottom.
   // Here, we treat dynamic as top - the base type of everything.
-  if (_reflects(t1, dynamic))
-    return false;
-  if (_reflects(t2, dynamic))
-    return true;
+  if (_reflects(t1, dynamic)) return false;
+  if (_reflects(t2, dynamic)) return true;
 
   // Object only subtypes dynamic and Object.
-  if (_reflects(t2, Object))
-    return true;
-  if (_reflects(t1, Object))
-    return false;
+  if (_reflects(t2, Object)) return true;
+  if (_reflects(t1, Object)) return false;
 
   // "Traditional" name-based subtype check.
   final c1 = t1 as ClassMirror;
@@ -215,8 +204,7 @@ bool _isSubType(TypeMirror t1, TypeMirror t2) {
     return true;
   }
 
-  if (t1 is! FunctionTypeMirror || t2 is! FunctionTypeMirror)
-    return false;
+  if (t1 is! FunctionTypeMirror || t2 is! FunctionTypeMirror) return false;
 
   // Functions
   // Note: it appears under the hood all Dart functions map to a class / hidden type
