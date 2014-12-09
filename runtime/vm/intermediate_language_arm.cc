@@ -2331,14 +2331,22 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // R3: new object end address.
   // R8: iterator which initially points to the start of the variable
   // data area to be initialized.
-  // R6, R7: null
+  // R6: null
   if (num_elements > 0) {
     const intptr_t array_size = instance_size - sizeof(RawArray);
     __ LoadImmediate(R6, reinterpret_cast<intptr_t>(Object::null()));
-    __ mov(R7, Operand(R6));
+    if (num_elements >= 2) {
+      __ mov(R7, Operand(R6));
+    } else {
+#if defined(DEBUG)
+      // Clobber R7 with an invalid pointer.
+      __ LoadImmediate(R7, 0x1);
+#endif  // DEBUG
+    }
     __ AddImmediate(R8, R0, sizeof(RawArray) - kHeapObjectTag);
     if (array_size < (kInlineArraySize * kWordSize)) {
-      __ InitializeFieldsNoBarrierUnrolled(R0, R8, num_elements, R6, R7);
+      __ InitializeFieldsNoBarrierUnrolled(R0, R8, 0, num_elements * kWordSize,
+                                           R6, R7);
     } else {
       __ InitializeFieldsNoBarrier(R0, R8, R3, R6, R7);
     }

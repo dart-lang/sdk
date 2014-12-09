@@ -197,6 +197,7 @@ class Address : public ValueObject {
 
   // Memory operand addressing mode
   enum Mode {
+    kModeMask    = (8|4|1) << 21,
     // bit encoding P U W
     Offset       = (8|4|0) << 21,  // offset (w/o writeback to base)
     PreIndex     = (8|4|1) << 21,  // pre-indexed addressing with writeback
@@ -263,6 +264,18 @@ class Address : public ValueObject {
                                      int64_t offset);
 
  private:
+  Register rn() const {
+    return Instr::At(reinterpret_cast<uword>(&encoding_))->RnField();
+  }
+
+  Register rm() const {
+    return ((kind() == IndexRegister) || (kind() == ScaledIndexRegister)) ?
+        Instr::At(reinterpret_cast<uword>(&encoding_))->RmField() :
+        kNoRegister;
+  }
+
+  Mode mode() const { return static_cast<Mode>(encoding() & kModeMask); }
+
   uint32_t encoding() const { return encoding_; }
 
   // Encoding for addressing mode 3.
@@ -333,10 +346,13 @@ class Assembler : public ValueObject {
     return FLAG_use_far_branches || use_far_branches_;
   }
 
+#if defined(TESTING) || defined(DEBUG)
+  // Used in unit tests and to ensure predictable verification code size in
+  // FlowGraphCompiler::EmitEdgeCounter.
   void set_use_far_branches(bool b) {
-    ASSERT(buffer_.Size() == 0);
     use_far_branches_ = b;
   }
+#endif  // TESTING || DEBUG
 
   void FinalizeInstructions(const MemoryRegion& region) {
     buffer_.FinalizeInstructions(region);
@@ -678,12 +694,16 @@ class Assembler : public ValueObject {
                                  Register end,
                                  Register value_even,
                                  Register value_odd);
-  // Like above, for the range [begin, begin+count*kWordSize), unrolled.
+  // Like above, for the range [base+begin_offset, base+end_offset), unrolled.
   void InitializeFieldsNoBarrierUnrolled(Register object,
-                                         Register begin,
-                                         intptr_t count,
+                                         Register base,
+                                         intptr_t begin_offset,
+                                         intptr_t end_offset,
                                          Register value_even,
                                          Register value_odd);
+
+  // Stores a Smi value into a heap object field that always contains a Smi.
+  void StoreIntoSmiField(const Address& dest, Register value);
 
   void LoadClassId(Register result, Register object, Condition cond = AL);
   void LoadClassById(Register result, Register class_id);
@@ -1047,6 +1067,24 @@ class Assembler : public ValueObject {
   void StoreIntoObjectFilterNoSmi(Register object,
                                   Register value,
                                   Label* no_update);
+
+  // Helpers for write-barrier verification.
+
+  // Returns VerifiedMemory::offset() as an Operand.
+  Operand GetVerifiedMemoryShadow();
+  // Writes value to [base + offset] and also its shadow location, if enabled.
+  void WriteShadowedField(Register base,
+                          intptr_t offset,
+                          Register value,
+                          Condition cond = AL);
+  void WriteShadowedFieldPair(Register base,
+                              intptr_t offset,
+                              Register value_even,
+                              Register value_odd,
+                              Condition cond = AL);
+  // Writes new_value to address and its shadow location, if enabled, after
+  // verifying that its old value matches its shadow.
+  void VerifiedWrite(const Address& address, Register new_value);
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);

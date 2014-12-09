@@ -19,6 +19,7 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/verified_memory.h"
 
 namespace dart {
 
@@ -1195,9 +1196,35 @@ void FlowGraphCompiler::EmitEdgeCounter() {
   counter.SetAt(0, Smi::Handle(Smi::New(0)));
   __ Comment("Edge counter");
   __ LoadObject(R0, counter);
+#if defined(DEBUG)
+  intptr_t increment_start = assembler_->CodeSize();
+  bool old_use_far_branches = assembler_->use_far_branches();
+  assembler_->set_use_far_branches(true);
+#endif  // DEBUG
   __ ldr(IP, FieldAddress(R0, Array::element_offset(0)));
   __ add(IP, IP, Operand(Smi::RawValue(1)));
-  __ str(IP, FieldAddress(R0, Array::element_offset(0)));
+  __ StoreIntoSmiField(FieldAddress(R0, Array::element_offset(0)), IP);
+#if defined(DEBUG)
+  assembler_->set_use_far_branches(old_use_far_branches);
+  // If the assertion below fails, update EdgeCounterIncrementSizeInBytes.
+  intptr_t expected = EdgeCounterIncrementSizeInBytes();
+  intptr_t actual = assembler_->CodeSize() - increment_start;
+  if (actual != expected) {
+    FATAL2("Edge counter increment length: %" Pd ", expected %" Pd "\n",
+           actual,
+           expected);
+  }
+#endif  // DEBUG
+}
+
+
+int32_t FlowGraphCompiler::EdgeCounterIncrementSizeInBytes() {
+  // Used by CodePatcher; so must be constant across all code in an isolate.
+#if defined(DEBUG)
+  return (VerifiedMemory::enabled() ? 42 : 19) * Instr::kInstrSize;
+#else
+  return 3 * Instr::kInstrSize;
+#endif  // DEBUG
 }
 
 

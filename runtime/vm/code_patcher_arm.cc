@@ -7,6 +7,7 @@
 
 #include "vm/code_patcher.h"
 
+#include "vm/flow_graph_compiler.h"
 #include "vm/instructions.h"
 #include "vm/object.h"
 
@@ -103,7 +104,8 @@ RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
 class EdgeCounter : public ValueObject {
  public:
   EdgeCounter(uword pc, const Code& code)
-      : end_(pc - kAdjust), object_pool_(Array::Handle(code.ObjectPool())) {
+      : end_(pc - FlowGraphCompiler::EdgeCounterIncrementSizeInBytes()),
+        object_pool_(Array::Handle(code.ObjectPool())) {
     // An IsValid predicate is complicated and duplicates the code in the
     // decoding function.  Instead we rely on decoding the pattern which
     // will assert partial validity.

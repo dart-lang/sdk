@@ -316,5 +316,5 @@ convert/utf85_test: Skip # Pass, Slow Issue 20111.
 [ $mode == debug && $arch == ia32 && $system == windows ]
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification OOM.
 
-[ $mode == debug && $arch != ia32 && $arch != x64 ]
+[ $mode == debug && $arch != ia32 && $arch != x64 && $arch != simarm ]
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification not yet implemented.
