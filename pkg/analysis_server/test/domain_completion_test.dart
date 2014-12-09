@@ -50,7 +50,8 @@ class CompletionManagerTest extends AbstractAnalysisTest {
         super.packageMapProvider,
         index,
         new AnalysisServerOptions(),
-        new MockSdk());
+        new MockSdk(),
+        new NullInstrumentationServer());
   }
 
   void sendRequest(String path) {
