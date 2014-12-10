@@ -15,17 +15,11 @@ import 'src/utils.dart';
 final _log = new logger.Logger('ddc.checker');
 
 /// Runs the program checker using the restricted type rules on [fileUri].
-Results checkProgram(Uri fileUri, {TypeResolver resolver, String sdkDir,
-    Map<String, String> mockSdkSources, bool checkSdk: false,
+Results checkProgram(Uri fileUri, TypeResolver resolver, {bool checkSdk: false,
     bool useColors: true}) {
-  if (resolver == null) {
-    resolver = new TypeResolver(mockSdkSources != null ? TypeResolver
-        .sdkResolverFromMock(mockSdkSources) :
-        TypeResolver.sdkResolverFromDir(sdkDir));
-  }
 
   // Invoke the checker on the entry point.
-  _log.info('running checker...');
+  _log.fine('running checker...');
   TypeProvider provider = resolver.context.typeProvider;
   var rules = new RestrictedRules(provider);
   final visitor = new ProgramChecker(resolver, rules, fileUri, checkSdk);

@@ -3,8 +3,7 @@
 build/
 packages
 
-# Or the files created by dart2js.
-*.dart.js
+# Or the files created by tools.
 *.dart.precompiled.js
 *.js_
 *.js.deps
@@ -12,6 +11,9 @@ packages
 *.sw?
 .idea/
 .pub/
+
+# Or our test output folder
+test/codegen/actual/
 
 # Include when developing application packages.
 pubspec.lock

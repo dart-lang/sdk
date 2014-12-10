@@ -51,7 +51,7 @@ testChecker(Map<String, String> testFiles, {bool mockSdk: true}) {
 
   // Run the checker on /main.dart.
   var mainFile = new Uri.file('/main.dart');
-  var results = checkProgram(mainFile, resolver: resolver);
+  var results = checkProgram(mainFile, resolver);
 
   // Extract expectations from the comments in the test files.
   var expectedErrors = <AstNode, List<_ErrorExpectation>>{};

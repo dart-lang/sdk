@@ -1,5 +1,6 @@
 library codegenerator;
 
+import 'dart:async' show Future;
 import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
@@ -19,6 +20,8 @@ class OutWriter {
   OutWriter(String path) {
     var file = new File(path);
     file.createSync();
+    // TODO(jmesserly): not sure the async write here is worth the complexity.
+    // It might be easier to just build a string and then write it to disk.
     _sink = file.openWrite();
   }
 
@@ -51,9 +54,7 @@ class OutWriter {
     _prefix = "".padRight(_indent);
   }
 
-  void close() {
-    _sink.close();
-  }
+  Future close() => _sink.close();
 }
 
 class UnitGenerator extends GeneralizingAstVisitor {
@@ -94,13 +95,13 @@ class UnitGenerator extends GeneralizingAstVisitor {
     }
   }
 
-  String path() {
+  String get outputPath {
     var tail = uri.pathSegments.last;
     return directory.path + Platform.pathSeparator + tail + '.js';
   }
 
-  void generate() {
-    out = new OutWriter(path());
+  Future generate() {
+    out = new OutWriter(outputPath);
 
     out.write("""
 var $libName;
@@ -110,7 +111,7 @@ var $libName;
     out.write("""
 })($libName || ($libName = {}));
 """, -2);
-    out.close();
+    return out.close();
   }
 
   bool isPublic(String name) => !name.startsWith('_');
@@ -515,7 +516,6 @@ var $name = (function (_super) {
     node.identifier.accept(this);
     return node;
   }
-
   AstNode visitPrefixedIdentifier(PrefixedIdentifier node) {
     var dynamicInvoke = _processDynamicInvoke(node);
     _reportUnimplementedConversions(node);
@@ -599,16 +599,16 @@ class LibraryGenerator {
 
   LibraryGenerator(this.name, this.library, this.dir, this.info, this.rules);
 
-  void generateUnit(Uri uri, CompilationUnit unit) {
-    var unitGen = new UnitGenerator(uri, unit, dir, name, info, rules);
-    unitGen.generate();
-  }
+  Future generateUnit(Uri uri, CompilationUnit unit) =>
+      new UnitGenerator(uri, unit, dir, name, info, rules).generate();
 
-  void generate() {
-    generateUnit(library.uri, library.lib);
+  Future generate() {
+    var done = [];
+    done.add(generateUnit(library.uri, library.lib));
     library.parts.forEach((Uri uri, CompilationUnit unit) {
-      generateUnit(uri, unit);
+      done.add(generateUnit(uri, unit));
     });
+    return Future.wait(done);
   }
 }
 
@@ -631,19 +631,18 @@ class CodeGenerator {
     return tail;
   }
 
-  void generate() {
+  Future generate() {
     var base = Uri.base;
     var out = base.resolve(outDir + '/');
     var top = new Directory.fromUri(out);
     top.createSync();
 
+    var done = [];
     libraries.forEach((Uri uri, Library lib) {
       var name = _libName(lib);
-      var dir = new Directory.fromUri(out.resolve(name));
-      dir.createSync();
-
-      var libgen = new LibraryGenerator(name, lib, dir, info, rules);
-      libgen.generate();
+      var dir = new Directory.fromUri(out.resolve(name))..createSync();
+      done.add(new LibraryGenerator(name, lib, dir, info, rules).generate());
     });
+    return Future.wait(done);
   }
 }

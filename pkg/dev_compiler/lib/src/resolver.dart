@@ -65,6 +65,11 @@ class TypeResolver {
     return failure;
   }
 
+  // TODO(jmesserly): in practice these are passed to `new TypeResolver` so
+  // that makes me think these should just be named constructors, rather than
+  // `new TypeResolver(TypeResolver.sdkResolverFromDir((...)) which repeats
+  // the name twice.
+
   /// Creates a [DartUriResolver] that uses the SDK at the given [sdkPath].
   static DartUriResolver sdkResolverFromDir(String sdkPath) =>
       new DartUriResolver(new DirectoryBasedDartSdk(new JavaFile(sdkPath)));

@@ -1,0 +1,16 @@
+// Messages from compiling fieldtest.dart
+line 8, column 9 of test/codegen/fieldtest.dart: a.x (int) must be boxed
+  print(a.x);
+        ^^^
+line 13, column 9 of test/codegen/fieldtest.dart: a.x requires dynamic invoke
+  print(a.x);
+        ^^^
+line 14, column 10 of test/codegen/fieldtest.dart: a.x (dynamic) must be unboxed to type int
+  return a.x;
+         ^^^
+line 14, column 10 of test/codegen/fieldtest.dart: a.x requires dynamic invoke
+  return a.x;
+         ^^^
+line 17, column 13 of test/codegen/fieldtest.dart: a.x (int) must be boxed
+baz(A a) => a.x;
+            ^^^

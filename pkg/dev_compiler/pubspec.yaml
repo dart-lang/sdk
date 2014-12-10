@@ -11,3 +11,7 @@ dependencies:
   path: ">=1.3.0 <2.0.0"
 dev_dependencies:
   unittest: ">=0.11.0 <0.12.0"
+executables:
+  # Similar to "analyzer.dart" and its command line "dartanalyzer", we use
+  # "dartdevc" and "devc.dart"
+  dartdevc: devc

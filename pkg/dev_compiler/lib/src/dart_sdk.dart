@@ -12,7 +12,7 @@ import 'package:analyzer/src/generated/source.dart';
 
 /// Attempts to provide the current Dart SDK directory.  Returns null if the SDK
 /// cannot be found.
-String get dartSdkDirectory {
+final String dartSdkDirectory = () {
   bool isSdkDir(String dirname) => new File(
       path.join(dirname, 'lib', '_internal', 'libraries.dart')).existsSync();
 
@@ -48,7 +48,7 @@ String get dartSdkDirectory {
   }
 
   return null;
-}
+}();
 
 /// Dart SDK which contains a mock implementation of the SDK libraries. May be
 /// used to speed up execution when most of the core libraries is not needed.
