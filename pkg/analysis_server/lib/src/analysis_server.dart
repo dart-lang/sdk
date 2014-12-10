@@ -820,8 +820,12 @@ class AnalysisServer {
       index.clear();
       index.stop();
     }
-    // Defer closing the channel so that the shutdown response can be sent.
-    new Future(channel.close);
+    // Defer closing the channel and shutting down the instrumentation server so
+    // that the shutdown response can be sent and logged.
+    new Future(() {
+      channel.close();
+      instrumentationServer.shutdown();
+    });
   }
 
   /**
