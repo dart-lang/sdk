@@ -373,13 +373,16 @@ class StringBuffer {
 
   @patch
   void write(Object obj) {
-    String str = obj is String ? obj : "$obj";
-    _contents = Primitives.stringConcatUnchecked(_contents, str);
+    _writeString('$obj');
   }
 
   @patch
   void writeCharCode(int charCode) {
-    write(new String.fromCharCode(charCode));
+    _writeString(new String.fromCharCode(charCode));
+  }
+
+  void _writeString(str) {
+    _contents = Primitives.stringConcatUnchecked(_contents, str);
   }
 
   @patch
