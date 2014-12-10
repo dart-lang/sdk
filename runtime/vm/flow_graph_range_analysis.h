@@ -459,10 +459,10 @@ class Range : public ZoneAllocated {
                   RangeBoundary* min,
                   RangeBoundary* max);
 
-  static void Xor(const Range* left_range,
-                  const Range* right_range,
-                  RangeBoundary* min,
-                  RangeBoundary* max);
+  static void BitwiseOp(const Range* left_range,
+                        const Range* right_range,
+                        RangeBoundary* min,
+                        RangeBoundary* max);
 
   // Both the a and b ranges are >= 0.
   static bool OnlyPositiveOrZero(const Range& a, const Range& b);
