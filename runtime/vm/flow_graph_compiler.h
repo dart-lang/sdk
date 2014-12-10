@@ -481,6 +481,9 @@ class FlowGraphCompiler : public ValueObject {
 
   void SaveLiveRegisters(LocationSummary* locs);
   void RestoreLiveRegisters(LocationSummary* locs);
+#if defined(DEBUG)
+  void ClobberDeadTempRegisters(LocationSummary* locs);
+#endif
 
   Environment* SlowPathEnvironmentFor(Instruction* instruction);
 

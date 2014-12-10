@@ -1492,6 +1492,7 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
 void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
 #if defined(DEBUG)
   locs->CheckWritableInputs();
+  ClobberDeadTempRegisters(locs);
 #endif
 
   // TODO(vegorov): avoid saving non-volatile registers.
@@ -1501,9 +1502,27 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
 
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
+#if defined(DEBUG)
+  ClobberDeadTempRegisters(locs);
+#endif
   __ PopRegisters(locs->live_registers()->cpu_registers(),
                   locs->live_registers()->fpu_registers());
 }
+
+
+#if defined(DEBUG)
+void FlowGraphCompiler::ClobberDeadTempRegisters(LocationSummary* locs) {
+  // Clobber temporaries that have not been manually preserved.
+  for (intptr_t i = 0; i < locs->temp_count(); ++i) {
+    Location tmp = locs->temp(i);
+    // TODO(zerny): clobber non-live temporary FPU registers.
+    if (tmp.IsRegister() &&
+        !locs->live_registers()->ContainsRegister(tmp.reg())) {
+      __ movq(tmp.reg(), Immediate(0xf7));
+    }
+  }
+}
+#endif
 
 
 void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,

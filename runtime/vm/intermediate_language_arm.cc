@@ -1962,6 +1962,9 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // If the value cannot fit in a smi then allocate a mint box for it.
       Register value = locs()->temp(0).reg();
       Register temp = locs()->temp(1).reg();
+      // Value register needs to be manually preserved on allocation slow-path.
+      locs()->live_registers()->Add(locs()->temp(0), kUnboxedInt32);
+
       ASSERT(result != value);
       __ MoveRegister(value, result);
       __ SmiTag(result);
