@@ -1226,7 +1226,7 @@ class EmitterHelper extends JsFeatures {
   List<String> computeFields(ClassElement cls) {
     // TODO(ahe): Rewrite for new emitter.
     ClassBuilder builder = new ClassBuilder(cls, namer);
-    classEmitter.emitFields(cls, builder, "");
+    classEmitter.emitFields(cls, builder);
     return builder.fields;
   }
 }
