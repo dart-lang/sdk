@@ -1137,26 +1137,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return sources;
   }
 
-  Element findElementById(int id) {
-    _ElementByIdFinder finder = new _ElementByIdFinder(id);
-    try {
-      MapIterator<Source, SourceEntry> iterator = _cache.iterator();
-      while (iterator.moveNext()) {
-        SourceEntry sourceEntry = iterator.value;
-        if (sourceEntry.kind == SourceKind.LIBRARY) {
-          DartEntry dartEntry = sourceEntry;
-          LibraryElement library = dartEntry.getValue(DartEntry.ELEMENT);
-          if (library != null) {
-            library.accept(finder);
-          }
-        }
-      }
-    } on _ElementByIdFinderException catch (e) {
-      return finder.result;
-    }
-    return null;
-  }
-
   @override
   List<Source> get librarySources => _getSources(SourceKind.LIBRARY);
 
@@ -1697,6 +1677,26 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return true;
     }
     return source.exists();
+  }
+
+  Element findElementById(int id) {
+    _ElementByIdFinder finder = new _ElementByIdFinder(id);
+    try {
+      MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+      while (iterator.moveNext()) {
+        SourceEntry sourceEntry = iterator.value;
+        if (sourceEntry.kind == SourceKind.LIBRARY) {
+          DartEntry dartEntry = sourceEntry;
+          LibraryElement library = dartEntry.getValue(DartEntry.ELEMENT);
+          if (library != null) {
+            library.accept(finder);
+          }
+        }
+      }
+    } on _ElementByIdFinderException catch (e) {
+      return finder.result;
+    }
+    return null;
   }
 
   @override
@@ -5031,25 +5031,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     return changedSources.length > 0;
   }
-}
-
-class _ElementByIdFinder extends GeneralizingElementVisitor {
-  final int _id;
-  Element result;
-
-  _ElementByIdFinder(this._id);
-
-  @override
-  visitElement(Element element) {
-    if (element.id == _id) {
-      result = element;
-      throw new _ElementByIdFinderException();
-    }
-    super.visitElement(element);
-  }
-}
-
-class _ElementByIdFinderException {
 }
 
 /**
@@ -9488,7 +9469,6 @@ class DartEntry extends SourceEntry {
   }
 }
 
-
 /**
  * Instances of the class `DataDescriptor` are immutable constants representing data that can
  * be stored in the cache.
@@ -9548,6 +9528,7 @@ class DefaultRetentionPolicy implements CacheRetentionPolicy {
     return RetentionPriority.LOW;
   }
 }
+
 
 /**
  * Recursively visits [HtmlUnit] and every embedded [Expression].
@@ -14965,6 +14946,25 @@ class _AngularHtmlUnitResolver_visitModelDirectives extends
     }
     return super.visitXmlTagNode(node);
   }
+}
+
+class _ElementByIdFinder extends GeneralizingElementVisitor {
+  final int _id;
+  Element result;
+
+  _ElementByIdFinder(this._id);
+
+  @override
+  visitElement(Element element) {
+    if (element.id == _id) {
+      result = element;
+      throw new _ElementByIdFinderException();
+    }
+    super.visitElement(element);
+  }
+}
+
+class _ElementByIdFinderException {
 }
 
 class _PolymerHtmlUnitBuilder_findTagDartElement extends
