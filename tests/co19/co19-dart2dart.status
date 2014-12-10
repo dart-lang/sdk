@@ -30,6 +30,7 @@ Language/13_Statements/04_Local_Function_Declaration_A04_t01: Fail, MissingCompi
 Language/12_Expressions/12_Instance_Creation/1_New_A04_t02: RuntimeError # co19-roll r607: Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A07_t02: Pass, RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Invocation/memberName_A01_t01: Pass, RuntimeError # co18-roll r607: Please triage this failure
+LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # co19-roll r607: Please triage this failure
 
@@ -46,11 +47,19 @@ Language/07_Classes/3_Setters_A04_t02: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t07: Fail # inherited from VM
 Language/12_Expressions/01_Constants_A03_t01: Fail # Issue 13652
 
+LibTest/core/Match/operator_subscript_A01_t01: Fail # inherited from VM
+LibTest/core/Match/operator_subscript_A01_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail # inherited from VM
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # inherited from VM
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # inherited from VM
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # inherited from VM
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail # inherited from VM
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: Fail # issue 12508
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # co19 issue 294
 LibTest/core/int/operator_left_shift_A01_t02: Fail, OK # co19 issue 129
 LibTest/core/int/toRadixString_A01_t01: Fail # inherited from VM

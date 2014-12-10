@@ -217,8 +217,8 @@ num_parse_test/01: RuntimeError  # Issue 15316
 [ $system == windows && $arch == x64 ]
 stopwatch_test: Skip  # Flaky test due to expected performance behaviour.
 
-[ $runtime != d8 && $runtime != vm ]
-# The regexp tests are not verified to work on non d8/vm platforms yet.
+[ $runtime != d8 ]
+# The regexp tests are not verified to work on non d8 platforms yet.
 regexp/*: Skip
 
 [ $runtime == vm ]
