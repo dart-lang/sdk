@@ -68,22 +68,26 @@ testChecker(Map<String, String> testFiles, {bool mockSdk: true}) {
 
   // Check that all errors we emit are included in the expected map.
   results.infoMap.forEach((key, value) {
+    var actual = [];
+    if (value.conversion != null) actual.add(value.conversion);
+    if (value.dynamicInvoke != null) actual.add(value.dynamicInvoke);
+    actual.addAll(value.messages);
     var expected = expectedErrors[key];
     var expectedTotal = expected == null ? 0 : expected.length;
-    if (value.length != expectedTotal) {
-      expect(value.length, expectedTotal,
-          reason: 'The checker found ${value.length} errors on the expression'
+    if (actual.length != expectedTotal) {
+      expect(actual.length, expectedTotal,
+          reason: 'The checker found ${actual.length} errors on the expression'
           ' `$key`, but we expected $expectedTotal. These are the errors '
-          'the checker found:\n\n' '${_unexpectedErrors(key, value)}');
+          'the checker found:\n\n ${_unexpectedErrors(key, actual)}');
     }
 
     for (int i = 0; i < expected.length; i++) {
-      expect(value[i].level, expected[i].level,
+      expect(actual[i].level, expected[i].level,
           reason: 'expected different logging level at:\n\n'
-          '${_messageWithSpan(value[i])}');
-      expect(value[i].runtimeType, expected[i].type,
+          '${_messageWithSpan(actual[i])}');
+      expect(actual[i].runtimeType, expected[i].type,
           reason: 'expected different error type at:\n\n'
-          '${_messageWithSpan(value[i])}');
+          '${_messageWithSpan(actual[i])}');
     }
     expectedErrors.remove(key);
   });

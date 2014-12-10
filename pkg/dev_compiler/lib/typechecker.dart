@@ -12,14 +12,14 @@ import 'src/static_info.dart';
 import 'src/type_rules.dart';
 import 'src/utils.dart';
 
-final _log = new logger.Logger('ddc.checker');
+final _logger = new logger.Logger('ddc.checker');
 
 /// Runs the program checker using the restricted type rules on [fileUri].
 Results checkProgram(Uri fileUri, TypeResolver resolver, {bool checkSdk: false,
     bool useColors: true}) {
 
   // Invoke the checker on the entry point.
-  _log.fine('running checker...');
+  _logger.fine('running checker...');
   TypeProvider provider = resolver.context.typeProvider;
   var rules = new RestrictedRules(provider);
   final visitor = new ProgramChecker(resolver, rules, fileUri, checkSdk);
@@ -33,7 +33,7 @@ Results checkProgram(Uri fileUri, TypeResolver resolver, {bool checkSdk: false,
 /// checker.
 class Results {
   final Map<Uri, Library> libraries;
-  final Map<AstNode, List<StaticInfo>> infoMap;
+  final Map<AstNode, SemanticNode> infoMap;
   final TypeRules rules;
   final bool failure;
 
@@ -177,7 +177,7 @@ class ProgramChecker extends RecursiveAstVisitor {
   void checkInvalidOverride(
       AstNode node, ExecutableElement element, InterfaceType type) {
     InvalidOverride invalid = findInvalidOverride(node, element, type);
-    record(invalid);
+    _recordMessage(invalid);
   }
 
   visitMethodDeclaration(MethodDeclaration node) {
@@ -231,12 +231,10 @@ class ProgramChecker extends RecursiveAstVisitor {
   void checkFunctionApplication(
       Expression node, Expression f, ArgumentList list) {
     DartType type = _rules.getStaticType(f);
-    if (type.isDynamic || type.isDartCoreFunction) {
-      record(new DynamicInvoke(_rules, node));
-    } else if (type is! FunctionType) {
-      // TODO(vsm): Function object.  Should still be able to derive a function type
-      // from this.
-      record(new DynamicInvoke(_rules, node));
+    if (type.isDynamic || type.isDartCoreFunction || type is! FunctionType) {
+      // TODO(vsm): For a function object, we should still be able to derive a
+      // function type from it.
+      _recordDynamicInvoke(node);
     } else {
       assert(type is FunctionType);
       checkArgumentList(list, type);
@@ -307,7 +305,7 @@ class ProgramChecker extends RecursiveAstVisitor {
     DartType receiverType = _rules.getStaticType(target);
     assert(receiverType != null);
     if (receiverType.isDynamic) {
-      record(new DynamicInvoke(_rules, node));
+      _recordDynamicInvoke(node);
     }
     node.visitChildren(this);
   }
@@ -320,7 +318,7 @@ class ProgramChecker extends RecursiveAstVisitor {
       DartType receiverType = _rules.getStaticType(target);
       assert(receiverType != null);
       if (receiverType.isDynamic) {
-        record(new DynamicInvoke(_rules, node));
+        _recordDynamicInvoke(node);
       }
     }
     node.visitChildren(this);
@@ -345,7 +343,7 @@ class ProgramChecker extends RecursiveAstVisitor {
   void _checkRuntimeTypeCheck(AstNode node, TypeName typeName) {
     var type = getType(typeName);
     if (!_rules.isGroundType(type)) {
-      record(new InvalidRuntimeCheckError(node, type));
+      _recordMessage(new InvalidRuntimeCheckError(node, type));
     }
   }
 
@@ -363,24 +361,52 @@ class ProgramChecker extends RecursiveAstVisitor {
     return (name == null) ? _rules.provider.dynamicType : name.type;
   }
 
-  bool checkAssignment(Expression expr, DartType type) {
-    StaticInfo result = _rules.checkAssignment(expr, type);
-    return !record(result);
+  void checkAssignment(Expression expr, DartType type) {
+    final staticInfo = _rules.checkAssignment(expr, type);
+    if (staticInfo is Conversion) {
+      _recordConvert(staticInfo);
+    } else {
+      _recordMessage(staticInfo);
+    }
   }
 
-  Map<AstNode, List<StaticInfo>> infoMap = new Map<AstNode, List<StaticInfo>>();
+  final infoMap = new Map<AstNode, SemanticNode>();
   bool failure = false;
 
-  bool record(StaticInfo info) {
-    if (info != null) {
-      if (info.level >= logger.Level.SEVERE) failure = true;
-      if (!infoMap.containsKey(info.node)) {
-        infoMap[info.node] = new List<StaticInfo>();
-      }
-      infoMap[info.node].add(info);
-      _log.log(info.level, info.message, info.node);
-      return true;
+  SemanticNode _getSemanticNode(AstNode astNode) {
+    if (astNode == null) return null;
+
+    final semanticNode = infoMap[astNode];
+    if (semanticNode == null) {
+      return infoMap[astNode] = new SemanticNode(astNode);
     }
-    return false;
+    return semanticNode;
+  }
+
+  void _recordDynamicInvoke(AstNode node) {
+    final info = new DynamicInvoke(_rules, node);
+    final semanticNode = _getSemanticNode(node);
+    assert(semanticNode.dynamicInvoke == null);
+    semanticNode.dynamicInvoke = info;
+    _log(info);
+  }
+
+  void _recordMessage(StaticInfo info) {
+    if (info == null) return;
+
+    if (info.level >= logger.Level.SEVERE) failure = true;
+    _getSemanticNode(info.node).messages.add(info);
+    _log(info);
+  }
+
+  void _recordConvert(StaticInfo info) {
+    final semanticNode = _getSemanticNode(info.node);
+    assert(semanticNode.conversion == null);
+    semanticNode.conversion = info;
+    _log(info);
+  }
+
+  void _log(StaticInfo info) {
+    _logger.log(info.level, info.message, info.node);
   }
 }

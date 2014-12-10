@@ -60,8 +60,8 @@ main(arguments) {
     test('ddc $filename.dart', () {
       compilerMessages.writeln('// Messages from compiling $filename.dart');
 
-      return compile(filePath, sdkResolver, outputDir: actualDir, useColors: false)
-            .then((success) {
+      return compile(filePath, sdkResolver, outputDir: actualDir,
+          useColors: false).then((success) {
 
         // Write compiler messages to disk.
         new File(path.join(actualDir, '$filename.txt'))

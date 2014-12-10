@@ -15,7 +15,7 @@ var fieldtest;
 
   // Function foo: (A) → int
   function foo(a) {
-    dart_core.print(/* Unimplemented: [ Box: int to num] */ a.x);
+    dart_core.print(/* Unimplemented: Box: int to num */ a.x);
     /* Unimplemented ReturnStatement: return a.x; */}
   fieldtest.foo = foo;
 
@@ -27,7 +27,7 @@ var fieldtest;
 
   // Function baz: (A) → dynamic
   function baz(a) {
-    return /* Unimplemented: [ Box: int to num] */ a.x;
+    return /* Unimplemented: Box: int to num */ a.x;
   }
   fieldtest.baz = baz;
 

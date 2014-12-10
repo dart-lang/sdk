@@ -62,36 +62,19 @@ class UnitGenerator extends GeneralizingAstVisitor {
   final Directory directory;
   final String libName;
   final CompilationUnit unit;
-  final Map<AstNode, List<StaticInfo>> infoMap;
+  final Map<AstNode, SemanticNode> infoMap;
   final TypeRules rules;
   OutWriter out = null;
 
   UnitGenerator(this.uri, this.unit, this.directory, this.libName, this.infoMap,
       this.rules);
 
-  DynamicInvoke _processDynamicInvoke(AstNode node) {
-    DynamicInvoke result = null;
-    if (infoMap.containsKey(node)) {
-      var infos = infoMap[node];
-      for (var info in infos) {
-        if (info is DynamicInvoke) {
-          assert(result == null);
-          result = info;
-        }
-      }
-      if (result != null) infos.remove(result);
-    }
-    return result;
-  }
-
   void _reportUnimplementedConversions(AstNode node) {
-    if (infoMap.containsKey(node) && infoMap[node].isNotEmpty) {
-      out.write('/* Unimplemented: [ ');
-      for (var info in infoMap[node]) {
-        assert(info is Conversion);
-        out.write('${info.description}');
-      }
-      out.write('] */ ');
+    final info = infoMap[node];
+    if (info != null && info.conversion != null) {
+      out.write('/* Unimplemented: ');
+      out.write('${info.conversion.description}');
+      out.write(' */ ');
     }
   }
 
@@ -517,10 +500,10 @@ var $name = (function (_super) {
     return node;
   }
   AstNode visitPrefixedIdentifier(PrefixedIdentifier node) {
-    var dynamicInvoke = _processDynamicInvoke(node);
     _reportUnimplementedConversions(node);
 
-    if (dynamicInvoke != null) {
+    final info = infoMap[node];
+    if (info != null && info.dynamicInvoke != null) {
       out.write('dart_runtime.dload(');
       node.prefix.accept(this);
       out.write(', "');
@@ -594,7 +577,7 @@ class LibraryGenerator {
   final String name;
   final Library library;
   final Directory dir;
-  final Map<AstNode, List<StaticInfo>> info;
+  final Map<AstNode, SemanticNode> info;
   final TypeRules rules;
 
   LibraryGenerator(this.name, this.library, this.dir, this.info, this.rules);
@@ -616,7 +599,7 @@ class CodeGenerator {
   final String outDir;
   final Uri root;
   final Map<Uri, Library> libraries;
-  final Map<AstNode, List<StaticInfo>> info;
+  final Map<AstNode, SemanticNode> info;
   final TypeRules rules;
 
   CodeGenerator(this.outDir, this.root, this.libraries, this.info, this.rules);

@@ -7,15 +7,36 @@ import 'package:logging/logging.dart' show Level;
 
 import 'type_rules.dart';
 
+/// Semantic information about a node.
+// TODO(jmesserly): this structure is very incomplete.
+class SemanticNode {
+  /// The syntax tree node this info is attached to.
+  final AstNode node;
+
+  /// The conversion or check to apply, if any. Otherwise null.
+  /// Only relevant for expressions.
+  Conversion conversion;
+
+  /// If this operation is dynamically dispatched, this will be set.
+  DynamicInvoke dynamicInvoke;
+
+  /// Any other error or warning messages about this node.
+  /// These messages are not used when generating code.
+  final messages = <StaticInfo>[];
+
+  SemanticNode(this.node);
+}
+
 abstract class StaticInfo {
-  // AST Node this info is attached to.
+  /// AST Node this info is attached to.
+  // TODO(jmesserly): this is somewhat redundant with SemanticNode.
   AstNode get node;
 
-  // Log level for error messages.  This is a placeholder
-  // for severity.
+  /// Log level for error messages.  This is a placeholder
+  /// for severity.
   Level get level;
 
-  // Description / error message.
+  /// Description / error message.
   String get message;
 }
 
