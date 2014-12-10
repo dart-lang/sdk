@@ -2746,8 +2746,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
            'name': compiler.mirrorSystemGetNameFunction.name});
     }
 
-    if (!Elements.isUnresolved(target)) {
-      if (target.isAbstractField) {
+    if (target != null) {
+      if (target.isErroneous) {
+        registry.registerThrowNoSuchMethod();
+      } else if (target.isAbstractField) {
         AbstractFieldElement field = target;
         target = field.getter;
         if (target == null && !inInstanceContext) {

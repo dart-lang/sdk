@@ -1104,6 +1104,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       return const DynamicType();
     }
 
+    Identifier selector = node.selector.asIdentifier();
     if (Elements.isClosureSend(node, element)) {
       if (element != null) {
         // foo() where foo is a local or a parameter.
@@ -1113,9 +1114,12 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         DartType type = analyze(node.selector);
         return analyzeInvocation(node, new TypeAccess(type));
       }
+    } else if (Elements.isErroneousElement(element) && selector == null) {
+      // exp() where exp is an erroneous construct like `new Unresolved()`.
+      DartType type = analyze(node.selector);
+      return analyzeInvocation(node, new TypeAccess(type));
     }
 
-    Identifier selector = node.selector.asIdentifier();
     String name = selector.source;
 
     if (node.isOperator && identical(name, 'is')) {
