@@ -20,6 +20,7 @@ import 'dart:async';
 
 class Object {
   bool operator ==(other) => identical(this, other);
+  String toString() => 'a string';
 }
 
 class Function {}

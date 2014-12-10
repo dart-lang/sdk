@@ -196,6 +196,9 @@ class ClassElementSuggestionBuilder extends _AbstractSuggestionBuilder {
    */
   static void suggestionsFor(DartCompletionRequest request, Element element,
       {bool staticOnly: false}) {
+    if (element == DynamicElementImpl.instance) {
+      element = request.cache.objectClassElement;
+    }
     if (element is ClassElement) {
       return element.accept(
           new ClassElementSuggestionBuilder(request, staticOnly));

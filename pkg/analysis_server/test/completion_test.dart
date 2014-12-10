@@ -101,8 +101,7 @@ class Map{}class Arrays{}class C{ m(!1){} n(!2 x, q)''',
 
     CompletionTestCase.buildTests('testCommentSnippets019', '''
 class A{m(){Object x;x.!1/**/clear()''',
-        <String>["1+toString"],
-        failingTests: '1');
+        <String>["1+toString"]);
 
     CompletionTestCase.buildTests('testCommentSnippets020', '''
 classMap{}class tst {var newt;void newf(){}test() {var newz;new!1/**/;}}''',
@@ -1864,7 +1863,7 @@ void r1(var v) {
             "3+toString",
             "4+hashCode",
             "4-toString"],
-        failingTests: '1234');
+        failingTests: '34');
 
     CompletionTestCase.buildTests('test002', '''
 void r2(var vim) {
@@ -2026,7 +2025,7 @@ class X {
             "3+false",
             "3+true",
             "4+toString"],
-        failingTests: '1234');
+        failingTests: '123');
 
     // conditions & operators
     CompletionTestCase.buildTests('test013', '''

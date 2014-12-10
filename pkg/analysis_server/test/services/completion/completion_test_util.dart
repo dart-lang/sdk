@@ -1271,6 +1271,34 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_ConditionalExpression_empty() {
+    // SimpleIdentifier  PrefixIdentifier  IfStatement
+    addTestSource('''
+      class A {var b; X _c; foo() {A a; if (^) something}}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestLocalGetter('b', null);
+      assertSuggestLocalGetter('_c', 'X');
+      assertSuggestImportedClass('Object');
+      assertSuggestLocalClass('A');
+      assertNotSuggested('==');
+    });
+  }
+
+  test_ConditionalExpression_invocation() {
+    // SimpleIdentifier  PrefixIdentifier  IfStatement
+    addTestSource('''
+      main() {var a; if (a.^) something}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestInvocationMethod('toString', 'Object', 'String');
+      //TODO (danrubel) type for '_c' should be 'X' not null
+      assertNotSuggested('Object');
+      assertNotSuggested('A');
+      assertNotSuggested('==');
+    });
+  }
+
   test_ConstructorName_importedClass() {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
