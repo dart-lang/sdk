@@ -1,3 +1,7 @@
+## 0.11.3
+
+* Add a `prints` matcher that matches output a callback emits via `print`.
+
 ## 0.11.2
 
 * Add an `isNotEmpty` matcher.
