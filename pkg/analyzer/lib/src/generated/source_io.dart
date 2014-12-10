@@ -8,7 +8,6 @@
 library engine.source.io;
 
 import 'engine.dart';
-import 'instrumentation.dart';
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'java_io.dart';
@@ -236,16 +235,17 @@ class FileBasedSource implements Source {
    * Record the time the IO took if it was slow
    */
   void _reportIfSlowIO(int nanos) {
-    //If slower than 10ms
-    if (nanos > 10 * TimeCounter.NANOS_PER_MILLI) {
-      InstrumentationBuilder builder = Instrumentation.builder2("SlowIO");
-      try {
-        builder.data3("fileName", fullName);
-        builder.metric2("IO-Time-Nanos", nanos);
-      } finally {
-        builder.log();
-      }
-    }
+    // TODO(brianwilkerson) Decide whether we still want to capture this data.
+//    //If slower than 10ms
+//    if (nanos > 10 * TimeCounter.NANOS_PER_MILLI) {
+//      InstrumentationBuilder builder = Instrumentation.builder2("SlowIO");
+//      try {
+//        builder.data3("fileName", fullName);
+//        builder.metric2("IO-Time-Nanos", nanos);
+//      } finally {
+//        builder.log();
+//      }
+//    }
   }
 }
 

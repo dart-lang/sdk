@@ -10,7 +10,6 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/html.dart' as html;
-import 'package:analyzer/src/generated/instrumentation.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -84,12 +83,6 @@ class EnumTest {
 
   void test_INIT_STATE() {
     new EnumTester<INIT_STATE>()
-        ..check_getters()
-        ..check_explicit_values();
-  }
-
-  void test_InstrumentationLevel() {
-    new EnumTester<InstrumentationLevel>()
         ..check_getters()
         ..check_explicit_values();
   }

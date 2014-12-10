@@ -7,7 +7,6 @@ library engine.scanner;
 import 'dart:collection';
 
 import 'error.dart';
-import 'instrumentation.dart';
 import 'java_engine.dart';
 import 'source.dart';
 
@@ -973,22 +972,12 @@ class Scanner {
    * and return the first token in the list of tokens that were produced.
    */
   Token tokenize() {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("dart.engine.AbstractScanner.tokenize");
-    int tokenCounter = 0;
-    try {
-      int next = _reader.advance();
-      while (next != -1) {
-        tokenCounter++;
-        next = bigSwitch(next);
-      }
-      _appendEofToken();
-      instrumentation.metric2("tokensCount", tokenCounter);
-      return firstToken;
-    } finally {
-      instrumentation.log2(2);
-      //Log if over 1ms
+    int next = _reader.advance();
+    while (next != -1) {
+      next = bigSwitch(next);
     }
+    _appendEofToken();
+    return firstToken;
   }
 
   void _appendBeginToken(TokenType type) {

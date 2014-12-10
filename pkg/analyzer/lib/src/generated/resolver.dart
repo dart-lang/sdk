@@ -17,7 +17,6 @@ import 'engine.dart';
 import 'error.dart';
 import 'error_verifier.dart';
 import 'html.dart' as ht;
-import 'instrumentation.dart';
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'scanner.dart' as sc;
@@ -8396,84 +8395,70 @@ class LibraryResolver {
    */
   LibraryElement resolveEmbeddedLibrary(Source librarySource,
       CompilationUnit unit, bool fullAnalysis) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("dart.engine.LibraryResolver.resolveEmbeddedLibrary");
-    try {
-      instrumentation.metric("fullAnalysis", fullAnalysis);
-      instrumentation.data3("fullName", librarySource.fullName);
-      //
-      // Create the objects representing the library being resolved and the core
+    //
+    // Create the objects representing the library being resolved and the core
+    // library.
+    //
+    Library targetLibrary = _createLibraryWithUnit(librarySource, unit);
+    _coreLibrary = _libraryMap[_coreLibrarySource];
+    if (_coreLibrary == null) {
+      // This will be true unless the library being analyzed is the core
       // library.
-      //
-      Library targetLibrary = _createLibraryWithUnit(librarySource, unit);
-      _coreLibrary = _libraryMap[_coreLibrarySource];
+      _coreLibrary = createLibrary(_coreLibrarySource);
       if (_coreLibrary == null) {
-        // This will be true unless the library being analyzed is the core
-        // library.
-        _coreLibrary = createLibrary(_coreLibrarySource);
-        if (_coreLibrary == null) {
-          LibraryResolver2.missingCoreLibrary(
-              analysisContext,
-              _coreLibrarySource);
-        }
+        LibraryResolver2.missingCoreLibrary(
+            analysisContext,
+            _coreLibrarySource);
       }
-      instrumentation.metric3("createLibrary", "complete");
-      //
-      // Compute the set of libraries that need to be resolved together.
-      //
-      _computeEmbeddedLibraryDependencies(targetLibrary, unit);
-      _librariesInCycles = _computeLibrariesInCycles(targetLibrary);
-      //
-      // Build the element models representing the libraries being resolved.
-      // This is done in three steps:
-      //
-      // 1. Build the basic element models without making any connections
-      //    between elements other than the basic parent/child relationships.
-      //    This includes building the elements representing the libraries.
-      // 2. Build the elements for the import and export directives. This
-      //    requires that we have the elements built for the referenced
-      //    libraries, but because of the possibility of circular references
-      //    needs to happen after all of the library elements have been created.
-      // 3. Build the rest of the type model by connecting superclasses, mixins,
-      //    and interfaces. This requires that we be able to compute the names
-      //    visible in the libraries being resolved, which in turn requires that
-      //    we have resolved the import directives.
-      //
-      _buildElementModels();
-      instrumentation.metric3("buildElementModels", "complete");
-      LibraryElement coreElement = _coreLibrary.libraryElement;
-      if (coreElement == null) {
-        throw new AnalysisException("Could not resolve dart:core");
-      }
-      _buildDirectiveModels();
-      instrumentation.metric3("buildDirectiveModels", "complete");
-      _typeProvider = new TypeProviderImpl(coreElement);
-      _buildTypeAliases();
-      _buildTypeHierarchies();
-      instrumentation.metric3("buildTypeHierarchies", "complete");
-      //
-      // Perform resolution and type analysis.
-      //
-      // TODO(brianwilkerson) Decide whether we want to resolve all of the
-      // libraries or whether we want to only resolve the target library.
-      // The advantage to resolving everything is that we have already done part
-      // of the work so we'll avoid duplicated effort. The disadvantage of
-      // resolving everything is that we might do extra work that we don't
-      // really care about. Another possibility is to add a parameter to this
-      // method and punt the decision to the clients.
-      //
-      //if (analyzeAll) {
-      _resolveReferencesAndTypes();
-      instrumentation.metric3("resolveReferencesAndTypes", "complete");
-      //} else {
-      //  resolveReferencesAndTypes(targetLibrary);
-      //}
-      _performConstantEvaluation();
-      instrumentation.metric3("performConstantEvaluation", "complete");
-      return targetLibrary.libraryElement;
-    } finally {
-      instrumentation.log();
     }
+    //
+    // Compute the set of libraries that need to be resolved together.
+    //
+    _computeEmbeddedLibraryDependencies(targetLibrary, unit);
+    _librariesInCycles = _computeLibrariesInCycles(targetLibrary);
+    //
+    // Build the element models representing the libraries being resolved.
+    // This is done in three steps:
+    //
+    // 1. Build the basic element models without making any connections
+    //    between elements other than the basic parent/child relationships.
+    //    This includes building the elements representing the libraries.
+    // 2. Build the elements for the import and export directives. This
+    //    requires that we have the elements built for the referenced
+    //    libraries, but because of the possibility of circular references
+    //    needs to happen after all of the library elements have been created.
+    // 3. Build the rest of the type model by connecting superclasses, mixins,
+    //    and interfaces. This requires that we be able to compute the names
+    //    visible in the libraries being resolved, which in turn requires that
+    //    we have resolved the import directives.
+    //
+    _buildElementModels();
+    LibraryElement coreElement = _coreLibrary.libraryElement;
+    if (coreElement == null) {
+      throw new AnalysisException("Could not resolve dart:core");
+    }
+    _buildDirectiveModels();
+    _typeProvider = new TypeProviderImpl(coreElement);
+    _buildTypeAliases();
+    _buildTypeHierarchies();
+    //
+    // Perform resolution and type analysis.
+    //
+    // TODO(brianwilkerson) Decide whether we want to resolve all of the
+    // libraries or whether we want to only resolve the target library.
+    // The advantage to resolving everything is that we have already done part
+    // of the work so we'll avoid duplicated effort. The disadvantage of
+    // resolving everything is that we might do extra work that we don't
+    // really care about. Another possibility is to add a parameter to this
+    // method and punt the decision to the clients.
+    //
+    //if (analyzeAll) {
+    _resolveReferencesAndTypes();
+    //} else {
+    //  resolveReferencesAndTypes(targetLibrary);
+    //}
+    _performConstantEvaluation();
+    return targetLibrary.libraryElement;
   }
 
   /**
@@ -8490,95 +8475,74 @@ class LibraryResolver {
    * @throws AnalysisException if the library could not be resolved for some reason
    */
   LibraryElement resolveLibrary(Source librarySource, bool fullAnalysis) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("dart.engine.LibraryResolver.resolveLibrary");
-    try {
-      instrumentation.metric("fullAnalysis", fullAnalysis);
-      instrumentation.data3("fullName", librarySource.fullName);
-      //
-      // Create the objects representing the library being resolved and the core
+    //
+    // Create the objects representing the library being resolved and the core
+    // library.
+    //
+    Library targetLibrary = createLibrary(librarySource);
+    _coreLibrary = _libraryMap[_coreLibrarySource];
+    if (_coreLibrary == null) {
+      // This will be true unless the library being analyzed is the core
       // library.
-      //
-      Library targetLibrary = createLibrary(librarySource);
-      _coreLibrary = _libraryMap[_coreLibrarySource];
+      _coreLibrary = _createLibraryOrNull(_coreLibrarySource);
       if (_coreLibrary == null) {
-        // This will be true unless the library being analyzed is the core
-        // library.
-        _coreLibrary = _createLibraryOrNull(_coreLibrarySource);
-        if (_coreLibrary == null) {
-          LibraryResolver2.missingCoreLibrary(
-              analysisContext,
-              _coreLibrarySource);
-        }
+        LibraryResolver2.missingCoreLibrary(
+            analysisContext,
+            _coreLibrarySource);
       }
-      instrumentation.metric3("createLibrary", "complete");
-      //
-      // Compute the set of libraries that need to be resolved together.
-      //
-      _computeLibraryDependencies(targetLibrary);
-      _librariesInCycles = _computeLibrariesInCycles(targetLibrary);
-      //
-      // Build the element models representing the libraries being resolved.
-      // This is done in three steps:
-      //
-      // 1. Build the basic element models without making any connections
-      //    between elements other than the basic parent/child relationships.
-      //    This includes building the elements representing the libraries, but
-      //    excludes members defined in enums.
-      // 2. Build the elements for the import and export directives. This
-      //    requires that we have the elements built for the referenced
-      //    libraries, but because of the possibility of circular references
-      //    needs to happen after all of the library elements have been created.
-      // 3. Build the members in enum declarations.
-      // 4. Build the rest of the type model by connecting superclasses, mixins,
-      //    and interfaces. This requires that we be able to compute the names
-      //    visible in the libraries being resolved, which in turn requires that
-      //    we have resolved the import directives.
-      //
-      _buildElementModels();
-      instrumentation.metric3("buildElementModels", "complete");
-      LibraryElement coreElement = _coreLibrary.libraryElement;
-      if (coreElement == null) {
-        throw new AnalysisException("Could not resolve dart:core");
-      }
-      _buildDirectiveModels();
-      instrumentation.metric3("buildDirectiveModels", "complete");
-      _typeProvider = new TypeProviderImpl(coreElement);
-      _buildEnumMembers();
-      _buildTypeAliases();
-      _buildTypeHierarchies();
-      _buildImplicitConstructors();
-      instrumentation.metric3("buildTypeHierarchies", "complete");
-      //
-      // Perform resolution and type analysis.
-      //
-      // TODO(brianwilkerson) Decide whether we want to resolve all of the
-      // libraries or whether we want to only resolve the target library. The
-      // advantage to resolving everything is that we have already done part of
-      // the work so we'll avoid duplicated effort. The disadvantage of
-      // resolving everything is that we might do extra work that we don't
-      // really care about. Another possibility is to add a parameter to this
-      // method and punt the decision to the clients.
-      //
-      //if (analyzeAll) {
-      _resolveReferencesAndTypes();
-      instrumentation.metric3("resolveReferencesAndTypes", "complete");
-      //} else {
-      //  resolveReferencesAndTypes(targetLibrary);
-      //}
-      _performConstantEvaluation();
-      instrumentation.metric3("performConstantEvaluation", "complete");
-      instrumentation.metric2("librariesInCycles", _librariesInCycles.length);
-      for (Library lib in _librariesInCycles) {
-        instrumentation.metric2(
-            "librariesInCycles-CompilationUnitSources-Size",
-            lib.compilationUnitSources.length);
-      }
-      return targetLibrary.libraryElement;
-    } finally {
-      instrumentation.log2(15);
-      //Log if >= than 15ms
     }
+    //
+    // Compute the set of libraries that need to be resolved together.
+    //
+    _computeLibraryDependencies(targetLibrary);
+    _librariesInCycles = _computeLibrariesInCycles(targetLibrary);
+    //
+    // Build the element models representing the libraries being resolved.
+    // This is done in three steps:
+    //
+    // 1. Build the basic element models without making any connections
+    //    between elements other than the basic parent/child relationships.
+    //    This includes building the elements representing the libraries, but
+    //    excludes members defined in enums.
+    // 2. Build the elements for the import and export directives. This
+    //    requires that we have the elements built for the referenced
+    //    libraries, but because of the possibility of circular references
+    //    needs to happen after all of the library elements have been created.
+    // 3. Build the members in enum declarations.
+    // 4. Build the rest of the type model by connecting superclasses, mixins,
+    //    and interfaces. This requires that we be able to compute the names
+    //    visible in the libraries being resolved, which in turn requires that
+    //    we have resolved the import directives.
+    //
+    _buildElementModels();
+    LibraryElement coreElement = _coreLibrary.libraryElement;
+    if (coreElement == null) {
+      throw new AnalysisException("Could not resolve dart:core");
+    }
+    _buildDirectiveModels();
+    _typeProvider = new TypeProviderImpl(coreElement);
+    _buildEnumMembers();
+    _buildTypeAliases();
+    _buildTypeHierarchies();
+    _buildImplicitConstructors();
+    //
+    // Perform resolution and type analysis.
+    //
+    // TODO(brianwilkerson) Decide whether we want to resolve all of the
+    // libraries or whether we want to only resolve the target library. The
+    // advantage to resolving everything is that we have already done part of
+    // the work so we'll avoid duplicated effort. The disadvantage of
+    // resolving everything is that we might do extra work that we don't
+    // really care about. Another possibility is to add a parameter to this
+    // method and punt the decision to the clients.
+    //
+    //if (analyzeAll) {
+    _resolveReferencesAndTypes();
+    //} else {
+    //  resolveReferencesAndTypes(targetLibrary);
+    //}
+    _performConstantEvaluation();
+    return targetLibrary.libraryElement;
   }
 
   /**
@@ -9309,79 +9273,60 @@ class LibraryResolver2 {
    */
   LibraryElement resolveLibrary(Source librarySource,
       List<ResolvableLibrary> librariesInCycle) {
-    InstrumentationBuilder instrumentation =
-        Instrumentation.builder2("dart.engine.LibraryResolver.resolveLibrary");
-    try {
-      instrumentation.data3("fullName", librarySource.fullName);
-      //
-      // Build the map of libraries that are known.
-      //
-      this._librariesInCycle = librariesInCycle;
-      _libraryMap = _buildLibraryMap();
-      ResolvableLibrary targetLibrary = _libraryMap[librarySource];
-      _coreLibrary = _libraryMap[_coreLibrarySource];
-      instrumentation.metric3("buildLibraryMap", "complete");
-      //
-      // Build the element models representing the libraries being resolved.
-      // This is done in three steps:
-      //
-      // 1. Build the basic element models without making any connections
-      //    between elements other than the basic parent/child relationships.
-      //    This includes building the elements representing the libraries, but
-      //    excludes members defined in enums.
-      // 2. Build the elements for the import and export directives. This
-      //    requires that we have the elements built for the referenced
-      //    libraries, but because of the possibility of circular references
-      //    needs to happen after all of the library elements have been created.
-      // 3. Build the members in enum declarations.
-      // 4. Build the rest of the type model by connecting superclasses, mixins,
-      //    and interfaces. This requires that we be able to compute the names
-      //    visible in the libraries being resolved, which in turn requires that
-      //    we have resolved the import directives.
-      //
-      _buildElementModels();
-      instrumentation.metric3("buildElementModels", "complete");
-      LibraryElement coreElement = _coreLibrary.libraryElement;
-      if (coreElement == null) {
-        missingCoreLibrary(analysisContext, _coreLibrarySource);
-      }
-      _buildDirectiveModels();
-      instrumentation.metric3("buildDirectiveModels", "complete");
-      _typeProvider = new TypeProviderImpl(coreElement);
-      _buildEnumMembers();
-      _buildTypeAliases();
-      _buildTypeHierarchies();
-      _buildImplicitConstructors();
-      instrumentation.metric3("buildTypeHierarchies", "complete");
-      //
-      // Perform resolution and type analysis.
-      //
-      // TODO(brianwilkerson) Decide whether we want to resolve all of the
-      // libraries or whether we want to only resolve the target library. The
-      // advantage to resolving everything is that we have already done part of
-      // the work so we'll avoid duplicated effort. The disadvantage of
-      // resolving everything is that we might do extra work that we don't
-      // really care about. Another possibility is to add a parameter to this
-      // method and punt the decision to the clients.
-      //
-      //if (analyzeAll) {
-      _resolveReferencesAndTypes();
-      instrumentation.metric3("resolveReferencesAndTypes", "complete");
-      //} else {
-      //  resolveReferencesAndTypes(targetLibrary);
-      //}
-      _performConstantEvaluation();
-      instrumentation.metric3("performConstantEvaluation", "complete");
-      instrumentation.metric2("librariesInCycles", librariesInCycle.length);
-      for (ResolvableLibrary lib in librariesInCycle) {
-        instrumentation.metric2(
-            "librariesInCycles-CompilationUnitSources-Size",
-            lib.compilationUnitSources.length);
-      }
-      return targetLibrary.libraryElement;
-    } finally {
-      instrumentation.log();
+    //
+    // Build the map of libraries that are known.
+    //
+    this._librariesInCycle = librariesInCycle;
+    _libraryMap = _buildLibraryMap();
+    ResolvableLibrary targetLibrary = _libraryMap[librarySource];
+    _coreLibrary = _libraryMap[_coreLibrarySource];
+    //
+    // Build the element models representing the libraries being resolved.
+    // This is done in three steps:
+    //
+    // 1. Build the basic element models without making any connections
+    //    between elements other than the basic parent/child relationships.
+    //    This includes building the elements representing the libraries, but
+    //    excludes members defined in enums.
+    // 2. Build the elements for the import and export directives. This
+    //    requires that we have the elements built for the referenced
+    //    libraries, but because of the possibility of circular references
+    //    needs to happen after all of the library elements have been created.
+    // 3. Build the members in enum declarations.
+    // 4. Build the rest of the type model by connecting superclasses, mixins,
+    //    and interfaces. This requires that we be able to compute the names
+    //    visible in the libraries being resolved, which in turn requires that
+    //    we have resolved the import directives.
+    //
+    _buildElementModels();
+    LibraryElement coreElement = _coreLibrary.libraryElement;
+    if (coreElement == null) {
+      missingCoreLibrary(analysisContext, _coreLibrarySource);
     }
+    _buildDirectiveModels();
+    _typeProvider = new TypeProviderImpl(coreElement);
+    _buildEnumMembers();
+    _buildTypeAliases();
+    _buildTypeHierarchies();
+    _buildImplicitConstructors();
+    //
+    // Perform resolution and type analysis.
+    //
+    // TODO(brianwilkerson) Decide whether we want to resolve all of the
+    // libraries or whether we want to only resolve the target library. The
+    // advantage to resolving everything is that we have already done part of
+    // the work so we'll avoid duplicated effort. The disadvantage of
+    // resolving everything is that we might do extra work that we don't
+    // really care about. Another possibility is to add a parameter to this
+    // method and punt the decision to the clients.
+    //
+    //if (analyzeAll) {
+    _resolveReferencesAndTypes();
+    //} else {
+    //  resolveReferencesAndTypes(targetLibrary);
+    //}
+    _performConstantEvaluation();
+    return targetLibrary.libraryElement;
   }
 
   /**
