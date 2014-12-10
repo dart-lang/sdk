@@ -214,7 +214,7 @@ class A {
   // Maybe typedef should be included in the result too, but it
   // works fine without it.
   testDart2Dart('''
-typedef void foofunc(arg);
+typedef void foofunc(_0);
 main() {
   new A((arg) {});
 }
@@ -600,7 +600,10 @@ class DynoMap implements Map<Element, ElementAst> {
   final compiler;
   DynoMap(this.compiler);
 
-  ElementAst operator[](Element element) => new ElementAst(element);
+  ElementAst operator[](AstElement element) {
+    return new ElementAst(element.resolvedAst.node,
+                          element.resolvedAst.elements);
+  }
 
   noSuchMethod(Invocation invocation) => throw 'unimplemented method';
 }
@@ -669,13 +672,13 @@ main() {
 }
 ''';
   var expectedResult = '''
-typedef void MyFunction<T_B extends num>(T_B arg);
+typedef void MyFunction<T_B extends num>(T_B _0);
 class T {}
 class B<T_B> {}
 class A<T_B> extends B<T_B> {
   T_B f;
 }
-typedef void MyFunction_A<T_B extends num>(T_B arg);
+typedef void MyFunction_A<T_B extends num>(T_B _0);
 class T_A {}
 class B_A<T_B> {}
 class A_A<T_B> extends B_A<T_B> {

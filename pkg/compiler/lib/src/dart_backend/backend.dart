@@ -11,10 +11,7 @@ class ElementAst {
   final Node ast;
   final TreeElements treeElements;
 
-  ElementAst(AstElement element)
-      : this.internal(element.resolvedAst.node, element.resolvedAst.elements);
-
-  ElementAst.internal(this.ast, this.treeElements);
+  ElementAst(this.ast, this.treeElements);
 }
 
 class DartBackend extends Backend {
@@ -182,7 +179,7 @@ class DartBackend extends Backend {
     backend_ast.ExecutableDefinition backendAst =
         backend_ast_emitter.emit(treeDefinition);
     Node frontend_ast = backend2frontend.emit(treeElements, backendAst);
-    return new ElementAst.internal(frontend_ast, treeElements);
+    return new ElementAst(frontend_ast, treeElements);
 
   }
 
@@ -202,7 +199,8 @@ class DartBackend extends Backend {
 
     ElementAst computeElementAst(AstElement element) {
       if (!compiler.irBuilder.hasIr(element)) {
-        return new ElementAst(element);
+        return new ElementAst(element.resolvedAst.node,
+                              element.resolvedAst.elements);
       } else {
         cps_ir.ExecutableDefinition definition =
             compiler.irBuilder.getIr(element);

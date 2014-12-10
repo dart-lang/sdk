@@ -284,7 +284,8 @@ class ASTEmitter
           continue; // Discard unused constants declarations.
         }
         String name = context.getConstantName(constDecl.element);
-        Expression value = emitConstant(constDecl.expression, context);
+        Expression value =
+            ConstantEmitter.createExpression(constDecl.expression, context);
         VariableDeclaration decl = new VariableDeclaration(name, value);
         decl.element = constDecl.element;
         constants.add(decl);
@@ -307,78 +308,10 @@ class ASTEmitter
         parameters,
         body,
         name: context.currentElement.name,
-        returnType: emitOptionalType(functionType.returnType),
+        returnType: TypeGenerator.createOptionalType(functionType.returnType),
         isGetter: context.currentElement.isGetter,
         isSetter: context.currentElement.isSetter)
         ..element = context.currentElement;
-  }
-
-  /// TODO(johnniwinther): Remove this when issue 21283 has been resolved.
-  int pseudoNameCounter = 0;
-
-  Parameter emitParameter(DartType type,
-                          BuilderContext<Statement> context,
-                          {String name,
-                           Element element,
-                           ConstantExpression defaultValue}) {
-    if (name == null && element != null) {
-      name = element.name;
-    }
-    if (name == null) {
-      name = '_${pseudoNameCounter++}';
-    }
-    Parameter parameter;
-    if (type.isFunctionType) {
-      FunctionType functionType = type;
-      TypeAnnotation returnType = emitOptionalType(functionType.returnType);
-      Parameters innerParameters =
-          emitParametersFromType(functionType, context);
-      parameter = new Parameter.function(name, returnType, innerParameters);
-    } else {
-      TypeAnnotation typeAnnotation = emitOptionalType(type);
-      parameter = new Parameter(name, type: typeAnnotation);
-    }
-    parameter.element = element;
-    if (defaultValue != null && !defaultValue.value.isNull) {
-      parameter.defaultValue = emitConstant(defaultValue, context);
-    }
-    return parameter;
-  }
-
-  Parameters emitParametersFromType(FunctionType functionType,
-                                    BuilderContext<Statement> context) {
-    if (functionType.namedParameters.isEmpty) {
-      return new Parameters(
-          emitParameters(functionType.parameterTypes, context),
-          emitParameters(functionType.optionalParameterTypes, context),
-          false);
-    } else {
-      return new Parameters(
-          emitParameters(functionType.parameterTypes, context),
-          emitParameters(functionType.namedParameterTypes, context,
-                         names: functionType.namedParameters),
-          true);
-    }
-  }
-
-  List<Parameter> emitParameters(
-      Iterable<DartType> parameterTypes,
-      BuilderContext<Statement> context,
-      {Iterable<String> names: const <String>[],
-       Iterable<ConstantExpression> defaultValues: const <ConstantExpression>[],
-       Iterable<Element> elements: const <Element>[]}) {
-    Iterator<String> name = names.iterator;
-    Iterator<ConstantExpression> defaultValue = defaultValues.iterator;
-    Iterator<Element> element = elements.iterator;
-    return parameterTypes.map((DartType type) {
-      name.moveNext();
-      defaultValue.moveNext();
-      element.moveNext();
-      return emitParameter(type, context,
-                           name: name.current,
-                           defaultValue: defaultValue.current,
-                           element: element.current);
-    }).toList();
   }
 
   /// Emits parameters that are not nested inside other parameters.
@@ -386,15 +319,16 @@ class ASTEmitter
   Parameters emitRootParameters(tree.FunctionDefinition function,
                                 BuilderContext<Statement> context) {
     FunctionType functionType = function.element.type;
-    List<Parameter> required = emitParameters(
-        functionType.parameterTypes, context,
+    List<Parameter> required = TypeGenerator.createParameters(
+        functionType.parameterTypes,
+        context: context,
         elements: function.parameters.map((p) => p.element));
     bool optionalParametersAreNamed = !functionType.namedParameters.isEmpty;
-    List<Parameter> optional = emitParameters(
+    List<Parameter> optional = TypeGenerator.createParameters(
         optionalParametersAreNamed
             ? functionType.namedParameterTypes
             : functionType.optionalParameterTypes,
-        context,
+        context: context,
         defaultValues: function.defaultParameterValues,
         elements: function.parameters.skip(required.length)
             .map((p) => p.element));
@@ -600,7 +534,7 @@ class ASTEmitter
   @override
   Expression visitConstant(tree.Constant exp,
                            BuilderContext<Statement> context) {
-    return emitConstant(exp.expression, context);
+    return ConstantEmitter.createExpression(exp.expression, context);
   }
 
   @override
@@ -626,7 +560,8 @@ class ASTEmitter
   Expression visitLiteralList(tree.LiteralList exp,
                               BuilderContext<Statement> context) {
     return new LiteralList(visitExpressions(exp.values, context),
-        typeArgument: emitOptionalType(exp.type.typeArguments.single));
+        typeArgument:
+            TypeGenerator.createOptionalType(exp.type.typeArguments.single));
   }
 
   @override
@@ -634,11 +569,12 @@ class ASTEmitter
                              BuilderContext<Statement> context) {
     List<LiteralMapEntry> entries = new List<LiteralMapEntry>.generate(
         exp.entries.length,
-        (i) => new LiteralMapEntry(visitExpression(exp.entries[i].key, context),
-                                   visitExpression(exp.entries[i].value, context)));
+        (i) => new LiteralMapEntry(
+            visitExpression(exp.entries[i].key, context),
+            visitExpression(exp.entries[i].value, context)));
     List<TypeAnnotation> typeArguments = exp.type.treatAsRaw
         ? null
-        : exp.type.typeArguments.map(createTypeAnnotation)
+        : exp.type.typeArguments.map(TypeGenerator.createType)
              .toList(growable: false);
     return new LiteralMap(entries, typeArguments: typeArguments);
   }
@@ -648,7 +584,7 @@ class ASTEmitter
                                BuilderContext<Statement> context) {
     return new TypeOperator(visitExpression(exp.receiver, context),
                             exp.operator,
-                            createTypeAnnotation(exp.type));
+                            TypeGenerator.createType(exp.type));
   }
 
   List<Argument> emitArguments(tree.Invoke exp,
@@ -659,7 +595,8 @@ class ASTEmitter
         (i) => visitExpression(exp.arguments[i], context));
     for (int i = 0; i < exp.selector.namedArgumentCount; ++i) {
       result.add(new NamedArgument(exp.selector.namedArguments[i],
-          visitExpression(exp.arguments[positionalArgumentCount + i], context)));
+          visitExpression(
+              exp.arguments[positionalArgumentCount + i], context)));
     }
     return result;
   }
@@ -746,7 +683,7 @@ class ASTEmitter
     List args = emitArguments(exp, context);
     FunctionElement constructor = exp.target;
     String name = constructor.name.isEmpty ? null : constructor.name;
-    return new CallNew(createTypeAnnotation(exp.type),
+    return new CallNew(TypeGenerator.createType(exp.type),
                        args,
                        constructorName: name,
                        isConst: exp.constant != null)
@@ -813,51 +750,127 @@ class ASTEmitter
     context.addStatement(decl);
     visitStatement(node.next, context);
   }
-
-  Expression emitConstant(ConstantExpression exp,
-                          BuilderContext<Statement> context) {
-    return const ConstantEmitter().visit(exp, context);
-  }
 }
 
-/// Like [createTypeAnnotation] except the dynamic type is converted to null.
-TypeAnnotation emitOptionalType(DartType type) {
-  if (type.treatAsDynamic) {
-    return null;
-  } else {
-    return createTypeAnnotation(type);
-  }
-}
+class TypeGenerator {
 
-TypeAnnotation createTypeAnnotation(DartType type) {
-  if (type is GenericType) {
-    if (type.treatAsRaw) {
-      return new TypeAnnotation(type.element.name)..dartType = type;
+  /// TODO(johnniwinther): Remove this when issue 21283 has been resolved.
+  static int pseudoNameCounter = 0;
+
+  static Parameter emitParameter(DartType type,
+                                 BuilderContext<Statement> context,
+                                 {String name,
+                                  Element element,
+                                  ConstantExpression defaultValue}) {
+    if (name == null && element != null) {
+      name = element.name;
     }
-    return new TypeAnnotation(
-        type.element.name,
-        type.typeArguments.map(createTypeAnnotation).toList(growable:false))
-        ..dartType = type;
-  } else if (type is VoidType) {
-    return new TypeAnnotation('void')
-        ..dartType = type;
-  } else if (type is TypeVariableType) {
-    return new TypeAnnotation(type.name)
-        ..dartType = type;
-  } else if (type is DynamicType) {
-    return new TypeAnnotation("dynamic")
-        ..dartType = type;
-  } else if (type is MalformedType) {
-    return new TypeAnnotation(type.name)
-        ..dartType = type;
-  } else {
-    throw "Unsupported type annotation: $type";
+    if (name == null) {
+      name = '_${pseudoNameCounter++}';
+    }
+    Parameter parameter;
+    if (type.isFunctionType) {
+      FunctionType functionType = type;
+      TypeAnnotation returnType = createOptionalType(functionType.returnType);
+      Parameters innerParameters =
+          createParametersFromType(functionType);
+      parameter = new Parameter.function(name, returnType, innerParameters);
+    } else {
+      TypeAnnotation typeAnnotation = createOptionalType(type);
+      parameter = new Parameter(name, type: typeAnnotation);
+    }
+    parameter.element = element;
+    if (defaultValue != null && !defaultValue.value.isNull) {
+      parameter.defaultValue =
+          ConstantEmitter.createExpression(defaultValue, context);
+    }
+    return parameter;
   }
+
+  static Parameters createParametersFromType(FunctionType functionType) {
+    pseudoNameCounter = 0;
+    if (functionType.namedParameters.isEmpty) {
+      return new Parameters(
+          createParameters(functionType.parameterTypes),
+          createParameters(functionType.optionalParameterTypes),
+          false);
+    } else {
+      return new Parameters(
+          createParameters(functionType.parameterTypes),
+          createParameters(functionType.namedParameterTypes,
+                         names: functionType.namedParameters),
+          true);
+    }
+  }
+
+  static List<Parameter> createParameters(
+      Iterable<DartType> parameterTypes,
+      {BuilderContext<Statement> context,
+       Iterable<String> names: const <String>[],
+       Iterable<ConstantExpression> defaultValues: const <ConstantExpression>[],
+       Iterable<Element> elements: const <Element>[]}) {
+    Iterator<String> name = names.iterator;
+    Iterator<ConstantExpression> defaultValue = defaultValues.iterator;
+    Iterator<Element> element = elements.iterator;
+    return parameterTypes.map((DartType type) {
+      name.moveNext();
+      defaultValue.moveNext();
+      element.moveNext();
+      return emitParameter(type, context,
+                           name: name.current,
+                           defaultValue: defaultValue.current,
+                           element: element.current);
+    }).toList();
+  }
+
+  /// Like [createTypeAnnotation] except the dynamic type is converted to null.
+  static TypeAnnotation createOptionalType(DartType type) {
+    if (type.treatAsDynamic) {
+      return null;
+    } else {
+      return createType(type);
+    }
+  }
+
+  /// Creates the [TypeAnnotation] for a [type] that is not function type.
+  static TypeAnnotation createType(DartType type) {
+    if (type is GenericType) {
+      if (type.treatAsRaw) {
+        return new TypeAnnotation(type.element.name)..dartType = type;
+      }
+      return new TypeAnnotation(
+          type.element.name,
+          type.typeArguments.map(createType).toList(growable:false))
+          ..dartType = type;
+    } else if (type is VoidType) {
+      return new TypeAnnotation('void')
+          ..dartType = type;
+    } else if (type is TypeVariableType) {
+      return new TypeAnnotation(type.name)
+          ..dartType = type;
+    } else if (type is DynamicType) {
+      return new TypeAnnotation("dynamic")
+          ..dartType = type;
+    } else if (type is MalformedType) {
+      return new TypeAnnotation(type.name)
+          ..dartType = type;
+    } else {
+      throw "Unsupported type annotation: $type";
+    }
+  }
+
 }
+
 
 class ConstantEmitter
     extends ConstantExpressionVisitor<BuilderContext<Statement>, Expression> {
   const ConstantEmitter();
+
+  /// Creates the [Expression] for the constant [exp].
+  static Expression createExpression(ConstantExpression exp,
+                                     BuilderContext<Statement> context) {
+    return const ConstantEmitter().visit(exp, context);
+  }
 
   Expression handlePrimitiveConstant(PrimitiveConstantValue value) {
     // Num constants may be negative, while literals must be non-negative:
@@ -909,7 +922,8 @@ class ConstantEmitter
     return new LiteralList(
         visitExpressions(exp.values, context),
         isConst: true,
-        typeArgument: emitOptionalType(exp.type.typeArguments.single));
+        typeArgument:
+            TypeGenerator.createOptionalType(exp.type.typeArguments.single));
   }
 
   @override
@@ -921,7 +935,7 @@ class ConstantEmitter
                                    visit(exp.values[i], context)));
     List<TypeAnnotation> typeArguments = exp.type.treatAsRaw
         ? null
-        : exp.type.typeArguments.map(createTypeAnnotation).toList();
+        : exp.type.typeArguments.map(TypeGenerator.createType).toList();
     return new LiteralMap(entries, isConst: true, typeArguments: typeArguments);
   }
 
@@ -939,7 +953,7 @@ class ConstantEmitter
 
     FunctionElement constructor = exp.target;
     String name = constructor.name.isEmpty ? null : constructor.name;
-    return new CallNew(createTypeAnnotation(exp.type),
+    return new CallNew(TypeGenerator.createType(exp.type),
                        args,
                        constructorName: name,
                        isConst: true)

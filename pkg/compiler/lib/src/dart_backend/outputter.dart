@@ -388,13 +388,17 @@ class ElementInfoProcessor implements ElementInfo {
     backend2frontend.TreePrinter treePrinter =
         new backend2frontend.TreePrinter(treeElements);
     Node node = treePrinter.makeNodeForClassElement(classElement);
-    addTopLevel(classElement, new ElementAst.internal(node, treeElements));
+    addTopLevel(classElement, new ElementAst(node, treeElements));
     classMembers.putIfAbsent(classElement, () => new Set());
   }
 
   void newTypedefElementCallback(TypedefElement element) {
     if (!shouldOutput(element)) return;
-    addTopLevel(element, new ElementAst(element));
+    TreeElements treeElements = new TreeElementMapping(element);
+    backend2frontend.TreePrinter treePrinter =
+        new backend2frontend.TreePrinter(treeElements);
+    Node node = treePrinter.makeTypedef(element);
+    addTopLevel(element, new ElementAst(node, treeElements));
   }
 
   void newClassElementCallback(ClassElement classElement) {

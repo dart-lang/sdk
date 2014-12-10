@@ -12,7 +12,7 @@ import '../tree/tree.dart' as tree;
 import '../scanner/scannerlib.dart';
 import '../util/util.dart';
 import 'backend_ast_nodes.dart';
-import 'backend_ast_emitter.dart' show createTypeAnnotation;
+import 'backend_ast_emitter.dart' show TypeGenerator;
 
 /// Translates the backend AST to Dart frontend AST.
 tree.Node emit(dart2js.TreeElementMapping treeElements,
@@ -138,6 +138,7 @@ class TreePrinter {
   final Token extendsToken = makeIdToken('extends');
   final Token withToken = makeIdToken('with');
   final Token implementsToken = makeIdToken('implements');
+  final Token typedefToken = makeIdToken('typedef');
 
   static tree.Identifier makeIdentifier(String name) {
     return new tree.Identifier(
@@ -1019,6 +1020,24 @@ class TreePrinter {
     }
   }
 
+  tree.Typedef makeTypedef(elements.TypedefElement typdef) {
+    types.FunctionType functionType = typdef.alias;
+    final tree.TypeAnnotation returnType =
+        makeType(TypeGenerator.createType(functionType.returnType));
+
+    final tree.Identifier name = makeIdentifier(typdef.name);
+    final tree.NodeList typeParameters =
+        makeTypeParameters(typdef.typeVariables);
+    final tree.NodeList formals =
+        makeParameters(TypeGenerator.createParametersFromType(functionType));
+
+    final Token typedefKeyword = typedefToken;
+    final Token endToken = semicolon;
+
+    return new tree.Typedef(returnType, name, typeParameters, formals,
+          typedefKeyword, endToken);
+  }
+
   /// Create a [tree.NodeList] containing the type variable declarations in
   /// [typeVaraiables.
   tree.NodeList makeTypeParameters(List<types.DartType> typeVariables) {
@@ -1031,7 +1050,8 @@ class TreePrinter {
         treeElements[id] = typeVariable.element;
         tree.Node bound;
         if (!typeVariable.element.bound.isObject) {
-          bound = makeType(createTypeAnnotation(typeVariable.element.bound));
+          bound =
+              makeType(TypeGenerator.createType(typeVariable.element.bound));
         }
         tree.TypeVariable node = new tree.TypeVariable(id, bound);
         treeElements.setType(node, typeVariable);
@@ -1060,8 +1080,8 @@ class TreePrinter {
          link = link.tail) {
       types.DartType interface = link.head;
       if (!mixinTypes.contains(interface)) {
-        typeAnnotations =
-            typeAnnotations.prepend(makeType(createTypeAnnotation(interface)));
+        typeAnnotations = typeAnnotations.prepend(
+            makeType(TypeGenerator.createType(interface)));
       }
     }
     if (typeAnnotations.isEmpty) {
@@ -1091,7 +1111,7 @@ class TreePrinter {
 
     void addMixin(types.DartType mixinType) {
       mixinTypes.add(mixinType);
-      mixins = mixins.prepend(makeType(createTypeAnnotation(mixinType)));
+      mixins = mixins.prepend(makeType(TypeGenerator.createType(mixinType)));
     }
 
     addMixin(cls.mixinType);
@@ -1104,7 +1124,7 @@ class TreePrinter {
       supertype = mixinApplication.supertype;
     }
     superclass =
-        makeType(createTypeAnnotation(cls.asInstanceOf(supertype.element)));
+        makeType(TypeGenerator.createType(cls.asInstanceOf(supertype.element)));
     tree.Node supernode = new tree.MixinApplication(
         superclass, new tree.NodeList(null, mixins, null, ','));
 
@@ -1131,7 +1151,7 @@ class TreePrinter {
 
     void addMixin(types.DartType mixinType) {
       mixinTypes.add(mixinType);
-      mixins = mixins.prepend(makeType(createTypeAnnotation(mixinType)));
+      mixins = mixins.prepend(makeType(TypeGenerator.createType(mixinType)));
     }
 
     if (supertype != null) {
@@ -1142,12 +1162,12 @@ class TreePrinter {
           addMixin(cls.asInstanceOf(mixinApplication.mixin));
           supertype = mixinApplication.supertype;
         }
-        tree.Node superclass =
-            makeType(createTypeAnnotation(cls.asInstanceOf(supertype.element)));
+        tree.Node superclass = makeType(
+            TypeGenerator.createType(cls.asInstanceOf(supertype.element)));
         supernode = new tree.MixinApplication(
             superclass, new tree.NodeList(null, mixins, null, ','));
       } else if (!supertype.isObject) {
-        supernode = makeType(createTypeAnnotation(supertype));
+        supernode = makeType(TypeGenerator.createType(supertype));
       }
     }
     tree.NodeList interfaces = makeInterfaces(
