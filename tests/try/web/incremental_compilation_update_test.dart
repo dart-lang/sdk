@@ -1208,9 +1208,7 @@ main() {
             const <String>['v2']),
     ],
 
-/*
     // Test that a lazy static is supported.
-    // TODO(ahe): This test doesn't pass yet.
     const <ProgramResult>[
         const ProgramResult(
             r"""
@@ -1256,7 +1254,6 @@ main() {
 """,
             const <String>['v2', 'lazy']),
     ],
-*/
 
     // Test that superclasses of directly instantiated classes are also
     // emitted.

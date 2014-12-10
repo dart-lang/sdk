@@ -67,8 +67,11 @@ Future<Compiler> reuseCompiler(
     JavaScriptBackend backend = compiler.backend;
 
     // Much like a scout, an incremental compiler is always prepared. For
-    // mixins, at least.
-    backend.emitter.oldEmitter.needsMixinSupport = true;
+    // mixins, classes, and lazy statics, at least.
+    backend.emitter.oldEmitter
+        ..needsDefineClass = true
+        ..needsMixinSupport = true
+        ..needsLazyInitializer = true;
 
     Uri core = Uri.parse("dart:core");
     return compiler.libraryLoader.loadLibrary(core).then((_) {

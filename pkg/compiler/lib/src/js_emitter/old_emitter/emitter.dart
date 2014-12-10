@@ -159,8 +159,10 @@ class OldEmitter implements Emitter {
       => '${namer.isolateName}.\$finishIsolateConstructor';
   String get isolatePropertiesName
       => '${namer.isolateName}.${namer.isolatePropertiesName}';
+  String get lazyInitializerProperty
+      => r'$lazy';
   String get lazyInitializerName
-      => '${namer.isolateName}.\$lazy';
+      => '${namer.isolateName}.${lazyInitializerProperty}';
   String get initName => 'init';
   String get makeConstListProperty
       => namer.getMappedInstanceName('makeConstantList');
@@ -688,9 +690,10 @@ class OldEmitter implements Emitter {
     //
     // We also copy over old values like the prototype, and the
     // isolateProperties themselves.
-    return js('''
+    return js(
+        """
       function (oldIsolate) {
-        var isolateProperties = oldIsolate.#;  // isolatePropertiesName
+        var isolateProperties = oldIsolate.#isolatePropertiesName;
         function Isolate() {
           var hasOwnProperty = Object.prototype.hasOwnProperty;
           for (var staticName in isolateProperties)
@@ -722,17 +725,25 @@ class OldEmitter implements Emitter {
         }
         Isolate.prototype = oldIsolate.prototype;
         Isolate.prototype.constructor = Isolate;
-        Isolate.# = isolateProperties;  // isolatePropertiesName
-        if (#)  // needsDefineClass.
-          Isolate.# = oldIsolate.#;  // finishClassesProperty * 2
-        if (#)  // outputContainsConstantList
-          Isolate.# = oldIsolate.#; // makeConstListProperty * 2
-        return Isolate;
-      }''',
-        [namer.isolatePropertiesName, namer.isolatePropertiesName,
-         needsDefineClass, finishClassesProperty, finishClassesProperty,
-         task.outputContainsConstantList,
-         makeConstListProperty, makeConstListProperty ]);
+        Isolate.#isolatePropertiesName = isolateProperties;
+        if (#needsDefineClass)
+          Isolate.#finishClassesProperty = oldIsolate.#finishClassesProperty;
+        if (#outputContainsConstantList)
+          Isolate.#makeConstListProperty = oldIsolate.#makeConstListProperty;
+        if (#hasIncrementalSupport)
+          Isolate.#lazyInitializerProperty =
+              oldIsolate.#lazyInitializerProperty;
+         return Isolate;
+      }
+""",
+        { 'isolatePropertiesName': namer.isolatePropertiesName,
+          'needsDefineClass': needsDefineClass,
+          'finishClassesProperty': finishClassesProperty,
+          'outputContainsConstantList': task.outputContainsConstantList,
+          'makeConstListProperty': makeConstListProperty,
+          'hasIncrementalSupport': compiler.hasIncrementalSupport,
+          'lazyInitializerProperty': lazyInitializerProperty,
+        });
   }
 
   jsAst.Fun get lazyInitializerFunction {
@@ -1023,28 +1034,35 @@ class OldEmitter implements Emitter {
     if (!lazyFields.isEmpty) {
       needsLazyInitializer = true;
       for (VariableElement element in Elements.sortedByPosition(lazyFields)) {
-        jsAst.Expression code = backend.generatedCode[element];
-        // The code is null if we ended up not needing the lazily
-        // initialized field after all because of constant folding
-        // before code generation.
-        if (code == null) continue;
-        // The code only computes the initial value. We build the lazy-check
-        // here:
-        //   lazyInitializer(prototype, 'name', fieldName, getterName, initial);
-        // The name is used for error reporting. The 'initial' must be a
-        // closure that constructs the initial value.
-        jsAst.Expression init = js('#(#,#,#,#,#)',
-            [js(lazyInitializerName),
-                js(isolateProperties),
-                js.string(element.name),
-                js.string(namer.getNameX(element)),
-                js.string(namer.getLazyInitializerName(element)),
-                code]);
-        buffer.write(jsAst.prettyPrint(init, compiler,
-                                       monitor: compiler.dumpInfoTask));
+        jsAst.Expression init =
+            buildLazilyInitializedStaticField(element, isolateProperties);
+        if (init == null) continue;
+        buffer.write(
+            jsAst.prettyPrint(init, compiler, monitor: compiler.dumpInfoTask));
         buffer.write("$N");
       }
     }
+  }
+
+  jsAst.Expression buildLazilyInitializedStaticField(
+      VariableElement element, String isolateProperties) {
+    jsAst.Expression code = backend.generatedCode[element];
+    // The code is null if we ended up not needing the lazily
+    // initialized field after all because of constant folding
+    // before code generation.
+    if (code == null) return null;
+    // The code only computes the initial value. We build the lazy-check
+    // here:
+    //   lazyInitializer(prototype, 'name', fieldName, getterName, initial);
+    // The name is used for error reporting. The 'initial' must be a
+    // closure that constructs the initial value.
+    return js('#(#,#,#,#,#)',
+        [js(lazyInitializerName),
+            js(isolateProperties),
+            js.string(element.name),
+            js.string(namer.getNameX(element)),
+            js.string(namer.getLazyInitializerName(element)),
+            code]);
   }
 
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
@@ -1598,7 +1616,8 @@ class OldEmitter implements Emitter {
     emitStaticFunctions(task.outputStaticLists[mainOutputUnit]);
 
     // Only output the classesCollector if we actually have any classes.
-    if (!(nativeClasses.isEmpty &&
+    if (needsDefineClass ||
+        !(nativeClasses.isEmpty &&
           compiler.codegenWorld.staticFunctionsNeedingGetter.isEmpty &&
           outputClassLists.values.every((classList) => classList.isEmpty) &&
           typedefsNeededForReflection.isEmpty)) {

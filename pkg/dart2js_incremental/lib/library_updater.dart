@@ -301,17 +301,10 @@ class LibraryUpdater extends JsFeatures {
 
   void addField(FieldElementX element, ScopeContainerElement container) {
     invalidateScopesAffectedBy(element, container);
-    if (!element.isInstanceMember) {
-      cannotReuse(element, "Not an instance field.");
-    } else {
-      addInstanceField(element, container);
+    if (element.isInstanceMember) {
+      _classesWithSchemaChanges.add(container);
     }
-  }
-
-  void addInstanceField(FieldElementX element, ClassElementX cls) {
-    _classesWithSchemaChanges.add(cls);
-
-    updates.add(new AddedFieldUpdate(compiler, element, cls));
+    updates.add(new AddedFieldUpdate(compiler, element, container));
   }
 
   bool canReuseRemovedElement(
@@ -659,12 +652,10 @@ class LibraryUpdater extends JsFeatures {
       update.writeUpdateJsOn(updates);
     }
     for (Element element in enqueuer.codegen.newlyEnqueuedElements) {
-      if (!element.isField) {
-        updates.add(computeMemberUpdateJs(element));
+      if (element.isField) {
+        updates.addAll(computeFieldUpdateJs(element));
       } else {
-        if (backend.constants.lazyStatics.contains(element)) {
-          throw new StateError("$element requires lazy initializer.");
-        }
+        updates.add(computeMethodUpdateJs(element));
       }
     }
 
@@ -695,7 +686,7 @@ if (self.$dart_unsafe_eval.pendingStubs) {
          js.string(name), descriptor]);
   }
 
-  jsAst.Node computeMemberUpdateJs(Element element) {
+  jsAst.Node computeMethodUpdateJs(Element element) {
     MemberInfo info = containerBuilder.analyzeMemberMethod(element);
     if (info == null) {
       compiler.internalError(element, '${element.runtimeType}');
@@ -726,6 +717,33 @@ if (self.$dart_unsafe_eval.pendingStubs) {
         r'self.$dart_unsafe_eval.addMethod(#, #, #, #, #)',
         [partialDescriptor, js.string(name), holder,
          new jsAst.LiteralBool(isStatic), globalFunctionsAccess]);
+  }
+
+  List<jsAst.Statement> computeFieldUpdateJs(FieldElementX element) {
+    if (element.isInstanceMember) {
+      // Any initializers are inlined in factory methods, and the field is
+      // declared by adding its class to [_classesWithSchemaChanges].
+      return const <jsAst.Statement>[];
+    }
+    // A static (or top-level) field.
+    if (backend.constants.lazyStatics.contains(element)) {
+      jsAst.Expression init =
+          emitter.oldEmitter.buildLazilyInitializedStaticField(
+              element, namer.currentIsolate);
+      if (init == null) {
+        throw new StateError("Initializer optimized away for $element");
+      }
+      return <jsAst.Statement>[init.toStatement()];
+    } else {
+      // TODO(ahe): When a field is referenced it is enqueued. If the field has
+      // no initializer, it will not have any associated code, so it will
+      // appear as if it was newly enqueued.
+      if (element.initializer == null) {
+        return const <jsAst.Statement>[];
+      } else {
+        throw new StateError("Don't know how to compile $element");
+      }
+    }
   }
 
   String prettyPrintJs(jsAst.Node node) {
@@ -1062,7 +1080,12 @@ class AddedFieldUpdate extends Update with JsFeatures {
   PartialFieldList get after => element.declarationSite;
 
   FieldElementX apply() {
-    FieldElementX copy = element.copyWithEnclosing(container);
+    Element enclosing = container;
+    if (enclosing.isLibrary) {
+      // TODO(ahe): Reuse compilation unit of element instead?
+      enclosing = enclosing.compilationUnit;
+    }
+    FieldElementX copy = element.copyWithEnclosing(enclosing);
     NO_WARN(container).addMember(copy, compiler);
     return copy;
   }
