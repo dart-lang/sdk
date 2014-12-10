@@ -1,3 +1,7 @@
+## 0.11.4
+
+* Bump the version constraint for `unittest`.
+
 ## 0.11.3
 
 * Narrow the constraint on unittest to ensure that new features are reflected in

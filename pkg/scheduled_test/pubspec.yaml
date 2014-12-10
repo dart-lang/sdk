@@ -1,5 +1,5 @@
 name: scheduled_test
-version: 0.11.3
+version: 0.11.4
 author: Dart Team <misc@dartlang.org>
 description: >
   A package for writing readable tests of asynchronous behavior.
@@ -21,6 +21,6 @@ dependencies:
   # Because scheduled_test exports unittest, it needs to keep its version
   # constraint tight to ensure that a constraint on scheduled_test properly
   # constraints all features it provides.
-  unittest: '>=0.11.2 <0.11.3'
+  unittest: '>=0.11.3 <0.11.4'
 dev_dependencies:
   metatest: '>=0.1.0 <0.2.0'
