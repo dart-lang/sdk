@@ -7250,6 +7250,9 @@ RawClass* Parser::CheckCaseExpressions(
     if (val.clazz() != first_value.clazz()) {
       ReportError(val_pos, "all case expressions must be of same type");
     }
+    if (val.clazz() == I->object_store()->symbol_class()) {
+      continue;
+    }
     if (i == 0) {
       // The value is of some type other than int, String or double.
       // Check that the type class does not override the == operator.
@@ -11019,6 +11022,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       }
       if (!key_value.IsInteger() &&
           !key_value.IsString() &&
+          (key_value.clazz() != I->object_store()->symbol_class()) &&
           ImplementsEqualOperator(key_value)) {
         ReportError(key_pos, "key value must not implement operator ==");
       }
@@ -11213,11 +11217,9 @@ AstNode* Parser::ParseSymbolLiteral() {
   } else {
     ReportError("illegal symbol literal");
   }
-  // Lookup class Symbol from internal library and call the
-  // constructor to create a symbol instance.
-  const Library& lib = Library::Handle(I, Library::InternalLibrary());
-  const Class& symbol_class = Class::Handle(I,
-                                            lib.LookupClass(Symbols::Symbol()));
+
+  // Call Symbol class constructor to create a symbol instance.
+  const Class& symbol_class = Class::Handle(I->object_store()->symbol_class());
   ASSERT(!symbol_class.IsNull());
   ArgumentListNode* constr_args = new(I) ArgumentListNode(symbol_pos);
   constr_args->Add(new(I) LiteralNode(

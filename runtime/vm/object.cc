@@ -1520,7 +1520,7 @@ RawError* Object::Init(Isolate* isolate) {
   CLASS_LIST_WITH_NULL(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
 
-  isolate->object_store()->InitAsyncObjects();
+  isolate->object_store()->InitKnownObjects();
 
   return Error::null();
 }
@@ -18361,7 +18361,7 @@ RawOneByteString* OneByteString::New(const uint8_t* characters,
 RawOneByteString* OneByteString::New(const uint16_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
-  const String& result =String::Handle(OneByteString::New(len, space));
+  const String& result = String::Handle(OneByteString::New(len, space));
   NoGCScope no_gc;
   for (intptr_t i = 0; i < len; ++i) {
     ASSERT(Utf::IsLatin1(characters[i]));

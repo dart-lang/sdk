@@ -129,6 +129,11 @@ class ObjectStore {
     stream_iterator_class_ = value.raw();
   }
 
+  RawClass* symbol_class() { return symbol_class_; }
+  void set_symbol_class(const Class& value) {
+    symbol_class_ = value.raw();
+  }
+
   RawClass* one_byte_string_class() const { return one_byte_string_class_; }
   void set_one_byte_string_class(const Class& value) {
     one_byte_string_class_ = value.raw();
@@ -422,7 +427,7 @@ class ObjectStore {
   // information is stored in sticky_error().
   bool PreallocateObjects();
 
-  void InitAsyncObjects();
+  void InitKnownObjects();
 
   static void Init(Isolate* isolate);
 
@@ -453,6 +458,7 @@ class ObjectStore {
   RawClass* future_class_;
   RawClass* completer_class_;
   RawClass* stream_iterator_class_;
+  RawClass* symbol_class_;
   RawClass* one_byte_string_class_;
   RawClass* two_byte_string_class_;
   RawClass* external_one_byte_string_class_;
