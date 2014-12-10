@@ -526,14 +526,13 @@ TEST_CASE(RangeAnd) {
                  RangeBoundary(0),
                  RangeBoundary(static_cast<int64_t>(0xffffffff)));
 
-  // Test that [-20, 20] & [-20, 20] = [Unknown, Unknown].
+  // Test that [-20, 20] & [-20, 20] = [-32, 31].
   TEST_RANGE_AND(static_cast<int64_t>(-20),
                  static_cast<int64_t>(20),
                  static_cast<int64_t>(-20),
                  static_cast<int64_t>(20),
-                 RangeBoundary::MinConstant(RangeBoundary::kRangeBoundaryInt64),
-                 RangeBoundary::MaxConstant(
-                    RangeBoundary::kRangeBoundaryInt64));
+                 RangeBoundary(-32),
+                 RangeBoundary(31));
 
 #undef TEST_RANGE_AND
 }
