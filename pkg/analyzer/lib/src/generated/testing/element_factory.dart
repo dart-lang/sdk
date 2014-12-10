@@ -115,6 +115,7 @@ class ElementFactory {
     InterfaceTypeImpl enumType = new InterfaceTypeImpl.con1(enumElement);
     enumElement.type = enumType;
     enumElement.supertype = objectType;
+    enumElement.enum2 = true;
     //
     // Populate the fields.
     //
@@ -163,6 +164,7 @@ class ElementFactory {
     // Finish building the enum.
     //
     enumElement.fields = fields;
+
 
         // Client code isn't allowed to invoke the constructor, so we do not model it.
     return enumElement;

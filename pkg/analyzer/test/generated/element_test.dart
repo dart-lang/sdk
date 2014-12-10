@@ -126,6 +126,7 @@ class ClassElementImplTest extends EngineTestCase {
         ElementFactory.fieldElement(fieldName, false, false, false, null);
     classA.fields = <FieldElement>[field];
     expect(classA.getField(fieldName), same(field));
+    expect(field.isEnumConstant, false);
     // no such field
     expect(classA.getField("noSuchField"), same(null));
   }
@@ -257,6 +258,22 @@ class B {}''');
     // "foo" is static
     setter.static = true;
     expect(classA.hasStaticMember, isTrue);
+  }
+
+  void test_isEnum() {
+    String firstConst = "A";
+    String secondConst = "B";
+    ClassElementImpl enumE = ElementFactory.enumElement(
+        new TestTypeProvider(),
+        "E",
+        [firstConst, secondConst]);
+
+    // E is an enum
+    expect(enumE.isEnum, true);
+
+    // A and B are static members
+    expect(enumE.getField(firstConst).isEnumConstant, true);
+    expect(enumE.getField(secondConst).isEnumConstant, true);
   }
 
   void test_lookUpConcreteMethod_declared() {
