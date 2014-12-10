@@ -1798,7 +1798,7 @@ function(newConstructor, oldConstructor, superclass) {
   /// top-level). [globalFunctionsAccess] is a reference to
   /// [embeddedNames.GLOBAL_FUNCTIONS].
   jsAst.Fun buildIncrementalAddMethod() {
-    return js(r'''
+    return js(r"""
 function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
   var arrayOrFunction = originalDescriptor[name];
   var method;
@@ -1813,32 +1813,57 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       if (!Object.prototype.hasOwnProperty.call(descriptor, property)) continue;
       var stub = descriptor[property];
       var existingStub = holder[property];
-      if (stub === method || !existingStub) {
-        // Not replacing an existing stub.
-        holder[property] = method;
+      if (stub === method || !existingStub || !stub.$getterStub) {
+        // Not replacing an existing getter stub.
+        holder[property] = stub;
         continue;
       }
       if (!stub.$getterStub) {
-        var error = new Error("Unexpected stub.");
+        var error = new Error('Unexpected stub.');
         error.stub = stub;
         throw error;
       }
-      // Invoke the existing stub to obtain the tear-off closure.
-      existingStub = existingStub();
-      // A stub already exist. Update all its references to [existing] to
-      // [method].
-      for (var reference in existingStub) {
-        if (existingStub[reference] === existing) {
-          existingStub[reference] = method;
+
+      // Existing getter stubs need special treatment as they may already have
+      // been called and produced a closure.
+      this.pendingStubs = this.pendingStubs || [];
+      // It isn't safe to invoke the stub yet.
+      this.pendingStubs.push((function(holder, stub, existingStub, existing,
+                                       method) {
+        return function() {
+          var receiver = isStatic ? holder : new holder.constructor();
+          // Invoke the existing stub to obtain the tear-off closure.
+          existingStub = existingStub.call(receiver);
+          // Invoke the new stub to create a tear-off closure we can use as a
+          // prototype.
+          stub = stub.call(receiver);
+
+          var newProto = stub.constructor.prototype;
+          var existingProto = existingStub.constructor.prototype;
+          for (var stubProperty in newProto) {
+            if (!Object.prototype.hasOwnProperty.call(newProto, stubProperty))
+              continue;
+            existingProto[stubProperty] = newProto[stubProperty];
+          }
+
+          // Update all the existing stub's references to [existing] to
+          // [method]. Instance tear-offs are call-by-name, so this isn't
+          // necessary for those.
+          if (!isStatic) return;
+          for (var reference in existingStub) {
+            if (existingStub[reference] === existing) {
+              existingStub[reference] = method;
+            }
+          }
         }
-      }
+      })(holder, stub, existingStub, existing, method));
     }
   } else {
     method = arrayOrFunction;
     holder[name] = method;
   }
   if (isStatic) globalFunctionsAccess[name] = method;
-}''');
+}""");
   }
 
   /// Returns a map from OutputUnit to a hash of its content. The hash uniquely

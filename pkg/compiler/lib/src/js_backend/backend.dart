@@ -2184,6 +2184,15 @@ class JavaScriptBackend extends Backend {
     customElementsAnalysis.onQueueEmpty(enqueuer);
     if (!enqueuer.queueIsEmpty) return false;
 
+    if (compiler.hasIncrementalSupport) {
+      // Always enable tear-off closures during incremental compilation.
+      Element e = findHelper('closureFromTearOff');
+      if (e != null && !enqueuer.isProcessed(e)) {
+        registerBackendUse(e);
+        enqueuer.addToWorkList(e);
+      }
+    }
+
     if (!enqueuer.isResolutionQueue && preMirrorsMethodCount == 0) {
       preMirrorsMethodCount = generatedCode.length;
     }

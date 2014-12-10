@@ -106,7 +106,9 @@ Future<Compiler> reuseCompiler(
     // must be invalidated).
     backend.emitter.oldEmitter.cachedElements.add(null);
 
-    compiler.enqueuer.codegen.newlyEnqueuedElements.clear();
+    compiler.enqueuer.codegen
+        ..newlyEnqueuedElements.clear()
+        ..newlySeenSelectors.clear();
 
     backend.emitter.oldEmitter.containerBuilder
         ..staticGetters.clear();
@@ -139,7 +141,6 @@ Future<Compiler> reuseCompiler(
         ..deferredConstants.clear()
         ..isolateProperties = null
         ..classesCollector = null
-        ..neededClasses.clear()
         ..outputClassLists.clear()
         ..nativeClasses.clear()
         ..mangledFieldNames.clear()

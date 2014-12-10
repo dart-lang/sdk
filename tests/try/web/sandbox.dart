@@ -102,7 +102,8 @@ class Listener {
           break;
 
         default:
-          completer.completeError('Unexpected message: "$message".');
+          completer.completeError(
+              'Unexpected message: "$message" (expected "$expectedMessage").');
       }
     }
   }

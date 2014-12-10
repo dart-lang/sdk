@@ -14,6 +14,7 @@ import 'package:compiler/compiler.dart' as api;
 
 import 'package:compiler/src/dart2jslib.dart' show
     Compiler,
+    EnqueueTask,
     Script;
 
 import 'package:compiler/src/elements/elements.dart' show
@@ -71,6 +72,9 @@ import 'package:compiler/src/elements/modelx.dart' show
     ElementX,
     FieldElementX,
     LibraryElementX;
+
+import 'package:compiler/src/universe/universe.dart' show
+    Selector;
 
 import 'diff.dart' show
     Difference,
@@ -547,12 +551,12 @@ class LibraryUpdater extends JsFeatures {
     }
     for (Element element in updatedElements) {
       if (!element.isClass) {
-        compiler.enqueuer.resolution.addToWorkList(element);
+        enqueuer.resolution.addToWorkList(element);
       } else {
         NO_WARN(element).ensureResolved(compiler);
       }
     }
-    compiler.processQueue(compiler.enqueuer.resolution, null);
+    compiler.processQueue(enqueuer.resolution, null);
 
     compiler.phase = Compiler.PHASE_DONE_RESOLVING;
 
@@ -563,19 +567,56 @@ class LibraryUpdater extends JsFeatures {
         new Set<ClassElementX>.from(_classesWithSchemaChanges);
     for (Element element in updatedElements) {
       if (!element.isClass) {
-        compiler.enqueuer.codegen.addToWorkList(element);
+        enqueuer.codegen.addToWorkList(element);
       } else {
         changedClasses.add(element);
       }
     }
-    compiler.processQueue(compiler.enqueuer.codegen, null);
+    compiler.processQueue(enqueuer.codegen, null);
+
+    // Run through all compiled methods and see if they may apply to
+    // newlySeenSelectors.
+    for (Element e in enqueuer.codegen.generatedCode.keys) {
+      if (e.isFunction && !e.isConstructor &&
+          e.functionSignature.hasOptionalParameters) {
+        for (Selector selector in enqueuer.codegen.newlySeenSelectors) {
+          // TODO(ahe): Group selectors by name at this point for improved
+          // performance.
+          if (e.isInstanceMember && selector.applies(e, compiler.world)) {
+            // TODO(ahe): Don't use
+            // enqueuer.codegen.newlyEnqueuedElements directly like
+            // this, make a copy.
+            enqueuer.codegen.newlyEnqueuedElements.add(e);
+          }
+          if (selector.name == namer.closureInvocationSelectorName) {
+            selector = new Selector.call(
+                e.name, e.library,
+                selector.argumentCount, selector.namedArguments);
+            if (selector.appliesUnnamed(e, compiler.world)) {
+              // TODO(ahe): Also make a copy here.
+              enqueuer.codegen.newlyEnqueuedElements.add(e);
+            }
+          }
+        }
+      }
+    }
 
     List<jsAst.Statement> updates = <jsAst.Statement>[];
 
-    Set newClasses = new Set.from(
+    // TODO(ahe): allInstantiatedClasses seem to include interfaces that aren't
+    // needed.
+    Set<ClassElementX> newClasses = new Set.from(
         compiler.codegenWorld.allInstantiatedClasses.where(
             emitter.computeClassFilter()));
     newClasses.removeAll(_existingClasses);
+
+    // TODO(ahe): When more than one updated is computed, we need to make sure
+    // that existing classes aren't overwritten. No test except the one test
+    // that tests more than one update is affected by this problem, and only
+    // because main is closurized because we always enable tear-off. Is that
+    // really necessary? Also, add a test which tests directly that what
+    // happens when tear-off is introduced in second update.
+    emitter.neededClasses.addAll(newClasses);
 
     List<jsAst.Statement> inherits = <jsAst.Statement>[];
 
@@ -617,11 +658,22 @@ class LibraryUpdater extends JsFeatures {
     for (RemovalUpdate update in removals) {
       update.writeUpdateJsOn(updates);
     }
-    for (Element element in compiler.enqueuer.codegen.newlyEnqueuedElements) {
+    for (Element element in enqueuer.codegen.newlyEnqueuedElements) {
       if (!element.isField) {
         updates.add(computeMemberUpdateJs(element));
+      } else {
+        if (backend.constants.lazyStatics.contains(element)) {
+          throw new StateError("$element requires lazy initializer.");
+        }
       }
     }
+
+    updates.add(js.statement(r'''
+if (self.$dart_unsafe_eval.pendingStubs) {
+  self.$dart_unsafe_eval.pendingStubs.map(function(e) { return e(); });
+  self.$dart_unsafe_eval.pendingStubs = void 0;
+}
+'''));
 
     if (updates.length == 1) {
       return prettyPrintJs(updates.single);
@@ -1137,6 +1189,8 @@ abstract class JsFeatures {
   CodeEmitterTask get emitter => backend.emitter;
 
   ContainerBuilder get containerBuilder => emitter.oldEmitter.containerBuilder;
+
+  EnqueueTask get enqueuer => compiler.enqueuer;
 }
 
 class EmitterHelper extends JsFeatures {

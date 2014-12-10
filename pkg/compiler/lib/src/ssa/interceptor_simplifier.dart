@@ -255,6 +255,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     node.interceptedClasses = interceptedClasses;
 
     // Try creating a one-shot interceptor.
+    if (compiler.hasIncrementalSupport) return false;
     if (node.usedBy.length != 1) return false;
     if (node.usedBy[0] is !HInvokeDynamic) return false;
 

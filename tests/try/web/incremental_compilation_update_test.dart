@@ -1083,7 +1083,6 @@ main() {
     ],
 
     // Test that named arguments can be called.
-    // TODO(ahe): This test doesn't pass yet, see expectation below.
     const <ProgramResult>[
         const ProgramResult(
             r"""
@@ -1100,12 +1099,7 @@ main() {
     print('instance is null');
     instance = new C();
   }
-  try {
-    instance.foo();
-  } catch (e) {
-    // TODO(ahe): This try/catch shouldn't be necessary.
-    print('threw');
-  }
+  instance.foo();
 }
 """,
             const <String>['instance is null', 'v1']),
@@ -1124,19 +1118,13 @@ main() {
     print('instance is null');
     instance = new C();
   }
-  try {
-    instance.foo(named: 'v2');
-  } catch (e) {
-    // TODO(ahe): This try/catch shouldn't be necessary.
-    print('threw');
-  }
+  instance.foo(named: 'v2');
 }
 """,
-            const <String>['threw']), // TODO(ahe): Expect 'v2'.
+            const <String>['v2']),
     ],
 
     // Test than named arguments can be called.
-    // TODO(ahe): This test doesn't pass yet, see expectation below.
     const <ProgramResult>[
         const ProgramResult(
             r"""
@@ -1153,12 +1141,7 @@ main() {
     print('instance is null');
     instance = new C();
   }
-  try {
-    instance.foo(named: 'v1');
-  } catch (e) {
-    // TODO(ahe): This try/catch shouldn't be necessary.
-    print('threw');
-  }
+  instance.foo(named: 'v1');
 }
 """,
             const <String>['instance is null', 'v1']),
@@ -1177,19 +1160,13 @@ main() {
     print('instance is null');
     instance = new C();
   }
-  try {
-    instance.foo();
-  } catch (e) {
-    // TODO(ahe): This try/catch shouldn't be necessary.
-    print('threw');
-  }
+  instance.foo();
 }
 """,
-            const <String>['threw']),
+            const <String>['v2']),
     ],
 
     // Test that an instance tear-off with named parameters can be called.
-    // TODO(ahe): This test doesn't pass yet, see expectation below.
     const <ProgramResult>[
         const ProgramResult(
             r"""
@@ -1206,12 +1183,7 @@ main() {
     print('closure is null');
     closure = new C().foo;
   }
-  try {
-    closure();
-  } catch (e) {
-    // TODO(ahe): This try/catch shouldn't be necessary.
-    print('threw');
-  }
+  closure();
 }
 """,
             const <String>['closure is null', 'v1']),
@@ -1230,15 +1202,10 @@ main() {
     print('closure is null');
     closure = new C().foo;
   }
-  try {
-    closure(named: 'v2');
-  } catch (e) {
-    // TODO(ahe): This try/catch shouldn't be necessary.
-    print('threw');
-  }
+  closure(named: 'v2');
 }
 """,
-            const <String>['threw']), // TODO(ahe): Expect 'v2'.
+            const <String>['v2']),
     ],
 
 /*

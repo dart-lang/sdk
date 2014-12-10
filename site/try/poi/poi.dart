@@ -538,12 +538,16 @@ class ScriptOnlyFilter implements QueueFilter {
   bool checkNoEnqueuedInvokedInstanceMethods(Enqueuer enqueuer) => true;
 
   void processWorkItem(void f(WorkItem work), WorkItem work) {
-    if (work.element.library.canonicalUri == script) {
-      f(work);
-      printWallClock('Processed ${work.element}.');
-    } else {
-      printWallClock('Skipped ${work.element}.');
+    if (work.element.library.canonicalUri != script) {
+      // TODO(ahe): Rather nasty hack to work around another nasty hack in
+      // backend.dart. Find better solution.
+      if (work.element.name != 'closureFromTearOff') {
+        printWallClock('Skipped ${work.element}.');
+        return;
+      }
     }
+    f(work);
+    printWallClock('Processed ${work.element}.');
   }
 }
 

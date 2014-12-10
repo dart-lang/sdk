@@ -1967,7 +1967,7 @@ abstract class Closure implements Function {
     // var dynClosureConstructor =
     //     new Function('self', 'target', 'receiver', 'name',
     //                  'this._init(self, target, receiver, name)');
-    // proto.constructor = dynClosureConstructor; // Necessary?
+    // proto.constructor = dynClosureConstructor;
     // dynClosureConstructor.prototype = proto;
     // return dynClosureConstructor;
 

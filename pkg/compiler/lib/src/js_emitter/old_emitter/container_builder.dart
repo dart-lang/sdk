@@ -363,7 +363,11 @@ class ContainerBuilder extends CodeEmitterHelper {
                             member.isAccessor;
     String tearOffName;
 
-    final bool canBeReflected = backend.isAccessibleByReflection(member);
+
+    final bool canBeReflected = backend.isAccessibleByReflection(member) ||
+        // During incremental compilation, we have to assume that reflection
+        // *might* get enabled.
+        compiler.hasIncrementalSupport;
 
     if (isNotApplyTarget) {
       canTearOff = false;
