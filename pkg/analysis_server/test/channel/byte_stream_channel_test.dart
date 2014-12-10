@@ -10,6 +10,7 @@ import 'dart:io';
 
 import 'package:analysis_server/src/channel/byte_stream_channel.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:unittest/unittest.dart';
 
 import '../mocks.dart';
@@ -240,7 +241,10 @@ class ByteStreamServerChannelTest {
     outputLineStream = outputStream.stream.transform(
         (new Utf8Codec()).decoder).transform(new LineSplitter());
     IOSink outputSink = new IOSink(outputStream);
-    channel = new ByteStreamServerChannel(inputStream.stream, outputSink);
+    channel = new ByteStreamServerChannel(
+        inputStream.stream,
+        outputSink,
+        new NullInstrumentationServer());
     StreamController<Request> requestStreamController =
         new StreamController<Request>();
     requestStream = requestStreamController.stream;

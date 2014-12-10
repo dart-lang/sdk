@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/channel/web_socket_channel.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:unittest/unittest.dart';
 
 import '../mocks.dart';
@@ -138,7 +139,8 @@ class WebSocketChannelTest {
   static void setUp() {
     socket = new MockSocket.pair();
     client = new WebSocketClientChannel(socket);
-    server = new WebSocketServerChannel(socket.twin);
+    server =
+        new WebSocketServerChannel(socket.twin, new NullInstrumentationServer());
 
     requestsReceived = [];
     responsesReceived = [];
