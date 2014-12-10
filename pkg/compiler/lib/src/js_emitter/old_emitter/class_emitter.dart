@@ -39,8 +39,9 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     ClassBuilder builder = new ClassBuilder(classElement, namer);
+    builder.superName = superName;
     emitClassConstructor(classElement, builder, onlyForRti: onlyForRti);
-    emitFields(classElement, builder, superName, onlyForRti: onlyForRti);
+    emitFields(classElement, builder, onlyForRti: onlyForRti);
     emitClassGettersSetters(classElement, builder, onlyForRti: onlyForRti);
     emitInstanceMembers(classElement, builder, onlyForRti: onlyForRti);
     emitter.typeTestEmitter.emitIsTests(classElement, builder);
@@ -91,7 +92,6 @@ class ClassEmitter extends CodeEmitterHelper {
   /// Returns `true` if fields added.
   bool emitFields(Element element,
                   ClassBuilder builder,
-                  String superName,
                   { bool classIsNative: false,
                     bool emitStatics: false,
                     bool onlyForRti: false }) {
@@ -101,12 +101,6 @@ class ClassEmitter extends CodeEmitterHelper {
     } else if (!element.isClass) {
       throw new SpannableAssertionFailure(
           element, 'Must be a ClassElement or a LibraryElement');
-    }
-    if (emitStatics) {
-      assert(invariant(element, superName == null, message: superName));
-    } else {
-      assert(invariant(element, superName != null));
-      builder.superName = superName;
     }
     var fieldMetadata = [];
     bool hasMetadata = false;
@@ -311,7 +305,7 @@ class ClassEmitter extends CodeEmitterHelper {
 
     List<jsAst.Property> statics = new List<jsAst.Property>();
     ClassBuilder staticsBuilder = new ClassBuilder(classElement, namer);
-    if (emitFields(classElement, staticsBuilder, null, emitStatics: true)) {
+    if (emitFields(classElement, staticsBuilder, emitStatics: true)) {
       jsAst.ObjectInitializer initializer =
         staticsBuilder.toObjectInitializer();
       compiler.dumpInfoTask.registerElementAst(classElement,

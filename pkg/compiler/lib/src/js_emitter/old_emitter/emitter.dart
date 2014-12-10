@@ -1442,7 +1442,7 @@ class OldEmitter implements Emitter {
     for (LibraryElement element in libraries) {
       LibraryElement library = element;
       ClassBuilder builder = new ClassBuilder(library, namer);
-      if (classEmitter.emitFields(library, builder, null, emitStatics: true)) {
+      if (classEmitter.emitFields(library, builder, emitStatics: true)) {
         jsAst.ObjectInitializer initializer = builder.toObjectInitializer();
         compiler.dumpInfoTask.registerElementAst(builder.element, initializer);
         getElementDescriptor(library).properties.addAll(initializer.properties);
