@@ -1301,8 +1301,7 @@ main() {
         const ProgramResult(
             r"""
 main() {
-  // TODO(ahe): Use forEach(print) when closures are computed correctly.
-  ['v2'].forEach((e) { print(e); });
+  ['v2'].forEach(print);
 }
 """,
             const <String>['v2']),
@@ -1314,6 +1313,11 @@ void main() {
 
   document.head.append(lineNumberStyle());
 
+  summary = new SpanElement();
+  document.body.append(new HeadingElement.h1()
+      ..appendText("Incremental compiler tests")
+      ..append(summary));
+
   String query = window.location.search;
   int skip = 0;
   if (query != null && query.length > 1) {
@@ -1323,13 +1327,22 @@ void main() {
       skip = int.parse(skipParam);
     }
   }
+  testCount += skip;
 
-  return asyncTest(() => Future.forEach(tests.skip(skip), compileAndRun));
+  return asyncTest(() => Future.forEach(tests.skip(skip), compileAndRun)
+      .then(updateSummary));
 }
+
+SpanElement summary;
 
 int testCount = 1;
 
+void updateSummary(_) {
+  summary.text = " (${testCount - 1}/${tests.length})";
+}
+
 Future compileAndRun(List<ProgramResult> programs) {
+  updateSummary(null);
   var status = new DivElement();
   document.body.append(status);
 
