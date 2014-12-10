@@ -200,7 +200,6 @@ void main() {
                   {'a': ['x', 'y']},
                   'function foo(x, y) {\n}'),
 
-
     testStatement('a = #.#', [eVar,eOne], 'a = x[1];'),
     testStatement('a = #.#', [eVar,'foo'], 'a = x.foo;'),
     testStatement('a = #a.#b', {'a': eVar, 'b': eOne}, 'a = x[1];'),

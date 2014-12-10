@@ -93,7 +93,6 @@ void main() {
             r"   Which: threw 'X'"));
   });
 
-
   test('hasLength', () {
     var a = new Map();
     var b = new List();

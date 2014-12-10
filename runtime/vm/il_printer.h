@@ -37,7 +37,7 @@ class FlowGraphPrinter : public ValueObject {
  public:
   FlowGraphPrinter(const FlowGraph& flow_graph,
                    bool print_locations = false)
-      : function_(flow_graph.parsed_function().function()),
+      : function_(flow_graph.parsed_function()->function()),
         block_order_(flow_graph.reverse_postorder()),
         print_locations_(print_locations) { }
 

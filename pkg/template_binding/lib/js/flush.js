@@ -9,22 +9,45 @@
 
 (function(scope) {
 
+/**
+ * @class Polymer
+ */
+
+// imports
+var endOfMicrotask = scope.endOfMicrotask;
+
+// logging
+var log = window.WebComponents ? WebComponents.flags.log : {};
+
 // inject style sheet
 var style = document.createElement('style');
 style.textContent = 'template {display: none !important;} /* injected by platform.js */';
 var head = document.querySelector('head');
 head.insertBefore(style, head.firstChild);
 
+
+/**
+ * Force any pending data changes to be observed before 
+ * the next task. Data changes are processed asynchronously but are guaranteed
+ * to be processed, for example, before paintin. This method should rarely be 
+ * needed. It does nothing when Object.observe is available; 
+ * when Object.observe is not available, Polymer automatically flushes data 
+ * changes approximately every 1/10 second. 
+ * Therefore, `flush` should only be used when a data mutation should be 
+ * observed sooner than this.
+ * 
+ * @method flush
+ */
 // flush (with logging)
 var flushing;
 function flush() {
   if (!flushing) {
     flushing = true;
-    scope.endOfMicrotask(function() {
+    endOfMicrotask(function() {
       flushing = false;
-      logFlags.data && console.group('Platform.flush()');
-      scope.performMicrotaskCheckpoint();
-      logFlags.data && console.groupEnd();
+      log.data && console.group('flush');
+      Platform.performMicrotaskCheckpoint();
+      log.data && console.groupEnd();
     });
   }
 };
@@ -35,7 +58,21 @@ if (!Observer.hasObjectObserve) {
   var FLUSH_POLL_INTERVAL = 125;
   window.addEventListener('WebComponentsReady', function() {
     flush();
-    scope.flushPoll = setInterval(flush, FLUSH_POLL_INTERVAL);
+    // watch document visiblity to toggle dirty-checking
+    var visibilityHandler = function() {
+      // only flush if the page is visibile
+      if (document.visibilityState === 'hidden') {
+        if (scope.flushPoll) {
+          clearInterval(scope.flushPoll);
+        }
+      } else {
+        scope.flushPoll = setInterval(flush, FLUSH_POLL_INTERVAL);
+      }
+    };
+    if (typeof document.visibilityState === 'string') {
+      document.addEventListener('visibilitychange', visibilityHandler);
+    }
+    visibilityHandler();
   });
 } else {
   // make flush a no-op when we have Object.observe
@@ -48,11 +85,13 @@ if (window.CustomElements && !CustomElements.useNative) {
     var imported = originalImportNode.call(this, node, deep);
     CustomElements.upgradeAll(imported);
     return imported;
-  }
+  };
 }
 
 // exports
 scope.flush = flush;
+// bc
+Platform.flush = flush;
 
-})(window.Platform);
+})(window.Polymer);
 

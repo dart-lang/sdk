@@ -38,8 +38,13 @@ void sendAnalysisNotificationHighlights(AnalysisServer server, String file,
 
 void sendAnalysisNotificationNavigation(AnalysisServer server, String file,
     CompilationUnit dartUnit) {
-  var regions = new DartUnitNavigationComputer(dartUnit).compute();
-  var params = new protocol.AnalysisNavigationParams(file, regions);
+  var computer = new DartUnitNavigationComputer(dartUnit);
+  computer.compute();
+  var params = new protocol.AnalysisNavigationParams(
+      file,
+      computer.regions,
+      computer.targets,
+      computer.files);
   server.sendNotification(params.toNotification());
 }
 

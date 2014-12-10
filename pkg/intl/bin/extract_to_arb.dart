@@ -21,16 +21,22 @@ main(List<String> args) {
   var targetDir;
   var parser = new ArgParser();
   parser.addFlag("suppress-warnings", defaultsTo: false, callback: (x) =>
-      suppressWarnings = x);
+      suppressWarnings = x, help: 'Suppress printing of warnings.');
   parser.addFlag("warnings-are-errors", defaultsTo: false, callback: (x) =>
-      warningsAreErrors = x);
+      warningsAreErrors = x,
+      help: 'Treat all warnings as errors, stop processing ');
+  parser.addFlag("embedded-plurals", defaultsTo: true,
+      callback: (x) => allowEmbeddedPluralsAndGenders = x,
+      help: 'Allow plurals and genders to be embedded as part of a larger '
+          'string, otherwise they must be at the top level.');
 
   parser.addOption("output-dir", defaultsTo: '.', callback: (value) => targetDir
-      = value);
+      = value, help: 'Specify the output directory.');
   parser.parse(args);
   if (args.length == 0) {
-    print('Usage: extract_to_arb [--output-dir=<dir>] [files.dart]');
     print('Accepts Dart files and produces intl_messages.json');
+    print('Usage: extract_to_arb [options] [files.dart]');
+    print(parser.getUsage());
     exit(0);
   }
   var allMessages = {};

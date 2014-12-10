@@ -22,7 +22,8 @@ class CheckedModeHelper {
     codegen.use(node.checkedInput);
     arguments.add(codegen.pop());
     generateAdditionalArguments(codegen, node, arguments);
-    jsAst.Expression helper = codegen.backend.namer.elementAccess(helperElement);
+    jsAst.Expression helper =
+        codegen.backend.emitter.staticFunctionAccess(helperElement);
     return new jsAst.Call(helper, arguments);
   }
 

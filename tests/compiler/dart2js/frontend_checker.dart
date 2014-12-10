@@ -14,7 +14,7 @@ import 'memory_compiler.dart';
 
 import '../../../tools/testing/dart/multitest.dart'
     show ExtractTestsFromMultitest;
-import '../../../tools/testing/dart/utils.dart'
+import '../../../tools/testing/dart/path.dart'
     show Path;
 
 void check(List<String> testFiles,

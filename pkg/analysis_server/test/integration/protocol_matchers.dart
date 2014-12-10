@@ -144,6 +144,38 @@ final Matcher isAnalysisGetHoverResult = new LazyMatcher(() => new MatchesJsonOb
   }));
 
 /**
+ * analysis.getNavigation params
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ *   "length": int
+ * }
+ */
+final Matcher isAnalysisGetNavigationParams = new LazyMatcher(() => new MatchesJsonObject(
+  "analysis.getNavigation params", {
+    "file": isFilePath,
+    "offset": isInt,
+    "length": isInt
+  }));
+
+/**
+ * analysis.getNavigation result
+ *
+ * {
+ *   "files": List<FilePath>
+ *   "targets": List<NavigationTarget>
+ *   "regions": List<NavigationRegion>
+ * }
+ */
+final Matcher isAnalysisGetNavigationResult = new LazyMatcher(() => new MatchesJsonObject(
+  "analysis.getNavigation result", {
+    "files": isListOf(isFilePath),
+    "targets": isListOf(isNavigationTarget),
+    "regions": isListOf(isNavigationRegion)
+  }));
+
+/**
  * analysis.reanalyze params
  */
 final Matcher isAnalysisReanalyzeParams = isNull;
@@ -298,17 +330,39 @@ final Matcher isAnalysisHighlightsParams = new LazyMatcher(() => new MatchesJson
   }));
 
 /**
+ * analysis.invalidate params
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ *   "length": int
+ *   "delta": int
+ * }
+ */
+final Matcher isAnalysisInvalidateParams = new LazyMatcher(() => new MatchesJsonObject(
+  "analysis.invalidate params", {
+    "file": isFilePath,
+    "offset": isInt,
+    "length": isInt,
+    "delta": isInt
+  }));
+
+/**
  * analysis.navigation params
  *
  * {
  *   "file": FilePath
  *   "regions": List<NavigationRegion>
+ *   "targets": List<NavigationTarget>
+ *   "files": List<FilePath>
  * }
  */
 final Matcher isAnalysisNavigationParams = new LazyMatcher(() => new MatchesJsonObject(
   "analysis.navigation params", {
     "file": isFilePath,
-    "regions": isListOf(isNavigationRegion)
+    "regions": isListOf(isNavigationRegion),
+    "targets": isListOf(isNavigationTarget),
+    "files": isListOf(isFilePath)
   }));
 
 /**
@@ -918,6 +972,7 @@ final Matcher isAnalysisOptions = new LazyMatcher(() => new MatchesJsonObject(
  * enum {
  *   FOLDING
  *   HIGHLIGHTS
+ *   INVALIDATE
  *   NAVIGATION
  *   OCCURRENCES
  *   OUTLINE
@@ -927,6 +982,7 @@ final Matcher isAnalysisOptions = new LazyMatcher(() => new MatchesJsonObject(
 final Matcher isAnalysisService = new MatchesEnum("AnalysisService", [
   "FOLDING",
   "HIGHLIGHTS",
+  "INVALIDATE",
   "NAVIGATION",
   "OCCURRENCES",
   "OUTLINE",
@@ -1424,14 +1480,36 @@ final Matcher isLocation = new LazyMatcher(() => new MatchesJsonObject(
  * {
  *   "offset": int
  *   "length": int
- *   "targets": List<Element>
+ *   "targets": List<int>
  * }
  */
 final Matcher isNavigationRegion = new LazyMatcher(() => new MatchesJsonObject(
   "NavigationRegion", {
     "offset": isInt,
     "length": isInt,
-    "targets": isListOf(isElement)
+    "targets": isListOf(isInt)
+  }));
+
+/**
+ * NavigationTarget
+ *
+ * {
+ *   "kind": ElementKind
+ *   "fileIndex": int
+ *   "offset": int
+ *   "length": int
+ *   "startLine": int
+ *   "startColumn": int
+ * }
+ */
+final Matcher isNavigationTarget = new LazyMatcher(() => new MatchesJsonObject(
+  "NavigationTarget", {
+    "kind": isElementKind,
+    "fileIndex": isInt,
+    "offset": isInt,
+    "length": isInt,
+    "startLine": isInt,
+    "startColumn": isInt
   }));
 
 /**
@@ -1664,6 +1742,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  * RequestErrorCode
  *
  * enum {
+ *   CONTENT_MODIFIED
  *   GET_ERRORS_INVALID_FILE
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
@@ -1678,6 +1757,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  * }
  */
 final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
+  "CONTENT_MODIFIED",
   "GET_ERRORS_INVALID_FILE",
   "INVALID_OVERLAY_CHANGE",
   "INVALID_PARAMETER",

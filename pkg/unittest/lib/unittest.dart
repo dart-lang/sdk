@@ -194,9 +194,11 @@ Configuration get unittestConfiguration {
 void set unittestConfiguration(Configuration value) {
   if (!identical(_config, value)) {
     if (_config != null) {
-      throw new StateError('unittestConfiguration has already been set');
+      logMessage('Warning: The unittestConfiguration has already been set. New '
+          'unittestConfiguration ignored.');
+    } else {
+      _config = value;
     }
-    _config = value;
   }
 }
 

@@ -18,6 +18,7 @@ import "dart:async";
 import "dart:io";
 import "drt_updater.dart";
 import "html_test.dart" as htmlTest;
+import "path.dart";
 import "multitest.dart";
 import "status_file_parser.dart";
 import "test_runner.dart";
@@ -31,7 +32,7 @@ import "compiler_configuration.dart" show
 import "runtime_configuration.dart" show
     RuntimeConfiguration;
 
-part "browser_test.dart";
+import 'browser_test.dart';
 
 
 RegExp multiHtmlTestGroupRegExp = new RegExp(r"\s*[^/]\s*group\('[^,']*");
@@ -362,7 +363,6 @@ abstract class TestSuite {
   }
 
   String createPubspecCheckoutDirectory(Path directoryOfPubspecYaml) {
-    var relativeDir = directoryOfPubspecYaml.relativeTo(TestUtils.dartDir);
     var sdk = configuration['use_sdk'] ? '-sdk' : '';
     var pkg = configuration['use_public_packages']
         ? 'public_packages' : 'repo_packages';
@@ -371,7 +371,6 @@ abstract class TestSuite {
   }
 
   String createPubPackageBuildsDirectory(Path directoryOfPubspecYaml) {
-    var relativeDir = directoryOfPubspecYaml.relativeTo(TestUtils.dartDir);
     var pkg = configuration['use_public_packages']
         ? 'public_packages' : 'repo_packages';
     return createGeneratedTestDirectoryHelper(
@@ -776,14 +775,12 @@ class StandardTestSuite extends TestSuite {
   }
 
   void enqueueDirectory(Directory dir, FutureGroup group) {
-    var listCompleter = new Completer();
-    group.add(listCompleter.future);
-
     var lister = dir.list(recursive: listRecursively)
-        .listen((FileSystemEntity fse) {
-          if (fse is File) enqueueFile(fse.path, group);
-        },
-        onDone: listCompleter.complete);
+        .where((fse) => fse is File)
+        .forEach((File f) {
+          enqueueFile(f.path, group);
+        });
+    group.add(lister);
   }
 
   void enqueueFile(String filename, FutureGroup group) {
@@ -1127,7 +1124,6 @@ class StandardTestSuite extends TestSuite {
     File file = new File(dartWrapperFilename);
     RandomAccessFile dartWrapper = file.openSync(mode: FileMode.WRITE);
 
-    var usePackageImport = localDartLibraryFilename.segments().contains("pkg");
     var libraryPathComponent = _createUrlPathFromFile(localDartLibraryFilename);
     var generatedSource = dartTestWrapper(libraryPathComponent);
     dartWrapper.writeStringSync(generatedSource);
@@ -1200,8 +1196,6 @@ class StandardTestSuite extends TestSuite {
     Path dir = filePath.directoryPath;
     String nameNoExt = filePath.filenameWithoutExtension;
 
-    Path pngPath = dir.append('$nameNoExt.png');
-    Path txtPath = dir.append('$nameNoExt.txt');
     String customHtmlPath = dir.append('$nameNoExt.html').toNativePath();
     File customHtml = new File(customHtmlPath);
 
@@ -1322,8 +1316,6 @@ class StandardTestSuite extends TestSuite {
       var htmlPath_subtest = _createUrlPathFromFile(new Path(htmlPath));
       var fullHtmlPath =
           _getUriForBrowserTest(htmlPath_subtest, subtestName).toString();
-
-      List<String> args = <String>[];
 
       if (runtime == "drt") {
         var dartFlags = [];
@@ -1456,14 +1448,11 @@ class StandardTestSuite extends TestSuite {
   Command _compileCommand(String inputFile, String outputFile,
       String compiler, String dir, optionsFromFile) {
     assert (['dart2js', 'dart2dart'].contains(compiler));
-    String executable;
     List<String> args;
     if (compilerPath.endsWith('.dart')) {
       // Run the compiler script via the Dart VM.
-      executable = dartVmBinaryFileName;
       args = [compilerPath];
     } else {
-      executable = compilerPath;
       args = [];
     }
     args.addAll(TestUtils.standardOptions(configuration));
@@ -1912,7 +1901,6 @@ class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
   }
 
   bool isTestFile(String filename) {
-    var sep = Platform.pathSeparator;
     // NOTE: We exclude tests and patch files for now.
     return filename.endsWith(".dart") &&
         !filename.endsWith("_test.dart") &&
@@ -2016,8 +2004,6 @@ class PkgBuildTestSuite extends TestSuite {
     }
 
     doTest = onTest;
-    Map<String, String> _localPackageDirectories;
-    Map<String, String> _localSampleDirectories;
     List<String> statusFiles = [
         TestUtils.dartDir.join(new Path(statusFilePath)).toNativePath()];
     ReadTestExpectations(statusFiles, configuration).then((expectations) {

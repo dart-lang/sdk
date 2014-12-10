@@ -331,7 +331,7 @@ namespace dart {
   V(_List, ., ObjectArrayAllocate, 335347617)                                  \
   V(_List, [], ObjectArrayGetIndexed, 390939163)                               \
   V(_List, []=, ObjectArraySetIndexed, 1768442583)                             \
-  V(_List, get:isEmpty, ObjectArrayIsEmpty, 702383416)                         \
+  V(ListMixin, get:isEmpty, ListMixinIsEmpty, 2102252776)                      \
   V(_List, get:iterator, ObjectArrayIterator, 308726049)                       \
   V(_List, forEach, ObjectArrayForEach, 1720909126)                            \
   V(_List, _slice, ObjectArraySlice, 1738717516)                               \

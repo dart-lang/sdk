@@ -65,10 +65,20 @@ Future<Compiler> reuseCompiler(
         options,
         environment);
     JavaScriptBackend backend = compiler.backend;
+
     // Much like a scout, an incremental compiler is always prepared. For
     // mixins, at least.
     backend.emitter.oldEmitter.needsMixinSupport = true;
-    return new Future.value(compiler);
+
+    Uri core = Uri.parse("dart:core");
+    return compiler.libraryLoader.loadLibrary(core).then((_) {
+      // Likewise, always be prepared for runtimeType support.
+      // TODO(johnniwinther): Add global switch to force RTI.
+      compiler.enabledRuntimeType = true;
+      backend.registerRuntimeType(
+          compiler.enqueuer.resolution, compiler.globalDependencies);
+      return compiler;
+    });
   } else {
     for (final task in compiler.tasks) {
       if (task.watch != null) {
@@ -96,7 +106,9 @@ Future<Compiler> reuseCompiler(
     // must be invalidated).
     backend.emitter.oldEmitter.cachedElements.add(null);
 
-    compiler.enqueuer.codegen.newlyEnqueuedElements.clear();
+    compiler.enqueuer.codegen
+        ..newlyEnqueuedElements.clear()
+        ..newlySeenSelectors.clear();
 
     backend.emitter.oldEmitter.containerBuilder
         ..staticGetters.clear();
@@ -129,7 +141,6 @@ Future<Compiler> reuseCompiler(
         ..deferredConstants.clear()
         ..isolateProperties = null
         ..classesCollector = null
-        ..neededClasses.clear()
         ..outputClassLists.clear()
         ..nativeClasses.clear()
         ..mangledFieldNames.clear()

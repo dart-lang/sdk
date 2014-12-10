@@ -29,6 +29,14 @@ import 'package:unittest/unittest.dart';
  */
 void runReflectiveTests(Type type) {
   ClassMirror classMirror = reflectClass(type);
+  if (!classMirror.metadata.any(
+      (InstanceMirror annotation) =>
+          annotation.type.reflectedType == ReflectiveTestCase)) {
+    String name = MirrorSystem.getName(classMirror.qualifiedName);
+    throw new Exception(
+        'Class $name must have annotation "@ReflectiveTestCase()" '
+            'in order to be run by runReflectiveTests.');
+  }
   String className = MirrorSystem.getName(classMirror.simpleName);
   group(className, () {
     classMirror.instanceMembers.forEach((symbol, memberMirror) {
@@ -39,17 +47,27 @@ void runReflectiveTests(Type type) {
       String memberName = MirrorSystem.getName(symbol);
       // test_
       if (memberName.startsWith('test_')) {
-        String testName = memberName.substring('test_'.length);
-        test(testName, () {
+        test(memberName, () {
           return _runTest(classMirror, symbol);
         });
         return;
       }
       // solo_test_
       if (memberName.startsWith('solo_test_')) {
-        String testName = memberName.substring('solo_test_'.length);
-        solo_test(testName, () {
+        solo_test(memberName, () {
           return _runTest(classMirror, symbol);
+        });
+      }
+      // fail_test_
+      if (memberName.startsWith('fail_')) {
+        test(memberName, () {
+          return _runFailingTest(classMirror, symbol);
+        });
+      }
+      // solo_fail_test_
+      if (memberName.startsWith('solo_fail_')) {
+        solo_test(memberName, () {
+          return _runFailingTest(classMirror, symbol);
         });
       }
     });
@@ -68,6 +86,23 @@ Future _invokeSymbolIfExists(InstanceMirror instanceMirror, Symbol symbol) {
   } else {
     return new Future.value(invocationResult);
   }
+}
+
+
+/**
+ * Run a test that is expected to fail, and confirm that it fails.
+ *
+ * This properly handles the following cases:
+ * - The test fails by throwing an exception
+ * - The test returns a future which completes with an error.
+ *
+ * However, it does not handle the case where the test creates an asynchronous
+ * callback using expectAsync(), and that callback generates a failure.
+ */
+Future _runFailingTest(ClassMirror classMirror, Symbol symbol) {
+  return new Future(() => _runTest(classMirror, symbol)).then((_) {
+    fail('Test passed - expected to fail.');
+  }, onError: (_) {});
 }
 
 

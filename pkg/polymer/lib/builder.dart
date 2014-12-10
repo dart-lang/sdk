@@ -297,7 +297,7 @@ CommandLineOptions parseOptions([List<String> args]) {
         'Content Security Policy restrictions.')
     ..addFlag('debug', help:
         'run in debug mode. For example, use the debug polyfill \n'
-        'web_components/platform.concat.js instead of the minified one.\n',
+        'web_components/webcomponents.js instead of the minified one.\n',
         defaultsTo: false)
     ..addFlag('help', abbr: 'h',
         negatable: false, help: 'Displays this help and exit.');

@@ -41,6 +41,8 @@ namespace dart {
   V(Integer_leftShiftWithMask32, 3)                                            \
   V(Bool_fromEnvironment, 3)                                                   \
   V(CapabilityImpl_factory, 1)                                                 \
+  V(CapabilityImpl_equals, 2)                                                  \
+  V(CapabilityImpl_get_hashcode, 1)                                            \
   V(RawReceivePortImpl_factory, 1)                                             \
   V(RawReceivePortImpl_get_id, 1)                                              \
   V(RawReceivePortImpl_get_sendport, 1)                                        \

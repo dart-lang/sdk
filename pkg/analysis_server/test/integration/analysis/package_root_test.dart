@@ -43,9 +43,13 @@ f() {}
       AnalysisService.NAVIGATION: [mainPath]
     });
     List<NavigationRegion> navigationRegions;
+    List<NavigationTarget> navigationTargets;
+    List<String> navigationTargetFiles;
     onAnalysisNavigation.listen((AnalysisNavigationParams params) {
       expect(params.file, equals(mainPath));
       navigationRegions = params.regions;
+      navigationTargets = params.targets;
+      navigationTargetFiles = params.files;
     });
     sendAnalysisSetAnalysisRoots([projPath], [], packageRoots: {
       projPath: packagesPath
@@ -60,8 +64,10 @@ f() {}
         if (navigationSource == 'f') {
           found = true;
           expect(region.targets, hasLength(1));
-          Location location = region.targets[0].location;
-          expect(location.file, equals(normalizedFooBarPath));
+          int navigationTargetIndex = region.targets[0];
+          NavigationTarget navigationTarget = navigationTargets[navigationTargetIndex];
+          String navigationFile = navigationTargetFiles[navigationTarget.fileIndex];
+          expect(navigationFile, equals(normalizedFooBarPath));
         }
       }
       expect(found, isTrue);

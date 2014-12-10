@@ -17,6 +17,7 @@ import '../elements/modelx.dart'
     show ElementX,
          VariableElementX,
          ConstructorBodyElementX;
+import '../helpers/helpers.dart';
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;

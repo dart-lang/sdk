@@ -256,22 +256,22 @@ class ConditionalConstantExpression extends ConstantExpression {
 abstract class ConstantExpressionVisitor<C, R> {
   const ConstantExpressionVisitor();
 
-  R visit(ConstantExpression constant, [C context]) {
+  R visit(ConstantExpression constant, C context) {
     return constant.accept(this, context);
   }
 
-  R visitPrimitive(PrimitiveConstantExpression exp, [C context]);
-  R visitList(ListConstantExpression exp, [C context]);
-  R visitMap(MapConstantExpression exp, [C context]);
-  R visitConstructed(ConstructedConstantExpresssion exp, [C context]);
-  R visitConcatenate(ConcatenateConstantExpression exp, [C context]);
-  R visitSymbol(SymbolConstantExpression exp, [C context]);
-  R visitType(TypeConstantExpression exp, [C context]);
-  R visitVariable(VariableConstantExpression exp, [C context]);
-  R visitFunction(FunctionConstantExpression exp, [C context]);
-  R visitBinary(BinaryConstantExpression exp, [C context]);
-  R visitUnary(UnaryConstantExpression exp, [C context]);
-  R visitConditional(ConditionalConstantExpression exp, [C context]);
+  R visitPrimitive(PrimitiveConstantExpression exp, C context);
+  R visitList(ListConstantExpression exp, C context);
+  R visitMap(MapConstantExpression exp, C context);
+  R visitConstructed(ConstructedConstantExpresssion exp, C context);
+  R visitConcatenate(ConcatenateConstantExpression exp, C context);
+  R visitSymbol(SymbolConstantExpression exp, C context);
+  R visitType(TypeConstantExpression exp, C context);
+  R visitVariable(VariableConstantExpression exp, C context);
+  R visitFunction(FunctionConstantExpression exp, C context);
+  R visitBinary(BinaryConstantExpression exp, C context);
+  R visitUnary(UnaryConstantExpression exp, C context);
+  R visitConditional(ConditionalConstantExpression exp, C context);
 }
 
 /// Represents the declaration of a constant [element] with value [expression].
@@ -286,7 +286,7 @@ class ConstDeclaration {
 class ConstExpPrinter extends ConstantExpressionVisitor {
   final StringBuffer sb = new StringBuffer();
 
-  write(ConstantExpression parent,
+  void write(ConstantExpression parent,
         ConstantExpression child,
         {bool leftAssociative: true}) {
     if (child.precedence < parent.precedence ||
@@ -299,7 +299,7 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     }
   }
 
-  writeTypeArguments(InterfaceType type) {
+  void writeTypeArguments(InterfaceType type) {
     if (type.treatAsRaw) return;
     sb.write('<');
     bool needsComma = false;
@@ -313,11 +313,18 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     sb.write('>');
   }
 
-  visitPrimitive(PrimitiveConstantExpression exp, [_]) {
+  @override
+  void visit(ConstantExpression constant, [_]) {
+    return constant.accept(this, null);
+  }
+
+  @override
+  void visitPrimitive(PrimitiveConstantExpression exp, [_]) {
     sb.write(exp.value.unparse());
   }
 
-  visitList(ListConstantExpression exp, [_]) {
+  @override
+  void visitList(ListConstantExpression exp, [_]) {
     sb.write('const ');
     writeTypeArguments(exp.type);
     sb.write('[');
@@ -332,7 +339,8 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     sb.write(']');
   }
 
-  visitMap(MapConstantExpression exp, [_]) {
+  @override
+  void visitMap(MapConstantExpression exp, [_]) {
     sb.write('const ');
     writeTypeArguments(exp.type);
     sb.write('{');
@@ -347,7 +355,8 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     sb.write('}');
   }
 
-  visitConstructed(ConstructedConstantExpresssion exp, [_]) {
+  @override
+  void visitConstructed(ConstructedConstantExpresssion exp, [_]) {
     sb.write('const ');
     sb.write(exp.target.enclosingClass.name);
     if (exp.target.name != '') {
@@ -378,20 +387,24 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     sb.write(')');
   }
 
-  visitConcatenate(ConcatenateConstantExpression exp, [_]) {
+  @override
+  void visitConcatenate(ConcatenateConstantExpression exp, [_]) {
     sb.write(exp.value.unparse());
   }
 
-  visitSymbol(SymbolConstantExpression exp, [_]) {
+  @override
+  void visitSymbol(SymbolConstantExpression exp, [_]) {
     sb.write('#');
     sb.write(exp.name);
   }
 
-  visitType(TypeConstantExpression exp, [_]) {
+  @override
+  void visitType(TypeConstantExpression exp, [_]) {
     sb.write(exp.type.name);
   }
 
-  visitVariable(VariableConstantExpression exp, [_]) {
+  @override
+  void visitVariable(VariableConstantExpression exp, [_]) {
     if (exp.element.isStatic) {
       sb.write(exp.element.enclosingClass.name);
       sb.write('.');
@@ -399,7 +412,8 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     sb.write(exp.element.name);
   }
 
-  visitFunction(FunctionConstantExpression exp, [_]) {
+  @override
+  void visitFunction(FunctionConstantExpression exp, [_]) {
     if (exp.element.isStatic) {
       sb.write(exp.element.enclosingClass.name);
       sb.write('.');
@@ -407,7 +421,8 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     sb.write(exp.element.name);
   }
 
-  visitBinary(BinaryConstantExpression exp, [_]) {
+  @override
+  void visitBinary(BinaryConstantExpression exp, [_]) {
     if (exp.operator == 'identical') {
       sb.write('identical(');
       visit(exp.left);
@@ -423,12 +438,14 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     }
   }
 
-  visitUnary(UnaryConstantExpression exp, [_]) {
+  @override
+  void visitUnary(UnaryConstantExpression exp, [_]) {
     sb.write(exp.operator);
     write(exp, exp.expression);
   }
 
-  visitConditional(ConditionalConstantExpression exp, [_]) {
+  @override
+  void visitConditional(ConditionalConstantExpression exp, [_]) {
     write(exp, exp.condition, leftAssociative: false);
     sb.write(' ? ');
     write(exp, exp.trueExp);

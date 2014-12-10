@@ -339,6 +339,7 @@
     'regexp_ast.h',
     'regexp_parser.cc',
     'regexp_parser.h',
+    'regexp_test.cc',
     'report.cc',
     'report.h',
     'report_test.cc',

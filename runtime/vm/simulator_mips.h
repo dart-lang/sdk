@@ -90,6 +90,9 @@ class Simulator {
   // Accessor to the internal simulator stack top.
   uword StackTop() const;
 
+  // Accessor to the instruction counter.
+  intptr_t get_icount() const { return icount_; }
+
   // The isolate's top_exit_frame_info refers to a Dart frame in the simulator
   // stack. The simulator's top_exit_frame_info refers to a C++ frame in the
   // native stack.
@@ -176,11 +179,6 @@ class Simulator {
 
   // Handles a legal instruction that the simulator does not implement.
   void UnimplementedInstruction(Instr* instr);
-
-  bool OverflowFrom(int32_t alu_out,
-                    int32_t left,
-                    int32_t right,
-                    bool addition);
 
   void set_pc(uword value) { pc_ = value; }
 

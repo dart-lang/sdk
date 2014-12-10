@@ -148,47 +148,99 @@ class GitSource extends CachedSource {
   /// Resets all cached packages back to the pristine state of the Git
   /// repository at the revision they are pinned to.
   Future<Pair<int, int>> repairCachedPackages() {
-    if (!dirExists(systemCacheRoot)) return new Future.value(new Pair(0, 0));
-
-    var successes = 0;
-    var failures = 0;
-
-    var packages = listDir(
-        systemCacheRoot).where(
-            (entry) =>
-                dirExists(
-                    path.join(
-                        entry,
-                        ".git"))).map(
-                            (packageDir) =>
-                                new Package.load(null, packageDir, systemCache.sources)).toList();
-
-    // Note that there may be multiple packages with the same name and version
-    // (pinned to different commits). The sort order of those is unspecified.
-    packages.sort(Package.orderByNameAndVersion);
-
-    return Future.wait(packages.map((package) {
-      log.message(
-          "Resetting Git repository for "
-              "${log.bold(package.name)} ${package.version}...");
-
-      // Remove all untracked files.
-      return git.run(
-          ["clean", "-d", "--force", "-x"],
-          workingDir: package.dir).then((_) {
-        // Discard all changes to tracked files.
-        return git.run(["reset", "--hard", "HEAD"], workingDir: package.dir);
-      }).then((_) {
-        successes++;
-      }).catchError((error, stackTrace) {
-        failures++;
-        log.error(
-            "Failed to reset ${log.bold(package.name)} "
-                "${package.version}. Error:\n$error");
-        log.fine(stackTrace);
-        failures++;
-      }, test: (error) => error is git.GitException);
-    })).then((_) => new Pair(successes, failures));
+    final completer0 = new Completer();
+    scheduleMicrotask(() {
+      try {
+        join0() {
+          var successes = 0;
+          var failures = 0;
+          var packages = listDir(systemCacheRoot).where(((entry) {
+            return dirExists(path.join(entry, ".git"));
+          })).map(((packageDir) {
+            return new Package.load(null, packageDir, systemCache.sources);
+          })).toList();
+          packages.sort(Package.orderByNameAndVersion);
+          var it0 = packages.iterator;
+          break0() {
+            completer0.complete(new Pair(successes, failures));
+          }
+          var trampoline0;
+          continue0() {
+            trampoline0 = null;
+            if (it0.moveNext()) {
+              var package = it0.current;
+              log.message(
+                  "Resetting Git repository for "
+                      "${log.bold(package.name)} ${package.version}...");
+              join1() {
+                trampoline0 = continue0;
+              }
+              catch0(error, stackTrace) {
+                try {
+                  if (error is git.GitException) {
+                    log.error(
+                        "Failed to reset ${log.bold(package.name)} "
+                            "${package.version}. Error:\n${error}");
+                    log.fine(stackTrace);
+                    failures++;
+                    tryDeleteEntry(package.dir);
+                    join1();
+                  } else {
+                    throw error;
+                  }
+                } catch (error, stackTrace) {
+                  completer0.completeError(error, stackTrace);
+                }
+              }
+              try {
+                git.run(
+                    ["clean", "-d", "--force", "-x"],
+                    workingDir: package.dir).then((x0) {
+                  trampoline0 = () {
+                    trampoline0 = null;
+                    try {
+                      x0;
+                      git.run(
+                          ["reset", "--hard", "HEAD"],
+                          workingDir: package.dir).then((x1) {
+                        trampoline0 = () {
+                          trampoline0 = null;
+                          try {
+                            x1;
+                            successes++;
+                            join1();
+                          } catch (e0, s0) {
+                            catch0(e0, s0);
+                          }
+                        };
+                        do trampoline0(); while (trampoline0 != null);
+                      }, onError: catch0);
+                    } catch (e1, s1) {
+                      catch0(e1, s1);
+                    }
+                  };
+                  do trampoline0(); while (trampoline0 != null);
+                }, onError: catch0);
+              } catch (e2, s2) {
+                catch0(e2, s2);
+              }
+            } else {
+              break0();
+            }
+          }
+          trampoline0 = continue0;
+          do trampoline0(); while (trampoline0 != null);
+        }
+        if (!dirExists(systemCacheRoot)) {
+          completer0.complete(new Pair(0, 0));
+        } else {
+          join0();
+        }
+      } catch (e, s) {
+        completer0.completeError(e, s);
+      }
+    });
+    return completer0.future;
   }
 
   /// Ensure that the canonical clone of the repository referred to by [id] (the

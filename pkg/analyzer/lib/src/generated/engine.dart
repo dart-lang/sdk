@@ -1056,6 +1056,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.dart2jsHint = options.dart2jsHint;
     this._options.hint = options.hint;
     this._options.incremental = options.incremental;
+    this._options.incrementalApi = options.incrementalApi;
     this._options.preserveComments = options.preserveComments;
     _generateSdkErrors = options.generateSdkErrors;
     if (needsRecompute) {
@@ -1134,6 +1135,26 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     return sources;
+  }
+
+  Element findElementById(int id) {
+    _ElementByIdFinder finder = new _ElementByIdFinder(id);
+    try {
+      MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+      while (iterator.moveNext()) {
+        SourceEntry sourceEntry = iterator.value;
+        if (sourceEntry.kind == SourceKind.LIBRARY) {
+          DartEntry dartEntry = sourceEntry;
+          LibraryElement library = dartEntry.getValue(DartEntry.ELEMENT);
+          if (library != null) {
+            library.accept(finder);
+          }
+        }
+      }
+    } on _ElementByIdFinderException catch (e) {
+      return finder.result;
+    }
+    return null;
   }
 
   @override
@@ -2342,8 +2363,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           // The source kind is always valid, so the state isn't interesting.
           continue;
         } else if (descriptor == DartEntry.CONTAINING_LIBRARIES) {
-          // The list of containing libraries is always valid, so the state isn't
-          // interesting.
+          // The list of containing libraries is always valid, so the state
+          // isn't interesting.
           continue;
         } else if (descriptor == DartEntry.PUBLIC_NAMESPACE) {
           // The public namespace isn't computed by performAnalysisTask()
@@ -2376,8 +2397,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             if (descriptor == DartEntry.ANGULAR_ERRORS ||
                 descriptor == DartEntry.BUILT_ELEMENT ||
                 descriptor == DartEntry.BUILT_UNIT) {
-              // These values are not currently being computed, so their state is
-              // not interesting.
+              // These values are not currently being computed, so their state
+              // is not interesting.
               continue;
             } else if (source.isInSystemLibrary &&
                 !_generateSdkErrors &&
@@ -2916,6 +2937,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           sourceEntry.modificationTime =
               _contentCache.getModificationStamp(source);
           sourceEntry.setValue(SourceEntry.CONTENT, contents);
+        }
+      } else {
+        SourceEntry sourceEntry = _cache.get(source);
+        if (sourceEntry != null) {
+          sourceEntry.modificationTime =
+              _contentCache.getModificationStamp(source);
         }
       }
     } else if (originalContents != null) {
@@ -4936,7 +4963,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         typeProvider,
         unitSource,
         librarySource,
-        dartEntry);
+        dartEntry,
+        analysisOptions.incrementalApi);
     bool success = resolver.resolve(oldUnit, newCode);
     if (!success) {
       return false;
@@ -5003,6 +5031,25 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     return changedSources.length > 0;
   }
+}
+
+class _ElementByIdFinder extends GeneralizingElementVisitor {
+  final int _id;
+  Element result;
+
+  _ElementByIdFinder(this._id);
+
+  @override
+  visitElement(Element element) {
+    if (element.id == _id) {
+      result = element;
+      throw new _ElementByIdFinderException();
+    }
+    super.visitElement(element);
+  }
+}
+
+class _ElementByIdFinderException {
 }
 
 /**
@@ -6342,6 +6389,12 @@ abstract class AnalysisOptions {
   bool get incremental;
 
   /**
+   * A flag indicating whether incremental analysis should be used for API
+   * changes.
+   */
+  bool get incrementalApi;
+
+  /**
    * Return `true` if analysis is to parse comments.
    *
    * @return `true` if analysis is to parse comments
@@ -6432,6 +6485,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool incremental = false;
 
   /**
+   * A flag indicating whether incremental analysis should be used for API
+   * changes.
+   */
+  bool incrementalApi = false;
+
+  /**
    * A flag indicating whether analysis is to parse comments.
    */
   bool preserveComments = true;
@@ -6459,6 +6518,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     _generateSdkErrors = options.generateSdkErrors;
     hint = options.hint;
     incremental = options.incremental;
+    incrementalApi = options.incrementalApi;
     preserveComments = options.preserveComments;
   }
 
@@ -10507,9 +10567,7 @@ class IncrementalAnalysisTask extends AnalysisTask {
         if (library != null) {
           IncrementalResolver resolver = new IncrementalResolver(
               typeProvider,
-              library,
               element,
-              cache.source,
               cache.offset,
               cache.oldLength,
               cache.newLength);

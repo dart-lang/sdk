@@ -1075,6 +1075,24 @@ main() {
     });
   }
 
+  test_returnType_statements_nullMix() {
+    indexTestUnit('''
+main(bool p) {
+// start
+  if (p) {
+    return 42;
+  }
+  return null;
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // do check
+    return refactoring.checkInitialConditions().then((_) {
+      expect(refactoring.returnType, 'int');
+    });
+  }
+
   test_returnType_statements_void() {
     indexTestUnit('''
 main() {

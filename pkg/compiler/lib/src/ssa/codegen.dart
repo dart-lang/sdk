@@ -1641,7 +1641,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       });
     }
 
-    push(backend.namer.elementAccess(node.element));
+    push(backend.emitter.staticFunctionAccess(node.element));
     push(new js.Call(pop(), visitArguments(node.inputs, start: 0)), node);
   }
 
@@ -1662,36 +1662,37 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
     } else {
       Selector selector = node.selector;
-      String methodName;
-      if (selector.isGetter) {
-        // If the selector we need to register a typed getter to the
-        // [world]. The emitter needs to know if it needs to emit a
-        // bound closure for a method.
-        TypeMask receiverType =
-            new TypeMask.nonNullExact(superClass, compiler.world);
-        selector = new TypedSelector(receiverType, selector, compiler.world);
-        // TODO(floitsch): we know the target. We shouldn't register a
-        // dynamic getter.
-        registry.registerDynamicGetter(selector);
-        registry.registerGetterForSuperMethod(node.element);
-        methodName = backend.namer.invocationName(selector);
-        push(
-          js.js('#.prototype.#.call(#)', [
-            backend.namer.elementAccess(superClass),
-            methodName, visitArguments(node.inputs, start: 0)]),
-          node);
+
+      if (!backend.maybeRegisterAliasedSuperMember(superMethod, selector)) {
+        String methodName;
+        if (selector.isGetter) {
+          // If the selector we need to register a typed getter to the
+          // [world]. The emitter needs to know if it needs to emit a
+          // bound closure for a method.
+          TypeMask receiverType =
+              new TypeMask.nonNullExact(superClass, compiler.world);
+          selector = new TypedSelector(receiverType, selector, compiler.world);
+          // TODO(floitsch): we know the target. We shouldn't register a
+          // dynamic getter.
+          registry.registerDynamicGetter(selector);
+          registry.registerGetterForSuperMethod(node.element);
+          methodName = backend.namer.invocationName(selector);
+        } else {
+          assert(invariant(node, compiler.hasIncrementalSupport));
+          methodName = backend.namer.getNameOfInstanceMember(superMethod);
+        }
+        push(js.js('#.prototype.#.call(#)',
+                   [backend.emitter.classAccess(superClass),
+                    methodName, visitArguments(node.inputs, start: 0)]),
+             node);
       } else {
-        methodName =
-            backend.namer.getNameOfAliasedSuperMember(superMethod);
-        backend.registerAliasedSuperMember(superMethod);
         use(node.receiver);
         push(
           js.js('#.#(#)', [
-            pop(), methodName,
+            pop(), backend.namer.getNameOfAliasedSuperMember(superMethod),
             visitArguments(node.inputs, start: 1)]), // Skip receiver argument.
           node);
       }
-
     }
   }
 
@@ -1784,7 +1785,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitForeignNew(HForeignNew node) {
-    js.Expression jsClassReference = backend.namer.elementAccess(node.element);
+    js.Expression jsClassReference =
+        backend.emitter.classAccess(node.element);
     List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
     push(new js.New(jsClassReference, arguments), node);
     registerForeignTypes(node);
@@ -2022,7 +2024,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void generateThrowWithHelper(String helperName, argument) {
     Element helper = backend.findHelper(helperName);
     registry.registerStaticUse(helper);
-    js.Expression jsHelper = backend.namer.elementAccess(helper);
+    js.Expression jsHelper = backend.emitter.staticFunctionAccess(helper);
     List arguments = [];
     var location;
     if (argument is List) {
@@ -2055,7 +2057,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     Element helper = backend.findHelper("throwExpression");
     registry.registerStaticUse(helper);
 
-    js.Expression jsHelper = backend.namer.elementAccess(helper);
+    js.Expression jsHelper = backend.emitter.staticFunctionAccess(helper);
     js.Call value = new js.Call(jsHelper, [pop()]);
     value = attachLocation(value, argument);
     push(value, node);
@@ -2067,10 +2069,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitStatic(HStatic node) {
     Element element = node.element;
+    assert(element.isFunction || element.isField);
     if (element.isFunction) {
-      push(backend.namer.isolateStaticClosureAccess(node.element));
+      push(backend.emitter.isolateStaticClosureAccess(node.element));
     } else {
-      push(backend.namer.elementAccess(node.element));
+      push(backend.emitter.staticFieldAccess(node.element));
     }
     registry.registerStaticUse(element);
   }
@@ -2079,14 +2082,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     Element element = node.element;
     registry.registerStaticUse(element);
     js.Expression lazyGetter =
-        backend.namer.isolateLazyInitializerAccess(element);
+        backend.emitter.isolateLazyInitializerAccess(element);
     js.Call call = new js.Call(lazyGetter, <js.Expression>[]);
     push(call, node);
   }
 
   void visitStaticStore(HStaticStore node) {
     registry.registerStaticUse(node.element);
-    js.Node variable = backend.namer.elementAccess(node.element);
+    js.Node variable = backend.emitter.staticFieldAccess(node.element);
     use(node.inputs[0]);
     push(new js.Assignment(variable, pop()), node);
   }
@@ -2117,7 +2120,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       Element convertToString = backend.getStringInterpolationHelper();
       registry.registerStaticUse(convertToString);
-      js.Expression jsHelper = backend.namer.elementAccess(convertToString);
+      js.Expression jsHelper =
+          backend.emitter.staticFunctionAccess(convertToString);
       use(input);
       push(new js.Call(jsHelper, <js.Expression>[pop()]), node);
     }
@@ -2129,13 +2133,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void generateArrayLiteral(HLiteralList node) {
-    int len = node.inputs.length;
-    List<js.ArrayElement> elements = <js.ArrayElement>[];
-    for (int i = 0; i < len; i++) {
-      use(node.inputs[i]);
-      elements.add(new js.ArrayElement(i, pop()));
-    }
-    push(new js.ArrayInitializer(len, elements), node);
+    List<js.Expression> elements = node.inputs.map((HInstruction input) {
+      use(input);
+      return pop();
+    }).toList();
+    push(new js.ArrayInitializer(elements), node);
   }
 
   void visitIndex(HIndex node) {
@@ -2251,21 +2253,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void checkNonNull(HInstruction input) {
     use(input);
     push(new js.Binary('!=', pop(), new js.LiteralNull()));
-  }
-
-  bool checkIndexingBehavior(HInstruction input, {bool negative: false}) {
-    if (!compiler.resolverWorld.isInstantiated(
-          backend.jsIndexingBehaviorInterface)) {
-      return false;
-    }
-
-    use(input);
-    js.Expression object1 = pop();
-    use(input);
-    js.Expression object2 = pop();
-    push(backend.generateIsJsIndexableCall(object1, object2));
-    if (negative) push(new js.Prefix('!', pop()));
-    return true;
   }
 
   void checkType(HInstruction input, HInstruction interceptor,
@@ -2468,97 +2455,43 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     attachLocationToLast(node);
   }
 
-  js.Expression generateTest(HInstruction input, TypeMask checkedType) {
+  js.Expression generateReceiverOrArgumentTypeTest(
+      HInstruction input, TypeMask checkedType) {
     ClassWorld classWorld = compiler.world;
-    TypeMask receiver = input.instructionType;
+    TypeMask inputType = input.instructionType;
     // Figure out if it is beneficial to turn this into a null check.
     // V8 generally prefers 'typeof' checks, but for integers and
     // indexable primitives we cannot compile this test into a single
     // typeof check so the null check is cheaper.
-    bool turnIntoNumCheck = input.isIntegerOrNull(compiler)
-        && checkedType.containsOnlyInt(classWorld);
+    bool isIntCheck = checkedType.containsOnlyInt(classWorld);
+    bool turnIntoNumCheck = isIntCheck && input.isIntegerOrNull(compiler);
     bool turnIntoNullCheck = !turnIntoNumCheck
-        && (checkedType.nullable() == receiver)
-        && (checkedType.containsOnlyInt(classWorld)
+        && (checkedType.nullable() == inputType)
+        && (isIntCheck
             || checkedType.satisfies(backend.jsIndexableClass, classWorld));
-    js.Expression test;
+
     if (turnIntoNullCheck) {
       use(input);
-      test = new js.Binary("==", pop(), new js.LiteralNull());
-    } else if (checkedType.containsOnlyInt(classWorld) && !turnIntoNumCheck) {
+      return new js.Binary("==", pop(), new js.LiteralNull());
+    } else if (isIntCheck && !turnIntoNumCheck) {
       // input is !int
-      checkInt(input, '!==');
-      test = pop();
-    } else if (checkedType.containsOnlyNum(classWorld) || turnIntoNumCheck) {
+      checkBigInt(input, '!==');
+      return pop();
+    } else if (turnIntoNumCheck || checkedType.containsOnlyNum(classWorld)) {
       // input is !num
       checkNum(input, '!==');
-      test = pop();
+      return pop();
     } else if (checkedType.containsOnlyBool(classWorld)) {
       // input is !bool
       checkBool(input, '!==');
-      test = pop();
+      return pop();
     } else if (checkedType.containsOnlyString(classWorld)) {
       // input is !string
       checkString(input, '!==');
-      test = pop();
-    } else if (checkedType.satisfies(backend.jsExtendableArrayClass,
-                                     classWorld)) {
-      // input is !Object || input is !Array || input.isFixed
-      checkObject(input, '!==');
-      js.Expression objectTest = pop();
-      checkArray(input, '!==');
-      js.Expression arrayTest = pop();
-      checkFixedArray(input);
-      test = new js.Binary('||', objectTest, arrayTest);
-      test = new js.Binary('||', test, pop());
-    } else if (checkedType.satisfies(backend.jsMutableArrayClass, classWorld)) {
-      // input is !Object
-      // || ((input is !Array || input.isImmutable)
-      //     && input is !JsIndexingBehavior)
-      checkObject(input, '!==');
-      js.Expression objectTest = pop();
-      checkArray(input, '!==');
-      js.Expression arrayTest = pop();
-      checkImmutableArray(input);
-      js.Binary notArrayOrImmutable = new js.Binary('||', arrayTest, pop());
-
-      js.Binary notIndexing = checkIndexingBehavior(input, negative: true)
-          ? new js.Binary('&&', notArrayOrImmutable, pop())
-          : notArrayOrImmutable;
-      test = new js.Binary('||', objectTest, notIndexing);
-    } else if (checkedType.satisfies(backend.jsArrayClass, classWorld)) {
-      // input is !Object
-      // || (input is !Array && input is !JsIndexingBehavior)
-      checkObject(input, '!==');
-      js.Expression objectTest = pop();
-      checkArray(input, '!==');
-      js.Expression arrayTest = pop();
-
-      js.Expression notIndexing = checkIndexingBehavior(input, negative: true)
-          ? new js.Binary('&&', arrayTest, pop())
-          : arrayTest;
-      test = new js.Binary('||', objectTest, notIndexing);
-    } else if (checkedType.satisfies(backend.jsIndexableClass, classWorld)) {
-      // input is !String
-      // && (input is !Object
-      //     || (input is !Array && input is !JsIndexingBehavior))
-      checkString(input, '!==');
-      js.Expression stringTest = pop();
-      checkObject(input, '!==');
-      js.Expression objectTest = pop();
-      checkArray(input, '!==');
-      js.Expression arrayTest = pop();
-
-      js.Binary notIndexingTest = checkIndexingBehavior(input, negative: true)
-          ? new js.Binary('&&', arrayTest, pop())
-          : arrayTest;
-      js.Binary notObjectOrIndexingTest =
-          new js.Binary('||', objectTest, notIndexingTest);
-      test = new js.Binary('&&', stringTest, notObjectOrIndexingTest);
-    } else {
-      compiler.internalError(input, 'Unexpected check.');
+      return pop();
     }
-    return test;
+    compiler.internalError(input, 'Unexpected check.');
+    return null;
   }
 
   void visitTypeConversion(HTypeConversion node) {
@@ -2569,7 +2502,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       assert(compiler.trustTypeAnnotations ||
              !node.checkedType.containsOnlyInt(classWorld) ||
              node.checkedInput.isIntegerOrNull(compiler));
-      js.Expression test = generateTest(node.checkedInput, node.checkedType);
+      js.Expression test = generateReceiverOrArgumentTypeTest(
+          node.checkedInput, node.checkedType);
       js.Block oldContainer = currentContainer;
       js.Statement body = new js.Block.empty();
       currentContainer = body;
@@ -2649,16 +2583,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (namedParameters.isEmpty) {
       var arguments = [returnType];
       if (!parameterTypes.isEmpty || !optionalParameterTypes.isEmpty) {
-        arguments.add(new js.ArrayInitializer.from(parameterTypes));
+        arguments.add(new js.ArrayInitializer(parameterTypes));
       }
       if (!optionalParameterTypes.isEmpty) {
-        arguments.add(new js.ArrayInitializer.from(optionalParameterTypes));
+        arguments.add(new js.ArrayInitializer(optionalParameterTypes));
       }
       push(js.js('#(#)', [accessHelper('buildFunctionType'), arguments]));
     } else {
       var arguments = [
           returnType,
-          new js.ArrayInitializer.from(parameterTypes),
+          new js.ArrayInitializer(parameterTypes),
           new js.ObjectInitializer(namedParameters)];
       push(js.js('#(#)', [accessHelper('buildNamedFunctionType'), arguments]));
     }
@@ -2674,7 +2608,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       if (backend.isInterceptorClass(element.enclosingClass)) {
         int index = RuntimeTypes.getTypeVariableIndex(element);
         js.Expression receiver = pop();
-        js.Expression helper = backend.namer.elementAccess(helperElement);
+        js.Expression helper = backend.emitter
+            .staticFunctionAccess(helperElement);
         push(js.js(r'#(#.$builtinTypeInfo && #.$builtinTypeInfo[#])',
                 [helper, receiver, receiver, js.js.number(index)]));
       } else {
@@ -2684,7 +2619,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
     } else {
       push(js.js('#(#)', [
-          backend.namer.elementAccess(
+          backend.emitter.staticFunctionAccess(
               backend.findHelper('convertRtiToRuntimeType')),
           pop()]));
     }
@@ -2698,9 +2633,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     ClassElement cls = node.dartType.element;
-    var arguments = [backend.namer.elementAccess(cls)];
+    var arguments = [backend.emitter.classAccess(cls)];
     if (!typeArguments.isEmpty) {
-      arguments.add(new js.ArrayInitializer.from(typeArguments));
+      arguments.add(new js.ArrayInitializer(typeArguments));
     }
     push(js.js('#(#)', [accessHelper('buildInterfaceType'), arguments]));
   }
@@ -2720,6 +2655,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       return js.js('(void 0).$name');
     }
     registry.registerStaticUse(helper);
-    return backend.namer.elementAccess(helper);
+    return backend.emitter.staticFunctionAccess(helper);
   }
 }

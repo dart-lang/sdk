@@ -1445,7 +1445,8 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   }
 
   // Store general purpose registers with the highest register number at the
-  // lowest address.
+  // lowest address. The order in which the registers are pushed must match the
+  // order in which the registers are encoded in the safe point's stack map.
   for (intptr_t reg_idx = 0; reg_idx < kNumberOfCpuRegisters; ++reg_idx) {
     Register reg = static_cast<Register>(reg_idx);
     if (locs->live_registers()->ContainsRegister(reg)) {
@@ -1671,9 +1672,9 @@ void ParallelMoveResolver::EmitSwap(int index) {
   } else if (source.IsFpuRegister() && destination.IsFpuRegister()) {
     const VRegister dst = destination.fpu_reg();
     const VRegister src = source.fpu_reg();
-    __ fmovdd(VTMP, src);
-    __ fmovdd(src, dst);
-    __ fmovdd(dst, VTMP);
+    __ vmov(VTMP, src);
+    __ vmov(src, dst);
+    __ vmov(dst, VTMP);
   } else if (source.IsFpuRegister() || destination.IsFpuRegister()) {
     ASSERT(destination.IsDoubleStackSlot() ||
            destination.IsQuadStackSlot() ||
@@ -1697,7 +1698,7 @@ void ParallelMoveResolver::EmitSwap(int index) {
     } else {
       __ LoadQFromOffset(VTMP, base_reg, slot_offset, PP);
       __ StoreQToOffset(reg, base_reg, slot_offset, PP);
-      __ fmovdd(reg, VTMP);
+      __ vmov(reg, VTMP);
     }
   } else if (source.IsDoubleStackSlot() && destination.IsDoubleStackSlot()) {
     const intptr_t source_offset = source.ToStackSlotOffset();

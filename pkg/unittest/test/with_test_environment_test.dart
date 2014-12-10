@@ -33,8 +33,7 @@ class TestConfiguration extends SimpleConfiguration {
 }
 
 Future runUnittests(Function callback) {
-  var config = new TestConfiguration();
-  unittestConfiguration = config;
+  TestConfiguration config = unittestConfiguration = new TestConfiguration();
   callback();
 
   return config.done;
@@ -51,16 +50,11 @@ void runTests1() {
 // Test that we can run two different sets of tests in the same run using the
 // withTestEnvironment method.
 void main() {
-  // First check that we cannot call runUnittests twice in a row without it
-  // throwing a StateError due to the unittestConfiguration being set globally
-  // in the first call.
-  try {
-    runUnittests(runTests);
-    runUnittests(runTests1);
-    throw 'Expected this to be unreachable since 2nd run above should throw';
-  } on StateError catch (error) {
-    // expected, silently ignore.
-  }
+  // Check that setting config a second time does not change the configuration
+  runUnittests(runTests);
+  var config = unittestConfiguration;
+  runUnittests(runTests1);
+  expect(config, unittestConfiguration);
 
   // Test that we can run both when encapsulating in their own private test
   // environment. Also test that the tests actually running are the ones

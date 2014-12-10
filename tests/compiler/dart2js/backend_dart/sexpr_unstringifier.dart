@@ -184,6 +184,8 @@ class SExpressionUnstringifier {
       new Tokens(
           s.replaceAll("(", " ( ")
            .replaceAll(")", " ) ")
+           .replaceAll("{", " { ")
+           .replaceAll("}", " } ")
            .replaceAll(new RegExp(r"[ \t\n]+"), " ")
            .trim()
            .split(" ")
@@ -269,19 +271,37 @@ class SExpressionUnstringifier {
 
     // name
     Element element = new DummyElement("");
-    if (tokens.current != "(") {
+    if (tokens.current != '(' && tokens.current != '{') {
       // This is a named function.
       element = new DummyElement(tokens.read());
     }
 
+    // [closure-vars]
+    List<ClosureVariable> closureVariables = <ClosureVariable>[];
+    if (tokens.current == '{') {
+      tokens.read('{');
+      while (tokens.current != '}') {
+        String varName = tokens.read();
+        ClosureVariable variable =
+            new ClosureVariable(element, new DummyElement(varName));
+        closureVariables.add(variable);
+        name2variable[varName] = variable;
+      }
+      tokens.read('}');
+    }
+
     // (args cont)
-    List<Parameter> parameters = <Parameter>[];
+    List<Definition> parameters = <Definition>[];
     tokens.consumeStart();
     while (tokens.next != ")") {
       String paramName = tokens.read();
-      Parameter param = new Parameter(new DummyElement(paramName));
-      name2variable[paramName] = param;
-      parameters.add(param);
+      if (name2variable.containsKey(paramName)) {
+        parameters.add(name2variable[paramName]);
+      } else {
+        Parameter param = new Parameter(new DummyElement(paramName));
+        name2variable[paramName] = param;
+        parameters.add(param);
+      }
     }
 
     String contName = tokens.read("return");
@@ -293,7 +313,8 @@ class SExpressionUnstringifier {
     Expression body = parseExpression();
 
     tokens.consumeEnd();
-    return new FunctionDefinition(element, cont, parameters, body, null, null);
+    return new FunctionDefinition(element, cont, parameters, body, null, null,
+        closureVariables);
   }
 
   /// (IsTrue arg)
@@ -339,7 +360,7 @@ class SExpressionUnstringifier {
     tokens.consumeStart(DECLARE_FUNCTION);
 
     // name =
-    Local local = new DummyLocal(tokens.read());
+    ClosureVariable local = name2variable[tokens.read()];
     tokens.read("=");
 
     // function in
@@ -480,7 +501,7 @@ class SExpressionUnstringifier {
   SetClosureVariable parseSetClosureVariable() {
     tokens.consumeStart(SET_CLOSURE_VARIABLE);
 
-    Local local = new DummyLocal(tokens.read());
+    ClosureVariable local = name2variable[tokens.read()];
     Primitive value = name2variable[tokens.read()];
     assert(value != null);
 
@@ -642,7 +663,7 @@ class SExpressionUnstringifier {
   GetClosureVariable parseGetClosureVariable() {
     tokens.consumeStart(GET_CLOSURE_VARIABLE);
 
-    Local local = new DummyLocal(tokens.read());
+    ClosureVariable local = name2variable[tokens.read()];
     tokens.consumeEnd();
 
     return new GetClosureVariable(local);

@@ -333,7 +333,8 @@ abstract class VM extends ServiceObjectOwner {
   @reflectable String relativeLink(String id) => '$id';
 
   @observable String version = 'unknown';
-  @observable String architecture = 'unknown';
+  @observable String targetCPU;
+  @observable int architectureBits;
   @observable double uptime = 0.0;
   @observable bool assertsEnabled = false;
   @observable bool typeChecksEnabled = false;
@@ -557,7 +558,8 @@ abstract class VM extends ServiceObjectOwner {
     }
     _loaded = true;
     version = map['version'];
-    architecture = map['architecture'];
+    targetCPU = map['targetCPU'];
+    architectureBits = map['architectureBits'];
     uptime = map['uptime'];
     var dateInMillis = int.parse(map['date']);
     lastUpdate = new DateTime.fromMillisecondsSinceEpoch(dateInMillis);
@@ -1311,6 +1313,7 @@ class ServiceEvent extends ServiceObject {
   @observable ServiceMap breakpoint;
   @observable ServiceMap exception;
   @observable ByteData data;
+  @observable int count;
 
   void _update(ObservableMap map, bool mapIsRef) {
     _loaded = true;
@@ -1326,6 +1329,9 @@ class ServiceEvent extends ServiceObject {
     }
     if (map['_data'] != null) {
       data = map['_data'];
+    }
+    if (map['count'] != null) {
+      count = map['count'];
     }
   }
 
@@ -1434,6 +1440,7 @@ class Class extends ServiceObject with Coverage {
   @observable int endTokenPos;
 
   @observable ServiceMap error;
+  @observable int vmCid;
 
   final Allocations newSpace = new Allocations();
   final Allocations oldSpace = new Allocations();
@@ -1456,6 +1463,9 @@ class Class extends ServiceObject with Coverage {
   void _update(ObservableMap map, bool mapIsRef) {
     name = map['name'];
     vmName = (map.containsKey('vmName') ? map['vmName'] : name);
+    var idPrefix = "classes/";
+    assert(id.startsWith(idPrefix));
+    vmCid = int.parse(id.substring(idPrefix.length));
 
     if (mapIsRef) {
       return;

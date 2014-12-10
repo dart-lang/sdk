@@ -4,7 +4,6 @@
 
 samples/third_party/dromaeo: Pass, Slow
 samples/third_party/todomvc_performance: Pass, Slow
-samples/pop_pop_win: Pass, Slow
 samples/searchable_list: Pass, Slow
 pkg/docgen: Pass, Slow
 
@@ -20,7 +19,6 @@ samples/third_party/angular_todo: Pass, Slow
 third_party/pkg/async_await: Skip # Uses expect package.
 
 [ $builder_tag == russian ]
-samples/pop_pop_win: Fail # Issue 16356
 samples/third_party/angular_todo: Fail # Issue 16356
 
 [ $system == windows ]

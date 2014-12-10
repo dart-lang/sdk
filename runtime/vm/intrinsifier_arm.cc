@@ -132,7 +132,8 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
 
   // Set the length field in the growable array object to 0.
   __ LoadImmediate(R1, 0);
-  __ str(R1, FieldAddress(R0, GrowableObjectArray::length_offset()));
+  __ StoreIntoSmiField(FieldAddress(R0, GrowableObjectArray::length_offset()),
+                       R1);
   __ Ret();  // Returns the newly allocated object in R0.
 
   __ Bind(&fall_through);
@@ -193,12 +194,15 @@ void Intrinsifier::GrowableArraySetIndexed(Assembler* assembler) {
 // be greater than the length of the data container.
 // On stack: growable array (+1), length (+0).
 void Intrinsifier::GrowableArraySetLength(Assembler* assembler) {
+  Label fall_through;
   __ ldr(R0, Address(SP, 1 * kWordSize));  // Growable array.
   __ ldr(R1, Address(SP, 0 * kWordSize));  // Length value.
-  __ tst(R1, Operand(kSmiTagMask));  // Check for Smi.
-  __ str(R1, FieldAddress(R0, GrowableObjectArray::length_offset()), EQ);
-  __ bx(LR, EQ);
-  // Fall through on non-Smi.
+  __ tst(R1, Operand(kSmiTagMask));
+  __ b(&fall_through, NE);  // Non-smi length.
+  __ StoreIntoSmiField(FieldAddress(R0, GrowableObjectArray::length_offset()),
+                       R1);
+  __ Ret();
+  __ Bind(&fall_through);
 }
 
 
@@ -247,7 +251,8 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   const int32_t value_one = reinterpret_cast<int32_t>(Smi::New(1));
   // len = len + 1;
   __ add(R3, R1, Operand(value_one));
-  __ str(R3, FieldAddress(R0, GrowableObjectArray::length_offset()));
+  __ StoreIntoSmiField(FieldAddress(R0, GrowableObjectArray::length_offset()),
+                       R3);
   __ ldr(R0, Address(SP, 0 * kWordSize));  // Value.
   ASSERT(kSmiTagShift == 1);
   __ add(R1, R2, Operand(R1, LSL, 1));
@@ -1739,7 +1744,7 @@ void Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   __ Bind(&done);
   __ mov(R0, Operand(1), EQ);
   __ SmiTag(R0);
-  __ str(R0, FieldAddress(R1, String::hash_offset()));
+  __ StoreIntoSmiField(FieldAddress(R1, String::hash_offset()), R0);
   __ Ret();
 }
 
@@ -1812,7 +1817,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                               R6);
   // Clear hash.
   __ LoadImmediate(TMP, 0);
-  __ str(TMP, FieldAddress(R0, String::hash_offset()));
+  __ StoreIntoSmiField(FieldAddress(R0, String::hash_offset()), TMP);
 
   __ IncrementAllocationStatsWithSize(R4, R2, cid, space);
   __ b(ok);

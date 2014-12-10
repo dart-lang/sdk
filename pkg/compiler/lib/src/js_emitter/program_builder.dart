@@ -116,7 +116,7 @@ class ProgramBuilder {
     // Construct the main output from the libraries and the registered holders.
     MainOutput result = new MainOutput(
         "",  // The empty string is the name for the main output file.
-        namer.elementAccess(_compiler.mainFunction),
+        backend.emitter.staticFunctionAccess(_compiler.mainFunction),
         _buildLibraries(fragment),
         _buildStaticNonFinalFields(fragment),
         _buildStaticLazilyInitializedFields(fragment),

@@ -74,9 +74,8 @@ class OldEmitter implements Emitter {
    * precompiled function.
    *
    * To save space, dart2js normally generates constructors and accessors
-   * dynamically. This doesn't work in CSP mode, and may impact startup time
-   * negatively. So dart2js will emit these functions to a separate file that
-   * can be optionally included to support CSP mode or for faster startup.
+   * dynamically. This doesn't work in CSP mode, so dart2js emits them directly
+   * when in CSP mode.
    */
   Map<OutputUnit, List<jsAst.Node>> _cspPrecompiledFunctions =
       new Map<OutputUnit, List<jsAst.Node>>();
@@ -166,6 +165,11 @@ class OldEmitter implements Emitter {
   String get makeConstListProperty
       => namer.getMappedInstanceName('makeConstantList');
 
+  /// The name of the property that contains all field names.
+  ///
+  /// This property is added to constructors when isolate support is enabled.
+  static const String FIELD_NAMES_PROPERTY_NAME = r"$__fields__";
+
   /// For deferred loading we communicate the initializers via this global var.
   final String deferredInitializers = r"$dart_deferred_initializers";
 
@@ -179,6 +183,40 @@ class OldEmitter implements Emitter {
   String generateEmbeddedGlobalAccessString(String global) {
     // TODO(floitsch): don't use 'init' as global embedder storage.
     return '$initName.$global';
+  }
+
+  jsAst.Expression isolateLazyInitializerAccess(Element element) {
+     return jsAst.js('#.#', [namer.globalObjectFor(element),
+                             namer.getLazyInitializerName(element)]);
+   }
+
+  jsAst.Expression isolateStaticClosureAccess(Element element) {
+     return jsAst.js('#.#()',
+         [namer.globalObjectFor(element), namer.getStaticClosureName(element)]);
+   }
+
+  jsAst.PropertyAccess globalPropertyAccess(Element element) {
+    String name = namer.getNameX(element);
+    jsAst.PropertyAccess pa = new jsAst.PropertyAccess.field(
+        new jsAst.VariableUse(namer.globalObjectFor(element)),
+        name);
+    return pa;
+  }
+
+  jsAst.PropertyAccess staticFieldAccess(Element element) {
+      return globalPropertyAccess(element);
+  }
+
+  jsAst.PropertyAccess staticFunctionAccess(Element element) {
+      return globalPropertyAccess(element);
+  }
+
+  jsAst.PropertyAccess classAccess(Element element) {
+        return globalPropertyAccess(element);
+  }
+
+  jsAst.PropertyAccess typedefAccess(Element element) {
+       return globalPropertyAccess(element);
   }
 
   jsAst.FunctionDeclaration get generateAccessorFunction {
@@ -254,7 +292,7 @@ class OldEmitter implements Emitter {
       }''');
   }
 
-  List get defineClassFunction {
+  List<jsAst.Node> get defineClassFunction {
     // First the class name, then the field names in an array and the members
     // (inside an Object literal).
     // The caller can also pass in the constructor as a function if needed.
@@ -269,45 +307,99 @@ class OldEmitter implements Emitter {
     //  },
     // });
 
-    var defineClass = js('''function(name, fields) {
-      var accessors = [];
+    bool hasIsolateSupport = compiler.hasIsolateSupport;
+    String fieldNamesProperty = FIELD_NAMES_PROPERTY_NAME;
 
-      var str = "function " + name + "(";
-      var body = "";
+    jsAst.Expression defineClass = js('''
+        function(name, fields) {
+          var accessors = [];
+    
+          var str = "function " + name + "(";
+          var body = "";
+          if (#hasIsolateSupport) { var fieldNames = ""; }
+    
+          for (var i = 0; i < fields.length; i++) {
+            if(i != 0) str += ", ";
+    
+            var field = generateAccessor(fields[i], accessors, name);
+            if (#hasIsolateSupport) { fieldNames += "'" + field + "',"; }
+            var parameter = "parameter_" + field;
+            str += parameter;
+            body += ("this." + field + " = " + parameter + ";\\n");
+          }
+          str += ") {\\n" + body + "}\\n";
+          str += name + ".builtin\$cls=\\"" + name + "\\";\\n";
+          str += "\$desc=\$collectedClasses." + name + ";\\n";
+          str += "if(\$desc instanceof Array) \$desc = \$desc[1];\\n";
+          str += name + ".prototype = \$desc;\\n";
+          if (typeof defineClass.name != "string") {
+            str += name + ".name=\\"" + name + "\\";\\n";
+          }
+          if (#hasIsolateSupport) {
+            str += name + ".$fieldNamesProperty=[" + fieldNames + "];\\n";
+          }
+          str += accessors.join("");
+    
+          return str;
+        }''', { 'hasIsolateSupport': hasIsolateSupport });
 
-      for (var i = 0; i < fields.length; i++) {
-        if(i != 0) str += ", ";
-
-        var field = generateAccessor(fields[i], accessors, name);
-        var parameter = "parameter_" + field;
-        str += parameter;
-        body += ("this." + field + " = " + parameter + ";\\n");
-      }
-      str += ") {\\n" + body + "}\\n";
-      str += name + ".builtin\$cls=\\"" + name + "\\";\\n";
-      str += "\$desc=\$collectedClasses." + name + ";\\n";
-      str += "if(\$desc instanceof Array) \$desc = \$desc[1];\\n";
-      str += name + ".prototype = \$desc;\\n";
-      if (typeof defineClass.name != "string") {
-        str += name + ".name=\\"" + name + "\\";\\n";
-      }
-      str += accessors.join("");
-
-      return str;
-    }''');
     // Declare a function called "generateAccessor".  This is used in
     // defineClassFunction (it's a local declaration in init()).
-    List<jsAst.Node> saveDefineClass = [];
-    if (compiler.hasIncrementalSupport) {
-      saveDefineClass.add(
-          js(r'self.$dart_unsafe_eval.defineClass = defineClass'));
-    }
-    return [
+    List result = <jsAst.Node>[
         generateAccessorFunction,
         js('$generateAccessorHolder = generateAccessor'),
         new jsAst.FunctionDeclaration(
-            new jsAst.VariableDeclaration('defineClass'), defineClass) ]
-        ..addAll(saveDefineClass);
+            new jsAst.VariableDeclaration('defineClass'), defineClass) ];
+
+    if (compiler.hasIncrementalSupport) {
+      result.add(
+          js(r'self.$dart_unsafe_eval.defineClass = defineClass'));
+    }
+
+    if (hasIsolateSupport) {
+      jsAst.Expression classIdExtractorAccess =
+          generateEmbeddedGlobalAccess(embeddedNames.CLASS_ID_EXTRACTOR);
+      var classIdExtractorAssignment =
+          js('# = function(o) { return o.constructor.name; }',
+              classIdExtractorAccess);
+
+      jsAst.Expression classFieldsExtractorAccess =
+          generateEmbeddedGlobalAccess(embeddedNames.CLASS_FIELDS_EXTRACTOR);
+      var classFieldsExtractorAssignment = js('''
+      # = function(o) {
+        var fieldNames = o.constructor.$fieldNamesProperty;
+        if (!fieldNames) return [];  // TODO(floitsch): do something else here.
+        var result = [];
+        result.length = fieldNames.length;
+        for (var i = 0; i < fieldNames.length; i++) {
+          result[i] = o[fieldNames[i]];
+        }
+        return result;
+      }''', classFieldsExtractorAccess);
+
+      jsAst.Expression instanceFromClassIdAccess =
+          generateEmbeddedGlobalAccess(embeddedNames.INSTANCE_FROM_CLASS_ID);
+      jsAst.Expression allClassesAccess =
+          generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
+      var instanceFromClassIdAssignment =
+          js('# = function(name) { return new #[name](); }',
+             [instanceFromClassIdAccess, allClassesAccess]);
+
+      jsAst.Expression initializeEmptyInstanceAccess =
+          generateEmbeddedGlobalAccess(embeddedNames.INITIALIZE_EMPTY_INSTANCE);
+      var initializeEmptyInstanceAssignment = js('''
+      # = function(name, o, fields) {
+        #[name].apply(o, fields);
+        return o;
+      }''', [ initializeEmptyInstanceAccess, allClassesAccess ]);
+
+      result.addAll([classIdExtractorAssignment,
+                     classFieldsExtractorAssignment,
+                     instanceFromClassIdAssignment,
+                     initializeEmptyInstanceAssignment]);
+    }
+
+    return result;
   }
 
   /** Needs defineClass to be defined. */
@@ -646,7 +738,7 @@ class OldEmitter implements Emitter {
   jsAst.Fun get lazyInitializerFunction {
     String isolate = namer.currentIsolate;
     jsAst.Expression cyclicThrow =
-        namer.elementAccess(backend.getCyclicThrowHelper());
+        staticFunctionAccess(backend.getCyclicThrowHelper());
     jsAst.Expression laziesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.LAZIES);
 
@@ -857,7 +949,7 @@ class OldEmitter implements Emitter {
         return #;
       }''',
         [cspPrecompiledFunctionFor(outputUnit),
-         new jsAst.ArrayInitializer.from(
+         new jsAst.ArrayInitializer(
              cspPrecompiledConstructorNamesFor(outputUnit))]);
   }
 
@@ -1039,11 +1131,11 @@ class OldEmitter implements Emitter {
   ///   `function(args) { $.startRootIsolate(X.main$closure(), args); }`
   jsAst.Expression buildIsolateSetupClosure(Element appMain,
                                             Element isolateMain) {
-    jsAst.Expression mainAccess = namer.isolateStaticClosureAccess(appMain);
+    jsAst.Expression mainAccess = isolateStaticClosureAccess(appMain);
     // Since we pass the closurized version of the main method to
     // the isolate method, we must make sure that it exists.
     return js('function(a){ #(#, a); }',
-        [namer.elementAccess(isolateMain), mainAccess]);
+        [backend.emitter.staticFunctionAccess(isolateMain), mainAccess]);
   }
 
   /**
@@ -1115,10 +1207,11 @@ class OldEmitter implements Emitter {
         backend.isolateHelperLibrary.find(JavaScriptBackend.START_ROOT_ISOLATE);
       mainCallClosure = buildIsolateSetupClosure(main, isolateMain);
     } else if (compiler.hasIncrementalSupport) {
-      mainCallClosure =
-          js('function() { return #(); }', namer.elementAccess(main));
+      mainCallClosure = js(
+          'function() { return #(); }',
+          backend.emitter.staticFunctionAccess(main));
     } else {
-      mainCallClosure = namer.elementAccess(main);
+      mainCallClosure = backend.emitter.staticFunctionAccess(main);
     }
 
     if (backend.needToInitializeIsolateAffinityTag) {
@@ -1275,25 +1368,34 @@ class OldEmitter implements Emitter {
 
   void emitPrecompiledConstructor(OutputUnit outputUnit,
                                   String constructorName,
-                                  jsAst.Expression constructorAst) {
+                                  jsAst.Expression constructorAst,
+                                  List<String> fields) {
     cspPrecompiledFunctionFor(outputUnit).add(
         new jsAst.FunctionDeclaration(
             new jsAst.VariableDeclaration(constructorName), constructorAst));
-    cspPrecompiledFunctionFor(outputUnit).add(
-    js.statement(r'''{
-          #.builtin$cls = #;
-          if (!"name" in #)
-              #.name = #;
-          $desc=$collectedClasses.#;
+
+    String fieldNamesProperty = FIELD_NAMES_PROPERTY_NAME;
+    bool hasIsolateSupport = compiler.hasIsolateSupport;
+    jsAst.Node fieldNamesArray =
+        hasIsolateSupport ? js.stringArray(fields) : new jsAst.LiteralNull();
+
+    cspPrecompiledFunctionFor(outputUnit).add(js.statement(r'''
+        {
+          #constructorName.builtin$cls = #constructorNameString;
+          if (!"name" in #constructorName)
+              #constructorName.name = #constructorNameString;
+          $desc = $collectedClasses.#constructorName;
           if ($desc instanceof Array) $desc = $desc[1];
-          #.prototype = $desc;
+          #constructorName.prototype = $desc;
+          ''' /* next string is not a raw string */ '''
+          if (#hasIsolateSupport) {
+            #constructorName.$fieldNamesProperty = #fieldNamesArray;
+          } 
         }''',
-        [   constructorName, js.string(constructorName),
-            constructorName,
-            constructorName, js.string(constructorName),
-            constructorName,
-            constructorName
-         ]));
+        {"constructorName": constructorName,
+         "constructorNameString": js.string(constructorName),
+         "hasIsolateSupport": hasIsolateSupport,
+         "fieldNamesArray": fieldNamesArray}));
 
     cspPrecompiledConstructorNamesFor(outputUnit).add(js('#', constructorName));
   }
@@ -1356,9 +1458,11 @@ class OldEmitter implements Emitter {
       // Also emit a trivial constructor for CSP mode.
       String constructorName = mangledName;
       jsAst.Expression constructorAst = js('function() {}');
+      List<String> fieldNames = [];
       emitPrecompiledConstructor(mainOutputUnit,
                                  constructorName,
-                                 constructorAst);
+                                 constructorAst,
+                                 fieldNames);
     }
   }
 
@@ -1452,8 +1556,12 @@ class OldEmitter implements Emitter {
           'this.\$dart_unsafe_eval.patch = function(a) { eval(a) }$N');
       String schemaChange =
           jsAst.prettyPrint(buildSchemaChangeFunction(), compiler).getText();
+      String addMethod =
+          jsAst.prettyPrint(buildIncrementalAddMethod(), compiler).getText();
       mainBuffer.add(
           'this.\$dart_unsafe_eval.schemaChange$_=$_$schemaChange$N');
+      mainBuffer.add(
+          'this.\$dart_unsafe_eval.addMethod$_=$_$addMethod$N');
     }
     if (isProgramSplit) {
       /// We collect all the global state of the, so it can be passed to the
@@ -1682,6 +1790,82 @@ function(newConstructor, oldConstructor, superclass) {
 }''');
   }
 
+  /// Used by incremental compilation to patch up an object ([holder]) with a
+  /// new (or updated) method.  [arrayOrFunction] is either the new method, or
+  /// an array containing the method (see
+  /// [ContainerBuilder.addMemberMethodFromInfo]). [name] is the name of the
+  /// new method. [isStatic] tells if method is static (or
+  /// top-level). [globalFunctionsAccess] is a reference to
+  /// [embeddedNames.GLOBAL_FUNCTIONS].
+  jsAst.Fun buildIncrementalAddMethod() {
+    return js(r"""
+function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
+  var arrayOrFunction = originalDescriptor[name];
+  var method;
+  if (arrayOrFunction.constructor === Array) {
+    var existing = holder[name];
+    var array = arrayOrFunction;
+    var descriptor = Object.create(null);
+    this.addStubs(
+        descriptor, arrayOrFunction, name, isStatic, originalDescriptor, []);
+    method = descriptor[name];
+    for (var property in descriptor) {
+      if (!Object.prototype.hasOwnProperty.call(descriptor, property)) continue;
+      var stub = descriptor[property];
+      var existingStub = holder[property];
+      if (stub === method || !existingStub || !stub.$getterStub) {
+        // Not replacing an existing getter stub.
+        holder[property] = stub;
+        continue;
+      }
+      if (!stub.$getterStub) {
+        var error = new Error('Unexpected stub.');
+        error.stub = stub;
+        throw error;
+      }
+
+      // Existing getter stubs need special treatment as they may already have
+      // been called and produced a closure.
+      this.pendingStubs = this.pendingStubs || [];
+      // It isn't safe to invoke the stub yet.
+      this.pendingStubs.push((function(holder, stub, existingStub, existing,
+                                       method) {
+        return function() {
+          var receiver = isStatic ? holder : new holder.constructor();
+          // Invoke the existing stub to obtain the tear-off closure.
+          existingStub = existingStub.call(receiver);
+          // Invoke the new stub to create a tear-off closure we can use as a
+          // prototype.
+          stub = stub.call(receiver);
+
+          var newProto = stub.constructor.prototype;
+          var existingProto = existingStub.constructor.prototype;
+          for (var stubProperty in newProto) {
+            if (!Object.prototype.hasOwnProperty.call(newProto, stubProperty))
+              continue;
+            existingProto[stubProperty] = newProto[stubProperty];
+          }
+
+          // Update all the existing stub's references to [existing] to
+          // [method]. Instance tear-offs are call-by-name, so this isn't
+          // necessary for those.
+          if (!isStatic) return;
+          for (var reference in existingStub) {
+            if (existingStub[reference] === existing) {
+              existingStub[reference] = method;
+            }
+          }
+        }
+      })(holder, stub, existingStub, existing, method));
+    }
+  } else {
+    method = arrayOrFunction;
+    holder[name] = method;
+  }
+  if (isStatic) globalFunctionsAccess[name] = method;
+}""");
+  }
+
   /// Returns a map from OutputUnit to a hash of its content. The hash uniquely
   /// identifies the code of the output-unit. It does not include
   /// boilerplate JS code, like the sourcemap directives or the hash
@@ -1842,8 +2026,8 @@ function(newConstructor, oldConstructor, superclass) {
       List<jsAst.Property> properties = new List<jsAst.Property>();
       mapping.forEach((String key, List<String> values) {
         properties.add(new jsAst.Property(js.escapedString(key),
-            new jsAst.ArrayInitializer.from(
-                values.map(js.escapedString))));
+            new jsAst.ArrayInitializer(
+                values.map(js.escapedString).toList())));
       });
       jsAst.Node initializer =
           new jsAst.ObjectInitializer(properties, isOneLiner: true);

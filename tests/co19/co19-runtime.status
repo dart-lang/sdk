@@ -25,6 +25,16 @@ Language/13_Statements/12_Labels_A01_t03: fail # Dart issue 2238
 Language/14_Libraries_and_Scripts/2_Exports_A04_t02: fail # Dart issue 12916
 Language/14_Libraries_and_Scripts/2_Exports_A04_t03: fail # Dart issue 12916
 
+Language/13_Statements/15_Assert_A03_t02: skip # co19 issue 734
+Language/13_Statements/15_Assert_A03_t03: skip # co19 issue 734
+Language/13_Statements/15_Assert_A04_t02: skip # co19 issue 734
+Language/13_Statements/15_Assert_A04_t05: skip # co19 issue 734
+
+# re-enable next 3 tests when co19 revision synched to r793
+Language/12_Expressions/20_Logical_Boolean_Expressions_A03_t01: skip  # until >= r793
+Language/12_Expressions/27_Unary_Expressions_A02_t03: skip  # until >= r793
+Language/13_Statements/06_For/1_For_Loop_A01_t08: skip  # until >= r793
+
 LibTest/core/DateTime/parse_A03_t01: fail # Issue 12514
 
 LibTest/core/DateTime/DateTime.now_A01_t02: Pass, Fail # co19 issue 709

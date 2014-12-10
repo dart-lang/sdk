@@ -58,20 +58,25 @@ part of foo;
       AnalysisService.NAVIGATION: [pathname1]
     });
     List<NavigationRegion> regions;
+    List<NavigationTarget> targets;
+    List<String> targetFiles;
     onAnalysisNavigation.listen((AnalysisNavigationParams params) {
       expect(params.file, equals(pathname1));
       regions = params.regions;
+      targets = params.targets;
+      targetFiles = params.files;
     });
     return analysisFinished.then((_) {
       // There should be a single error, due to the fact that 'dart:async' is
       // not used.
       expect(currentAnalysisErrors[pathname1], hasLength(1));
       expect(currentAnalysisErrors[pathname2], isEmpty);
-      Element findTargetElement(int index) {
+      NavigationTarget findTargetElement(int index) {
         for (NavigationRegion region in regions) {
           if (region.offset <= index && index < region.offset + region.length) {
             expect(region.targets, hasLength(1));
-            return region.targets[0];
+            int targetIndex = region.targets[0];
+            return targets[targetIndex];
           }
         }
         fail('No element found for index $index');
@@ -81,16 +86,16 @@ part of foo;
           ElementKind expectedKind) {
         int sourceIndex = text1.indexOf(source);
         int targetIndex = text1.indexOf(expectedTarget);
-        Element element = findTargetElement(sourceIndex);
-        expect(element.location.file, equals(pathname1));
-        expect(element.location.offset, equals(targetIndex));
+        NavigationTarget element = findTargetElement(sourceIndex);
+        expect(targetFiles[element.fileIndex], equals(pathname1));
+        expect(element.offset, equals(targetIndex));
         expect(element.kind, equals(expectedKind));
       }
       void checkRemote(String source, String expectedTargetRegexp,
           ElementKind expectedKind) {
         int sourceIndex = text1.indexOf(source);
-        Element element = findTargetElement(sourceIndex);
-        expect(element.location.file, matches(expectedTargetRegexp));
+        NavigationTarget element = findTargetElement(sourceIndex);
+        expect(targetFiles[element.fileIndex], matches(expectedTargetRegexp));
         expect(element.kind, equals(expectedKind));
       }
       // TODO(paulberry): will the element type 'CLASS_TYPE_ALIAS' ever appear

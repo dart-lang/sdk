@@ -1,7 +1,7 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--enable_type_checks --no_show_internal_names
+// VMOptions=--enable_type_checks --enable_asserts --no_show_internal_names
 // Dart test program testing type checks.
 
 import "package:expect/expect.dart";
@@ -266,15 +266,13 @@ class TypeTest {
           "type_vm_test.dart:258:20"));
     }
     try {
-      if (null) {};  // Throws a TypeError if type checks are enabled.
-    } on TypeError catch (error) {
+      if (null) {};  // Throws an AssertionError if assertions are enabled.
+    } on AssertionError catch (error) {
       result++;
       var msg = error.toString();
-      Expect.isTrue(msg.contains("'bool'"));  // dstType
-      Expect.isTrue(msg.contains("'Null'"));  // srcType
-      Expect.isTrue(msg.contains("boolean expression"));  // dstName
-      Expect.isTrue(error.stackTrace.toString().contains(
-          "type_vm_test.dart:269:11"));
+      Expect.isTrue(msg.contains("assertion"));
+      Expect.isTrue(msg.contains("boolean expression"));
+      Expect.isTrue(msg.contains("null"));
     }
     return result;
   }
@@ -319,7 +317,7 @@ class TypeTest {
         Expect.isTrue(msg.contains("'List<Object>'"));  // srcType
         Expect.isTrue(msg.contains("'ai'"));  // dstName
         Expect.isTrue(error.stackTrace.toString().contains(
-            "type_vm_test.dart:314:24"));
+            "type_vm_test.dart:312:24"));
       }
       try {
         List<num> an = a;
@@ -330,7 +328,7 @@ class TypeTest {
         Expect.isTrue(msg.contains("'List<Object>'"));  // srcType
         Expect.isTrue(msg.contains("'an'"));  // dstName
         Expect.isTrue(error.stackTrace.toString().contains(
-            "type_vm_test.dart:325:24"));
+            "type_vm_test.dart:323:24"));
       }
       try {
         List<String> as = a;
@@ -341,7 +339,7 @@ class TypeTest {
         Expect.isTrue(msg.contains("'List<Object>'"));  // srcType
         Expect.isTrue(msg.contains("'as'"));  // dstName
         Expect.isTrue(error.stackTrace.toString().contains(
-            "type_vm_test.dart:336:27"));
+            "type_vm_test.dart:334:27"));
       }
     }
     {
@@ -359,7 +357,7 @@ class TypeTest {
         Expect.isTrue(msg.contains("'List<int>'"));  // srcType
         Expect.isTrue(msg.contains("'as'"));  // dstName
         Expect.isTrue(error.stackTrace.toString().contains(
-            "type_vm_test.dart:354:27"));
+            "type_vm_test.dart:352:27"));
       }
     }
     {
@@ -375,7 +373,7 @@ class TypeTest {
         Expect.isTrue(msg.contains("'List<num>'"));  // srcType
         Expect.isTrue(msg.contains("'ai'"));  // dstName
         Expect.isTrue(error.stackTrace.toString().contains(
-            "type_vm_test.dart:370:24"));
+            "type_vm_test.dart:368:24"));
       }
       List<num> an = a;
       try {
@@ -387,7 +385,7 @@ class TypeTest {
         Expect.isTrue(msg.contains("'List<num>'"));  // srcType
         Expect.isTrue(msg.contains("'as'"));  // dstName
         Expect.isTrue(error.stackTrace.toString().contains(
-            "type_vm_test.dart:382:27"));
+            "type_vm_test.dart:380:27"));
       }
     }
     {
@@ -403,7 +401,7 @@ class TypeTest {
         Expect.isTrue(msg.contains("'List<String>'"));  // srcType
         Expect.isTrue(msg.contains("'ai'"));  // dstName
         Expect.isTrue(error.stackTrace.toString().contains(
-            "type_vm_test.dart:398:24"));
+            "type_vm_test.dart:396:24"));
       }
       try {
         List<num> an = a;
@@ -414,7 +412,7 @@ class TypeTest {
         Expect.isTrue(msg.contains("'List<String>'"));  // srcType
         Expect.isTrue(msg.contains("'an'"));  // dstName
         Expect.isTrue(error.stackTrace.toString().contains(
-            "type_vm_test.dart:409:24"));
+            "type_vm_test.dart:407:24"));
       }
       List<String> as = a;
     }

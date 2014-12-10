@@ -5,10 +5,9 @@
 library utils;
 
 import 'dart:io';
-import 'dart:math' show min;
 import 'dart:convert';
 
-part 'legacy_path.dart';
+import 'path.dart';
 
 // This is the maximum time we expect stdout/stderr of subprocesses to deliver
 // data after we've got the exitCode.

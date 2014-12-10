@@ -459,15 +459,28 @@ class Instr {
   static const int32_t kNopInstruction = 0;
 
   // Reserved break instruction codes.
-  static const int32_t kStopMessageCode = 1 << 16;  // For Stop(message).
-  static const int32_t kRedirectCode = 2 << 16;  // For call redirection in sim.
-  static const int32_t kMsgMessageCode = 3 << 16;  // For trace message in sim.
-  static const int32_t kSimulatorBreakCode = 4 << 16;  // For breakpoint in sim.
+  static const int32_t kBreakPointCode = 0xdeb0;  // For breakpoint.
+  static const int32_t kStopMessageCode = 0xdeb1;  // For Stop(message).
+  static const int32_t kSimulatorMessageCode = 0xdeb2;  // For trace msg in sim.
+  static const int32_t kSimulatorBreakCode = 0xdeb3;  // For breakpoint in sim.
+  static const int32_t kSimulatorRedirectCode = 0xca11;  // For redirection.
 
-  // General breakpoint instruction: break(0), for user breakpoint and to fill
-  // assembler code buffers in debug mode.
-  static const int32_t kBreakPointInstruction =
+  static const int32_t kBreakPointZeroInstruction =
       (SPECIAL << kOpcodeShift) | (BREAK << kFunctionShift);
+
+  // Breakpoint instruction filling assembler code buffers in debug mode.
+  static const int32_t kBreakPointInstruction =
+      kBreakPointZeroInstruction | (kBreakPointCode << kBreakCodeShift);
+
+  // Breakpoint instruction used by the simulator.
+  // Should be distinct from kBreakPointInstruction and from a typical user
+  // breakpoint inserted in generated code for debugging, e.g. break_(0).
+  static const int32_t kSimulatorBreakpointInstruction =
+      kBreakPointZeroInstruction | (kSimulatorBreakCode << kBreakCodeShift);
+
+  // Runtime call redirection instruction used by the simulator.
+  static const int32_t kSimulatorRedirectInstruction =
+      kBreakPointZeroInstruction | (kSimulatorRedirectCode << kBreakCodeShift);
 
   // Get the raw instruction bits.
   inline int32_t InstructionBits() const {

@@ -153,7 +153,7 @@ class _HtmlInliner extends PolymerTransformer {
   /// link rel=import, we move both of those into the body before we do any
   /// inlining. We do not start doing this until the first import is found
   /// however, as some scripts do need to be ran in the head to work
-  /// properly (platform.js for instance).
+  /// properly (webcomponents.js for instance).
   ///
   /// Note: we do this for stylesheets as well to preserve ordering with
   /// respect to eachother, because stylesheets can be pulled in transitively

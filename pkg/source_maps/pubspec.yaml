@@ -1,5 +1,5 @@
 name: source_maps
-version: 0.10.0
+version: 0.10.0+1
 author: Dart Team <misc@dartlang.org>
 description: Library to programmatically manipulate source map files.
 homepage: http://www.dartlang.org

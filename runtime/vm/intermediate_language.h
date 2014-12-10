@@ -1149,6 +1149,9 @@ class BlockEntryInstr : public Instruction {
   virtual bool MayThrow() const { return false; }
 
   intptr_t try_index() const { return try_index_; }
+  void set_try_index(intptr_t index) {
+    try_index_ = index;
+  }
 
   // True for blocks inside a try { } region.
   bool InsideTryBlock() const {
@@ -1204,7 +1207,7 @@ class BlockEntryInstr : public Instruction {
   void set_dominator(BlockEntryInstr* instr) { dominator_ = instr; }
 
   intptr_t block_id_;
-  const intptr_t try_index_;
+  intptr_t try_index_;
   intptr_t preorder_number_;
   intptr_t postorder_number_;
   // Starting and ending lifetime positions for this block.  Used by
@@ -3247,7 +3250,7 @@ class PushTempInstr : public TemplateDefinition<1, NoThrow> {
 
 class DropTempsInstr : public Definition {
  public:
-  explicit DropTempsInstr(intptr_t num_temps, Value* value = NULL)
+  DropTempsInstr(intptr_t num_temps, Value* value)
       : num_temps_(num_temps), value_(NULL) {
     if (value != NULL) {
       SetInputAt(0, value);
@@ -3695,7 +3698,7 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
         element_count_(element_count),
         representation_(kTagged) {
     ASSERT(element_count == 1 || element_count == 2 || element_count == 4);
-    ASSERT(class_id == kOneByteStringCid || class_id == kTwoByteStringCid);
+    ASSERT(RawObject::IsStringClassId(class_id));
     SetInputAt(0, str);
     SetInputAt(1, index);
   }
@@ -4212,6 +4215,12 @@ class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
   }
   DECLARE_INSTRUCTION(LoadUntagged)
   virtual CompileType ComputeType() const;
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    // The object may be tagged or untagged (for external objects).
+    return kNoRepresentation;
+  }
 
   Value* object() const { return inputs_[0]; }
   intptr_t offset() const { return offset_; }
@@ -7857,6 +7866,12 @@ class Environment : public ZoneAllocated {
   intptr_t deopt_id() const { return deopt_id_; }
 
   Environment* outer() const { return outer_; }
+
+  Environment* Outermost() {
+    Environment* result = this;
+    while (result->outer() != NULL) result = result->outer();
+    return result;
+  }
 
   Value* ValueAt(intptr_t ix) const {
     return values_[ix];

@@ -50,7 +50,7 @@ void runTests({bool js: true}) {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '$WEB_COMPONENTS_TAG'
+          '$COMPATIBILITY_JS_TAGS'
           '</head><body>'
           '<script ${type}src="a.dart$ext"$async></script>'
           '$dartJsTag'
@@ -60,38 +60,42 @@ void runTests({bool js: true}) {
   testPhases('interop/shadow dom already present', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '$WEB_COMPONENTS_TAG'
+          '$COMPATIBILITY_JS_TAGS'
           '</head><body>'
           '<script type="application/dart" src="a.dart"></script>'
           '$dartJsTag'
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '$WEB_COMPONENTS_TAG'
+          '$COMPATIBILITY_JS_TAGS'
           '</head><body>'
           '<script ${type}src="a.dart$ext"$async></script>'
           '$dartJsTag'
           '</body></html>',
     });
 
-  testPhases('dart_support.js after platform.js, platform present', phases, {
+  testPhases(
+      'dart_support.js after webcomponents.js, web_components present', phases,
+    {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '$PLATFORM_JS_TAG'
+          '$WEB_COMPONENTS_JS_TAG'
           '</head><body>'
           '<script type="application/dart" src="a.dart"></script>'
           '$dartJsTag'
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '$WEB_COMPONENTS_TAG'
+          '$COMPATIBILITY_JS_TAGS'
           '</head><body>'
           '<script ${type}src="a.dart$ext"$async></script>'
           '$dartJsTag'
           '</body></html>',
     });
 
-  testPhases('dart_support.js after platform.js, dart_support present', phases, {
+  testPhases(
+      'dart_support.js after webcomponents.js, dart_support present', phases,
+    {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '$DART_SUPPORT_TAG'
@@ -101,17 +105,35 @@ void runTests({bool js: true}) {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '$WEB_COMPONENTS_TAG'
+          '$COMPATIBILITY_JS_TAGS'
           '</head><body>'
           '<script ${type}src="a.dart$ext"$async></script>'
           '$dartJsTag'
           '</body></html>',
     });
 
-  var noPlatformPhases = [[new PolyfillInjector(new TransformOptions(
-        directlyIncludeJS: js, injectPlatformJs: false))]];
+  testPhases('platform.js -> webcomponents.js', phases,
+    {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '$PLATFORM_JS_TAG'
+          '</head><body>'
+          '<script type="application/dart" src="a.dart"></script>'
+          '$dartJsTag'
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '$COMPATIBILITY_JS_TAGS'
+          '</head><body>'
+          '<script ${type}src="a.dart$ext"$async></script>'
+          '$dartJsTag'
+          '</body></html>',
+    });
 
-  testPhases('with no platform.js', noPlatformPhases, {
+  var noWebComponentsPhases = [[new PolyfillInjector(new TransformOptions(
+        directlyIncludeJS: js, injectWebComponentsJs: false))]];
+
+  testPhases('with no webcomponents.js', noWebComponentsPhases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body>'
           '<script type="application/dart" src="a.dart"></script>',

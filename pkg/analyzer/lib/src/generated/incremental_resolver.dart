@@ -7,18 +7,33 @@ library engine.incremental_resolver;
 import 'dart:collection';
 import 'dart:math' as math;
 
-import 'package:analyzer/src/generated/error_verifier.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
-
 import 'ast.dart';
 import 'element.dart';
 import 'engine.dart';
 import 'error.dart';
+import 'error_verifier.dart';
+import 'incremental_logger.dart' show logger, LoggingTimer;
 import 'java_engine.dart';
 import 'parser.dart';
 import 'resolver.dart';
 import 'scanner.dart';
 import 'source.dart';
+import 'utilities_collection.dart';
+import 'utilities_dart.dart';
+
+
+/**
+ * If `true`, an attempt to resolve API-changing modifications is made.
+ */
+bool _resolveApiChanges = false;
+
+
+/**
+ * This method is used to enable/disable API-changing modifications resolution.
+ */
+void set test_resolveApiChanges(bool value) {
+  _resolveApiChanges = value;
+}
 
 
 /**
@@ -46,7 +61,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
    * The class containing the AST nodes being visited, or `null` if we are not
    * in the scope of a class.
    */
-  ClassElement _enclosingClass;
+  ClassElementImpl _enclosingClass;
 
   /**
    * The parameter containing the AST nodes being visited, or `null` if we are not in the
@@ -69,30 +84,44 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   HashSet<Element> _allElements = new HashSet<Element>();
 
   /**
-   * A set containing all of the elements in the element model that were defined by the old AST node
-   * corresponding to the AST node being visited that have not already been matched to nodes in the
-   * AST structure being visited.
+   * A set containing all of the elements were defined in the old element model,
+   * but are not defined in the new element model.
    */
-  HashSet<Element> _unmatchedElements = new HashSet<Element>();
+  HashSet<Element> _removedElements = new HashSet<Element>();
 
   /**
-   * Return `true` if the declarations within the given AST structure define an element model
-   * that is equivalent to the corresponding elements rooted at the given element.
-   *
-   * @param node the AST structure being compared to the element model
-   * @param element the root of the element model being compared to the AST structure
-   * @return `true` if the AST structure defines the same elements as those in the given
-   *         element model
+   * A set containing all of the elements are defined in the new element model,
+   * but were not defined in the old element model.
    */
-  bool matches(AstNode node, Element element) {
-    _captureEnclosingElements(element);
-    _gatherElements(element);
+  HashSet<Element> _addedElements = new HashSet<Element>();
+
+  /**
+   * Determines how elements model corresponding to the given [node] differs
+   * from the [element].
+   */
+  DeclarationMatchKind matches(AstNode node, Element element) {
+    logger.enter('match $element @ ${element.nameOffset}');
     try {
+      _captureEnclosingElements(element);
+      _gatherElements(element);
       node.accept(this);
     } on _DeclarationMismatchException catch (exception) {
-      return false;
+      return DeclarationMatchKind.MISMATCH;
+    } finally {
+      logger.exit();
     }
-    return _unmatchedElements.isEmpty;
+    // no API changes
+    if (_removedElements.isEmpty && _addedElements.isEmpty) {
+      return DeclarationMatchKind.MATCH;
+    }
+    // simple API change
+    if (_removedElements.length <= 1 && _addedElements.length == 1) {
+      return DeclarationMatchKind.MISMATCH_OK;
+    }
+    // something more complex
+    logger.log('_removedElements: $_removedElements');
+    logger.log('_addedElements: $_addedElements');
+    return DeclarationMatchKind.MISMATCH;
   }
 
   @override
@@ -151,12 +180,16 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   visitConstructorDeclaration(ConstructorDeclaration node) {
     _hasConstructor = true;
     SimpleIdentifier constructorName = node.name;
-    ConstructorElement element = constructorName == null ?
+    ConstructorElementImpl element = constructorName == null ?
         _enclosingClass.unnamedConstructor :
         _enclosingClass.getNamedConstructor(constructorName.name);
     _processElement(element);
-    node.element = element;
     _assertCompatibleParameters(node.parameters, element.parameters);
+    // matches, update the existing element
+    ExecutableElement newElement = node.element;
+    node.element = element;
+    _setLocalElements(element, newElement);
+    _setParameterElements(node.parameters, element.parameters);
   }
 
   @override
@@ -216,7 +249,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     }
     // prepare element
     Token property = node.propertyKeyword;
-    ExecutableElement element;
+    ExecutableElementImpl element;
     if (property == null) {
       element = _findElement(_enclosingUnit.functions, name);
     } else {
@@ -224,11 +257,17 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     }
     // process element
     _processElement(element);
-    node.name.staticElement = element;
-    node.functionExpression.element = element;
     _assertFalse(element.isSynthetic);
     _assertSameType(node.returnType, element.returnType);
     _assertCompatibleParameters(
+        node.functionExpression.parameters,
+        element.parameters);
+    // matches, update the existing element
+    ExecutableElement newElement = node.element;
+    node.name.staticElement = element;
+    node.functionExpression.element = element;
+    _setLocalElements(element, newElement);
+    _setParameterElements(
         node.functionExpression.parameters,
         element.parameters);
   }
@@ -285,18 +324,43 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     }
     // prepare element
     Token property = node.propertyKeyword;
-    ExecutableElement element;
+    ExecutableElementImpl element;
     if (property == null) {
       element = _findElement(_enclosingClass.methods, name);
     } else {
       element = _findElement(_enclosingClass.accessors, name);
     }
     // process element
-    _processElement(element);
-    _assertEquals(node.isStatic, element.isStatic);
-    node.name.staticElement = element;
-    _assertSameType(node.returnType, element.returnType);
-    _assertCompatibleParameters(node.parameters, element.parameters);
+    ExecutableElement newElement = node.element;
+    try {
+      _assertNotNull(element);
+      _assertEquals(node.isStatic, element.isStatic);
+      _assertSameType(node.returnType, element.returnType);
+      _assertCompatibleParameters(node.parameters, element.parameters);
+      _removedElements.remove(element);
+      // matches, update the existing element
+      node.name.staticElement = element;
+      _setLocalElements(element, newElement);
+      _setParameterElements(node.parameters, element.parameters);
+    } on _DeclarationMismatchException catch (e) {
+      _addedElements.add(newElement);
+      // remove old element
+      if (element is MethodElement) {
+        _enclosingClass.methods.remove(element);
+      } else if (element is PropertyAccessorElement) {
+        _enclosingClass.accessors.remove(element);
+      }
+      // add new element
+      if (newElement is MethodElement) {
+        List<MethodElement> methods = _enclosingClass.methods;
+        methods.add(newElement);
+        _enclosingClass.methods = methods;
+      } else {
+        List<PropertyAccessorElement> accessors = _enclosingClass.accessors;
+        accessors.add(newElement);
+        _enclosingClass.accessors = accessors;
+      }
+    }
   }
 
   @override
@@ -341,6 +405,8 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     _assertSameType(
         (node.parent as VariableDeclarationList).type,
         element.type);
+    // matches, restore the existing element
+    node.name.staticElement = element;
   }
 
   @override
@@ -403,9 +469,6 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       _assertSameType(node.returnType, elementType.returnType);
     } else if (node is SimpleFormalParameter) {
       _assertSameType(node.type, element.type);
-      node.identifier.staticElement = element;
-      (element as ElementImpl).nameOffset = node.identifier.offset;
-      (element as ElementImpl).name = node.identifier.name;
     }
   }
 
@@ -461,7 +524,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     }
     String nodeName = nameIdentifier.name;
     // check specific type kinds
-    if (type is InterfaceType) {
+    if (type is ParameterizedType) {
       _assertEquals(nodeName, type.name);
       // check arguments
       TypeArgumentList nodeArgumentList = node.typeArguments;
@@ -485,7 +548,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       _assertEquals(nodeName, 'dynamic');
     } else {
       // TODO(scheglov) support other types
-//      print('node: $node type: $type  type.type: ${type.runtimeType}');
+      logger.log('node: $node type: $type  type.type: ${type.runtimeType}');
       _assertTrue(false);
     }
   }
@@ -566,7 +629,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     if (!_allElements.contains(element)) {
       throw new _DeclarationMismatchException();
     }
-    _unmatchedElements.remove(element);
+    _removedElements.remove(element);
   }
 
   /**
@@ -605,6 +668,55 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     }
     return literal.stringValue;
   }
+
+  static void _setLocalElements(ExecutableElementImpl to,
+      ExecutableElement from) {
+    to.functions = from.functions;
+    to.labels = from.labels;
+    to.localVariables = from.localVariables;
+  }
+
+  static void _setParameterElements(FormalParameterList nodes,
+      List<ParameterElement> elements) {
+    if (nodes != null) {
+      for (int i = 0; i < elements.length; i++) {
+        ParameterElement element = elements[i];
+        FormalParameter node = nodes.parameters[i];
+        ParameterElement newElement = node.element;
+        node.identifier.staticElement = element;
+        (element as ElementImpl).name = newElement.name;
+        (element as ElementImpl).nameOffset = newElement.nameOffset;
+      }
+    }
+  }
+}
+
+
+/**
+ * Describes how declarations match an existing elements model.
+ */
+class DeclarationMatchKind {
+  /**
+   * Complete match, no API changes.
+   */
+  static const MATCH = const DeclarationMatchKind('MATCH');
+
+  /**
+   * Has API changes that we might be able to resolve incrementally.
+   */
+  static const MISMATCH_OK = const DeclarationMatchKind('MISMATCH_OK');
+
+  /**
+   * Has API changes that we cannot resolve incrementally.
+   */
+  static const MISMATCH = const DeclarationMatchKind('MISMATCH');
+
+  final String name;
+
+  const DeclarationMatchKind(this.name);
+
+  @override
+  String toString() => name;
 }
 
 
@@ -619,19 +731,19 @@ class IncrementalResolver {
   final TypeProvider _typeProvider;
 
   /**
-   * The element for the library containing the compilation unit being resolved.
-   */
-  final LibraryElement _definingLibrary;
-
-  /**
    * The element of the compilation unit being resolved.
    */
   final CompilationUnitElement _definingUnit;
 
   /**
+   * The element for the library containing the compilation unit being resolved.
+   */
+  LibraryElement _definingLibrary;
+
+  /**
    * The source representing the compilation unit being visited.
    */
-  final Source _source;
+  Source _source;
 
   /**
    * The offset of the changed contents.
@@ -648,6 +760,7 @@ class IncrementalResolver {
    */
   final int _updateNewLength;
 
+  RecordingErrorListener errorListener = new RecordingErrorListener();
   ResolutionContext _resolutionContext;
 
   List<AnalysisError> _resolveErrors = AnalysisError.NO_ERRORS;
@@ -655,34 +768,99 @@ class IncrementalResolver {
   List<AnalysisError> _hints = AnalysisError.NO_ERRORS;
 
   /**
+   * The elements that should be resolved because of API changes.
+   */
+  HashSet<Element> _resolutionQueue = new HashSet<Element>();
+
+  /**
    * Initialize a newly created incremental resolver to resolve a node in the
    * given source in the given library.
    */
-  IncrementalResolver(this._typeProvider, this._definingLibrary,
-      this._definingUnit, this._source, this._updateOffset, this._updateOldLength,
-      this._updateNewLength);
+  IncrementalResolver(this._typeProvider, this._definingUnit,
+      this._updateOffset, this._updateOldLength, this._updateNewLength) {
+    _definingLibrary = _definingUnit.library;
+    _source = _definingUnit.source;
+  }
 
   /**
    * Resolve [node], reporting any errors or warnings to the given listener.
    *
    * [node] - the root of the AST structure to be resolved.
+   *
+   * Returns `true` if resolution was successful.
    */
-  void resolve(AstNode node) {
-    AstNode rootNode = _findResolutionRoot(node);
-    // update elements
-    _updateElementNameOffsets(
-        _definingUnit,
-        _updateOffset,
-        _updateNewLength - _updateOldLength);
-    if (_elementModelChanged(rootNode)) {
-      throw new AnalysisException("Cannot resolve node: element model changed");
+  bool resolve(AstNode node) {
+    logger.enter('resolve: $_definingUnit');
+    try {
+      logger.log(() => 'node: $node');
+      AstNode rootNode = _findResolutionRoot(node);
+      logger.log(() => 'rootNode: $rootNode');
+      _prepareResolutionContext(rootNode);
+      // update elements
+      _updateElementNameOffsets(
+          _definingUnit,
+          _updateOffset,
+          _updateNewLength - _updateOldLength);
+      _buildElements(rootNode);
+      if (!_canBeIncrementallyResolved(rootNode)) {
+        return false;
+      }
+      // resolve
+      _resolveReferences(rootNode);
+      // verify
+      _verify(rootNode);
+      _generateHints(rootNode);
+      // resolve queue in response of API changes
+      _resolveQueue();
+      // OK
+      return true;
+    } finally {
+      logger.exit();
     }
-    _updateElements(rootNode);
-    // resolve
-    _resolveReferences(rootNode);
-    // verify
-    _verify(rootNode);
-    _generateHints(rootNode);
+  }
+
+  void _buildElements(AstNode node) {
+    LoggingTimer timer = logger.startTimer();
+    try {
+      ElementHolder holder = new ElementHolder();
+      ElementBuilder builder = new ElementBuilder(holder);
+      node.accept(builder);
+    } finally {
+      timer.stop('build elements');
+    }
+  }
+
+  /**
+   * Return `true` if [node] does not have element model changes, or these
+   * changes can be incrementally propagated.
+   */
+  bool _canBeIncrementallyResolved(AstNode node) {
+    // If we are replacing the whole declaration, this means that its signature
+    // is changed. It might be an API change, or not.
+    //
+    // If, for example, a required parameter is changed, it is not an API
+    // change, but we want to find the existing corresponding Element in the
+    // enclosing one, set it for the node and update as needed.
+    //
+    // If, for example, the name of a method is changed, it is an API change,
+    // we need to know the old Element and the new Element. Again, we need to
+    // check the whole enclosing Element.
+    if (node is Declaration) {
+      node = node.parent;
+    }
+    Element element = _getElement(node);
+    DeclarationMatcher matcher = new DeclarationMatcher();
+    DeclarationMatchKind matchKind = matcher.matches(node, element);
+    if (matchKind == DeclarationMatchKind.MATCH) {
+      return true;
+    }
+    // try to resolve a simple API change
+    if (_resolveApiChanges && matchKind == DeclarationMatchKind.MISMATCH_OK) {
+      _fillResolutionQueue(matcher);
+      return true;
+    }
+    // mismatch that cannot be incrementally fixed
+    return false;
   }
 
   /**
@@ -703,31 +881,18 @@ class IncrementalResolver {
           node is FunctionTypeAlias ||
           node is MethodDeclaration;
 
-  /**
-   * Return `true` if the portion of the element model defined by the given node
-   * has changed.
-   *
-   * [node] - the node defining the portion of the element model being tested.
-   *
-   * Throws [AnalysisException] if the correctness of the element model cannot
-   * be determined.
-   */
-  bool _elementModelChanged(AstNode node) {
-    // If we are replacing the whole declaration (e.g. rename a parameter), we
-    // can try to find the corresponding Element in the enclosing one, see if it
-    // is compatible, and if 'yes', then restore and update it.
-    // TODO(scheglov) This should be rewritten. It causes validating the whole
-    // class, when just one method is changed.
-    if (node is Declaration) {
-      node = node.parent;
+  void _fillResolutionQueue(DeclarationMatcher matcher) {
+    for (Element removedElement in matcher._removedElements) {
+      AnalysisContextImpl context = removedElement.context;
+      IntSet users = removedElement.users;
+      while (!users.isEmpty) {
+        int id = users.remove();
+        Element removedElementUser = context.findElementById(id);
+        _resolutionQueue.add(removedElementUser);
+      }
     }
-    Element element = _getElement(node);
-    if (element == null) {
-      throw new AnalysisException(
-          "Cannot resolve node: a ${node.runtimeType} does not define an element");
-    }
-    DeclarationMatcher matcher = new DeclarationMatcher();
-    return !matcher.matches(node, element);
+    // TODO(scheglov) a method change might also require its class, and
+    // subclasses resolution
   }
 
   /**
@@ -749,13 +914,18 @@ class IncrementalResolver {
   }
 
   void _generateHints(AstNode node) {
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    CompilationUnit unit = node.getAncestor((n) => n is CompilationUnit);
-    AnalysisContext analysisContext = _definingLibrary.context;
-    HintGenerator hintGenerator =
-        new HintGenerator(<CompilationUnit>[unit], analysisContext, errorListener);
-    hintGenerator.generateForLibrary();
-    _hints = errorListener.getErrorsForSource(_source);
+    LoggingTimer timer = logger.startTimer();
+    try {
+      RecordingErrorListener errorListener = new RecordingErrorListener();
+      CompilationUnit unit = node.getAncestor((n) => n is CompilationUnit);
+      AnalysisContext analysisContext = _definingLibrary.context;
+      HintGenerator hintGenerator =
+          new HintGenerator(<CompilationUnit>[unit], analysisContext, errorListener);
+      hintGenerator.generateForLibrary();
+      _hints = errorListener.getErrorsForSource(_source);
+    } finally {
+      timer.stop('generate hints');
+    }
   }
 
   /**
@@ -771,116 +941,112 @@ class IncrementalResolver {
     return null;
   }
 
-  _resolveReferences(AstNode node) {
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    // prepare context
-    _resolutionContext =
-        ResolutionContextBuilder.contextFor(node, errorListener);
-    Scope scope = _resolutionContext.scope;
-    // resolve types
-    {
-      TypeResolverVisitor visitor = new TypeResolverVisitor.con3(
-          _definingLibrary,
-          _source,
-          _typeProvider,
-          scope,
-          errorListener);
-      node.accept(visitor);
+  void _prepareResolutionContext(AstNode node) {
+    if (_resolutionContext == null) {
+      _resolutionContext =
+          ResolutionContextBuilder.contextFor(node, errorListener);
     }
-    // resolve variables
-    {
-      VariableResolverVisitor visitor = new VariableResolverVisitor.con2(
-          _definingLibrary,
-          _source,
-          _typeProvider,
-          scope,
-          errorListener);
-      node.accept(visitor);
-    }
-    // resolve references
-    {
-      ResolverVisitor visitor = new ResolverVisitor.con3(
-          _definingLibrary,
-          _source,
-          _typeProvider,
-          _resolutionContext.scope,
-          errorListener);
-      if (_resolutionContext.enclosingClassDeclaration != null) {
-        visitor.visitClassDeclarationIncrementally(
-            _resolutionContext.enclosingClassDeclaration);
-      }
-      node.accept(visitor);
-    }
-    // remember errors
-    _resolveErrors = errorListener.getErrorsForSource(_source);
   }
 
-  void _updateElements(AstNode node) {
-    // build elements in node
-    ElementHolder holder;
-    _ElementsRestorer elementsRestorer = new _ElementsRestorer(node);
+  /**
+   * Resolves elements [_resolutionQueue].
+   *
+   * TODO(scheglov) work in progress
+  *
+  * TODO(scheglov) revisit later. Each task duration should be kept short.
+   */
+  void _resolveQueue() {
+    for (Element element in _resolutionQueue) {
+      // TODO(scheglov) in general, we should not call Element.node, it
+      // might perform complete unit resolution.
+      AstNode node = element.node;
+      CompilationUnitElement unit =
+          element.getAncestor((e) => e is CompilationUnitElement);
+      IncrementalResolver resolver =
+          new IncrementalResolver(_typeProvider, unit, 0, 0, 0);
+      resolver._resolveReferences(node);
+    }
+  }
+
+  _resolveReferences(AstNode node) {
+    LoggingTimer timer = logger.startTimer();
     try {
-      holder = new ElementHolder();
-      ElementBuilder builder = new ElementBuilder(holder);
-      node.accept(builder);
+      _prepareResolutionContext(node);
+      Scope scope = _resolutionContext.scope;
+      // resolve types
+      {
+        TypeResolverVisitor visitor = new TypeResolverVisitor.con3(
+            _definingLibrary,
+            _source,
+            _typeProvider,
+            scope,
+            errorListener);
+        node.accept(visitor);
+      }
+      // resolve variables
+      {
+        VariableResolverVisitor visitor = new VariableResolverVisitor.con2(
+            _definingLibrary,
+            _source,
+            _typeProvider,
+            scope,
+            errorListener);
+        node.accept(visitor);
+      }
+      // resolve references
+      {
+        ResolverVisitor visitor = new ResolverVisitor.con3(
+            _definingLibrary,
+            _source,
+            _typeProvider,
+            scope,
+            errorListener);
+        if (_resolutionContext.enclosingClassDeclaration != null) {
+          visitor.visitClassDeclarationIncrementally(
+              _resolutionContext.enclosingClassDeclaration);
+        }
+        if (node is Comment) {
+          visitor.resolveOnlyCommentInFunctionBody = true;
+          node = node.parent;
+        }
+        visitor.initForIncrementalResolution();
+        node.accept(visitor);
+      }
+      // remember errors
+      _resolveErrors = errorListener.getErrorsForSource(_source);
     } finally {
-      elementsRestorer.restore();
-    }
-    // apply compatible changes to elements
-    if (node is FunctionDeclaration) {
-      ExecutableElementImpl oldElement = node.element;
-      // prepare the new element
-      ExecutableElement newElement;
-      {
-        List<FunctionElement> holderFunctions = holder.functions;
-        List<PropertyAccessorElement> holderAccessors = holder.accessors;
-        if (holderFunctions.isNotEmpty) {
-          newElement = holderFunctions[0];
-        } else if (holderAccessors.isNotEmpty) {
-          newElement = holderAccessors[0];
-        }
-      }
-      // update the old Element
-      oldElement.labels = newElement.labels;
-      oldElement.localVariables = newElement.localVariables;
-    }
-    if (node is MethodDeclaration) {
-      ExecutableElementImpl oldElement = node.element;
-      // prepare the new element
-      ExecutableElement newElement;
-      {
-        List<MethodElement> holderMethods = holder.methods;
-        List<PropertyAccessorElement> holderAccessors = holder.accessors;
-        if (holderMethods.isNotEmpty) {
-          newElement = holderMethods[0];
-        } else if (holderAccessors.isNotEmpty) {
-          newElement = holderAccessors[0];
-        }
-      }
-      // update the old Element
-      oldElement.labels = newElement.labels;
-      oldElement.localVariables = newElement.localVariables;
+      timer.stop('resolve references');
     }
   }
 
   void _verify(AstNode node) {
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
-    ErrorVerifier errorVerifier = new ErrorVerifier(
-        errorReporter,
-        _definingLibrary,
-        _typeProvider,
-        new InheritanceManager(_definingLibrary));
-    if (_resolutionContext.enclosingClassDeclaration != null) {
-      errorVerifier.visitClassDeclarationIncrementally(
-          _resolutionContext.enclosingClassDeclaration);
+    LoggingTimer timer = logger.startTimer();
+    try {
+      RecordingErrorListener errorListener = new RecordingErrorListener();
+      ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
+      ErrorVerifier errorVerifier = new ErrorVerifier(
+          errorReporter,
+          _definingLibrary,
+          _typeProvider,
+          new InheritanceManager(_definingLibrary));
+      if (_resolutionContext.enclosingClassDeclaration != null) {
+        errorVerifier.visitClassDeclarationIncrementally(
+            _resolutionContext.enclosingClassDeclaration);
+      }
+      node.accept(errorVerifier);
+      _verifyErrors = errorListener.getErrorsForSource(_source);
+    } finally {
+      timer.stop('verify');
     }
-    node.accept(errorVerifier);
-    _verifyErrors = errorListener.getErrorsForSource(_source);
   }
 
   static void _updateElementNameOffsets(Element root, int offset, int delta) {
-    root.accept(new _ElementNameOffsetUpdater(offset, delta));
+    LoggingTimer timer = logger.startTimer();
+    try {
+      root.accept(new _ElementNameOffsetUpdater(offset, delta));
+    } finally {
+      timer.stop('update element offsets');
+    }
   }
 }
 
@@ -903,7 +1069,9 @@ class PoorMansIncrementalResolver {
   List<AnalysisError> _newHints = <AnalysisError>[];
 
   PoorMansIncrementalResolver(this._typeProvider, this._unitSource,
-      this._librarySource, this._entry);
+      this._librarySource, this._entry, bool resolveApiChanges) {
+    _resolveApiChanges = resolveApiChanges;
+  }
 
   /**
    * Attempts to update [oldUnit] to the state corresponding to [newCode].
@@ -911,6 +1079,8 @@ class PoorMansIncrementalResolver {
    * The [oldUnit] might be damaged.
    */
   bool resolve(CompilationUnit oldUnit, String newCode) {
+    logger.enter('diff/resolve $_unitSource');
+    logger.log(oldUnit != null ? 'has oldUnit' : 'oldUnit is null');
     try {
       CompilationUnit newUnit = _parseUnit(newCode);
       _TokenPair firstPair =
@@ -932,23 +1102,33 @@ class PoorMansIncrementalResolver {
           _updateOffset = beginOffsetOld - 1;
           _updateEndOld = endOffsetOld;
           _updateDelta = newUnit.length - oldUnit.length;
-          _shiftTokens(firstPair.oldToken, _updateDelta);
-          IncrementalResolver._updateElementNameOffsets(
-              oldUnit.element,
-              _updateOffset,
-              _updateDelta);
-          _updateEntry();
-          return true;
+          // A Dart documentation comment change.
+          if (firstPair.kind == _TokenDifferenceKind.COMMENT_DOC) {
+            _resolveComment(oldUnit, newUnit, firstPair);
+            logger.log('Success.');
+            return true;
+          }
+          // A pure whitespace change.
+          if (firstPair.kind == _TokenDifferenceKind.OFFSET) {
+            logger.log('Whitespace change.');
+            _shiftTokens(firstPair.oldToken);
+            IncrementalResolver._updateElementNameOffsets(
+                oldUnit.element,
+                _updateOffset,
+                _updateDelta);
+            _updateEntry();
+            logger.log('Success.');
+            return true;
+          }
+          // fall-through, end-of-line comment
         }
-//        print('beginOffsetOld: $beginOffsetOld endOffsetOld: $endOffsetOld');
-//        print('beginOffsetNew: $beginOffsetNew endOffsetNew: $endOffsetNew');
         // Find nodes covering the "old" and "new" token ranges.
         AstNode oldNode =
             _findNodeCovering(oldUnit, beginOffsetOld, endOffsetOld);
         AstNode newNode =
             _findNodeCovering(newUnit, beginOffsetNew, endOffsetNew);
-//        print('oldNode: $oldNode');
-//        print('newNode: $newNode');
+        logger.log(() => 'oldNode: $oldNode');
+        logger.log(() => 'newNode: $newNode');
         // Try to find the smallest common node, a FunctionBody currently.
         {
           List<AstNode> oldParents = _getParents(oldNode);
@@ -974,11 +1154,12 @@ class PoorMansIncrementalResolver {
             }
           }
           if (!found) {
+            logger.log('Failure: no enclosing function body or executable.');
             return false;
           }
         }
-//        print('oldNode: $oldNode');
-//        print('newNode: $newNode');
+        logger.log(() => 'oldNode: $oldNode');
+        logger.log(() => 'newNode: $newNode');
         // prepare update range
         _updateOffset = oldNode.offset;
         _updateEndOld = oldNode.end;
@@ -988,48 +1169,89 @@ class PoorMansIncrementalResolver {
         NodeReplacer.replace(oldNode, newNode);
         // update token references
         {
-          Token oldBeginToken = oldNode.beginToken;
+          Token oldBeginToken = _getBeginTokenNotComment(oldNode);
+          Token newBeginToken = _getBeginTokenNotComment(newNode);
           if (oldBeginToken.previous.type == TokenType.EOF) {
-            oldUnit.beginToken = newNode.beginToken;
+            oldUnit.beginToken = newBeginToken;
           } else {
-            oldBeginToken.previous.setNext(newNode.beginToken);
+            oldBeginToken.previous.setNext(newBeginToken);
           }
           newNode.endToken.setNext(oldNode.endToken.next);
-          _shiftTokens(oldNode.endToken.next, _updateDelta);
+          _shiftTokens(oldNode.endToken.next);
         }
         // perform incremental resolution
         CompilationUnitElement oldUnitElement = oldUnit.element;
         IncrementalResolver incrementalResolver = new IncrementalResolver(
             _typeProvider,
-            oldUnitElement.library,
             oldUnitElement,
-            oldUnitElement.source,
             _updateOffset,
             oldNode.length,
             newNode.length);
-        incrementalResolver.resolve(newNode);
+        bool success = incrementalResolver.resolve(newNode);
+        // check if success
+        if (!success) {
+          logger.log('Failure: element model changed.');
+          return false;
+        }
+        // update DartEntry
         _newResolveErrors = incrementalResolver._resolveErrors;
         _newVerifyErrors = incrementalResolver._verifyErrors;
         _newHints = incrementalResolver._hints;
         _updateEntry();
-//        print('Successfully incrementally resolved.');
+        logger.log('Success.');
         return true;
       }
-    } catch (e) {
-      // TODO(scheglov) find a way to log these exceptions
-//      print(e);
-//      print(st);
+    } catch (e, st) {
+      logger.log(e);
+      logger.log(st);
+      logger.log('Failure: exception.');
+    } finally {
+      logger.exit();
     }
     return false;
   }
 
   CompilationUnit _parseUnit(String code) {
-    Token token = _scan(code);
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    Parser parser = new Parser(_unitSource, errorListener);
-    CompilationUnit unit = parser.parseCompilationUnit(token);
-    _newParseErrors = errorListener.errors;
-    return unit;
+    LoggingTimer timer = logger.startTimer();
+    try {
+      Token token = _scan(code);
+      RecordingErrorListener errorListener = new RecordingErrorListener();
+      Parser parser = new Parser(_unitSource, errorListener);
+      CompilationUnit unit = parser.parseCompilationUnit(token);
+      _newParseErrors = errorListener.errors;
+      return unit;
+    } finally {
+      timer.stop('parse');
+    }
+  }
+
+  void _resolveComment(CompilationUnit oldUnit, CompilationUnit newUnit,
+      _TokenPair firstPair) {
+    Token oldToken = firstPair.oldToken;
+    CommentToken precedingComments = oldToken.precedingComments;
+    int offset = precedingComments.offset;
+    logger.log('offset: $offset');
+    Comment oldComment = _findNodeCovering(oldUnit, offset, offset);
+    Comment newComment = _findNodeCovering(newUnit, offset, offset);
+    logger.log('oldComment.beginToken: ${oldComment.beginToken}');
+    logger.log('newComment.beginToken: ${newComment.beginToken}');
+    _updateOffset = oldToken.offset - 1;
+    // update token references
+    _shiftTokens(firstPair.oldToken);
+    _setPrecedingComments(oldToken, newComment.tokens.first);
+    // replace node
+    NodeReplacer.replace(oldComment, newComment);
+    // update elements
+    IncrementalResolver._updateElementNameOffsets(
+        oldUnit.element,
+        _updateOffset,
+        _updateDelta);
+    _updateEntry();
+    // resolve references in the comment
+    CompilationUnitElement oldUnitElement = oldUnit.element;
+    IncrementalResolver incrementalResolver =
+        new IncrementalResolver(_typeProvider, oldUnitElement, _updateOffset, 0, 0);
+    incrementalResolver._resolveReferences(newComment);
   }
 
   Token _scan(String code) {
@@ -1039,6 +1261,26 @@ class PoorMansIncrementalResolver {
     Token token = scanner.tokenize();
     _newScanErrors = errorListener.errors;
     return token;
+  }
+
+  void _shiftTokens(Token token) {
+    while (token != null) {
+      if (token.offset > _updateOffset) {
+        token.offset += _updateDelta;
+      }
+      // comments
+      _shiftTokens(token.precedingComments);
+      if (token is DocumentationCommentToken) {
+        for (Token reference in token.references) {
+          _shiftTokens(reference);
+        }
+      }
+      // next
+      if (token.type == TokenType.EOF) {
+        break;
+      }
+      token = token.next;
+    }
   }
 
   void _updateEntry() {
@@ -1062,12 +1304,7 @@ class PoorMansIncrementalResolver {
           _librarySource,
           errors);
     }
-    {
-      List<AnalysisError> oldErrors =
-          _entry.getValueInLibrary(DartEntry.HINTS, _librarySource);
-      List<AnalysisError> errors = _updateErrors(oldErrors, _newHints);
-      _entry.setValueInLibrary(DartEntry.HINTS, _librarySource, errors);
-    }
+    _entry.setValueInLibrary(DartEntry.HINTS, _librarySource, _newHints);
   }
 
   List<AnalysisError> _updateErrors(List<AnalysisError> oldErrors,
@@ -1094,39 +1331,82 @@ class PoorMansIncrementalResolver {
     return errors;
   }
 
-  static bool _equalToken(Token oldToken, Token newToken, int delta) {
+  static _TokenDifferenceKind _compareToken(Token oldToken, Token newToken,
+      int delta) {
+    if (oldToken == null && newToken == null) {
+      return null;
+    }
+    if (oldToken == null || newToken == null) {
+      return _TokenDifferenceKind.CONTENT;
+    }
     if (oldToken.type != newToken.type) {
-      return false;
+      return _TokenDifferenceKind.CONTENT;
+    }
+    if (oldToken.lexeme != newToken.lexeme) {
+      return _TokenDifferenceKind.CONTENT;
     }
     if (newToken.offset - oldToken.offset != delta) {
-      return false;
-    }
-    return oldToken.lexeme == newToken.lexeme;
-  }
-
-  static _TokenPair _findFirstDifferentToken(Token oldToken, Token newToken) {
-//    print('first ------------');
-    while (oldToken.type != TokenType.EOF && newToken.type != TokenType.EOF) {
-//      print('old: $oldToken @ ${oldToken.offset}');
-//      print('new: $newToken @ ${newToken.offset}');
-      if (!_equalToken(oldToken, newToken, 0)) {
-        return new _TokenPair(oldToken, newToken);
-      }
-      oldToken = oldToken.next;
-      newToken = newToken.next;
+      return _TokenDifferenceKind.OFFSET;
     }
     return null;
   }
 
+  static _TokenPair _findFirstDifferentToken(Token oldToken, Token newToken) {
+    while (true) {
+      if (oldToken.type == TokenType.EOF && newToken.type == TokenType.EOF) {
+        return null;
+      }
+      if (oldToken.type == TokenType.EOF || newToken.type == TokenType.EOF) {
+        return new _TokenPair(_TokenDifferenceKind.CONTENT, oldToken, newToken);
+      }
+      // compare comments
+      {
+        Token oldComment = oldToken.precedingComments;
+        Token newComment = newToken.precedingComments;
+        if (_compareToken(oldComment, newComment, 0) != null) {
+          _TokenDifferenceKind diffKind = _TokenDifferenceKind.COMMENT;
+          if (oldComment is DocumentationCommentToken ||
+              newComment is DocumentationCommentToken) {
+            diffKind = _TokenDifferenceKind.COMMENT_DOC;
+          }
+          return new _TokenPair(diffKind, oldToken, newToken);
+        }
+      }
+      // compare tokens
+      _TokenDifferenceKind diffKind = _compareToken(oldToken, newToken, 0);
+      if (diffKind != null) {
+        return new _TokenPair(diffKind, oldToken, newToken);
+      }
+      // next tokens
+      oldToken = oldToken.next;
+      newToken = newToken.next;
+    }
+    // no difference
+    return null;
+  }
+
   static _TokenPair _findLastDifferentToken(Token oldToken, Token newToken) {
-//    print('last ------------');
     int delta = newToken.offset - oldToken.offset;
     while (oldToken.previous != oldToken && newToken.previous != newToken) {
-//      print('old: $oldToken @ ${oldToken.offset}');
-//      print('new: $newToken @ ${newToken.offset}');
-      if (!_equalToken(oldToken, newToken, delta)) {
-        return new _TokenPair(oldToken.next, newToken.next);
+      // compare tokens
+      _TokenDifferenceKind diffKind = _compareToken(oldToken, newToken, delta);
+      if (diffKind != null) {
+        return new _TokenPair(diffKind, oldToken.next, newToken.next);
       }
+      // compare comments
+      {
+        Token oldComment = oldToken.precedingComments;
+        Token newComment = newToken.precedingComments;
+        if (_compareToken(oldComment, newComment, delta) != null) {
+          _TokenDifferenceKind diffKind = _TokenDifferenceKind.COMMENT;
+          if (oldComment is DocumentationCommentToken ||
+              newComment is DocumentationCommentToken) {
+            diffKind = _TokenDifferenceKind.COMMENT_DOC;
+          }
+          return new _TokenPair(diffKind, oldToken, newToken);
+        }
+      }
+      // next tokens
       oldToken = oldToken.previous;
       newToken = newToken.previous;
     }
@@ -1138,6 +1418,15 @@ class PoorMansIncrementalResolver {
     return nodeLocator.searchWithin(root);
   }
 
+  static Token _getBeginTokenNotComment(AstNode node) {
+    Token oldBeginToken = node.beginToken;
+    if (oldBeginToken is CommentToken) {
+      oldBeginToken = (oldBeginToken as CommentToken).parent;
+    }
+    return oldBeginToken;
+  }
+
+
   static List<AstNode> _getParents(AstNode node) {
     List<AstNode> parents = <AstNode>[];
     while (node != null) {
@@ -1147,13 +1436,21 @@ class PoorMansIncrementalResolver {
     return parents;
   }
 
-  static void _shiftTokens(Token token, int delta) {
-    while (true) {
-      token.offset += delta;
-      if (token.type == TokenType.EOF) {
-        break;
-      }
-      token = token.next;
+  /**
+   * Set the given [comment] as a "precedingComments" for [parent].
+   */
+  static void _setPrecedingComments(Token parent, CommentToken comment) {
+    if (parent is BeginTokenWithComment) {
+      parent.precedingComments = comment;
+    } else if (parent is KeywordTokenWithComment) {
+      parent.precedingComments = comment;
+    } else if (parent is StringTokenWithComment) {
+      parent.precedingComments = comment;
+    } else if (parent is TokenWithComment) {
+      parent.precedingComments = comment;
+    } else {
+      Type parentType = parent != null ? parent.runtimeType : null;
+      throw new AnalysisException('Uknown parent token type: $parentType');
     }
   }
 }
@@ -1163,6 +1460,7 @@ class PoorMansIncrementalResolver {
  * The context to resolve an [AstNode] in.
  */
 class ResolutionContext {
+  CompilationUnitElement enclosingUnit;
   ClassDeclaration enclosingClassDeclaration;
   ClassElement enclosingClass;
   Scope scope;
@@ -1179,6 +1477,11 @@ class ResolutionContextBuilder {
    * The listener to which analysis errors will be reported.
    */
   final AnalysisErrorListener _errorListener;
+
+  /**
+   * The class containing the enclosing [CompilationUnitElement].
+   */
+  CompilationUnitElement _enclosingUnit;
 
   /**
    * The class containing the enclosing [ClassDeclaration], or `null` if we are
@@ -1282,12 +1585,12 @@ class ResolutionContextBuilder {
   }
 
   Scope _scopeForCompilationUnit(CompilationUnit node) {
-    CompilationUnitElement unitElement = node.element;
-    if (unitElement == null) {
+    _enclosingUnit = node.element;
+    if (_enclosingUnit == null) {
       throw new AnalysisException(
           "Cannot create scope: compilation unit is not resolved");
     }
-    LibraryElement libraryElement = unitElement.library;
+    LibraryElement libraryElement = _enclosingUnit.library;
     if (libraryElement == null) {
       throw new AnalysisException(
           "Cannot create scope: compilation unit is not part of a library");
@@ -1316,6 +1619,7 @@ class ResolutionContextBuilder {
     // prepare context
     ResolutionContext context = new ResolutionContext();
     context.scope = scope;
+    context.enclosingUnit = builder._enclosingUnit;
     context.enclosingClassDeclaration = builder._enclosingClassDeclaration;
     context.enclosingClass = builder._enclosingClass;
     return context;
@@ -1400,65 +1704,33 @@ class _ElementsGatherer extends GeneralizingElementVisitor {
   void _addElement(Element element) {
     if (element != null) {
       matcher._allElements.add(element);
-      matcher._unmatchedElements.add(element);
+      matcher._removedElements.add(element);
     }
   }
 }
 
 
 /**
- * [ElementBuilder] not just builds elements, it also applies them to nodes.
- * But we want to keep externally visible (and referenced) elements instances.
- * So, we need to remember them and restore.
+ * Describes how two [Token]s are different.
  */
-class _ElementsRestorer extends RecursiveAstVisitor {
-  final Map<AstNode, Element> _elements = <AstNode, Element>{};
+class _TokenDifferenceKind {
+  static const COMMENT = const _TokenDifferenceKind('COMMENT');
+  static const COMMENT_DOC = const _TokenDifferenceKind('COMMENT_DOC');
+  static const CONTENT = const _TokenDifferenceKind('CONTENT');
+  static const OFFSET = const _TokenDifferenceKind('OFFSET');
 
-  _ElementsRestorer(AstNode root) {
-    root.accept(this);
-  }
+  final String name;
 
-  void restore() {
-    _elements.forEach((AstNode node, Element element) {
-      if (node is ConstructorDeclaration) {
-        node.element = element;
-      } else if (node is FunctionExpression) {
-        node.element = element;
-      } else if (node is SimpleIdentifier) {
-        node.staticElement = element;
-      }
-    });
-  }
+  const _TokenDifferenceKind(this.name);
 
   @override
-  visitBlockFunctionBody(BlockFunctionBody node) {
-  }
-
-  @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
-    _elements[node] = node.element;
-    super.visitConstructorDeclaration(node);
-  }
-
-  @override
-  visitExpressionFunctionBody(ExpressionFunctionBody node) {
-  }
-
-  @override
-  visitFunctionExpression(FunctionExpression node) {
-    _elements[node] = node.element;
-    super.visitFunctionExpression(node);
-  }
-
-  @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
-    _elements[node] = node.staticElement;
-  }
+  String toString() => name;
 }
 
 
 class _TokenPair {
+  final _TokenDifferenceKind kind;
   final Token oldToken;
   final Token newToken;
-  _TokenPair(this.oldToken, this.newToken);
+  _TokenPair(this.kind, this.oldToken, this.newToken);
 }

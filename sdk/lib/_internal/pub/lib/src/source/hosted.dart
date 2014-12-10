@@ -124,30 +124,36 @@ class HostedSource extends CachedSource {
 
   /// Re-downloads all packages that have been previously downloaded into the
   /// system cache from any server.
-  Future<Pair<int, int>> repairCachedPackages() {
-    if (!dirExists(systemCacheRoot)) return new Future.value(new Pair(0, 0));
+  Future<Pair<int, int>> repairCachedPackages() async {
+    if (!dirExists(systemCacheRoot)) return new Pair(0, 0);
 
     var successes = 0;
     var failures = 0;
 
-    return Future.wait(listDir(systemCacheRoot).map((serverDir) {
+    for (var serverDir in listDir(systemCacheRoot)) {
       var url = _directoryToUrl(path.basename(serverDir));
       var packages = _getCachedPackagesInDirectory(path.basename(serverDir));
       packages.sort(Package.orderByNameAndVersion);
-      return Future.wait(packages.map((package) {
-        return _download(url, package.name, package.version, package.dir)
-            .then((_) {
+      // TODO(nweiz): Use a normal for loop here when
+      // https://github.com/dart-lang/async_await/issues/72 is fixed.
+      await Future.forEach(packages, (package) async {
+        try {
+          await _download(url, package.name, package.version, package.dir);
           successes++;
-        }).catchError((error, stackTrace) {
+        } catch (error, stackTrace) {
           failures++;
           var message = "Failed to repair ${log.bold(package.name)} "
               "${package.version}";
           if (url != defaultUrl) message += " from $url";
           log.error("$message. Error:\n$error");
           log.fine(stackTrace);
-        });
-      }));
-    })).then((_) => new Pair(successes, failures));
+
+          tryDeleteEntry(package.dir);
+        }
+      });
+    }
+
+    return new Pair(successes, failures);
   }
 
   /// Gets all of the packages that have been downloaded into the system cache

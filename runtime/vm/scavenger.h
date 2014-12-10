@@ -159,6 +159,13 @@ class Scavenger {
   void Scavenge();
   void Scavenge(bool invoke_api_callbacks);
 
+  // Promote all live objects.
+  void Evacuate() {
+    Scavenge();
+    Scavenge();
+    ASSERT(UsedInWords() == 0);
+  }
+
   // Accessors to generate code for inlined allocation.
   uword* TopAddress() { return &top_; }
   uword* EndAddress() { return &end_; }

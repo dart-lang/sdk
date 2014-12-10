@@ -1,3 +1,7 @@
+#### 0.12.2
+  * Updated to match release 0.5.1
+    [observe-js#d530515](https://github.com/Polymer/observe-js/commit/d530515).
+
 #### 0.12.1+1
   * Expand stack_trace version constraint.
 

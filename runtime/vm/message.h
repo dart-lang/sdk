@@ -30,7 +30,8 @@ class Message {
   typedef enum {
     kIllegalOOB = 0,
     kServiceOOBMsg = 1,
-    kIsolateLibOOBMsg = 2
+    kIsolateLibOOBMsg = 2,
+    kDelayedIsolateLibOOBMsg = 3,
   } OOBMsgTag;
 
   // A port number which is never used.
@@ -50,7 +51,6 @@ class Message {
         data_(data),
         len_(len),
         priority_(priority) {
-    ASSERT(dest_port != kIllegalPort);
     ASSERT((priority == kNormalPriority) ||
            (delivery_failure_port == kIllegalPort));
   }
@@ -87,7 +87,7 @@ class MessageQueue {
   MessageQueue();
   ~MessageQueue();
 
-  void Enqueue(Message* msg);
+  void Enqueue(Message* msg, bool before_events);
 
   // Gets the next message from the message queue or NULL if no
   // message is available.  This function will not block.

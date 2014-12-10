@@ -1163,6 +1163,10 @@ class Assembler : public ValueObject {
     }
   }
 
+  void LoadFieldFromOffset(Register reg, Register base, int32_t offset) {
+    LoadFromOffset(reg, base, offset - kHeapObjectTag);
+  }
+
   void StoreToOffset(Register reg, Register base, int32_t offset) {
     ASSERT(!in_delay_slot_);
     if (Utils::IsInt(kImmBits, offset)) {

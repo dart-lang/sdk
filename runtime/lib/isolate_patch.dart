@@ -17,6 +17,17 @@ patch class Capability {
 
 class _CapabilityImpl implements Capability {
   factory _CapabilityImpl() native "CapabilityImpl_factory";
+
+  bool operator==(var other) {
+    return (other is _CapabilityImpl) && _equals(other);
+  }
+
+  int get hashCode {
+    return _get_hashcode();
+  }
+
+  _equals(other) native "CapabilityImpl_equals";
+  _get_hashcode() native "CapabilityImpl_get_hashcode";
 }
 
 patch class RawReceivePort {
@@ -311,6 +322,8 @@ patch class Isolate {
   // in vm/isolate.cc.
   static const _PAUSE = 1;
   static const _RESUME = 2;
+  static const _PING = 3;
+
 
   static SendPort _spawnFunction(SendPort readyPort, Function topLevelFunction,
                                  var message)
@@ -358,7 +371,12 @@ patch class Isolate {
   }
 
   /* patch */ void ping(SendPort responsePort, [int pingType = IMMEDIATE]) {
-    throw new UnsupportedError("ping");
+    var msg = new List(4)
+        ..[0] = 0  // Make room for OOM message type.
+        ..[1] = _PING
+        ..[2] = responsePort
+        ..[3] = pingType;
+    _sendOOB(controlPort, msg);
   }
 
   /* patch */ void addErrorListener(SendPort port) {

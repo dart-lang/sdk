@@ -294,7 +294,6 @@ class C = Object with A implements B; // 3
         _expectedLocation(classElementC, 'B; // 3'));
   }
 
-
   void test_isInvokedBy_FieldElement() {
     _indexTestUnit('''
 class A {
@@ -786,6 +785,34 @@ main() {
         consA_named,
         IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(mainElement, '.named(); // marker-main-2', length: 6));
+  }
+
+  void test_isReferencedBy_ConstructorElement_redirection() {
+    _indexTestUnit('''
+class A {
+  A() : this.bar();
+  A.foo() : this(); // marker
+  A.bar();
+}
+''');
+    // prepare elements
+    var isConstructor = (node) => node is ConstructorDeclaration;
+    ConstructorElement constructorA =
+        findNodeElementAtString("A()", isConstructor);
+    ConstructorElement constructorA_foo =
+        findNodeElementAtString("A.foo()", isConstructor);
+    ConstructorElement constructorA_bar =
+        findNodeElementAtString("A.bar()", isConstructor);
+    // A()
+    _assertRecordedRelation(
+        constructorA,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(constructorA_foo, '(); // marker', length: 0));
+    // A.foo()
+    _assertRecordedRelation(
+        constructorA_bar,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(constructorA, '.bar();', length: 4));
   }
 
   void test_isReferencedBy_ConstructorFieldInitializer() {

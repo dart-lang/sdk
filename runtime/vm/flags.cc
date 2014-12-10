@@ -208,9 +208,16 @@ bool Flags::SetFlagFromString(Flag* flag, const char* argument) {
     }
     case Flag::kInteger: {
       char* endptr = NULL;
-      int val = strtol(argument, &endptr, 10);
-      if (endptr != argument) {
+      const intptr_t len = strlen(argument);
+      int base = 10;
+      if ((len > 2) && (argument[0] == '0') && (argument[1] == 'x')) {
+        base = 16;
+      }
+      int val = strtol(argument, &endptr, base);
+      if (endptr == argument + len) {
         *flag->int_ptr_ = val;
+      } else {
+        return false;
       }
       break;
     }

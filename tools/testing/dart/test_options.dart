@@ -7,7 +7,7 @@ library test_options_parser;
 import "dart:io";
 import "drt_updater.dart";
 import "test_suite.dart";
-import "utils.dart";
+import "path.dart";
 import "compiler_configuration.dart" show CompilerConfiguration;
 import "runtime_configuration.dart" show RuntimeConfiguration;
 

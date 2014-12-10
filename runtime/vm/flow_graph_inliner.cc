@@ -41,7 +41,9 @@ DEFINE_FLAG(int, inlining_caller_size_threshold, 50000,
 DEFINE_FLAG(int, inlining_constant_arguments_count, 1,
     "Inline function calls with sufficient constant arguments "
     "and up to the increased threshold on instructions");
-DEFINE_FLAG(int, inlining_constant_arguments_size_threshold, 60,
+DEFINE_FLAG(int, inlining_constant_arguments_max_size_threshold, 200,
+    "Do not inline callees larger than threshold if constant arguments");
+DEFINE_FLAG(int, inlining_constant_arguments_min_size_threshold, 60,
     "Inline function calls with sufficient constant arguments "
     "and up to the increased threshold on instructions");
 DEFINE_FLAG(int, inlining_hotness, 10,
@@ -192,7 +194,7 @@ class CallSites : public ValueObject {
                      FlowGraph* flow_graph)
         : call(call_arg),
           ratio(0.0),
-          caller(&flow_graph->parsed_function().function()) {}
+          caller(&flow_graph->parsed_function()->function()) {}
   };
 
   struct StaticCallInfo {
@@ -202,7 +204,7 @@ class CallSites : public ValueObject {
     StaticCallInfo(StaticCallInstr* value, FlowGraph* flow_graph)
         : call(value),
           ratio(0.0),
-          caller(&flow_graph->parsed_function().function()) {}
+          caller(&flow_graph->parsed_function()->function()) {}
   };
 
   struct ClosureCallInfo {
@@ -210,7 +212,7 @@ class CallSites : public ValueObject {
     const Function* caller;
     ClosureCallInfo(ClosureCallInstr* value, FlowGraph* flow_graph)
         : call(value),
-          caller(&flow_graph->parsed_function().function()) {}
+          caller(&flow_graph->parsed_function()->function()) {}
   };
 
   const GrowableArray<InstanceCallInfo>& instance_calls() const {
@@ -286,7 +288,7 @@ class CallSites : public ValueObject {
       FlowGraph* graph,
       intptr_t depth,
       GrowableArray<InlinedInfo>* inlined_info) {
-    const Function* caller = &graph->parsed_function().function();
+    const Function* caller = &graph->parsed_function()->function();
     Function& target  = Function::ZoneHandle();
     for (BlockIterator block_it = graph->postorder_iterator();
          !block_it.Done();
@@ -353,7 +355,7 @@ class CallSites : public ValueObject {
             // Method not inlined because inlining too deep and method
             // not recognized.
             if (FLAG_print_inlining_tree) {
-              const Function* caller = &graph->parsed_function().function();
+              const Function* caller = &graph->parsed_function()->function();
               const Function* target =
                   &Function::ZoneHandle(
                       instance_call->ic_data().GetTargetAt(0));
@@ -370,7 +372,7 @@ class CallSites : public ValueObject {
             // Method not inlined because inlining too deep and method
             // not recognized.
             if (FLAG_print_inlining_tree) {
-              const Function* caller = &graph->parsed_function().function();
+              const Function* caller = &graph->parsed_function()->function();
               const Function* target = &static_call->function();
               inlined_info->Add(InlinedInfo(
                   caller, target, depth + 1, static_call, "Too deep"));
@@ -498,7 +500,11 @@ class CallSiteInliner : public ValueObject {
       // Prevent methods becoming humongous and thus slow to compile.
       return false;
     }
-    if (instr_count > FLAG_inlining_callee_size_threshold) {
+    if (const_arg_count > 0) {
+      if (instr_count > FLAG_inlining_constant_arguments_max_size_threshold) {
+        return false;
+      }
+    } else if (instr_count > FLAG_inlining_callee_size_threshold) {
       return false;
     }
     // 'instr_count' can be 0 if it was not computed yet.
@@ -509,7 +515,7 @@ class CallSiteInliner : public ValueObject {
       return true;
     }
     if ((const_arg_count >= FLAG_inlining_constant_arguments_count) &&
-        (instr_count <= FLAG_inlining_constant_arguments_size_threshold)) {
+        (instr_count <= FLAG_inlining_constant_arguments_min_size_threshold)) {
       return true;
     }
     if (FlowGraphInliner::AlwaysInline(callee)) {
@@ -521,7 +527,7 @@ class CallSiteInliner : public ValueObject {
   void InlineCalls() {
     // If inlining depth is less then one abort.
     if (FLAG_inlining_depth_threshold < 1) return;
-    if (caller_graph_->parsed_function().function().deoptimization_counter() >=
+    if (caller_graph_->parsed_function()->function().deoptimization_counter() >=
         FLAG_deoptimization_counter_inlining_threshold) {
       return;
     }
@@ -590,15 +596,6 @@ class CallSiteInliner : public ValueObject {
     TRACE_INLINING(OS::Print("  => %s (deopt count %d)\n",
                              function.ToCString(),
                              function.deoptimization_counter()));
-
-    // TODO(fschneider): Enable inlining inside try-blocks.
-    if (call_data->call->GetBlock()->try_index() !=
-        CatchClauseNode::kInvalidTryIndex) {
-      TRACE_INLINING(OS::Print("     Bailout: inside try-block\n"));
-      PRINT_INLINING_TREE("Inside try-block",
-          &call_data->caller, &function, call_data->call);
-      return false;
-    }
 
     // Make a handle for the unoptimized code so that it is not disconnected
     // from the function while we are trying to inline it.
@@ -730,6 +727,17 @@ class CallSiteInliner : public ValueObject {
       ASSERT(arguments->length() == function.NumParameters());
       ASSERT(param_stubs->length() == callee_graph->parameter_count());
 
+      // Update try-index of the callee graph.
+      BlockEntryInstr* call_block = call_data->call->GetBlock();
+      if (call_block->InsideTryBlock()) {
+        intptr_t try_index = call_block->try_index();
+        for (BlockIterator it = callee_graph->reverse_postorder_iterator();
+             !it.Done(); it.Advance()) {
+          BlockEntryInstr* block = it.Current();
+          block->set_try_index(try_index);
+        }
+      }
+
       BlockScheduler block_scheduler(callee_graph);
       block_scheduler.AssignEdgeWeights();
 
@@ -785,7 +793,8 @@ class CallSiteInliner : public ValueObject {
         // If size is larger than all thresholds, don't consider it again.
         if ((size > FLAG_inlining_size_threshold) &&
             (call_site_count > FLAG_inlining_callee_call_sites_threshold) &&
-            (size > FLAG_inlining_constant_arguments_size_threshold)) {
+            (size > FLAG_inlining_constant_arguments_min_size_threshold) &&
+            (size > FLAG_inlining_constant_arguments_max_size_threshold)) {
           function.set_is_inlinable(false);
         }
         isolate()->set_deopt_id(prev_deopt_id);
@@ -1706,7 +1715,7 @@ static uint16_t ClampUint16(intptr_t v) {
 
 
 void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph, bool force) {
-  const Function& function = flow_graph->parsed_function().function();
+  const Function& function = flow_graph->parsed_function()->function();
   if (force || (function.optimized_instruction_count() == 0)) {
     GraphInfoCollector info;
     info.Collect(*flow_graph);
@@ -1743,7 +1752,7 @@ void FlowGraphInliner::Inline() {
   // We might later use it for an early bailout from the inlining.
   CollectGraphInfo(flow_graph_);
 
-  const Function& top = flow_graph_->parsed_function().function();
+  const Function& top = flow_graph_->parsed_function()->function();
   if ((FLAG_inlining_filter != NULL) &&
       (strstr(top.ToFullyQualifiedCString(), FLAG_inlining_filter) == NULL)) {
     return;
@@ -1754,7 +1763,7 @@ void FlowGraphInliner::Inline() {
   if (FLAG_trace_inlining &&
       (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized)) {
     OS::Print("Before Inlining of %s\n", flow_graph_->
-              parsed_function().function().ToFullyQualifiedCString());
+              parsed_function()->function().ToFullyQualifiedCString());
     FlowGraphPrinter printer(*flow_graph_);
     printer.PrintBlocks();
   }
@@ -1771,7 +1780,7 @@ void FlowGraphInliner::Inline() {
       OS::Print("Inlining growth factor: %f\n", inliner.GrowthFactor());
       if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
         OS::Print("After Inlining of %s\n", flow_graph_->
-                  parsed_function().function().ToFullyQualifiedCString());
+                  parsed_function()->function().ToFullyQualifiedCString());
         FlowGraphPrinter printer(*flow_graph_);
         printer.PrintBlocks();
       }

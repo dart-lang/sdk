@@ -42,7 +42,7 @@ void main() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '$WEB_COMPONENTS_TAG'
+          '$COMPATIBILITY_JS_TAGS'
           '</head><body>'
           '<script src="test.html_bootstrap.dart.js" async=""></script>'
           '</body></html>',
@@ -82,7 +82,7 @@ void main() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '$WEB_COMPONENTS_TAG'
+          '$COMPATIBILITY_JS_TAGS'
           '</head><body>'
           '<script src="test.html_bootstrap.dart.js" async=""></script>'
           '</body></html>',
@@ -130,7 +130,7 @@ void main() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '$WEB_COMPONENTS_TAG\n\n'
+          '$COMPATIBILITY_JS_TAGS\n\n'
           '</head><body>'
           '<div>\n</div>\n'
           '<script src="test.html_bootstrap.dart.js" async=""></script>'
@@ -200,7 +200,7 @@ void main() {
     }, {
       'a|web/index.html':
           '<!DOCTYPE html><html><head>'
-          '$WEB_COMPONENTS_TAG'
+          '$COMPATIBILITY_JS_TAGS'
           '</head><body>'
           '<div hidden="">'
           '<polymer-element name="x-a">1</polymer-element>'
@@ -262,7 +262,7 @@ void main() {
     }, {
       'a|web/index.html':
           '<!DOCTYPE html><html><head>'
-          '$WEB_COMPONENTS_TAG'
+          '$COMPATIBILITY_JS_TAGS'
           '</head><body>'
           '<div hidden="">'
           '<polymer-element name="x-a">1</polymer-element>'

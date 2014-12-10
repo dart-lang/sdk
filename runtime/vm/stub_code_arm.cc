@@ -917,7 +917,8 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R3: next object start.
     // R6: allocation stats address.
     __ LoadImmediate(R4, reinterpret_cast<intptr_t>(Object::null()));
-    __ str(R4, FieldAddress(R0, Context::parent_offset()));
+    __ StoreIntoObjectNoBarrier(R0, FieldAddress(R0, Context::parent_offset()),
+                                R4);
 
     // Initialize the context variables.
     // R0: new object.
@@ -1100,22 +1101,15 @@ void StubCode::GenerateAllocationStubForClass(
     // R5: allocation stats table.
     // First try inlining the initialization without a loop.
     if (instance_size < (kInlineInstanceSize * kWordSize)) {
-      // Check if the object contains any non-header fields.
       // Small objects are initialized using a consecutive set of writes.
-      intptr_t current_offset = Instance::NextFieldOffset();
-      // Write two nulls at a time.
-      if (instance_size >= 2 * kWordSize) {
+      intptr_t begin_offset = Instance::NextFieldOffset() - kHeapObjectTag;
+      intptr_t end_offset = instance_size - kHeapObjectTag;
+      // Save one move if less than two fields.
+      if ((end_offset - begin_offset) >= (2 * kWordSize)) {
         __ mov(R3, Operand(R2));
-        while (current_offset + kWordSize < instance_size) {
-          __ StoreToOffset(kWordPair, R2, R0, current_offset - kHeapObjectTag);
-          current_offset += 2 * kWordSize;
-        }
       }
-      // Write remainder.
-      while (current_offset < instance_size) {
-        __ StoreToOffset(kWord, R2, R0, current_offset - kHeapObjectTag);
-        current_offset += kWordSize;
-      }
+      __ InitializeFieldsNoBarrierUnrolled(R0, R0, begin_offset, end_offset,
+                                           R2, R3);
     } else {
       // There are more than kInlineInstanceSize(12) fields
       __ add(R4, R0, Operand(Instance::NextFieldOffset() - kHeapObjectTag));
@@ -1132,8 +1126,8 @@ void StubCode::GenerateAllocationStubForClass(
     if (is_cls_parameterized) {
       // Set the type arguments in the new object.
       __ ldr(R4, Address(SP, 0));
-      __ StoreToOffset(kWord, R4,
-                       R0, cls.type_arguments_field_offset() - kHeapObjectTag);
+      FieldAddress type_args(R0, cls.type_arguments_field_offset());
+      __ StoreIntoObjectNoBarrier(R0, type_args, R4);
     }
 
     // Done allocating and initializing the instance.
@@ -1303,7 +1297,7 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ LoadFromOffset(kWord, R1, R6, count_offset);
   __ adds(R1, R1, Operand(Smi::RawValue(1)));
   __ LoadImmediate(R1, Smi::RawValue(Smi::kMaxValue), VS);  // Overflow.
-  __ StoreToOffset(kWord, R1, R6, count_offset);
+  __ StoreIntoSmiField(Address(R6, count_offset), R1);
   __ Ret();
 }
 
@@ -1447,7 +1441,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ LoadFromOffset(kWord, R1, R6, count_offset);
   __ adds(R1, R1, Operand(Smi::RawValue(1)));
   __ LoadImmediate(R1, Smi::RawValue(Smi::kMaxValue), VS);  // Overflow.
-  __ StoreToOffset(kWord, R1, R6, count_offset);
+  __ StoreIntoSmiField(Address(R6, count_offset), R1);
 
   __ Bind(&call_target_function);
   // R0: target function.
@@ -1580,7 +1574,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ LoadFromOffset(kWord, R1, R6, count_offset);
   __ adds(R1, R1, Operand(Smi::RawValue(1)));
   __ LoadImmediate(R1, Smi::RawValue(Smi::kMaxValue), VS);  // Overflow.
-  __ StoreToOffset(kWord, R1, R6, count_offset);
+  __ StoreIntoSmiField(Address(R6, count_offset), R1);
 
   // Load arguments descriptor into R4.
   __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));

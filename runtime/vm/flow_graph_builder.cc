@@ -38,6 +38,7 @@ DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
 
+DECLARE_FLAG(bool, enable_asserts);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
@@ -249,7 +250,6 @@ FlowGraphBuilder::FlowGraphBuilder(
             : 0),
         num_stack_locals_(parsed_function->num_stack_locals()),
         exit_collector_(exit_collector),
-        guarded_fields_(new(I) ZoneGrowableArray<const Field*>()),
         last_used_block_id_(0),  // 0 is used for the graph entry.
         try_index_(CatchClauseNode::kInvalidTryIndex),
         catch_try_index_(CatchClauseNode::kInvalidTryIndex),
@@ -340,7 +340,8 @@ void InlineExitCollector::SortExits() {
 
 
 Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
-                                             Instruction** last_instruction) {
+                                             Instruction** last_instruction,
+                                             intptr_t try_index) {
   // First sort the list of exits by block id (caching return instruction
   // block entries as a side effect).
   SortExits();
@@ -356,7 +357,7 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
     intptr_t join_id = caller_graph_->max_block_id() + 1;
     caller_graph_->set_max_block_id(join_id);
     JoinEntryInstr* join =
-        new(I) JoinEntryInstr(join_id, CatchClauseNode::kInvalidTryIndex);
+        new(I) JoinEntryInstr(join_id, try_index);
     join->InheritDeoptTargetAfter(isolate(), call_);
 
     // The dominator set of the join is the intersection of the dominator
@@ -486,7 +487,8 @@ void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
 
   } else {
     Definition* callee_result = JoinReturns(&callee_exit,
-                                            &callee_last_instruction);
+                                            &callee_last_instruction,
+                                            call_block->try_index());
     if (callee_result != NULL) {
       call_->ReplaceUsesWith(callee_result);
     }
@@ -768,10 +770,10 @@ Definition* EffectGraphVisitor::BuildStoreLocal(const LocalVariable& local,
     Value* tmp_val = Bind(new(I) LoadLocalInstr(*tmp_var));
     StoreInstanceFieldInstr* store =
         new(I) StoreInstanceFieldInstr(Context::variable_offset(local.index()),
-                                    context,
-                                    tmp_val,
-                                    kEmitStoreBarrier,
-                                    Scanner::kNoSourcePos);
+                                       context,
+                                       tmp_val,
+                                       kEmitStoreBarrier,
+                                       Scanner::kNoSourcePos);
     Do(store);
     return ExitTempLocalScope(tmp_var);
   } else {
@@ -883,7 +885,7 @@ BlockEntryInstr* TestGraphVisitor::CreateFalseSuccessor() const {
 
 
 void TestGraphVisitor::ReturnValue(Value* value) {
-  if (FLAG_enable_type_checks) {
+  if (FLAG_enable_type_checks || FLAG_enable_asserts) {
     value = Bind(new(I) AssertBooleanInstr(condition_token_pos(), value));
   }
   Value* constant_true = Bind(new(I) ConstantInstr(Bool::True()));
@@ -1238,7 +1240,7 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     TestGraphVisitor for_left(owner(), node->left()->token_pos());
     node->left()->Visit(&for_left);
     EffectGraphVisitor empty(owner());
-    if (FLAG_enable_type_checks) {
+    if (FLAG_enable_type_checks || FLAG_enable_asserts) {
       ValueGraphVisitor for_right(owner());
       node->right()->Visit(&for_right);
       Value* right_value = for_right.value();
@@ -1303,7 +1305,7 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     ValueGraphVisitor for_right(owner());
     node->right()->Visit(&for_right);
     Value* right_value = for_right.value();
-    if (FLAG_enable_type_checks) {
+    if (FLAG_enable_type_checks|| FLAG_enable_asserts) {
       right_value =
           for_right.Bind(new(I) AssertBooleanInstr(node->right()->token_pos(),
                                                    right_value));
@@ -1762,7 +1764,7 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
         2,
         owner()->ic_data_array());
     if (node->kind() == Token::kNE) {
-      if (FLAG_enable_type_checks) {
+      if (FLAG_enable_type_checks || FLAG_enable_asserts) {
         Value* value = Bind(result);
         result = new(I) AssertBooleanInstr(node->token_pos(), value);
       }
@@ -1808,7 +1810,7 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
     node->operand()->Visit(&for_value);
     Append(for_value);
     Value* value = for_value.value();
-    if (FLAG_enable_type_checks) {
+    if (FLAG_enable_type_checks || FLAG_enable_asserts) {
       value =
           Bind(new(I) AssertBooleanInstr(node->operand()->token_pos(), value));
     }
@@ -2314,7 +2316,7 @@ void EffectGraphVisitor::VisitLetNode(LetNode* node) {
   intptr_t num_temps = node->num_temps();
   if (num_temps > 0) {
     owner()->DeallocateTemps(num_temps);
-    Do(new(I) DropTempsInstr(num_temps));
+    Do(new(I) DropTempsInstr(num_temps, NULL));
   }
 }
 
@@ -3474,8 +3476,8 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
   store_value = Bind(BuildLoadExprTemp());
   GuardFieldLengthInstr* guard_field_length =
       new(I) GuardFieldLengthInstr(store_value,
-                                node->field(),
-                                I->GetNextDeoptId());
+                                   node->field(),
+                                   I->GetNextDeoptId());
   AddInstruction(guard_field_length);
 
   store_value = Bind(BuildLoadExprTemp());
@@ -4281,7 +4283,8 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
     PruneUnreachable();
   }
 
-  FlowGraph* graph = new(I) FlowGraph(*this, graph_entry_, last_used_block_id_);
+  FlowGraph* graph =
+      new(I) FlowGraph(parsed_function(), graph_entry_, last_used_block_id_);
   return graph;
 }
 

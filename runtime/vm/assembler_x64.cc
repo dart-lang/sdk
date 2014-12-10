@@ -3209,7 +3209,8 @@ void Assembler::PushRegisters(intptr_t cpu_register_set,
   }
 
   // Store general purpose registers with the highest register number at the
-  // lowest address.
+  // lowest address. The order in which the registers are pushed must match the
+  // order in which the registers are encoded in the safe point's stack map.
   for (intptr_t reg_idx = 0; reg_idx < kNumberOfCpuRegisters; ++reg_idx) {
     Register reg = static_cast<Register>(reg_idx);
     if (RegisterSet::Contains(cpu_register_set, reg)) {

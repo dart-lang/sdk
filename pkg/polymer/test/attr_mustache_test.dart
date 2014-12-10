@@ -20,7 +20,7 @@ class XTarget extends PolymerElement {
   bind(name, value, {oneTime: false}) =>
       nodeBindFallback(this).bind(name, value, oneTime: oneTime);
 
-  inserted() {
+  attached() {
     testSrcForMustache();
   }
 

@@ -6,7 +6,7 @@ library test.generated;
 
 import 'package:unittest/unittest.dart';
 
-import 'all_the_rest.dart' as all_the_rest;
+import 'all_the_rest_test.dart' as all_the_rest;
 import 'ast_test.dart' as ast_test;
 import 'compile_time_error_code_test.dart' as compile_time_error_code_test;
 import 'element_test.dart' as element_test;

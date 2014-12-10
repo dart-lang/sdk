@@ -557,8 +557,17 @@ class JavaScriptBackend extends Backend {
   /**
    * Record that [method] is called from a subclass via `super`.
    */
-  void registerAliasedSuperMember(FunctionElement method) {
-    aliasedSuperMembers.add(method);
+  bool maybeRegisterAliasedSuperMember(Element member, Selector selector) {
+    if (selector.isGetter || compiler.hasIncrementalSupport) {
+      // Invoking a super getter isn't supported, this would require changes to
+      // compact field descriptors in the emitter.
+      // We also turn off this optimization in incremental compilation, to
+      // avoid having to regenerate a method just because someone started
+      // calling it through super.
+      return false;
+    }
+    aliasedSuperMembers.add(member);
+    return true;
   }
 
   /**
@@ -2112,7 +2121,7 @@ class JavaScriptBackend extends Backend {
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[use1, record];
     FunctionElement helper = findHelper('isJsIndexable');
-    jsAst.Expression helperExpression = namer.elementAccess(helper);
+    jsAst.Expression helperExpression = emitter.staticFunctionAccess(helper);
     return new jsAst.Call(helperExpression, arguments);
   }
 
@@ -2174,6 +2183,15 @@ class JavaScriptBackend extends Backend {
     // elements are added to avoid counting the elements as due to mirrors.
     customElementsAnalysis.onQueueEmpty(enqueuer);
     if (!enqueuer.queueIsEmpty) return false;
+
+    if (compiler.hasIncrementalSupport) {
+      // Always enable tear-off closures during incremental compilation.
+      Element e = findHelper('closureFromTearOff');
+      if (e != null && !enqueuer.isProcessed(e)) {
+        registerBackendUse(e);
+        enqueuer.addToWorkList(e);
+      }
+    }
 
     if (!enqueuer.isResolutionQueue && preMirrorsMethodCount == 0) {
       preMirrorsMethodCount = generatedCode.length;

@@ -44,7 +44,16 @@ TransformOptions _parseSettings(BarbackSettings settings) {
   bool csp = args['csp'] == true; // defaults to false
   bool injectBuildLogs =
       !releaseMode && args['inject_build_logs_in_output'] != false;
-  bool injectPlatformJs = args['inject_platform_js'] != false;
+  bool injectWebComponentsJs = true;
+  if (args['inject_platform_js'] != null) {
+    print(
+        'Deprecated polymer transformer option `inject_platform_js`. This has '
+        'been renamed `inject_web_components_js` to match the new file name.');
+    injectWebComponentsJs = args['inject_platform_js'] != false;
+  }
+  if (args['inject_webcomponents_js'] != null) {
+    injectWebComponentsJs = args['inject_webcomponents_js'] != false;
+  }
   return new TransformOptions(
       entryPoints: readFileList(args['entry_points']),
       inlineStylesheets: _readInlineStylesheets(args['inline_stylesheets']),
@@ -53,7 +62,7 @@ TransformOptions _parseSettings(BarbackSettings settings) {
       releaseMode: releaseMode,
       lint: _parseLintOption(args['lint']),
       injectBuildLogsInOutput: injectBuildLogs,
-      injectPlatformJs: injectPlatformJs);
+      injectWebComponentsJs: injectWebComponentsJs);
 }
 
 // Lint option can be empty (all files), false, true, or a map indicating

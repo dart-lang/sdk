@@ -85,7 +85,7 @@ class ClassEmitter extends CodeEmitterHelper {
     OutputUnit outputUnit =
         compiler.deferredLoadTask.outputUnitForElement(classElement);
     emitter.emitPrecompiledConstructor(
-        outputUnit, constructorName, constructorAst);
+        outputUnit, constructorName, constructorAst, fields);
   }
 
   /// Returns `true` if fields added.
@@ -305,7 +305,7 @@ class ClassEmitter extends CodeEmitterHelper {
       if ((!typeVariableProperties.isEmpty && !hasSuper) ||
           (hasSuper && !equalElements(superclass.typeVariables, typeVars))) {
         classBuilder.addProperty('<>',
-            new jsAst.ArrayInitializer.from(typeVariableProperties));
+            new jsAst.ArrayInitializer(typeVariableProperties.toList()));
       }
     }
 
@@ -349,7 +349,7 @@ class ClassEmitter extends CodeEmitterHelper {
           types.add(emitter.metadataEmitter.reifyType(interface));
         }
         enclosingBuilder.addProperty("+$reflectionName",
-            new jsAst.ArrayInitializer.from(types.map(js.number)));
+            new jsAst.ArrayInitializer(types.map(js.number).toList()));
       }
     }
   }
@@ -592,15 +592,15 @@ class ClassEmitter extends CodeEmitterHelper {
     if (substitution != null) {
       jsAst.Expression typeArguments =
           js(r'#.apply(null, this.$builtinTypeInfo)',
-              substitution.getCode(backend.rti, true));
+             substitution.getCode(backend.rti));
       computeTypeVariable = js('#[#]', [typeArguments, index]);
     } else {
       // TODO(ahe): These can be generated dynamically.
       computeTypeVariable =
           js(r'this.$builtinTypeInfo && this.$builtinTypeInfo[#]', index);
     }
-    jsAst.Expression convertRtiToRuntimeType =
-        namer.elementAccess(backend.findHelper('convertRtiToRuntimeType'));
+    jsAst.Expression convertRtiToRuntimeType = emitter
+        .staticFunctionAccess(backend.findHelper('convertRtiToRuntimeType'));
     compiler.dumpInfoTask.registerElementAst(element,
         builder.addProperty(name,
             js('function () { return #(#) }',

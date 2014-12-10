@@ -812,10 +812,13 @@ class CodegenEnqueuer extends Enqueuer {
 
   final Set<Element> newlyEnqueuedElements;
 
+  final Set<Selector> newlySeenSelectors;
+
   CodegenEnqueuer(Compiler compiler,
                   ItemCompilationContext itemCompilationContextCreator())
       : queue = new Queue<CodegenWorkItem>(),
         newlyEnqueuedElements = compiler.cacheStrategy.newSet(),
+        newlySeenSelectors = compiler.cacheStrategy.newSet(),
         super('codegen enqueuer', compiler, itemCompilationContextCreator);
 
   bool isProcessed(Element member) =>
@@ -874,6 +877,13 @@ class CodegenEnqueuer extends Enqueuer {
         removeFromSet(instanceFunctionsByName, closure);
       }
     }
+  }
+
+  void handleUnseenSelector(String methodName, Selector selector) {
+    if (compiler.hasIncrementalSupport) {
+      newlySeenSelectors.add(selector);
+    }
+    super.handleUnseenSelector(methodName, selector);
   }
 }
 

@@ -137,13 +137,13 @@ testInterop(jsElem) {
   });
 }
 
-/// Calls Platform.flush() to flush Polymer.js pending operations, e.g.
+/// Calls Polymer.flush() to flush Polymer.js pending operations, e.g.
 /// dirty checking for data-bindings.
 Future flush() {
-  var Platform = context['Platform'];
-  Platform.callMethod('flush');
+  var Polymer = context['Polymer'];
+  Polymer.callMethod('flush');
 
   var completer = new Completer();
-  Platform.callMethod('endOfMicrotask', [() => completer.complete()]);
+  Polymer.callMethod('endOfMicrotask', [() => completer.complete()]);
   return completer.future;
 }

@@ -9,6 +9,7 @@
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
+#include "vm/reusable_handles.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -368,6 +369,96 @@ intptr_t ObjectGraph::InboundReferences(Object* obj, const Array& references) {
   InboundReferencesVisitor visitor(isolate(), obj->raw(), references, &scratch);
   isolate()->heap()->IterateObjects(&visitor);
   return visitor.length();
+}
+
+
+void WritePtr(RawObject* raw, WriteStream* stream) {
+  ASSERT(raw->IsHeapObject());
+  ASSERT(raw->IsOldObject());
+  uword addr = RawObject::ToAddr(raw);
+  ASSERT(Utils::IsAligned(addr, kObjectAlignment));
+  // Using units of kObjectAlignment makes the ids fit into Smis when parsed
+  // in the Dart code of the Observatory.
+  // TODO(koda): Use delta-encoding/back-references to further compress this.
+  stream->WriteUnsigned(addr / kObjectAlignment);
+}
+
+
+class WritePointerVisitor : public ObjectPointerVisitor {
+ public:
+  WritePointerVisitor(Isolate* isolate, WriteStream* stream)
+      : ObjectPointerVisitor(isolate), stream_(stream), count_(0) {}
+  virtual void VisitPointers(RawObject** first, RawObject** last) {
+    for (RawObject** current = first; current <= last; ++current) {
+      if (!(*current)->IsHeapObject() || (*current == Object::null())) {
+        // Ignore smis and nulls for now.
+        // TODO(koda): To track which field each pointer corresponds to,
+        // we'll need to encode which fields were omitted here.
+        continue;
+      }
+      WritePtr(*current, stream_);
+      ++count_;
+    }
+  }
+
+  intptr_t count() const { return count_; }
+
+ private:
+  WriteStream* stream_;
+  intptr_t count_;
+};
+
+
+void WriteHeader(RawObject* raw, intptr_t size, intptr_t cid,
+                 WriteStream* stream) {
+  WritePtr(raw, stream);
+  ASSERT(Utils::IsAligned(size, kObjectAlignment));
+  stream->WriteUnsigned(size);
+  stream->WriteUnsigned(cid);
+}
+
+
+class WriteGraphVisitor : public ObjectGraph::Visitor {
+ public:
+  WriteGraphVisitor(Isolate* isolate, WriteStream* stream)
+    : stream_(stream), ptr_writer_(isolate, stream), count_(0) {}
+
+  virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
+    RawObject* raw_obj = it->Get();
+    Isolate* isolate = Isolate::Current();
+    REUSABLE_OBJECT_HANDLESCOPE(isolate);
+    Object& obj = isolate->ObjectHandle();
+    obj = raw_obj;
+    // Each object is a header + a zero-terminated list of its neighbors.
+    WriteHeader(raw_obj, raw_obj->Size(), obj.GetClassId(), stream_);
+    raw_obj->VisitPointers(&ptr_writer_);
+    stream_->WriteUnsigned(0);
+    ++count_;
+    return kProceed;
+  }
+
+  intptr_t count() const { return count_; }
+
+ private:
+  WriteStream* stream_;
+  WritePointerVisitor ptr_writer_;
+  intptr_t count_;
+};
+
+
+void ObjectGraph::Serialize(WriteStream* stream) {
+  // Current encoding assumes objects do not move, so promote everything to old.
+  isolate()->heap()->new_space()->Evacuate();
+  WriteGraphVisitor visitor(isolate(), stream);
+  stream->WriteUnsigned(0);
+  stream->WriteUnsigned(0);
+  stream->WriteUnsigned(0);
+  {
+    WritePointerVisitor ptr_writer(isolate(), stream);
+    isolate()->VisitObjectPointers(&ptr_writer, false, false);
+  }
+  stream->WriteUnsigned(0);
+  IterateObjects(&visitor);
 }
 
 }  // namespace dart

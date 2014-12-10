@@ -12,6 +12,7 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mock_sdk.dart';
@@ -80,6 +81,17 @@ class AbstractAnalysisTest {
     addFile(testFile, content);
     this.testCode = content;
     return testFile;
+  }
+
+  AnalysisServer createAnalysisServer(Index index) {
+    return new AnalysisServer(
+        serverChannel,
+        resourceProvider,
+        packageMapProvider,
+        index,
+        new AnalysisServerOptions(),
+        new MockSdk(),
+        const NullInstrumentationServer());
   }
 
   Index createIndex() {
@@ -227,13 +239,7 @@ class AbstractAnalysisTest {
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
     Index index = createIndex();
-    server = new AnalysisServer(
-        serverChannel,
-        resourceProvider,
-        packageMapProvider,
-        index,
-        new AnalysisServerOptions(),
-        new MockSdk());
+    server = createAnalysisServer(index);
     server.contextDirectoryManager.defaultOptions.enableAsync = true;
     server.contextDirectoryManager.defaultOptions.enableEnum = true;
     handler = new AnalysisDomainHandler(server);

@@ -5,12 +5,14 @@
 /// Test data for the end2end test.
 library test.end2end.data;
 
-import 'test_helper.dart' show Group;
-import 'test_helper.dart' as base show TestSpec;
+import 'test_helper.dart';
 
-class TestSpec extends base.TestSpec {
+class TestSpec extends TestSpecBase {
+  final String output;
+
   const TestSpec(String input, [String output])
-      : super(input, output != null ? output : input);
+      : this.output = output != null ? output : input,
+        super(input);
 }
 
 const List<Group> TEST_DATA = const <Group>[
@@ -161,10 +163,40 @@ main() {
 '''),
   ]),
 
-  const Group('Top level field access', const <TestSpec>[
+  const Group('Top level field', const <TestSpec>[
     const TestSpec('''
 main(args) {
   return deprecated;
+}
+'''),
+
+    const TestSpec('''
+var field;
+main(args) {
+  return field;
+}
+'''),
+
+    // TODO(johnniwinther): Eliminate unneeded `null` initializers.
+    const TestSpec('''
+var field = null;
+main(args) {
+  return field;
+}
+'''),
+
+    const TestSpec('''
+var field = 0;
+main(args) {
+  return field;
+}
+'''),
+
+    const TestSpec('''
+var field;
+main(args) {
+  field = args.length;
+  return field;
 }
 '''),
   ]),
@@ -773,7 +805,7 @@ main(a) {
 
   const TestSpec('''
 main(a) {
-  var c = a ? () { return 0; } : () { return 1; }
+  var c = a ? () { return 0; } : () { return 1; };
   return c();
 }
 ''', '''

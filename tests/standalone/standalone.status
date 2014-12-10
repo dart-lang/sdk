@@ -107,15 +107,12 @@ oom_error_stacktrace_test: Pass # The test only fails at runtime.
 # Skip until we stabilize language tests.
 *: Skip
 
-[ $arch == simarm ]
+[ $arch == simarm || $arch == simmips]
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 
 [ $arch == simmips || $arch == mips ]
-io/web_socket_test: Pass, Slow
-io/http_server_response_test: Pass, Slow
-out_of_memory_test: Skip # passes on Mac, crashes on Linux
-oom_error_stacktrace_test: Skip # Fails on Linux
+javascript_int_overflow_test: Skip # --throw_on_javascript_int_overflow not supported on MIPS.
 
 [ $arch == mips ]
 io/signals_test: Fail # dartbug.com/17440
@@ -160,5 +157,5 @@ io/skipping_dart2js_compilations_test: Fail # Issue 19551.
 [ $system != linux ]
 io/server_socket_reference_issue21383_and_issue21384_test: Skip # Not supported on other platforms so far
 
-[ $arch != ia32 && $arch != x64 && $mode == debug ]
+[ $arch != ia32 && $arch != x64 && $arch != simarm && $mode == debug ]
 verified_mem_test: Skip  # Not yet implemented.

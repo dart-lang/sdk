@@ -774,28 +774,28 @@ class Printer extends Indentation implements NodeVisitor {
 
   visitArrayInitializer(ArrayInitializer node) {
     out("[");
-    List<ArrayElement> elements = node.elements;
-    int elementIndex = 0;
-    for (int i = 0; i < node.length; i++) {
-      if (elementIndex < elements.length &&
-          elements[elementIndex].index == i) {
-        visitNestedExpression(elements[elementIndex].value, ASSIGNMENT,
-                              newInForInit: false, newAtStatementBegin: false);
-        elementIndex++;
-        // We can avoid a trailing "," if there was an element just before. So
-        // `[1]` and `[1,]` are the same, but `[,]` and `[]` are not.
-        if (i != node.length - 1) {
-          out(",");
-          spaceOut();
-        }
-      } else {
+    List<Expression> elements = node.elements;
+    for (int i = 0; i < elements.length; i++) {
+      Expression element = elements[i];
+      if (element is ArrayHole) {
+        // Note that array holes must have a trailing "," even if they are
+        // in last position. Otherwise `[,]` (having length 1) would become
+        // equal to `[]` (the empty array)
+        // and [1,,] (array with 1 and a hole) would become [1,] = [1].
         out(",");
+        continue;
       }
+      if (i != 0) spaceOut();
+      visitNestedExpression(element, ASSIGNMENT,
+                            newInForInit: false, newAtStatementBegin: false);
+      // We can skip the trailing "," for the last element (since it's not
+      // an array hole).
+      if (i != elements.length - 1) out(",");
     }
     out("]");
   }
 
-  visitArrayElement(ArrayElement node) {
+  visitArrayHole(ArrayHole node) {
     throw "Unreachable";
   }
 

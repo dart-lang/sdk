@@ -23,6 +23,8 @@
 namespace dart {
 
 DECLARE_FLAG(bool, emit_edge_counters);
+DECLARE_FLAG(bool, enable_asserts);
+DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(bool, use_osr);
@@ -32,7 +34,7 @@ DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 // on the stack and return the result in a fixed register EAX.
 LocationSummary* Instruction::MakeCallSummary(Isolate* isolate) {
   const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps= 0;
+  const intptr_t kNumTemps = 0;
   LocationSummary* result = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kCall);
   result->set_out(0, Location::RegisterLocation(EAX));
@@ -43,7 +45,7 @@ LocationSummary* Instruction::MakeCallSummary(Isolate* isolate) {
 LocationSummary* PushArgumentInstr::MakeLocationSummary(Isolate* isolate,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps= 0;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::AnyOrConstant(value()));
@@ -248,10 +250,17 @@ static void EmitAssertBoolean(Register reg,
   // Call the runtime if the object is not bool::true or bool::false.
   ASSERT(locs->always_calls());
   Label done;
-  __ CompareObject(reg, Bool::True());
-  __ j(EQUAL, &done, Assembler::kNearJump);
-  __ CompareObject(reg, Bool::False());
-  __ j(EQUAL, &done, Assembler::kNearJump);
+
+  if (FLAG_enable_type_checks) {
+    __ CompareObject(reg, Bool::True());
+    __ j(EQUAL, &done, Assembler::kNearJump);
+    __ CompareObject(reg, Bool::False());
+    __ j(EQUAL, &done, Assembler::kNearJump);
+  } else {
+    ASSERT(FLAG_enable_asserts);
+    __ CompareObject(reg, Object::null_instance());
+    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+  }
 
   __ pushl(reg);  // Push the source object.
   compiler->GenerateRuntimeCall(token_pos,
@@ -523,7 +532,6 @@ static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
       break;
   }
   ASSERT(hi_cond != OVERFLOW && lo_cond != OVERFLOW);
-  Label is_true, is_false;
   // Compare upper halves first.
   __ cmpl(left2, right2);
   __ j(hi_cond, labels.true_label);
@@ -939,9 +947,14 @@ LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register object = locs()->in(0).reg();
+  Register obj = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
-  __ movl(result, FieldAddress(object, offset()));
+  if (object()->definition()->representation() == kUntagged) {
+    __ movl(result, Address(obj, offset()));
+  } else {
+    ASSERT(object()->definition()->representation() == kTagged);
+    __ movl(result, FieldAddress(obj, offset()));
+  }
 }
 
 
@@ -3674,6 +3687,13 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
                       FieldAddress(value, hi_offset),
                       temp,
                       out_of_range);
+  } else if (!CanDeoptimize()) {
+    ASSERT(value == result);
+    Label done;
+    __ SmiUntag(value);
+    __ j(NOT_CARRY, &done);
+    __ movl(value, Address(value, TIMES_2, lo_offset));
+    __ Bind(&done);
   } else {
     ASSERT(value == result);
     Label done;
@@ -3725,11 +3745,12 @@ LocationSummary* LoadCodeUnitsInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register array = locs()->in(0).reg();
+  // The string register points to the backing store for external strings.
+  const Register str = locs()->in(0).reg();
   const Location index = locs()->in(1);
 
   Address element_address = Assembler::ElementAddressForRegIndex(
-        IsExternal(), class_id(), index_scale(), array, index.reg());
+        IsExternal(), class_id(), index_scale(), str, index.reg());
 
   if ((index_scale() == 1)) {
     __ SmiUntag(index.reg());

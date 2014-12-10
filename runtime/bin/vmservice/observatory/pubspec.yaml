@@ -9,6 +9,8 @@ transformers:
     entry_points:
     - web/index.html
     - web/index_devtools.html
+    inline_stylesheets:
+      lib/src/elements/css/shared.css: false
 - $dart2js:
     suppressWarnings: false
     $exclude: web/main.dart

@@ -7,6 +7,17 @@ library test.sexpr.data;
 
 import 'test_helper.dart';
 
+class TestSpec extends TestSpecBase {
+  // A [String] or a [Map<String, String>].
+  final output;
+
+  /// True if the test should be skipped when testing analyzer2dart.
+  final bool skipInAnalyzerFrontend;
+
+  const TestSpec(String input, this.output,
+                 {this.skipInAnalyzerFrontend: false}) : super(input);
+}
+
 const List<Group> TEST_DATA = const [
   const Group('Empty main', const [
     const TestSpec('''
@@ -1276,5 +1287,100 @@ main(a) {
     (InvokeContinuation k0 v4))
   (Branch (IsTrue a) k2 k3))
 '''),
+  ]),
+
+  const Group('Top level field', const <TestSpec>[
+    const TestSpec('''
+var field;
+main(args) {
+  return field;
+}
+''', const {
+      'main': '''
+(FunctionDefinition main (args return)
+  (LetCont (k0 v0)
+    (InvokeContinuation return v0))
+  (InvokeStatic field  k0))
+''',
+      'field': '''
+(FieldDefinition field)
+'''}),
+
+    const TestSpec('''
+var field = null;
+main(args) {
+  return field;
+}
+''', const {
+      'main': '''
+(FunctionDefinition main (args return)
+  (LetCont (k0 v0)
+    (InvokeContinuation return v0))
+  (InvokeStatic field  k0))
+''',
+      'field': '''
+(FieldDefinition field (return)
+  (LetPrim v0 (Constant NullConstant))
+  (InvokeContinuation return v0))
+'''}),
+
+    const TestSpec('''
+var field = 0;
+main(args) {
+  return field;
+}
+''', const {
+      'main': '''
+(FunctionDefinition main (args return)
+  (LetCont (k0 v0)
+    (InvokeContinuation return v0))
+  (InvokeStatic field  k0))
+''',
+      'field': '''
+(FieldDefinition field (return)
+  (LetPrim v0 (Constant IntConstant(0)))
+  (InvokeContinuation return v0))
+'''}),
+
+    const TestSpec('''
+var field;
+main(args) {
+  field = args.length;
+  return field;
+}
+''', '''
+(FunctionDefinition main (args return)
+  (LetCont (k0 v0)
+    (LetCont (k1 v1)
+      (LetCont (k2 v2)
+        (InvokeContinuation return v2))
+      (InvokeStatic field  k2))
+    (InvokeStatic field v0 k1))
+  (InvokeMethod args length  k0))
+'''),
+  ]),
+
+  const Group('Closure variables', const <TestSpec>[
+    const TestSpec('''
+main(x,foo) {
+  print(x);
+  getFoo() => foo;
+  print(getFoo());
+}
+''', '''
+(FunctionDefinition main {foo} (x foo return)
+  (LetCont (k0 v0)
+    (LetPrim v1 (CreateFunction
+      (FunctionDefinition getFoo ( return)
+        (LetPrim v2 (GetClosureVariable foo))
+        (InvokeContinuation return v2))))
+    (LetCont (k1 v3)
+      (LetCont (k2 v4)
+        (LetPrim v5 (Constant NullConstant))
+        (InvokeContinuation return v5))
+      (InvokeStatic print v3 k2))
+    (InvokeMethod v1 call  k1))
+  (InvokeStatic print x k0))
+''', skipInAnalyzerFrontend: true)
   ]),
 ];

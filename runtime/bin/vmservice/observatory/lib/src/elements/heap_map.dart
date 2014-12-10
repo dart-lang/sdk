@@ -155,7 +155,8 @@ class HeapMapElement extends ObservatoryElement {
 
   void _handleClick(MouseEvent event) {
     var address = _objectAt(event.offset).address.toRadixString(16);
-    window.location.hash = "/${fragmentation.isolate.link}/address/$address";
+    app.locationManager.go(app.locationManager.makeLink(
+        "${fragmentation.isolate.relativeLink('address/$address')}"));
   }
 
   void _updateFragmentationData() {

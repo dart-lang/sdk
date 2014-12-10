@@ -206,7 +206,7 @@ class B {
             expect(location.offset, testCode.indexOf("propA => null;"));
             expect(location.length, "propA".length);
           }
-          expect(element.parameters, "");
+          expect(element.parameters, isNull);
           expect(element.returnType, "String");
         }
         {

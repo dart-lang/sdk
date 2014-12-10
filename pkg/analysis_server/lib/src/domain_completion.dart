@@ -15,7 +15,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 export 'package:analysis_server/src/services/completion/completion_manager.dart'
-    show CompletionPerformance, OperationPerformance;
+    show CompletionPerformance, CompletionRequest, OperationPerformance;
 
 /**
  * Instances of the class [CompletionDomainHandler] implement a [RequestHandler]
@@ -33,10 +33,10 @@ class CompletionDomainHandler implements RequestHandler {
   int _nextCompletionId = 0;
 
   /**
-   * Cached information from a prior completion operation.
-   * The type of cached information depends upon the completion operation.
+   * The completion manager for most recent [Source] and [AnalysisContext],
+   * or `null` if none.
    */
-  CompletionCache _cache;
+  CompletionManager _manager;
 
   /**
    * The subscription for the cached context's source change stream.
@@ -53,6 +53,33 @@ class CompletionDomainHandler implements RequestHandler {
    */
   CompletionDomainHandler(this.server) {
     server.onContextsChanged.listen(contextsChanged);
+    server.onPriorityChange.listen(priorityChanged);
+  }
+
+  /**
+   * Return the completion manager for most recent [Source] and [AnalysisContext],
+   * or `null` if none.
+   */
+  CompletionManager get manager => _manager;
+
+  /**
+   * Return the [CompletionManager] for the given [context] and [source],
+   * creating a new manager or returning an existing manager as necessary.
+   */
+  CompletionManager completionManagerFor(AnalysisContext context,
+      Source source) {
+    if (_manager != null) {
+      if (_manager.context == context && _manager.source == source) {
+        return _manager;
+      }
+      _discardManager();
+    }
+    _manager = createCompletionManager(context, source, server.searchEngine);
+    if (context != null) {
+      _sourcesChangedSubscription =
+          context.onSourcesChanged.listen(sourcesChanged);
+    }
+    return _manager;
   }
 
   /**
@@ -60,24 +87,17 @@ class CompletionDomainHandler implements RequestHandler {
    * then discard the cache.
    */
   void contextsChanged(ContextsChangedEvent event) {
-    if (_cache != null) {
-      AnalysisContext context = _cache.context;
+    if (_manager != null) {
+      AnalysisContext context = _manager.context;
       if (event.changed.contains(context) || event.removed.contains(context)) {
-        _discardCache();
+        _discardManager();
       }
     }
   }
 
   CompletionManager createCompletionManager(AnalysisContext context,
-      Source source, int offset, SearchEngine searchEngine, CompletionCache cache,
-      CompletionPerformance performance) {
-    return new CompletionManager.create(
-        context,
-        source,
-        offset,
-        searchEngine,
-        cache,
-        performance);
+      Source source, SearchEngine searchEngine) {
+    return new CompletionManager.create(context, source, searchEngine);
   }
 
   @override
@@ -94,6 +114,22 @@ class CompletionDomainHandler implements RequestHandler {
   }
 
   /**
+   * If the set the priority files has changed, then pre-cache completion
+   * information related to the first priority file.
+   */
+  void priorityChanged(PriorityChangeEvent event) {
+    Source source = event.firstSource;
+    if (source == null) {
+      return;
+    }
+    AnalysisContext context = server.getAnalysisContextForSource(source);
+    if (context == null) {
+      return;
+    }
+    completionManagerFor(context, source).computeCache();
+  }
+
+  /**
    * Process a `completion.getSuggestions` request.
    */
   Response processRequest(Request request) {
@@ -103,14 +139,12 @@ class CompletionDomainHandler implements RequestHandler {
         new CompletionGetSuggestionsParams.fromRequest(request);
     // schedule completion analysis
     String completionId = (_nextCompletionId++).toString();
-    CompletionManager manager = createCompletionManager(
+    CompletionManager manager = completionManagerFor(
         server.getAnalysisContext(params.file),
-        server.getSource(params.file),
-        params.offset,
-        server.searchEngine,
-        _cache,
-        performance);
-    manager.results().listen((CompletionResult result) {
+        server.getSource(params.file));
+    CompletionRequest completionRequest =
+        new CompletionRequest(params.offset, performance);
+    manager.results(completionRequest).listen((CompletionResult result) {
       sendCompletionNotification(
           completionId,
           result.replacementOffset,
@@ -119,17 +153,6 @@ class CompletionDomainHandler implements RequestHandler {
           result.last);
       if (result.last) {
         performance.complete();
-        CompletionCache newCache = manager.completionCache;
-        if (_cache != newCache) {
-          if (_cache != null) {
-            _discardCache();
-          }
-          _cache = newCache;
-          if (_cache.context != null) {
-            _sourcesChangedSubscription =
-                _cache.context.onSourcesChanged.listen(sourcesChanged);
-          }
-        }
       }
     });
     // initial response without results
@@ -157,8 +180,8 @@ class CompletionDomainHandler implements RequestHandler {
    */
   void sourcesChanged(SourcesChangedEvent event) {
 
-    bool shouldDiscardCache(SourcesChangedEvent event) {
-      if (_cache == null) {
+    bool shouldDiscardManager(SourcesChangedEvent event) {
+      if (_manager == null) {
         return false;
       }
       if (event.wereSourcesAdded || event.wereSourcesRemovedOrDeleted) {
@@ -166,22 +189,22 @@ class CompletionDomainHandler implements RequestHandler {
       }
       var changedSources = event.changedSources;
       return changedSources.length > 2 ||
-          (changedSources.length == 1 && !changedSources.contains(_cache.source));
+          (changedSources.length == 1 && !changedSources.contains(_manager.source));
     }
 
-    if (shouldDiscardCache(event)) {
-      _discardCache();
+    if (shouldDiscardManager(event)) {
+      _discardManager();
     }
   }
 
   /**
    * Discard the sourcesChanged subscription if any
    */
-  void _discardCache() {
+  void _discardManager() {
     if (_sourcesChangedSubscription != null) {
       _sourcesChangedSubscription.cancel();
       _sourcesChangedSubscription = null;
     }
-    _cache = null;
+    _manager = null;
   }
 }

@@ -47,7 +47,6 @@ main() => initPolymer().run(() {
   setUp(() => Polymer.onReady);
 
   test('declaration-tests-ran', () {
-    // TODO(jakemac): Change this to '2' once http://dartbug.com/20197 is fixed.
-    expect(testsRun, 3, reason: 'decoration-tests-ran');
+    expect(testsRun, 2, reason: 'decoration-tests-ran');
   });
 });

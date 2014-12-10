@@ -1107,6 +1107,7 @@ class Class : public Object {
   RawArray* functions() const { return raw_ptr()->functions_; }
   void SetFunctions(const Array& value) const;
   void AddFunction(const Function& function) const;
+  void RemoveFunction(const Function& function) const;
   intptr_t FindFunctionIndex(const Function& function) const;
   RawFunction* FunctionFromIndex(intptr_t idx) const;
   intptr_t FindImplicitClosureFunctionIndex(const Function& needle) const;
@@ -2274,6 +2275,7 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Function, Object);
   friend class Class;
+  friend class Parser;  // For set_eval_script.
   // RawFunction::VisitFunctionPointers accesses the private constructor of
   // Function.
   friend class RawFunction;
@@ -6089,6 +6091,10 @@ class ExternalOneByteString : public AllStatic {
     return raw_ptr(str)->external_data_->peer();
   }
 
+  static intptr_t external_data_offset() {
+    return OFFSET_OF(RawExternalOneByteString, external_data_);
+  }
+
   // We use the same maximum elements for all strings.
   static const intptr_t kBytesPerElement = 1;
   static const intptr_t kMaxElements = String::kMaxElements;
@@ -6163,6 +6169,10 @@ class ExternalTwoByteString : public AllStatic {
 
   static void* GetPeer(const String& str) {
     return raw_ptr(str)->external_data_->peer();
+  }
+
+  static intptr_t external_data_offset() {
+    return OFFSET_OF(RawExternalTwoByteString, external_data_);
   }
 
   // We use the same maximum elements for all strings.

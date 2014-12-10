@@ -79,18 +79,11 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
         }
       }
     }
-    if (_variableNode == null) {
+    // validate node declaration
+    if (!_isVariableDeclaredInStatement()) {
       result = new RefactoringStatus.fatal(
-          'Local variable declaration or reference must be selected to activate this refactoring.');
-      return new Future.value(result);
-    }
-    // should be normal variable declaration statement
-    if (_variableNode.parent is! VariableDeclarationList ||
-        _variableNode.parent.parent is! VariableDeclarationStatement ||
-        _variableNode.parent.parent.parent is! Block) {
-      result = new RefactoringStatus.fatal(
-          'Local variable declared in '
-              'statement should be selected to activate this refactoring.');
+          'Local variable declaration or reference must be selected '
+              'to activate this refactoring.');
       return new Future.value(result);
     }
     // should have initializer at declaration
@@ -187,6 +180,21 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
 
   @override
   bool requiresPreview() => false;
+
+  bool _isVariableDeclaredInStatement() {
+    if (_variableNode == null) {
+      return false;
+    }
+    AstNode parent = _variableNode.parent;
+    if (parent is VariableDeclarationList) {
+      parent = parent.parent;
+      if (parent is VariableDeclarationStatement) {
+        parent = parent.parent;
+        return parent is Block || parent is SwitchCase;
+      }
+    }
+    return false;
+  }
 
   static bool _shouldBeExpressionInterpolation(InterpolationExpression target,
       Expression expression) {

@@ -1,3 +1,16 @@
+## 0.11.4
+
+* Bump the version constraint for `unittest`.
+
+## 0.11.3
+
+* Narrow the constraint on unittest to ensure that new features are reflected in
+  scheduled_test's version.
+
+## 0.11.2+3
+
+* Ignore hidden files in `DirectoryDescriptor.fromFilesystem`.
+
 ## 0.11.2+2
 
 * Moved shared test utilities to `metatest` package.

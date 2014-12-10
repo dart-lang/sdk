@@ -390,7 +390,7 @@
           obj = obj[this[i - 1]];
         if (!isObject(obj))
           return;
-        observe(obj, this[0]);
+        observe(obj, this[i]);
       }
     },
 
@@ -511,21 +511,9 @@
   }
 
   var runEOM = hasObserve ? (function(){
-    var eomObj = { pingPong: true };
-    var eomRunScheduled = false;
-
-    Object.observe(eomObj, function() {
-      runEOMTasks();
-      eomRunScheduled = false;
-    });
-
     return function(fn) {
-      eomTasks.push(fn);
-      if (!eomRunScheduled) {
-        eomRunScheduled = true;
-        eomObj.pingPong = !eomObj.pingPong;
-      }
-    };
+      return Promise.resolve().then(fn);
+    }
   })() :
   (function() {
     return function(fn) {
@@ -663,14 +651,13 @@
     }
 
     var record = {
-      object: undefined,
       objects: objects,
+      get rootObject() { return rootObj; },
+      set rootObject(value) {
+        rootObj = value;
+        rootObjProps = {};
+      },
       open: function(obs, object) {
-        if (!rootObj) {
-          rootObj = object;
-          rootObjProps = {};
-        }
-
         observers.push(obs);
         observerCount++;
         obs.iterateObjects_(observe);
@@ -691,7 +678,9 @@
         rootObj = undefined;
         rootObjProps = undefined;
         observedSetCache.push(this);
-      }
+        if (lastObservedSet === this)
+          lastObservedSet = null;
+      },
     };
 
     return record;
@@ -700,9 +689,9 @@
   var lastObservedSet;
 
   function getObservedSet(observer, obj) {
-    if (!lastObservedSet || lastObservedSet.object !== obj) {
+    if (!lastObservedSet || lastObservedSet.rootObject !== obj) {
       lastObservedSet = observedSetCache.pop() || newObservedSet();
-      lastObservedSet.object = obj;
+      lastObservedSet.rootObject = obj;
     }
     lastObservedSet.open(observer, obj);
     return lastObservedSet;
@@ -1690,19 +1679,33 @@
     return splices;
   }
 
-  global.Observer = Observer;
-  global.Observer.runEOM_ = runEOM;
-  global.Observer.observerSentinel_ = observerSentinel; // for testing.
-  global.Observer.hasObjectObserve = hasObserve;
-  global.ArrayObserver = ArrayObserver;
-  global.ArrayObserver.calculateSplices = function(current, previous) {
+  // Export the observe-js object for **Node.js**, with
+  // backwards-compatibility for the old `require()` API. If we're in
+  // the browser, export as a global object.
+
+  var expose = global;
+
+  if (typeof exports !== 'undefined') {
+    if (typeof module !== 'undefined' && module.exports) {
+      expose = exports = module.exports;
+    }
+    expose = exports;
+  } 
+
+  expose.Observer = Observer;
+  expose.Observer.runEOM_ = runEOM;
+  expose.Observer.observerSentinel_ = observerSentinel; // for testing.
+  expose.Observer.hasObjectObserve = hasObserve;
+  expose.ArrayObserver = ArrayObserver;
+  expose.ArrayObserver.calculateSplices = function(current, previous) {
     return arraySplice.calculateSplices(current, previous);
   };
 
-  global.ArraySplice = ArraySplice;
-  global.ObjectObserver = ObjectObserver;
-  global.PathObserver = PathObserver;
-  global.CompoundObserver = CompoundObserver;
-  global.Path = Path;
-  global.ObserverTransform = ObserverTransform;
+  expose.ArraySplice = ArraySplice;
+  expose.ObjectObserver = ObjectObserver;
+  expose.PathObserver = PathObserver;
+  expose.CompoundObserver = CompoundObserver;
+  expose.Path = Path;
+  expose.ObserverTransform = ObserverTransform;
+  
 })(typeof global !== 'undefined' && global && typeof module !== 'undefined' && module ? global : this || window);

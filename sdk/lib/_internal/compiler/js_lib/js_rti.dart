@@ -232,12 +232,9 @@ Type getRuntimeType(var object) {
  */
 substitute(var substitution, var arguments) {
   assert(isNull(substitution) ||
-         isJsArray(substitution) ||
          isJsFunction(substitution));
   assert(isNull(arguments) || isJsArray(arguments));
-  if (isJsArray(substitution)) {
-    arguments = substitution;
-  } else if (isJsFunction(substitution)) {
+  if (isJsFunction(substitution)) {
     substitution = invoke(substitution, arguments);
     if (isJsArray(substitution)) {
       arguments = substitution;

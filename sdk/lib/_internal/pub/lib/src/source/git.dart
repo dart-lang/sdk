@@ -143,8 +143,8 @@ class GitSource extends CachedSource {
 
   /// Resets all cached packages back to the pristine state of the Git
   /// repository at the revision they are pinned to.
-  Future<Pair<int, int>> repairCachedPackages() {
-    if (!dirExists(systemCacheRoot)) return new Future.value(new Pair(0, 0));
+  Future<Pair<int, int>> repairCachedPackages() async {
+    if (!dirExists(systemCacheRoot)) return new Pair(0, 0);
 
     var successes = 0;
     var failures = 0;
@@ -159,25 +159,30 @@ class GitSource extends CachedSource {
     // (pinned to different commits). The sort order of those is unspecified.
     packages.sort(Package.orderByNameAndVersion);
 
-    return Future.wait(packages.map((package) {
+    for (var package in packages) {
       log.message("Resetting Git repository for "
           "${log.bold(package.name)} ${package.version}...");
 
-      // Remove all untracked files.
-      return git.run(["clean", "-d", "--force", "-x"],
-          workingDir: package.dir).then((_) {
+      try {
+        // Remove all untracked files.
+        await git.run(["clean", "-d", "--force", "-x"],
+            workingDir: package.dir);
+
         // Discard all changes to tracked files.
-        return git.run(["reset", "--hard", "HEAD"], workingDir: package.dir);
-      }).then((_) {
+        await git.run(["reset", "--hard", "HEAD"], workingDir: package.dir);
+
         successes++;
-      }).catchError((error, stackTrace) {
-        failures++;
+      } on git.GitException catch (error, stackTrace) {
         log.error("Failed to reset ${log.bold(package.name)} "
             "${package.version}. Error:\n$error");
         log.fine(stackTrace);
         failures++;
-      }, test: (error) => error is git.GitException);
-    })).then((_) => new Pair(successes, failures));
+
+        tryDeleteEntry(package.dir);
+      }
+    }
+
+    return new Pair(successes, failures);
   }
 
   /// Ensure that the canonical clone of the repository referred to by [id] (the

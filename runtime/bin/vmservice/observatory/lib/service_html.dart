@@ -43,8 +43,12 @@ class _HtmlWebSocket implements CommonWebSocket {
     assert(data is Blob);
     FileReader fileReader = new FileReader();
     fileReader.readAsArrayBuffer(data);
-    return fileReader.onLoadEnd.first.then((e)
-        => new ByteData.view(fileReader.result));
+    return fileReader.onLoadEnd.first.then((e) {
+      var result = fileReader.result;
+      return new ByteData.view(result.buffer,
+                               result.offsetInBytes,
+                               result.length);
+    });
   }
 }
 

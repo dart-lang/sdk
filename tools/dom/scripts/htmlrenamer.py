@@ -708,7 +708,6 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'HTMLLinkElement.rev',
     'HTMLLinkElement.target',
     'HTMLMarqueeElement.*',
-    'HTMLMediaElement.canPlayType',
     'HTMLMenuElement.compact',
     'HTMLMetaElement.scheme',
     'HTMLOListElement.compact',

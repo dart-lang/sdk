@@ -138,7 +138,7 @@ bool Intrinsifier::GraphIntrinsify(ParsedFunction* parsed_function,
                            CatchClauseNode::kInvalidTryIndex);
   GraphEntryInstr* graph_entry = new GraphEntryInstr(
       parsed_function, normal_entry, Isolate::kNoDeoptId);  // No OSR id.
-  FlowGraph* graph = new FlowGraph(builder, graph_entry, block_id);
+  FlowGraph* graph = new FlowGraph(parsed_function, graph_entry, block_id);
   const Function& function = parsed_function->function();
   switch (function.recognized_kind()) {
 #define EMIT_CASE(test_class_name, test_function_name, enum_name, fp)          \
@@ -250,7 +250,7 @@ class BlockBuilder : public ValueObject {
   }
 
   intptr_t TokenPos() {
-    return flow_graph_->parsed_function().function().token_pos();
+    return flow_graph_->parsed_function()->function().token_pos();
   }
 
  private:
@@ -438,13 +438,13 @@ bool Intrinsifier::Build_Float64ArraySetIndexed(FlowGraph* flow_graph) {
   PrepareIndexedOp(&builder, array, index, TypedData::length_offset());
 
   const ICData& value_check = ICData::ZoneHandle(ICData::New(
-      flow_graph->parsed_function().function(),
-      String::Handle(flow_graph->parsed_function().function().name()),
+      flow_graph->parsed_function()->function(),
+      String::Handle(flow_graph->parsed_function()->function().name()),
       Object::empty_array(),  // Dummy args. descr.
       Isolate::kNoDeoptId,
       1));
   value_check.AddReceiverCheck(kDoubleCid,
-                               flow_graph->parsed_function().function());
+                               flow_graph->parsed_function()->function());
   builder.AddInstruction(
       new CheckClassInstr(new Value(value),
                           Isolate::kNoDeoptId,

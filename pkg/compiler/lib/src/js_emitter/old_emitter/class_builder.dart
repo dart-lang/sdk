@@ -34,7 +34,8 @@ class ClassBuilder {
     fields.add(field);
   }
 
-  jsAst.ObjectInitializer toObjectInitializer() {
+  jsAst.ObjectInitializer toObjectInitializer(
+      {bool omitClassDescriptor: false}) {
     StringBuffer buffer = new StringBuffer();
     if (superName != null) {
       buffer.write('$superName');
@@ -50,13 +51,19 @@ class ClassBuilder {
       // and the field metadata is appended. So if classData is just a string,
       // there is no field metadata.
       classData =
-          new jsAst.ArrayInitializer.from([classData]..addAll(fieldMetadata));
+          new jsAst.ArrayInitializer([classData]..addAll(fieldMetadata));
     }
-    var fieldsAndProperties =
-        [new jsAst.Property(js.string(namer.classDescriptorProperty),
-                            classData)]
-        ..addAll(properties);
+    List<jsAst.Property> fieldsAndProperties;
+    if (!omitClassDescriptor) {
+      fieldsAndProperties = <jsAst.Property>[];
+      fieldsAndProperties.add(
+          new jsAst.Property(
+              js.string(namer.classDescriptorProperty), classData));
+      fieldsAndProperties
+          ..addAll(properties);
+    } else {
+      fieldsAndProperties = properties;
+    }
     return new jsAst.ObjectInitializer(fieldsAndProperties, isOneLiner: false);
   }
-
 }

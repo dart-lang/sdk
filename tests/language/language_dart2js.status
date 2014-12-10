@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js || $compiler == dart2dart ]
+symbol_literal_test/*: Fail # Issue 21825
 constructor_duplicate_final_test/01: Fail # Issue 13363
 constructor_duplicate_final_test/02: Fail # Issue 13363
 override_inheritance_mixed_test/08: Fail # Issue 18124
@@ -140,6 +141,8 @@ const_switch_test/02: RuntimeError # Issue 17960
 const_switch_test/04: RuntimeError # Issue 17960
 
 deferred_constant_list_test: RuntimeError # Issue 21293
+
+enum_const_test: RuntimeError # Issue 21817
 
 # Compilation errors.
 const_var_test: CompileTimeError # Issue 12793

@@ -41,7 +41,7 @@ class NativeEmitter {
 
   jsAst.Expression get defPropFunction {
     Element element = backend.findHelper('defineProperty');
-    return backend.namer.elementAccess(element);
+    return emitterTask.staticFunctionAccess(element);
   }
 
   /**
@@ -336,7 +336,8 @@ class NativeEmitter {
       List<jsAst.Parameter> stubParameters) {
     FunctionSignature parameters = member.functionSignature;
     Element converter = backend.findHelper('convertDartClosureToJS');
-    jsAst.Expression closureConverter = backend.namer.elementAccess(converter);
+    jsAst.Expression closureConverter =
+        emitterTask.staticFunctionAccess(converter);
     parameters.forEachParameter((ParameterElement parameter) {
       String name = parameter.name;
       // If [name] is not in [stubParameters], then the parameter is an optional

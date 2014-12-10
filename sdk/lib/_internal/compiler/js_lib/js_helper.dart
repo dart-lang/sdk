@@ -77,6 +77,12 @@ class _Patch {
 
 const _Patch patch = const _Patch();
 
+
+/// Marks the internal map in dart2js, so that internal libraries can is-check
+// them.
+abstract class InternalMap {
+}
+
 /// No-op method that is called to inform the compiler that preambles might
 /// be needed when executing the resulting JS file in a command-line
 /// JS engine.
@@ -826,7 +832,7 @@ class Primitives {
   }
 
   static String flattenString(String str) {
-    return JS('', "#.charCodeAt(0) == 0 ? # : #", str, str, str);
+    return JS('String', "#.charCodeAt(0) == 0 ? # : #", str, str, str);
   }
 
   static String getTimeZoneName(receiver) {
@@ -1080,11 +1086,17 @@ class Primitives {
     }
 
     int argumentCount = 0;
-    List arguments = [];
+    List arguments;
 
     if (positionalArguments != null) {
-      argumentCount += positionalArguments.length;
-      arguments.addAll(positionalArguments);
+      if (JS('bool', '# instanceof Array', positionalArguments)) {
+        arguments = positionalArguments;
+      } else {
+        arguments = new List.from(positionalArguments);
+      }
+      argumentCount = JS('int', '#.length', arguments);
+    } else {
+      arguments = [];
     }
 
     String selectorName = '${JS_GET_NAME("CALL_PREFIX")}\$$argumentCount';
@@ -1955,7 +1967,7 @@ abstract class Closure implements Function {
     // var dynClosureConstructor =
     //     new Function('self', 'target', 'receiver', 'name',
     //                  'this._init(self, target, receiver, name)');
-    // proto.constructor = dynClosureConstructor; // Necessary?
+    // proto.constructor = dynClosureConstructor;
     // dynClosureConstructor.prototype = proto;
     // return dynClosureConstructor;
 

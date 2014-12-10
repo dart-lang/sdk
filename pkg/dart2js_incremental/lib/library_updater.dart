@@ -14,6 +14,7 @@ import 'package:compiler/compiler.dart' as api;
 
 import 'package:compiler/src/dart2jslib.dart' show
     Compiler,
+    EnqueueTask,
     Script;
 
 import 'package:compiler/src/elements/elements.dart' show
@@ -49,6 +50,7 @@ import 'package:compiler/src/js_emitter/js_emitter.dart' show
     ClassBuilder,
     ClassEmitter,
     CodeEmitterTask,
+    ContainerBuilder,
     MemberInfo,
     computeMixinClass;
 
@@ -70,6 +72,9 @@ import 'package:compiler/src/elements/modelx.dart' show
     ElementX,
     FieldElementX,
     LibraryElementX;
+
+import 'package:compiler/src/universe/universe.dart' show
+    Selector;
 
 import 'diff.dart' show
     Difference,
@@ -121,12 +126,18 @@ class LibraryUpdater extends JsFeatures {
   final Set<ClassElementX> _classesWithSchemaChanges =
       new Set<ClassElementX>();
 
+  final Set<ClassElementX> _existingClasses = new Set();
+
   LibraryUpdater(
       this.compiler,
       this.inputProvider,
       this.uri,
       this.logTime,
-      this.logVerbose);
+      this.logVerbose) {
+    if (compiler != null) {
+      _existingClasses.addAll(emitter.neededClasses);
+    }
+  }
 
   /// When [true], updates must be applied (using [applyUpdates]) before the
   /// [compiler]'s state correctly reflects the updated program.
@@ -533,9 +544,6 @@ class LibraryUpdater extends JsFeatures {
   }
 
   String computeUpdateJs() {
-    Set existingClasses =
-        new Set.from(compiler.codegenWorld.directlyInstantiatedClasses);
-
     List<Update> removals = <Update>[];
     List<Element> updatedElements = applyUpdates(removals);
     if (compiler.progress != null) {
@@ -543,12 +551,12 @@ class LibraryUpdater extends JsFeatures {
     }
     for (Element element in updatedElements) {
       if (!element.isClass) {
-        compiler.enqueuer.resolution.addToWorkList(element);
+        enqueuer.resolution.addToWorkList(element);
       } else {
         NO_WARN(element).ensureResolved(compiler);
       }
     }
-    compiler.processQueue(compiler.enqueuer.resolution, null);
+    compiler.processQueue(enqueuer.resolution, null);
 
     compiler.phase = Compiler.PHASE_DONE_RESOLVING;
 
@@ -559,23 +567,61 @@ class LibraryUpdater extends JsFeatures {
         new Set<ClassElementX>.from(_classesWithSchemaChanges);
     for (Element element in updatedElements) {
       if (!element.isClass) {
-        compiler.enqueuer.codegen.addToWorkList(element);
+        enqueuer.codegen.addToWorkList(element);
       } else {
         changedClasses.add(element);
       }
     }
-    compiler.processQueue(compiler.enqueuer.codegen, null);
+    compiler.processQueue(enqueuer.codegen, null);
+
+    // Run through all compiled methods and see if they may apply to
+    // newlySeenSelectors.
+    for (Element e in enqueuer.codegen.generatedCode.keys) {
+      if (e.isFunction && !e.isConstructor &&
+          e.functionSignature.hasOptionalParameters) {
+        for (Selector selector in enqueuer.codegen.newlySeenSelectors) {
+          // TODO(ahe): Group selectors by name at this point for improved
+          // performance.
+          if (e.isInstanceMember && selector.applies(e, compiler.world)) {
+            // TODO(ahe): Don't use
+            // enqueuer.codegen.newlyEnqueuedElements directly like
+            // this, make a copy.
+            enqueuer.codegen.newlyEnqueuedElements.add(e);
+          }
+          if (selector.name == namer.closureInvocationSelectorName) {
+            selector = new Selector.call(
+                e.name, e.library,
+                selector.argumentCount, selector.namedArguments);
+            if (selector.appliesUnnamed(e, compiler.world)) {
+              // TODO(ahe): Also make a copy here.
+              enqueuer.codegen.newlyEnqueuedElements.add(e);
+            }
+          }
+        }
+      }
+    }
 
     List<jsAst.Statement> updates = <jsAst.Statement>[];
 
-    Set newClasses =
-        new Set.from(compiler.codegenWorld.directlyInstantiatedClasses);
-    newClasses.removeAll(existingClasses);
+    // TODO(ahe): allInstantiatedClasses seem to include interfaces that aren't
+    // needed.
+    Set<ClassElementX> newClasses = new Set.from(
+        compiler.codegenWorld.allInstantiatedClasses.where(
+            emitter.computeClassFilter()));
+    newClasses.removeAll(_existingClasses);
+
+    // TODO(ahe): When more than one updated is computed, we need to make sure
+    // that existing classes aren't overwritten. No test except the one test
+    // that tests more than one update is affected by this problem, and only
+    // because main is closurized because we always enable tear-off. Is that
+    // really necessary? Also, add a test which tests directly that what
+    // happens when tear-off is introduced in second update.
+    emitter.neededClasses.addAll(newClasses);
 
     List<jsAst.Statement> inherits = <jsAst.Statement>[];
 
     for (ClassElementX cls in newClasses) {
-      jsAst.Node classAccess = namer.elementAccess(cls);
+      jsAst.Node classAccess = emitter.classAccess(cls);
       String name = namer.getNameOfClass(cls);
 
       updates.add(
@@ -584,7 +630,7 @@ class LibraryUpdater extends JsFeatures {
 
       ClassElement superclass = cls.superclass;
       if (superclass != null) {
-        jsAst.Node superAccess = namer.elementAccess(superclass);
+        jsAst.Node superAccess = emitter.classAccess(superclass);
         inherits.add(
             js.statement(
                 r'self.$dart_unsafe_eval.inheritFrom(#, #)',
@@ -600,8 +646,9 @@ class LibraryUpdater extends JsFeatures {
     for (ClassElementX cls in changedClasses) {
       ClassElement superclass = cls.superclass;
       jsAst.Node superAccess =
-          superclass == null ? js('null') : namer.elementAccess(superclass);
-      jsAst.Node classAccess = namer.elementAccess(cls);
+          superclass == null ? js('null')
+              : emitter.classAccess(superclass);
+      jsAst.Node classAccess = emitter.classAccess(cls);
       updates.add(
           js.statement(
               r'# = self.$dart_unsafe_eval.schemaChange(#, #, #)',
@@ -611,11 +658,22 @@ class LibraryUpdater extends JsFeatures {
     for (RemovalUpdate update in removals) {
       update.writeUpdateJsOn(updates);
     }
-    for (Element element in compiler.enqueuer.codegen.newlyEnqueuedElements) {
+    for (Element element in enqueuer.codegen.newlyEnqueuedElements) {
       if (!element.isField) {
         updates.add(computeMemberUpdateJs(element));
+      } else {
+        if (backend.constants.lazyStatics.contains(element)) {
+          throw new StateError("$element requires lazy initializer.");
+        }
       }
     }
+
+    updates.add(js.statement(r'''
+if (self.$dart_unsafe_eval.pendingStubs) {
+  self.$dart_unsafe_eval.pendingStubs.map(function(e) { return e(); });
+  self.$dart_unsafe_eval.pendingStubs = void 0;
+}
+'''));
 
     if (updates.length == 1) {
       return prettyPrintJs(updates.single);
@@ -638,45 +696,36 @@ class LibraryUpdater extends JsFeatures {
   }
 
   jsAst.Node computeMemberUpdateJs(Element element) {
-    MemberInfo info = emitter.oldEmitter.containerBuilder
-        .analyzeMemberMethod(element);
+    MemberInfo info = containerBuilder.analyzeMemberMethod(element);
     if (info == null) {
       compiler.internalError(element, '${element.runtimeType}');
     }
+    ClassBuilder builder = new ClassBuilder(element, namer);
+    containerBuilder.addMemberMethodFromInfo(info, builder);
+    jsAst.Node partialDescriptor =
+        builder.toObjectInitializer(omitClassDescriptor: true);
+
     String name = info.name;
     jsAst.Node function = info.code;
-    List<jsAst.Statement> statements = <jsAst.Statement>[];
-    if (element.isInstanceMember) {
-      jsAst.Node elementAccess = namer.elementAccess(element.enclosingClass);
-      statements.add(
-          js.statement('#.prototype.# = f', [elementAccess, name]));
+    bool isStatic = !element.isInstanceMember;
 
-      if (backend.isAliasedSuperMember(element)) {
-        String superName = namer.getNameOfAliasedSuperMember(element);
-        statements.add(
-          js.statement('#.prototype.# = f', [elementAccess, superName]));
-      }
+    /// Either a global object (non-instance members) or a prototype (instance
+    /// members).
+    jsAst.Node holder;
+
+    if (element.isInstanceMember) {
+      holder = js('#.prototype', emitter.classAccess(element.enclosingClass));
     } else {
-      jsAst.Node elementAccess = namer.elementAccess(element);
-      jsAst.Expression globalFunctionsAccess =
-          emitter.generateEmbeddedGlobalAccess(embeddedNames.GLOBAL_FUNCTIONS);
-      statements.add(
-          js.statement(
-              '#.# = # = f',
-              [globalFunctionsAccess, name, elementAccess]));
-      if (info.canTearOff) {
-        String globalName = namer.globalObjectFor(element);
-        statements.add(
-            js.statement(
-                '#.#().# = f',
-                [globalName, info.tearOffName, callNameFor(element)]));
-      }
+      holder = js('#', namer.globalObjectFor(element));
     }
-    // Create a scope by creating a new function. The updated function literal
-    // is passed as an argument to this function which ensures that temporary
-    // names in updateScope don't shadow global names.
-    jsAst.Fun updateScope = js('function (f) { # }', [statements]);
-    return js.statement('(#)(#)', [updateScope, function]);
+
+    jsAst.Expression globalFunctionsAccess =
+        emitter.generateEmbeddedGlobalAccess(embeddedNames.GLOBAL_FUNCTIONS);
+
+    return js.statement(
+        r'self.$dart_unsafe_eval.addMethod(#, #, #, #, #)',
+        [partialDescriptor, js.string(name), holder,
+         new jsAst.LiteralBool(isStatic), globalFunctionsAccess]);
   }
 
   String prettyPrintJs(jsAst.Node node) {
@@ -796,10 +845,6 @@ class RemovedFunctionUpdate extends RemovalUpdate
   /// non-instance methods.
   String name;
 
-  /// Name of super-alias property to remove using JavaScript "delete".  Null
-  /// for methods that aren't "super aliased", and non-instance methods.
-  String superName;
-
   /// For instance methods, access to class object. Otherwise, access to the
   /// method itself.
   jsAst.Node elementAccess;
@@ -818,13 +863,10 @@ class RemovedFunctionUpdate extends RemovalUpdate
     wasStateCaptured = true;
 
     if (element.isInstanceMember) {
-      elementAccess = namer.elementAccess(element.enclosingClass);
+      elementAccess = emitter.classAccess(element.enclosingClass);
       name = namer.getNameOfMember(element);
-      if (backend.isAliasedSuperMember(element)) {
-        superName = namer.getNameOfAliasedSuperMember(element);
-      }
     } else {
-      elementAccess = namer.elementAccess(element);
+      elementAccess = emitter.staticFunctionAccess(element);
     }
   }
 
@@ -846,11 +888,6 @@ class RemovedFunctionUpdate extends RemovalUpdate
       }
       updates.add(
           js.statement('delete #.prototype.#', [elementAccess, name]));
-
-      if (superName != null) {
-        updates.add(
-            js.statement('delete #.prototype.#', [elementAccess, superName]));
-      }
     } else {
       updates.add(js.statement('delete #', [elementAccess]));
     }
@@ -874,12 +911,11 @@ class RemovedClassUpdate extends RemovalUpdate with JsFeatures {
   void captureState() {
     if (wasStateCaptured) throw "captureState was called twice.";
     wasStateCaptured = true;
-
-    accessToStatics.add(namer.elementAccess(element));
+    accessToStatics.add(emitter.classAccess(element));
 
     element.forEachLocalMember((ElementX member) {
       if (!member.isInstanceMember) {
-        accessToStatics.add(namer.elementAccess(member));
+        accessToStatics.add(emitter.staticFunctionAccess(member));
       }
     });
   }
@@ -936,7 +972,7 @@ class RemovedFieldUpdate extends RemovalUpdate with JsFeatures {
     if (wasStateCaptured) throw "captureState was called twice.";
     wasStateCaptured = true;
 
-    elementAccess = namer.elementAccess(element.enclosingClass);
+    elementAccess = emitter.classAccess(element.enclosingClass);
     getterName = namer.getterName(element);
     setterName = namer.setterName(element);
   }
@@ -1151,6 +1187,10 @@ abstract class JsFeatures {
   Namer get namer => backend.namer;
 
   CodeEmitterTask get emitter => backend.emitter;
+
+  ContainerBuilder get containerBuilder => emitter.oldEmitter.containerBuilder;
+
+  EnqueueTask get enqueuer => compiler.enqueuer;
 }
 
 class EmitterHelper extends JsFeatures {

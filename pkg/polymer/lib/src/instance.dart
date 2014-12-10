@@ -168,6 +168,8 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     // the Dart type because we will handle that in PolymerDeclaration.
     // See _hookJsPolymerDeclaration for how this is done.
     (js.context['Polymer'] as JsFunction).apply([name]);
+    (js.context['HTMLElement']['register'] as JsFunction).apply(
+        [name, js.context['HTMLElement']['prototype']]);
   }
 
   /// Register a custom element that has no associated `<polymer-element>`.
@@ -198,21 +200,57 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     init.apply([], thisArg: poly);
   }
 
-  // Note: these are from src/declaration/import.js
-  // For now proxy to the JS methods, because we want to share the loader with
-  // polymer.js for interop purposes.
+  // Warning for when people try to use `importElements` or `import`.
+  static const String _DYNAMIC_IMPORT_WARNING = 'Dynamically loading html '
+      'imports has very limited support right now in dart, see '
+      'http://dartbug.com/17873.';
+
+  /// Loads the set of HTMLImports contained in `node`. Returns a future that
+  /// resolves when all the imports have been loaded. This method can be used to
+  /// lazily load imports. For example, given a template:
+  ///
+  ///     <template>
+  ///       <link rel="import" href="my-import1.html">
+  ///       <link rel="import" href="my-import2.html">
+  ///     </template>
+  ///
+  ///     Polymer.importElements(template.content)
+  ///         .then((_) => print('imports lazily loaded'));
+  ///
+  /// Dart Note: This has very limited support in dart, http://dartbug.com/17873
+  // Dart Note: From src/lib/import.js For now proxy to the JS methods,
+  // because we want to share the loader with polymer.js for interop purposes.
   static Future importElements(Node elementOrFragment) {
+    print(_DYNAMIC_IMPORT_WARNING);
     var completer = new Completer();
     js.context['Polymer'].callMethod('importElements',
         [elementOrFragment, () => completer.complete()]);
     return completer.future;
   }
 
-  static Future importUrls(List urls) {
+  /// Loads an HTMLImport for each url specified in the `urls` array. Notifies
+  /// when all the imports have loaded by calling the `callback` function
+  /// argument. This method can be used to lazily load imports. For example,
+  /// For example,
+  ///
+  ///     Polymer.import(['my-import1.html', 'my-import2.html'])
+  ///         .then((_) => print('imports lazily loaded'));
+  ///
+  /// Dart Note: This has very limited support in dart, http://dartbug.com/17873
+  // Dart Note: From src/lib/import.js. For now proxy to the JS methods,
+  // because we want to share the loader with polymer.js for interop purposes.
+  static Future import(List urls) {
+    print(_DYNAMIC_IMPORT_WARNING);
     var completer = new Completer();
-    js.context['Polymer'].callMethod('importUrls',
+    js.context['Polymer'].callMethod('import',
         [urls, () => completer.complete()]);
     return completer.future;
+  }
+
+  /// Deprecated: Use `import` instead.
+  @deprecated
+  static Future importUrls(List urls) {
+    return import(urls);
   }
 
   static final Completer _onReady = new Completer();
@@ -364,7 +402,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     }
     prepareElement();
     if (!isTemplateStagingDocument(ownerDocument)) {
-      makeElementReady();
+      _makeElementReady();
     }
   }
 
@@ -392,42 +430,40 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   }
 
   /// Initialize JS interop for this element. For now we just initialize the
-  // JsObject, but in the future we could also initialize JS APIs here.
+  /// JsObject, but in the future we could also initialize JS APIs here.
   _initJsObject() {
     _jsElem = new JsObject.fromBrowserObject(this);
   }
 
-  makeElementReady() {
+  /// Deprecated: This is no longer a public method.
+  @deprecated
+  makeElementReady() => _makeElementReady();
+
+  _makeElementReady() {
     if (_readied) return;
     _readied = true;
     createComputedProperties();
 
-    // TODO(sorvell): We could create an entry point here
-    // for the user to compute property values.
-    // process declarative resources
     parseDeclarations(_element);
-    // TODO(sorvell): CE polyfill uses unresolved attribute to simulate
-    // :unresolved; remove this attribute to be compatible with native
-    // CE.
+    // NOTE: Support use of the `unresolved` attribute to help polyfill
+    // custom elements' `:unresolved` feature.
     attributes.remove('unresolved');
     // user entry point
     _readyLog.info(() => '[$this]: ready');
     ready();
   }
 
-  /// Called when [prepareElement] is finished, which means that the element's
-  /// shadowRoot has been created, its event listeners have been setup,
-  /// attributes have been reflected to properties, and property observers have
-  /// been setup. To wait until the element has been attached to the default
-  /// view, use [attached] or [domReady].
+  /// Lifecycle method called when the element has populated it's `shadowRoot`,
+  /// prepared data-observation, and made itself ready for API interaction.
+  /// To wait until the element has been attached to the default view, use
+  /// [attached] or [domReady].
   void ready() {}
 
-  /// domReady can be used to access elements in dom (descendants,
-  /// ancestors, siblings) such that the developer is enured to upgrade
-  /// ordering. If the element definitions have loaded, domReady
-  /// can be used to access upgraded elements.
-  ///
-  /// To use, override this method in your element.
+  /// Implement to access custom elements in dom descendants, ancestors,
+  /// or siblings. Because custom elements upgrade in document order,
+  /// elements accessed in `ready` or `attached` may not be upgraded. When
+  /// `domReady` is called, all registered custom elements are guaranteed
+  /// to have been upgraded.
   void domReady() {}
 
   void attached() {
@@ -449,7 +485,18 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     if (!preventDispose) asyncUnbindAll();
   }
 
-  /// Recursive ancestral <element> initialization, oldest first.
+  /// Walks the prototype-chain of this element and allows specific
+  /// classes a chance to process static declarations.
+  ///
+  /// In particular, each polymer-element has it's own `template`.
+  /// `parseDeclarations` is used to accumulate all element `template`s
+  /// from an inheritance chain.
+  ///
+  /// `parseDeclaration` static methods implemented in the chain are called
+  /// recursively, oldest first, with the `<polymer-element>` associated
+  /// with the current prototype passed as an argument.
+  ///
+  /// An element may override this method to customize shadow-root generation.
   void parseDeclarations(PolymerDeclaration declaration) {
     if (declaration != null) {
       parseDeclarations(declaration.superDeclaration);
@@ -457,7 +504,14 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     }
   }
 
-  /// Parse input `<polymer-element>` as needed, override for custom behavior.
+  /// Perform init-time actions based on static information in the
+  /// `<polymer-element>` instance argument.
+  ///
+  /// For example, the standard implementation locates the template associated
+  /// with the given `<polymer-element>` and stamps it into a shadow-root to
+  /// implement shadow inheritance.
+  ///
+  /// An element may override this method for custom behavior.
   void parseDeclaration(Element elementElement) {
     var template = fetchTemplate(elementElement);
 
@@ -470,7 +524,10 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     }
   }
 
-  /// Return a shadow-root template (if desired), override for custom behavior.
+  /// Given a `<polymer-element>`, find an associated template (if any) to be
+  /// used for shadow-root generation.
+  ///
+  /// An element may override this method for custom behavior.
   Element fetchTemplate(Element elementElement) =>
       elementElement.querySelector('template');
 
@@ -561,6 +618,9 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     return completer.future;
   }
 
+  // copy attributes defined in the element declaration to the instance
+  // e.g. <polymer-element name="x-foo" tabIndex="0"> tabIndex is copied
+  // to the element instance here.
   void copyInstanceAttributes() {
     _element._instanceAttributes.forEach((name, value) {
       attributes.putIfAbsent(name, () => value);
@@ -607,7 +667,6 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   smoke.Declaration propertyForAttribute(String name) {
     final publishLC = _element._publishLC;
     if (publishLC == null) return null;
-    //console.log('propertyForAttribute:', name, 'matches', match);
     return publishLC[name];
   }
 
@@ -666,6 +725,9 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     return dom;
   }
 
+  /// Called by TemplateBinding/NodeBind to setup a binding to the given
+  /// property. It's overridden here to support property bindings in addition to
+  /// attribute bindings that are supported by default.
   Bindable bind(String name, bindable, {bool oneTime: false}) {
     var decl = propertyForAttribute(name);
     if (decl == null) {
@@ -697,7 +759,10 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     this.bindings[name] = observer;
   }
 
-  bindFinished() => makeElementReady();
+  /// Called by TemplateBinding when all bindings on an element have been
+  /// executed. This signals that all element inputs have been gathered and it's
+  /// safe to ready the element, create shadow-root and start data-observation.
+  bindFinished() => _makeElementReady();
 
   Map<String, Bindable> get bindings => nodeBindFallback(this).bindings;
   set bindings(Map value) { nodeBindFallback(this).bindings = value; }
@@ -705,15 +770,21 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   TemplateInstance get templateInstance =>
       nodeBindFallback(this).templateInstance;
 
-  // TODO(sorvell): unbind/unbindAll has been removed, as public api, from
-  // TemplateBinding. We still need to close/dispose of observers but perhaps
-  // we should choose a more explicit name.
+  /// Called at detached time to signal that an element's bindings should be
+  /// cleaned up. This is done asynchronously so that users have the chance to
+  /// call `cancelUnbindAll` to prevent unbinding.
   void asyncUnbindAll() {
     if (_unbound == true) return;
     _unbindLog.fine(() => '[$_name] asyncUnbindAll');
     _unbindAllJob = scheduleJob(_unbindAllJob, unbindAll);
   }
 
+  /// This method should rarely be used and only if `cancelUnbindAll` has been
+  /// called to prevent element unbinding. In this case, the element's bindings
+  /// will not be automatically cleaned up and it cannot be garbage collected by
+  /// by the system. If memory pressure is a concern or a large amount of
+  /// elements need to be managed in this way, `unbindAll` can be called to
+  /// deactivate the element's bindings and allow its memory to be reclaimed.
   void unbindAll() {
     if (_unbound == true) return;
     closeObservers();
@@ -721,6 +792,11 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     _unbound = true;
   }
 
+  //// Call in `detached` to prevent the element from unbinding when it is
+  //// detached from the dom. The element is unbound as a cleanup step that
+  //// allows its memory to be reclaimed. If `cancelUnbindAll` is used, consider
+  /// calling `unbindAll` when the element is no longer needed. This will allow
+  /// its memory to be reclaimed.
   void cancelUnbindAll() {
     if (_unbound == true) {
       _unbindLog.warning(() =>
@@ -743,7 +819,9 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     }
   }
 
-  /// Set up property observers.
+  /// Creates a CompoundObserver to observe property changes.
+  /// NOTE, this is only done if there are any properties in the `_observe`
+  /// object.
   void createPropertyObserver() {
     final observe = _element._observe;
     if (observe != null) {
@@ -761,6 +839,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     }
   }
 
+  /// Start observing property changes.
   void openPropertyObserver() {
     if (_propertyObserver != null) {
       _propertyObserver.open(notifyPropertyChanges);
@@ -775,7 +854,8 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     }
   }
 
-  /// Responds to property changes on this element.
+  /// Handler for property changes; routes changes to observing methods.
+  /// Note: array valued properties are observed for array splices.
   void notifyPropertyChanges(List newValues, Map oldValues, List paths) {
     final observe = _element._observe;
     final called = new HashSet();
@@ -807,6 +887,10 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     });
   }
 
+  /// Force any pending property changes to synchronously deliver to handlers
+  /// specified in the `observe` object.
+  /// Note: normally changes are processed at microtask time.
+  ///
   // Dart note: had to rename this to avoid colliding with
   // Observable.deliverChanges. Even worse, super calls aren't possible or
   // it prevents Polymer from being a mixin, so we can't override it even if
@@ -1065,7 +1149,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
       smoke.invoke(this, methodName, args, adjust: true);
 
   /// Invokes a function asynchronously.
-  /// This will call `Platform.flush()` and then return a `new Timer`
+  /// This will call `Polymer.flush()` and then return a `new Timer`
   /// with the provided [method] and [timeout].
   ///
   /// If you would prefer to run the callback using
@@ -1080,14 +1164,13 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     // when polyfilling Object.observe, ensure changes
     // propagate before executing the async method
     scheduleMicrotask(Observable.dirtyCheck);
-    _Platform.callMethod('flush'); // for polymer-js interop
+    _Polymer.callMethod('flush'); // for polymer-js interop
     return new Timer(timeout, method);
   }
 
-  /// Invokes a function asynchronously.
-  /// This will call `Platform.flush()` and then call
-  /// [window.requestAnimationFrame] with the provided [method] and return the
-  /// result.
+  /// Invokes a function asynchronously. The context of the callback function is
+  /// function is bound to 'this' automatically. Returns a handle which may be
+  /// passed to cancelAsync to cancel the asynchronous call.
   ///
   /// If you would prefer to run the callback after a given duration, see
   /// the [asyncTimer] method.
@@ -1097,12 +1180,11 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     // when polyfilling Object.observe, ensure changes
     // propagate before executing the async method
     scheduleMicrotask(Observable.dirtyCheck);
-    _Platform.callMethod('flush'); // for polymer-js interop
+    _Polymer.callMethod('flush'); // for polymer-js interop
     return window.requestAnimationFrame(method);
   }
 
-  /// Cancel an operation scenduled by [async]. This is just shorthand for:
-  ///     window.cancelAnimationFrame(id);
+  /// Cancel an operation scheduled by [async].
   void cancelAsync(int id) => window.cancelAnimationFrame(id);
 
   /// Fire a [CustomEvent] targeting [onNode], or `this` if onNode is not

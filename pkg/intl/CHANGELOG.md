@@ -1,3 +1,9 @@
+## 0.11.11
+  * Add a -no-embedded-plurals flag to reject plurals and genders that
+    have either leading or trailing text around them. This follows the
+    ICU recommendation that a plural or gender should contain the
+    entire phrase/sentence, not just part of it.
+
 ## 0.11.10
   * Fix some style glitches with naming. The only publicly visible one
     is DateFormat.parseUtc, but the parseUTC variant is still retained

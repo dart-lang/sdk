@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library polymer.test.web.layout_test;
+library polymer.test.web.web_components_less_test;
 
 import 'dart:async';
 import 'dart:html';
@@ -36,7 +36,7 @@ main() => initPolymer().run(() {
 
   setUp(() => Polymer.onReady);
 
-  test('platform-less configuration', () {
+  test('web-components-less configuration', () {
     var jsDoc = new JsObject.fromBrowserObject(document);
     var htmlImports = context['HTMLImports'];
 

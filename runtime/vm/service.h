@@ -71,6 +71,7 @@ class Service : public AllStatic {
   }
 
   static void SendEchoEvent(Isolate* isolate);
+  static void SendGraphEvent(Isolate* isolate);
 
  private:
   // These must be kept in sync with service/constants.dart

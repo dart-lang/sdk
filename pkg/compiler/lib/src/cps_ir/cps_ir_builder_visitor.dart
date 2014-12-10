@@ -158,10 +158,6 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     }
     assert(fieldDefinition != null);
     assert(elements[fieldDefinition] != null);
-    // This means there is no initializer.
-    // TODO(sigurdm): Avoid ever getting here. Abstract functions and fields
-    // with no initializer should not have a representation in the IR.
-    if (fieldDefinition is! ast.SendSet) return null;
     DetectClosureVariables closureLocals =
     new DetectClosureVariables(elements);
         closureLocals.visit(fieldDefinition);
@@ -170,39 +166,46 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
         element,
         closureLocals.usedFromClosure);
     return withBuilder(builder, () {
-      ast.SendSet sendSet = fieldDefinition;
-      ir.Primitive result = visit(sendSet.arguments.first);
-      builder.buildReturn(result);
-      return builder.makeFieldDefinition();
+      ir.Primitive initializer;
+      if (fieldDefinition is ast.SendSet) {
+        ast.SendSet sendSet = fieldDefinition;
+        initializer = visit(sendSet.arguments.first);
+      }
+      return builder.makeFieldDefinition(initializer);
     });
+  }
+
+  ir.FunctionDefinition _makeFunctionBody(FunctionElement element,
+                                          ast.FunctionExpression node) {
+    FunctionSignature signature = element.functionSignature;
+    signature.orderedForEachParameter((ParameterElement parameterElement) {
+      irBuilder.createFunctionParameter(parameterElement);
+    });
+
+    List<ConstantExpression> defaults = new List<ConstantExpression>();
+    signature.orderedOptionalParameters.forEach((ParameterElement element) {
+      defaults.add(getConstantForVariable(element));
+    });
+
+    visit(node.body);
+
+    return irBuilder.makeFunctionDefinition(defaults);
   }
 
   ir.FunctionDefinition buildFunction(FunctionElement element) {
     assert(invariant(element, element.isImplementation));
-    ast.FunctionExpression function = element.node;
-    assert(function != null);
-    assert(elements[function] != null);
+    ast.FunctionExpression node = element.node;
+    assert(node != null);
+    assert(elements[node] != null);
 
     DetectClosureVariables closureLocals = new DetectClosureVariables(elements);
-    closureLocals.visit(function);
+    closureLocals.visit(node);
 
-    return withBuilder(
-        new IrBuilder(compiler.backend.constantSystem,
-                      element, closureLocals.usedFromClosure),
-        () {
-      FunctionSignature signature = element.functionSignature;
-      signature.orderedForEachParameter((ParameterElement parameterElement) {
-        irBuilder.createParameter(parameterElement);
-      });
+    IrBuilder builder = new IrBuilder(compiler.backend.constantSystem,
+                                      element,
+                                      closureLocals.usedFromClosure);
 
-      List<ConstantExpression> defaults = new List<ConstantExpression>();
-      signature.orderedOptionalParameters.forEach((ParameterElement element) {
-        defaults.add(getConstantForVariable(element));
-      });
-
-      visit(function.body);
-      return irBuilder.buildFunctionDefinition(defaults);
-    });
+    return withBuilder(builder, () => _makeFunctionBody(element, node));
   }
 
   ir.Primitive visit(ast.Node node) => node.accept(this);
@@ -846,7 +849,12 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   }
 
   ir.FunctionDefinition makeSubFunction(ast.FunctionExpression node) {
-    return buildFunction(elements[node]);
+    FunctionElement element = elements[node];
+    assert(invariant(element, element.isImplementation));
+
+    IrBuilder builder = new IrBuilder.innerFunction(irBuilder, element);
+
+    return withBuilder(builder, () => _makeFunctionBody(element, node));
   }
 
   ir.Primitive visitFunctionExpression(ast.FunctionExpression node) {

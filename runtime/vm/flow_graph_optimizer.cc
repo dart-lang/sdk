@@ -198,7 +198,7 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
   // TODO(srdjan): Prevent modification of ICData object that is
   // referenced in assembly code.
   ICData& ic_data = ICData::ZoneHandle(I, ICData::New(
-      flow_graph_->parsed_function().function(),
+      flow_graph_->parsed_function()->function(),
       call->function_name(),
       args_desc_array,
       call->deopt_id(),
@@ -717,15 +717,17 @@ void FlowGraphOptimizer::InsertConversionsFor(Definition* def) {
     ConvertUse(it.Current(), from_rep);
   }
 
-  for (Value::Iterator it(def->env_use_list());
-       !it.Done();
-       it.Advance()) {
-    Value* use = it.Current();
-    if (use->instruction()->MayThrow() &&
-        use->instruction()->GetBlock()->InsideTryBlock()) {
-      // Environment uses at calls inside try-blocks must be converted to
-      // tagged representation.
-      ConvertEnvironmentUse(it.Current(), from_rep);
+  if (flow_graph()->graph_entry()->SuccessorCount() > 1) {
+    for (Value::Iterator it(def->env_use_list());
+         !it.Done();
+         it.Advance()) {
+      Value* use = it.Current();
+      if (use->instruction()->MayThrow() &&
+          use->instruction()->GetBlock()->InsideTryBlock()) {
+        // Environment uses at calls inside try-blocks must be converted to
+        // tagged representation.
+        ConvertEnvironmentUse(it.Current(), from_rep);
+      }
     }
   }
 }
@@ -2348,7 +2350,7 @@ bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
   if (!FLAG_use_cha) return true;
   Definition* callee_receiver = call->ArgumentAt(0);
   ASSERT(callee_receiver != NULL);
-  const Function& function = flow_graph_->parsed_function().function();
+  const Function& function = flow_graph_->parsed_function()->function();
   if (function.IsDynamicFunction() &&
       callee_receiver->IsParameter() &&
       (callee_receiver->AsParameter()->index() == 0)) {
@@ -3721,7 +3723,7 @@ bool FlowGraphOptimizer::InlineByteArrayViewStore(const Function& target,
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid: {
       // Check that value is always smi.
-      value_check = ICData::New(flow_graph_->parsed_function().function(),
+      value_check = ICData::New(flow_graph_->parsed_function()->function(),
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
                                 Isolate::kNoDeoptId,
@@ -3733,7 +3735,7 @@ bool FlowGraphOptimizer::InlineByteArrayViewStore(const Function& target,
     case kTypedDataUint32ArrayCid:
       // On 64-bit platforms assume that stored value is always a smi.
       if (kSmiBits >= 32) {
-        value_check = ICData::New(flow_graph_->parsed_function().function(),
+        value_check = ICData::New(flow_graph_->parsed_function()->function(),
                                   i_call->function_name(),
                                   Object::empty_array(),  // Dummy args. descr.
                                   Isolate::kNoDeoptId,
@@ -3744,7 +3746,7 @@ bool FlowGraphOptimizer::InlineByteArrayViewStore(const Function& target,
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid: {
       // Check that value is always double.
-      value_check = ICData::New(flow_graph_->parsed_function().function(),
+      value_check = ICData::New(flow_graph_->parsed_function()->function(),
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
                                 Isolate::kNoDeoptId,
@@ -3754,7 +3756,7 @@ bool FlowGraphOptimizer::InlineByteArrayViewStore(const Function& target,
     }
     case kTypedDataInt32x4ArrayCid: {
       // Check that value is always Int32x4.
-      value_check = ICData::New(flow_graph_->parsed_function().function(),
+      value_check = ICData::New(flow_graph_->parsed_function()->function(),
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
                                 Isolate::kNoDeoptId,
@@ -3764,7 +3766,7 @@ bool FlowGraphOptimizer::InlineByteArrayViewStore(const Function& target,
     }
     case kTypedDataFloat32x4ArrayCid: {
       // Check that value is always Float32x4.
-      value_check = ICData::New(flow_graph_->parsed_function().function(),
+      value_check = ICData::New(flow_graph_->parsed_function()->function(),
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
                                 Isolate::kNoDeoptId,
@@ -4936,7 +4938,7 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
              instr_it.Advance()) {
           Instruction* current = instr_it.Current();
           if (current->MayThrow()) {
-            Environment* env = current->env();
+            Environment* env = current->env()->Outermost();
             ASSERT(env != NULL);
             for (intptr_t env_idx = 0; env_idx < cdefs.length(); ++env_idx) {
               if (cdefs[env_idx] != NULL &&
@@ -5076,7 +5078,7 @@ static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
 
 
 void LICM::OptimisticallySpecializeSmiPhis() {
-  if (!flow_graph()->parsed_function().function().
+  if (!flow_graph()->parsed_function()->function().
           allows_hoisting_check_class()) {
     // Do not hoist any.
     return;
@@ -5099,7 +5101,7 @@ void LICM::OptimisticallySpecializeSmiPhis() {
 
 
 void LICM::Optimize() {
-  if (!flow_graph()->parsed_function().function().
+  if (!flow_graph()->parsed_function()->function().
           allows_hoisting_check_class()) {
     // Do not hoist any.
     return;
@@ -8236,10 +8238,11 @@ void ConstantPropagator::VisitLoadClassId(LoadClassIdInstr* instr) {
 
 
 void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
+  Value* instance = instr->instance();
   if ((instr->recognized_kind() == MethodRecognizer::kObjectArrayLength) &&
-      (instr->instance()->definition()->IsCreateArray())) {
-    Value* num_elements =
-        instr->instance()->definition()->AsCreateArray()->num_elements();
+      instance->definition()->OriginalDefinition()->IsCreateArray()) {
+    Value* num_elements = instance->definition()->OriginalDefinition()
+        ->AsCreateArray()->num_elements();
     if (num_elements->BindsToConstant() &&
         num_elements->BoundConstant().IsSmi()) {
       intptr_t length = Smi::Cast(num_elements->BoundConstant()).Value();
@@ -8250,7 +8253,8 @@ void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
   }
 
   if (instr->IsImmutableLengthLoad()) {
-    ConstantInstr* constant = instr->instance()->definition()->AsConstant();
+    ConstantInstr* constant =
+        instance->definition()->OriginalDefinition()->AsConstant();
     if (constant != NULL) {
       if (constant->value().IsString()) {
         SetValue(instr, Smi::ZoneHandle(I,
@@ -9083,6 +9087,7 @@ void ConstantPropagator::Transform() {
   }
 
   graph_->DiscoverBlocks();
+  graph_->MergeBlocks();
   GrowableArray<BitVector*> dominance_frontier;
   graph_->ComputeDominators(&dominance_frontier);
 

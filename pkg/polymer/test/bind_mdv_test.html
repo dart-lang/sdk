@@ -10,9 +10,11 @@
      .unittest-fail { background: #d55;}
      .unittest-error { background: #a11;}
   </style>
-  <script src="/packages/web_components/platform.concat.js"></script>
-  <script src="/packages/polymer/src/js/polymer/polymer.concat.js"></script>
+
+  <!-- Need to hardcode in the polyfills here since this isn't a polymer test-->
+  <script src="/packages/web_components/webcomponents.js"></script>
   <script src="/packages/web_components/dart_support.js"></script>
+  <script src="/packages/polymer/src/js/polymer/polymer.js"></script>
 </head>
 <body>
   <h1> Running bind_mdv_test </h1>

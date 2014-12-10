@@ -55,8 +55,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
       RuntimeTypes rti = backend.rti;
       jsAst.Expression expression;
       bool needsNativeCheck = emitter.nativeEmitter.requiresNativeIsCheck(cls);
-      expression = rti.getSupertypeSubstitution(
-          classElement, cls, alwaysGenerateFunction: true);
+      expression = rti.getSupertypeSubstitution(classElement, cls);
       if (expression == null && (emitNull || needsNativeCheck)) {
         expression = new jsAst.LiteralNull();
       }
@@ -220,12 +219,12 @@ class TypeTestEmitter extends CodeEmitterHelper {
         properties.add([namer.operatorIs(checkedClass), js('TRUE')]);
         Substitution substitution = check.substitution;
         if (substitution != null) {
-          jsAst.Expression body = substitution.getCode(rti, false);
+          jsAst.Expression body = substitution.getCode(rti);
           properties.add([namer.substitutionName(checkedClass), body]);
         }
       }
 
-      jsAst.Expression holder = namer.elementAccess(cls);
+      jsAst.Expression holder = backend.emitter.classAccess(cls);
       if (properties.length > 1) {
         // Use temporary shortened reference.
         statements.add(js.statement('_ = #;', holder));

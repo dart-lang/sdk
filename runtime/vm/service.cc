@@ -22,6 +22,7 @@
 #include "vm/object_graph.h"
 #include "vm/object_id_ring.h"
 #include "vm/object_store.h"
+#include "vm/parser.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
 #include "vm/reusable_handles.h"
@@ -1276,6 +1277,36 @@ static bool HandleClassesFunctionsCoverage(
 }
 
 
+static bool HandleFunctionSetSource(
+    Isolate* isolate, const Class& cls, const Function& func, JSONStream* js) {
+  if (js->LookupOption("source") == NULL) {
+    PrintError(js, "set_source expects a 'source' option\n");
+    return true;
+  }
+  const String& source =
+      String::Handle(String::New(js->LookupOption("source")));
+  const Object& result = Object::Handle(
+      Parser::ParseFunctionFromSource(cls, source));
+  if (result.IsError()) {
+    Error::Cast(result).PrintJSON(js, false);
+    return true;
+  }
+  if (!result.IsFunction()) {
+    PrintError(js, "source did not compile to a function.\n");
+    return true;
+  }
+
+  // Replace function.
+  cls.RemoveFunction(func);
+  cls.AddFunction(Function::Cast(result));
+
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "Success");
+  jsobj.AddProperty("id", "");
+  return true;
+}
+
+
 static bool HandleClassesFunctions(Isolate* isolate, const Class& cls,
                                    JSONStream* js) {
   if (js->num_arguments() != 4 && js->num_arguments() != 5) {
@@ -1298,11 +1329,13 @@ static bool HandleClassesFunctions(Isolate* isolate, const Class& cls,
     func.PrintJSON(js, false);
     return true;
   } else {
-    const char* subcollection = js->GetArgument(4);
-    if (strcmp(subcollection, "coverage") == 0) {
+    const char* subcommand = js->GetArgument(4);
+    if (strcmp(subcommand, "coverage") == 0) {
       return HandleClassesFunctionsCoverage(isolate, func, js);
+    } else if (strcmp(subcommand, "set_source") == 0) {
+      return HandleFunctionSetSource(isolate, cls, func, js);
     } else {
-      PrintError(js, "Invalid sub collection %s", subcollection);
+      PrintError(js, "Invalid sub command %s", subcommand);
       return true;
     }
   }
@@ -2266,6 +2299,34 @@ static bool HandleHeapMap(Isolate* isolate, JSONStream* js) {
 }
 
 
+static bool HandleGraph(Isolate* isolate, JSONStream* js) {
+  Service::SendGraphEvent(isolate);
+  // TODO(koda): Provide some id that ties this request to async response(s).
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "OK");
+  jsobj.AddProperty("id", "ok");
+  return true;
+}
+
+
+void Service::SendGraphEvent(Isolate* isolate) {
+  uint8_t* buffer = NULL;
+  WriteStream stream(&buffer, &allocator, 1 * MB);
+  ObjectGraph graph(isolate);
+  graph.Serialize(&stream);
+  JSONStream js;
+  {
+    JSONObject jsobj(&js);
+    jsobj.AddProperty("type", "ServiceEvent");
+    jsobj.AddPropertyF("id", "_graphEvent");
+    jsobj.AddProperty("eventType", "_Graph");
+    jsobj.AddProperty("isolate", isolate);
+  }
+  const String& message = String::Handle(String::New(js.ToCString()));
+  SendEvent(kEventFamilyDebug, message, buffer, stream.bytes_written());
+}
+
+
 class ContainsAddressVisitor : public FindObjectVisitor {
  public:
   ContainsAddressVisitor(Isolate* isolate, uword addr)
@@ -2302,7 +2363,7 @@ static bool HandleAddress(Isolate* isolate, JSONStream* js) {
     ContainsAddressVisitor visitor(isolate, addr);
     object = isolate->heap()->FindObject(&visitor);
   }
-  object.PrintJSON(js, true);
+  object.PrintJSON(js, false);
   return true;
 }
 
@@ -2338,6 +2399,7 @@ static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "code", HandleCode },
   { "coverage", HandleCoverage },
   { "debug", HandleDebug },
+  { "graph", HandleGraph },
   { "heapmap", HandleHeapMap },
   { "libraries", HandleLibraries },
   { "metrics", HandleMetrics },
@@ -2467,6 +2529,7 @@ static bool HandleVM(JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "VM");
   jsobj.AddProperty("id", "vm");
+  jsobj.AddProperty("architectureBits", static_cast<intptr_t>(kBitsPerWord));
   jsobj.AddProperty("targetCPU", CPU::Id());
   jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
   jsobj.AddPropertyF("date", "%" Pd64 "", OS::GetCurrentTimeMillis());

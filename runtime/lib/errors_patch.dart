@@ -27,6 +27,9 @@ class _AssertionError extends Error implements AssertionError {
       native "AssertionError_throwNew";
 
   String toString() {
+    if (_url == null) {
+      return _failedAssertion;
+    }
     var columnInfo = "";
     if (_column > 0) {
       // Only add column information if it is valid.

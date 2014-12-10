@@ -51,7 +51,9 @@ class BlockCollector extends StatementVisitor {
   }
 
   void collect(ExecutableDefinition node) {
-    visitStatement(node.body);
+    if (node.body != null) {
+      visitStatement(node.body);
+    }
   }
 
   visitLabeledStatement(LabeledStatement node) {

@@ -174,11 +174,13 @@ void main() {
     testExpression("[]"),
     testError("[42 42]"),
     testExpression('beebop([1, 2, 3])'),
-    // *We can't parse array literals with holes in them.
-    testError("[1,, 2]"),
-    testError("[1,]"),
-    testError("[,]"),
-    testError("[, 42]"),
+    // Array literals with holes in them.
+    testExpression("[1,, 2]"),
+    testExpression("[1,]", "[1]"),
+    testExpression("[1,,]", "[1,,]"),
+    testExpression("[,]"),
+    testExpression("[,,]"),
+    testExpression("[, 42]"),
     // Ternary operator.
     testExpression("x = a ? b : c"),
     testExpression("y = a == null ? b : a"),

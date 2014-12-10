@@ -126,7 +126,7 @@ class ContainerBuilder extends CodeEmitterHelper {
         //   `<class>.prototype.bar$1.call(this, argument0, ...)`.
         body = js.statement(
             'return #.prototype.#.call(this, #);',
-            [backend.namer.elementAccess(superClass), methodName,
+            [backend.emitter.classAccess(superClass), methodName,
              argumentsBuffer]);
       } else {
         body = js.statement(
@@ -135,7 +135,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       }
     } else {
       body = js.statement('return #(#)',
-          [namer.elementAccess(member), argumentsBuffer]);
+          [emitter.staticFunctionAccess(member), argumentsBuffer]);
     }
 
     jsAst.Fun function = js('function(#) { #; }', [parametersBuffer, body]);
@@ -363,7 +363,11 @@ class ContainerBuilder extends CodeEmitterHelper {
                             member.isAccessor;
     String tearOffName;
 
-    final bool canBeReflected = backend.isAccessibleByReflection(member);
+
+    final bool canBeReflected = backend.isAccessibleByReflection(member) ||
+        // During incremental compilation, we have to assume that reflection
+        // *might* get enabled.
+        compiler.hasIncrementalSupport;
 
     if (isNotApplyTarget) {
       canTearOff = false;
@@ -491,7 +495,7 @@ class ContainerBuilder extends CodeEmitterHelper {
 
     if (onlyNeedsSuperAlias) {
       jsAst.ArrayInitializer arrayInit =
-            new jsAst.ArrayInitializer.from(expressions);
+            new jsAst.ArrayInitializer(expressions);
           compiler.dumpInfoTask.registerElementAst(member,
               builder.addProperty(name, arrayInit));
       return;
@@ -581,8 +585,8 @@ class ContainerBuilder extends CodeEmitterHelper {
             backend.constants.addCompileTimeConstantForEmission(constant);
             return emitter.metadataEmitter.reifyMetadata(annotation);
           });
-          expressions.add(
-              new jsAst.ArrayInitializer.from(metadataIndices.map(js.number)));
+          expressions.add(new jsAst.ArrayInitializer(
+              metadataIndices.map(js.number).toList()));
         }
       });
     }
@@ -607,7 +611,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     }
 
     jsAst.ArrayInitializer arrayInit =
-      new jsAst.ArrayInitializer.from(expressions);
+      new jsAst.ArrayInitializer(expressions.toList());
     compiler.dumpInfoTask.registerElementAst(member,
         builder.addProperty(name, arrayInit));
   }

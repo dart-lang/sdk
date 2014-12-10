@@ -16,6 +16,7 @@ import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_file_index.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 
@@ -39,6 +40,7 @@ Index _createIndex() {
 class SocketServer {
   final AnalysisServerOptions analysisServerOptions;
   final DirectoryBasedDartSdk defaultSdk;
+  final InstrumentationServer instrumentationServer;
 
   /**
    * The analysis server that was created when a client established a
@@ -46,7 +48,8 @@ class SocketServer {
    */
   AnalysisServer analysisServer;
 
-  SocketServer(this.analysisServerOptions, this.defaultSdk);
+  SocketServer(this.analysisServerOptions, this.defaultSdk,
+      this.instrumentationServer);
 
   /**
    * Create an analysis server which will communicate with the client using the
@@ -72,6 +75,7 @@ class SocketServer {
         _createIndex(),
         analysisServerOptions,
         defaultSdk,
+        instrumentationServer,
         rethrowExceptions: false);
     _initializeHandlers(analysisServer);
   }

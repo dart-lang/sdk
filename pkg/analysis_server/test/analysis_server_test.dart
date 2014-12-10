@@ -10,6 +10,7 @@ import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -207,6 +208,7 @@ class AnalysisServerTestHelper {
         null,
         new AnalysisServerOptions(),
         new MockSdk(),
+        new NullInstrumentationServer(),
         rethrowExceptions: rethrowExceptions);
   }
 }

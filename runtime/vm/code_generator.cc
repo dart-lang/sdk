@@ -54,6 +54,7 @@ DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls");
 DEFINE_FLAG(bool, trace_type_checks, false, "Trace runtime type checks.");
 
 DECLARE_FLAG(int, deoptimization_counter_threshold);
+DECLARE_FLAG(bool, enable_asserts);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
@@ -559,12 +560,29 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
 
 
 // Report that the type of the given object is not bool in conditional context.
+// Throw assertion error if the object is null. (cf. Boolean Conversion
+// in language Spec.)
 // Arg0: bad object.
-// Return value: none, throws a TypeError.
+// Return value: none, throws TypeError or AssertionError.
 DEFINE_RUNTIME_ENTRY(NonBoolTypeError, 1) {
   const intptr_t location = GetCallerLocation();
   const Instance& src_instance = Instance::CheckedHandle(arguments.ArgAt(0));
-  ASSERT(src_instance.IsNull() || !src_instance.IsBool());
+
+  if (src_instance.IsNull()) {
+    const Array& args = Array::Handle(Array::New(4));
+    args.SetAt(0, String::Handle(
+        String::New("Failed assertion: boolean expression must not be null")));
+
+    // No source code for this assertion, set url to null.
+    args.SetAt(1, String::Handle(String::null()));
+    args.SetAt(2, Smi::Handle(Smi::New(0)));
+    args.SetAt(3, Smi::Handle(Smi::New(0)));
+
+    Exceptions::ThrowByType(Exceptions::kAssertion, args);
+    UNREACHABLE();
+  }
+
+  ASSERT(!src_instance.IsBool());
   const Type& bool_interface = Type::Handle(Type::BoolType());
   const AbstractType& src_type = AbstractType::Handle(src_instance.GetType());
   const String& src_type_name = String::Handle(src_type.UserVisibleName());

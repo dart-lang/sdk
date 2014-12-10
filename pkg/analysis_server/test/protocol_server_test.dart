@@ -115,6 +115,7 @@ class AnalysisErrorTest {
 }
 
 
+@ReflectiveTestCase()
 class ElementKindTest {
   void test_fromEngine() {
     expect(
@@ -330,7 +331,7 @@ class A {
       expect(location.startLine, 2);
       expect(location.startColumn, 14);
     }
-    expect(element.parameters, '()');
+    expect(element.parameters, isNull);
     expect(element.returnType, 'String');
     expect(element.flags, 0);
   }

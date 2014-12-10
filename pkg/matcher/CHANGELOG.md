@@ -1,3 +1,7 @@
+## 0.11.2
+
+* Add an `isNotEmpty` matcher.
+
 ## 0.11.1+1
 
 * Refactored libraries and tests.

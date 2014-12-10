@@ -1,16 +1,11 @@
-// Copyright 2012 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
 
 (function(global) {
   'use strict';
@@ -70,7 +65,7 @@
     // Firefox OS Apps do not allow eval. This feature detection is very hacky
     // but even if some other platform adds support for this function this code
     // will continue to work.
-    if (navigator.getDeviceStorage) {
+    if (typeof navigator != 'undefined' && navigator.getDeviceStorage) {
       return false;
     }
 
@@ -85,7 +80,7 @@
   var hasEval = detectEval();
 
   function isIndex(s) {
-    return +s === s >>> 0;
+    return +s === s >>> 0 && s !== '';
   }
 
   function toNumber(s) {
@@ -395,7 +390,7 @@
           obj = obj[this[i - 1]];
         if (!isObject(obj))
           return;
-        observe(obj, this[0]);
+        observe(obj, this[i]);
       }
     },
 
@@ -516,21 +511,9 @@
   }
 
   var runEOM = hasObserve ? (function(){
-    var eomObj = { pingPong: true };
-    var eomRunScheduled = false;
-
-    Object.observe(eomObj, function() {
-      runEOMTasks();
-      eomRunScheduled = false;
-    });
-
     return function(fn) {
-      eomTasks.push(fn);
-      if (!eomRunScheduled) {
-        eomRunScheduled = true;
-        eomObj.pingPong = !eomObj.pingPong;
-      }
-    };
+      return Promise.resolve().then(fn);
+    }
   })() :
   (function() {
     return function(fn) {
@@ -668,14 +651,13 @@
     }
 
     var record = {
-      object: undefined,
       objects: objects,
+      get rootObject() { return rootObj; },
+      set rootObject(value) {
+        rootObj = value;
+        rootObjProps = {};
+      },
       open: function(obs, object) {
-        if (!rootObj) {
-          rootObj = object;
-          rootObjProps = {};
-        }
-
         observers.push(obs);
         observerCount++;
         obs.iterateObjects_(observe);
@@ -696,7 +678,9 @@
         rootObj = undefined;
         rootObjProps = undefined;
         observedSetCache.push(this);
-      }
+        if (lastObservedSet === this)
+          lastObservedSet = null;
+      },
     };
 
     return record;
@@ -705,9 +689,9 @@
   var lastObservedSet;
 
   function getObservedSet(observer, obj) {
-    if (!lastObservedSet || lastObservedSet.object !== obj) {
+    if (!lastObservedSet || lastObservedSet.rootObject !== obj) {
       lastObservedSet = observedSetCache.pop() || newObservedSet();
-      lastObservedSet.object = obj;
+      lastObservedSet.rootObject = obj;
     }
     lastObservedSet.open(observer, obj);
     return lastObservedSet;
@@ -799,25 +783,11 @@
 
   var runningMicrotaskCheckpoint = false;
 
-  var hasDebugForceFullDelivery = hasObserve && hasEval && (function() {
-    try {
-      eval('%RunMicrotasks()');
-      return true;
-    } catch (ex) {
-      return false;
-    }
-  })();
-
   global.Platform = global.Platform || {};
 
   global.Platform.performMicrotaskCheckpoint = function() {
     if (runningMicrotaskCheckpoint)
       return;
-
-    if (hasDebugForceFullDelivery) {
-      eval('%RunMicrotasks()');
-      return;
-    }
 
     if (!collectObservers)
       return;
@@ -1709,19 +1679,33 @@
     return splices;
   }
 
-  global.Observer = Observer;
-  global.Observer.runEOM_ = runEOM;
-  global.Observer.observerSentinel_ = observerSentinel; // for testing.
-  global.Observer.hasObjectObserve = hasObserve;
-  global.ArrayObserver = ArrayObserver;
-  global.ArrayObserver.calculateSplices = function(current, previous) {
+  // Export the observe-js object for **Node.js**, with
+  // backwards-compatibility for the old `require()` API. If we're in
+  // the browser, export as a global object.
+
+  var expose = global;
+
+  if (typeof exports !== 'undefined') {
+    if (typeof module !== 'undefined' && module.exports) {
+      expose = exports = module.exports;
+    }
+    expose = exports;
+  } 
+
+  expose.Observer = Observer;
+  expose.Observer.runEOM_ = runEOM;
+  expose.Observer.observerSentinel_ = observerSentinel; // for testing.
+  expose.Observer.hasObjectObserve = hasObserve;
+  expose.ArrayObserver = ArrayObserver;
+  expose.ArrayObserver.calculateSplices = function(current, previous) {
     return arraySplice.calculateSplices(current, previous);
   };
 
-  global.ArraySplice = ArraySplice;
-  global.ObjectObserver = ObjectObserver;
-  global.PathObserver = PathObserver;
-  global.CompoundObserver = CompoundObserver;
-  global.Path = Path;
-  global.ObserverTransform = ObserverTransform;
+  expose.ArraySplice = ArraySplice;
+  expose.ObjectObserver = ObjectObserver;
+  expose.PathObserver = PathObserver;
+  expose.CompoundObserver = CompoundObserver;
+  expose.Path = Path;
+  expose.ObserverTransform = ObserverTransform;
+  
 })(typeof global !== 'undefined' && global && typeof module !== 'undefined' && module ? global : this || window);

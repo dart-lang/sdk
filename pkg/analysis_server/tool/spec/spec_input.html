@@ -266,7 +266,9 @@
           for the file cannot be computed, then the subset of the
           errors that can be computed will be returned and the
           response will contain an error to indicate why the errors
-          could not be computed.
+          could not be computed. If the content of the file changes after this
+          request was received but before a response could be sent, then an
+          error of type <tt>CONTENT_MODIFIED</tt> will be generated.
         </p>
         <p>
           This request is intended to be used by clients that cannot
@@ -310,15 +312,13 @@
           <field name="file">
             <ref>FilePath</ref>
             <p>
-              The file in which hover information is being
-              requested.
+              The file in which hover information is being requested.
             </p>
           </field>
           <field name="offset">
             <ref>int</ref>
             <p>
-              The offset for which hover information is being
-              requested.
+              The offset for which hover information is being requested.
             </p>
           </field>
         </params>
@@ -332,6 +332,71 @@
               contain multiple items if the file is being analyzed
               in multiple contexts in conflicting ways (such as a
               part that is included in multiple libraries).
+            </p>
+          </field>
+        </result>
+      </request>
+      <request method="getNavigation">
+        <p>
+          Return the navigation information associated with the given region of
+          the given file. If the navigation information for the given file has
+          not yet been computed, or the most recently computed navigation
+          information for the given file is out of date, then the response for
+          this request will be delayed until it has been computed. If the
+          content of the file changes after this request was received but before
+          a response could be sent, then an error of type
+          <tt>CONTENT_MODIFIED</tt> will be generated.
+        </p>
+        <p>
+          If a navigation region overlaps (but extends either before or after)
+          the given region of the file it will be included in the result. This
+          means that it is theoretically possible to get the same navigation
+          region in response to multiple requests. Clients can avoid this by
+          always choosing a region that starts at the beginning of a line and
+          ends at the end of a (possibly different) line in the file.
+        </p>
+        <params>
+          <field name="file">
+            <ref>FilePath</ref>
+            <p>
+              The file in which navigation information is being requested.
+            </p>
+          </field>
+          <field name="offset">
+            <ref>int</ref>
+            <p>
+              The offset of the region for which navigation information is being
+              requested.
+            </p>
+          </field>
+          <field name="length">
+            <ref>int</ref>
+            <p>
+              The length of the region for which navigation information is being
+              requested.
+            </p>
+          </field>
+        </params>
+        <result>
+          <field name="files">
+            <list><ref>FilePath</ref></list>
+            <p>
+              A list of the paths of files that are referenced by the navigation
+              targets.
+            </p>
+          </field>
+          <field name="targets">
+            <list><ref>NavigationTarget</ref></list>
+            <p>
+              A list of the navigation targets that are referenced by the
+              navigation regions.
+            </p>
+          </field>
+          <field name="regions">
+            <list><ref>NavigationRegion</ref></list>
+            <p>
+              A list of the navigation regions within the requested region of
+              the file.
             </p>
           </field>
         </result>
@@ -657,6 +722,45 @@
           </field>
         </params>
       </notification>
+      <notification event="invalidate">
+        <p>
+          Reports that the navigation information associated with a region of a
+          single file has become invalid and should be re-requested.
+        </p>
+        <p>
+          This notification is not subscribed to by default. Clients can
+          subscribe by including the value <tt>"INVALIDATE"</tt> in the list of
+          services passed in an analysis.setSubscriptions request.
+        </p>
+        <params>
+          <field name="file">
+            <ref>FilePath</ref>
+            <p>
+              The file whose information has been invalidated.
+            </p>
+          </field>
+          <field name="offset">
+            <ref>int</ref>
+            <p>
+              The offset of the invalidated region.
+            </p>
+          </field>
+          <field name="length">
+            <ref>int</ref>
+            <p>
+              The length of the invalidated region.
+            </p>
+          </field>
+          <field name="delta">
+            <ref>int</ref>
+            <p>
+              The delta to be applied to the offsets in information that follows
+              the invalidated region in order to update it so that it doesn't
+              need to be re-requested.
+            </p>
+          </field>
+        </params>
+      </notification>
       <notification event="navigation">
         <p>
           Reports the navigation targets associated with a given file.
@@ -687,6 +791,22 @@
               versions of a package. Note that the navigation
               regions that are returned do not overlap other
               navigation regions.
+            </p>
+          </field>
+          <field name="targets">
+            <list><ref>NavigationTarget</ref></list>
+            <p>
+              The navigation targets referenced in the file.
+              They are referenced by <tt>NavigationRegion</tt>s by their
+              index in this array.
+            </p>
+          </field>
+          <field name="files">
+            <list><ref>FilePath</ref></list>
+            <p>
+              The files containing navigation targets referenced in the file.
+              They are referenced by <tt>NavigationTarget</tt>s by their
+              index in this array.
             </p>
           </field>
         </params>
@@ -1656,6 +1776,7 @@
         <enum>
           <value><code>FOLDING</code></value>
           <value><code>HIGHLIGHTS</code></value>
+          <value><code>INVALIDATE</code></value>
           <value><code>NAVIGATION</code></value>
           <value><code>OCCURRENCES</code></value>
           <value><code>OUTLINE</code></value>
@@ -1893,7 +2014,7 @@
             <p>
               The element identifier should be inserted at the completion location.
               For example "someMethod" in import 'myLib.dart' show someMethod; .
-              For suggestions of this kind, the element attribute is defined 
+              For suggestions of this kind, the element attribute is defined
               and the completion field is the element's identifier.
             </p>
           </value>
@@ -1902,7 +2023,7 @@
             <p>
               The element is being invoked at the completion location.
               For example, "someMethod" in x.someMethod(); .
-              For suggestions of this kind, the element attribute is defined 
+              For suggestions of this kind, the element attribute is defined
               and the completion field is the element's identifier.
             </p>
           </value>
@@ -1963,8 +2084,9 @@
             <p>
               The parameter list for the element. If the element is not
               a method or function this field will not be defined. If
-              the element has zero parameters, this field will have a
-              value of "()".
+              the element doesn't have parameters (e.g. getter), this field
+              will not be defined. If the element has zero parameters, this
+              field will have a value of "()".
             </p>
           </field>
           <field name="returnType" optional="true">
@@ -2384,11 +2506,57 @@
             </p>
           </field>
           <field name="targets">
-            <list><ref>Element</ref></list>
+            <list><ref>int</ref></list>
             <p>
-              The elements to which the given region is bound. By
-              opening the declaration of the elements, clients can
-              implement one form of navigation.
+              The indexes of the targets (in the enclosing navigation response)
+              to which the given region is bound. By opening the target, clients
+              can implement one form of navigation.
+            </p>
+          </field>
+        </object>
+      </type>
+      <type name="NavigationTarget">
+        <p>
+          A description of a target to which the user can navigate.
+        </p>
+        <object>
+          <field name="kind">
+            <ref>ElementKind</ref>
+            <p>
+              The kind of the element.
+            </p>
+          </field>
+          <field name="fileIndex">
+            <ref>int</ref>
+            <p>
+              The index of the file (in the enclosing navigation response) to
+              navigate to.
+            </p>
+          </field>
+          <field name="offset">
+            <ref>int</ref>
+            <p>
+              The offset of the region from which the user can navigate.
+            </p>
+          </field>
+          <field name="length">
+            <ref>int</ref>
+            <p>
+              The length of the region from which the user can navigate.
+            </p>
+          </field>
+          <field name="startLine">
+            <ref>int</ref>
+            <p>
+              The one-based index of the line containing the first
+              character of the region.
+            </p>
+          </field>
+          <field name="startColumn">
+            <ref>int</ref>
+            <p>
+              The one-based index of the column containing the first
+              character of the region.
             </p>
           </field>
         </object>
@@ -2701,6 +2869,14 @@
           execution of the server.
         </p>
         <enum>
+          <value>
+            <code>CONTENT_MODIFIED</code>
+            <p>
+              An "analysis.getErrors" or "analysis.getNavigation" request could
+              not be satisfied because the content of the file changed before
+              the requested results could be computed.
+            </p>
+          </value>
           <value>
             <code>GET_ERRORS_INVALID_FILE</code>
             <p>

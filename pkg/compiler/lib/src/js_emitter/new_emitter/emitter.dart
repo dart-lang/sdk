@@ -72,5 +72,39 @@ class Emitter implements emitterTask.Emitter {
     return _emitter.constantEmitter.reference(value);
   }
 
+  js.Expression isolateLazyInitializerAccess(Element element) {
+    return js.js('#.#', [namer.globalObjectFor(element), 
+                         namer.getLazyInitializerName(element)]);
+  }
+
+  js.Expression isolateStaticClosureAccess(Element element) {
+    return js.js('#.#()',
+        [namer.globalObjectFor(element), namer.getStaticClosureName(element)]);
+  }
+  
+  js.PropertyAccess globalPropertyAccess(Element element) {
+     String name = namer.getNameX(element);
+     js.PropertyAccess pa = new js.PropertyAccess.field(
+         new js.VariableUse(namer.globalObjectFor(element)),
+         name);
+     return pa;
+   }
+
+  js.PropertyAccess staticFieldAccess(Element element) {
+    return globalPropertyAccess(element);
+  }
+  
+  js.PropertyAccess staticFunctionAccess(Element element) {
+    return globalPropertyAccess(element);
+  }
+  
+  js.PropertyAccess classAccess(Element element) {
+      return globalPropertyAccess(element);
+  }
+  
+  js.PropertyAccess typedefAccess(Element element) {
+      return globalPropertyAccess(element);
+  }
+  
   void invalidateCaches() {}
 }

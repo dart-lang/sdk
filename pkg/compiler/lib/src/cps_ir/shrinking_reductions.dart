@@ -34,6 +34,7 @@ class ShrinkingReducer extends Pass {
 
   /// Applies shrinking reductions to root, mutating root in the process.
   void rewriteFieldDefinition(FieldDefinition root) {
+    if (!root.hasInitializer) return;
     rewriteExecutableDefinition(root);
   }
 
@@ -309,7 +310,7 @@ class ParentVisitor extends RecursiveVisitor {
 
   processFunctionDefinition(FunctionDefinition node) {
     node.body.parent = node;
-    node.parameters.forEach((Parameter p) => p.parent = node);
+    node.parameters.forEach((Definition p) => p.parent = node);
   }
 
   // Expressions.

@@ -1227,7 +1227,7 @@ void Assembler::TraceSimMsg(const char* message) {
     b(&msg);
     Emit(reinterpret_cast<int32_t>(message));
     Bind(&msg);
-    break_(Instr::kMsgMessageCode);
+    break_(Instr::kSimulatorMessageCode);
   }
 #endif
 }

@@ -228,9 +228,10 @@ class ConstantEvaluator {
 }
 
 /**
- * Instances of the class `ConstantFinder` are used to traverse the AST structures of all of
- * the compilation units being resolved and build a table mapping constant variable elements to the
- * declarations of those variables.
+ * Instances of the class `ConstantFinder` are used to traverse the AST
+ * structures of all of the compilation units being resolved and build tables
+ * of the constant variables, constant constructors, constant constructor
+ * invocations, and annotations found in those compilation units.
  */
 class ConstantFinder extends RecursiveAstVisitor<Object> {
   /**
@@ -250,6 +251,18 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
    */
   final List<InstanceCreationExpression> constructorInvocations =
       new List<InstanceCreationExpression>();
+
+  /**
+   * A collection of annotations.
+   */
+  final List<Annotation> annotations = <Annotation>[];
+
+  @override
+  Object visitAnnotation(Annotation node) {
+    super.visitAnnotation(node);
+    annotations.add(node);
+    return null;
+  }
 
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
@@ -357,6 +370,11 @@ class ConstantValueComputer {
   List<InstanceCreationExpression> _constructorInvocations;
 
   /**
+   * A collection of annotations.
+   */
+  List<Annotation> _annotations;
+
+  /**
    * The set of variables declared on the command line using '-D'.
    */
   final DeclaredVariables _declaredVariables;
@@ -410,6 +428,7 @@ class ConstantValueComputer {
     _variableDeclarationMap = _constantFinder.variableMap;
     constructorDeclarationMap = _constantFinder.constructorMap;
     _constructorInvocations = _constantFinder.constructorInvocations;
+    _annotations = _constantFinder.annotations;
     _variableDeclarationMap.values.forEach((VariableDeclaration declaration) {
       ReferenceFinder referenceFinder = new ReferenceFinder(
           declaration,
@@ -497,6 +516,12 @@ class ConstantValueComputer {
           _generateCycleError(constantsInCycle, constant);
         }
       }
+    }
+    // Since no constant can depend on an annotation, we don't waste time
+    // including them in the topological sort.  We just process all the
+    // annotations after all other constants are finished.
+    for (Annotation annotation in _annotations) {
+      _computeValueFor(annotation);
     }
   }
 
@@ -645,6 +670,44 @@ class ConstantValueComputer {
               defaultValue.accept(createConstantVisitor(errorReporter));
           (element as ParameterElementImpl).evaluationResult =
               new EvaluationResultImpl.con2(dartObject, errorListener.errors);
+        }
+      }
+    } else if (constNode is Annotation) {
+      ElementAnnotationImpl elementAnnotation = constNode.elementAnnotation;
+      // elementAnnotation is null if the annotation couldn't be resolved, in
+      // which case we skip it.
+      if (elementAnnotation != null) {
+        Element element = elementAnnotation.element;
+        if (element is PropertyAccessorElement &&
+            element.variable is VariableElementImpl) {
+          // The annotation is a reference to a compile-time constant variable.
+          // Just copy the evaluation result.
+          VariableElementImpl variableElement =
+              element.variable as VariableElementImpl;
+          elementAnnotation.evaluationResult = variableElement.evaluationResult;
+        } else if (element is ConstructorElementImpl &&
+            constNode.arguments != null) {
+          RecordingErrorListener errorListener = new RecordingErrorListener();
+          CompilationUnit sourceCompilationUnit =
+              constNode.getAncestor((node) => node is CompilationUnit);
+          ErrorReporter errorReporter =
+              new ErrorReporter(errorListener, sourceCompilationUnit.element.source);
+          ConstantVisitor constantVisitor =
+              createConstantVisitor(errorReporter);
+          DartObjectImpl result = _evaluateConstructorCall(
+              constNode,
+              constNode.arguments.arguments,
+              element,
+              constantVisitor,
+              errorReporter);
+          elementAnnotation.evaluationResult =
+              new EvaluationResultImpl.con2(result, errorListener.errors);
+        } else {
+          // This may happen for invalid code (e.g. failing to pass arguments
+          // to an annotation which references a const constructor).  The error
+          // is detected elsewhere, so just silently ignore it here.
+          elementAnnotation.evaluationResult =
+              new EvaluationResultImpl.con1(null);
         }
       }
     } else {

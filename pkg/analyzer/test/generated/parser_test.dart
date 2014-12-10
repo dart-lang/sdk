@@ -123,6 +123,7 @@ class AstValidator extends UnifyingAstVisitor<Object> {
  *
  * Simpler tests should be defined in the class [SimpleParserTest].
  */
+@ReflectiveTestCase()
 class ComplexParserTest extends ParserTestCase {
   void test_additiveExpression_normal() {
     BinaryExpression expression = ParserTestCase.parseExpression("x + y - z");
@@ -583,6 +584,7 @@ class C {
  * The class `ErrorParserTest` defines parser tests that test the parsing of code to ensure
  * that errors are correctly reported, and in some cases, not reported.
  */
+@ReflectiveTestCase()
 class ErrorParserTest extends ParserTestCase {
   void fail_expectedListOrMapLiteral() {
     // It isn't clear that this test can ever pass. The parser is currently
@@ -840,6 +842,18 @@ class ErrorParserTest extends ParserTestCase {
     ParserTestCase.parseStatement("() {for (; x;) {break;}};");
   }
 
+  void test_classInClass_abstract() {
+    ParserTestCase.parseCompilationUnit(
+        "class C { abstract class B {} }",
+        [ParserErrorCode.CLASS_IN_CLASS]);
+  }
+
+  void test_classInClass_nonAbstract() {
+    ParserTestCase.parseCompilationUnit(
+        "class C { class B {} }",
+        [ParserErrorCode.CLASS_IN_CLASS]);
+  }
+
   void test_classTypeAlias_abstractAfterEq() {
     // This syntax has been removed from the language in favor of
     // "abstract class A = B with C;" (issue 18098).
@@ -848,6 +862,12 @@ class ErrorParserTest extends ParserTestCase {
         <Object>[emptyCommentAndMetadata()],
         "class A = abstract B with C;",
         [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN]);
+  }
+
+  void test_colonInPlaceOfIn() {
+    ParserTestCase.parseStatement(
+        "for (var x : list) {}",
+        [ParserErrorCode.COLON_IN_PLACE_OF_IN]);
   }
 
   void test_constAndFinal() {
@@ -1921,6 +1941,22 @@ class ErrorParserTest extends ParserTestCase {
         [ParserErrorCode.MISSING_KEYWORD_OPERATOR]);
   }
 
+  void test_missingMethodParameters_void_block() {
+    ParserTestCase.parse3(
+        "parseClassMember",
+        <Object>["C"],
+        "void m {} }",
+        [ParserErrorCode.MISSING_METHOD_PARAMETERS]);
+  }
+
+  void test_missingMethodParameters_void_expression() {
+    ParserTestCase.parse3(
+        "parseClassMember",
+        <Object>["C"],
+        "void m => null; }",
+        [ParserErrorCode.MISSING_METHOD_PARAMETERS]);
+  }
+
   void test_missingNameInLibraryDirective() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(
         "library;",
@@ -2324,6 +2360,18 @@ class ErrorParserTest extends ParserTestCase {
         [ParserErrorCode.TOP_LEVEL_OPERATOR]);
   }
 
+  void test_typedefInClass_withoutReturnType() {
+    ParserTestCase.parseCompilationUnit(
+        "class C { typedef F(x); }",
+        [ParserErrorCode.TYPEDEF_IN_CLASS]);
+  }
+
+  void test_typedefInClass_withReturnType() {
+    ParserTestCase.parseCompilationUnit(
+        "class C { typedef int F(int x); }",
+        [ParserErrorCode.TYPEDEF_IN_CLASS]);
+  }
+
   void test_unexpectedTerminatorForParameterGroup_named() {
     ParserTestCase.parse4(
         "parseFormalParameterList",
@@ -2336,6 +2384,18 @@ class ErrorParserTest extends ParserTestCase {
         "parseFormalParameterList",
         "(a, b])",
         [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP]);
+  }
+
+  void test_unexpectedToken_endOfFieldDeclarationStatement() {
+    ParserTestCase.parseStatement(
+        "String s = (null));",
+        [ParserErrorCode.UNEXPECTED_TOKEN]);
+  }
+
+  void test_unexpectedToken_returnInExpressionFuntionBody() {
+    ParserTestCase.parseCompilationUnit(
+        "f() => return null;",
+        [ParserErrorCode.UNEXPECTED_TOKEN]);
   }
 
   void test_unexpectedToken_semicolonBetweenClassMembers() {
@@ -2518,6 +2578,7 @@ class ErrorParserTest extends ParserTestCase {
   }
 }
 
+@ReflectiveTestCase()
 class IncrementalParserTest extends EngineTestCase {
   void fail_replace_identifier_with_functionLiteral_in_initializer_interp() {
     // TODO(paulberry, brianwilkerson): broken due to incremental scanning bugs
@@ -2908,6 +2969,7 @@ class C {
   }
 }
 
+@ReflectiveTestCase()
 class NonErrorParserTest extends ParserTestCase {
   void test_constFactory_external() {
     ParserTestCase.parse(
@@ -3211,6 +3273,7 @@ class ParserTestCase extends EngineTestCase {
  * The class `RecoveryParserTest` defines parser tests that test the parsing of invalid code
  * sequences to ensure that the correct recovery steps are taken in the parser.
  */
+@ReflectiveTestCase()
 class RecoveryParserTest extends ParserTestCase {
   void fail_incomplete_returnType() {
     ParserTestCase.parseCompilationUnit(r'''
@@ -4278,6 +4341,12 @@ class C {
         expression.leftOperand);
   }
 
+  void test_nonStringLiteralUri_import() {
+    ParserTestCase.parseCompilationUnit(
+        "import dart:io; class C {}",
+        [ParserErrorCode.NON_STRING_LITERAL_AS_URI]);
+  }
+
   void test_prefixExpression_missing_operand_minus() {
     PrefixExpression expression =
         ParserTestCase.parseExpression("-", [ParserErrorCode.MISSING_IDENTIFIER]);
@@ -4450,6 +4519,7 @@ class C {
   }
 }
 
+@ReflectiveTestCase()
 class ResolutionCopierTest extends EngineTestCase {
   void test_visitAnnotation() {
     String annotationName = "proxy";
@@ -5099,6 +5169,7 @@ class ResolutionCopierTest extends EngineTestCase {
  *
  * More complex tests should be defined in the class [ComplexParserTest].
  */
+@ReflectiveTestCase()
 class SimpleParserTest extends ParserTestCase {
   void fail_parseCommentReference_this() {
     // This fails because we are returning null from the method and asserting
@@ -6742,24 +6813,44 @@ void''');
   }
 
   void test_parseCommentReferences_multiLine() {
-    List<Token> tokens = <Token>[
-        new StringToken(TokenType.MULTI_LINE_COMMENT, "/** xxx [a] yyy [b] zzz */", 3)];
+    DocumentationCommentToken token = new DocumentationCommentToken(
+        TokenType.MULTI_LINE_COMMENT,
+        "/** xxx [a] yyy [bb] zzz */",
+        3);
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[token];
     List<CommentReference> references =
         ParserTestCase.parse("parseCommentReferences", <Object>[tokens], "");
+    List<Token> tokenReferences = token.references;
     expect(references, hasLength(2));
-    CommentReference reference = references[0];
-    expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
-    expect(reference.offset, 12);
-    reference = references[1];
-    expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
-    expect(reference.offset, 20);
+    expect(tokenReferences, hasLength(2));
+    {
+      CommentReference reference = references[0];
+      expect(reference, isNotNull);
+      expect(reference.identifier, isNotNull);
+      expect(reference.offset, 12);
+      // the reference is recorded in the comment token
+      Token referenceToken = tokenReferences[0];
+      expect(referenceToken.offset, 12);
+      expect(referenceToken.lexeme, 'a');
+    }
+    {
+      CommentReference reference = references[1];
+      expect(reference, isNotNull);
+      expect(reference.identifier, isNotNull);
+      expect(reference.offset, 20);
+      // the reference is recorded in the comment token
+      Token referenceToken = tokenReferences[1];
+      expect(referenceToken.offset, 20);
+      expect(referenceToken.lexeme, 'bb');
+    }
   }
 
   void test_parseCommentReferences_notClosed_noIdentifier() {
-    List<Token> tokens = <Token>[
-        new StringToken(TokenType.MULTI_LINE_COMMENT, "/** [ some text", 5)];
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+        new DocumentationCommentToken(
+            TokenType.MULTI_LINE_COMMENT,
+            "/** [ some text",
+            5)];
     List<CommentReference> references =
         ParserTestCase.parse("parseCommentReferences", <Object>[tokens], "");
     expect(references, hasLength(1));
@@ -6771,8 +6862,11 @@ void''');
   }
 
   void test_parseCommentReferences_notClosed_withIdentifier() {
-    List<Token> tokens = <Token>[
-        new StringToken(TokenType.MULTI_LINE_COMMENT, "/** [namePrefix some text", 5)];
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+        new DocumentationCommentToken(
+            TokenType.MULTI_LINE_COMMENT,
+            "/** [namePrefix some text",
+            5)];
     List<CommentReference> references =
         ParserTestCase.parse("parseCommentReferences", <Object>[tokens], "");
     expect(references, hasLength(1));
@@ -6784,9 +6878,12 @@ void''');
   }
 
   void test_parseCommentReferences_singleLine() {
-    List<Token> tokens = <Token>[
-        new StringToken(TokenType.SINGLE_LINE_COMMENT, "/// xxx [a] yyy [b] zzz", 3),
-        new StringToken(TokenType.SINGLE_LINE_COMMENT, "/// x [c]", 28)];
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+        new DocumentationCommentToken(
+            TokenType.SINGLE_LINE_COMMENT,
+            "/// xxx [a] yyy [b] zzz",
+            3),
+        new DocumentationCommentToken(TokenType.SINGLE_LINE_COMMENT, "/// x [c]", 28)];
     List<CommentReference> references =
         ParserTestCase.parse("parseCommentReferences", <Object>[tokens], "");
     expect(references, hasLength(3));
@@ -6805,8 +6902,8 @@ void''');
   }
 
   void test_parseCommentReferences_skipCodeBlock_bracketed() {
-    List<Token> tokens = <Token>[
-        new StringToken(
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+        new DocumentationCommentToken(
             TokenType.MULTI_LINE_COMMENT,
             "/** [:xxx [a] yyy:] [b] zzz */",
             3)];
@@ -6820,8 +6917,8 @@ void''');
   }
 
   void test_parseCommentReferences_skipCodeBlock_spaces() {
-    List<Token> tokens = <Token>[
-        new StringToken(
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+        new DocumentationCommentToken(
             TokenType.MULTI_LINE_COMMENT,
             "/**\n *     a[i]\n * xxx [i] zzz\n */",
             3)];
@@ -6835,8 +6932,8 @@ void''');
   }
 
   void test_parseCommentReferences_skipLinkDefinition() {
-    List<Token> tokens = <Token>[
-        new StringToken(
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+        new DocumentationCommentToken(
             TokenType.MULTI_LINE_COMMENT,
             "/** [a]: http://www.google.com (Google) [b] zzz */",
             3)];
@@ -6850,8 +6947,8 @@ void''');
   }
 
   void test_parseCommentReferences_skipLinked() {
-    List<Token> tokens = <Token>[
-        new StringToken(
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+        new DocumentationCommentToken(
             TokenType.MULTI_LINE_COMMENT,
             "/** [a](http://www.google.com) [b] zzz */",
             3)];
@@ -6865,8 +6962,11 @@ void''');
   }
 
   void test_parseCommentReferences_skipReferenceLink() {
-    List<Token> tokens = <Token>[
-        new StringToken(TokenType.MULTI_LINE_COMMENT, "/** [a][c] [b] zzz */", 3)];
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+        new DocumentationCommentToken(
+            TokenType.MULTI_LINE_COMMENT,
+            "/** [a][c] [b] zzz */",
+            3)];
     List<CommentReference> references =
         ParserTestCase.parse("parseCommentReferences", <Object>[tokens], "");
     expect(references, hasLength(1));

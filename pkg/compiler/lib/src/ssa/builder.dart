@@ -3759,7 +3759,7 @@ class SsaBuilder extends ResolvedVisitor {
 
     registry.registerStaticUse(element);
     push(new HForeign(js.js.expressionTemplateYielding(
-                          backend.namer.elementAccess(element)),
+                          backend.emitter.staticFunctionAccess(element)),
                       backend.dynamicType,
                       <HInstruction>[]));
     return params;
@@ -3802,7 +3802,8 @@ class SsaBuilder extends ResolvedVisitor {
       compiler.internalError(node.argumentsNode, 'Too many arguments.');
     }
     push(new HForeign(js.js.expressionTemplateYielding(
-                          backend.namer.elementAccess(compiler.objectClass)),
+                          backend.emitter.classAccess(
+                              compiler.objectClass)),
                       backend.dynamicType,
                       <HInstruction>[]));
   }

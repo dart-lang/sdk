@@ -176,7 +176,7 @@ main() => initPolymer().run(() {
     }).then((_) => onAttributeChange(xzot)).then((_) {
       expect(xzot.attributes['str'], xzot.str);
       // TODO(jmesserly): the JS test seems backwards of the description text.
-      // Is it because it doesn't do "Platform.flush()"?
+      // Is it because it doesn't do "WebComponents.flush()"?
       expect(xzot.attributes['zot'], '5',
           reason: 'extendee reflect false not honored');
     });

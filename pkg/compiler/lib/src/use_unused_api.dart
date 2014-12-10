@@ -51,6 +51,7 @@ void main(List<String> arguments) {
   useJs(new js.Program(null));
   useJs(new js.Blob(null));
   useJs(new js.NamedFunction(null, null));
+  useJs(new js.ArrayHole());
   useConcreteTypesInferrer(null);
   useColor();
   useFilenames();

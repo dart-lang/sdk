@@ -439,4 +439,29 @@ void _test(message) {
       ]));
     });
   });
+
+  expectTestPasses("new DirectoryDescriptor().fromFilesystem ignores hidden "
+      "files", () {
+    scheduleSandbox();
+
+    d.dir('dir', [
+      d.dir('subdir', [
+        d.file('subfile1.txt', 'subcontents1'),
+        d.file('.hidden', 'subcontents2')
+      ]),
+      d.file('file1.txt', 'contents1'),
+      d.file('.DS_Store', 'contents2')
+    ]).create();
+
+    schedule(() {
+      var descriptor = new d.DirectoryDescriptor.fromFilesystem(
+          "descriptor", path.join(sandbox, 'dir'));
+      expect(descriptor, isDirectoryDescriptor('descriptor', [
+        isDirectoryDescriptor('subdir', [
+          isFileDescriptor('subfile1.txt', 'subcontents1')
+        ]),
+        isFileDescriptor('file1.txt', 'contents1')
+      ]));
+    });
+  });
 }

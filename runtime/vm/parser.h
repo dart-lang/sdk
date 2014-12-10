@@ -51,6 +51,7 @@ class ParsedFunction : public ZoneAllocated {
         expression_temp_var_(NULL),
         finally_return_temp_var_(NULL),
         deferred_prefixes_(new ZoneGrowableArray<const LibraryPrefix*>()),
+        guarded_fields_(new ZoneGrowableArray<const Field*>()),
         first_parameter_index_(0),
         first_stack_local_index_(0),
         num_copied_params_(0),
@@ -132,10 +133,18 @@ class ParsedFunction : public ZoneAllocated {
   }
   void AddDeferredPrefix(const LibraryPrefix& prefix);
 
+  ZoneGrowableArray<const Field*>* guarded_fields() const {
+    return guarded_fields_;
+  }
+
   int first_parameter_index() const { return first_parameter_index_; }
   int first_stack_local_index() const { return first_stack_local_index_; }
   int num_copied_params() const { return num_copied_params_; }
   int num_stack_locals() const { return num_stack_locals_; }
+  int num_non_copied_params() const {
+    return (num_copied_params_ == 0)
+        ? function().num_fixed_parameters() : 0;
+  }
 
   void AllocateVariables();
   void AllocateIrregexpVariables(intptr_t num_stack_locals);
@@ -174,6 +183,7 @@ class ParsedFunction : public ZoneAllocated {
   LocalVariable* expression_temp_var_;
   LocalVariable* finally_return_temp_var_;
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes_;
+  ZoneGrowableArray<const Field*>* guarded_fields_;
 
   int first_parameter_index_;
   int first_stack_local_index_;
@@ -210,6 +220,10 @@ class Parser : public ValueObject {
   // Build a function containing the initializer expression of the
   // given static field.
   static ParsedFunction* ParseStaticFieldInitializer(const Field& field);
+
+  // Returns a RawFunction or RawError.
+  static RawObject* ParseFunctionFromSource(const Class& owning_class,
+                                            const String& source);
 
   // Parse a function to retrieve parameter information that is not retained in
   // the dart::Function object. Returns either an error if the parse fails

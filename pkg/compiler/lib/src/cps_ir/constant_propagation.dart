@@ -49,6 +49,7 @@ class ConstantPropagator extends Pass {
   }
 
   void rewriteFieldDefinition(FieldDefinition root) {
+    if (!root.hasInitializer) return;
     _rewriteExecutableDefinition(root);
   }
 
@@ -307,12 +308,14 @@ class _ConstPropagationVisitor extends Visitor {
   }
 
   void visitFunctionDefinition(FunctionDefinition node) {
-    node.parameters.forEach(visitParameter);
+    node.parameters.forEach(visit);
     setReachable(node.body);
   }
 
   void visitFieldDefinition(FieldDefinition node) {
-    setReachable(node.body);
+    if (node.hasInitializer) {
+      setReachable(node.body);
+    }
   }
 
   // Expressions.
@@ -581,6 +584,9 @@ class _ConstPropagationVisitor extends Visitor {
 
   void visitGetClosureVariable(GetClosureVariable node) {
     setValue(node, _ConstnessLattice.NonConst);
+  }
+
+  void visitClosureVariable(ClosureVariable node) {
   }
 
   void visitParameter(Parameter node) {

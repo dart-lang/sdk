@@ -156,7 +156,9 @@ abstract class IntegrationTestMixin {
    * request will be delayed until they have been computed. If some or all of
    * the errors for the file cannot be computed, then the subset of the errors
    * that can be computed will be returned and the response will contain an
-   * error to indicate why the errors could not be computed.
+   * error to indicate why the errors could not be computed. If the content of
+   * the file changes after this request was received but before a response
+   * could be sent, then an error of type CONTENT_MODIFIED will be generated.
    *
    * This request is intended to be used by clients that cannot asynchronously
    * apply updated error information. Clients that can apply error information
@@ -220,6 +222,64 @@ abstract class IntegrationTestMixin {
         .then((result) {
       ResponseDecoder decoder = new ResponseDecoder(null);
       return new AnalysisGetHoverResult.fromJson(decoder, 'result', result);
+    });
+  }
+
+  /**
+   * Return the navigation information associated with the given region of the
+   * given file. If the navigation information for the given file has not yet
+   * been computed, or the most recently computed navigation information for
+   * the given file is out of date, then the response for this request will be
+   * delayed until it has been computed. If the content of the file changes
+   * after this request was received but before a response could be sent, then
+   * an error of type CONTENT_MODIFIED will be generated.
+   *
+   * If a navigation region overlaps (but extends either before or after) the
+   * given region of the file it will be included in the result. This means
+   * that it is theoretically possible to get the same navigation region in
+   * response to multiple requests. Clients can avoid this by always choosing a
+   * region that starts at the beginning of a line and ends at the end of a
+   * (possibly different) line in the file.
+   *
+   * Parameters
+   *
+   * file ( FilePath )
+   *
+   *   The file in which navigation information is being requested.
+   *
+   * offset ( int )
+   *
+   *   The offset of the region for which navigation information is being
+   *   requested.
+   *
+   * length ( int )
+   *
+   *   The length of the region for which navigation information is being
+   *   requested.
+   *
+   * Returns
+   *
+   * files ( List<FilePath> )
+   *
+   *   A list of the paths of files that are referenced by the navigation
+   *   targets.
+   *
+   * targets ( List<NavigationTarget> )
+   *
+   *   A list of the navigation targets that are referenced by the navigation
+   *   regions.
+   *
+   * regions ( List<NavigationRegion> )
+   *
+   *   A list of the navigation regions within the requested region of the
+   *   file.
+   */
+  Future<AnalysisGetNavigationResult> sendAnalysisGetNavigation(String file, int offset, int length) {
+    var params = new AnalysisGetNavigationParams(file, offset, length).toJson();
+    return server.send("analysis.getNavigation", params)
+        .then((result) {
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new AnalysisGetNavigationResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -522,6 +582,41 @@ abstract class IntegrationTestMixin {
   StreamController<AnalysisHighlightsParams> _onAnalysisHighlights;
 
   /**
+   * Reports that the navigation information associated with a region of a
+   * single file has become invalid and should be re-requested.
+   *
+   * This notification is not subscribed to by default. Clients can subscribe
+   * by including the value "INVALIDATE" in the list of services passed in an
+   * analysis.setSubscriptions request.
+   *
+   * Parameters
+   *
+   * file ( FilePath )
+   *
+   *   The file whose information has been invalidated.
+   *
+   * offset ( int )
+   *
+   *   The offset of the invalidated region.
+   *
+   * length ( int )
+   *
+   *   The length of the invalidated region.
+   *
+   * delta ( int )
+   *
+   *   The delta to be applied to the offsets in information that follows the
+   *   invalidated region in order to update it so that it doesn't need to be
+   *   re-requested.
+   */
+  Stream<AnalysisInvalidateParams> onAnalysisInvalidate;
+
+  /**
+   * Stream controller for [onAnalysisInvalidate].
+   */
+  StreamController<AnalysisInvalidateParams> _onAnalysisInvalidate;
+
+  /**
    * Reports the navigation targets associated with a given file.
    *
    * This notification is not subscribed to by default. Clients can subscribe
@@ -543,6 +638,16 @@ abstract class IntegrationTestMixin {
    *   multiple libraries or in Dart code that is compiled against multiple
    *   versions of a package. Note that the navigation regions that are
    *   returned do not overlap other navigation regions.
+   *
+   * targets ( List<NavigationTarget> )
+   *
+   *   The navigation targets referenced in the file. They are referenced by
+   *   NavigationRegions by their index in this array.
+   *
+   * files ( List<FilePath> )
+   *
+   *   The files containing navigation targets referenced in the file. They are
+   *   referenced by NavigationTargets by their index in this array.
    */
   Stream<AnalysisNavigationParams> onAnalysisNavigation;
 
@@ -1279,6 +1384,8 @@ abstract class IntegrationTestMixin {
     onAnalysisFolding = _onAnalysisFolding.stream.asBroadcastStream();
     _onAnalysisHighlights = new StreamController<AnalysisHighlightsParams>(sync: true);
     onAnalysisHighlights = _onAnalysisHighlights.stream.asBroadcastStream();
+    _onAnalysisInvalidate = new StreamController<AnalysisInvalidateParams>(sync: true);
+    onAnalysisInvalidate = _onAnalysisInvalidate.stream.asBroadcastStream();
     _onAnalysisNavigation = new StreamController<AnalysisNavigationParams>(sync: true);
     onAnalysisNavigation = _onAnalysisNavigation.stream.asBroadcastStream();
     _onAnalysisOccurrences = new StreamController<AnalysisOccurrencesParams>(sync: true);
@@ -1329,6 +1436,10 @@ abstract class IntegrationTestMixin {
       case "analysis.highlights":
         expect(params, isAnalysisHighlightsParams);
         _onAnalysisHighlights.add(new AnalysisHighlightsParams.fromJson(decoder, 'params', params));
+        break;
+      case "analysis.invalidate":
+        expect(params, isAnalysisInvalidateParams);
+        _onAnalysisInvalidate.add(new AnalysisInvalidateParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.navigation":
         expect(params, isAnalysisNavigationParams);

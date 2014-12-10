@@ -6,6 +6,7 @@ library StatusFileParserTest;
 
 import "package:expect/expect.dart";
 import "dart:io";
+import "../../../tools/testing/dart/path.dart";
 import "../../../tools/testing/dart/status_file_parser.dart";
 import "../../../tools/testing/dart/utils.dart";
 

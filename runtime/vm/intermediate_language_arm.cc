@@ -25,6 +25,8 @@
 namespace dart {
 
 DECLARE_FLAG(bool, emit_edge_counters);
+DECLARE_FLAG(bool, enable_asserts);
+DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(bool, use_osr);
@@ -42,7 +44,7 @@ LocationSummary* Instruction::MakeCallSummary(Isolate* isolate) {
 LocationSummary* PushArgumentInstr::MakeLocationSummary(Isolate* isolate,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps= 0;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::AnyOrConstant(value()));
@@ -376,10 +378,17 @@ static void EmitAssertBoolean(Register reg,
   // Call the runtime if the object is not bool::true or bool::false.
   ASSERT(locs->always_calls());
   Label done;
-  __ CompareObject(reg, Bool::True());
-  __ b(&done, EQ);
-  __ CompareObject(reg, Bool::False());
-  __ b(&done, EQ);
+
+  if (FLAG_enable_type_checks) {
+    __ CompareObject(reg, Bool::True());
+    __ b(&done, EQ);
+    __ CompareObject(reg, Bool::False());
+    __ b(&done, EQ);
+  } else {
+    ASSERT(FLAG_enable_asserts);
+    __ CompareObject(reg, Object::null_instance());
+    __ b(&done, NE);
+  }
 
   __ Push(reg);  // Push the source object.
   compiler->GenerateRuntimeCall(token_pos,
@@ -570,7 +579,8 @@ static Condition EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
 
 static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
                                              LocationSummary* locs,
-                                             Token::Kind kind) {
+                                             Token::Kind kind,
+                                             BranchLabels labels) {
   PairLocation* left_pair = locs->in(0).AsPairLocation();
   Register left_lo = left_pair->At(0).reg();
   Register left_hi = left_pair->At(1).reg();
@@ -578,42 +588,37 @@ static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
   Register right_lo = right_pair->At(0).reg();
   Register right_hi = right_pair->At(1).reg();
 
-  Register out = locs->temp(0).reg();
-
-  // 64-bit comparison
-  Condition hi_true_cond, hi_false_cond, lo_false_cond;
+  // 64-bit comparison.
+  Condition hi_cond, lo_cond;
   switch (kind) {
     case Token::kLT:
-    case Token::kLTE:
-      hi_true_cond = LT;
-      hi_false_cond = GT;
-      lo_false_cond = (kind == Token::kLT) ? CS : HI;
+      hi_cond = LT;
+      lo_cond = CC;
       break;
     case Token::kGT:
+      hi_cond = GT;
+      lo_cond = HI;
+      break;
+    case Token::kLTE:
+      hi_cond = LT;
+      lo_cond = LS;
+      break;
     case Token::kGTE:
-      hi_true_cond = GT;
-      hi_false_cond = LT;
-      lo_false_cond = (kind == Token::kGT) ? LS : CC;
+      hi_cond = GT;
+      lo_cond = CS;
       break;
     default:
       UNREACHABLE();
-      hi_true_cond = hi_false_cond = lo_false_cond = VS;
+      hi_cond = lo_cond = VS;
   }
-
-  Label done;
   // Compare upper halves first.
   __ cmp(left_hi, Operand(right_hi));
-  __ LoadImmediate(out, 0, hi_false_cond);
-  __ LoadImmediate(out, 1, hi_true_cond);
-  // If higher words aren't equal, skip comparing lower words.
-  __ b(&done, NE);
+  __ b(labels.true_label, hi_cond);
+  __ b(labels.false_label, FlipCondition(hi_cond));
 
+  // If higher words are equal, compare lower words.
   __ cmp(left_lo, Operand(right_lo));
-  __ LoadImmediate(out, 1);
-  __ LoadImmediate(out, 0, lo_false_cond);
-  __ Bind(&done);
-
-  return NegateCondition(lo_false_cond);
+  return lo_cond;
 }
 
 
@@ -822,14 +827,13 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(Isolate* isolate,
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   if (operation_cid() == kMintCid) {
-    const intptr_t kNumTemps = 1;
+    const intptr_t kNumTemps = 0;
     LocationSummary* locs = new(isolate) LocationSummary(
         isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
     locs->set_in(0, Location::Pair(Location::RequiresRegister(),
                                    Location::RequiresRegister()));
     locs->set_in(1, Location::Pair(Location::RequiresRegister(),
                                    Location::RequiresRegister()));
-    locs->set_temp(0, Location::RequiresRegister());  // TODO(regis): Improve.
     locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
@@ -860,7 +864,7 @@ Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   if (operation_cid() == kSmiCid) {
     return EmitSmiComparisonOp(compiler, locs(), kind());
   } else if (operation_cid() == kMintCid) {
-    return EmitUnboxedMintComparisonOp(compiler, locs(), kind());
+    return EmitUnboxedMintComparisonOp(compiler, locs(), kind(), labels);
   } else {
     ASSERT(operation_cid() == kDoubleCid);
     return EmitDoubleComparisonOp(compiler, locs(), kind());
@@ -869,8 +873,8 @@ Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
 
 
 void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // The ARM code does not use true- and false-labels here.
-  BranchLabels labels = { NULL, NULL, NULL };
+  Label is_true, is_false;
+  BranchLabels labels = { &is_true, &is_false, &is_false };
   Condition true_condition = EmitComparisonCode(compiler, labels);
 
   const Register result = locs()->out(0).reg();
@@ -878,10 +882,14 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadObject(result, Bool::True(), true_condition);
     __ LoadObject(result, Bool::False(), NegateCondition(true_condition));
   } else if (operation_cid() == kMintCid) {
-    const Register cr = locs()->temp(0).reg();
+    EmitBranchOnCondition(compiler, true_condition, labels);
+    Label done;
+    __ Bind(&is_false);
+    __ LoadObject(result, Bool::False());
+    __ b(&done);
+    __ Bind(&is_true);
     __ LoadObject(result, Bool::True());
-    __ CompareImmediate(cr, 1);
-    __ LoadObject(result, Bool::False(), NE);
+    __ Bind(&done);
   } else {
     ASSERT(operation_cid() == kDoubleCid);
     Label done;
@@ -900,13 +908,8 @@ void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   BranchLabels labels = compiler->CreateBranchLabels(branch);
   Condition true_condition = EmitComparisonCode(compiler, labels);
 
-  if (operation_cid() == kSmiCid) {
+  if ((operation_cid() == kSmiCid) || (operation_cid() == kMintCid)) {
     EmitBranchOnCondition(compiler, true_condition, labels);
-  } else if (operation_cid() == kMintCid) {
-    const Register result = locs()->temp(0).reg();  // TODO(regis): Improve.
-    __ CompareImmediate(result, 1);
-    __ b(labels.true_label, EQ);
-    __ b(labels.false_label, NE);
   } else if (operation_cid() == kDoubleCid) {
     Label* nan_result = (true_condition == NE) ?
         labels.true_label : labels.false_label;
@@ -1053,9 +1056,14 @@ LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register object = locs()->in(0).reg();
+  const Register obj = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  __ LoadFromOffset(kWord, result, object, offset() - kHeapObjectTag);
+  if (object()->definition()->representation() == kUntagged) {
+    __ LoadFromOffset(kWord, result, obj, offset());
+  } else {
+    ASSERT(object()->definition()->representation() == kTagged);
+    __ LoadFieldFromOffset(kWord, result, obj, offset());
+  }
 }
 
 
@@ -1893,11 +1901,12 @@ LocationSummary* LoadCodeUnitsInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register array = locs()->in(0).reg();
+  // The string register points to the backing store for external strings.
+  const Register str = locs()->in(0).reg();
   const Location index = locs()->in(1);
 
   Address element_address = __ ElementAddressForRegIndex(
-        true,  IsExternal(), class_id(), index_scale(), array, index.reg());
+        true,  IsExternal(), class_id(), index_scale(), str, index.reg());
   // Warning: element_address may use register IP as base.
 
   if (representation() == kUnboxedMint) {
@@ -2218,8 +2227,7 @@ LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(Isolate* isolate,
 void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register field = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  __ LoadFromOffset(kWord, result,
-                    field, Field::value_offset() - kHeapObjectTag);
+  __ LoadFieldFromOffset(kWord, result, field, Field::value_offset());
 }
 
 
@@ -2323,14 +2331,22 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // R3: new object end address.
   // R8: iterator which initially points to the start of the variable
   // data area to be initialized.
-  // R6, R7: null
+  // R6: null
   if (num_elements > 0) {
     const intptr_t array_size = instance_size - sizeof(RawArray);
     __ LoadImmediate(R6, reinterpret_cast<intptr_t>(Object::null()));
-    __ mov(R7, Operand(R6));
+    if (num_elements >= 2) {
+      __ mov(R7, Operand(R6));
+    } else {
+#if defined(DEBUG)
+      // Clobber R7 with an invalid pointer.
+      __ LoadImmediate(R7, 0x1);
+#endif  // DEBUG
+    }
     __ AddImmediate(R8, R0, sizeof(RawArray) - kHeapObjectTag);
     if (array_size < (kInlineArraySize * kWordSize)) {
-      __ InitializeFieldsNoBarrierUnrolled(R0, R8, num_elements, R6, R7);
+      __ InitializeFieldsNoBarrierUnrolled(R0, R8, 0, num_elements * kWordSize,
+                                           R6, R7);
     } else {
       __ InitializeFieldsNoBarrier(R0, R8, R3, R6, R7);
     }
@@ -2520,8 +2536,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ Bind(&load_pointer);
   }
-  __ LoadFromOffset(kWord, result_reg,
-                    instance_reg, offset_in_bytes() - kHeapObjectTag);
+  __ LoadFieldFromOffset(kWord, result_reg, instance_reg, offset_in_bytes());
   __ Bind(&done);
 }
 
@@ -3718,14 +3733,14 @@ void UnboxInstr::EmitLoadFromBox(FlowGraphCompiler* compiler) {
   switch (representation()) {
     case kUnboxedMint: {
       PairLocation* result = locs()->out(0).AsPairLocation();
-      __ LoadFromOffset(kWord,
-                        result->At(0).reg(),
-                        box,
-                        ValueOffset() - kHeapObjectTag);
-      __ LoadFromOffset(kWord,
-                        result->At(1).reg(),
-                        box,
-                        ValueOffset() - kHeapObjectTag + kWordSize);
+      __ LoadFieldFromOffset(kWord,
+                             result->At(0).reg(),
+                             box,
+                             ValueOffset());
+      __ LoadFieldFromOffset(kWord,
+                             result->At(1).reg(),
+                             box,
+                             ValueOffset() + kWordSize);
       break;
     }
 
@@ -3945,15 +3960,12 @@ static void LoadInt32FromMint(FlowGraphCompiler* compiler,
                               Register result,
                               Register temp,
                               Label* deopt) {
-  __ LoadFromOffset(kWord,
-                    result,
-                    mint,
-                    Mint::value_offset() - kHeapObjectTag);
+  __ LoadFieldFromOffset(kWord, result, mint, Mint::value_offset());
   if (deopt != NULL) {
-    __ LoadFromOffset(kWord,
-                      temp,
-                      mint,
-                      Mint::value_offset() - kHeapObjectTag + kWordSize);
+    __ LoadFieldFromOffset(kWord,
+                           temp,
+                           mint,
+                           Mint::value_offset() + kWordSize);
     __ cmp(temp, Operand(result, ASR, kBitsPerWord - 1));
     __ b(deopt, NE);
   }
@@ -3992,6 +4004,11 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ SmiUntag(out, value);
   } else if (value_cid == kMintCid) {
     LoadInt32FromMint(compiler, value, out, temp, out_of_range);
+  } else if (!CanDeoptimize()) {
+    Label done;
+    __ SmiUntag(out, value, &done);
+    LoadInt32FromMint(compiler, value, out, kNoRegister, NULL);
+    __ Bind(&done);
   } else {
     Label done;
     __ SmiUntag(out, value, &done);
@@ -6543,8 +6560,7 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Non constant shift value.
   Register shifter = locs()->in(1).reg();
 
-  __ mov(temp, Operand(shifter));
-  __ SmiUntag(temp);
+  __ SmiUntag(temp, shifter);
   __ CompareImmediate(temp, 0);
   // If shift value is < 0, deoptimize.
   __ b(deopt, LT);

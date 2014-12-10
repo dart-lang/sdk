@@ -53,10 +53,6 @@ cc/ThreadInterrupterMedium: Skip
 cc/ThreadInterrupterLow: Skip
 cc/Service_Profile: Skip
 
-[ $arch == simmips || $arch == mips ]
-cc/Coverage_MainWithClass: Skip # Issue 16250
-cc/Service_ClassesCoverage: Skip # Issue 16250
-
 [ $compiler == dart2js ]
 dart/redirection_type_shuffling_test: Skip # Depends on lazy enforcement of type bounds
 dart/byte_array_test: Skip # compilers not aware of byte arrays

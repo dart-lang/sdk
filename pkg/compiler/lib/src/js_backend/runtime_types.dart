@@ -453,7 +453,7 @@ class RuntimeTypes {
    * for type arguments in a subtype test.
    *
    * The result can be:
-   *  1) [:null:], if no substituted check is necessary, because the
+   *  1) `null`, if no substituted check is necessary, because the
    *     type variables are the same or there are no type variables in the class
    *     that is checked for.
    *  2) A list expression describing the type arguments to be used in the
@@ -464,11 +464,10 @@ class RuntimeTypes {
    */
   jsAst.Expression getSupertypeSubstitution(
        ClassElement cls,
-       ClassElement check,
-       {bool alwaysGenerateFunction: false}) {
+       ClassElement check) {
     Substitution substitution = getSubstitution(cls, check);
     if (substitution != null) {
-      return substitution.getCode(this, alwaysGenerateFunction);
+      return substitution.getCode(this);
     } else {
       return null;
     }
@@ -506,13 +505,10 @@ class RuntimeTypes {
   jsAst.Expression getSubstitutionRepresentation(
       List<DartType> types,
       OnVariableCallback onVariable) {
-    List<jsAst.ArrayElement> elements = <jsAst.ArrayElement>[];
-    int index = 0;
-    for (DartType type in types) {
-      jsAst.Expression representation = getTypeRepresentation(type, onVariable);
-      elements.add(new jsAst.ArrayElement(index++, representation));
-    }
-    return new jsAst.ArrayInitializer(index, elements);
+    List<jsAst.Expression> elements = types
+        .map((DartType type) => getTypeRepresentation(type, onVariable))
+        .toList(growable: false);
+    return new jsAst.ArrayInitializer(elements);
   }
 
   jsAst.Expression getTypeEncoding(DartType type,
@@ -543,7 +539,7 @@ class RuntimeTypes {
       JavaScriptBackend backend = compiler.backend;
       String contextName = backend.namer.getNameOfClass(contextClass);
       return js('function () { return #(#, #, #); }',
-          [ backend.namer.elementAccess(backend.getComputeSignature()),
+          [ backend.emitter.staticFunctionAccess(backend.getComputeSignature()),
               encoding, this_, js.string(contextName) ]);
     } else {
       return encoding;
@@ -635,7 +631,11 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
   }
 
   jsAst.Expression getJavaScriptClassName(Element element) {
-    return namer.elementAccess(element);
+    if (element.isTypedef) {
+      return backend.emitter.typedefAccess(element);
+    } else {
+      return backend.emitter.classAccess(element);  
+    }
   }
 
   visit(DartType type) {
@@ -657,15 +657,15 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
 
   jsAst.Expression visitList(List<DartType> types, {jsAst.Expression head}) {
     int index = 0;
-    List<jsAst.ArrayElement> elements = <jsAst.ArrayElement>[];
+    List<jsAst.Expression> elements = <jsAst.Expression>[];
     if (head != null) {
-      elements.add(new jsAst.ArrayElement(0, head));
+      elements.add(head);
       index++;
     }
     for (DartType type in types) {
-      elements.add(new jsAst.ArrayElement(index++, visit(type)));
+      elements.add(visit(type));
     }
-    return new jsAst.ArrayInitializer(elements.length, elements);
+    return new jsAst.ArrayInitializer(elements);
   }
 
   visitFunctionType(FunctionType type, _) {
@@ -871,7 +871,7 @@ class Substitution {
   Substitution.function(this.arguments, this.parameters)
       : isFunction = true;
 
-  jsAst.Expression getCode(RuntimeTypes rti, bool ensureIsFunction) {
+  jsAst.Expression getCode(RuntimeTypes rti) {
     jsAst.Expression declaration(TypeVariableType variable) {
       return new jsAst.Parameter(
           rti.backend.namer.safeVariableName(variable.name));
@@ -887,10 +887,8 @@ class Substitution {
     if (isFunction) {
       Iterable<jsAst.Expression> formals = parameters.map(declaration);
       return js('function(#) { return # }', [formals, value]);
-    } else if (ensureIsFunction) {
-      return js('function() { return # }', value);
     } else {
-      return value;
+      return js('function() { return # }', value);
     }
   }
 }

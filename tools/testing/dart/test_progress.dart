@@ -8,6 +8,7 @@ import "dart:async";
 import "dart:io";
 import "dart:io" as io;
 import "dart:convert" show JSON;
+import "path.dart";
 import "status_file_parser.dart";
 import "test_runner.dart";
 import "test_suite.dart";
@@ -341,7 +342,6 @@ class TimingPrinter extends EventListener {
       var commandOutput = outputs[i];
       var command = commandOutput.command;
       var testCases = _command2testCases[command];
-      var duration = commandOutput.time;
 
       var testCasesDescription = testCases.map((testCase) {
         return "${testCase.configurationString}/${testCase.displayName}";

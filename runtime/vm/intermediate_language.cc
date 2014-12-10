@@ -1202,6 +1202,10 @@ bool UnboxInt32Instr::CanDeoptimize() const {
     return !is_truncating() &&
         !RangeUtils::Fits(value()->definition()->range(),
                           RangeBoundary::kRangeBoundaryInt32);
+  } else if ((kSmiBits < 32) && value()->Type()->IsInt()) {
+    // Note: we don't support truncation of Bigint values.
+    return !RangeUtils::Fits(value()->definition()->range(),
+                             RangeBoundary::kRangeBoundaryInt32);
   } else {
     return true;
   }
@@ -1822,7 +1826,8 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   // For fixed length arrays if the array is the result of a known constructor
   // call we can replace the length load with the length argument passed to
   // the constructor.
-  StaticCallInstr* call = instance()->definition()->AsStaticCall();
+  StaticCallInstr* call =
+      instance()->definition()->OriginalDefinition()->AsStaticCall();
   if (call != NULL) {
     if (call->is_known_list_constructor() &&
         IsFixedLengthArrayCid(call->Type()->ToCid())) {
@@ -1833,7 +1838,8 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
     }
   }
 
-  CreateArrayInstr* create_array = instance()->definition()->AsCreateArray();
+  CreateArrayInstr* create_array =
+      instance()->definition()->OriginalDefinition()->AsCreateArray();
   if ((create_array != NULL) &&
       (recognized_kind() == MethodRecognizer::kObjectArrayLength)) {
     return create_array->num_elements()->definition();
@@ -1841,7 +1847,8 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
 
   // For arrays with guarded lengths, replace the length load
   // with a constant.
-  LoadFieldInstr* load_array = instance()->definition()->AsLoadField();
+  LoadFieldInstr* load_array =
+      instance()->definition()->OriginalDefinition()->AsLoadField();
   if (load_array != NULL) {
     const Field* field = load_array->field();
     if ((field != NULL) && (field->guarded_list_length() >= 0)) {
@@ -2142,7 +2149,7 @@ Definition* BooleanNegateInstr::Canonicalize(FlowGraph* flow_graph) {
   Definition* defn = value()->definition();
   if (defn->IsComparison() && defn->HasOnlyUse(value())) {
     // Comparisons always have a bool result.
-    ASSERT(value()->Type()->ToCid() == kBoolCid);
+    ASSERT(value()->definition()->Type()->ToCid() == kBoolCid);
     defn->AsComparison()->NegateComparison();
     return defn;
   }
@@ -3205,7 +3212,7 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
   //   v8 <- StringInterpolate(v2)
 
   // Don't compile-time fold when optimizing the interpolation function itself.
-  if (flow_graph->parsed_function().function().raw() == CallFunction().raw()) {
+  if (flow_graph->parsed_function()->function().raw() == CallFunction().raw()) {
     return this;
   }
 

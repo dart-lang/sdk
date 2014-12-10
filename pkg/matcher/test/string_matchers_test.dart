@@ -24,6 +24,13 @@ void main() {
     shouldFail('a', isEmpty, "Expected: empty Actual: 'a'");
   });
 
+  test('isNotEmpty', () {
+    shouldFail('', isNotEmpty, "Expected: non-empty Actual: ''");
+    shouldFail(null, isNotEmpty, "Expected: non-empty Actual: <null>");
+    shouldFail(0, isNotEmpty, "Expected: non-empty Actual: <0>");
+    shouldPass('a', isNotEmpty);
+  });
+
   test('equalsIgnoringCase', () {
     shouldPass('hello', equalsIgnoringCase('HELLO'));
     shouldFail('hi', equalsIgnoringCase('HELLO'),

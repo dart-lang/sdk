@@ -26,7 +26,7 @@ class MetadataEmitter extends CodeEmitterHelper {
   jsAst.Fun buildMetadataFunction(Element element) {
     if (!mustEmitMetadataFor(element)) return null;
     return compiler.withCurrentElement(element, () {
-      var metadata = [];
+      List<jsAst.Expression> metadata = <jsAst.Expression>[];
       Link link = element.metadata;
       // TODO(ahe): Why is metadata sometimes null?
       if (link != null) {
@@ -43,7 +43,7 @@ class MetadataEmitter extends CodeEmitterHelper {
       }
       if (metadata.isEmpty) return null;
       return js('function() { return # }',
-          new jsAst.ArrayInitializer.from(metadata));
+          new jsAst.ArrayInitializer(metadata));
     });
   }
 

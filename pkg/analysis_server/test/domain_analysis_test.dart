@@ -11,6 +11,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
@@ -39,7 +40,8 @@ main() {
         new MockPackageMapProvider(),
         null,
         new AnalysisServerOptions(),
-        new MockSdk());
+        new MockSdk(),
+        new NullInstrumentationServer());
     handler = new AnalysisDomainHandler(server);
   });
 
@@ -461,7 +463,8 @@ class AnalysisTestHelper {
         new MockPackageMapProvider(),
         null,
         new AnalysisServerOptions(),
-        new MockSdk());
+        new MockSdk(),
+        new NullInstrumentationServer());
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
     Stream<Notification> notificationStream =

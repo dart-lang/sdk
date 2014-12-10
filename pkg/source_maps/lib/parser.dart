@@ -31,10 +31,6 @@ Mapping parseJson(Map map, {Map<String, Map> otherMaps}) {
         'Only version 3 is supported.');
   }
 
-  if (!map.containsKey('file')) {
-    print('warning: missing "file" entry in source map');
-  }
-
   if (map.containsKey('sections')) {
     if (map.containsKey('mappings') || map.containsKey('sources') ||
         map.containsKey('names')) {

@@ -16,6 +16,11 @@ checkImplements(object, String name) {
   ClassMirror cls = reflect(object).type;
   checkClassMirrorMethods(cls);
 
+  // The VM implements List via a mixin, so check for that.
+  if (cls.superinterfaces.isEmpty && object is List) {
+    cls = cls.superclass.superclass.mixin;
+  }
+
   List<ClassMirror> superinterfaces = cls.superinterfaces;
   String symName = 's($name)';
   for (ClassMirror superinterface in superinterfaces) {

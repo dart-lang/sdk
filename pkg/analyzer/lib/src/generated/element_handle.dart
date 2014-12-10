@@ -7,6 +7,8 @@
 
 library engine.element_handle;
 
+import 'package:analyzer/src/generated/utilities_collection.dart';
+
 import 'ast.dart';
 import 'element.dart';
 import 'engine.dart';
@@ -279,6 +281,11 @@ class ConstructorElementHandle extends ExecutableElementHandle implements
  */
 abstract class ElementHandle implements Element {
   /**
+   * The unique integer identifier of this element.
+   */
+  final int id = 0;
+
+  /**
    * The context in which the element is defined.
    */
   AnalysisContext _context;
@@ -373,12 +380,25 @@ abstract class ElementHandle implements Element {
   @override
   CompilationUnit get unit => actualElement.unit;
 
+  /**
+   * Identifiers of the elements that use this elements.
+   */
+  @override
+  IntSet get users => new IntSet();
+
   @override
   bool operator ==(Object object) =>
       object is Element && object.location == _location;
 
   @override
   accept(ElementVisitor visitor) => actualElement.accept(visitor);
+
+  /**
+   * Remember the given [element] as a user of this element.
+   */
+  @override
+  void addUser(Element element) {
+  }
 
   @override
   String computeDocumentationComment() =>

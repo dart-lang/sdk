@@ -21,12 +21,17 @@ import 'package:analyzer/src/generated/scanner.dart';
  * `completion.getSuggestions` request results.
  */
 class ImportedComputer extends DartCompletionComputer {
+  bool shouldWaitForLowPrioritySuggestions;
   _ImportedSuggestionBuilder builder;
+
+  ImportedComputer({this.shouldWaitForLowPrioritySuggestions: false});
 
   @override
   bool computeFast(DartCompletionRequest request) {
     builder = request.node.accept(new _ImportedAstVisitor(request));
     if (builder != null) {
+      builder.shouldWaitForLowPrioritySuggestions =
+          shouldWaitForLowPrioritySuggestions;
       return builder.computeFast(request.node);
     }
     return true;
@@ -211,6 +216,7 @@ class _ImportedAstVisitor extends
  * based upon imported elements.
  */
 class _ImportedSuggestionBuilder implements SuggestionBuilder {
+  bool shouldWaitForLowPrioritySuggestions;
   final DartCompletionRequest request;
   final bool typesOnly;
   final bool excludeVoidReturn;
@@ -239,13 +245,21 @@ class _ImportedSuggestionBuilder implements SuggestionBuilder {
    * Compute suggested based upon imported elements.
    */
   Future<bool> computeFull(AstNode node) {
-    return cache.computeImportInfo(
-        request.unit,
-        request.searchEngine).then((_) {
+
+    Future<bool> addSuggestions(_) {
       _addInheritedSuggestions(node);
       _addTopLevelSuggestions();
-      return true;
-    });
+      return new Future.value(true);
+    }
+
+    Future future = null;
+    if (!cache.isImportInfoCached(request.unit)) {
+      future = cache.computeImportInfo(request.unit, request.searchEngine);
+    }
+    if (future != null && shouldWaitForLowPrioritySuggestions) {
+      return future.then(addSuggestions);
+    }
+    return addSuggestions(true);
   }
 
   /**

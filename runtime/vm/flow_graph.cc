@@ -19,17 +19,16 @@ DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, verify_compiler);
 
 
-FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
+FlowGraph::FlowGraph(ParsedFunction* parsed_function,
                      GraphEntryInstr* graph_entry,
                      intptr_t max_block_id)
   : isolate_(Isolate::Current()),
     parent_(),
     current_ssa_temp_index_(0),
     max_block_id_(max_block_id),
-    builder_(builder),
-    parsed_function_(*builder.parsed_function()),
-    num_copied_params_(builder.num_copied_params()),
-    num_non_copied_params_(builder.num_non_copied_params()),
+    parsed_function_(parsed_function),
+    num_copied_params_(parsed_function->num_copied_params()),
+    num_non_copied_params_(parsed_function->num_non_copied_params()),
     graph_entry_(graph_entry),
     preorder_(),
     postorder_(),
@@ -42,8 +41,8 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
     licm_allowed_(true),
     loop_headers_(NULL),
     loop_invariant_loads_(NULL),
-    guarded_fields_(builder.guarded_fields()),
-    deferred_prefixes_(builder.deferred_prefixes()),
+    guarded_fields_(parsed_function->guarded_fields()),
+    deferred_prefixes_(parsed_function->deferred_prefixes()),
     captured_parameters_(
         new(isolate_) BitVector(isolate_, variable_count())) {
   DiscoverBlocks();
@@ -89,7 +88,7 @@ bool FlowGraph::ShouldReorderBlocks(const Function& function,
 
 GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder(
     bool is_optimized) {
-  return ShouldReorderBlocks(parsed_function().function(), is_optimized)
+  return ShouldReorderBlocks(parsed_function()->function(), is_optimized)
       ? &optimized_block_order_
       : &reverse_postorder_;
 }
@@ -220,6 +219,49 @@ void FlowGraph::DiscoverBlocks() {
   block_effects_ = NULL;
   loop_headers_ = NULL;
   loop_invariant_loads_ = NULL;
+}
+
+
+void FlowGraph::MergeBlocks() {
+  bool changed = false;
+  BitVector* merged = new(isolate()) BitVector(isolate(), postorder().length());
+  for (BlockIterator block_it = reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+    if (block->IsGraphEntry()) continue;
+    if (merged->Contains(block->postorder_number())) continue;
+
+    Instruction* last = block->last_instruction();
+    BlockEntryInstr* successor = NULL;
+    while ((last->SuccessorCount() == 1) &&
+           (last->SuccessorAt(0)->PredecessorCount() == 1) &&
+           (block->try_index() == last->SuccessorAt(0)->try_index())) {
+      successor = last->SuccessorAt(0);
+      ASSERT(last->IsGoto());
+
+      // Remove environment uses and unlink goto and block entry.
+      successor->UnuseAllInputs();
+      last->previous()->LinkTo(successor->next());
+      last->UnuseAllInputs();
+
+      last = successor->last_instruction();
+      merged->Add(successor->postorder_number());
+      changed = true;
+      if (FLAG_trace_optimization) {
+        OS::Print("Merged blocks B%" Pd " and B%" Pd "\n",
+                  block->block_id(),
+                  successor->block_id());
+      }
+    }
+    // The new block inherits the block id of the last successor to maintain
+    // the order of phi inputs at its successors consistent with block ids.
+    if (successor != NULL) {
+      block->set_block_id(successor->block_id());
+    }
+  }
+  // Recompute block order after changes were made.
+  if (changed) DiscoverBlocks();
 }
 
 
@@ -812,7 +854,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   if (!IsCompiledForOsr()) {
     for (intptr_t i = parameter_count(); i < variable_count(); ++i) {
       if (i == CurrentContextEnvIndex()) {
-        if (parsed_function().function().IsClosureFunction()) {
+        if (parsed_function()->function().IsClosureFunction()) {
           CurrentContextInstr* context = new CurrentContextInstr();
           context->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
           AddToInitialDefinitions(context);
@@ -842,7 +884,7 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
       Environment::From(isolate(),
                         *env,
                         num_non_copied_params_,
-                        &parsed_function_);
+                        parsed_function_);
   if (instr->IsClosureCall()) {
     deopt_env = deopt_env->DeepCopy(isolate(),
                                     deopt_env->Length() - instr->InputCount());

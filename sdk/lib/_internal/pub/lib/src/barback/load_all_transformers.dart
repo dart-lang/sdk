@@ -132,10 +132,14 @@ List<Set<TransformerId>> _stageTransformers(
   var stages = [];
 
   stageNumberFor(id) {
+    // Built-in transformers don't have to be loaded in stages, since they're
+    // run from pub's source. Return -1 so that the "next stage" is 0.
+    if (id.isBuiltInTransformer) return -1;
+
     if (stageNumbers.containsKey(id)) return stageNumbers[id];
     var dependencies = transformerDependencies[id];
-    stageNumbers[id] = dependencies.isEmpty ? 0 :
-        maxAll(dependencies.map(stageNumberFor)) + 1;
+    stageNumbers[id] = dependencies.isEmpty ?
+        0 : maxAll(dependencies.map(stageNumberFor)) + 1;
     return stageNumbers[id];
   }
 

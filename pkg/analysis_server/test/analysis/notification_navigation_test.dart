@@ -23,20 +23,24 @@ main() {
 @ReflectiveTestCase()
 class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
   List<NavigationRegion> regions;
+  List<NavigationTarget> targets;
+  List<String> targetFiles;
+
   NavigationRegion testRegion;
-  List<Element> testTargets;
-  Element testTarget;
+  List<int> testTargetIndexes;
+  NavigationTarget testTarget;
 
   /**
-   * Validates that there is a target in [testTargets]  with [file], at [offset]
-   * and with the given [length].
+   * Validates that there is a target in [testTargetIndexes] with [file],
+   * at [offset] and with the given [length].
    */
   void assertHasFileTarget(String file, int offset, int length) {
-    for (Element target in testTargets) {
-      Location location = target.location;
-      if (location.file == file &&
-          location.offset == offset &&
-          location.length == length) {
+    List<NavigationTarget> testTargets =
+        testTargetIndexes.map((int index) => targets[index]).toList();
+    for (NavigationTarget target in testTargets) {
+      if (targetFiles[target.fileIndex] == file &&
+          target.offset == offset &&
+          target.length == length) {
         testTarget = target;
         return;
       }
@@ -156,7 +160,7 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
                   '${regions.join('\n')}');
         }
         testRegion = region;
-        testTargets = region.targets;
+        testTargetIndexes = region.targets;
         return;
       }
     }
@@ -179,6 +183,8 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
       var params = new AnalysisNavigationParams.fromNotification(notification);
       if (params.file == testFile) {
         regions = params.regions;
+        targets = params.targets;
+        targetFiles = params.files;
       }
     }
   }
@@ -207,10 +213,10 @@ int V = 42;
 ''');
     return prepareNavigation().then((_) {
       assertHasRegion('int V');
-      Element target = testTargets[0];
-      Location location = target.location;
-      expect(location.startLine, greaterThan(0));
-      expect(location.startColumn, greaterThan(0));
+      int targetIndex = testTargetIndexes[0];
+      NavigationTarget target = targets[targetIndex];
+      expect(target.startLine, greaterThan(0));
+      expect(target.startColumn, greaterThan(0));
     });
   }
 
@@ -585,10 +591,6 @@ main() {
     return prepareNavigation().then((_) {
       assertHasRegionTarget('AAA aaa', 'AAA {}');
       expect(testTarget.kind, ElementKind.CLASS);
-      expect(testTarget.name, 'AAA');
-      expect(testTarget.isAbstract, false);
-      expect(testTarget.parameters, isNull);
-      expect(testTarget.returnType, isNull);
     });
   }
 

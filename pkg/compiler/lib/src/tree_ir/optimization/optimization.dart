@@ -22,6 +22,7 @@ abstract class PassMixin implements Pass {
   void rewrite(ExecutableDefinition root) => root.applyPass(this);
   void rewriteExecutableDefinition(ExecutableDefinition root);
   void rewriteFieldDefinition(FieldDefinition root) {
+    if (!root.hasInitializer) return;
     rewriteExecutableDefinition(root);
   }
   void rewriteFunctionDefinition(FunctionDefinition root) {

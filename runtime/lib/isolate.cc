@@ -35,6 +35,23 @@ DEFINE_NATIVE_ENTRY(CapabilityImpl_factory, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(CapabilityImpl_equals, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Capability, recv, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Capability, other, arguments->NativeArgAt(1));
+  return (recv.Id() == other.Id()) ? Bool::True().raw() : Bool::False().raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(CapabilityImpl_get_hashcode, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Capability, cap, arguments->NativeArgAt(0));
+  int64_t id = cap.Id();
+  int32_t hi = static_cast<int32_t>(id >> 32);
+  int32_t lo = static_cast<int32_t>(id);
+  int32_t hash = (hi ^ lo) & kSmiMax;
+  return Smi::New(hash);
+}
+
+
 DEFINE_NATIVE_ENTRY(RawReceivePortImpl_factory, 1) {
   ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   Dart_Port port_id =

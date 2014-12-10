@@ -392,6 +392,17 @@ void deleteEntry(String path) {
   });
 }
 
+/// Attempts to delete whatever's at [path], but doesn't throw an exception if
+/// the deletion fails.
+void tryDeleteEntry(String path) {
+  try {
+    deleteEntry(path);
+  } catch (error, stackTrace) {
+    log.fine("Failed to delete $path: $error\n"
+        "${new Chain.forTrace(stackTrace)}");
+  }
+}
+
 /// "Cleans" [dir].
 ///
 /// If that directory already exists, it is deleted. Then a new empty directory
@@ -474,10 +485,12 @@ String assetPath(String target) {
     return path.join(
         sdk.rootDirectory, 'lib', '_internal', 'pub', 'asset', target);
   } else {
-    return path.join(
-        path.dirname(libraryPath('pub.io')), '..', '..', 'asset', target);
+    return path.join(pubRoot, 'asset', target);
   }
 }
+
+/// Returns the path to the root of pub's sources in the Dart repo.
+String get pubRoot => path.join(repoRoot, 'sdk', 'lib', '_internal', 'pub');
 
 /// Returns the path to the root of the Dart repository.
 ///

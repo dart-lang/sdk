@@ -612,26 +612,20 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       (arguments) => new LiteralNull();
 
   Instantiator visitArrayInitializer(ArrayInitializer node) {
-    // Assume array has no missing elements.
     // TODO(sra): Implement splicing?
     List<Instantiator> elementMakers = node.elements
-        .map((ArrayElement element) => visit(element.value))
-        .toList();
+        .map(visit)
+        .toList(growable: false);
     return (arguments) {
-      List<ArrayElement> elements = <ArrayElement>[];
-      void add(Expression value) {
-        elements.add(new ArrayElement(elements.length, value));
-      }
-      for (Instantiator instantiator in elementMakers) {
-        var result = instantiator(arguments);
-        add(result);
-      }
-      return new ArrayInitializer(elements.length, elements);
+      List<Expression> elements = elementMakers
+          .map((Instantiator instantiator) => instantiator(arguments))
+          .toList(growable: false);
+      return new ArrayInitializer(elements);
     };
   }
 
-  Instantiator visitArrayElement(ArrayElement node) {
-    throw 'Should not get here'; // Handled in visitArrayInitializer.
+  Instantiator visitArrayHole(ArrayHole node) {
+    return (arguments) => new ArrayHole();
   }
 
   Instantiator visitObjectInitializer(ObjectInitializer node) {

@@ -298,7 +298,7 @@ class DartUnitOutlineComputer {
       kind = ElementKind.METHOD;
     }
     _SourceRegion sourceRegion = _getSourceRegion(method);
-    String parametersStr = parameters != null ? parameters.toSource() : '';
+    String parametersStr = parameters != null ? parameters.toSource() : null;
     String returnTypeStr = returnType != null ? returnType.toSource() : '';
     Element element = new Element(
         kind,

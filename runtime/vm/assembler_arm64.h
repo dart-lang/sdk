@@ -243,8 +243,10 @@ class Address : public ValueObject {
       case kImmutableArrayCid:
         return kWord;
       case kOneByteStringCid:
+      case kExternalOneByteStringCid:
         return kByte;
       case kTwoByteStringCid:
+      case kExternalTwoByteStringCid:
         return kHalfword;
       case kTypedDataInt8ArrayCid:
         return kByte;

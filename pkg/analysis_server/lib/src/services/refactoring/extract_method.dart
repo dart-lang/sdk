@@ -1107,17 +1107,24 @@ class _ReturnTypeComputer extends RecursiveAstVisitor {
 
   @override
   visitReturnStatement(ReturnStatement node) {
+    // prepare expression
     Expression expression = node.expression;
-    if (expression != null) {
-      DartType type = expression.bestType;
-      if (returnType == null) {
-        returnType = type;
+    if (expression == null) {
+      return;
+    }
+    // prepare type
+    DartType type = expression.bestType;
+    if (type.isBottom) {
+      return;
+    }
+    // combine types
+    if (returnType == null) {
+      returnType = type;
+    } else {
+      if (returnType is InterfaceType && type is InterfaceType) {
+        returnType = InterfaceType.getSmartLeastUpperBound(returnType, type);
       } else {
-        if (returnType is InterfaceType && type is InterfaceType) {
-          returnType = InterfaceType.getSmartLeastUpperBound(returnType, type);
-        } else {
-          returnType = returnType.getLeastUpperBound(type);
-        }
+        returnType = returnType.getLeastUpperBound(type);
       }
     }
   }

@@ -109,6 +109,14 @@ void main() {
           matches(r"Expected: empty +Actual: " + _MINIFIED_NAME + r":\[1\]"));
     });
 
+    test('isNotEmpty', () {
+      var d = new SimpleIterable(0);
+      var e = new SimpleIterable(1);
+      shouldPass(e, isNotEmpty);
+      shouldFail(d, isNotEmpty,
+          matches(r"Expected: non-empty +Actual: " + _MINIFIED_NAME + r":\[\]"));
+    });
+
     test('contains', () {
       var d = new SimpleIterable(3);
       shouldPass(d, contains(2));

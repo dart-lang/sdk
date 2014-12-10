@@ -11,10 +11,39 @@ import 'package:analysis_server/http_server.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/stdio_server.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/generated/incremental_logger.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:args/args.dart';
+
+
+/**
+ * Initializes incremental logger.
+ *
+ * Supports following formats of [spec]:
+ *
+ *     "console" - log to the console;
+ *     "file:/some/file/name" - log to the file, overwritten on start.
+ */
+void _initIncrementalLogger(String spec) {
+  logger = NULL_LOGGER;
+  if (spec == null) {
+    return;
+  }
+  // create logger
+  if (spec == 'console') {
+    logger = new StringSinkLogger(console.log);
+  }
+  if (spec.startsWith('file:')) {
+    String fileName = spec.substring('file:'.length);
+    File file = new File(fileName);
+    IOSink sink = file.openWrite();
+    logger = new StringSinkLogger(sink);
+  }
+}
+
 
 /**
  * The [Driver] class represents a single running instance of the analysis
@@ -32,6 +61,18 @@ class Driver {
    */
   static const String ENABLE_INCREMENTAL_RESOLUTION =
       "enable-incremental-resolution";
+
+  /**
+   * The name of the option used to enable incremental resolution of API
+   * changes.
+   */
+  static const String ENABLE_INCREMENTAL_RESOLUTION_API =
+      "enable-incremental-resolution-api";
+
+  /**
+   * The name of the option used to describe the incremental resolution logger.
+   */
+  static const String INCREMENTAL_RESOLUTION_LOG = "incremental-resolution-log";
 
   /**
    * The name of the option used to enable instrumentation.
@@ -54,8 +95,7 @@ class Driver {
    * The name of the option used to specify if [print] should print to the
    * console instead of being intercepted.
    */
-  static const String INTERNAL_PRINT_TO_CONSOLE =
-      "internal-print-to-console";
+  static const String INTERNAL_PRINT_TO_CONSOLE = "internal-print-to-console";
 
   /**
    * The name of the option used to specify the port to which the server will
@@ -75,6 +115,11 @@ class Driver {
    */
   static const String NO_ERROR_NOTIFICATION = "no-error-notification";
 
+  /**
+   * The instrumentation server that is to be used by the analysis server.
+   */
+  InstrumentationServer instrumentationServer;
+
   SocketServer socketServer;
 
   HttpAnalysisServer httpServer;
@@ -93,6 +138,11 @@ class Driver {
         defaultsTo: false,
         negatable: false);
     parser.addFlag(
+        ENABLE_INCREMENTAL_RESOLUTION_API,
+        help: "enable using incremental resolution for API changes",
+        defaultsTo: false,
+        negatable: false);
+    parser.addFlag(
         ENABLE_INSTRUMENTATION_OPTION,
         help: "enable sending instrumentation information to a server",
         defaultsTo: false,
@@ -102,6 +152,9 @@ class Driver {
         help: "print this help message without starting a server",
         defaultsTo: false,
         negatable: false);
+    parser.addOption(
+        INCREMENTAL_RESOLUTION_LOG,
+        help: "the description of the incremental resolotion log");
     parser.addOption(
         INSTRUMENTATION_LOG_FILE_OPTION,
         help: "[path] the file to which instrumentation data will be logged");
@@ -126,15 +179,31 @@ class Driver {
       _printUsage(parser);
       return;
     }
-    if (results[ENABLE_INSTRUMENTATION_OPTION]) {
-      if (results[INSTRUMENTATION_LOG_FILE_OPTION] != null) {
-        // TODO(brianwilkerson) Initialize the instrumentation system with
-        // logging.
-      } else {
-        // TODO(brianwilkerson) Initialize the instrumentation system without
-        // logging.
-      }
-    }
+
+    // TODO(brianwilkerson) Enable this after it is possible for an
+    // instrumentation server to be provided.
+//    if (results[ENABLE_INSTRUMENTATION_OPTION]) {
+////      if (results[INSTRUMENTATION_LOG_FILE_OPTION] != null) {
+////        // TODO(brianwilkerson) Initialize the instrumentation server with
+////        // logging.
+////      } else {
+////        // TODO(brianwilkerson) Initialize the instrumentation server without
+////        // logging.
+////      }
+//      if (instrumentationServer == null) {
+//        print('Exiting server: enabled instrumentation without providing an instrumentation server');
+//        print('');
+//        _printUsage(parser);
+//        return;
+//      }
+//    } else {
+//      if (instrumentationServer != null) {
+//        print('Exiting server: providing an instrumentation server without enabling instrumentation');
+//        print('');
+//        _printUsage(parser);
+//        return;
+//      }
+//    }
 
     int port;
     bool serve_http = false;
@@ -154,6 +223,10 @@ class Driver {
     AnalysisServerOptions analysisServerOptions = new AnalysisServerOptions();
     analysisServerOptions.enableIncrementalResolution =
         results[ENABLE_INCREMENTAL_RESOLUTION];
+    analysisServerOptions.enableIncrementalResolutionApi =
+        results[ENABLE_INCREMENTAL_RESOLUTION_API];
+
+    _initIncrementalLogger(results[INCREMENTAL_RESOLUTION_LOG]);
 
     DartSdk defaultSdk;
     if (results[SDK_OPTION] != null) {
@@ -164,7 +237,12 @@ class Driver {
       defaultSdk = DirectoryBasedDartSdk.defaultSdk;
     }
 
-    socketServer = new SocketServer(analysisServerOptions, defaultSdk);
+    socketServer = new SocketServer(
+        analysisServerOptions,
+        defaultSdk,
+        instrumentationServer == null ?
+            new NullInstrumentationServer() :
+            instrumentationServer);
     httpServer = new HttpAnalysisServer(socketServer);
     stdioServer = new StdioAnalysisServer(socketServer);
 

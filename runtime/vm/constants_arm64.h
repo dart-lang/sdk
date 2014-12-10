@@ -753,11 +753,6 @@ enum InstructionFields {
 };
 
 
-const uint32_t kImmExceptionIsRedirectedCall = 0xca11;
-const uint32_t kImmExceptionIsUnreachable = 0xdebf;
-const uint32_t kImmExceptionIsDebug = 0xdeb0;
-const uint32_t kImmExceptionIsPrintf = 0xdeb1;
-
 // Helper functions for decoding logical immediates.
 static inline uint64_t RotateRight(
     uint64_t value, uint8_t rotate, uint8_t width) {
@@ -799,11 +794,27 @@ class Instr {
   };
 
   static const int32_t kNopInstruction = HINT;  // hint #0 === nop.
-  static const int32_t kBreakPointInstruction =  // hlt #kImmExceptionIsDebug.
-      HLT | (kImmExceptionIsDebug << kImm16Shift);
-  static const int kBreakPointInstructionSize = kInstrSize;
+
+  // Reserved brk and hlt instruction codes.
+  static const int32_t kBreakPointCode = 0xdeb0;  // For breakpoint.
+  static const int32_t kStopMessageCode = 0xdeb1;  // For Stop(message).
+  static const int32_t kSimulatorMessageCode = 0xdeb2;  // For trace msg in sim.
+  static const int32_t kSimulatorBreakCode = 0xdeb3;  // For breakpoint in sim.
+  static const int32_t kSimulatorRedirectCode = 0xca11;  // For redirection.
+
+  // Breakpoint instruction filling assembler code buffers in debug mode.
+  static const int32_t kBreakPointInstruction =  // brk(0xdeb0).
+      BRK | (kBreakPointCode << kImm16Shift);
+
+  // Breakpoint instruction used by the simulator.
+  // Should be distinct from kBreakPointInstruction and from a typical user
+  // breakpoint inserted in generated code for debugging, e.g. brk(0).
+  static const int32_t kSimulatorBreakpointInstruction =
+      HLT | (kSimulatorBreakCode << kImm16Shift);
+
+  // Runtime call redirection instruction used by the simulator.
   static const int32_t kRedirectInstruction =
-      HLT | (kImmExceptionIsRedirectedCall << kImm16Shift);
+      HLT | (kSimulatorRedirectCode << kImm16Shift);
 
   // Read one particular bit out of the instruction bits.
   inline int Bit(int nr) const {

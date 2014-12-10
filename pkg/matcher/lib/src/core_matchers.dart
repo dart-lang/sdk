@@ -9,21 +9,30 @@ import 'interfaces.dart';
 import 'util.dart';
 
 /// Returns a matcher that matches empty strings, maps or iterables
-/// (including collections).
+/// (including collections) using the isEmpty property.
 const Matcher isEmpty = const _Empty();
 
 class _Empty extends Matcher {
   const _Empty();
   bool matches(item, Map matchState) {
-    if (item is Map || item is Iterable) {
-      return item.isEmpty;
-    } else if (item is String) {
-      return item.length == 0;
-    } else {
-      return false;
-    }
+    return (item is Map || item is Iterable || item is String) && item.isEmpty;
   }
   Description describe(Description description) => description.add('empty');
+}
+
+/// Returns a matcher that matches non-empty strings, maps or iterables
+/// (including collections) using the isNotEmpty property.
+const Matcher isNotEmpty = const _NotEmpty();
+
+class _NotEmpty extends Matcher {
+  const _NotEmpty();
+
+  bool matches(item, Map matchState) {
+    return (item is Map || item is Iterable || item is String) &&
+      item.isNotEmpty;
+  }
+
+  Description describe(Description description) => description.add('non-empty');
 }
 
 /// A matcher that matches any null value.

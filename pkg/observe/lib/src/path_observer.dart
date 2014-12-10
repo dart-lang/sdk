@@ -233,9 +233,9 @@ class PropertyPath {
 
     int i = 0, last = _segments.length - 1;
     while (obj != null) {
-      // _segments[0] is passed to indicate that we are only observing that
-      // property of obj. See observe declaration in _ObserveSet.
-      observe(obj, _segments[0]);
+      // _segments[i] is passed to indicate that we are only observing that
+      // property of obj. See observe declaration in _ObservedSet.
+      observe(obj, _segments[i]);
 
       if (i >= last) break;
       obj = _getObjectProperty(obj, _segments[i++]);
@@ -865,6 +865,7 @@ class _ObservedSet {
     }
     _rootObject = null;
     _rootObjectProperties = null;
+    if (identical(_lastSet, this)) _lastSet = null;
   }
 
   /// Observe now takes a second argument to indicate which property of an

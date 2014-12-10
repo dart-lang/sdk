@@ -162,28 +162,48 @@ const double MegamorphicCache::kLoadFactor = 0.75;
 
 // The following functions are marked as invisible, meaning they will be hidden
 // in the stack trace and will be hidden from reflective access.
-// (Library, class name, method name)
 // Additionally, private functions in dart:* that are native or constructors are
 // marked as invisible by the parser.
 #define INVISIBLE_CLASS_FUNCTIONS(V)                                           \
-  V(CoreLibrary, int, _throwFormatException)                                   \
-  V(CoreLibrary, int, _parse)                                                  \
+  V(AsyncLibrary, _AsyncRun, _scheduleImmediate)                               \
+  V(CoreLibrary, StringBuffer, _addPart)                                       \
   V(CoreLibrary, _Bigint, _absAdd)                                             \
   V(CoreLibrary, _Bigint, _absSub)                                             \
+  V(CoreLibrary, _Bigint, _estQuotientDigit)                                   \
   V(CoreLibrary, _Bigint, _mulAdd)                                             \
   V(CoreLibrary, _Bigint, _sqrAdd)                                             \
-  V(CoreLibrary, _Bigint, _estQuotientDigit)                                   \
+  V(CoreLibrary, _Double, _addFromInteger)                                     \
+  V(CoreLibrary, _Double, _moduloFromInteger)                                  \
+  V(CoreLibrary, _Double, _mulFromInteger)                                     \
+  V(CoreLibrary, _Double, _remainderFromInteger)                               \
+  V(CoreLibrary, _Double, _subFromInteger)                                     \
+  V(CoreLibrary, _Double, _truncDivFromInteger)                                \
   V(CoreLibrary, _Montgomery, _mulMod)                                         \
+  V(CoreLibrary, int, _parse)                                                  \
+  V(CoreLibrary, int, _throwFormatException)                                   \
+
 
 #define INVISIBLE_LIBRARY_FUNCTIONS(V)                                         \
-  V(TypedDataLibrary, _toInt8)                                                 \
+  V(AsyncLibrary, _asyncRunCallback)                                           \
+  V(AsyncLibrary, _rootHandleUncaughtError)                                    \
+  V(AsyncLibrary, _scheduleAsyncCallback)                                      \
+  V(AsyncLibrary, _schedulePriorityAsyncCallback)                              \
+  V(AsyncLibrary, _setScheduleImmediateClosure)                                \
+  V(AsyncLibrary, _setTimerFactoryClosure)                                     \
+  V(IsolateLibrary, _isolateScheduleImmediate)                                 \
+  V(IsolateLibrary, _startIsolate)                                             \
+  V(IsolateLibrary, _startMainIsolate)                                         \
+  V(MirrorsLibrary, _n)                                                        \
+  V(MirrorsLibrary, _s)                                                        \
   V(TypedDataLibrary, _toInt16)                                                \
   V(TypedDataLibrary, _toInt32)                                                \
   V(TypedDataLibrary, _toInt64)                                                \
-  V(TypedDataLibrary, _toUint8)                                                \
+  V(TypedDataLibrary, _toInt8)                                                 \
   V(TypedDataLibrary, _toUint16)                                               \
   V(TypedDataLibrary, _toUint32)                                               \
   V(TypedDataLibrary, _toUint64)                                               \
+  V(TypedDataLibrary, _toUint8)                                                \
+
 
 static void MarkClassFunctionAsInvisible(const Library& lib,
                                          const char* class_name,
@@ -1021,7 +1041,6 @@ RawError* Object::Init(Isolate* isolate) {
   // declared in RawArray.
   cls.set_type_arguments_field_offset(Array::type_arguments_offset());
   cls.set_num_type_arguments(1);
-  cls.set_num_own_type_arguments(1);
 
   // Set up the growable object array class (Has to be done after the array
   // class is setup as one of its field is an array object).
@@ -1030,7 +1049,6 @@ RawError* Object::Init(Isolate* isolate) {
   cls.set_type_arguments_field_offset(
       GrowableObjectArray::type_arguments_offset());
   cls.set_num_type_arguments(1);
-  cls.set_num_own_type_arguments(1);
 
   // canonical_type_arguments_ are Smi terminated.
   // Last element contains the count of used slots.
@@ -1105,7 +1123,6 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_immutable_array_class(cls);
   cls.set_type_arguments_field_offset(Array::type_arguments_offset());
   cls.set_num_type_arguments(1);
-  cls.set_num_own_type_arguments(1);
   ASSERT(object_store->immutable_array_class() != object_store->array_class());
   cls.set_is_prefinalized();
   RegisterPrivateClass(cls, Symbols::_ImmutableList(), core_lib);
@@ -1503,7 +1520,7 @@ RawError* Object::Init(Isolate* isolate) {
   CLASS_LIST_WITH_NULL(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
 
-  isolate->object_store()->InitAsyncObjects();
+  isolate->object_store()->InitKnownObjects();
 
   return Error::null();
 }
@@ -2104,6 +2121,19 @@ void Class::AddFunction(const Function& function) const {
     ClassFunctionsSet set(raw_ptr()->functions_hash_table_);
     set.Insert(function);
     StorePointer(&raw_ptr()->functions_hash_table_, set.Release().raw());
+  }
+}
+
+
+void Class::RemoveFunction(const Function& function) const {
+  const Array& arr = Array::Handle(functions());
+  StorePointer(&raw_ptr()->functions_, Object::empty_array().raw());
+  Function& entry = Function::Handle();
+  for (intptr_t i = 0; i < arr.Length(); i++) {
+    entry ^= arr.At(i);
+    if (function.raw() != entry.raw()) {
+      AddFunction(entry);
+    }
   }
 }
 
@@ -13637,6 +13667,10 @@ intptr_t Instance::ElementSizeFor(intptr_t cid) {
       return OneByteString::kBytesPerElement;
     case kTwoByteStringCid:
       return TwoByteString::kBytesPerElement;
+    case kExternalOneByteStringCid:
+      return ExternalOneByteString::kBytesPerElement;
+    case kExternalTwoByteStringCid:
+      return ExternalTwoByteString::kBytesPerElement;
     default:
       UNIMPLEMENTED();
       return 0;
@@ -18327,7 +18361,7 @@ RawOneByteString* OneByteString::New(const uint8_t* characters,
 RawOneByteString* OneByteString::New(const uint16_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
-  const String& result =String::Handle(OneByteString::New(len, space));
+  const String& result = String::Handle(OneByteString::New(len, space));
   NoGCScope no_gc;
   for (intptr_t i = 0; i < len; ++i) {
     ASSERT(Utf::IsLatin1(characters[i]));

@@ -495,19 +495,38 @@ String _pathInSandbox(String relPath) {
 }
 
 /// Gets the environment variables used to run pub in a test context.
-Map getPubTestEnvironment([String tokenEndpoint]) {
-  var environment = {};
-  environment['_PUB_TESTING'] = 'true';
-  environment['PUB_CACHE'] = _pathInSandbox(cachePath);
-
-  // Ensure a known SDK version is set for the tests that rely on that.
-  environment['_PUB_TEST_SDK_VERSION'] = "0.1.2+3";
-
-  if (tokenEndpoint != null) {
-    environment['_PUB_TEST_TOKEN_ENDPOINT'] = tokenEndpoint.toString();
-  }
-
-  return environment;
+Future<Map> getPubTestEnvironment([String tokenEndpoint]) {
+  final completer0 = new Completer();
+  scheduleMicrotask(() {
+    try {
+      var environment = {};
+      environment['_PUB_TESTING'] = 'true';
+      environment['PUB_CACHE'] = _pathInSandbox(cachePath);
+      environment['_PUB_TEST_SDK_VERSION'] = "0.1.2+3";
+      join0() {
+        join1() {
+          completer0.complete(environment);
+        }
+        if (_hasServer) {
+          completer0.complete(port.then(((p) {
+            environment['PUB_HOSTED_URL'] = "http://localhost:$p";
+            return environment;
+          })));
+        } else {
+          join1();
+        }
+      }
+      if (tokenEndpoint != null) {
+        environment['_PUB_TEST_TOKEN_ENDPOINT'] = tokenEndpoint.toString();
+        join0();
+      } else {
+        join0();
+      }
+    } catch (e, s) {
+      completer0.completeError(e, s);
+    }
+  });
+  return completer0.future;
 }
 
 /// Starts a Pub process and returns a [ScheduledProcess] that supports
@@ -543,20 +562,8 @@ ScheduledProcess startPub({List args, Future<String> tokenEndpoint, Map<String,
   dartArgs.addAll(args);
 
   if (tokenEndpoint == null) tokenEndpoint = new Future.value();
-  var environmentFuture = tokenEndpoint.then((tokenEndpoint) {
-    var pubEnvironment = getPubTestEnvironment(tokenEndpoint);
-
-    // If there is a server running, tell pub what its URL is so hosted
-    // dependencies will look there.
-    if (_hasServer) {
-      return port.then((p) {
-        pubEnvironment['PUB_HOSTED_URL'] = "http://localhost:$p";
-        return pubEnvironment;
-      });
-    }
-
-    return pubEnvironment;
-  }).then((pubEnvironment) {
+  var environmentFuture = tokenEndpoint.then(
+      (tokenEndpoint) => getPubTestEnvironment(tokenEndpoint)).then((pubEnvironment) {
     if (environment != null) pubEnvironment.addAll(environment);
     return pubEnvironment;
   });
@@ -867,6 +874,11 @@ Map packageVersionApiMap(Map pubspec, {bool full: false}) {
 
   return map;
 }
+
+/// Returns the name of the shell script for a binstub named [name].
+///
+/// Adds a ".bat" extension on Windows.
+String binStubName(String name) => Platform.isWindows ? '$name.bat' : name;
 
 /// Compares the [actual] output from running pub with [expected].
 ///

@@ -19,6 +19,7 @@ scheduled_test/test/scheduled_server_test: Pass, Fail # 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 scheduled_test/test/scheduled_stream/stream_matcher_test: Pass, Slow
 polymer/test/build/script_compactor_test: Pass, Slow
+polymer/test/import_test: Skip # 17873
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 third_party/angular_tests/browser_test/*: Skip # github perf_api.dart issue 5
@@ -49,7 +50,7 @@ polymer/test/js_custom_event_test: Pass, RuntimeError # Issue 18931
 polymer/test/js_interop_test: Pass, RuntimeError # Issue 18931
 polymer/test/nested_binding_test: Pass, RuntimeError # Issue 18931
 polymer/test/noscript_test: Pass, RuntimeError # Issue 18931
-polymer/test/platform_less_test: Pass, RuntimeError # Issue 18931
+polymer/test/web_components_less_test: Pass, RuntimeError # Issue 18931
 polymer/test/prop_attr_bind_reflection_test: Pass, RuntimeError # Issue 18931
 polymer/test/prop_attr_reflection_test: Pass, RuntimeError # Issue 18931
 polymer/test/property_change_test: Pass, Timeout # Issue 18931
@@ -71,6 +72,7 @@ polymer/test/bind_properties_test: Skip # Sometimes times out. Issue 19326
 
 [ $runtime == vm && $mode == debug]
 analysis_server/test/analysis_server_test: Skip  # Times out
+analysis_server/test/completion_test: Skip  # Times out
 analysis_server/test/domain_context_test: Skip  # Times out
 analysis_server/test/domain_server_test: Skip  # Times out
 analysis_server/test/integration/analysis/reanalyze_concurrent_test: Skip # Times out
@@ -206,6 +208,7 @@ polymer/test/event_path_declarative_test: Skip #uses dart:html
 polymer/test/event_path_test: Skip #uses dart:html
 polymer/test/events_test: Skip #uses dart:html
 polymer/test/force_ready_test: Skip # uses dart:html
+polymer/test/import_test: Skip # uses dart:html
 polymer/test/inject_bound_html_test: Skip # uses dart:html
 polymer/test/instance_attrs_test: Skip #uses dart:html
 polymer/test/js_custom_event_test: Skip #uses dart:html
@@ -214,7 +217,7 @@ polymer/test/layout_test: Skip #uses dart:html
 polymer/test/mirror_loader_test: Skip # uses dart:html
 polymer/test/nested_binding_test: Skip # uses dart:html
 polymer/test/noscript_test: Skip #uses dart:html
-polymer/test/platform_less_test: Skip #uses dart:html
+polymer/test/web_components_less_test: Skip #uses dart:html
 polymer/test/prop_attr_bind_reflection_test: Skip #uses dart:html
 polymer/test/prop_attr_reflection_test: Skip #uses dart:html
 polymer/test/property_change_test: Skip # uses dart:html
@@ -278,6 +281,9 @@ polymer/test/js_interop_test: Pass, RuntimeError # Issue 20075
 [ $runtime == safari || $ie ]
 polymer/test/two_way_bind_test: Pass, RuntimeError # Issue 20075
 
+[ $runtime == ff ]
+polymer/test/layout_test: RuntimeError # Issue 21787
+
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
 path/test/browser_test: Fail, OK # Uses dart:html
@@ -287,6 +293,7 @@ third_party/angular_tests/vm_test: Fail # Uses removed APIs. See issue 18733.
 
 [ $runtime == vm && $system == windows ]
 intl/test/find_default_locale_standalone_test: Fail # Issue 8110
+analyzer/test/generated/all_the_rest_test: Fail # Issue 21772
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 # These tests are runtime negative but statically positive, so we skip
@@ -360,6 +367,8 @@ intl/test/message_extraction/failed_extraction_test: Fail, OK # Users dart:io
 intl/test/message_extraction/message_extraction_test: Fail, OK # Uses dart:io.
 intl/test/message_extraction/message_extraction_no_deferred_test: Fail, OK # Uses dart:io.
 intl/test/message_extraction/really_fail_extraction_test: Fail, OK # Users dart:io
+intl/test/message_extraction/embedded_plural_text_after_test: Fail, OK # Uses dart:io.
+intl/test/message_extraction/embedded_plural_text_before_test: Fail, OK # Uses dart:io.
 observe/test/transformer_test: Fail, OK # Uses dart:io.
 observe/test/unique_message_test: Skip # Intended only as a vm test.
 path/test/io_test: Fail, OK # Uses dart:io.
