@@ -7303,6 +7303,20 @@ void DeadStoreElimination::Optimize(FlowGraph* graph) {
 }
 
 
+// Returns true iff this definition is used in a non-phi instruction.
+static bool HasRealUse(Definition* def) {
+  // Environment uses are real (non-phi) uses.
+  if (def->env_use_list() != NULL) return true;
+
+  for (Value::Iterator it(def->input_use_list());
+       !it.Done();
+       it.Advance()) {
+    if (!it.Current()->instruction()->IsPhi()) return true;
+  }
+  return false;
+}
+
+
 void DeadCodeElimination::EliminateDeadPhis(FlowGraph* flow_graph) {
   GrowableArray<PhiInstr*> live_phis;
   for (BlockIterator b = flow_graph->postorder_iterator();
@@ -7314,7 +7328,7 @@ void DeadCodeElimination::EliminateDeadPhis(FlowGraph* flow_graph) {
         PhiInstr* phi = it.Current();
         // Phis that have uses and phis inside try blocks are
         // marked as live.
-        if (phi->HasUses() || join->InsideTryBlock()) {
+        if (HasRealUse(phi) || join->InsideTryBlock()) {
           live_phis.Add(phi);
           phi->mark_alive();
         } else {
