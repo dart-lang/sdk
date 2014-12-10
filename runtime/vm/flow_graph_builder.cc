@@ -293,6 +293,9 @@ void InlineExitCollector::PrepareGraphs(FlowGraph* callee_graph) {
       block->AsTargetEntry()->adjust_edge_weight(scale_factor);
     }
     Instruction* instr = block;
+    if (block->env() != NULL) {
+      call_->env()->DeepCopyToOuter(callee_graph->isolate(), block);
+    }
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       instr = it.Current();
       // TODO(zerny): Avoid creating unnecessary environments. Note that some
@@ -358,7 +361,6 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
     caller_graph_->set_max_block_id(join_id);
     JoinEntryInstr* join =
         new(I) JoinEntryInstr(join_id, try_index);
-    join->InheritDeoptTargetAfter(isolate(), call_);
 
     // The dominator set of the join is the intersection of the dominator
     // sets of all the predecessors.  If we keep the dominator sets ordered
@@ -430,6 +432,7 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
         phi->SetInputAt(i, ValueAt(i));
       }
       join->InsertPhi(phi);
+      join->InheritDeoptTargetAfter(caller_graph_, call_, phi);
       return phi;
     } else {
       // In the case that the result is unused, remove the return value uses
@@ -437,6 +440,7 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
       for (intptr_t i = 0; i < num_exits; ++i) {
         ReturnAt(i)->UnuseAllInputs();
       }
+      join->InheritDeoptTargetAfter(caller_graph_, call_, NULL);
       return NULL;
     }
   }
@@ -462,7 +466,7 @@ void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
     TargetEntryInstr* false_block =
         new(I) TargetEntryInstr(caller_graph_->allocate_block_id(),
                                 call_block->try_index());
-    false_block->InheritDeoptTargetAfter(isolate(), call_);
+    false_block->InheritDeoptTargetAfter(caller_graph_, call_, NULL);
     false_block->LinkTo(call_->next());
     call_block->ReplaceAsPredecessorWith(false_block);
 

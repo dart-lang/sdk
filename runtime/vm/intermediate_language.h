@@ -840,7 +840,9 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
     return false;
   }
 
-  void InheritDeoptTargetAfter(Isolate* isolate, Instruction* other);
+  void InheritDeoptTargetAfter(FlowGraph* flow_graph,
+                               Definition* call,
+                               Definition* result);
 
   virtual bool MayThrow() const = 0;
 
@@ -7909,6 +7911,12 @@ class Environment : public ZoneAllocated {
 
   void DeepCopyTo(Isolate* isolate, Instruction* instr) const;
   void DeepCopyToOuter(Isolate* isolate, Instruction* instr) const;
+
+  void DeepCopyAfterTo(Isolate* isolate,
+                       Instruction* instr,
+                       intptr_t argc,
+                       Definition* dead,
+                       Definition* result) const;
 
   void PrintTo(BufferFormatter* f) const;
   const char* ToCString() const;

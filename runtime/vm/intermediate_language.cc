@@ -739,11 +739,17 @@ void Instruction::UnuseAllInputs() {
 }
 
 
-void Instruction::InheritDeoptTargetAfter(Isolate* isolate,
-                                          Instruction* other) {
-  ASSERT(other->env() != NULL);
-  deopt_id_ = Isolate::ToDeoptAfter(other->deopt_id_);
-  other->env()->DeepCopyTo(isolate, this);
+void Instruction::InheritDeoptTargetAfter(FlowGraph* flow_graph,
+                                          Definition* call,
+                                          Definition* result) {
+  ASSERT(call->env() != NULL);
+  deopt_id_ = Isolate::ToDeoptAfter(call->deopt_id_);
+  call->env()->DeepCopyAfterTo(flow_graph->isolate(),
+                               this,
+                               call->ArgumentCount(),
+                               flow_graph->constant_dead(),
+                               result != NULL ? result
+                                              : flow_graph->constant_dead());
   env()->set_deopt_id(deopt_id_);
 }
 
@@ -3019,6 +3025,29 @@ void Environment::DeepCopyTo(Isolate* isolate, Instruction* instr) const {
   }
 
   Environment* copy = DeepCopy(isolate);
+  instr->SetEnvironment(copy);
+  for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {
+    Value* value = it.CurrentValue();
+    value->definition()->AddEnvUse(value);
+  }
+}
+
+
+void Environment::DeepCopyAfterTo(Isolate* isolate,
+                                  Instruction* instr,
+                                  intptr_t argc,
+                                  Definition* dead,
+                                  Definition* result) const {
+  for (Environment::DeepIterator it(instr->env()); !it.Done(); it.Advance()) {
+    it.CurrentValue()->RemoveFromUseList();
+  }
+
+  Environment* copy = DeepCopy(isolate, values_.length() - argc);
+  for (intptr_t i = 0; i < argc; i++) {
+    copy->values_.Add(new(isolate) Value(dead));
+  }
+  copy->values_.Add(new(isolate) Value(result));
+
   instr->SetEnvironment(copy);
   for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {
     Value* value = it.CurrentValue();
