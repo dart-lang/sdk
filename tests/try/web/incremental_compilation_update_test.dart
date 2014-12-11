@@ -1306,6 +1306,71 @@ main() {
 """,
             const <String>['v2']),
     ],
+
+    // Test that newly instantiated classes are handled correctly when there is
+    // more than one change.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class A {
+  foo() {
+    print('Called foo');
+  }
+
+  bar() {
+    print('Called bar');
+  }
+}
+
+class B extends A {
+}
+
+main() {
+  new B().foo();
+}
+""",
+            const <String>['Called foo']),
+        const ProgramResult(
+            r"""
+class A {
+  foo() {
+    print('Called foo');
+  }
+
+  bar() {
+    print('Called bar');
+  }
+}
+
+class B extends A {
+}
+
+main() {
+  new B().foo();
+}
+""",
+            const <String>['Called foo']),
+        const ProgramResult(
+            r"""
+class A {
+  foo() {
+    print('Called foo');
+  }
+
+  bar() {
+    print('Called bar');
+  }
+}
+
+class B extends A {
+}
+
+main() {
+  new A().bar();
+}
+""",
+            const <String>['Called bar']),
+    ],
 ];
 
 void main() {

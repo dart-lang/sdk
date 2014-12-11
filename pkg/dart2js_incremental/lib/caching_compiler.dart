@@ -144,6 +144,7 @@ Future<Compiler> reuseCompiler(
         ..deferredConstants.clear()
         ..isolateProperties = null
         ..classesCollector = null
+        ..neededClasses.clear()
         ..outputClassLists.clear()
         ..nativeClasses.clear()
         ..mangledFieldNames.clear()

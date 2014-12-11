@@ -126,18 +126,23 @@ class LibraryUpdater extends JsFeatures {
   final Set<ClassElementX> _classesWithSchemaChanges =
       new Set<ClassElementX>();
 
-  final Set<ClassElementX> _existingClasses = new Set();
+  final Set<ClassElementX> _emittedClasses;
+
+  final Set<ClassElementX> _directlyInstantiatedClasses;
 
   LibraryUpdater(
-      this.compiler,
+      Compiler compiler,
       this.inputProvider,
       this.uri,
       this.logTime,
-      this.logVerbose) {
-    if (compiler != null) {
-      _existingClasses.addAll(emitter.neededClasses);
-    }
-  }
+      this.logVerbose)
+      : this.compiler = compiler,
+        _emittedClasses = new Set.from(
+            compiler == null
+                ? [] : compiler.backend.emitter.neededClasses),
+        _directlyInstantiatedClasses = new Set.from(
+            compiler == null
+                ? [] : compiler.codegenWorld.directlyInstantiatedClasses);
 
   /// When [true], updates must be applied (using [applyUpdates]) before the
   /// [compiler]'s state correctly reflects the updated program.
@@ -596,20 +601,24 @@ class LibraryUpdater extends JsFeatures {
 
     List<jsAst.Statement> updates = <jsAst.Statement>[];
 
-    // TODO(ahe): allInstantiatedClasses seem to include interfaces that aren't
-    // needed.
     Set<ClassElementX> newClasses = new Set.from(
-        compiler.codegenWorld.allInstantiatedClasses.where(
-            emitter.computeClassFilter()));
-    newClasses.removeAll(_existingClasses);
+        compiler.codegenWorld.directlyInstantiatedClasses);
+    newClasses.removeAll(_directlyInstantiatedClasses);
 
-    // TODO(ahe): When more than one updated is computed, we need to make sure
-    // that existing classes aren't overwritten. No test except the one test
-    // that tests more than one update is affected by this problem, and only
-    // because main is closurized because we always enable tear-off. Is that
-    // really necessary? Also, add a test which tests directly that what
-    // happens when tear-off is introduced in second update.
-    emitter.neededClasses.addAll(newClasses);
+    if (!newClasses.isEmpty) {
+      // Ask the emitter to compute "needs" (only) if new classes were
+      // instantiated.
+      emitter.computeAllNeededEntities();
+      newClasses = new Set.from(emitter.neededClasses);
+      newClasses.removeAll(_emittedClasses);
+    } else {
+      // Make sure that the set of emitted classes is preserved for subsequent
+      // updates.
+      // TODO(ahe): This is a bit convoluted, find a better approach.
+      emitter.neededClasses
+          ..clear()
+          ..addAll(_emittedClasses);
+    }
 
     List<jsAst.Statement> inherits = <jsAst.Statement>[];
 

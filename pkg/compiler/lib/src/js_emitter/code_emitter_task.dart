@@ -347,21 +347,24 @@ class CodeEmitterTask extends CompilerTask {
 
     backend.generatedCode.keys.forEach(addSurroundingLibraryToSet);
     neededClasses.forEach(addSurroundingLibraryToSet);
-}
+  }
+
+  void computeAllNeededEntities() {
+    // Compute the required type checks to know which classes need a
+    // 'is$' method.
+    typeTestRegistry.computeRequiredTypeChecks();
+
+    computeNeededDeclarations();
+    computeNeededConstants();
+    computeNeededStatics();
+    computeNeededLibraries();
+  }
 
   void assembleProgram() {
     measure(() {
       emitter.invalidateCaches();
 
-      // Compute the required type checks to know which classes need a
-      // 'is$' method.
-      typeTestRegistry.computeRequiredTypeChecks();
-
-      computeNeededDeclarations();
-      computeNeededConstants();
-      computeNeededStatics();
-      computeNeededLibraries();
-
+      computeAllNeededEntities();
 
       Program program;
       if (USE_NEW_EMITTER) {
