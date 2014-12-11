@@ -1,7 +1,7 @@
 /// Common logic needed to provide a Dart SDK to the analyzer's resolver. This
 /// includes logic to determine where the sdk is located in the filesystem, and
 /// definitions to provide mock sdks.
-library ddc.src.dart_sdk;
+library ddc.src.checker.dart_sdk;
 
 import 'dart:convert' as convert;
 import 'dart:io' show File, Link, Platform, Process;

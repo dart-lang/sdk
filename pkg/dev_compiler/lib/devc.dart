@@ -1,5 +1,5 @@
 /// Command line tool to run the checker on a Dart program.
-library ddc;
+library ddc.devc;
 
 import 'dart:async';
 
@@ -9,10 +9,10 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:logging/logging.dart' show Level, Logger, LogRecord;
 
-import 'package:ddc/dartgenerator.dart';
-import 'package:ddc/jsgenerator.dart';
-import 'package:ddc/typechecker.dart';
-import 'package:ddc/src/resolver.dart' show TypeResolver;
+import 'package:ddc/src/checker/checker.dart';
+import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
+import 'package:ddc/src/emitter/dart_emitter.dart';
+import 'package:ddc/src/emitter/js_emitter.dart';
 import 'package:ddc/src/utils.dart';
 
 /// Sets up the type checker logger to print a span that highlights error

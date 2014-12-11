@@ -1,6 +1,6 @@
 /// Encapsulates how to invoke the analyzer resolver and overrides how it
 /// computes types on expressions to use our restricted set of types.
-library ddc.src.resolver;
+library ddc.src.checker.resolver;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -16,7 +16,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:logging/logging.dart' as logger;
 
 import 'dart_sdk.dart';
-import 'utils.dart';
+import '../utils.dart';
 
 final _log = new logger.Logger('ddc.src.resolver');
 

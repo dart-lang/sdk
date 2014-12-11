@@ -1,4 +1,4 @@
-library dartgenerator;
+library ddc.src.emitter.dart_emitter;
 
 import 'dart:async' show Future;
 import 'dart:io' as io;
@@ -9,8 +9,7 @@ import 'package:analyzer/src/generated/java_core.dart' as java_core;
 import 'package:dart_style/dart_style.dart';
 import 'package:logging/logging.dart' as logger;
 
-import 'codegenerator.dart' as codegenerator;
-import 'typechecker.dart' as typechecker;
+import 'code_generator.dart' as codegenerator;
 
 final _log = new logger.Logger('ddc.dartgenerator');
 

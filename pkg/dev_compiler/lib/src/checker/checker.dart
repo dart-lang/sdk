@@ -1,4 +1,4 @@
-library ddc.typechecker;
+library ddc.src.checker.checker;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -6,10 +6,10 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:logging/logging.dart' as logger;
 
-import 'src/resolver.dart';
-import 'src/static_info.dart';
-import 'src/type_rules.dart';
-import 'src/utils.dart';
+import '../info.dart';
+import '../utils.dart';
+import 'resolver.dart';
+import 'rules.dart';
 
 final _logger = new logger.Logger('ddc.checker');
 

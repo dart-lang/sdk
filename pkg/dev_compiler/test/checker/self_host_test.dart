@@ -2,9 +2,9 @@
 library ddc.test.end_to_end;
 
 import 'dart:io';
-import 'package:ddc/typechecker.dart';
-import 'package:ddc/src/dart_sdk.dart' show dartSdkDirectory;
-import 'package:ddc/src/resolver.dart' show TypeResolver;
+import 'package:ddc/src/checker/checker.dart';
+import 'package:ddc/src/checker/dart_sdk.dart' show dartSdkDirectory;
+import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
@@ -17,6 +17,6 @@ main() {
   _uri(testfile) => new Uri.file('$testDir/$testfile.dart');
 
   test('checker can run on itself ', () {
-    checkProgram(_uri('all_tests'), realSdk);
+    checkProgram(_uri('../all_tests'), realSdk);
   });
 }

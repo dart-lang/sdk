@@ -5,8 +5,8 @@ library ddc.test.codegen_test;
 
 import 'dart:io';
 import 'package:ddc/devc.dart';
-import 'package:ddc/src/dart_sdk.dart' show dartSdkDirectory;
-import 'package:ddc/src/resolver.dart' show TypeResolver;
+import 'package:ddc/src/checker/dart_sdk.dart' show dartSdkDirectory;
+import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
 import 'package:logging/logging.dart' show Level;
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';

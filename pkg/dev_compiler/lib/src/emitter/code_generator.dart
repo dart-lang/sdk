@@ -1,4 +1,4 @@
-library codegenerator;
+library ddc.src.emitter.code_generator;
 
 import 'dart:async' show Future;
 import 'dart:io';
@@ -6,8 +6,8 @@ import 'dart:io';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
 
-import 'src/static_info.dart';
-import 'src/type_rules.dart';
+import '../info.dart';
+import '../checker/rules.dart';
 
 abstract class CodeGenerator {
   final String outDir;

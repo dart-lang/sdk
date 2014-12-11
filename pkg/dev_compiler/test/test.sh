@@ -37,7 +37,7 @@ diff -u -r -N expect actual > /dev/null || show_diff expect actual
 popd &> /dev/null
 
 # run self host and analyzer after other tests, because they're ~seconds to run.
-dart -c test/self_host_test.dart || fail
+dart -c test/checker/self_host_test.dart || fail
 
 ls lib/*.dart bin/*.dart | dartanalyzer -b --fatal-warnings || fail
 popd &> /dev/null

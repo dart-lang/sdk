@@ -4,11 +4,11 @@ library ddc.test.all_tests;
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 
-import 'checker_test.dart' as checker_test;
+import 'checker/checker_test.dart' as checker_test;
+import 'checker/inferred_type_test.dart' as inferred_type_test;
 import 'codegen_test.dart' as codegen_test;
-import 'dart_runtime_test.dart' as runtime_test;
 import 'end_to_end_test.dart' as e2e;
-import 'inferred_type_test.dart' as inferred_type_test;
+import 'runtime/dart_runtime_test.dart' as runtime_test;
 
 main(args) {
   useCompactVMConfiguration();
@@ -16,7 +16,5 @@ main(args) {
   group('inferred types', inferred_type_test.main);
   group('checker', checker_test.main);
   group('runtime', runtime_test.main);
-  group('codegen', () {
-    codegen_test.main(args);
-  });
+  group('codegen', () => codegen_test.main(args));
 }

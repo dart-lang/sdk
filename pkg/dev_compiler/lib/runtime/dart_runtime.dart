@@ -1,4 +1,4 @@
-library dart_runtime;
+library ddc.runtime.dart_runtime;
 
 import 'dart:mirrors';
 

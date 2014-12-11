@@ -1,12 +1,12 @@
-library ddc.src.type_rules;
+library ddc.src.checker.rules;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
-import 'static_info.dart';
-import 'utils.dart';
+import '../info.dart';
+import '../utils.dart';
 
 abstract class TypeRules {
   final TypeProvider provider;

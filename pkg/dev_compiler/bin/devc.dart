@@ -7,8 +7,8 @@ import 'package:args/args.dart';
 import 'package:logging/logging.dart' show Logger, Level;
 
 import 'package:ddc/devc.dart';
-import 'package:ddc/src/dart_sdk.dart' show dartSdkDirectory, mockSdkSources;
-import 'package:ddc/src/resolver.dart' show TypeResolver;
+import 'package:ddc/src/checker/dart_sdk.dart' show dartSdkDirectory, mockSdkSources;
+import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
 
 ArgResults parse(List argv) {
   var parser = new ArgParser()

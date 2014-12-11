@@ -1,3 +1,5 @@
+library ddc.src.emitter.js_emitter;
+
 import 'dart:async' show Future;
 import 'dart:io';
 
@@ -5,10 +7,10 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
-import 'src/static_info.dart';
-import 'src/type_rules.dart';
-import 'src/utils.dart';
-import 'codegenerator.dart';
+import '../checker/rules.dart';
+import '../info.dart';
+import '../utils.dart';
+import 'code_generator.dart';
 
 class UnitGenerator extends GeneralizingAstVisitor {
   final Uri uri;

@@ -2,7 +2,7 @@
 import 'dart:collection';
 import 'dart:mirrors';
 import 'package:unittest/unittest.dart';
-import '../runtime/dart_runtime.dart';
+import 'package:ddc/runtime/dart_runtime.dart';
 
 class A {
   int x;

@@ -1,12 +1,13 @@
-/// Defines static information collected by the type checker.
-library ddc.src.static_info;
+/// Defines static information collected by the type checker and used later by
+/// emitters to generate code.
+library ddc.src.info;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:logging/logging.dart' show Level;
 
-import 'type_rules.dart';
+import 'checker/rules.dart';
 
 /// Represents a summary of the results collected by running the program
 /// checker.
