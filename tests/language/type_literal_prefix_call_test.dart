@@ -8,5 +8,5 @@ import 'dart:core' as core;
 // Check that calling a type with a prefix is allowed, but throws at runtime.
 
 main() {
-  Expect.throws(() => core.List(), (e) => e is core.NoSuchMethodError);
+  Expect.throws(() => core.List(), (e) => e is core.NoSuchMethodError); /// 00: static type warning
 }
