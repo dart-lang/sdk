@@ -7,7 +7,7 @@
 import 'dart:_js_helper' show patch;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JSExtendableArray;
-import 'dart:_internal' show MappedIterable;
+import 'dart:_internal' show MappedIterable, ListIterable;
 import 'dart:collection' show Maps, LinkedHashMap;
 
 /**
@@ -161,7 +161,7 @@ class _JsonMap implements LinkedHashMap {
 
   Iterable get keys {
     if (_isUpgraded) return _upgradedMap.keys;
-    return _computeKeys().skip(0);
+    return new _JsonMapKeyIterable(this);
   }
 
   Iterable get values {
@@ -336,6 +336,31 @@ class _JsonMap implements LinkedHashMap {
       => JS('bool', 'typeof(#)=="undefined"', object);
   static _newJavaScriptObject()
       => JS('=Object', 'Object.create(null)');
+}
+
+class _JsonMapKeyIterable extends ListIterable {
+  final _JsonMap _parent;
+
+  _JsonMapKeyIterable(this._parent);
+
+  int get length => _parent.length;
+
+  String elementAt(int index) {
+    return _parent._isUpgraded ? _parent.keys.elementAt(index)
+                               : _parent._computeKeys()[index];
+  }
+
+  /// Although [ListIterable] defines its own iterator, we return the iterator
+  /// of the underlying list [_keys] in order to propagate
+  /// [ConcurrentModificationError]s.
+  Iterator get iterator {
+    return _parent._isUpgraded ? _parent.keys.iterator
+                               : _parent._computeKeys().iterator;
+  }
+
+  /// Delegate to [parent.containsKey] to ensure the performance expected
+  /// from [Map.keys.containsKey].
+  bool contains(Object key) => _parent.containsKey(key);
 }
 
 @patch class JsonDecoder {
