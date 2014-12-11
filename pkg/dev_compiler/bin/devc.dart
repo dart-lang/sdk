@@ -17,7 +17,13 @@ ArgResults parse(List argv) {
     ..addOption('log', abbr: 'l', help: 'Logging level', defaultsTo: 'severe')
     ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
     ..addFlag(
+        'dart-gen', abbr: 'd', help: 'Generate dart output', defaultsTo: false)
+    ..addFlag(
+        'dart-gen-fmt', help: 'Generate readable dart output', defaultsTo: true)
+    ..addFlag(
         'mock-sdk', abbr: 'm', help: 'Use a mock Dart SDK', defaultsTo: false)
+    ..addFlag('new-checker', abbr: 'n', help: 'Use the new type checker',
+        defaultsTo: false)
     ..addOption('out', abbr: 'o', help: 'Output directory', defaultsTo: null);
   return parser.parse(argv);
 }
@@ -51,8 +57,12 @@ void main(List argv) {
       TypeResolver.sdkResolverFromDir(dartSdkPath));
 
   var filename = args.rest[0];
-  compile(filename, typeResolver, outputDir: args['out'],
-      checkSdk: args['sdk-check'], useColors: useColors).then((success) {
+  compile(filename, typeResolver,
+          checkSdk: args['sdk-check'],
+          formatOutput: args['dart-gen-fmt'],
+          outputDart: args['dart-gen'],
+          outputDir: args['out'],
+          useColors: useColors).then((success) {
     exit(success ? 0 : 1);
   });
 }

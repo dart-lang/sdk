@@ -3,9 +3,32 @@ library ddc.src.static_info;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:logging/logging.dart' show Level;
 
 import 'type_rules.dart';
+
+/// Represents a summary of the results collected by running the program
+/// checker.
+class CheckerResults {
+  final Map<Uri, LibraryInfo> libraries;
+  final Map<AstNode, SemanticNode> infoMap;
+  final TypeRules rules;
+  final bool failure;
+
+  CheckerResults(this.libraries, this.infoMap, this.rules, this.failure);
+}
+
+/// Holds information about a Dart library.
+class LibraryInfo {
+  final Uri uri;
+  final Source source;
+  final CompilationUnit lib;
+  final Map<Uri, CompilationUnit> parts = new Map<Uri, CompilationUnit>();
+  final Map<Uri, LibraryInfo> imports = new Map<Uri, LibraryInfo>();
+
+  LibraryInfo(this.uri, this.source, this.lib);
+}
 
 /// Semantic information about a node.
 // TODO(jmesserly): this structure is very incomplete.
@@ -100,8 +123,8 @@ class DownCast extends Conversion {
 
   DownCast(TypeRules rules, Expression expression, this._newType)
       : super(rules, expression) {
-    assert(_newType != baseType && (baseType.isDynamic || rules
-        .isSubTypeOf(_newType, baseType)));
+    assert(_newType != baseType &&
+        (baseType.isDynamic || rules.isSubTypeOf(_newType, baseType)));
   }
 
   DartType _getConvertedType() => _newType;

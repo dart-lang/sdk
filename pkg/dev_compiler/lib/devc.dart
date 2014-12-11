@@ -9,7 +9,8 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:logging/logging.dart' show Level, Logger, LogRecord;
 
-import 'package:ddc/codegenerator.dart';
+import 'package:ddc/dartgenerator.dart';
+import 'package:ddc/jsgenerator.dart';
 import 'package:ddc/typechecker.dart';
 import 'package:ddc/src/resolver.dart' show TypeResolver;
 import 'package:ddc/src/utils.dart';
@@ -35,8 +36,12 @@ StreamSubscription setupLogger(Level level, printFn, {bool useColors: true}) {
   });
 }
 
-Future<bool> compile(String inputFile, TypeResolver resolver, {String outputDir,
-    bool checkSdk: false, bool useColors: true}) {
+Future<bool> compile(String inputFile, TypeResolver resolver,
+                     {bool checkSdk: false,
+                     bool formatOutput : false,
+                     bool outputDart: false,
+                     String outputDir,
+                     bool useColors: true}) {
 
   // Run checker
   var uri = new Uri.file(path.absolute(inputFile));
@@ -49,8 +54,12 @@ Future<bool> compile(String inputFile, TypeResolver resolver, {String outputDir,
 
   // Generate code.
   if (outputDir != null) {
-    var cg = new CodeGenerator(
-        outputDir, uri, results.libraries, results.infoMap, results.rules);
+    var cg = outputDart
+      ? new DartGenerator(
+          outputDir, uri, results.libraries, results.infoMap, results.rules,
+          formatOutput)
+      : new JSGenerator(
+          outputDir, uri, results.libraries, results.infoMap, results.rules);
     return cg.generate().then((_) => true);
   }
 

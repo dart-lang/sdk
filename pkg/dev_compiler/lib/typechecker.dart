@@ -4,7 +4,6 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:logging/logging.dart' as logger;
 
 import 'src/resolver.dart';
@@ -15,8 +14,8 @@ import 'src/utils.dart';
 final _logger = new logger.Logger('ddc.checker');
 
 /// Runs the program checker using the restricted type rules on [fileUri].
-Results checkProgram(Uri fileUri, TypeResolver resolver, {bool checkSdk: false,
-    bool useColors: true}) {
+CheckerResults checkProgram(Uri fileUri, TypeResolver resolver,
+    {bool checkSdk: false, bool useColors: true}) {
 
   // Invoke the checker on the entry point.
   _logger.fine('running checker...');
@@ -25,30 +24,8 @@ Results checkProgram(Uri fileUri, TypeResolver resolver, {bool checkSdk: false,
   final visitor = new ProgramChecker(resolver, rules, fileUri, checkSdk);
   visitor.check();
   visitor.finalizeImports();
-  return new Results(
+  return new CheckerResults(
       visitor.libraries, visitor.infoMap, rules, visitor.failure);
-}
-
-/// Represents a summary of the results collected by running the program
-/// checker.
-class Results {
-  final Map<Uri, Library> libraries;
-  final Map<AstNode, SemanticNode> infoMap;
-  final TypeRules rules;
-  final bool failure;
-
-  Results(this.libraries, this.infoMap, this.rules, this.failure);
-}
-
-/// Holds information about a Dart library.
-class Library {
-  final Uri uri;
-  final Source source;
-  final CompilationUnit lib;
-  final Map<Uri, CompilationUnit> parts = new Map<Uri, CompilationUnit>();
-  final Map<Uri, Library> imports = new Map<Uri, Library>();
-
-  Library(this.uri, this.source, this.lib);
 }
 
 class ProgramChecker extends RecursiveAstVisitor {
@@ -57,10 +34,10 @@ class ProgramChecker extends RecursiveAstVisitor {
   final Uri _root;
   final bool _checkSdk;
   final Map<Uri, CompilationUnit> _unitMap = <Uri, CompilationUnit>{};
-  final Map<Uri, Library> libraries = <Uri, Library>{};
+  final Map<Uri, LibraryInfo> libraries = <Uri, LibraryInfo>{};
 
   void finalizeImports() {
-    libraries.forEach((Uri uri, Library lib) {
+    libraries.forEach((Uri uri, LibraryInfo lib) {
       for (Uri key in lib.imports.keys) {
         lib.imports[key] = libraries[key];
       }
@@ -76,7 +53,7 @@ class ProgramChecker extends RecursiveAstVisitor {
       if (!_checkSdk && lib.isInSdk) continue;
       var source = lib.source;
       libraries[source.uri] =
-          new Library(source.uri, source, lib.definingCompilationUnit.node);
+          new LibraryInfo(source.uri, source, lib.definingCompilationUnit.node);
       for (var unit in lib.units) {
         _rules.setCompilationUnit(unit.node);
         unit.node.visitChildren(this);
@@ -155,8 +132,8 @@ class ProgramChecker extends RecursiveAstVisitor {
 
     if (type.isObject) return null;
 
-    allowFieldOverride = allowFieldOverride == null ? false :
-        allowFieldOverride;
+    allowFieldOverride =
+        allowFieldOverride == null ? false : allowFieldOverride;
     InvalidOverride base =
         findInvalidOverride(node, element, type.superclass, allowFieldOverride);
     if (base != null) return base;
