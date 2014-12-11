@@ -221,99 +221,145 @@ class Entrypoint {
                 return package.name;
               })).toSet();
               join1() {
-                log.progress("Precompiling dependencies", (() {
-                  final completer0 = new Completer();
-                  scheduleMicrotask(() {
-                    try {
-                      var packagesToLoad = unionAll(
-                          dependenciesToPrecompile.map(graph.transitiveDependencies)).map(((package) {
-                        return package.name;
-                      })).toSet();
-                      dependenciesToPrecompile.forEach(((package) {
-                        return deleteEntry(path.join(depsDir, package));
-                      }));
-                      AssetEnvironment.create(
-                          this,
-                          BarbackMode.DEBUG,
-                          packages: packagesToLoad,
-                          useDart2JS: false).then((x0) {
-                        try {
-                          var environment = x0;
-                          environment.barback.errors.listen(((_) {
-                          }));
-                          environment.barback.getAllAssets().then((x1) {
-                            try {
-                              var assets = x1;
-                              waitAndPrintErrors(assets.map(((asset) {
-                                final completer0 = new Completer();
-                                scheduleMicrotask(() {
+                join2() {
+                  log.progress("Precompiling dependencies", (() {
+                    final completer0 = new Completer();
+                    scheduleMicrotask(() {
+                      try {
+                        var packagesToLoad = unionAll(
+                            dependenciesToPrecompile.map(graph.transitiveDependencies)).map(((package) {
+                          return package.name;
+                        })).toSet();
+                        AssetEnvironment.create(
+                            this,
+                            BarbackMode.DEBUG,
+                            packages: packagesToLoad,
+                            useDart2JS: false).then((x0) {
+                          try {
+                            var environment = x0;
+                            environment.barback.errors.listen(((_) {
+                            }));
+                            environment.barback.getAllAssets().then((x1) {
+                              try {
+                                var assets = x1;
+                                waitAndPrintErrors(assets.map(((asset) {
+                                  final completer0 = new Completer();
+                                  scheduleMicrotask(() {
+                                    try {
+                                      join0() {
+                                        var destPath =
+                                            path.join(depsDir, asset.id.package, path.fromUri(asset.id.path));
+                                        ensureDir(path.dirname(destPath));
+                                        createFileFromStream(
+                                            asset.read(),
+                                            destPath).then((x0) {
+                                          try {
+                                            x0;
+                                            completer0.complete();
+                                          } catch (e0, s0) {
+                                            completer0.completeError(e0, s0);
+                                          }
+                                        }, onError: completer0.completeError);
+                                      }
+                                      if (!dependenciesToPrecompile.contains(
+                                          asset.id.package)) {
+                                        completer0.complete(null);
+                                      } else {
+                                        join0();
+                                      }
+                                    } catch (e, s) {
+                                      completer0.completeError(e, s);
+                                    }
+                                  });
+                                  return completer0.future;
+                                }))).then((x2) {
                                   try {
-                                    join0() {
-                                      var destPath =
-                                          path.join(depsDir, asset.id.package, path.fromUri(asset.id.path));
-                                      ensureDir(path.dirname(destPath));
-                                      createFileFromStream(
-                                          asset.read(),
-                                          destPath).then((x0) {
-                                        try {
-                                          x0;
-                                          completer0.complete();
-                                        } catch (e0, s0) {
-                                          completer0.completeError(e0, s0);
-                                        }
-                                      }, onError: completer0.completeError);
-                                    }
-                                    if (!dependenciesToPrecompile.contains(
-                                        asset.id.package)) {
-                                      completer0.complete(null);
-                                    } else {
-                                      join0();
-                                    }
-                                  } catch (e, s) {
-                                    completer0.completeError(e, s);
+                                    x2;
+                                    log.message(
+                                        "Precompiled " +
+                                            toSentence(ordered(dependenciesToPrecompile).map(log.bold)) +
+                                            ".");
+                                    completer0.complete();
+                                  } catch (e0, s0) {
+                                    completer0.completeError(e0, s0);
                                   }
-                                });
-                                return completer0.future;
-                              }))).then((x2) {
-                                try {
-                                  x2;
-                                  log.message(
-                                      "Precompiled " +
-                                          toSentence(ordered(dependenciesToPrecompile).map(log.bold)) +
-                                          ".");
-                                  completer0.complete();
-                                } catch (e0, s0) {
-                                  completer0.completeError(e0, s0);
-                                }
-                              }, onError: completer0.completeError);
-                            } catch (e1, s1) {
-                              completer0.completeError(e1, s1);
-                            }
-                          }, onError: completer0.completeError);
-                        } catch (e2, s2) {
-                          completer0.completeError(e2, s2);
-                        }
-                      }, onError: completer0.completeError);
-                    } catch (e, s) {
-                      completer0.completeError(e, s);
+                                }, onError: completer0.completeError);
+                              } catch (e1, s1) {
+                                completer0.completeError(e1, s1);
+                              }
+                            }, onError: completer0.completeError);
+                          } catch (e2, s2) {
+                            completer0.completeError(e2, s2);
+                          }
+                        }, onError: completer0.completeError);
+                      } catch (e, s) {
+                        completer0.completeError(e, s);
+                      }
+                    });
+                    return completer0.future;
+                  })).catchError(((error) {
+                    dependenciesToPrecompile.forEach(
+                        (package) => deleteEntry(path.join(depsDir, package)));
+                    throw error;
+                  })).then((x1) {
+                    try {
+                      x1;
+                      completer0.complete();
+                    } catch (e0, s0) {
+                      completer0.completeError(e0, s0);
                     }
-                  });
-                  return completer0.future;
-                })).catchError(((error) {
-                  dependenciesToPrecompile.forEach(
-                      (package) => deleteEntry(path.join(depsDir, package)));
-                  throw error;
-                })).then((x1) {
-                  try {
-                    x1;
-                    completer0.complete();
-                  } catch (e0, s0) {
-                    completer0.completeError(e0, s0);
-                  }
-                }, onError: completer0.completeError);
+                  }, onError: completer0.completeError);
+                }
+                if (dependenciesToPrecompile.isEmpty) {
+                  completer0.complete(null);
+                } else {
+                  join2();
+                }
               }
-              if (dependenciesToPrecompile.isEmpty) {
-                completer0.complete(null);
+              if (dirExists(depsDir)) {
+                var it0 = dependenciesToPrecompile.iterator;
+                break0() {
+                  var it1 = listDir(depsDir).iterator;
+                  break1() {
+                    join1();
+                  }
+                  var trampoline1;
+                  continue1() {
+                    trampoline1 = null;
+                    if (it1.moveNext()) {
+                      var subdir = it1.current;
+                      var package = graph.packages[path.basename(subdir)];
+                      join3() {
+                        trampoline1 = continue1;
+                      }
+                      if (package == null ||
+                          package.pubspec.transformers.isEmpty ||
+                          graph.isPackageMutable(package.name)) {
+                        deleteEntry(subdir);
+                        join3();
+                      } else {
+                        join3();
+                      }
+                    } else {
+                      break1();
+                    }
+                  }
+                  trampoline1 = continue1;
+                  do trampoline1(); while (trampoline1 != null);
+                }
+                var trampoline0;
+                continue0() {
+                  trampoline0 = null;
+                  if (it0.moveNext()) {
+                    var package = it0.current;
+                    deleteEntry(path.join(depsDir, package));
+                    trampoline0 = continue0;
+                  } else {
+                    break0();
+                  }
+                }
+                trampoline0 = continue0;
+                do trampoline0(); while (trampoline0 != null);
               } else {
                 join1();
               }
