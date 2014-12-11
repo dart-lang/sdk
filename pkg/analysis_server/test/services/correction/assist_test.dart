@@ -1008,10 +1008,10 @@ main(A a) {
 
   void test_exchangeBinaryExpressionArguments_OK_compare() {
     Map<String, String> operatorMap = {
-      '<': '>=',
-      '<=': '>',
-      '>': '<=',
-      '>=': '<'
+      '<': '>',
+      '<=': '>=',
+      '>': '<',
+      '>=': '<='
     };
     operatorMap.forEach((initialOperator, resultOperator) {
       _indexTestUnit('''

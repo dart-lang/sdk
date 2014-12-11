@@ -616,13 +616,13 @@ class AssistProcessor {
         String newOperator = null;
         TokenType operatorType = operator.type;
         if (operatorType == TokenType.LT) {
-          newOperator = '>=';
-        } else if (operatorType == TokenType.LT_EQ) {
           newOperator = '>';
+        } else if (operatorType == TokenType.LT_EQ) {
+          newOperator = '>=';
         } else if (operatorType == TokenType.GT) {
-          newOperator = '<=';
-        } else if (operatorType == TokenType.GT_EQ) {
           newOperator = '<';
+        } else if (operatorType == TokenType.GT_EQ) {
+          newOperator = '<=';
         }
         // replace the operator
         if (newOperator != null) {
