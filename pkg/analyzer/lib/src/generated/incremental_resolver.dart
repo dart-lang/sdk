@@ -686,6 +686,9 @@ class DeclarationMatcher extends RecursiveAstVisitor {
         node.identifier.staticElement = element;
         (element as ElementImpl).name = newElement.name;
         (element as ElementImpl).nameOffset = newElement.nameOffset;
+        if (node is FunctionTypedFormalParameter) {
+          _setParameterElements(node.parameters, element.parameters);
+        }
       }
     }
   }

@@ -2147,6 +2147,14 @@ int main(int a, int b) {
     _resolve(_editString('int res = a * b;', ''), _isBlock);
   }
 
+  void test_topLevelFunction_parameter_inFunctionTyped_rename() {
+    _resolveUnit(r'''
+test(f(int a, int b)) {
+}
+''');
+    _resolve(_editString('test(f(int a', 'test(f2(int a2'), _isDeclaration);
+  }
+
   void test_topLevelFunction_parameter_rename() {
     _resolveUnit(r'''
 int main(int a, int b) {
