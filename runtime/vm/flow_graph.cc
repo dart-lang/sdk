@@ -234,7 +234,9 @@ void FlowGraph::MergeBlocks() {
 
     Instruction* last = block->last_instruction();
     BlockEntryInstr* successor = NULL;
-    while ((last->SuccessorCount() == 1) &&
+    while ((!last->IsIndirectGoto()) &&
+           (last->SuccessorCount() == 1) &&
+           (!last->SuccessorAt(0)->IsIndirectEntry()) &&
            (last->SuccessorAt(0)->PredecessorCount() == 1) &&
            (block->try_index() == last->SuccessorAt(0)->try_index())) {
       successor = last->SuccessorAt(0);
