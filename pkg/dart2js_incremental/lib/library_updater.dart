@@ -76,6 +76,9 @@ import 'package:compiler/src/elements/modelx.dart' show
 import 'package:compiler/src/universe/universe.dart' show
     Selector;
 
+import 'package:compiler/src/constants/values.dart' show
+    ConstantValue;
+
 import 'diff.dart' show
     Difference,
     computeDifference;
@@ -130,6 +133,10 @@ class LibraryUpdater extends JsFeatures {
 
   final Set<ClassElementX> _directlyInstantiatedClasses;
 
+  final Set<ConstantValue> _compiledConstants;
+
+  bool _hasComputedNeeds = false;
+
   LibraryUpdater(
       Compiler compiler,
       this.inputProvider,
@@ -142,7 +149,10 @@ class LibraryUpdater extends JsFeatures {
                 ? [] : compiler.backend.emitter.neededClasses),
         _directlyInstantiatedClasses = new Set.from(
             compiler == null
-                ? [] : compiler.codegenWorld.directlyInstantiatedClasses);
+                ? [] : compiler.codegenWorld.directlyInstantiatedClasses),
+        _compiledConstants = new Set<ConstantValue>.identity()..addAll(
+            compiler == null
+                ? [] : compiler.backend.constants.compiledConstants);
 
   /// When [true], updates must be applied (using [applyUpdates]) before the
   /// [compiler]'s state correctly reflects the updated program.
@@ -608,7 +618,7 @@ class LibraryUpdater extends JsFeatures {
     if (!newClasses.isEmpty) {
       // Ask the emitter to compute "needs" (only) if new classes were
       // instantiated.
-      emitter.computeAllNeededEntities();
+      _ensureNeedsComputed();
       newClasses = new Set.from(emitter.neededClasses);
       newClasses.removeAll(_emittedClasses);
     } else {
@@ -665,6 +675,25 @@ class LibraryUpdater extends JsFeatures {
         updates.addAll(computeFieldUpdateJs(element));
       } else {
         updates.add(computeMethodUpdateJs(element));
+      }
+    }
+
+    Set<ConstantValue> newConstants = new Set<ConstantValue>.identity()..addAll(
+        compiler.backend.constants.compiledConstants);
+    newConstants.removeAll(_compiledConstants);
+
+    if (!newConstants.isEmpty) {
+      _ensureNeedsComputed();
+      List<ConstantValue> constants =
+          emitter.outputConstantLists[compiler.deferredLoadTask.mainOutputUnit];
+      if (constants != null) {
+        for (ConstantValue constant in constants) {
+          if (newConstants.contains(constant)) {
+            jsAst.Statement constantInitializer = emitter.oldEmitter
+                .buildConstantInitializer(constant).toStatement();
+            updates.add(constantInitializer);
+          }
+        }
       }
     }
 
@@ -770,6 +799,12 @@ if (self.$dart_unsafe_eval.pendingStubs) {
 
   List<String> computeFields(ClassElement cls) {
     return new EmitterHelper(compiler).computeFields(cls);
+  }
+
+  void _ensureNeedsComputed() {
+    if (_hasComputedNeeds) return;
+    emitter.computeAllNeededEntities();
+    _hasComputedNeeds = true;
   }
 }
 

@@ -1110,10 +1110,7 @@ class OldEmitter implements Emitter {
         if (cachedEmittedConstants.contains(constant)) continue;
         cachedEmittedConstants.add(constant);
       }
-      String name = namer.constantName(constant);
-      jsAst.Expression init = js('#.# = #',
-          [namer.globalObjectForConstant(constant), name,
-           constantInitializerExpression(constant)]);
+      jsAst.Expression init = buildConstantInitializer(constant);
       buffer.write(jsAst.prettyPrint(init, compiler,
                                      monitor: compiler.dumpInfoTask));
       buffer.write('$N');
@@ -1121,6 +1118,13 @@ class OldEmitter implements Emitter {
     if (compiler.hasIncrementalSupport && isMainBuffer) {
       mainBuffer.add(cachedEmittedConstantsBuffer);
     }
+  }
+
+  jsAst.Expression buildConstantInitializer(ConstantValue constant) {
+    String name = namer.constantName(constant);
+    return js('#.# = #',
+              [namer.globalObjectForConstant(constant), name,
+               constantInitializerExpression(constant)]);
   }
 
   jsAst.Template get makeConstantListTemplate {

@@ -1292,8 +1292,6 @@ main() {
         const ProgramResult(
             r"""
 main() {
-  // TODO(ahe): Remove next line when new constants are handled correctly.
-  [].map(null);
   print('v1');
 }
 """,
@@ -1370,6 +1368,34 @@ main() {
 }
 """,
             const <String>['Called bar']),
+    ],
+
+    // Test that constants are handled correctly.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class C {
+  final String value;
+  const C(this.value);
+}
+
+main() {
+  print(const C('v1').value);
+}
+""",
+            const <String>['v1']),
+        const ProgramResult(
+            r"""
+class C {
+  final String value;
+  const C(this.value);
+}
+
+main() {
+  print(const C('v2').value);
+}
+""",
+            const <String>['v2']),
     ],
 ];
 
