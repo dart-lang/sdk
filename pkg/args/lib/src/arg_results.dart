@@ -13,8 +13,9 @@ import 'arg_parser.dart';
 /// Since [ArgResults] doesn't have a public constructor, this lets [Parser]
 /// get to it. This function isn't exported to the public API of the package.
 ArgResults newArgResults(ArgParser parser, Map<String, dynamic> parsed,
-      String name, ArgResults command, List<String> rest) {
-  return new ArgResults._(parser, parsed, name, command, rest);
+      String name, ArgResults command, List<String> rest,
+      List<String> arguments) {
+  return new ArgResults._(parser, parsed, name, command, rest, arguments);
 }
 
 /// The results of parsing a series of command line arguments using
@@ -46,10 +47,14 @@ class ArgResults {
   /// `--` was reached.
   final List<String> rest;
 
+  /// The original list of arguments that were parsed.
+  final List<String> arguments;
+
   /// Creates a new [ArgResults].
   ArgResults._(this._parser, this._parsed, this.name, this.command,
-      List<String> rest)
-      : this.rest = new UnmodifiableListView(rest);
+      List<String> rest, List<String> arguments)
+      : this.rest = new UnmodifiableListView(rest),
+        this.arguments = new UnmodifiableListView(arguments);
 
   /// Gets the parsed command-line option named [name].
   operator [](String name) {

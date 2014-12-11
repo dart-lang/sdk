@@ -1,3 +1,7 @@
+## 0.12.2
+
+* Add an `ArgResults.arguments` field, which contains the original argument list.
+
 ## 0.12.1
 
 * Replace `ArgParser.getUsage()` with `ArgParser.usage`, a getter.

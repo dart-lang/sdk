@@ -228,6 +228,14 @@ void main() {
       expect(() => results.rest.add('oops'), throwsUnsupportedError);
     });
 
+    test('.arguments returns the original argument list', () {
+      var parser = new ArgParser();
+      parser.addFlag('foo');
+
+      var results = parser.parse(['--foo']);
+      expect(results.arguments, equals(['--foo']));
+    });
+
     group('.wasParsed()', () {
       test('throws if the name is not an option', () {
         var results = new ArgParser().parse([]);
