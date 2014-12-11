@@ -146,7 +146,7 @@ class A {
 
 class B {
 
-  B() : _order = new StringBuffer("") { }
+  B() { _order = new StringBuffer(""); }
 
   get g0 { _mark('g'); return () { return _mark('f'); }; }
   get g1 { _mark('g'); return (x) { return _mark('f'); }; }
