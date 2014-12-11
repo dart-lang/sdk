@@ -355,7 +355,7 @@ class OldEmitter implements Emitter {
 
     if (compiler.hasIncrementalSupport) {
       result.add(
-          js(r'self.$dart_unsafe_eval.defineClass = defineClass'));
+          js(r'#.defineClass = defineClass', [namer.accessIncrementalHelper]));
     }
 
     if (hasIsolateSupport) {
@@ -426,7 +426,8 @@ class OldEmitter implements Emitter {
         }()
       ''');
     if (compiler.hasIncrementalSupport) {
-      result = js(r'self.$dart_unsafe_eval.inheritFrom = #', [result]);
+      result = js(
+          r'#.inheritFrom = #', [namer.accessIncrementalHelper, result]);
     }
     return js(r'var inheritFrom = #', [result]);
   }
@@ -1571,19 +1572,22 @@ class OldEmitter implements Emitter {
     // Chrome/V8.
     mainBuffer.add('(function(${namer.currentIsolate})$_{\n');
     if (compiler.hasIncrementalSupport) {
-      mainBuffer.add(
-          'this.\$dart_unsafe_eval ='
-          ' this.\$dart_unsafe_eval || Object.create(null)$N');
-      mainBuffer.add(
-          'this.\$dart_unsafe_eval.patch = function(a) { eval(a) }$N');
-      String schemaChange =
-          jsAst.prettyPrint(buildSchemaChangeFunction(), compiler).getText();
-      String addMethod =
-          jsAst.prettyPrint(buildIncrementalAddMethod(), compiler).getText();
-      mainBuffer.add(
-          'this.\$dart_unsafe_eval.schemaChange$_=$_$schemaChange$N');
-      mainBuffer.add(
-          'this.\$dart_unsafe_eval.addMethod$_=$_$addMethod$N');
+      mainBuffer.add(jsAst.prettyPrint(js.statement(
+          """
+{
+  #helper = #helper || Object.create(null);
+  #helper.patch = function(a) { eval(a)};
+  #helper.schemaChange = #schemaChange;
+  #helper.addMethod = #addMethod;
+  #helper.extractStubs = function(array, name, isStatic, originalDescriptor) {
+    var descriptor = Object.create(null);
+    this.addStubs(descriptor, array, name, isStatic, originalDescriptor, []);
+    return descriptor;
+  };
+}""",
+          { 'helper': js('this.#', [namer.incrementalHelperName]),
+            'schemaChange': buildSchemaChangeFunction(),
+            'addMethod': buildIncrementalAddMethod() }), compiler));
     }
     if (isProgramSplit) {
       /// We collect all the global state of the, so it can be passed to the
@@ -1828,10 +1832,20 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
   if (arrayOrFunction.constructor === Array) {
     var existing = holder[name];
     var array = arrayOrFunction;
-    var descriptor = Object.create(null);
-    this.addStubs(
-        descriptor, arrayOrFunction, name, isStatic, originalDescriptor, []);
+
+    // Each method may have a number of stubs associated. For example, if an
+    // instance method supports multiple arguments, a stub for each matching
+    // selector. There is also a getter stub for tear-off getters. For example,
+    // an instance method foo([a]) may have the following stubs: foo$0, foo$1,
+    // and get$foo (here exemplified using unminified names).
+    // [extractStubs] returns a JavaScript object whose own properties
+    // corresponds to the stubs.
+    var descriptor =
+        this.extractStubs(array, name, isStatic, originalDescriptor);
     method = descriptor[name];
+
+    // Iterate through the properties of descriptor and copy the stubs to the
+    // existing holder (for instance methods, a prototype).
     for (var property in descriptor) {
       if (!Object.prototype.hasOwnProperty.call(descriptor, property)) continue;
       var stub = descriptor[property];
@@ -1861,6 +1875,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
           // prototype.
           stub = stub.call(receiver);
 
+          // Copy the properties from the new tear-off's prototype to the
+          // prototype of the existing tear-off.
           var newProto = stub.constructor.prototype;
           var existingProto = existingStub.constructor.prototype;
           for (var stubProperty in newProto) {

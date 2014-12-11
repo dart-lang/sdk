@@ -35,7 +35,7 @@ class ClassBuilder {
   }
 
   jsAst.ObjectInitializer toObjectInitializer(
-      {bool omitClassDescriptor: false}) {
+      {bool emitClassDescriptor: true}) {
     StringBuffer buffer = new StringBuffer();
     if (superName != null) {
       buffer.write('$superName');
@@ -54,13 +54,12 @@ class ClassBuilder {
           new jsAst.ArrayInitializer([classData]..addAll(fieldMetadata));
     }
     List<jsAst.Property> fieldsAndProperties;
-    if (!omitClassDescriptor) {
+    if (emitClassDescriptor) {
       fieldsAndProperties = <jsAst.Property>[];
       fieldsAndProperties.add(
           new jsAst.Property(
               js.string(namer.classDescriptorProperty), classData));
-      fieldsAndProperties
-          ..addAll(properties);
+      fieldsAndProperties.addAll(properties);
     } else {
       fieldsAndProperties = properties;
     }

@@ -990,6 +990,13 @@ class Namer implements ClosureNamer {
     }
   }
 
+  String get incrementalHelperName => r'$dart_unsafe_eval';
+
+  jsAst.Expression get accessIncrementalHelper {
+    assert(compiler.hasIncrementalSupport);
+    return js('self.${incrementalHelperName}');
+  }
+
   void forgetElement(Element element) {
     String globalName = globals[element];
     invariant(element, globalName != null, message: 'No global name.');

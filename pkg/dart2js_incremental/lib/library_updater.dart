@@ -618,7 +618,7 @@ class LibraryUpdater extends JsFeatures {
     if (!newClasses.isEmpty) {
       // Ask the emitter to compute "needs" (only) if new classes were
       // instantiated.
-      _ensureNeedsComputed();
+      _ensureAllNeededEntitiesComputed();
       newClasses = new Set.from(emitter.neededClasses);
       newClasses.removeAll(_emittedClasses);
     } else {
@@ -645,8 +645,7 @@ class LibraryUpdater extends JsFeatures {
         jsAst.Node superAccess = emitter.classAccess(superclass);
         inherits.add(
             js.statement(
-                r'self.$dart_unsafe_eval.inheritFrom(#, #)',
-                [classAccess, superAccess]));
+                r'#.inheritFrom(#, #)', [helper, classAccess, superAccess]));
       }
     }
 
@@ -663,8 +662,9 @@ class LibraryUpdater extends JsFeatures {
       jsAst.Node classAccess = emitter.classAccess(cls);
       updates.add(
           js.statement(
-              r'# = self.$dart_unsafe_eval.schemaChange(#, #, #)',
-              [classAccess, invokeDefineClass(cls), classAccess, superAccess]));
+              r'# = #.schemaChange(#, #, #)',
+              [classAccess, helper,
+               invokeDefineClass(cls), classAccess, superAccess]));
     }
 
     for (RemovalUpdate update in removals) {
@@ -683,7 +683,7 @@ class LibraryUpdater extends JsFeatures {
     newConstants.removeAll(_compiledConstants);
 
     if (!newConstants.isEmpty) {
-      _ensureNeedsComputed();
+      _ensureAllNeededEntitiesComputed();
       List<ConstantValue> constants =
           emitter.outputConstantLists[compiler.deferredLoadTask.mainOutputUnit];
       if (constants != null) {
@@ -698,11 +698,11 @@ class LibraryUpdater extends JsFeatures {
     }
 
     updates.add(js.statement(r'''
-if (self.$dart_unsafe_eval.pendingStubs) {
-  self.$dart_unsafe_eval.pendingStubs.map(function(e) { return e(); });
-  self.$dart_unsafe_eval.pendingStubs = void 0;
+if (#helper.pendingStubs) {
+  #helper.pendingStubs.map(function(e) { return e(); });
+  #helper.pendingStubs = void 0;
 }
-'''));
+''', {'helper': helper}));
 
     if (updates.length == 1) {
       return prettyPrintJs(updates.single);
@@ -718,10 +718,12 @@ if (self.$dart_unsafe_eval.pendingStubs) {
         r'''
 (new Function(
     "$collectedClasses", "$desc",
-    self.$dart_unsafe_eval.defineClass(#, #) +"\n;return " + #))({#: #})''',
-        [js.string(name), js.stringArray(computeFields(cls)),
-         js.string(name),
-         js.string(name), descriptor]);
+    #helper.defineClass(#name, #computeFields) +"\n;return " + #name))(
+        {#name: #descriptor})''',
+        {'helper': helper,
+         'name': js.string(name),
+         'computeFields': js.stringArray(computeFields(cls)),
+         'descriptor': descriptor});
   }
 
   jsAst.Node computeMethodUpdateJs(Element element) {
@@ -732,7 +734,7 @@ if (self.$dart_unsafe_eval.pendingStubs) {
     ClassBuilder builder = new ClassBuilder(element, namer);
     containerBuilder.addMemberMethodFromInfo(info, builder);
     jsAst.Node partialDescriptor =
-        builder.toObjectInitializer(omitClassDescriptor: true);
+        builder.toObjectInitializer(emitClassDescriptor: false);
 
     String name = info.name;
     jsAst.Node function = info.code;
@@ -752,8 +754,8 @@ if (self.$dart_unsafe_eval.pendingStubs) {
         emitter.generateEmbeddedGlobalAccess(embeddedNames.GLOBAL_FUNCTIONS);
 
     return js.statement(
-        r'self.$dart_unsafe_eval.addMethod(#, #, #, #, #)',
-        [partialDescriptor, js.string(name), holder,
+        r'#.addMethod(#, #, #, #, #)',
+        [helper, partialDescriptor, js.string(name), holder,
          new jsAst.LiteralBool(isStatic), globalFunctionsAccess]);
   }
 
@@ -801,7 +803,7 @@ if (self.$dart_unsafe_eval.pendingStubs) {
     return new EmitterHelper(compiler).computeFields(cls);
   }
 
-  void _ensureNeedsComputed() {
+  void _ensureAllNeededEntitiesComputed() {
     if (_hasComputedNeeds) return;
     emitter.computeAllNeededEntities();
     _hasComputedNeeds = true;
@@ -1258,6 +1260,8 @@ abstract class JsFeatures {
   ContainerBuilder get containerBuilder => emitter.oldEmitter.containerBuilder;
 
   EnqueueTask get enqueuer => compiler.enqueuer;
+
+  jsAst.Expression get helper => namer.accessIncrementalHelper;
 }
 
 class EmitterHelper extends JsFeatures {
