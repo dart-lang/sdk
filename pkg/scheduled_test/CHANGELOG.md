@@ -1,3 +1,7 @@
+## 0.11.6
+
+* *Actually* bump the version constraint for `unittest`.
+
 ## 0.11.5
 
 * Bump the version constraint for `unittest`.
