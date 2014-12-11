@@ -708,6 +708,9 @@ class LibraryDependencyNode {
    */
   Link<ImportLink> imports = const Link<ImportLink>();
 
+  /// A linked list of all libraries directly exported by [library].
+  Link<LibraryElement> exports = const Link<LibraryElement>();
+
   /**
    * A linked list of the export tags the dependent upon this node library.
    * This is used to propagate exports during the computation of export scopes.
@@ -750,6 +753,10 @@ class LibraryDependencyNode {
    */
   void registerExportDependency(Export export,
                                 LibraryDependencyNode exportingLibraryNode) {
+    // Register the exported library in the exporting library node.
+    exportingLibraryNode.exports =
+        exportingLibraryNode.exports.prepend(library);
+    // Register the export in the exported library node.
     dependencies =
         dependencies.prepend(new ExportLink(export, exportingLibraryNode));
   }
@@ -1104,16 +1111,18 @@ class _LoadedLibraries implements LoadedLibraries {
       List<Link<Uri>> suffixes = [];
       if (targetUri != canonicalUri) {
         LibraryDependencyNode node = nodeMap[library];
-        for (ImportLink import in node.imports.reverse()) {
+
+        /// Process the import (or export) of [importedLibrary].
+        void processLibrary(LibraryElement importedLibrary) {
           bool suffixesArePrecomputed =
-              suffixChainMap.containsKey(import.importedLibrary);
+              suffixChainMap.containsKey(importedLibrary);
 
           if (!suffixesArePrecomputed) {
-            computeSuffixes(import.importedLibrary, prefix);
+            computeSuffixes(importedLibrary, prefix);
             if (aborted) return;
           }
 
-          for (Link<Uri> suffix in suffixChainMap[import.importedLibrary]) {
+          for (Link<Uri> suffix in suffixChainMap[importedLibrary]) {
             suffixes.add(suffix.prepend(canonicalUri));
 
             if (suffixesArePrecomputed) {
@@ -1131,6 +1140,15 @@ class _LoadedLibraries implements LoadedLibraries {
               }
             }
           }
+        }
+
+        for (ImportLink import in node.imports.reverse()) {
+          processLibrary(import.importedLibrary);
+          if (aborted) return;
+        }
+        for (LibraryElement exportedLibrary in node.exports.reverse()) {
+          processLibrary(exportedLibrary);
+          if (aborted) return;
         }
       } else { // Here `targetUri == canonicalUri`.
         if (!callback(prefix)) {
