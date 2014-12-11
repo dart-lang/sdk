@@ -2788,6 +2788,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         } else {
           // The node itself is not a constant but we register the selector (the
           // identifier that refers to the class/typedef) as a constant.
+          if (node.receiver != null) {
+            // This is a hack for the case of prefix.Type, we need to store
+            // the element on the selector, so [analyzeConstant] can build
+            // the type literal from the selector.
+            registry.useElement(node.selector, target);
+          }
           analyzeConstantDeferred(node.selector);
         }
       }
