@@ -16,13 +16,15 @@ var fieldtest;
   // Function foo: (A) → int
   function foo(a) {
     dart_core.print(/* Unimplemented: Box: int to num */ a.x);
-    /* Unimplemented ReturnStatement: return a.x; */}
+    return a.x;
+  }
   fieldtest.foo = foo;
 
   // Function bar: (dynamic) → int
   function bar(a) {
     dart_core.print(dart_runtime.dload(a, "x"));
-    /* Unimplemented ReturnStatement: return a.x; */}
+    return /* Unimplemented: Unbox: dynamic to int */ dart_runtime.dload(a, "x");
+  }
   fieldtest.bar = bar;
 
   // Function baz: (A) → dynamic

@@ -411,6 +411,19 @@ var $name = (function (_super) {
     return node;
   }
 
+  AstNode visitReturnStatement(ReturnStatement node) {
+    _reportUnimplementedConversions(node);
+
+    if (node.expression == null) {
+      out.write('return;\n');
+    } else {
+      out.write('return ');
+      node.expression.accept(this);
+      out.write(';\n');
+    }
+    return node;
+  }
+
   void _generateVariableList(VariableDeclarationList list, bool lazy) {
     // TODO(vsm): Detect when we can avoid wrapping in function.
     var prefix = lazy ? 'function () { return ' : '';
