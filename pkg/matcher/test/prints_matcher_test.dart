@@ -11,6 +11,9 @@ import 'package:unittest/unittest.dart';
 
 import 'test_utils.dart';
 
+/// The VM and dart2js have different toStrings for closures.
+final closureToString = (() {}).toString();
+
 void main() {
   initUtils();
 
@@ -33,7 +36,7 @@ void main() {
     test("describes a failure nicely", () {
       shouldFail(() => print("Hello, world!"), prints("Goodbye, world!\n"),
           "Expected: prints 'Goodbye, world!\\n' ''"
-          "  Actual: <Closure: () => dynamic> "
+          "  Actual: <$closureToString> "
           "   Which: printed 'Hello, world!\\n' ''"
           "   Which: is different. "
           "Expected: Goodbye, w ... "
@@ -44,14 +47,14 @@ void main() {
     test("describes a failure with a non-descriptive Matcher nicely", () {
       shouldFail(() => print("Hello, world!"), prints(contains("Goodbye")),
           "Expected: prints contains 'Goodbye'"
-          "  Actual: <Closure: () => dynamic> "
+          "  Actual: <$closureToString> "
           "   Which: printed 'Hello, world!\\n' ''");
     });
 
     test("describes a failure with no text nicely", () {
       shouldFail(() {}, prints(contains("Goodbye")),
           "Expected: prints contains 'Goodbye'"
-          "  Actual: <Closure: () => dynamic> "
+          "  Actual: <$closureToString> "
           "   Which: printed nothing.");
     });
   });
