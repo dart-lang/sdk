@@ -11,6 +11,10 @@ final finalNonConstGlobal = (() {
 }());
 
 var lazyConstGlobal = "lazyConstGlobal";
+// Regression test for bug #21840.
+var const1Global = const {};
+final lazyConstGlobal2 = const1Global;
+
 var lazyNonConstGlobal = (() {
   sideEffectCounter++;
   return "lazyNonConstGlobal";

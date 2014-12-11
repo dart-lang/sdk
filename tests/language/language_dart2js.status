@@ -140,8 +140,6 @@ generic_closure_test: RuntimeError # Issue 12605
 const_switch_test/02: RuntimeError # Issue 17960
 const_switch_test/04: RuntimeError # Issue 17960
 
-deferred_constant_list_test: RuntimeError # Issue 21293
-
 enum_const_test: RuntimeError # Issue 21817
 
 # Compilation errors.

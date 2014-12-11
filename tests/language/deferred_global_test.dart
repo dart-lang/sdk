@@ -7,9 +7,16 @@ import 'package:async_helper/async_helper.dart';
 
 import "deferred_global_lib.dart" deferred as lib;
 
+var nonDeferredGlobal = const {};
+
 void main() {
+  nonDeferredGlobal = null;
   asyncStart();
   lib.loadLibrary().then((_) {
+    // Ensure non-deferred globals are not reset when loading a deferred
+    // library.
+    Expect.equals(null, nonDeferredGlobal);
+
     Expect.equals("finalConstGlobal", lib.finalConstGlobal);
     Expect.equals(0, lib.sideEffectCounter);
     Expect.equals("finalNonConstGlobal", lib.finalNonConstGlobal);
@@ -40,7 +47,14 @@ void main() {
     Expect.equals("lazyConstGlobal_mutated2", lib.readLazyConstGlobal());
     Expect.equals("lazyNonConstGlobal_mutated2", lib.readLazyNonConstGlobal());
 
+    Expect.mapEquals({}, lib.lazyConstGlobal2);
+    lib.const1Global = 0;
     Expect.equals(2, lib.sideEffectCounter);
-    asyncEnd();
+    Expect.equals(0, lib.const1Global);
+    // Try loading the deferred library again, should not reset the globals.
+    lib.loadLibrary().then((_) {
+      Expect.equals(0, lib.const1Global);
+      asyncEnd();
+    });
   });
 }

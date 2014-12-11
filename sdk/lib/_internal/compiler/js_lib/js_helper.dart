@@ -3293,15 +3293,17 @@ Future<Null> loadDeferredLibrary(String loadId) {
   // The indices into `uris` and `hashes` that we want to load.
   List<int> indices = new List.generate(uris.length, (i) => i);
   var isHunkLoaded = JS_EMBEDDED_GLOBAL('', IS_HUNK_LOADED);
-  return Future.wait(indices
-      // Filter away indices for hunks that have already been loaded.
+  // Filter away indices for hunks that have already been loaded.
+  List<int> indicesToLoad = indices
       .where((int i) => !JS('bool','#(#)', isHunkLoaded, hashes[i]))
-      // Load the rest.
+      .toList();
+  // Load the needed hunks.
+  return Future.wait(indicesToLoad
       .map((int i) => _loadHunk(uris[i]))).then((_) {
-    // Now all hunks have been loaded, we call all their initializers
-    for (String hash in hashes) {
+    // Now all hunks have been loaded, we run the needed initializers.
+    for (int i in indicesToLoad) {
       var initializer = JS_EMBEDDED_GLOBAL('', INITIALIZE_LOADED_HUNK);
-      JS('void', '#(#)', initializer, hash);
+      JS('void', '#(#)', initializer, hashes[i]);
     }
     bool updated = _loadedLibraries.add(loadId);
     if (updated && deferredLoadHook != null) {

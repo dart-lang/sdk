@@ -1006,7 +1006,8 @@ class OldEmitter implements Emitter {
     }
   }
 
-  void emitStaticNonFinalFieldInitializations(CodeBuffer buffer) {
+  void emitStaticNonFinalFieldInitializations(CodeBuffer buffer,
+                                              OutputUnit outputUnit) {
     JavaScriptConstantCompiler handler = backend.constants;
     Iterable<VariableElement> staticNonFinalFields =
         handler.getStaticNonFinalFieldsForEmission();
@@ -1016,11 +1017,25 @@ class OldEmitter implements Emitter {
       // `mapTypeToInterceptor` is handled in [emitMapTypeToInterceptor].
       if (element == backend.mapTypeToInterceptor) continue;
       compiler.withCurrentElement(element, () {
-        ConstantValue initialValue = handler.getInitialValueFor(element).value;
+        jsAst.Expression initialValue;
+        if (outputUnit !=
+            compiler.deferredLoadTask.outputUnitForElement(element)) {
+          if (outputUnit == compiler.deferredLoadTask.mainOutputUnit) {
+            // In the main output-unit we output a stub initializer for deferred
+            // variables, such that `isolateProperties` stays a fast object.
+            initialValue = jsAst.number(0);
+          } else {
+            // Don't output stubs outside the main output file.
+            return;
+          }
+        } else {
+          initialValue = constantEmitter.referenceInInitializationContext(
+              handler.getInitialValueFor(element).value);
+
+        }
         jsAst.Expression init =
           js('$isolateProperties.# = #',
-              [namer.getNameOfGlobalField(element),
-               constantEmitter.referenceInInitializationContext(initialValue)]);
+              [namer.getNameOfGlobalField(element), initialValue]);
         buffer.write(jsAst.prettyPrint(init, compiler,
                                        monitor: compiler.dumpInfoTask));
         buffer.write('$N');
@@ -1697,7 +1712,7 @@ class OldEmitter implements Emitter {
 
     // Static field initializations require the classes and compile-time
     // constants to be set up.
-    emitStaticNonFinalFieldInitializations(mainBuffer);
+    emitStaticNonFinalFieldInitializations(mainBuffer, mainOutputUnit);
     interceptorEmitter.emitInterceptedNames(mainBuffer);
     interceptorEmitter.emitMapTypeToInterceptor(mainBuffer);
     emitLazilyInitializedStaticFields(mainBuffer);
@@ -2151,6 +2166,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       typeTestEmitter.emitRuntimeTypeSupport(outputBuffer, outputUnit);
 
       emitCompileTimeConstants(outputBuffer, outputUnit);
+      emitStaticNonFinalFieldInitializations(outputBuffer, outputUnit);
       outputBuffer.write('}$N');
 
       if (compiler.useContentSecurityPolicy) {
