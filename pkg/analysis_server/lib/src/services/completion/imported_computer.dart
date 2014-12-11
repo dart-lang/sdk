@@ -320,15 +320,41 @@ class _ImportedSuggestionBuilder implements SuggestionBuilder {
     }
   }
 
+  /**
+   * Add top level suggestions from the cache.
+   * To reduce the number of suggestions sent to the client,
+   * filter the suggestions based upon the first character typed.
+   * If no characters are available to use for filtering,
+   * then exclude all low priority suggestions.
+   */
   void _addTopLevelSuggestions() {
+    String filterText = request.filterText;
+    if (filterText.length > 1) {
+      filterText = filterText.substring(0, 1);
+    }
+
+    //TODO (danrubel) Revisit this filtering once paged API has been added
+    addFilteredSuggestions(List<CompletionSuggestion> unfiltered) {
+      unfiltered.forEach((CompletionSuggestion suggestion) {
+        if (filterText.length > 0) {
+          if (suggestion.completion.startsWith(filterText)) {
+            request.suggestions.add(suggestion);
+          }
+        } else {
+          if (suggestion.relevance != CompletionRelevance.LOW) {
+            request.suggestions.add(suggestion);
+          }
+        }
+      });
+    }
+
     DartCompletionCache cache = request.cache;
-    request.suggestions
-        ..addAll(cache.importedTypeSuggestions)
-        ..addAll(cache.libraryPrefixSuggestions);
+    addFilteredSuggestions(cache.importedTypeSuggestions);
+    addFilteredSuggestions(cache.libraryPrefixSuggestions);
     if (!typesOnly) {
-      request.suggestions.addAll(cache.otherImportedSuggestions);
+      addFilteredSuggestions(cache.otherImportedSuggestions);
       if (!excludeVoidReturn) {
-        request.suggestions.addAll(cache.importedVoidReturnSuggestions);
+        addFilteredSuggestions(cache.importedVoidReturnSuggestions);
       }
     }
   }

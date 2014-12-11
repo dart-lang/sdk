@@ -54,6 +54,8 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
      * Calculate a new completion at the same location
      */
     setUpComputer();
+    int replacementOffset = request.replacementOffset;
+    int replacementLength = request.replacementLength;
     request = new DartCompletionRequest(
         context,
         searchEngine,
@@ -61,6 +63,8 @@ class ImportedComputerTest extends AbstractSelectorSuggestionTest {
         completionOffset,
         cache,
         new CompletionPerformance());
+    request.replacementOffset = replacementOffset;
+    request.replacementLength = replacementLength;
     expect(computeFast(), isTrue);
     expect(request.unit.element, isNull);
     List<CompletionSuggestion> newSuggestions = request.suggestions;

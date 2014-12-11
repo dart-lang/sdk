@@ -265,6 +265,14 @@ class DartCompletionRequest extends CompletionRequest {
    */
   final List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
+  /**
+   * Return the original text from the [replacementOffset] to the [offset]
+   * that can be used to filter the suggestions on the server side.
+   */
+  String get filterText {
+    return context.getContents(source).data.substring(replacementOffset, offset);
+  }
+
   DartCompletionRequest(this.context, this.searchEngine, this.source,
       int offset, this.cache, CompletionPerformance performance)
       : super(offset, performance);

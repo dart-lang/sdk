@@ -459,6 +459,16 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
           request.unit = unit;
           request.node =
               new NodeLocator.con1(completionOffset).searchWithin(unit);
+          if (request.node is SimpleIdentifier) {
+            request.replacementOffset = request.node.offset;
+            request.replacementLength = request.node.length;
+          } else {
+            request.replacementOffset = request.offset;
+            request.replacementLength = 0;
+          }
+          if (request.replacementOffset == null) {
+            fail('expected non null');
+          }
           resolved = true;
           if (!fullAnalysis) {
             break;
@@ -880,6 +890,20 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_AsExpression() {
+    // SimpleIdentifier  TypeName  AsExpression
+    addTestSource('''
+      class A {var b; X _c; foo() {var a; (a as ^).foo();}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertNotSuggested('b');
+      assertNotSuggested('_c');
+      assertSuggestImportedClass('Object');
+      assertSuggestLocalClass('A');
+      assertNotSuggested('==');
+    });
+  }
+
   test_AssignmentExpression_name() {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
@@ -1001,28 +1025,103 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('_B');
       assertSuggestImportedClass('C');
       // hidden element suggested as low relevance
-      assertSuggestImportedClass('D', CompletionRelevance.LOW);
-      assertSuggestImportedFunction('D1', null, true, CompletionRelevance.LOW);
+      // but imported results are partially filtered
+      //assertSuggestImportedClass('D', CompletionRelevance.LOW);
+      //assertSuggestImportedFunction('D1', null, true, CompletionRelevance.LOW);
       assertSuggestLocalFunction('D2', 'Z');
       assertSuggestImportedClass('EE');
       // hidden element suggested as low relevance
-      assertSuggestImportedClass('F', CompletionRelevance.LOW);
+      //assertSuggestImportedClass('F', CompletionRelevance.LOW);
       assertSuggestLibraryPrefix('g');
       assertNotSuggested('G');
-      assertSuggestImportedClass('H', CompletionRelevance.LOW);
+      //assertSuggestImportedClass('H', CompletionRelevance.LOW);
       assertSuggestImportedClass('Object');
       assertSuggestImportedFunction('min', 'num', false);
-      assertSuggestImportedFunction(
-          'max',
-          'num',
-          false,
-          CompletionRelevance.LOW);
+      //assertSuggestImportedFunction(
+      //    'max',
+      //    'num',
+      //    false,
+      //    CompletionRelevance.LOW);
       assertSuggestTopLevelVarGetterSetter('T1', 'String');
       assertNotSuggested('_T2');
-      assertSuggestImportedTopLevelVar('T3', 'int', CompletionRelevance.LOW);
+      //assertSuggestImportedTopLevelVar('T3', 'int', CompletionRelevance.LOW);
       assertNotSuggested('_T4');
       assertSuggestLocalTopLevelVar('T5', 'int');
       assertSuggestLocalTopLevelVar('_T6', null);
+      assertNotSuggested('==');
+      // TODO (danrubel) suggest HtmlElement as low relevance
+      assertNotSuggested('HtmlElement');
+    });
+  }
+
+  test_Block_identifier_partial() {
+    addSource('/testAB.dart', '''
+      export "dart:math" hide max;
+      class A {int x;}
+      @deprecated D1() {int x;}
+      class _B { }''');
+    addSource('/testCD.dart', '''
+      String T1;
+      var _T2;
+      class C { }
+      class D { }''');
+    addSource('/testEEF.dart', '''
+      class EE { }
+      class F { }''');
+    addSource('/testG.dart', 'class G { }');
+    addSource('/testH.dart', '''
+      class H { }
+      int T3;
+      var _T4;'''); // not imported
+    addTestSource('''
+      import "/testAB.dart";
+      import "/testCD.dart" hide D;
+      import "/testEEF.dart" show EE;
+      import "/testG.dart" as g;
+      int T5;
+      var _T6;
+      Z D2() {int x;}
+      class X {a() {var f; {var x;} D^ var r;} void b() { }}
+      class Z { }''');
+    computeFast();
+    return computeFull((bool result) {
+
+      assertSuggestLocalClass('X');
+      assertSuggestLocalClass('Z');
+      assertLocalSuggestMethod('a', 'X', null);
+      assertLocalSuggestMethod('b', 'X', 'void');
+      assertSuggestLocalVariable('f', null);
+      // Don't suggest locals out of scope
+      assertNotSuggested('r');
+      assertNotSuggested('x');
+
+      // imported elements are portially filtered
+      //assertSuggestImportedClass('A');
+      assertNotSuggested('_B');
+      //assertSuggestImportedClass('C');
+      // hidden element suggested as low relevance
+      assertSuggestImportedClass('D', CompletionRelevance.LOW);
+      assertSuggestImportedFunction('D1', null, true, CompletionRelevance.LOW);
+      assertSuggestLocalFunction('D2', 'Z');
+      //assertSuggestImportedClass('EE');
+      // hidden element suggested as low relevance
+      //assertSuggestImportedClass('F', CompletionRelevance.LOW);
+      //assertSuggestLibraryPrefix('g');
+      assertNotSuggested('G');
+      //assertSuggestImportedClass('H', CompletionRelevance.LOW);
+      //assertSuggestImportedClass('Object');
+      //assertSuggestImportedFunction('min', 'num', false);
+      //assertSuggestImportedFunction(
+      //    'max',
+      //    'num',
+      //    false,
+      //    CompletionRelevance.LOW);
+      //assertSuggestTopLevelVarGetterSetter('T1', 'String');
+      assertNotSuggested('_T2');
+      //assertSuggestImportedTopLevelVar('T3', 'int', CompletionRelevance.LOW);
+      assertNotSuggested('_T4');
+      //assertSuggestLocalTopLevelVar('T5', 'int');
+      //assertSuggestLocalTopLevelVar('_T6', null);
       assertNotSuggested('==');
       // TODO (danrubel) suggest HtmlElement as low relevance
       assertNotSuggested('HtmlElement');
@@ -1157,7 +1256,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalVariable('a', 'A');
       assertSuggestLocalClass('A');
       assertSuggestLocalClass('X');
-      assertSuggestImportedClass('Object');
+      // top level results are partially filtered
+      //assertSuggestImportedClass('Object');
       assertNotSuggested('==');
     });
   }
@@ -1351,7 +1451,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       import "/testA.dart";
       typedef int F2(int blat);
       class Clz = Object with Object;
-      class C {foo(){O^} void bar() {}}''');
+      class C {foo(){^} void bar() {}}''');
     computeFast();
     return computeFull((bool result) {
       assertSuggestImportedClass('A');
@@ -1583,7 +1683,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     computeFast();
     return computeFull((bool result) {
       assertSuggestLocalVariable('name', 'String');
-      assertSuggestImportedClass('Object');
+      // top level results are partially filtered
+      //assertSuggestImportedClass('Object');
     });
   }
 
@@ -1605,7 +1706,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     computeFast();
     return computeFull((bool result) {
       assertSuggestLocalVariable('name', 'String');
-      assertSuggestImportedClass('Object');
+      // top level results are partially filtered
+      //assertSuggestImportedClass('Object');
       assertNotSuggested('length');
     });
   }
@@ -1653,6 +1755,20 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     addTestSource('''
       class A {int x; int y() => 0;}
       main(){var a; if (a is ^)}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertNotSuggested('a');
+      assertNotSuggested('main');
+      assertSuggestLocalClass('A');
+      assertSuggestImportedClass('Object');
+    });
+  }
+
+  test_IsExpression_type_partial() {
+    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    addTestSource('''
+      class A {int x; int y() => 0;}
+      main(){var a; if (a is Obj^)}''');
     computeFast();
     return computeFull((bool result) {
       assertNotSuggested('a');
