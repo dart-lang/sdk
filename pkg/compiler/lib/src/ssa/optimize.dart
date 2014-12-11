@@ -982,6 +982,8 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   final Compiler compiler;
   final SsaOptimizerTask optimizer;
   SsaLiveBlockAnalyzer analyzer;
+  Map<HInstruction, bool> trivialDeadStoreReceivers =
+      new Maplet<HInstruction, bool>();
   bool eliminatedSideEffects = false;
   SsaDeadCodeEliminator(this.compiler, this.optimizer);
 
@@ -1022,8 +1024,34 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     return false;
   }
 
+  bool isTrivialDeadStoreReceiver(HInstruction instruction) {
+    // For an allocation, if all the loads are dead (awaiting removal after
+    // SsaLoadElimination) and the only other uses are stores, then the
+    // allocation does not escape which makes all the stores dead too.
+    bool isDeadUse(HInstruction use) {
+      if (use is HFieldSet) {
+        // The use must be the receiver.  Even if the use is also the argument,
+        // i.e.  a.x = a, the store is still dead if all other uses are dead.
+        if (use.getDartReceiver(compiler) == instruction) return true;
+      } else if (use is HFieldGet) {
+        assert(use.getDartReceiver(compiler) == instruction);
+        if (isDeadCode(use)) return true;
+      }
+      return false;
+    }
+    return instruction is HForeignNew
+        && trivialDeadStoreReceivers.putIfAbsent(instruction,
+            () => instruction.usedBy.every(isDeadUse));
+  }
+
+  bool isTrivialDeadStore(HInstruction instruction) {
+    return instruction is HFieldSet
+        && isTrivialDeadStoreReceiver(instruction.getDartReceiver(compiler));
+  }
+
   bool isDeadCode(HInstruction instruction) {
     if (!instruction.usedBy.isEmpty) return false;
+    if (isTrivialDeadStore(instruction)) return true;
     if (instruction.sideEffects.hasSideEffects()) return false;
     if (instruction.canThrow()
         && instruction.onlyThrowsNSM()
