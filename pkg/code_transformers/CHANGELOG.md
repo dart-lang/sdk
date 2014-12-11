@@ -1,3 +1,8 @@
+## 0.2.3+2
+
+* Added logic to discover the location of the dart SDK when the dart binary is a
+  symlink.
+
 ## 0.2.3
 
 * Added support for logging stable error messages from transformers.
