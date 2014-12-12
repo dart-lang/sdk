@@ -529,19 +529,6 @@ class OldEmitter implements Emitter {
                 })(functionSignature);
           }
 
-          if (#needsMixinSupport)
-            if (supr && supr.indexOf("+") > 0) {
-              s = supr.split("+");
-              supr = s[0];
-              var mixin = collectedClasses[s[1]];
-              if (mixin instanceof Array) mixin = mixin[1];
-              for (var d in mixin) {
-                if (hasOwnProperty.call(mixin, d) &&
-                    !hasOwnProperty.call(desc, d))
-                  desc[d] = mixin[d];
-              }
-            }
-
           if (typeof dart_precompiled != "function") {
             combinedConstructorFunction += defineClass(cls, fields);
             constructorsList.push(cls);
@@ -584,7 +571,6 @@ class OldEmitter implements Emitter {
               'debugFastObjects': DEBUG_FAST_OBJECTS,
               'hasRetainedMetadata': backend.hasRetainedMetadata,
               'metadata': metadataAccess,
-              'needsMixinSupport': needsMixinSupport,
               'isTreeShakingDisabled': backend.isTreeShakingDisabled,
               'finishClassFunction': buildFinishClass(),
               'trivialNsmHandlers': nsmEmitter.buildTrivialNsmHandlers()});
@@ -614,6 +600,28 @@ class OldEmitter implements Emitter {
         finishedClasses[cls] = true;
 
         var superclass = pendingClasses[cls];
+
+        if (#needsMixinSupport) {
+          if (superclass && superclass.indexOf("+") > 0) {
+            var s = superclass.split("+");
+            superclass = s[0];
+            var mixinClass = s[1];
+            finishClass(mixinClass);
+            var mixin = allClasses[mixinClass];
+            // TODO(floitsch): this test shouldn't be necessary. Without it
+            // we have a crash in pkg/analysis_server/tool/spec/check_all_test.
+            if (mixin) {
+              var mixinPrototype = mixin.prototype;
+              var clsPrototype = allClasses[cls].prototype;
+              for (var d in mixinPrototype) {
+                if (hasOwnProperty.call(mixinPrototype, d) &&
+                    !hasOwnProperty.call(clsPrototype, d))
+                  clsPrototype[d] = mixinPrototype[d];
+              }
+            }
+          }
+        }
+
         // The superclass is only false (empty string) for the Dart Object
         // class.  The minifier together with noSuchMethod can put methods on
         // the Object.prototype object, and they show through here, so we check
@@ -679,6 +687,7 @@ class OldEmitter implements Emitter {
         }
       }
     }''', {'finishedClassesAccess': finishedClassesAccess,
+           'needsMixinSupport': needsMixinSupport,
            'hasNativeClasses': nativeClasses.isNotEmpty,
            'interceptorsByTagAccess': interceptorsByTagAccess,
            'leafTagsAccess': leafTagsAccess,

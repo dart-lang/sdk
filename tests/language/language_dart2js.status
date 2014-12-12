@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dart2js && $csp ]
+deferred_mixin_test: RuntimeError # Issue 21863
+
 [ $compiler == dart2js || $compiler == dart2dart ]
 symbol_literal_test/*: Fail # Issue 21825
 constructor_duplicate_final_test/01: Fail # Issue 13363
