@@ -17,11 +17,17 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
 
   String newValueName(Node node) => namer.defineValueName(node);
   String newContinuationName(Node node) => namer.defineContinuationName(node);
-  final Decorator decorator;
+  Decorator decorator;
 
-  SExpressionStringifier([this.decorator]);
+  SExpressionStringifier([this.decorator]) {
+    if (this.decorator == null) {
+      this.decorator = (Node node, String s) => s;
+    }
+  }
 
-  String access(Reference<Definition> r) => namer.getName(r.definition);
+  String access(Reference<Definition> r) {
+    return decorator(r.definition, namer.getName(r.definition));
+  }
 
   String visitParameter(Parameter node) {
     return namer.useElementName(node);
@@ -75,7 +81,7 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
     // should recurse to [visit].  Currently we can't do that, because the
     // unstringifier_test produces [LetConts] with dummy arguments on them.
     String parameters = node.continuation.parameters
-        .map((p) => ' ${newValueName(p)}')
+        .map((p) => ' ${decorator(p, newValueName(p))}')
         .join('');
     String contBody = indentBlock(() => visit(node.continuation.body));
     String body = visit(node.body);

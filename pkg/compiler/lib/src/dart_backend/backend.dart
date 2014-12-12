@@ -146,7 +146,8 @@ class DartBackend extends Backend {
       }
     }
 
-    new ConstantPropagator(compiler, constantSystem).rewrite(cpsDefinition);
+    new TypePropagator(compiler, constantSystem, new TypeMaskSystem(compiler),
+        compiler.internalError).rewrite(cpsDefinition);
     traceGraph("Sparse constant propagation", cpsDefinition);
     new RedundantPhiEliminator().rewrite(cpsDefinition);
     traceGraph("Redundant phi elimination", cpsDefinition);

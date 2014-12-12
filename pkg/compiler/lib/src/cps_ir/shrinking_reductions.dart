@@ -5,7 +5,7 @@
 part of dart2js.optimizers;
 
 /**
- * [[ShrinkingReducer]] applies shrinking reductions to CPS terms as described
+ * [ShrinkingReducer] applies shrinking reductions to CPS terms as described
  * in 'Compiling with Continuations, Continued' by Andrew Kennedy.
  */
 class ShrinkingReducer extends Pass {

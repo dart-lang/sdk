@@ -13,8 +13,12 @@ import '../dart2jslib.dart' as dart2js;
 import '../tree/tree.dart' show LiteralDartString;
 import '../util/util.dart';
 import 'cps_ir_nodes.dart';
+import '../types/types.dart' show TypeMask, TypesTask;
+import '../elements/elements.dart' show ClassElement, Element, Entity,
+    FieldElement, FunctionElement, ParameterElement;
+import '../dart2jslib.dart' show ClassWorld, Compiler;
 
-part 'constant_propagation.dart';
+part 'type_propagation.dart';
 part 'redundant_phi.dart';
 part 'shrinking_reductions.dart';
 

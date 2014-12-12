@@ -395,6 +395,25 @@ String normalizeSExpr(String input) {
   return input.replaceAll(new RegExp(r'[ \n\t]+'), ' ').trim();
 }
 
+class UnitTypeSystem implements TypeSystem<String> {
+  static const String UNIT = 'unit';
+
+  get boolType => UNIT;
+  get dynamicType => UNIT;
+  get functionType => UNIT;
+  get intType => UNIT;
+  get listType => UNIT;
+  get mapType => UNIT;
+  get stringType => UNIT;
+  get typeType => UNIT;
+
+  bool areAssignable(a, b) => true;
+  getParameterType(_) => UNIT;
+  getReturnType(_) => UNIT;
+  join(a, b) => UNIT;
+  typeOf(_) => UNIT;
+}
+
 /// Parses the given input IR, runs an optimization pass over it, and compares
 /// the stringification of the result against the expected output.
 Future testConstantPropagator(String input, String expectedOutput) {
@@ -404,8 +423,11 @@ Future testConstantPropagator(String input, String expectedOutput) {
   return compiler.init().then((_) {
     final unstringifier = new SExpressionUnstringifier();
     final stringifier   = new SExpressionStringifier();
-    final optimizer     = new ConstantPropagator(
-        compiler, dart2js.DART_CONSTANT_SYSTEM);
+    final optimizer     = new TypePropagator(
+        compiler,
+        dart2js.DART_CONSTANT_SYSTEM,
+        new UnitTypeSystem(),
+        compiler.internalError);
 
     final f = unstringifier.unstringify(input);
     optimizer.rewrite(f);
