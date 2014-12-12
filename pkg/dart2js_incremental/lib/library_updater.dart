@@ -144,15 +144,35 @@ class LibraryUpdater extends JsFeatures {
       this.logTime,
       this.logVerbose)
       : this.compiler = compiler,
-        _emittedClasses = new Set.from(
-            compiler == null
-                ? [] : compiler.backend.emitter.neededClasses),
-        _directlyInstantiatedClasses = new Set.from(
-            compiler == null
-                ? [] : compiler.codegenWorld.directlyInstantiatedClasses),
-        _compiledConstants = new Set<ConstantValue>.identity()..addAll(
-            compiler == null
-                ? [] : compiler.backend.constants.compiledConstants);
+        _emittedClasses = _getEmittedClasses(compiler),
+        _directlyInstantiatedClasses =
+            _getDirectlyInstantiatedClasses(compiler),
+        _compiledConstants = _getEmittedConstants(compiler);
+
+  /// Returns the classes emitted by [compiler].
+  static Set<ClassElementX> _getEmittedClasses(Compiler compiler) {
+    if (compiler == null) return null;
+    return new Set.from(compiler.backend.emitter.neededClasses);
+  }
+
+  /// Returns the directly instantantiated classes seen by [compiler].
+  static Set<ClassElementX> _getDirectlyInstantiatedClasses(Compiler compiler) {
+    if (compiler == null) return null;
+    return new Set.from(compiler.codegenWorld.directlyInstantiatedClasses);
+  }
+
+  /// Returns the constants emitted by [compiler].
+  static Set<ConstantValue> _getEmittedConstants(Compiler compiler) {
+    if (compiler != null) {
+      List<ConstantValue> constants =
+          compiler.backend.emitter.outputConstantLists[
+              compiler.deferredLoadTask.mainOutputUnit];
+      if (constants != null) {
+        return new Set<ConstantValue>.identity()..addAll(constants);
+      }
+    }
+    return null;
+  }
 
   /// When [true], updates must be applied (using [applyUpdates]) before the
   /// [compiler]'s state correctly reflects the updated program.
@@ -688,9 +708,10 @@ class LibraryUpdater extends JsFeatures {
           emitter.outputConstantLists[compiler.deferredLoadTask.mainOutputUnit];
       if (constants != null) {
         for (ConstantValue constant in constants) {
-          if (newConstants.contains(constant)) {
-            jsAst.Statement constantInitializer = emitter.oldEmitter
-                .buildConstantInitializer(constant).toStatement();
+          if (!_compiledConstants.contains(constant)) {
+            jsAst.Statement constantInitializer =
+                emitter.oldEmitter.buildConstantInitializer(constant)
+                .toStatement();
             updates.add(constantInitializer);
           }
         }

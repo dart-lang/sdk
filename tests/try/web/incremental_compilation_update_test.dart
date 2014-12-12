@@ -1702,11 +1702,7 @@ main() {
   print(const A(const B('v2')));
 }
 """,
-            // TODO(ahe): Broken test, wrong output.
-            const <String>['B(null)', 'A(null)']),
-/* These are the correct expectations:
             const <String>['B(A(v2))', 'A(B(v2))']),
-*/
     ],
 
     // Test constants of new classes.
