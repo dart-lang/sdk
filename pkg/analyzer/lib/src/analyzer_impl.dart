@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
 
+import 'package:analyzer/file_system/file_system.dart' show Folder;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -24,7 +25,6 @@ import 'generated/error.dart';
 import 'generated/java_io.dart';
 import 'generated/sdk_io.dart';
 import 'generated/source_io.dart';
-import 'package:analyzer/file_system/file_system.dart';
 
 DirectoryBasedDartSdk sdk;
 
