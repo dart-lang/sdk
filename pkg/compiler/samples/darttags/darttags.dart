@@ -13,7 +13,10 @@
 //       # Replace "xcodebuild" with "out" on Linux, and "build" on Windows.
 //       "-pdart/xcodebuild/ReleaseIA32/packages/",
 //       "dart/pkg/compiler/samples/darttags/darttags.dart",
-//       "dart/TAGS"
+//       "dart/TAGS",
+//       # Modify the following list to your preferences:
+//       "dart/tests/try/web/incremental_compilation_update_test.dart",
+//       "package:compiler/src/dart2js.dart",
 //     ],
 //   },
 // ]
@@ -43,8 +46,8 @@ import 'package:compiler/src/source_file.dart';
 import 'package:compiler/src/source_file_provider.dart';
 import 'package:compiler/src/util/uri_extras.dart';
 
-const DART2JS = '../../lib/src/dart2js.dart';
-const DART2JS_MIRROR = '../../lib/src/mirrors/dart2js_mirrors.dart';
+const DART2JS = 'package:compiler/src/dart2js.dart';
+const DART2JS_MIRROR = 'package:compiler/src/mirrors/dart2js_mirrors.dart';
 const SDK_ROOT = '../../../../sdk/';
 
 bool isPublicDart2jsLibrary(String name) {
@@ -66,15 +69,23 @@ main(List<String> arguments) {
   Uri myLocation =
       handler.provider.cwd.resolveUri(Platform.script);
 
+  List<Uri> uris = <Uri>[];
+
+  if (arguments.length > 1) {
+    // Compute tags for libraries requested by the user.
+    uris.addAll(
+        arguments.skip(1).map((argument) => Uri.base.resolve(argument)));
+  } else {
+    // Compute tags for dart2js itself.
+    uris.add(myLocation.resolve(DART2JS));
+    uris.add(myLocation.resolve(DART2JS_MIRROR));
+  }
+
   // Get the names of public dart2js libraries.
   Iterable<String> names = LIBRARIES.keys.where(isPublicDart2jsLibrary);
 
   // Prepend "dart:" to the names.
-  List<Uri> uris = names.map((String name) => Uri.parse('dart:$name')).toList();
-
-  // Append dart2js itself.
-  uris.add(myLocation.resolve(DART2JS));
-  uris.add(myLocation.resolve(DART2JS_MIRROR));
+  uris.addAll(names.map((String name) => Uri.parse('dart:$name')));
 
   Uri libraryRoot = myLocation.resolve(SDK_ROOT);
   Uri packageRoot = Uri.base.resolve(Platform.packageRoot);
