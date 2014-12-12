@@ -2065,7 +2065,13 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
           box_defn->value()->CopyWithType(),
           (representation() == kUnboxedInt32) ?
               GetDeoptId() : Isolate::kNoDeoptId);
-      if ((representation() == kUnboxedInt32) && is_truncating()) {
+      // TODO(vegorov): marking resulting converter as truncating when
+      // unboxing can't deoptimize is a workaround for the missing
+      // deoptimization environment when we insert converter after
+      // EliminateEnvironments and there is a mismatch between predicates
+      // UnboxIntConverterInstr::CanDeoptimize and UnboxInt32::CanDeoptimize.
+      if ((representation() == kUnboxedInt32) &&
+          (is_truncating() || !CanDeoptimize())) {
         converter->mark_truncating();
       }
       flow_graph->InsertBefore(this, converter, env(), FlowGraph::kValue);
