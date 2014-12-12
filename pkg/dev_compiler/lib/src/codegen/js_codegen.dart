@@ -24,12 +24,11 @@ class UnitGenerator extends GeneralizingAstVisitor with ConversionVisitor {
   UnitGenerator(this.uri, this.unit, this.directory, this.libName, this.infoMap,
       this.rules);
 
-  AstNode visitConversion(Conversion node) {
+  void visitConversion(Conversion node) {
     out.write('/* Unimplemented: ');
     out.write('${node.description}');
     out.write(' */ ');
     node.expression.accept(this);
-    return node;
   }
 
   String get outputPath {
@@ -53,10 +52,9 @@ var $libName;
 
   bool isPublic(String name) => !name.startsWith('_');
 
-  visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
     // TODO(vsm): Do we need to record type info the generated code for a
     // typedef?
-    return node;
   }
 
   void generateInitializer(
@@ -218,7 +216,7 @@ constructor.$name.prototype = constructor.prototype;
     return '$libName.${superclass.name}';
   }
 
-  AstNode visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     var name = node.name.name;
     var superclassName = getSuperclassName(node);
 
@@ -244,11 +242,9 @@ var $name = (function (_super) {
 """, -2);
     if (isPublic(name)) out.write("$libName.$name = $name;\n");
     out.write("\n");
-
-    return node;
   }
 
-  AstNode visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     var name = node.name.name;
     assert(node.parent is CompilationUnit);
     out.write("// Function $name: ${node.element.type}\n");
@@ -259,10 +255,9 @@ var $name = (function (_super) {
     out.write("}\n", -2);
     if (isPublic(name)) out.write("$libName.$name = $name;\n");
     out.write("\n");
-    return node;
   }
 
-  AstNode visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(FunctionExpression node) {
     // Bind all free variables.
     out.write('/* Unimplemented: bind any free variables. */');
 
@@ -271,32 +266,28 @@ var $name = (function (_super) {
     out.write(") {\n", 2);
     node.body.accept(this);
     out.write("}\n", -2);
-    return node;
   }
 
-  AstNode visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     out.write(node.name);
-    return node;
   }
 
-  AstNode visitExpressionFunctionBody(ExpressionFunctionBody node) {
+  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     out.write("return ");
     // TODO(vsm): Check for conversion.
     node.expression.accept(this);
     out.write(";\n");
-    return node;
   }
 
-  AstNode visitMethodInvocation(MethodInvocation node) {
+  void visitMethodInvocation(MethodInvocation node) {
     // TODO(vsm): Check dynamic.
     writeQualifiedName(node.target, node.methodName);
     out.write('(');
     node.argumentList.accept(this);
     out.write(')');
-    return node;
   }
 
-  AstNode visitArgumentList(ArgumentList node) {
+  void visitArgumentList(ArgumentList node) {
     // TODO(vsm): Optional parameters.
     var arguments = node.arguments;
     var length = arguments.length;
@@ -309,10 +300,9 @@ var $name = (function (_super) {
         arguments[i].accept(this);
       }
     }
-    return node;
   }
 
-  AstNode visitFormalParameterList(FormalParameterList node) {
+  void visitFormalParameterList(FormalParameterList node) {
     // TODO(vsm): Optional parameters.
     var arguments = node.parameters;
     var length = arguments.length;
@@ -323,27 +313,23 @@ var $name = (function (_super) {
         arguments[i].accept(this);
       }
     }
-    return node;
   }
 
-  AstNode visitFieldFormalParameter(FieldFormalParameter node) {
+  void visitFieldFormalParameter(FieldFormalParameter node) {
     out.write(node.identifier.name);
-    return node;
   }
 
-  AstNode visitBlockFunctionBody(BlockFunctionBody node) {
+  void visitBlockFunctionBody(BlockFunctionBody node) {
     var statements = node.block.statements;
     for (var statement in statements) statement.accept(this);
-    return node;
   }
 
-  AstNode visitExpressionStatement(ExpressionStatement node) {
+  void visitExpressionStatement(ExpressionStatement node) {
     node.expression.accept(this);
     out.write(';\n');
-    return node;
   }
 
-  AstNode visitReturnStatement(ReturnStatement node) {
+  void visitReturnStatement(ReturnStatement node) {
     if (node.expression == null) {
       out.write('return;\n');
     } else {
@@ -351,7 +337,6 @@ var $name = (function (_super) {
       node.expression.accept(this);
       out.write(';\n');
     }
-    return node;
   }
 
   void _generateVariableList(VariableDeclarationList list, bool lazy) {
@@ -372,35 +357,31 @@ var $name = (function (_super) {
     }
   }
 
-  AstNode visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _generateVariableList(node.variables, true);
-    return node;
   }
 
-  AstNode visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     _generateVariableList(node.variables, false);
-    return node;
   }
 
-  AstNode visitConstructorName(ConstructorName node) {
+  void visitConstructorName(ConstructorName node) {
     node.type.name.accept(this);
     if (node.name != null) {
       out.write('.');
       node.name.accept(this);
     }
-    return node;
   }
 
-  AstNode visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
     out.write('new ');
     node.constructorName.accept(this);
     out.write('(');
     node.argumentList.accept(this);
     out.write(')');
-    return node;
   }
 
-  AstNode visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryExpression(BinaryExpression node) {
     var op = node.operator;
     var lhs = node.leftOperand;
     var rhs = node.rightOperand;
@@ -416,22 +397,18 @@ var $name = (function (_super) {
       // TODO(vsm): Figure out operator calling convention / dispatch.
       out.write('/* Unimplemented binary operator: $node */');
     }
-
-    return node;
   }
 
-  AstNode visitParenthesizedExpression(ParenthesizedExpression node) {
+  void visitParenthesizedExpression(ParenthesizedExpression node) {
     out.write('(');
     node.expression.accept(this);
     out.write(')');
-    return node;
   }
 
-  AstNode visitSimpleFormalParameter(SimpleFormalParameter node) {
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
     node.identifier.accept(this);
-    return node;
   }
-  AstNode visitPrefixedIdentifier(PrefixedIdentifier node) {
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
     final info = infoMap[node];
     if (info != null && info.dynamicInvoke != null) {
       out.write('dart_runtime.dload(');
@@ -444,31 +421,25 @@ var $name = (function (_super) {
       out.write('.');
       node.identifier.accept(this);
     }
-    return node;
   }
 
-  AstNode visitIntegerLiteral(IntegerLiteral node) {
+  void visitIntegerLiteral(IntegerLiteral node) {
     out.write('${node.value}');
-    return node;
   }
 
-  AstNode visitStringLiteral(StringLiteral node) {
+  void visitStringLiteral(StringLiteral node) {
     out.write('"${node.stringValue}"');
-    return node;
   }
 
-  AstNode visitBooleanLiteral(BooleanLiteral node) {
+  void visitBooleanLiteral(BooleanLiteral node) {
     out.write('${node.value}');
-    return node;
   }
 
-  AstNode visitDirective(Directive node) {
-    return node;
+  void visitDirective(Directive node) {
   }
 
-  AstNode visitNode(AstNode node) {
+  void visitNode(AstNode node) {
     out.write('/* Unimplemented ${node.runtimeType}: $node */');
-    return node;
   }
 
   static const Map<String, String> _builtins = const <String, String>{
