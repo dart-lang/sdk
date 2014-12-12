@@ -57,17 +57,25 @@ def Main(argv):
   # copy dart2js code
   shutil.copy(join(PKG_SOURCE, 'compiler', 'lib', 'compiler.dart'), TARGET)
   shutil.copy(join(SOURCE, 'libraries.dart'), TARGET)
+  shutil.copytree(join(SOURCE, 'compiler'), join(TARGET, '_internal', 'compiler'))
   shutil.copytree(
       join(PKG_SOURCE, 'compiler', 'lib', 'src'),
       join(TARGET, 'src'))
 
-  # patch up the libraries.dart references
-  replace = [(r'\.\./\.\./libraries\.dart', r'\.\./libraries\.dart')]
+  # patch up the libraries.dart and package references
+  replace1 = [(
+      r'package:_internal/', 
+      r'package:compiler_unsupported/_internal/')]
+      
+  replace2 = [(
+      r'package:compiler_unsupported/_internal/libraries.dart', 
+      r'package:compiler_unsupported/libraries.dart')]
 
   for root, dirs, files in os.walk(join(TARGET, 'src')):
     for name in files:
       if name.endswith('.dart'):
-        ReplaceInFiles([join(root, name)], replace)
+        ReplaceInFiles([join(root, name)], replace1)
+        ReplaceInFiles([join(root, name)], replace2)
 
 
 if __name__ == '__main__':
