@@ -13,6 +13,7 @@ import 'dart:collection';
 
 import 'package:analyzer/src/task/task_dart.dart';
 
+import '../../instrumentation/instrumentation.dart';
 import 'ast.dart';
 import 'constant.dart';
 import 'element.dart';
@@ -6141,8 +6142,8 @@ class AnalysisDelta {
 }
 
 /**
- * The unique instance of the class `AnalysisEngine` serves as the entry point for the
- * functionality provided by the analysis engine.
+ * The unique instance of the class `AnalysisEngine` serves as the entry point
+ * for the functionality provided by the analysis engine.
  */
 class AnalysisEngine {
   /**
@@ -6178,6 +6179,12 @@ class AnalysisEngine {
   Logger _logger = Logger.NULL;
 
   /**
+   * The instrumentation service that is to be used by this analysis engine.
+   */
+  InstrumentationService _instrumentationService =
+      InstrumentationService.NULL_SERVICE;
+
+  /**
    * The partition manager being used to manage the shared partitions.
    */
   final PartitionManager partitionManager = new PartitionManager();
@@ -6192,6 +6199,24 @@ class AnalysisEngine {
    * when `enabledUnionTypes` is `false`.
    */
   bool strictUnionTypes = false;
+
+  /**
+   * Return the instrumentation service that is to be used by this analysis
+   * engine.
+   */
+  InstrumentationService get instrumentationService => _instrumentationService;
+
+  /**
+   * Set the instrumentation service that is to be used by this analysis engine
+   * to the given [service].
+   */
+  void set instrumentationService(InstrumentationService service) {
+    if (service == null) {
+      _instrumentationService = InstrumentationService.NULL_SERVICE;
+    } else {
+      _instrumentationService = service;
+    }
+  }
 
   /**
    * Return the logger that should receive information about errors within the analysis engine.

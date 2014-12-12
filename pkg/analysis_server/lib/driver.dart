@@ -12,6 +12,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/stdio_server.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -231,6 +232,7 @@ class Driver {
     InstrumentationService service =
         new InstrumentationService(instrumentationServer);
 //    service.logVersion(results[CLIENT_ID], defaultSdk.sdkVersion);
+    AnalysisEngine.instance.instrumentationService = service;
 
     socketServer = new SocketServer(analysisServerOptions, defaultSdk, service);
     httpServer = new HttpAnalysisServer(socketServer);
