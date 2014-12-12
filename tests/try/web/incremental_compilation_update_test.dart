@@ -1655,6 +1655,102 @@ main() {
             const <String>['v2', '[instance.x] threw']),
 */
     ],
+
+    // Test compound constants.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class A {
+  final value;
+  const A(this.value);
+
+  toString() => 'A($value)';
+}
+
+class B {
+  final value;
+  const B(this.value);
+
+  toString() => 'B($value)';
+}
+
+main() {
+  print(const A('v1'));
+  print(const B('v1'));
+}
+""",
+            const <String>['A(v1)', 'B(v1)']),
+
+        const ProgramResult(
+            r"""
+class A {
+  final value;
+  const A(this.value);
+
+  toString() => 'A($value)';
+}
+
+class B {
+  final value;
+  const B(this.value);
+
+  toString() => 'B($value)';
+}
+
+main() {
+  print(const B(const A('v2')));
+  print(const A(const B('v2')));
+}
+""",
+            // TODO(ahe): Broken test, wrong output.
+            const <String>['B(null)', 'A(null)']),
+/* These are the correct expectations:
+            const <String>['B(A(v2))', 'A(B(v2))']),
+*/
+    ],
+
+    // Test constants of new classes.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class A {
+  final value;
+  const A(this.value);
+
+  toString() => 'A($value)';
+}
+
+main() {
+  print(const A('v1'));
+}
+""",
+            const <String>['A(v1)']),
+
+        const ProgramResult(
+            r"""
+class A {
+  final value;
+  const A(this.value);
+
+  toString() => 'A($value)';
+}
+
+class B {
+  final value;
+  const B(this.value);
+
+  toString() => 'B($value)';
+}
+
+main() {
+  print(const A('v2'));
+  print(const B('v2'));
+  print(const B(const A('v2')));
+  print(const A(const B('v2')));
+}
+""",
+            const <String>['A(v2)', 'B(v2)', 'B(A(v2))', 'A(B(v2))']),
+    ],
 ];
 
 void main() {
