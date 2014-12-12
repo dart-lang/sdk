@@ -189,7 +189,6 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     ExecutableElement newElement = node.element;
     node.element = element;
     _setLocalElements(element, newElement);
-    _setParameterElements(node.parameters, element.parameters);
   }
 
   @override
@@ -267,9 +266,6 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     node.name.staticElement = element;
     node.functionExpression.element = element;
     _setLocalElements(element, newElement);
-    _setParameterElements(
-        node.functionExpression.parameters,
-        element.parameters);
   }
 
   @override
@@ -341,7 +337,6 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       // matches, update the existing element
       node.name.staticElement = element;
       _setLocalElements(element, newElement);
-      _setParameterElements(node.parameters, element.parameters);
     } on _DeclarationMismatchException catch (e) {
       _addedElements.add(newElement);
       // remove old element
@@ -674,23 +669,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     to.functions = from.functions;
     to.labels = from.labels;
     to.localVariables = from.localVariables;
-  }
-
-  static void _setParameterElements(FormalParameterList nodes,
-      List<ParameterElement> elements) {
-    if (nodes != null) {
-      for (int i = 0; i < elements.length; i++) {
-        ParameterElement element = elements[i];
-        FormalParameter node = nodes.parameters[i];
-        ParameterElement newElement = node.element;
-        node.identifier.staticElement = element;
-        (element as ElementImpl).name = newElement.name;
-        (element as ElementImpl).nameOffset = newElement.nameOffset;
-        if (node is FunctionTypedFormalParameter) {
-          _setParameterElements(node.parameters, element.parameters);
-        }
-      }
-    }
+    to.parameters = from.parameters;
   }
 }
 
@@ -827,6 +806,10 @@ class IncrementalResolver {
     try {
       ElementHolder holder = new ElementHolder();
       ElementBuilder builder = new ElementBuilder(holder);
+      if (_resolutionContext.enclosingClassDeclaration != null) {
+        builder.visitClassDeclarationIncrementally(
+            _resolutionContext.enclosingClassDeclaration);
+      }
       node.accept(builder);
     } finally {
       timer.stop('build elements');

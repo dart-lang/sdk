@@ -3161,6 +3161,19 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  /**
+   * Implementation of this method should be synchronized with
+   * [visitClassDeclaration].
+   */
+  void visitClassDeclarationIncrementally(ClassDeclaration node) {
+    //
+    // Process field declarations before constructors and methods so that field
+    // formal parameters can be correctly resolved to their fields.
+    //
+    ClassElement classElement = node.element;
+    _buildFieldMap(classElement.fields);
+  }
+
   @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
     ElementHolder holder = new ElementHolder();
