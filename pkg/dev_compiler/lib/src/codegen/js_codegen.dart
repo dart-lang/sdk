@@ -12,7 +12,7 @@ import 'package:ddc/src/info.dart';
 import 'package:ddc/src/utils.dart';
 import 'code_generator.dart';
 
-class UnitGenerator extends GeneralizingAstVisitor {
+class UnitGenerator extends GeneralizingAstVisitor with ConversionVisitor {
   final Uri uri;
   final Directory directory;
   final String libName;
@@ -24,13 +24,12 @@ class UnitGenerator extends GeneralizingAstVisitor {
   UnitGenerator(this.uri, this.unit, this.directory, this.libName, this.infoMap,
       this.rules);
 
-  void _reportUnimplementedConversions(AstNode node) {
-    final info = infoMap[node];
-    if (info != null && info.conversion != null) {
-      out.write('/* Unimplemented: ');
-      out.write('${info.conversion.description}');
-      out.write(' */ ');
-    }
+  AstNode visitConversion(Conversion node) {
+    out.write('/* Unimplemented: ');
+    out.write('${node.description}');
+    out.write(' */ ');
+    node.expression.accept(this);
+    return node;
   }
 
   String get outputPath {
@@ -57,7 +56,6 @@ var $libName;
   visitFunctionTypeAlias(FunctionTypeAlias node) {
     // TODO(vsm): Do we need to record type info the generated code for a
     // typedef?
-    _reportUnimplementedConversions(node);
     return node;
   }
 
@@ -221,8 +219,6 @@ constructor.$name.prototype = constructor.prototype;
   }
 
   AstNode visitClassDeclaration(ClassDeclaration node) {
-    _reportUnimplementedConversions(node);
-
     var name = node.name.name;
     var superclassName = getSuperclassName(node);
 
@@ -253,8 +249,6 @@ var $name = (function (_super) {
   }
 
   AstNode visitFunctionDeclaration(FunctionDeclaration node) {
-    _reportUnimplementedConversions(node);
-
     var name = node.name.name;
     assert(node.parent is CompilationUnit);
     out.write("// Function $name: ${node.element.type}\n");
@@ -269,8 +263,6 @@ var $name = (function (_super) {
   }
 
   AstNode visitFunctionExpression(FunctionExpression node) {
-    _reportUnimplementedConversions(node);
-
     // Bind all free variables.
     out.write('/* Unimplemented: bind any free variables. */');
 
@@ -283,15 +275,11 @@ var $name = (function (_super) {
   }
 
   AstNode visitSimpleIdentifier(SimpleIdentifier node) {
-    _reportUnimplementedConversions(node);
-
     out.write(node.name);
     return node;
   }
 
   AstNode visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    _reportUnimplementedConversions(node);
-
     out.write("return ");
     // TODO(vsm): Check for conversion.
     node.expression.accept(this);
@@ -301,8 +289,6 @@ var $name = (function (_super) {
 
   AstNode visitMethodInvocation(MethodInvocation node) {
     // TODO(vsm): Check dynamic.
-    _reportUnimplementedConversions(node);
-
     writeQualifiedName(node.target, node.methodName);
     out.write('(');
     node.argumentList.accept(this);
@@ -311,8 +297,6 @@ var $name = (function (_super) {
   }
 
   AstNode visitArgumentList(ArgumentList node) {
-    _reportUnimplementedConversions(node);
-
     // TODO(vsm): Optional parameters.
     var arguments = node.arguments;
     var length = arguments.length;
@@ -329,8 +313,6 @@ var $name = (function (_super) {
   }
 
   AstNode visitFormalParameterList(FormalParameterList node) {
-    _reportUnimplementedConversions(node);
-
     // TODO(vsm): Optional parameters.
     var arguments = node.parameters;
     var length = arguments.length;
@@ -345,31 +327,23 @@ var $name = (function (_super) {
   }
 
   AstNode visitFieldFormalParameter(FieldFormalParameter node) {
-    _reportUnimplementedConversions(node);
-
     out.write(node.identifier.name);
     return node;
   }
 
   AstNode visitBlockFunctionBody(BlockFunctionBody node) {
-    _reportUnimplementedConversions(node);
-
     var statements = node.block.statements;
     for (var statement in statements) statement.accept(this);
     return node;
   }
 
   AstNode visitExpressionStatement(ExpressionStatement node) {
-    _reportUnimplementedConversions(node);
-
     node.expression.accept(this);
     out.write(';\n');
     return node;
   }
 
   AstNode visitReturnStatement(ReturnStatement node) {
-    _reportUnimplementedConversions(node);
-
     if (node.expression == null) {
       out.write('return;\n');
     } else {
@@ -399,20 +373,16 @@ var $name = (function (_super) {
   }
 
   AstNode visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    _reportUnimplementedConversions(node);
     _generateVariableList(node.variables, true);
     return node;
   }
 
   AstNode visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    _reportUnimplementedConversions(node);
     _generateVariableList(node.variables, false);
     return node;
   }
 
   AstNode visitConstructorName(ConstructorName node) {
-    _reportUnimplementedConversions(node);
-
     node.type.name.accept(this);
     if (node.name != null) {
       out.write('.');
@@ -422,8 +392,6 @@ var $name = (function (_super) {
   }
 
   AstNode visitInstanceCreationExpression(InstanceCreationExpression node) {
-    _reportUnimplementedConversions(node);
-
     out.write('new ');
     node.constructorName.accept(this);
     out.write('(');
@@ -433,8 +401,6 @@ var $name = (function (_super) {
   }
 
   AstNode visitBinaryExpression(BinaryExpression node) {
-    _reportUnimplementedConversions(node);
-
     var op = node.operator;
     var lhs = node.leftOperand;
     var rhs = node.rightOperand;
@@ -455,7 +421,6 @@ var $name = (function (_super) {
   }
 
   AstNode visitParenthesizedExpression(ParenthesizedExpression node) {
-    _reportUnimplementedConversions(node);
     out.write('(');
     node.expression.accept(this);
     out.write(')');
@@ -463,14 +428,10 @@ var $name = (function (_super) {
   }
 
   AstNode visitSimpleFormalParameter(SimpleFormalParameter node) {
-    _reportUnimplementedConversions(node);
-
     node.identifier.accept(this);
     return node;
   }
   AstNode visitPrefixedIdentifier(PrefixedIdentifier node) {
-    _reportUnimplementedConversions(node);
-
     final info = infoMap[node];
     if (info != null && info.dynamicInvoke != null) {
       out.write('dart_runtime.dload(');
@@ -487,34 +448,25 @@ var $name = (function (_super) {
   }
 
   AstNode visitIntegerLiteral(IntegerLiteral node) {
-    _reportUnimplementedConversions(node);
-
     out.write('${node.value}');
     return node;
   }
 
   AstNode visitStringLiteral(StringLiteral node) {
-    _reportUnimplementedConversions(node);
-
     out.write('"${node.stringValue}"');
     return node;
   }
 
   AstNode visitBooleanLiteral(BooleanLiteral node) {
-    _reportUnimplementedConversions(node);
-
     out.write('${node.value}');
     return node;
   }
 
   AstNode visitDirective(Directive node) {
-    _reportUnimplementedConversions(node);
-
     return node;
   }
 
   AstNode visitNode(AstNode node) {
-    _reportUnimplementedConversions(node);
     out.write('/* Unimplemented ${node.runtimeType}: $node */');
     return node;
   }

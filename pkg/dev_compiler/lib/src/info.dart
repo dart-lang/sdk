@@ -6,6 +6,7 @@ import 'dart:mirrors';
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/scanner.dart' show Token;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:logging/logging.dart' show Level;
 
@@ -27,10 +28,6 @@ class CheckerResults {
 class SemanticNode {
   /// The syntax tree node this info is attached to.
   final AstNode node;
-
-  /// The conversion or check to apply, if any. Otherwise null.
-  /// Only relevant for expressions.
-  Conversion conversion;
 
   /// If this operation is dynamically dispatched, this will be set.
   DynamicInvoke dynamicInvoke;
@@ -55,10 +52,15 @@ abstract class StaticInfo {
   String get message;
 }
 
-// Implicitly injected expression conversion.
-abstract class Conversion extends StaticInfo {
+/// Implicitly injected expression conversion.
+// TODO(jmesserly): rename to have Expression suffix?
+abstract class Conversion extends Expression implements StaticInfo {
   final TypeRules rules;
+
+  // TODO(jmesserly): should probably rename this "operand" for consistency with 
+  // analyzer's unary expressions (e.g. PrefixExpression).
   final Expression expression;
+
   AstNode get node => expression;
   DartType _convertedType;
 
@@ -77,6 +79,14 @@ abstract class Conversion extends StaticInfo {
   Level get level => safe ? Level.CONFIG : Level.INFO;
 
   String get description => '${this.runtimeType}: $baseType to $convertedType';
+
+  Token get beginToken => expression.beginToken;
+  Token get endToken => expression.endToken;
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    expression.accept(visitor);
+  }
 }
 
 class Box extends Conversion {
@@ -90,6 +100,14 @@ class Box extends Conversion {
   bool get safe => true;
 
   String get message => '$expression ($baseType) must be boxed';
+
+  accept(AstVisitor visitor) {
+    if (visitor is ConversionVisitor) {
+      return visitor.visitBox(this);
+    } else {
+      return expression.accept(visitor);
+    }
+  }
 }
 
 class Unbox extends Conversion {
@@ -108,6 +126,14 @@ class Unbox extends Conversion {
 
   String get message =>
       '$expression ($baseType) must be unboxed to type $convertedType';
+
+  accept(AstVisitor visitor) {
+    if (visitor is ConversionVisitor) {
+      return visitor.visitUnbox(this);
+    } else {
+      return expression.accept(visitor);
+    }
+  }
 }
 
 class DownCast extends Conversion {
@@ -127,6 +153,14 @@ class DownCast extends Conversion {
   // Differentiate between Function down cast and non-Function down cast?  The
   // former seems less likely to actually succeed.
   Level get level => (_newType is FunctionType) ? Level.WARNING : super.level;
+
+  accept(AstVisitor visitor) {
+    if (visitor is ConversionVisitor) {
+      return visitor.visitDownCast(this);
+    } else {
+      return expression.accept(visitor);
+    }
+  }
 }
 
 class ClosureWrap extends Conversion {
@@ -144,6 +178,14 @@ class ClosureWrap extends Conversion {
       'with a closure of type $convertedType';
 
   Level get level => Level.WARNING;
+
+  accept(AstVisitor visitor) {
+    if (visitor is ConversionVisitor) {
+      return visitor.visitClosureWrap(this);
+    } else {
+      return expression.accept(visitor);
+    }
+  }
 }
 
 class NumericConversion extends Conversion {
@@ -160,6 +202,14 @@ class NumericConversion extends Conversion {
 
   String get message =>
       '$expression ($baseType) should be converted to type $convertedType';
+
+  accept(AstVisitor visitor) {
+    if (visitor is ConversionVisitor) {
+      return visitor.visitNumericConversion(this);
+    } else {
+      return expression.accept(visitor);
+    }
+  }
 }
 
 class DynamicInvoke extends Conversion {
@@ -170,7 +220,16 @@ class DynamicInvoke extends Conversion {
 
   String get message => '$expression requires dynamic invoke';
   Level get level => Level.WARNING;
+
+  accept(AstVisitor visitor) {
+    if (visitor is ConversionVisitor) {
+      return visitor.visitDynamicInvoke(this);
+    } else {
+      return expression.accept(visitor);
+    }
+  }
 }
+
 
 abstract class StaticError extends StaticInfo {
   final AstNode node;
@@ -243,6 +302,26 @@ class InvalidFieldOverride extends InvalidOverride {
     return 'Invalid field override for ${element.name} in '
         '${parent.name} over $base';
   }
+}
+
+/// A simple generalizing visitor interface for the conversion nodes.
+/// This can be mixed in to your visitor if the AST can contain these nodes.
+abstract class ConversionVisitor<R> {
+  /// This method must be implemented. It is typically supplied by the base
+  /// GeneralizingAstVisitor<R>.
+  R visitNode(AstNode node);
+
+  /// The catch-all for any kind of converison
+  R visitConversion(Conversion node) => visitNode(node);
+
+  // Methods for conversion subtypes:
+
+  R visitBox(Box node) => visitConversion(node);
+  R visitUnbox(Unbox node) => visitConversion(node);
+  R visitDownCast(DownCast node) => visitConversion(node);
+  R visitClosureWrap(ClosureWrap node) => visitConversion(node);
+  R visitNumericConversion(NumericConversion node) => visitConversion(node);
+  R visitDynamicInvoke(DynamicInvoke node) => visitConversion(node);
 }
 
 /// Automatically infer list of types by scanning this library using mirrors.

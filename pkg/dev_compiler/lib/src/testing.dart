@@ -70,9 +70,8 @@ testChecker(Map<String, String> testFiles, {bool mockSdk: true}) {
   // Check that all errors we emit are included in the expected map.
   results.infoMap.forEach((key, value) {
     var actual = [];
-    if (value.conversion != null) actual.add(value.conversion);
-    if (value.dynamicInvoke != null) actual.add(value.dynamicInvoke);
     actual.addAll(value.messages);
+    if (value.dynamicInvoke != null) actual.add(value.dynamicInvoke);
     var expected = expectedErrors[key];
     var expectedTotal = expected == null ? 0 : expected.length;
     if (actual.length != expectedTotal) {
@@ -150,7 +149,7 @@ class _ErrorMarkerVisitor extends UnifyingAstVisitor {
     // and attach it to the outermost expression that starts at that token.
     if (comment != null &&
         comment.end == token.offset &&
-        node.parent.beginToken != token) {
+        _realParent(node).beginToken != token) {
       var commentText = '$comment';
       expect(commentText.startsWith('/*'), isTrue);
       expect(commentText.startsWith('/**'), isFalse);
@@ -160,6 +159,13 @@ class _ErrorMarkerVisitor extends UnifyingAstVisitor {
       expectedErrors[node] = errors.map(_ErrorExpectation.parse).toList();
     }
     return super.visitNode(node);
+  }
+
+  /// Get the node's parent, ignoring fake conversion nodes.
+  AstNode _realParent(AstNode node) {
+    var p = node.parent;
+    while (p is Conversion) p = p.parent;
+    return p;
   }
 }
 

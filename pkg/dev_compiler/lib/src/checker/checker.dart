@@ -60,7 +60,7 @@ class ProgramChecker extends RecursiveAstVisitor {
 
   visitAssignmentExpression(AssignmentExpression node) {
     DartType staticType = _rules.getStaticType(node.leftHandSide);
-    checkAssignment(node.rightHandSide, staticType);
+    node.rightHandSide = checkAssignment(node.rightHandSide, staticType);
     node.visitChildren(this);
   }
 
@@ -192,7 +192,7 @@ class ProgramChecker extends RecursiveAstVisitor {
       DartType expectedType = _rules
           .mapGenericType(_rules.elementType(element));
       if (expectedType == null) expectedType = _rules.provider.dynamicType;
-      checkAssignment(arg, expectedType);
+      list[i] = checkAssignment(arg, expectedType);
     }
     return true;
   }
@@ -251,21 +251,20 @@ class ProgramChecker extends RecursiveAstVisitor {
     }
   }
 
-  void _checkReturn(Expression expression, AstNode node) {
+  Expression _checkReturn(Expression expression, AstNode node) {
     var type = _getFunctionType(_getOwnerFunction(node)).returnType;
     // TODO(vsm): Enforce void or dynamic (to void?) when expression is null.
-    if (expression != null) {
-      checkAssignment(expression, type);
-    }
+    if (expression == null) return null;
+    return checkAssignment(expression, type);
   }
 
   visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    _checkReturn(node.expression, node);
+    node.expression = _checkReturn(node.expression, node);
     node.visitChildren(this);
   }
 
   visitReturnStatement(ReturnStatement node) {
-    _checkReturn(node.expression, node);
+    node.expression = _checkReturn(node.expression, node);
     node.visitChildren(this);
   }
 
@@ -303,7 +302,9 @@ class ProgramChecker extends RecursiveAstVisitor {
       var dartType = getType(type);
       for (VariableDeclaration variable in node.variables) {
         var initializer = variable.initializer;
-        if (initializer != null) checkAssignment(initializer, dartType);
+        if (initializer != null) {
+          variable.initializer = checkAssignment(initializer, dartType);
+        }
       }
     }
     node.visitChildren(this);
@@ -330,13 +331,11 @@ class ProgramChecker extends RecursiveAstVisitor {
     return (name == null) ? _rules.provider.dynamicType : name.type;
   }
 
-  void checkAssignment(Expression expr, DartType type) {
+  Expression checkAssignment(Expression expr, DartType type) {
     final staticInfo = _rules.checkAssignment(expr, type);
-    if (staticInfo is Conversion) {
-      _recordConvert(staticInfo);
-    } else {
-      _recordMessage(staticInfo);
-    }
+    _recordMessage(staticInfo);
+    if (staticInfo is Conversion) expr = staticInfo;
+    return expr;
   }
 
   SemanticNode _getSemanticNode(AstNode astNode) {
@@ -362,13 +361,6 @@ class ProgramChecker extends RecursiveAstVisitor {
 
     if (info.level >= logger.Level.SEVERE) failure = true;
     _getSemanticNode(info.node).messages.add(info);
-    _log(info);
-  }
-
-  void _recordConvert(StaticInfo info) {
-    final semanticNode = _getSemanticNode(info.node);
-    assert(semanticNode.conversion == null);
-    semanticNode.conversion = info;
     _log(info);
   }
 
