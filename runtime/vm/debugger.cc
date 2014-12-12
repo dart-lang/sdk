@@ -2088,12 +2088,20 @@ void Debugger::Pause(DebuggerEvent* event) {
 void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace) {
   stepping_fp_ = 0;
   if (resume_action_ == kSingleStep) {
+    // When single stepping, we need to deoptimize because we might be
+    // stepping into optimized code.  This happens in particular if
+    // the isolate has been interrupted, but can happen in other cases
+    // as well.  We need to deoptimize the world in case we are about
+    // to call an optimized function.
+    DeoptimizeWorld();
     isolate_->set_single_step(true);
   } else if (resume_action_ == kStepOver) {
+    DeoptimizeWorld();
     isolate_->set_single_step(true);
     ASSERT(stack_trace->Length() > 0);
     stepping_fp_ = stack_trace->FrameAt(0)->fp();
   } else if (resume_action_ == kStepOut) {
+    DeoptimizeWorld();
     isolate_->set_single_step(true);
     // Find topmost caller that is debuggable.
     for (intptr_t i = 1; i < stack_trace->Length(); i++) {
