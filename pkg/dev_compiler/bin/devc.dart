@@ -52,17 +52,14 @@ void main(List argv) {
   var useColors = stdioType(stdout) != StdioType.TERMINAL;
   setupLogger(level, print, useColors: useColors);
 
-  var typeResolver = new TypeResolver(shouldMockSdk ? TypeResolver
-      .sdkResolverFromMock(mockSdkSources) :
+  var typeResolver = new TypeResolver(shouldMockSdk ?
+      TypeResolver.sdkResolverFromMock(mockSdkSources) :
       TypeResolver.sdkResolverFromDir(dartSdkPath));
 
   var filename = args.rest[0];
-  compile(filename, typeResolver,
-          checkSdk: args['sdk-check'],
-          formatOutput: args['dart-gen-fmt'],
-          outputDart: args['dart-gen'],
-          outputDir: args['out'],
-          useColors: useColors).then((success) {
+  compile(filename, typeResolver, checkSdk: args['sdk-check'],
+      formatOutput: args['dart-gen-fmt'], outputDart: args['dart-gen'],
+      outputDir: args['out'], useColors: useColors).then((success) {
     exit(success ? 0 : 1);
   });
 }

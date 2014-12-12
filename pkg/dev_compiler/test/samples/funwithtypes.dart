@@ -58,8 +58,7 @@ void doubleForInt0(S1 s) {
   // With global subclass info we can possibly know when we need to emit careful code
   // here, but we certainly can't just generate a simple unconditional primitive operation
   // (even ignoring nulls)
-  s.field.x +
-      1;
+  s.field.x + 1;
   if (s.field.x is double) {
     print("Oops, got double for int");
   }
@@ -72,8 +71,7 @@ void doubleForInt1(int f()) {
   // Here, even with global subclass info we're still stuck - we can't really
   // ever trust the return types on closures.  Note that int and double aren't
   // even assignment compatible in this case.
-  f() +
-      1;
+  f() + 1;
   if (f() is double) {
     print("Oops, got double for int (extra badness)");
   }

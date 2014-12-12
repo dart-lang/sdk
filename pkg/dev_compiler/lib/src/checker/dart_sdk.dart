@@ -13,8 +13,9 @@ import 'package:analyzer/src/generated/source.dart';
 /// Attempts to provide the current Dart SDK directory.  Returns null if the SDK
 /// cannot be found.
 final String dartSdkDirectory = () {
-  bool isSdkDir(String dirname) => new File(
-      path.join(dirname, 'lib', '_internal', 'libraries.dart')).existsSync();
+  bool isSdkDir(String dirname) =>
+      new File(path.join(dirname, 'lib', '_internal', 'libraries.dart'))
+      .existsSync();
 
   String executable = Platform.executable;
   if (path.split(executable).length == 1) {
@@ -135,7 +136,8 @@ class _MockSdkSource implements Source {
 }
 
 /// Sample mock SDK sources.
-final Map<String, String> mockSdkSources = {
+final Map<String, String> mockSdkSources =
+    {
   // The list of types below is derived from:
   //   * types we use via our smoke queries, including HtmlElement and
   //     types from `_typeHandlers` (deserialize.dart)

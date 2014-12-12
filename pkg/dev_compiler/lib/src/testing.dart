@@ -9,8 +9,7 @@ import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
 
-import 'package:ddc/src/checker/dart_sdk.dart' show mockSdkSources,
-    dartSdkDirectory;
+import 'package:ddc/src/checker/dart_sdk.dart' show mockSdkSources, dartSdkDirectory;
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
 import 'package:ddc/src/utils.dart';
 import 'package:ddc/src/info.dart';
@@ -45,8 +44,9 @@ testChecker(Map<String, String> testFiles, {bool mockSdk: true}) {
       '/main.dart'), isTrue, reason: '`/main.dart` is missing in testFiles');
 
   // Create a resolver that can load test files from memory.
-  var dartUriResolver = mockSdk ? TypeResolver.sdkResolverFromMock(
-      mockSdkSources) : TypeResolver.sdkResolverFromDir(dartSdkDirectory);
+  var dartUriResolver = mockSdk ?
+      TypeResolver.sdkResolverFromMock(mockSdkSources) :
+      TypeResolver.sdkResolverFromDir(dartSdkDirectory);
   var testUriResolver = new _TestUriResolver(testFiles);
   var resolver = new TypeResolver(dartUriResolver, [testUriResolver]);
 

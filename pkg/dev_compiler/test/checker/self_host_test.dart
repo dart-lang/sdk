@@ -9,8 +9,8 @@ import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
 main() {
-  var realSdk =
-      new TypeResolver(TypeResolver.sdkResolverFromDir(dartSdkDirectory));
+  var realSdk = new TypeResolver(TypeResolver
+      .sdkResolverFromDir(dartSdkDirectory));
 
   var testDir = path.absolute(path.dirname(Platform.script.path));
 

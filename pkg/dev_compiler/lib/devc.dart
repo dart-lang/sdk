@@ -37,11 +37,8 @@ StreamSubscription setupLogger(Level level, printFn, {bool useColors: true}) {
 }
 
 Future<bool> compile(String inputFile, TypeResolver resolver,
-                     {bool checkSdk: false,
-                     bool formatOutput : false,
-                     bool outputDart: false,
-                     String outputDir,
-                     bool useColors: true}) {
+    {bool checkSdk: false, bool formatOutput: false, bool outputDart: false,
+    String outputDir, bool useColors: true}) {
 
   // Run checker
   var uri = new Uri.file(path.absolute(inputFile));
@@ -54,12 +51,10 @@ Future<bool> compile(String inputFile, TypeResolver resolver,
 
   // Generate code.
   if (outputDir != null) {
-    var cg = outputDart
-      ? new DartGenerator(
-          outputDir, uri, results.libraries, results.infoMap, results.rules,
-          formatOutput)
-      : new JSGenerator(
-          outputDir, uri, results.libraries, results.infoMap, results.rules);
+    var cg = outputDart ?
+        new DartGenerator(outputDir, uri, results.libraries, results.infoMap,
+            results.rules, formatOutput) : new JSGenerator(
+            outputDir, uri, results.libraries, results.infoMap, results.rules);
     return cg.generate().then((_) => true);
   }
 

@@ -58,8 +58,8 @@ class TypeResolver {
         var isError = severity == ErrorSeverity.ERROR;
         if (isError) failure = true;
         var level = isError ? logger.Level.SEVERE : logger.Level.WARNING;
-        _log.log(
-            level, span.message(error.message, color: colorOf(severity.name)));
+        _log.log(level, span
+            .message(error.message, color: colorOf(severity.name)));
       }
     }
     return failure;

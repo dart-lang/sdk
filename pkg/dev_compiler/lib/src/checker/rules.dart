@@ -97,8 +97,9 @@ class RestrictedRules extends TypeRules {
     }
     // True iff a location with this type may be assigned a boxed
     // int or double.
-    if (primitiveType !=
-        provider.boolType && !primitiveNum && boxedType.name == "num") {
+    if (primitiveType != provider.boolType &&
+        !primitiveNum &&
+        boxedType.name == "num") {
       return true;
     }
     return false;
@@ -211,8 +212,8 @@ class RestrictedRules extends TypeRules {
       ParameterElement p2 = params2[i];
 
       // Contravariant parameter types.
-      if (!isSubTypeOf(
-          p2.type, p1.type) && !(wrap && canAutoConvertTo(p2.type, p1.type))) {
+      if (!isSubTypeOf(p2.type, p1.type) &&
+          !(wrap && canAutoConvertTo(p2.type, p1.type))) {
         return false;
       }
 
