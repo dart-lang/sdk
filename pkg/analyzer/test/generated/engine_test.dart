@@ -1128,6 +1128,52 @@ main() {}''');
     expect(_context.getResolvedCompilationUnit2(source, source), isNull);
   }
 
+  Future test_getResolvedCompilationUnitFuture() {
+    _context = AnalysisContextFactory.contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/lib.dart", "library lib;");
+    // Complete all pending analysis tasks and flush the AST so that it won't
+    // be available immediately.
+    while (_context.performAnalysisTask().hasMoreWork) {}
+    DartEntry dartEntry = _context.getReadableSourceEntryOrNull(source);
+    dartEntry.flushAstStructures();
+    bool completed = false;
+    _context.getResolvedCompilationUnitFuture(
+        source,
+        source).then((CompilationUnit unit) {
+      expect(unit, isNotNull);
+      completed = true;
+    });
+    return pumpEventQueue().then((_) {
+      expect(completed, isFalse);
+      while (_context.performAnalysisTask().hasMoreWork) {}
+    }).then((_) => pumpEventQueue()).then((_) {
+      expect(completed, isTrue);
+    });
+  }
+
+  Future test_getResolvedCompilationUnitFuture_unrelatedLibrary() {
+    _context = AnalysisContextFactory.contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source librarySource = _addSource("/lib.dart", "library lib;");
+    Source partSource = _addSource("/part.dart", "part of foo;");
+    bool completed = false;
+    _context.getResolvedCompilationUnitFuture(
+        partSource,
+        librarySource).then((_) {
+      fail('Expected resolution to fail');
+    }, onError: (e) {
+      expect(e, new isInstanceOf<AnalysisNotScheduledError>());
+      completed = true;
+    });
+    return pumpEventQueue().then((_) {
+      expect(completed, isFalse);
+      while (_context.performAnalysisTask().hasMoreWork) {}
+    }).then((_) => pumpEventQueue()).then((_) {
+      expect(completed, isTrue);
+    });
+  }
+
   void test_getResolvedHtmlUnit() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
@@ -3892,6 +3938,7 @@ class GenerateDartErrorsTaskTestTV_perform_validateDirectives extends
   }
 }
 
+
 @ReflectiveTestCase()
 class GenerateDartHintsTaskTest extends EngineTestCase {
   void test_accept() {
@@ -3953,7 +4000,6 @@ class GenerateDartHintsTaskTestTV_accept extends TestTaskVisitor<bool> {
   @override
   bool visitGenerateDartHintsTask(GenerateDartHintsTask task) => true;
 }
-
 
 class GenerateDartHintsTaskTestTV_perform extends TestTaskVisitor<bool> {
   Source librarySource;
@@ -4827,7 +4873,6 @@ class IncrementalAnalysisCacheTest {
 }
 
 
-
 @ReflectiveTestCase()
 class IncrementalAnalysisTaskTest extends EngineTestCase {
   void test_accept() {
@@ -4891,6 +4936,7 @@ class IncrementalAnalysisTaskTestTV_accept extends TestTaskVisitor<bool> {
   @override
   bool visitIncrementalAnalysisTask(IncrementalAnalysisTask task) => true;
 }
+
 
 
 class IncrementalAnalysisTaskTestTV_assertTask extends
@@ -6035,6 +6081,12 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  Future<CompilationUnit> getResolvedCompilationUnitFuture(Source source,
+      Source librarySource) {
+    fail("Unexpected invocation of getResolvedCompilationUnitFuture");
+    return null;
+  }
+  @override
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
     fail("Unexpected invocation of getResolvedHtmlUnit");
     return null;
@@ -6098,6 +6150,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   void setContents(Source source, String contents) {
     fail("Unexpected invocation of setContents");
   }
+
   @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {

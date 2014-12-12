@@ -33,6 +33,21 @@ import 'utilities_collection.dart';
 import 'utilities_general.dart';
 
 /**
+ * Type of callback functions used by PendingFuture.  Functions of this type
+ * should perform a computation based on the data in [sourceEntry] and return
+ * it.  If the computation can't be performed yet because more analysis is
+ * needed, null should be returned.
+ *
+ * The function may also throw an exception, in which case the corresponding
+ * future will be completed with failure.
+ *
+ * Since this function is called while the state of analysis is being updated,
+ * it should be free of side effects so that it doesn't cause reentrant
+ * changes to the analysis state.
+ */
+typedef T PendingFutureComputer<T>(SourceEntry sourceEntry);
+
+/**
  * Instances of the class `AnalysisCache` implement an LRU cache of information related to
  * analysis.
  */
@@ -732,6 +747,20 @@ abstract class AnalysisContext {
       Source librarySource);
 
   /**
+   * Return a future which will be completed with the fully resolved AST for a
+   * single compilation unit within the given library, once that AST is up to
+   * date.
+   *
+   * If the resolved AST can't be computed for some reason, the future will be
+   * completed with an error.  One possible error is AnalysisNotScheduledError,
+   * which means that the resolved AST can't be computed because the given
+   * source file is not scheduled to be analyzed within the context of the
+   * given library.
+   */
+  Future<CompilationUnit> getResolvedCompilationUnitFuture(Source source,
+      Source librarySource);
+
+  /**
    * Return a fully resolved HTML unit, or `null` if the resolved unit is not already
    * computed.
    *
@@ -950,6 +979,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   List<Source> _priorityOrder = Source.EMPTY_ARRAY;
 
   /**
+   * A map from all sources for which there are futures pending to a list of
+   * the corresponding PendingFuture objects.  These sources will be analyzed
+   * in the same way as priority sources, except with higher priority.
+   *
+   * TODO(paulberry): since the size of this map is not constrained (as it is
+   * for _priorityOrder), we run the risk of creating an analysis loop if
+   * re-caching one AST structure causes the AST structure for another source
+   * with pending futures to be flushed.  However, this is unlikely to happen
+   * in practice since sources are removed from this hash set as soon as their
+   * futures have completed.
+   */
+  HashMap<Source, List<PendingFuture>> _pendingFutureSources =
+      new HashMap<Source, List<PendingFuture>>();
+
+  /**
    * An array containing sources whose AST structure is needed in order to resolve the next library
    * to be resolved.
    */
@@ -1157,6 +1201,50 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           new IncrementalAnalysisTask(this, _incrementalAnalysisCache);
       _incrementalAnalysisCache = null;
       return task;
+    }
+    //
+    // Look for a source that needs to be analyzed because it has futures
+    // pending.
+    //
+    if (_pendingFutureSources.isNotEmpty) {
+      List<Source> sourcesToRemove = <Source>[];
+      AnalysisTask task;
+      for (Source source in _pendingFutureSources.keys) {
+        SourceEntry sourceEntry = _cache.get(source);
+        List<PendingFuture> pendingFutures = _pendingFutureSources[source];
+        for (int i = 0; i < pendingFutures.length; ) {
+          if (pendingFutures[i].evaluate(sourceEntry)) {
+            pendingFutures.removeAt(i);
+          } else {
+            i++;
+          }
+        }
+        if (pendingFutures.isEmpty) {
+          sourcesToRemove.add(source);
+          continue;
+        }
+        AnalysisContextImpl_TaskData taskData =
+            _getNextAnalysisTaskForSource(source, sourceEntry, true, hintsEnabled);
+        task = taskData.task;
+        if (task != null) {
+          break;
+        } else if (taskData.isBlocked) {
+          hasBlockedTask = true;
+        } else {
+          // There is no more work to do for this task, so forcibly complete
+          // all its pending futures.
+          for (PendingFuture pendingFuture in pendingFutures) {
+            pendingFuture.forciblyComplete();
+          }
+          sourcesToRemove.add(source);
+        }
+      }
+      for (Source source in sourcesToRemove) {
+        _pendingFutureSources.remove(source);
+      }
+      if (task != null) {
+        return task;
+      }
     }
     //
     // Look for a priority source that needs to be analyzed.
@@ -1983,6 +2071,25 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           librarySource);
     }
     return null;
+  }
+
+  @override
+  Future<CompilationUnit> getResolvedCompilationUnitFuture(Source unitSource,
+      Source librarySource) {
+    return _getFuture(unitSource, (SourceEntry sourceEntry) {
+      if (sourceEntry is DartEntry) {
+        if (sourceEntry.getStateInLibrary(
+            DartEntry.RESOLVED_UNIT,
+            librarySource) ==
+            CacheState.ERROR) {
+          throw sourceEntry.exception;
+        }
+        return sourceEntry.getValueInLibrary(
+            DartEntry.RESOLVED_UNIT,
+            librarySource);
+      }
+      throw new AnalysisNotScheduledError();
+    });
   }
 
   @override
@@ -3516,6 +3623,37 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     dartEntry =
         _cacheDartVerificationData(unitSource, librarySource, dartEntry, descriptor);
     return dartEntry.getValueInLibrary(descriptor, librarySource);
+  }
+
+  /**
+   * Return a future that will be completed with the result of calling
+   * [computeValue].  If [computeValue] returns non-null, the future will be
+   * completed immediately with the resulting value.  If it returns null, then
+   * it will be re-executed in the future, after the next time the cached
+   * information for [source] has changed.  If [computeValue] throws an
+   * exception, the future will fail with that exception.
+   *
+   * If the [computeValue] still returns null after there is no further
+   * analysis to be done for [source], then the future will be completed with
+   * the error AnalysisNotScheduledError.
+   *
+   * Since [computeValue] will be called while the state of analysis is being
+   * updated, it should be free of side effects so that it doesn't cause
+   * reentrant changes to the analysis state.
+   */
+  Future /*<T>*/ _getFuture(Source source, /*T*/
+  computeValue(SourceEntry sourceEntry)) {
+    SourceEntry sourceEntry = getReadableSourceEntryOrNull(source);
+    if (sourceEntry == null) {
+      return new Future.error(new AnalysisNotScheduledError());
+    }
+    PendingFuture pendingFuture = new PendingFuture(computeValue);
+    if (!pendingFuture.evaluate(sourceEntry)) {
+      _pendingFutureSources.putIfAbsent(
+          source,
+          () => <PendingFuture>[]).add(pendingFuture);
+    }
+    return pendingFuture.future;
   }
 
   /**
@@ -6275,6 +6413,16 @@ abstract class AnalysisListener {
    * @param unit the result of resolving the source in the given context
    */
   void resolvedHtml(AnalysisContext context, Source source, ht.HtmlUnit unit);
+}
+
+/**
+ * Futures returned by [AnalysisContext] for pending analysis results will
+ * complete with this error if it is determined that analysis results will
+ * never become available (e.g. because the requested source is not subject to
+ * analysis, or because the requested source is a part file which is not a part
+ * of any known library).
+ */
+class AnalysisNotScheduledError implements Exception {
 }
 
 /**
@@ -9486,6 +9634,7 @@ class DataDescriptor<E> {
   String toString() => _name;
 }
 
+
 /**
  * Instances of the class `DefaultRetentionPolicy` implement a retention policy that will keep
  * AST's in the cache if there is analysis information that needs to be computed for a source, where
@@ -9520,7 +9669,6 @@ class DefaultRetentionPolicy implements CacheRetentionPolicy {
     return RetentionPriority.LOW;
   }
 }
-
 
 /**
  * Recursively visits [HtmlUnit] and every embedded [Expression].
@@ -11488,6 +11636,71 @@ class PartitionManager {
       _sdkPartitions[sdk] = partition;
     }
     return partition;
+  }
+}
+
+/**
+ * Representation of a pending computation which is based on the results of
+ * analysis that may or may not have been completed.
+ */
+class PendingFuture<T> {
+  /**
+   * The function which implements the computation.
+   */
+  final PendingFutureComputer<T> _computeValue;
+
+  /**
+   * The completer that should be completed once the computation has succeeded.
+   */
+  final Completer<T> _completer = new Completer<T>();
+
+  PendingFuture(this._computeValue);
+
+  /**
+   * Retrieve the future which will be completed when this object is
+   * successfully evaluated.
+   */
+  Future<T> get future => _completer.future;
+
+  /**
+   * Execute [_computeValue], passing it the given [sourceEntry], and complete
+   * the pending future if it's appropriate to do so.  If the pending future is
+   * completed by this call, true is returned; otherwise false is returned.
+   *
+   * Once this function has returned true, it should not be called again.
+   *
+   * Other than completing the future, this method is free of side effects.
+   * Note that any code the client has attached to the future will be executed
+   * in a microtask, so there is no danger of side effects occurring due to
+   * client callbacks.
+   */
+  bool evaluate(SourceEntry sourceEntry) {
+    assert(!_completer.isCompleted);
+    try {
+      T result = _computeValue(sourceEntry);
+      if (result == null) {
+        return false;
+      } else {
+        _completer.complete(result);
+        return true;
+      }
+    } catch (exception, stackTrace) {
+      _completer.completeError(exception, stackTrace);
+      return true;
+    }
+  }
+
+  /**
+   * No further analysis updates are expected which affect this future, so
+   * complete it with an AnalysisNotScheduledError in order to avoid
+   * deadlocking the client.
+   */
+  void forciblyComplete() {
+    try {
+      throw new AnalysisNotScheduledError();
+    } catch (exception, stackTrace) {
+      _completer.completeError(exception, stackTrace);
+    }
   }
 }
 

@@ -17,7 +17,6 @@ import 'package:analysis_server/src/services/completion/keyword_computer.dart';
 import 'package:analysis_server/src/services/completion/local_computer.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -182,27 +181,18 @@ class DartCompletionManager extends CompletionManager {
   }
 
   /**
-   * Return a future that completes when analysis is complete.
+   * Return a future that either (a) completes with the resolved compilation
+   * unit when analysis is complete, or (b) completes with null if the
+   * compilation unit is never going to be resolved.
    */
-  Future<CompilationUnit> waitForAnalysis([int waitCount = 10000]) {
-    //TODO (danrubel) replace this when new API is ready.
-    // I expect the new API to be either a stream of resolution events
-    // or a future that completes when the resolved library element is available
-    LibraryElement library = context.getLibraryElement(source);
-    if (library != null) {
-      CompilationUnit unit =
-          context.getResolvedCompilationUnit(source, library);
-      if (unit != null) {
-        return new Future.value(unit);
-      }
-    }
-    //TODO (danrubel) Remove this HACK
-    if (waitCount > 0) {
-      return new Future(() {
-        return waitForAnalysis(waitCount - 1);
-      });
-    }
-    return new Future.value(null);
+  Future<CompilationUnit> waitForAnalysis() {
+    return context.getResolvedCompilationUnitFuture(
+        source,
+        source).catchError((_) {
+      // This source file is not scheduled for analysis, so a resolved
+      // compilation unit is never going to get computed.
+      return null;
+    }, test: (e) => e is AnalysisNotScheduledError);
   }
 }
 
@@ -265,17 +255,18 @@ class DartCompletionRequest extends CompletionRequest {
    */
   final List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
+  DartCompletionRequest(this.context, this.searchEngine, this.source,
+      int offset, this.cache, CompletionPerformance performance)
+      : super(offset, performance);
+
   /**
    * Return the original text from the [replacementOffset] to the [offset]
    * that can be used to filter the suggestions on the server side.
    */
   String get filterText {
-    return context.getContents(source).data.substring(replacementOffset, offset);
+    return context.getContents(
+        source).data.substring(replacementOffset, offset);
   }
-
-  DartCompletionRequest(this.context, this.searchEngine, this.source,
-      int offset, this.cache, CompletionPerformance performance)
-      : super(offset, performance);
 }
 
 /**

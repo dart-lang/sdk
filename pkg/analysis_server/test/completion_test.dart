@@ -45,7 +45,8 @@ class Date { static Date JUN, JUL;}class X { m() { return Da!1te.JU!2L; }}''',
 
     CompletionTestCase.buildTests('testCommentSnippets007', '''
 class C {mth(Map x, !1) {}mtf(!2, Map x) {}m() {for (in!3t i=0; i<5; i++); A!4 x;}}class int{}class Arrays{}class bool{}''',
-        <String>["1+bool", "2+bool", "3+int", "4+Arrays"], failingTests: '3');
+        <String>["1+bool", "2+bool", "3+int", "4+Arrays"],
+        failingTests: '3');
 
     CompletionTestCase.buildTests('testCommentSnippets008', '''
 class Date{}final num M = Dat!1''', <String>["1+Date"]);
@@ -100,8 +101,7 @@ class Map{}class Arrays{}class C{ m(!1){} n(!2 x, q)''',
         failingTests: '1');
 
     CompletionTestCase.buildTests('testCommentSnippets019', '''
-class A{m(){Object x;x.!1/**/clear()''',
-        <String>["1+toString"]);
+class A{m(){Object x;x.!1/**/clear()''', <String>["1+toString"]);
 
     CompletionTestCase.buildTests('testCommentSnippets020', '''
 classMap{}class tst {var newt;void newf(){}test() {var newz;new!1/**/;}}''',
@@ -2132,14 +2132,12 @@ class Q {
             "8-null"],
         failingTests: '1234567');
 
-    // The following test is disabled because it prevents the Dart VM from
-    // exiting, for some unknown reason.  TODO(paulberry): fix this.
-//    // keywords
-//    CompletionTestCase.buildTests(
-//        'test018',
-//        '''!1part !2of foo;''',
-//        <String>["1+part", "2+of"],
-//        failingTests: '12');
+    // keywords
+    CompletionTestCase.buildTests(
+        'test018',
+        '''!1part !2of foo;''',
+        <String>["1+part", "2+of"],
+        failingTests: '12');
 
     CompletionTestCase.buildTests('test019', '''
 var truefalse = 0;
