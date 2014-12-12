@@ -4,6 +4,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/generated/source.dart' show Source;
 
 import 'package:ddc/src/info.dart';
 import 'package:ddc/src/utils.dart';
@@ -62,19 +63,19 @@ class RestrictedRules extends TypeRules {
   // If true, num is treated as a synonym for double.
   // If false, num is always boxed.
   static const bool primitiveNum = false;
-  LibraryElement _current = null;
+  Source _current = null;
 
   RestrictedRules(TypeProvider provider) : super(provider);
 
   void setCompilationUnit(CompilationUnit unit) {
-    _current = unit.element.enclosingElement;
+    _current = (unit.element as CompilationUnitElementImpl).source;
   }
 
   DartType getStaticType(Expression expr) {
     var type = expr.staticType;
     if (type != null) return type;
 
-    print(spanFor(_current.source, expr.offset, expr.end).message(
+    print(spanFor(_current, expr.offset, expr.end).message(
         "type analysis didn't compute the type of: $expr ${expr.runtimeType}",
         color: colorOf('warning')));
     return provider.dynamicType;

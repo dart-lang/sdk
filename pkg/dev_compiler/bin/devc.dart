@@ -49,7 +49,7 @@ void main(List argv) {
 
   String levelName = args['log'].toUpperCase();
   Level level = Level.LEVELS.firstWhere((Level l) => l.name == levelName);
-  var useColors = stdioType(stdout) != StdioType.TERMINAL;
+  var useColors = stdioType(stdout) == StdioType.TERMINAL;
   setupLogger(level, print, useColors: useColors);
 
   var typeResolver = new TypeResolver(shouldMockSdk ?

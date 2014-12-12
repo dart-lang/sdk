@@ -23,7 +23,6 @@ CheckerResults checkProgram(Uri fileUri, TypeResolver resolver,
   var rules = new RestrictedRules(provider);
   final visitor = new ProgramChecker(resolver, rules, fileUri, checkSdk);
   visitor.check();
-  visitor.finalizeImports();
   return new CheckerResults(
       visitor.libraries, visitor.infoMap, rules, visitor.failure);
 }
@@ -34,15 +33,10 @@ class ProgramChecker extends RecursiveAstVisitor {
   final Uri _root;
   final bool _checkSdk;
   final Map<Uri, CompilationUnit> _unitMap = <Uri, CompilationUnit>{};
-  final Map<Uri, LibraryInfo> libraries = <Uri, LibraryInfo>{};
+  final List<LibraryElement> libraries = <LibraryElement>[];
 
-  void finalizeImports() {
-    libraries.forEach((Uri uri, LibraryInfo lib) {
-      for (Uri key in lib.imports.keys) {
-        lib.imports[key] = libraries[key];
-      }
-    });
-  }
+  final infoMap = new Map<AstNode, SemanticNode>();
+  bool failure = false;
 
   ProgramChecker(this._resolver, this._rules, this._root, this._checkSdk);
 
@@ -51,9 +45,7 @@ class ProgramChecker extends RecursiveAstVisitor {
         .computeLibraryElement(_resolver.findSource(_root));
     for (var lib in reachableLibraries(startLibrary)) {
       if (!_checkSdk && lib.isInSdk) continue;
-      var source = lib.source;
-      libraries[source.uri] =
-          new LibraryInfo(source.uri, source, lib.definingCompilationUnit.node);
+      libraries.add(lib);
       for (var unit in lib.units) {
         _rules.setCompilationUnit(unit.node);
         unit.node.visitChildren(this);
@@ -346,9 +338,6 @@ class ProgramChecker extends RecursiveAstVisitor {
       _recordMessage(staticInfo);
     }
   }
-
-  final infoMap = new Map<AstNode, SemanticNode>();
-  bool failure = false;
 
   SemanticNode _getSemanticNode(AstNode astNode) {
     if (astNode == null) return null;

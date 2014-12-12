@@ -2,6 +2,8 @@
 /// emitters to generate code.
 library ddc.src.info;
 
+import 'dart:mirrors';
+
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -12,23 +14,12 @@ import 'checker/rules.dart';
 /// Represents a summary of the results collected by running the program
 /// checker.
 class CheckerResults {
-  final Map<Uri, LibraryInfo> libraries;
+  final List<LibraryElement> libraries;
   final Map<AstNode, SemanticNode> infoMap;
   final TypeRules rules;
   final bool failure;
 
   CheckerResults(this.libraries, this.infoMap, this.rules, this.failure);
-}
-
-/// Holds information about a Dart library.
-class LibraryInfo {
-  final Uri uri;
-  final Source source;
-  final CompilationUnit lib;
-  final Map<Uri, CompilationUnit> parts = new Map<Uri, CompilationUnit>();
-  final Map<Uri, LibraryInfo> imports = new Map<Uri, LibraryInfo>();
-
-  LibraryInfo(this.uri, this.source, this.lib);
 }
 
 /// Semantic information about a node.
@@ -253,3 +244,21 @@ class InvalidFieldOverride extends InvalidOverride {
         '${parent.name} over $base';
   }
 }
+
+/// Automatically infer list of types by scanning this library using mirrors.
+final List<StaticInfo> infoTypes = () {
+  var allTypes = new Set();
+  var baseTypes = new Set();
+  var lib = currentMirrorSystem().findLibrary(#ddc.src.info);
+  var infoMirror = reflectClass(StaticInfo);
+  for (var cls in lib.declarations.values.where((d) => d is ClassMirror)) {
+    if (cls.isSubtypeOf(infoMirror)) {
+      allTypes.add(cls);
+      baseTypes.add(cls.superclass);
+    }
+  }
+  allTypes.removeAll(baseTypes);
+  return allTypes.map((mirror) => mirror.reflectedType).toList();
+}();
+
+main() => print(infoTypes);

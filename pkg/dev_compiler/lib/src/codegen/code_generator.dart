@@ -5,25 +5,26 @@ import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart'
+    show LibraryElement, CompilationUnitElement;
 
-import '../info.dart';
-import '../checker/rules.dart';
+import 'package:ddc/src/info.dart';
+import 'package:ddc/src/checker/rules.dart';
 
 abstract class CodeGenerator {
   final String outDir;
   final Uri root;
-  final Map<Uri, LibraryInfo> libraries;
+  final List<LibraryElement> libraries;
   final Map<AstNode, SemanticNode> info;
   final TypeRules rules;
 
   CodeGenerator(this.outDir, this.root, this.libraries, this.info, this.rules);
 
-  String _libName(LibraryInfo lib) {
-    for (var directive in lib.lib.directives) {
-      if (directive is LibraryDirective) return directive.name.toString();
-    }
+  String _libName(LibraryElement lib) {
+    if (lib.name != null && lib.name != '') return lib.name;
+
     // Fall back on the file name.
-    var tail = lib.uri.pathSegments.last;
+    var tail = lib.source.uri.pathSegments.last;
     if (tail.endsWith('.dart')) tail = tail.substring(0, tail.length - 5);
     return tail;
   }
@@ -31,12 +32,15 @@ abstract class CodeGenerator {
   Future generateUnit(
       Uri uri, CompilationUnit unit, Directory dir, String name);
 
-  Future generateLibrary(String name, LibraryInfo library, Directory dir) {
+  Future generateLibrary(String name, LibraryElement library, Directory dir) {
     var done = [];
-    done.add(generateUnit(library.uri, library.lib, dir, name));
-    library.parts.forEach((Uri uri, CompilationUnit unit) {
-      done.add(generateUnit(uri, unit, dir, name));
-    });
+    var uri = library.source.uri;
+    var unit = library.definingCompilationUnit.node;
+    done.add(generateUnit(uri, unit, dir, name));
+    for (var unit in library.units) {
+      var partUri = unit.source.uri;
+      done.add(generateUnit(partUri, unit.node, dir, name));
+    }
     return Future.wait(done);
   }
 
@@ -47,11 +51,11 @@ abstract class CodeGenerator {
     top.createSync();
 
     var done = [];
-    libraries.forEach((Uri uri, LibraryInfo lib) {
+    for (var lib in libraries) {
       var name = _libName(lib);
       var dir = new Directory.fromUri(out.resolve(name))..createSync();
       done.add(generateLibrary(name, lib, dir));
-    });
+    }
     return Future.wait(done);
   }
 }

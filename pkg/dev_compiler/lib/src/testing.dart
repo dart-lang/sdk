@@ -180,7 +180,7 @@ class _ErrorExpectation {
         .firstWhere((l) => l.name == name, orElse: () => null);
     expect(level, isNotNull,
         reason: 'invalid level in error descriptor: `${tokens[0]}`');
-    var type = _infoTypes
+    var type = infoTypes
         .firstWhere((t) => '$t'.toLowerCase() == typeName, orElse: () => null);
     expect(type, isNotNull,
         reason: 'invalid type in error descriptor: ${tokens[1]}');
@@ -236,15 +236,3 @@ class _TestSource implements Source {
 
   SourceSpan spanFor(AstNode node) => _file.span(node.offset, node.end);
 }
-
-const _infoTypes = const [
-  Box,
-  ClosureWrap,
-  DownCast,
-  DynamicInvoke,
-  InvalidOverride,
-  InvalidRuntimeCheckError,
-  NumericConversion,
-  StaticTypeError,
-  Unbox
-];

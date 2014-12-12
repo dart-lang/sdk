@@ -7,9 +7,9 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
-import '../checker/rules.dart';
-import '../info.dart';
-import '../utils.dart';
+import 'package:ddc/src/checker/rules.dart';
+import 'package:ddc/src/info.dart';
+import 'package:ddc/src/utils.dart';
 import 'code_generator.dart';
 
 class UnitGenerator extends GeneralizingAstVisitor {
