@@ -1208,6 +1208,8 @@ bool UnboxInt32Instr::CanDeoptimize() const {
     return !is_truncating() &&
         !RangeUtils::Fits(value()->definition()->range(),
                           RangeBoundary::kRangeBoundaryInt32);
+  } else if (is_truncating() && value()->definition()->IsBoxInteger()) {
+    return false;
   } else if ((kSmiBits < 32) && value()->Type()->IsInt()) {
     // Note: we don't support truncation of Bigint values.
     return !RangeUtils::Fits(value()->definition()->range(),
@@ -2063,7 +2065,7 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
           box_defn->value()->CopyWithType(),
           (representation() == kUnboxedInt32) ?
               GetDeoptId() : Isolate::kNoDeoptId);
-      if ((representation() == kUnboxedInt32) && !CanDeoptimize()) {
+      if ((representation() == kUnboxedInt32) && is_truncating()) {
         converter->mark_truncating();
       }
       flow_graph->InsertBefore(this, converter, env(), FlowGraph::kValue);
