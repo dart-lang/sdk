@@ -377,7 +377,9 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words) {
 void SemiSpace::Delete() {
 #ifdef DEBUG
   if (reserved_ != NULL) {
-    memset(reserved_->address(), kZapValue, size_in_words() << kWordSizeLog2);
+    const intptr_t size_in_bytes = size_in_words() << kWordSizeLog2;
+    memset(reserved_->address(), kZapValue, size_in_bytes);
+    VerifiedMemory::Accept(reserved_->start(), size_in_bytes);
   }
 #endif
   SemiSpace* old_cache = NULL;
