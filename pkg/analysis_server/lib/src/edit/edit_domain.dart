@@ -254,6 +254,7 @@ class _RefactoringManager {
     var params = new EditGetRefactoringParams.fromRequest(request);
     _init(params.kind, params.file, params.offset, params.length).then((_) {
       if (initStatus.hasFatalError) {
+        feedback = null;
         return _sendResultResponse();
       }
       // set options
@@ -453,9 +454,7 @@ class _RefactoringManager {
   }
 
   void _sendResultResponse() {
-    if (feedback != null) {
-      result.feedback = feedback;
-    }
+    result.feedback = feedback;
     // set problems
     result.initialProblems = initStatus.problems;
     result.optionsProblems = optionsStatus.problems;
