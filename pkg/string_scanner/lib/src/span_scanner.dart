@@ -58,8 +58,10 @@ class SpanScanner extends StringScanner implements LineScanner {
 
   /// Creates a [FileSpan] representing the source range between [startState]
   /// and the current position.
-  FileSpan spanFrom(LineScannerState startState) =>
-      _sourceFile.span(startState.position, position);
+  FileSpan spanFrom(LineScannerState startState, [LineScannerState endState]) {
+    var endPosition = endState == null ? position : endState.position;
+    return _sourceFile.span(startState.position, endPosition);
+  }
 
   bool matches(Pattern pattern) {
     if (!super.matches(pattern)) {

@@ -1,3 +1,7 @@
+## 0.1.3
+
+* Add an optional `endState` argument to `SpanScanner.spanFrom`.
+
 ## 0.1.2
 
 * Add `StringScanner.substring`, which returns a substring of the source string.
