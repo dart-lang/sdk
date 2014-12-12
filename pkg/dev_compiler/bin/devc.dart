@@ -1,3 +1,5 @@
+#!/usr/bin/env dart
+
 /// Command line tool to run the checker on a Dart program.
 library ddc.bin.checker;
 
@@ -10,8 +12,7 @@ import 'package:ddc/devc.dart';
 import 'package:ddc/src/checker/dart_sdk.dart' show dartSdkDirectory, mockSdkSources;
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
 
-ArgResults parse(List argv) {
-  var parser = new ArgParser()
+final ArgParser argParser = new ArgParser()
     ..addFlag(
         'sdk-check', abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false)
     ..addOption('log', abbr: 'l', help: 'Logging level', defaultsTo: 'severe')
@@ -24,12 +25,21 @@ ArgResults parse(List argv) {
         'mock-sdk', abbr: 'm', help: 'Use a mock Dart SDK', defaultsTo: false)
     ..addFlag('new-checker', abbr: 'n', help: 'Use the new type checker',
         defaultsTo: false)
-    ..addOption('out', abbr: 'o', help: 'Output directory', defaultsTo: null);
-  return parser.parse(argv);
+    ..addOption('out', abbr: 'o', help: 'Output directory', defaultsTo: null)
+    ..addFlag('help', abbr: 'h', help: 'Display this message');
+
+void _showUsageAndExit() {
+  print('usage: dartdevc [<options>] <file.dart>\n');
+  print('<file.dart> is a single Dart file to process.\n');
+  print('<options> include:\n');
+  print(argParser.usage);
+  exit(1);
 }
 
-void main(List argv) {
-  ArgResults args = parse(argv);
+int main(List<String> argv) {
+  ArgResults args = argParser.parse(argv);
+  if (args['help']) _showUsageAndExit();
+
   bool shouldMockSdk = args['mock-sdk'];
   String dartSdkPath;
   if (!shouldMockSdk) {
@@ -44,7 +54,7 @@ void main(List argv) {
 
   if (args.rest.length == 0) {
     print('Expected filename.');
-    exit(1);
+    _showUsageAndExit();
   }
 
   String levelName = args['log'].toUpperCase();
