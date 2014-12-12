@@ -75,10 +75,12 @@ class DartCompletionManager extends CompletionManager {
   }
 
   @override
-  void computeCache() {
-    waitForAnalysis().then((CompilationUnit unit) {
+  Future<bool> computeCache() {
+    return waitForAnalysis().then((CompilationUnit unit) {
       if (unit != null && !cache.isImportInfoCached(unit)) {
-        cache.computeImportInfo(unit, searchEngine);
+        return cache.computeImportInfo(unit, searchEngine);
+      } else {
+        return new Future.value(false);
       }
     });
   }

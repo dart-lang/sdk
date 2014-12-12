@@ -75,8 +75,11 @@ abstract class CompletionManager {
    * completion request sometime in the future. The default implementation
    * of this method does nothing. Subclasses may override but should not
    * count on this method being called before [computeSuggestions].
+   * Return a future that completes when the cache is computed with a bool
+   * indicating success.
    */
-  void computeCache() {
+  Future<bool> computeCache() {
+    return new Future.value(true);
   }
 
   /**
@@ -109,13 +112,47 @@ class CompletionPerformance {
   final Stopwatch _stopwatch = new Stopwatch();
   final List<OperationPerformance> operations = <OperationPerformance>[];
 
+  Source source;
+  int offset;
+  String contents;
+  int notificationCount = -1;
+  int suggestionCount = -1;
+
   CompletionPerformance() {
     _stopwatch.start();
   }
 
-  void complete() {
+  int get elapsedInMilliseconds =>
+      operations.length > 0 ? operations.last.elapsed.inMilliseconds : 0;
+
+  String get snippet {
+    if (contents == null || offset < 0 || contents.length < offset) {
+      return '???';
+    }
+    int start = offset;
+    while (start > 0) {
+      String ch = contents[start - 1];
+      if (ch == '\r' || ch == '\n') {
+        break;
+      }
+      --start;
+    }
+    int end = offset;
+    while (end < contents.length) {
+      String ch = contents[end];
+      if (ch == '\r' || ch == '\n') {
+        break;
+      }
+      ++end;
+    }
+    String prefix = contents.substring(start, offset);
+    String suffix = contents.substring(offset, end);
+    return '$prefix^$suffix';
+  }
+
+  void complete([String tag = null]) {
     _stopwatch.stop();
-    _logDuration('total time', _stopwatch.elapsed);
+    _logDuration(tag != null ? tag : 'total time', _stopwatch.elapsed);
   }
 
   logElapseTime(String tag, [f() = null]) {

@@ -49,6 +49,24 @@ class CompletionDomainHandler implements RequestHandler {
   CompletionPerformance performance;
 
   /**
+   * A list of code completion peformance measurements for the latest
+   * completion operation up to [performanceListMaxLength] measurements.
+   */
+  final List<CompletionPerformance> performanceList =
+      new List<CompletionPerformance>();
+
+  /**
+   * The maximum number of performance measurements to keep.
+   * This defaults to zero for efficiency, but clients may change this.
+   */
+  int performanceListMaxLength = 0;
+
+  /**
+   * Performance for the last priority change event.
+   */
+  CompletionPerformance priorityChangedPerformance;
+
+  /**
    * Initialize a new request handler for the given [server].
    */
   CompletionDomainHandler(this.server) {
@@ -119,14 +137,23 @@ class CompletionDomainHandler implements RequestHandler {
    */
   void priorityChanged(PriorityChangeEvent event) {
     Source source = event.firstSource;
-    if (source == null) {
-      return;
+    priorityChangedPerformance = new CompletionPerformance();
+    priorityChangedPerformance.source = source;
+    if (source != null) {
+      AnalysisContext context = server.getAnalysisContextForSource(source);
+      if (context != null) {
+        String computeTag = 'computeCache';
+        priorityChangedPerformance.logStartTime(computeTag);
+        CompletionManager manager = completionManagerFor(context, source);
+        manager.computeCache().then((bool success) {
+          priorityChangedPerformance.logElapseTime(computeTag);
+          priorityChangedPerformance.complete(
+              'priorityChanged caching: $success');
+        });
+        return;
+      }
     }
-    AnalysisContext context = server.getAnalysisContextForSource(source);
-    if (context == null) {
-      return;
-    }
-    completionManagerFor(context, source).computeCache();
+    priorityChangedPerformance.complete();
   }
 
   /**
@@ -139,25 +166,58 @@ class CompletionDomainHandler implements RequestHandler {
         new CompletionGetSuggestionsParams.fromRequest(request);
     // schedule completion analysis
     String completionId = (_nextCompletionId++).toString();
-    CompletionManager manager = completionManagerFor(
-        server.getAnalysisContext(params.file),
-        server.getSource(params.file));
+    AnalysisContext context = server.getAnalysisContext(params.file);
+    Source source = server.getSource(params.file);
+    recordRequest(performance, context, source, params.offset);
+    CompletionManager manager = completionManagerFor(context, source);
     CompletionRequest completionRequest =
         new CompletionRequest(params.offset, performance);
+    int notificationCount = 0;
     manager.results(completionRequest).listen((CompletionResult result) {
-      sendCompletionNotification(
-          completionId,
-          result.replacementOffset,
-          result.replacementLength,
-          result.suggestions,
-          result.last);
+      ++notificationCount;
+      performance.logElapseTime("notification $notificationCount", () {
+        sendCompletionNotification(
+            completionId,
+            result.replacementOffset,
+            result.replacementLength,
+            result.suggestions,
+            result.last);
+      });
       if (result.last) {
+        performance.notificationCount = notificationCount;
+        performance.suggestionCount = result.suggestions.length;
         performance.complete();
       }
     });
     // initial response without results
     return new CompletionGetSuggestionsResult(
         completionId).toResponse(request.id);
+  }
+
+  /**
+   * If tracking code completion performance over time, then
+   * record addition information about the request in the performance record.
+   */
+  void recordRequest(CompletionPerformance performance, AnalysisContext context,
+      Source source, int offset) {
+    performance.source = source;
+    performance.offset = offset;
+    if (priorityChangedPerformance != null &&
+        priorityChangedPerformance.source != source) {
+      priorityChangedPerformance = null;
+    }
+    if (performanceListMaxLength == 0 || context == null || source == null) {
+      return;
+    }
+    TimestampedData<String> data = context.getContents(source);
+    if (data == null) {
+      return;
+    }
+    performance.contents = data.data;
+    while (performanceList.length >= performanceListMaxLength) {
+      performanceList.removeAt(0);
+    }
+    performanceList.add(performance);
   }
 
   /**

@@ -444,8 +444,8 @@ class MockCompletionManager implements CompletionManager {
   MockCompletionManager(this.context, this.source, this.searchEngine);
 
   @override
-  void computeCache() {
-    // ignored
+  Future<bool> computeCache() {
+    return new Future.value(true);
   }
 
   @override
