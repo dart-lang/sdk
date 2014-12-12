@@ -1156,7 +1156,7 @@ class Scanner {
     var leadingBreak = '';
     var leadingBlank = false;
     var trailingBlank = false;
-    var end = _scanner.position;
+    var end = _scanner.state;
     while (_scanner.column == indent && !_scanner.isDone) {
       // Check for a document indicator. libyaml doesn't do this, but the spec
       // mandates it. See example 9.5:
@@ -1189,7 +1189,7 @@ class Scanner {
         _scanner.readChar();
       }
       buffer.write(_scanner.substring(startPosition));
-      end = _scanner.position;
+      end = _scanner.state;
 
       // libyaml always reads a line here, but this breaks on block scalars at
       // the end of the document that end without newlines. See example 8.1:
