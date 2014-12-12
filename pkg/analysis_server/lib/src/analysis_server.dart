@@ -1057,9 +1057,11 @@ class ServerContextManager extends ContextManager {
   }
 
   void _computingPackageMap(bool computing) {
-    PubStatus pubStatus = new PubStatus(computing);
-    ServerStatusParams params = new ServerStatusParams(pub: pubStatus);
-    analysisServer.sendNotification(params.toNotification());
+    if (analysisServer.serverServices.contains(ServerService.STATUS)) {
+      PubStatus pubStatus = new PubStatus(computing);
+      ServerStatusParams params = new ServerStatusParams(pub: pubStatus);
+      analysisServer.sendNotification(params.toNotification());
+    }
   }
 
   /**
