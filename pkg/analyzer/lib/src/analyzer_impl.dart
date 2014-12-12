@@ -24,6 +24,7 @@ import 'generated/error.dart';
 import 'generated/java_io.dart';
 import 'generated/sdk_io.dart';
 import 'generated/source_io.dart';
+import 'package:analyzer/file_system/file_system.dart';
 
 DirectoryBasedDartSdk sdk;
 
@@ -151,10 +152,13 @@ class AnalyzerImpl {
             new PubPackageMapProvider(PhysicalResourceProvider.INSTANCE, sdk);
         PackageMapInfo packageMapInfo = pubPackageMapProvider.computePackageMap(
             PhysicalResourceProvider.INSTANCE.getResource('.'));
-        resolvers.add(
-            new PackageMapUriResolver(
-                PhysicalResourceProvider.INSTANCE,
-                packageMapInfo.packageMap));
+        Map<String, List<Folder>> packageMap = packageMapInfo.packageMap;
+        if (packageMap != null) {
+          resolvers.add(
+              new PackageMapUriResolver(
+                  PhysicalResourceProvider.INSTANCE,
+                  packageMap));
+        }
       }
     }
     sourceFactory = new SourceFactory(resolvers);
