@@ -1,4 +1,4 @@
-library ddc.src.emitter.js_emitter;
+library ddc.src.codegen.js_codegen;
 
 import 'dart:async' show Future;
 import 'dart:io';

@@ -15,8 +15,8 @@ import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:logging/logging.dart' as logger;
 
+import 'package:ddc/src/utils.dart';
 import 'dart_sdk.dart';
-import '../utils.dart';
 
 final _log = new logger.Logger('ddc.src.resolver');
 

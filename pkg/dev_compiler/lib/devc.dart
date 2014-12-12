@@ -11,8 +11,8 @@ import 'package:logging/logging.dart' show Level, Logger, LogRecord;
 
 import 'package:ddc/src/checker/checker.dart';
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
-import 'package:ddc/src/emitter/dart_emitter.dart';
-import 'package:ddc/src/emitter/js_emitter.dart';
+import 'package:ddc/src/codegen/dart_codegen.dart';
+import 'package:ddc/src/codegen/js_codegen.dart';
 import 'package:ddc/src/utils.dart';
 
 /// Sets up the type checker logger to print a span that highlights error

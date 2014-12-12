@@ -5,8 +5,8 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
-import '../info.dart';
-import '../utils.dart';
+import 'package:ddc/src/info.dart';
+import 'package:ddc/src/utils.dart';
 
 abstract class TypeRules {
   final TypeProvider provider;

@@ -6,8 +6,8 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:logging/logging.dart' as logger;
 
-import '../info.dart';
-import '../utils.dart';
+import 'package:ddc/src/info.dart';
+import 'package:ddc/src/utils.dart';
 import 'resolver.dart';
 import 'rules.dart';
 
