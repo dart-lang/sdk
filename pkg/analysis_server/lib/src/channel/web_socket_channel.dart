@@ -73,14 +73,14 @@ class WebSocketServerChannel implements ServerCommunicationChannel {
   final WebSocket socket;
 
   /**
-   * The instrumentation server that is to be used by this analysis server.
+   * The instrumentation service that is to be used by this analysis server.
    */
-  final InstrumentationServer instrumentationServer;
+  final InstrumentationService instrumentationService;
 
   /**
    * Initialize a newly create [WebSocket] wrapper to wrap the given [socket].
    */
-  WebSocketServerChannel(this.socket, this.instrumentationServer);
+  WebSocketServerChannel(this.socket, this.instrumentationService);
 
   @override
   void close() {
@@ -102,7 +102,7 @@ class WebSocketServerChannel implements ServerCommunicationChannel {
    */
   void readRequest(Object data, void onRequest(Request request)) {
     if (data is String) {
-      instrumentationServer.log(data);
+      instrumentationService.logRequest(data);
       // Parse the string as a JSON descriptor and process the resulting
       // structure as a request.
       ServerCommunicationChannel.FromJson.start();
@@ -127,7 +127,7 @@ class WebSocketServerChannel implements ServerCommunicationChannel {
     String jsonEncoding = JSON.encode(notification.toJson());
     ServerCommunicationChannel.ToJson.stop();
     socket.add(jsonEncoding);
-    instrumentationServer.log(jsonEncoding);
+    instrumentationService.logNotification(jsonEncoding);
   }
 
   @override
@@ -136,6 +136,6 @@ class WebSocketServerChannel implements ServerCommunicationChannel {
     String jsonEncoding = JSON.encode(response.toJson());
     ServerCommunicationChannel.ToJson.stop();
     socket.add(jsonEncoding);
-    instrumentationServer.log(jsonEncoding);
+    instrumentationService.logResponse(jsonEncoding);
   }
 }

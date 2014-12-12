@@ -88,9 +88,9 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
   final IOSink _output;
 
   /**
-   * The instrumentation server that is to be used by this analysis server.
+   * The instrumentation service that is to be used by this analysis server.
    */
-  final InstrumentationServer instrumentationServer;
+  final InstrumentationService instrumentationService;
 
   /**
    * Completer that will be signalled when the input stream is closed.
@@ -113,7 +113,8 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
    */
   bool _closeRequested = false;
 
-  ByteStreamServerChannel(this.input, this._output, this.instrumentationServer);
+  ByteStreamServerChannel(this.input, this._output,
+      this.instrumentationService);
 
   /**
    * Future that will be completed when the input stream is closed.
@@ -161,7 +162,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     String jsonEncoding = JSON.encode(notification.toJson());
     ServerCommunicationChannel.ToJson.stop();
     _outputLine(jsonEncoding);
-    instrumentationServer.log(jsonEncoding);
+    instrumentationService.logNotification(jsonEncoding);
   }
 
   @override
@@ -175,7 +176,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     String jsonEncoding = JSON.encode(response.toJson());
     ServerCommunicationChannel.ToJson.stop();
     _outputLine(jsonEncoding);
-    instrumentationServer.log(jsonEncoding);
+    instrumentationService.logResponse(jsonEncoding);
   }
 
   /**
@@ -233,7 +234,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     if (_closed.isCompleted) {
       return;
     }
-    instrumentationServer.log(data);
+    instrumentationService.logRequest(data);
     // Parse the string as a JSON descriptor and process the resulting
     // structure as a request.
     ServerCommunicationChannel.FromJson.start();

@@ -208,7 +208,7 @@ class AnalysisServerTestHelper {
         null,
         new AnalysisServerOptions(),
         new MockSdk(),
-        new NullInstrumentationServer(),
+        InstrumentationService.NULL_SERVICE,
         rethrowExceptions: rethrowExceptions);
   }
 }

@@ -237,12 +237,11 @@ class Driver {
       defaultSdk = DirectoryBasedDartSdk.defaultSdk;
     }
 
-    socketServer = new SocketServer(
-        analysisServerOptions,
-        defaultSdk,
-        instrumentationServer == null ?
-            new NullInstrumentationServer() :
-            instrumentationServer);
+    InstrumentationService service =
+        new InstrumentationService(instrumentationServer);
+//    service.logVersion(defaultSdk.sdkVersion);
+
+    socketServer = new SocketServer(analysisServerOptions, defaultSdk, service);
     httpServer = new HttpAnalysisServer(socketServer);
     stdioServer = new StdioAnalysisServer(socketServer);
 

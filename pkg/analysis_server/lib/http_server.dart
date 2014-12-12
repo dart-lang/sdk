@@ -108,7 +108,7 @@ class HttpAnalysisServer {
    */
   void _handleWebSocket(WebSocket socket) {
     socketServer.createAnalysisServer(
-        new WebSocketServerChannel(socket, socketServer.instrumentationServer));
+        new WebSocketServerChannel(socket, socketServer.instrumentationService));
   }
 
   /**

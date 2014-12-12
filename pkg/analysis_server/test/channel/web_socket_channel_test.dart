@@ -140,7 +140,7 @@ class WebSocketChannelTest {
     socket = new MockSocket.pair();
     client = new WebSocketClientChannel(socket);
     server =
-        new WebSocketServerChannel(socket.twin, new NullInstrumentationServer());
+        new WebSocketServerChannel(socket.twin, InstrumentationService.NULL_SERVICE);
 
     requestsReceived = [];
     responsesReceived = [];

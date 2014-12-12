@@ -36,7 +36,7 @@ class SocketServerTest {
     SocketServer server = new SocketServer(
         new AnalysisServerOptions(),
         DirectoryBasedDartSdk.defaultSdk,
-        new NullInstrumentationServer());
+        InstrumentationService.NULL_SERVICE);
     MockServerChannel channel1 = new MockServerChannel();
     MockServerChannel channel2 = new MockServerChannel();
     server.createAnalysisServer(channel1);
@@ -64,7 +64,7 @@ class SocketServerTest {
     SocketServer server = new SocketServer(
         new AnalysisServerOptions(),
         DirectoryBasedDartSdk.defaultSdk,
-        new NullInstrumentationServer());
+        InstrumentationService.NULL_SERVICE);
     MockServerChannel channel = new MockServerChannel();
     server.createAnalysisServer(channel);
     channel.expectMsgCount(notificationCount: 1);
@@ -81,7 +81,7 @@ class SocketServerTest {
     SocketServer server = new SocketServer(
         new AnalysisServerOptions(),
         DirectoryBasedDartSdk.defaultSdk,
-        new NullInstrumentationServer());
+        InstrumentationService.NULL_SERVICE);
     MockServerChannel channel = new MockServerChannel();
     server.createAnalysisServer(channel);
     channel.expectMsgCount(notificationCount: 1);
@@ -104,7 +104,7 @@ class SocketServerTest {
     SocketServer server = new SocketServer(
         new AnalysisServerOptions(),
         DirectoryBasedDartSdk.defaultSdk,
-        new NullInstrumentationServer());
+        InstrumentationService.NULL_SERVICE);
     MockServerChannel channel = new MockServerChannel();
     server.createAnalysisServer(channel);
     _MockRequestHandler handler = new _MockRequestHandler(true);

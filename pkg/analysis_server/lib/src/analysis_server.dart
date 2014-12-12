@@ -114,9 +114,9 @@ class AnalysisServer {
   final DartSdk defaultSdk;
 
   /**
-   * The instrumentation server that is to be used by this analysis server.
+   * The instrumentation service that is to be used by this analysis server.
    */
-  final InstrumentationServer instrumentationServer;
+  final InstrumentationService instrumentationService;
 
   /**
    * A table mapping [Folder]s to the [AnalysisContext]s associated with them.
@@ -191,7 +191,7 @@ class AnalysisServer {
   AnalysisServer(this.channel, this.resourceProvider,
       PackageMapProvider packageMapProvider, this.index,
       AnalysisServerOptions analysisServerOptions, this.defaultSdk,
-      this.instrumentationServer, {this.rethrowExceptions: true}) {
+      this.instrumentationService, {this.rethrowExceptions: true}) {
     searchEngine = createSearchEngine(index);
     operationQueue = new ServerOperationQueue(this);
     contextDirectoryManager =
@@ -824,7 +824,7 @@ class AnalysisServer {
     // that the shutdown response can be sent and logged.
     new Future(() {
       channel.close();
-      instrumentationServer.shutdown();
+      instrumentationService.shutdown();
     });
   }
 

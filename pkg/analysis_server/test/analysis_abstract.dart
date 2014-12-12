@@ -91,7 +91,7 @@ class AbstractAnalysisTest {
         index,
         new AnalysisServerOptions(),
         new MockSdk(),
-        const NullInstrumentationServer());
+        InstrumentationService.NULL_SERVICE);
   }
 
   Index createIndex() {

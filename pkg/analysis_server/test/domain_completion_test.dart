@@ -51,7 +51,7 @@ class CompletionManagerTest extends AbstractAnalysisTest {
         index,
         new AnalysisServerOptions(),
         new MockSdk(),
-        new NullInstrumentationServer());
+        InstrumentationService.NULL_SERVICE);
   }
 
   void sendRequest(String path) {
@@ -521,7 +521,7 @@ class Test_AnalysisServer extends AnalysisServer {
   Test_AnalysisServer(ServerCommunicationChannel channel,
       ResourceProvider resourceProvider, PackageMapProvider packageMapProvider,
       Index index, AnalysisServerOptions analysisServerOptions, DartSdk defaultSdk,
-      InstrumentationServer instrumentationServer)
+      InstrumentationService instrumentationService)
       : super(
           channel,
           resourceProvider,
@@ -529,7 +529,7 @@ class Test_AnalysisServer extends AnalysisServer {
           index,
           analysisServerOptions,
           defaultSdk,
-          instrumentationServer);
+          instrumentationService);
 
   AnalysisContext getAnalysisContext(String path) {
     return mockContext;

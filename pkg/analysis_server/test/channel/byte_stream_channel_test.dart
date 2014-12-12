@@ -244,7 +244,7 @@ class ByteStreamServerChannelTest {
     channel = new ByteStreamServerChannel(
         inputStream.stream,
         outputSink,
-        new NullInstrumentationServer());
+        InstrumentationService.NULL_SERVICE);
     StreamController<Request> requestStreamController =
         new StreamController<Request>();
     requestStream = requestStreamController.stream;
