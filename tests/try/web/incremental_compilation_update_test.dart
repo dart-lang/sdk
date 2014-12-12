@@ -1397,6 +1397,264 @@ main() {
 """,
             const <String>['v2']),
     ],
+
+    // Test that an instance field can be added to a compound declaration.
+    // TODO(ahe): Test doesn't pass.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class C {
+  int x;
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    print('[instance] is null');
+    instance = new C();
+    instance.x = 'v1';
+  } else {
+    instance.y = 'v2';
+  }
+  try {
+    print(instance.x);
+  } catch (e) {
+    print('[instance.x] threw');
+  }
+  try {
+    print(instance.y);
+  } catch (e) {
+    print('[instance.y] threw');
+  }
+}
+""",
+            const <String>['[instance] is null', 'v1', '[instance.y] threw']),
+/*
+        const ProgramResult(
+            r"""
+class C {
+  int x, y;
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    print('[instance] is null');
+    instance = new C();
+    instance.x = 'v1';
+  } else {
+    instance.y = 'v2';
+  }
+  try {
+    print(instance.x);
+  } catch (e) {
+    print('[instance.x] threw');
+  }
+  try {
+    print(instance.y);
+  } catch (e) {
+    print('[instance.y] threw');
+  }
+}
+""",
+            const <String>['v1', 'v2']),
+*/
+    ],
+
+    // Test that an instance field can be removed from a compound declaration.
+    // TODO(ahe): Test doesn't pass.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class C {
+  int x, y;
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    print('[instance] is null');
+    instance = new C();
+    instance.x = 'v1';
+    instance.y = 'v2';
+  }
+  try {
+    print(instance.x);
+  } catch (e) {
+    print('[instance.x] threw');
+  }
+  try {
+    print(instance.y);
+  } catch (e) {
+    print('[instance.y] threw');
+  }
+}
+""",
+            const <String>['[instance] is null', 'v1', 'v2']),
+/*
+        const ProgramResult(
+            r"""
+class C {
+  int x;
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    print('[instance] is null');
+    instance = new C();
+    instance.x = 'v1';
+    instance.y = 'v2';
+  }
+  try {
+    print(instance.x);
+  } catch (e) {
+    print('[instance.x] threw');
+  }
+  try {
+    print(instance.y);
+  } catch (e) {
+    print('[instance.y] threw');
+  }
+}
+""",
+            const <String>['v1', '[instance.y] threw']),
+*/
+    ],
+
+    // Test that a static field can be made an instance field.
+    // TODO(ahe): Test doesn't pass.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class C {
+  static int x;
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    print('[instance] is null');
+    instance = new C();
+    C.x = 'v1';
+  } else {
+    instance.x = 'v2';
+  }
+  try {
+    print(C.x);
+  } catch (e) {
+    print('[C.x] threw');
+  }
+  try {
+    print(instance.x);
+  } catch (e) {
+    print('[instance.x] threw');
+  }
+}
+""",
+            const <String>['[instance] is null', 'v1', '[instance.x] threw']),
+/*
+        const ProgramResult(
+            r"""
+class C {
+  int x;
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    print('[instance] is null');
+    instance = new C();
+    C.x = 'v1';
+  } else {
+    instance.x = 'v2';
+  }
+  try {
+    print(C.x);
+  } catch (e) {
+    print('[C.x] threw');
+  }
+  try {
+    print(instance.x);
+  } catch (e) {
+    print('[instance.x] threw');
+  }
+}
+""",
+            const <String>['[C.x] threw', 'v2']),
+*/
+    ],
+
+    // Test that instance field can be made static.
+    // TODO(ahe): Test doesn't pass.
+    const <ProgramResult>[
+        const ProgramResult(
+            r"""
+class C {
+  int x;
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    print('[instance] is null');
+    instance = new C();
+    instance.x = 'v1';
+  } else {
+    C.x = 'v2';
+  }
+  try {
+    print(C.x);
+  } catch (e) {
+    print('[C.x] threw');
+  }
+  try {
+    print(instance.x);
+  } catch (e) {
+    print('[instance.x] threw');
+  }
+}
+""",
+            const <String>['[instance] is null', '[C.x] threw', 'v1']),
+/*
+        const ProgramResult(
+            r"""
+class C {
+  static int x;
+}
+
+var instance;
+
+main() {
+  if (instance == null) {
+    print('[instance] is null');
+    instance = new C();
+    instance.x = 'v1';
+  } else {
+    C.x = 'v2';
+  }
+  try {
+    print(C.x);
+  } catch (e) {
+    print('[C.x] threw');
+  }
+  try {
+    print(instance.x);
+  } catch (e) {
+    print('[instance.x] threw');
+  }
+}
+""",
+            const <String>['v2', '[instance.x] threw']),
+*/
+    ],
 ];
 
 void main() {
