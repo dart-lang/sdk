@@ -3710,6 +3710,15 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
   DECLARE_INSTRUCTION(LoadCodeUnits)
   virtual CompileType ComputeType() const;
 
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    if (idx == 0) {
+      // The string may be tagged or untagged (for external strings).
+      return kNoRepresentation;
+    }
+    ASSERT(idx == 1);
+    return kTagged;
+  }
+
   bool IsExternal() const {
     return array()->definition()->representation() == kUntagged;
   }
