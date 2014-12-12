@@ -265,6 +265,9 @@ class CompletionDomainHandler implements RequestHandler {
       _sourcesChangedSubscription.cancel();
       _sourcesChangedSubscription = null;
     }
-    _manager = null;
+    if (_manager != null) {
+      _manager.dispose();
+      _manager = null;
+    }
   }
 }

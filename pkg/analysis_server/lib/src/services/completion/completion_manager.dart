@@ -92,6 +92,13 @@ abstract class CompletionManager {
   void computeSuggestions(CompletionRequest request);
 
   /**
+   * Discard any pending operations.
+   * Subclasses may override but should call super.dispose
+   */
+  void dispose() {
+  }
+
+  /**
    * Generate a stream of code completion results.
    */
   Stream<CompletionResult> results(CompletionRequest request) {

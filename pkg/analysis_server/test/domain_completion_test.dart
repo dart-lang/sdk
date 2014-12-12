@@ -85,7 +85,8 @@ class CompletionManagerTest extends AbstractAnalysisTest {
     expect(completionDomain.manager, isNull);
     sendRequest(testFile);
     expect(completionDomain.manager, isNotNull);
-    CompletionManager expectedManager = completionDomain.manager;
+    MockCompletionManager expectedManager = completionDomain.manager;
+    expect(expectedManager.disposeCallCount, 0);
     expect(completionDomain.mockContext.mockStream.listenCount, 1);
     expect(completionDomain.mockContext.mockStream.cancelCount, 0);
     return pumpEventQueue().then((_) {
@@ -94,6 +95,7 @@ class CompletionManagerTest extends AbstractAnalysisTest {
       sendRequest(testFile2);
       expect(completionDomain.manager, isNotNull);
       expect(completionDomain.manager, isNot(expectedManager));
+      expect(expectedManager.disposeCallCount, 1);
       expectedManager = completionDomain.manager;
       expect(completionDomain.mockContext.mockStream.listenCount, 2);
       expect(completionDomain.mockContext.mockStream.cancelCount, 1);
@@ -440,6 +442,7 @@ class MockCompletionManager implements CompletionManager {
   final SearchEngine searchEngine;
   StreamController<CompletionResult> controller;
   int computeCallCount = 0;
+  int disposeCallCount = 0;
 
   MockCompletionManager(this.context, this.source, this.searchEngine);
 
@@ -453,6 +456,11 @@ class MockCompletionManager implements CompletionManager {
     ++computeCallCount;
     CompletionResult result = new CompletionResult(0, 0, [], true);
     controller.add(result);
+  }
+
+  @override
+  void dispose() {
+    ++disposeCallCount;
   }
 
   @override
