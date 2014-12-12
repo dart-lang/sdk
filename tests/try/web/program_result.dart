@@ -9,7 +9,10 @@ class ProgramResult {
 
   final List<String> messages;
 
-  const ProgramResult(this.code, this.messages);
+  final bool compileUpdatesShouldThrow;
+
+  const ProgramResult(
+      this.code, this.messages, {this.compileUpdatesShouldThrow: false});
 
   List<String> messagesWith(String extra) {
     return new List<String>.from(messages)..add(extra);

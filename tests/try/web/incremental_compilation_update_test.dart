@@ -1399,7 +1399,6 @@ main() {
     ],
 
     // Test that an instance field can be added to a compound declaration.
-    // TODO(ahe): Test doesn't pass.
     const <ProgramResult>[
         const ProgramResult(
             r"""
@@ -1430,7 +1429,7 @@ main() {
 }
 """,
             const <String>['[instance] is null', 'v1', '[instance.y] threw']),
-/*
+
         const ProgramResult(
             r"""
 class C {
@@ -1459,12 +1458,13 @@ main() {
   }
 }
 """,
-            const <String>['v1', 'v2']),
-*/
+            const <String>['v1', 'v2'],
+            // TODO(ahe): Shouldn't throw.
+            compileUpdatesShouldThrow: true),
+
     ],
 
     // Test that an instance field can be removed from a compound declaration.
-    // TODO(ahe): Test doesn't pass.
     const <ProgramResult>[
         const ProgramResult(
             r"""
@@ -1494,7 +1494,7 @@ main() {
 }
 """,
             const <String>['[instance] is null', 'v1', 'v2']),
-/*
+
         const ProgramResult(
             r"""
 class C {
@@ -1522,8 +1522,9 @@ main() {
   }
 }
 """,
-            const <String>['v1', '[instance.y] threw']),
-*/
+            const <String>['v1', '[instance.y] threw'],
+            // TODO(ahe): Shouldn't throw.
+            compileUpdatesShouldThrow: true),
     ],
 
     // Test that a static field can be made an instance field.
@@ -1558,7 +1559,7 @@ main() {
 }
 """,
             const <String>['[instance] is null', 'v1', '[instance.x] threw']),
-/*
+
         const ProgramResult(
             r"""
 class C {
@@ -1587,12 +1588,12 @@ main() {
   }
 }
 """,
-            const <String>['[C.x] threw', 'v2']),
-*/
+            const <String>['[C.x] threw', 'v2'],
+            // TODO(ahe): Shouldn't throw.
+            compileUpdatesShouldThrow: true),
     ],
 
     // Test that instance field can be made static.
-    // TODO(ahe): Test doesn't pass.
     const <ProgramResult>[
         const ProgramResult(
             r"""
@@ -1623,7 +1624,7 @@ main() {
 }
 """,
             const <String>['[instance] is null', '[C.x] threw', 'v1']),
-/*
+
         const ProgramResult(
             r"""
 class C {
@@ -1652,8 +1653,9 @@ main() {
   }
 }
 """,
-            const <String>['v2', '[instance.x] threw']),
-*/
+            const <String>['v2', '[instance.x] threw'],
+            // TODO(ahe): Shouldn't throw.
+            compileUpdatesShouldThrow: true),
     ],
 
     // Test compound constants.
@@ -1763,10 +1765,13 @@ void main() {
   int skip = 0;
   if (query != null && query.length > 1) {
     query = query.substring(1);
-    String skipParam = Uri.splitQueryString(window.location.search)['skip'];
-    if (skipParam != null) {
-      skip = int.parse(skipParam);
+    String skipParameter = Uri.splitQueryString(window.location.search)['skip'];
+    if (skipParameter != null) {
+      skip = int.parse(skipParameter);
     }
+    String verboseParameter =
+        Uri.splitQueryString(window.location.search)['verbose'];
+    verboseStatus = verboseParameter != null;
   }
   testCount += skip;
 
@@ -1777,6 +1782,8 @@ void main() {
 SpanElement summary;
 
 int testCount = 1;
+
+bool verboseStatus = false;
 
 void updateSummary(_) {
   summary.text = " (${testCount - 1}/${tests.length})";
@@ -1825,7 +1832,24 @@ Future compileAndRun(List<ProgramResult> programs) {
           inputProvider.cachedSources[uri] = new Future.value(program.code);
           Future future = test.incrementalCompiler.compileUpdates(
               {test.scriptUri: uri}, logVerbose: logger, logTime: logger);
+          future = future.catchError((error, trace) {
+            String statusMessage;
+            Future result;
+            if (program.compileUpdatesShouldThrow) {
+              statusMessage = "Expected error in compileUpdates.";
+              result = null;
+            } else {
+              statusMessage = "Unexpected error in compileUpdates.";
+              result = new Future.error(error, trace);
+            }
+            status.append(new HeadingElement.h3()..appendText(statusMessage));
+            return result;
+          });
           return future.then((String update) {
+            if (program.compileUpdatesShouldThrow) {
+              Expect.isNull(update);
+              return null;
+            }
             print({'update': update});
             iframe.contentWindow.postMessage(['apply-update', update], '*');
 
@@ -1845,7 +1869,7 @@ Future compileAndRun(List<ProgramResult> programs) {
 
     // Remove the iframe and status to work around a bug in test.dart
     // (https://code.google.com/p/dart/issues/detail?id=21691).
-    status.remove();
+    if (!verboseStatus) status.remove();
     iframe.remove();
   });
 }
@@ -1917,7 +1941,7 @@ DivElement numberedLines(String code) {
 
 StyleElement lineNumberStyle() {
   StyleElement style = new StyleElement()..appendText('''
-h2 {
+h2, h3 {
   color: black;
 }
 
