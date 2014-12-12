@@ -18326,9 +18326,10 @@ RawOneByteString* ExternalOneByteString::EscapeSpecialCharacters(
 
 RawOneByteString* OneByteString::New(intptr_t len,
                                      Heap::Space space) {
-  ASSERT(Isolate::Current() == Dart::vm_isolate() ||
-         Isolate::Current()->object_store()->one_byte_string_class() !=
-         Class::null());
+  ASSERT((Isolate::Current() == Dart::vm_isolate()) ||
+         ((Isolate::Current()->object_store() != NULL) &&
+          (Isolate::Current()->object_store()->one_byte_string_class() !=
+           Class::null())));
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in OneByteString::New: invalid len %" Pd "\n", len);

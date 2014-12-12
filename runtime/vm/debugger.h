@@ -334,6 +334,7 @@ class Debugger {
   ~Debugger();
 
   void Initialize(Isolate* isolate);
+  void NotifyIsolateCreated();
   void Shutdown();
 
   void NotifyCompilation(const Function& func);

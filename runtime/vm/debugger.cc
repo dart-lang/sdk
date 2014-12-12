@@ -2240,7 +2240,10 @@ void Debugger::Initialize(Isolate* isolate) {
   // debugger wire protocol messages.
   isolate_id_ = isolate->main_port();
   initialized_ = true;
+}
 
+
+void Debugger::NotifyIsolateCreated() {
   // Signal isolate creation event.
   SignalIsolateEvent(DebuggerEvent::kIsolateCreated);
 }
