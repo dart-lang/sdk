@@ -147,7 +147,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
     return result;
   }
 
-  dynamic firstWhere(bool test(E value), { Object orElse() }) {
+  E firstWhere(bool test(E value), { E orElse() }) {
     for (E element in this) {
       if (test(element)) return element;
     }
@@ -155,7 +155,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
     throw IterableElementError.noElement();
   }
 
-  dynamic lastWhere(bool test(E value), { Object orElse() }) {
+  E lastWhere(bool test(E value), { E orElse() }) {
     E result = null;
     bool foundMatching = false;
     for (E element in this) {
@@ -343,7 +343,7 @@ abstract class IterableBase<E> implements Iterable<E> {
     return result;
   }
 
-  dynamic firstWhere(bool test(E value), { Object orElse() }) {
+  E firstWhere(bool test(E value), { E orElse() }) {
     for (E element in this) {
       if (test(element)) return element;
     }
@@ -351,7 +351,7 @@ abstract class IterableBase<E> implements Iterable<E> {
     throw IterableElementError.noElement();
   }
 
-  dynamic lastWhere(bool test(E value), { Object orElse() }) {
+  E lastWhere(bool test(E value), { E orElse() }) {
     E result = null;
     bool foundMatching = false;
     for (E element in this) {
