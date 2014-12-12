@@ -1024,6 +1024,16 @@ class ServerContextManager extends ContextManager {
   }
 
   @override
+  void beginComputePackageMap() {
+    _computingPackageMap(true);
+  }
+
+  @override
+  void endComputePackageMap() {
+    _computingPackageMap(false);
+  }
+
+  @override
   void removeContext(Folder folder) {
     AnalysisContext context = analysisServer.folderMap.remove(folder);
     if (analysisServer.index != null) {
@@ -1044,6 +1054,12 @@ class ServerContextManager extends ContextManager {
     _onContextsChangedController.add(
         new ContextsChangedEvent(changed: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
+  }
+
+  void _computingPackageMap(bool computing) {
+    PubStatus pubStatus = new PubStatus(computing);
+    ServerStatusParams params = new ServerStatusParams(pub: pubStatus);
+    analysisServer.sendNotification(params.toNotification());
   }
 
   /**

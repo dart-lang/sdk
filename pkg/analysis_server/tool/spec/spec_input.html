@@ -248,6 +248,13 @@
               analyzed.
             </p>
           </field>
+          <field name="pub" optional="true">
+            <ref>PubStatus</ref>
+            <p>
+              The current status of pub execution, indicating whether we are
+              currently running pub.
+            </p>
+          </field>
         </params>
       </notification>
     </domain>
@@ -2694,6 +2701,20 @@
             <ref>int</ref>
             <p>
               The offset of the position.
+            </p>
+          </field>
+        </object>
+      </type>
+      <type name="PubStatus">
+        <p>
+          An indication of the current state of pub execution.
+        </p>
+        <object>
+          <field name="isListingPackageDirs">
+            <ref>bool</ref>
+            <p>
+              True if the server is currently running pub to produce a list of
+              package directories.
             </p>
           </field>
         </object>

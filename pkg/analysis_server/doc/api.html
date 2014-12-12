@@ -295,6 +295,7 @@ dt.typeDefinition {
   "event": "server.status"
   "params": {
     "<b>analysis</b>": <span style="color:#999999">optional</span> <a href="#type_AnalysisStatus">AnalysisStatus</a>
+    "<b>pub</b>": <span style="color:#999999">optional</span> <a href="#type_PubStatus">PubStatus</a>
   }
 }</pre></div>
         <p>
@@ -315,6 +316,12 @@ dt.typeDefinition {
               The current status of analysis, including whether
               analysis is being performed and if so what is being
               analyzed.
+            </p>
+          </dd><dt class="field"><b><i>pub ( <span style="color:#999999">optional</span> <a href="#type_PubStatus">PubStatus</a> )</i></b></dt><dd>
+            
+            <p>
+              The current status of pub execution, indicating whether we are
+              currently running pub.
             </p>
           </dd></dl></dd></dl>
     <h2 class="domain"><a name="domain_analysis">Domain: analysis</a></h2>
@@ -1934,6 +1941,7 @@ dt.typeDefinition {
       
       
       
+      
     <dl><dt class="typeDefinition"><a name="type_AddContentOverlay">AddContentOverlay: object</a></dt><dd>
         <p>
           A directive to begin overlaying the contents of a file.  The
@@ -2752,6 +2760,17 @@ dt.typeDefinition {
             
             <p>
               The offset of the position.
+            </p>
+          </dd></dl></dd><dt class="typeDefinition"><a name="type_PubStatus">PubStatus: object</a></dt><dd>
+        <p>
+          An indication of the current state of pub execution.
+        </p>
+        
+      <dl><dt class="field"><b><i>isListingPackageDirs ( bool )</i></b></dt><dd>
+            
+            <p>
+              True if the server is currently running pub to produce a list of
+              package directories.
             </p>
           </dd></dl></dd><dt class="typeDefinition"><a name="type_RefactoringKind">RefactoringKind: String</a></dt><dd>
         <p>
