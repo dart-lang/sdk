@@ -1156,6 +1156,7 @@ class Scanner {
     var leadingBreak = '';
     var leadingBlank = false;
     var trailingBlank = false;
+    var end = _scanner.position;
     while (_scanner.column == indent && !_scanner.isDone) {
       // Check for a document indicator. libyaml doesn't do this, but the spec
       // mandates it. See example 9.5:
@@ -1188,6 +1189,7 @@ class Scanner {
         _scanner.readChar();
       }
       buffer.write(_scanner.substring(startPosition));
+      end = _scanner.position;
 
       // libyaml always reads a line here, but this breaks on block scalars at
       // the end of the document that end without newlines. See example 8.1:
@@ -1204,7 +1206,7 @@ class Scanner {
     if (chomping != _Chomping.STRIP) buffer.write(leadingBreak);
     if (chomping == _Chomping.KEEP) buffer.write(trailingBreaks);
 
-    return new ScalarToken(_scanner.spanFrom(start), buffer.toString(),
+    return new ScalarToken(_scanner.spanFrom(start, end), buffer.toString(),
         literal ? ScalarStyle.LITERAL : ScalarStyle.FOLDED);
   }
 
@@ -1430,6 +1432,7 @@ class Scanner {
   /// Scans a plain scalar.
   Token _scanPlainScalar() {
     var start = _scanner.state;
+    var end = _scanner.state;
     var buffer = new StringBuffer();
     var leadingBreak = '';
     var trailingBreaks = '';
@@ -1466,6 +1469,7 @@ class Scanner {
         _scanner.readChar();
       }
       buffer.write(_scanner.substring(startPosition));
+      end = _scanner.state;
 
       // Is it the end?
       if (!_isBlank && !_isBreak) break;
@@ -1501,7 +1505,7 @@ class Scanner {
     // Allow a simple key after a plain scalar with leading blanks.
     if (leadingBreak.isNotEmpty) _simpleKeyAllowed = true;
 
-    return new ScalarToken(_scanner.spanFrom(start), buffer.toString(),
+    return new ScalarToken(_scanner.spanFrom(start, end), buffer.toString(),
         ScalarStyle.PLAIN);
   }
 

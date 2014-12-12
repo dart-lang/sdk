@@ -1,3 +1,7 @@
+## 2.1.1
+
+* Properly scope `SourceSpan`s for scalar values surrounded by whitespace.
+
 ## 2.1.0
 
 * Rewrite the parser for a 10x speed improvement.

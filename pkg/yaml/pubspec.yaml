@@ -1,12 +1,12 @@
 name: yaml
-version: 2.1.0
+version: 2.1.1
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
 description: A parser for YAML.
 dependencies:
   collection: ">=1.1.0 <2.0.0"
   path: ">=1.2.0 <2.0.0"
-  string_scanner: ">=0.1.2 <0.2.0"
+  string_scanner: ">=0.1.3 <0.2.0"
   source_span: ">=1.0.0 <2.0.0"
 dev_dependencies:
   unittest: ">=0.9.0 <0.12.0"
