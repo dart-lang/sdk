@@ -63,12 +63,6 @@ class Driver {
   static const String CLIENT_ID = "client-id";
 
   /**
-   * The name of the option used to enable incremental resolution.
-   */
-  static const String ENABLE_INCREMENTAL_RESOLUTION =
-      "enable-incremental-resolution";
-
-  /**
    * The name of the option used to enable incremental resolution of API
    * changes.
    */
@@ -134,11 +128,6 @@ class Driver {
     parser.addOption(
         CLIENT_ID,
         help: "an identifier used to identify the client");
-    parser.addFlag(
-        ENABLE_INCREMENTAL_RESOLUTION,
-        help: "enable using incremental resolution",
-        defaultsTo: false,
-        negatable: false);
     parser.addFlag(
         ENABLE_INCREMENTAL_RESOLUTION_API,
         help: "enable using incremental resolution for API changes",
@@ -213,8 +202,6 @@ class Driver {
     }
 
     AnalysisServerOptions analysisServerOptions = new AnalysisServerOptions();
-    analysisServerOptions.enableIncrementalResolution =
-        results[ENABLE_INCREMENTAL_RESOLUTION];
     analysisServerOptions.enableIncrementalResolutionApi =
         results[ENABLE_INCREMENTAL_RESOLUTION_API];
 

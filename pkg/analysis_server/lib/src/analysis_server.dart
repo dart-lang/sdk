@@ -196,8 +196,7 @@ class AnalysisServer {
     operationQueue = new ServerOperationQueue(this);
     contextDirectoryManager =
         new ServerContextManager(this, resourceProvider, packageMapProvider);
-    contextDirectoryManager.defaultOptions.incremental =
-        analysisServerOptions.enableIncrementalResolution;
+    contextDirectoryManager.defaultOptions.incremental = true;
     contextDirectoryManager.defaultOptions.incrementalApi =
         analysisServerOptions.enableIncrementalResolutionApi;
     AnalysisEngine.instance.logger = new AnalysisLogger();
@@ -936,7 +935,6 @@ class AnalysisServer {
 
 
 class AnalysisServerOptions {
-  bool enableIncrementalResolution = false;
   bool enableIncrementalResolutionApi = false;
 }
 
