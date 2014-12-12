@@ -1389,10 +1389,11 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
 }
 
 
-void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
-                                                    const Object& obj,
-                                                    bool needs_number_check,
-                                                    intptr_t token_pos) {
+Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
+    Register reg,
+    const Object& obj,
+    bool needs_number_check,
+    intptr_t token_pos) {
   __ TraceSimMsg("EqualityRegConstCompare");
   if (needs_number_check) {
     StubCode* stub_code = isolate()->stub_code();
@@ -1414,18 +1415,21 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
                            token_pos);
     }
     __ TraceSimMsg("EqualityRegConstCompare return");
+    // Stub returns result in CMPRES1 (if it is 0, then reg and obj are
+    // equal) and always sets CMPRES2 to 0.
     __ lw(reg, Address(SP, 1 * kWordSize));  // Restore 'reg'.
     __ addiu(SP, SP, Immediate(2 * kWordSize));  // Discard constant.
-    return;
+  } else {
+    __ CompareObject(CMPRES1, CMPRES2, reg, obj);
   }
-  __ CompareObject(CMPRES1, CMPRES2, reg, obj);
+  return EQ;
 }
 
 
-void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
-                                                  Register right,
-                                                  bool needs_number_check,
-                                                  intptr_t token_pos) {
+Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
+                                                       Register right,
+                                                       bool needs_number_check,
+                                                       intptr_t token_pos) {
   __ TraceSimMsg("EqualityRegRegCompare");
   __ Comment("EqualityRegRegCompare");
   if (needs_number_check) {
@@ -1453,8 +1457,8 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     }
 #endif
     __ TraceSimMsg("EqualityRegRegCompare return");
-    // Stub returns result in CMPRES1. If it is 0, then left and right are
-    // equal.
+    // Stub returns result in CMPRES1 (if it is 0, then left and right are
+    // equal) and always sets CMPRES2 to 0.
     __ lw(right, Address(SP, 0 * kWordSize));
     __ lw(left, Address(SP, 1 * kWordSize));
     __ addiu(SP, SP, Immediate(2 * kWordSize));
@@ -1462,6 +1466,7 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     __ slt(CMPRES1, left, right);
     __ slt(CMPRES2, right, left);
   }
+  return EQ;
 }
 
 
@@ -1475,7 +1480,7 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
 
   __ TraceSimMsg("SaveLiveRegisters");
   // TODO(vegorov): consider saving only caller save (volatile) registers.
-  const intptr_t fpu_regs_count= locs->live_registers()->FpuRegisterCount();
+  const intptr_t fpu_regs_count = locs->live_registers()->FpuRegisterCount();
   if (fpu_regs_count > 0) {
     __ AddImmediate(SP, -(fpu_regs_count * kFpuRegisterSize));
     // Store fpu registers with the lowest register number at the lowest

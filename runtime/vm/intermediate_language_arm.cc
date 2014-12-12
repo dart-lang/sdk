@@ -6831,23 +6831,27 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   Location left = locs()->in(0);
   Location right = locs()->in(1);
   ASSERT(!left.IsConstant() || !right.IsConstant());
+  Condition true_condition;
   if (left.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(right.reg(),
-                                          left.constant(),
-                                          needs_number_check(),
-                                          token_pos());
+    true_condition = compiler->EmitEqualityRegConstCompare(right.reg(),
+                                                           left.constant(),
+                                                           needs_number_check(),
+                                                           token_pos());
   } else if (right.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(left.reg(),
-                                          right.constant(),
-                                          needs_number_check(),
-                                          token_pos());
+    true_condition = compiler->EmitEqualityRegConstCompare(left.reg(),
+                                                           right.constant(),
+                                                           needs_number_check(),
+                                                           token_pos());
   } else {
-    compiler->EmitEqualityRegRegCompare(left.reg(),
-                                       right.reg(),
-                                       needs_number_check(),
-                                       token_pos());
+    true_condition = compiler->EmitEqualityRegRegCompare(left.reg(),
+                                                         right.reg(),
+                                                         needs_number_check(),
+                                                         token_pos());
   }
-  Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQ : NE;
+  if (kind() != Token::kEQ_STRICT) {
+    ASSERT(kind() == Token::kNE_STRICT);
+    true_condition = NegateCondition(true_condition);
+  }
   return true_condition;
 }
 

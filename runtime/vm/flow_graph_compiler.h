@@ -417,14 +417,14 @@ class FlowGraphCompiler : public ValueObject {
                        intptr_t token_index,
                        LocationSummary* locs);
 
-  void EmitEqualityRegConstCompare(Register reg,
-                                   const Object& obj,
-                                   bool needs_number_check,
-                                   intptr_t token_pos);
-  void EmitEqualityRegRegCompare(Register left,
-                                 Register right,
-                                 bool needs_number_check,
-                                 intptr_t token_pos);
+  Condition EmitEqualityRegConstCompare(Register reg,
+                                        const Object& obj,
+                                        bool needs_number_check,
+                                        intptr_t token_pos);
+  Condition EmitEqualityRegRegCompare(Register left,
+                                      Register right,
+                                      bool needs_number_check,
+                                      intptr_t token_pos);
 
   void EmitTrySync(Instruction* instr, intptr_t try_index);
 

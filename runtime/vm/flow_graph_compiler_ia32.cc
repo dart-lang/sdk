@@ -1375,17 +1375,18 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
 }
 
 
-void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
-                                                    const Object& obj,
-                                                    bool needs_number_check,
-                                                    intptr_t token_pos) {
+Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
+    Register reg,
+    const Object& obj,
+    bool needs_number_check,
+    intptr_t token_pos) {
   ASSERT(!needs_number_check ||
          (!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint()));
 
   if (obj.IsSmi() && (Smi::Cast(obj).Value() == 0)) {
     ASSERT(!needs_number_check);
     __ testl(reg, reg);
-    return;
+    return EQUAL;
   }
 
   if (needs_number_check) {
@@ -1402,19 +1403,20 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
                            Isolate::kNoDeoptId,
                            token_pos);
     }
+    // Stub returns result in flags (result of a cmpl, we need ZF computed).
     __ popl(reg);  // Discard constant.
     __ popl(reg);  // Restore 'reg'.
-    return;
-  }
-
+  } else {
   __ CompareObject(reg, obj);
+  }
+  return EQUAL;
 }
 
 
-void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
-                                                  Register right,
-                                                  bool needs_number_check,
-                                                  intptr_t token_pos) {
+Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
+                                                       Register right,
+                                                       bool needs_number_check,
+                                                       intptr_t token_pos) {
   if (needs_number_check) {
     StubCode* stub_code = isolate()->stub_code();
     __ pushl(left);
@@ -1442,6 +1444,7 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
   } else {
     __ cmpl(left, right);
   }
+  return EQUAL;
 }
 
 

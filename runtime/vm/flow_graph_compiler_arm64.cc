@@ -1357,10 +1357,11 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
 }
 
 
-void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
-                                                    const Object& obj,
-                                                    bool needs_number_check,
-                                                    intptr_t token_pos) {
+Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
+    Register reg,
+    const Object& obj,
+    bool needs_number_check,
+    intptr_t token_pos) {
   if (needs_number_check) {
     StubCode* stub_code = isolate()->stub_code();
     ASSERT(!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint());
@@ -1378,19 +1379,20 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
                            Isolate::kNoDeoptId,
                            token_pos);
     }
+    // Stub returns result in flags (result of a cmp, we need Z computed).
     __ Drop(1);  // Discard constant.
     __ Pop(reg);  // Restore 'reg'.
-    return;
+  } else {
+    __ CompareObject(reg, obj, PP);
   }
-
-  __ CompareObject(reg, obj, PP);
+  return EQ;
 }
 
 
-void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
-                                                  Register right,
-                                                  bool needs_number_check,
-                                                  intptr_t token_pos) {
+Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
+                                                       Register right,
+                                                       bool needs_number_check,
+                                                       intptr_t token_pos) {
   if (needs_number_check) {
     StubCode* stub_code = isolate()->stub_code();
     __ Push(left);
@@ -1414,12 +1416,13 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
       __ LoadImmediate(R5, kInvalidObjectPointer, kNoPP);
     }
 #endif
-    // Stub returns result in flags (result of a cmpl, we need ZF computed).
+    // Stub returns result in flags (result of a cmp, we need Z computed).
     __ Pop(right);
     __ Pop(left);
   } else {
     __ CompareRegisters(left, right);
   }
+  return EQ;
 }
 
 
