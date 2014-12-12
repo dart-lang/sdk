@@ -49,6 +49,7 @@ class InstrumentationService {
   static const String TAG_REQUEST = 'Req';
   static const String TAG_RESPONSE = 'Res';
   static const String TAG_VERSION = 'Ver';
+
   /**
    * The instrumentation server used to communicate with the server, or `null`
    * if instrumentation data should not be logged.
@@ -57,7 +58,7 @@ class InstrumentationService {
 
   /**
    * Initialize a newly created instrumentation service to comunicate with the
-   * given instrumentation server.
+   * given [instrumentationServer].
    */
   const InstrumentationService(this.instrumentationServer);
 

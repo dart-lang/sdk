@@ -57,6 +57,11 @@ class Driver {
   static const BINARY_NAME = "server";
 
   /**
+   * The name of the option used to set the identifier for the client.
+   */
+  static const String CLIENT_ID = "client-id";
+
+  /**
    * The name of the option used to enable incremental resolution.
    */
   static const String ENABLE_INCREMENTAL_RESOLUTION =
@@ -83,13 +88,6 @@ class Driver {
    * The name of the option used to print usage information.
    */
   static const String HELP_OPTION = "help";
-
-  /**
-   * The name of the option used to specify the log file to which
-   * instrumentation data is to be written.
-   */
-  static const String INSTRUMENTATION_LOG_FILE_OPTION =
-      "instrumentation-log-file";
 
   /**
    * The name of the option used to specify if [print] should print to the
@@ -132,6 +130,9 @@ class Driver {
    */
   void start(List<String> args) {
     ArgParser parser = new ArgParser();
+    parser.addOption(
+        CLIENT_ID,
+        help: "an identifier used to identify the client");
     parser.addFlag(
         ENABLE_INCREMENTAL_RESOLUTION,
         help: "enable using incremental resolution",
@@ -155,9 +156,6 @@ class Driver {
     parser.addOption(
         INCREMENTAL_RESOLUTION_LOG,
         help: "the description of the incremental resolotion log");
-    parser.addOption(
-        INSTRUMENTATION_LOG_FILE_OPTION,
-        help: "[path] the file to which instrumentation data will be logged");
     parser.addFlag(
         INTERNAL_PRINT_TO_CONSOLE,
         help: "enable sending `print` output to the console",
@@ -183,13 +181,6 @@ class Driver {
     // TODO(brianwilkerson) Enable this after it is possible for an
     // instrumentation server to be provided.
 //    if (results[ENABLE_INSTRUMENTATION_OPTION]) {
-////      if (results[INSTRUMENTATION_LOG_FILE_OPTION] != null) {
-////        // TODO(brianwilkerson) Initialize the instrumentation server with
-////        // logging.
-////      } else {
-////        // TODO(brianwilkerson) Initialize the instrumentation server without
-////        // logging.
-////      }
 //      if (instrumentationServer == null) {
 //        print('Exiting server: enabled instrumentation without providing an instrumentation server');
 //        print('');
@@ -239,7 +230,7 @@ class Driver {
 
     InstrumentationService service =
         new InstrumentationService(instrumentationServer);
-//    service.logVersion(defaultSdk.sdkVersion);
+//    service.logVersion(results[CLIENT_ID], defaultSdk.sdkVersion);
 
     socketServer = new SocketServer(analysisServerOptions, defaultSdk, service);
     httpServer = new HttpAnalysisServer(socketServer);
