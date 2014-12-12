@@ -71,7 +71,8 @@ import '../util/characters.dart' show
     $z;
 
 import '../util/util.dart' show
-    NO_LOCATION_SPANNABLE;
+    NO_LOCATION_SPANNABLE,
+    Setlet;
 
 import '../util/uri_extras.dart' show
     relativize;

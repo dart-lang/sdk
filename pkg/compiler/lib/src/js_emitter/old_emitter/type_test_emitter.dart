@@ -99,7 +99,8 @@ class TypeTestEmitter extends CodeEmitterHelper {
       // variable layout for this class is different.  Instead we generate
       // substitutions for all checks and make emitSubstitution a NOP for the
       // rest of this function.
-      Set<ClassElement> emitted = new Set<ClassElement>();
+
+      Setlet<ClassElement> emitted = new Setlet<ClassElement>();
       // TODO(karlklose): move the computation of these checks to
       // RuntimeTypeInformation.
       while (superclass != null) {
@@ -111,29 +112,27 @@ class TypeTestEmitter extends CodeEmitterHelper {
       }
       for (DartType supertype in cls.allSupertypes) {
         ClassElement superclass = supertype.element;
-        if (classesUsingTypeVariableTests.contains(superclass)) {
+        if (emitted.contains(superclass)) continue;
+
+        if (classesUsingTypeVariableTests.contains(superclass) ||
+            checkedClasses.contains(superclass)) {
+          // Generate substitution.  If no substitution is necessary, emit
+          // `null` to overwrite a (possibly) existing substitution from the
+          // super classes.
           emitSubstitution(superclass, emitNull: true);
-          emitted.add(superclass);
-        }
-        for (ClassElement check in checkedClasses) {
-          if (supertype.element == check && !emitted.contains(check)) {
-            // Generate substitution.  If no substitution is necessary, emit
-            // [:null:] to overwrite a (possibly) existing substitution from the
-            // super classes.
-            emitSubstitution(check, emitNull: true);
-            emitted.add(check);
-          }
         }
       }
+
       void emitNothing(_, {emitNull}) {};
+
       emitSubstitution = emitNothing;
     }
 
-    Set<Element> generated = new Set<Element>();
-    // A class that defines a [:call:] method implicitly implements
+    Setlet<Element> generated = new Setlet<Element>();
+    // A class that defines a `call` method implicitly implements
     // [Function] and needs checks for all typedefs that are used in is-checks.
     if (checkedClasses.contains(compiler.functionClass) ||
-        !checkedFunctionTypes.isEmpty) {
+        checkedFunctionTypes.isNotEmpty) {
       Element call = cls.lookupLocalMember(Compiler.CALL_OPERATOR_NAME);
       if (call == null) {
         // If [cls] is a closure, it has a synthetic call operator method.
