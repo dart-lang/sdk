@@ -2,8 +2,7 @@ var constructors;
 (function (constructors) {
   // Class A
   var A = (function (_super) {
-    var constructor = function A() {
-    };
+    var constructor = function A() {};
     dart_runtime.dextend(constructor, _super);
     return constructor;
   })(dart_core.Object);
@@ -82,7 +81,8 @@ var constructors;
 
   // Class G
   var G = (function (_super) {
-    var constructor = function G(/* Unimplemented DefaultFormalParameter: String p1 */) {
+    var constructor = function G(p1) {
+      if (p1 !== undefined) { p1 = null;}
     };
     dart_runtime.dextend(constructor, _super);
     return constructor;
@@ -91,7 +91,8 @@ var constructors;
 
   // Class H
   var H = (function (_super) {
-    var constructor = function H(/* Unimplemented DefaultFormalParameter: String p1 */) {
+    var constructor = function H(opt$) {
+      var p1 = opt$.p1 === undefined ? null : opt$.p1;
     };
     dart_runtime.dextend(constructor, _super);
     return constructor;

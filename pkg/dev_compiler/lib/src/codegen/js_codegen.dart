@@ -12,6 +12,9 @@ import 'package:ddc/src/info.dart';
 import 'package:ddc/src/utils.dart';
 import 'code_generator.dart';
 
+// This must match the optional parameter name used in runtime.js
+const String optionalParameters = r'opt$';
+
 class UnitGenerator extends GeneralizingAstVisitor with ConversionVisitor {
   final Uri uri;
   final Directory directory;
@@ -111,10 +114,16 @@ var _initializer = (function ($params) {
 
     out.write("function $name(");
     if (ctor != null) ctor.parameters.accept(this);
-    out.write(") {\n");
+    out.write(") {");
+
+    var indent = 0;
+    if (needsInitializer || ctor != null) {
+      indent = 2;
+      out.write('\n', indent);
+    }
 
     if (needsInitializer) {
-      out.write("  _initializer(this");
+      out.write("_initializer(this");
 
       for (var field in initializedFields) {
         out.write(", ");
@@ -137,13 +146,13 @@ var _initializer = (function ($params) {
         var args = superCall.argumentList.arguments.map((a) => a.toString());
         var superArgs = (['this']..addAll(args)).join(', ');
         var superSelector = superName == null ? '' : '.$superName';
-        out.write("  _super$superSelector.call($superArgs);\n");
+        out.write("_super$superSelector.call($superArgs);\n");
       }
+
+      generateArgumentInitializers(ctor.parameters);
     }
 
-//    ctor.body.accept(this);
-
-    out.write("};\n");
+    out.write("};\n", -indent);
   }
 
   void generateDefaultConstructor(ClassDeclaration node,
@@ -240,8 +249,51 @@ var $name = (function (_super) {
   return constructor;
 })($superclassName);
 """, -2);
+
+    node.members
+        .where((m) => m is MethodDeclaration)
+        .forEach((m) => m.accept(this));
+
     if (isPublic(name)) out.write("$libName.$name = $name;\n");
     out.write("\n");
+  }
+
+  generateArgumentInitializers(FormalParameterList parameters) {
+    for (var param in parameters.parameters) {
+      // TODO(justinfagnani): rename identifier if neccessary
+      var name = param.identifier.name;
+
+      if (param.kind == ParameterKind.NAMED) {
+        out.write('var $name = opt\$.$name === undefined ? ');
+        if (param is DefaultFormalParameter && param.defaultValue != null) {
+          param.defaultValue.accept(this);
+        } else {
+          out.write('null');
+        }
+        out.write(' : opt\$.$name;\n');
+      } else if (param.kind == ParameterKind.POSITIONAL) {
+        out.write('if ($name !== undefined) { $name = ');
+        if (param is DefaultFormalParameter && param.defaultValue != null) {
+          param.defaultValue.accept(this);
+        } else {
+          out.write('null');
+        }
+        out.write(';}\n');
+      }
+    }
+  }
+
+  void visitMethodDeclaration(MethodDeclaration node) {
+    var name = node.name;
+
+    out.write("\nconstructor.prototype.$name = ");
+
+    out.write("function $name(");
+    node.parameters.accept(this);
+    out.write(") {\n", 2);
+    generateArgumentInitializers(node.parameters);
+    node.body.accept(this);
+    out.write("}\n", -2);
   }
 
   void visitFunctionDeclaration(FunctionDeclaration node) {
@@ -303,20 +355,40 @@ var $name = (function (_super) {
   }
 
   void visitFormalParameterList(FormalParameterList node) {
-    // TODO(vsm): Optional parameters.
-    var arguments = node.parameters;
-    var length = arguments.length;
-    if (length > 0) {
-      arguments[0].accept(this);
-      for (var i = 1; i < length; ++i) {
-        out.write(', ');
-        arguments[i].accept(this);
+    int length = node.parameters.length;
+    bool hasOptionalParameters = false;
+    bool hasPositionalParameters = false;
+
+    for (int i = 0; i < length; i++) {
+      var param = node.parameters[i];
+      if (param.kind == ParameterKind.NAMED) {
+        hasOptionalParameters = true;
+      } else {
+        if (hasPositionalParameters) out.write(', ');
+        hasPositionalParameters = true;
+        param.accept(this);
       }
+    }
+    if (hasOptionalParameters) {
+      if (hasPositionalParameters) out.write(', ');
+      out.write(optionalParameters);
     }
   }
 
   void visitFieldFormalParameter(FieldFormalParameter node) {
-    out.write(node.identifier.name);
+    // Named parameters are handled as a single object, so we skip individual
+    // parameters
+    if (node.kind != ParameterKind.NAMED) {
+      out.write(node.identifier.name);
+    }
+  }
+
+  void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    // Named parameters are handled as a single object, so we skip individual
+    // parameters
+    if (node.kind != ParameterKind.NAMED) {
+      out.write(node.identifier.name);
+    }
   }
 
   void visitBlockFunctionBody(BlockFunctionBody node) {
@@ -473,3 +545,4 @@ class JSGenerator extends CodeGenerator {
       Uri uri, CompilationUnit unit, Directory dir, String name) =>
       new UnitGenerator(uri, unit, dir, name, info, rules).generate();
 }
+
