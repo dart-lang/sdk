@@ -438,7 +438,6 @@ Language/12_Expressions/22_Equality_A01_t01: fail # Issue 21137
 Language/12_Expressions/22_Equality_A05_t01: fail # Issue 21137
 Language/12_Expressions/30_Identifier_Reference_A02_t01: fail # Issue 21154
 Language/12_Expressions/33_Type_Cast_A02_t03: fail # co19 issue 716
-Language/13_Statements/02_Expression_Statements_A01_t08: fail # Issue 21155
 Language/13_Statements/10_Rethrow_A01_t04: fail # co19 issue 719
 Language/13_Statements/10_Rethrow_A01_t05: fail # co19 issue 719
 Language/14_Libraries_and_Scripts/1_Imports_A03_t08: fail # Issue 21171

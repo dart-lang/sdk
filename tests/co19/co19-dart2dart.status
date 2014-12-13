@@ -92,7 +92,6 @@ Language/12_Expressions/12_Instance_Creation/1_New_A06_t06: fail # co19-roll r54
 Language/12_Expressions/22_Equality_A01_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/22_Equality_A05_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/30_Identifier_Reference_A02_t01: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/02_Expression_Statements_A01_t08: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/09_Switch_A01_t02: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t08: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t09: fail # co19-roll r546: Please triage this failure

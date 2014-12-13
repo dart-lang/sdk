@@ -146,8 +146,6 @@ const_switch_test/04: RuntimeError # Issue 17960
 enum_const_test: RuntimeError # Issue 21817
 
 # Compilation errors.
-const_var_test: CompileTimeError # Issue 12793
-map_literal3_test: CompileTimeError # Issue 12793
 method_override5_test: RuntimeError # Issue 12809
 external_test/10: CompileTimeError # Issue 12887
 external_test/13: CompileTimeError # Issue 12887
@@ -226,8 +224,6 @@ not_enough_positional_arguments_test/05: Fail # Issue 12839
 
 metadata_test: Fail # Issue 12762
 const_evaluation_test/01: Fail # Issue 12762
-const_var_test: CompileTimeError # Issue 12794
-map_literal3_test: Fail # Issue 12794
 built_in_identifier_test/01: Fail # Issue 13022
 method_override4_test: Fail # Issue 12810
 method_override5_test: Fail # Issue 12810
