@@ -2,13 +2,18 @@ var methods;
 (function (methods) {
   // Class A
   var A = (function (_super) {
-    var constructor = function A() {};
+    var _initializer = (function (_this) {
+      _this._c = 3;
+    });
+    var constructor = function A() {
+      _initializer(this);
+    };
     dart_runtime.dextend(constructor, _super);
 
     Object.defineProperties(constructor.prototype, {
       a: {
         "get": function() {
-          return 1;
+          return this.x();
         },
       },
       b: {
@@ -17,9 +22,10 @@ var methods;
       },
       c: {
         "get": function() {
-          return 3;
+          return this._c;
         },
         "set": function(c) {
+          /* Unimplemented AssignmentExpression: _c = c */;
         },
       },
     });

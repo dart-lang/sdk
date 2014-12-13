@@ -24,6 +24,8 @@ class UnitGenerator extends GeneralizingAstVisitor with ConversionVisitor {
   final TypeRules rules;
   OutWriter out = null;
 
+  ClassDeclaration currentClass;
+
   UnitGenerator(this.uri, this.unit, this.directory, this.libName, this.infoMap,
       this.rules);
 
@@ -213,21 +215,10 @@ constructor.$name.prototype = constructor.prototype;
     return fields;
   }
 
-  String getSuperclassName(ClassDeclaration node) {
-    var element = node.element;
-    var superclass = node.element.supertype.element;
-
-    if (superclass.library == element.library) return superclass.name;
-
-    var libName = superclass.library.name;
-    if (libName == 'dart.core') libName = 'dart_core';
-
-    return '$libName.${superclass.name}';
-  }
-
   void visitClassDeclaration(ClassDeclaration node) {
+    currentClass = node;
     var name = node.name.name;
-    var superclassName = getSuperclassName(node);
+    var superclassName = getSuperclassExpression(node);
 
     out.write("""
 // Class $name
@@ -255,6 +246,7 @@ var $name = (function (_super) {
 
     if (isPublic(name)) out.write("$libName.$name = $name;\n");
     out.write("\n");
+    currentClass = null;
   }
 
   generateArgumentInitializers(FormalParameterList parameters) {
@@ -369,6 +361,13 @@ var $name = (function (_super) {
   }
 
   void visitSimpleIdentifier(SimpleIdentifier node) {
+    // TODO(justinfagnani): check that 'this' isn't prepended to static
+    // references
+    if (node.staticElement != null && currentClass != null &&
+        node.parent is! PropertyAccess &&
+        node.staticElement.enclosingElement == currentClass.element) {
+      out.write('this.');
+    }
     out.write(node.name);
   }
 
@@ -566,6 +565,23 @@ var $name = (function (_super) {
     'dart.core': 'dart_core',
   };
 
+  String getSuperclassExpression(ClassDeclaration node) {
+    var element = node.element;
+    var superclass = node.element.supertype.element;
+
+    if (superclass.library == element.library) {
+      return superclass.name;
+    }
+    return '${getLibraryId(superclass.library)}.${superclass.name}';
+  }
+
+  String getLibraryId(LibraryElement element) {
+    var libraryName = element.name;
+    return _builtins.containsKey(libraryName)
+        ? _builtins[libraryName]
+        : libraryName;
+  }
+
   void writeQualifiedName(Expression target, SimpleIdentifier id) {
     if (target != null) {
       target.accept(this);
@@ -575,10 +591,7 @@ var $name = (function (_super) {
       if (element.enclosingElement is CompilationUnitElement) {
         var library = element.enclosingElement.enclosingElement;
         assert(library is LibraryElement);
-        var package = library.name;
-        var libname = _builtins
-            .containsKey(package) ? _builtins[package] : package;
-        out.write('$libname.');
+        out.write('${getLibraryId(library)}.');
       }
     }
     id.accept(this);

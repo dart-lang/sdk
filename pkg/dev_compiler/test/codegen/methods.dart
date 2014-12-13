@@ -19,12 +19,14 @@ class A {
     return a + b;
   }
 
-  int get a => 1;
+  int get a => x();
 
   void set b(int b) {}
 
-  int get c => 3;
+  int _c = 3;
 
-  void set c(int c) {}
+  int get c => _c;
+
+  void set c(int c) { _c = c; }
 
 }
