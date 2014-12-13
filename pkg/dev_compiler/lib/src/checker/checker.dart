@@ -32,7 +32,6 @@ class ProgramChecker extends RecursiveAstVisitor {
   final TypeRules _rules;
   final Uri _root;
   final bool _checkSdk;
-  final Map<Uri, CompilationUnit> _unitMap = <Uri, CompilationUnit>{};
   final List<LibraryElement> libraries = <LibraryElement>[];
 
   final infoMap = new Map<AstNode, SemanticNode>();

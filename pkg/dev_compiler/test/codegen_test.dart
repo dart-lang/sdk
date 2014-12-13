@@ -34,7 +34,6 @@ main(arguments) {
 
   var testDir = path.absolute(path.dirname(script));
   var inputDir = path.join(testDir, 'codegen');
-  var expectDir = path.join(inputDir, 'expect');
   var actualDir = path.join(inputDir, 'actual');
 
   var paths = new Directory(inputDir)

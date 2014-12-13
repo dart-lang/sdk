@@ -64,12 +64,6 @@ bool isPrimitiveType(Type t) {
   return false;
 }
 
-bool _isPrimitiveType(TypeMirror m) {
-  if (!m.hasReflectedType) return false;
-  var t = m.reflectedType;
-  return isPrimitiveType(t);
-}
-
 bool _isFunctionSubType(TypeMirror t1, TypeMirror t2) {
   // Function types follow the standard non-Dart rule:
   // - contravariant on param types

@@ -7,7 +7,6 @@ import 'dart:mirrors';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart' show Token;
-import 'package:analyzer/src/generated/source.dart';
 import 'package:logging/logging.dart' show Level;
 
 import 'checker/rules.dart';
@@ -57,7 +56,7 @@ abstract class StaticInfo {
 abstract class Conversion extends Expression implements StaticInfo {
   final TypeRules rules;
 
-  // TODO(jmesserly): should probably rename this "operand" for consistency with 
+  // TODO(jmesserly): should probably rename this "operand" for consistency with
   // analyzer's unary expressions (e.g. PrefixExpression).
   final Expression expression;
 
@@ -325,7 +324,7 @@ abstract class ConversionVisitor<R> {
 }
 
 /// Automatically infer list of types by scanning this library using mirrors.
-final List<StaticInfo> infoTypes = () {
+final List<Type> infoTypes = () {
   var allTypes = new Set();
   var baseTypes = new Set();
   var lib = currentMirrorSystem().findLibrary(#ddc.src.info);
@@ -337,7 +336,7 @@ final List<StaticInfo> infoTypes = () {
     }
   }
   allTypes.removeAll(baseTypes);
-  return allTypes.map((mirror) => mirror.reflectedType).toList();
+  return new List<Type>.from(allTypes.map((mirror) => mirror.reflectedType));
 }();
 
 main() => print(infoTypes);
