@@ -233,8 +233,6 @@ constructor.$name.prototype = constructor.prototype;
 // Class $name
 var $name = (function (_super) {
 """, 2);
-    // TODO(vsm): Process constructors, fields, and methods properly.
-    // Generate default only when needed.
     var needsInitializer = node.members
         .where((m) => m is FieldDeclaration).isNotEmpty;
     var initializedFields = getConstructorInitializedFields(node).toList();
@@ -243,16 +241,17 @@ var $name = (function (_super) {
     }
     generateDefaultConstructor(node, initializedFields, needsInitializer);
     generateNamedConstructors(node, initializedFields, needsInitializer);
-    // TODO(vsm): What should we generate if there is no unnamed constructor
-    // for this class?
-    out.write("""
-  return constructor;
-})($superclassName);
-""", -2);
+
+    generateProperties(node);
 
     node.members
         .where((m) => m is MethodDeclaration)
         .forEach((m) => m.accept(this));
+
+    out.write("""
+  return constructor;
+})($superclassName);
+""", -2);
 
     if (isPublic(name)) out.write("$libName.$name = $name;\n");
     out.write("\n");
@@ -283,7 +282,56 @@ var $name = (function (_super) {
     }
   }
 
+  void generateProperties(ClassDeclaration node) {
+    Map<String, _Property> properties = {};
+
+    for (var member in node.members) {
+      if (member is MethodDeclaration && !member.isAbstract &&
+          !member.isStatic) {
+        if (member.isGetter) {
+          var property =
+              properties.putIfAbsent(member.name.name, () => new _Property());
+          property.getter = member;
+        } else if (member.isSetter) {
+          var property =
+              properties.putIfAbsent(member.name.name, () => new _Property());
+          property.setter = member;
+        }
+      }
+    }
+
+    if (properties.isNotEmpty) {
+      out.write('\nObject.defineProperties(constructor.prototype, {\n', 2);
+
+      for (var name in properties.keys) {
+        var property = properties[name];
+
+        out.write('$name: {\n', 2);
+
+        if (property.getter != null) {
+          out.write('"get": function() {\n', 2);
+          property.getter.body.accept(this);
+          out.write('},\n', -2);
+        }
+        if (property.setter != null) {
+          out.write('"set": function(');
+          property.setter.parameters.accept(this);
+          out.write(') {\n', 2);
+          property.setter.body.accept(this);
+          out.write('},\n', -2);
+        }
+        out.write('},\n', -2);
+      }
+
+      out.write('});\n', -2);
+    }
+  }
+
   void visitMethodDeclaration(MethodDeclaration node) {
+    if (node.isAbstract || node.isGetter || node.isSetter || node.isStatic) {
+      return;
+    }
+
     var name = node.name;
 
     out.write("\nconstructor.prototype.$name = ");
@@ -546,3 +594,7 @@ class JSGenerator extends CodeGenerator {
       new UnitGenerator(uri, unit, dir, name, info, rules).generate();
 }
 
+class _Property {
+  MethodDeclaration getter;
+  MethodDeclaration setter;
+}
