@@ -21,6 +21,9 @@ scheduled_test/test/scheduled_stream/stream_matcher_test: Pass, Slow
 polymer/test/build/script_compactor_test: Pass, Slow
 polymer/test/import_test: Skip # 17873
 
+[ $runtime == vm && $checked ]
+analyzer2dart/test/end2end_test: RuntimeError 21872
+
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 third_party/angular_tests/browser_test/*: Skip # github perf_api.dart issue 5
 third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
