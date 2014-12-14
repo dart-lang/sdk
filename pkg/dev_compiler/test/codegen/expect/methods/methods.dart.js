@@ -25,7 +25,7 @@ var methods;
           return this._c;
         },
         "set": function(c) {
-          /* Unimplemented AssignmentExpression: _c = c */;
+          this._c = c;
         },
       },
     });

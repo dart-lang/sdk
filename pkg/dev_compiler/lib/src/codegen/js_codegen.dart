@@ -371,6 +371,12 @@ var $name = (function (_super) {
     out.write(node.name);
   }
 
+  void visitAssignmentExpression(AssignmentExpression node) {
+    node.leftHandSide.accept(this);
+    out.write(' = ');
+    node.rightHandSide.accept(this);
+  }
+
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     out.write("return ");
     // TODO(vsm): Check for conversion.
