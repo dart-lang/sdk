@@ -1181,6 +1181,11 @@ class Assembler : public ValueObject {
     }
   }
 
+  void StoreFieldToOffset(Register reg, Register base, int32_t offset) {
+    StoreToOffset(reg, base, offset - kHeapObjectTag);
+  }
+
+
   void StoreDToOffset(DRegister reg, Register base, int32_t offset) {
     ASSERT(!in_delay_slot_);
     FRegister lo = static_cast<FRegister>(reg * 2);
@@ -1225,6 +1230,16 @@ class Assembler : public ValueObject {
   void LoadClassById(Register result, Register class_id);
   void LoadClass(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
+
+  void ComputeRange(Register result,
+                    Register value,
+                    Label* miss);
+
+  void UpdateRangeFeedback(Register value,
+                           intptr_t index,
+                           Register ic_data,
+                           Register scratch,
+                           Label* miss);
 
   void StoreIntoObject(Register object,  // Object we are storing into.
                        const Address& dest,  // Where we are storing into.

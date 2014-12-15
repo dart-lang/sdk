@@ -1208,6 +1208,12 @@ static void EmitFastSmiOp(Assembler* assembler,
       __ j(OVERFLOW, not_smi_or_overflow, Assembler::kNearJump);
       break;
     }
+    case Token::kMUL: {
+      __ SmiUntag(EAX);
+      __ imull(EAX, EDI);
+      __ j(OVERFLOW, not_smi_or_overflow, Assembler::kNearJump);
+      break;
+    }
     case Token::kEQ: {
       Label done, is_true;
       __ cmpl(EAX, EDI);
@@ -1265,7 +1271,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     Assembler* assembler,
     intptr_t num_args,
     const RuntimeEntry& handle_ic_miss,
-    Token::Kind kind) {
+    Token::Kind kind,
+    RangeCollectionMode range_collection_mode) {
   ASSERT(num_args > 0);
 #if defined(DEBUG)
   { Label ok;
@@ -1289,11 +1296,22 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ j(NOT_EQUAL, &stepping);
   __ Bind(&done_stepping);
 
-  if (kind != Token::kILLEGAL) {
-    Label not_smi_or_overflow;
-    EmitFastSmiOp(assembler, kind, num_args, &not_smi_or_overflow);
-    __ Bind(&not_smi_or_overflow);
+  Label not_smi_or_overflow;
+  if (range_collection_mode == kCollectRanges) {
+    ASSERT((num_args == 1) || (num_args == 2));
+    if (num_args == 2) {
+      __ movl(EAX, Address(ESP, + 2 * kWordSize));
+      __ UpdateRangeFeedback(EAX, 0, ECX, EBX, EDI, ESI, &not_smi_or_overflow);
+    }
+
+    __ movl(EAX, Address(ESP, + 1 * kWordSize));
+    __ UpdateRangeFeedback(EAX, (num_args - 1), ECX, EBX, EDI, ESI,
+                           &not_smi_or_overflow);
   }
+  if (kind != Token::kILLEGAL) {
+    EmitFastSmiOp(assembler, kind, num_args, &not_smi_or_overflow);
+  }
+  __ Bind(&not_smi_or_overflow);
 
   // ECX: IC data object (preserved).
   // Load arguments descriptor into EDX.
@@ -1400,8 +1418,28 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // EAX: Target function.
   __ movl(EBX, FieldAddress(EAX, Function::instructions_offset()));
   __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ jmp(EBX);
-  __ int3();
+  if (range_collection_mode == kCollectRanges) {
+    __ movl(EDI, Address(ESP, + 1 * kWordSize));
+    if (num_args == 2) {
+      __ movl(ESI, Address(ESP, + 2 * kWordSize));
+    }
+    __ EnterStubFrame();
+    __ pushl(ECX);
+    if (num_args == 2) {
+      __ pushl(ESI);
+    }
+    __ pushl(EDI);
+    __ call(EBX);
+
+    __ movl(ECX, Address(EBP, kFirstLocalSlotFromFp * kWordSize));
+    Label done;
+    __ UpdateRangeFeedback(EAX, 2, ECX, EBX, EDI, ESI, &done);
+    __ Bind(&done);
+    __ LeaveFrame();
+    __ ret();
+  } else {
+    __ jmp(EBX);
+  }
 
   __ Bind(&stepping);
   __ EnterStubFrame();
@@ -1426,42 +1464,74 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 void StubCode::GenerateOneArgCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
   GenerateNArgsCheckInlineCacheStub(assembler, 1,
-      kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL);
+      kInlineCacheMissHandlerOneArgRuntimeEntry,
+      Token::kILLEGAL,
+      kIgnoreRanges);
 }
 
 
 void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL);
+      kInlineCacheMissHandlerTwoArgsRuntimeEntry,
+      Token::kILLEGAL,
+      kIgnoreRanges);
 }
 
 
 void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
   GenerateNArgsCheckInlineCacheStub(assembler, 3,
-      kInlineCacheMissHandlerThreeArgsRuntimeEntry, Token::kILLEGAL);
+      kInlineCacheMissHandlerThreeArgsRuntimeEntry,
+      Token::kILLEGAL,
+      kIgnoreRanges);
 }
 
 
 void StubCode::GenerateSmiAddInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kADD);
+      kInlineCacheMissHandlerTwoArgsRuntimeEntry,
+      Token::kADD,
+      kCollectRanges);
 }
 
 
 void StubCode::GenerateSmiSubInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kSUB);
+      kInlineCacheMissHandlerTwoArgsRuntimeEntry,
+      Token::kSUB,
+      kCollectRanges);
 }
 
 
 void StubCode::GenerateSmiEqualInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kEQ);
+      kInlineCacheMissHandlerTwoArgsRuntimeEntry,
+      Token::kEQ,
+      kIgnoreRanges);
+}
+
+
+void StubCode::GenerateUnaryRangeCollectingInlineCacheStub(
+    Assembler* assembler) {
+  GenerateUsageCounterIncrement(assembler, EBX);
+  GenerateNArgsCheckInlineCacheStub(assembler, 1,
+      kInlineCacheMissHandlerOneArgRuntimeEntry,
+      Token::kILLEGAL,
+      kCollectRanges);
+}
+
+
+void StubCode::GenerateBinaryRangeCollectingInlineCacheStub(
+    Assembler* assembler) {
+  GenerateUsageCounterIncrement(assembler, EBX);
+  GenerateNArgsCheckInlineCacheStub(assembler, 2,
+      kInlineCacheMissHandlerTwoArgsRuntimeEntry,
+      Token::kILLEGAL,
+      kCollectRanges);
 }
 
 
@@ -1480,7 +1550,9 @@ void StubCode::GenerateOneArgOptimizedCheckInlineCacheStub(
     Assembler* assembler) {
   GenerateOptimizedUsageCounterIncrement(assembler);
   GenerateNArgsCheckInlineCacheStub(assembler, 1,
-      kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL);
+      kInlineCacheMissHandlerOneArgRuntimeEntry,
+      Token::kILLEGAL,
+      kIgnoreRanges);
 }
 
 
@@ -1488,7 +1560,9 @@ void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
     Assembler* assembler) {
   GenerateOptimizedUsageCounterIncrement(assembler);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
-     kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL);
+     kInlineCacheMissHandlerTwoArgsRuntimeEntry,
+     Token::kILLEGAL,
+     kIgnoreRanges);
 }
 
 
@@ -1496,7 +1570,9 @@ void StubCode::GenerateThreeArgsOptimizedCheckInlineCacheStub(
     Assembler* assembler) {
   GenerateOptimizedUsageCounterIncrement(assembler);
   GenerateNArgsCheckInlineCacheStub(assembler, 3,
-      kInlineCacheMissHandlerThreeArgsRuntimeEntry, Token::kILLEGAL);
+      kInlineCacheMissHandlerThreeArgsRuntimeEntry,
+      Token::kILLEGAL,
+      kIgnoreRanges);
 }
 
 
@@ -1566,14 +1642,18 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 void StubCode::GenerateOneArgUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
   GenerateNArgsCheckInlineCacheStub(
-      assembler, 1, kStaticCallMissHandlerOneArgRuntimeEntry, Token::kILLEGAL);
+      assembler, 1, kStaticCallMissHandlerOneArgRuntimeEntry,
+      Token::kILLEGAL,
+      kIgnoreRanges);
 }
 
 
 void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kStaticCallMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL);
+      kStaticCallMissHandlerTwoArgsRuntimeEntry,
+      Token::kILLEGAL,
+      kIgnoreRanges);
 }
 
 

@@ -398,14 +398,20 @@ ASSEMBLER_TEST_GENERATE(Bitwise, assembler) {
   __ pushl(Immediate(0x1C));
   __ xorl(ECX, Address(ESP, 0));  // 0x65B.
   __ popl(EAX);  // Discard.
+  __ movl(EAX, Address(ESP, kWordSize));
+  __ movl(EDX, Immediate(0xB0));
+  __ orl(Address(EAX, 0), EDX);
   __ movl(EAX, ECX);
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(Bitwise, test) {
-  typedef int (*Bitwise)();
-  EXPECT_EQ(0x65B, reinterpret_cast<Bitwise>(test->entry())());
+  typedef int (*Bitwise)(int* value);
+  int value = 0xA;
+  const int result = reinterpret_cast<Bitwise>(test->entry())(&value);
+  EXPECT_EQ(0x65B, result);
+  EXPECT_EQ(0xBA, value);
 }
 
 
@@ -3396,6 +3402,57 @@ ASSEMBLER_TEST_GENERATE(BitTest, assembler) {
 ASSEMBLER_TEST_RUN(BitTest, test) {
   typedef int (*BitTest)();
   EXPECT_EQ(1, reinterpret_cast<BitTest>(test->entry())());
+}
+
+
+ASSEMBLER_TEST_GENERATE(ComputeRange, assembler) {
+  Label miss, done;
+  __ movl(ECX, Address(ESP, 1 * kWordSize));
+
+  __ pushl(ESI);
+  __ pushl(EDI);
+  __ ComputeRange(EAX, ECX, ESI, EDI, &miss);
+  __ jmp(&done);
+
+  __ Bind(&miss);
+  __ movl(EAX, Immediate(-1));
+
+  __ Bind(&done);
+  __ popl(EDI);
+  __ popl(ESI);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(ComputeRange, test) {
+  typedef intptr_t (*ComputeRange)(RawObject* value);
+  ComputeRange range_of = reinterpret_cast<ComputeRange>(test->entry());
+
+  EXPECT_EQ(0, range_of(Smi::New(0)));
+  EXPECT_EQ(0, range_of(Smi::New(1)));
+  EXPECT_EQ(ICData::kSignedRangeBit, range_of(Smi::New(-1)));
+  EXPECT_EQ(0, range_of(Smi::New(Smi::kMaxValue)));
+  EXPECT_EQ(ICData::kSignedRangeBit, range_of(Smi::New(Smi::kMinValue)));
+
+  EXPECT_EQ(ICData::kInt32RangeBit, range_of(Integer::New(Smi::kMaxValue + 1)));
+  EXPECT_EQ(ICData::kInt32RangeBit | ICData::kSignedRangeBit,
+            range_of(Integer::New(Smi::kMinValue - 1)));
+  EXPECT_EQ(ICData::kInt32RangeBit, range_of(Integer::New(kMaxInt32)));
+  EXPECT_EQ(ICData::kInt32RangeBit | ICData::kSignedRangeBit,
+            range_of(Integer::New(kMinInt32)));
+
+  EXPECT_EQ(ICData::kUint32RangeBit,
+            range_of(Integer::New(static_cast<int64_t>(kMaxInt32) + 1)));
+  EXPECT_EQ(ICData::kUint32RangeBit, range_of(Integer::New(kMaxUint32)));
+
+  EXPECT_EQ(ICData::kInt64RangeBit,
+            range_of(Integer::New(static_cast<int64_t>(kMaxUint32) + 1)));
+  EXPECT_EQ(ICData::kInt64RangeBit,
+            range_of(Integer::New(static_cast<int64_t>(kMinInt32) - 1)));
+  EXPECT_EQ(ICData::kInt64RangeBit, range_of(Integer::New(kMaxInt64)));
+  EXPECT_EQ(ICData::kInt64RangeBit, range_of(Integer::New(kMinInt64)));
+
+  EXPECT_EQ(-1, range_of(Bool::True().raw()));
 }
 
 

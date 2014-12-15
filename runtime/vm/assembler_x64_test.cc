@@ -1008,6 +1008,9 @@ ASSEMBLER_TEST_RUN(SubAddress, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Bitwise, assembler) {
+  __ movq(R10, Immediate(-1));
+  __ orl(Address(CallingConventions::kArg1Reg, 0), R10);
+  __ orl(Address(CallingConventions::kArg2Reg, 0), R10);
   __ movl(RCX, Immediate(42));
   __ xorl(RCX, RCX);
   __ orl(RCX, Immediate(256));
@@ -1023,8 +1026,13 @@ ASSEMBLER_TEST_GENERATE(Bitwise, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Bitwise, test) {
-  typedef int (*Bitwise)();
-  EXPECT_EQ(256 + 1, reinterpret_cast<Bitwise>(test->entry())());
+  uint64_t f1;
+  uint64_t f2;
+  typedef int (*Bitwise)(void*, void*);
+  int result = reinterpret_cast<Bitwise>(test->entry())(&f1, &f2);
+  EXPECT_EQ(256 + 1, result);
+  EXPECT_EQ(kMaxUint32, f1);
+  EXPECT_EQ(kMaxUint32, f2);
 }
 
 
@@ -3402,6 +3410,55 @@ ASSEMBLER_TEST_RUN(ConditionalMovesNoOverflow, test) {
   res = reinterpret_cast<ConditionalMovesNoOverflowCode>(test->entry())(1, 1);
   EXPECT_EQ(0, res);
 }
+
+
+ASSEMBLER_TEST_GENERATE(ComputeRange, assembler) {
+  Label miss;
+  __ movq(RDX, CallingConventions::kArg1Reg);
+  __ ComputeRange(RAX, RDX, &miss);
+  __ ret();
+
+  __ Bind(&miss);
+  __ movq(RAX, Immediate(0));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(ComputeRange, test) {
+  typedef intptr_t (*ComputeRange)(RawObject*);
+  ComputeRange range_of = reinterpret_cast<ComputeRange>(test->entry());
+
+  EXPECT_EQ(ICData::kInt32RangeBit, range_of(Smi::New(0)));
+  EXPECT_EQ(ICData::kInt32RangeBit, range_of(Smi::New(1)));
+  EXPECT_EQ(ICData::kInt32RangeBit, range_of(Smi::New(kMaxInt32)));
+  EXPECT_EQ(ICData::kInt32RangeBit | ICData::kSignedRangeBit,
+            range_of(Smi::New(-1)));
+  EXPECT_EQ(ICData::kInt32RangeBit | ICData::kSignedRangeBit,
+            range_of(Smi::New(kMinInt32)));
+
+  EXPECT_EQ(ICData::kUint32RangeBit,
+            range_of(Smi::New(static_cast<int64_t>(kMaxInt32) + 1)));
+  EXPECT_EQ(ICData::kUint32RangeBit,
+            range_of(Smi::New(kMaxUint32)));
+
+  // On 64-bit platforms we don't track the sign of the smis outside of
+  // int32 range because it is not needed to distinguish kInt32Range from
+  // kUint32Range.
+  EXPECT_EQ(ICData::kSignedRangeBit,
+            range_of(Smi::New(static_cast<int64_t>(kMinInt32) - 1)));
+  EXPECT_EQ(ICData::kSignedRangeBit,
+            range_of(Smi::New(static_cast<int64_t>(kMaxUint32) + 1)));
+  EXPECT_EQ(ICData::kSignedRangeBit, range_of(Smi::New(Smi::kMaxValue)));
+  EXPECT_EQ(ICData::kSignedRangeBit, range_of(Smi::New(Smi::kMinValue)));
+
+  EXPECT_EQ(ICData::kInt64RangeBit, range_of(Integer::New(Smi::kMaxValue + 1)));
+  EXPECT_EQ(ICData::kInt64RangeBit, range_of(Integer::New(Smi::kMinValue - 1)));
+  EXPECT_EQ(ICData::kInt64RangeBit, range_of(Integer::New(kMaxInt64)));
+  EXPECT_EQ(ICData::kInt64RangeBit, range_of(Integer::New(kMinInt64)));
+
+  EXPECT_EQ(0, range_of(Bool::True().raw()));
+}
+
 
 }  // namespace dart
 

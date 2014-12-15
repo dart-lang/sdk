@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/globals.h"
+#include "vm/globals.h"  // NOLINT
 #if defined(TARGET_ARCH_IA32)
 
 #include "vm/assembler.h"
@@ -1497,6 +1497,13 @@ void Assembler::orl(Register dst, const Address& address) {
 }
 
 
+void Assembler::orl(const Address& address, Register reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x09);
+  EmitOperand(reg, address);
+}
+
+
 void Assembler::xorl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x33);
@@ -2915,6 +2922,49 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
 
   // Tag the result.
   SmiTag(result);
+}
+
+
+void Assembler::ComputeRange(Register result,
+                             Register value,
+                             Register lo_temp,
+                             Register hi_temp,
+                             Label* not_mint) {
+  Label done;
+  movl(result, value);
+  shrl(result, Immediate(kBitsPerWord - 1));  // Sign bit.
+  testl(value, Immediate(kSmiTagMask));
+  j(ZERO, &done, Assembler::kNearJump);
+  CompareClassId(value, kMintCid, result);
+  j(NOT_EQUAL, not_mint);
+  movl(lo_temp, FieldAddress(value, Mint::value_offset()));
+  movl(hi_temp, FieldAddress(value, Mint::value_offset() + kWordSize));
+  movl(result, Immediate(ICData::kInt32RangeBit));
+  subl(result, hi_temp);  // 10 (positive int32), 11 (negative int32)
+  sarl(lo_temp, Immediate(kBitsPerWord - 1));
+  cmpl(lo_temp, hi_temp);
+  j(EQUAL, &done, Assembler::kNearJump);
+  movl(result, Immediate(ICData::kUint32RangeBit));  // Uint32
+  cmpl(hi_temp, Immediate(0));
+  j(EQUAL, &done, Assembler::kNearJump);
+  movl(result, Immediate(ICData::kInt64RangeBit));  // Int64
+  Bind(&done);
+}
+
+
+void Assembler::UpdateRangeFeedback(Register value,
+                                    intptr_t index,
+                                    Register ic_data,
+                                    Register scratch1,
+                                    Register scratch2,
+                                    Register scratch3,
+                                    Label* miss) {
+  ASSERT(ICData::IsValidRangeFeedbackIndex(index));
+  ComputeRange(scratch1, value, scratch2, scratch3, miss);
+  if (index != 0) {
+    shll(scratch1, Immediate(ICData::kBitsPerRangeFeedback * index));
+  }
+  orl(FieldAddress(ic_data, ICData::range_feedback_offset()), scratch1);
 }
 
 

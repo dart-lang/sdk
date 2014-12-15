@@ -3547,6 +3547,10 @@ class ICData : public Object {
     return raw_ptr()->deopt_id_;
   }
 
+  uint32_t range_feedback() const {
+    return raw_ptr()->range_feedback_;
+  }
+
   #define DEOPT_REASONS(V)                                                     \
     V(Unknown)                                                                 \
     V(InstanceGetter)                                                          \
@@ -3641,6 +3645,10 @@ class ICData : public Object {
     return OFFSET_OF(RawICData, owner_);
   }
 
+  static intptr_t range_feedback_offset() {
+    return OFFSET_OF(RawICData, range_feedback_);
+  }
+
   // Used for unoptimized static calls when no class-ids are checked.
   void AddTarget(const Function& target) const;
 
@@ -3715,6 +3723,73 @@ class ICData : public Object {
   void GetUsedCidsForTwoArgs(GrowableArray<intptr_t>* first,
                              GrowableArray<intptr_t>* second) const;
 
+  // Range feedback tracking functionality.
+
+  // For arithmetic operations we store range information for inputs and the
+  // result. The goal is to discover:
+  //
+  //    - on 32-bit platforms:
+  //         - when Mint operation is actually a int32/uint32 operation;
+  //         - when Smi operation produces non-smi results;
+  //
+  //    - on 64-bit platforms:
+  //         - when Smi operation is actually int32/uint32 operation;
+  //         - when Mint operation produces non-smi results;
+  //
+  enum RangeFeedback {
+    kSmiRange,
+    kInt32Range,
+    kUint32Range,
+    kInt64Range
+  };
+
+  // We use 4 bits per operand/result feedback. Our lattice allows us to
+  // express the following states:
+  //
+  //   - usmi   0000 [used only on 32bit platforms]
+  //   - smi    0001
+  //   - uint31 0010
+  //   - int32  0011
+  //   - uint32 0100
+  //   - int33  x1x1
+  //   - int64  1xxx
+  //
+  // DecodeRangeFeedbackAt() helper maps these states into the RangeFeedback
+  // enumeration.
+  enum {
+    kSignedRangeBit = 1 << 0,
+    kInt32RangeBit = 1 << 1,
+    kUint32RangeBit = 1 << 2,
+    kInt64RangeBit = 1 << 3,
+    kBitsPerRangeFeedback = 4,
+    kRangeFeedbackMask = (1 << kBitsPerRangeFeedback) - 1
+  };
+
+  static bool IsValidRangeFeedbackIndex(intptr_t index) {
+    return (0 <= index) && (index < 3);
+  }
+
+  static const char* RangeFeedbackToString(RangeFeedback feedback) {
+    switch (feedback) {
+      case kSmiRange:
+        return "smi";
+      case kInt32Range:
+        return "int32";
+      case kUint32Range:
+        return "uint32";
+      case kInt64Range:
+        return "int64";
+      default:
+        UNREACHABLE();
+        return "?";
+    }
+  }
+
+  // It is only meaningful to interptret range feedback stored in the ICData
+  // when all checks are Mint or Smi.
+  bool HasRangeFeedback() const;
+  RangeFeedback DecodeRangeFeedbackAt(intptr_t idx) const;
+
  private:
   RawArray* ic_data() const {
     return raw_ptr()->ic_data_;
@@ -3727,6 +3802,7 @@ class ICData : public Object {
   void SetNumArgsTested(intptr_t value) const;
   void set_ic_data(const Array& value) const;
   void set_state_bits(uint32_t bits) const;
+  void set_range_feedback(uint32_t feedback);
 
   enum {
     kNumArgsTestedPos = 0,

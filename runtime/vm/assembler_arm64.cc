@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/globals.h"
+#include "vm/globals.h"  // NOLINT
 #if defined(TARGET_ARCH_ARM64)
 
 #include "vm/assembler.h"
@@ -1130,6 +1130,51 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
   csel(result, TMP, result, EQ);
   // Finally, tag the result.
   SmiTag(result);
+}
+
+
+void Assembler::ComputeRange(Register result,
+                             Register value,
+                             Register scratch,
+                             Label* not_mint) {
+  Label done, not_smi;
+  tsti(value, Immediate(kSmiTagMask));
+  b(&not_smi, NE);
+
+  AsrImmediate(scratch, value, 32);
+  LoadImmediate(result, ICData::kUint32RangeBit, PP);
+  cmp(scratch, Operand(1));
+  b(&done, EQ);
+
+  neg(scratch, scratch);
+  add(result, scratch, Operand(ICData::kInt32RangeBit));
+  cmp(scratch, Operand(1));
+  LoadImmediate(TMP, ICData::kSignedRangeBit, PP);
+  csel(result, result, TMP, LS);
+  b(&done);
+
+  Bind(&not_smi);
+  CompareClassId(value, kMintCid, PP);
+  b(not_mint, NE);
+
+  LoadImmediate(result, ICData::kInt64RangeBit, PP);
+  Bind(&done);
+}
+
+
+void Assembler::UpdateRangeFeedback(Register value,
+                                    intptr_t index,
+                                    Register ic_data,
+                                    Register scratch1,
+                                    Register scratch2,
+                                    Label* miss) {
+  ASSERT(ICData::IsValidRangeFeedbackIndex(index));
+  ComputeRange(scratch1, value, scratch2, miss);
+  ldr(scratch2, FieldAddress(ic_data, ICData::range_feedback_offset()), kWord);
+  orrw(scratch2,
+       scratch2,
+       Operand(scratch1, LSL, ICData::kBitsPerRangeFeedback * index));
+  str(scratch2, FieldAddress(ic_data, ICData::range_feedback_offset()), kWord);
 }
 
 

@@ -137,7 +137,18 @@ const char* CompileType::ToCString() const {
 
 
 static void PrintICDataHelper(BufferFormatter* f, const ICData& ic_data) {
-  f->Print(" IC[%" Pd ": ", ic_data.NumberOfChecks());
+  f->Print(" IC[");
+  if (ic_data.HasRangeFeedback()) {
+    f->Print("{%s",
+        ICData::RangeFeedbackToString(ic_data.DecodeRangeFeedbackAt(0)));
+    if (ic_data.NumArgsTested() == 2) {
+      f->Print(" x %s",
+          ICData::RangeFeedbackToString(ic_data.DecodeRangeFeedbackAt(1)));
+    }
+    f->Print("->%s} ",
+        ICData::RangeFeedbackToString(ic_data.DecodeRangeFeedbackAt(2)));
+  }
+  f->Print("%" Pd ": ", ic_data.NumberOfChecks());
   Function& target = Function::Handle();
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
     GrowableArray<intptr_t> class_ids;

@@ -31,6 +31,9 @@ DEFINE_FLAG(bool, propagate_ic_data, true,
     "Propagate IC data from unoptimized to optimized IC calls.");
 DEFINE_FLAG(bool, two_args_smi_icd, true,
     "Generate special IC stubs for two args Smi operations");
+DEFINE_FLAG(bool, ic_range_profiling, true,
+    "Generate special IC stubs collecting range information "
+    "for binary and unary arithmetic operations");
 DEFINE_FLAG(bool, unbox_numeric_fields, true,
     "Support unboxed double and float32x4 fields.");
 DECLARE_FLAG(bool, enable_type_checks);
@@ -2892,6 +2895,19 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (is_smi_two_args_op) {
       ASSERT(ArgumentCount() == 2);
       ExternalLabel target_label(label_address);
+      compiler->EmitInstanceCall(&target_label, *call_ic_data, ArgumentCount(),
+                                 deopt_id(), token_pos(), locs());
+    } else if (FLAG_ic_range_profiling &&
+               (Token::IsBinaryArithmeticOperator(token_kind()) ||
+                Token::IsUnaryArithmeticOperator(token_kind()))) {
+      ASSERT(Token::IsUnaryArithmeticOperator(token_kind()) ==
+                 (ArgumentCount() == 1));
+      ASSERT(Token::IsBinaryArithmeticOperator(token_kind()) ==
+                 (ArgumentCount() == 2));
+      StubCode* stub_code = isolate->stub_code();
+      ExternalLabel target_label((ArgumentCount() == 1) ?
+          stub_code->UnaryRangeCollectingInlineCacheEntryPoint() :
+          stub_code->BinaryRangeCollectingInlineCacheEntryPoint());
       compiler->EmitInstanceCall(&target_label, *call_ic_data, ArgumentCount(),
                                  deopt_id(), token_pos(), locs());
     } else {

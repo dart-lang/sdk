@@ -11472,6 +11472,11 @@ bool ICData::MayCheckForJSWarning() const {
 }
 
 
+void ICData::set_range_feedback(uint32_t feedback) {
+  StoreNonPointer(&raw_ptr()->range_feedback_, feedback);
+}
+
+
 void ICData::set_state_bits(uint32_t bits) const {
   StoreNonPointer(&raw_ptr()->state_bits_, bits);
 }
@@ -11927,6 +11932,7 @@ RawICData* ICData::New(const Function& owner,
   result.set_arguments_descriptor(arguments_descriptor);
   result.set_deopt_id(deopt_id);
   result.set_state_bits(0);
+  result.set_range_feedback(0);
   result.SetNumArgsTested(num_args_tested);
   // Number of array elements in one test entry.
   intptr_t len = result.TestEntryLength();
@@ -11940,6 +11946,94 @@ RawICData* ICData::New(const Function& owner,
 
 void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
+}
+
+
+static Token::Kind RecognizeArithmeticOp(const String& name) {
+  ASSERT(name.IsSymbol());
+  if (name.raw() == Symbols::Plus().raw()) {
+    return Token::kADD;
+  } else if (name.raw() == Symbols::Minus().raw()) {
+    return Token::kSUB;
+  } else if (name.raw() == Symbols::Star().raw()) {
+    return Token::kMUL;
+  } else if (name.raw() == Symbols::Slash().raw()) {
+    return Token::kDIV;
+  } else if (name.raw() == Symbols::TruncDivOperator().raw()) {
+    return Token::kTRUNCDIV;
+  } else if (name.raw() == Symbols::Percent().raw()) {
+    return Token::kMOD;
+  } else if (name.raw() == Symbols::BitOr().raw()) {
+    return Token::kBIT_OR;
+  } else if (name.raw() == Symbols::Ampersand().raw()) {
+    return Token::kBIT_AND;
+  } else if (name.raw() == Symbols::Caret().raw()) {
+    return Token::kBIT_XOR;
+  } else if (name.raw() == Symbols::LeftShiftOperator().raw()) {
+    return Token::kSHL;
+  } else if (name.raw() == Symbols::RightShiftOperator().raw()) {
+    return Token::kSHR;
+  } else if (name.raw() == Symbols::Tilde().raw()) {
+    return Token::kBIT_NOT;
+  } else if (name.raw() == Symbols::UnaryMinus().raw()) {
+    return Token::kNEGATE;
+  }
+  return Token::kILLEGAL;
+}
+
+
+bool ICData::HasRangeFeedback() const {
+  const String& target = String::Handle(target_name());
+  const Token::Kind token_kind = RecognizeArithmeticOp(target);
+  if (!Token::IsBinaryArithmeticOperator(token_kind) &&
+      !Token::IsUnaryArithmeticOperator(token_kind)) {
+    return false;
+  }
+
+  bool initialized = false;
+  Function& t = Function::Handle();
+  const intptr_t len = NumberOfChecks();
+  GrowableArray<intptr_t> class_ids;
+  for (intptr_t i = 0; i < len; i++) {
+    if (IsUsedAt(i)) {
+      initialized = true;
+      GetCheckAt(i, &class_ids, &t);
+      for (intptr_t j = 0; j < class_ids.length(); j++) {
+        const intptr_t cid = class_ids[j];
+        if ((cid != kSmiCid) && (cid != kMintCid)) {
+          return false;
+        }
+      }
+    }
+  }
+
+  return initialized;
+}
+
+
+ICData::RangeFeedback ICData::DecodeRangeFeedbackAt(intptr_t idx) const {
+  ASSERT((0 <= idx) && (idx < 3));
+  const uint32_t feedback =
+      (range_feedback() >> (idx * kBitsPerRangeFeedback)) & kRangeFeedbackMask;
+  if ((feedback & kInt64RangeBit) != 0) {
+    return kInt64Range;
+  }
+
+  if ((feedback & kUint32RangeBit) != 0) {
+    if ((feedback & kSignedRangeBit) == 0) {
+      return kUint32Range;
+    }
+
+    // Check if Smi is large enough to accomodate Int33: a mixture of Uint32
+    // and negative Int32 values.
+    return (kSmiBits < 33) ? kInt64Range : kSmiRange;
+  }
+
+  if ((feedback & kInt32RangeBit) != 0) {
+    return kInt32Range;
+  }
+
+  return kSmiRange;
 }
 
 

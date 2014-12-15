@@ -887,9 +887,9 @@ static bool ICDataHasOnlyReceiverArgumentClassIds(
   }
   Function& target = Function::Handle();
   const intptr_t len = ic_data.NumberOfChecks();
+  GrowableArray<intptr_t> class_ids;
   for (intptr_t i = 0; i < len; i++) {
     if (ic_data.IsUsedAt(i)) {
-      GrowableArray<intptr_t> class_ids;
       ic_data.GetCheckAt(i, &class_ids, &target);
       ASSERT(class_ids.length() == 2);
       if (!ClassIdIsOneOf(class_ids[0], receiver_class_ids) ||
@@ -4298,7 +4298,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
       TryReplaceWithBinaryOp(instr, op_kind)) {
     return;
   }
-  if (Token::IsPrefixOperator(op_kind) &&
+  if (Token::IsUnaryOperator(op_kind) &&
       TryReplaceWithUnaryOp(instr, op_kind)) {
     return;
   }

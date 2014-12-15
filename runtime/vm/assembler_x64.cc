@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/globals.h"
+#include "vm/globals.h"  // NOLINT
 #if defined(TARGET_ARCH_X64)
 
 #include "vm/assembler.h"
@@ -1678,6 +1678,14 @@ void Assembler::orl(Register dst, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(dst, REX_NONE);
   EmitComplex(1, Operand(dst), imm);
+}
+
+
+void Assembler::orl(const Address& address, Register reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(reg, address, REX_NONE);
+  EmitUint8(0x09);
+  EmitOperand(reg & 7, address);
 }
 
 
@@ -3777,6 +3785,50 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
   cmoveq(result, object);
   // Finally, tag the result.
   SmiTag(result);
+}
+
+
+void Assembler::ComputeRange(Register result, Register value, Label* not_mint) {
+  Label done, not_smi;
+  testl(value, Immediate(kSmiTagMask));
+  j(NOT_ZERO, &not_smi, Assembler::kNearJump);
+
+  sarq(value, Immediate(32));  // Take the tag into account.
+  movq(result, Immediate(ICData::kUint32RangeBit));  // Uint32
+  cmpq(value, Immediate(1));
+  j(EQUAL, &done, Assembler::kNearJump);
+
+  movq(result, Immediate(ICData::kInt32RangeBit));
+  subq(result, value);  // 10 (positive int32), 11 (negative int32)
+  negq(value);
+  cmpq(value, Immediate(1));
+  j(BELOW_EQUAL, &done);
+
+  // On 64-bit we don't need to track sign of smis outside of the Int32 range.
+  // Just pretend they are all signed.
+  movq(result, Immediate(ICData::kSignedRangeBit));
+  jmp(&done);
+
+  Bind(&not_smi);
+  CompareClassId(value, kMintCid);
+  j(NOT_EQUAL, not_mint);
+  movq(result, Immediate(ICData::kInt64RangeBit));
+
+  Bind(&done);
+}
+
+
+void Assembler::UpdateRangeFeedback(Register value,
+                                    intptr_t index,
+                                    Register ic_data,
+                                    Register scratch,
+                                    Label* miss) {
+  ASSERT(ICData::IsValidRangeFeedbackIndex(index));
+  ComputeRange(scratch, value, miss);
+  if (index != 0) {
+    shll(scratch, Immediate(ICData::kBitsPerRangeFeedback * index));
+  }
+  orl(FieldAddress(ic_data, ICData::range_feedback_offset()), scratch);
 }
 
 

@@ -149,6 +149,8 @@
     reinterpret_cast<name>(entry)(float_arg)
 #define EXECUTE_TEST_CODE_INT32_D(name, entry, double_arg)                     \
     reinterpret_cast<name>(entry)(double_arg)
+#define EXECUTE_TEST_CODE_INTPTR_INTPTR(name, entry, pointer_arg)              \
+    reinterpret_cast<name>(entry)(pointer_arg)
 #else
 // Not running on ARM or MIPS hardware, call simulator to execute code.
 #if defined(ARCH_IS_64_BIT)
@@ -159,6 +161,11 @@
 #define EXECUTE_TEST_CODE_DOUBLE(name, entry)                                  \
   bit_cast<double, int64_t>(Simulator::Current()->Call(                        \
       bit_cast<int64_t, uword>(entry), 0, 0, 0, 0, true))
+#define EXECUTE_TEST_CODE_INTPTR_INTPTR(name, entry, pointer_arg)              \
+  static_cast<intptr_t>(Simulator::Current()->Call(                            \
+      bit_cast<int64_t, uword>(entry),                                         \
+      bit_cast<int64_t, intptr_t>(pointer_arg),                                \
+      0, 0, 0))
 #else
 #define EXECUTE_TEST_CODE_INT32(name, entry)                                   \
   static_cast<int32_t>(Simulator::Current()->Call(                             \
@@ -166,6 +173,11 @@
 #define EXECUTE_TEST_CODE_DOUBLE(name, entry)                                  \
   bit_cast<double, int64_t>(Simulator::Current()->Call(                        \
       bit_cast<int32_t, uword>(entry), 0, 0, 0, 0, true))
+#define EXECUTE_TEST_CODE_INTPTR_INTPTR(name, entry, pointer_arg)              \
+  static_cast<intptr_t>(Simulator::Current()->Call(                            \
+      bit_cast<int32_t, uword>(entry),                                         \
+      bit_cast<int32_t, intptr_t>(pointer_arg),                                \
+      0, 0, 0))
 #endif
 #define EXECUTE_TEST_CODE_INT64_LL(name, entry, long_arg0, long_arg1)          \
   static_cast<int64_t>(Simulator::Current()->Call(                             \

@@ -291,7 +291,10 @@ class Token {
   }
 
   static bool IsBinaryOperator(Token::Kind token);
-  static bool IsPrefixOperator(Token::Kind token);
+  static bool IsUnaryOperator(Token::Kind token);
+
+  static bool IsBinaryArithmeticOperator(Token::Kind token);
+  static bool IsUnaryArithmeticOperator(Token::Kind token);
 
   // For a comparison operation return an operation for the negated comparison:
   // !(a (op) b) === a (op') b

@@ -54,6 +54,8 @@ class RawCode;
   V(SmiAddInlineCache)                                                         \
   V(SmiSubInlineCache)                                                         \
   V(SmiEqualInlineCache)                                                       \
+  V(UnaryRangeCollectingInlineCache)                                           \
+  V(BinaryRangeCollectingInlineCache)                                          \
   V(OneArgOptimizedCheckInlineCache)                                           \
   V(TwoArgsOptimizedCheckInlineCache)                                          \
   V(ThreeArgsOptimizedCheckInlineCache)                                        \
@@ -206,6 +208,11 @@ class StubCode {
 #undef STUB_CODE_ENTRY
   Isolate* isolate_;
 
+  enum RangeCollectionMode {
+    kCollectRanges,
+    kIgnoreRanges
+  };
+
   // Generate the stub and finalize the generated code into the stub
   // code executable area.
   static RawCode* Generate(const char* name,
@@ -221,7 +228,8 @@ class StubCode {
       Assembler* assembler,
       intptr_t num_args,
       const RuntimeEntry& handle_ic_miss,
-      Token::Kind kind);
+      Token::Kind kind,
+      RangeCollectionMode range_collection_mode);
   static void GenerateUsageCounterIncrement(Assembler* assembler,
                                             Register temp_reg);
   static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);

@@ -20,6 +20,9 @@ class ObjectPointerVisitor;
   V(EqualOperator, "==")                                                       \
   V(GreaterEqualOperator, ">=")                                                \
   V(LessEqualOperator, "<=")                                                   \
+  V(LeftShiftOperator, "<<")                                                   \
+  V(RightShiftOperator, ">>")                                                  \
+  V(TruncDivOperator, "~/")                                                    \
   V(UnaryMinus, "unary-")                                                      \
   V(Identical, "identical")                                                    \
   V(Length, "length")                                                          \
@@ -469,6 +472,18 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
   }
   static const String& Semicolon() {
     return *(symbol_handles_[kNullCharId + ';']);
+  }
+  static const String& Star() {
+    return *(symbol_handles_[kNullCharId + '*']);
+  }
+  static const String& Percent() {
+    return *(symbol_handles_[kNullCharId + '%']);
+  }
+  static const String& Caret() {
+    return *(symbol_handles_[kNullCharId + '^']);
+  }
+  static const String& Tilde() {
+    return *(symbol_handles_[kNullCharId + '~']);
   }
 
   // Access methods for symbol handles stored in the vm isolate.

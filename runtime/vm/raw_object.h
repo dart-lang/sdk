@@ -1282,6 +1282,7 @@ class RawICData : public RawObject {
   int32_t deopt_id_;     // Deoptimization id corresponding to this IC.
   uint32_t state_bits_;  // Number of arguments tested in IC, deopt reasons,
                          // is closure call, JS warning issued.
+  uint32_t range_feedback_;
 };
 
 

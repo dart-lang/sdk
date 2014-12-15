@@ -2709,7 +2709,7 @@ class InstanceCallInstr : public TemplateDefinition<0, Throws> {
     ASSERT(Token::IsBinaryOperator(token_kind) ||
            Token::IsEqualityOperator(token_kind) ||
            Token::IsRelationalOperator(token_kind) ||
-           Token::IsPrefixOperator(token_kind) ||
+           Token::IsUnaryOperator(token_kind) ||
            Token::IsIndexOperator(token_kind) ||
            Token::IsTypeTestOperator(token_kind) ||
            Token::IsTypeCastOperator(token_kind) ||
