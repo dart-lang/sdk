@@ -21,6 +21,7 @@ import 'dart:async';
 class Object {
   bool operator ==(other) => identical(this, other);
   String toString() => 'a string';
+  int get hashCode => 0;
 }
 
 class Function {}

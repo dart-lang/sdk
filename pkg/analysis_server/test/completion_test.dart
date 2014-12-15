@@ -1860,8 +1860,7 @@ void r1(var v) {
             "3+hashCode",
             "3+toString",
             "4+hashCode",
-            "4-toString"],
-        failingTests: '34');
+            "4-toString"]);
 
     CompletionTestCase.buildTests('test002', '''
 void r2(var vim) {
