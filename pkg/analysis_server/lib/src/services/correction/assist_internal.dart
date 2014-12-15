@@ -1259,6 +1259,11 @@ class AssistProcessor {
       return;
     }
     IfStatement ifStatement = statement as IfStatement;
+    // no support "else"
+    if (ifStatement.elseStatement != null) {
+      _coverageMarker();
+      return;
+    }
     // check that binary expression is part of first level && condition of "if"
     BinaryExpression condition = binaryExpression;
     while (condition.parent is BinaryExpression &&
@@ -1284,7 +1289,6 @@ class AssistProcessor {
     _addRemoveEdit(rangeEndEnd(binaryExpression.leftOperand, condition));
     // update "then" statement
     Statement thenStatement = ifStatement.thenStatement;
-    Statement elseStatement = ifStatement.elseStatement;
     if (thenStatement is Block) {
       Block thenBlock = thenStatement;
       SourceRange thenBlockRange = rangeNode(thenBlock);
@@ -1299,41 +1303,14 @@ class AssistProcessor {
       {
         int thenBlockEnd = thenBlockRange.end;
         String source = "${indent}}";
-        // may be move "else" statements
-        if (elseStatement != null) {
-          List<Statement> elseStatements = getStatements(elseStatement);
-          SourceRange elseLinesRange =
-              utils.getLinesRangeStatements(elseStatements);
-          String elseIndentOld = "${prefix}${indent}";
-          String elseIndentNew = "${elseIndentOld}${indent}";
-          String newElseSource =
-              utils.replaceSourceRangeIndent(elseLinesRange, elseIndentOld, elseIndentNew);
-          // append "else" block
-          source += " else {${eol}";
-          source += newElseSource;
-          source += "${prefix}${indent}}";
-          // remove old "else" range
-          _addRemoveEdit(rangeStartEnd(thenBlockEnd, elseStatement));
-        }
         // insert before outer "then" block "}"
         source += "${eol}${prefix}";
         _addInsertEdit(thenBlockEnd - 1, source);
       }
     } else {
       // insert inner "if" with right part of "condition"
-      {
-        String source = "${eol}${prefix}${indent}if (${rightConditionSource})";
-        _addInsertEdit(ifStatement.rightParenthesis.offset + 1, source);
-      }
-      // indent "else" statements to correspond inner "if"
-      if (elseStatement != null) {
-        SourceRange elseRange =
-            rangeStartEnd(ifStatement.elseKeyword.offset, elseStatement);
-        SourceRange elseLinesRange = utils.getLinesRange(elseRange);
-        String elseIndentOld = prefix;
-        String elseIndentNew = "${elseIndentOld}${indent}";
-        _addIndentEdit(elseLinesRange, elseIndentOld, elseIndentNew);
-      }
+      String source = "${eol}${prefix}${indent}if (${rightConditionSource})";
+      _addInsertEdit(ifStatement.rightParenthesis.offset + 1, source);
     }
     // indent "then" statements to correspond inner "if"
     {

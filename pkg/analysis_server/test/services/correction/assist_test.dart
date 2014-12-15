@@ -2220,35 +2220,6 @@ main() {
 ''');
   }
 
-  void test_splitAndCondition_OK_thenBlock_elseBlock() {
-    _indexTestUnit('''
-main() {
-  if (true && false) {
-    print(0);
-  } else {
-    print(1);
-    if (2 == 2) {
-      print(2);
-    }
-  }
-}
-''');
-    assertHasAssistAt('&& false', AssistKind.SPLIT_AND_CONDITION, '''
-main() {
-  if (true) {
-    if (false) {
-      print(0);
-    } else {
-      print(1);
-      if (2 == 2) {
-        print(2);
-      }
-    }
-  }
-}
-''');
-  }
-
   void test_splitAndCondition_OK_thenStatement() {
     _indexTestUnit('''
 main() {
@@ -2261,26 +2232,6 @@ main() {
   if (true)
     if (false)
       print(0);
-}
-''');
-  }
-
-  void test_splitAndCondition_OK_thenStatement_elseStatement() {
-    _indexTestUnit('''
-main() {
-  if (true && false)
-    print(0);
-  else
-    print(1);
-}
-''');
-    assertHasAssistAt('&& false', AssistKind.SPLIT_AND_CONDITION, '''
-main() {
-  if (true)
-    if (false)
-      print(0);
-    else
-      print(1);
 }
 ''');
   }
@@ -2312,6 +2263,19 @@ main() {
 }
 ''');
     assertNoAssistAt('|| 2', AssistKind.SPLIT_AND_CONDITION);
+  }
+
+  void test_splitAndCondition_wrong_hasElse() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1 && 2 == 2) {
+    print(1);
+  } else {
+    print(2);
+  }
+}
+''');
+    assertNoAssistAt('&& 2', AssistKind.SPLIT_AND_CONDITION);
   }
 
   void test_splitAndCondition_wrong_notPartOfIf() {
