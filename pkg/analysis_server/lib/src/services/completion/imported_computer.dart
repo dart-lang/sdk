@@ -167,7 +167,7 @@ class _ImportedAstVisitor extends
     // Make suggestions for the prefix, but not for the selector
     // InvocationComputer makes selector suggestions
     Token period = node.period;
-    if (period != null && request.offset <= period.offset) {
+    if (period == null || request.offset <= period.offset) {
       return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
     }
     return null;

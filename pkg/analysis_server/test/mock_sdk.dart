@@ -34,6 +34,8 @@ abstract class Comparable<T> {
 }
 
 class String implements Comparable<String> {
+  external factory String.fromCharCodes(Iterable<int> charCodes,
+                                        [int start = 0, int end]);
   bool get isEmpty => false;
   bool get isNotEmpty => false;
   int get length => 0;

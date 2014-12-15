@@ -403,6 +403,16 @@ class CompletionTest extends AbstractAnalysisTest {
     });
   }
 
+  test_local_named_constructor() {
+    addTestFile('class A {A.c(); x() {new A.^}}');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'c');
+      assertNoResult('A');
+    });
+  }
+
   test_locals() {
     addTestFile('class A {var a; x() {var b;^}}');
     return getSuggestions().then((_) {

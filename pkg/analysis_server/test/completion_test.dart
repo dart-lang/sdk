@@ -121,8 +121,7 @@ class Map{}class F{m(){new !1''', <String>["1+Map"], failingTests: '1');
 
     CompletionTestCase.buildTests('testCommentSnippets022b', '''
 class Map{factory Map.qq(){return null;}}class F{m(){new Map.!1qq();}}''',
-        <String>["1+qq"],
-        failingTests: '1');
+        <String>["1+qq"]);
 
     CompletionTestCase.buildTests('testCommentSnippets023', '''
 class X {X c; X(this.!1c!3) : super() {c.!2}}''',
@@ -182,8 +181,7 @@ class List{}t3() {var x=new List!1}''', <String>["1+List"], failingTests: '1');
 
     CompletionTestCase.buildTests('testCommentSnippets037', '''
 class List{factory List.from(){}}t3() {var x=new List.!1}''',
-        <String>["1+from"],
-        failingTests: '1');
+        <String>["1+from"]);
 
     CompletionTestCase.buildTests('testCommentSnippets038', '''
 f(){int xa; String s = '\$x!1';}''', <String>["1+xa"]);
@@ -263,7 +261,7 @@ k() {
             "2-xdr.b",
             "3-b",
             "3+a"],
-        failingTests: '123');
+        failingTests: '12');
 
     // Type propagation.
     CompletionTestCase.buildTests('testCommentSnippets051', '''
@@ -1417,7 +1415,7 @@ class A {
 }
 main() {
   new A.!1
-}''', <String>["1+_c", "1+c"], failingTests: '1');
+}''', <String>["1+_c", "1+c"]);
 
     CompletionTestCase.buildTests(
         'testCompletion_privateElement_sameLibrary_member',
@@ -1880,7 +1878,7 @@ class A {
   A.b() : this();
   A.c() : this.!2b();
   g() => new A.!3c();
-}''', <String>["1+x", "2+b", "3+c"], failingTests: '23');
+}''', <String>["1+x", "2+b", "3+c"], failingTests: '2');
 
     CompletionTestCase.buildTests('test005', '''
 class A {}
@@ -2177,7 +2175,7 @@ class F {
   f() {
     new List.!1
   }
-}''', <String>["1+from"], failingTests: '1');
+}''', <String>["1+from"]);
 
     CompletionTestCase.buildTests('test025', '''
 class R {

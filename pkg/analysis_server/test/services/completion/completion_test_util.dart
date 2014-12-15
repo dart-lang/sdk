@@ -1034,8 +1034,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestImportedClass('C');
       // hidden element suggested as low relevance
       // but imported results are partially filtered
-      //assertSuggestImportedClass('D', CompletionRelevance.LOW);
-      //assertSuggestImportedFunction('D1', null, true, CompletionRelevance.LOW);
+      //assertSuggestImportedClass('D', CompletionRelevance.LOW)
+      //assertSuggestImportedFunction(
+      //    'D1', null, true, CompletionRelevance.LOW);
       assertSuggestLocalFunction('D2', 'Z');
       assertSuggestImportedClass('EE');
       // hidden element suggested as low relevance
@@ -1430,6 +1431,45 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_ConstructorName_importedFactory() {
+    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // InstanceCreationExpression
+    addSource('/testB.dart', '''
+      lib B;
+      int T1;
+      F1() { }
+      class X {factory X.c(); factory X._d(); z() {}}''');
+    addTestSource('''
+      import "/testB.dart";
+      var m;
+      main() {new X.^}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestNamedConstructor('c', 'X');
+      assertNotSuggested('F1');
+      assertNotSuggested('T1');
+      assertNotSuggested('_d');
+      assertNotSuggested('z');
+      assertNotSuggested('m');
+    });
+  }
+
+  test_ConstructorName_importedFactory2() {
+    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // InstanceCreationExpression
+    addTestSource('''
+      main() {new String.fr^omCharCodes([]);}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestNamedConstructor('fromCharCodes', 'String');
+      assertNotSuggested('isEmpty');
+      assertNotSuggested('isNotEmpty');
+      assertNotSuggested('length');
+      assertNotSuggested('Object');
+      assertNotSuggested('String');
+    });
+  }
+
   test_ConstructorName_localClass() {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
@@ -1437,6 +1477,25 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       int T1;
       F1() { }
       class X {X.c(); X._d(); z() {}}
+      main() {new X.^}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestNamedConstructor('c', 'X');
+      assertSuggestNamedConstructor('_d', 'X');
+      assertNotSuggested('F1');
+      assertNotSuggested('T1');
+      assertNotSuggested('z');
+      assertNotSuggested('m');
+    });
+  }
+
+  test_ConstructorName_localFactory() {
+    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // InstanceCreationExpression
+    addTestSource('''
+      int T1;
+      F1() { }
+      class X {factory X.c(); factory X._d(); z() {}}
       main() {new X.^}''');
     computeFast();
     return computeFull((bool result) {

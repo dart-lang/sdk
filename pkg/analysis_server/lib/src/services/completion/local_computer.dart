@@ -266,6 +266,16 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
+  visitConstructorName(ConstructorName node) {
+    // InvocationComputer adds suggestions for prefixed elements
+    // but this computer adds suggestions for the prefix itself
+    Token period = node.period;
+    if (period == null || request.offset <= period.offset) {
+      visitNode(node);
+    }
+  }
+
+  @override
   visitMethodInvocation(MethodInvocation node) {
     // InvocationComputer adds suggestions for method selector
     Token period = node.period;
@@ -288,8 +298,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   visitPrefixedIdentifier(PrefixedIdentifier node) {
     // InvocationComputer adds suggestions for prefixed elements
     // but this computer adds suggestions for the prefix itself
-    SimpleIdentifier prefix = node.prefix;
-    if (prefix == null || request.offset <= prefix.end) {
+    Token period = node.period;
+    if (period == null || request.offset <= period.offset) {
       visitNode(node);
     }
   }

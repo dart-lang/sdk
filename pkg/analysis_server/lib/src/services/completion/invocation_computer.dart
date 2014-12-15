@@ -80,6 +80,23 @@ class _InvocationAstVisitor extends GeneralizingAstVisitor<SuggestionBuilder> {
   _InvocationAstVisitor(this.request);
 
   @override
+  visitConstructorName(ConstructorName node) {
+    // some PrefixedIdentifier nodes are transformed into
+    // ConstructorName nodes during the resolution process.
+    Token period = node.period;
+    if (period != null && request.offset > period.offset) {
+      TypeName type = node.type;
+      if (type != null) {
+        SimpleIdentifier prefix = type.name;
+        if (prefix != null) {
+          return new _PrefixedIdentifierSuggestionBuilder(request);
+        }
+      }
+    }
+    return null;
+  }
+
+  @override
   SuggestionBuilder visitMethodInvocation(MethodInvocation node) {
     Token period = node.period;
     if (period == null || period.offset < request.offset) {
@@ -98,7 +115,7 @@ class _InvocationAstVisitor extends GeneralizingAstVisitor<SuggestionBuilder> {
     // some PrefixedIdentifier nodes are transformed into
     // ConstructorName nodes during the resolution process.
     Token period = node.period;
-    if (request.offset > period.offset) {
+    if (period != null && request.offset > period.offset) {
       SimpleIdentifier prefix = node.prefix;
       if (prefix != null) {
         return new _PrefixedIdentifierSuggestionBuilder(request);
