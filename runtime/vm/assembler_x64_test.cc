@@ -1026,8 +1026,8 @@ ASSEMBLER_TEST_GENERATE(Bitwise, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Bitwise, test) {
-  uint64_t f1;
-  uint64_t f2;
+  uint64_t f1 = 0;
+  uint64_t f2 = 0;
   typedef int (*Bitwise)(void*, void*);
   int result = reinterpret_cast<Bitwise>(test->entry())(&f1, &f2);
   EXPECT_EQ(256 + 1, result);

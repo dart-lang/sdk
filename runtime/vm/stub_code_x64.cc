@@ -1216,21 +1216,16 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ movq(R12, RCX);
   __ orq(R12, RAX);
   __ testq(R12, Immediate(kSmiTagMask));
-#if defined(DEBUG)
-  const bool jump_length = Assembler::kFarJump;
-#else
-  const bool jump_length = Assembler::kNearJump;
-#endif
-  __ j(NOT_ZERO, not_smi_or_overflow, jump_length);
+  __ j(NOT_ZERO, not_smi_or_overflow);
   switch (kind) {
     case Token::kADD: {
       __ addq(RAX, RCX);
-      __ j(OVERFLOW, not_smi_or_overflow, jump_length);
+      __ j(OVERFLOW, not_smi_or_overflow);
       break;
     }
     case Token::kSUB: {
       __ subq(RAX, RCX);
-      __ j(OVERFLOW, not_smi_or_overflow, jump_length);
+      __ j(OVERFLOW, not_smi_or_overflow);
       break;
     }
     case Token::kEQ: {
