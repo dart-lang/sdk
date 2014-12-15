@@ -852,7 +852,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     case RawFunction::kConstructor:
       // The call to a redirecting factory is redirected.
       ASSERT(!func.IsRedirectingFactory());
-      if (!func.IsImplicitConstructor() && !func.is_async_closure()) {
+      if (!func.IsImplicitConstructor()) {
         parser.SkipFunctionPreamble();
       }
       node_sequence = parser.ParseFunc(func, &default_parameter_values);
@@ -3001,9 +3001,6 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   intptr_t saved_try_index = last_used_try_index_;
   last_used_try_index_ = 0;
 
-  intptr_t formal_params_pos = TokenPos();
-  // TODO(12455) : Need better validation mechanism.
-
   // In case of nested async functions we also need to save the currently saved
   // try context, the corresponding stack variable, and the scope where
   // temporaries are added.
@@ -3077,8 +3074,8 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     ASSERT(AbstractType::Handle(I, func.result_type()).IsResolved());
     ASSERT(func.NumParameters() == params.parameters->length());
     if (!Function::Handle(func.parent_function()).IsGetterFunction()) {
-      // Parse away any formal parameters, as they are accessed as as context
-      // variables.
+      // Parse and discard any formal parameters. They are accessed as
+      // context variables.
       ParamList parse_away;
       ParseFormalParameterList(allow_explicit_default_values,
                                false,
@@ -3131,7 +3128,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
 
   Function& async_closure = Function::ZoneHandle(I);
   if (func.IsAsyncFunction() && !func.is_async_closure()) {
-    async_closure = OpenAsyncFunction(formal_params_pos);
+    async_closure = OpenAsyncFunction(func.token_pos());
   } else if (func.is_async_closure()) {
     OpenAsyncClosure();
   }
@@ -5993,7 +5990,7 @@ void Parser::OpenAsyncTryBlock() {
 }
 
 
-RawFunction* Parser::OpenAsyncFunction(intptr_t formal_param_pos) {
+RawFunction* Parser::OpenAsyncFunction(intptr_t async_func_pos) {
   TRACE_PARSER("OpenAsyncFunction");
   AddAsyncClosureVariables();
   Function& closure = Function::Handle(I);
@@ -6003,9 +6000,9 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t formal_param_pos) {
   // this async function has already been created by a previous
   // compilation of this function.
   const Function& found_func = Function::Handle(
-      I, current_class().LookupClosureFunction(formal_param_pos));
+      I, current_class().LookupClosureFunction(async_func_pos));
   if (!found_func.IsNull() &&
-      (found_func.token_pos() == formal_param_pos) &&
+      (found_func.token_pos() == async_func_pos) &&
       (found_func.script() == innermost_function().script()) &&
       (found_func.parent_function() == innermost_function().raw())) {
     ASSERT(found_func.is_async_closure());
@@ -6019,7 +6016,7 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t formal_param_pos) {
     closure = Function::NewClosureFunction(
         String::Handle(I, Symbols::New(closure_name)),
         innermost_function(),
-        formal_param_pos);
+        async_func_pos);
     closure.set_is_async_closure(true);
     closure.set_result_type(AbstractType::Handle(Type::DynamicType()));
     is_new_closure = true;
@@ -6028,7 +6025,7 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t formal_param_pos) {
   ParamList closure_params;
   const Type& dynamic_type = Type::ZoneHandle(I, Type::DynamicType());
   closure_params.AddFinalParameter(
-      formal_param_pos, &Symbols::ClosureParameter(), &dynamic_type);
+      async_func_pos, &Symbols::ClosureParameter(), &dynamic_type);
   ParamDesc result_param;
   result_param.name = &Symbols::AsyncOperationParam();
   result_param.default_value = &Object::null_instance();
@@ -6051,7 +6048,7 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t formal_param_pos) {
     Class& sig_cls = Class::Handle(I, library_.LookupLocalClass(sig));
     if (sig_cls.IsNull()) {
       sig_cls =
-          Class::NewSignatureClass(sig, closure, script_, formal_param_pos);
+          Class::NewSignatureClass(sig, closure, script_, closure.token_pos());
       library_.AddClass(sig_cls);
     }
     closure.set_signature_class(sig_cls);

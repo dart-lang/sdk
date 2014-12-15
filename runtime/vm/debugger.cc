@@ -64,6 +64,7 @@ SourceBreakpoint::SourceBreakpoint(intptr_t id,
       end_token_pos_(end_token_pos),
       is_resolved_(false),
       is_enabled_(false),
+      is_one_shot_(false),
       next_(NULL),
       function_(Function::null()),
       line_number_(-1) {
@@ -1138,48 +1139,8 @@ void Debugger::DeoptimizeWorld() {
 }
 
 
-RawError* Debugger::SetInternalBreakpoints(const Function& target_function) {
-  if (target_function.is_native()) {
-    // Can't instrument native functions. Fail silently.
-    return Error::null();
-  }
-  Isolate* isolate = Isolate::Current();
-  if (!target_function.HasCode()) {
-    const Error& error = Error::Handle(
-        Compiler::CompileFunction(isolate, target_function));
-    if (!error.IsNull()) {
-      return error.raw();
-    }
-  }
-  // Hang on to the code object before deoptimizing, in case deoptimization
-  // might cause the GC to run.
-  Code& code = Code::Handle(isolate, target_function.unoptimized_code());
-  ASSERT(!code.IsNull());
-  DeoptimizeWorld();
-  ASSERT(!target_function.HasOptimizedCode());
-  PcDescriptors& desc = PcDescriptors::Handle(isolate, code.pc_descriptors());
-  PcDescriptors::Iterator iter(desc, kSafepointKind);
-  while (iter.MoveNext()) {
-    if (iter.TokenPos() != Scanner::kNoSourcePos) {
-      CodeBreakpoint* bpt = GetCodeBreakpoint(iter.Pc());
-      if (bpt != NULL) {
-        // There is already a breakpoint for this address. Make sure
-        // it is enabled.
-        bpt->Enable();
-        continue;
-      }
-      bpt = new CodeBreakpoint(code, iter.TokenPos(),
-                               iter.Pc(), iter.Kind());
-      RegisterCodeBreakpoint(bpt);
-      bpt->Enable();
-    }
-  }
-  return Error::null();
-}
-
-
 void Debugger::SignalBpResolved(SourceBreakpoint* bpt) {
-  if (HasEventHandler()) {
+  if (HasEventHandler() && !bpt->IsOneShot()) {
     DebuggerEvent event(isolate_, DebuggerEvent::kBreakpointResolved);
     event.set_breakpoint(bpt);
     InvokeEventHandler(&event);
@@ -1418,9 +1379,23 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
 }
 
 
+static intptr_t LastTokenOnLine(const TokenStream& tokens, intptr_t pos) {
+  TokenStream::Iterator iter(tokens, pos, TokenStream::Iterator::kAllTokens);
+  ASSERT(iter.IsValid());
+  intptr_t last_pos = pos;
+  while ((iter.CurrentTokenKind() != Token::kNEWLINE) &&
+      (iter.CurrentTokenKind() != Token::kEOS)) {
+    last_pos = iter.CurrentPosition();
+    iter.Advance();
+  }
+  return last_pos;
+}
+
+
 // Given a function and a token range, return the best fit
 // token position to set a breakpoint. The best fit is the safe point
-// with the lowest compiled code address within the token range.
+// in the line closest to the beginning of the token range, and within
+// that line, the safe point with the lowest compiled code address.
 intptr_t Debugger::ResolveBreakpointPos(const Function& func,
                                         intptr_t requested_token_pos,
                                         intptr_t last_token_pos) {
@@ -1437,41 +1412,45 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
   Code& code = Code::Handle(func.unoptimized_code());
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
+
+  // First pass: find the safe point which is closest to the beginning
+  // of the given token range.
   intptr_t best_fit_pos = INT_MAX;
-  uword lowest_pc = kUwordMax;
-  intptr_t lowest_pc_token_pos = INT_MAX;
   PcDescriptors::Iterator iter(desc, kSafepointKind);
   while (iter.MoveNext()) {
     const intptr_t desc_token_pos = iter.TokenPos();
-    ASSERT(desc_token_pos >= 0);
-    if (desc_token_pos != Scanner::kNoSourcePos) {
-      if ((desc_token_pos < requested_token_pos) ||
-          (desc_token_pos > last_token_pos)) {
-        // This descriptor is outside the desired token range.
-        continue;
-      }
-      if (desc_token_pos < best_fit_pos) {
-        // So far, this descriptor has the lowest token position after
-        // the first acceptable token position.
-        best_fit_pos = desc_token_pos;
-      }
-      if (iter.Pc() < lowest_pc) {
-        // This descriptor so far has the lowest code address.
-        lowest_pc = iter.Pc();
-        lowest_pc_token_pos = desc_token_pos;
-      }
+    if ((desc_token_pos != Scanner::kNoSourcePos) &&
+        (desc_token_pos < best_fit_pos) &&
+        (desc_token_pos >= requested_token_pos) &&
+        (desc_token_pos <= last_token_pos)) {
+       best_fit_pos = desc_token_pos;
     }
   }
-  if (lowest_pc_token_pos != INT_MAX) {
-    // We found the pc descriptor that has the lowest execution address.
-    // This is the first possible breakpoint after the requested token
-    // position. We use this instead of the nearest PC descriptor
-    // measured in token index distance.
-    return lowest_pc_token_pos;
-  }
+  // Second pass (if we found a safe point in the first pass):
+  // For all token positions on the same line, select the one
+  // with the lowest compiled code address. E.g., in a line with
+  // the nested function calls f(g(x)), the call g() will have a lower
+  // compiled code address but is not the lowest token position in the
+  // line.
   if (best_fit_pos != INT_MAX) {
+    const Script& script = Script::Handle(func.script());
+    const TokenStream& tokens = TokenStream::Handle(script.tokens());
+    const intptr_t begin_pos = best_fit_pos;
+    const intptr_t end_of_line_pos = LastTokenOnLine(tokens, begin_pos);
+    uword lowest_pc = kUwordMax;
+    PcDescriptors::Iterator iter(desc, kSafepointKind);
+    while (iter.MoveNext()) {
+      const intptr_t pos = iter.TokenPos();
+      if ((pos != Scanner::kNoSourcePos) &&
+          (begin_pos <= pos) && (pos <= end_of_line_pos) &&
+          (iter.Pc() < lowest_pc)) {
+        lowest_pc = iter.Pc();
+        best_fit_pos = pos;
+      }
+    }
     return best_fit_pos;
   }
+
   // We didn't find a safe point in the given token range. Try and find
   // a safe point in the remaining source code of the function.
   if (last_token_pos < func.end_token_pos()) {
@@ -1554,12 +1533,12 @@ void Debugger::FindCompiledFunctions(const Script& script,
           if ((function.token_pos() == start_pos)
               && (function.end_token_pos() == end_pos)
               && (function.script() == script.raw())) {
-            if (function.HasCode()) {
+            if (function.HasCode() && !function.IsAsyncFunction()) {
               function_list->Add(function);
             }
             if (function.HasImplicitClosureFunction()) {
               function = function.ImplicitClosureFunction();
-              if (function.HasCode()) {
+              if (function.HasCode() && !function.IsAsyncFunction()) {
                 function_list->Add(function);
               }
             }
@@ -1575,12 +1554,12 @@ void Debugger::FindCompiledFunctions(const Script& script,
           if ((function.token_pos() == start_pos)
               && (function.end_token_pos() == end_pos)
               && (function.script() == script.raw())) {
-            if (function.HasCode()) {
+            if (function.HasCode() && !function.IsAsyncFunction()) {
               function_list->Add(function);
             }
             if (function.HasImplicitClosureFunction()) {
               function = function.ImplicitClosureFunction();
-              if (function.HasCode()) {
+              if (function.HasCode() && !function.IsAsyncFunction()) {
                 function_list->Add(function);
               }
             }
@@ -1723,7 +1702,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Script& script,
       if (FLAG_verbose_debug) {
         intptr_t line_number;
         script.GetTokenLocation(breakpoint_pos, &line_number, NULL);
-        OS::Print("Resolved breakpoint for "
+        OS::Print("Resolved BP for "
                   "function '%s' at line %" Pd "\n",
                   func.ToFullyQualifiedCString(),
                   line_number);
@@ -1770,14 +1749,11 @@ void Debugger::SyncBreakpoint(SourceBreakpoint* bpt) {
 
 
 RawError* Debugger::OneTimeBreakAtEntry(const Function& target_function) {
-  Error& err = Error::Handle();
-  err = SetInternalBreakpoints(target_function);
-  if (err.IsNull() && target_function.HasImplicitClosureFunction()) {
-    const Function& closure_func =
-        Function::Handle(target_function.ImplicitClosureFunction());
-    err = SetInternalBreakpoints(closure_func);
+  SourceBreakpoint* bpt = SetBreakpointAtEntry(target_function);
+  if (bpt != NULL) {
+    bpt->SetIsOneShot();
   }
-  return err.raw();
+  return Error::null();
 }
 
 
@@ -2136,6 +2112,10 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
   isolate_->set_single_step(false);
   ASSERT(!IsPaused());
   ASSERT(obj_cache_ == NULL);
+  if ((bpt != NULL) && bpt->IsOneShot()) {
+    RemoveBreakpoint(bpt->id());
+    bpt = NULL;
+  }
   DebuggerEvent event(isolate_, DebuggerEvent::kBreakpointReached);
   event.set_top_frame(top_frame);
   event.set_breakpoint(bpt);

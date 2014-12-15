@@ -48,6 +48,9 @@ class SourceBreakpoint {
   bool IsEnabled() const { return is_enabled_; }
   bool IsResolved() const { return is_resolved_; }
 
+  bool IsOneShot() const { return is_one_shot_; }
+  void SetIsOneShot() { is_one_shot_ = true; }
+
   void PrintJSON(JSONStream* stream);
 
  private:
@@ -63,6 +66,7 @@ class SourceBreakpoint {
   intptr_t end_token_pos_;
   bool is_resolved_;
   bool is_enabled_;
+  bool is_one_shot_;
   SourceBreakpoint* next_;
 
   // Valid for resolved breakpoints:
@@ -453,7 +457,6 @@ class Debugger {
                                 intptr_t requested_token_pos,
                                 intptr_t last_token_pos);
   void DeoptimizeWorld();
-  RawError* SetInternalBreakpoints(const Function& target_function);
   SourceBreakpoint* SetBreakpoint(const Script& script,
                                   intptr_t token_pos,
                                   intptr_t last_token_pos);
