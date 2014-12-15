@@ -1007,7 +1007,14 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       int T5;
       var _T6;
       Z D2() {int x;}
-      class X {a() {var f; {var x;} ^ var r;} void b() { }}
+      class X {
+        a() {
+          var f;
+          localF(int arg1) { }
+          {var x;}
+          ^ var r;
+        }
+        void b() { }}
       class Z { }''');
     computeFast();
     return computeFull((bool result) {
@@ -1016,6 +1023,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalClass('Z');
       assertLocalSuggestMethod('a', 'X', null);
       assertLocalSuggestMethod('b', 'X', 'void');
+      assertSuggestLocalFunction('localF', null);
       assertSuggestLocalVariable('f', null);
       // Don't suggest locals out of scope
       assertNotSuggested('r');
@@ -2110,6 +2118,76 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestInvocationGetter('isEven', 'bool');
       assertNotSuggested('A');
       assertNotSuggested('a');
+      assertNotSuggested('Object');
+      assertNotSuggested('==');
+    });
+  }
+
+  test_ThisExpression_block() {
+    // MethodInvocation  ExpressionStatement  Block
+    addTestSource('''
+      main() { }
+      class I {X get f => new A();get _g => new A();}
+      class A implements I {
+        A() {}
+        A.z() {}
+        var b; X _c;
+        X get d => new A();get _e => new A();
+        // no semicolon between completion point and next statement
+        set s1(I x) {} set _s2(I x) {this.^ m(null);}
+        m(X x) {} I _n(X x) {}}
+      class X{}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestInvocationGetter('b', null);
+      assertSuggestInvocationGetter('_c', 'X');
+      assertSuggestInvocationGetter('d', 'X');
+      assertSuggestInvocationGetter('_e', null);
+      assertSuggestInvocationGetter('f', 'X');
+      assertSuggestInvocationGetter('_g', null);
+      assertSuggestInvocationMethod('m', 'A', null);
+      assertSuggestInvocationMethod('_n', 'A', 'I');
+      assertSuggestInvocationSetter('s1');
+      assertSuggestInvocationSetter('_s2');
+      assertNotSuggested('z');
+      assertNotSuggested('I');
+      assertNotSuggested('A');
+      assertNotSuggested('X');
+      assertNotSuggested('Object');
+      assertNotSuggested('==');
+    });
+  }
+
+  test_ThisExpression_constructor() {
+    // MethodInvocation  ExpressionStatement  Block
+    addTestSource('''
+      main() { }
+      class I {X get f => new A();get _g => new A();}
+      class A implements I {
+        A() {this.^}
+        A.z() {}
+        var b; X _c;
+        X get d => new A();get _e => new A();
+        // no semicolon between completion point and next statement
+        set s1(I x) {} set _s2(I x) {m(null);}
+        m(X x) {} I _n(X x) {}}
+      class X{}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestInvocationGetter('b', null);
+      assertSuggestInvocationGetter('_c', 'X');
+      assertSuggestInvocationGetter('d', 'X');
+      assertSuggestInvocationGetter('_e', null);
+      assertSuggestInvocationGetter('f', 'X');
+      assertSuggestInvocationGetter('_g', null);
+      assertSuggestInvocationMethod('m', 'A', null);
+      assertSuggestInvocationMethod('_n', 'A', 'I');
+      assertSuggestInvocationSetter('s1');
+      assertSuggestInvocationSetter('_s2');
+      assertNotSuggested('z');
+      assertNotSuggested('I');
+      assertNotSuggested('A');
+      assertNotSuggested('X');
       assertNotSuggested('Object');
       assertNotSuggested('==');
     });

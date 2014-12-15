@@ -659,8 +659,7 @@ class List{}class Map{}class Z extends List with !1Ma!2p {}''',
 
     CompletionTestCase.buildTests('testCommentSnippets086', '''
 class Q{f(){xy() {!2};x!1y();}}''',
-        <String>["1+xy", "2+f", "2-xy"],
-        failingTests: '1');
+        <String>["1+xy", "2+f", "2-xy"]);
 
     CompletionTestCase.buildTests('testCommentSnippets087', '''
 class Map{}class Q extends Object with !1Map {}''',
@@ -730,8 +729,7 @@ class Q {
             "5+Q",
             "5-xya",
             "5-xyb",
-            "5-xza"],
-        failingTests: '34');
+            "5-xza"]);
 
     CompletionTestCase.buildTests('testCommentSnippets090', '''
 class X { f() { var a = 'x'; a.!1 }}''',
