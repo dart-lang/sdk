@@ -173,7 +173,7 @@ class HGraph {
   HConstant addConstant(ConstantValue constant, Compiler compiler) {
     HConstant result = constants[constant];
     if (result == null) {
-      TypeMask type = constant.computeMask(compiler);
+      TypeMask type = computeTypeMask(compiler, constant);
       result = new HConstant.internal(constant, type);
       entry.addAtExit(result);
       constants[constant] = result;

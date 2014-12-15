@@ -17,23 +17,22 @@ import '../tree/tree.dart' hide unparse;
 import '../types/types.dart' as ti show TypeMask;
 import '../util/util.dart' show SMI_MASK;
 
-abstract class ConstantValueVisitor<R> {
+abstract class ConstantValueVisitor<R, A> {
   const ConstantValueVisitor();
 
-  R visitFunction(FunctionConstantValue constant);
-  R visitNull(NullConstantValue constant);
-  R visitInt(IntConstantValue constant);
-  R visitDouble(DoubleConstantValue constant);
-  R visitTrue(TrueConstantValue constant);
-  R visitFalse(FalseConstantValue constant);
-  R visitString(StringConstantValue constant);
-  R visitList(ListConstantValue constant);
-  R visitMap(MapConstantValue constant);
-  R visitConstructed(ConstructedConstantValue constant);
-  R visitType(TypeConstantValue constant);
-  R visitInterceptor(InterceptorConstantValue constant);
-  R visitDummy(DummyConstantValue constant);
-  R visitDeferred(DeferredConstantValue constant);
+  R visitFunction(FunctionConstantValue constant, A arg);
+  R visitNull(NullConstantValue constant, A arg);
+  R visitInt(IntConstantValue constant, A arg);
+  R visitDouble(DoubleConstantValue constant, A arg);
+  R visitBool(BoolConstantValue constant, A arg);
+  R visitString(StringConstantValue constant, A arg);
+  R visitList(ListConstantValue constant, A arg);
+  R visitMap(MapConstantValue constant, A arg);
+  R visitConstructed(ConstructedConstantValue constant, A arg);
+  R visitType(TypeConstantValue constant, A arg);
+  R visitInterceptor(InterceptorConstantValue constant, A arg);
+  R visitDummy(DummyConstantValue constant, A arg);
+  R visitDeferred(DeferredConstantValue constant, A arg);
 }
 
 abstract class ConstantValue {
@@ -67,11 +66,9 @@ abstract class ConstantValue {
   // TODO(johnniwinther): Replace with a 'type' getter.
   DartType computeType(Compiler compiler);
 
-  ti.TypeMask computeMask(Compiler compiler);
-
   List<ConstantValue> getDependencies();
 
-  accept(ConstantValueVisitor visitor);
+  accept(ConstantValueVisitor visitor, arg);
 
   /// The value of this constant in Dart syntax, if possible.
   ///
@@ -114,13 +111,9 @@ class FunctionConstantValue extends ConstantValue {
   // TODO(johnniwinther): remove computeType.
   DartType computeType(Compiler compiler) => element.computeType(compiler);
 
-  ti.TypeMask computeMask(Compiler compiler) {
-    return compiler.typesTask.functionType;
-  }
-
   int get hashCode => (17 * element.hashCode) & 0x7fffffff;
 
-  accept(ConstantValueVisitor visitor) => visitor.visitFunction(this);
+  accept(ConstantValueVisitor visitor, arg) => visitor.visitFunction(this, arg);
 
   String unparse() {
     if (element.isStatic) {
@@ -176,16 +169,12 @@ class NullConstantValue extends PrimitiveConstantValue {
     return compiler.nullClass.computeType(compiler);
   }
 
-  ti.TypeMask computeMask(Compiler compiler) {
-    return compiler.typesTask.nullType;
-  }
-
   // The magic constant has no meaning. It is just a random value.
   int get hashCode => 785965825;
 
   DartString toDartString() => const LiteralDartString("null");
 
-  accept(ConstantValueVisitor visitor) => visitor.visitNull(this);
+  accept(ConstantValueVisitor visitor, arg) => visitor.visitNull(this, arg);
 
   String toStructuredString() => 'NullConstant';
 }
@@ -238,13 +227,6 @@ class IntConstantValue extends NumConstantValue {
     return compiler.intClass.rawType;
   }
 
-  ti.TypeMask computeMask(Compiler compiler) {
-    if (isUInt31()) return compiler.typesTask.uint31Type;
-    if (isUInt32()) return compiler.typesTask.uint32Type;
-    if (isPositive()) return compiler.typesTask.positiveIntType;
-    return compiler.typesTask.intType;
-  }
-
   // We have to override the equality operator so that ints and doubles are
   // treated as separate constants.
   // The is [:!IntConstant:] check at the beginning of the function makes sure
@@ -261,7 +243,7 @@ class IntConstantValue extends NumConstantValue {
     return new DartString.literal(primitiveValue.toString());
   }
 
-  accept(ConstantValueVisitor visitor) => visitor.visitInt(this);
+  accept(ConstantValueVisitor visitor, arg) => visitor.visitInt(this, arg);
 
   String toStructuredString() => 'IntConstant(${unparse()})';
 }
@@ -302,18 +284,6 @@ class DoubleConstantValue extends NumConstantValue {
     return compiler.doubleClass.rawType;
   }
 
-  ti.TypeMask computeMask(Compiler compiler) {
-    // We have to distinguish -0.0 from 0, but for all practical purposes
-    // -0.0 is an integer.
-    // TODO(17235): this kind of special casing should only happen in the
-    // backend.
-    if (isMinusZero && compiler.backend.constantSystem.isInt(this)) {
-      return compiler.typesTask.uint31Type;
-    }
-    assert(!compiler.backend.constantSystem.isInt(this));
-    return compiler.typesTask.doubleType;
-  }
-
   bool operator ==(var other) {
     if (other is !DoubleConstantValue) return false;
     DoubleConstantValue otherDouble = other;
@@ -333,7 +303,7 @@ class DoubleConstantValue extends NumConstantValue {
     return new DartString.literal(primitiveValue.toString());
   }
 
-  accept(ConstantValueVisitor visitor) => visitor.visitDouble(this);
+  accept(ConstantValueVisitor visitor, arg) => visitor.visitDouble(this, arg);
 
   String toStructuredString() => 'DoubleConstant(${unparse()})';
 }
@@ -351,11 +321,9 @@ abstract class BoolConstantValue extends PrimitiveConstantValue {
     return compiler.boolClass.rawType;
   }
 
-  ti.TypeMask computeMask(Compiler compiler) {
-    return compiler.typesTask.boolType;
-  }
-
   BoolConstantValue negate();
+
+  accept(ConstantValueVisitor visitor, arg) => visitor.visitBool(this, arg);
 
   String toStructuredString() => 'BoolConstant(${unparse()})';
 }
@@ -378,8 +346,6 @@ class TrueConstantValue extends BoolConstantValue {
   int get hashCode => 499;
 
   DartString toDartString() => const LiteralDartString("true");
-
-  accept(ConstantValueVisitor visitor) => visitor.visitTrue(this);
 }
 
 class FalseConstantValue extends BoolConstantValue {
@@ -400,8 +366,6 @@ class FalseConstantValue extends BoolConstantValue {
   int get hashCode => 536555975;
 
   DartString toDartString() => const LiteralDartString("false");
-
-  accept(ConstantValueVisitor visitor) => visitor.visitFalse(this);
 }
 
 class StringConstantValue extends PrimitiveConstantValue {
@@ -422,10 +386,6 @@ class StringConstantValue extends PrimitiveConstantValue {
     return compiler.stringClass.rawType;
   }
 
-  ti.TypeMask computeMask(Compiler compiler) {
-    return compiler.typesTask.stringType;
-  }
-
   bool operator ==(var other) {
     if (other is !StringConstantValue) return false;
     StringConstantValue otherString = other;
@@ -437,7 +397,7 @@ class StringConstantValue extends PrimitiveConstantValue {
 
   int get length => primitiveValue.length;
 
-  accept(ConstantValueVisitor visitor) => visitor.visitString(this);
+  accept(ConstantValueVisitor visitor, arg) => visitor.visitString(this, arg);
 
   // TODO(johnniwinther): Ensure correct escaping.
   String unparse() => '"${primitiveValue.slowToString()}"';
@@ -446,7 +406,7 @@ class StringConstantValue extends PrimitiveConstantValue {
 }
 
 abstract class ObjectConstantValue extends ConstantValue {
-  final InterfaceType  type;
+  final InterfaceType type;
 
   ObjectConstantValue(this.type);
 
@@ -476,15 +436,11 @@ class TypeConstantValue extends ObjectConstantValue {
            representedType == other.representedType;
   }
 
-  ti.TypeMask computeMask(Compiler compiler) {
-    return compiler.typesTask.typeType;
-  }
-
   int get hashCode => representedType.hashCode * 13;
 
   List<ConstantValue> getDependencies() => const <ConstantValue>[];
 
-  accept(ConstantValueVisitor visitor) => visitor.visitType(this);
+  accept(ConstantValueVisitor visitor, arg) => visitor.visitType(this, arg);
 
   String unparse() => '$representedType';
 
@@ -528,11 +484,7 @@ class ListConstantValue extends ObjectConstantValue {
 
   int get length => entries.length;
 
-  ti.TypeMask computeMask(Compiler compiler) {
-    return compiler.typesTask.constListType;
-  }
-
-  accept(ConstantValueVisitor visitor) => visitor.visitList(this);
+  accept(ConstantValueVisitor visitor, arg) => visitor.visitList(this, arg);
 
   String unparse() {
     StringBuffer sb = new StringBuffer();
@@ -590,10 +542,6 @@ class MapConstantValue extends ObjectConstantValue {
     return hash;
   }
 
-  ti.TypeMask computeMask(Compiler compiler) {
-    return compiler.typesTask.constMapType;
-  }
-
   bool operator ==(var other) {
     if (other is !MapConstantValue) return false;
     MapConstantValue otherMap = other;
@@ -616,7 +564,7 @@ class MapConstantValue extends ObjectConstantValue {
 
   int get length => keys.length;
 
-  accept(ConstantValueVisitor visitor) => visitor.visitMap(this);
+  accept(ConstantValueVisitor visitor, arg) => visitor.visitMap(this, arg);
 
   String unparse() {
     StringBuffer sb = new StringBuffer();
@@ -664,13 +612,11 @@ class InterceptorConstantValue extends ConstantValue {
 
   List<ConstantValue> getDependencies() => const <ConstantValue>[];
 
-  accept(ConstantValueVisitor visitor) => visitor.visitInterceptor(this);
+  accept(ConstantValueVisitor visitor, arg) {
+    return visitor.visitInterceptor(this, arg);
+  }
 
   DartType computeType(Compiler compiler) => const DynamicType();
-
-  ti.TypeMask computeMask(Compiler compiler) {
-    return compiler.typesTask.nonNullType;
-  }
 
   String unparse() {
     return 'interceptor($dispatchedType)';
@@ -681,6 +627,7 @@ class InterceptorConstantValue extends ConstantValue {
   }
 }
 
+// TODO(johnniwinther): Remove this class.
 class DummyConstantValue extends ConstantValue {
   final ti.TypeMask typeMask;
 
@@ -697,11 +644,9 @@ class DummyConstantValue extends ConstantValue {
 
   List<ConstantValue> getDependencies() => const <ConstantValue>[];
 
-  accept(ConstantValueVisitor visitor) => visitor.visitDummy(this);
+  accept(ConstantValueVisitor visitor, arg) => visitor.visitDummy(this, arg);
 
   DartType computeType(Compiler compiler) => const DynamicType();
-
-  ti.TypeMask computeMask(Compiler compiler) => typeMask;
 
   String unparse() => 'dummy($typeMask)';
 
@@ -745,14 +690,9 @@ class ConstructedConstantValue extends ObjectConstantValue {
 
   List<ConstantValue> getDependencies() => fields;
 
-  ti.TypeMask computeMask(Compiler compiler) {
-    if (compiler.backend.isInterceptorClass(type.element)) {
-      return compiler.typesTask.nonNullType;
-    }
-    return new ti.TypeMask.nonNullExact(type.element, compiler.world);
+  accept(ConstantValueVisitor visitor, arg) {
+    return visitor.visitConstructed(this, arg);
   }
-
-  accept(ConstantValueVisitor visitor) => visitor.visitConstructed(this);
 
   Map<Element, ConstantValue> get fieldElements {
     // TODO(ahe): Refactor constant system to store this information directly.
@@ -820,13 +760,9 @@ class DeferredConstantValue extends ConstantValue {
 
   List<ConstantValue> getDependencies() => <ConstantValue>[referenced];
 
-  accept(ConstantValueVisitor visitor) => visitor.visitDeferred(this);
+  accept(ConstantValueVisitor visitor, arg) => visitor.visitDeferred(this, arg);
 
   DartType computeType(Compiler compiler) => referenced.computeType(compiler);
-
-  ti.TypeMask computeMask(Compiler compiler) {
-    return referenced.computeMask(compiler);
-  }
 
   String unparse() => 'deferred(${referenced.unparse()})';
 

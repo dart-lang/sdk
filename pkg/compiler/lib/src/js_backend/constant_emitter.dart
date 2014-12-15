@@ -55,7 +55,7 @@ class ConstantEmitter {
  * Do not use directly, use methods from [ConstantEmitter].
  */
 class ConstantReferenceEmitter
-    implements ConstantValueVisitor<jsAst.Expression> {
+    implements ConstantValueVisitor<jsAst.Expression, Null> {
   final Compiler compiler;
   final Namer namer;
 
@@ -64,13 +64,13 @@ class ConstantReferenceEmitter
   ConstantReferenceEmitter(this.compiler, this.namer, this.constantEmitter);
 
   JavaScriptBackend get backend => compiler.backend;
-  
+
   jsAst.Expression generate(ConstantValue constant) {
     return _visit(constant);
   }
 
   jsAst.Expression _visit(ConstantValue constant) {
-    return constant.accept(this);
+    return constant.accept(this, null);
   }
 
   jsAst.Expression emitCanonicalVersion(ConstantValue constant) {
@@ -83,27 +83,28 @@ class ConstantReferenceEmitter
       return constantEmitter.literal(constant);
   }
 
-  jsAst.Expression visitFunction(FunctionConstantValue constant) {
+  @override
+  jsAst.Expression visitFunction(FunctionConstantValue constant, [_]) {
     return backend.emitter.isolateStaticClosureAccess(constant.element);
   }
 
-  jsAst.Expression visitNull(NullConstantValue constant) {
+  @override
+  jsAst.Expression visitNull(NullConstantValue constant, [_]) {
     return literal(constant);
   }
 
-  jsAst.Expression visitInt(IntConstantValue constant) {
+  @override
+  jsAst.Expression visitInt(IntConstantValue constant, [_]) {
     return literal(constant);
   }
 
-  jsAst.Expression visitDouble(DoubleConstantValue constant) {
+  @override
+  jsAst.Expression visitDouble(DoubleConstantValue constant, [_]) {
     return literal(constant);
   }
 
-  jsAst.Expression visitTrue(TrueConstantValue constant) {
-    return literal(constant);
-  }
-
-  jsAst.Expression visitFalse(FalseConstantValue constant) {
+  @override
+  jsAst.Expression visitBool(BoolConstantValue constant, [_]) {
     return literal(constant);
   }
 
@@ -112,38 +113,46 @@ class ConstantReferenceEmitter
    * a form that is valid as JavaScript string literal content.
    * The string is assumed quoted by double quote characters.
    */
-  jsAst.Expression visitString(StringConstantValue constant) {
+  @override
+  jsAst.Expression visitString(StringConstantValue constant, [_]) {
     // TODO(sra): If the string is long *and repeated* (and not on a hot path)
     // then it should be assigned to a name.  We don't have reference counts (or
     // profile information) here, so this is the wrong place.
     return literal(constant);
   }
 
-  jsAst.Expression visitList(ListConstantValue constant) {
+  @override
+  jsAst.Expression visitList(ListConstantValue constant, [_]) {
     return emitCanonicalVersion(constant);
   }
 
-  jsAst.Expression visitMap(MapConstantValue constant) {
+  @override
+  jsAst.Expression visitMap(MapConstantValue constant, [_]) {
     return emitCanonicalVersion(constant);
   }
 
-  jsAst.Expression visitType(TypeConstantValue constant) {
+  @override
+  jsAst.Expression visitType(TypeConstantValue constant, [_]) {
     return emitCanonicalVersion(constant);
   }
 
-  jsAst.Expression visitConstructed(ConstructedConstantValue constant) {
+  @override
+  jsAst.Expression visitConstructed(ConstructedConstantValue constant, [_]) {
     return emitCanonicalVersion(constant);
   }
 
-  jsAst.Expression visitInterceptor(InterceptorConstantValue constant) {
+  @override
+  jsAst.Expression visitInterceptor(InterceptorConstantValue constant, [_]) {
     return emitCanonicalVersion(constant);
   }
 
-  jsAst.Expression visitDummy(DummyConstantValue constant) {
+  @override
+  jsAst.Expression visitDummy(DummyConstantValue constant, [_]) {
     return literal(constant);
   }
 
-  jsAst.Expression visitDeferred(DeferredConstantValue constant) {
+  @override
+  jsAst.Expression visitDeferred(DeferredConstantValue constant, [_]) {
     return emitCanonicalVersion(constant);
   }
 }
@@ -153,7 +162,8 @@ class ConstantReferenceEmitter
  * [ConstantValue]s. These can be used for inlining constants or in
  * initializers. Do not use directly, use methods from [ConstantEmitter].
  */
-class ConstantLiteralEmitter implements ConstantValueVisitor<jsAst.Expression> {
+class ConstantLiteralEmitter
+    implements ConstantValueVisitor<jsAst.Expression, Null> {
 
   // Matches blank lines, comment lines and trailing comments that can't be part
   // of a string.
@@ -175,24 +185,28 @@ class ConstantLiteralEmitter implements ConstantValueVisitor<jsAst.Expression> {
   }
 
   jsAst.Expression _visit(ConstantValue constant) {
-    return constant.accept(this);
+    return constant.accept(this, null);
   }
 
-  jsAst.Expression visitFunction(FunctionConstantValue constant) {
+  @override
+  jsAst.Expression visitFunction(FunctionConstantValue constant, [_]) {
     compiler.internalError(NO_LOCATION_SPANNABLE,
         "The function constant does not need specific JS code.");
     return null;
   }
 
-  jsAst.Expression visitNull(NullConstantValue constant) {
+  @override
+  jsAst.Expression visitNull(NullConstantValue constant, [_]) {
     return new jsAst.LiteralNull();
   }
 
-  jsAst.Expression visitInt(IntConstantValue constant) {
+  @override
+  jsAst.Expression visitInt(IntConstantValue constant, [_]) {
     return new jsAst.LiteralNumber('${constant.primitiveValue}');
   }
 
-  jsAst.Expression visitDouble(DoubleConstantValue constant) {
+  @override
+  jsAst.Expression visitDouble(DoubleConstantValue constant, [_]) {
     double value = constant.primitiveValue;
     if (value.isNaN) {
       return js("0/0");
@@ -205,21 +219,18 @@ class ConstantLiteralEmitter implements ConstantValueVisitor<jsAst.Expression> {
     }
   }
 
-  jsAst.Expression visitTrue(TrueConstantValue constant) {
+  @override
+  jsAst.Expression visitBool(BoolConstantValue constant, [_]) {
     if (compiler.enableMinification) {
-      // Use !0 for true.
-      return js("!0");
+      if (constant.isTrue) {
+        // Use !0 for true.
+        return js("!0");
+      } else {
+        // Use !1 for false.
+        return js("!1");
+      }
     } else {
-      return js('true');
-    }
-  }
-
-  jsAst.Expression visitFalse(FalseConstantValue constant) {
-    if (compiler.enableMinification) {
-      // Use !1 for false.
-      return js("!1");
-    } else {
-      return js('false');
+      return constant.isTrue ? js('true') : js('false');
     }
   }
 
@@ -228,13 +239,15 @@ class ConstantLiteralEmitter implements ConstantValueVisitor<jsAst.Expression> {
    * a form that is valid as JavaScript string literal content.
    * The string is assumed quoted by double quote characters.
    */
-  jsAst.Expression visitString(StringConstantValue constant) {
+  @override
+  jsAst.Expression visitString(StringConstantValue constant, [_]) {
     StringBuffer sb = new StringBuffer();
     writeJsonEscapedCharsOn(constant.primitiveValue.slowToString(), sb);
     return new jsAst.LiteralString('"$sb"');
   }
 
-  jsAst.Expression visitList(ListConstantValue constant) {
+  @override
+  jsAst.Expression visitList(ListConstantValue constant, [_]) {
     List<jsAst.Expression> elements = _array(constant.entries);
     jsAst.ArrayInitializer array = new jsAst.ArrayInitializer(elements);
     jsAst.Expression value = makeConstantListTemplate.instantiate([array]);
@@ -245,7 +258,8 @@ class ConstantLiteralEmitter implements ConstantValueVisitor<jsAst.Expression> {
     return backend.emitter.classAccess(element);
   }
 
-  jsAst.Expression visitMap(JavaScriptMapConstant constant) {
+  @override
+  jsAst.Expression visitMap(JavaScriptMapConstant constant, [_]) {
     jsAst.Expression jsMap() {
       List<jsAst.Property> properties = <jsAst.Property>[];
       for (int i = 0; i < constant.length; i++) {
@@ -327,7 +341,8 @@ class ConstantLiteralEmitter implements ConstantValueVisitor<jsAst.Expression> {
     return backend.emitter.staticFunctionAccess(helper);
   }
 
-  jsAst.Expression visitType(TypeConstantValue constant) {
+  @override
+  jsAst.Expression visitType(TypeConstantValue constant, [_]) {
     DartType type = constant.representedType;
     String name = namer.getRuntimeTypeName(type.element);
     jsAst.Expression typeName = new jsAst.LiteralString("'$name'");
@@ -335,17 +350,20 @@ class ConstantLiteralEmitter implements ConstantValueVisitor<jsAst.Expression> {
                           [typeName]);
   }
 
-  jsAst.Expression visitInterceptor(InterceptorConstantValue constant) {
+  @override
+  jsAst.Expression visitInterceptor(InterceptorConstantValue constant, [_]) {
     return new jsAst.PropertyAccess.field(
         getJsConstructor(constant.dispatchedType.element),
         'prototype');
   }
 
-  jsAst.Expression visitDummy(DummyConstantValue constant) {
+  @override
+  jsAst.Expression visitDummy(DummyConstantValue constant, [_]) {
     return new jsAst.LiteralNumber('0');
   }
 
-  jsAst.Expression visitConstructed(ConstructedConstantValue constant) {
+  @override
+  jsAst.Expression visitConstructed(ConstructedConstantValue constant, [_]) {
     Element element = constant.type.element;
     if (element.isForeign(backend)
         && element.name == 'JS_CONST') {
@@ -385,7 +403,8 @@ class ConstantLiteralEmitter implements ConstantValueVisitor<jsAst.Expression> {
     return value;
   }
 
-  jsAst.Expression visitDeferred(DeferredConstantValue constant) {
+  @override
+  jsAst.Expression visitDeferred(DeferredConstantValue constant, [_]) {
     return constantEmitter.reference(constant.referenced);
   }
 }

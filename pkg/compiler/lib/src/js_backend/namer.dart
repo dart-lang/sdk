@@ -1086,19 +1086,22 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
     }
   }
 
-  _visit(ConstantValue constant) {
-    return constant.accept(this);
+  void _visit(ConstantValue constant) {
+    constant.accept(this, null);
   }
 
-  visitFunction(FunctionConstantValue constant) {
+  @override
+  void visitFunction(FunctionConstantValue constant, [_]) {
     add(constant.element.name);
   }
 
-  visitNull(NullConstantValue constant) {
+  @override
+  void visitNull(NullConstantValue constant, [_]) {
     add('null');
   }
 
-  visitInt(IntConstantValue constant) {
+  @override
+  void visitInt(IntConstantValue constant, [_]) {
     // No `addRoot` since IntConstants are always inlined.
     if (constant.primitiveValue < 0) {
       add('m${-constant.primitiveValue}');
@@ -1107,24 +1110,24 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
     }
   }
 
-  visitDouble(DoubleConstantValue constant) {
+  @override
+  void visitDouble(DoubleConstantValue constant, [_]) {
     failed = true;
   }
 
-  visitTrue(TrueConstantValue constant) {
-    add('true');
+  @override
+  void visitBool(BoolConstantValue constant, [_]) {
+    add(constant.isTrue ? 'true' : 'false');
   }
 
-  visitFalse(FalseConstantValue constant) {
-    add('false');
-  }
-
-  visitString(StringConstantValue constant) {
+  @override
+  void visitString(StringConstantValue constant, [_]) {
     // No `addRoot` since string constants are always inlined.
     addIdentifier(constant.primitiveValue.slowToString());
   }
 
-  visitList(ListConstantValue constant) {
+  @override
+  void visitList(ListConstantValue constant, [_]) {
     // TODO(9476): Incorporate type parameters into name.
     addRoot('List');
     int length = constant.length;
@@ -1140,7 +1143,8 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
     }
   }
 
-  visitMap(JavaScriptMapConstant constant) {
+  @override
+  void visitMap(JavaScriptMapConstant constant, [_]) {
     // TODO(9476): Incorporate type parameters into name.
     addRoot('Map');
     if (constant.length == 0) {
@@ -1152,7 +1156,8 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
     }
   }
 
-  visitConstructed(ConstructedConstantValue constant) {
+  @override
+  void visitConstructed(ConstructedConstantValue constant, [_]) {
     addRoot(constant.type.element.name);
     for (int i = 0; i < constant.fields.length; i++) {
       _visit(constant.fields[i]);
@@ -1160,7 +1165,8 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
     }
   }
 
-  visitType(TypeConstantValue constant) {
+  @override
+  void visitType(TypeConstantValue constant, [_]) {
     addRoot('Type');
     DartType type = constant.representedType;
     JavaScriptBackend backend = compiler.backend;
@@ -1168,16 +1174,19 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
     addIdentifier(name);
   }
 
-  visitInterceptor(InterceptorConstantValue constant) {
+  @override
+  void visitInterceptor(InterceptorConstantValue constant, [_]) {
     addRoot(constant.dispatchedType.element.name);
     add('methods');
   }
 
-  visitDummy(DummyConstantValue constant) {
+  @override
+  void visitDummy(DummyConstantValue constant, [_]) {
     add('dummy_receiver');
   }
 
-  visitDeferred(DeferredConstantValue constant) {
+  @override
+  void visitDeferred(DeferredConstantValue constant, [_]) {
     addRoot('Deferred');
   }
 }
@@ -1190,7 +1199,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
  * between runs by basing hash values of the names of elements, rather than
  * their hashCodes.
  */
-class ConstantCanonicalHasher implements ConstantValueVisitor<int> {
+class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   static const _MASK = 0x1fffffff;
   static const _UINT32_LIMIT = 4 * 1024 * 1024 * 1024;
@@ -1206,40 +1215,53 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int> {
   int _visit(ConstantValue constant) {
     int hash = hashes[constant];
     if (hash == null) {
-      hash = _finish(constant.accept(this));
+      hash = _finish(constant.accept(this, null));
       hashes[constant] = hash;
     }
     return hash;
   }
 
-  int visitNull(NullConstantValue constant) => 1;
-  int visitTrue(TrueConstantValue constant) => 2;
-  int visitFalse(FalseConstantValue constant) => 3;
+  @override
+  int visitNull(NullConstantValue constant, [_]) => 1;
 
-  int visitFunction(FunctionConstantValue constant) {
+  @override
+  int visitBool(BoolConstantValue constant, [_]) {
+    return constant.isTrue ? 2 : 3;
+  }
+
+  @override
+  int visitFunction(FunctionConstantValue constant, [_]) {
     return _hashString(1, constant.element.name);
   }
 
-  int visitInt(IntConstantValue constant) => _hashInt(constant.primitiveValue);
+  @override
+  int visitInt(IntConstantValue constant, [_]) {
+    return _hashInt(constant.primitiveValue);
+  }
 
-  int visitDouble(DoubleConstantValue constant) {
+  @override
+  int visitDouble(DoubleConstantValue constant, [_]) {
     return _hashDouble(constant.primitiveValue);
   }
 
-  int visitString(StringConstantValue constant) {
+  @override
+  int visitString(StringConstantValue constant, [_]) {
     return _hashString(2, constant.primitiveValue.slowToString());
   }
 
-  int visitList(ListConstantValue constant) {
+  @override
+  int visitList(ListConstantValue constant, [_]) {
     return _hashList(constant.length, constant.entries);
   }
 
-  int visitMap(MapConstantValue constant) {
+  @override
+  int visitMap(MapConstantValue constant, [_]) {
     int hash = _hashList(constant.length, constant.keys);
     return _hashList(hash, constant.values);
   }
 
-  int visitConstructed(ConstructedConstantValue constant) {
+  @override
+  int visitConstructed(ConstructedConstantValue constant, [_]) {
     int hash = _hashString(3, constant.type.element.name);
     for (int i = 0; i < constant.fields.length; i++) {
       hash = _combine(hash, _visit(constant.fields[i]));
@@ -1247,26 +1269,30 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int> {
     return hash;
   }
 
-  int visitType(TypeConstantValue constant) {
+  @override
+  int visitType(TypeConstantValue constant, [_]) {
     DartType type = constant.representedType;
     JavaScriptBackend backend = compiler.backend;
     String name = backend.rti.getTypeRepresentationForTypeConstant(type);
     return _hashString(4, name);
   }
 
-  visitInterceptor(InterceptorConstantValue constant) {
+  @override
+  int visitInterceptor(InterceptorConstantValue constant, [_]) {
     String typeName = constant.dispatchedType.element.name;
     return _hashString(5, typeName);
   }
 
-  visitDummy(DummyConstantValue constant) {
+  @override
+  visitDummy(DummyConstantValue constant, [_]) {
     compiler.internalError(NO_LOCATION_SPANNABLE,
         'DummyReceiverConstant should never be named and never be subconstant');
   }
 
-  visitDeferred(DeferredConstantValue constant) {
+  @override
+  int visitDeferred(DeferredConstantValue constant, [_]) {
     int hash = constant.prefix.hashCode;
-    return _combine(hash, constant.referenced.accept(this));
+    return _combine(hash, _visit(constant.referenced));
   }
 
   int _hashString(int hash, String s) {

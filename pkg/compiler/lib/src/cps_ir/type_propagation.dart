@@ -65,7 +65,7 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
 
   @override
   TypeMask typeOf(ConstantValue constant) {
-    return constant.computeMask(inferrer.compiler);
+    return computeTypeMask(inferrer.compiler, constant);
   }
 }
 
