@@ -146,7 +146,9 @@ class DartBackend extends Backend {
       }
     }
 
-    new TypePropagator(compiler, constantSystem, new TypeMaskSystem(compiler),
+    // TODO(karlklose): enable type propagation for dart2dart when constant
+    // types are correctly marked as instantiated (Issue 21880).
+    new TypePropagator(compiler, constantSystem, new UnitTypeSystem(),
         compiler.internalError).rewrite(cpsDefinition);
     traceGraph("Sparse constant propagation", cpsDefinition);
     new RedundantPhiEliminator().rewrite(cpsDefinition);

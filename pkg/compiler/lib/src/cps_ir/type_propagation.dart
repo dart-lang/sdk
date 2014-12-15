@@ -21,6 +21,25 @@ abstract class TypeSystem<T> {
   T typeOf(ConstantValue constant);
 }
 
+class UnitTypeSystem implements TypeSystem<String> {
+  static const String UNIT = 'unit';
+
+  get boolType => UNIT;
+  get dynamicType => UNIT;
+  get functionType => UNIT;
+  get intType => UNIT;
+  get listType => UNIT;
+  get mapType => UNIT;
+  get stringType => UNIT;
+  get typeType => UNIT;
+
+  bool areAssignable(a, b) => true;
+  getParameterType(_) => UNIT;
+  getReturnType(_) => UNIT;
+  join(a, b) => UNIT;
+  typeOf(_) => UNIT;
+}
+
 class TypeMaskSystem implements TypeSystem<TypeMask> {
   final TypesTask inferrer;
   final ClassWorld classWorld;
