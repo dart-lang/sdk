@@ -10,7 +10,8 @@ import '../compiler.dart' as api;
 import 'dart2jslib.dart' as leg;
 import 'tree/tree.dart' as tree;
 import 'elements/elements.dart' as elements;
-import 'package:_internal/libraries.dart';
+import 'package:_internal/libraries.dart' hide LIBRARIES;
+import 'package:_internal/libraries.dart' as library_info show LIBRARIES;
 import 'source_file.dart';
 
 const bool forceIncrementalSupport =
@@ -152,7 +153,7 @@ class Compiler extends leg.Compiler {
   // TODO(johnniwinther): Merge better with [translateDartUri] when
   // [scanBuiltinLibrary] is removed.
   String lookupLibraryPath(String dartLibraryName) {
-    LibraryInfo info = LIBRARIES[dartLibraryName];
+    LibraryInfo info = lookupLibraryInfo(dartLibraryName);
     if (info == null) return null;
     if (!info.isDart2jsLibrary) return null;
     if (!allowedLibraryCategories.contains(info.category)) return null;
@@ -164,7 +165,7 @@ class Compiler extends leg.Compiler {
   }
 
   String lookupPatchPath(String dartLibraryName) {
-    LibraryInfo info = LIBRARIES[dartLibraryName];
+    LibraryInfo info = lookupLibraryInfo(dartLibraryName);
     if (info == null) return null;
     if (!info.isDart2jsLibrary) return null;
     String path = info.dart2jsPatchPath;
@@ -259,7 +260,7 @@ class Compiler extends leg.Compiler {
 
   Uri translateDartUri(elements.LibraryElement importingLibrary,
                        Uri resolvedUri, tree.Node node) {
-    LibraryInfo libraryInfo = LIBRARIES[resolvedUri.path];
+    LibraryInfo libraryInfo = lookupLibraryInfo(resolvedUri.path);
     String path = lookupLibraryPath(resolvedUri.path);
     if (libraryInfo != null &&
         libraryInfo.category == "Internal") {
@@ -385,4 +386,8 @@ class Compiler extends leg.Compiler {
   }
 
   fromEnvironment(String name) => environment[name];
+
+  LibraryInfo lookupLibraryInfo(String libraryName) {
+    return library_info.LIBRARIES[libraryName];
+  }
 }

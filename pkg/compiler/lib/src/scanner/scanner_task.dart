@@ -11,7 +11,7 @@ class ScannerTask extends CompilerTask {
   void scanLibrary(LibraryElement library) {
     CompilationUnitElement compilationUnit = library.entryCompilationUnit;
     String canonicalUri = library.canonicalUri.toString();
-    String resolvedUri = compilationUnit.script.readableUri.toString();
+    String resolvedUri = compilationUnit.script.resourceUri.toString();
     if (canonicalUri == resolvedUri) {
       compiler.log("Scanning library $canonicalUri");
     } else {

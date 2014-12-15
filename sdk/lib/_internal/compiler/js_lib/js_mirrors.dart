@@ -4,8 +4,8 @@
 
 library dart._js_mirrors;
 
-import 'shared/runtime_data.dart' as encoding;
-import 'shared/embedded_names.dart' show
+import 'dart:_js_runtime_data' as encoding;
+import 'dart:_js_embedded_names' show
     ALL_CLASSES,
     LAZIES,
     LIBRARIES,

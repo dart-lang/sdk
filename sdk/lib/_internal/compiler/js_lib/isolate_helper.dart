@@ -4,7 +4,7 @@
 
 library _isolate_helper;
 
-import 'shared/embedded_names.dart' show
+import 'dart:_js_embedded_names' show
     CLASS_ID_EXTRACTOR,
     CLASS_FIELDS_EXTRACTOR,
     CURRENT_SCRIPT,

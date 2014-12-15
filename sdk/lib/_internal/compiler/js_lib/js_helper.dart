@@ -4,7 +4,7 @@
 
 library _js_helper;
 
-import 'shared/embedded_names.dart' show
+import 'dart:_js_embedded_names' show
     ALL_CLASSES,
     GET_ISOLATE_TAG,
     INTERCEPTED_NAMES,
