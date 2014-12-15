@@ -196,7 +196,22 @@ class _ImportedAstVisitor extends
 
   @override
   _ImportedSuggestionBuilder visitTypeName(TypeName node) {
-    return new _ImportedSuggestionBuilder(request, typesOnly: true);
+    // TODO (danrubel) refactor this and local_computer
+    // to reduce duplicate code
+    bool typesOnly = false;
+    // If suggesting completions within a TypeName node
+    // then limit suggestions to only types in specific situations
+    AstNode p = node.parent;
+    if (p is IsExpression || p is ConstructorName || p is AsExpression) {
+      typesOnly = true;
+    } else if (p is VariableDeclarationList) {
+      // TODO (danrubel) When entering 1st of 2 identifiers on assignment LHS
+      // the user may be either (1) entering a type for the assignment
+      // or (2) starting a new statement.
+      // Consider suggesting only types
+      // if only spaces separates the 1st and 2nd identifiers.
+    }
+    return new _ImportedSuggestionBuilder(request, typesOnly: typesOnly);
   }
 
   @override

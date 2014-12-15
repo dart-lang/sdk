@@ -36,8 +36,7 @@ class Y {String x='hi';mth() {x.l!1ength;int n = 0;x!2.codeUnitAt(n!3);}}''',
 
     CompletionTestCase.buildTests('testCommentSnippets004', '''
 class A {!1int x; !2mth() {!3int y = this.!5x!6;}}class B{}''',
-        <String>["1+A", "2+B", "3+x", "3-y", "5+mth", "6+x"],
-        failingTests: '3');
+        <String>["1+A", "2+B", "3+x", "3-y", "5+mth", "6+x"]);
 
     CompletionTestCase.buildTests('testCommentSnippets005', '''
 class Date { static Date JUN, JUL;}class X { m() { return Da!1te.JU!2L; }}''',

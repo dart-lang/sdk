@@ -930,13 +930,86 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   test_AssignmentExpression_type() {
     // SimpleIdentifier  TypeName  VariableDeclarationList
     // VariableDeclarationStatement  Block
-    addTestSource('class A {} main() {int a; int^ b = 1;}');
+    addTestSource('''
+      class A {} main() {
+        int a;
+        ^ b = 1;}''');
     computeFast();
     return computeFull((bool result) {
       assertSuggestLocalClass('A');
       assertSuggestImportedClass('int');
-      assertNotSuggested('a');
-      assertNotSuggested('main');
+      // TODO (danrubel) When entering 1st of 2 identifiers on assignment LHS
+      // the user may be either (1) entering a type for the assignment
+      // or (2) starting a new statement.
+      // Consider suggesting only types
+      // if only spaces separates the 1st and 2nd identifiers.
+      //assertNotSuggested('a');
+      //assertNotSuggested('main');
+      //assertNotSuggested('identical');
+    });
+  }
+
+  test_AssignmentExpression_type_partial() {
+    // SimpleIdentifier  TypeName  VariableDeclarationList
+    // VariableDeclarationStatement  Block
+    addTestSource('''
+      class A {} main() {
+        int a;
+        int^ b = 1;}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestLocalClass('A');
+      assertSuggestImportedClass('int');
+      // TODO (danrubel) When entering 1st of 2 identifiers on assignment LHS
+      // the user may be either (1) entering a type for the assignment
+      // or (2) starting a new statement.
+      // Consider suggesting only types
+      // if only spaces separates the 1st and 2nd identifiers.
+      //assertNotSuggested('a');
+      //assertNotSuggested('main');
+      //assertNotSuggested('identical');
+    });
+  }
+
+  test_AssignmentExpression_type_newline() {
+    // SimpleIdentifier  TypeName  VariableDeclarationList
+    // VariableDeclarationStatement  Block
+    addTestSource('''
+      class A {} main() {
+        int a;
+        ^
+        b = 1;}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestLocalClass('A');
+      assertSuggestImportedClass('int');
+      // Allow non-types preceding an identifier on LHS of assignment
+      // if newline follows first identifier
+      // because user is probably starting a new statement
+      assertSuggestLocalVariable('a', 'int');
+      assertSuggestLocalFunction('main', null);
+      assertSuggestImportedFunction('identical', 'bool');
+    });
+  }
+
+  test_AssignmentExpression_type_partial_newline() {
+    // SimpleIdentifier  TypeName  VariableDeclarationList
+    // VariableDeclarationStatement  Block
+    addTestSource('''
+      class A {} main() {
+        int a;
+        i^
+        b = 1;}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestLocalClass('A');
+      assertSuggestImportedClass('int');
+      // Allow non-types preceding an identifier on LHS of assignment
+      // if newline follows first identifier
+      // because user is probably starting a new statement
+      assertSuggestLocalVariable('a', 'int');
+      assertSuggestLocalFunction('main', null);
+      assertSuggestImportedFunction('identical', 'bool');
     });
   }
 
@@ -1034,7 +1107,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestImportedClass('C');
       // hidden element suggested as low relevance
       // but imported results are partially filtered
-      //assertSuggestImportedClass('D', CompletionRelevance.LOW)
+      //assertSuggestImportedClass('D', CompletionRelevance.LOW);
       //assertSuggestImportedFunction(
       //    'D1', null, true, CompletionRelevance.LOW);
       assertSuggestLocalFunction('D2', 'Z');
