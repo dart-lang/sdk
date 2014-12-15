@@ -3756,7 +3756,7 @@ class ICData : public Object {
   //
   // DecodeRangeFeedbackAt() helper maps these states into the RangeFeedback
   // enumeration.
-  enum {
+  enum RangeFeedbackBits {
     kSignedRangeBit = 1 << 0,
     kInt32RangeBit = 1 << 1,
     kUint32RangeBit = 1 << 2,
