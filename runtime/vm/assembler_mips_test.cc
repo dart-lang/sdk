@@ -622,12 +622,46 @@ ASSEMBLER_TEST_RUN(Slt, test) {
 ASSEMBLER_TEST_GENERATE(Sltu, assembler) {
   __ LoadImmediate(T1, -1);
   __ LoadImmediate(T2, 0);
-  __ sltu(V0, T1, T2);
+  __ sltu(V0, T1, T2);  // 0xffffffffUL < 0 -> 0.
   __ jr(RA);
 }
 
 
 ASSEMBLER_TEST_RUN(Sltu, test) {
+  typedef int (*SimpleCode)() DART_UNUSED;
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Slti, assembler) {
+  __ LoadImmediate(T1, -2);
+  __ slti(A0, T1, Immediate(-1));  // -2 < -1 -> 1.
+  __ slti(A1, T1, Immediate(0));  // -2 < 0 -> 1.
+  __ and_(V0, A0, A1);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Slti, test) {
+  typedef int (*SimpleCode)() DART_UNUSED;
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Sltiu, assembler) {
+  __ LoadImmediate(T1, -1);
+  __ LoadImmediate(T2, 0x10000);
+  __ sltiu(A0, T1, Immediate(-2));  // 0xffffffffUL < 0xfffffffeUL -> 0.
+  __ sltiu(A1, T1, Immediate(0));  // 0xffffffffUL < 0 -> 0.
+  __ sltiu(A2, T2, Immediate(-2));  // 0x10000UL < 0xfffffffeUL -> 1.
+  __ addiu(A2, A2, Immediate(-1));
+  __ or_(V0, A0, A1);
+  __ or_(V0, V0, A2);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Sltiu, test) {
   typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
