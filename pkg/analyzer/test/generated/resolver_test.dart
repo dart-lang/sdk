@@ -8672,6 +8672,21 @@ main() {}''');
     verify([source]);
   }
 
+  void test_enum_externalLibrary() {
+    resetWithEnum();
+    addNamedSource("/my_lib.dart", r'''
+library my_lib;
+enum EEE {A, B, C}''');
+    Source source = addSource(r'''
+import 'my_lib.dart';
+main() {
+  EEE e = null;
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_extractedMethodAsConstant() {
     Source source = addSource(r'''
 abstract class Comparable<T> {

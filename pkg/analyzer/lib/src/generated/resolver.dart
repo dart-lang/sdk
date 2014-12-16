@@ -10244,6 +10244,9 @@ class NamespaceBuilder {
     for (PropertyAccessorElement element in compilationUnit.accessors) {
       _addIfPublic(definedNames, element);
     }
+    for (ClassElement element in compilationUnit.enums) {
+      _addIfPublic(definedNames, element);
+    }
     for (FunctionElement element in compilationUnit.functions) {
       _addIfPublic(definedNames, element);
     }
@@ -11363,6 +11366,13 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   /**
+   * Prepares this [ResolverVisitor] to using it for incremental resolution.
+   */
+  void initForIncrementalResolution() {
+    _overrideManager.enterScope();
+  }
+
+  /**
    * If it is appropriate to do so, override the current type of the static and propagated elements
    * associated with the given expression with the given type. Generally speaking, it is appropriate
    * if the given type is more specific than the current type.
@@ -11607,13 +11617,6 @@ class ResolverVisitor extends ScopedVisitor {
     node.accept(_elementResolver);
     node.accept(_typeAnalyzer);
     return null;
-  }
-
-  /**
-   * Prepares this [ResolverVisitor] to using it for incremental resolution.
-   */
-  void initForIncrementalResolution() {
-    _overrideManager.enterScope();
   }
 
   @override
