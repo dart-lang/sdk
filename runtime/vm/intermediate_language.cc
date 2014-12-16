@@ -2704,42 +2704,16 @@ void MaterializeObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 // This function should be kept in sync with
 // FlowGraphCompiler::SlowPathEnvironmentFor().
-void MaterializeObjectInstr::RemapRegisters(intptr_t* fpu_reg_slots,
-                                            intptr_t* cpu_reg_slots) {
+void MaterializeObjectInstr::RemapRegisters(intptr_t* cpu_reg_slots,
+                                            intptr_t* fpu_reg_slots) {
   if (registers_remapped_) {
     return;
   }
   registers_remapped_ = true;
 
   for (intptr_t i = 0; i < InputCount(); i++) {
-    Location loc = LocationAt(i);
-    if (loc.IsRegister()) {
-      intptr_t index = cpu_reg_slots[loc.reg()];
-      ASSERT(index >= 0);
-      locations_[i] = Location::StackSlot(index);
-    } else if (loc.IsFpuRegister()) {
-      intptr_t index = fpu_reg_slots[loc.fpu_reg()];
-      ASSERT(index >= 0);
-      Value* value = InputAt(i);
-      switch (value->definition()->representation()) {
-        case kUnboxedDouble:
-          locations_[i] = Location::DoubleStackSlot(index);
-          break;
-        case kUnboxedFloat32x4:
-        case kUnboxedInt32x4:
-        case kUnboxedFloat64x2:
-          locations_[i] = Location::QuadStackSlot(index);
-          break;
-        default:
-          UNREACHABLE();
-      }
-    } else if (loc.IsPairLocation()) {
-      UNREACHABLE();
-    } else if (loc.IsInvalid() &&
-               InputAt(i)->definition()->IsMaterializeObject()) {
-      InputAt(i)->definition()->AsMaterializeObject()->RemapRegisters(
-          fpu_reg_slots, cpu_reg_slots);
-    }
+    locations_[i] = LocationAt(i).RemapForSlowPath(
+        InputAt(i)->definition(), cpu_reg_slots, fpu_reg_slots);
   }
 }
 

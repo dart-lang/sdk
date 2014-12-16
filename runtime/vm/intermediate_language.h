@@ -4142,8 +4142,8 @@ class MaterializeObjectInstr : public Definition {
 
   virtual bool MayThrow() const { return false; }
 
-  void RemapRegisters(intptr_t* fpu_reg_slots,
-                      intptr_t* cpu_reg_slots);
+  void RemapRegisters(intptr_t* cpu_reg_slots,
+                      intptr_t* fpu_reg_slots);
 
   bool was_visited_for_liveness() const { return visited_for_liveness_; }
   void mark_visited_for_liveness() {

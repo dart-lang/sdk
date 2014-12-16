@@ -244,6 +244,59 @@ Location Location::Copy() const {
 }
 
 
+Location Location::RemapForSlowPath(Definition* def,
+                                    intptr_t* cpu_reg_slots,
+                                    intptr_t* fpu_reg_slots) const {
+  if (IsRegister()) {
+    intptr_t index = cpu_reg_slots[reg()];
+    ASSERT(index >= 0);
+    return Location::StackSlot(index);
+  } else if (IsFpuRegister()) {
+    intptr_t index = fpu_reg_slots[fpu_reg()];
+    ASSERT(index >= 0);
+    switch (def->representation()) {
+      case kUnboxedDouble:
+        return Location::DoubleStackSlot(index);
+
+      case kUnboxedFloat32x4:
+      case kUnboxedInt32x4:
+      case kUnboxedFloat64x2:
+        return Location::QuadStackSlot(index);
+
+      default:
+        UNREACHABLE();
+    }
+  } else if (IsPairLocation()) {
+    ASSERT(def->representation() == kUnboxedMint);
+    PairLocation* value_pair = AsPairLocation();
+    intptr_t index_lo;
+    intptr_t index_hi;
+
+    if (value_pair->At(0).IsRegister()) {
+      index_lo = cpu_reg_slots[value_pair->At(0).reg()];
+    } else {
+      ASSERT(value_pair->At(0).IsStackSlot());
+      index_lo = value_pair->At(0).stack_index();
+    }
+
+    if (value_pair->At(1).IsRegister()) {
+      index_hi = cpu_reg_slots[value_pair->At(1).reg()];
+    } else {
+      ASSERT(value_pair->At(1).IsStackSlot());
+      index_hi = value_pair->At(1).stack_index();
+    }
+
+    return Location::Pair(Location::StackSlot(index_lo),
+                          Location::StackSlot(index_hi));
+  } else if (IsInvalid() && def->IsMaterializeObject()) {
+    def->AsMaterializeObject()->RemapRegisters(cpu_reg_slots, fpu_reg_slots);
+    return *this;
+  }
+
+  return *this;
+}
+
+
 void LocationSummary::PrintTo(BufferFormatter* f) const {
   if (input_count() > 0) {
     f->Print(" (");
