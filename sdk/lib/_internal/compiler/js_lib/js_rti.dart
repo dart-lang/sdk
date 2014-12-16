@@ -390,19 +390,24 @@ bool checkSubtypeOfRuntimeType(o, t) {
   // overwrite o with the interceptor below.
   var rti = getRuntimeTypeInfo(o);
   o = getInterceptor(o);
-  // We can use the object as its own type representation because we install
-  // the subtype flags and the substitution on the prototype, so they are
-  // properties of the object in JS.
-  var type;
+  var type = JS('', '#.constructor', o);
   if (isNotNull(rti)) {
     // If the type has type variables (that is, [:rti != null:]), make a copy of
     // the type arguments and insert [o] in the first position to create a
     // compound type representation.
-    type = JS('JSExtendableArray', '#.slice()', rti);
-    JS('', '#.splice(0, 0, #)', type, o);
-  } else {
-    // Use the object as representation of the raw type.
-    type = o;
+    rti = JS('JSExtendableArray', '#.slice()', rti);  // Make a copy.
+    JS('', '#.splice(0, 0, #)', rti, type);  // Insert type at position 0.
+    type = rti;
+  } else if (hasField(t, '${JS_FUNCTION_TYPE_TAG()}')) {
+    // Functions are treated specially and have their type information stored
+    // directly in the instance.
+    var signatureName =
+        '${JS_OPERATOR_IS_PREFIX()}_${getField(t, JS_FUNCTION_TYPE_TAG())}';
+    if (hasField(o, signatureName)) return true;
+    var targetSignatureFunction = getField(o, '${JS_SIGNATURE_NAME()}');
+    if (isNull(targetSignatureFunction)) return false;
+    type = invokeOn(targetSignatureFunction, o, null);
+    return isFunctionSubtype(type, t);
   }
   return isSubtype(type, t);
 }
@@ -436,6 +441,9 @@ getArguments(var type) {
  *
  * See the comment in the beginning of this file for a description of type
  * representations.
+ *
+ * The arguments [s] and [t] must be types, usually represented by the
+ * constructor of the class, or an array (for generic types).
  */
 bool isSubtype(var s, var t) {
   // Subtyping is reflexive.
@@ -443,21 +451,13 @@ bool isSubtype(var s, var t) {
   // If either type is dynamic, [s] is a subtype of [t].
   if (isNull(s) || isNull(t)) return true;
   if (hasField(t, '${JS_FUNCTION_TYPE_TAG()}')) {
-    if (hasNoField(s, '${JS_FUNCTION_TYPE_TAG()}')) {
-      var signatureName =
-          '${JS_OPERATOR_IS_PREFIX()}_${getField(t, JS_FUNCTION_TYPE_TAG())}';
-      if (hasField(s, signatureName)) return true;
-      var targetSignatureFunction = getField(s, '${JS_SIGNATURE_NAME()}');
-      if (isNull(targetSignatureFunction)) return false;
-      s = invokeOn(targetSignatureFunction, s, null);
-    }
     return isFunctionSubtype(s, t);
   }
   // Check function types against the Function class.
-  if (getConstructorName(t) == JS_FUNCTION_CLASS_NAME() &&
-      hasField(s, '${JS_FUNCTION_TYPE_TAG()}')) {
-    return true;
+  if (hasField(s, '${JS_FUNCTION_TYPE_TAG()}')) {
+    return getConstructorName(t) == JS_FUNCTION_CLASS_NAME();
   }
+
   // Get the object describing the class and check for the subtyping flag
   // constructed from the type of [t].
   var typeOfS = isJsArray(s) ? getIndex(s, 0) : s;
@@ -468,9 +468,10 @@ bool isSubtype(var s, var t) {
   var substitution;
   if (isNotIdentical(typeOfT, typeOfS)) {
     var test = '${JS_OPERATOR_IS_PREFIX()}${name}';
-    if (hasNoField(typeOfS, test)) return false;
+    var typeOfSPrototype = JS('', '#.prototype', typeOfS);
+    if (hasNoField(typeOfSPrototype, test)) return false;
     var field = '${JS_OPERATOR_AS_PREFIX()}${runtimeTypeToString(typeOfT)}';
-    substitution = getField(typeOfS, field);
+    substitution = getField(typeOfSPrototype, field);
   }
   // The class of [s] is a subclass of the class of [t].  If [s] has no type
   // arguments and no substitution, it is used as raw type.  If [t] has no

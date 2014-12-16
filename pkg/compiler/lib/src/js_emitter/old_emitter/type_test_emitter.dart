@@ -19,7 +19,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
 
     void generateIsTest(Element other) {
       if (other == compiler.objectClass && other != classElement) {
-        // Avoid emitting [:$isObject:] on all classes but [Object].
+        // Avoid emitting `$isObject` on all classes but [Object].
         return;
       }
       builder.addProperty(namer.operatorIs(other), js('true'));
@@ -64,13 +64,25 @@ class TypeTestEmitter extends CodeEmitterHelper {
       }
     }
 
+    void generateTypeCheck(TypeCheck check) {
+      ClassElement checkedClass = check.cls;
+      // We must not call [generateIsTest] since we also want is$Object.
+      builder.addProperty(namer.operatorIs(checkedClass), js('true'));
+      Substitution substitution = check.substitution;
+      if (substitution != null) {
+        jsAst.Expression body = substitution.getCode(backend.rti);
+        builder.addProperty(namer.substitutionName(checkedClass), body);
+      }
+    }
+
     generateIsTestsOn(classElement, generateIsTest,
         generateFunctionTypeSignature,
-        generateSubstitution);
+        generateSubstitution,
+        generateTypeCheck);
   }
 
   /**
-   * Generate "is tests" for [cls]: itself, and the "is tests" for the
+   * Generate "is tests" for [cls] itself, and the "is tests" for the
    * classes it implements and type argument substitution functions for these
    * tests.   We don't need to add the "is tests" of the super class because
    * they will be inherited at runtime, but we may need to generate the
@@ -79,10 +91,26 @@ class TypeTestEmitter extends CodeEmitterHelper {
   void generateIsTestsOn(ClassElement cls,
                          void emitIsTest(Element element),
                          FunctionTypeSignatureEmitter emitFunctionTypeSignature,
-                         SubstitutionEmitter emitSubstitution) {
+                         SubstitutionEmitter emitSubstitution,
+                         void emitTypeCheck(TypeCheck check)) {
+    Setlet<Element> generated = new Setlet<Element>();
+
     if (checkedClasses.contains(cls)) {
       emitIsTest(cls);
       emitSubstitution(cls);
+      generated.add(cls);
+    }
+
+    // Precomputed is checks.
+    TypeChecks typeChecks = backend.rti.requiredChecks;
+    Iterable<TypeCheck> classChecks = typeChecks[cls];
+    if (classChecks != null) {
+      for (TypeCheck check in classChecks) {
+        if (!generated.contains(check.cls)) {
+          emitTypeCheck(check);
+          generated.add(check.cls);
+        }
+      }
     }
 
     RuntimeTypes rti = backend.rti;
@@ -100,19 +128,18 @@ class TypeTestEmitter extends CodeEmitterHelper {
       // substitutions for all checks and make emitSubstitution a NOP for the
       // rest of this function.
 
-      Setlet<ClassElement> emitted = new Setlet<ClassElement>();
       // TODO(karlklose): move the computation of these checks to
       // RuntimeTypeInformation.
       while (superclass != null) {
         if (backend.classNeedsRti(superclass)) {
           emitSubstitution(superclass, emitNull: true);
-          emitted.add(superclass);
+          generated.add(superclass);
         }
         superclass = superclass.superclass;
       }
       for (DartType supertype in cls.allSupertypes) {
         ClassElement superclass = supertype.element;
-        if (emitted.contains(superclass)) continue;
+        if (generated.contains(superclass)) continue;
 
         if (classesUsingTypeVariableTests.contains(superclass) ||
             checkedClasses.contains(superclass)) {
@@ -128,7 +155,6 @@ class TypeTestEmitter extends CodeEmitterHelper {
       emitSubstitution = emitNothing;
     }
 
-    Setlet<Element> generated = new Setlet<Element>();
     // A class that defines a `call` method implicitly implements
     // [Function] and needs checks for all typedefs that are used in is-checks.
     if (checkedClasses.contains(compiler.functionClass) ||
@@ -188,61 +214,6 @@ class TypeTestEmitter extends CodeEmitterHelper {
       tryEmitTest(superclass);
       generateInterfacesIsTests(superclass, emitIsTest, emitSubstitution,
                                 alreadyGenerated);
-    }
-  }
-
-  void emitRuntimeTypeSupport(CodeBuffer buffer, OutputUnit outputUnit) {
-    emitter.addComment('Runtime type support', buffer);
-    RuntimeTypes rti = backend.rti;
-    TypeChecks typeChecks = rti.requiredChecks;
-
-    // Add checks to the constructors of instantiated classes.
-    // TODO(sigurdm): We should avoid running through this list for each
-    // output unit.
-
-    jsAst.Statement variables = js.statement('var TRUE = !0, _;');
-    List<jsAst.Statement> statements = <jsAst.Statement>[];
-
-    for (ClassElement cls in typeChecks) {
-      OutputUnit destination =
-          compiler.deferredLoadTask.outputUnitForElement(cls);
-      if (destination != outputUnit) continue;
-      // TODO(9556).  The properties added to 'holder' should be generated
-      // directly as properties of the class object, not added later.
-
-      // Each element is a pair: [propertyName, valueExpression]
-      List<List> properties = <List>[];
-
-      for (TypeCheck check in typeChecks[cls]) {
-        ClassElement checkedClass = check.cls;
-        properties.add([namer.operatorIs(checkedClass), js('TRUE')]);
-        Substitution substitution = check.substitution;
-        if (substitution != null) {
-          jsAst.Expression body = substitution.getCode(rti);
-          properties.add([namer.substitutionName(checkedClass), body]);
-        }
-      }
-
-      jsAst.Expression holder = backend.emitter.classAccess(cls);
-      if (properties.length > 1) {
-        // Use temporary shortened reference.
-        statements.add(js.statement('_ = #;', holder));
-        holder = js('#', '_');
-      }
-      for (List nameAndValue in properties) {
-        statements.add(
-            js.statement('#.# = #',
-                [holder, nameAndValue[0], nameAndValue[1]]));
-      }
-    }
-
-    if (statements.isNotEmpty) {
-      buffer.write(';');
-      buffer.write(
-          jsAst.prettyPrint(
-              js.statement('(function() { #; #; })()', [variables, statements]),
-              compiler));
-      buffer.write('$N');
     }
   }
 }
