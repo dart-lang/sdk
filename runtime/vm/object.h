@@ -3584,9 +3584,7 @@ class ICData : public Object {
   #undef DEFINE_ENUM_LIST
   };
 
-  enum {
-    kLastRecordedDeoptReason = kDeoptUnknown - 1
-  };
+  static const intptr_t kLastRecordedDeoptReason = kDeoptUnknown - 1;
 
   enum DeoptFlags {
     // Deoptimization is caused by an optimistically hoisted instruction.
