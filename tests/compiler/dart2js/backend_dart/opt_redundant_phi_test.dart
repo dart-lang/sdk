@@ -19,7 +19,8 @@ import 'package:compiler/src/cps_ir/optimizers.dart';
 // }
 
 String READ_IN_LOOP_IN = """
-(FunctionDefinition main (return) (LetPrim v0 (Constant IntConstant(42)))
+(FunctionDefinition main () return ()
+  (LetPrim v0 (Constant IntConstant(42)))
   (LetPrim v1 (Constant IntConstant(0)))
   (LetCont* (k0 v2 v3)
     (LetCont (k1) (LetPrim v4 (Constant NullConstant))
@@ -38,7 +39,8 @@ String READ_IN_LOOP_IN = """
 """;
 
 String READ_IN_LOOP_OUT = """
-(FunctionDefinition main ( return) (LetPrim v0 (Constant IntConstant(42)))
+(FunctionDefinition main () return ()
+  (LetPrim v0 (Constant IntConstant(42)))
   (LetPrim v1 (Constant IntConstant(0)))
   (LetCont* (k0 v2)
     (LetCont (k1) (LetPrim v3 (Constant NullConstant))
@@ -72,7 +74,8 @@ String READ_IN_LOOP_OUT = """
 // are removed from k5, and only then can k0 be optimized as well.
 
 const String INNER_LOOP_IN = """
-(FunctionDefinition main (return) (LetPrim v0 (Constant IntConstant(42)))
+(FunctionDefinition main () return ()
+  (LetPrim v0 (Constant IntConstant(42)))
   (LetPrim v1 (Constant IntConstant(0)))
   (LetCont* (k0 v2 v3)
     (LetCont (k1)
@@ -105,7 +108,8 @@ const String INNER_LOOP_IN = """
 """;
 
 const String INNER_LOOP_OUT = """
-(FunctionDefinition main ( return) (LetPrim v0 (Constant IntConstant(42)))
+(FunctionDefinition main () return ()
+  (LetPrim v0 (Constant IntConstant(42)))
   (LetPrim v1 (Constant IntConstant(0)))
   (LetCont* (k0 v2)
     (LetCont (k1)
@@ -148,7 +152,8 @@ const String INNER_LOOP_OUT = """
 // }
 
 String BASIC_LOOP_IN = """
-(FunctionDefinition main ( return) (LetPrim v0 (Constant IntConstant(0)))
+(FunctionDefinition main () return ()
+  (LetPrim v0 (Constant IntConstant(0)))
   (LetCont* (k0 v1)
     (LetCont (k1) (LetPrim v2 (Constant NullConstant))
       (InvokeContinuation return v2))
@@ -172,7 +177,7 @@ String BASIC_LOOP_OUT = BASIC_LOOP_IN;
 // IR written by hand since this case is currently not being generated.
 
 String SCOPING_IN = """
-(FunctionDefinition main ( return)
+(FunctionDefinition main () return ()
   (LetCont (k0 v1)
     (InvokeStatic print v1 return))
   (LetPrim v0 (Constant IntConstant(0)))
@@ -181,7 +186,7 @@ String SCOPING_IN = """
 """;
 
 String SCOPING_OUT = """
-(FunctionDefinition main ( return)
+(FunctionDefinition main () return ()
   (LetPrim v0 (Constant IntConstant(0)))
   (LetCont (k0)
     (InvokeStatic print v0 return))
@@ -193,7 +198,7 @@ String SCOPING_OUT = """
 // IR written by hand.
 
 String NEVER_INVOKED_IN = """
-(FunctionDefinition main ( return)
+(FunctionDefinition main () return ()
   (LetPrim v0 (Constant IntConstant(0)))
   (LetCont (k0 v1)
     (InvokeStatic print v1 return))

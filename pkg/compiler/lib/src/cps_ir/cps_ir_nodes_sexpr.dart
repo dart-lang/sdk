@@ -15,8 +15,8 @@ typedef String Decorator(Node node, String s);
 class SExpressionStringifier extends Visitor<String> with Indentation {
   final _Namer namer = new _Namer();
 
-  String newValueName(Node node) => namer.defineValueName(node);
-  String newContinuationName(Node node) => namer.defineContinuationName(node);
+  String newValueName(Primitive node) => namer.nameValue(node);
+  String newContinuationName(Continuation node) => namer.nameContinuation(node);
   Decorator decorator;
 
   SExpressionStringifier([this.decorator]) {
@@ -30,7 +30,7 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   }
 
   String visitParameter(Parameter node) {
-    return namer.useElementName(node);
+    return namer.nameParameter(node);
   }
 
   String visitClosureVariable(ClosureVariable node) {
@@ -41,25 +41,24 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   /// calls must go through this method.
   String visit(Node node) {
     String s = super.visit(node);
-    return (decorator == null) ? s : decorator(node, s);
+    return decorator(node, s);
   }
 
   String visitFunctionDefinition(FunctionDefinition node) {
     String name = node.element.name;
-    namer.useReturnName(node.returnContinuation);
-    String closureVariables = node.closureVariables.isEmpty
-        ? ''
-        : '{${node.closureVariables.map(namer.defineClosureName).join(' ')}} ';
+    namer.setReturnContinuation(node.returnContinuation);
+    String closureVariables =
+        node.closureVariables.map(namer.nameClosureVariable).join(' ');
     String parameters = node.parameters.map(visit).join(' ');
     String body = indentBlock(() => visit(node.body));
-    return '$indentation(FunctionDefinition $name $closureVariables'
-           '($parameters return)\n$body)';
+    return '$indentation(FunctionDefinition $name ($parameters) return'
+        ' ($closureVariables)\n$body)';
   }
 
   String visitFieldDefinition(FieldDefinition node) {
     String name = node.element.name;
     if (node.hasInitializer) {
-      namer.useReturnName(node.returnContinuation);
+      namer.setReturnContinuation(node.returnContinuation);
       String body = indentBlock(() => visit(node.body));
       return '$indentation(FieldDefinition $name (return)\n'
              '$body)';
@@ -240,29 +239,29 @@ class _Namer {
   int _valueCounter = 0;
   int _continuationCounter = 0;
 
-  String useElementName(Parameter parameter) {
+  String nameParameter(Parameter parameter) {
     assert(!_names.containsKey(parameter));
     return _names[parameter] = parameter.hint.name;
   }
 
-  String defineClosureName(ClosureVariable variable) {
+  String nameClosureVariable(ClosureVariable variable) {
     assert(!_names.containsKey(variable));
     return _names[variable] = variable.hint.name;
   }
 
-  String defineContinuationName(Node node) {
+  String nameContinuation(Continuation node) {
     assert(!_names.containsKey(node));
     return _names[node] = 'k${_continuationCounter++}';
   }
 
-  String defineValueName(Node node) {
+  String nameValue(Primitive node) {
     assert(!_names.containsKey(node));
     return _names[node] = 'v${_valueCounter++}';
   }
 
-  String useReturnName(Continuation node) {
+  void setReturnContinuation(Continuation node) {
     assert(!_names.containsKey(node) || _names[node] == 'return');
-    return _names[node] = 'return';
+    _names[node] = 'return';
   }
 
   String getName(Node node) {

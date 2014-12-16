@@ -271,29 +271,15 @@ class SExpressionUnstringifier {
 
     // name
     Element element = new DummyElement("");
-    if (tokens.current != '(' && tokens.current != '{') {
+    if (tokens.current != '(') {
       // This is a named function.
       element = new DummyElement(tokens.read());
     }
 
-    // [closure-vars]
-    List<ClosureVariable> closureVariables = <ClosureVariable>[];
-    if (tokens.current == '{') {
-      tokens.read('{');
-      while (tokens.current != '}') {
-        String varName = tokens.read();
-        ClosureVariable variable =
-            new ClosureVariable(element, new DummyElement(varName));
-        closureVariables.add(variable);
-        name2variable[varName] = variable;
-      }
-      tokens.read('}');
-    }
-
-    // (args cont)
+    // (parameters)
     List<Definition> parameters = <Definition>[];
     tokens.consumeStart();
-    while (tokens.next != ")") {
+    while (tokens.current != ")") {
       String paramName = tokens.read();
       if (name2variable.containsKey(paramName)) {
         parameters.add(name2variable[paramName]);
@@ -303,10 +289,23 @@ class SExpressionUnstringifier {
         parameters.add(param);
       }
     }
+    tokens.consumeEnd();
 
+    // continuation
     String contName = tokens.read("return");
     Continuation cont = name2variable[contName];
     assert(cont != null);
+
+    // [closure-variables]
+    List<ClosureVariable> closureVariables = <ClosureVariable>[];
+    tokens.consumeStart();
+    while (tokens.current != ')') {
+      String varName = tokens.read();
+      ClosureVariable variable =
+          new ClosureVariable(element, new DummyElement(varName));
+      closureVariables.add(variable);
+      name2variable[varName] = variable;
+    }
     tokens.consumeEnd();
 
     // body
