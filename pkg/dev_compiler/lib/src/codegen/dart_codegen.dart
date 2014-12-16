@@ -54,15 +54,14 @@ class DartGenerator extends codegenerator.CodeGenerator {
   bool _format;
 
   DartGenerator(String outDir, Uri root, List<LibraryInfo> libraries,
-      TypeRules rules, this._format)
-      : super(outDir, root, libraries, rules);
+      TypeRules rules, this._format) : super(outDir, root, libraries, rules);
 
-  Future generateUnit(CompilationUnitElementImpl unit, LibraryInfo info,
-      String libraryDir) {
+  Future generateUnit(
+      CompilationUnitElementImpl unit, LibraryInfo info, String libraryDir) {
     var uri = unit.source.uri;
     _log.info("Generating unit " + uri.toString());
-    FileWriter out = new FileWriter(_format,
-        path.join(libraryDir, '${uri.pathSeparator.last}'));
+    FileWriter out = new FileWriter(_format, path
+        .join(libraryDir, '${uri.pathSeparator.last}'));
     var unitGen = new UnitGenerator(unit.node, out);
     unitGen.generate();
     return out.finalize();

@@ -39,10 +39,10 @@ import 'package:ddc/src/checker/checker.dart';
 ///       '''
 ///     });
 ///
-CheckerResults testChecker(
-    Map<String, String> testFiles, {bool mockSdk: true}) {
-  expect(testFiles.containsKey(
-      '/main.dart'), isTrue, reason: '`/main.dart` is missing in testFiles');
+CheckerResults testChecker(Map<String, String> testFiles,
+    {bool mockSdk: true}) {
+  expect(testFiles.containsKey('/main.dart'), isTrue,
+      reason: '`/main.dart` is missing in testFiles');
 
   // Create a resolver that can load test files from memory.
   var dartUriResolver = mockSdk ?
@@ -101,9 +101,9 @@ CheckerResults testChecker(
     // Non empty error expectation lists remaining
     if (newTotal > 0) {
       fail('Not all expected errors were reported by the checker. Only'
-           ' ${total - newTotal} out of $total expected errors were reported.\n'
-           'The following errors were not reported:\n'
-           '${_unreportedErrors(expectedErrors)}');
+          ' ${total - newTotal} out of $total expected errors were reported.\n'
+          'The following errors were not reported:\n'
+          '${_unreportedErrors(expectedErrors)}');
     }
   }
 
@@ -254,7 +254,6 @@ class _TestSource implements Source {
 
   int get modificationStamp => 0;
   String get shortName => path.basename(uri.path);
-
 
   operator ==(other) => other is _TestSource && uri == other.uri;
   int get hashCode => uri.hashCode;

@@ -12,18 +12,14 @@ var methods;
 
     Object.defineProperties(constructor.prototype, {
       a: {
-        "get": function() {
-          return this.x();
-        },
+        "get": function() { return this.x(); },
       },
       b: {
         "set": function(b) {
         },
       },
       c: {
-        "get": function() {
-          return this._c;
-        },
+        "get": function() { return this._c; },
         "set": function(c) {
           this._c = c;
         },

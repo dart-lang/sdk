@@ -68,8 +68,8 @@ class RestrictedRules extends TypeRules {
     var type = expr.staticType;
     if (type != null) return type;
 
-    var node = currentLibraryInfo.nodeInfo.putIfAbsent(expr,
-        () => new SemanticNode(expr));
+    var node = currentLibraryInfo.nodeInfo
+        .putIfAbsent(expr, () => new SemanticNode(expr));
     var info = new MissingTypeError(expr);
     node.messages.add(info);
     logCheckerMessage(info);

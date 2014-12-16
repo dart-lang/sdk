@@ -13,20 +13,20 @@ import 'package:ddc/src/checker/dart_sdk.dart' show dartSdkDirectory, mockSdkSou
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
 
 final ArgParser argParser = new ArgParser()
-    ..addFlag(
-        'sdk-check', abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false)
-    ..addOption('log', abbr: 'l', help: 'Logging level', defaultsTo: 'severe')
-    ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
-    ..addFlag(
-        'dart-gen', abbr: 'd', help: 'Generate dart output', defaultsTo: false)
-    ..addFlag(
-        'dart-gen-fmt', help: 'Generate readable dart output', defaultsTo: true)
-    ..addFlag(
-        'mock-sdk', abbr: 'm', help: 'Use a mock Dart SDK', defaultsTo: false)
-    ..addFlag('dump-info', abbr: 'i', help: 'Dump summary information',
-        defaultsTo: false)
-    ..addOption('out', abbr: 'o', help: 'Output directory', defaultsTo: null)
-    ..addFlag('help', abbr: 'h', help: 'Display this message');
+  ..addFlag(
+      'sdk-check', abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false)
+  ..addOption('log', abbr: 'l', help: 'Logging level', defaultsTo: 'severe')
+  ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
+  ..addFlag(
+      'dart-gen', abbr: 'd', help: 'Generate dart output', defaultsTo: false)
+  ..addFlag(
+      'dart-gen-fmt', help: 'Generate readable dart output', defaultsTo: true)
+  ..addFlag(
+      'mock-sdk', abbr: 'm', help: 'Use a mock Dart SDK', defaultsTo: false)
+  ..addFlag('dump-info', abbr: 'i', help: 'Dump summary information',
+      defaultsTo: false)
+  ..addOption('out', abbr: 'o', help: 'Output directory', defaultsTo: null)
+  ..addFlag('help', abbr: 'h', help: 'Display this message');
 
 void _showUsageAndExit() {
   print('usage: dartdevc [<options>] <file.dart>\n');

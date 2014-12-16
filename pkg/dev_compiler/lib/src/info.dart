@@ -215,7 +215,7 @@ class NumericConversion extends Conversion {
 
   NumericConversion(TypeRules rules, Expression expression)
       : super(rules, expression) {
-    assert(baseType.displayName == rules.provider.intType);
+    assert(baseType == rules.provider.intType);
   }
 
   bool get safe => true;
@@ -251,7 +251,6 @@ class DynamicInvoke extends Conversion {
     }
   }
 }
-
 
 abstract class StaticError extends StaticInfo {
   final AstNode node;
@@ -346,7 +345,7 @@ abstract class ConversionVisitor<R> {
   /// GeneralizingAstVisitor<R>.
   R visitNode(AstNode node);
 
-  /// The catch-all for any kind of converison
+  /// The catch-all for any kind of conversion
   R visitConversion(Conversion node) => visitNode(node);
 
   // Methods for conversion subtypes:

@@ -49,7 +49,6 @@ SourceSpan spanForNode(AstNode node) {
   return spanFor(source, begin, node.end);
 }
 
-
 final _checkerLogger = new logger.Logger('ddc.checker');
 void logCheckerMessage(StaticInfo info) {
   _checkerLogger.log(info.level, info.message, info.node);
@@ -99,7 +98,7 @@ class OutWriter {
       _sink.write(_prefix);
     }
     _sink.write(last);
-    newline = last.isEmpty;
+    newline = string.isNotEmpty && last.isEmpty;
     if (indent > 0) inc(indent);
   }
 

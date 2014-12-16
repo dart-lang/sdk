@@ -9,7 +9,6 @@ import 'package:source_span/source_span.dart';
 import 'info.dart';
 import 'utils.dart';
 
-
 /// Summary information computed by the DDC checker.
 abstract class Summary {
   Map toJsonMap();
@@ -63,7 +62,7 @@ class PackageSummary implements Summary {
 
   Map toJsonMap() => {
     'package_name': name,
-    'libraries' : libraries.values.map((l) => l.toJsonMap()).toList(),
+    'libraries': libraries.values.map((l) => l.toJsonMap()).toList(),
   };
 
   void accept(SummaryVisitor visitor) => visitor.visitPackage(this);
@@ -92,8 +91,9 @@ class LibrarySummary implements Summary {
   void accept(SummaryVisitor visitor) => visitor.visitLibrary(this);
 
   static LibrarySummary parse(Map json) =>
-      new LibrarySummary(json['library_name'],
-          json['messages'].map(MessageSummary.parse).toList());
+      new LibrarySummary(json['library_name'], json['messages']
+          .map(MessageSummary.parse)
+          .toList());
 }
 
 /// A single message produced by the checker.
@@ -167,8 +167,8 @@ class RecursiveSummaryVisitor implements SummaryVisitor {
 GlobalSummary checkerResultsToSummary(CheckerResults results) {
   var res = new GlobalSummary();
   for (var lib in results.libraries) {
-    var libSummary = new LibrarySummary(lib.name,
-        lib.nodeInfo.values.expand(_convertInfos).toList());
+    var libSummary = new LibrarySummary(
+        lib.name, lib.nodeInfo.values.expand(_convertInfos).toList());
 
     var uri = lib.library.source.uri;
     if (uri.scheme == 'package') {
@@ -194,8 +194,8 @@ List<MesageSummary> _convertInfos(SemanticNode semanticNode) {
   var res = <MessageSummary>[];
   var span = spanForNode(semanticNode.node);
   for (var info in semanticNode.messages) {
-    res.add(new MessageSummary('${info.runtimeType}',
-        info.level.name.toLowerCase(), span));
+    res.add(new MessageSummary('${info.runtimeType}', info.level.name
+        .toLowerCase(), span));
   }
   return res;
 }
@@ -307,7 +307,7 @@ class _Counter extends RecursiveSummaryVisitor {
   }
 
   addTo(String package, String kind) {
-    errorCount.putIfAbsent(package, () => <String, int> {});
+    errorCount.putIfAbsent(package, () => <String, int>{});
     errorCount[package].putIfAbsent(kind, () => 0);
     errorCount[package][kind]++;
     totals.putIfAbsent(kind, () => 0);

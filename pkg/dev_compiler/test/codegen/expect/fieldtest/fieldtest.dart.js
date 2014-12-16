@@ -15,7 +15,7 @@ var fieldtest;
 
   // Function foo: (A) → int
   function foo(a) {
-    dart_core.print(/* Unimplemented: Box: int to num */ a.x);
+    dart_core.print(a.x);
     return a.x;
   }
   fieldtest.foo = foo;
@@ -23,14 +23,12 @@ var fieldtest;
   // Function bar: (dynamic) → int
   function bar(a) {
     dart_core.print(dart_runtime.dload(a, "x"));
-    return /* Unimplemented: Unbox: dynamic to int */ dart_runtime.dload(a, "x");
+    return dart_runtime.dload(a, "x");
   }
   fieldtest.bar = bar;
 
   // Function baz: (A) → dynamic
-  function baz(a) {
-    return /* Unimplemented: Box: int to num */ a.x;
-  }
+  function baz(a) { return a.x; }
   fieldtest.baz = baz;
 
   // Function main: () → void

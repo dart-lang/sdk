@@ -15,7 +15,7 @@ class A {
     return a + b;
   }
 
-  int ww(int a, {int b : 0}) {
+  int ww(int a, {int b: 0}) {
     return a + b;
   }
 
@@ -27,6 +27,7 @@ class A {
 
   int get c => _c;
 
-  void set c(int c) { _c = c; }
-
+  void set c(int c) {
+    _c = c;
+  }
 }

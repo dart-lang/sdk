@@ -5,6 +5,7 @@ import 'dart:async' show Future;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/scanner.dart' show StringToken, Token, TokenType;
 import 'package:path/path.dart' as path;
 
 import 'package:ddc/src/checker/rules.dart';
@@ -23,17 +24,19 @@ class UnitGenerator extends GeneralizingAstVisitor with ConversionVisitor {
   final TypeRules rules;
   OutWriter out = null;
 
+  /// The variable for the target of the current `..` cascade expression.
+  SimpleIdentifier _cascadeTemp;
+
+  /// Temporary variable names currently in use.
+  /// See [_makeTemp] and [_freeTemp].
+  final Set<String> _temps = new Set();
+
   ClassDeclaration currentClass;
 
   UnitGenerator(CompilationUnitElementImpl unit, this.outDir, this.libraryInfo,
-      this.rules) : unit = unit.node, uri = unit.source.uri;
-
-  void visitConversion(Conversion node) {
-    out.write('/* Unimplemented: ');
-    out.write('${node.description}');
-    out.write(' */ ');
-    node.expression.accept(this);
-  }
+      this.rules)
+      : unit = unit.node,
+        uri = unit.source.uri;
 
   String get outputPath => path.join(outDir, '${uri.pathSegments.last}.js');
 
@@ -54,6 +57,30 @@ var $libName;
 
   bool isPublic(String name) => !name.startsWith('_');
 
+  /// Conversions that we don't handle end up here.
+  @override
+  void visitConversion(Conversion node) {
+    out.write('/* Unimplemented: ');
+    out.write('${node.description}');
+    out.write(' */ ');
+    node.expression.accept(this);
+  }
+
+  // These conversions do not require JS code. We store primitives using their
+  // JS equivalent values, rather than in boxed form, and int and double are
+  // both stored as JS numbers (which is essentially a double).
+  @override void visitBox(Box node) => node.expression.accept(this);
+  @override void visitUnbox(Unbox node) => node.expression.accept(this);
+  @override void visitNumericConversion(NumericConversion node) =>
+      node.expression.accept(this);
+
+  @override
+  void visitAsExpression(AsExpression node) {
+    out.write('/* Unimplemented: as ${node.type.name.name}. */');
+    node.expression.accept(this);
+  }
+
+  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     // TODO(vsm): Do we need to record type info the generated code for a
     // typedef?
@@ -212,6 +239,7 @@ constructor.$name.prototype = constructor.prototype;
     return fields;
   }
 
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     currentClass = node;
     var name = node.name.name;
@@ -275,15 +303,16 @@ var $name = (function (_super) {
     Map<String, _Property> properties = {};
 
     for (var member in node.members) {
-      if (member is MethodDeclaration && !member.isAbstract &&
+      if (member is MethodDeclaration &&
+          !member.isAbstract &&
           !member.isStatic) {
         if (member.isGetter) {
-          var property =
-              properties.putIfAbsent(member.name.name, () => new _Property());
+          var property = properties
+              .putIfAbsent(member.name.name, () => new _Property());
           property.getter = member;
         } else if (member.isSetter) {
-          var property =
-              properties.putIfAbsent(member.name.name, () => new _Property());
+          var property = properties
+              .putIfAbsent(member.name.name, () => new _Property());
           property.setter = member;
         }
       }
@@ -298,16 +327,16 @@ var $name = (function (_super) {
         out.write('$name: {\n', 2);
 
         if (property.getter != null) {
-          out.write('"get": function() {\n', 2);
+          out.write('"get": function() ');
           property.getter.body.accept(this);
-          out.write('},\n', -2);
+          out.write(',\n');
         }
         if (property.setter != null) {
           out.write('"set": function(');
           property.setter.parameters.accept(this);
-          out.write(') {\n', 2);
+          out.write(') ');
           property.setter.body.accept(this);
-          out.write('},\n', -2);
+          out.write(',\n');
         }
         out.write('},\n', -2);
       }
@@ -316,6 +345,7 @@ var $name = (function (_super) {
     }
   }
 
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.isAbstract || node.isGetter || node.isSetter || node.isStatic) {
       return;
@@ -328,39 +358,55 @@ var $name = (function (_super) {
     out.write("function $name(");
     node.parameters.accept(this);
     out.write(") {\n", 2);
+    // TODO(jmesserly): if we don't have argument initializers, we can avoid
+    // generating the curly braces here, and let Block handle that. This is
+    // also nice for ExpressionFunctionBody, which can avoid some newlines.
     generateArgumentInitializers(node.parameters);
-    node.body.accept(this);
+    var body = node.body;
+    if (body is BlockFunctionBody) {
+      body.block.statements.accept(this);
+    } else if (body is ExpressionFunctionBody) {
+      out.write('return ');
+      body.expression.accept(this);
+      out.write(';\n');
+    } else {
+      assert(body is EmptyFunctionBody);
+    }
     out.write("}\n", -2);
   }
 
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     var name = node.name.name;
     assert(node.parent is CompilationUnit);
     out.write("// Function $name: ${node.element.type}\n");
     out.write("function $name(");
-    node.functionExpression.parameters.accept(this);
-    out.write(") {\n", 2);
-    node.functionExpression.body.accept(this);
-    out.write("}\n", -2);
+    var function = node.functionExpression;
+    function.parameters.accept(this);
+    out.write(") ");
+    function.body.accept(this);
+    out.write("\n");
     if (isPublic(name)) out.write("${libraryInfo.name}.$name = $name;\n");
     out.write("\n");
   }
 
+  @override
   void visitFunctionExpression(FunctionExpression node) {
     // Bind all free variables.
     out.write('/* Unimplemented: bind any free variables. */');
 
-    out.write("function (");
+    out.write("function(");
     node.parameters.accept(this);
-    out.write(") {\n", 2);
+    out.write(") ");
     node.body.accept(this);
-    out.write("}\n", -2);
   }
 
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     // TODO(justinfagnani): check that 'this' isn't prepended to static
     // references
-    if (node.staticElement != null && currentClass != null &&
+    if (node.staticElement != null &&
+        currentClass != null &&
         node.parent is! PropertyAccess &&
         node.staticElement.enclosingElement == currentClass.element) {
       out.write('this.');
@@ -368,27 +414,42 @@ var $name = (function (_super) {
     out.write(node.name);
   }
 
+  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     node.leftHandSide.accept(this);
     out.write(' = ');
     node.rightHandSide.accept(this);
   }
 
+  @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    out.write("return ");
-    // TODO(vsm): Check for conversion.
+    // TODO(jmesserly): generate arrow functions in ES6 mode
+    // TODO(jmesserly): generate newlines if it's a long expression?
+    out.write("{ return ");
     node.expression.accept(this);
-    out.write(";\n");
+    out.write("; }");
   }
 
+  @override
+  void visitEmptyFunctionBody(EmptyFunctionBody node) {
+    out.write('{}');
+  }
+
+  @override
   void visitMethodInvocation(MethodInvocation node) {
-    // TODO(vsm): Check dynamic.
-    writeQualifiedName(node.target, node.methodName);
+    if (_isDynamic(node)) {
+      _unimplemented(node);
+      return;
+    }
+
+    var target = node.isCascaded ? _cascadeTemp : node.target;
+    writeQualifiedName(target, node.methodName);
     out.write('(');
     node.argumentList.accept(this);
     out.write(')');
   }
 
+  @override
   void visitArgumentList(ArgumentList node) {
     // TODO(vsm): Optional parameters.
     var arguments = node.arguments;
@@ -404,6 +465,7 @@ var $name = (function (_super) {
     }
   }
 
+  @override
   void visitFormalParameterList(FormalParameterList node) {
     int length = node.parameters.length;
     bool hasOptionalParameters = false;
@@ -425,6 +487,7 @@ var $name = (function (_super) {
     }
   }
 
+  @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     // Named parameters are handled as a single object, so we skip individual
     // parameters
@@ -433,6 +496,7 @@ var $name = (function (_super) {
     }
   }
 
+  @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     // Named parameters are handled as a single object, so we skip individual
     // parameters
@@ -441,16 +505,25 @@ var $name = (function (_super) {
     }
   }
 
+  @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
-    var statements = node.block.statements;
-    for (var statement in statements) statement.accept(this);
+    node.block.accept(this);
   }
 
+  @override
+  void visitBlock(Block node) {
+    out.write("{\n", 2);
+    node.statements.accept(this);
+    out.write("}", -2);
+  }
+
+  @override
   void visitExpressionStatement(ExpressionStatement node) {
     node.expression.accept(this);
     out.write(';\n');
   }
 
+  @override
   void visitReturnStatement(ReturnStatement node) {
     if (node.expression == null) {
       out.write('return;\n');
@@ -463,30 +536,40 @@ var $name = (function (_super) {
 
   void _generateVariableList(VariableDeclarationList list, bool lazy) {
     // TODO(vsm): Detect when we can avoid wrapping in function.
-    var prefix = lazy ? 'function () { return ' : '';
+    var prefix = lazy ? 'function() { return ' : '';
     var postfix = lazy ? '; }()' : '';
     var declarations = list.variables;
     for (var declaration in declarations) {
       var name = declaration.name.name;
       var initializer = declaration.initializer;
       if (initializer == null) {
-        out.write('var $name;\n');
+        out.write('var $name');
       } else {
         out.write('var $name = $prefix');
         initializer.accept(this);
-        out.write('$postfix;\n');
+        out.write('$postfix');
       }
     }
   }
 
+  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _generateVariableList(node.variables, true);
+    out.write(';\n');
   }
 
+  @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    _generateVariableList(node.variables, false);
+    node.variables.accept(this);
+    out.write(';\n');
   }
 
+  @override
+  void visitVariableDeclarationList(VariableDeclarationList node) {
+    _generateVariableList(node, false);
+  }
+
+  @override
   void visitConstructorName(ConstructorName node) {
     node.type.name.accept(this);
     if (node.name != null) {
@@ -495,6 +578,7 @@ var $name = (function (_super) {
     }
   }
 
+  @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     out.write('new ');
     node.constructorName.accept(this);
@@ -503,6 +587,7 @@ var $name = (function (_super) {
     out.write(')');
   }
 
+  @override
   void visitBinaryExpression(BinaryExpression node) {
     var op = node.operator;
     var lhs = node.leftOperand;
@@ -521,47 +606,133 @@ var $name = (function (_super) {
     }
   }
 
+  @override
+  void visitPostfixExpression(PostfixExpression node) {
+    var op = node.operator;
+    var expr = node.operand;
+
+    var dispatchType = rules.getStaticType(expr);
+    if (rules.isPrimitive(dispatchType)) {
+      // TODO(vsm): When do Dart ops not map to JS?
+      expr.accept(this);
+      out.write('$op');
+    } else {
+      // TODO(vsm): Figure out operator calling convention / dispatch.
+      out.write('/* Unimplemented postfix operator: $node */');
+    }
+  }
+
+  @override
+  void visitPrefixExpression(PrefixExpression node) {
+    var op = node.operator;
+    var expr = node.operand;
+
+    var dispatchType = rules.getStaticType(expr);
+    if (rules.isPrimitive(dispatchType)) {
+      // TODO(vsm): When do Dart ops not map to JS?
+      out.write('$op');
+      expr.accept(this);
+    } else {
+      // TODO(vsm): Figure out operator calling convention / dispatch.
+      out.write('/* Unimplemented postfix operator: $node */');
+    }
+  }
+
+  // Cascades can contain [IndexExpression], [MethodInvocation] and
+  // [PropertyAccess]. The code generation for those is handled in their
+  // respective visit methods.
+  @override
+  void visitCascadeExpression(CascadeExpression node) {
+    var savedCascadeTemp = _cascadeTemp;
+    _cascadeTemp = _makeTemp(_guessName(node.target));
+    out.write('var ${_cascadeTemp.name} = ');
+    _visitNode(node.target);
+    for (var section in node.cascadeSections) {
+      out.write(';\n');
+      section.accept(this);
+    }
+    _freeTemp(_cascadeTemp);
+    _cascadeTemp = savedCascadeTemp;
+  }
+
+  @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     out.write('(');
     node.expression.accept(this);
     out.write(')');
   }
 
+  @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     node.identifier.accept(this);
   }
 
+  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    final info = libraryInfo.nodeInfo[node];
-    if (info != null && info.dynamicInvoke != null) {
+    _visitGet(node.prefix, node.identifier);
+  }
+
+  @override
+  void visitPropertyAccess(PropertyAccess node) {
+    var target = node.isCascaded ? _cascadeTemp : node.target;
+    _visitGet(target, node.propertyName);
+  }
+
+  /// Shared code for [PrefixedIdentifier] and [PropertyAccess].
+  void _visitGet(Expression target, SimpleIdentifier name) {
+    if (_isDynamic(target.parent)) {
       out.write('dart_runtime.dload(');
-      node.prefix.accept(this);
+      target.accept(this);
       out.write(', "');
-      node.identifier.accept(this);
+      name.accept(this);
       out.write('")');
     } else {
-      node.prefix.accept(this);
+      target.accept(this);
       out.write('.');
-      node.identifier.accept(this);
+      name.accept(this);
     }
   }
 
+  @override
+  void visitForStatement(ForStatement node) {
+    Expression initialization = node.initialization;
+    out.write("for (");
+    if (initialization != null) {
+      initialization.accept(this);
+    } else if (node.variables != null) {
+      _visitNode(node.variables);
+    }
+    out.write(";");
+    _visitNode(node.condition, prefix: " ");
+    out.write(";");
+    _visitNodeList(node.updaters, prefix: " ", separator: ", ");
+    out.write(") ");
+    _visitNode(node.body);
+    out.write("\n");
+  }
+
+  @override
   void visitIntegerLiteral(IntegerLiteral node) {
     out.write('${node.value}');
   }
 
+  @override
   void visitStringLiteral(StringLiteral node) {
     out.write('"${node.stringValue}"');
   }
 
+  @override
   void visitBooleanLiteral(BooleanLiteral node) {
     out.write('${node.value}');
   }
 
-  void visitDirective(Directive node) {
-  }
+  @override
+  void visitDirective(Directive node) {}
 
-  void visitNode(AstNode node) {
+  @override
+  void visitNode(AstNode node) => _unimplemented(node);
+
+  void _unimplemented(AstNode node) {
     out.write('/* Unimplemented ${node.runtimeType}: $node */');
   }
 
@@ -581,9 +752,8 @@ var $name = (function (_super) {
 
   String getLibraryId(LibraryElement element) {
     var libraryName = element.name;
-    return _builtins.containsKey(libraryName)
-        ? _builtins[libraryName]
-        : libraryName;
+    return _builtins
+        .containsKey(libraryName) ? _builtins[libraryName] : libraryName;
   }
 
   void writeQualifiedName(Expression target, SimpleIdentifier id) {
@@ -600,6 +770,74 @@ var $name = (function (_super) {
     }
     id.accept(this);
   }
+
+  // TODO(jmesserly): is there a cleaner way to track this dynamic bit?
+  // Ideally we could just look at the resolved information on the AstNode.
+  bool _isDynamic(AstNode node) {
+    final info = libraryInfo.nodeInfo[node];
+    return info != null && info.dynamicInvoke != null;
+  }
+
+  /// Safely visit the given node, with an optional prefix or suffix.
+  void _visitNode(AstNode node, {String prefix: '', String suffix: ''}) {
+    if (node == null) return;
+
+    out.write(prefix);
+    node.accept(this);
+    out.write(suffix);
+  }
+
+  /// Print a list of nodes, with an optional prefix, suffix, and separator.
+  void _visitNodeList(NodeList<AstNode> nodes, {String prefix: '',
+      String suffix: '', String separator: ''}) {
+    if (nodes == null) return;
+
+    int size = nodes.length;
+    if (size == 0) return;
+
+    out.write(prefix);
+    for (int i = 0; i < size; i++) {
+      if (i > 0) out.write(separator);
+      nodes[i].accept(this);
+    }
+    out.write(suffix);
+  }
+
+  /// Safely visit the given node, printing the suffix after the node if it is
+  /// non-`null`.
+  void _visitToken(Token token, {String prefix: '', String suffix: ''}) {
+    if (token == null) return;
+    out.write(prefix);
+    out.write(token.lexeme);
+    out.write(suffix);
+  }
+
+  /// Guess the name of an expression. This is used to create readable temps.
+  String _guessName(Expression node) {
+    // TODO(jmesserly): more heuristics here.
+    // Use identifier name if we have one.
+    if (node is SimpleIdentifier) return node.name;
+    // Otherwise use the type name, but lowercase the start.
+    // TODO(jmesserly): this doesn't work well for names like HTMLElement.
+    var name = node.propagatedType.name;
+    return name[0].toLowerCase() + name.substring(1);
+  }
+
+  /// Make a temporary variable. We return an identifier node for convenience.
+  SimpleIdentifier _makeTemp(String prefix) {
+    // TODO(jmesserly): cleaner names once we have scopes to avoid colliding
+    // with the user's variables.
+    String name;
+    int i = 0;
+    while (!_temps.add(name = '$prefix\$$i')) i++;
+
+    return new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, 0));
+  }
+
+  void _freeTemp(SimpleIdentifier temp) {
+    var found = _temps.remove(temp.name);
+    assert(found);
+  }
 }
 
 class JSGenerator extends CodeGenerator {
@@ -607,8 +845,8 @@ class JSGenerator extends CodeGenerator {
       String outDir, Uri root, List<LibraryInfo> libraries, TypeRules rules)
       : super(outDir, root, libraries, rules);
 
-  Future generateUnit(CompilationUnitElementImpl unit, LibraryInfo info,
-      String libraryDir) {
+  Future generateUnit(
+      CompilationUnitElementImpl unit, LibraryInfo info, String libraryDir) {
     return new UnitGenerator(unit, libraryDir, info, rules).generate();
   }
 }
