@@ -2030,8 +2030,10 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       // native elements.
       ClassElement cls =
           element.enclosingClassOrCompilationUnit.declaration;
-      if (compiler.codegenWorld.directlyInstantiatedClasses.contains(cls)
-          && !cls.isNative) {
+      if (compiler.codegenWorld.directlyInstantiatedClasses.contains(cls) &&
+          !cls.isNative &&
+          compiler.deferredLoadTask.outputUnitForElement(element) ==
+              compiler.deferredLoadTask.outputUnitForElement(cls)) {
         owner = cls;
       }
     }
