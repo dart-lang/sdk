@@ -11,10 +11,10 @@ import 'package:analysis_server/src/protocol_server.dart' hide Element,
     ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
+import 'package:analysis_server/src/services/completion/optype_ast_visitor.dart';
 import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 
 /**
  * A computer for calculating imported class and top level variable
@@ -28,8 +28,17 @@ class ImportedComputer extends DartCompletionComputer {
 
   @override
   bool computeFast(DartCompletionRequest request) {
-    builder = request.node.accept(new _ImportedAstVisitor(request));
-    if (builder != null) {
+
+    // Determine the type of suggestions to be made
+    OpTypeAstVisitor opTypeVisitor = new OpTypeAstVisitor(request.offset);
+    request.node.accept(opTypeVisitor);
+
+    // Build the suggestions
+    if (opTypeVisitor.includeTopLevelSuggestions) {
+      builder = new _ImportedSuggestionBuilder(
+          request,
+          typesOnly: opTypeVisitor.includeOnlyTypeNameSuggestions,
+          excludeVoidReturn: !opTypeVisitor.includeVoidReturnSuggestions);
       builder.shouldWaitForLowPrioritySuggestions =
           shouldWaitForLowPrioritySuggestions;
       return builder.computeFast(request.node);
@@ -43,186 +52,6 @@ class ImportedComputer extends DartCompletionComputer {
       return builder.computeFull(request.node);
     }
     return new Future.value(false);
-  }
-}
-
-/**
- * [_ImportedAstVisitor] determines whether an import suggestions are needed
- * and instantiates the builder to create those suggestions.
- */
-class _ImportedAstVisitor extends
-    GeneralizingAstVisitor<_ImportedSuggestionBuilder> {
-  final DartCompletionRequest request;
-
-  _ImportedAstVisitor(this.request);
-
-  @override
-  _ImportedSuggestionBuilder visitArgumentList(ArgumentList node) {
-    return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitBlock(Block node) {
-    return new _ImportedSuggestionBuilder(request);
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitCascadeExpression(CascadeExpression node) {
-    // Make suggestions for the target, but not for the selector
-    // InvocationComputer makes selector suggestions
-    Expression target = node.target;
-    if (target != null && request.offset <= target.end) {
-      return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
-    }
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitClassDeclaration(ClassDeclaration node) {
-    // Make suggestions in the body of the class declaration
-    Token leftBracket = node.leftBracket;
-    if (leftBracket != null && request.offset >= leftBracket.end) {
-      return new _ImportedSuggestionBuilder(request);
-    }
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitExpression(Expression node) {
-    return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
-  }
-
-  @override
-  _ImportedSuggestionBuilder
-      visitExpressionStatement(ExpressionStatement node) {
-    Expression expression = node.expression;
-    // A pre-variable declaration (e.g. C ^) is parsed as an expression
-    // statement. Do not make suggestions for the variable name.
-    if (expression is SimpleIdentifier && request.offset <= expression.end) {
-      return new _ImportedSuggestionBuilder(request);
-    }
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder
-      visitFormalParameterList(FormalParameterList node) {
-    Token leftParen = node.leftParenthesis;
-    if (leftParen != null && request.offset > leftParen.offset) {
-      Token rightParen = node.rightParenthesis;
-      if (rightParen == null || request.offset <= rightParen.offset) {
-        return new _ImportedSuggestionBuilder(request);
-      }
-    }
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitForStatement(ForStatement node) {
-    Token leftParen = node.leftParenthesis;
-    if (leftParen != null && request.offset >= leftParen.end) {
-      return new _ImportedSuggestionBuilder(request);
-    }
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitIfStatement(IfStatement node) {
-    Token leftParen = node.leftParenthesis;
-    if (leftParen != null && request.offset >= leftParen.end) {
-      Token rightParen = node.rightParenthesis;
-      if (rightParen == null || request.offset <= rightParen.offset) {
-        return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
-      }
-    }
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder
-      visitInterpolationExpression(InterpolationExpression node) {
-    Expression expression = node.expression;
-    if (expression is SimpleIdentifier) {
-      return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
-    }
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitMethodInvocation(MethodInvocation node) {
-    Token period = node.period;
-    if (period == null || request.offset <= period.offset) {
-      return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
-    }
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitNode(AstNode node) {
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitPrefixedIdentifier(PrefixedIdentifier node) {
-    // Make suggestions for the prefix, but not for the selector
-    // InvocationComputer makes selector suggestions
-    Token period = node.period;
-    if (period == null || request.offset <= period.offset) {
-      return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
-    }
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitPropertyAccess(PropertyAccess node) {
-    // Make suggestions for the target, but not for the property name
-    // InvocationComputer makes property name suggestions
-    var operator = node.operator;
-    if (operator != null && request.offset < operator.offset) {
-      return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
-    }
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitSimpleIdentifier(SimpleIdentifier node) {
-    return node.parent.accept(this);
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitStringLiteral(StringLiteral node) {
-    return null;
-  }
-
-  @override
-  _ImportedSuggestionBuilder visitTypeName(TypeName node) {
-    // TODO (danrubel) refactor this and local_computer
-    // to reduce duplicate code
-    bool typesOnly = false;
-    // If suggesting completions within a TypeName node
-    // then limit suggestions to only types in specific situations
-    AstNode p = node.parent;
-    if (p is IsExpression || p is ConstructorName || p is AsExpression) {
-      typesOnly = true;
-    } else if (p is VariableDeclarationList) {
-      // TODO (danrubel) When entering 1st of 2 identifiers on assignment LHS
-      // the user may be either (1) entering a type for the assignment
-      // or (2) starting a new statement.
-      // Consider suggesting only types
-      // if only spaces separates the 1st and 2nd identifiers.
-    }
-    return new _ImportedSuggestionBuilder(request, typesOnly: typesOnly);
-  }
-
-  @override
-  _ImportedSuggestionBuilder
-      visitVariableDeclaration(VariableDeclaration node) {
-    Token equals = node.equals;
-    // Make suggestions for the RHS of a variable declaration
-    if (equals != null && request.offset >= equals.end) {
-      return new _ImportedSuggestionBuilder(request, excludeVoidReturn: true);
-    }
-    return null;
   }
 }
 

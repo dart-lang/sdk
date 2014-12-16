@@ -1396,7 +1396,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
         expect(suggestionO.element.isDeprecated, isFalse);
         expect(suggestionO.element.isPrivate, isFalse);
       }
-      assertSuggestLocalTopLevelVar('T', 'A');
+      assertNotSuggested('T');
       assertSuggestLibraryPrefix('x');
     });
   }

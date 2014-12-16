@@ -11,6 +11,7 @@ import 'package:analysis_server/src/protocol.dart' as protocol show Element,
 import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/local_declaration_visitor.dart';
+import 'package:analysis_server/src/services/completion/optype_ast_visitor.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
@@ -23,9 +24,21 @@ class LocalComputer extends DartCompletionComputer {
   @override
   bool computeFast(DartCompletionRequest request) {
 
-    // Collect suggestions from the specific child [AstNode] that contains
-    // the completion offset and all of its parents recursively.
-    request.node.accept(new _LocalVisitor(request, request.offset));
+    // Determine the type of suggestions to be made
+    OpTypeAstVisitor opTypeVisitor = new OpTypeAstVisitor(request.offset);
+    request.node.accept(opTypeVisitor);
+
+    // Build the suggestions
+    if (opTypeVisitor.includeTopLevelSuggestions) {
+      _LocalVisitor localVisitor = new _LocalVisitor(request, request.offset);
+      localVisitor.typesOnly = opTypeVisitor.includeOnlyTypeNameSuggestions;
+      localVisitor.excludeVoidReturn =
+          !opTypeVisitor.includeVoidReturnSuggestions;
+
+      // Collect suggestions from the specific child [AstNode] that contains
+      // the completion offset and all of its parents recursively.
+      request.node.accept(localVisitor);
+    }
 
     // If the unit is not a part and does not reference any parts
     // then work is complete
@@ -245,103 +258,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           varList.type,
           false,
           isDeprecated);
-    }
-  }
-
-  @override
-  bool visitCascadeExpression(CascadeExpression node) {
-    Expression target = node.target;
-    // This computer handles the expression
-    // while InvocationComputer handles the cascade selector
-    if (target != null && offset <= target.end) {
-      return visitNode(node);
-    } else {
-      return finished;
-    }
-  }
-
-  @override
-  visitCombinator(Combinator node) {
-    // Handled by CombinatorComputer
-  }
-
-  @override
-  visitConstructorName(ConstructorName node) {
-    // InvocationComputer adds suggestions for prefixed elements
-    // but this computer adds suggestions for the prefix itself
-    Token period = node.period;
-    if (period == null || request.offset <= period.offset) {
-      visitNode(node);
-    }
-  }
-
-  @override
-  visitMethodInvocation(MethodInvocation node) {
-    // InvocationComputer adds suggestions for method selector
-    Token period = node.period;
-    if (period != null && period.offset < request.offset) {
-      ArgumentList argumentList = node.argumentList;
-      if (argumentList == null || request.offset <= argumentList.offset) {
-        return;
-      }
-    }
-    visitNode(node);
-  }
-
-  @override
-  bool visitNamespaceDirective(NamespaceDirective node) {
-    // No suggestions
-    return finished;
-  }
-
-  @override
-  visitPrefixedIdentifier(PrefixedIdentifier node) {
-    // InvocationComputer adds suggestions for prefixed elements
-    // but this computer adds suggestions for the prefix itself
-    Token period = node.period;
-    if (period == null || request.offset <= period.offset) {
-      visitNode(node);
-    }
-  }
-
-  @override
-  visitPropertyAccess(PropertyAccess node) {
-    // InvocationComputer adds suggestions for property access selector
-  }
-
-  @override
-  bool visitStringLiteral(StringLiteral node) {
-    // ignore
-    return finished;
-  }
-
-  @override
-  visitTypeName(TypeName node) {
-    // TODO (danrubel) refactor this and imported_computer
-    // to reduce duplicate code
-    // If suggesting completions within a TypeName node
-    // then limit suggestions to only types in specific situations
-    AstNode p = node.parent;
-    if (p is IsExpression || p is ConstructorName || p is AsExpression) {
-      typesOnly = true;
-    } else if (p is VariableDeclarationList) {
-      // TODO (danrubel) When entering 1st of 2 identifiers on assignment LHS
-      // the user may be either (1) entering a type for the assignment
-      // or (2) starting a new statement.
-      // Consider suggesting only types
-      // if only spaces separates the 1st and 2nd identifiers.
-    }
-    return visitNode(node);
-  }
-
-  @override
-  bool visitVariableDeclaration(VariableDeclaration node) {
-    // Do not add suggestions if editing the name in a var declaration
-    SimpleIdentifier name = node.name;
-    if (name == null || name.offset < offset || offset > name.end) {
-      return visitNode(node);
-    } else {
-      return finished;
     }
   }
 
