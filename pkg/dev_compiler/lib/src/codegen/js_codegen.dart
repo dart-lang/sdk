@@ -1,11 +1,11 @@
 library ddc.src.codegen.js_codegen;
 
 import 'dart:async' show Future;
-import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:path/path.dart' as path;
 
 import 'package:ddc/src/checker/rules.dart';
 import 'package:ddc/src/info.dart';
@@ -17,17 +17,16 @@ const String optionalParameters = r'opt$';
 
 class UnitGenerator extends GeneralizingAstVisitor with ConversionVisitor {
   final Uri uri;
-  final Directory directory;
-  final String libName;
+  final String outDir;
   final CompilationUnit unit;
-  final Map<AstNode, SemanticNode> infoMap;
+  final LibraryInfo libraryInfo;
   final TypeRules rules;
   OutWriter out = null;
 
   ClassDeclaration currentClass;
 
-  UnitGenerator(this.uri, this.unit, this.directory, this.libName, this.infoMap,
-      this.rules);
+  UnitGenerator(CompilationUnitElementImpl unit, this.outDir, this.libraryInfo,
+      this.rules) : unit = unit.node, uri = unit.source.uri;
 
   void visitConversion(Conversion node) {
     out.write('/* Unimplemented: ');
@@ -36,13 +35,11 @@ class UnitGenerator extends GeneralizingAstVisitor with ConversionVisitor {
     node.expression.accept(this);
   }
 
-  String get outputPath {
-    var tail = uri.pathSegments.last;
-    return directory.path + Platform.pathSeparator + tail + '.js';
-  }
+  String get outputPath => path.join(outDir, '${uri.pathSegments.last}.js');
 
   Future generate() {
     out = new OutWriter(outputPath);
+    var libName = libraryInfo.name;
 
     out.write("""
 var $libName;
@@ -244,7 +241,7 @@ var $name = (function (_super) {
 })($superclassName);
 """, -2);
 
-    if (isPublic(name)) out.write("$libName.$name = $name;\n");
+    if (isPublic(name)) out.write("${libraryInfo.name}.$name = $name;\n");
     out.write("\n");
     currentClass = null;
   }
@@ -345,7 +342,7 @@ var $name = (function (_super) {
     out.write(") {\n", 2);
     node.functionExpression.body.accept(this);
     out.write("}\n", -2);
-    if (isPublic(name)) out.write("$libName.$name = $name;\n");
+    if (isPublic(name)) out.write("${libraryInfo.name}.$name = $name;\n");
     out.write("\n");
   }
 
@@ -533,8 +530,9 @@ var $name = (function (_super) {
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     node.identifier.accept(this);
   }
+
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    final info = infoMap[node];
+    final info = libraryInfo.nodeInfo[node];
     if (info != null && info.dynamicInvoke != null) {
       out.write('dart_runtime.dload(');
       node.prefix.accept(this);
@@ -605,12 +603,14 @@ var $name = (function (_super) {
 }
 
 class JSGenerator extends CodeGenerator {
-  JSGenerator(outDir, root, libraries, info, rules)
-      : super(outDir, root, libraries, info, rules);
+  JSGenerator(
+      String outDir, Uri root, List<LibraryInfo> libraries, TypeRules rules)
+      : super(outDir, root, libraries, rules);
 
-  Future generateUnit(
-      Uri uri, CompilationUnit unit, Directory dir, String name) =>
-      new UnitGenerator(uri, unit, dir, name, info, rules).generate();
+  Future generateUnit(CompilationUnitElementImpl unit, LibraryInfo info,
+      String libraryDir) {
+    return new UnitGenerator(unit, libraryDir, info, rules).generate();
+  }
 }
 
 class _Property {

@@ -4,10 +4,9 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/generated/source.dart' show Source;
 
 import 'package:ddc/src/info.dart';
-import 'package:ddc/src/utils.dart';
+import 'package:ddc/src/utils.dart' show logCheckerMessage;
 
 abstract class TypeRules {
   final TypeProvider provider;
@@ -24,8 +23,6 @@ abstract class TypeRules {
   bool isGroundType(DartType t) => true;
 
   StaticInfo checkAssignment(Expression expr, DartType t);
-
-  void setCompilationUnit(CompilationUnit unit) {}
 
   DartType getStaticType(Expression expr) => expr.staticType;
 
@@ -63,21 +60,19 @@ class RestrictedRules extends TypeRules {
   // If true, num is treated as a synonym for double.
   // If false, num is always boxed.
   static const bool primitiveNum = false;
-  Source _current = null;
+  LibraryInfo currentLibraryInfo = null;
 
   RestrictedRules(TypeProvider provider) : super(provider);
-
-  void setCompilationUnit(CompilationUnit unit) {
-    _current = (unit.element as CompilationUnitElementImpl).source;
-  }
 
   DartType getStaticType(Expression expr) {
     var type = expr.staticType;
     if (type != null) return type;
 
-    print(spanFor(_current, expr.offset, expr.end).message(
-        "type analysis didn't compute the type of: $expr ${expr.runtimeType}",
-        color: colorOf('warning')));
+    var node = currentLibraryInfo.nodeInfo.putIfAbsent(expr,
+        () => new SemanticNode(expr));
+    var info = new MissingTypeError(expr);
+    node.messages.add(info);
+    logCheckerMessage(info);
     return provider.dynamicType;
   }
 

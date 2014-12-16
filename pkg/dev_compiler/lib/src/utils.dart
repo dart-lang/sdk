@@ -4,9 +4,13 @@ library ddc.src.utils;
 import 'dart:async' show Future;
 import 'dart:io';
 
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:logging/logging.dart' as logger;
 import 'package:source_span/source_span.dart';
+
+import 'info.dart' show StaticInfo;
 
 /// Returns all libraries transitively imported or exported from [start].
 List<LibraryElement> reachableLibraries(LibraryElement start) {
@@ -34,6 +38,21 @@ SourceSpan spanFor(Source source, int begin, int end) {
   var file = _sources.putIfAbsent(source, () =>
       new SourceFile(source.contents.data, url: source.uri));
   return file.span(begin, end);
+}
+
+/// Returns [SourceSpan] for [node].
+SourceSpan spanForNode(AstNode node) {
+  final root = node.root as CompilationUnit;
+  final source = (root.element as CompilationUnitElementImpl).source;
+  final begin = node is AnnotatedNode ?
+      node.firstTokenAfterCommentAndMetadata.offset : node.offset;
+  return spanFor(source, begin, node.end);
+}
+
+
+final _checkerLogger = new logger.Logger('ddc.checker');
+void logCheckerMessage(StaticInfo info) {
+  _checkerLogger.log(info.level, info.message, info.node);
 }
 
 /// Returns an ANSII color escape sequence corresponding to [levelName]. Colors

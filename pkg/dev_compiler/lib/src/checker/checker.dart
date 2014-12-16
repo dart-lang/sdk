@@ -11,20 +11,16 @@ import 'package:ddc/src/utils.dart';
 import 'resolver.dart';
 import 'rules.dart';
 
-final _logger = new logger.Logger('ddc.checker');
-
 /// Runs the program checker using the restricted type rules on [fileUri].
 CheckerResults checkProgram(Uri fileUri, TypeResolver resolver,
     {bool checkSdk: false, bool useColors: true}) {
 
   // Invoke the checker on the entry point.
-  _logger.fine('running checker...');
   TypeProvider provider = resolver.context.typeProvider;
   var rules = new RestrictedRules(provider);
   final visitor = new ProgramChecker(resolver, rules, fileUri, checkSdk);
   visitor.check();
-  return new CheckerResults(
-      visitor.libraries, visitor.infoMap, rules, visitor.failure);
+  return new CheckerResults(visitor.libraries, rules, visitor.failure);
 }
 
 class ProgramChecker extends RecursiveAstVisitor {
@@ -32,9 +28,9 @@ class ProgramChecker extends RecursiveAstVisitor {
   final TypeRules _rules;
   final Uri _root;
   final bool _checkSdk;
-  final List<LibraryElement> libraries = <LibraryElement>[];
+  final List<LibraryInfo> libraries = <LibraryInfo>[];
 
-  final infoMap = new Map<AstNode, SemanticNode>();
+  LibraryInfo _current;
   bool failure = false;
 
   ProgramChecker(this._resolver, this._rules, this._root, this._checkSdk);
@@ -44,9 +40,10 @@ class ProgramChecker extends RecursiveAstVisitor {
         .computeLibraryElement(_resolver.findSource(_root));
     for (var lib in reachableLibraries(startLibrary)) {
       if (!_checkSdk && lib.isInSdk) continue;
-      libraries.add(lib);
+      _current = new LibraryInfo(lib);
+      libraries.add(_current);
+      _rules.currentLibraryInfo = _current;
       for (var unit in lib.units) {
-        _rules.setCompilationUnit(unit.node);
         unit.node.visitChildren(this);
       }
     }
@@ -184,6 +181,11 @@ class ProgramChecker extends RecursiveAstVisitor {
       Expression arg = list[i];
       ParameterElement element = node.getStaticParameterElementFor(arg);
       if (element == null) {
+        if (type.parameters.length < len) {
+          // We found an argument mismatch, the analyzer will report this too,
+          // so no need to insert an error for this here.
+          continue;
+        }
         element = type.parameters[i];
         // TODO(vsm): When can this happen?
         assert(element != null);
@@ -340,9 +342,9 @@ class ProgramChecker extends RecursiveAstVisitor {
   SemanticNode _getSemanticNode(AstNode astNode) {
     if (astNode == null) return null;
 
-    final semanticNode = infoMap[astNode];
+    final semanticNode = _current.nodeInfo[astNode];
     if (semanticNode == null) {
-      return infoMap[astNode] = new SemanticNode(astNode);
+      return _current.nodeInfo[astNode] = new SemanticNode(astNode);
     }
     return semanticNode;
   }
@@ -352,7 +354,7 @@ class ProgramChecker extends RecursiveAstVisitor {
     final semanticNode = _getSemanticNode(node);
     assert(semanticNode.dynamicInvoke == null);
     semanticNode.dynamicInvoke = info;
-    _log(info);
+    logCheckerMessage(info);
   }
 
   void _recordMessage(StaticInfo info) {
@@ -360,10 +362,6 @@ class ProgramChecker extends RecursiveAstVisitor {
 
     if (info.level >= logger.Level.SEVERE) failure = true;
     _getSemanticNode(info.node).messages.add(info);
-    _log(info);
-  }
-
-  void _log(StaticInfo info) {
-    _logger.log(info.level, info.message, info.node);
+    logCheckerMessage(info);
   }
 }

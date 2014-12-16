@@ -8,6 +8,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/java_core.dart' as java_core;
 import 'package:dart_style/dart_style.dart';
 import 'package:logging/logging.dart' as logger;
+import 'package:path/path.dart' as path;
 
 import 'code_generator.dart' as codegenerator;
 
@@ -52,16 +53,17 @@ class UnitGenerator extends analyzer.ToSourceVisitor {
 class DartGenerator extends codegenerator.CodeGenerator {
   bool _format;
 
-  DartGenerator(outDir, root, libraries, info, rules, this._format)
-      : super(outDir, root, libraries, info, rules);
+  DartGenerator(String outDir, Uri root, List<LibraryInfo> libraries,
+      TypeRules rules, this._format)
+      : super(outDir, root, libraries, rules);
 
-  Future generateUnit(
-      Uri uri, CompilationUnit unit, io.Directory dir, String name) {
+  Future generateUnit(CompilationUnitElementImpl unit, LibraryInfo info,
+      String libraryDir) {
+    var uri = unit.source.uri;
     _log.info("Generating unit " + uri.toString());
-    var tail = uri.pathSegments.last;
-    var path = dir.path + io.Platform.pathSeparator + tail;
-    FileWriter out = new FileWriter(_format, path);
-    var unitGen = new UnitGenerator(unit, out);
+    FileWriter out = new FileWriter(_format,
+        path.join(libraryDir, '${uri.pathSeparator.last}'));
+    var unitGen = new UnitGenerator(unit.node, out);
     unitGen.generate();
     return out.finalize();
   }

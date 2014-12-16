@@ -6,9 +6,11 @@ import 'package:ddc/src/checker/checker.dart';
 import 'package:ddc/src/checker/dart_sdk.dart' show dartSdkDirectory;
 import 'package:ddc/src/checker/resolver.dart' show TypeResolver;
 import 'package:path/path.dart' as path;
+import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 
 main() {
+  useCompactVMConfiguration();
   var realSdk = new TypeResolver(TypeResolver
       .sdkResolverFromDir(dartSdkDirectory));
 

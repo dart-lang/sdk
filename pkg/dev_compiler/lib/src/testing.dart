@@ -39,7 +39,8 @@ import 'package:ddc/src/checker/checker.dart';
 ///       '''
 ///     });
 ///
-testChecker(Map<String, String> testFiles, {bool mockSdk: true}) {
+CheckerResults testChecker(
+    Map<String, String> testFiles, {bool mockSdk: true}) {
   expect(testFiles.containsKey(
       '/main.dart'), isTrue, reason: '`/main.dart` is missing in testFiles');
 
@@ -68,29 +69,31 @@ testChecker(Map<String, String> testFiles, {bool mockSdk: true}) {
   var total = expectedErrors.values.fold(0, (p, l) => p + l.length);
 
   // Check that all errors we emit are included in the expected map.
-  results.infoMap.forEach((key, value) {
-    var actual = [];
-    actual.addAll(value.messages);
-    if (value.dynamicInvoke != null) actual.add(value.dynamicInvoke);
-    var expected = expectedErrors[key];
-    var expectedTotal = expected == null ? 0 : expected.length;
-    if (actual.length != expectedTotal) {
-      expect(actual.length, expectedTotal,
-          reason: 'The checker found ${actual.length} errors on the expression'
-          ' `$key`, but we expected $expectedTotal. These are the errors '
-          'the checker found:\n\n ${_unexpectedErrors(key, actual)}');
-    }
+  for (var lib in results.libraries) {
+    lib.nodeInfo.forEach((key, value) {
+      var actual = [];
+      actual.addAll(value.messages);
+      if (value.dynamicInvoke != null) actual.add(value.dynamicInvoke);
+      var expected = expectedErrors[key];
+      var expectedTotal = expected == null ? 0 : expected.length;
+      if (actual.length != expectedTotal) {
+        expect(actual.length, expectedTotal,
+            reason: 'The checker found ${actual.length} errors on the '
+            'expression `$key`, but we expected $expectedTotal. These are the '
+            'errors the checker found:\n\n ${_unexpectedErrors(key, actual)}');
+      }
 
-    for (int i = 0; i < expected.length; i++) {
-      expect(actual[i].level, expected[i].level,
-          reason: 'expected different logging level at:\n\n'
-          '${_messageWithSpan(actual[i])}');
-      expect(actual[i].runtimeType, expected[i].type,
-          reason: 'expected different error type at:\n\n'
-          '${_messageWithSpan(actual[i])}');
-    }
-    expectedErrors.remove(key);
-  });
+      for (int i = 0; i < expected.length; i++) {
+        expect(actual[i].level, expected[i].level,
+            reason: 'expected different logging level at:\n\n'
+            '${_messageWithSpan(actual[i])}');
+        expect(actual[i].runtimeType, expected[i].type,
+            reason: 'expected different error type at:\n\n'
+            '${_messageWithSpan(actual[i])}');
+      }
+      expectedErrors.remove(key);
+    });
+  }
 
   // Check that all expected errors are accounted for.
   if (!expectedErrors.isEmpty) {
@@ -103,6 +106,8 @@ testChecker(Map<String, String> testFiles, {bool mockSdk: true}) {
            '${_unreportedErrors(expectedErrors)}');
     }
   }
+
+  return results;
 }
 
 /// Create an error explanation for errors that were not expected, but that the
@@ -216,13 +221,13 @@ class _TestUriResolver extends UriResolver {
 
   _TestUriResolver(Map<String, String> allFiles) {
     allFiles.forEach((key, value) {
-      var uri = new Uri.file(key);
+      var uri = key.startsWith('package:') ? Uri.parse(key) : new Uri.file(key);
       files[uri] = new _TestSource(uri, value);
     });
   }
 
   Source resolveAbsolute(Uri uri) {
-    if (uri.scheme != 'file') return null;
+    if (uri.scheme != 'file' && uri.scheme != 'package') return null;
     return files[uri];
   }
 }
@@ -232,11 +237,13 @@ class _TestSource implements Source {
   final Uri uri;
   final TimestampedData<String> contents;
   final SourceFile _file;
+  final UriKind uriKind;
 
   _TestSource(uri, contents)
       : uri = uri,
         contents = new TimestampedData<String>(0, contents),
-        _file = new SourceFile(contents, url: uri);
+        _file = new SourceFile(contents, url: uri),
+        uriKind = uri.scheme == 'file' ? UriKind.FILE_URI : UriKind.PACKAGE_URI;
 
   bool exists() => true;
 
@@ -248,7 +255,6 @@ class _TestSource implements Source {
   int get modificationStamp => 0;
   String get shortName => path.basename(uri.path);
 
-  final UriKind uriKind = UriKind.FILE_URI;
 
   operator ==(other) => other is _TestSource && uri == other.uri;
   int get hashCode => uri.hashCode;
@@ -257,4 +263,6 @@ class _TestSource implements Source {
   Uri resolveRelativeUri(Uri relativeUri) => uri.resolveUri(relativeUri);
 
   SourceSpan spanFor(AstNode node) => _file.span(node.offset, node.end);
+
+  String toString() => '[$runtimeType: $uri]';
 }

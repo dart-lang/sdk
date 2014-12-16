@@ -14,12 +14,35 @@ import 'checker/rules.dart';
 /// Represents a summary of the results collected by running the program
 /// checker.
 class CheckerResults {
-  final List<LibraryElement> libraries;
-  final Map<AstNode, SemanticNode> infoMap;
+  final List<LibraryInfo> libraries;
   final TypeRules rules;
   final bool failure;
 
-  CheckerResults(this.libraries, this.infoMap, this.rules, this.failure);
+  CheckerResults(this.libraries, this.rules, this.failure);
+}
+
+/// Computed information about each library.
+class LibraryInfo {
+  /// Name of the library. If not specified in a library directive, this is
+  /// inferred from the path to the file defining the library.
+  String name;
+
+  /// Corresponding analyzer element.
+  final LibraryElement library;
+
+  /// Information on each node that belongs to this library (includes nodes in
+  /// the declaring unit and in parts).
+  Map<AstNode, SemanticNode> nodeInfo = <AstNode, SemanticNode>{};
+
+  LibraryInfo(this.library) {
+    name = library.name;
+    if (name != null && library.name != '') return;
+
+    // Fall back on the file name.
+    var tail = library.source.uri.pathSegments.last;
+    if (tail.endsWith('.dart')) tail = tail.substring(0, tail.length - 5);
+    name = tail;
+  }
 }
 
 /// Semantic information about a node.
@@ -303,6 +326,19 @@ class InvalidFieldOverride extends InvalidOverride {
   }
 }
 
+/// Used to mark unexpected situations in our compiler were we couldn't compute
+/// the type of an expression.
+// TODO(sigmund): This is normally a result of another error that is caught by
+// the analyzer, so this should likely be removed in the future.
+class MissingTypeError extends StaticInfo {
+  final AstNode node;
+  Level get level => Level.WARNING;
+
+  String get message =>
+      "type analysis didn't compute the type of: $node ${node.runtimeType}";
+  MissingTypeError(this.node);
+}
+
 /// A simple generalizing visitor interface for the conversion nodes.
 /// This can be mixed in to your visitor if the AST can contain these nodes.
 abstract class ConversionVisitor<R> {
@@ -338,5 +374,3 @@ final List<Type> infoTypes = () {
   allTypes.removeAll(baseTypes);
   return new List<Type>.from(allTypes.map((mirror) => mirror.reflectedType));
 }();
-
-main() => print(infoTypes);

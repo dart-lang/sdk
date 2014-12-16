@@ -23,7 +23,7 @@ final ArgParser argParser = new ArgParser()
         'dart-gen-fmt', help: 'Generate readable dart output', defaultsTo: true)
     ..addFlag(
         'mock-sdk', abbr: 'm', help: 'Use a mock Dart SDK', defaultsTo: false)
-    ..addFlag('new-checker', abbr: 'n', help: 'Use the new type checker',
+    ..addFlag('dump-info', abbr: 'i', help: 'Dump summary information',
         defaultsTo: false)
     ..addOption('out', abbr: 'o', help: 'Output directory', defaultsTo: null)
     ..addFlag('help', abbr: 'h', help: 'Display this message');
@@ -36,7 +36,7 @@ void _showUsageAndExit() {
   exit(1);
 }
 
-int main(List<String> argv) {
+void main(List<String> argv) {
   ArgResults args = argParser.parse(argv);
   if (args['help']) _showUsageAndExit();
 
@@ -60,7 +60,7 @@ int main(List<String> argv) {
   String levelName = args['log'].toUpperCase();
   Level level = Level.LEVELS.firstWhere((Level l) => l.name == levelName);
   var useColors = stdioType(stdout) == StdioType.TERMINAL;
-  setupLogger(level, print, useColors: useColors);
+  if (!args['dump-info']) setupLogger(level, print, useColors: useColors);
 
   var typeResolver = new TypeResolver(shouldMockSdk ?
       TypeResolver.sdkResolverFromMock(mockSdkSources) :
@@ -69,7 +69,8 @@ int main(List<String> argv) {
   var filename = args.rest[0];
   compile(filename, typeResolver, checkSdk: args['sdk-check'],
       formatOutput: args['dart-gen-fmt'], outputDart: args['dart-gen'],
-      outputDir: args['out'], useColors: useColors).then((success) {
+      dumpInfo: args['dump-info'], outputDir: args['out'],
+      useColors: useColors).then((success) {
     exit(success ? 0 : 1);
   });
 }
