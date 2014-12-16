@@ -534,6 +534,12 @@ Expression stepUpNamedExpression(Expression expression) {
 class CorrectionUtils {
   final CompilationUnit unit;
 
+  /**
+   * The [ClassElement] the generated code is inserted to, so we can decide if
+   * a type parameter may or may not be used.
+   */
+  ClassElement targetClassElement;
+
   LibraryElement _library;
   String _buffer;
   String _endOfLine;
@@ -877,7 +883,8 @@ class CorrectionUtils {
       // return type
       DartType returnType = functionType.returnType;
       if (returnType != null && !returnType.isDynamic) {
-        sb.write(getTypeSource(returnType, librariesToImport));
+        String returnTypeSource = getTypeSource(returnType, librariesToImport);
+        sb.write(returnTypeSource);
         sb.write(' ');
       }
       // parameter name
@@ -965,14 +972,13 @@ class CorrectionUtils {
       List<DartType> arguments = type.typeArguments;
       // check if has arguments
       bool hasArguments = false;
+      bool allArgumentsVisible = true;
       for (DartType argument in arguments) {
-        if (!argument.isDynamic) {
-          hasArguments = true;
-          break;
-        }
+        hasArguments = hasArguments || !argument.isDynamic;
+        allArgumentsVisible = allArgumentsVisible && _isTypeVisible(argument);
       }
       // append type arguments
-      if (hasArguments) {
+      if (hasArguments && allArgumentsVisible) {
         sb.write("<");
         for (int i = 0; i < arguments.length; i++) {
           DartType argument = arguments[i];
@@ -987,6 +993,19 @@ class CorrectionUtils {
     }
     // done
     return sb.toString();
+  }
+
+  /**
+   * Checks if [type] is visible at [targetOffset].
+   */
+  bool _isTypeVisible(DartType type) {
+    // TODO(scheglov)
+    if (type is TypeParameterType) {
+      TypeParameterElement parameterElement = type.element;
+      Element parameterClassElement = parameterElement.enclosingElement;
+      return identical(parameterClassElement, targetClassElement);
+    }
+    return true;
   }
 
   /**

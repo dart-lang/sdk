@@ -236,6 +236,7 @@ class AssistProcessor {
     String typeSource;
     DartType type = declaredIdentifier.identifier.bestType;
     if (type is InterfaceType || type is FunctionType) {
+      _configureTargetLocation(node);
       Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
       typeSource = utils.getTypeSource(type, librariesToImport);
       _addLibraryImports(librariesToImport);
@@ -290,6 +291,7 @@ class AssistProcessor {
     // prepare type source
     String typeSource;
     if (type is InterfaceType || type is FunctionType) {
+      _configureTargetLocation(node);
       Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
       typeSource = utils.getTypeSource(type, librariesToImport);
       _addLibraryImports(librariesToImport);
@@ -1620,6 +1622,20 @@ class AssistProcessor {
   void _addReplaceEdit(SourceRange range, String text) {
     SourceEdit edit = new SourceEdit(range.offset, range.length, text);
     doSourceChange_addElementEdit(change, unitElement, edit);
+  }
+
+  /**
+   * Configures [utils] using given [target].
+   */
+  void _configureTargetLocation(Object target) {
+    utils.targetClassElement = null;
+    if (target is AstNode) {
+      ClassDeclaration targetClassDeclaration =
+          target.getAncestor((node) => node is ClassDeclaration);
+      if (targetClassDeclaration != null) {
+        utils.targetClassElement = targetClassDeclaration.element;
+      }
+    }
   }
 
   /**
