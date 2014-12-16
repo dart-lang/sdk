@@ -10,6 +10,7 @@ library engine.engine_test;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -1134,7 +1135,7 @@ main() {}''');
     Source source = _addSource("/lib.dart", "library lib;");
     // Complete all pending analysis tasks and flush the AST so that it won't
     // be available immediately.
-    while (_context.performAnalysisTask().hasMoreWork) {}
+    _performPendingAnalysisTasks();
     DartEntry dartEntry = _context.getReadableSourceEntryOrNull(source);
     dartEntry.flushAstStructures();
     bool completed = false;
@@ -1146,9 +1147,37 @@ main() {}''');
     });
     return pumpEventQueue().then((_) {
       expect(completed, isFalse);
-      while (_context.performAnalysisTask().hasMoreWork) {}
+      _performPendingAnalysisTasks();
     }).then((_) => pumpEventQueue()).then((_) {
       expect(completed, isTrue);
+    });
+  }
+
+  Future test_getResolvedCompilationUnitFuture_cancel() {
+    _context = AnalysisContextFactory.contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/lib.dart", "library lib;");
+    // Complete all pending analysis tasks and flush the AST so that it won't
+    // be available immediately.
+    _performPendingAnalysisTasks();
+    DartEntry dartEntry = _context.getReadableSourceEntryOrNull(source);
+    dartEntry.flushAstStructures();
+    CancelableFuture<CompilationUnit> future =
+        _context.getResolvedCompilationUnitFuture(source, source);
+    bool completed = false;
+    future.then((CompilationUnit unit) {
+      fail('Future should have been canceled');
+    }, onError: (error) {
+      expect(error, new isInstanceOf<FutureCanceledError>());
+      completed = true;
+    });
+    expect(completed, isFalse);
+    expect(_context.pendingFutureSources_forTesting, isNotEmpty);
+    future.cancel();
+    expect(_context.pendingFutureSources_forTesting, isEmpty);
+    return pumpEventQueue().then((_) {
+      expect(completed, isTrue);
+      expect(_context.pendingFutureSources_forTesting, isEmpty);
     });
   }
 
@@ -1168,7 +1197,7 @@ main() {}''');
     });
     return pumpEventQueue().then((_) {
       expect(completed, isFalse);
-      while (_context.performAnalysisTask().hasMoreWork) {}
+      _performPendingAnalysisTasks();
     }).then((_) => pumpEventQueue()).then((_) {
       expect(completed, isTrue);
     });
@@ -2095,6 +2124,14 @@ library test2;''');
 
   List<Source> _getPriorityOrder(AnalysisContextImpl context2) {
     return context2.test_priorityOrder;
+  }
+
+  void _performPendingAnalysisTasks([int maxTasks = 20]) {
+    for (int i = 0; _context.performAnalysisTask().hasMoreWork; i++) {
+      if (i > maxTasks) {
+        fail('Analysis did not terminate.');
+      }
+    }
   }
 
   void _removeSource(Source source) {

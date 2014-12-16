@@ -11,6 +11,7 @@ import "dart:math" as math;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/task/task_dart.dart';
 
 import '../../instrumentation/instrumentation.dart';
@@ -758,8 +759,8 @@ abstract class AnalysisContext {
    * source file is not scheduled to be analyzed within the context of the
    * given library.
    */
-  Future<CompilationUnit> getResolvedCompilationUnitFuture(Source source,
-      Source librarySource);
+  CancelableFuture<CompilationUnit>
+      getResolvedCompilationUnitFuture(Source source, Source librarySource);
 
   /**
    * Return a fully resolved HTML unit, or `null` if the resolved unit is not already
@@ -1325,6 +1326,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   Stream<SourcesChangedEvent> get onSourcesChanged =>
       _onSourcesChangedController.stream;
+
+  /**
+   * Make _pendingFutureSources available to unit tests.
+   */
+  HashMap<Source, List<PendingFuture>> get pendingFutureSources_forTesting =>
+      _pendingFutureSources;
 
   @override
   List<Source> get prioritySources => _priorityOrder;
@@ -2075,9 +2082,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  Future<CompilationUnit> getResolvedCompilationUnitFuture(Source unitSource,
-      Source librarySource) {
-    return _getFuture(unitSource, (SourceEntry sourceEntry) {
+  CancelableFuture<CompilationUnit>
+      getResolvedCompilationUnitFuture(Source unitSource, Source librarySource) {
+    return new _AnalysisFutureHelper<CompilationUnit>(
+        this).getFuture(unitSource, (SourceEntry sourceEntry) {
       if (sourceEntry is DartEntry) {
         if (sourceEntry.getStateInLibrary(
             DartEntry.RESOLVED_UNIT,
@@ -2882,6 +2890,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Remove the given [pendingFuture] from [_pendingFutureSources], since the
+   * client has indicated its computation is not needed anymore.
+   */
+  void _cancelFuture(PendingFuture pendingFuture) {
+    List<PendingFuture> pendingFutures =
+        _pendingFutureSources[pendingFuture.source];
+    if (pendingFutures != null) {
+      pendingFutures.remove(pendingFuture);
+      if (pendingFutures.isEmpty) {
+        _pendingFutureSources.remove(pendingFuture.source);
+      }
+    }
+  }
+
+  /**
    * Compute the transitive closure of all libraries that depend on the given library by adding such
    * libraries to the given collection.
    *
@@ -3624,37 +3647,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     dartEntry =
         _cacheDartVerificationData(unitSource, librarySource, dartEntry, descriptor);
     return dartEntry.getValueInLibrary(descriptor, librarySource);
-  }
-
-  /**
-   * Return a future that will be completed with the result of calling
-   * [computeValue].  If [computeValue] returns non-null, the future will be
-   * completed immediately with the resulting value.  If it returns null, then
-   * it will be re-executed in the future, after the next time the cached
-   * information for [source] has changed.  If [computeValue] throws an
-   * exception, the future will fail with that exception.
-   *
-   * If the [computeValue] still returns null after there is no further
-   * analysis to be done for [source], then the future will be completed with
-   * the error AnalysisNotScheduledError.
-   *
-   * Since [computeValue] will be called while the state of analysis is being
-   * updated, it should be free of side effects so that it doesn't cause
-   * reentrant changes to the analysis state.
-   */
-  Future /*<T>*/ _getFuture(Source source, /*T*/
-  computeValue(SourceEntry sourceEntry)) {
-    SourceEntry sourceEntry = getReadableSourceEntryOrNull(source);
-    if (sourceEntry == null) {
-      return new Future.error(new AnalysisNotScheduledError());
-    }
-    PendingFuture pendingFuture = new PendingFuture(computeValue);
-    if (!pendingFuture.evaluate(sourceEntry)) {
-      _pendingFutureSources.putIfAbsent(
-          source,
-          () => <PendingFuture>[]).add(pendingFuture);
-    }
-    return pendingFuture.future;
   }
 
   /**
@@ -9659,7 +9651,6 @@ class DataDescriptor<E> {
   String toString() => _name;
 }
 
-
 /**
  * Instances of the class `DefaultRetentionPolicy` implement a retention policy that will keep
  * AST's in the cache if there is analysis information that needs to be computed for a source, where
@@ -9694,6 +9685,7 @@ class DefaultRetentionPolicy implements CacheRetentionPolicy {
     return RetentionPriority.LOW;
   }
 }
+
 
 /**
  * Recursively visits [HtmlUnit] and every embedded [Expression].
@@ -11670,6 +11662,16 @@ class PartitionManager {
  */
 class PendingFuture<T> {
   /**
+   * The context in which this computation runs.
+   */
+  final AnalysisContextImpl _context;
+
+  /**
+   * The source used by this computation to compute its value.
+   */
+  final Source source;
+
+  /**
    * The function which implements the computation.
    */
   final PendingFutureComputer<T> _computeValue;
@@ -11677,15 +11679,17 @@ class PendingFuture<T> {
   /**
    * The completer that should be completed once the computation has succeeded.
    */
-  final Completer<T> _completer = new Completer<T>();
+  CancelableCompleter<T> _completer;
 
-  PendingFuture(this._computeValue);
+  PendingFuture(this._context, this.source, this._computeValue) {
+    _completer = new CancelableCompleter<T>(_onCancel);
+  }
 
   /**
    * Retrieve the future which will be completed when this object is
    * successfully evaluated.
    */
-  Future<T> get future => _completer.future;
+  CancelableFuture<T> get future => _completer.future;
 
   /**
    * Execute [_computeValue], passing it the given [sourceEntry], and complete
@@ -11726,6 +11730,10 @@ class PendingFuture<T> {
     } catch (exception, stackTrace) {
       _completer.completeError(exception, stackTrace);
     }
+  }
+
+  void _onCancel() {
+    _context._cancelFuture(this);
   }
 }
 
@@ -14316,6 +14324,48 @@ class WorkManager_WorkIterator {
         _queueIndex++;
       }
     }
+  }
+}
+
+/**
+ * Helper class used to create futures for AnalysisContextImpl.  Using a helper
+ * class allows us to preserve the generic parameter T.
+ */
+class _AnalysisFutureHelper<T> {
+  final AnalysisContextImpl _context;
+
+  _AnalysisFutureHelper(this._context);
+
+  /**
+   * Return a future that will be completed with the result of calling
+   * [computeValue].  If [computeValue] returns non-null, the future will be
+   * completed immediately with the resulting value.  If it returns null, then
+   * it will be re-executed in the future, after the next time the cached
+   * information for [source] has changed.  If [computeValue] throws an
+   * exception, the future will fail with that exception.
+   *
+   * If the [computeValue] still returns null after there is no further
+   * analysis to be done for [source], then the future will be completed with
+   * the error AnalysisNotScheduledError.
+   *
+   * Since [computeValue] will be called while the state of analysis is being
+   * updated, it should be free of side effects so that it doesn't cause
+   * reentrant changes to the analysis state.
+   */
+  CancelableFuture<T> getFuture(Source source, T
+      computeValue(SourceEntry sourceEntry)) {
+    SourceEntry sourceEntry = _context.getReadableSourceEntryOrNull(source);
+    if (sourceEntry == null) {
+      return new CancelableFuture.error(new AnalysisNotScheduledError());
+    }
+    PendingFuture pendingFuture =
+        new PendingFuture<T>(_context, source, computeValue);
+    if (!pendingFuture.evaluate(sourceEntry)) {
+      _context._pendingFutureSources.putIfAbsent(
+          source,
+          () => <PendingFuture>[]).add(pendingFuture);
+    }
+    return pendingFuture.future;
   }
 }
 
