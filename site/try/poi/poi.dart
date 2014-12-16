@@ -18,6 +18,7 @@ import 'package:dart2js_incremental/dart2js_incremental.dart' show
     reuseCompiler;
 
 import 'package:dart2js_incremental/library_updater.dart' show
+    IncrementalCompilerContext,
     LibraryUpdater;
 
 import 'package:compiler/src/source_file_provider.dart' show
@@ -406,8 +407,10 @@ Future<Element> runPoi(
   }
 
   Future<Compiler> invokeReuseCompiler() {
+    var context = new IncrementalCompilerContext();
     updater = new LibraryUpdater(
-        cachedCompiler, inputProvider, script, printWallClock, printVerbose);
+        cachedCompiler, inputProvider, printWallClock, printVerbose, context);
+    context.registerUriWithUpdates([script]);
     return reuseCompiler(
         diagnosticHandler: handler,
         inputProvider: inputProvider,
@@ -431,7 +434,7 @@ Future<Element> runPoi(
     if (!isCompiler) {
       newCompiler.enqueuerFilter = new ScriptOnlyFilter(script);
     }
-    return runPoiInternal(newCompiler, sw, updater, position);
+    return runPoiInternal(newCompiler, sw, updater, script, position);
   });
 }
 
@@ -439,6 +442,7 @@ Future<Element> runPoiInternal(
     Compiler newCompiler,
     Stopwatch sw,
     LibraryUpdater updater,
+    Uri uri,
     int position) {
   bool isFullCompile = cachedCompiler != newCompiler;
   cachedCompiler = newCompiler;
@@ -464,7 +468,7 @@ Future<Element> runPoiInternal(
       return !cachedCompiler.compilationFailed;
     });
   } else {
-    compilation = cachedCompiler.run(updater.uri);
+    compilation = cachedCompiler.run(uri);
   }
 
   return compilation.then((success) {

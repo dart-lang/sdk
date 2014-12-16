@@ -83,6 +83,9 @@ import 'diff.dart' show
     Difference,
     computeDifference;
 
+import 'dart2js_incremental.dart' show
+    IncrementalCompiler;
+
 typedef void Logger(message);
 
 typedef bool Reuser(
@@ -103,8 +106,46 @@ class FailedUpdate {
   }
 }
 
-// TODO(ahe): Generalize this class. For now only works for Compiler.mainApp,
-// and only if that library has exactly one compilation unit.
+abstract class _IncrementalCompilerContext {
+  IncrementalCompiler incrementalCompiler;
+
+  Set<ClassElementX> _emittedClasses;
+
+  Set<ClassElementX> _directlyInstantiatedClasses;
+
+  Set<ConstantValue> _compiledConstants;
+}
+
+class IncrementalCompilerContext extends _IncrementalCompilerContext {
+  final Set<Uri> _uriWithUpdates = new Set<Uri>();
+
+  void set incrementalCompiler(IncrementalCompiler value) {
+    if (super.incrementalCompiler != null) {
+      throw new StateError("Can't set [incrementalCompiler] more than once.");
+    }
+    super.incrementalCompiler = value;
+  }
+
+  void registerUriWithUpdates(Iterable<Uri> uris) {
+    _uriWithUpdates.addAll(uris);
+  }
+
+  void _captureState(Compiler compiler) {
+    _emittedClasses = new Set.from(compiler.backend.emitter.neededClasses);
+
+    _directlyInstantiatedClasses =
+        new Set.from(compiler.codegenWorld.directlyInstantiatedClasses);
+
+    List<ConstantValue> constants =
+        compiler.backend.emitter.outputConstantLists[
+            compiler.deferredLoadTask.mainOutputUnit];
+    if (constants == null) constants = <ConstantValue>[];
+    _compiledConstants = new Set<ConstantValue>.identity()..addAll(constants);
+  }
+
+  bool _uriHasUpdate(Uri uri) => _uriWithUpdates.contains(uri);
+}
+
 class LibraryUpdater extends JsFeatures {
   final Compiler compiler;
 
@@ -113,10 +154,6 @@ class LibraryUpdater extends JsFeatures {
   final Logger logTime;
 
   final Logger logVerbose;
-
-  // TODO(ahe): Get rid of this field. It assumes that only one library has
-  // changed.
-  final Uri uri;
 
   final List<Update> updates = <Update>[];
 
@@ -129,50 +166,37 @@ class LibraryUpdater extends JsFeatures {
   final Set<ClassElementX> _classesWithSchemaChanges =
       new Set<ClassElementX>();
 
-  final Set<ClassElementX> _emittedClasses;
-
-  final Set<ClassElementX> _directlyInstantiatedClasses;
-
-  final Set<ConstantValue> _compiledConstants;
+  final IncrementalCompilerContext _context;
 
   bool _hasComputedNeeds = false;
 
-  LibraryUpdater(
-      Compiler compiler,
-      this.inputProvider,
-      this.uri,
-      this.logTime,
-      this.logVerbose)
-      : this.compiler = compiler,
-        _emittedClasses = _getEmittedClasses(compiler),
-        _directlyInstantiatedClasses =
-            _getDirectlyInstantiatedClasses(compiler),
-        _compiledConstants = _getEmittedConstants(compiler);
+  bool _hasCapturedCompilerState = false;
 
-  /// Returns the classes emitted by [compiler].
-  static Set<ClassElementX> _getEmittedClasses(Compiler compiler) {
-    if (compiler == null) return null;
-    return new Set.from(compiler.backend.emitter.neededClasses);
+  LibraryUpdater(
+      this.compiler,
+      this.inputProvider,
+      this.logTime,
+      this.logVerbose,
+      this._context) {
+    // TODO(ahe): Would like to remove this from the constructor. However, the
+    // state must be captured before calling [reuseCompiler].
+    // Proper solution might be: [reuseCompiler] should not clear the sets that
+    // are captured in [IncrementalCompilerContext._captureState].
+    _ensureCompilerStateCaptured();
   }
 
-  /// Returns the directly instantantiated classes seen by [compiler].
-  static Set<ClassElementX> _getDirectlyInstantiatedClasses(Compiler compiler) {
-    if (compiler == null) return null;
-    return new Set.from(compiler.codegenWorld.directlyInstantiatedClasses);
+  /// Returns the classes emitted by [compiler].
+  Set<ClassElementX> get _emittedClasses => _context._emittedClasses;
+
+  /// Returns the directly instantantiated classes seen by [compiler] (this
+  /// includes interfaces and may be different from [_emittedClasses] that only
+  /// includes interfaces used in type tests).
+  Set<ClassElementX> get _directlyInstantiatedClasses {
+    return _context._directlyInstantiatedClasses;
   }
 
   /// Returns the constants emitted by [compiler].
-  static Set<ConstantValue> _getEmittedConstants(Compiler compiler) {
-    if (compiler != null) {
-      List<ConstantValue> constants =
-          compiler.backend.emitter.outputConstantLists[
-              compiler.deferredLoadTask.mainOutputUnit];
-      if (constants != null) {
-        return new Set<ConstantValue>.identity()..addAll(constants);
-      }
-    }
-    return null;
-  }
+  Set<ConstantValue> get _compiledConstants => _context._compiledConstants;
 
   /// When [true], updates must be applied (using [applyUpdates]) before the
   /// [compiler]'s state correctly reflects the updated program.
@@ -182,16 +206,38 @@ class LibraryUpdater extends JsFeatures {
 
   /// Used as tear-off passed to [LibraryLoaderTask.resetAsync].
   Future<bool> reuseLibrary(LibraryElement library) {
+    _ensureCompilerStateCaptured();
     assert(compiler != null);
-    if (library.isPlatformLibrary || library.isPackageLibrary) {
-      logTime('Reusing $library.');
+    if (library.isPlatformLibrary) {
+      logTime('Reusing $library (assumed read-only).');
       return new Future.value(true);
-    } else if (library != compiler.mainApp) {
-      return new Future.value(false);
     }
-    return inputProvider(uri).then((bytes) {
-      return canReuseLibrary(library, bytes);
-    });
+    for (CompilationUnitElementX unit in library.compilationUnits) {
+      Uri uri = unit.script.resourceUri;
+      if (_context._uriHasUpdate(uri)) {
+        if (!library.compilationUnits.tail.isEmpty) {
+          // TODO(ahe): Remove this restriction.
+          cannotReuse(library, "Multiple compilation units not supported.");
+          return new Future.value(true);
+        }
+        return inputProvider(uri).then((bytes) {
+          return canReuseLibrary(library, bytes);
+        });
+      }
+    }
+
+    logTime("Reusing $library, source didn't change.");
+    // Source code of [library] wasn't changed.
+    return new Future.value(true);
+  }
+
+  void _ensureCompilerStateCaptured() {
+    // TODO(ahe): [compiler] shouldn't be null, remove the following line.
+    if (compiler == null) return;
+
+    if (_hasCapturedCompilerState) return;
+    _context._captureState(compiler);
+    _hasCapturedCompilerState = true;
   }
 
   /// Returns true if [library] can be reused.
@@ -199,19 +245,11 @@ class LibraryUpdater extends JsFeatures {
   /// This methods also computes the [updates] (patches) needed to have
   /// [library] reflect the modifications in [bytes].
   bool canReuseLibrary(LibraryElement library, bytes) {
-    logTime('Attempting to reuse mainApp.');
+    logTime('Attempting to reuse ${library}.');
     String newSource = bytes is String ? bytes : UTF8.decode(bytes);
     logTime('Decoded UTF8');
 
-    // TODO(ahe): Can't use compiler.mainApp in general.
-    if (false && newSource == compiler.mainApp.compilationUnit.script.text) {
-      // TODO(ahe): Need to update the compilationUnit's source code when
-      // doing incremental analysis for this to work.
-      logTime("Source didn't change");
-      return true;
-    }
-
-    logTime("Source did change");
+    Uri uri = library.entryCompilationUnit.script.resourceUri;
     Script sourceScript = new Script(
         uri, uri, new StringSourceFile('$uri', newSource));
     var dartPrivacyIsBroken = compiler.libraryLoader;

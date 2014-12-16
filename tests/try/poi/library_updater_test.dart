@@ -9,6 +9,7 @@ import 'dart:convert' show
     UTF8;
 
 import 'package:dart2js_incremental/library_updater.dart' show
+    IncrementalCompilerContext,
     LibraryUpdater,
     Update;
 
@@ -34,8 +35,10 @@ class LibraryUpdaterTestCase extends CompilerTestCase {
         super(before);
 
   Future run() => loadMainApp().then((LibraryElement library) {
+    var context = new IncrementalCompilerContext();
     LibraryUpdater updater =
-        new LibraryUpdater(this.compiler, null, scriptUri, nolog, nolog);
+        new LibraryUpdater(this.compiler, null, nolog, nolog, context);
+    context.registerUriWithUpdates([scriptUri]);
     bool actualCanReuse =
         updater.canReuseLibrary(library, UTF8.encode(newSource));
     Expect.equals(expectedCanReuse, actualCanReuse);

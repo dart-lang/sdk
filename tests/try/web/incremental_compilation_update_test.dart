@@ -1938,7 +1938,6 @@ DivElement numberedLines(String code) {
   return result;
 }
 
-
 StyleElement lineNumberStyle() {
   StyleElement style = new StyleElement()..appendText('''
 h2, h3 {
