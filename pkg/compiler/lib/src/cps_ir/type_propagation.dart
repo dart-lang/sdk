@@ -53,16 +53,9 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask get listType => inferrer.listType;
   TypeMask get mapType => inferrer.mapType;
 
-  // TODO(karlklose): the map should be per continuation.
-  Map<Node, TypeMask> map = <Node, TypeMask>{};
-
   TypeMaskSystem(dart2js.Compiler compiler)
     : inferrer = compiler.typesTask,
       classWorld = compiler.world;
-
-  TypeMask getType(Node node) => map[node];
-
-  setType(Primitive node, TypeMask type) => map[node] = type;
 
   TypeMask getParameterType(ParameterElement parameter) {
     return inferrer.getGuaranteedTypeOfElement(parameter);
@@ -125,7 +118,7 @@ class TypePropagator<T> extends Pass {
 
     // Analyze. In this phase, the entire term is analyzed for reachability
     // and the abstract value of each expression.
-    _ConstPropagationVisitor<T> analyzer = new _ConstPropagationVisitor<T>(
+    _TypePropagationVisitor<T> analyzer = new _TypePropagationVisitor<T>(
         _constantSystem,
         _typeSystem,
         _types,
@@ -307,7 +300,7 @@ class _TransformingVisitor extends RecursiveVisitor {
  * const-ness as well as reachability, both of which are used in the subsequent
  * transformation pass.
  */
-class _ConstPropagationVisitor<T> extends Visitor {
+class _TypePropagationVisitor<T> extends Visitor {
   // The node worklist stores nodes that are both reachable and need to be
   // processed, but have not been processed yet. Using a worklist avoids deep
   // recursion.
@@ -355,7 +348,7 @@ class _ConstPropagationVisitor<T> extends Visitor {
   // Access through [getValue] and [setValue].
   final Map<Node, _AbstractValue> values;
 
-  _ConstPropagationVisitor(this.constantSystem, TypeSystem typeSystem,
+  _TypePropagationVisitor(this.constantSystem, TypeSystem<T> typeSystem,
       this.values,
       this.internalError, this.compiler)
     : this.unknownDynamic = new _AbstractValue.unknown(typeSystem.dynamicType),
@@ -431,7 +424,7 @@ class _ConstPropagationVisitor<T> extends Visitor {
 
   void visitNode(Node node) {
     internalError(NO_LOCATION_SPANNABLE,
-        "_ConstPropagationVisitor is stale, add missing visit overrides");
+        "_TypePropagationVisitor is stale, add missing visit overrides");
   }
 
   void visitFunctionDefinition(FunctionDefinition node) {
@@ -730,7 +723,10 @@ class _ConstPropagationVisitor<T> extends Visitor {
   }
 
   void visitParameter(Parameter node) {
-    T type = typeSystem.getParameterType(node.hint);
+    Entity source = node.hint;
+    // TODO(karlklose): remove reference to the element model.
+    T type = (source is ParameterElement) ? typeSystem.getParameterType(source)
+        : typeSystem.dynamicType;
     if (node.parent is FunctionDefinition) {
       // Functions may escape and thus their parameters must be initialized to
       // NonConst.
@@ -790,6 +786,10 @@ class _ConstPropagationVisitor<T> extends Visitor {
           new BoolConstantValue(left.primitiveValue == right.primitiveValue);
       setValue(node, new _AbstractValue(result, typeSystem.boolType));
     }
+  }
+
+  void visitInterceptor(Interceptor node) {
+    setReachable(node.input.definition);
   }
 }
 

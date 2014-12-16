@@ -16,7 +16,8 @@ import '../../cps_ir/cps_ir_nodes.dart' as cps;
 import '../../cps_ir/cps_ir_builder.dart';
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
 import '../../tree/tree.dart' as ast;
-import '../../types/types.dart' show TypeMask;
+import '../../types/types.dart' show TypeMask, UnionTypeMask, FlatTypeMask,
+    ForwardingTypeMask;
 import '../../scanner/scannerlib.dart' as scanner;
 import '../../elements/elements.dart';
 import '../../closure.dart';
@@ -108,11 +109,26 @@ class CspFunctionCompiler implements FunctionCompiler {
     if (cpsNode == null) {
       giveUp('unable to build cps definition of $element');
     }
-    const UnsugarVisitor().rewrite(cpsNode);
+    new UnsugarVisitor(glue).rewrite(cpsNode);
     return cpsNode;
   }
 
   static const Pattern PRINT_TYPED_IR_FILTER = null;
+
+  String formatTypeMask(TypeMask type) {
+    if (type is UnionTypeMask) {
+      return '[${type.disjointMasks.map(formatTypeMask).join(', ')}]';
+    } else if (type is FlatTypeMask) {
+      if (type.isEmpty) {
+        return "null";
+      }
+      String suffix = (type.isExact ? "" : "+") + (type.isNullable ? "?" : "!");
+      return '${type.base.name}$suffix';
+    } else if (type is ForwardingTypeMask) {
+      return formatTypeMask(type.forwardTo);
+    }
+    throw 'unsupported: $type';
+  }
 
   cps.FunctionDefinition optimizeCpsIR(cps.FunctionDefinition cpsNode) {
     // Transformations on the CPS IR.
@@ -127,7 +143,7 @@ class CspFunctionCompiler implements FunctionCompiler {
         PRINT_TYPED_IR_FILTER.matchAsPrefix(cpsNode.element.name) != null) {
       String printType(cps.Node node, String s) {
         var type = typePropagator.getType(node);
-        return type == null ? s : "<$type: $s>";
+        return type == null ? s : "$s:${formatTypeMask(type.type)}";
       }
       DEBUG_MODE = true;
       print(new SExpressionStringifier(printType).visit(cpsNode));
@@ -146,7 +162,7 @@ class CspFunctionCompiler implements FunctionCompiler {
   }
 
   tree_ir.FunctionDefinition compileToTreeIR(cps.FunctionDefinition cpsNode) {
-    tree_builder.Builder builder = new tree_builder.Builder(compiler);
+    tree_builder.Builder builder = new tree_builder.Builder(glue, compiler);
     tree_ir.FunctionDefinition treeNode = builder.buildFunction(cpsNode);
     assert(treeNode != null);
     traceGraph('Tree builder', treeNode);

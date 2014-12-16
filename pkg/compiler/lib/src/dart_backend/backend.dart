@@ -161,7 +161,8 @@ class DartBackend extends Backend {
     // ranges that can be invalidated by transforming the IR.
     new cps_ir.RegisterAllocator().visit(cpsDefinition);
 
-    tree_builder.Builder builder = new tree_builder.Builder(compiler);
+    tree_builder.Builder builder =
+        new tree_builder.Builder(new Glue(compiler), compiler);
     tree_ir.ExecutableDefinition treeDefinition = builder.build(cpsDefinition);
     assert(treeDefinition != null);
     traceGraph('Tree builder', treeDefinition);
