@@ -45,9 +45,13 @@ Future<bool> compile(String inputFile, TypeResolver resolver,
   var results =
       checkProgram(uri, resolver, checkSdk: checkSdk, useColors: useColors);
 
-  if (results.failure) {
-    return new Future.value(false);
+  bool failure = results.failure;
+  for (var lib in results.libraries) {
+    for (var unit in lib.units) {
+      failure = resolver.logErrors(unit.source) || failure;
+    }
   }
+  if (failure) return new Future.value(false);
 
   // Generate code.
   if (outputDir != null) {
