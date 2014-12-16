@@ -7041,6 +7041,19 @@ class B<E> {
     verify([source]);
   }
 
+  void test_unnecessaryCast_conditionalExpression() {
+    Source source = addSource(r'''
+abstract class I {}
+class A implements I {}
+class B implements I {}
+I m(A a, B b) {
+  return a == null ? b as I : a as I;
+}''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_unnecessaryCast_dynamic_type() {
     Source source = addSource(r'''
 m(v) {

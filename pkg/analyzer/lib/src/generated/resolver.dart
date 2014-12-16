@@ -1296,18 +1296,39 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * See [HintCode.UNNECESSARY_CAST].
    */
   bool _checkForUnnecessaryCast(AsExpression node) {
-    Expression expression = node.expression;
-    TypeName typeName = node.type;
-    DartType lhsType = expression.staticType;
-    DartType rhsType = typeName.type;
     // TODO(jwren) After dartbug.com/13732, revisit this, we should be able to
-    // remove the !(x instanceof TypeParameterType) checks.
+    // remove the (x is! TypeParameterType) checks.
+    AstNode parent = node.parent;
+    if (parent is ConditionalExpression && (node == parent.thenExpression || node == parent.elseExpression)) {
+      Expression thenExpression = parent.thenExpression;
+      DartType thenType;
+      if (thenExpression is AsExpression) {
+        thenType = thenExpression.expression.staticType;
+      } else {
+        thenType = thenExpression.staticType;
+      }
+      Expression elseExpression = parent.elseExpression;
+      DartType elseType;
+      if (elseExpression is AsExpression) {
+        elseType = elseExpression.expression.staticType;
+      } else {
+        elseType = elseExpression.staticType;
+      }
+      if (thenType != null &&
+          elseType != null &&
+          !thenType.isDynamic &&
+          !elseType.isDynamic &&
+          !thenType.isMoreSpecificThan(elseType) &&
+          !elseType.isMoreSpecificThan(thenType)) {
+        return false;
+      }
+    }
+    DartType lhsType = node.expression.staticType;
+    DartType rhsType = node.type.type;
     if (lhsType != null &&
         rhsType != null &&
         !lhsType.isDynamic &&
         !rhsType.isDynamic &&
-        lhsType is! TypeParameterType &&
-        rhsType is! TypeParameterType &&
         lhsType.isMoreSpecificThan(rhsType)) {
       _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_CAST, node);
       return true;
