@@ -84,7 +84,7 @@ class Dart2JsConstantMirror extends Object
 
   ClassMirror get type {
     return mirrorSystem._getTypeDeclarationMirror(
-        _value.computeType(mirrorSystem.compiler).element);
+        _value.getType(mirrorSystem.compiler.coreTypes).element);
   }
 
   int get hashCode => 13 * _constant.hashCode;

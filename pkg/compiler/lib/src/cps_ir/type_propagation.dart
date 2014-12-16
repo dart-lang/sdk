@@ -658,7 +658,7 @@ class _ConstPropagationVisitor<T> extends Visitor {
       types.InterfaceType checkedType = node.type;
       ConstantValue constant = cell.constant;
       // TODO(karlklose): remove call to computeType.
-      types.DartType constantType = constant.computeType(compiler);
+      types.DartType constantType = constant.getType(compiler.coreTypes);
 
       T type = typeSystem.boolType;
       _AbstractValue result;

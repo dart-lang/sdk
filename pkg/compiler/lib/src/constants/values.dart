@@ -4,10 +4,10 @@
 
 library dart2js.constants.values;
 
+import '../core_types.dart';
 import '../dart_types.dart';
 import '../dart2jslib.dart'
-    show assertDebugMode,
-         Compiler;
+    show assertDebugMode;
 import '../elements/elements.dart'
     show ClassElement,
          Element,
@@ -64,7 +64,7 @@ abstract class ConstantValue {
   bool get isOne => false;
 
   // TODO(johnniwinther): Replace with a 'type' getter.
-  DartType computeType(Compiler compiler);
+  DartType getType(CoreTypes types);
 
   List<ConstantValue> getDependencies();
 
@@ -91,9 +91,11 @@ abstract class ConstantValue {
 }
 
 class FunctionConstantValue extends ConstantValue {
-  Element element;
+  FunctionElement element;
 
-  FunctionConstantValue(this.element);
+  FunctionConstantValue(this.element) {
+    assert(element.type != null);
+  }
 
   bool get isFunction => true;
 
@@ -108,8 +110,7 @@ class FunctionConstantValue extends ConstantValue {
     return new DartString.literal(element.name);
   }
 
-  // TODO(johnniwinther): remove computeType.
-  DartType computeType(Compiler compiler) => element.computeType(compiler);
+  DartType getType(CoreTypes types) => element.type;
 
   int get hashCode => (17 * element.hashCode) & 0x7fffffff;
 
@@ -165,9 +166,7 @@ class NullConstantValue extends PrimitiveConstantValue {
 
   get primitiveValue => null;
 
-  DartType computeType(Compiler compiler) {
-    return compiler.nullClass.computeType(compiler);
-  }
+  DartType getType(CoreTypes types) => types.nullType;
 
   // The magic constant has no meaning. It is just a random value.
   int get hashCode => 785965825;
@@ -223,9 +222,7 @@ class IntConstantValue extends NumConstantValue {
 
   bool get isOne => primitiveValue == 1;
 
-  DartType computeType(Compiler compiler) {
-    return compiler.intClass.rawType;
-  }
+  DartType getType(CoreTypes types) => types.intType;
 
   // We have to override the equality operator so that ints and doubles are
   // treated as separate constants.
@@ -280,9 +277,7 @@ class DoubleConstantValue extends NumConstantValue {
 
   bool get isOne => primitiveValue == 1.0;
 
-  DartType computeType(Compiler compiler) {
-    return compiler.doubleClass.rawType;
-  }
+  DartType getType(CoreTypes types) => types.doubleType;
 
   bool operator ==(var other) {
     if (other is !DoubleConstantValue) return false;
@@ -317,9 +312,7 @@ abstract class BoolConstantValue extends PrimitiveConstantValue {
 
   bool get isBool => true;
 
-  DartType computeType(Compiler compiler) {
-    return compiler.boolClass.rawType;
-  }
+  DartType getType(CoreTypes types) => types.boolType;
 
   BoolConstantValue negate();
 
@@ -382,9 +375,7 @@ class StringConstantValue extends PrimitiveConstantValue {
 
   bool get isString => true;
 
-  DartType computeType(Compiler compiler) {
-    return compiler.stringClass.rawType;
-  }
+  DartType getType(CoreTypes types) => types.stringType;
 
   bool operator ==(var other) {
     if (other is !StringConstantValue) return false;
@@ -412,7 +403,7 @@ abstract class ObjectConstantValue extends ConstantValue {
 
   bool get isObject => true;
 
-  DartType computeType(Compiler compiler) => type;
+  DartType getType(CoreTypes types) => type;
 
   void _unparseTypeArguments(StringBuffer sb) {
     if (!type.treatAsRaw) {
@@ -616,7 +607,7 @@ class InterceptorConstantValue extends ConstantValue {
     return visitor.visitInterceptor(this, arg);
   }
 
-  DartType computeType(Compiler compiler) => const DynamicType();
+  DartType getType(CoreTypes types) => const DynamicType();
 
   String unparse() {
     return 'interceptor($dispatchedType)';
@@ -646,7 +637,7 @@ class DummyConstantValue extends ConstantValue {
 
   accept(ConstantValueVisitor visitor, arg) => visitor.visitDummy(this, arg);
 
-  DartType computeType(Compiler compiler) => const DynamicType();
+  DartType getType(CoreTypes types) => const DynamicType();
 
   String unparse() => 'dummy($typeMask)';
 
@@ -762,7 +753,7 @@ class DeferredConstantValue extends ConstantValue {
 
   accept(ConstantValueVisitor visitor, arg) => visitor.visitDeferred(this, arg);
 
-  DartType computeType(Compiler compiler) => referenced.computeType(compiler);
+  DartType getType(CoreTypes types) => referenced.getType(types);
 
   String unparse() => 'deferred(${referenced.unparse()})';
 

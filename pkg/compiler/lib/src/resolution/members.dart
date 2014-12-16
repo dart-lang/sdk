@@ -3286,7 +3286,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
                 argumentNode, registry.mapping);
         ConstantValue name = constant.value;
         if (!name.isString) {
-          DartType type = name.computeType(compiler);
+          DartType type = name.getType(compiler.coreTypes);
           compiler.reportError(argumentNode, MessageKind.STRING_EXPECTED,
                                    {'type': type});
         } else {
