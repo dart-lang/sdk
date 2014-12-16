@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test of LibraryUpdater.
+// Test of LibraryUpdater (one compilation unit per library).
 library trydart.library_updater_test;
 
 import 'dart:convert' show
