@@ -1703,6 +1703,7 @@ class OldEmitter implements Emitter {
       emitFinishClassesInvocationIfNecessary(mainBuffer);
     }
 
+    typeTestEmitter.emitRuntimeTypeSupport(mainBuffer, mainOutputUnit);
     interceptorEmitter.emitGetInterceptorMethods(mainBuffer);
     interceptorEmitter.emitOneShotInterceptors(mainBuffer);
 
@@ -2173,6 +2174,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       // point to the current Isolate. Otherwise all methods/functions
       // accessing isolate variables will access the wrong object.
       outputBuffer.write("${namer.currentIsolate}$_=${_}arguments[1]$N");
+      typeTestEmitter.emitRuntimeTypeSupport(outputBuffer, outputUnit);
 
       emitCompileTimeConstants(outputBuffer, outputUnit);
       emitStaticNonFinalFieldInitializations(outputBuffer, outputUnit);

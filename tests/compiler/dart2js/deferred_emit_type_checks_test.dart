@@ -53,8 +53,11 @@ void main() {
     String mainOutput = outputs['main.js'].mem[0];
     String deferredOutput = outputs['out_1.part.js'].mem[0];
     String isPrefix = compiler.backend.namer.operatorIsPrefix;
-    Expect.isTrue(deferredOutput.contains('${isPrefix}A: true'));
-    Expect.isFalse(mainOutput.contains('${isPrefix}A: true'));
+    String escapedIsPrefix = isPrefix.replaceAll(r'$', r'\$');
+    RegExp re = new RegExp(r"\n  _ = .\.A;\n  _."
+                            "${escapedIsPrefix}A = TRUE;");
+    Expect.isTrue(re.hasMatch(deferredOutput));
+    Expect.isFalse(re.hasMatch(mainOutput));
   }));
 }
 
