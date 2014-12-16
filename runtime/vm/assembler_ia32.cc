@@ -2961,10 +2961,8 @@ void Assembler::UpdateRangeFeedback(Register value,
                                     Label* miss) {
   ASSERT(ICData::IsValidRangeFeedbackIndex(index));
   ComputeRange(scratch1, value, scratch2, scratch3, miss);
-  if (index != 0) {
-    shll(scratch1, Immediate(ICData::kBitsPerRangeFeedback * index));
-  }
-  orl(FieldAddress(ic_data, ICData::range_feedback_offset()), scratch1);
+  shll(scratch1, Immediate(ICData::RangeFeedbackShift(index)));
+  orl(FieldAddress(ic_data, ICData::state_bits_offset()), scratch1);
 }
 
 

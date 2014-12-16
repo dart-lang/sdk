@@ -1967,11 +1967,11 @@ void Assembler::UpdateRangeFeedback(Register value,
                                     Label* miss) {
   ASSERT(ICData::IsValidRangeFeedbackIndex(index));
   ComputeRange(scratch1, value, scratch2, miss);
-  ldr(scratch2, FieldAddress(ic_data, ICData::range_feedback_offset()));
+  ldr(scratch2, FieldAddress(ic_data, ICData::state_bits_offset()));
   orr(scratch2,
       scratch2,
-      Operand(scratch1, LSL, ICData::kBitsPerRangeFeedback * index));
-  str(scratch2, FieldAddress(ic_data, ICData::range_feedback_offset()));
+      Operand(scratch1, LSL, ICData::RangeFeedbackShift(index)));
+  str(scratch2, FieldAddress(ic_data, ICData::state_bits_offset()));
 }
 
 

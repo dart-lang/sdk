@@ -2150,7 +2150,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         // Left shift may overflow from smi into mint or big ints.
         // Don't generate smi code if the IC data is marked because
         // of an overflow.
-        if (ic_data.HasDeoptReason(ICData::kDeoptShiftMintOp)) {
+        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) {
           return false;
         }
         operands_type = ic_data.HasDeoptReason(ICData::kDeoptBinarySmiOp)
@@ -2161,7 +2161,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                      ic_data.AsUnaryClassChecksForArgNr(1)))) {
         // Don't generate mint code if the IC data is marked because of an
         // overflow.
-        if (ic_data.HasDeoptReason(ICData::kDeoptShiftMintOp)) {
+        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) {
           return false;
         }
         // Check for smi/mint << smi or smi/mint >> smi.
@@ -3163,7 +3163,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     Definition* count = call->ArgumentAt(1);
     Definition* int32_mask = call->ArgumentAt(2);
     if (HasOnlyTwoOf(ic_data, kSmiCid)) {
-      if (ic_data.HasDeoptReason(ICData::kDeoptShiftMintOp)) {
+      if (ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) {
         return false;
       }
       // We cannot overflow. The input value must be a Smi
@@ -3203,7 +3203,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         HasOnlyOneSmi(ICData::Handle(I,
                                      ic_data.AsUnaryClassChecksForArgNr(1)))) {
       if (!FlowGraphCompiler::SupportsUnboxedMints() ||
-          ic_data.HasDeoptReason(ICData::kDeoptShiftMintOp)) {
+          ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) {
         return false;
       }
       ShiftMintOpInstr* left_shift =

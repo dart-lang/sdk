@@ -1184,26 +1184,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movzxw(result, element_address);
       __ SmiTag(result);
       break;
-    case kTypedDataInt32ArrayCid: {
-        Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                              ICData::kDeoptInt32Load);
-        __ movl(result, element_address);
-        // Verify that the signed value in 'result' can fit inside a Smi.
-        __ cmpl(result, Immediate(0xC0000000));
-        __ j(NEGATIVE, deopt);
-        __ SmiTag(result);
-      }
-      break;
-    case kTypedDataUint32ArrayCid: {
-        Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                              ICData::kDeoptUint32Load);
-        __ movl(result, element_address);
-        // Verify that the unsigned value in 'result' can fit inside a Smi.
-        __ testl(result, Immediate(0xC0000000));
-        __ j(NOT_ZERO, deopt);
-        __ SmiTag(result);
-      }
-      break;
     default:
       ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid));
       __ movl(result, element_address);
@@ -6064,7 +6044,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label* deopt = NULL;
   if (CanDeoptimize()) {
-    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptShiftMintOp);
+    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
   }
   if (locs()->in(1).IsConstant()) {
     // Code for a constant shift amount.
@@ -6303,7 +6283,7 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(left == out);
 
 
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptShiftMintOp);
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
 
   if (locs()->in(1).IsConstant()) {
     // Shifter is constant.

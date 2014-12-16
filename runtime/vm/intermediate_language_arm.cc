@@ -6306,7 +6306,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label* deopt = NULL;
   if (CanDeoptimize()) {
-    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptShiftMintOp);
+    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
   }
   if (locs()->in(1).IsConstant()) {
     // Code for a constant shift amount.
@@ -6537,7 +6537,7 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   ASSERT(left != out);
 
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptShiftMintOp);
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
 
   if (locs()->in(1).IsConstant()) {
     // Shifter is constant.

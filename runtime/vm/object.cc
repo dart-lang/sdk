@@ -11434,12 +11434,15 @@ void ICData::SetDeoptReasons(uint32_t reasons) const {
 
 
 bool ICData::HasDeoptReason(DeoptReasonId reason) const {
+  ASSERT(reason <= kLastRecordedDeoptReason);
   return (DeoptReasons() & (1 << reason)) != 0;
 }
 
 
 void ICData::AddDeoptReason(DeoptReasonId reason) const {
-  SetDeoptReasons(DeoptReasons() | (1 << reason));
+  if (reason <= kLastRecordedDeoptReason) {
+    SetDeoptReasons(DeoptReasons() | (1 << reason));
+  }
 }
 
 
@@ -11469,11 +11472,6 @@ bool ICData::MayCheckForJSWarning() const {
     return true;
   }
   return false;
-}
-
-
-void ICData::set_range_feedback(uint32_t feedback) {
-  StoreNonPointer(&raw_ptr()->range_feedback_, feedback);
 }
 
 
@@ -11932,7 +11930,6 @@ RawICData* ICData::New(const Function& owner,
   result.set_arguments_descriptor(arguments_descriptor);
   result.set_deopt_id(deopt_id);
   result.set_state_bits(0);
-  result.set_range_feedback(0);
   result.SetNumArgsTested(num_args_tested);
   // Number of array elements in one test entry.
   intptr_t len = result.TestEntryLength();
@@ -12013,8 +12010,10 @@ bool ICData::HasRangeFeedback() const {
 
 ICData::RangeFeedback ICData::DecodeRangeFeedbackAt(intptr_t idx) const {
   ASSERT((0 <= idx) && (idx < 3));
+  const uint32_t raw_feedback =
+      RangeFeedbackBits::decode(raw_ptr()->state_bits_);
   const uint32_t feedback =
-      (range_feedback() >> (idx * kBitsPerRangeFeedback)) & kRangeFeedbackMask;
+      (raw_feedback >> (idx * kBitsPerRangeFeedback)) & kRangeFeedbackMask;
   if ((feedback & kInt64RangeBit) != 0) {
     return kInt64Range;
   }

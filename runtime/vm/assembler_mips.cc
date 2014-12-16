@@ -738,12 +738,10 @@ void Assembler::UpdateRangeFeedback(Register value,
                                     Label* miss) {
   ASSERT(ICData::IsValidRangeFeedbackIndex(index));
   ComputeRange(scratch, value, miss);
-  LoadFieldFromOffset(TMP, ic_data, ICData::range_feedback_offset());
-  if (index != 0) {
-    sll(scratch, scratch, ICData::kBitsPerRangeFeedback * index);
-  }
+  LoadFieldFromOffset(TMP, ic_data, ICData::state_bits_offset());
+  sll(scratch, scratch, ICData::RangeFeedbackShift(index));
   or_(TMP, TMP, scratch);
-  StoreFieldToOffset(TMP, ic_data, ICData::range_feedback_offset());
+  StoreFieldToOffset(TMP, ic_data, ICData::state_bits_offset());
 }
 
 
