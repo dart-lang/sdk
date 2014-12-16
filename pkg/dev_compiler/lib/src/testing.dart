@@ -95,10 +95,13 @@ testChecker(Map<String, String> testFiles, {bool mockSdk: true}) {
   // Check that all expected errors are accounted for.
   if (!expectedErrors.isEmpty) {
     var newTotal = expectedErrors.values.fold(0, (p, l) => p + l.length);
-    fail('Not all expected errors were reported by the checker. Only'
-        ' ${total - newTotal} out of $total expected errors were reported.\n'
-        'The following errors were not reported:\n'
-        '${_unreportedErrors(expectedErrors)}');
+    // Non empty error expectation lists remaining
+    if (newTotal > 0) {
+      fail('Not all expected errors were reported by the checker. Only'
+           ' ${total - newTotal} out of $total expected errors were reported.\n'
+           'The following errors were not reported:\n'
+           '${_unreportedErrors(expectedErrors)}');
+    }
   }
 }
 
@@ -156,7 +159,8 @@ class _ErrorMarkerVisitor extends UnifyingAstVisitor {
       expect(commentText.endsWith('*/'), isTrue);
       expect(commentText.endsWith('**/'), isFalse);
       var errors = commentText.substring(2, commentText.length - 2).split(',');
-      expectedErrors[node] = errors.map(_ErrorExpectation.parse).toList();
+      var expectations = errors.map(_ErrorExpectation.parse);
+      expectedErrors[node] = expectations.where((x) => x != null).toList();
     }
     return super.visitNode(node);
   }
@@ -175,8 +179,7 @@ class _ErrorExpectation {
   final Type type;
   _ErrorExpectation(this.level, this.type);
 
-  static _ErrorExpectation parse(String descriptor) {
-    descriptor = descriptor.trim();
+  static _ErrorExpectation _parse(String descriptor) {
     var tokens = descriptor.split(':');
     expect(tokens.length, 2, reason: 'invalid error descriptor');
     var name = tokens[0].toUpperCase();
@@ -191,6 +194,19 @@ class _ErrorExpectation {
     expect(type, isNotNull,
         reason: 'invalid type in error descriptor: ${tokens[1]}');
     return new _ErrorExpectation(level, type);
+  }
+
+  static _ErrorExpectation parse(String descriptor) {
+    descriptor = descriptor.trim();
+    var tokens = descriptor.split(' ');
+    if (tokens.length == 1) return _parse(tokens[0]);
+    expect(tokens.length, 4, reason: 'invalid error descriptor');
+    expect(tokens[1], "should", reason: 'invalid error descriptor');
+    expect(tokens[2], "be", reason: 'invalid error descriptor');
+    if (tokens[0] == "pass") return null;
+    // TODO(leafp) For now, we just use whatever the current expectation is,
+    // eventually we could do more automated reporting here.
+    return _parse(tokens[0]);
   }
 }
 

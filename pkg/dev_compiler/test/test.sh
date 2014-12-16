@@ -40,6 +40,11 @@ popd &> /dev/null
 dart -c test/checker/self_host_test.dart || fail
 
 ls lib/*.dart bin/*.dart | dartanalyzer -b --fatal-warnings || fail
+{
+  fc=`find test -name "*.dart" |\
+      xargs grep "/\*\S* should be \S*\*/" | wc -l`
+  echo "There are" $fc "tests marked as known failures."
+}
 popd &> /dev/null
 
 echo -e "[32mAll tests pass[0m"
