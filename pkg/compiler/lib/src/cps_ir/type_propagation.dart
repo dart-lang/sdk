@@ -81,8 +81,6 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   }
 }
 
-typedef void InternalErrorFunction(Spannable location, String message);
-
 /**
  * Propagates types (including value types for constants) throughout the IR, and
  * replaces branches with fixed jumps as well as side-effect free expressions
@@ -96,17 +94,17 @@ typedef void InternalErrorFunction(Spannable location, String message);
 class TypePropagator<T> extends Pass {
   // TODO(karlklose): remove reference to _compiler. It is currently used to
   // compute [TypeMask]s.
-  final dart2js.Compiler _compiler;
+  final types.DartTypes _dartTypes;
 
   // The constant system is used for evaluation of expressions with constant
   // arguments.
   final dart2js.ConstantSystem _constantSystem;
   final TypeSystem _typeSystem;
-  final InternalErrorFunction _internalError;
+  final dart2js.InternalErrorFunction _internalError;
   final Map<Node, _AbstractValue> _types;
 
 
-  TypePropagator(this._compiler,
+  TypePropagator(this._dartTypes,
                  this._constantSystem,
                  this._typeSystem,
                  this._internalError)
@@ -123,7 +121,7 @@ class TypePropagator<T> extends Pass {
         _typeSystem,
         _types,
         _internalError,
-        _compiler);
+        _dartTypes);
 
     analyzer.analyze(root);
 
@@ -156,7 +154,7 @@ class _TransformingVisitor extends RecursiveVisitor {
   final Set<Node> reachable;
   final Map<Node, _AbstractValue> values;
 
-  final InternalErrorFunction internalError;
+  final dart2js.InternalErrorFunction internalError;
 
   _TransformingVisitor(this.reachable, this.values, this.internalError);
 
@@ -319,8 +317,8 @@ class _TypePropagationVisitor<T> extends Visitor {
 
   final dart2js.ConstantSystem constantSystem;
   final TypeSystem typeSystem;
-  final InternalErrorFunction internalError;
-  final Compiler compiler;
+  final dart2js.InternalErrorFunction internalError;
+  final types.DartTypes _dartTypes;
 
   _AbstractValue unknownDynamic;
 
@@ -348,9 +346,11 @@ class _TypePropagationVisitor<T> extends Visitor {
   // Access through [getValue] and [setValue].
   final Map<Node, _AbstractValue> values;
 
-  _TypePropagationVisitor(this.constantSystem, TypeSystem<T> typeSystem,
-      this.values,
-      this.internalError, this.compiler)
+  _TypePropagationVisitor(this.constantSystem,
+                          TypeSystem typeSystem,
+                          this.values,
+                          this.internalError,
+                          this._dartTypes)
     : this.unknownDynamic = new _AbstractValue.unknown(typeSystem.dynamicType),
       this.typeSystem = typeSystem;
 
@@ -651,19 +651,19 @@ class _TypePropagationVisitor<T> extends Visitor {
       types.InterfaceType checkedType = node.type;
       ConstantValue constant = cell.constant;
       // TODO(karlklose): remove call to computeType.
-      types.DartType constantType = constant.getType(compiler.coreTypes);
+      types.DartType constantType = constant.getType(_dartTypes.coreTypes);
 
       T type = typeSystem.boolType;
       _AbstractValue result;
       if (constant.isNull &&
-          checkedType.element != compiler.nullClass &&
-          checkedType.element != compiler.objectClass) {
+          checkedType != _dartTypes.coreTypes.nullType &&
+          checkedType != _dartTypes.coreTypes.objectType) {
         // `(null is Type)` is true iff Type is in { Null, Object }.
         result = constantValue(new FalseConstantValue(), type);
       } else {
         // Otherwise, perform a standard subtype check.
         result = constantValue(
-            constantSystem.isSubtype(compiler, constantType, checkedType)
+            constantSystem.isSubtype(_dartTypes, constantType, checkedType)
             ? new TrueConstantValue()
             : new FalseConstantValue(),
             type);

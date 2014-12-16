@@ -134,8 +134,11 @@ class CspFunctionCompiler implements FunctionCompiler {
     // Transformations on the CPS IR.
     traceGraph("IR Builder", cpsNode);
 
-    TypePropagator typePropagator = new TypePropagator<TypeMask>(compiler,
-        constantSystem, new TypeMaskSystem(compiler), compiler.internalError);
+    TypePropagator typePropagator = new TypePropagator<TypeMask>(
+        compiler.types,
+        constantSystem,
+        new TypeMaskSystem(compiler),
+        compiler.internalError);
     typePropagator.rewrite(cpsNode);
     traceGraph("Sparse constant propagation", cpsNode);
 
@@ -162,7 +165,8 @@ class CspFunctionCompiler implements FunctionCompiler {
   }
 
   tree_ir.FunctionDefinition compileToTreeIR(cps.FunctionDefinition cpsNode) {
-    tree_builder.Builder builder = new tree_builder.Builder(glue, compiler);
+    tree_builder.Builder builder = new tree_builder.Builder(
+        glue, compiler.internalError, compiler.identicalFunction);
     tree_ir.FunctionDefinition treeNode = builder.buildFunction(cpsNode);
     assert(treeNode != null);
     traceGraph('Tree builder', treeNode);

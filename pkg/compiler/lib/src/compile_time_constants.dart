@@ -163,7 +163,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
           }
         } else {
           DartType constantType = value.value.getType(compiler.coreTypes);
-          if (!constantSystem.isSubtype(compiler,
+          if (!constantSystem.isSubtype(compiler.types,
                                         constantType, elementType)) {
             if (isConst) {
               compiler.reportFatalError(
@@ -910,7 +910,8 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     if (compiler.enableTypeAssertions) {
       DartType elementType = element.type.substByContext(constructedType);
       DartType constantType = constant.value.getType(compiler.coreTypes);
-      if (!constantSystem.isSubtype(compiler, constantType, elementType)) {
+      if (!constantSystem.isSubtype(compiler.types,
+                                    constantType, elementType)) {
         compiler.withCurrentElement(constant.element, () {
           compiler.reportFatalError(
               constant.node, MessageKind.NOT_ASSIGNABLE,

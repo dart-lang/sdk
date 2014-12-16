@@ -8,6 +8,9 @@ import 'dart_types.dart';
 
 /// The core types in Dart.
 abstract class CoreTypes {
+  /// The `Object` type defined in 'dart:core'.
+  InterfaceType get objectType;
+
   /// The `bool` type defined in 'dart:core'.
   InterfaceType get boolType;
 

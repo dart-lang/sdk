@@ -2378,6 +2378,9 @@ class _CompilerCoreTypes implements CoreTypes {
   _CompilerCoreTypes(this.compiler);
 
   @override
+  InterfaceType get objectType => objectClass.computeType(compiler);
+
+  @override
   InterfaceType get boolType => boolClass.computeType(compiler);
 
   @override
@@ -2410,3 +2413,5 @@ class _CompilerCoreTypes implements CoreTypes {
   @override
   InterfaceType get stringType =>  stringClass.computeType(compiler);
 }
+
+typedef void InternalErrorFunction(Spannable location, String message);

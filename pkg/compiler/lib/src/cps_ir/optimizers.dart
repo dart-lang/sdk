@@ -17,7 +17,7 @@ import '../types/types.dart' show TypeMask, TypesTask;
 import '../types/constants.dart' show computeTypeMask;
 import '../elements/elements.dart' show ClassElement, Element, Entity,
     FieldElement, FunctionElement, ParameterElement;
-import '../dart2jslib.dart' show ClassWorld, Compiler;
+import '../dart2jslib.dart' show ClassWorld;
 
 part 'type_propagation.dart';
 part 'redundant_phi.dart';

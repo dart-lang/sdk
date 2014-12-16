@@ -233,21 +233,21 @@ class JavaScriptConstantSystem extends ConstantSystem {
   bool isBool(ConstantValue constant) => constant.isBool;
   bool isNull(ConstantValue constant) => constant.isNull;
 
-  bool isSubtype(Compiler compiler, DartType s, DartType t) {
+  bool isSubtype(DartTypes types, DartType s, DartType t) {
     // At runtime, an integer is both an integer and a double: the
     // integer type check is Math.floor, which will return true only
     // for real integers, and our double type check is 'typeof number'
     // which will return true for both integers and doubles.
-    if (s.element == compiler.intClass && t.element == compiler.doubleClass) {
+    if (s == types.coreTypes.intType && t == types.coreTypes.doubleType) {
       return true;
     }
-    return compiler.types.isSubtype(s, t);
+    return types.isSubtype(s, t);
   }
 
   MapConstantValue createMap(Compiler compiler,
-                        InterfaceType sourceType,
-                        List<ConstantValue> keys,
-                        List<ConstantValue> values) {
+                             InterfaceType sourceType,
+                             List<ConstantValue> keys,
+                             List<ConstantValue> values) {
     JavaScriptBackend backend = compiler.backend;
 
     bool onlyStringKeys = true;

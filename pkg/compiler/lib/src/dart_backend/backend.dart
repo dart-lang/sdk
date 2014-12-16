@@ -130,7 +130,8 @@ class DartBackend extends Backend {
   void codegen(CodegenWorkItem work) { }
 
   /// Create an [ElementAst] from the CPS IR.
-  static ElementAst createElementAst(Compiler compiler,
+  static ElementAst createElementAst(
+       Compiler compiler,
        Tracer tracer,
        ConstantSystem constantSystem,
        Element element,
@@ -148,7 +149,7 @@ class DartBackend extends Backend {
 
     // TODO(karlklose): enable type propagation for dart2dart when constant
     // types are correctly marked as instantiated (Issue 21880).
-    new TypePropagator(compiler, constantSystem, new UnitTypeSystem(),
+    new TypePropagator(compiler.types, constantSystem, new UnitTypeSystem(),
         compiler.internalError).rewrite(cpsDefinition);
     traceGraph("Sparse constant propagation", cpsDefinition);
     new RedundantPhiEliminator().rewrite(cpsDefinition);
@@ -161,8 +162,8 @@ class DartBackend extends Backend {
     // ranges that can be invalidated by transforming the IR.
     new cps_ir.RegisterAllocator().visit(cpsDefinition);
 
-    tree_builder.Builder builder =
-        new tree_builder.Builder(new Glue(compiler), compiler);
+    tree_builder.Builder builder = new tree_builder.Builder(
+        new Glue(compiler), compiler.internalError, compiler.identicalFunction);
     tree_ir.ExecutableDefinition treeDefinition = builder.build(cpsDefinition);
     assert(treeDefinition != null);
     traceGraph('Tree builder', treeDefinition);

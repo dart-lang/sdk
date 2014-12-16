@@ -405,7 +405,7 @@ Future testConstantPropagator(String input, String expectedOutput) {
     final unstringifier = new SExpressionUnstringifier();
     final stringifier   = new SExpressionStringifier();
     final optimizer     = new TypePropagator(
-        compiler,
+        compiler.types,
         dart2js.DART_CONSTANT_SYSTEM,
         new UnitTypeSystem(),
         compiler.internalError);

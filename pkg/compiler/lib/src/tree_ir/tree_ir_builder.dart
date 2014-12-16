@@ -8,6 +8,7 @@ import '../dart2jslib.dart' as dart2js;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
+import '../util/util.dart' show CURRENT_ELEMENT_SPANNABLE;
 import 'tree_ir_nodes.dart';
 import '../js_backend/codegen/glue.dart';
 
@@ -44,8 +45,8 @@ import '../js_backend/codegen/glue.dart';
  * still all named.
  */
 class Builder extends cps_ir.Visitor<Node> {
-  // TODO(karlklose): remove the compiler.
-  final dart2js.Compiler compiler;
+  final dart2js.InternalErrorFunction internalError;
+  final Element identicalFunction;
   final Glue glue;
 
   /// Maps variable/parameter elements to the Tree variables that represent it.
@@ -65,12 +66,13 @@ class Builder extends cps_ir.Visitor<Node> {
 
   Builder parent;
 
-  Builder(this.glue, this.compiler);
+  Builder(this.glue, this.internalError, this.identicalFunction);
 
   Builder.inner(Builder parent)
       : this.parent = parent,
         this.glue = parent.glue,
-        compiler = parent.compiler;
+        this.internalError = parent.internalError,
+            this.identicalFunction = parent.identicalFunction;
 
   /// Variable used in [buildPhiAssignments] as a temporary when swapping
   /// variables.
@@ -105,8 +107,8 @@ class Builder extends cps_ir.Visitor<Node> {
   Expression getVariableReference(cps_ir.Reference reference) {
     Variable variable = getVariable(reference.definition);
     if (variable == null) {
-      compiler.internalError(
-          compiler.currentElement,
+      internalError(
+          CURRENT_ELEMENT_SPANNABLE,
           "Reference to ${reference.definition} has no register");
     }
     ++variable.readCount;
@@ -485,16 +487,14 @@ class Builder extends cps_ir.Visitor<Node> {
   Expression visitParameter(cps_ir.Parameter node) {
     // Continuation parameters are not visited (continuations themselves are
     // not visited yet).
-    compiler.internalError(compiler.currentElement,
-        'Unexpected IR node: $node');
+    internalError(CURRENT_ELEMENT_SPANNABLE, 'Unexpected IR node: $node');
     return null;
   }
 
   Expression visitContinuation(cps_ir.Continuation node) {
     // Until continuations with multiple uses are supported, they are not
     // visited.
-    compiler.internalError(compiler.currentElement,
-        'Unexpected IR node: $node.');
+    internalError(CURRENT_ELEMENT_SPANNABLE, 'Unexpected IR node: $node.');
     return null;
   }
 
@@ -508,7 +508,7 @@ class Builder extends cps_ir.Visitor<Node> {
 
   Expression visitIdentical(cps_ir.Identical node) {
     return new InvokeStatic(
-        compiler.identicalFunction,
+        identicalFunction,
         identicalSelector,
         <Expression>[getVariableReference(node.left),
                      getVariableReference(node.right)]);

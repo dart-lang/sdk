@@ -6,6 +6,7 @@ library dart_types;
 
 import 'dart:math' show min;
 
+import 'core_types.dart';
 import 'dart2jslib.dart' show Compiler, invariant, Script, Message;
 import 'elements/modelx.dart'
     show VoidElementX,
@@ -921,8 +922,9 @@ abstract class DartTypeVisitor<R, A> {
  */
 abstract class AbstractTypeRelation extends DartTypeVisitor<bool, DartType> {
   final Compiler compiler;
+  CoreTypes get coreTypes => compiler.coreTypes;
 
-  AbstractTypeRelation(Compiler this.compiler);
+  AbstractTypeRelation(this.compiler);
 
   bool visitType(DartType t, DartType s) {
     throw 'internal error: unknown type kind ${t.kind}';
@@ -972,7 +974,7 @@ abstract class AbstractTypeRelation extends DartTypeVisitor<bool, DartType> {
   }
 
   bool visitFunctionType(FunctionType t, DartType s) {
-    if (s is InterfaceType && identical(s.element, compiler.functionClass)) {
+    if (s == coreTypes.functionType) {
       return true;
     }
     if (s is !FunctionType) return false;
@@ -1102,8 +1104,7 @@ class MoreSpecificVisitor extends AbstractTypeRelation {
   MoreSpecificVisitor(Compiler compiler) : super(compiler);
 
   bool isMoreSpecific(DartType t, DartType s) {
-    if (identical(t, s) || s.treatAsDynamic ||
-        identical(t.element, compiler.nullClass)) {
+    if (identical(t, s) || s.treatAsDynamic || t == coreTypes.nullType) {
       return true;
     }
     if (t.isVoid || s.isVoid) {
@@ -1112,7 +1113,7 @@ class MoreSpecificVisitor extends AbstractTypeRelation {
     if (t.treatAsDynamic) {
       return false;
     }
-    if (identical(s.element, compiler.objectClass)) {
+    if (s == coreTypes.objectType) {
       return true;
     }
     t = t.unalias(compiler);
@@ -1173,9 +1174,7 @@ class SubtypeVisitor extends MoreSpecificVisitor {
   bool visitInterfaceType(InterfaceType t, DartType s) {
     if (super.visitInterfaceType(t, s)) return true;
 
-    if (s is InterfaceType &&
-        s.element == compiler.functionClass &&
-        t.element.callType != null) {
+    if (s == coreTypes.functionType && t.element.callType != null) {
       return true;
     } else if (s is FunctionType) {
       FunctionType callType = t.callType;
@@ -1195,11 +1194,23 @@ typedef void CheckTypeVariableBound(GenericType type,
                                     TypeVariableType typeVariable,
                                     DartType bound);
 
-class Types {
+/// Basic interface for the Dart type system.
+abstract class DartTypes {
+  /// The types defined in 'dart:core'.
+  CoreTypes get coreTypes;
+
+  /// Returns `true` if [t] is a subtype of [s].
+  bool isSubtype(DartType t, DartType s);
+}
+
+class Types implements DartTypes {
+  // TODO(johnniwinther): Replace by [CoreTypes].
   final Compiler compiler;
   final MoreSpecificVisitor moreSpecificVisitor;
   final SubtypeVisitor subtypeVisitor;
   final PotentialSubtypeVisitor potentialSubtypeVisitor;
+
+  CoreTypes get coreTypes => compiler.coreTypes;
 
   Types(Compiler compiler)
       : this.compiler = compiler,
@@ -1500,7 +1511,7 @@ class Types {
   DartType computeLeastUpperBoundFunctionTypes(FunctionType a,
                                                FunctionType b) {
     if (a.parameterTypes.length != b.parameterTypes.length) {
-      return compiler.functionClass.rawType;
+      return coreTypes.functionType;
     }
     DartType returnType = computeLeastUpperBound(a.returnType, b.returnType);
     List<DartType> parameterTypes =
@@ -1582,10 +1593,10 @@ class Types {
     }
 
     if (a.isFunctionType) {
-      a = compiler.functionClass.rawType;
+      a = coreTypes.functionType;
     }
     if (b.isFunctionType) {
-      b = compiler.functionClass.rawType;
+      b = coreTypes.functionType;
     }
 
     if (a.isInterfaceType && b.isInterfaceType) {
