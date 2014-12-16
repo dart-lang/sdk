@@ -319,26 +319,29 @@ class RawObject {
   }
   void SetMarkBit() {
     ASSERT(!IsMarked());
+    UpdateTagBit<MarkBit>(true);
+  }
+  void SetMarkBitUnsynchronized() {
+    ASSERT(!IsMarked());
     uword tags = ptr()->tags_;
     ptr()->tags_ = MarkBit::update(true, tags);
   }
   void ClearMarkBit() {
     ASSERT(IsMarked());
-    uword tags = ptr()->tags_;
-    ptr()->tags_ = MarkBit::update(false, tags);
+    UpdateTagBit<MarkBit>(false);
   }
 
   // Support for GC watched bit.
+  // TODO(iposva): Get rid of this.
   bool IsWatched() const {
     return WatchedBit::decode(ptr()->tags_);
   }
-  void SetWatchedBit() {
+  void SetWatchedBitUnsynchronized() {
     ASSERT(!IsWatched());
     uword tags = ptr()->tags_;
     ptr()->tags_ = WatchedBit::update(true, tags);
   }
-  void ClearWatchedBit() {
-    ASSERT(IsWatched());
+  void ClearWatchedBitUnsynchronized() {
     uword tags = ptr()->tags_;
     ptr()->tags_ = WatchedBit::update(false, tags);
   }
@@ -348,27 +351,13 @@ class RawObject {
     return CanonicalObjectTag::decode(ptr()->tags_);
   }
   void SetCanonical() {
-    uword tags = ptr()->tags_;
-    uword old_tags;
-    do {
-      old_tags = tags;
-      uword new_tags = CanonicalObjectTag::update(true, old_tags);
-      tags = AtomicOperations::CompareAndSwapWord(
-          &ptr()->tags_, old_tags, new_tags);
-    } while (tags != old_tags);
+    UpdateTagBit<CanonicalObjectTag>(true);
   }
   bool IsCreatedFromSnapshot() const {
     return CreatedFromSnapshotTag::decode(ptr()->tags_);
   }
   void SetCreatedFromSnapshot() {
-    uword tags = ptr()->tags_;
-    uword old_tags;
-    do {
-      old_tags = tags;
-      uword new_tags = CreatedFromSnapshotTag::update(true, old_tags);
-      tags = AtomicOperations::CompareAndSwapWord(
-          &ptr()->tags_, old_tags, new_tags);
-    } while (tags != old_tags);
+    UpdateTagBit<CreatedFromSnapshotTag>(true);
   }
 
   // Support for GC remembered bit.
@@ -377,10 +366,17 @@ class RawObject {
   }
   void SetRememberedBit() {
     ASSERT(!IsRemembered());
+    UpdateTagBit<RememberedBit>(true);
+  }
+  void SetRememberedBitUnsynchronized() {
+    ASSERT(!IsRemembered());
     uword tags = ptr()->tags_;
     ptr()->tags_ = RememberedBit::update(true, tags);
   }
   void ClearRememberedBit() {
+    UpdateTagBit<RememberedBit>(false);
+  }
+  void ClearRememberedBitUnsynchronized() {
     uword tags = ptr()->tags_;
     ptr()->tags_ = RememberedBit::update(false, tags);
   }
@@ -478,6 +474,18 @@ class RawObject {
   intptr_t GetClassId() const {
     uword tags = ptr()->tags_;
     return ClassIdTag::decode(tags);
+  }
+
+  template<class TagBitField>
+  void UpdateTagBit(bool value) {
+    uword tags = ptr()->tags_;
+    uword old_tags;
+    do {
+      old_tags = tags;
+      uword new_tags = TagBitField::update(value, old_tags);
+      tags = AtomicOperations::CompareAndSwapWord(
+          &ptr()->tags_, old_tags, new_tags);
+    } while (tags != old_tags);
   }
 
   // All writes to heap objects should ultimately pass through one of the

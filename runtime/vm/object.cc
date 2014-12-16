@@ -855,7 +855,7 @@ class PremarkingVisitor : public ObjectVisitor {
   void VisitObject(RawObject* obj) {
     // RawInstruction objects are premarked on allocation.
     if (!obj->IsMarked()) {
-      obj->SetMarkBit();
+      obj->SetMarkBitUnsynchronized();
     }
   }
 };

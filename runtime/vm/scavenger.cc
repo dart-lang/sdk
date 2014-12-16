@@ -113,7 +113,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       ASSERT(raw_key->IsWatched());
     } else {
       ASSERT(!raw_key->IsWatched());
-      raw_key->SetWatchedBit();
+      raw_key->SetWatchedBitUnsynchronized();
     }
     delay_set_.insert(std::make_pair(raw_key, raw_weak));
   }
@@ -178,7 +178,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       new_addr = ForwardedAddr(header);
     } else {
       if (raw_obj->IsWatched()) {
-        raw_obj->ClearWatchedBit();
+        raw_obj->ClearWatchedBitUnsynchronized();
         std::pair<DelaySet::iterator, DelaySet::iterator> ret;
         // Visit all elements with a key equal to this raw_obj.
         ret = delay_set_.equal_range(raw_obj);
