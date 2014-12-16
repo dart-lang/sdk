@@ -95,7 +95,7 @@ class SocketServerTest {
       expect(response.error.code, equals(RequestErrorCode.SERVER_ERROR));
       expect(response.error.message, equals('mock request exception'));
       expect(response.error.stackTrace, isNotNull);
-      expect(response.error.stackTrace, isNot(isEmpty));
+      expect(response.error.stackTrace, isNotEmpty);
       channel.expectMsgCount(responseCount: 1, notificationCount: 1);
     });
   }

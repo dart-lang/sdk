@@ -179,7 +179,7 @@ void test_setSubscriptions() {
     // wait, there are highlight regions
     helper.waitForOperationsFinished().then((_) {
       var highlights = helper.getHighlights(helper.testFile);
-      expect(highlights, isNot(isEmpty));
+      expect(highlights, isNotEmpty);
     });
   });
 
@@ -196,7 +196,7 @@ void test_setSubscriptions() {
       // wait, has regions
       return helper.waitForOperationsFinished().then((_) {
         var highlights = helper.getHighlights(helper.testFile);
-        expect(highlights, isNot(isEmpty));
+        expect(highlights, isNotEmpty);
       });
     });
   });
@@ -226,7 +226,7 @@ main() {
       helper.addAnalysisSubscriptionNavigation(file);
       return helper.waitForOperationsFinished().then((_) {
         var navigationRegions = helper.getNavigation(file);
-        expect(navigationRegions, isNot(isEmpty));
+        expect(navigationRegions, isNotEmpty);
       });
     });
   });
@@ -396,7 +396,7 @@ f(A a) {
     // Create project and wait for analysis
     createProject();
     return waitForTasksFinished().then((_) {
-      expect(filesErrors[testFile], isNot(isEmpty));
+      expect(filesErrors[testFile], isNotEmpty);
       // Add the package to the package map and tickle the package dependency.
       packageMapProvider.packageMap = {
         'pkgA': [resourceProvider.getResource('/packages/pkgA')]

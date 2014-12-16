@@ -27,7 +27,7 @@ main() {
     standardAnalysisSetup();
     return analysisFinished.then((_) {
       // The contents on disk (badText) are missing a semicolon.
-      expect(currentAnalysisErrors[pathname], isNot(isEmpty));
+      expect(currentAnalysisErrors[pathname], isNotEmpty);
     }).then((_) => sendAnalysisUpdateContent({
       pathname: new AddContentOverlay(goodText)
     })).then((result) => analysisFinished).then((_) {
@@ -40,7 +40,7 @@ main() {
       });
     }).then((result) => analysisFinished).then((_) {
       // There should be errors now because we've removed the semicolon.
-      expect(currentAnalysisErrors[pathname], isNot(isEmpty));
+      expect(currentAnalysisErrors[pathname], isNotEmpty);
       return sendAnalysisUpdateContent({
         pathname: new ChangeContentOverlay(
             [new SourceEdit(goodText.indexOf(';'), 0, ';')])
@@ -54,7 +54,7 @@ main() {
     }).then((result) => analysisFinished).then((_) {
       // Now there should be errors again, because the contents on disk are no
       // longer overridden.
-      expect(currentAnalysisErrors[pathname], isNot(isEmpty));
+      expect(currentAnalysisErrors[pathname], isNotEmpty);
     });
   }
 }

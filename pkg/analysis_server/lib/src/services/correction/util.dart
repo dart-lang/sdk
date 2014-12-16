@@ -999,7 +999,6 @@ class CorrectionUtils {
    * Checks if [type] is visible at [targetOffset].
    */
   bool _isTypeVisible(DartType type) {
-    // TODO(scheglov)
     if (type is TypeParameterType) {
       TypeParameterElement parameterElement = type.element;
       Element parameterClassElement = parameterElement.enclosingElement;

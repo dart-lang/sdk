@@ -41,7 +41,7 @@ main() {
       // analysis.
       return pumpEventQueue().then((_) {
         List<Notification> notifications = helper.channel.notificationsReceived;
-        expect(notifications, isNot(isEmpty));
+        expect(notifications, isNotEmpty);
         // expect at least one notification indicating analysis is in progress
         expect(notifications.any((Notification notification) {
           if (notification.event == SERVER_STATUS) {
