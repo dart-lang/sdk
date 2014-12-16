@@ -1042,6 +1042,7 @@ class ServerContextManager extends ContextManager {
     analysisServer.sendContextAnalysisDoneNotifications(
         context,
         AnalysisDoneReason.CONTEXT_REMOVED);
+    context.dispose();
   }
 
   @override

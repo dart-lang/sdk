@@ -1781,6 +1781,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void dispose() {
     _disposed = true;
+    for (List<PendingFuture> pendingFutures in _pendingFutureSources.values) {
+      for (PendingFuture pendingFuture in pendingFutures) {
+        pendingFuture.forciblyComplete();
+      }
+    }
+    _pendingFutureSources.clear();
   }
 
   @override
@@ -14354,6 +14360,11 @@ class _AnalysisFutureHelper<T> {
    */
   CancelableFuture<T> computeAsync(Source source, T
       computeValue(SourceEntry sourceEntry)) {
+    if (_context.isDisposed) {
+      // No further analysis is expected, so return a future that completes
+      // immediately with AnalysisNotScheduledError.
+      return new CancelableFuture.error(new AnalysisNotScheduledError());
+    }
     SourceEntry sourceEntry = _context.getReadableSourceEntryOrNull(source);
     if (sourceEntry == null) {
       return new CancelableFuture.error(new AnalysisNotScheduledError());

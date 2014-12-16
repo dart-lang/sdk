@@ -669,6 +669,137 @@ main() {}''');
     expect(resolvedUnit, same(parsedUnit));
   }
 
+  Future test_computeResolvedCompilationUnitAsync() {
+    _context = AnalysisContextFactory.contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/lib.dart", "library lib;");
+    // Complete all pending analysis tasks and flush the AST so that it won't
+    // be available immediately.
+    _performPendingAnalysisTasks();
+    DartEntry dartEntry = _context.getReadableSourceEntryOrNull(source);
+    dartEntry.flushAstStructures();
+    bool completed = false;
+    _context.computeResolvedCompilationUnitAsync(
+        source,
+        source).then((CompilationUnit unit) {
+      expect(unit, isNotNull);
+      completed = true;
+    });
+    return pumpEventQueue().then((_) {
+      expect(completed, isFalse);
+      _performPendingAnalysisTasks();
+    }).then((_) => pumpEventQueue()).then((_) {
+      expect(completed, isTrue);
+    });
+  }
+
+  Future test_computeResolvedCompilationUnitAsync_afterDispose() {
+    _context = AnalysisContextFactory.contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/lib.dart", "library lib;");
+    // Complete all pending analysis tasks and flush the AST so that it won't
+    // be available immediately.
+    _performPendingAnalysisTasks();
+    DartEntry dartEntry = _context.getReadableSourceEntryOrNull(source);
+    dartEntry.flushAstStructures();
+    // Dispose of the context.
+    _context.dispose();
+    // Any attempt to start an asynchronous computation should return a future
+    // which completes with error.
+    CancelableFuture<CompilationUnit> future =
+        _context.computeResolvedCompilationUnitAsync(source, source);
+    bool completed = false;
+    future.then((CompilationUnit unit) {
+      fail('Future should have completed with error');
+    }, onError: (error) {
+      expect(error, new isInstanceOf<AnalysisNotScheduledError>());
+      completed = true;
+    });
+    return pumpEventQueue().then((_) {
+      expect(completed, isTrue);
+    });
+  }
+
+  Future test_computeResolvedCompilationUnitAsync_cancel() {
+    _context = AnalysisContextFactory.contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/lib.dart", "library lib;");
+    // Complete all pending analysis tasks and flush the AST so that it won't
+    // be available immediately.
+    _performPendingAnalysisTasks();
+    DartEntry dartEntry = _context.getReadableSourceEntryOrNull(source);
+    dartEntry.flushAstStructures();
+    CancelableFuture<CompilationUnit> future =
+        _context.computeResolvedCompilationUnitAsync(source, source);
+    bool completed = false;
+    future.then((CompilationUnit unit) {
+      fail('Future should have been canceled');
+    }, onError: (error) {
+      expect(error, new isInstanceOf<FutureCanceledError>());
+      completed = true;
+    });
+    expect(completed, isFalse);
+    expect(_context.pendingFutureSources_forTesting, isNotEmpty);
+    future.cancel();
+    expect(_context.pendingFutureSources_forTesting, isEmpty);
+    return pumpEventQueue().then((_) {
+      expect(completed, isTrue);
+      expect(_context.pendingFutureSources_forTesting, isEmpty);
+    });
+  }
+
+  Future test_computeResolvedCompilationUnitAsync_dispose() {
+    _context = AnalysisContextFactory.contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source source = _addSource("/lib.dart", "library lib;");
+    // Complete all pending analysis tasks and flush the AST so that it won't
+    // be available immediately.
+    _performPendingAnalysisTasks();
+    DartEntry dartEntry = _context.getReadableSourceEntryOrNull(source);
+    dartEntry.flushAstStructures();
+    CancelableFuture<CompilationUnit> future =
+        _context.computeResolvedCompilationUnitAsync(source, source);
+    bool completed = false;
+    future.then((CompilationUnit unit) {
+      fail('Future should have completed with error');
+    }, onError: (error) {
+      expect(error, new isInstanceOf<AnalysisNotScheduledError>());
+      completed = true;
+    });
+    expect(completed, isFalse);
+    expect(_context.pendingFutureSources_forTesting, isNotEmpty);
+    // Disposing of the context should cause all pending futures to complete
+    // with AnalysisNotScheduled, so that no clients are left hanging.
+    _context.dispose();
+    expect(_context.pendingFutureSources_forTesting, isEmpty);
+    return pumpEventQueue().then((_) {
+      expect(completed, isTrue);
+      expect(_context.pendingFutureSources_forTesting, isEmpty);
+    });
+  }
+
+  Future test_computeResolvedCompilationUnitAsync_unrelatedLibrary() {
+    _context = AnalysisContextFactory.contextWithCore();
+    _sourceFactory = _context.sourceFactory;
+    Source librarySource = _addSource("/lib.dart", "library lib;");
+    Source partSource = _addSource("/part.dart", "part of foo;");
+    bool completed = false;
+    _context.computeResolvedCompilationUnitAsync(
+        partSource,
+        librarySource).then((_) {
+      fail('Expected resolution to fail');
+    }, onError: (e) {
+      expect(e, new isInstanceOf<AnalysisNotScheduledError>());
+      completed = true;
+    });
+    return pumpEventQueue().then((_) {
+      expect(completed, isFalse);
+      _performPendingAnalysisTasks();
+    }).then((_) => pumpEventQueue()).then((_) {
+      expect(completed, isTrue);
+    });
+  }
+
   void test_dispose() {
     expect(_context.isDisposed, isFalse);
     _context.dispose();
@@ -1127,80 +1258,6 @@ main() {}''');
     expect(_context.getResolvedCompilationUnit2(source, source), isNull);
     expect(_context.resolveCompilationUnit2(source, source), isNull);
     expect(_context.getResolvedCompilationUnit2(source, source), isNull);
-  }
-
-  Future test_getResolvedCompilationUnitFuture() {
-    _context = AnalysisContextFactory.contextWithCore();
-    _sourceFactory = _context.sourceFactory;
-    Source source = _addSource("/lib.dart", "library lib;");
-    // Complete all pending analysis tasks and flush the AST so that it won't
-    // be available immediately.
-    _performPendingAnalysisTasks();
-    DartEntry dartEntry = _context.getReadableSourceEntryOrNull(source);
-    dartEntry.flushAstStructures();
-    bool completed = false;
-    _context.computeResolvedCompilationUnitAsync(
-        source,
-        source).then((CompilationUnit unit) {
-      expect(unit, isNotNull);
-      completed = true;
-    });
-    return pumpEventQueue().then((_) {
-      expect(completed, isFalse);
-      _performPendingAnalysisTasks();
-    }).then((_) => pumpEventQueue()).then((_) {
-      expect(completed, isTrue);
-    });
-  }
-
-  Future test_getResolvedCompilationUnitFuture_cancel() {
-    _context = AnalysisContextFactory.contextWithCore();
-    _sourceFactory = _context.sourceFactory;
-    Source source = _addSource("/lib.dart", "library lib;");
-    // Complete all pending analysis tasks and flush the AST so that it won't
-    // be available immediately.
-    _performPendingAnalysisTasks();
-    DartEntry dartEntry = _context.getReadableSourceEntryOrNull(source);
-    dartEntry.flushAstStructures();
-    CancelableFuture<CompilationUnit> future =
-        _context.computeResolvedCompilationUnitAsync(source, source);
-    bool completed = false;
-    future.then((CompilationUnit unit) {
-      fail('Future should have been canceled');
-    }, onError: (error) {
-      expect(error, new isInstanceOf<FutureCanceledError>());
-      completed = true;
-    });
-    expect(completed, isFalse);
-    expect(_context.pendingFutureSources_forTesting, isNotEmpty);
-    future.cancel();
-    expect(_context.pendingFutureSources_forTesting, isEmpty);
-    return pumpEventQueue().then((_) {
-      expect(completed, isTrue);
-      expect(_context.pendingFutureSources_forTesting, isEmpty);
-    });
-  }
-
-  Future test_getResolvedCompilationUnitFuture_unrelatedLibrary() {
-    _context = AnalysisContextFactory.contextWithCore();
-    _sourceFactory = _context.sourceFactory;
-    Source librarySource = _addSource("/lib.dart", "library lib;");
-    Source partSource = _addSource("/part.dart", "part of foo;");
-    bool completed = false;
-    _context.computeResolvedCompilationUnitAsync(
-        partSource,
-        librarySource).then((_) {
-      fail('Expected resolution to fail');
-    }, onError: (e) {
-      expect(e, new isInstanceOf<AnalysisNotScheduledError>());
-      completed = true;
-    });
-    return pumpEventQueue().then((_) {
-      expect(completed, isFalse);
-      _performPendingAnalysisTasks();
-    }).then((_) => pumpEventQueue()).then((_) {
-      expect(completed, isTrue);
-    });
   }
 
   void test_getResolvedHtmlUnit() {

@@ -48,6 +48,19 @@ class AnalysisServerTest {
         rethrowExceptions: true);
   }
 
+  Future test_contextDisposed() {
+    resourceProvider.newFolder('/foo');
+    resourceProvider.newFile('/foo/bar.dart', 'library lib;');
+    server.setAnalysisRoots('0', ['/foo'], [], {});
+    AnalysisContext context;
+    return pumpEventQueue().then((_) {
+      context = server.getAnalysisContext('/foo/bar.dart');
+      server.setAnalysisRoots('1', [], [], {});
+    }).then((_) => pumpEventQueue()).then((_) {
+      expect(context.isDisposed, isTrue);
+    });
+  }
+
   Future test_contextsChangedEvent() {
     resourceProvider.newFolder('/foo');
 
