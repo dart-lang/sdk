@@ -17,9 +17,50 @@ typedef void CancelHandler();
  * a value or error.
  *
  * This class behaves like the standard library [Completer] class, except that
- * its [future] getter returns a [CancelableFuture].  If the future is
- * canceled before being completed, the [CancelHandler] which was passed to
- * the constructor is invoked.
+ * its [future] getter returns a [CancelableFuture].
+ *
+ * If the future is canceled before being completed, the [CancelHandler] which
+ * was passed to the constructor is invoked, and any further attempt to
+ * complete the future has no effect.  For example, in the following code:
+ *
+ *     main() {
+ *       var cc = new CancelableCompleter(() {
+ *         print('cancelled'); // (2)
+ *       });
+ *       cc.future.then((value) {
+ *         print('completed with value $value');
+ *       }, onError: (error) {
+ *         print('completed with error $error'); // (3)
+ *       });
+ *       cc.future.cancel(); // (1)
+ *     }
+ *
+ * The call at (1) causes (2) to be invoked immediately.  (3) will be invoked
+ * later (on a microtask), with an error that is an instance of
+ * [FutureCanceledError].
+ *
+ * Note that since the closure passed to then() is executed on a microtask,
+ * there is a short window of time between the call to [complete] and the
+ * client being informed that the future has completed.  During this window,
+ * any attempt to cancel the future will have no effect.  For example, in the
+ * following code:
+ *
+ *     main() {
+ *       var cc = new CancelableCompleter(() {
+ *         print('cancelled'); // (3)
+ *       });
+ *       cc.future.then((value) {
+ *         print('completed with value $value'); // (4)
+ *       }, onError: (error) {
+ *         print('completed with error $error');
+ *       });
+ *       cc.complete(100); // (1)
+ *       cc.future.cancel(); // (2)
+ *     }
+ *
+ * The call at (1) will place the completer in the "completed" state, so the
+ * call at (2) will have no effect (in particular, (3) won't ever execute).
+ * Later, (4) will be invoked on a microtask.
  */
 class CancelableCompleter<T> implements Completer<T> {
   /**
