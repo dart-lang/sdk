@@ -188,7 +188,7 @@ class DartCompletionManager extends CompletionManager {
    * compilation unit is never going to be resolved.
    */
   Future<CompilationUnit> waitForAnalysis() {
-    return context.getResolvedCompilationUnitFuture(
+    return context.computeResolvedCompilationUnitAsync(
         source,
         source).catchError((_) {
       // This source file is not scheduled for analysis, so a resolved

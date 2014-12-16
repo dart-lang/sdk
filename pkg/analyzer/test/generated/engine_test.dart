@@ -1139,7 +1139,7 @@ main() {}''');
     DartEntry dartEntry = _context.getReadableSourceEntryOrNull(source);
     dartEntry.flushAstStructures();
     bool completed = false;
-    _context.getResolvedCompilationUnitFuture(
+    _context.computeResolvedCompilationUnitAsync(
         source,
         source).then((CompilationUnit unit) {
       expect(unit, isNotNull);
@@ -1163,7 +1163,7 @@ main() {}''');
     DartEntry dartEntry = _context.getReadableSourceEntryOrNull(source);
     dartEntry.flushAstStructures();
     CancelableFuture<CompilationUnit> future =
-        _context.getResolvedCompilationUnitFuture(source, source);
+        _context.computeResolvedCompilationUnitAsync(source, source);
     bool completed = false;
     future.then((CompilationUnit unit) {
       fail('Future should have been canceled');
@@ -1187,7 +1187,7 @@ main() {}''');
     Source librarySource = _addSource("/lib.dart", "library lib;");
     Source partSource = _addSource("/part.dart", "part of foo;");
     bool completed = false;
-    _context.getResolvedCompilationUnitFuture(
+    _context.computeResolvedCompilationUnitAsync(
         partSource,
         librarySource).then((_) {
       fail('Expected resolution to fail');
@@ -6016,6 +6016,12 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  Future<CompilationUnit> computeResolvedCompilationUnitAsync(Source source,
+      Source librarySource) {
+    fail("Unexpected invocation of getResolvedCompilationUnitFuture");
+    return null;
+  }
+  @override
   void dispose() {
     fail("Unexpected invocation of dispose");
   }
@@ -6115,12 +6121,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
   CompilationUnit getResolvedCompilationUnit2(Source unitSource,
       Source librarySource) {
     fail("Unexpected invocation of getResolvedCompilationUnit");
-    return null;
-  }
-  @override
-  Future<CompilationUnit> getResolvedCompilationUnitFuture(Source source,
-      Source librarySource) {
-    fail("Unexpected invocation of getResolvedCompilationUnitFuture");
     return null;
   }
   @override

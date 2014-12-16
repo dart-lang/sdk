@@ -549,6 +549,20 @@ abstract class AnalysisContext {
   LineInfo computeLineInfo(Source source);
 
   /**
+   * Return a future which will be completed with the fully resolved AST for a
+   * single compilation unit within the given library, once that AST is up to
+   * date.
+   *
+   * If the resolved AST can't be computed for some reason, the future will be
+   * completed with an error.  One possible error is AnalysisNotScheduledError,
+   * which means that the resolved AST can't be computed because the given
+   * source file is not scheduled to be analyzed within the context of the
+   * given library.
+   */
+  CancelableFuture<CompilationUnit>
+      computeResolvedCompilationUnitAsync(Source source, Source librarySource);
+
+  /**
    * Notifies the context that the client is going to stop using this context.
    */
   void dispose();
@@ -747,20 +761,6 @@ abstract class AnalysisContext {
    */
   CompilationUnit getResolvedCompilationUnit2(Source unitSource,
       Source librarySource);
-
-  /**
-   * Return a future which will be completed with the fully resolved AST for a
-   * single compilation unit within the given library, once that AST is up to
-   * date.
-   *
-   * If the resolved AST can't be computed for some reason, the future will be
-   * completed with an error.  One possible error is AnalysisNotScheduledError,
-   * which means that the resolved AST can't be computed because the given
-   * source file is not scheduled to be analyzed within the context of the
-   * given library.
-   */
-  CancelableFuture<CompilationUnit>
-      getResolvedCompilationUnitFuture(Source source, Source librarySource);
 
   /**
    * Return a fully resolved HTML unit, or `null` if the resolved unit is not already
@@ -1738,6 +1738,26 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return unit;
   }
 
+  @override
+  CancelableFuture<CompilationUnit>
+      computeResolvedCompilationUnitAsync(Source unitSource, Source librarySource) {
+    return new _AnalysisFutureHelper<CompilationUnit>(
+        this).computeAsync(unitSource, (SourceEntry sourceEntry) {
+      if (sourceEntry is DartEntry) {
+        if (sourceEntry.getStateInLibrary(
+            DartEntry.RESOLVED_UNIT,
+            librarySource) ==
+            CacheState.ERROR) {
+          throw sourceEntry.exception;
+        }
+        return sourceEntry.getValueInLibrary(
+            DartEntry.RESOLVED_UNIT,
+            librarySource);
+      }
+      throw new AnalysisNotScheduledError();
+    });
+  }
+
   /**
    * Create an analysis cache based on the given source factory.
    *
@@ -2079,26 +2099,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           librarySource);
     }
     return null;
-  }
-
-  @override
-  CancelableFuture<CompilationUnit>
-      getResolvedCompilationUnitFuture(Source unitSource, Source librarySource) {
-    return new _AnalysisFutureHelper<CompilationUnit>(
-        this).getFuture(unitSource, (SourceEntry sourceEntry) {
-      if (sourceEntry is DartEntry) {
-        if (sourceEntry.getStateInLibrary(
-            DartEntry.RESOLVED_UNIT,
-            librarySource) ==
-            CacheState.ERROR) {
-          throw sourceEntry.exception;
-        }
-        return sourceEntry.getValueInLibrary(
-            DartEntry.RESOLVED_UNIT,
-            librarySource);
-      }
-      throw new AnalysisNotScheduledError();
-    });
   }
 
   @override
@@ -14352,7 +14352,7 @@ class _AnalysisFutureHelper<T> {
    * updated, it should be free of side effects so that it doesn't cause
    * reentrant changes to the analysis state.
    */
-  CancelableFuture<T> getFuture(Source source, T
+  CancelableFuture<T> computeAsync(Source source, T
       computeValue(SourceEntry sourceEntry)) {
     SourceEntry sourceEntry = _context.getReadableSourceEntryOrNull(source);
     if (sourceEntry == null) {
