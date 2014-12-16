@@ -5003,7 +5003,7 @@ void LICM::Hoist(ForwardInstructionIterator* it,
   GotoInstr* last = pre_header->last_instruction()->AsGoto();
   // Using kind kEffect will not assign a fresh ssa temporary index.
   flow_graph()->InsertBefore(last, current, last->env(), FlowGraph::kEffect);
-  current->deopt_id_ = last->GetDeoptId();
+  current->CopyDeoptIdFrom(*last);
 }
 
 
@@ -9261,7 +9261,7 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
           // InheritDeoptTarget gave the new branch's comparison the same
           // deopt id that it gave the new branch.  The id should be the
           // deopt id of the original comparison.
-          new_branch->comparison()->SetDeoptId(comparison->GetDeoptId());
+          new_branch->comparison()->SetDeoptId(*comparison);
           // The phi can be used in the branch's environment.  Rename such
           // uses.
           for (Environment::DeepIterator it(new_branch->env());

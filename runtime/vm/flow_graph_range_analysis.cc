@@ -958,7 +958,7 @@ class Scheduler {
                               last->env(),
                               instr->IsDefinition() ? FlowGraph::kValue
                                                     : FlowGraph::kEffect);
-    instr->deopt_id_ = last->GetDeoptId();
+    instr->CopyDeoptIdFrom(*last);
     instr->env()->set_deopt_id(instr->deopt_id_);
 
     map_.Insert(instr);

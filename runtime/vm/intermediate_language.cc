@@ -759,7 +759,7 @@ void Instruction::InheritDeoptTargetAfter(FlowGraph* flow_graph,
 
 void Instruction::InheritDeoptTarget(Isolate* isolate, Instruction* other) {
   ASSERT(other->env() != NULL);
-  deopt_id_ = other->deopt_id_;
+  CopyDeoptIdFrom(*other);
   other->env()->DeepCopyTo(isolate, this);
   env()->set_deopt_id(deopt_id_);
 }
@@ -768,7 +768,7 @@ void Instruction::InheritDeoptTarget(Isolate* isolate, Instruction* other) {
 void BranchInstr::InheritDeoptTarget(Isolate* isolate, Instruction* other) {
   ASSERT(env() == NULL);
   Instruction::InheritDeoptTarget(isolate, other);
-  comparison()->SetDeoptId(GetDeoptId());
+  comparison()->SetDeoptId(*this);
 }
 
 
@@ -822,7 +822,7 @@ void Definition::ReplaceWith(Definition* other,
   // Take other's environment from this definition.
   ASSERT(other->env() == NULL);
   other->SetEnvironment(env());
-  env_ = NULL;
+  ClearEnv();
   // Replace all uses of this definition with other.
   ReplaceUsesWith(other);
   // Reuse this instruction's SSA name for other.
@@ -956,7 +956,7 @@ bool BlockEntryInstr::PruneUnreachable(FlowGraphBuilder* builder,
       ASSERT(instr->previous() == this);
 
       GotoInstr* goto_join = new GotoInstr(AsJoinEntry());
-      goto_join->deopt_id_ = parent->deopt_id_;
+      goto_join->CopyDeoptIdFrom(*parent);
       graph_entry->normal_entry()->LinkTo(goto_join);
       return true;
     }

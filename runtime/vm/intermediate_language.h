@@ -619,7 +619,7 @@ class Instruction : public ZoneAllocated {
 
   intptr_t deopt_id() const {
     ASSERT(CanDeoptimize() || CanBecomeDeoptimizationTarget());
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   const ICData* GetICData(
@@ -717,10 +717,12 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 
   // Returns structure describing location constraints required
   // to emit native code for this instruction.
-  virtual LocationSummary* locs() {
+  LocationSummary* locs() {
     ASSERT(locs_ != NULL);
     return locs_;
   }
+
+  bool HasLocs() const { return locs_ != NULL; }
 
   virtual LocationSummary* MakeLocationSummary(Isolate* isolate,
                                                bool is_optimizing) const = 0;
@@ -848,24 +850,26 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 
   bool IsDominatedBy(Instruction* dom);
 
+  void ClearEnv() { env_ = NULL; }
+
  protected:
+  // GetDeoptId and/or CopyDeoptIdFrom.
+  friend class CallSiteInliner;
+  friend class LICM;
+  friend class ComparisonInstr;
+  friend class Scheduler;
+  friend class BlockEntryInstr;
+
   // Fetch deopt id without checking if this computation can deoptimize.
   intptr_t GetDeoptId() const {
     return deopt_id_;
   }
 
+  void CopyDeoptIdFrom(const Instruction& instr) {
+    deopt_id_ = instr.deopt_id_;
+  }
+
  private:
-  friend class FlowGraphPrinter;
-  friend class Definition;  // Needed for InsertBefore, InsertAfter.
-  friend class CallSiteInliner;
-
-  // deopt_id_ write access.
-  friend class ComparisonInstr;
-  friend class LICM;
-  friend class Scheduler;
-  friend class BlockEntryInstr;
-  friend class BranchSimplifier;
-
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
   enum {
@@ -2240,8 +2244,8 @@ class ComparisonInstr : public TemplateDefinition<2, NoThrow, Pure> {
   virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
                                        BranchLabels labels) = 0;
 
-  void SetDeoptId(intptr_t deopt_id) {
-    deopt_id_ = deopt_id;
+  void SetDeoptId(const Instruction& instr) {
+    CopyDeoptIdFrom(instr);
   }
 
   // Operation class id is computed from collected ICData.
