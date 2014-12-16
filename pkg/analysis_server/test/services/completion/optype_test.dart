@@ -4,7 +4,7 @@
 
 library test.services.completion.computer.dart.optype;
 
-import 'package:analysis_server/src/services/completion/optype_ast_visitor.dart';
+import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -15,13 +15,13 @@ import '../../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(OpTypeAstVisitorTest);
+  runReflectiveTests(OpTypeTest);
 }
 
 @ReflectiveTestCase()
-class OpTypeAstVisitorTest {
+class OpTypeTest {
 
-  OpTypeAstVisitor visitor;
+  OpType visitor;
 
   void addTestSource(String content, {bool resolved: false}) {
     int offset = content.indexOf('^');
@@ -38,8 +38,7 @@ class OpTypeAstVisitorTest {
         context.resolveCompilationUnit2(source, source) :
         context.parseCompilationUnit(source);
     AstNode node = new NodeLocator.con1(offset).searchWithin(unit);
-    visitor = new OpTypeAstVisitor(offset);
-    node.accept(visitor);
+    visitor = new OpType.forCompletion(node, offset);
   }
 
   void assertOpType({bool invocation: false, bool returnValue: false,

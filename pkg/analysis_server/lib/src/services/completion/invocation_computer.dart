@@ -7,11 +7,10 @@ library services.completion.computer.dart.invocation;
 import 'dart:async';
 
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
-import 'package:analysis_server/src/services/completion/optype_ast_visitor.dart';
+import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 
 import '../../protocol_server.dart' show CompletionSuggestionKind;
 
@@ -24,13 +23,8 @@ class InvocationComputer extends DartCompletionComputer {
 
   @override
   bool computeFast(DartCompletionRequest request) {
-
-    // Determine the type of suggestions to be made
-    OpTypeAstVisitor opTypeVisitor = new OpTypeAstVisitor(request.offset);
-    request.node.accept(opTypeVisitor);
-
-    // Build the suggestions
-    if (opTypeVisitor.includeInvocationSuggestions) {
+    OpType optype = request.optype;
+    if (optype.includeInvocationSuggestions) {
       builder = request.node.accept(new _InvocationAstVisitor(request));
       if (builder != null) {
         return builder.computeFast(request.node);

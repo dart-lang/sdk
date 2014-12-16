@@ -15,6 +15,7 @@ import 'package:analysis_server/src/services/completion/imported_computer.dart';
 import 'package:analysis_server/src/services/completion/invocation_computer.dart';
 import 'package:analysis_server/src/services/completion/keyword_computer.dart';
 import 'package:analysis_server/src/services/completion/local_computer.dart';
+import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -237,6 +238,11 @@ class DartCompletionRequest extends CompletionRequest {
   AstNode node;
 
   /**
+   * Information about the types of suggestions that should be included.
+   */
+  OpType _optype;
+
+  /**
    * The offset of the start of the text to be replaced.
    * This will be different than the offset used to request the completion
    * suggestions if there was a portion of an identifier before the original
@@ -268,6 +274,17 @@ class DartCompletionRequest extends CompletionRequest {
   String get filterText {
     return context.getContents(
         source).data.substring(replacementOffset, offset);
+  }
+
+  /**
+   * Information about the types of suggestions that should be included.
+   * This will return `null` if the [node] has not been set.
+   */
+  OpType get optype {
+    if (_optype == null && node != null) {
+      _optype = new OpType.forCompletion(node, offset);
+    }
+    return _optype;
   }
 }
 

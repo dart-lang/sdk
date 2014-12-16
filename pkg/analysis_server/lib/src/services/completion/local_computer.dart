@@ -11,7 +11,7 @@ import 'package:analysis_server/src/protocol.dart' as protocol show Element,
 import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/local_declaration_visitor.dart';
-import 'package:analysis_server/src/services/completion/optype_ast_visitor.dart';
+import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
@@ -23,17 +23,11 @@ class LocalComputer extends DartCompletionComputer {
 
   @override
   bool computeFast(DartCompletionRequest request) {
-
-    // Determine the type of suggestions to be made
-    OpTypeAstVisitor opTypeVisitor = new OpTypeAstVisitor(request.offset);
-    request.node.accept(opTypeVisitor);
-
-    // Build the suggestions
-    if (opTypeVisitor.includeTopLevelSuggestions) {
+    OpType optype = request.optype;
+    if (optype.includeTopLevelSuggestions) {
       _LocalVisitor localVisitor = new _LocalVisitor(request, request.offset);
-      localVisitor.typesOnly = opTypeVisitor.includeOnlyTypeNameSuggestions;
-      localVisitor.excludeVoidReturn =
-          !opTypeVisitor.includeVoidReturnSuggestions;
+      localVisitor.typesOnly = optype.includeOnlyTypeNameSuggestions;
+      localVisitor.excludeVoidReturn = !optype.includeVoidReturnSuggestions;
 
       // Collect suggestions from the specific child [AstNode] that contains
       // the completion offset and all of its parents recursively.

@@ -12,12 +12,7 @@ import 'package:analyzer/src/generated/scanner.dart';
  * suggestions should be made based upon the type of node in which the
  * suggestions were requested.
  */
-class OpTypeAstVisitor extends GeneralizingAstVisitor {
-
-  /**
-   * The offset within the source at which the completion is requested.
-   */
-  int offset;
+class OpType {
 
   /**
    * Indicates whether invocation suggestions should be included.
@@ -41,7 +36,17 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
    */
   bool includeReturnValueSuggestions = false;
 
-  OpTypeAstVisitor(this.offset);
+  /**
+   * Determine the suggestions that should be made based upon the given
+   * [AstNode] and offset.
+   */
+  factory OpType.forCompletion(AstNode node, int offset) {
+    OpType optype = new OpType._();
+    node.accept(new _OpTypeAstVisitor(optype, offset));
+    return optype;
+  }
+
+  OpType._();
 
   /**
    * Indicate whether only type names should be suggested
@@ -60,6 +65,22 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
           includeTypeNameSuggestions ||
           includeVoidReturnSuggestions;
 
+}
+
+class _OpTypeAstVisitor extends GeneralizingAstVisitor {
+
+  /**
+   * The offset within the source at which the completion is requested.
+   */
+  final int offset;
+
+  /**
+   * The [OpType] being initialized
+   */
+  final OpType optype;
+
+  _OpTypeAstVisitor(this.optype, this.offset);
+
   bool isAfterSemicolon(Token semicolon) =>
       semicolon != null && !semicolon.isSynthetic && semicolon.offset < offset;
 
@@ -67,41 +88,41 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitAnnotation(Annotation node) {
     Token atSign = node.atSign;
     if (atSign == null || offset <= atSign.offset) {
-      includeReturnValueSuggestions = true;
-      includeTypeNameSuggestions = true;
-      includeVoidReturnSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+      optype.includeVoidReturnSuggestions = true;
     } else {
       Token period = node.period;
       if (period == null || offset <= period.offset) {
-        includeTypeNameSuggestions = true;
-        includeReturnValueSuggestions = true;
+        optype.includeTypeNameSuggestions = true;
+        optype.includeReturnValueSuggestions = true;
       } else {
-        includeInvocationSuggestions = true;
+        optype.includeInvocationSuggestions = true;
       }
     }
   }
 
   @override
   void visitArgumentList(ArgumentList node) {
-    includeReturnValueSuggestions = true;
-    includeTypeNameSuggestions = true;
+    optype.includeReturnValueSuggestions = true;
+    optype.includeTypeNameSuggestions = true;
   }
 
   @override
   void visitBlock(Block node) {
-    includeReturnValueSuggestions = true;
-    includeTypeNameSuggestions = true;
-    includeVoidReturnSuggestions = true;
+    optype.includeReturnValueSuggestions = true;
+    optype.includeTypeNameSuggestions = true;
+    optype.includeVoidReturnSuggestions = true;
   }
 
   @override
   void visitCascadeExpression(CascadeExpression node) {
     Expression target = node.target;
     if (target != null && offset <= target.end) {
-      includeReturnValueSuggestions = true;
-      includeTypeNameSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
     } else {
-      includeInvocationSuggestions = true;
+      optype.includeInvocationSuggestions = true;
     }
   }
 
@@ -110,22 +131,22 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
     // Make suggestions in the body of the class declaration
     Token leftBracket = node.leftBracket;
     if (leftBracket != null && offset >= leftBracket.end) {
-      includeTypeNameSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
   @override
   void visitClassMember(ClassMember node) {
     if (offset <= node.offset || node.end <= offset) {
-      includeTypeNameSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
   @override
   void visitCommentReference(CommentReference node) {
-    includeReturnValueSuggestions = true;
-    includeTypeNameSuggestions = true;
-    includeVoidReturnSuggestions = true;
+    optype.includeReturnValueSuggestions = true;
+    optype.includeTypeNameSuggestions = true;
+    optype.includeVoidReturnSuggestions = true;
   }
 
   @override
@@ -138,7 +159,7 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
       if (type != null) {
         SimpleIdentifier prefix = type.name;
         if (prefix != null) {
-          includeInvocationSuggestions = true;
+          optype.includeInvocationSuggestions = true;
         }
       }
     }
@@ -150,31 +171,31 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (leftParen != null && leftParen.end <= offset) {
       Token rightParen = node.rightParenthesis;
       if (rightParen == null || offset <= rightParen.offset) {
-        includeReturnValueSuggestions = true;
-        includeTypeNameSuggestions = true;
+        optype.includeReturnValueSuggestions = true;
+        optype.includeTypeNameSuggestions = true;
       }
     }
   }
 
   @override
   void visitEmptyStatement(EmptyStatement node) {
-    includeReturnValueSuggestions = true;
-    includeTypeNameSuggestions = true;
-    includeVoidReturnSuggestions = true;
+    optype.includeReturnValueSuggestions = true;
+    optype.includeTypeNameSuggestions = true;
+    optype.includeVoidReturnSuggestions = true;
   }
 
   @override
   void visitExpression(Expression node) {
-    includeReturnValueSuggestions = true;
-    includeTypeNameSuggestions = true;
+    optype.includeReturnValueSuggestions = true;
+    optype.includeTypeNameSuggestions = true;
   }
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     Token functionDefinition = node.functionDefinition;
     if (functionDefinition != null && functionDefinition.end <= offset) {
-      includeReturnValueSuggestions = true;
-      includeTypeNameSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
@@ -184,15 +205,15 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
     // A pre-variable declaration (e.g. C ^) is parsed as an expression
     // statement. Do not make suggestions for the variable name.
     if (expression is SimpleIdentifier && offset <= expression.end) {
-      includeReturnValueSuggestions = true;
-      includeTypeNameSuggestions = true;
-      includeVoidReturnSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+      optype.includeVoidReturnSuggestions = true;
     } else {
       Token semicolon = node.semicolon;
       if (semicolon != null && semicolon.end <= offset) {
-        includeReturnValueSuggestions = true;
-        includeTypeNameSuggestions = true;
-        includeVoidReturnSuggestions = true;
+        optype.includeReturnValueSuggestions = true;
+        optype.includeTypeNameSuggestions = true;
+        optype.includeVoidReturnSuggestions = true;
       }
     }
   }
@@ -201,7 +222,7 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitExtendsClause(ExtendsClause node) {
     Token keyword = node.keyword;
     if (keyword != null && keyword.end < offset) {
-      includeTypeNameSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
@@ -211,8 +232,8 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (leftParen != null && leftParen.end <= offset) {
       Token rightParen = node.rightParenthesis;
       if (rightParen == null || offset <= rightParen.offset) {
-        includeReturnValueSuggestions = true;
-        includeTypeNameSuggestions = true;
+        optype.includeReturnValueSuggestions = true;
+        optype.includeTypeNameSuggestions = true;
       }
     }
   }
@@ -223,8 +244,8 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (leftParen != null && offset > leftParen.offset) {
       Token rightParen = node.rightParenthesis;
       if (rightParen == null || offset <= rightParen.offset) {
-        includeReturnValueSuggestions = true;
-        includeTypeNameSuggestions = true;
+        optype.includeReturnValueSuggestions = true;
+        optype.includeTypeNameSuggestions = true;
       }
     }
   }
@@ -233,9 +254,9 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitForStatement(ForStatement node) {
     Token leftParen = node.leftParenthesis;
     if (leftParen != null && offset >= leftParen.end) {
-      includeReturnValueSuggestions = true;
-      includeTypeNameSuggestions = true;
-      includeVoidReturnSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+      optype.includeVoidReturnSuggestions = true;
       // TODO (danrubel) void return suggestions only belong after
       // the 2nd semicolon.  Return value suggestions only belong after the
       // e1st or second semicolon.
@@ -250,7 +271,7 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
       if (id != null) {
         TypeName returnType = node.returnType;
         if (offset <= (returnType != null ? returnType.end : id.end)) {
-          includeTypeNameSuggestions = true;
+          optype.includeTypeNameSuggestions = true;
         }
       }
     }
@@ -262,8 +283,8 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (leftParen != null && offset >= leftParen.end) {
       Token rightParen = node.rightParenthesis;
       if (rightParen == null || offset <= rightParen.offset) {
-        includeReturnValueSuggestions = true;
-        includeTypeNameSuggestions = true;
+        optype.includeReturnValueSuggestions = true;
+        optype.includeTypeNameSuggestions = true;
       }
     }
   }
@@ -272,7 +293,7 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitImplementsClause(ImplementsClause node) {
     Token keyword = node.keyword;
     if (keyword != null && keyword.end < offset) {
-      includeTypeNameSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
@@ -280,8 +301,8 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitInterpolationExpression(InterpolationExpression node) {
     Expression expression = node.expression;
     if (expression is SimpleIdentifier) {
-      includeReturnValueSuggestions = true;
-      includeTypeNameSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
@@ -289,7 +310,7 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitMethodDeclaration(MethodDeclaration node) {
     SimpleIdentifier id = node.name;
     if (id != null && offset < id.offset) {
-      includeTypeNameSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
     }
     visitClassMember(node);
   }
@@ -298,10 +319,10 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitMethodInvocation(MethodInvocation node) {
     Token period = node.period;
     if (period == null || offset <= period.offset) {
-      includeReturnValueSuggestions = true;
-      includeTypeNameSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
     } else {
-      includeInvocationSuggestions = true;
+      optype.includeInvocationSuggestions = true;
     }
   }
 
@@ -312,18 +333,18 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitNormalFormalParameter(NormalFormalParameter node) {
-    includeReturnValueSuggestions = true;
-    includeTypeNameSuggestions = true;
+    optype.includeReturnValueSuggestions = true;
+    optype.includeTypeNameSuggestions = true;
   }
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     Token period = node.period;
     if (period == null || offset <= period.offset) {
-      includeReturnValueSuggestions = true;
-      includeTypeNameSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
     } else {
-      includeInvocationSuggestions = true;
+      optype.includeInvocationSuggestions = true;
     }
   }
 
@@ -331,10 +352,10 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitPropertyAccess(PropertyAccess node) {
     var operator = node.operator;
     if (operator != null && offset < operator.offset) {
-      includeReturnValueSuggestions = true;
-      includeTypeNameSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
     } else {
-      includeInvocationSuggestions = true;
+      optype.includeInvocationSuggestions = true;
     }
   }
 
@@ -342,8 +363,8 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitReturnStatement(ReturnStatement node) {
     Token keyword = node.keyword;
     if (keyword != null && keyword.end < offset) {
-      includeReturnValueSuggestions = true;
-      includeTypeNameSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
@@ -361,9 +382,9 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitSwitchCase(SwitchCase node) {
     Token keyword = node.keyword;
     if (keyword == null || keyword.end < offset) {
-      includeReturnValueSuggestions = true;
-      includeTypeNameSuggestions = true;
-      includeVoidReturnSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+      optype.includeVoidReturnSuggestions = true;
     }
   }
 
@@ -373,8 +394,8 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (leftParen != null && leftParen.end <= offset) {
       Token rightParen = node.rightParenthesis;
       if (rightParen == null || offset <= rightParen.offset) {
-        includeReturnValueSuggestions = true;
-        includeTypeNameSuggestions = true;
+        optype.includeReturnValueSuggestions = true;
+        optype.includeTypeNameSuggestions = true;
       }
     }
   }
@@ -385,7 +406,7 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
     // then limit suggestions to only types in specific situations
     AstNode p = node.parent;
     if (p is IsExpression || p is ConstructorName || p is AsExpression) {
-      includeTypeNameSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
       // TODO (danrubel) Possible future improvement:
       // on the RHS of an "is" or "as" expression, don't suggest types that are
       // guaranteed to pass or guaranteed to fail the cast.
@@ -396,19 +417,19 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
       // or (2) starting a new statement.
       // Consider suggesting only types
       // if only spaces separates the 1st and 2nd identifiers.
-      includeReturnValueSuggestions = true;
-      includeTypeNameSuggestions = true;
-      includeVoidReturnSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+      optype.includeVoidReturnSuggestions = true;
     } else {
-      includeReturnValueSuggestions = true;
-      includeTypeNameSuggestions = true;
-      includeVoidReturnSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+      optype.includeVoidReturnSuggestions = true;
     }
   }
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    includeTypeNameSuggestions = true;
+    optype.includeTypeNameSuggestions = true;
   }
 
   @override
@@ -416,17 +437,17 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
     Token equals = node.equals;
     // Make suggestions for the RHS of a variable declaration
     if (equals != null && offset >= equals.end) {
-      includeReturnValueSuggestions = true;
-      includeTypeNameSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     if (isAfterSemicolon(node.semicolon)) {
-      includeReturnValueSuggestions = true;
-      includeTypeNameSuggestions = true;
-      includeVoidReturnSuggestions = true;
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+      optype.includeVoidReturnSuggestions = true;
     }
   }
 
@@ -436,8 +457,8 @@ class OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (leftParen != null && leftParen.end <= offset) {
       Token rightParen = node.rightParenthesis;
       if (rightParen == null || offset <= rightParen.offset) {
-        includeReturnValueSuggestions = true;
-        includeTypeNameSuggestions = true;
+        optype.includeReturnValueSuggestions = true;
+        optype.includeTypeNameSuggestions = true;
       }
     }
   }

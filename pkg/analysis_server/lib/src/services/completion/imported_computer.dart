@@ -11,7 +11,7 @@ import 'package:analysis_server/src/protocol_server.dart' hide Element,
     ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
-import 'package:analysis_server/src/services/completion/optype_ast_visitor.dart';
+import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -28,17 +28,12 @@ class ImportedComputer extends DartCompletionComputer {
 
   @override
   bool computeFast(DartCompletionRequest request) {
-
-    // Determine the type of suggestions to be made
-    OpTypeAstVisitor opTypeVisitor = new OpTypeAstVisitor(request.offset);
-    request.node.accept(opTypeVisitor);
-
-    // Build the suggestions
-    if (opTypeVisitor.includeTopLevelSuggestions) {
+    OpType optype = request.optype;
+    if (optype.includeTopLevelSuggestions) {
       builder = new _ImportedSuggestionBuilder(
           request,
-          typesOnly: opTypeVisitor.includeOnlyTypeNameSuggestions,
-          excludeVoidReturn: !opTypeVisitor.includeVoidReturnSuggestions);
+          typesOnly: optype.includeOnlyTypeNameSuggestions,
+          excludeVoidReturn: !optype.includeVoidReturnSuggestions);
       builder.shouldWaitForLowPrioritySuggestions =
           shouldWaitForLowPrioritySuggestions;
       return builder.computeFast(request.node);

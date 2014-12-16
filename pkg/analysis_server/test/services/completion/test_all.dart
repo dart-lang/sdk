@@ -14,7 +14,7 @@ import 'imported_computer_test.dart' as imported_test;
 import 'invocation_computer_test.dart' as invocation_test;
 import 'keyword_computer_test.dart' as keyword_test;
 import 'local_computer_test.dart' as local_test;
-import 'optype_ast_visitor_test.dart' as optype_visitor_test;
+import 'optype_test.dart' as optype_test;
 
 /// Utility for manually running all tests.
 main() {
@@ -28,6 +28,6 @@ main() {
     keyword_test.main();
     invocation_test.main();
     local_test.main();
-    optype_visitor_test.main();
+    optype_test.main();
   });
 }
