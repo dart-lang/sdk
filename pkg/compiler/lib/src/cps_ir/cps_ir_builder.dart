@@ -6,7 +6,6 @@ library dart2js.ir_builder;
 
 import '../constants/expressions.dart';
 import '../constants/values.dart' show PrimitiveConstantValue;
-import '../dart_backend/dart_backend.dart' show DartBackend;
 import '../dart_types.dart';
 import '../dart2jslib.dart';
 import '../elements/elements.dart';
@@ -695,6 +694,7 @@ class IrBuilder {
   /// defined by [selector].
   ir.Primitive buildStaticGet(Element element, Selector selector) {
     assert(selector.isGetter);
+    // TODO(karlklose,sigurdm): build different nodes for getters.
     return _buildInvokeStatic(element, selector, const <ir.Primitive>[]);
   }
 
@@ -704,6 +704,7 @@ class IrBuilder {
                               Selector selector,
                               ir.Primitive value) {
     assert(selector.isSetter);
+    // TODO(karlklose,sigurdm): build different nodes for setters.
     _buildInvokeStatic(element, selector, <ir.Primitive>[value]);
     return value;
   }

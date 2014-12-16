@@ -211,6 +211,9 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   js.Expression visitInvokeStatic(tree_ir.InvokeStatic node) {
+    if (node.target is! FunctionElement) {
+      giveup(node, 'static getters and setters are not supported.');
+    }
     return buildStaticInvoke(node.selector,
                              node.target,
                              visitArguments(node.arguments));
