@@ -77,9 +77,6 @@ class RestrictedRules extends TypeRules {
   }
 
   bool isDynamic(DartType t) {
-    // Erasure
-    if (t is TypeParameterType) return true;
-    if (t.isDartCoreFunction) return true;
     return t.isDynamic;
   }
 
@@ -87,8 +84,7 @@ class RestrictedRules extends TypeRules {
     assert(isPrimitive(primitiveType));
     // Any primitive can be boxed to Object or dynamic.
     if (boxedType.isObject ||
-        boxedType.isDynamic ||
-        boxedType is TypeParameterType) {
+        boxedType.isDynamic) {
       return true;
     }
     // True iff a location with this type may be assigned a boxed

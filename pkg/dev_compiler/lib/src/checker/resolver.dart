@@ -146,23 +146,4 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
   // TODO(vsm): in visitFunctionDeclaration: Should we ever use the expression
   // type in a (...) => expr or just the written type?
 
-  @override
-  void recordStaticType(Expression expression, DartType type) {
-    // TODO(vsm, sigmund): get rid of _dynamize, no more erasure!
-    super.recordStaticType(expression, _dynamize(type));
-  }
-
-  // TODO(vsm, sigmund): get rid of _dynamize, no more erasure!
-  DartType _dynamize(DartType type) {
-    if (type is ParameterizedType) {
-      int len = type.typeParameters.length;
-      if (len > 0) {
-        var params = new List.filled(len, dynamicType);
-        return type.substitute2(params, type.typeArguments);
-      }
-    }
-    // Erasure
-    if (type is TypeParameterElement) type = dynamicType;
-    return type;
-  }
 }
