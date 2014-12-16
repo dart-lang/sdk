@@ -297,7 +297,7 @@ class AnalysisServer {
   AnalysisContext getAnalysisContextForSource(Source source) {
     for (AnalysisContext context in folderMap.values) {
       SourceKind kind = context.getKindOf(source);
-      if (kind != null) {
+      if (kind != SourceKind.UNKNOWN) {
         return context;
       }
     }
