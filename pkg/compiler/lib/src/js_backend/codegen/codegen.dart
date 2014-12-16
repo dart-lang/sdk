@@ -170,6 +170,7 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
                                   Element target,
                                   List<js.Expression> arguments) {
     registry.registerStaticInvocation(target.declaration);
+
     js.Expression elementAccess = glue.staticFunctionAccess(target);
     List<js.Expression> compiledArguments =
         selector.makeArgumentsList(target.implementation,
@@ -196,10 +197,16 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
 
   @override
   js.Expression visitInvokeMethod(tree_ir.InvokeMethod node) {
+    // TODO(sigurdm): Handle intercepted invocations.
+    if (glue.isIntercepted(node.selector)) giveup(node);
+    js.Expression receiver = visitExpression(node.receiver);
+
+    List<js.Expression> arguments = visitArguments(node.arguments);
+
+    String methodName = glue.invocationName(node.selector);
     registerMethodInvoke(node);
-    return js.propertyCall(visitExpression(node.receiver),
-                           glue.invocationName(node.selector),
-                           visitArguments(node.arguments));
+
+    return js.propertyCall(receiver, methodName, arguments);
   }
 
   @override

@@ -11,6 +11,7 @@ import '../../js/js.dart' as js;
 import '../../constants/values.dart';
 import '../../elements/elements.dart';
 import '../../constants/expressions.dart';
+import 'task.dart' show CpsTypeEnvironment;
 
 /// Encapsulates the dependencies of the function-compiler to the compiler,
 /// backend and emitter.
@@ -62,21 +63,8 @@ class Glue {
     return _namer.invocationName(selector);
   }
 
-  FunctionElement get getInterceptorMethod => _backend.getInterceptorMethod;
-
-  void registerUseInterceptorInCodegen() {
-    _backend.registerUseInterceptor(_compiler.enqueuer.codegen);
-  }
-
-  bool isInterceptedSelector(Selector selector) {
+  bool isIntercepted(Selector selector) {
     return _backend.isInterceptedSelector(selector);
   }
 
-  Set<ClassElement> getInterceptedClassesOn(Selector selector) {
-    return _backend.getInterceptedClassesOn(selector.name);
-  }
-
-  void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
-    _backend.registerSpecializedGetInterceptor(classes);
-  }
 }

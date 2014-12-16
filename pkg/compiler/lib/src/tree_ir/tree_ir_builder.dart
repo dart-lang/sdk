@@ -9,7 +9,6 @@ import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
 import 'tree_ir_nodes.dart';
-import '../js_backend/codegen/glue.dart';
 
 /**
  * Builder translates from CPS-based IR to direct-style Tree.
@@ -44,9 +43,7 @@ import '../js_backend/codegen/glue.dart';
  * still all named.
  */
 class Builder extends cps_ir.Visitor<Node> {
-  // TODO(karlklose): remove the compiler.
   final dart2js.Compiler compiler;
-  final Glue glue;
 
   /// Maps variable/parameter elements to the Tree variables that represent it.
   final Map<Element, List<Variable>> element2variables =
@@ -65,11 +62,10 @@ class Builder extends cps_ir.Visitor<Node> {
 
   Builder parent;
 
-  Builder(this.glue, this.compiler);
+  Builder(this.compiler);
 
   Builder.inner(Builder parent)
       : this.parent = parent,
-        this.glue = parent.glue,
         compiler = parent.compiler;
 
   /// Variable used in [buildPhiAssignments] as a temporary when swapping
@@ -166,8 +162,7 @@ class Builder extends cps_ir.Visitor<Node> {
 
   List<Expression> translateArguments(List<cps_ir.Reference> args) {
     return new List<Expression>.generate(args.length,
-         (int index) => getVariableReference(args[index]),
-         growable: false);
+         (int index) => getVariableReference(args[index]));
   }
 
   List<Variable> translatePhiArguments(List<cps_ir.Reference> args) {
@@ -321,9 +316,9 @@ class Builder extends cps_ir.Visitor<Node> {
   }
 
   Statement visitInvokeMethod(cps_ir.InvokeMethod node) {
-    Expression invoke = new InvokeMethod(getVariableReference(node.receiver),
-                                         node.selector,
-                                         translateArguments(node.arguments));
+    Expression receiver = getVariableReference(node.receiver);
+    List<Expression> arguments = translateArguments(node.arguments);
+    Expression invoke = new InvokeMethod(receiver, node.selector, arguments);
     return continueWithExpression(node.continuation, invoke);
   }
 
@@ -485,16 +480,14 @@ class Builder extends cps_ir.Visitor<Node> {
   Expression visitParameter(cps_ir.Parameter node) {
     // Continuation parameters are not visited (continuations themselves are
     // not visited yet).
-    compiler.internalError(compiler.currentElement,
-        'Unexpected IR node: $node');
+    compiler.internalError(compiler.currentElement, 'Unexpected IR node.');
     return null;
   }
 
   Expression visitContinuation(cps_ir.Continuation node) {
     // Until continuations with multiple uses are supported, they are not
     // visited.
-    compiler.internalError(compiler.currentElement,
-        'Unexpected IR node: $node.');
+    compiler.internalError(compiler.currentElement, 'Unexpected IR node.');
     return null;
   }
 
@@ -512,15 +505,6 @@ class Builder extends cps_ir.Visitor<Node> {
         identicalSelector,
         <Expression>[getVariableReference(node.left),
                      getVariableReference(node.right)]);
-  }
-
-  Expression visitInterceptor(cps_ir.Interceptor node) {
-    Element getInterceptor = glue.getInterceptorMethod;
-    glue.registerUseInterceptorInCodegen();
-    return new InvokeStatic(
-        getInterceptor,
-        new dart2js.Selector.fromElement(getInterceptor),
-        <Expression>[getVariableReference(node.input)]);
   }
 }
 

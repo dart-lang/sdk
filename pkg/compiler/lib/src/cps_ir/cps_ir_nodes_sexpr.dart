@@ -229,10 +229,6 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
     String right = access(node.right);
     return '(Identical $left $right)';
   }
-
-  String visitInterceptor(Interceptor node) {
-    return '(Interceptor ${node.input})';
-  }
 }
 
 class _Namer {

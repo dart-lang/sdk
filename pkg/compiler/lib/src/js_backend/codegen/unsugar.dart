@@ -6,8 +6,6 @@ import '../../cps_ir/cps_ir_nodes.dart';
 import '../../cps_ir/optimizers.dart';
 import '../../constants/expressions.dart';
 import '../../constants/values.dart';
-import '../../elements/elements.dart' show ClassElement;
-import '../../js_backend/codegen/glue.dart';
 
 /// Rewrites the initial CPS IR to make Dart semantics explicit and inserts
 /// special nodes that respect JavaScript behavior.
@@ -15,9 +13,7 @@ import '../../js_backend/codegen/glue.dart';
 /// Performs the following rewrites:
 ///  - rewrite [IsTrue] in a [Branch] to do boolean conversion.
 class UnsugarVisitor extends RecursiveVisitor {
-  Glue _glue;
-
-  UnsugarVisitor(this._glue);
+  const UnsugarVisitor();
 
   void rewrite(FunctionDefinition function) {
     // Set all parent pointers.
@@ -35,30 +31,6 @@ class UnsugarVisitor extends RecursiveVisitor {
     return new Constant(
         new PrimitiveConstantExpression(
             new TrueConstantValue()));
-  }
-
-  processInvokeMethod(InvokeMethod node) {
-    if (!_glue.isInterceptedSelector(node.selector)) return;
-    Set<ClassElement> interceptedClasses =
-        _glue.getInterceptedClassesOn(node.selector);
-    _glue.registerSpecializedGetInterceptor(interceptedClasses);
-    InteriorNode parent = node.parent;
-    Primitive receiver = node.receiver.definition;
-    Primitive intercepted = new Interceptor(receiver, interceptedClasses);
-    List<Reference<Primitive>> arguments =
-        new List<Reference<Primitive>>.generate(node.arguments.length + 1,
-        (int index) {
-          return index == 0 ? new Reference<Primitive>(receiver)
-                            : node.arguments[index - 1];
-    });
-    LetPrim newNode = new LetPrim(intercepted,
-        new InvokeMethod.internal(new Reference<Primitive>(intercepted),
-            node.selector,
-            new Reference<Continuation>(node.continuation.definition),
-            arguments));
-    node.continuation.unlink();
-    node.receiver.unlink();
-    parent.body = newNode;
   }
 
   processBranch(Branch node) {

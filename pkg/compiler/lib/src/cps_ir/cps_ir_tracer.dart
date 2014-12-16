@@ -249,10 +249,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return "Identical($left, $right)";
   }
 
-  visitInterceptor(cps_ir.Interceptor node) {
-    return "Interceptor(${node.input})";
-  }
-
   visitThis(cps_ir.This node) {
     return "This";
   }

@@ -193,18 +193,12 @@ class InvokeMethod extends Expression implements Invoke {
   final List<Reference<Primitive>> arguments;
 
   InvokeMethod(Primitive receiver,
-               Selector selector,
+               this.selector,
                Continuation cont,
                List<Primitive> args)
-      : this.internal(new Reference<Primitive>(receiver),
-                      selector,
-                      new Reference<Continuation>(cont),
-                      _referenceList(args));
-
-  InvokeMethod.internal(this.receiver,
-                        this.selector,
-                        this.continuation,
-                        this.arguments) {
+      : receiver = new Reference<Primitive>(receiver),
+        continuation = new Reference<Continuation>(cont),
+        arguments = _referenceList(args) {
     assert(selector != null);
     assert(selector.kind == SelectorKind.CALL ||
            selector.kind == SelectorKind.OPERATOR ||
@@ -213,8 +207,6 @@ class InvokeMethod extends Expression implements Invoke {
            (selector.kind == SelectorKind.INDEX && arguments.length == 1) ||
            (selector.kind == SelectorKind.INDEX && arguments.length == 2));
   }
-
-  bool get isIntercepted => receiver.definition is Interceptor;
 
   accept(Visitor visitor) => visitor.visitInvokeMethod(this);
 }
@@ -463,14 +455,6 @@ class Identical extends Primitive {
   accept(Visitor visitor) => visitor.visitIdentical(this);
 }
 
-class Interceptor extends Primitive {
-  final Reference<Primitive> input;
-  final Set<ClassElement> interceptedClasses;
-  Interceptor(Primitive input, this.interceptedClasses)
-      : this.input = new Reference<Primitive>(input);
-  accept(Visitor visitor) => visitor.visitInterceptor(this);
-}
-
 class Constant extends Primitive {
   final ConstantExpression expression;
 
@@ -706,7 +690,6 @@ abstract class Visitor<T> {
 
   // JavaScript specific nodes.
   T visitIdentical(Identical node) => visitPrimitive(node);
-  T visitInterceptor(Interceptor node) => visitPrimitive(node);
 }
 
 /// Recursively visits the entire CPS term, and calls abstract `process*`
@@ -896,12 +879,6 @@ abstract class RecursiveVisitor extends Visitor {
     processReference(node.left);
     processReference(node.right);
   }
-
-  processInterceptor(Interceptor node) {}
-  visitInterceptor(Interceptor node) {
-    processInterceptor(node);
-    processReference(node.input);
-  }
 }
 
 /// Keeps track of currently unused register indices.
@@ -1086,8 +1063,5 @@ class RegisterAllocator extends Visitor {
     visitReference(node.left);
     visitReference(node.right);
   }
-
-  void visitInterceptor(Interceptor node) {
-    visitReference(node.input);
-  }
 }
+

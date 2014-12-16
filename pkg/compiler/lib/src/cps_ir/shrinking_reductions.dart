@@ -411,10 +411,6 @@ class ParentVisitor extends RecursiveVisitor {
     node.left.parent = node;
     node.right.parent = node;
   }
-
-  processInterceptor(Interceptor node) {
-    node.input.parent = node;
-  }
 }
 
 class _ReductionKind {
