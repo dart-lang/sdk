@@ -71,7 +71,19 @@ class NumberFormat {
   int minimumFractionDigits = 0;
   int minimumExponentDigits = 0;
 
-  int _multiplier = 1;
+  /**
+   * For percent and permille, what are we multiplying by in order to
+   * get the printed value, e.g. 100 for percent.
+   */
+  int get _multiplier => _internalMultiplier;
+  set _multiplier(int x) {
+    _internalMultiplier = x;
+    _multiplierDigits = (log(_multiplier) / LN10).round();
+  }
+  int _internalMultiplier = 1;
+
+  /** How many digits are there in the [_multiplier]. */
+  int _multiplierDigits = 0;
 
   /**
    * Stores the pattern used to create this format. This isn't used, but
@@ -162,14 +174,12 @@ class NumberFormat {
   /**
    * Format [number] according to our pattern and return the formatted string.
    */
-  String format(num number) {
-    // TODO(alanknight): Do we have to do anything for printing numbers bidi?
-    // Or are they always printed left to right?
-    if (number.isNaN) return symbols.NAN;
-    if (number.isInfinite) return "${_signPrefix(number)}${symbols.INFINITY}";
+  String format(number) {
+    if (_isNaN(number)) return symbols.NAN;
+    if (_isInfinite(number)) return "${_signPrefix(number)}${symbols.INFINITY}";
 
     _add(_signPrefix(number));
-    _formatNumber(number.abs() * _multiplier);
+    _formatNumber(number.abs());
     _add(_signSuffix(number));
 
     var result = _buffer.toString();
@@ -186,7 +196,7 @@ class NumberFormat {
   /**
    * Format the main part of the number in the form dictated by the pattern.
    */
-  void _formatNumber(num number) {
+  void _formatNumber(number) {
     if (_useExponentialNotation) {
       _formatExponential(number);
     } else {
@@ -250,48 +260,60 @@ class NumberFormat {
   final _maxInt = pow(2, 52);
 
   /**
+   * Helpers to check numbers that don't conform to the [num] interface,
+   * e.g. Int64
+   */
+  _isInfinite(number) => number is num ? number.isInfinite : false;
+  _isNaN(number) => number is num ? number.isNaN : false;
+  _round(number) => number is num ? number.round() : number;
+  _floor(number) => number is num ? number.floor() : number;
+
+  /**
    * Format the basic number portion, inluding the fractional digits.
    */
-  void _formatFixed(num number) {
-    // Very fussy math to get integer and fractional parts.
-    var power = pow(10, maximumFractionDigits);
-    var shiftedNumber = (number * power);
-    // We must not roundToDouble() an int or it will lose precision. We must not
-    // round() a large double or it will take its loss of precision and
-    // preserve it in an int, which we will then print to the right
-    // of the decimal place. Therefore, only roundToDouble if we are already
-    // a double.
-    if (shiftedNumber is double) {
-      shiftedNumber = shiftedNumber.roundToDouble();
-    }
-    var intValue, fracValue;
-    if (shiftedNumber.isInfinite) {
-      intValue = number.toInt();
-      fracValue = 0;
+  void _formatFixed(number) {
+    var integerPart;
+    int fractionPart;
+    int extraIntegerDigits;
+
+    final power = pow(10, maximumFractionDigits);
+    final digitMultiplier = power * _multiplier;
+
+    if (_isInfinite(number)) {
+      integerPart = number.toInt();
+      extraIntegerDigits = 0;
+      fractionPart = 0;
     } else {
-      intValue = shiftedNumber.round() ~/ power;
-      fracValue = (shiftedNumber - intValue * power).floor();
+      // We have three possible pieces. First, the basic integer part. If this
+      // is a percent or permille, the additional 2 or 3 digits. Finally the
+      // fractional part.
+      // We avoid multiplying the number because it might overflow if we have
+      // a fixed-size integer type, so we extract each of the three as an
+      // integer pieces.
+      integerPart = _floor(number);
+      var fraction = number - integerPart;
+      // Multiply out to the number of decimal places and the percent, then
+      // round. For fixed-size integer types this should always be zero, so
+      // multiplying is OK.
+      var remainingDigits = _round(fraction * digitMultiplier).toInt();
+      // However, in rounding we may overflow into the main digits.
+      if (remainingDigits >= digitMultiplier) {
+        integerPart++;
+        remainingDigits -= digitMultiplier;
+      }
+      // Separate out the extra integer parts from the fraction part.
+      extraIntegerDigits = remainingDigits ~/ power;
+      fractionPart = remainingDigits % power;
     }
-    var fractionPresent = minimumFractionDigits > 0 || fracValue > 0;
+    var fractionPresent = minimumFractionDigits > 0 || fractionPart > 0;
 
-    // If the int part is larger than 2^52 and we're on Javascript (so it's
-    // really a float) it will lose precision, so pad out the rest of it
-    // with zeros. Check for Javascript by seeing if an integer is double.
-    var paddingDigits = '';
-    if (1 is double && intValue > _maxInt) {
-      var howManyDigitsTooBig = (log(intValue) / LN10).ceil() - 16;
-      var divisor = pow(10, howManyDigitsTooBig).round();
-      paddingDigits = symbols.ZERO_DIGIT * howManyDigitsTooBig.toInt();
-
-      intValue = (intValue / divisor).truncate();
-    }
-    var integerDigits = "${intValue}${paddingDigits}".codeUnits;
+    var integerDigits = _integerDigits(integerPart, extraIntegerDigits);
     var digitLength = integerDigits.length;
 
-    if (_hasPrintableIntegerPart(intValue)) {
+    if (_hasPrintableIntegerPart(integerPart)) {
       _pad(minimumIntegerDigits - digitLength);
       for (var i = 0; i < digitLength; i++) {
-        _addDigit(integerDigits[i]);
+        _addDigit(integerDigits.codeUnitAt(i));
         _group(digitLength, i);
       }
     } else if (!fractionPresent) {
@@ -300,7 +322,44 @@ class NumberFormat {
     }
 
     _decimalSeparator(fractionPresent);
-    _formatFractionPart((fracValue + power).toString());
+    _formatFractionPart((fractionPart + power).toString());
+  }
+
+  /**
+   * Compute the raw integer digits which will then be printed with
+   * grouping and translated to localized digits.
+   */
+  String _integerDigits(integerPart, extraIntegerDigits) {
+    // If the int part is larger than 2^52 and we're on Javascript (so it's
+    // really a float) it will lose precision, so pad out the rest of it
+    // with zeros. Check for Javascript by seeing if an integer is double.
+    var paddingDigits = '';
+    if (1 is double && integerPart is num && integerPart > _maxInt) {
+      var howManyDigitsTooBig = (log(integerPart) / LN10).ceil() - 16;
+      var divisor = pow(10, howManyDigitsTooBig).round();
+      paddingDigits = symbols.ZERO_DIGIT * howManyDigitsTooBig.toInt();
+      integerPart = (integerPart / divisor).truncate();
+    }
+
+    var extra = extraIntegerDigits == 0 ? '' : extraIntegerDigits.toString();
+    var intDigits = _mainIntegerDigits(integerPart);
+    var paddedExtra =
+        intDigits.isEmpty ? extra : extra.padLeft(_multiplierDigits, '0');
+    return "${intDigits}${paddedExtra}${paddingDigits}";
+  }
+
+  /**
+   * The digit string of the integer part. This is the empty string if the
+   * integer part is zero and otherwise is the toString() of the integer
+   * part, stripping off any minus sign.
+   */
+  String _mainIntegerDigits(integer) {
+    if (integer == 0) return '';
+    var digits = integer.toString();
+    // If we have a fixed-length int representation, it can have a negative
+    // number whose negation is also negative, e.g. 2^-63 in 64-bit.
+    // Remove the minus sign.
+    return digits.startsWith('-') ? digits.substring(1) : digits;
   }
 
   /**
@@ -330,8 +389,8 @@ class NumberFormat {
    * because we have digits left of the decimal point, or because there are
    * a minimum number of printable digits greater than 1.
    */
-  bool _hasPrintableIntegerPart(int intValue) =>
-      intValue > 0 || minimumIntegerDigits > 0;
+  bool _hasPrintableIntegerPart(x) =>
+      x > 0 || minimumIntegerDigits > 0;
 
   /** A group of methods that provide support for writing digits and other
    * required characters into [_buffer] easily.
@@ -384,13 +443,13 @@ class NumberFormat {
    * Returns the prefix for [x] based on whether it's positive or negative.
    * In en_US this would be '' and '-' respectively.
    */
-  String _signPrefix(num x) => x.isNegative ? _negativePrefix : _positivePrefix;
+  String _signPrefix(x) => x.isNegative ? _negativePrefix : _positivePrefix;
 
   /**
    * Returns the suffix for [x] based on wether it's positive or negative.
    * In en_US there are no suffixes for positive or negative.
    */
-  String _signSuffix(num x) => x.isNegative ? _negativeSuffix : _positiveSuffix;
+  String _signSuffix(x) => x.isNegative ? _negativeSuffix : _positiveSuffix;
 
   void _setPattern(String newPattern) {
     if (newPattern == null) return;

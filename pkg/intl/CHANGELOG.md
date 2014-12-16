@@ -1,3 +1,10 @@
+## 0.11.12
+  * Number formatting now accepts "int-like" inputs that don't have to
+    conform to the num interface. In particular, you can now pass an Int64
+    from the fixnum package and format it. In addition, this no longer
+    multiplies the result, so it won't lose precision on a few additional
+    cases in JS.
+
 ## 0.11.11
   * Add a -no-embedded-plurals flag to reject plurals and genders that
     have either leading or trailing text around them. This follows the
