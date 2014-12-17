@@ -190,7 +190,7 @@ GlobalSummary checkerResultsToSummary(CheckerResults results) {
 }
 
 // Internal helper to convert a [SemanticNode] to a list of [MessageSummary]s.
-List<MesageSummary> _convertInfos(SemanticNode semanticNode) {
+List<MessageSummary> _convertInfos(SemanticNode semanticNode) {
   var res = <MessageSummary>[];
   var span = spanForNode(semanticNode.node);
   for (var info in semanticNode.messages) {

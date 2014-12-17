@@ -5,11 +5,14 @@ import 'dart:io' as io;
 
 import 'package:analyzer/analyzer.dart' as analyzer;
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart' as java_core;
 import 'package:dart_style/dart_style.dart';
 import 'package:logging/logging.dart' as logger;
 import 'package:path/path.dart' as path;
 
+import 'package:ddc/src/info.dart';
+import 'package:ddc/src/checker/rules.dart';
 import 'code_generator.dart' as codegenerator;
 
 final _log = new logger.Logger('ddc.dartgenerator');

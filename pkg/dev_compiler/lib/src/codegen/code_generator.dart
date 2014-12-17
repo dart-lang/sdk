@@ -3,6 +3,7 @@ library ddc.src.codegen.code_generator;
 import 'dart:async' show Future;
 import 'dart:io';
 
+import 'package:analyzer/src/generated/element.dart';
 import 'package:path/path.dart' as path;
 
 import 'package:ddc/src/info.dart';

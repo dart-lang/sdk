@@ -10,6 +10,7 @@ import 'package:ddc/src/utils.dart' show logCheckerMessage;
 
 abstract class TypeRules {
   final TypeProvider provider;
+  LibraryInfo currentLibraryInfo = null;
 
   TypeRules(TypeProvider this.provider);
 
@@ -60,7 +61,6 @@ class RestrictedRules extends TypeRules {
   // If true, num is treated as a synonym for double.
   // If false, num is always boxed.
   static const bool primitiveNum = false;
-  LibraryInfo currentLibraryInfo = null;
 
   RestrictedRules(TypeProvider provider) : super(provider);
 

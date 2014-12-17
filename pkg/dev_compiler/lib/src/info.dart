@@ -109,6 +109,9 @@ abstract class Conversion extends Expression implements StaticInfo {
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
   }
+
+  // Use same precedence as MethodInvocation.
+  int get precedence => 15;
 }
 
 class Box extends Conversion {
@@ -340,7 +343,7 @@ class MissingTypeError extends StaticInfo {
 
 /// A simple generalizing visitor interface for the conversion nodes.
 /// This can be mixed in to your visitor if the AST can contain these nodes.
-abstract class ConversionVisitor<R> {
+abstract class ConversionVisitor<R> implements AstVisitor<R> {
   /// This method must be implemented. It is typically supplied by the base
   /// GeneralizingAstVisitor<R>.
   R visitNode(AstNode node);
