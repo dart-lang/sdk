@@ -44,6 +44,8 @@ class ProgramChecker extends RecursiveAstVisitor {
       libraries.add(_current);
       _rules.currentLibraryInfo = _current;
       for (var unit in lib.units) {
+        // TODO(sigmund): integrate analyzer errors with static-info (issue #6).
+        failure = _resolver.logErrors(unit.source) || failure;
         unit.node.visitChildren(this);
       }
     }
@@ -174,7 +176,7 @@ class ProgramChecker extends RecursiveAstVisitor {
   }
 
   // Check invocations
-  bool checkArgumentList(ArgumentList node, [FunctionType type]) {
+  bool checkArgumentList(ArgumentList node, FunctionType type) {
     NodeList<Expression> list = node.arguments;
     int len = list.length;
     for (int i = 0; i < len; ++i) {
@@ -222,14 +224,21 @@ class ProgramChecker extends RecursiveAstVisitor {
   }
 
   visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
-    bool checked = checkArgumentList(node.argumentList);
+    var type = node.staticElement.type;
+    bool checked = checkArgumentList(node.argumentList, type);
     assert(checked);
     node.visitChildren(this);
   }
 
   visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    bool checked = checkArgumentList(node.argumentList);
-    assert(checked);
+    var element = node.staticElement;
+    if (element == null) {
+      _recordMessage(new MissingTypeError(node));
+    } else {
+      var type = node.staticElement.type;
+      bool checked = checkArgumentList(node.argumentList, type);
+      assert(checked);
+    }
     node.visitChildren(this);
   }
 

@@ -50,7 +50,6 @@ class TypeResolver {
     List<AnalysisError> errors = context.getErrors(source).errors;
     bool failure = false;
     if (errors.isNotEmpty) {
-      _log.info('analyzer found a total of ${errors.length} errors:');
       for (var error in errors) {
         var offset = error.offset;
         var span = spanFor(error.source, offset, offset + error.length);
@@ -58,8 +57,8 @@ class TypeResolver {
         var isError = severity == ErrorSeverity.ERROR;
         if (isError) failure = true;
         var level = isError ? logger.Level.SEVERE : logger.Level.WARNING;
-        _log.log(level, span
-            .message(error.message, color: colorOf(severity.name)));
+        _log.log(level, span.message('[from analyzer]: ${error.message}',
+            color: colorOf(severity.name)));
       }
     }
     return failure;

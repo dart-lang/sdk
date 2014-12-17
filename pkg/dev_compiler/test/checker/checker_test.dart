@@ -570,4 +570,26 @@ main() {
    '''
     });
   });
+
+  test('redirecting constructor', () {
+    testChecker({
+      '/main.dart': '''
+          class A {
+            A(A x) {}
+            A.two() : this(/*severe:StaticTypeError*/3);
+          }
+       '''
+    });
+  });
+
+  test('super constructor', () {
+    testChecker({
+      '/main.dart': '''
+          class A { A(A x) {} }
+          class B extends A {
+            B() : super(/*severe:StaticTypeError*/3);
+          }
+       '''
+    });
+  });
 }

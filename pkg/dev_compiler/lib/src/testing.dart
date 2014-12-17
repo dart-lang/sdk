@@ -53,6 +53,7 @@ CheckerResults testChecker(Map<String, String> testFiles,
 
   // Run the checker on /main.dart.
   var mainFile = new Uri.file('/main.dart');
+  sourcesCache.clear();
   var results = checkProgram(mainFile, resolver);
 
   // Extract expectations from the comments in the test files.

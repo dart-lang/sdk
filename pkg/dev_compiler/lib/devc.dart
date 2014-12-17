@@ -47,14 +47,7 @@ Future<bool> compile(String inputFile, TypeResolver resolver,
     print(summaryToString(summary));
   }
 
-  bool failure = results.failure;
-  for (var info in results.libraries) {
-    for (var unit in info.library.units) {
-      failure = resolver.logErrors(unit.source) || failure;
-    }
-  }
-
-  if (failure) return new Future.value(false);
+  if (results.failure) return new Future.value(false);
 
   // Generate code.
   if (outputDir != null) {

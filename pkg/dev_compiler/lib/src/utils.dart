@@ -28,14 +28,15 @@ List<LibraryElement> reachableLibraries(LibraryElement start) {
 }
 
 /// Cache of [SourceFile]s per [Source], so we avoid recomputing line-breaks and
-/// source-span information on a file multiple times.
+/// source-span information on a file multiple times. This is only visible for
+/// testing purposes.
 // TODO(sigmund): consider truncating the size of this cache.
-final Map<Source, SourceFile> _sources = <Source, SourceFile>{};
+final Map<Source, SourceFile> sourcesCache = <Source, SourceFile>{};
 
 /// Returns [SourceSpan] for a segment between the [begin] offset and [end]
 /// offset in [source].
 SourceSpan spanFor(Source source, int begin, int end) {
-  var file = _sources.putIfAbsent(source, () =>
+  var file = sourcesCache.putIfAbsent(source, () =>
       new SourceFile(source.contents.data, url: source.uri));
   return file.span(begin, end);
 }
