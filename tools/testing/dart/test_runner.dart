@@ -293,6 +293,8 @@ class BrowserTestCommand extends Command {
                 url];
     return parts.map(escapeCommandLineArgument).join(' ');
   }
+
+  int get maxNumRetries => 4;
 }
 
 class BrowserHtmlTestCommand extends BrowserTestCommand {
