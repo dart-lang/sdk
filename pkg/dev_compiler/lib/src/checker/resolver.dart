@@ -82,8 +82,11 @@ class TypeResolver {
 
 /// Creates an analysis context that contains our restricted typing rules.
 InternalAnalysisContext _initContext() {
+  var options = new AnalysisOptionsImpl()..cacheSize = 512;
   InternalAnalysisContext res = AnalysisEngine.instance.createAnalysisContext();
-  return res..resolverVisitorFactory = RestrictedResolverVisitor.constructor;
+  return res
+    ..analysisOptions = options
+    ..resolverVisitorFactory = RestrictedResolverVisitor.constructor;
 }
 
 /// Overrides the default [ResolverVisitor] to comply with DDC's restricted
