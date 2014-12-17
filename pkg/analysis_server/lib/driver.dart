@@ -234,6 +234,7 @@ class Driver {
         if (serve_http) {
           httpServer.close();
         }
+        service.shutdown();
         exit(0);
       });
     } else {
@@ -242,6 +243,7 @@ class Driver {
           if (serve_http) {
             httpServer.close();
           }
+          service.shutdown();
           exit(0);
         });
       }, httpServer.recordPrint);

@@ -42,8 +42,8 @@ class InstrumentationService {
   /**
    * An instrumentation service that will not log any instrumentation data.
    */
-  static const InstrumentationService NULL_SERVICE =
-      const InstrumentationService(null);
+  static final InstrumentationService NULL_SERVICE =
+      new InstrumentationService(null);
 
   static const String TAG_NOTIFICATION = 'Noti';
   static const String TAG_REQUEST = 'Req';
@@ -54,13 +54,13 @@ class InstrumentationService {
    * The instrumentation server used to communicate with the server, or `null`
    * if instrumentation data should not be logged.
    */
-  final InstrumentationServer instrumentationServer;
+  InstrumentationServer _instrumentationServer;
 
   /**
    * Initialize a newly created instrumentation service to comunicate with the
    * given [instrumentationServer].
    */
-  const InstrumentationService(this.instrumentationServer);
+  InstrumentationService(this._instrumentationServer);
 
   /**
    * The current time, expressed as a decimal encoded number of milliseconds.
@@ -94,8 +94,9 @@ class InstrumentationService {
    * should be invoked on this instance after this method has been invoked.
    */
   void shutdown() {
-    if (instrumentationServer != null) {
-      instrumentationServer.shutdown();
+    if (_instrumentationServer != null) {
+      _instrumentationServer.shutdown();
+      _instrumentationServer = null;
     }
   }
 
@@ -103,8 +104,8 @@ class InstrumentationService {
    * Log the given message with the given tag.
    */
   void _log(String tag, String message) {
-    if (instrumentationServer != null) {
-      instrumentationServer.log('$_timestamp:$tag:$message');
+    if (_instrumentationServer != null) {
+      _instrumentationServer.log('$_timestamp:$tag:$message');
     }
   }
 }
