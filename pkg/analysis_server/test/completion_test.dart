@@ -4,7 +4,10 @@
 
 library test.completion.support;
 
+import 'dart:async';
 import 'dart:collection';
+
+import 'package:unittest/unittest.dart';
 
 import 'completion_test_support.dart';
 
@@ -17,41 +20,54 @@ main() {
  * A builder that builds the completion tests.
  */
 class CompletionTestBuilder {
+  /**
+   * Number of tests that have been built that are expected to pass.
+   */
+  int expectedPassCount = 0;
+
+  /**
+   * Number of tests that have been built that are expected to fail.
+   */
+  int expectedFailCount = 0;
+
   void buildAll() {
     buildNumberedTests();
     buildCommentSnippetTests();
     buildCompletionTests();
     buildOtherTests();
     buildLibraryTests();
+    int testCount = expectedPassCount + expectedFailCount;
+    print(
+        'Total $testCount tests, of which $expectedFailCount are expected to fail.');
   }
 
   void buildCommentSnippetTests() {
-    CompletionTestCase.buildTests('testCommentSnippets001', '''
+    buildTests('testCommentSnippets001', '''
 class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}''',
         <String>["1+MAX", "2+xc", "3+MAX"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets002', '''
+    buildTests('testCommentSnippets002', '''
 class Y {String x='hi';mth() {x.l!1ength;int n = 0;x!2.codeUnitAt(n!3);}}''',
         <String>["1+length", "2+x", "3+n"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets004', '''
+    buildTests('testCommentSnippets004', '''
 class A {!1int x; !2mth() {!3int y = this.!5x!6;}}class B{}''',
         <String>["1+A", "2+B", "3+x", "3-y", "5+mth", "6+x"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets005', '''
+    buildTests('testCommentSnippets005', '''
 class Date { static Date JUN, JUL;}class X { m() { return Da!1te.JU!2L; }}''',
         <String>["1+Date", "2+JUN", "2+JUL"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets007', '''
+    buildTests('testCommentSnippets007', '''
 class C {mth(Map x, !1) {}mtf(!2, Map x) {}m() {for (in!3t i=0; i<5; i++); A!4 x;}}class int{}class Arrays{}''',
         <String>["1+bool", "2+bool", "3+int", "4+Arrays"],
         failingTests: '3');
 
-    CompletionTestCase.buildTests('testCommentSnippets008', '''
+    buildTests('testCommentSnippets008', '''
 class Date{}final num M = Dat!1''', <String>["1+Date"]);
 
     // space, char, eol are important
-    CompletionTestCase.buildTests('testCommentSnippets009', '''
+    buildTests('testCommentSnippets009', '''
 class Maps{}class x extends!5 !2M!3 !4implements!6 !1\n{}''',
         <String>[
             "1+Map",
@@ -65,164 +81,164 @@ class Maps{}class x extends!5 !2M!3 !4implements!6 !1\n{}''',
         failingTests: '46');
 
     // space, char, eol are important
-    CompletionTestCase.buildTests('testCommentSnippets010', '''
+    buildTests('testCommentSnippets010', '''
 class x implements !1{}''', <String>["1+Map"]);
 
     // space, char, eol are important
-    CompletionTestCase.buildTests('testCommentSnippets011', '''
+    buildTests('testCommentSnippets011', '''
 class x implements M!1{}''', <String>["1+Map"]);
 
     // space, char, eol are important
-    CompletionTestCase.buildTests('testCommentSnippets012', '''
+    buildTests('testCommentSnippets012', '''
 class x implements M!1\n{}''', <String>["1+Map"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets013', '''
+    buildTests('testCommentSnippets013', '''
 class x !2{!1}!3''', <String>["1+num", "2-num", "3-num"], failingTests: '3');
 
     // trailing space is important
-    CompletionTestCase.buildTests('testCommentSnippets014', '''
+    buildTests('testCommentSnippets014', '''
 typedef n!1 ;''', <String>["1+num"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets015', '''
+    buildTests('testCommentSnippets015', '''
 class D {f(){} g(){f!1(f!2);}}''', <String>["1+f", "2+f"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets016', '''
+    buildTests('testCommentSnippets016', '''
 class F {m() { m(); !1}}''', <String>["1+m"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets017', '''
+    buildTests('testCommentSnippets017', '''
 class F {var x = !1false;}''', <String>["1+true"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCommentSnippets018', '''
+    buildTests('testCommentSnippets018', '''
 class Map{}class Arrays{}class C{ m(!1){} n(!2 x, q)''',
         <String>["1+Map", "1-void", "1-null", "2+Arrays", "2-void", "2-null"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCommentSnippets019', '''
+    buildTests('testCommentSnippets019', '''
 class A{m(){Object x;x.!1/**/clear()''', <String>["1+toString"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets020', '''
+    buildTests('testCommentSnippets020', '''
 classMap{}class tst {var newt;void newf(){}test() {var newz;new!1/**/;}}''',
         <String>["1+newt", "1+newf", "1+newz", "1-Map"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCommentSnippets021', '''
+    buildTests('testCommentSnippets021', '''
 class Map{}class tst {var newt;void newf(){}test() {var newz;new !1/**/;}}''',
         <String>["1+Map", "1-newt"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCommentSnippets022', '''
+    buildTests('testCommentSnippets022', '''
 class Map{}class F{m(){new !1;}}''', <String>["1+Map"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCommentSnippets022a', '''
+    buildTests('testCommentSnippets022a', '''
 class Map{}class F{m(){new !1''', <String>["1+Map"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCommentSnippets022b', '''
+    buildTests('testCommentSnippets022b', '''
 class Map{factory Map.qq(){return null;}}class F{m(){new Map.!1qq();}}''',
         <String>["1+qq"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets023', '''
+    buildTests('testCommentSnippets023', '''
 class X {X c; X(this.!1c!3) : super() {c.!2}}''',
         <String>["1+c", "2+c", "3+c"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets024', '''
+    buildTests('testCommentSnippets024', '''
 class q {m(Map q){var x;m(!1)}n(){var x;n(!2)}}''', <String>["1+x", "2+x"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets025', '''
+    buildTests('testCommentSnippets025', '''
 class q {num m() {var q; num x=!1 q!3 + !2/**/;}}''',
         <String>["1+q", "2+q", "3+q"],
         failingTests: '123');
 
-    CompletionTestCase.buildTests('testCommentSnippets026', '''
+    buildTests('testCommentSnippets026', '''
 class List{}class a implements !1{}''', <String>["1+List"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCommentSnippets027', '''
+    buildTests('testCommentSnippets027', '''
 class String{}class List{}class test <X extends !1String!2> {}''',
         <String>["1+List", "2+String", "2-List"],
         failingTests: '12');
 
-    CompletionTestCase.buildTests('testCommentSnippets028', '''
+    buildTests('testCommentSnippets028', '''
 class String{}class List{}class DateTime{}typedef T Y<T extends !1>(List input);''',
         <String>["1+DateTime", "1+String"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCommentSnippets029', '''
+    buildTests('testCommentSnippets029', '''
 interface A<X> default B<X extends !1List!2> {}''',
         <String>["1+DateTime", "2+List"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets030', '''
+    buildTests('testCommentSnippets030', '''
 class Bar<T extends Foo> {const Bar(!1T!2 k);T!3 m(T!4 a, T!5 b){}final T!6 f = null;}''',
         <String>["1+T", "2+T", "3+T", "4+T", "5+T", "6+T"],
         failingTests: '123456');
 
-    CompletionTestCase.buildTests('testCommentSnippets031', '''
+    buildTests('testCommentSnippets031', '''
 class Bar<T extends Foo> {m(x){if (x is !1) return;if (x is!!!2)}}''',
         <String>["1+Bar", "1+T", "2+T", "2+Bar"],
         failingTests: '12');
 
-    CompletionTestCase.buildTests('testCommentSnippets032', '''
+    buildTests('testCommentSnippets032', '''
 class Fit{}class Bar<T extends Fooa> {const !2F!1ara();}''',
         <String>["1+Fit", "1+Fara", "1-Bar", "2+Fit"],
         failingTests: '1');
 
     // Type propagation
-    CompletionTestCase.buildTests('testCommentSnippets033', '''
+    buildTests('testCommentSnippets033', '''
 class List{add(){}length(){}}t1() {var x;if (x is List) {x.!1add(3);}}''',
         <String>["1+add", "1+length"]);
 
     // Type propagation
-    CompletionTestCase.buildTests('testCommentSnippets035', '''
+    buildTests('testCommentSnippets035', '''
 class List{clear(){}length(){}}t3() {var x=new List(), y=x.!1length();x.!2clear();}''',
         <String>["1+length", "2+clear"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets036', '''
+    buildTests('testCommentSnippets036', '''
 class List{}t3() {var x=new List!1}''', <String>["1+List"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCommentSnippets037', '''
+    buildTests('testCommentSnippets037', '''
 class List{factory List.from(){}}t3() {var x=new List.!1}''',
         <String>["1+from"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets038', '''
+    buildTests('testCommentSnippets038', '''
 f(){int xa; String s = '\$x!1';}''', <String>["1+xa"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets038a', '''
+    buildTests('testCommentSnippets038a', '''
 int xa; String s = '\$x!1\'''', <String>["1+xa"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets039', '''
+    buildTests('testCommentSnippets039', '''
 f(){int xa; String s = '\$!1';}''', <String>["1+xa"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets039a', '''
+    buildTests('testCommentSnippets039a', '''
 int xa; String s = '\$!1\'''', <String>["1+xa"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets040', '''
+    buildTests('testCommentSnippets040', '''
 class List{add(){}}class Map{}class X{m(){List list; list.!1 Map map;}}''',
         <String>["1+add"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets041', '''
+    buildTests('testCommentSnippets041', '''
 class List{add(){}length(){}}class X{m(){List list; list.!1 zox();}}''',
         <String>["1+add"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets042', '''
+    buildTests('testCommentSnippets042', '''
 class DateTime{static const int WED=3;int get day;}fd(){DateTime d=new DateTime.now();d.!1WED!2;}''',
         <String>["1+day", "2-WED"],
         failingTests: '2');
 
-    CompletionTestCase.buildTests('testCommentSnippets043', '''
+    buildTests('testCommentSnippets043', '''
 class L{var k;void.!1}''', <String>["1-k"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets044', '''
+    buildTests('testCommentSnippets044', '''
 class List{}class XXX {XXX.fisk();}main() {main(); new !1}}''',
         <String>["1+List", "1+XXX.fisk"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCommentSnippets047', '''
+    buildTests('testCommentSnippets047', '''
 f(){int x;int y=!1;}''', <String>["1+x"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets048', '''
+    buildTests('testCommentSnippets048', '''
 import 'dart:convert' as json;f() {var x=new js!1}''',
         <String>["1+json"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCommentSnippets049', '''
+    buildTests('testCommentSnippets049', '''
 import 'dart:convert' as json;
 import 'dart:convert' as jxx;
 class JsonParserX{}
@@ -237,7 +253,7 @@ f1() {var x=new !2j!1s!3}''',
             "3-jxx"],
         failingTests: '123');
 
-    CompletionTestCase.buildTests('testCommentSnippets050', '''
+    buildTests('testCommentSnippets050', '''
 class xdr {
   xdr();
   const xdr.a(a,b,c);
@@ -263,7 +279,7 @@ k() {
         failingTests: '123');
 
     // Type propagation.
-    CompletionTestCase.buildTests('testCommentSnippets051', '''
+    buildTests('testCommentSnippets051', '''
 class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
 void r() {
   var v;
@@ -274,7 +290,7 @@ void r() {
 }''', <String>["1+length", "2-getKeys"], failingTests: '1');
 
     // Type propagation.
-    CompletionTestCase.buildTests('testCommentSnippets052', '''
+    buildTests('testCommentSnippets052', '''
 class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
 void r() {
   List<String> values = ['a','b','c'];
@@ -285,7 +301,7 @@ void r() {
 }''', <String>["1+toUpperCase", "2-getKeys"], failingTests: '1');
 
     // Type propagation.
-    CompletionTestCase.buildTests('testCommentSnippets053', '''
+    buildTests('testCommentSnippets053', '''
 class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
 void r() {
   var v;
@@ -295,7 +311,7 @@ void r() {
   }
 }''', <String>["1+toUpperCase", "2-getKeys"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCommentSnippets054', '''
+    buildTests('testCommentSnippets054', '''
 class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
 void r() {
   var v;
@@ -305,7 +321,7 @@ void r() {
   }
 }''', <String>["1+isEmpty", "2+toUpperCase", "3-getKeys"], failingTests: '12');
 
-    CompletionTestCase.buildTests('testCommentSnippets055', '''
+    buildTests('testCommentSnippets055', '''
 class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
 void r() {
   String v;
@@ -315,7 +331,7 @@ void r() {
 }''', <String>["1+toUpperCase"]);
 
     // Type propagation.
-    CompletionTestCase.buildTests('testCommentSnippets056', '''
+    buildTests('testCommentSnippets056', '''
 class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
 void f(var v) {
   if (v is!! String) {
@@ -325,7 +341,7 @@ void f(var v) {
 }''', <String>["1+toUpperCase"], failingTests: '1');
 
     // Type propagation.
-    CompletionTestCase.buildTests('testCommentSnippets057', '''
+    buildTests('testCommentSnippets057', '''
 class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
 void f(var v) {
   if ((v as String).length == 0) {
@@ -333,7 +349,7 @@ void f(var v) {
   }
 }''', <String>["1+toUpperCase"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCommentSnippets058', '''
+    buildTests('testCommentSnippets058', '''
 typedef vo!2id callback(int k);
 void x(callback q){}
 void r() {
@@ -341,10 +357,10 @@ void r() {
   x(!1);
 }''', <String>["1+v", "2+void"], failingTests: '2');
 
-    CompletionTestCase.buildTests('testCommentSnippets059', '''
+    buildTests('testCommentSnippets059', '''
 f(){((int x) => x+4).!1call(1);}''', <String>["1-call"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets060', '''
+    buildTests('testCommentSnippets060', '''
 class Map{}
 abstract class MM extends Map{factory MM() => new Map();}
 class Z {
@@ -354,12 +370,12 @@ class Z {
   }
 }''', <String>["1+x", "1-x[]"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets061', '''
+    buildTests('testCommentSnippets061', '''
 class A{m(){!1f(3);!2}}n(){!3f(3);!4}f(x)=>x*3;''',
         <String>["1+f", "1+n", "2+f", "2+n", "3+f", "3+n", "4+f", "4+n"]);
 
     // Type propagation.
-    CompletionTestCase.buildTests('testCommentSnippets063', '''
+    buildTests('testCommentSnippets063', '''
 class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
 void r(var v) {
   v.!1toUpperCase;
@@ -367,7 +383,7 @@ void r(var v) {
   v.!2toUpperCase;
 }''', <String>["1-toUpperCase", "2+toUpperCase"], failingTests: '2');
 
-    CompletionTestCase.buildTests('testCommentSnippets064', '''
+    buildTests('testCommentSnippets064', '''
 class Spline {
   Line c;
   Spline a() {
@@ -404,7 +420,7 @@ class Line {
             "8+j",
             "9+h"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets065', '''
+    buildTests('testCommentSnippets065', '''
 class Spline {
   Line c;
   Spline a() {
@@ -428,7 +444,7 @@ class Line {
   }
 }''', <String>["1+a"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets066', '''
+    buildTests('testCommentSnippets066', '''
 class Spline {
   Line c;
   Spline a() {
@@ -452,7 +468,7 @@ class Line {
   }
 }''', <String>["1+b"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets067', '''
+    buildTests('testCommentSnippets067', '''
 class Spline {
   Line c;
   Spline a() {
@@ -476,7 +492,7 @@ class Line {
   }
 }''', <String>["1+b"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets068', '''
+    buildTests('testCommentSnippets068', '''
 class Spline {
   Line c;
   Spline a() {
@@ -500,7 +516,7 @@ class Line {
   }
 }''', <String>["1+c"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets069', '''
+    buildTests('testCommentSnippets069', '''
 class Spline {
   Line c;
   Spline a() {
@@ -524,7 +540,7 @@ class Line {
   }
 }''', <String>["1+c"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets070', '''
+    buildTests('testCommentSnippets070', '''
 class Spline {
   Line c;
   Spline a() {
@@ -548,7 +564,7 @@ class Line {
   }
 }''', <String>["1+b"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets072', '''
+    buildTests('testCommentSnippets072', '''
 class X {
   int _p;
   set p(int x) => _p = x;
@@ -558,7 +574,7 @@ f() {
   x.!1p = 3;
 }''', <String>["1+p"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets073', '''
+    buildTests('testCommentSnippets073', '''
 class X {
   m() {
     JSON.stri!1;
@@ -569,7 +585,7 @@ class JSON {
   static stringify() {}
 }''', <String>["1+stringify"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets074', '''
+    buildTests('testCommentSnippets074', '''
 class X {
   m() {
     _x!1
@@ -577,20 +593,20 @@ class X {
   _x1(){}
 }''', <String>["1+_x1"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets075', '''
+    buildTests('testCommentSnippets075', '''
 p(x)=>0;var E;f(q)=>!1p(!2E);''', <String>["1+p", "2+E"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets076', '''
+    buildTests('testCommentSnippets076', '''
 class Map<K,V>{}class List<E>{}class int{}main() {var m=new Map<Lis!1t<Map<int,in!2t>>,List<!3int>>();}''',
         <String>["1+List", "2+int", "3+int"],
         failingTests: '123');
 
-    CompletionTestCase.buildTests('testCommentSnippets076a', '''
+    buildTests('testCommentSnippets076a', '''
 class Map<K,V>{}class List<E>{}class int{}main() {var m=new Map<Lis!1t<Map<int,in!2t>>,List<!3>>();}''',
         <String>["1+List", "2+int", "3+int"],
         failingTests: '123');
 
-    CompletionTestCase.buildTests('testCommentSnippets077', '''
+    buildTests('testCommentSnippets077', '''
 class FileMode {
   static const READ = const FileMode._internal(0);
   static const WRITE = const FileMode._internal(1);
@@ -613,59 +629,59 @@ f() => new Fil!1''',
             "1+FileMode._internal"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCommentSnippets078', '''
+    buildTests('testCommentSnippets078', '''
 class Map{static from()=>null;clear(){}}void main() { Map.!1 }''',
         <String>["1+from", "1-clear"]); // static method, instance method
 
-    CompletionTestCase.buildTests('testCommentSnippets079', '''
+    buildTests('testCommentSnippets079', '''
 class Map{static from()=>null;clear(){}}void main() { Map s; s.!1 }''',
         <String>["1-from", "1+clear"],
         failingTests: '1'); // static method, instance method
 
-    CompletionTestCase.buildTests('testCommentSnippets080', '''
+    buildTests('testCommentSnippets080', '''
 class RuntimeError{var message;}void main() { RuntimeError.!1 }''',
         <String>["1-message"]); // field
 
-    CompletionTestCase.buildTests('testCommentSnippets081', '''
+    buildTests('testCommentSnippets081', '''
 class Foo {this.!1}''', <String>["1-Object"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCommentSnippets082', '''
+    buildTests('testCommentSnippets082', '''
         class HttpRequest {}
         class HttpResponse {}
         main() {
           var v = (HttpRequest req, HttpResp!1)
         }''', <String>["1+HttpResponse"]);
 
-    CompletionTestCase.buildTests('testCommentSnippets083', '''
+    buildTests('testCommentSnippets083', '''
 main() {(.!1)}''', <String>["1-toString"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCommentSnippets083a', '''
+    buildTests('testCommentSnippets083a', '''
 main() { .!1 }''', <String>["1-toString"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCommentSnippets083b', '''
+    buildTests('testCommentSnippets083b', '''
 main() { null.!1 }''', <String>["1+toString"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCommentSnippets084', '''
+    buildTests('testCommentSnippets084', '''
 class List{}class Map{}typedef X = !1Lis!2t with !3Ma!4p;''',
         <String>["1+Map", "2+List", "2-Map", "3+List", "4+Map", "4-List"],
         failingTests: '1234');
 
-    CompletionTestCase.buildTests('testCommentSnippets085', '''
+    buildTests('testCommentSnippets085', '''
 class List{}class Map{}class Z extends List with !1Ma!2p {}''',
         <String>["1+List", "1+Map", "2+Map", "2-List"],
         failingTests: '12');
 
-    CompletionTestCase.buildTests('testCommentSnippets086', '''
+    buildTests('testCommentSnippets086', '''
 class Q{f(){xy() {!2};x!1y();}}''',
         <String>["1+xy", "2+f", "2-xy"],
         failingTests: '2');
 
-    CompletionTestCase.buildTests('testCommentSnippets087', '''
+    buildTests('testCommentSnippets087', '''
 class Map{}class Q extends Object with !1Map {}''',
         <String>["1+Map", "1-HashMap"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCommentSnippets088', '''
+    buildTests('testCommentSnippets088', '''
 class A {
   int f;
   B m(){}
@@ -679,7 +695,7 @@ class Z {
   f() {q.!1}
 }''', <String>["1+f", "1+m"]); // f->num, m()->A
 
-    CompletionTestCase.buildTests('testCommentSnippets089', '''
+    buildTests('testCommentSnippets089', '''
 class Q {
   fqe() {
     xya() {
@@ -731,17 +747,17 @@ class Q {
             "5-xza"],
         failingTests: '123');
 
-    CompletionTestCase.buildTests('testCommentSnippets090', '''
+    buildTests('testCommentSnippets090', '''
 class X { f() { var a = 'x'; a.!1 }}''',
         <String>["1+length"],
         failingTests: '1');
   }
 
   void buildCompletionTests() {
-    CompletionTestCase.buildTests('testCompletion_alias_field', '''
+    buildTests('testCompletion_alias_field', '''
 typedef int fnint(int k); fn!1int x;''', <String>["1+fnint"]);
 
-    CompletionTestCase.buildTests('testCompletion_annotation_argumentList', '''
+    buildTests('testCompletion_annotation_argumentList', '''
 class AAA {",
   const AAA({int aaa, int bbb});",
 }",
@@ -752,7 +768,7 @@ main() {
         <String>["1+AAA" /*":" + ProposalKind.ARGUMENT_LIST*/, "1+aaa", "1+bbb"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_annotation_topLevelVar', '''
+    buildTests('testCompletion_annotation_topLevelVar', '''
 const fooConst = null;
 final fooNotConst = null;
 const bar = null;
@@ -761,7 +777,7 @@ const bar = null;
 main() {
 }''', <String>["1+fooConst", "1-fooNotConst", "1-bar"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_annotation_type', '''
+    buildTests('testCompletion_annotation_type', '''
 class AAA {
   const AAA({int a, int b});
   const AAA.nnn(int c, int d);
@@ -774,9 +790,7 @@ main() {
             "1+AAA.nnn" /*":" + ProposalKind.CONSTRUCTOR*/],
         failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_annotation_type_inClass_withoutMember',
-        '''
+    buildTests('testCompletion_annotation_type_inClass_withoutMember', '''
 class AAA {
   const AAA();
 }
@@ -785,7 +799,7 @@ class C {
   @A!1
 }''', <String>["1+AAA" /*":" + ProposalKind.CONSTRUCTOR*/]);
 
-    CompletionTestCase.buildTests('testCompletion_argument_typeName', '''
+    buildTests('testCompletion_argument_typeName', '''
 class Enum {
   static Enum FOO = new Enum();
 }
@@ -794,7 +808,7 @@ main() {
   f(En!1);
 }''', <String>["1+Enum"]);
 
-    CompletionTestCase.buildTests('testCompletion_arguments_ignoreEmpty', '''
+    buildTests('testCompletion_arguments_ignoreEmpty', '''
 class A {
   test() {}
 }
@@ -802,15 +816,13 @@ main(A a) {
   a.test(!1);
 }''', <String>["1-test"]);
 
-    CompletionTestCase.buildTests('testCompletion_as_asIdentifierPrefix', '''
+    buildTests('testCompletion_as_asIdentifierPrefix', '''
 main(p) {
   var asVisible;
   var v = as!1;
 }''', <String>["1+asVisible"]);
 
-    CompletionTestCase.buildTests(
-        'testCompletion_as_asPrefixedIdentifierStart',
-        '''
+    buildTests('testCompletion_as_asPrefixedIdentifierStart', '''
 class A {
   var asVisible;
 }
@@ -819,14 +831,14 @@ main(A p) {
   var v = p.as!1;
 }''', <String>["1+asVisible"]);
 
-    CompletionTestCase.buildTests('testCompletion_as_incompleteStatement', '''
+    buildTests('testCompletion_as_incompleteStatement', '''
 class MyClass {}
 main(p) {
   var justSomeVar;
   var v = p as !1
 }''', <String>["1+MyClass", "1-justSomeVar"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_cascade', '''
+    buildTests('testCompletion_cascade', '''
 class A {
   aaa() {}
 }
@@ -836,44 +848,42 @@ main(A a) {
   a..!1 aaa();
 }''', <String>["1+aaa", "1-main"]);
 
-    CompletionTestCase.buildTests('testCompletion_combinator_afterComma', '''
+    buildTests('testCompletion_combinator_afterComma', '''
 "import 'dart:math' show cos, !1;''',
         <String>["1+PI", "1+sin", "1+Random", "1-String"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_combinator_ended', '''
+    buildTests('testCompletion_combinator_ended', '''
 import 'dart:math' show !1;"''',
         <String>["1+PI", "1+sin", "1+Random", "1-String"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_combinator_export', '''
+    buildTests('testCompletion_combinator_export', '''
 export 'dart:math' show !1;"''',
         <String>["1+PI", "1+sin", "1+Random", "1-String"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_combinator_hide', '''
+    buildTests('testCompletion_combinator_hide', '''
 import 'dart:math' hide !1;"''',
         <String>["1+PI", "1+sin", "1+Random", "1-String"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_combinator_notEnded', '''
+    buildTests('testCompletion_combinator_notEnded', '''
 import 'dart:math' show !1"''',
         <String>["1+PI", "1+sin", "1+Random", "1-String"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_combinator_usePrefix', '''
+    buildTests('testCompletion_combinator_usePrefix', '''
 import 'dart:math' show s!1"''',
         <String>["1+sin", "1+sqrt", "1-cos", "1-String"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_constructor_field', '''
+    buildTests('testCompletion_constructor_field', '''
 class X { X(this.field); int f!1ield;}''',
         <String>["1+field"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_constructorArguments_showOnlyCurrent',
-        '''
+    buildTests('testCompletion_constructorArguments_showOnlyCurrent', '''
 class A {
   A.first(int p);
   A.second(double p);
@@ -882,17 +892,13 @@ main() {
   new A.first(!1);
 }''', <String>["1+A.first", "1-A.second"], failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_constructorArguments_whenPrefixedType',
-        '''
+    buildTests('testCompletion_constructorArguments_whenPrefixedType', '''
 import 'dart:math' as m;
 main() {
   new m.Random(!1);
 }''', <String>["1+Random:ARGUMENT_LIST"], failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_dartDoc_reference_forClass',
-        '''
+    buildTests('testCompletion_dartDoc_reference_forClass', '''
 /**
  * [int!1]
  * [method!2]
@@ -901,9 +907,7 @@ class AAA {
   methodA() {}
 }''', <String>["1+int", "1-method", "2+methodA", "2-int"]);
 
-    CompletionTestCase.buildTests(
-        'testCompletion_dartDoc_reference_forConstructor',
-        '''
+    buildTests('testCompletion_dartDoc_reference_forConstructor', '''
 class A {
   /**
    * [aa!1]
@@ -916,9 +920,7 @@ class A {
         <String>["1+aaa", "1-bbb", "2+int", "2-double", "3+methodA"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_dartDoc_reference_forFunction',
-        '''
+    buildTests('testCompletion_dartDoc_reference_forFunction', '''
 /**
  * [aa!1]
  * [int!2]
@@ -936,9 +938,7 @@ functionB() {}''',
             "3-int"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_dartDoc_reference_forFunctionTypeAlias',
-        '''
+    buildTests('testCompletion_dartDoc_reference_forFunctionTypeAlias', '''
 /**
  * [aa!1]
  * [int!2]
@@ -956,9 +956,7 @@ typedef FunctionB() {}''',
             "3-int"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_dartDoc_reference_forMethod',
-        '''
+    buildTests('testCompletion_dartDoc_reference_forMethod', '''
 class A {
   /**
    * [aa!1]
@@ -977,9 +975,7 @@ class A {
             "3+methodB",
             "3-int"]);
 
-    CompletionTestCase.buildTests(
-        'testCompletion_dartDoc_reference_incomplete',
-        '''
+    buildTests('testCompletion_dartDoc_reference_incomplete', '''
 /**
  * [doubl!1 some text
  * other text
@@ -996,20 +992,18 @@ class B {}
 class C {}''',
         <String>["1+double", "1-int", "2+int", "2+String", "3+int", "3+String"]);
 
-    CompletionTestCase.buildTests('testCompletion_double_inFractionPart', '''
+    buildTests('testCompletion_double_inFractionPart', '''
 main() {
   1.0!1
 }''', <String>["1-abs", "1-main"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_enum', '''
+    buildTests('testCompletion_enum', '''
 enum MyEnum {A, B, C}
 main() {
   MyEnum.!1;
 }''', <String>["1+values", "1+A", "1+B", "1+C"], failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_exactPrefix_hasHigherRelevance',
-        '''
+    buildTests('testCompletion_exactPrefix_hasHigherRelevance', '''
 var STR;
 main(p) {
   var str;
@@ -1026,7 +1020,7 @@ main(p) {
             "3+STR" /*",rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 0)*/,
             "3+str" /*",rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 0)*/]);
 
-    CompletionTestCase.buildTests('testCompletion_export_dart', '''
+    buildTests('testCompletion_export_dart', '''
 import 'dart:math
 import 'dart:_chrome
 import 'dart:_collection.dev
@@ -1038,64 +1032,58 @@ export 'dart:!1''',
             "1-dart:_collection.dev"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_export_noStringLiteral_noSemicolon',
-        '''
+    buildTests('testCompletion_export_noStringLiteral_noSemicolon', '''
 import !1
 
 class A {}''', <String>["1+'dart:!';", "1+'package:!';"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_forStmt_vars', '''
+    buildTests('testCompletion_forStmt_vars', '''
 class int{}class Foo { mth() { for (in!1t i = 0; i!2 < 5; i!3++); }}''',
         <String>["1+int", "2+i", "3+i"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_function', '''
+    buildTests('testCompletion_function', '''
 class Foo { int boo = 7; mth() { PNGS.sort((String a, Str!1) => a.compareTo(b)); }}''',
         <String>["1+String"]);
 
-    CompletionTestCase.buildTests('testCompletion_function_partial', '''
+    buildTests('testCompletion_function_partial', '''
 class Foo { int boo = 7; mth() { PNGS.sort((String a, Str!1)); }}''',
         <String>["1+String"]);
 
-    CompletionTestCase.buildTests(
-        'testCompletion_functionTypeParameter_namedArgument',
-        '''
+    buildTests('testCompletion_functionTypeParameter_namedArgument', '''
 typedef FFF(a, b, {x1, x2, y});
 main(FFF fff) {
   fff(1, 2, !1)!2;
 }''', <String>["1+x1", "2-x2"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_ifStmt_field1', '''
+    buildTests('testCompletion_ifStmt_field1', '''
 class Foo { int myField = 7; mth() { if (!1) {}}}''', <String>["1+myField"]);
 
-    CompletionTestCase.buildTests('testCompletion_ifStmt_field1a', '''
+    buildTests('testCompletion_ifStmt_field1a', '''
 class Foo { int myField = 7; mth() { if (!1) }}''', <String>["1+myField"]);
 
-    CompletionTestCase.buildTests('testCompletion_ifStmt_field2', '''
+    buildTests('testCompletion_ifStmt_field2', '''
 class Foo { int myField = 7; mth() { if (m!1) {}}}''', <String>["1+myField"]);
 
-    CompletionTestCase.buildTests('testCompletion_ifStmt_field2a', '''
+    buildTests('testCompletion_ifStmt_field2a', '''
 class Foo { int myField = 7; mth() { if (m!1) }}''', <String>["1+myField"]);
 
-    CompletionTestCase.buildTests('testCompletion_ifStmt_field2b', '''
+    buildTests('testCompletion_ifStmt_field2b', '''
 class Foo { myField = 7; mth() { if (m!1) {}}}''', <String>["1+myField"]);
 
-    CompletionTestCase.buildTests('testCompletion_ifStmt_localVar', '''
+    buildTests('testCompletion_ifStmt_localVar', '''
 class Foo { mth() { int value = 7; if (v!1) {}}}''', <String>["1+value"]);
 
-    CompletionTestCase.buildTests('testCompletion_ifStmt_localVara', '''
+    buildTests('testCompletion_ifStmt_localVara', '''
 class Foo { mth() { value = 7; if (v!1) {}}}''', <String>["1-value"]);
 
-    CompletionTestCase.buildTests('testCompletion_ifStmt_topLevelVar', '''
+    buildTests('testCompletion_ifStmt_topLevelVar', '''
 int topValue = 7; class Foo { mth() { if (t!1) {}}}''', <String>["1+topValue"]);
 
-    CompletionTestCase.buildTests('testCompletion_ifStmt_topLevelVara', '''
+    buildTests('testCompletion_ifStmt_topLevelVara', '''
 topValue = 7; class Foo { mth() { if (t!1) {}}}''', <String>["1+topValue"]);
 
-    CompletionTestCase.buildTests(
-        'testCompletion_ifStmt_unionType_nonStrict',
-        '''
+    buildTests('testCompletion_ifStmt_unionType_nonStrict', '''
 class A { a() => null; x() => null}
 class B { a() => null; y() => null}
 void main() {
@@ -1109,7 +1097,7 @@ void main() {
   x.!1;
 }''', <String>["1+a", "1+x", "1+y"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_ifStmt_unionType_strict', '''
+    buildTests('testCompletion_ifStmt_unionType_strict', '''
 class A { a() => null; x() => null}
 class B { a() => null; y() => null}
 void main() {
@@ -1123,10 +1111,10 @@ void main() {
   x.!1;
 }''', <String>["1+a", "1-x", "1-y"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_import', '''
+    buildTests('testCompletion_import', '''
 import '!1';''', <String>["1+dart:!", "1+package:!"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_import_dart', '''
+    buildTests('testCompletion_import_dart', '''
 import 'dart:math
 import 'dart:_chrome
 import 'dart:_collection.dev
@@ -1138,35 +1126,29 @@ import 'dart:!1''',
             "1-dart:_collection.dev"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_import_hasStringLiteral_noSemicolon',
-        '''
+    buildTests('testCompletion_import_hasStringLiteral_noSemicolon', '''
 import '!1'
 
 class A {}''', <String>["1+dart:!", "1+package:!"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_import_noSpace', '''
+    buildTests('testCompletion_import_noSpace', '''
 import!1''', <String>["1+ 'dart:!';", "1+ 'package:!';"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_import_noStringLiteral', '''
+    buildTests('testCompletion_import_noStringLiteral', '''
 import !1;''', <String>["1+'dart:!'", "1+'package:!'"], failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_import_noStringLiteral_noSemicolon',
-        '''
+    buildTests('testCompletion_import_noStringLiteral_noSemicolon', '''
 import !1
 
 class A {}''', <String>["1+'dart:!';", "1+'package:!';"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_incompleteClassMember', '''
+    buildTests('testCompletion_incompleteClassMember', '''
 class A {
   Str!1
   final f = null;
 }''', <String>["1+String", "1-bool"]);
 
-    CompletionTestCase.buildTests(
-        'testCompletion_incompleteClosure_parameterType',
-        '''
+    buildTests('testCompletion_incompleteClosure_parameterType', '''
 f1(cb(String s)) {}
 f2(String s) {}
 main() {
@@ -1174,7 +1156,7 @@ main() {
   f2((Str!2));
 }''', <String>["1+String", "1-bool", "2+String", "2-bool"]);
 
-    CompletionTestCase.buildTests('testCompletion_inPeriodPeriod', '''
+    buildTests('testCompletion_inPeriodPeriod', '''
 main(String str) {
   1 < str.!1.length;
   1 + str.!2.length;
@@ -1184,9 +1166,7 @@ main(String str) {
         failingTests: '123');
 
     // no checks, but no exceptions
-    CompletionTestCase.buildTests(
-        'testCompletion_instanceCreation_unresolved',
-        '''
+    buildTests('testCompletion_instanceCreation_unresolved', '''
 class A {
 }
 main() {
@@ -1194,12 +1174,12 @@ main() {
   new A.noSuchConstructor(!2);
 }''', <String>["1+int", "2+int"]);
 
-    CompletionTestCase.buildTests('testCompletion_import_lib', '''
+    buildTests('testCompletion_import_lib', '''
 import '!1''', <String>["1+my_lib.dart"], extraFiles: <String, String>{
       "/my_lib.dart": ""
     }, failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_is', '''
+    buildTests('testCompletion_is', '''
 class MyClass {}
 main(p) {
   var isVariable;
@@ -1211,16 +1191,14 @@ main(p) {
         <String>["1+MyClass", "2+MyClass", "3+MyClass", "3-v1", "4+is", "4-isVariable"],
         failingTests: '4');
 
-    CompletionTestCase.buildTests('testCompletion_is_asIdentifierStart', '''
+    buildTests('testCompletion_is_asIdentifierStart', '''
 main(p) {
   var isVisible;
   var v1 = is!1;
   var v2 = is!2
 }''', <String>["1+isVisible", "2+isVisible"]);
 
-    CompletionTestCase.buildTests(
-        'testCompletion_is_asPrefixedIdentifierStart',
-        '''
+    buildTests('testCompletion_is_asPrefixedIdentifierStart', '''
 class A {
   var isVisible;
 }
@@ -1230,41 +1208,37 @@ main(A p) {
   var v2 = p.is!2
 }''', <String>["1+isVisible", "2+isVisible"]);
 
-    CompletionTestCase.buildTests('testCompletion_is_incompleteStatement1', '''
+    buildTests('testCompletion_is_incompleteStatement1', '''
 class MyClass {}
 main(p) {
   var justSomeVar;
   var v = p is !1
 }''', <String>["1+MyClass", "1-justSomeVar"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_is_incompleteStatement2', '''
+    buildTests('testCompletion_is_incompleteStatement2', '''
 class MyClass {}
 main(p) {
   var isVariable;
   var v = p is!1
 }''', <String>["1+is", "1-isVariable"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_keyword_in', '''
+    buildTests('testCompletion_keyword_in', '''
 class Foo { int input = 7; mth() { if (in!1) {}}}''', <String>["1+input"]);
 
-    CompletionTestCase.buildTests(
-        'testCompletion_keyword_syntheticIdentifier',
-        '''
+    buildTests('testCompletion_keyword_syntheticIdentifier', '''
 main() {
   var caseVar;
   var otherVar;
   var v = case!1
 }''', <String>["1+caseVar", "1-otherVar"]);
 
-    CompletionTestCase.buildTests('testCompletion_libraryIdentifier_atEOF', '''
+    buildTests('testCompletion_libraryIdentifier_atEOF', '''
 library int.!1''', <String>["1-parse", "1-bool"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_libraryIdentifier_notEOF', '''
+    buildTests('testCompletion_libraryIdentifier_notEOF', '''
 library int.!1''', <String>["1-parse", "1-bool"], failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_methodRef_asArg_incompatibleFunctionType',
-        '''
+    buildTests('testCompletion_methodRef_asArg_incompatibleFunctionType', '''
 foo( f(int p) ) {}
 class Functions {
   static myFuncInt(int p) {}
@@ -1279,9 +1253,7 @@ main(p) {
             "1-myFuncDouble" /*":" + ProposalKind.METHOD_NAME*/],
         failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_methodRef_asArg_notFunctionType',
-        '''
+    buildTests('testCompletion_methodRef_asArg_notFunctionType', '''
 foo( f(int p) ) {}
 class Functions {
   static myFunc(int p) {}
@@ -1295,9 +1267,7 @@ main(p) {
             "1-myFunc" /*":" + ProposalKind.METHOD_NAME*/],
         failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_methodRef_asArg_ofFunctionType',
-        '''
+    buildTests('testCompletion_methodRef_asArg_ofFunctionType', '''
 foo( f(int p) ) {}
 class Functions {
   static int myFunc(int p) {}
@@ -1309,60 +1279,52 @@ main(p) {
             "1+myFunc" /*":" + ProposalKind.METHOD*/,
             "1+myFunc" /*":" + ProposalKind.METHOD_NAME*/]);
 
-    CompletionTestCase.buildTests(
-        'testCompletion_namedArgument_alreadyUsed',
-        '''
+    buildTests('testCompletion_namedArgument_alreadyUsed', '''
 func({foo}) {} main() { func(foo: 0, fo!1); }''', <String>["1-foo"]);
 
-    CompletionTestCase.buildTests(
-        'testCompletion_namedArgument_constructor',
-        '''
+    buildTests('testCompletion_namedArgument_constructor', '''
 class A {A({foo, bar}) {}} main() { new A(fo!1); }''',
         <String>["1+foo", "1-bar"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_namedArgument_empty', '''
+    buildTests('testCompletion_namedArgument_empty', '''
 func({foo, bar}) {} main() { func(!1); }''',
         <String>[
             "1+foo" /*":" + ProposalKind.NAMED_ARGUMENT*/,
             "1-foo" /*":" + ProposalKind.OPTIONAL_ARGUMENT*/],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_namedArgument_function', '''
+    buildTests('testCompletion_namedArgument_function', '''
 func({foo, bar}) {} main() { func(fo!1); }''',
         <String>["1+foo", "1-bar"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_namedArgument_notNamed', '''
+    buildTests('testCompletion_namedArgument_notNamed', '''
 func([foo]) {} main() { func(fo!1); }''', <String>["1-foo"]);
 
-    CompletionTestCase.buildTests(
-        'testCompletion_namedArgument_unresolvedFunction',
-        '''
+    buildTests('testCompletion_namedArgument_unresolvedFunction', '''
 main() { func(fo!1); }''', <String>["1-foo"]);
 
-    CompletionTestCase.buildTests('testCompletion_newMemberType1', '''
+    buildTests('testCompletion_newMemberType1', '''
 class Collection{}class List extends Collection{}class Foo { !1 }''',
         <String>["1+Collection", "1+List"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_newMemberType2', '''
+    buildTests('testCompletion_newMemberType2', '''
 class Collection{}class List extends Collection{}class Foo {!1}''',
         <String>["1+Collection", "1+List"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_newMemberType3', '''
+    buildTests('testCompletion_newMemberType3', '''
 class Collection{}class List extends Collection{}class Foo {L!1}''',
         <String>["1-Collection", "1+List"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_newMemberType4', '''
+    buildTests('testCompletion_newMemberType4', '''
 class Collection{}class List extends Collection{}class Foo {C!1}''',
         <String>["1+Collection", "1-List"]);
 
-    CompletionTestCase.buildTests(
-        'testCompletion_positionalArgument_constructor',
-        '''
+    buildTests('testCompletion_positionalArgument_constructor', '''
 class A {
   A([foo, bar]);
 }
@@ -1377,9 +1339,7 @@ main() {
             "2+bar" /*":"
         + ProposalKind.OPTIONAL_ARGUMENT*/], failingTests: '12');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_positionalArgument_function',
-        '''
+    buildTests('testCompletion_positionalArgument_function', '''
 func([foo, bar]) {}
 main() {
   func(!1);
@@ -1392,7 +1352,7 @@ main() {
             "2+bar" /*":"
         + ProposalKind.OPTIONAL_ARGUMENT*/], failingTests: '12');
 
-    CompletionTestCase.buildTests('testCompletion_preferStaticType', '''
+    buildTests('testCompletion_preferStaticType', '''
 class A {
   foo() {}
 }
@@ -1409,9 +1369,7 @@ main() {
             "1+bar,potential=true,declaringType=B"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_privateElement_sameLibrary_constructor',
-        '''
+    buildTests('testCompletion_privateElement_sameLibrary_constructor', '''
 class A {
   A._c();
   A.c();
@@ -1420,9 +1378,7 @@ main() {
   new A.!1
 }''', <String>["1+_c", "1+c"]);
 
-    CompletionTestCase.buildTests(
-        'testCompletion_privateElement_sameLibrary_member',
-        '''
+    buildTests('testCompletion_privateElement_sameLibrary_member', '''
 class A {
   _m() {}
   m() {}
@@ -1431,9 +1387,7 @@ main(A a) {
   a.!1
 }''', <String>["1+_m", "1+m"]);
 
-    CompletionTestCase.buildTests(
-        'testCompletion_propertyAccess_whenClassTarget',
-        '''
+    buildTests('testCompletion_propertyAccess_whenClassTarget', '''
 class A {
   static int FIELD;
   int field;
@@ -1442,9 +1396,7 @@ main() {
   A.!1
 }''', <String>["1+FIELD", "1-field"]);
 
-    CompletionTestCase.buildTests(
-        'testCompletion_propertyAccess_whenClassTarget_excludeSuper',
-        '''
+    buildTests('testCompletion_propertyAccess_whenClassTarget_excludeSuper', '''
 class A {
   static int FIELD_A;
   static int methodA() {}
@@ -1459,9 +1411,7 @@ main() {
         <String>["1+FIELD_B", "1-FIELD_A", "1+methodB", "1-methodA"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_propertyAccess_whenInstanceTarget',
-        '''
+    buildTests('testCompletion_propertyAccess_whenInstanceTarget', '''
 class A {
   static int FIELD;
   int fieldA;
@@ -1479,20 +1429,18 @@ main(B b, C c) {
         <String>["1-FIELD", "1+fieldA", "2+fieldC", "2+fieldA"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_return_withIdentifierPrefix',
-        '''
+    buildTests('testCompletion_return_withIdentifierPrefix', '''
 f() { var vvv = 42; return v!1 }''', <String>["1+vvv"]);
 
-    CompletionTestCase.buildTests('testCompletion_return_withoutExpression', '''
+    buildTests('testCompletion_return_withoutExpression', '''
 f() { var vvv = 42; return !1 }''', <String>["1+vvv"]);
 
-    CompletionTestCase.buildTests('testCompletion_staticField1', '''
+    buildTests('testCompletion_staticField1', '''
 class num{}class Sunflower {static final n!2um MAX_D = 300;nu!3m xc, yc;Sun!4flower() {x!Xc = y!Yc = MA!1 }}''',
         <String>["1+MAX_D", "X+xc", "Y+yc", "2+num", "3+num", "4+Sunflower"],
         failingTests: '234');
 
-    CompletionTestCase.buildTests('testCompletion_super_superType', '''
+    buildTests('testCompletion_super_superType', '''
 class A {
   var fa;
   ma() {}
@@ -1505,9 +1453,7 @@ class B extends A {
   }
 }''', <String>["1+fa", "1-fb", "1+ma", "1-mb"], failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_superConstructorInvocation_noNamePrefix',
-        '''
+    buildTests('testCompletion_superConstructorInvocation_noNamePrefix', '''
 class A {
   A.fooA();
   A.fooB();
@@ -1517,9 +1463,7 @@ class B extends A {
   B() : super.!1
 }''', <String>["1+fooA", "1+fooB", "1+bar"], failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_superConstructorInvocation_withNamePrefix',
-        '''
+    buildTests('testCompletion_superConstructorInvocation_withNamePrefix', '''
 class A {
   A.fooA();
   A.fooB();
@@ -1529,43 +1473,33 @@ class B extends A {
   B() : super.f!1
 }''', <String>["1+fooA", "1+fooB", "1-bar"], failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_this_bad_inConstructorInitializer',
-        '''
+    buildTests('testCompletion_this_bad_inConstructorInitializer', '''
 class A {
   var f;
   A() : f = this.!1;
 }''', <String>["1-toString"], failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_this_bad_inFieldDeclaration',
-        '''
+    buildTests('testCompletion_this_bad_inFieldDeclaration', '''
 class A {
   var f = this.!1;
 }''', <String>["1-toString"], failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_this_bad_inStaticMethod', '''
+    buildTests('testCompletion_this_bad_inStaticMethod', '''
 class A {
   static m() {
     this.!1;
   }
 }''', <String>["1-toString"], failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_this_bad_inTopLevelFunction',
-        '''
+    buildTests('testCompletion_this_bad_inTopLevelFunction', '''
 main() {
   this.!1;
 }''', <String>["1-toString"], failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_this_bad_inTopLevelVariableDeclaration',
-        '''
+    buildTests('testCompletion_this_bad_inTopLevelVariableDeclaration', '''
 var v = this.!1;''', <String>["1-toString"], failingTests: '1');
 
-    CompletionTestCase.buildTests(
-        'testCompletion_this_OK_inConstructorBody',
-        '''
+    buildTests('testCompletion_this_OK_inConstructorBody', '''
 class A {
   var f;
   m() {}
@@ -1574,7 +1508,7 @@ class A {
   }
 }''', <String>["1+f", "1+m"]);
 
-    CompletionTestCase.buildTests('testCompletion_this_OK_localAndSuper', '''
+    buildTests('testCompletion_this_OK_localAndSuper', '''
 class A {
   var fa;
   ma() {}
@@ -1587,19 +1521,19 @@ class B extends A {
   }
 }''', <String>["1+fa", "1+fb", "1+ma", "1+mb"]);
 
-    CompletionTestCase.buildTests('testCompletion_topLevelField_init2', '''
+    buildTests('testCompletion_topLevelField_init2', '''
 class DateTime{static var JUN;}final num M = Dat!1eTime.JUN;''',
         <String>["1+DateTime", "1-void"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('testCompletion_while', '''
+    buildTests('testCompletion_while', '''
 class Foo { int boo = 7; mth() { while (b!1) {} }}''', <String>["1+boo"]);
   }
 
   void buildLibraryTests() {
     Map<String, String> sources = new HashMap<String, String>();
 
-    CompletionTestCase.buildTests('test_export_ignoreIfThisLibraryExports', '''
+    buildTests('test_export_ignoreIfThisLibraryExports', '''
 export 'dart:math';
 libFunction() {};
 main() {
@@ -1611,9 +1545,7 @@ main() {
 library lib;
 export 'dart:math' hide sin;
 libFunction() {};''';
-    CompletionTestCase.buildTests(
-        'test_export_showIfImportLibraryWithExport',
-        '''
+    buildTests('test_export_showIfImportLibraryWithExport', '''
 import 'lib.dart' as p;
 main() {
   p.!1
@@ -1622,13 +1554,13 @@ main() {
         extraFiles: sources,
         failingTests: '1');
 
-    CompletionTestCase.buildTests('test_importPrefix_hideCombinator', '''
+    buildTests('test_importPrefix_hideCombinator', '''
 import 'dart:math' as math hide PI;
 main() {
   math.!1
 }''', <String>["1-PI", "1+LN10"], failingTests: '1');
 
-    CompletionTestCase.buildTests('test_importPrefix_showCombinator', '''
+    buildTests('test_importPrefix_showCombinator', '''
 import 'dart:math' as math show PI;
 main() {
   math.!1
@@ -1642,7 +1574,7 @@ class _A
 
 class A extends _A {
 }''';
-    CompletionTestCase.buildTests('test_memberOfPrivateClass_otherLibrary', '''
+    buildTests('test_memberOfPrivateClass_otherLibrary', '''
 import 'lib.dart';
 main(A a) {
   a.!1
@@ -1655,9 +1587,7 @@ class A {
   A.c();
   A._c();
 }''';
-    CompletionTestCase.buildTests(
-        'test_noPrivateElement_otherLibrary_constructor',
-        '''
+    buildTests('test_noPrivateElement_otherLibrary_constructor', '''
 import 'lib.dart';
 main() {
   new A.!1
@@ -1670,9 +1600,7 @@ class A {
   var f;
   var _f;
 }''';
-    CompletionTestCase.buildTests(
-        'test_noPrivateElement_otherLibrary_member',
-        '''
+    buildTests('test_noPrivateElement_otherLibrary_member', '''
               import 'lib.dart';
               main(A a) {
                 a.!1
@@ -1687,7 +1615,7 @@ library firth;
 class SerializationException {
   const SerializationException();
 }''';
-    CompletionTestCase.buildTests('test001', '''
+    buildTests('test001', '''
 import 'firth.dart';
 main() {
 throw new Seria!1lizationException();}''',
@@ -1697,14 +1625,14 @@ throw new Seria!1lizationException();}''',
 
     // Type propagation.
     // TODO Include corelib analysis (this works in the editor)
-    CompletionTestCase.buildTests(
+    buildTests(
         'test002',
         '''t2() {var q=[0],z=q.!1length;q.!2clear();}''',
         <String>["1+length", "1+isEmpty", "2+clear"],
         failingTests: '12');
 
     // TODO Include corelib analysis
-    CompletionTestCase.buildTests(
+    buildTests(
         'test003',
         '''class X{var q; f() {q.!1a!2}}''',
         <String>["1+end", "2+abs", "2-end"],
@@ -1712,7 +1640,7 @@ throw new Seria!1lizationException();}''',
 
     // TODO Include corelib analysis
     // Resolving dart:html takes between 2.5s and 30s; json, about 0.12s
-    CompletionTestCase.buildTests('test004', '''
+    buildTests('test004', '''
             library foo;
             import 'dart:convert' as json;
             class JsonParserX{}
@@ -1730,7 +1658,7 @@ throw new Seria!1lizationException();}''',
 
     // TODO Enable after type propagation is implemented. Not yet.
     // TODO Include corelib analysis
-    CompletionTestCase.buildTests(
+    buildTests(
         'test005',
         '''var PHI;main(){PHI=5.3;PHI.abs().!1 Object x;}''',
         <String>["1+abs"],
@@ -1757,7 +1685,7 @@ i1() {}''';
 library imp2;
 export 'exp2a.dart';
 i2() {}''';
-    CompletionTestCase.buildTests('test006', '''
+    buildTests('test006', '''
 import 'imp1.dart';
 import 'imp2.dart';
 main() {!1
@@ -1777,7 +1705,7 @@ main() {!1
     sources["/l1.dart"] = '''
 library l1;
 var _l1t; var l1t;''';
-    CompletionTestCase.buildTests('test007', '''
+    buildTests('test007', '''
 import 'l1.dart';
 main() {
   var x = l!1
@@ -1802,7 +1730,7 @@ class Private extends NonPrivate {
   void privateMethod() {
   }
 }''';
-    CompletionTestCase.buildTests('test008', '''
+    buildTests('test008', '''
 import 'private.dart';
 import 'public.dart';
 class Test {
@@ -1822,7 +1750,7 @@ library lib;
 int X = 1;
 void m(){}
 class Y {}''';
-    CompletionTestCase.buildTests('test009', '''
+    buildTests('test009', '''
 import 'lib.dart' as Q;
 void a() {
   var x = Q.!1
@@ -1854,7 +1782,7 @@ void d() {
   }
 
   void buildNumberedTests() {
-    CompletionTestCase.buildTests('test001', '''
+    buildTests('test001', '''
 void r1(var v) {
   v.!1toString!2().!3hash!4Code
 }''',
@@ -1867,18 +1795,18 @@ void r1(var v) {
             "4+hashCode",
             "4-toString"]);
 
-    CompletionTestCase.buildTests('test002', '''
+    buildTests('test002', '''
 void r2(var vim) {
   v!1.toString()
 }''', <String>["1+vim"]);
 
-    CompletionTestCase.buildTests('test003', '''
+    buildTests('test003', '''
 class A {
   int a() => 3;
   int b() => this.!1a();
 }''', <String>["1+a"]);
 
-    CompletionTestCase.buildTests('test004', '''
+    buildTests('test004', '''
 class A {
   int x;
   A() : this.!1x = 1;
@@ -1887,7 +1815,7 @@ class A {
   g() => new A.!3c();
 }''', <String>["1+x", "2+b", "3+c"], failingTests: '12');
 
-    CompletionTestCase.buildTests('test005', '''
+    buildTests('test005', '''
 class A {}
 void rr(var vim) {
   var !1vq = v!2.toString();
@@ -1917,18 +1845,18 @@ void rr(var vim) {
             "3-A"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('test006', '''
+    buildTests('test006', '''
 void r2(var vim, {va: 2, b: 3}) {
   v!1.toString()
 }''', <String>["1+va", "1-b"]);
 
-    CompletionTestCase.buildTests('test007', '''
+    buildTests('test007', '''
 void r2(var vim, [va: 2, b: 3]) {
   v!1.toString()
 }''', <String>["1+va", "1-b"]);
 
     // keywords
-    CompletionTestCase.buildTests('test008', '''
+    buildTests('test008', '''
 !1class Aclass {}
 class Bclass !2extends!3 !4Aclass {}
 !5typedef Ctype = !6Bclass with !7Aclass;
@@ -1960,7 +1888,7 @@ class Fclass extends Bclass !Awith !B Eclass {}''',
         failingTests: '12345679ABC');
 
     // keywords
-    CompletionTestCase.buildTests('test009', '''
+    buildTests('test009', '''
 typedef !1dy!2namic TestFn1();
 typedef !3vo!4id TestFn2();
 typ!7edef !5n!6''',
@@ -1977,7 +1905,7 @@ typ!7edef !5n!6''',
             "7+typedef"],
         failingTests: '12347');
 
-    CompletionTestCase.buildTests('test010', '''
+    buildTests('test010', '''
 class test !8<!1t !2 !3extends String,!4 List,!5 !6>!7 {}
 class tezetst !9<!BString,!C !DList>!A {}''',
         <String>[
@@ -2003,14 +1931,14 @@ class tezetst !9<!BString,!C !DList>!A {}''',
         failingTests: '12345C');
 
     // name generation with conflicts
-    CompletionTestCase.buildTests(
+    buildTests(
         'test011',
         '''r2(var object, Object object1, Object !1);''',
         <String>["1+object2"],
         failingTests: '1');
 
     // reserved words
-    CompletionTestCase.buildTests('test012', '''
+    buildTests('test012', '''
 class X {
   f() {
     g(!1var!2 z) {!3true.!4toString();};
@@ -2028,7 +1956,7 @@ class X {
         failingTests: '123');
 
     // conditions & operators
-    CompletionTestCase.buildTests('test013', '''
+    buildTests('test013', '''
 class Q {
   bool x;
   List zs;
@@ -2059,7 +1987,7 @@ class Q {
         failingTests: '5689');
 
     // keywords
-    CompletionTestCase.buildTests('test014', '''
+    buildTests('test014', '''
 class Q {
   bool x;
   List zs;
@@ -2102,21 +2030,21 @@ class Q {
         failingTests: '123456789ABCDEFGHJKL');
 
     // operators in function
-    CompletionTestCase.buildTests(
+    buildTests(
         'test015',
         '''f(a,b,c) => a + b * c !1;''',
         <String>["1+=="],
         failingTests: '1');
 
     // operators in return
-    CompletionTestCase.buildTests(
+    buildTests(
         'test016',
         '''class X {dynamic f(a,b,c) {return a + b * c !1;}}''',
         <String>["1+=="],
         failingTests: '1');
 
     // keywords
-    CompletionTestCase.buildTests('test017', '''
+    buildTests('test017', '''
 !1library foo;
 !2import 'x' !5as r;
 !3export '!8uri' !6hide Q !7show X;
@@ -2133,38 +2061,38 @@ class Q {
         failingTests: '1234567');
 
     // keywords
-    CompletionTestCase.buildTests(
+    buildTests(
         'test018',
         '''!1part !2of foo;''',
         <String>["1+part", "2+of"],
         failingTests: '12');
 
-    CompletionTestCase.buildTests('test019', '''
+    buildTests('test019', '''
 var truefalse = 0;
 var falsetrue = 1;
 main() {
   var foo = true!1
 }''', <String>["1+true", "1+truefalse", "1-falsetrue"], failingTests: '1');
 
-    CompletionTestCase.buildTests(
+    buildTests(
         'test020',
         '''var x = null.!1''',
         <String>["1+toString"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests(
+    buildTests(
         'test021',
         '''var x = .!1''',
         <String>["1-toString"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests(
+    buildTests(
         'test022',
         '''var x = .!1;''',
         <String>["1-toString"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('test023', '''
+    buildTests('test023', '''
 class Map{getKeys(){}}
 class X {
   static x1(Map m) {
@@ -2176,7 +2104,7 @@ class X {
 }''', <String>["1+getKeys", "2+getKeys"]);
 
 // Note lack of semicolon following completion location
-    CompletionTestCase.buildTests('test024', '''
+    buildTests('test024', '''
 class List{factory List.from(Iterable other) {}}
 class F {
   f() {
@@ -2184,7 +2112,7 @@ class F {
   }
 }''', <String>["1+from"]);
 
-    CompletionTestCase.buildTests('test025', '''
+    buildTests('test025', '''
 class R {
   static R _m;
   static R m;
@@ -2235,38 +2163,26 @@ class T {
             "F+g"],
         failingTests: '789');
 
-    CompletionTestCase.buildTests(
-        'test026',
-        '''var aBcD; var x=ab!1''',
-        <String>["1+aBcD"]);
+    buildTests('test026', '''var aBcD; var x=ab!1''', <String>["1+aBcD"]);
 
-    CompletionTestCase.buildTests(
+    buildTests(
         'test027',
         '''m(){try{}catch(eeee,ssss){s!1}''',
         <String>["1+ssss"]);
 
-    CompletionTestCase.buildTests(
-        'test028',
-        '''m(){var isX=3;if(is!1)''',
-        <String>["1+isX"]);
+    buildTests('test028', '''m(){var isX=3;if(is!1)''', <String>["1+isX"]);
 
-    CompletionTestCase.buildTests(
-        'test029',
-        '''m(){[1].forEach((x)=>!1x);}''',
-        <String>["1+x"]);
+    buildTests('test029', '''m(){[1].forEach((x)=>!1x);}''', <String>["1+x"]);
 
-    CompletionTestCase.buildTests(
-        'test030',
-        '''n(){[1].forEach((x){!1});}''',
-        <String>["1+x"]);
+    buildTests('test030', '''n(){[1].forEach((x){!1});}''', <String>["1+x"]);
 
-    CompletionTestCase.buildTests(
+    buildTests(
         'test031',
         '''class Caster {} m() {try {} on Cas!1ter catch (CastBlock) {!2}}''',
         <String>["1+Caster", "1-CastBlock", "2+Caster", "2+CastBlock"],
         failingTests: '1');
 
-    CompletionTestCase.buildTests('test032', '''
+    buildTests('test032', '''
 const ONE = 1;
 const ICHI = 10;
 const UKSI = 100;
@@ -2291,7 +2207,7 @@ m() {
             "3+EIN",
             "3+ONE"]);
 
-    CompletionTestCase.buildTests(
+    buildTests(
         'test033',
         '''class A{}class B extends A{b(){}}class C implements A {c(){}}class X{x(){A f;f.!1}}''',
         <String>["1+b", "1-c"],
@@ -2300,7 +2216,7 @@ m() {
     // TODO(scheglov) decide what to do with Type for untyped field (not
     // supported by the new store)
     // test analysis of untyped fields and top-level vars
-    CompletionTestCase.buildTests('test034', '''
+    buildTests('test034', '''
 var topvar;
 class Top {top(){}}
 class Left extends Top {left(){}}
@@ -2326,7 +2242,7 @@ class A {
 }''', <String>["1+top", "2+top"], failingTests: '12');
 
     // test analysis of untyped fields and top-level vars
-    CompletionTestCase.buildTests(
+    buildTests(
         'test035',
         '''class Y {final x='hi';mth() {x.!1length;}}''',
         <String>["1+length"],
@@ -2335,7 +2251,7 @@ class A {
     // TODO(scheglov) decide what to do with Type for untyped field (not
     // supported by the new store)
     // test analysis of untyped fields and top-level vars
-    CompletionTestCase.buildTests('test036', '''
+    buildTests('test036', '''
 class A1 {
   var field;
   A1() : field = 0;
@@ -2349,14 +2265,14 @@ main() {
   a.field.!2
 }''', <String>["1+round", "2+round"], failingTests: '12');
 
-    CompletionTestCase.buildTests('test037', '''
+    buildTests('test037', '''
 class HttpServer{}
 class HttpClient{}
 main() {
   new HtS!1
 }''', <String>["1+HttpServer", "1-HttpClient"], failingTests: '1');
 
-    CompletionTestCase.buildTests('test038', '''
+    buildTests('test038', '''
 class X {
   x(){}
 }
@@ -2373,27 +2289,27 @@ class A<Z extends X> {
 }''', <String>["1+y", "1-x", "2+x", "2-y"], failingTests: '2');
 
     // test analysis of untyped fields and top-level vars
-    CompletionTestCase.buildTests(
+    buildTests(
         'test039',
         '''class X{}var x = null as !1X;''',
         <String>["1+X", "1-void"]);
 
     // test arg lists with named params
-    CompletionTestCase.buildTests(
+    buildTests(
         'test040',
         '''m(){f(a, b, {x1, x2, y}) {};f(1, 2, !1)!2;}''',
         <String>["1+x1", "2-x2"],
         failingTests: '1');
 
     // test arg lists with named params
-    CompletionTestCase.buildTests(
+    buildTests(
         'test041',
         '''m(){f(a, b, {x1, x2, y}) {};f(1, 2, !1''',
         <String>["1+x1", "1+x2", "1+y"],
         failingTests: '1');
 
     // test arg lists with named params
-    CompletionTestCase.buildTests(
+    buildTests(
         'test042',
         '''m(){f(a, b, {x1, x2, y}) {};f(1, 2, !1;!2''',
         <String>["1+x1", "1+x2", "2-y"],
@@ -2401,14 +2317,77 @@ class A<Z extends X> {
   }
 
   void buildOtherTests() {
-    CompletionTestCase.buildTests(
+    buildTests(
         'test_classMembers_inGetter',
         '''class A { var fff; get z {ff!1}}''',
         <String>["1+fff"]);
 
-    CompletionTestCase.buildTests(
+    buildTests(
         'testSingle',
         '''class A {int x; !2mth() {int y = this.x;}}class B{}''',
         <String>["2+B"]);
+  }
+
+  /**
+   * Generate a set of completion tests based on the given [originalSource].
+   *
+   * The source string has completion points embedded in it, which are
+   * identified by '!X' where X is a single character. Each X is matched to
+   * positive or negative results in the array of [validationStrings].
+   * Validation strings contain the name of a prediction with a two character
+   * prefix. The first character of the prefix corresponds to an X in the
+   * [originalSource]. The second character is either a '+' or a '-' indicating
+   * whether the string is a positive or negative result.
+   *
+   * The [originalSource] is the source for a completion test that contains
+   * completion points. The [validationStrings] are the positive and negative
+   * predictions.
+   *
+   * Optional argument [failingTests], if given, is a string, each character of
+   * which corresponds to an X in the [originalSource] for which the test is
+   * expected to fail.  This sould be used to mark known completion bugs that
+   * have not yet been fixed.
+   */
+  void buildTests(String baseName, String originalSource, List<String> results,
+      {Map<String, String> extraFiles, String failingTests: ''}) {
+    List<LocationSpec> completionTests =
+        LocationSpec.from(originalSource, results);
+    completionTests.sort((LocationSpec first, LocationSpec second) {
+      return first.id.compareTo(second.id);
+    });
+    if (completionTests.isEmpty) {
+      test(baseName, () {
+        fail(
+            "Expected exclamation point ('!') within the source denoting the"
+                "position at which code completion should occur");
+      });
+    }
+    Set<String> allSpecIds =
+        completionTests.map((LocationSpec spec) => spec.id).toSet();
+    for (String id in failingTests.split('')) {
+      if (!allSpecIds.contains(id)) {
+        test("$baseName-$id", () {
+          fail(
+              "Test case '$id' included in failingTests, but this id does not exist.");
+        });
+      }
+    }
+    for (LocationSpec spec in completionTests) {
+      if (failingTests.contains(spec.id)) {
+        ++expectedFailCount;
+        test("$baseName-${spec.id} (expected failure)", () {
+          CompletionTestCase test = new CompletionTestCase();
+          return new Future(() => test.runTest(spec, extraFiles)).then((_) {
+            fail('Test passed - expected to fail.');
+          }, onError: (_) {});
+        });
+      } else {
+        ++expectedPassCount;
+        test("$baseName-${spec.id}", () {
+          CompletionTestCase test = new CompletionTestCase();
+          return test.runTest(spec, extraFiles);
+        });
+      }
+    }
   }
 }

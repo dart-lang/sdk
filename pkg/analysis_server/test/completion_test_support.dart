@@ -96,68 +96,6 @@ class CompletionTestCase extends CompletionTest {
       super.tearDown();
     });
   }
-
-  /**
-   * Generate a set of completion tests based on the given [originalSource].
-   *
-   * The source string has completion points embedded in it, which are
-   * identified by '!X' where X is a single character. Each X is matched to
-   * positive or negative results in the array of [validationStrings].
-   * Validation strings contain the name of a prediction with a two character
-   * prefix. The first character of the prefix corresponds to an X in the
-   * [originalSource]. The second character is either a '+' or a '-' indicating
-   * whether the string is a positive or negative result.
-   *
-   * The [originalSource] is the source for a completion test that contains
-   * completion points. The [validationStrings] are the positive and negative
-   * predictions.
-   *
-   * Optional argument [failingTests], if given, is a string, each character of
-   * which corresponds to an X in the [originalSource] for which the test is
-   * expected to fail.  This sould be used to mark known completion bugs that
-   * have not yet been fixed.
-   */
-  static void buildTests(String baseName, String originalSource,
-      List<String> results, {Map<String, String> extraFiles, String failingTests:
-      ''}) {
-    List<LocationSpec> completionTests =
-        LocationSpec.from(originalSource, results);
-    completionTests.sort((LocationSpec first, LocationSpec second) {
-      return first.id.compareTo(second.id);
-    });
-    if (completionTests.isEmpty) {
-      test(baseName, () {
-        fail(
-            "Expected exclamation point ('!') within the source denoting the"
-                "position at which code completion should occur");
-      });
-    }
-    Set<String> allSpecIds =
-        completionTests.map((LocationSpec spec) => spec.id).toSet();
-    for (String id in failingTests.split('')) {
-      if (!allSpecIds.contains(id)) {
-        test("$baseName-$id", () {
-          fail(
-              "Test case '$id' included in failingTests, but this id does not exist.");
-        });
-      }
-    }
-    for (LocationSpec spec in completionTests) {
-      if (failingTests.contains(spec.id)) {
-        test("$baseName-${spec.id} (expected failure)", () {
-          CompletionTestCase test = new CompletionTestCase();
-          return new Future(() => test.runTest(spec, extraFiles)).then((_) {
-            fail('Test passed - expected to fail.');
-          }, onError: (_) {});
-        });
-      } else {
-        test("$baseName-${spec.id}", () {
-          CompletionTestCase test = new CompletionTestCase();
-          return test.runTest(spec, extraFiles);
-        });
-      }
-    }
-  }
 }
 
 /**
