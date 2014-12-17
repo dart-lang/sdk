@@ -2,3 +2,6 @@
 line 20, column 29 of test/codegen/sunflower.dart: querySelector("#slider") (Element) will need runtime check to cast to type InputElement
 final InputElement slider = querySelector("#slider");
                             ^^^^^^^^^^^^^^^^^^^^^^^^
+line 25, column 5 of test/codegen/sunflower.dart: (querySelector("#canvas") as CanvasElement).getContext('2d') (RenderingContext) will need runtime check to cast to type CanvasRenderingContext2D
+    (querySelector("#canvas") as CanvasElement).getContext('2d');
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

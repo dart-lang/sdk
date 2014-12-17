@@ -84,6 +84,14 @@ var dom;
   })(Element);
   dom.CanvasElement = CanvasElement;
 
+  // Class RenderingContext
+  var RenderingContext = (function (_super) {
+    var constructor = function RenderingContext() {};
+    dart_runtime.dextend(constructor, _super);
+    return constructor;
+  })(dart_core.Object);
+  dom.RenderingContext = RenderingContext;
+
   // Class CanvasRenderingContext2D
   var CanvasRenderingContext2D = (function (_super) {
     var _initializer = (function (_this) {

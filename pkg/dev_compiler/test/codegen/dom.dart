@@ -43,13 +43,17 @@ abstract class InputElement extends Element {
 
 @JsType(name: 'HTMLCanvasElement')
 abstract class CanvasElement extends Element {
-  CanvasRenderingContext2D get context2D;
+  RenderingContext getContext(String contextId);
 }
+
+// TODO(jmesserly): union type of CanvasRenderingContext2D and
+// WebGLRenderingContext
+abstract class RenderingContext {}
 
 // http://www.w3.org/html/wg/drafts/2dcontext/html5_canvas_CR/
 @JsType()
 abstract class CanvasRenderingContext2D
-    implements CanvasDrawingStyles, CanvasPathMethods {
+    implements CanvasDrawingStyles, CanvasPathMethods, RenderingContext {
 
   // back-reference to the canvas
   CanvasElement get canvas;

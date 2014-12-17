@@ -15,7 +15,7 @@ var sunflower;
   var notes = function() { return sunflower.querySelector("#notes"); }();
   var PHI = function() { return (dart.math.sqrt(5) + 1) / 2; }();
   var seeds = function() { return 0; }();
-  var context = function() { return (/* Unimplemented: as CanvasElement. */sunflower.querySelector("#canvas")).context2D; }();
+  var context = function() { return /* Unimplemented: DownCast: RenderingContext to CanvasRenderingContext2D */ (/* Unimplemented: as CanvasElement. */sunflower.querySelector("#canvas")).getContext("2d"); }();
   // Function main: () → void
   function main() {
     slider.addEventListener("change", /* Unimplemented: bind any free variables. */function(e) { return sunflower.draw(); });
