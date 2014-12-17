@@ -4,6 +4,7 @@
 
 library dart2js.ir_nodes_sexpr;
 
+import '../constants/values.dart';
 import '../util/util.dart';
 import 'cps_ir_nodes.dart';
 
@@ -159,7 +160,9 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   }
 
   String visitConstant(Constant node) {
-    return '(Constant ${node.expression.value.toStructuredString()})';
+    String value =
+        node.expression.value.accept(new ConstantStringifier(), null);
+    return '(Constant $value)';
   }
 
   String visitThis(This node) {
@@ -231,6 +234,70 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
 
   String visitInterceptor(Interceptor node) {
     return '(Interceptor ${node.input})';
+  }
+}
+
+class ConstantStringifier extends ConstantValueVisitor<String, Null> {
+  // Some of these methods are unimplemented because we haven't had a need
+  // to print such constants.  When printing is implemented, the corresponding
+  // parsing support should be added to SExpressionUnstringifier.parseConstant
+  // in the dart2js tests (currently in the file
+  // tests/compiler/dart2js/backend_dart/sexpr_unstringifier.dart).
+
+  String _failWith(ConstantValue constant) {
+    throw 'Stringification not supported for ${constant.toStructuredString()}';
+  }
+
+  String visitFunction(FunctionConstantValue constant, _) {
+    return _failWith(constant);
+  }
+
+  String visitNull(NullConstantValue constant, _) {
+    return '(Null)';
+  }
+
+  String visitInt(IntConstantValue constant, _) {
+    return '(Int ${constant.unparse()})';
+  }
+
+  String visitDouble(DoubleConstantValue constant, _) {
+    return '(Double ${constant.unparse()})';
+  }
+
+  String visitBool(BoolConstantValue constant, _) {
+    return '(Bool ${constant.unparse()})';
+  }
+
+  String visitString(StringConstantValue constant, _) {
+    return '(String ${constant.unparse()})';
+  }
+
+  String visitList(ListConstantValue constant, _) {
+    return _failWith(constant);
+  }
+
+  String visitMap(MapConstantValue constant, _) {
+    return _failWith(constant);
+  }
+
+  String visitConstructed(ConstructedConstantValue constant, _) {
+    return _failWith(constant);
+  }
+
+  String visitType(TypeConstantValue constant, _) {
+    return _failWith(constant);
+  }
+
+  String visitInterceptor(InterceptorConstantValue constant, _) {
+    return _failWith(constant);
+  }
+
+  String visitDummy(DummyConstantValue constant, _) {
+    return _failWith(constant);
+  }
+
+  String visitDeferred(DeferredConstantValue constant, _) {
+    return _failWith(constant);
   }
 }
 

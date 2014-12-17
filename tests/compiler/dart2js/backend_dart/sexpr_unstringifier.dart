@@ -142,6 +142,13 @@ class SExpressionUnstringifier {
   static const String FUNCTION_DEFINITION = "FunctionDefinition";
   static const String IS_TRUE = "IsTrue";
 
+  // Constants
+  static const String BOOL = "Bool";
+  static const String DOUBLE = "Double";
+  static const String INT = "Int";
+  static const String NULL = "Null";
+  static const String STRING = "String";
+
   final Map<String, Definition> name2variable =
       <String, Definition>{ "return": new Continuation.retrn() };
 
@@ -576,79 +583,61 @@ class SExpressionUnstringifier {
   /// (Constant (constant))
   Constant parseConstant() {
     tokens.consumeStart(CONSTANT);
+    tokens.consumeStart();
+    Constant result;
     String tag = tokens.read();
-
-    // NullConstant.
-    if (tag == "NullConstant") {
-      tokens.consumeEnd();
-      return new Constant(
-          new PrimitiveConstantExpression(new NullConstantValue()));
+    switch (tag) {
+      case NULL:
+        result = new Constant(
+            new PrimitiveConstantExpression(new NullConstantValue()));
+        break;
+      case BOOL:
+        String value = tokens.read();
+        if (value == "true") {
+          result = new Constant(
+              new PrimitiveConstantExpression(new TrueConstantValue()));
+        } else if (value == "false") {
+          result = new Constant(
+              new PrimitiveConstantExpression(new FalseConstantValue()));
+        } else {
+          throw "Invalid Boolean value '$value'.";
+        }
+        break;
+      case STRING:
+        List<String> strings = <String>[];
+        do {
+          strings.add(tokens.read());
+        } while (tokens.current != ")");
+        String string = strings.join(" ");
+        assert(string.startsWith('"') && string.endsWith('"'));
+        StringConstantValue value = new StringConstantValue(
+            new LiteralDartString(string.substring(1, string.length - 1)));
+        result = new Constant(new PrimitiveConstantExpression(value));
+        break;
+      case INT:
+        String value = tokens.read();
+        int intValue = int.parse(value, onError: (_) => null);
+        if (intValue == null) {
+          throw "Invalid int value 'value'.";
+        }
+        result = new Constant(
+            new PrimitiveConstantExpression(new IntConstantValue(intValue)));
+        break;
+      case DOUBLE:
+        String value = tokens.read();
+        double doubleValue = double.parse(value, (_) => null);
+        if (doubleValue == null) {
+          throw "Invalid double value '$value'.";
+        }
+        result = new Constant(new PrimitiveConstantExpression(
+            new DoubleConstantValue(doubleValue)));
+        break;
+      default:
+        throw "Unexpected constant tag '$tag'.";
     }
-
-    // BoolConstant.
-    if (tag == "BoolConstant") {
-      tokens.consumeStart();
-      tag = tokens.read();
-      tokens.consumeEnd();
-      tokens.consumeEnd();
-      if (tag == "true") {
-        return new Constant(new PrimitiveConstantExpression(
-            new TrueConstantValue()));
-      } else if (tag == "false") {
-        return new Constant(new PrimitiveConstantExpression(
-            new FalseConstantValue()));
-      }
-      throw "Invalid bool value '$tag'.";
-    }
-
-    // StringConstant.
-    if (tag == "StringConstant") {
-      tokens.consumeStart();
-      List<String> strings = <String>[];
-      do {
-        strings.add(tokens.read());
-      } while (tokens.current != ")");
-      tokens.consumeEnd();
-
-      String string = strings.join(" ");
-      assert(string.startsWith('"') && string.endsWith('"'));
-
-      StringConstantValue value = new StringConstantValue(
-          new LiteralDartString(string.substring(1, string.length - 1)));
-
-      tokens.consumeEnd();
-      return new Constant(new PrimitiveConstantExpression(value));
-    }
-
-    // IntConstant.
-    if (tag == "IntConstant") {
-      tokens.consumeStart();
-      tag = tokens.read();
-      int intValue = int.parse(tag, onError: (_) => null);
-      if (intValue == null) {
-        throw "Invalid int value '$tag'.";
-      }
-      tokens.consumeEnd();
-      tokens.consumeEnd();
-      return new Constant(new PrimitiveConstantExpression(
-          new IntConstantValue(intValue)));
-    }
-
-    // DoubleConstant.
-    if (tag == "DoubleConstant") {
-      tokens.consumeStart();
-      tag = tokens.read();
-      double doubleValue = double.parse(tag, (_) => null);
-      if (doubleValue == null) {
-        throw "Invalid double value '$tag'.";
-      }
-      tokens.consumeEnd();
-      tokens.consumeEnd();
-      return new Constant(new PrimitiveConstantExpression(
-          new DoubleConstantValue(doubleValue)));
-    }
-
-    throw "Unhandled tag '$tag'.";
+    tokens.consumeEnd();
+    tokens.consumeEnd();
+    return result;
   }
 
   /// (CreateFunction (definition))

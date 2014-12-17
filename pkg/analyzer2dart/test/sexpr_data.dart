@@ -24,7 +24,7 @@ const List<Group> TEST_DATA = const [
 main() {}
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant NullConstant))
+  (LetPrim v0 (Constant (Null)))
   (InvokeContinuation return v0))
 '''),
 
@@ -36,7 +36,7 @@ main() {
 ''', '''
 (FunctionDefinition main () return ()
   (LetCont (k0 v0)
-    (LetPrim v1 (Constant NullConstant))
+    (LetPrim v1 (Constant (Null)))
     (InvokeContinuation return v1))
   (InvokeStatic foo  k0))
 ''')
@@ -49,7 +49,7 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
+  (LetPrim v0 (Constant (Int 0)))
   (InvokeContinuation return v0))
 '''),
 
@@ -59,7 +59,7 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant DoubleConstant(1.5)))
+  (LetPrim v0 (Constant (Double 1.5)))
   (InvokeContinuation return v0))
 '''),
 
@@ -69,7 +69,7 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant BoolConstant(true)))
+  (LetPrim v0 (Constant (Bool true)))
   (InvokeContinuation return v0))
 '''),
 
@@ -79,7 +79,7 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant BoolConstant(false)))
+  (LetPrim v0 (Constant (Bool false)))
   (InvokeContinuation return v0))
 '''),
 
@@ -89,7 +89,7 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant StringConstant("a")))
+  (LetPrim v0 (Constant (String "a")))
   (InvokeContinuation return v0))
 '''),
   ]),
@@ -99,7 +99,7 @@ main() {
 main(args) {}
 ''', '''
 (FunctionDefinition main (args) return ()
-  (LetPrim v0 (Constant NullConstant))
+  (LetPrim v0 (Constant (Null)))
   (InvokeContinuation return v0))
 '''),
 
@@ -107,7 +107,7 @@ main(args) {}
 main(a, b) {}
 ''', '''
 (FunctionDefinition main (a b) return ()
-  (LetPrim v0 (Constant NullConstant))
+  (LetPrim v0 (Constant (Null)))
   (InvokeContinuation return v0))
 '''),
   ]),
@@ -120,9 +120,9 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant NullConstant))
+  (LetPrim v0 (Constant (Null)))
   (LetCont (k0 v1)
-    (LetPrim v2 (Constant NullConstant))
+    (LetPrim v2 (Constant (Null)))
     (InvokeContinuation return v2))
   (InvokeStatic foo v0 k0))
 '''),
@@ -136,12 +136,12 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant NullConstant))
+  (LetPrim v0 (Constant (Null)))
   (LetCont (k0 v1)
-    (LetPrim v2 (Constant IntConstant(0)))
-    (LetPrim v3 (Constant StringConstant("")))
+    (LetPrim v2 (Constant (Int 0)))
+    (LetPrim v3 (Constant (String "")))
     (LetCont (k1 v4)
-      (LetPrim v5 (Constant NullConstant))
+      (LetPrim v5 (Constant (Null)))
       (InvokeContinuation return v5))
     (InvokeStatic bar v2 v3 k1))
   (InvokeStatic foo v0 k0))
@@ -154,7 +154,7 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant NullConstant))
+  (LetPrim v0 (Constant (Null)))
   (LetCont (k0 v1)
     (InvokeContinuation return v1))
   (InvokeStatic foo v0 k0))
@@ -169,7 +169,7 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant NullConstant))
+  (LetPrim v0 (Constant (Null)))
   (InvokeContinuation return v0))
 '''),
 
@@ -180,7 +180,7 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
+  (LetPrim v0 (Constant (Int 0)))
   (InvokeContinuation return v0))
 '''),
 
@@ -203,8 +203,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant NullConstant))
-  (LetPrim v1 (Constant IntConstant(10)))
+  (LetPrim v0 (Constant (Null)))
+  (LetPrim v1 (Constant (Int 10)))
   (InvokeContinuation return v1))
 '''),
 
@@ -216,8 +216,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant IntConstant(10)))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (Int 10)))
   (InvokeContinuation return v1))
 '''),
 
@@ -231,9 +231,9 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
+  (LetPrim v0 (Constant (Int 0)))
   (LetCont (k0 v1)
-    (LetPrim v2 (Constant StringConstant("")))
+    (LetPrim v2 (Constant (String "")))
     (LetCont (k1 v3)
       (InvokeContinuation return v2))
     (InvokeStatic print v2 k1))
@@ -250,7 +250,7 @@ main(a) {
 ''', '''
 (FunctionDefinition main (a) return ()
   (LetCont (k0 v0)
-    (LetPrim v1 (Constant StringConstant("")))
+    (LetPrim v1 (Constant (String "")))
     (LetCont (k1 v2)
       (InvokeContinuation return v1))
     (InvokeStatic print v1 k1))
@@ -272,7 +272,7 @@ main(a) {
       (InvokeContinuation return v0))
     (InvokeStatic print v0 k1))
   (LetCont (k2)
-    (LetPrim v2 (Constant StringConstant("")))
+    (LetPrim v2 (Constant (String "")))
     (InvokeContinuation k0 v2))
   (LetCont (k3)
     (InvokeContinuation k0 a))
@@ -299,7 +299,7 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant StringConstant("")))
+  (LetPrim v0 (Constant (String "")))
   (LetCont (k0 v1)
     (InvokeContinuation return v1))
   (InvokeMethod v0 foo  k0))
@@ -313,7 +313,7 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetPrim v0 (Constant IntConstant(0)))
+  (LetPrim v0 (Constant (Int 0)))
   (LetCont (k0 v1)
     (InvokeContinuation return v1))
   (InvokeMethod a foo v0 k0))
@@ -326,9 +326,9 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant StringConstant("")))
-  (LetPrim v1 (Constant IntConstant(0)))
-  (LetPrim v2 (Constant IntConstant(1)))
+  (LetPrim v0 (Constant (String "")))
+  (LetPrim v1 (Constant (Int 0)))
+  (LetPrim v2 (Constant (Int 1)))
   (LetCont (k0 v3)
     (InvokeContinuation return v3))
   (InvokeMethod v0 foo v1 v2 k0))
@@ -342,8 +342,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant StringConstant("")))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (String "")))
   (LetCont (k0 v2)
     (InvokeContinuation return v2))
   (InvokeMethod v0 + v1 k0))
@@ -355,8 +355,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant StringConstant("")))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (String "")))
   (LetCont (k0 v2)
     (InvokeContinuation return v2))
   (InvokeMethod v0 - v1 k0))
@@ -368,8 +368,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant StringConstant("")))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (String "")))
   (LetCont (k0 v2)
     (InvokeContinuation return v2))
   (InvokeMethod v0 * v1 k0))
@@ -381,8 +381,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant StringConstant("")))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (String "")))
   (LetCont (k0 v2)
     (InvokeContinuation return v2))
   (InvokeMethod v0 / v1 k0))
@@ -394,8 +394,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant StringConstant("")))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (String "")))
   (LetCont (k0 v2)
     (InvokeContinuation return v2))
   (InvokeMethod v0 ~/ v1 k0))
@@ -407,8 +407,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant StringConstant("")))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (String "")))
   (LetCont (k0 v2)
     (InvokeContinuation return v2))
   (InvokeMethod v0 < v1 k0))
@@ -420,8 +420,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant StringConstant("")))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (String "")))
   (LetCont (k0 v2)
     (InvokeContinuation return v2))
   (InvokeMethod v0 <= v1 k0))
@@ -433,8 +433,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant StringConstant("")))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (String "")))
   (LetCont (k0 v2)
     (InvokeContinuation return v2))
   (InvokeMethod v0 > v1 k0))
@@ -446,8 +446,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant StringConstant("")))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (String "")))
   (LetCont (k0 v2)
     (InvokeContinuation return v2))
   (InvokeMethod v0 >= v1 k0))
@@ -459,8 +459,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant StringConstant("")))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (String "")))
   (LetCont (k0 v2)
     (InvokeContinuation return v2))
   (InvokeMethod v0 << v1 k0))
@@ -472,8 +472,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant StringConstant("")))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (String "")))
   (LetCont (k0 v2)
     (InvokeContinuation return v2))
   (InvokeMethod v0 >> v1 k0))
@@ -485,8 +485,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant StringConstant("")))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (String "")))
   (LetCont (k0 v2)
     (InvokeContinuation return v2))
   (InvokeMethod v0 & v1 k0))
@@ -498,8 +498,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant StringConstant("")))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (String "")))
   (LetCont (k0 v2)
     (InvokeContinuation return v2))
   (InvokeMethod v0 | v1 k0))
@@ -511,8 +511,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant StringConstant("")))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (String "")))
   (LetCont (k0 v2)
     (InvokeContinuation return v2))
   (InvokeMethod v0 ^ v1 k0))
@@ -524,8 +524,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant StringConstant("")))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (String "")))
   (LetCont (k0 v2)
     (InvokeContinuation return v2))
   (InvokeMethod v0 == v1 k0))
@@ -537,16 +537,16 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant StringConstant("")))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (String "")))
   (LetCont (k0 v2)
     (LetCont (k1 v3)
       (InvokeContinuation return v3))
     (LetCont (k2)
-      (LetPrim v4 (Constant BoolConstant(false)))
+      (LetPrim v4 (Constant (Bool false)))
       (InvokeContinuation k1 v4))
     (LetCont (k3)
-      (LetPrim v5 (Constant BoolConstant(true)))
+      (LetPrim v5 (Constant (Bool true)))
       (InvokeContinuation k1 v5))
     (Branch (IsTrue v2) k2 k3))
   (InvokeMethod v0 == v1 k0))
@@ -558,20 +558,20 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
+  (LetPrim v0 (Constant (Int 0)))
   (LetCont (k0 v1)
     (InvokeContinuation return v1))
   (LetCont (k1)
-    (LetPrim v2 (Constant StringConstant("")))
+    (LetPrim v2 (Constant (String "")))
     (LetCont (k2)
-      (LetPrim v3 (Constant BoolConstant(true)))
+      (LetPrim v3 (Constant (Bool true)))
       (InvokeContinuation k0 v3))
     (LetCont (k3)
-      (LetPrim v4 (Constant BoolConstant(false)))
+      (LetPrim v4 (Constant (Bool false)))
       (InvokeContinuation k0 v4))
     (Branch (IsTrue v2) k2 k3))
   (LetCont (k4)
-    (LetPrim v5 (Constant BoolConstant(false)))
+    (LetPrim v5 (Constant (Bool false)))
     (InvokeContinuation k0 v5))
   (Branch (IsTrue v0) k1 k4))
 '''),
@@ -582,19 +582,19 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
+  (LetPrim v0 (Constant (Int 0)))
   (LetCont (k0 v1)
     (InvokeContinuation return v1))
   (LetCont (k1)
-    (LetPrim v2 (Constant BoolConstant(true)))
+    (LetPrim v2 (Constant (Bool true)))
     (InvokeContinuation k0 v2))
   (LetCont (k2)
-    (LetPrim v3 (Constant StringConstant("")))
+    (LetPrim v3 (Constant (String "")))
     (LetCont (k3)
-      (LetPrim v4 (Constant BoolConstant(true)))
+      (LetPrim v4 (Constant (Bool true)))
       (InvokeContinuation k0 v4))
     (LetCont (k4)
-      (LetPrim v5 (Constant BoolConstant(false)))
+      (LetPrim v5 (Constant (Bool false)))
       (InvokeContinuation k0 v5))
     (Branch (IsTrue v3) k3 k4))
   (Branch (IsTrue v0) k1 k2))
@@ -606,9 +606,9 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant StringConstant("")))
-  (LetPrim v2 (Constant IntConstant(2)))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (String "")))
+  (LetPrim v2 (Constant (Int 2)))
   (LetCont (k0 v3)
     (LetCont (k1 v4)
       (InvokeContinuation return v4))
@@ -622,10 +622,10 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant StringConstant("")))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (String "")))
   (LetCont (k0 v2)
-    (LetPrim v3 (Constant IntConstant(2)))
+    (LetPrim v3 (Constant (Int 2)))
     (LetCont (k1 v4)
       (InvokeContinuation return v4))
     (InvokeMethod v2 + v3 k1))
@@ -643,10 +643,10 @@ main(a) {
 ''', '''
 (FunctionDefinition main (a) return ()
   (LetCont (k0)
-    (LetPrim v0 (Constant NullConstant))
+    (LetPrim v0 (Constant (Null)))
     (InvokeContinuation return v0))
   (LetCont (k1)
-    (LetPrim v1 (Constant IntConstant(0)))
+    (LetPrim v1 (Constant (Int 0)))
     (LetCont (k2 v2)
       (InvokeContinuation k0 ))
     (InvokeStatic print v1 k2))
@@ -666,15 +666,15 @@ main(a) {
 ''', '''
 (FunctionDefinition main (a) return ()
   (LetCont (k0)
-    (LetPrim v0 (Constant NullConstant))
+    (LetPrim v0 (Constant (Null)))
     (InvokeContinuation return v0))
   (LetCont (k1)
-    (LetPrim v1 (Constant IntConstant(0)))
+    (LetPrim v1 (Constant (Int 0)))
     (LetCont (k2 v2)
       (InvokeContinuation k0 ))
     (InvokeStatic print v1 k2))
   (LetCont (k3)
-    (LetPrim v3 (Constant IntConstant(1)))
+    (LetPrim v3 (Constant (Int 1)))
     (LetCont (k4 v4)
       (InvokeContinuation k0 ))
     (InvokeStatic print v3 k4))
@@ -693,17 +693,17 @@ main(a) {
 ''', '''
 (FunctionDefinition main (a) return ()
   (LetCont (k0)
-    (LetPrim v0 (Constant NullConstant))
+    (LetPrim v0 (Constant (Null)))
     (InvokeContinuation return v0))
   (LetCont (k1)
-    (LetPrim v1 (Constant IntConstant(0)))
+    (LetPrim v1 (Constant (Int 0)))
     (LetCont (k2 v2)
       (InvokeContinuation k0 ))
     (InvokeStatic print v1 k2))
   (LetCont (k3)
-    (LetPrim v3 (Constant IntConstant(1)))
+    (LetPrim v3 (Constant (Int 1)))
     (LetCont (k4 v4)
-      (LetPrim v5 (Constant IntConstant(2)))
+      (LetPrim v5 (Constant (Int 2)))
       (LetCont (k5 v6)
         (InvokeContinuation k0 ))
       (InvokeStatic print v5 k5))
@@ -722,12 +722,12 @@ main(a) {
   (LetCont (k0 v0)
     (InvokeContinuation return v0))
   (LetCont (k1)
-    (LetPrim v1 (Constant IntConstant(0)))
+    (LetPrim v1 (Constant (Int 0)))
     (LetCont (k2 v2)
       (InvokeContinuation k0 v2))
     (InvokeStatic print v1 k2))
   (LetCont (k3)
-    (LetPrim v3 (Constant IntConstant(1)))
+    (LetPrim v3 (Constant (Int 1)))
     (LetCont (k4 v4)
       (InvokeContinuation k0 v4))
     (InvokeStatic print v3 k4))
@@ -745,7 +745,7 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetPrim v0 (Constant IntConstant(0)))
+  (LetPrim v0 (Constant (Int 0)))
   (InvokeContinuation return v0))
 '''),
 
@@ -762,10 +762,10 @@ main(a) {
 ''', '''
 (FunctionDefinition main (a) return ()
   (LetCont (k0)
-    (LetPrim v0 (Constant IntConstant(0)))
+    (LetPrim v0 (Constant (Int 0)))
     (InvokeContinuation return v0))
   (LetCont (k1)
-    (LetPrim v1 (Constant IntConstant(2)))
+    (LetPrim v1 (Constant (Int 2)))
     (InvokeContinuation return v1))
   (Branch (IsTrue a) k0 k1))
 '''),
@@ -785,15 +785,15 @@ main(a) {
 ''', '''
 (FunctionDefinition main (a) return ()
   (LetCont (k0)
-    (LetPrim v0 (Constant IntConstant(0)))
+    (LetPrim v0 (Constant (Int 0)))
     (LetCont (k1 v1)
-      (LetPrim v2 (Constant IntConstant(0)))
+      (LetPrim v2 (Constant (Int 0)))
       (InvokeContinuation return v2))
     (InvokeStatic print v0 k1))
   (LetCont (k2)
-    (LetPrim v3 (Constant IntConstant(2)))
+    (LetPrim v3 (Constant (Int 2)))
     (LetCont (k3 v4)
-      (LetPrim v5 (Constant IntConstant(2)))
+      (LetPrim v5 (Constant (Int 2)))
       (InvokeContinuation return v5))
     (InvokeStatic print v3 k3))
   (Branch (IsTrue a) k0 k2))
@@ -808,7 +808,7 @@ main(a) {
 ''', '''
 (FunctionDefinition main (a) return ()
   (LetCont (k0 v0)
-    (LetPrim v1 (Constant NullConstant))
+    (LetPrim v1 (Constant (Null)))
     (InvokeContinuation return v1))
   (InvokeConstructor Object  k0))
 '''),
@@ -819,9 +819,9 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetPrim v0 (Constant StringConstant("")))
+  (LetPrim v0 (Constant (String "")))
   (LetCont (k0 v1)
-    (LetPrim v2 (Constant NullConstant))
+    (LetPrim v2 (Constant (Null)))
     (InvokeContinuation return v2))
   (InvokeConstructor Deprecated v0 k0))
 '''),
@@ -844,7 +844,7 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
+  (LetPrim v0 (Constant (Int 0)))
   (LetPrim v1 (LiteralList (v0)))
   (InvokeContinuation return v1))
 '''),
@@ -855,8 +855,8 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant IntConstant(1)))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (Int 1)))
   (LetPrim v2 (LiteralList (v0 v1 a)))
   (InvokeContinuation return v2))
 '''),
@@ -867,10 +867,10 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant IntConstant(1)))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (Int 1)))
   (LetPrim v2 (LiteralList (v1)))
-  (LetPrim v3 (Constant IntConstant(3)))
+  (LetPrim v3 (Constant (Int 3)))
   (LetPrim v4 (LiteralList (v3)))
   (LetPrim v5 (LiteralList (a v4)))
   (LetPrim v6 (LiteralList (v0 v2 v5)))
@@ -895,8 +895,8 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant StringConstant("a")))
-  (LetPrim v1 (Constant IntConstant(0)))
+  (LetPrim v0 (Constant (String "a")))
+  (LetPrim v1 (Constant (Int 0)))
   (LetPrim v2 (LiteralMap (v0) (v1)))
   (InvokeContinuation return v2))
 '''),
@@ -907,11 +907,11 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetPrim v0 (Constant StringConstant("a")))
-  (LetPrim v1 (Constant IntConstant(0)))
-  (LetPrim v2 (Constant StringConstant("b")))
-  (LetPrim v3 (Constant IntConstant(1)))
-  (LetPrim v4 (Constant StringConstant("c")))
+  (LetPrim v0 (Constant (String "a")))
+  (LetPrim v1 (Constant (Int 0)))
+  (LetPrim v2 (Constant (String "b")))
+  (LetPrim v3 (Constant (Int 1)))
+  (LetPrim v4 (Constant (String "c")))
   (LetPrim v5 (LiteralMap (v0 v2 v4) (v1 v3 a)))
   (InvokeContinuation return v5))
 '''),
@@ -922,14 +922,14 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetPrim v0 (Constant IntConstant(0)))
-  (LetPrim v1 (Constant StringConstant("a")))
-  (LetPrim v2 (Constant IntConstant(1)))
-  (LetPrim v3 (Constant IntConstant(2)))
-  (LetPrim v4 (Constant StringConstant("b")))
+  (LetPrim v0 (Constant (Int 0)))
+  (LetPrim v1 (Constant (String "a")))
+  (LetPrim v2 (Constant (Int 1)))
+  (LetPrim v3 (Constant (Int 2)))
+  (LetPrim v4 (Constant (String "b")))
   (LetPrim v5 (LiteralMap (v3) (v4)))
-  (LetPrim v6 (Constant IntConstant(3)))
-  (LetPrim v7 (Constant StringConstant("c")))
+  (LetPrim v6 (Constant (Int 3)))
+  (LetPrim v7 (Constant (String "c")))
   (LetPrim v8 (LiteralMap (v6) (v7)))
   (LetPrim v9 (LiteralMap (v0 v2 a) (v1 v5 v8)))
   (InvokeContinuation return v9))
@@ -944,9 +944,9 @@ main() {
 ''', '''
 (FunctionDefinition main () return ()
   (LetCont* (k0)
-    (LetPrim v0 (Constant BoolConstant(true)))
+    (LetPrim v0 (Constant (Bool true)))
     (LetCont (k1)
-      (LetPrim v1 (Constant NullConstant))
+      (LetPrim v1 (Constant (Null)))
       (InvokeContinuation return v1))
     (LetCont (k2)
       (InvokeContinuation* k0 ))
@@ -962,16 +962,16 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
+  (LetPrim v0 (Constant (Int 0)))
   (LetCont* (k0 v1)
-    (LetPrim v2 (Constant IntConstant(10)))
+    (LetPrim v2 (Constant (Int 10)))
     (LetCont (k1 v3)
       (LetCont (k2)
-        (LetPrim v4 (Constant NullConstant))
+        (LetPrim v4 (Constant (Null)))
         (InvokeContinuation return v4))
       (LetCont (k3)
         (LetCont (k4 v5)
-          (LetPrim v6 (Constant IntConstant(1)))
+          (LetPrim v6 (Constant (Int 1)))
           (LetCont (k5 v7)
             (InvokeContinuation* k0 v7))
           (InvokeMethod v1 + v6 k5))
@@ -989,16 +989,16 @@ main(i) {
 }
 ''', '''
 (FunctionDefinition main (i) return ()
-  (LetPrim v0 (Constant IntConstant(0)))
+  (LetPrim v0 (Constant (Int 0)))
   (LetCont* (k0 v1)
-    (LetPrim v2 (Constant IntConstant(10)))
+    (LetPrim v2 (Constant (Int 10)))
     (LetCont (k1 v3)
       (LetCont (k2)
-        (LetPrim v4 (Constant NullConstant))
+        (LetPrim v4 (Constant (Null)))
         (InvokeContinuation return v4))
       (LetCont (k3)
         (LetCont (k4 v5)
-          (LetPrim v6 (Constant IntConstant(1)))
+          (LetPrim v6 (Constant (Int 1)))
           (LetCont (k5 v7)
             (InvokeContinuation* k0 v7))
           (InvokeMethod v1 + v6 k5))
@@ -1017,9 +1017,9 @@ main() {
 ''', '''
 (FunctionDefinition main () return ()
   (LetCont* (k0)
-    (LetPrim v0 (Constant BoolConstant(true)))
+    (LetPrim v0 (Constant (Bool true)))
     (LetCont (k1)
-      (LetPrim v1 (Constant NullConstant))
+      (LetPrim v1 (Constant (Null)))
       (InvokeContinuation return v1))
     (LetCont (k2)
       (InvokeContinuation* k0 ))
@@ -1037,16 +1037,16 @@ main() {
 }
 ''', '''
 (FunctionDefinition main () return ()
-  (LetPrim v0 (Constant IntConstant(0)))
+  (LetPrim v0 (Constant (Int 0)))
   (LetCont* (k0 v1)
-    (LetPrim v2 (Constant IntConstant(10)))
+    (LetPrim v2 (Constant (Int 10)))
     (LetCont (k1 v3)
       (LetCont (k2)
-        (LetPrim v4 (Constant NullConstant))
+        (LetPrim v4 (Constant (Null)))
         (InvokeContinuation return v4))
       (LetCont (k3)
         (LetCont (k4 v5)
-          (LetPrim v6 (Constant IntConstant(1)))
+          (LetPrim v6 (Constant (Int 1)))
           (LetCont (k5 v7)
             (InvokeContinuation* k0 v7))
           (InvokeMethod v1 + v6 k5))
@@ -1101,10 +1101,10 @@ main(a) {
     (LetCont (k1 v1)
       (InvokeContinuation return v1))
     (LetCont (k2)
-      (LetPrim v2 (Constant BoolConstant(false)))
+      (LetPrim v2 (Constant (Bool false)))
       (InvokeContinuation k1 v2))
     (LetCont (k3)
-      (LetPrim v3 (Constant BoolConstant(true)))
+      (LetPrim v3 (Constant (Bool true)))
       (InvokeContinuation k1 v3))
     (Branch (IsTrue v0) k2 k3))
   (TypeOperator is a String k0))
@@ -1137,10 +1137,10 @@ main(a) {
     (LetCont* (k1 v1)
       (LetCont (k2 v2)
         (LetCont (k3)
-          (LetPrim v3 (Constant NullConstant))
+          (LetPrim v3 (Constant (Null)))
           (InvokeContinuation return v3))
         (LetCont (k4)
-          (LetPrim v4 (Constant NullConstant))
+          (LetPrim v4 (Constant (Null)))
           (LetCont (k5 v5)
             (LetCont (k6 v6)
               (InvokeContinuation* k1 v1))
@@ -1166,13 +1166,13 @@ main(a) {
     (LetCont* (k1 v1)
       (LetCont (k2 v2)
         (LetCont (k3)
-          (LetPrim v3 (Constant NullConstant))
+          (LetPrim v3 (Constant (Null)))
           (InvokeContinuation return v3))
         (LetCont (k4)
-          (LetPrim v4 (Constant NullConstant))
+          (LetPrim v4 (Constant (Null)))
           (LetCont (k5 v5)
             (LetCont (k6 v6)
-              (LetPrim v7 (Constant IntConstant(0)))
+              (LetPrim v7 (Constant (Int 0)))
               (LetCont (k7 v8)
                 (InvokeContinuation* k1 v1))
               (InvokeStatic print v7 k7))
@@ -1193,12 +1193,12 @@ main(a) {
 }
 ''', '''
 (FunctionDefinition main (a) return ()
-  (LetPrim v0 (Constant NullConstant))
+  (LetPrim v0 (Constant (Null)))
   (LetCont (k0 v1)
     (LetCont* (k1 v2 v3)
       (LetCont (k2 v4)
         (LetCont (k3)
-          (LetPrim v5 (Constant NullConstant))
+          (LetPrim v5 (Constant (Null)))
           (InvokeContinuation return v5))
         (LetCont (k4)
           (LetCont (k5 v6)
@@ -1223,7 +1223,7 @@ main(a) {
 (FunctionDefinition main (a) return ()
   (LetPrim v0 (CreateFunction
     (FunctionDefinition local () return ()
-      (LetPrim v1 (Constant NullConstant))
+      (LetPrim v1 (Constant (Null)))
       (InvokeContinuation return v1))))
   (LetCont (k0 v2)
     (InvokeContinuation return v2))
@@ -1240,7 +1240,7 @@ main(a) {
 (FunctionDefinition main (a) return ()
   (LetPrim v0 (CreateFunction
     (FunctionDefinition local () return ()
-      (LetPrim v1 (Constant NullConstant))
+      (LetPrim v1 (Constant (Null)))
       (InvokeContinuation return v1))))
   (LetCont (k0 v2)
     (InvokeContinuation return v2))
@@ -1255,7 +1255,7 @@ main(a) {
 (FunctionDefinition main (a) return ()
   (LetPrim v0 (CreateFunction
     (FunctionDefinition  () return ()
-      (LetPrim v1 (Constant NullConstant))
+      (LetPrim v1 (Constant (Null)))
       (InvokeContinuation return v1))))
   (LetCont (k0 v2)
     (InvokeContinuation return v2))
@@ -1276,13 +1276,13 @@ main(a) {
   (LetCont (k2)
     (LetPrim v2 (CreateFunction
       (FunctionDefinition  () return ()
-        (LetPrim v3 (Constant IntConstant(0)))
+        (LetPrim v3 (Constant (Int 0)))
         (InvokeContinuation return v3))))
     (InvokeContinuation k0 v2))
   (LetCont (k3)
     (LetPrim v4 (CreateFunction
       (FunctionDefinition  () return ()
-        (LetPrim v5 (Constant IntConstant(1)))
+        (LetPrim v5 (Constant (Int 1)))
         (InvokeContinuation return v5))))
     (InvokeContinuation k0 v4))
   (Branch (IsTrue a) k2 k3))
@@ -1320,7 +1320,7 @@ main(args) {
 ''',
       'field': '''
 (FieldDefinition field (return)
-  (LetPrim v0 (Constant NullConstant))
+  (LetPrim v0 (Constant (Null)))
   (InvokeContinuation return v0))
 '''}),
 
@@ -1338,7 +1338,7 @@ main(args) {
 ''',
       'field': '''
 (FieldDefinition field (return)
-  (LetPrim v0 (Constant IntConstant(0)))
+  (LetPrim v0 (Constant (Int 0)))
   (InvokeContinuation return v0))
 '''}),
 
@@ -1376,7 +1376,7 @@ main(x,foo) {
         (InvokeContinuation return v2))))
     (LetCont (k1 v3)
       (LetCont (k2 v4)
-        (LetPrim v5 (Constant NullConstant))
+        (LetPrim v5 (Constant (Null)))
         (InvokeContinuation return v5))
       (InvokeStatic print v3 k2))
     (InvokeMethod v1 call  k1))
