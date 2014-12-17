@@ -41,6 +41,18 @@ main() {
     });
   });
 
+  test('do not infer type when initializer is null', () {
+    testChecker({
+      '/main.dart': '''
+      test() {
+        var x = null;
+        x = "hi";
+        x = /*config:Box*/3;
+      }
+    '''
+    });
+  });
+
   test('propagate inference to field in class', () {
     testChecker({
       '/main.dart': '''

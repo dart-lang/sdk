@@ -110,7 +110,9 @@ class RestrictedResolverVisitor extends ResolverVisitor {
 /// in the restricted type system and to infer types for untyped local
 /// variables.
 class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
-  RestrictedStaticTypeAnalyzer(ResolverVisitor r) : super(r);
+  final DartType _bottomType;
+  RestrictedStaticTypeAnalyzer(ResolverVisitor r)
+      : _bottomType = r.typeProvider.bottomType, super(r);
 
   @override // to infer type from initializers
   Object visitVariableDeclaration(VariableDeclaration node) {
@@ -128,8 +130,9 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
     if (declaredType != null) return;
     VariableElementImpl element = node.element;
     if (element.type != dynamicType) return;
-    element.type = getStaticType(initializer);
-    return;
+    var type = getStaticType(initializer);
+    if (type == _bottomType) return;
+    element.type = type;
   }
 
   @override // to propagate types to identifiers
