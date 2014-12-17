@@ -61,7 +61,7 @@ class DartGenerator extends codegenerator.CodeGenerator {
     var uri = unit.source.uri;
     _log.info("Generating unit " + uri.toString());
     FileWriter out = new FileWriter(_format, path
-        .join(libraryDir, '${uri.pathSeparator.last}'));
+        .join(libraryDir, '${uri.pathSegments.last}'));
     var unitGen = new UnitGenerator(unit.node, out);
     unitGen.generate();
     return out.finalize();
