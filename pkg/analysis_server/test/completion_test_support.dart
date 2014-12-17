@@ -4,6 +4,7 @@
 
 library test.completion.support;
 
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/src/protocol.dart';
@@ -11,7 +12,6 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:unittest/unittest.dart';
 
 import 'domain_completion_test.dart';
-import 'dart:async';
 
 /**
  * A base class for classes containing completion tests.
@@ -53,14 +53,23 @@ class CompletionTestCase extends CompletionTest {
   }
 
   void assertHasNoCompletion(String completion) {
-    // As a temporary measure, disable negative tests.
-    // TODO(paulberry): fix this.
-    return;
     if (suggestions.any(
         (CompletionSuggestion suggestion) => suggestion.completion == completion)) {
       fail(
           "Did not expect completion '$completion' but found:\n  $suggestedCompletions");
     }
+  }
+
+  /**
+   * Discard any results that do not start with the characters the user has
+   * "already typed".
+   */
+  void filterResults(String content) {
+    String charsAlreadyTyped =
+        content.substring(replacementOffset, completionOffset).toLowerCase();
+    suggestions = suggestions.where(
+        (CompletionSuggestion suggestion) =>
+            suggestion.completion.toLowerCase().startsWith(charsAlreadyTyped)).toList();
   }
 
   runTest(LocationSpec spec, [Map<String, String> extraFiles]) {
@@ -76,8 +85,7 @@ class CompletionTestCase extends CompletionTest {
         });
       }
     }).then((_) => getSuggestions()).then((_) {
-      //expect(replacementOffset, equals(completionOffset));
-      //expect(replacementLength, equals(0));
+      filterResults(spec.source);
       for (String result in spec.positiveResults) {
         assertHasCompletion(result);
       }
