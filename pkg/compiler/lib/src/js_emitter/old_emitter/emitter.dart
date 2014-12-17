@@ -1506,12 +1506,18 @@ class OldEmitter implements Emitter {
       // TODO(karlklose): add a TypedefBuilder and move this code there.
       DartType type = typedef.alias;
       int typeIndex = metadataEmitter.reifyType(type);
-      String typeReference =
-          encoding.encodeTypedefFieldDescriptor(typeIndex);
-      jsAst.Property descriptor = new jsAst.Property(
-          js.string(namer.classDescriptorProperty),
-          js.string(typeReference));
-      jsAst.Node declaration = new jsAst.ObjectInitializer([descriptor]);
+      ClassBuilder builder = new ClassBuilder(typedef, namer);
+      builder.addProperty(embeddedNames.TYPEDEF_TYPE_PROPERTY_NAME,
+                          js.number(typeIndex));
+      builder.addProperty(embeddedNames.TYPEDEF_PREDICATE_PROPERTY_NAME,
+                          js.boolean(true));
+
+      // We can be pretty sure that the objectClass is initialized, since
+      // typedefs are only emitted with reflection, which requires lots of
+      // classes.
+      assert(compiler.objectClass != null);
+      builder.superName = namer.getNameOfClass(compiler.objectClass);
+      jsAst.Node declaration = builder.toObjectInitializer();
       String mangledName = namer.getNameX(typedef);
       String reflectionName = getReflectionName(typedef, mangledName);
       getElementDescriptor(library)

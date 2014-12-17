@@ -83,7 +83,6 @@ import '../util/util.dart' show
 import '../deferred_load.dart' show
     OutputUnit;
 
-import 'package:_internal/compiler/js_lib/shared/runtime_data.dart' as encoding;
 import 'package:_internal/compiler/js_lib/shared/embedded_names.dart'
     as embeddedNames;
 
