@@ -115,7 +115,7 @@ class Builder extends cps_ir.Visitor<Node> {
       return buildField(node);
     } else {
       assert(dart2js.invariant(
-          currentElement,
+          CURRENT_ELEMENT_SPANNABLE,
           node is cps_ir.FunctionDefinition,
           message: 'expected FunctionDefinition or FieldDefinition, '
             ' found $node'));
