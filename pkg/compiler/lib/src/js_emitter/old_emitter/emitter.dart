@@ -411,6 +411,17 @@ class OldEmitter implements Emitter {
           function tmp() {}
           var hasOwnProperty = Object.prototype.hasOwnProperty;
           return function (constructor, superConstructor) {
+            if (superConstructor == null) {
+              // TODO(21896): this test shouldn't be necessary. Without it
+              // we have a crash in language/mixin_only_for_rti and
+              // pkg/analysis_server/tool/spec/check_all_test.
+              if (constructor == null) return;
+
+              // Fix up the the Dart Object class' prototype.
+              var prototype = constructor.prototype;
+              prototype.constructor = constructor;
+              return prototype;
+            }
             tmp.prototype = superConstructor.prototype;
             var object = new tmp();
             var properties = constructor.prototype;
@@ -608,8 +619,9 @@ class OldEmitter implements Emitter {
             var mixinClass = s[1];
             finishClass(mixinClass);
             var mixin = allClasses[mixinClass];
-            // TODO(floitsch): this test shouldn't be necessary. Without it
-            // we have a crash in pkg/analysis_server/tool/spec/check_all_test.
+            // TODO(21896): this test shouldn't be necessary. Without it
+            // we have a crash in language/mixin_only_for_rti and
+            // pkg/analysis_server/tool/spec/check_all_test.
             if (mixin) {
               var mixinPrototype = mixin.prototype;
               var clsPrototype = allClasses[cls].prototype;
@@ -626,7 +638,10 @@ class OldEmitter implements Emitter {
         // class.  The minifier together with noSuchMethod can put methods on
         // the Object.prototype object, and they show through here, so we check
         // that we have a string.
-        if (!superclass || typeof superclass != "string") return;
+        if (!superclass || typeof superclass != "string") {
+          inheritFrom(allClasses[cls], null);
+          return;
+        }
         finishClass(superclass);
         var superConstructor = allClasses[superclass];
 
@@ -1703,7 +1718,6 @@ class OldEmitter implements Emitter {
       emitFinishClassesInvocationIfNecessary(mainBuffer);
     }
 
-    typeTestEmitter.emitRuntimeTypeSupport(mainBuffer, mainOutputUnit);
     interceptorEmitter.emitGetInterceptorMethods(mainBuffer);
     interceptorEmitter.emitOneShotInterceptors(mainBuffer);
 
@@ -2174,7 +2188,6 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       // point to the current Isolate. Otherwise all methods/functions
       // accessing isolate variables will access the wrong object.
       outputBuffer.write("${namer.currentIsolate}$_=${_}arguments[1]$N");
-      typeTestEmitter.emitRuntimeTypeSupport(outputBuffer, outputUnit);
 
       emitCompileTimeConstants(outputBuffer, outputUnit);
       emitStaticNonFinalFieldInitializations(outputBuffer, outputUnit);
