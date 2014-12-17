@@ -143,6 +143,13 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
 
       addResult(new BarbackServerResult._failure(request.url, id, error));
       return notFound(request, asset: id);
+    }).then((response) {
+      // Allow requests of any origin to access "pub serve". This is useful for
+      // running "pub serve" in parallel with another development server. Since
+      // "pub serve" is only used as a development server and doesn't require
+      // any sort of credentials anyway, this is secure.
+      return response.change(
+          headers: const {"Access-Control-Allow-Origin": "*"});
     });
   }
 
