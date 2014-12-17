@@ -55,7 +55,6 @@ main() {
 
       class A {}
       class B extends A {}
-      class C extends A {}
 
       void main() {
          dynamic y;
@@ -65,14 +64,12 @@ main() {
          num n;
          A a;
          B b;
-         C c;
          y = o;
          y = /*config:Box*/i;
          y = /*config:Box*/d;
          y = n;
          y = a;
          y = b;
-         y = c;
       }
    '''
     });
@@ -84,7 +81,6 @@ main() {
 
       class A {}
       class B extends A {}
-      class C extends A {}
 
       void main() {
          dynamic y;
@@ -94,14 +90,12 @@ main() {
          num n;
          A a;
          B b;
-         C c;
          o = y;
          i = /*info:Unbox*/y;
          d = /*info:Unbox*/y;
          n = /*info:DownCast*/y;
          a = /*info:DownCast*/y;
          b = /*info:DownCast*/y;
-         c = /*info:DownCast*/y;
       }
    '''
     });
@@ -113,7 +107,6 @@ main() {
 
       class A {}
       class B extends A {}
-      class C extends A {}
 
       void main() {
          dynamic y;
@@ -123,7 +116,6 @@ main() {
          num n;
          A a;
          B b;
-         C c;
          y = a;
          o = a;
          i = /*severe:StaticTypeError*/a;
@@ -131,7 +123,6 @@ main() {
          n = /*severe:StaticTypeError*/a;
          a = a;
          b = /*info:DownCast*/a;
-         c = /*info:DownCast*/a;
       }
    '''
     });
