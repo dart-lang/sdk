@@ -27,7 +27,7 @@ Language/07_Classes/07_Classes_A13_t08: Fail # Missing CT error on member with s
 Language/07_Classes/07_Classes_A13_t09: Fail # Missing CT error on member with same name a type parameter
 Language/03_Overview/1_Scoping_A02_t05: CompileTimeError # Issue 21072
 Language/03_Overview/1_Scoping_A02_t06: CompileTimeError # Issue 21072
-LibTest/async/Stream/listen_A05_t01: RuntimeError # Issue 15171
+LibTest/async/Stream/listen_A05_t01: RuntimeError # https://code.google.com/p/co19/issues/detail?id=736 (see also dartbug.com/15171)
 LibTest/core/double/INFINITY_A01_t04: RuntimeError # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: RuntimeError # TODO(ahe): Please triage this failure.
 LibTest/typed_data/ByteData/getFloat32_A02_t02: fail # co19-roll r569: Please triage this failure
