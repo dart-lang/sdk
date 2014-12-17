@@ -6,7 +6,13 @@ part of dart2js.js_emitter;
 
 class TypeTestEmitter extends CodeEmitterHelper {
   void emitIsTests(ClassElement classElement, ClassBuilder builder) {
-    new TypeTestGenerator(compiler, emitter.task, namer)
-        .emitIsTests(classElement, builder);
+    assert(builder.functionType == null);
+    TypeTestGenerator generator =
+        new TypeTestGenerator(compiler, emitter.task, namer);
+    TypeTestProperties typeTests = generator.generateIsTests(classElement);
+    typeTests.properties.forEach(builder.addProperty);
+    if (typeTests.functionTypeIndex != null) {
+      builder.functionType = '${typeTests.functionTypeIndex}';
+    }
   }
 }

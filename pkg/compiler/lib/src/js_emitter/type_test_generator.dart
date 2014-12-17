@@ -4,6 +4,22 @@
 
 part of dart2js.js_emitter;
 
+class TypeTestProperties {
+  /// The index of the function type into the metadata.
+  ///
+  /// If the class doesn't have a function type this field is `null`.
+  ///
+  /// If the is tests were generated with `storeFunctionTypeInMetadata` set to
+  /// `false`, this field is `null`, and the [properties] contain a property
+  /// that encodes the function type.
+  int functionTypeIndex;
+
+  /// The properties that must be installed on the prototype of the
+  /// JS constructor of the [ClassElement] for which the is checks were
+  /// generated.
+  final Map<String, jsAst.Node> properties = <String, jsAst.Node>{};
+}
+
 class TypeTestGenerator {
   final Compiler compiler;
   final CodeEmitterTask emitterTask;
@@ -24,15 +40,29 @@ class TypeTestGenerator {
   Set<FunctionType> get checkedFunctionTypes =>
       typeTestRegistry.checkedFunctionTypes;
 
-  void emitIsTests(ClassElement classElement, ClassBuilder builder) {
+  /// Generates all properties necessary for is-checks on the [classElement].
+  ///
+  /// Returns an instance of [TypeTestProperties] that contains the properties
+  /// that must be installed on the prototype of the JS constructor of the
+  /// [classElement].
+  ///
+  /// If [storeFunctionTypeInMetadata] is `true`, stores the reified function
+  /// type (if class has one) in the metadata object and stores its index in
+  /// the result. This is only possible for function types that do not contain
+  /// type variables.
+  TypeTestProperties generateIsTests(
+      ClassElement classElement,
+      { bool storeFunctionTypeInMetadata: true}) {
     assert(invariant(classElement, classElement.isDeclaration));
+
+    TypeTestProperties result = new TypeTestProperties();
 
     void generateIsTest(Element other) {
       if (other == compiler.objectClass && other != classElement) {
         // Avoid emitting `$isObject` on all classes but [Object].
         return;
       }
-      builder.addProperty(namer.operatorIs(other), js('true'));
+      result.properties[namer.operatorIs(other)] = js('true');
     }
 
     void generateFunctionTypeSignature(FunctionElement method,
@@ -50,13 +80,14 @@ class TypeTestGenerator {
           thisAccess = js('this.#', thisName);
         }
       }
-      RuntimeTypes rti = backend.rti;
-      jsAst.Expression encoding = rti.getSignatureEncoding(type, thisAccess);
-      String operatorSignature = namer.operatorSignature;
-      if (!type.containsTypeVariables) {
-        builder.functionType = '${oldEmitter.metadataEmitter.reifyType(type)}';
+
+      if (storeFunctionTypeInMetadata && !type.containsTypeVariables) {
+        result.functionTypeIndex = oldEmitter.metadataEmitter.reifyType(type);
       } else {
-        builder.addProperty(operatorSignature, encoding);
+        RuntimeTypes rti = backend.rti;
+        jsAst.Expression encoding = rti.getSignatureEncoding(type, thisAccess);
+        String operatorSignature = namer.operatorSignature;
+        result.properties[operatorSignature] = encoding;
       }
     }
 
@@ -71,25 +102,27 @@ class TypeTestGenerator {
         expression = new jsAst.LiteralNull();
       }
       if (expression != null) {
-        builder.addProperty(namer.substitutionName(cls), expression);
+        result.properties[namer.substitutionName(cls)] = expression;
       }
     }
 
     void generateTypeCheck(TypeCheck check) {
       ClassElement checkedClass = check.cls;
       // We must not call [generateIsTest] since we also want is$Object.
-      builder.addProperty(namer.operatorIs(checkedClass), js('true'));
+      result.properties[namer.operatorIs(checkedClass)] = js('true');
       Substitution substitution = check.substitution;
       if (substitution != null) {
         jsAst.Expression body = substitution.getCode(backend.rti);
-        builder.addProperty(namer.substitutionName(checkedClass), body);
+        result.properties[namer.substitutionName(checkedClass)] = body;
       }
     }
 
-    generateIsTestsOn(classElement, generateIsTest,
+    _generateIsTestsOn(classElement, generateIsTest,
         generateFunctionTypeSignature,
         generateSubstitution,
         generateTypeCheck);
+
+    return result;
   }
 
   /**
@@ -99,16 +132,17 @@ class TypeTestGenerator {
    * they will be inherited at runtime, but we may need to generate the
    * substitutions, because they may have changed.
    */
-  void generateIsTestsOn(ClassElement cls,
-                         void emitIsTest(Element element),
-                         FunctionTypeSignatureEmitter emitFunctionTypeSignature,
-                         SubstitutionEmitter emitSubstitution,
-                         void emitTypeCheck(TypeCheck check)) {
+  void _generateIsTestsOn(
+      ClassElement cls,
+      void generateIsTest(Element element),
+      FunctionTypeSignatureEmitter generateFunctionTypeSignature,
+      SubstitutionEmitter generateSubstitution,
+      void emitTypeCheck(TypeCheck check)) {
     Setlet<Element> generated = new Setlet<Element>();
 
     if (checkedClasses.contains(cls)) {
-      emitIsTest(cls);
-      emitSubstitution(cls);
+      generateIsTest(cls);
+      generateSubstitution(cls);
       generated.add(cls);
     }
 
@@ -143,7 +177,7 @@ class TypeTestGenerator {
       // RuntimeTypeInformation.
       while (superclass != null) {
         if (backend.classNeedsRti(superclass)) {
-          emitSubstitution(superclass, emitNull: true);
+          generateSubstitution(superclass, emitNull: true);
           generated.add(superclass);
         }
         superclass = superclass.superclass;
@@ -157,13 +191,13 @@ class TypeTestGenerator {
           // Generate substitution.  If no substitution is necessary, emit
           // `null` to overwrite a (possibly) existing substitution from the
           // super classes.
-          emitSubstitution(superclass, emitNull: true);
+          generateSubstitution(superclass, emitNull: true);
         }
       }
 
       void emitNothing(_, {emitNull}) {};
 
-      emitSubstitution = emitNothing;
+      generateSubstitution = emitNothing;
     }
 
     // A class that defines a `call` method implicitly implements
@@ -179,34 +213,34 @@ class TypeTestGenerator {
         // A superclass might already implement the Function interface. In such
         // a case, we can avoid emiting the is test here.
         if (!cls.superclass.implementsFunction(compiler)) {
-          generateInterfacesIsTests(compiler.functionClass,
-                                    emitIsTest,
-                                    emitSubstitution,
+          _generateInterfacesIsTests(compiler.functionClass,
+                                    generateIsTest,
+                                    generateSubstitution,
                                     generated);
         }
         FunctionType callType = call.computeType(compiler);
-        emitFunctionTypeSignature(call, callType);
+        generateFunctionTypeSignature(call, callType);
       }
     }
 
     for (DartType interfaceType in cls.interfaces) {
-      generateInterfacesIsTests(interfaceType.element, emitIsTest,
-                                emitSubstitution, generated);
+      _generateInterfacesIsTests(interfaceType.element, generateIsTest,
+                                 generateSubstitution, generated);
     }
   }
 
   /**
    * Generate "is tests" where [cls] is being implemented.
    */
-  void generateInterfacesIsTests(ClassElement cls,
-                                 void emitIsTest(ClassElement element),
-                                 SubstitutionEmitter emitSubstitution,
-                                 Set<Element> alreadyGenerated) {
+  void _generateInterfacesIsTests(ClassElement cls,
+                                  void generateIsTest(ClassElement element),
+                                  SubstitutionEmitter generateSubstitution,
+                                  Set<Element> alreadyGenerated) {
     void tryEmitTest(ClassElement check) {
       if (!alreadyGenerated.contains(check) && checkedClasses.contains(check)) {
         alreadyGenerated.add(check);
-        emitIsTest(check);
-        emitSubstitution(check);
+        generateIsTest(check);
+        generateSubstitution(check);
       }
     };
 
@@ -215,16 +249,16 @@ class TypeTestGenerator {
     for (DartType interfaceType in cls.interfaces) {
       Element element = interfaceType.element;
       tryEmitTest(element);
-      generateInterfacesIsTests(element, emitIsTest, emitSubstitution,
-                                alreadyGenerated);
+      _generateInterfacesIsTests(element, generateIsTest, generateSubstitution,
+                                 alreadyGenerated);
     }
 
     // We need to also emit "is checks" for the superclass and its supertypes.
     ClassElement superclass = cls.superclass;
     if (superclass != null) {
       tryEmitTest(superclass);
-      generateInterfacesIsTests(superclass, emitIsTest, emitSubstitution,
-                                alreadyGenerated);
+      _generateInterfacesIsTests(superclass, generateIsTest,
+                                 generateSubstitution, alreadyGenerated);
     }
   }
 }
