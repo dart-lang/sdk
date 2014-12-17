@@ -93,6 +93,7 @@ part 'class_stub_generator.dart';
 part 'code_emitter_task.dart';
 part 'helpers.dart';
 part 'interceptor_stub_generator.dart';
+part 'type_test_generator.dart';
 part 'type_test_registry.dart';
 
 part 'old_emitter/class_builder.dart';
