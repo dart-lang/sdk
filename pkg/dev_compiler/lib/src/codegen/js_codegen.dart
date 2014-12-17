@@ -25,11 +25,7 @@ class UnitGenerator extends GeneralizingAstVisitor with ConversionVisitor {
   OutWriter out = null;
 
   /// The variable for the target of the current `..` cascade expression.
-  SimpleIdentifier _cascadeTemp;
-
-  /// Temporary variable names currently in use.
-  /// See [_makeTemp] and [_freeTemp].
-  final Set<String> _temps = new Set();
+  SimpleIdentifier _cascadeTarget;
 
   ClassDeclaration currentClass;
 
@@ -442,7 +438,7 @@ var $name = (function (_super) {
       return;
     }
 
-    var target = node.isCascaded ? _cascadeTemp : node.target;
+    var target = node.isCascaded ? _cascadeTarget : node.target;
     writeQualifiedName(target, node.methodName);
     out.write('(');
     node.argumentList.accept(this);
@@ -660,16 +656,24 @@ var $name = (function (_super) {
   // respective visit methods.
   @override
   void visitCascadeExpression(CascadeExpression node) {
-    var savedCascadeTemp = _cascadeTemp;
-    _cascadeTemp = _makeTemp(_guessName(node.target));
-    out.write('var ${_cascadeTemp.name} = ');
-    _visitNode(node.target);
-    for (var section in node.cascadeSections) {
-      out.write(';\n');
-      section.accept(this);
+    // TODO(jmesserly): we need to handle the cascade target better. Ideally
+    // it should be assigned to a temp. Note that even simple identifier isn't
+    // safe in the face of getters.
+    if (node.target is! SimpleIdentifier) {
+      _unimplemented(node);
+      return;
     }
-    _freeTemp(_cascadeTemp);
-    _cascadeTemp = savedCascadeTemp;
+
+    var savedCascadeTemp = _cascadeTarget;
+    _cascadeTarget = node.target;
+    out.write('(', 2);
+    _visitNodeList(node.cascadeSections, separator: ',\n');
+    if (node.parent is! ExpressionStatement) {
+      if (node.cascadeSections.isNotEmpty) out.write(',\n');
+      _cascadeTarget.accept(this);
+    }
+    out.write(')', -2);
+    _cascadeTarget = savedCascadeTemp;
   }
 
   @override
@@ -691,7 +695,7 @@ var $name = (function (_super) {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    var target = node.isCascaded ? _cascadeTemp : node.target;
+    var target = node.isCascaded ? _cascadeTarget : node.target;
     _visitGet(target, node.propertyName);
   }
 
@@ -827,33 +831,6 @@ var $name = (function (_super) {
     out.write(prefix);
     out.write(token.lexeme);
     out.write(suffix);
-  }
-
-  /// Guess the name of an expression. This is used to create readable temps.
-  String _guessName(Expression node) {
-    // TODO(jmesserly): more heuristics here.
-    // Use identifier name if we have one.
-    if (node is SimpleIdentifier) return node.name;
-    // Otherwise use the type name, but lowercase the start.
-    // TODO(jmesserly): this doesn't work well for names like HTMLElement.
-    var name = node.propagatedType.name;
-    return name[0].toLowerCase() + name.substring(1);
-  }
-
-  /// Make a temporary variable. We return an identifier node for convenience.
-  SimpleIdentifier _makeTemp(String prefix) {
-    // TODO(jmesserly): cleaner names once we have scopes to avoid colliding
-    // with the user's variables.
-    String name;
-    int i = 0;
-    while (!_temps.add(name = '$prefix\$$i')) i++;
-
-    return new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, 0));
-  }
-
-  void _freeTemp(SimpleIdentifier temp) {
-    var found = _temps.remove(temp.name);
-    assert(found);
   }
 }
 

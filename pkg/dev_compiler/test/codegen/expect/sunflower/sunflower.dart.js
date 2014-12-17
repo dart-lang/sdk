@@ -38,15 +38,14 @@ var sunflower;
 
   // Function drawSeed: (num, num) → void
   function drawSeed(x, y) {
-    var context$0 = context;
-    context$0.beginPath();
-    context$0.lineWidth = 2;
-    context$0.fillStyle = ORANGE;
-    context$0.strokeStyle = ORANGE;
-    context$0.arc(x, y, SEED_RADIUS, 0, TAU, false);
-    context$0.fill();
-    context$0.closePath();
-    context$0.stroke();
+    (context.beginPath(),
+      context.lineWidth = 2,
+      context.fillStyle = ORANGE,
+      context.strokeStyle = ORANGE,
+      context.arc(x, y, SEED_RADIUS, 0, TAU, false),
+      context.fill(),
+      context.closePath(),
+      context.stroke());
   }
   sunflower.drawSeed = drawSeed;
 
