@@ -220,6 +220,3 @@ stopwatch_test: Skip  # Flaky test due to expected performance behaviour.
 [ $runtime != d8 && $runtime != vm ]
 # The regexp tests are not verified to work on non d8/vm platforms yet.
 regexp/*: Skip
-
-[ $runtime == vm ]
-regexp/global_test: Skip # Timeout. Issue 21709 and 21708
