@@ -113,6 +113,8 @@ class Builder extends cps_ir.Visitor<Node> {
   ExecutableDefinition build(cps_ir.ExecutableDefinition node) {
     if (node is cps_ir.FieldDefinition) {
       return buildField(node);
+    } else if (node is cps_ir.ConstructorDefinition) {
+      return buildConstructor(node);
     } else {
       assert(dart2js.invariant(
           CURRENT_ELEMENT_SPANNABLE,
@@ -121,7 +123,6 @@ class Builder extends cps_ir.Visitor<Node> {
             ' found $node'));
       return buildFunction(node);
     }
-    return null;
   }
 
   FieldDefinition buildField(cps_ir.FieldDefinition node) {
