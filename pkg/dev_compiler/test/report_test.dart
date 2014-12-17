@@ -21,9 +21,9 @@ main() {
           }
       ''',
       'package:foo/bar.dart': '''
-          int x;
+          num x;
           test2() {
-            dynamic y = /*config:Box*/x;
+            int y = /*info:DownCast*/x;
           }
       ''',
     });

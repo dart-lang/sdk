@@ -587,6 +587,23 @@ var $name = (function (_super) {
     out.write(')');
   }
 
+  bool typeIsPrimitiveInJS(DartType t) {
+    if (rules.isIntType(t) ||
+        rules.isDoubleType(t) ||
+        rules.isBoolType(t) ||
+        rules.isNumType(t)) return true;
+    return false;
+  }
+
+  bool binaryOperationIsPrimitive(DartType leftT, DartType rightT) {
+    return typeIsPrimitiveInJS(leftT) && typeIsPrimitiveInJS(rightT);
+  }
+
+  bool unaryOperationIsPrimitive(DartType t) {
+    return typeIsPrimitiveInJS(t);
+  }
+
+
   @override
   void visitBinaryExpression(BinaryExpression node) {
     var op = node.operator;
@@ -594,9 +611,9 @@ var $name = (function (_super) {
     var rhs = node.rightOperand;
 
     var dispatchType = rules.getStaticType(lhs);
-    if (rules.isPrimitive(dispatchType)) {
+    var otherType = rules.getStaticType(rhs);
+    if (binaryOperationIsPrimitive(dispatchType, otherType)) {
       // TODO(vsm): When do Dart ops not map to JS?
-      assert(rules.isPrimitive(rules.getStaticType(rhs)));
       lhs.accept(this);
       out.write(' $op ');
       rhs.accept(this);
@@ -612,7 +629,7 @@ var $name = (function (_super) {
     var expr = node.operand;
 
     var dispatchType = rules.getStaticType(expr);
-    if (rules.isPrimitive(dispatchType)) {
+    if (unaryOperationIsPrimitive(dispatchType)) {
       // TODO(vsm): When do Dart ops not map to JS?
       expr.accept(this);
       out.write('$op');

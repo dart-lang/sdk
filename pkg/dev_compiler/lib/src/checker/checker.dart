@@ -192,8 +192,7 @@ class ProgramChecker extends RecursiveAstVisitor {
         // TODO(vsm): When can this happen?
         assert(element != null);
       }
-      DartType expectedType = _rules
-          .mapGenericType(_rules.elementType(element));
+      DartType expectedType = _rules.elementType(element);
       if (expectedType == null) expectedType = _rules.provider.dynamicType;
       list[i] = checkAssignment(arg, expectedType);
     }
@@ -282,7 +281,7 @@ class ProgramChecker extends RecursiveAstVisitor {
     final target = node.realTarget;
     DartType receiverType = _rules.getStaticType(target);
     assert(receiverType != null);
-    if (receiverType.isDynamic) {
+    if (receiverType.isDynamic || receiverType.isDartCoreFunction) {
       _recordDynamicInvoke(node);
     }
     node.visitChildren(this);
@@ -295,7 +294,7 @@ class ProgramChecker extends RecursiveAstVisitor {
     if (target.staticElement is! PrefixElement) {
       DartType receiverType = _rules.getStaticType(target);
       assert(receiverType != null);
-      if (receiverType.isDynamic) {
+      if (receiverType.isDynamic || receiverType.isDartCoreFunction) {
         _recordDynamicInvoke(node);
       }
     }

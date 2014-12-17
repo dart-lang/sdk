@@ -28,9 +28,9 @@ var sunflower;
     seeds = int.parse(slider.value);
     context.clearRect(0, 0, MAX_D, MAX_D);
     for (var i = 0; i < seeds; i++) {
-      var theta = /* Unimplemented binary operator: i * TAU / PHI */;
+      var theta = i * TAU / PHI;
       var r = dart.math.sqrt(i) * SCALE_FACTOR;
-      sunflower.drawSeed(/* Unimplemented binary operator: centerX + r * cos(theta) */, /* Unimplemented binary operator: centerY - r * sin(theta) */);
+      sunflower.drawSeed(centerX + r * dart.math.cos(theta), centerY - r * dart.math.sin(theta));
     }
     notes.textContent = "null";
   }

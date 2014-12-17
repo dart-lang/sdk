@@ -34,7 +34,7 @@ main() {
     testChecker({
       '/main.dart': '''
       test() {
-        dynamic x = /*config:Box*/3;
+        dynamic x = 3;
         x = "hi";
       }
     '''
@@ -47,7 +47,7 @@ main() {
       test() {
         var x = null;
         x = "hi";
-        x = /*config:Box*/3;
+        x = 3;
       }
     '''
     });
@@ -63,8 +63,8 @@ main() {
       test() {
         var a = new A();
         A b = a;                      // doesn't require down cast
-        print(/*config:Box*/a.x);     // doesn't require dynamic invoke
-        print(/*config:Box*/a.x + 2); // ok to use in bigger expression
+        print(a.x);     // doesn't require dynamic invoke
+        print(a.x + 2); // ok to use in bigger expression
       }
     '''
     });
@@ -123,10 +123,10 @@ main() {
 
       void main() {
         var d1 = new D();
-        print(/*config:Box*/d1.c.b.a.x);
+        print(d1.c.b.a.x);
 
         D d2 = new D();
-        print(/*config:Box*/d2.c.b.a.x);  
+        print(d2.c.b.a.x);
       }
     '''
     });

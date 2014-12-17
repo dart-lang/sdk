@@ -65,8 +65,8 @@ main() {
          A a;
          B b;
          y = o;
-         y = /*config:Box*/i;
-         y = /*config:Box*/d;
+         y = i;
+         y = d;
          y = n;
          y = a;
          y = b;
@@ -91,8 +91,8 @@ main() {
          A a;
          B b;
          o = y;
-         i = /*info:Unbox*/y;
-         d = /*info:Unbox*/y;
+         i = /*info:DownCast*/y;
+         d = /*info:DownCast*/y;
          n = /*info:DownCast*/y;
          a = /*info:DownCast*/y;
          b = /*info:DownCast*/y;
@@ -211,11 +211,11 @@ main() {
       typedef Object Right(Object x); // Right branch
       typedef int Bot(Object x);      // Bottom of the lattice
 
-      Object top(int x) => /*config:Box*/x;
+      Object top(int x) => x;
       int left(int x) => x;
       Object right(Object x) => x;
-      int _bot(Object x) => /*info:Unbox should be warning:DownCast*/x;
-      int bot(Object x) => /*pass should be info:Unbox*/x as int;
+      int _bot(Object x) => /*info:DownCast*/x;
+      int bot(Object x) => x as int;
 
       void main() {
         { // Check typedef equality
@@ -226,23 +226,23 @@ main() {
         {
           Top f;
           f = top;
-          f = /*warning:ClosureWrap*/left;
-          f = /*warning:ClosureWrap*/right;
-          f = /*warning:ClosureWrap*/bot;
+          f = left;
+          f = right;
+          f = bot;
         }
         {
           Left f;
           f = /*warning:ClosureWrap*/top;
           f = left;
-          f = /*warning:ClosureWrap should be severe:StaticTypeError*/right;
-          f = /*warning:ClosureWrap*/bot;
+          f = /*severe:StaticTypeError*/right;
+          f = bot;
         }
         {
           Right f;
           f = /*warning:ClosureWrap*/top;
-          f = /*warning:ClosureWrap should be severe:StaticTypeError*/left;
+          f = /*severe:StaticTypeError*/left;
           f = right;
-          f = /*warning:ClosureWrap*/bot;
+          f = bot;
         }
         {
           Bot f;
@@ -289,23 +289,23 @@ main() {
         }
         {
           Left f;
-          f = /*warning:DownCast*/top;
+          f = /*warning:ClosureWrap*/top;
           f = left;
           f = /*severe:StaticTypeError*/right;
           f = bot;
         }
         {
           Right f;
-          f = /*warning:DownCast*/top;
+          f = /*warning:ClosureWrap*/top;
           f = /*severe:StaticTypeError*/left;
           f = right;
           f = bot;
         }
         {
           Bot f;
-          f = /*warning:DownCast*/top;
-          f = /*warning:DownCast*/left;
-          f = /*warning:DownCast*/right;
+          f = /*warning:ClosureWrap*/top;
+          f = /*warning:ClosureWrap*/left;
+          f = /*warning:ClosureWrap*/right;
           f = bot;
         }
       }
@@ -341,23 +341,23 @@ main() {
         }
         {
           Left f;
-          f = /*warning:DownCast*/top;
+          f = /*warning:ClosureWrap*/top;
           f = left;
-          f = /*warning:ClosureWrap should be severe:StaticTypeError*/right;
+          f = /*severe:StaticTypeError*/right;
           f = bot;
         }
         {
           Right f;
-          f = /*warning:DownCast*/top;
-          f = /*warning:ClosureWrap should be severe:StaticTypeError*/left;
+          f = /*warning:ClosureWrap*/top;
+          f = /*severe:StaticTypeError*/left;
           f = right;
           f = bot;
         }
         {
           Bot f;
-          f = /*warning:DownCast*/top;
-          f = /*warning:DownCast*/left;
-          f = /*warning:DownCast*/right;
+          f = /*warning:ClosureWrap*/top;
+          f = /*warning:ClosureWrap*/left;
+          f = /*warning:ClosureWrap*/right;
           f = bot;
         }
       }
@@ -389,23 +389,23 @@ main() {
         }
         {
           Function2<B, B> f;
-          f = /*warning:DownCast*/top;
+          f = /*warning:ClosureWrap*/top;
           f = left;
           f = /*severe:StaticTypeError*/right;
           f = bot;
         }
         {
           Function2<A, A> f;
-          f = /*warning:DownCast*/top;
+          f = /*warning:ClosureWrap*/top;
           f = /*severe:StaticTypeError*/left;
           f = right;
           f = bot;
         }
         {
           Function2<A, B> f;
-          f = /*warning:DownCast*/top;
-          f = /*warning:DownCast*/left;
-          f = /*warning:DownCast*/right;
+          f = /*warning:ClosureWrap*/top;
+          f = /*warning:ClosureWrap*/left;
+          f = /*warning:ClosureWrap*/right;
           f = bot;
         }
       }
@@ -434,19 +434,19 @@ main() {
           top = top;
           top = left;
 
-          left = /*warning:DownCast*/top;
+          left = /*warning:ClosureWrap*/top;
           left = left;
           left = /*severe:StaticTypeError*/right;
           left = bot;
 
-          right = /*warning:DownCast*/top;
+          right = /*warning:ClosureWrap*/top;
           right = /*severe:StaticTypeError*/left;
           right = right;
           right = bot;
 
-          bot = /*warning:DownCast*/top;
-          bot = /*warning:DownCast*/left;
-          bot = /*warning:DownCast*/right;
+          bot = /*warning:ClosureWrap*/top;
+          bot = /*warning:ClosureWrap*/left;
+          bot = /*warning:ClosureWrap*/right;
           bot = bot;
         }
       }
@@ -469,13 +469,13 @@ main() {
       BToA top(AToB f) => f;
       AToB left(AToB f) => f;
       BToA right(BToA f) => f;
-      AToB _bot(BToA f) => /*warning:DownCast*/f;
+      AToB _bot(BToA f) => /*warning:ClosureWrap*/f;
       AToB bot(BToA f) => /*severe:InvalidRuntimeCheckError*/f as AToB;
 
       Function2<B, A> top(AToB f) => f;
       Function2<A, B> left(AToB f) => f;
       Function2<B, A> right(BToA f) => f;
-      Function2<A, B> _bot(BToA f) => /*warning:DownCast*/f;
+      Function2<A, B> _bot(BToA f) => /*warning:ClosureWrap*/f;
       Function2<A, B> bot(BToA f) =>
         /*severe:InvalidRuntimeCheckError*/f as Function2<A, B>;
 
@@ -483,7 +483,7 @@ main() {
       BToA top(Function2<A, B> f) => f;
       AToB left(Function2<A, B> f) => f;
       BToA right(Function2<B, A> f) => f;
-      AToB _bot(Function2<B, A> f) => /*warning:DownCast*/f;
+      AToB _bot(Function2<B, A> f) => /*warning:ClosureWrap*/f;
       AToB bot(Function2<B, A> f) =>
         /*severe:InvalidRuntimeCheckError*/f as AToB;
 
@@ -497,14 +497,14 @@ main() {
         }
         {
           Function2<AToB, AToB> f; // Left
-          f = /*warning:DownCast*/top;
+          f = /*warning:ClosureWrap*/top;
           f = left;
           f = /*severe:StaticTypeError*/right;
           f = bot;
         }
         {
           Function2<BToA, BToA> f; // Right
-          f = /*warning:DownCast*/top;
+          f = /*warning:ClosureWrap*/top;
           f = /*severe:StaticTypeError*/left; 
           f = right;
           f = bot;
@@ -512,9 +512,9 @@ main() {
         {
           Function2<BToA, AToB> f; // Bot
           f = bot;
-          f = /*warning:DownCast*/left;
-          f = /*warning:DownCast*/top;
-          f = /*warning:DownCast*/left;
+          f = /*warning:ClosureWrap*/left;
+          f = /*warning:ClosureWrap*/top;
+          f = /*warning:ClosureWrap*/left;
         }
       }
    '''
@@ -542,19 +542,19 @@ main() {
           top = top;
           top = left;
 
-          left = /*pass should be warning:DownCast*/top;
+          left = /*pass should be warning:ClosureWrap*/top;
           left = left;
           left = /*pass should be severe:StaticTypeError*/right;
           left = bot;
 
-          right = /*pass should be warning:DownCast*/top;
+          right = /*pass should be warning:ClosureWrap*/top;
           right = /*pass should be severe:StaticTypeError*/left;
           right = right;
           right = bot;
 
-          bot = /*pass should be warning:DownCast*/top;
-          bot = /*pass should be warning:DownCast*/left;
-          bot = /*pass should be warning:DownCast*/right;
+          bot = /*pass should be warning:ClosureWrap*/top;
+          bot = /*pass should be warning:ClosureWrap*/left;
+          bot = /*pass should be warning:ClosureWrap*/right;
           bot = bot;
         }
       }

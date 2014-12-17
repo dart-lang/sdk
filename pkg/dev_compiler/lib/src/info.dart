@@ -194,7 +194,7 @@ class ClosureWrap extends Conversion {
   ClosureWrap(TypeRules rules, Expression expression, this._wrappedType)
       : super(rules, expression) {
     assert(baseType is FunctionType);
-    assert(!rules.isSubTypeOf(_wrappedType, baseType));
+    assert(!rules.isSubTypeOf(baseType, _wrappedType));
   }
 
   DartType _getConvertedType() => _wrappedType;

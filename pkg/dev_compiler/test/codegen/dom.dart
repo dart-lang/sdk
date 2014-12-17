@@ -59,35 +59,35 @@ abstract class CanvasRenderingContext2D
   void restore(); // pop state stack and restore state
 
   // transformations (default transform is the identity matrix)
-  void scale(double x, double y);
-  void rotate(double angle);
-  void translate(double x, double y);
-  void transform(double a, double b, double c, double d, double e, double f);
-  void setTransform(double a, double b, double c, double d, double e, double f);
+  void scale(num x, num y);
+  void rotate(num angle);
+  void translate(num x, num y);
+  void transform(num a, num b, num c, num d, num e, num f);
+  void setTransform(num a, num b, num c, num d, num e, num f);
 
   // compositing
-  double globalAlpha; // (default 1.0)
+  num globalAlpha; // (default 1.0)
   String globalCompositeOperation; // (default source-over)
 
   // colors and styles (see also the CanvasDrawingStyles interface)
   Object strokeStyle; // (default black)
   Object fillStyle; // (default black)
   CanvasGradient createLinearGradient(
-      double x0, double y0, double x1, double y1);
+      num x0, num y0, num x1, num y1);
   CanvasGradient createRadialGradient(
-      double x0, double y0, double r0, double x1, double y1, double r1);
+      num x0, num y0, num r0, num x1, num y1, num r1);
   CanvasPattern createPattern(Element image, [String repetition]);
 
   // shadows
-  double shadowOffsetX; // (default 0)
-  double shadowOffsetY; // (default 0)
-  double shadowBlur; // (default 0)
+  num shadowOffsetX; // (default 0)
+  num shadowOffsetY; // (default 0)
+  num shadowBlur; // (default 0)
   String shadowColor; // (default transparent black)
 
   // rects
-  void clearRect(double x, double y, double w, double h);
-  void fillRect(double x, double y, double w, double h);
-  void strokeRect(double x, double y, double w, double h);
+  void clearRect(num x, num y, num w, num h);
+  void fillRect(num x, num y, num w, num h);
+  void strokeRect(num x, num y, num w, num h);
 
   // path API (see also CanvasPathMethods)
   void beginPath();
@@ -95,22 +95,22 @@ abstract class CanvasRenderingContext2D
   void stroke();
   void drawFocusIfNeeded(Element element);
   void clip();
-  bool isPointInPath(double x, double y);
+  bool isPointInPath(num x, num y);
 
   // text (see also the CanvasDrawingStyles interface)
-  void fillText(String text, double x, double y, [double maxWidth]);
-  void strokeText(String text, double x, double y, [double maxWidth]);
+  void fillText(String text, num x, num y, [num maxWidth]);
+  void strokeText(String text, num x, num y, [num maxWidth]);
   TextMetrics measureText(String text);
 
   // drawing images
   void drawImage(
-      Element image, double dx_or_sx, double dy_or_sy, [double dw_or_sw,
-      double dh_or_sh, double dx, double dy, double dw, double dh]);
-  @overload void _drawImage_0(Element image, double dx, double dy);
+      Element image, num dx_or_sx, num dy_or_sy, [num dw_or_sw,
+      num dh_or_sh, num dx, num dy, num dw, num dh]);
+  @overload void _drawImage_0(Element image, num dx, num dy);
   @overload void _drawImage_1(
-      Element image, double dx, double dy, double dw, double dh);
-  @overload void _drawImage_2(Element image, double sx, double sy, double sw,
-      double sh, double dx, double dy, double dw, double dh);
+      Element image, num dx, num dy, num dw, num dh);
+  @overload void _drawImage_2(Element image, num sx, num sy, num sw,
+      num sh, num dx, num dy, num dw, num dh);
 
   // hit regions
   void addHitRegion({String id: '', Element control});
@@ -118,29 +118,29 @@ abstract class CanvasRenderingContext2D
   void clearHitRegions();
 
   // pixel manipulation
-  ImageData createImageData(Object sw_or_imageData, [double sh]);
-  @overload ImageData _createImageData_0(double sw, double sh);
+  ImageData createImageData(Object sw_or_imageData, [num sh]);
+  @overload ImageData _createImageData_0(num sw, num sh);
   @overload ImageData _createImageData_1(ImageData imagedata);
 
-  ImageData getImageData(double sx, double sy, double sw, double sh);
-  void putImageData(ImageData imagedata, double dx, double dy, [double dirtyX,
-      double dirtyY, double dirtyWidth, double dirtyHeight]);
-  @overload void _putImageData_0(ImageData imagedata, double dx, double dy,
-      double dirtyX, double dirtyY, double dirtyWidth, double dirtyHeight);
-  @overload void _putImageData_1(ImageData imagedata, double dx, double dy);
+  ImageData getImageData(num sx, num sy, num sw, num sh);
+  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX,
+      num dirtyY, num dirtyWidth, num dirtyHeight]);
+  @overload void _putImageData_0(ImageData imagedata, num dx, num dy,
+      num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight);
+  @overload void _putImageData_1(ImageData imagedata, num dx, num dy);
 }
 
 abstract class CanvasDrawingStyles {
   // line caps/joins
-  double lineWidth; // (default 1)
+  num lineWidth; // (default 1)
   String lineCap; // "butt", "round", "square" (default "butt")
   String lineJoin; // "round", "bevel", "miter" (default "miter")
-  double miterLimit; // (default 10)
+  num miterLimit; // (default 10)
 
   // dashed lines
-  void setLineDash(List<double> segments); // default empty
-  List<double> getLineDash();
-  double lineDashOffset;
+  void setLineDash(List<num> segments); // default empty
+  List<num> getLineDash();
+  num lineDashOffset;
 
   // text
   String font; // (default 10px sans-serif)
@@ -156,21 +156,21 @@ abstract class CanvasDrawingStyles {
 abstract class CanvasPathMethods {
   // shared path API methods
   void closePath();
-  void moveTo(double x, double y);
-  void lineTo(double x, double y);
-  void quadraticCurveTo(double cpx, double cpy, double x, double y);
+  void moveTo(num x, num y);
+  void lineTo(num x, num y);
+  void quadraticCurveTo(num cpx, num cpy, num x, num y);
   void bezierCurveTo(
-      double cp1x, double cp1y, double cp2x, double cp2y, double x, double y);
-  void arcTo(double x1, double y1, double x2, double y2, double radius);
-  void rect(double x, double y, double w, double h);
-  void arc(double x, double y, double radius, double startAngle,
-      double endAngle, [bool anticlockwise]);
+      num cp1x, num cp1y, num cp2x, num cp2y, num x, num y);
+  void arcTo(num x1, num y1, num x2, num y2, num radius);
+  void rect(num x, num y, num w, num h);
+  void arc(num x, num y, num radius, num startAngle,
+      num endAngle, [bool anticlockwise]);
 }
 
 @JsType()
 abstract class CanvasGradient {
   // opaque object
-  void addColorStop(double offset, String color);
+  void addColorStop(num offset, String color);
 }
 
 @JsType()
@@ -180,7 +180,7 @@ abstract class CanvasPattern {
 
 @JsType()
 abstract class TextMetrics {
-  double get width;
+  num get width;
 }
 
 @JsType()
