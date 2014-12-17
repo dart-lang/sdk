@@ -31,6 +31,7 @@ import '../../js_backend/codegen/codegen.dart';
 import '../../ssa/ssa.dart' as ssa;
 import '../../tree_ir/optimization/optimization.dart';
 import '../../cps_ir/cps_ir_nodes_sexpr.dart';
+import 'js_tree_builder.dart';
 
 class CspFunctionCompiler implements FunctionCompiler {
   final IrBuilderTask irBuilderTask;
@@ -165,8 +166,8 @@ class CspFunctionCompiler implements FunctionCompiler {
   }
 
   tree_ir.FunctionDefinition compileToTreeIR(cps.FunctionDefinition cpsNode) {
-    tree_builder.Builder builder = new tree_builder.Builder(
-        glue, compiler.internalError, compiler.identicalFunction);
+    tree_builder.Builder builder = new JsTreeBuilder(
+        compiler.internalError, compiler.identicalFunction, glue);
     tree_ir.FunctionDefinition treeNode = builder.buildFunction(cpsNode);
     assert(treeNode != null);
     traceGraph('Tree builder', treeNode);
@@ -234,5 +235,4 @@ class CspFunctionCompiler implements FunctionCompiler {
   SourceFile sourceFileOfElement(Element element) {
     return element.implementation.compilationUnit.script.file;
   }
-
 }

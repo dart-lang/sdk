@@ -10,7 +10,6 @@ import '../elements/elements.dart';
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
 import '../util/util.dart' show CURRENT_ELEMENT_SPANNABLE;
 import 'tree_ir_nodes.dart';
-import '../js_backend/codegen/glue.dart';
 
 /**
  * Builder translates from CPS-based IR to direct-style Tree.
@@ -46,8 +45,6 @@ import '../js_backend/codegen/glue.dart';
  */
 class Builder extends cps_ir.Visitor<Node> {
   final dart2js.InternalErrorFunction internalError;
-  final Element identicalFunction;
-  final Glue glue;
 
   /// Maps variable/parameter elements to the Tree variables that represent it.
   final Map<Element, List<Variable>> element2variables =
@@ -66,13 +63,11 @@ class Builder extends cps_ir.Visitor<Node> {
 
   Builder parent;
 
-  Builder(this.glue, this.internalError, this.identicalFunction);
+  Builder(this.internalError, [this.parent]);
 
-  Builder.inner(Builder parent)
-      : this.parent = parent,
-        this.glue = parent.glue,
-        this.internalError = parent.internalError,
-            this.identicalFunction = parent.identicalFunction;
+  Builder createInnerBuilder() {
+    return new Builder(internalError, this);
+  }
 
   /// Variable used in [buildPhiAssignments] as a temporary when swapping
   /// variables.
@@ -118,12 +113,14 @@ class Builder extends cps_ir.Visitor<Node> {
   ExecutableDefinition build(cps_ir.ExecutableDefinition node) {
     if (node is cps_ir.FieldDefinition) {
       return buildField(node);
-    } else if (node is cps_ir.ConstructorDefinition) {
-      return buildConstructor(node);
-    } else if (node is cps_ir.FunctionDefinition) {
+    } else {
+      assert(dart2js.invariant(
+          currentElement,
+          node is cps_ir.FunctionDefinition,
+          message: 'expected FunctionDefinition or FieldDefinition, '
+            ' found $node'));
       return buildFunction(node);
     }
-    assert(false);
     return null;
   }
 
@@ -303,7 +300,13 @@ class Builder extends cps_ir.Visitor<Node> {
     return first;
   }
 
-  visitNode(cps_ir.Node node) => throw "Unhandled node: $node";
+  visitNode(cps_ir.Node node) {
+    if (node is cps_ir.JsSpecificNode) {
+      throw "Cannot handle JS specific IR nodes in this visitor";
+    } else {
+      throw "Unhandled node: $node";
+    }
+  }
 
   Initializer visitFieldInitializer(cps_ir.FieldInitializer node) {
     returnContinuation = node.body.returnContinuation;
@@ -513,7 +516,7 @@ class Builder extends cps_ir.Visitor<Node> {
   }
 
   FunctionDefinition makeSubFunction(cps_ir.FunctionDefinition function) {
-    return new Builder.inner(this).buildFunction(function);
+    return createInnerBuilder().buildFunction(function);
   }
 
   Node visitCreateFunction(cps_ir.CreateFunction node) {
@@ -545,27 +548,6 @@ class Builder extends cps_ir.Visitor<Node> {
 
   Expression visitIsTrue(cps_ir.IsTrue node) {
     return getVariableReference(node.value);
-  }
-
-  dart2js.Selector get identicalSelector {
-    return new dart2js.Selector.call('identical', null, 2);
-  }
-
-  Expression visitIdentical(cps_ir.Identical node) {
-    return new InvokeStatic(
-        identicalFunction,
-        identicalSelector,
-        <Expression>[getVariableReference(node.left),
-                     getVariableReference(node.right)]);
-  }
-
-  Expression visitInterceptor(cps_ir.Interceptor node) {
-    Element getInterceptor = glue.getInterceptorMethod;
-    glue.registerUseInterceptorInCodegen();
-    return new InvokeStatic(
-        getInterceptor,
-        new dart2js.Selector.fromElement(getInterceptor),
-        <Expression>[getVariableReference(node.input)]);
   }
 }
 
