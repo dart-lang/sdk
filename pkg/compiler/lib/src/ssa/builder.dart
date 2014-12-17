@@ -934,6 +934,7 @@ class SsaBuilder extends ResolvedVisitor {
   final CodegenWorkItem work;
   final RuntimeTypes rti;
   final bool generateSourceMap;
+  bool inLazyInitializerExpression = false;
 
   /* This field is used by the native handler. */
   final NativeEmitter nativeEmitter;
@@ -1275,15 +1276,32 @@ class SsaBuilder extends ResolvedVisitor {
       return true;
     }
 
+    bool reductiveHeuristic() {
+      // The call is on a path which is executed rarely, so inline only if it
+      // does not make the program larger.
+      if (isCalledOnce(element)) {
+        return InlineWeeder.canBeInlined(function.node, -1, false);
+      }
+      // TODO(sra): Measure if inlining would 'reduce' the size.  One desirable
+      // case we miss my doing nothing is inlining very simple constructors
+      // where all fields are initialized with values from the arguments at this
+      // call site.  The code is slightly larger (`new Foo(1)` vs `Foo$(1)`) but
+      // that usually means the factory constructor is left unused and not
+      // emitted.
+      return false;
+    }
+
     bool heuristicSayGoodToGo() {
-      // Don't inline recursivly
+      // Don't inline recursively
       if (inliningStack.any((entry) => entry.function == function)) {
         return false;
       }
 
-      if (inExpressionOfThrow) return false;
-
       if (element.isSynthesized) return true;
+
+      if (inExpressionOfThrow || inLazyInitializerExpression) {
+        return reductiveHeuristic();
+      }
 
       if (cachedCanBeInlined == true) return cachedCanBeInlined;
 
@@ -1308,8 +1326,7 @@ class SsaBuilder extends ResolvedVisitor {
       // If a method is called only once, and all the methods in the
       // inlining stack are called only once as well, we know we will
       // save on output size by inlining this method.
-      TypesInferrer inferrer = compiler.typesTask.typesInferrer;
-      if (inferrer.isCalledOnce(element) && allInlinedFunctionsCalledOnce) {
+      if (isCalledOnce(element)) {
         useMaxInliningNodes = false;
       }
       bool canInline;
@@ -1362,6 +1379,12 @@ class SsaBuilder extends ResolvedVisitor {
 
   bool get allInlinedFunctionsCalledOnce {
     return inliningStack.isEmpty || inliningStack.last.allFunctionsCalledOnce;
+  }
+
+  bool isCalledOnce(Element element) {
+    if (!allInlinedFunctionsCalledOnce) return false;
+    TypesInferrer inferrer = compiler.typesTask.typesInferrer;
+    return inferrer.isCalledOnce(element);
   }
 
   inlinedFrom(Element element, f()) {
@@ -1519,6 +1542,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   HGraph buildLazyInitializer(VariableElement variable) {
+    inLazyInitializerExpression = true;
     ast.Node node = variable.node;
     openFunction(variable, node);
     assert(invariant(variable, variable.initializer != null,
