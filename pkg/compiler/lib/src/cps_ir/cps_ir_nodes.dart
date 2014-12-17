@@ -707,7 +707,7 @@ class ConstructorDefinition extends FunctionDefinition {
   // constructors.
   ConstructorDefinition.abstract(
       ConstructorElement element,
-      List<Parameter> parameters,
+      List<Definition> parameters,
       List<ConstantExpression> defaultParameterValues)
       : initializers = null,
         super.abstract(element, parameters, defaultParameterValues);
