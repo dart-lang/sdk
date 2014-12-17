@@ -157,7 +157,6 @@ Run "$executableName help <command>" for more information about a command.''';
         }
 
         // Step into the command.
-        var parent = command;
         argResults = argResults.command;
         command = commands[argResults.name];
         command._globalResults = topLevelResults;

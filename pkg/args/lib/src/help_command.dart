@@ -13,11 +13,11 @@ class HelpCommand extends Command {
   final name = "help";
   String get description =>
       "Display help information for ${runner.executableName}.";
-  String get usage => "${runner.executableName} help [command]";
+  String get invocation => "${runner.executableName} help [command]";
 
   void run() {
     // Show the default help if no command was specified.
-    if (options.rest.isEmpty) {
+    if (argResults.rest.isEmpty) {
       runner.printUsage();
       return;
     }
@@ -28,7 +28,7 @@ class HelpCommand extends Command {
     var command = null;
     var commandString = runner.executableName;
 
-    for (var name in options.rest) {
+    for (var name in argResults.rest) {
       if (commands.isEmpty) {
         command.usageException(
             'Command "$commandString" does not expect a subcommand.');

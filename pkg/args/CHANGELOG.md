@@ -1,3 +1,7 @@
+## 0.12.2+1
+
+* Fix the built-in `help` command for `CommandRunner`.
+
 ## 0.12.2
 
 * Add `CommandRunner` and `Command` classes which make it easy to build a

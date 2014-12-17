@@ -178,6 +178,41 @@ Run "test help" to see global options.
 """));
       });
     });
+
+    group("with help command", () {
+      test("with no command prints the usage", () {
+        expect(() => runner.run(["help"]), prints("""
+A test command runner.
+
+$_DEFAULT_USAGE
+"""));
+      });
+
+      test("with a command prints the usage for that command", () {
+        var command = new FooCommand();
+        runner.addCommand(command);
+
+        expect(() => runner.run(["help", "foo"]), prints("""
+Set a value.
+
+Usage: test foo [arguments]
+-h, --help    Print this usage information.
+
+Run "test help" to see global options.
+"""));
+    });
+
+      test("prints its own usage", () {
+        expect(() => runner.run(["help", "help"]), prints("""
+Display help information for test.
+
+Usage: test help [command]
+-h, --help    Print this usage information.
+
+Run "test help" to see global options.
+"""));
+      });
+    });
   });
 
   group("with a footer", () {
