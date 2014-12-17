@@ -527,9 +527,11 @@ class OldEmitter implements Emitter {
                 classData instanceof Array) {
               classData = fields = classData[0];
             }
+          // ${ClassBuilder.fieldEncodingDescription}.
           var s = fields.split(";");
           fields = s[1] == "" ? [] : s[1].split(",");
           supr = s[0];
+          // ${ClassBuilder.functionTypeEncodingDescription}.
           split = supr.split(":");
           if (split.length == 2) {
             supr = split[0];
