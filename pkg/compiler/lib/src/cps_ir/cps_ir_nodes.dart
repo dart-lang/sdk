@@ -565,7 +565,7 @@ class Continuation extends Definition<Continuation> implements InteriorNode {
 }
 
 abstract class ExecutableDefinition implements Node {
-  Expression get body;
+  RunnableBody get body;
 
   applyPass(Pass pass);
 }
@@ -573,16 +573,14 @@ abstract class ExecutableDefinition implements Node {
 // This is basically a function definition with an empty parameter list and a
 // field element instead of a function element and no const declarations, and
 // never a getter or setter, though that's less important.
-class FieldDefinition extends Node
-    implements InteriorNode, ExecutableDefinition {
+class FieldDefinition extends Node implements ExecutableDefinition {
   final FieldElement element;
-  final Continuation returnContinuation;
-  Expression body;
+  RunnableBody body;
 
-  FieldDefinition(this.element, this.returnContinuation, this.body);
+  FieldDefinition(this.element, this.body);
 
   FieldDefinition.withoutInitializer(this.element)
-      : this.returnContinuation = null;
+      : this.body = null;
 
   accept(Visitor visitor) => visitor.visitFieldDefinition(this);
   applyPass(Pass pass) => pass.rewriteFieldDefinition(this);
@@ -618,15 +616,22 @@ class ClosureVariable extends Definition {
   accept(Visitor v) => v.visitClosureVariable(this);
 }
 
+class RunnableBody implements InteriorNode {
+  Expression body;
+  final Continuation returnContinuation;
+  Node parent;
+  RunnableBody(this.body, this.returnContinuation);
+  accept(Visitor visitor) => visitor.visitRunnableBody(this);
+}
+
 /// A function definition, consisting of parameters and a body.  The parameters
 /// include a distinguished continuation parameter.
 class FunctionDefinition extends Node
-    implements InteriorNode, ExecutableDefinition {
+    implements ExecutableDefinition {
   final FunctionElement element;
-  final Continuation returnContinuation;
   /// Mixed list of [Parameter]s and [ClosureVariable]s.
   final List<Definition> parameters;
-  Expression body;
+  final RunnableBody body;
   final List<ConstDeclaration> localConstants;
 
   /// Values for optional parameters.
@@ -635,16 +640,19 @@ class FunctionDefinition extends Node
   /// Closure variables declared by this function.
   final List<ClosureVariable> closureVariables;
 
-  FunctionDefinition(this.element, this.returnContinuation,
-      this.parameters, this.body, this.localConstants,
-      this.defaultParameterValues, this.closureVariables);
+  FunctionDefinition(this.element,
+      this.parameters,
+      this.body,
+      this.localConstants,
+      this.defaultParameterValues,
+      this.closureVariables);
 
   FunctionDefinition.abstract(this.element,
                               this.parameters,
                               this.defaultParameterValues)
-      : this.returnContinuation = null,
-        this.localConstants = const <ConstDeclaration>[],
-        this.closureVariables = const <ClosureVariable>[];
+      : body = null,
+        localConstants = const <ConstDeclaration>[],
+        closureVariables = const <ClosureVariable>[];
 
   accept(Visitor visitor) => visitor.visitFunctionDefinition(this);
   applyPass(Pass pass) => pass.rewriteFunctionDefinition(this);
@@ -654,6 +662,52 @@ class FunctionDefinition extends Node
   /// If `true`, [body] and [returnContinuation] are `null` and [localConstants]
   /// is empty.
   bool get isAbstract => body == null;
+}
+
+abstract class Initializer extends Node {}
+
+class FieldInitializer implements Initializer {
+  final FieldElement element;
+  final RunnableBody body;
+  Node parent;
+
+  FieldInitializer(this.element, this.body);
+  accept(Visitor visitor) => visitor.visitFieldInitializer(this);
+}
+
+class SuperInitializer implements Initializer {
+  final ConstructorElement target;
+  final List<RunnableBody> arguments;
+  final Selector selector;
+  Node parent;
+  SuperInitializer(this.target, this.arguments, this.selector);
+  accept(Visitor visitor) => visitor.visitSuperInitializer(this);
+}
+
+class ConstructorDefinition extends FunctionDefinition {
+  final List<Initializer> initializers;
+
+  ConstructorDefinition(ConstructorElement element,
+                        List<Definition> parameters,
+                        RunnableBody body,
+                        this.initializers,
+                        List<ConstDeclaration> localConstants,
+                        List<ConstantExpression> defaultParameterValues,
+                        List<ClosureVariable> closureVariables)
+      : super(element, parameters, body, localConstants,
+              defaultParameterValues, closureVariables);
+
+  // 'Abstract' here means "has no body" and is used to represent external
+  // constructors.
+  ConstructorDefinition.abstract(
+      ConstructorElement element,
+      List<Parameter> parameters,
+      List<ConstantExpression> defaultParameterValues)
+      : initializers = null,
+        super.abstract(element, parameters, defaultParameterValues);
+
+  accept(Visitor visitor) => visitor.visitConstructorDefinition(this);
+  applyPass(Pass pass) => pass.rewriteConstructorDefinition(this);
 }
 
 List<Reference<Primitive>> _referenceList(Iterable<Primitive> definitions) {
@@ -670,10 +724,19 @@ abstract class Visitor<T> {
   T visitDefinition(Definition node) => visitNode(node);
   T visitPrimitive(Primitive node) => visitDefinition(node);
   T visitCondition(Condition node) => visitNode(node);
+  T visitRunnableBody(RunnableBody node) => visitNode(node);
 
   // Concrete classes.
   T visitFieldDefinition(FieldDefinition node) => visitNode(node);
   T visitFunctionDefinition(FunctionDefinition node) => visitNode(node);
+  T visitConstructorDefinition(ConstructorDefinition node) {
+    return visitFunctionDefinition(node);
+  }
+
+  // Initializers
+  T visitInitializer(Initializer node) => visitNode(node);
+  T visitFieldInitializer(FieldInitializer node) => visitInitializer(node);
+  T visitSuperInitializer(SuperInitializer node) => visitInitializer(node);
 
   // Expressions.
   T visitLetPrim(LetPrim node) => visitExpression(node);
@@ -719,10 +782,16 @@ abstract class RecursiveVisitor extends Visitor {
   // with the appropriate visits in this class (for example, visitLetCont),
   // while leaving other nodes for subclasses (i.e., visitLiteralList).
   visitNode(Node node) {
-    throw "RecursiveVisitor is stale, add missing visit overrides";
+    throw "$this is stale, add missing visit override for $node";
   }
 
   processReference(Reference ref) {}
+
+  processRunnableBody(RunnableBody node) {}
+  visitRunnableBody(RunnableBody node) {
+    processRunnableBody(node);
+    visit(node.body);
+  }
 
   processFieldDefinition(FieldDefinition node) {}
   visitFieldDefinition(FieldDefinition node) {
@@ -739,6 +808,27 @@ abstract class RecursiveVisitor extends Visitor {
     if (!node.isAbstract) {
       visit(node.body);
     }
+  }
+
+  processConstructorDefinition(ConstructorDefinition node) {}
+  visitConstructorDefinition(ConstructorDefinition node) {
+    processConstructorDefinition(node);
+    node.parameters.forEach(visit);
+    node.initializers.forEach(visit);
+    visit(node.body);
+  }
+
+  processFieldInitializer(FieldInitializer node) {}
+  visitFieldInitializer(FieldInitializer node) {
+    processFieldInitializer(node);
+    visit(node.body.body);
+  }
+
+  processSuperInitializer(SuperInitializer node) {}
+  visitSuperInitializer(SuperInitializer node) {
+    processSuperInitializer(node);
+    node.arguments.forEach(
+        (RunnableBody argument) => visit(argument.body));
   }
 
   // Expressions.
@@ -968,6 +1058,10 @@ class RegisterAllocator extends Visitor {
     }
   }
 
+  void visitRunnableBody(RunnableBody node) {
+    visit(node.body);
+  }
+
   void visitFunctionDefinition(FunctionDefinition node) {
     if (!node.isAbstract) {
       visit(node.body);
@@ -978,6 +1072,27 @@ class RegisterAllocator extends Visitor {
         allocate(param);
       }
     }
+  }
+
+  void visitConstructorDefinition(ConstructorDefinition node) {
+    if (!node.isAbstract) {
+      node.initializers.forEach(visit);
+      visit(node.body);
+    }
+    // Assign indices to unused parameters.
+    for (Definition param in node.parameters) {
+      if (param is Primitive) {
+        allocate(param);
+      }
+    }
+  }
+
+  void visitFieldInitializer(FieldInitializer node) {
+    visit(node.body.body);
+  }
+
+  void visitSuperInitializer(SuperInitializer node) {
+    node.arguments.forEach((RunnableBody argument) => visit(argument.body));
   }
 
   void visitLetPrim(LetPrim node) {

@@ -306,6 +306,22 @@ class Parameter extends Node {
 
 // EXPRESSIONS
 
+abstract class Initializer extends Expression {}
+
+class FieldInitializer extends Initializer {
+  final elements.FieldElement element;
+  final Expression body;
+
+  FieldInitializer(this.element, this.body);
+}
+
+class SuperInitializer extends Initializer {
+  final elements.ConstructorElement target;
+  final List<Argument> arguments;
+
+  SuperInitializer(this.target, this.arguments);
+}
+
 class FunctionExpression extends Expression implements ExecutableDefinition {
   final TypeAnnotation returnType;
   String name;
@@ -325,6 +341,15 @@ class FunctionExpression extends Expression implements ExecutableDefinition {
     // Function must have a name if it has a return type
     assert(returnType == null || name != null);
   }
+}
+
+class ConstructorDefinition extends FunctionExpression {
+  final List<Initializer> initializers;
+  final bool isConst;
+
+  ConstructorDefinition(Parameters parameters, Statement body,
+                        this.initializers, String name, this.isConst)
+      : super(parameters, body, name: name);
 }
 
 class Conditional extends Expression {

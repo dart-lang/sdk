@@ -186,6 +186,11 @@ stack_overflow_stacktrace_test: Fail
 closure_call_wrong_argument_count_negative_test: Skip
 label_test: Skip
 
+[ $compiler == dart2dart && $builder_tag == new_backend && $minified == true ]
+# This test fails in minified, because the type-argument is
+# renamed, but the symbol naming it it is not.
+type_variable_conflict2_test/01: RuntimeError # Issue 16180
+
 [ $compiler == dart2dart && $builder_tag == new_backend && $minified == false ]
 # This test happens not to fail in minified, because the type-argument is
 # renamed, but the unresolved reference to it is not.

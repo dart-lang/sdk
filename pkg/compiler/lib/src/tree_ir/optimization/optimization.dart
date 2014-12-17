@@ -15,6 +15,7 @@ abstract class Pass {
   void rewrite(ExecutableDefinition root) => root.applyPass(this);
   void rewriteFieldDefinition(FieldDefinition root);
   void rewriteFunctionDefinition(FunctionDefinition root);
+  void rewriteConstructorDefinition(ConstructorDefinition root);
 }
 
 
@@ -26,6 +27,10 @@ abstract class PassMixin implements Pass {
     rewriteExecutableDefinition(root);
   }
   void rewriteFunctionDefinition(FunctionDefinition root) {
+    if (root.isAbstract) return;
+    rewriteExecutableDefinition(root);
+  }
+  void rewriteConstructorDefinition(ConstructorDefinition root) {
     if (root.isAbstract) return;
     rewriteExecutableDefinition(root);
   }

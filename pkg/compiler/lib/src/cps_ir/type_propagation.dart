@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.optimizers;
+part of dart2js.cps_ir.optimizers;
 
 abstract class TypeSystem<T> {
   T get dynamicType;
@@ -91,7 +91,7 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
  * Implemented according to 'Constant Propagation with Conditional Branches'
  * by Wegman, Zadeck.
  */
-class TypePropagator<T> extends Pass {
+class TypePropagator<T> extends PassMixin {
   // TODO(karlklose): remove reference to _compiler. It is currently used to
   // compute [TypeMask]s.
   final types.DartTypes _dartTypes;
@@ -110,7 +110,8 @@ class TypePropagator<T> extends Pass {
                  this._internalError)
       : _types = <Node, _AbstractValue>{};
 
-  void _rewriteExecutableDefinition(ExecutableDefinition root) {
+  @override
+  void rewriteExecutableDefinition(ExecutableDefinition root) {
     // Set all parent pointers.
     new ParentVisitor().visit(root);
 
@@ -131,16 +132,6 @@ class TypePropagator<T> extends Pass {
     _TransformingVisitor transformer = new _TransformingVisitor(
         analyzer.reachableNodes, analyzer.values, _internalError);
     transformer.transform(root);
-  }
-
-  void rewriteFunctionDefinition(FunctionDefinition root) {
-    if (root.isAbstract) return;
-    _rewriteExecutableDefinition(root);
-  }
-
-  void rewriteFieldDefinition(FieldDefinition root) {
-    if (!root.hasInitializer) return;
-    _rewriteExecutableDefinition(root);
   }
 
   getType(Node node) => _types[node];
@@ -425,6 +416,10 @@ class _TypePropagationVisitor<T> extends Visitor {
   void visitNode(Node node) {
     internalError(NO_LOCATION_SPANNABLE,
         "_TypePropagationVisitor is stale, add missing visit overrides");
+  }
+
+  void visitRunnableBody(RunnableBody node) {
+    setReachable(node.body);
   }
 
   void visitFunctionDefinition(FunctionDefinition node) {

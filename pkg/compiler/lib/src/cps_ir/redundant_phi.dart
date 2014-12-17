@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.optimizers;
+part of dart2js.cps_ir.optimizers;
 
 /// Eliminate redundant phis from the given [FunctionDefinition].
 ///
@@ -12,21 +12,10 @@ part of dart2js.optimizers;
 /// (except for feedback). Redundant parameters are removed from the
 /// continuation signature, all invocations, and replaced within the
 /// continuation body.
-class RedundantPhiEliminator extends RecursiveVisitor implements Pass {
+class RedundantPhiEliminator extends RecursiveVisitor with PassMixin {
   final Set<Continuation> workSet = new Set<Continuation>();
 
-  void rewrite(final ExecutableDefinition root) => root.applyPass(this);
-
-  void rewriteFunctionDefinition(final FunctionDefinition root) {
-    if (root.isAbstract) return;
-    rewriteExecutableDefinition(root);
-  }
-
-  void rewriteFieldDefinition(final FieldDefinition root) {
-    if (!root.hasInitializer) return;
-    rewriteExecutableDefinition(root);
-  }
-
+  @override
   void rewriteExecutableDefinition(final ExecutableDefinition root) {
 
     // Set all parent pointers.

@@ -118,17 +118,20 @@ class Builder extends cps_ir.Visitor<Node> {
   ExecutableDefinition build(cps_ir.ExecutableDefinition node) {
     if (node is cps_ir.FieldDefinition) {
       return buildField(node);
+    } else if (node is cps_ir.ConstructorDefinition) {
+      return buildConstructor(node);
     } else if (node is cps_ir.FunctionDefinition) {
       return buildFunction(node);
     }
     assert(false);
+    return null;
   }
 
   FieldDefinition buildField(cps_ir.FieldDefinition node) {
     Statement body;
     if (node.hasInitializer) {
       currentElement = node.element;
-      returnContinuation = node.returnContinuation;
+      returnContinuation = node.body.returnContinuation;
 
       phiTempVar = new Variable(node.element, null);
 
@@ -154,10 +157,10 @@ class Builder extends cps_ir.Visitor<Node> {
       ++parameter.writeCount; // Being a parameter counts as a write.
       parameters.add(parameter);
     }
-    returnContinuation = node.returnContinuation;
 
     Statement body;
     if (!node.isAbstract) {
+      returnContinuation = node.body.returnContinuation;
       phiTempVar = new Variable(node.element, null);
       body = visit(node.body);
     }
@@ -165,6 +168,30 @@ class Builder extends cps_ir.Visitor<Node> {
     return new FunctionDefinition(node.element, parameters,
         body, node.localConstants, node.defaultParameterValues);
   }
+
+  ConstructorDefinition buildConstructor(cps_ir.ConstructorDefinition node) {
+    currentElement = node.element;
+    List<Variable> parameters = <Variable>[];
+    for (cps_ir.Definition p in node.parameters) {
+      Variable parameter = getFunctionParameter(p);
+      assert(parameter != null);
+      ++parameter.writeCount; // Being a parameter counts as a write.
+      parameters.add(parameter);
+    }
+    List<Initializer> initializers;
+    Statement body;
+    if (!node.isAbstract) {
+      initializers = node.initializers.map(visit).toList();
+      returnContinuation = node.body.returnContinuation;
+
+      phiTempVar = new Variable(node.element, null);
+      body = visit(node.body);
+    }
+
+    return new ConstructorDefinition(node.element, parameters,
+        body, initializers, node.localConstants, node.defaultParameterValues);
+  }
+
 
   List<Expression> translateArguments(List<cps_ir.Reference> args) {
     return new List<Expression>.generate(args.length,
@@ -278,6 +305,20 @@ class Builder extends cps_ir.Visitor<Node> {
 
   visitNode(cps_ir.Node node) => throw "Unhandled node: $node";
 
+  Initializer visitFieldInitializer(cps_ir.FieldInitializer node) {
+    returnContinuation = node.body.returnContinuation;
+    return new FieldInitializer(node.element, visit(node.body.body));
+  }
+
+  Initializer visitSuperInitializer(cps_ir.SuperInitializer node) {
+    List<Statement> arguments =
+        node.arguments.map((cps_ir.RunnableBody argument) {
+      returnContinuation = argument.returnContinuation;
+      return visit(argument.body);
+    }).toList();
+    return new SuperInitializer(node.target, node.selector, arguments);
+  }
+
   Statement visitLetPrim(cps_ir.LetPrim node) {
     Variable variable = getVariable(node.primitive);
 
@@ -294,6 +335,10 @@ class Builder extends cps_ir.Visitor<Node> {
     } else {
       return new Assign(variable, definition, visit(node.body));
     }
+  }
+
+  Statement visitRunnableBody(cps_ir.RunnableBody node) {
+    return visit(node.body);
   }
 
   Statement visitLetCont(cps_ir.LetCont node) {

@@ -91,7 +91,7 @@ part of tree_ir.optimization;
  * This may trigger a flattening of nested ifs in case the eliminated label
  * separated two ifs.
  */
-class StatementRewriter extends Visitor<Statement, Expression> implements Pass {
+class StatementRewriter extends Visitor<Statement, Expression> with PassMixin {
   // The binding environment.  The rightmost element of the list is the nearest
   // available enclosing binding.
   List<Assign> environment;
@@ -107,32 +107,41 @@ class StatementRewriter extends Visitor<Statement, Expression> implements Pass {
     return newJump != null ? newJump : jump;
   }
 
-  void rewrite(ExecutableDefinition definition) => definition.applyPass(this);
 
-  void rewriteFieldDefinition(FieldDefinition definition) {
-    if (!definition.hasInitializer) return;
-
-    environment = <Assign>[];
-    definition.body = visitStatement(definition.body);
-
-    // TODO(kmillikin):  Allow definitions that are not propagated.  Here,
-    // this means rebuilding the binding with a recursively unnamed definition,
-    // or else introducing a variable definition and an assignment.
-    assert(environment.isEmpty);
+  rewriteExecutableDefinition(ExecutableDefinition definition) {
+    definition.body = rewriteInEmptyEnvironment(definition.body);
   }
 
-  void rewriteFunctionDefinition(FunctionDefinition definition) {
+  void rewriteConstructorDefinition(ConstructorDefinition definition) {
     if (definition.isAbstract) return;
+    definition.initializers.forEach(visitExpression);
+    rewriteExecutableDefinition(definition);
+  }
 
+  Statement rewriteInEmptyEnvironment(Statement body) {
+    List<Assign> oldEnvironment = environment;
     environment = <Assign>[];
-    definition.body = visitStatement(definition.body);
 
+    Statement result = visitStatement(body);
     // TODO(kmillikin):  Allow definitions that are not propagated.  Here,
     // this means rebuilding the binding with a recursively unnamed definition,
     // or else introducing a variable definition and an assignment.
     assert(environment.isEmpty);
+    environment = oldEnvironment;
+    return result;
   }
 
+  Expression visitFieldInitializer(FieldInitializer node) {
+    node.body = rewriteInEmptyEnvironment(node.body);
+    return node;
+  }
+
+  Expression visitSuperInitializer(SuperInitializer node) {
+    for (int i = node.arguments.length - 1; i >= 0; --i) {
+      node.arguments[i] = rewriteInEmptyEnvironment(node.arguments[i]);
+    }
+    return node;
+  }
 
   Expression visitExpression(Expression e) => e.processed ? e : e.accept(this);
 

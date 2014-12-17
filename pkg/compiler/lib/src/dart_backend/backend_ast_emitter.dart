@@ -29,7 +29,7 @@ class BuilderContext<T> {
   final List<VariableDeclaration> variables = <VariableDeclaration>[];
 
   /// Maps variables to their name.
-  final Map<tree.Variable, String> variableNames = <tree.Variable, String>{};
+  final Map<tree.Variable, String> variableNames;
 
   /// Maps local constants to their name.
   final Map<VariableElement, String> constantNames =
@@ -59,15 +59,28 @@ class BuilderContext<T> {
   /// Labels that could not be eliminated using fallthrough.
   final Set<tree.Label> _usedLabels = new Set<tree.Label>();
 
+  final bool inInitializer;
+
   /// The first dart_tree statement that is not converted to a variable
   /// initializer.
   tree.Statement firstStatement;
 
-  BuilderContext() : usedVariableNames = new Set<String>();
+  BuilderContext() : usedVariableNames = new Set<String>(),
+                     inInitializer = false,
+                     variableNames = <tree.Variable, String>{};
 
   BuilderContext.inner(BuilderContext<T> parent)
       : this._parent = parent,
-        usedVariableNames = parent.usedVariableNames;
+        usedVariableNames = parent.usedVariableNames,
+        inInitializer = false,
+        variableNames = <tree.Variable, String>{};
+
+  BuilderContext.initializer(BuilderContext<T> parent)
+      : this._parent = parent,
+        usedVariableNames = parent.usedVariableNames,
+        inInitializer = true,
+        variableNames =
+            new Map<tree.Variable, String>.from(parent.variableNames);
 
   // TODO(johnniwinther): Fully encapsulate handling of parameter, variable
   // and local funciton declarations.
@@ -85,7 +98,7 @@ class BuilderContext<T> {
   String getVariableName(tree.Variable variable) {
     // If the variable belongs to an enclosing function, ask the parent emitter
     // for the variable name.
-    if (variable.host != currentElement) {
+    if (!inInitializer && variable.host != currentElement) {
       return _parent.getVariableName(variable);
     }
 
@@ -192,6 +205,8 @@ class ASTEmitter
                             BuilderContext<Statement> context) {
     if (definition is tree.FieldDefinition) {
       return emitField(definition, context);
+    } else if (definition is tree.ConstructorDefinition) {
+      return emitConstructor(definition, context);
     }
     assert(definition is tree.FunctionDefinition);
     return emitFunction(definition, context);
@@ -239,6 +254,87 @@ class ASTEmitter
     return new CallFunction(function, []);
   }
 
+  bool _recognizeTrailingReturn(Statement statement) {
+    if (statement is Return) {
+      Expression expr = statement.expression;
+      if (expr == null || expr is Literal && expr.value.isNull) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  FunctionExpression emitConstructor(tree.ConstructorDefinition definition,
+                                     BuilderContext<Statement> context) {
+    context.currentElement = definition.element;
+
+    Parameters parameters = emitRootParameters(definition, context);
+
+    // Declare parameters.
+    for (tree.Variable param in definition.parameters) {
+      context.variableNames[param] = param.element.name;
+      context.usedVariableNames.add(param.element.name);
+      context.declaredVariables.add(param);
+    }
+
+    List<Expression> initializers;
+    Statement body;
+
+    if (!definition.isAbstract) {
+      initializers =
+          definition.initializers.map((tree.Initializer initializer) {
+        return visitExpression(initializer, context);
+      }).toList();
+
+      context.firstStatement = definition.body;
+      visitStatement(definition.body, context);
+      context.removeTrailingReturn(_recognizeTrailingReturn);
+
+      // Some of the variable declarations have already been added
+      // if their first assignment could be pulled into the initializer.
+      // Add the remaining variable declarations now.
+      for (tree.Variable variable in context.variableNames.keys) {
+        if (!context.declaredVariables.contains(variable)) {
+          context.addDeclaration(variable);
+        }
+      }
+
+      // Add constant declarations.
+      List<VariableDeclaration> constants = <VariableDeclaration>[];
+      for (ConstDeclaration constDecl in definition.localConstants) {
+        if (!context.constantNames.containsKey(constDecl.element)) {
+          continue; // Discard unused constants declarations.
+        }
+        String name = context.getConstantName(constDecl.element);
+        Expression value =
+            ConstantEmitter.createExpression(constDecl.expression, context);
+        VariableDeclaration decl = new VariableDeclaration(name, value);
+        decl.element = constDecl.element;
+        constants.add(decl);
+      }
+
+      List<Statement> bodyParts = [];
+      if (constants.length > 0) {
+        bodyParts.add(new VariableDeclarations(constants, isConst: true));
+      }
+      if (context.variables.length > 0) {
+        bodyParts.add(new VariableDeclarations(context.variables));
+      }
+      bodyParts.addAll(context.statements);
+
+      body = new Block(bodyParts);
+
+    }
+    FunctionType functionType = context.currentElement.type;
+
+    return new ConstructorDefinition(
+        parameters,
+        body,
+        initializers,
+        context.currentElement.name, definition.element.isConst)
+        ..element = context.currentElement;
+  }
+
   FunctionExpression emitFunction(tree.FunctionDefinition definition,
                                   BuilderContext<Statement> context) {
     context.currentElement = definition.element;
@@ -258,15 +354,7 @@ class ASTEmitter
     } else {
       context.firstStatement = definition.body;
       visitStatement(definition.body, context);
-      context.removeTrailingReturn((Statement statement) {
-        if (statement is Return) {
-          Expression expr = statement.expression;
-          if (expr is Literal && expr.value.isNull) {
-            return true;
-          }
-        }
-        return false;
-      });
+      context.removeTrailingReturn(_recognizeTrailingReturn);
 
       // Some of the variable declarations have already been added
       // if their first assignment could be pulled into the initializer.
@@ -470,8 +558,17 @@ class ASTEmitter
   @override
   void visitReturn(tree.Return stmt,
                    BuilderContext<Statement> context) {
-    Expression inner = visitExpression(stmt.value, context);
-    context.addStatement(new Return(inner));
+    if (context.currentElement.isGenerativeConstructor &&
+        !context.inInitializer) {
+      assert(() {
+        tree.Expression value = stmt.value;
+        return value is tree.Constant && value.value.isNull;
+      });
+      context.addStatement(new Return(null));
+    } else {
+      Expression inner = visitExpression(stmt.value, context);
+      context.addStatement(new Return(inner));
+    }
   }
 
   @override
@@ -587,18 +684,23 @@ class ASTEmitter
                             TypeGenerator.createType(exp.type));
   }
 
-  List<Argument> emitArguments(tree.Invoke exp,
-                               BuilderContext<Statement> context) {
-    List<tree.Expression> args = exp.arguments;
-    int positionalArgumentCount = exp.selector.positionalArgumentCount;
+  List<Argument> emitArguments(List<Expression> arguments,
+                               Selector selector) {
+    int positionalArgumentCount = selector.positionalArgumentCount;
     List<Argument> result = new List<Argument>.generate(positionalArgumentCount,
-        (i) => visitExpression(exp.arguments[i], context));
-    for (int i = 0; i < exp.selector.namedArgumentCount; ++i) {
-      result.add(new NamedArgument(exp.selector.namedArguments[i],
-          visitExpression(
-              exp.arguments[positionalArgumentCount + i], context)));
+        (i) => arguments[i]);
+    for (int i = 0; i < selector.namedArgumentCount; ++i) {
+      result.add(new NamedArgument(selector.namedArguments[i],
+          arguments[positionalArgumentCount + i]));
     }
     return result;
+  }
+
+  List<Expression> visitArgumentList(List<tree.Expression> arguments,
+                                     BuilderContext context) {
+    return arguments
+        .map((tree.Expression argument) => visitExpression(argument, context))
+        .toList();
   }
 
   @override
@@ -616,8 +718,10 @@ class ASTEmitter
 
       case SelectorKind.CALL:
         return new CallStatic(
-            null, exp.target.name, emitArguments(exp, context))
-                   ..element = exp.target;
+            null, exp.target.name,
+            emitArguments(visitArgumentList(exp.arguments, context),
+                          exp.selector))
+            ..element = exp.target;
 
       default:
         throw "Unexpected selector kind: ${exp.selector.kind}";
@@ -626,7 +730,8 @@ class ASTEmitter
 
   Expression emitMethodCall(tree.Invoke exp, Receiver receiver,
                             BuilderContext<Statement> context) {
-    List<Argument> args = emitArguments(exp, context);
+    List<Argument> args =
+        emitArguments(visitArgumentList(exp.arguments, context), exp.selector);
     switch (exp.selector.kind) {
       case SelectorKind.CALL:
         if (exp.selector.name == "call") {
@@ -680,7 +785,8 @@ class ASTEmitter
   @override
   Expression visitInvokeConstructor(tree.InvokeConstructor exp,
                                     BuilderContext<Statement> context) {
-    List args = emitArguments(exp, context);
+    List<Argument> args =
+        emitArguments(visitArgumentList(exp.arguments, context), exp.selector);
     FunctionElement constructor = exp.target;
     String name = constructor.name.isEmpty ? null : constructor.name;
     return new CallNew(TypeGenerator.createType(exp.type),
@@ -749,6 +855,44 @@ class ASTEmitter
     context.declaredVariables.add(node.variable);
     context.addStatement(decl);
     visitStatement(node.next, context);
+  }
+
+  List<Statement> buildInInitializerContext(tree.Statement root,
+                                     BuilderContext context) {
+    BuilderContext inner = new BuilderContext<Statement>.initializer(context);
+    inner.currentElement = context.currentElement;
+    visitStatement(root, inner);
+    List<Statement> bodyParts;
+    for (tree.Variable variable in inner.variableNames.keys) {
+      if (!context.declaredVariables.contains(variable)) {
+        inner.addDeclaration(variable);
+      }
+    }
+    if (inner.variables.length > 0) {
+      bodyParts = new List<Statement>();
+      bodyParts.add(new VariableDeclarations(inner.variables));
+      bodyParts.addAll(inner.statements);
+    } else {
+      bodyParts = inner.statements;
+    }
+    return bodyParts;
+  }
+
+  @override
+  Expression visitFieldInitializer(tree.FieldInitializer node,
+                                   BuilderContext<Statement> context) {
+    return new FieldInitializer(node.element,
+        ensureExpression(buildInInitializerContext(node.body, context)));
+  }
+
+  @override
+  Expression visitSuperInitializer(tree.SuperInitializer node,
+                                   BuilderContext<Statement> context) {
+    List<Argument> arguments = node.arguments.map((tree.Statement argument) {
+      return ensureExpression(buildInInitializerContext(argument, context));
+    }).toList();
+    return new SuperInitializer(node.target,
+                                emitArguments(arguments, node.selector));
   }
 }
 

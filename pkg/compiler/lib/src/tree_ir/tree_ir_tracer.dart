@@ -7,6 +7,7 @@ library tree_ir_tracer;
 import 'dart:async' show EventSink;
 import '../tracer.dart';
 import 'tree_ir_nodes.dart';
+import 'optimization/optimization.dart';
 
 class Block {
   Label label;
@@ -52,6 +53,13 @@ class BlockCollector extends StatementVisitor {
 
   void collect(ExecutableDefinition node) {
     if (node.body != null) {
+      if (node is ConstructorDefinition) {
+        for (Initializer initializer in node.initializers) {
+          if (initializer is FieldInitializer) {
+            visitStatement(initializer.body);
+          }
+        }
+      }
       visitStatement(node.body);
     }
   }
@@ -142,9 +150,10 @@ class BlockCollector extends StatementVisitor {
     _addStatement(node);
     visitStatement(node.next);
   }
+
 }
 
-class TreeTracer extends TracerUtil with StatementVisitor {
+class TreeTracer extends TracerUtil with StatementVisitor, PassMixin {
   final EventSink<String> output;
 
   TreeTracer(this.output);
@@ -154,16 +163,23 @@ class TreeTracer extends TracerUtil with StatementVisitor {
   int statementCounter;
 
   void traceGraph(String name, ExecutableDefinition node) {
+    if (node is FunctionDefinition && node.isAbstract) return;
+    if (node is FieldDefinition && node.body == null) return;
+    tag("cfg", () {
+      printProperty("name", name);
+      rewrite(node);
+      collector.blocks.forEach(printBlock);
+    });
+  }
+
+  @override
+  void rewriteExecutableDefinition(ExecutableDefinition node) {
+    collector = new BlockCollector();
     names = new Names();
     statementCounter = 0;
     collector = new BlockCollector();
     collector.collect(node);
-    tag("cfg", () {
-      printProperty("name", name);
-      int blockCounter = 0;
-      collector.blocks.forEach(printBlock);
-    });
-    names = null;
+    collector.blocks.forEach(printBlock);
   }
 
   void printBlock(Block block) {
@@ -391,6 +407,14 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
 
   String visitFunctionExpression(FunctionExpression node) {
     return "function ${node.definition.element.name}";
+  }
+
+  String visitFieldInitializer(FieldInitializer node) {
+    throw "$node should not be visited by $this";
+  }
+
+  String visitSuperInitializer(SuperInitializer node) {
+    throw "$node should not be visited by $this";
   }
 
 }

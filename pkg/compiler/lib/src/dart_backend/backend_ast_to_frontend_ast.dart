@@ -343,6 +343,31 @@ class TreePrinter {
         setElement(result, element, exp);
       }
       precedence = EXPRESSION;
+    } else if (exp is FieldInitializer) {
+      precedence = EXPRESSION;
+      tree.Node receiver = makeIdentifier('this');
+      tree.Node selector = makeIdentifier(exp.element.name);
+      tree.Operator op = new tree.Operator(assignmentToken("="));
+      // We pass CALLEE to ensure we write eg.:
+      // class B { var x; B() : x = (() {return a;}) {}}
+      // Not the invalid:
+      // class B { var x; B() : x = () {return a;} {}}
+      result = new tree.SendSet(receiver, selector, op,
+                                singleton(makeExp(exp.body, CALLEE)));
+      setElement(result, exp.element, exp);
+    } else if (exp is SuperInitializer) {
+      precedence = EXPRESSION;
+      tree.Node receiver = makeIdentifier('super');
+      tree.NodeList arguments =
+          argList(exp.arguments.map(makeArgument).toList());
+      if (exp.target.name == "") {
+        result = new tree.Send(null, receiver, arguments);
+      } else {
+        result = new tree.Send(receiver,
+                               makeIdentifier(exp.target.name),
+                               arguments);
+      }
+      setElement(result, exp.target, exp);
     } else if (exp is BinaryOperator) {
       precedence = BINARY_PRECEDENCE[exp.operator];
       int deltaLeft = isAssociativeBinaryOperator(precedence) ? 0 : 1;
@@ -423,6 +448,25 @@ class TreePrinter {
           ? null
           : makeExp(exp.object, PRIMARY, beginStmt: beginStmt);
       result = new tree.Send(receiver, makeIdentifier(exp.fieldName));
+    } else if (exp is ConstructorDefinition) {
+      precedence = EXPRESSION;
+      tree.NodeList parameters = makeParameters(exp.parameters);
+      tree.NodeList initializers =
+          exp.initializers == null || exp.initializers.isEmpty
+          ? null
+          : makeList(",", exp.initializers.map(makeExpression).toList());
+      tree.Node body = exp.isConst || exp.body == null
+          ? new tree.EmptyStatement(semicolon)
+          : makeFunctionBody(exp.body);
+      result = new tree.FunctionExpression(constructorName(exp),
+          parameters,
+          body,
+          null,  // return type
+          makeFunctionModifiers(exp),
+          initializers,
+          null,  // get/set
+          null); // async modifier
+      setElement(result, exp.element, exp);
     } else if (exp is FunctionExpression) {
       precedence = PRIMARY;
       if (beginStmt && exp.name != null) {
@@ -1009,7 +1053,8 @@ class TreePrinter {
     if (exp.element == null) return makeEmptyModifiers();
     return makeModifiers(isExternal: exp.element.isExternal,
                          isStatic: exp.element.isStatic,
-                         isFactory: exp.element.isFactoryConstructor);
+                         isFactory: exp.element.isFactoryConstructor,
+                         isConst: exp.element.isConst);
   }
 
   tree.Node makeNodeForClassElement(elements.ClassElement cls) {
@@ -1179,6 +1224,16 @@ class TreePrinter {
         interfaces, openBrace, extendsKeyword,
         null, // No body.
         closeBrace);
+  }
+
+  tree.Node constructorName(ConstructorDefinition exp) {
+    String name = exp.name;
+    tree.Identifier className = makeIdentifier(exp.element.enclosingClass.name);
+    tree.Node result = name == ""
+        ? className
+        : new tree.Send(className, makeIdentifier(name));
+    setElement(result, exp.element, exp);
+    return result;
   }
 
   tree.Node functionName(FunctionExpression exp) {

@@ -412,4 +412,16 @@ class CodeGenerator extends tree_ir.Visitor<dynamic, js.Expression> {
     accumulator.add(new js.Return(visitExpression(node.value)));
   }
 
+  @override
+  js.Expression visitFieldInitializer(tree_ir.FieldInitializer node) {
+    return giveup(node);
+    // TODO: implement FieldInitializer
+  }
+
+  @override
+  js.Expression visitSuperInitializer(tree_ir.SuperInitializer node) {
+    return giveup(node);
+    // TODO: implement SuperInitializer
+  }
+
 }

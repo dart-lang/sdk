@@ -28,9 +28,9 @@ class CopyPropagator extends RecursiveVisitor with PassMixin {
     root.body = visitStatement(root.body);
   }
 
-  rewriteFunctionDefinition(FunctionDefinition function) {
-    if (function.isAbstract) return;
-    rewriteExecutableDefinition(function);
+  rewriteFunctionDefinition(FunctionDefinition node) {
+    if (node.isAbstract) return;
+    rewriteExecutableDefinition(node);
 
     // Try to propagate moving assignments into function parameters.
     // For example:
@@ -51,16 +51,54 @@ class CopyPropagator extends RecursiveVisitor with PassMixin {
     //   BODY
     // }
     // Cannot declare function as foo(x,x)!
-    function.parameters.forEach(visitVariable);
+    node.parameters.forEach(visitVariable);
 
     // Now do the propagation.
-    for (int i = 0; i < function.parameters.length; i++) {
-      Variable param = function.parameters[i];
+    for (int i = 0; i < node.parameters.length; i++) {
+      Variable param = node.parameters[i];
       Variable replacement = copyPropagateVariable(param);
       replacement.element = param.element; // Preserve parameter name.
-      function.parameters[i] = replacement;
+      node.parameters[i] = replacement;
     }
   }
+
+  rewriteConstructorDefinition(ConstructorDefinition node) {
+    if (node.isAbstract) return;
+    node.initializers.forEach(visitExpression);
+    rewriteExecutableDefinition(node);
+
+
+    // Try to propagate moving assignments into function parameters.
+    // For example:
+    // foo(x) {
+    //   var v1 = x;
+    //   BODY
+    // }
+    //   ==>
+    // foo(v1) {
+    //   BODY
+    // }
+
+    // Variables must not occur more than once in the parameter list, so
+    // invalidate all moving assignments that would propagate a parameter
+    // into another parameter. For example:
+    // foo(x,y) {
+    //   y = x;
+    //   BODY
+    // }
+    // Cannot declare function as foo(x,x)!
+    node.parameters.forEach(visitVariable);
+
+    // Now do the propagation.
+    for (int i = 0; i < node.parameters.length; i++) {
+      Variable param = node.parameters[i];
+      Variable replacement = copyPropagateVariable(param);
+      replacement.element = param.element; // Preserve parameter name.
+      node.parameters[i] = replacement;
+    }
+
+  }
+
 
   Statement visitBasicBlock(Statement node) {
     node = visitStatement(node);
@@ -188,6 +226,10 @@ class CopyPropagator extends RecursiveVisitor with PassMixin {
 
   void visitFunctionExpression(FunctionExpression node) {
     new CopyPropagator().rewrite(node.definition);
+  }
+
+  void visitFieldInitializer(FieldInitializer node) {
+    visitStatement(node.body);
   }
 
 }

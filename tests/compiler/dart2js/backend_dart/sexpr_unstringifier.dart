@@ -312,7 +312,8 @@ class SExpressionUnstringifier {
     Expression body = parseExpression();
 
     tokens.consumeEnd();
-    return new FunctionDefinition(element, cont, parameters, body, null, null,
+    return new FunctionDefinition(element, parameters,
+        new RunnableBody(body, cont), null, null,
         closureVariables);
   }
 

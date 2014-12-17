@@ -46,11 +46,11 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
 
   String visitFunctionDefinition(FunctionDefinition node) {
     String name = node.element.name;
-    namer.setReturnContinuation(node.returnContinuation);
+    namer.setReturnContinuation(node.body.returnContinuation);
     String closureVariables =
         node.closureVariables.map(namer.nameClosureVariable).join(' ');
     String parameters = node.parameters.map(visit).join(' ');
-    String body = indentBlock(() => visit(node.body));
+    String body = indentBlock(() => visit(node.body.body));
     return '$indentation(FunctionDefinition $name ($parameters) return'
         ' ($closureVariables)\n$body)';
   }
@@ -58,8 +58,8 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   String visitFieldDefinition(FieldDefinition node) {
     String name = node.element.name;
     if (node.hasInitializer) {
-      namer.setReturnContinuation(node.returnContinuation);
-      String body = indentBlock(() => visit(node.body));
+      namer.setReturnContinuation(node.body.returnContinuation);
+      String body = indentBlock(() => visit(node.body.body));
       return '$indentation(FieldDefinition $name (return)\n'
              '$body)';
     } else {
