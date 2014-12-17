@@ -11,6 +11,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -33,6 +34,80 @@ class AnalysisServerTest {
   MockServerChannel channel;
   AnalysisServer server;
   MemoryResourceProvider resourceProvider;
+
+  /**
+   * Verify that getAnalysisContextForSource returns the correct contexts even
+   * for sources that are included by multiple contexts.
+   *
+   * See dartbug.com/21898
+   */
+  Future fail_getAnalysisContextForSource_crossImports() {
+    // Subscribe to STATUS so we'll know when analysis is done.
+    server.serverServices = [ServerService.STATUS].toSet();
+    // Analyze project foo containing foo.dart and project bar containing
+    // bar.dart.
+    resourceProvider.newFolder('/foo');
+    resourceProvider.newFolder('/bar');
+    File foo = resourceProvider.newFile('/foo/foo.dart', '''
+libary foo;
+import "../bar/bar.dart";
+''');
+    Source fooSource = foo.createSource();
+    File bar = resourceProvider.newFile('/bar/bar.dart', '''
+library bar;
+import "../foo/foo.dart";
+''');
+    Source barSource = bar.createSource();
+    server.setAnalysisRoots('0', ['/foo', '/bar'], [], {});
+    return pumpEventQueue(40).then((_) {
+      expect(server.statusAnalyzing, isFalse);
+      // Make sure getAnalysisContext returns the proper context for each.
+      AnalysisContext fooContext =
+          server.getAnalysisContextForSource(fooSource);
+      expect(fooContext, isNotNull);
+      AnalysisContext barContext =
+          server.getAnalysisContextForSource(barSource);
+      expect(barContext, isNotNull);
+      expect(fooContext, isNot(same(barContext)));
+      expect(fooContext.getKindOf(fooSource), SourceKind.LIBRARY);
+      expect(fooContext.getKindOf(barSource), SourceKind.UNKNOWN);
+      expect(barContext.getKindOf(fooSource), SourceKind.UNKNOWN);
+      expect(barContext.getKindOf(barSource), SourceKind.LIBRARY);
+    });
+  }
+
+  /**
+   * Verify that getAnalysisContextForSource returns the correct contexts even
+   * for sources that haven't been analyzed yet.
+   *
+   * See dartbug.com/21898
+   */
+  Future fail_getAnalysisContextForSource_unanalyzed() {
+    // Subscribe to STATUS so we'll know when analysis is done.
+    server.serverServices = [ServerService.STATUS].toSet();
+    // Analyze project foo containing foo.dart and project bar containing
+    // bar.dart.
+    resourceProvider.newFolder('/foo');
+    resourceProvider.newFolder('/bar');
+    File foo = resourceProvider.newFile('/foo/foo.dart', 'library lib;');
+    Source fooSource = foo.createSource();
+    File bar = resourceProvider.newFile('/bar/bar.dart', 'library lib;');
+    Source barSource = bar.createSource();
+    server.setAnalysisRoots('0', ['/foo', '/bar'], [], {});
+    AnalysisContext fooContext = server.getAnalysisContextForSource(fooSource);
+    expect(fooContext, isNotNull);
+    AnalysisContext barContext = server.getAnalysisContextForSource(barSource);
+    expect(barContext, isNotNull);
+    expect(fooContext, isNot(same(barContext)));
+    return pumpEventQueue(40).then((_) {
+      expect(server.statusAnalyzing, isFalse);
+      // Make sure getAnalysisContext returned the proper context for each.
+      expect(fooContext.getKindOf(fooSource), SourceKind.LIBRARY);
+      expect(fooContext.getKindOf(barSource), SourceKind.UNKNOWN);
+      expect(barContext.getKindOf(fooSource), SourceKind.UNKNOWN);
+      expect(barContext.getKindOf(barSource), SourceKind.LIBRARY);
+    });
+  }
 
   void setUp() {
     channel = new MockServerChannel();
@@ -118,6 +193,35 @@ class AnalysisServerTest {
     return channel.sendRequest(request).then((Response response) {
       expect(response.id, equals('my22'));
       expect(response.error, isNull);
+    });
+  }
+
+  Future test_getAnalysisContextForSource() {
+    // Subscribe to STATUS so we'll know when analysis is done.
+    server.serverServices = [ServerService.STATUS].toSet();
+    // Analyze project foo containing foo.dart and project bar containing
+    // bar.dart.
+    resourceProvider.newFolder('/foo');
+    resourceProvider.newFolder('/bar');
+    File foo = resourceProvider.newFile('/foo/foo.dart', 'library lib;');
+    Source fooSource = foo.createSource();
+    File bar = resourceProvider.newFile('/bar/bar.dart', 'library lib;');
+    Source barSource = bar.createSource();
+    server.setAnalysisRoots('0', ['/foo', '/bar'], [], {});
+    return pumpEventQueue(40).then((_) {
+      expect(server.statusAnalyzing, isFalse);
+      // Make sure getAnalysisContext returns the proper context for each.
+      AnalysisContext fooContext =
+          server.getAnalysisContextForSource(fooSource);
+      expect(fooContext, isNotNull);
+      AnalysisContext barContext =
+          server.getAnalysisContextForSource(barSource);
+      expect(barContext, isNotNull);
+      expect(fooContext, isNot(same(barContext)));
+      expect(fooContext.getKindOf(fooSource), SourceKind.LIBRARY);
+      expect(fooContext.getKindOf(barSource), SourceKind.UNKNOWN);
+      expect(barContext.getKindOf(fooSource), SourceKind.UNKNOWN);
+      expect(barContext.getKindOf(barSource), SourceKind.LIBRARY);
     });
   }
 
