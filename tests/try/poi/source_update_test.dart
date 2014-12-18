@@ -12,6 +12,7 @@ import 'package:expect/expect.dart' show
     Expect;
 
 import 'source_update.dart' show
+    expandDiff,
     expandUpdates,
     splitFiles,
     splitLines;
@@ -68,4 +69,52 @@ Third line of file 2.
   Expect.stringEquals('["\\n"]', JSON.encode(splitLines("\n")));
 
   Expect.stringEquals('["\\n","1"]', JSON.encode(splitLines("\n1")));
+
+  Expect.stringEquals(
+      '["","",""]',
+      JSON.encode(expandUpdates(expandDiff(r"""
+<<<<<<<
+=======
+=======
+>>>>>>>
+"""))));
+
+  Expect.stringEquals(
+      r'["first\nv1\nlast\n","first\nv2\nlast\n","first\nv3\nlast\n"]',
+      JSON.encode(expandUpdates(expandDiff(r"""
+first
+<<<<<<<
+v1
+=======
+v2
+=======
+v3
+>>>>>>>
+last
+"""))));
+
+  Expect.stringEquals(
+      r'["v1\nlast\n","v2\nlast\n","v3\nlast\n"]',
+      JSON.encode(expandUpdates(expandDiff(r"""
+<<<<<<<
+v1
+=======
+v2
+=======
+v3
+>>>>>>>
+last
+"""))));
+
+  Expect.stringEquals(
+      r'["v1\n","v2\n","v3\n"]',
+      JSON.encode(expandUpdates(expandDiff(r"""
+<<<<<<<
+v1
+=======
+v2
+=======
+v3
+>>>>>>>
+"""))));
 }

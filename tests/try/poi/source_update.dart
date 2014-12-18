@@ -40,7 +40,7 @@ List<String> expandUpdates(List updates) {
   return result.map((e) => '$e').toList();
 }
 
-/// Returns [files] split into mulitple named files. The keys in the returned
+/// Returns [files] split into multiple named files. The keys in the returned
 /// map are filenames, the values are the files' content.
 ///
 /// Names are indicated by a line on the form "==> filename <==". Spaces are
@@ -111,4 +111,44 @@ Map<String, String> splitFiles(String files) {
 /// String.split("\n")).
 List<String> splitLines(String text) {
   return text.split(new RegExp('^', multiLine: true));
+}
+
+/// Expand a file with diffs in common merge conflict format into a [List] that
+/// can be passed to [expandUpdates].
+///
+/// For example:
+///     first
+///     <<<<<<<
+///     v1
+///     =======
+///     v2
+///     =======
+///     v3
+///     >>>>>>>
+///     last
+///
+/// Would be expanded to something equivalent to:
+///
+///     ["first\n", ["v1\n", "v2\n", "v3\n"], "last\n"]
+List expandDiff(String text) {
+  List result = [new StringBuffer()];
+  bool inDiff = false;
+  for (String line in splitLines(text)) {
+    if (inDiff) {
+      if (line.startsWith("=======")) {
+        result.last.add(new StringBuffer());
+      } else if (line.startsWith(">>>>>>>")) {
+        inDiff = false;
+        result.add(new StringBuffer());
+      } else {
+        result.last.last.write(line);
+      }
+    } else if (line.startsWith("<<<<<<<")) {
+      inDiff = true;
+      result.add(<StringBuffer>[new StringBuffer()]);
+    } else {
+      result.last.write(line);
+    }
+  }
+  return result;
 }
