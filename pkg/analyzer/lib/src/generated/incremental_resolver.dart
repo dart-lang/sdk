@@ -185,6 +185,12 @@ class DeclarationMatcher extends RecursiveAstVisitor {
         _enclosingClass.getNamedConstructor(constructorName.name);
     _processElement(element);
     _assertCompatibleParameters(node.parameters, element.parameters);
+    // TODO(scheglov) debug null Location
+    if (element != null) {
+      if (element.context == null || element.source == null) {
+        logger.log('Bad constructor element $element for $node in ${node.parent}');
+      }
+    }
     // matches, update the existing element
     ExecutableElement newElement = node.element;
     node.element = element;
