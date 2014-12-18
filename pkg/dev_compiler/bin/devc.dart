@@ -58,7 +58,8 @@ void main(List<String> argv) {
   }
 
   String levelName = args['log'].toUpperCase();
-  Level level = Level.LEVELS.firstWhere((Level l) => l.name == levelName);
+  Level level = Level.LEVELS.firstWhere((Level l) => l.name == levelName,
+      orElse: () => Level.SEVERE);
   var useColors = stdioType(stdout) == StdioType.TERMINAL;
   if (!args['dump-info']) setupLogger(level, print, useColors: useColors);
 
